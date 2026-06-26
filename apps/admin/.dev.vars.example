@@ -1,0 +1,11 @@
+# Local development env for apps/admin.
+# Copy to `.dev.vars` (gitignored) and fill in. NEVER commit real values.
+
+# Bypass Cloudflare Access JWT verification in local dev (no Access on localhost).
+CF_ACCESS_DISABLED=true
+
+# Your Cloudflare Access team domain and the Application Audience Tag (AUD)
+# for the admin app. In production, set these via `wrangler secret put`
+# (or wrangler [vars]) — they are required for the in-Worker JWT verification.
+CF_ACCESS_TEAM_DOMAIN=your-team.cloudflareaccess.com
+CF_ACCESS_AUD=00000000000000000000000000000000

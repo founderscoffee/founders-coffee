@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "founders-coffee-admin",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  // Custom server entry (src/server.ts) wraps the TanStack Start handler with the
+  // Cloudflare Access JWT guard. See src/access-guard.ts.
+  "main": "src/server.ts",
+  // Disable the *.workers.dev route so the Worker is reachable ONLY through the
+  // Access-gated route/domain — closes the edge-Access bypass via the raw Worker URL.
+  "workers_dev": false
+}
