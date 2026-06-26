@@ -17,10 +17,9 @@ export interface HandlerEnv extends AuthEnv {
  * (header-based so we don't have to parse/clone the request body).
  */
 const TURNSTILE_SUFFIXES = [
-  '/email-otp/send-otp',
+  '/send-verification-otp',
   '/sign-in/email-otp',
-  '/sign-up/email',
-  '/forget-password',
+  '/verify-email',
 ];
 
 function isTurnstileGated(pathname: string, method: string): boolean {

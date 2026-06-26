@@ -1,0 +1,17 @@
+{
+  "name": "auth-test",
+  "main": "./src/test-entry.ts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "db",
+      "database_id": "test"
+    }
+  ],
+  "vars": {
+    "BETTER_AUTH_SECRET": "test-secret-at-least-thirty-two-characters-long",
+    "APP_URL": "http://localhost:3000"
+  }
+}
