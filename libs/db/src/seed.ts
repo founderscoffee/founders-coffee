@@ -16,9 +16,10 @@ import type { NewCity, NewMarket } from './schema.js';
  * a redeploy. `seed()` only ever INSERTs-if-absent, so re-running it never
  * overwrites edits an admin has made.
  *
- * Locale/direction: the launch default for both DZ and MA is French (`fr-DZ` /
- * `fr-MA`, LTR) — the working language of the Maghreb founder/tech ecosystem.
- * Arabic (`ar-DZ`, `ar-MA`, RTL) ships as a selectable locale (P0-009 i18n).
+ * Locale/direction: Arabic-first (SRS §8.6) — both DZ and MA default to `ar`
+ * (Modern Standard Arabic, RTL), with `fr`/`en` selectable. Language is
+ * language-level (not region-variant); region concerns (timezone, currency)
+ * stay on the market.
  */
 
 export const SEED_MARKETS: readonly NewMarket[] = [
@@ -26,10 +27,10 @@ export const SEED_MARKETS: readonly NewMarket[] = [
     code: 'DZ',
     name: 'Algeria',
     slug: 'algeria',
-    defaultLocale: 'fr-DZ',
+    defaultLocale: 'ar',
     defaultCurrency: 'DZD',
     timezone: 'Africa/Algiers',
-    direction: 'ltr',
+    direction: 'rtl',
     state: 'active',
     featureFlags: {
       events: true,
@@ -42,10 +43,10 @@ export const SEED_MARKETS: readonly NewMarket[] = [
     code: 'MA',
     name: 'Morocco',
     slug: 'morocco',
-    defaultLocale: 'fr-MA',
+    defaultLocale: 'ar',
     defaultCurrency: 'MAD',
     timezone: 'Africa/Casablanca',
-    direction: 'ltr',
+    direction: 'rtl',
     state: 'open',
     featureFlags: {
       events: true,

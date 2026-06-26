@@ -18,8 +18,8 @@ describe('libs/db seed (real D1 via Miniflare)', () => {
     const dz = rows.find((m) => m.code === 'DZ');
     expect(dz?.state).toBe('active');
     expect(dz?.defaultCurrency).toBe('DZD');
-    expect(dz?.defaultLocale).toBe('fr-DZ');
-    expect(dz?.direction).toBe('ltr');
+    expect(dz?.defaultLocale).toBe('ar');
+    expect(dz?.direction).toBe('rtl');
     expect(dz?.featureFlags).toEqual({
       events: true,
       hackathons: false,
