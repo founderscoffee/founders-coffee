@@ -11,58 +11,59 @@ import { AppError, err, ok, type Result } from './result.js';
 export type CurrencyCode = 'DZD' | 'MAD' | 'EGP' | 'SAR' | 'AED';
 
 export interface Money {
-  readonly amount_minor: number; // integer minor units (e.g., centimes)
+  readonly amount_minor: number;
   readonly currency: CurrencyCode;
 }
 
 const MINOR_UNITS_PER_MAJOR = 100;
 
 /** Create a Money value, enforcing integer minor units. Throws on non-integer input. */
-export function createMoney(
+export const createMoney = (
   amount_minor: number,
   currency: CurrencyCode,
-): Money {
+): Money => {
   if (!Number.isInteger(amount_minor)) {
     throw new Error(
       `Money.amount_minor must be an integer (minor units), received ${amount_minor}`,
     );
   }
   return { amount_minor, currency };
-}
+};
 
 /** Format a Money value as a human-readable string, e.g. `12.50 DZD`. */
-export function moneyToString({ amount_minor, currency }: Money): string {
+export const moneyToString = ({ amount_minor, currency }: Money): string => {
   const major = Math.trunc(amount_minor / MINOR_UNITS_PER_MAJOR);
   const minor = Math.abs(amount_minor % MINOR_UNITS_PER_MAJOR);
   return `${major}.${String(minor).padStart(2, '0')} ${currency}`;
-}
+};
 
 /** A zero Money value in the given currency. */
-export function zeroMoney(currency: CurrencyCode): Money {
-  return { amount_minor: 0, currency };
-}
+export const zeroMoney = (currency: CurrencyCode): Money => ({
+  amount_minor: 0,
+  currency,
+});
 
 /** Add two same-currency Money values. Throws on currency mismatch. */
-export function addMoney(a: Money, b: Money): Money {
+export const addMoney = (a: Money, b: Money): Money => {
   assertSameCurrency(a, b);
   return { amount_minor: a.amount_minor + b.amount_minor, currency: a.currency };
-}
+};
 
 /** Subtract two same-currency Money values. Throws on currency mismatch. */
-export function subtractMoney(a: Money, b: Money): Money {
+export const subtractMoney = (a: Money, b: Money): Money => {
   assertSameCurrency(a, b);
   return { amount_minor: a.amount_minor - b.amount_minor, currency: a.currency };
-}
+};
 
 /**
  * Result-based creation: returns `err` instead of throwing for invalid input.
  * Prefer this inside server functions (which return Result); use `createMoney`
  * only where throwing is acceptable (e.g., hard-coded constants).
  */
-export function createMoneySafe(
+export const createMoneySafe = (
   amount_minor: number,
   currency: CurrencyCode,
-): Result<Money> {
+): Result<Money> => {
   if (!Number.isInteger(amount_minor)) {
     return err(
       new AppError(
@@ -72,10 +73,10 @@ export function createMoneySafe(
     );
   }
   return ok({ amount_minor, currency });
-}
+};
 
-function assertSameCurrency(a: Money, b: Money): void {
+const assertSameCurrency = (a: Money, b: Money): void => {
   if (a.currency !== b.currency) {
     throw new Error(`Money currency mismatch: ${a.currency} vs ${b.currency}`);
   }
-}
+};

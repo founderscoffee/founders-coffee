@@ -6,11 +6,10 @@ import { adminClient, emailOTPClient } from 'better-auth/client/plugins';
  * (TanStack Query). Passwordless email-OTP + admin (RBAC) client plugins mirror
  * the server config.
  */
-export function createAuthClient(opts?: { baseURL?: string }) {
-  return createBetterAuthClient({
+export const createAuthClient = (opts?: { baseURL?: string }) =>
+  createBetterAuthClient({
     ...(opts?.baseURL ? { baseURL: opts.baseURL } : {}),
     plugins: [emailOTPClient(), adminClient()],
   });
-}
 
 export type AuthClient = ReturnType<typeof createAuthClient>;

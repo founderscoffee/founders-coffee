@@ -112,6 +112,8 @@ If you need data in a component that the current hook doesn't provide → add/ex
 - **Strict TypeScript.** No `any`. No `@ts-ignore`/`@ts-expect-error` without an inline justification comment. `noUnusedLocals`, `noImplicitReturns`, strict null checks — on.
 - **Naming:** clear, domain-aligned, no abbreviations except well-known ones (`id`, `url`). Boolean props prefixed `is`/`has`/`can`.
 - **Functions:** small, single-purpose, pure where possible. Side effects live in server functions / repositories, not in components or domain logic.
+- **Arrow functions only.** Declare all functions, methods, and components as arrow functions (`const f = () => {}`), including object-literal methods and class methods (use arrow class fields so `this` binds to the instance). Exceptions: generator functions (`function*`) and any case where arrow syntax would change `this` binding.
+- **No inline comments.** Do not write `//` line/inline comments — names and structure are the documentation. JSDoc block comments (`/** */`) for public API docs are encouraged; toolchain directive comments (`eslint-disable`, `@ts-*`) are exempt.
 - **`libs/domain` is pure:** no Drizzle, no `Env`, no `fetch`. It takes inputs and returns outputs. I/O stays in `libs/db` and `libs/server-fns`.
 - **Error handling:** use the `Result`/`Error` envelope from `libs/core`. Server functions return typed errors via the envelope, never raw throws that reach the client. See §7.
 - **No dead code, no commented-out code, no `console.log`** in committed code. Use the structured logger (`libs/observability`).

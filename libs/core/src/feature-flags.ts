@@ -15,14 +15,15 @@ export type FeatureFlag = (typeof FEATURE_FLAGS)[number];
 export type FeatureFlags = Readonly<Record<FeatureFlag, boolean>>;
 
 /** Read a single flag from a market's flag set. */
-export function isFeatureEnabled(
+export const isFeatureEnabled = (
   flags: FeatureFlags,
   flag: FeatureFlag,
-): boolean {
-  return flags[flag];
-}
+): boolean => flags[flag];
 
 /** Convenience: all flags off (used for `dark` markets). */
-export function allFlagsOff(): FeatureFlags {
-  return { events: false, hackathons: false, payments: false, recruiting: false };
-}
+export const allFlagsOff = (): FeatureFlags => ({
+  events: false,
+  hackathons: false,
+  payments: false,
+  recruiting: false,
+});

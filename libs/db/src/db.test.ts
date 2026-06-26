@@ -54,7 +54,7 @@ describe('libs/db (real D1 via Miniflare)', () => {
 
     const userRow = await db.select().from(user).where(eq(user.id, 'usr_m1')).all();
     expect(userRow[0]?.email).toBe('founder@example.dz');
-    expect(userRow[0]?.role).toBe('member'); // default role applied
+    expect(userRow[0]?.role).toBe('member');
   });
 
   it('batch executes statements atomically', async () => {

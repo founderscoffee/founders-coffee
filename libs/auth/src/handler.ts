@@ -16,25 +16,18 @@ export interface HandlerEnv extends AuthEnv {
  * The client sends the Turnstile token in the `cf-turnstile-response` header
  * (header-based so we don't have to parse/clone the request body).
  */
-const TURNSTILE_SUFFIXES = [
-  '/send-verification-otp',
-  '/sign-in/email-otp',
-  '/verify-email',
-];
+const TURNSTILE_SUFFIXES = ['/send-verification-otp', '/sign-in/email-otp', '/verify-email'];
 
-function isTurnstileGated(pathname: string, method: string): boolean {
-  return (
-    method === 'POST' &&
-    TURNSTILE_SUFFIXES.some((suffix) => pathname.endsWith(suffix))
-  );
-}
+const isTurnstileGated = (pathname: string, method: string): boolean =>
+  method === 'POST' &&
+  TURNSTILE_SUFFIXES.some((suffix) => pathname.endsWith(suffix));
 
 /**
  * Build the Better Auth HTTP handler for an app, with Turnstile gating on the
  * brute-force endpoints. Construct per request (the handler is cheap; the auth
  * instance inside must not be a module singleton — see createAuth).
  */
-export function createAuthHandler(env: HandlerEnv) {
+export const createAuthHandler = (env: HandlerEnv) => {
   const { auth } = createAuth(env);
   const turnstile: TurnstileVerifier =
     env.TURNSTILE_DISABLED === 'true' || !env.TURNSTILE_SECRET_KEY
@@ -57,4 +50,4 @@ export function createAuthHandler(env: HandlerEnv) {
     }
     return auth.handler(request);
   };
-}
+};

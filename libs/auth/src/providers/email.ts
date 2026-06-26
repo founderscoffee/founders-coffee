@@ -29,12 +29,10 @@ export interface EmailProvider {
 export class DevEmailProvider implements EmailProvider {
   readonly sent: SendOtpArgs[] = [];
 
-  sendOtp(args: SendOtpArgs): void {
+  sendOtp = (args: SendOtpArgs): void => {
     this.sent.push(args);
-    // Dev-only OTP printer — the whole point of this provider is surfacing the
-    // code locally so a developer can sign in. (libs/observability lands later.)
     console.log(
       `[DevEmailProvider] email-OTP for ${args.email} (${args.type}): ${args.otp}`,
     );
-  }
+  };
 }

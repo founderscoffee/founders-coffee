@@ -20,12 +20,10 @@ export interface AdminEnv {
   CF_ACCESS_DISABLED?: string;
 }
 
-// jose's createRemoteJWKSet caches the fetched keys with a TTL, so a single
-// module-level instance per team domain is efficient across requests/isolates.
 let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 let jwksTeamDomain = '';
 
-function getJwks(teamDomain: string): ReturnType<typeof createRemoteJWKSet> {
+const getJwks = (teamDomain: string): ReturnType<typeof createRemoteJWKSet> => {
   if (!jwks || jwksTeamDomain !== teamDomain) {
     jwks = createRemoteJWKSet(
       new URL(`https://${teamDomain}/cdn-cgi/access/certs`),
@@ -33,17 +31,23 @@ function getJwks(teamDomain: string): ReturnType<typeof createRemoteJWKSet> {
     jwksTeamDomain = teamDomain;
   }
   return jwks;
-}
+};
+
+const forbidden = (message: string): Response =>
+  new Response(JSON.stringify({ error: message }), {
+    status: 403,
+    headers: { 'content-type': 'application/json' },
+  });
 
 /**
  * Returns a 403 Response to short-circuit the request, or `null` to allow it
  * through to the app handler.
  */
-export async function verifyAccessJwt(
+export const verifyAccessJwt = async (
   request: Request,
   env: AdminEnv,
-): Promise<Response | null> {
-  if (env.CF_ACCESS_DISABLED === 'true') return null; // local dev only
+): Promise<Response | null> => {
+  if (env.CF_ACCESS_DISABLED === 'true') return null;
 
   const token = request.headers.get('Cf-Access-Jwt-Assertion');
   if (!token) return forbidden('Missing Cf-Access-Jwt-Assertion');
@@ -58,15 +62,8 @@ export async function verifyAccessJwt(
       audience: env.CF_ACCESS_AUD,
       algorithms: ['RS256'],
     });
-    return null; // valid — allow
+    return null;
   } catch {
     return forbidden('Invalid Access token');
   }
-}
-
-function forbidden(message: string): Response {
-  return new Response(JSON.stringify({ error: message }), {
-    status: 403,
-    headers: { 'content-type': 'application/json' },
-  });
-}
+};

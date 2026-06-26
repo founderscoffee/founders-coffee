@@ -80,12 +80,10 @@ export const user = sqliteTable('user', {
     .notNull()
     .default(false),
   image: text('image'),
-  // admin plugin
   role: text('role').notNull().default('member'),
   banned: integer('banned', { mode: 'boolean' }).default(false),
   banReason: text('ban_reason'),
   banExpires: integer('ban_expires', { mode: 'timestamp' }),
-  // our additional fields (SRS FR-A3 — global identity, market-scoped home)
   homeMarketCode: text('home_market_code').references(() => markets.code),
   homeCityId: text('home_city_id'),
   localePref: text('locale_pref'),
@@ -110,7 +108,6 @@ export const session = sqliteTable('session', {
   expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
-  // admin plugin
   impersonatedBy: text('impersonated_by'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
@@ -141,7 +138,6 @@ export const account = sqliteTable('account', {
     mode: 'timestamp',
   }),
   scope: text('scope'),
-  // present for credential accounts; unused under passwordless but part of BA's schema
   password: text('password'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()

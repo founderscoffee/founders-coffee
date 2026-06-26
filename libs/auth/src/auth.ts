@@ -44,7 +44,7 @@ export interface AuthDeps {
  * Auth model (FR-A4/D4): passwordless email-OTP + OAuth (Google/GitHub/LinkedIn);
  * sessions in D1 (never KV); D1-backed auth rate-limiting; strict account linking.
  */
-export function createAuth(env: AuthEnv, deps: AuthDeps = {}) {
+export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
   const db = createDb(env.DB);
 
@@ -87,10 +87,6 @@ export function createAuth(env: AuthEnv, deps: AuthDeps = {}) {
     rateLimit: { storage: 'database' },
     plugins: [
       emailOTP({
-        // Fire synchronously so the code is captured/logged before the response
-        // returns (BA does not guarantee awaiting this). The real provider will
-        // use `ctx.waitUntil` to avoid timing attacks. Async signature matches
-        // Better Auth's expected `Promise<void>` callback type.
         sendVerificationOTP: async ({ email, otp, type }) => {
           emailProvider.sendOtp({ email, otp, type });
         },
@@ -106,14 +102,16 @@ export function createAuth(env: AuthEnv, deps: AuthDeps = {}) {
   });
 
   return { auth, emailProvider };
-}
+};
 
 export type AuthInstance = ReturnType<typeof createAuth>['auth'];
 
 /** True if at least one OAuth provider is configured (drives UI: show social buttons). */
-export function hasSocialProviders(env: AuthEnv): boolean {
+export const hasSocialProviders = (env: AuthEnv): boolean => {
   const envVars = env as unknown as Record<string, string | undefined>;
   return (['GOOGLE', 'GITHUB', 'LINKEDIN'] as const).some(
-    (p) => optionalEnv(envVars, `${p}_CLIENT_ID`) && optionalEnv(envVars, `${p}_CLIENT_SECRET`),
+    (p) =>
+      optionalEnv(envVars, `${p}_CLIENT_ID`) &&
+      optionalEnv(envVars, `${p}_CLIENT_SECRET`),
   );
-}
+};

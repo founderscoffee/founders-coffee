@@ -16,9 +16,9 @@ const VALID_ENVIRONMENTS: readonly AppEnvironment[] = [
   'production',
 ];
 
-export function createConfig(
+export const createConfig = (
   input: Partial<AppConfig> & Pick<AppConfig, 'name'>,
-): AppConfig {
+): AppConfig => {
   const env = input.env ?? 'development';
   if (!VALID_ENVIRONMENTS.includes(env)) {
     throw new Error(`Invalid AppEnvironment: ${String(env)}`);
@@ -28,4 +28,4 @@ export function createConfig(
     env,
     defaultMarketCode: input.defaultMarketCode ?? 'DZ',
   };
-}
+};

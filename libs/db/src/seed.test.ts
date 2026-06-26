@@ -49,7 +49,6 @@ describe('libs/db seed (real D1 via Miniflare)', () => {
     expect(maCities.map((c) => c.slug)).toContain('casablanca');
     expect(maCities.length).toBe(5);
 
-    // every seeded city references a seeded market
     const allCities = await db.select().from(cities).all();
     const codes = new Set(SEED_MARKETS.map((m) => m.code));
     for (const c of allCities) expect(codes.has(c.marketCode)).toBe(true);

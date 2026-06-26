@@ -11,11 +11,14 @@ export interface TurnstileVerifier {
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
-/** Production verifier: calls Cloudflare Turnstile siteverify. */
+/** Production verifier: calls Cloudflare Turnstile siteverify. Fails closed on error. */
 export class TurnstileSiteVerifier implements TurnstileVerifier {
   constructor(private readonly secretKey: string) {}
 
-  async verify(token: string | null, remoteIp?: string): Promise<boolean> {
+  verify = async (
+    token: string | null,
+    remoteIp?: string,
+  ): Promise<boolean> => {
     if (!token) return false;
     const body = new URLSearchParams({ secret: this.secretKey, response: token });
     if (remoteIp) body.set('remoteip', remoteIp);
@@ -24,15 +27,12 @@ export class TurnstileSiteVerifier implements TurnstileVerifier {
       const data = (await res.json()) as { success: boolean };
       return data.success === true;
     } catch {
-      // Fail closed — a network error must not let a request through.
       return false;
     }
-  }
+  };
 }
 
 /** Dev verifier: always passes. Used when `TURNSTILE_DISABLED=true` (local dev). */
 export class DevTurnstileVerifier implements TurnstileVerifier {
-  async verify(): Promise<boolean> {
-    return true;
-  }
+  verify = async (): Promise<boolean> => true;
 }

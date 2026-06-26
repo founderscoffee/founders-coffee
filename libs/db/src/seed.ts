@@ -57,30 +57,26 @@ export const SEED_MARKETS: readonly NewMarket[] = [
 ];
 
 /** Build a seeded city row with a stable, globally-unique id. */
-function city(
+const city = (
   marketCode: NewCity['marketCode'],
   slug: string,
   name: string,
   timezone: string,
-): NewCity {
-  return {
-    id: `${marketCode.toLowerCase()}_${slug}`,
-    marketCode,
-    name,
-    slug,
-    timezone,
-  };
-}
+): NewCity => ({
+  id: `${marketCode.toLowerCase()}_${slug}`,
+  marketCode,
+  name,
+  slug,
+  timezone,
+});
 
 /** Major pre-seeded cities per market (FR-G5). Both countries are single-timezone. */
 export const SEED_CITIES: readonly NewCity[] = [
-  // 🇩🇿 Algeria
   city('DZ', 'algiers', 'Alger', 'Africa/Algiers'),
   city('DZ', 'oran', 'Oran', 'Africa/Algiers'),
   city('DZ', 'constantine', 'Constantine', 'Africa/Algiers'),
   city('DZ', 'annaba', 'Annaba', 'Africa/Algiers'),
   city('DZ', 'blida', 'Blida', 'Africa/Algiers'),
-  // 🇲🇦 Morocco
   city('MA', 'casablanca', 'Casablanca', 'Africa/Casablanca'),
   city('MA', 'rabat', 'Rabat', 'Africa/Casablanca'),
   city('MA', 'marrakech', 'Marrakech', 'Africa/Casablanca'),
@@ -97,7 +93,7 @@ export const SEED_CITIES: readonly NewCity[] = [
  * AGENTS.md §11); markets precede their cities so the
  * `cities.market_code → markets.code` foreign key holds within the batch.
  */
-export async function seed(db: Db): Promise<void> {
+export const seed = async (db: Db): Promise<void> => {
   await batch(db, [
     ...SEED_MARKETS.map((market) =>
       db.insert(markets).values(market).onConflictDoNothing(),
@@ -106,4 +102,4 @@ export async function seed(db: Db): Promise<void> {
       db.insert(cities).values(cityRow).onConflictDoNothing(),
     ),
   ]);
-}
+};

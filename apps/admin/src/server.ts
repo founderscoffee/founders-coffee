@@ -10,7 +10,7 @@ import { verifyAccessJwt, type AdminEnv } from './access-guard.js';
  * Access-gated route (`workers_dev: false` in wrangler.jsonc).
  */
 export default {
-  async fetch(request: Request, env: AdminEnv): Promise<Response> {
+  fetch: async (request: Request, env: AdminEnv): Promise<Response> => {
     const blocked = await verifyAccessJwt(request, env);
     if (blocked) return blocked;
     return handler.fetch(request);

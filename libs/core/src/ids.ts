@@ -7,6 +7,5 @@
  */
 import { randomUUID } from 'node:crypto';
 
-export function id(prefix: string): string {
-  return `${prefix}_${randomUUID().replace(/-/g, '')}`;
-}
+export const id = (prefix: string): string =>
+  `${prefix}_${randomUUID().replace(/-/g, '')}`;
