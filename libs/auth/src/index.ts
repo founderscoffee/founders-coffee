@@ -1,0 +1,6 @@
+export * from './rbac.js';
+export * from './providers/email.js';
+export { createAuth, hasSocialProviders } from './auth.js';
+export type { AuthEnv, AuthDeps, AuthInstance } from './auth.js';
+export { createAuthClient } from './client.js';
+export type { AuthClient } from './client.js';
