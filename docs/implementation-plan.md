@@ -205,7 +205,7 @@ All bindings are declared per-app in `wrangler.jsonc` and typed once in `libs/in
 | ✅ **P0-004** | Scaffold `apps/admin` (same base) + **Cloudflare Access** policy **+ in-Worker `Cf-Access-Jwt-Assertion` JWT verification + disable `workers.dev` route** | P0-001 | FR-M, NFR-4 | M |
 | ✅ **P0-005** | `libs/core` — env loader, app config, **Money** value object, Result/Error envelope, id factory, feature-flag reader | P0-001 | §7 (Money), NFR-4 | M |
 | ✅ **P0-006** | `libs/db` — Drizzle config, D1 binding helpers, **initial schema** (Market, City, User), migrations via `wrangler d1 migrations`, **atomic-transaction helper** (`db.batch()` + atomic SQL for safe check-then-write) | P0-005 | FR-G1/G2, §7 | M |
-| **P0-007** | Seed D1: DZ (active) + MA (open) markets + major cities | P0-006 | FR-G5, §10.2 | S |
+| ✅ **P0-007** | Seed D1: DZ (active) + MA (open) markets + major cities | P0-006 | FR-G5, §10.2 | S |
 | **P0-008** | `libs/auth` — Better Auth server config + client + RBAC; **sessions in D1 (Drizzle), not KV**; cookie + token strategies; **`SmsProvider` interface + `DevSmsProvider`** (logs OTP to console) for phone OTP | P0-006 | FR-A1/A4/A5 | L |
 | **P0-009** | `libs/i18n` — locale resources (fr-DZ, ar-DZ), RTL direction, fallback chain, money/date/number formatting | P0-001 | FR-L1..L6 | M |
 | **P0-010** | `libs/ui` — Tailwind v4 + DaisyUI theme, design tokens, RTL-aware base components (Button, Card, Input, Badge, Modal, Table primitives) | P0-009 | NFR-8, NFR-9 | M |
