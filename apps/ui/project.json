@@ -1,5 +1,5 @@
 {
-  "name": "ui",
+  "name": "public",
   "projectType": "application",
   "sourceRoot": "apps/ui/src",
   "prefix": "founders-coffee",

@@ -1,0 +1,15 @@
+{
+  "name": "ui",
+  "projectType": "library",
+  "sourceRoot": "libs/ui/src",
+  "tags": ["type:lib", "layer:ui", "domain:ui"],
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "libs/ui"
+      }
+    }
+  }
+}

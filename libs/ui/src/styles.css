@@ -1,0 +1,68 @@
+/* founders.coffee design system — "Warm Café" theme.
+   Single source of truth: apps `@import "@founders-coffee/ui/styles.css"` and add
+   `@source "../../libs/ui/src/**/*.{ts,tsx}"` (Tailwind v4 ignores node_modules,
+   so the lib's component classes must be scanned from each consuming app). */
+
+@import "tailwindcss";
+@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/inter";
+
+@plugin "daisyui" {
+  themes: false;
+}
+
+@plugin "daisyui/theme" {
+  name: "warm-cafe";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: #faf6f0;
+  --color-base-200: #fffdfb;
+  --color-base-300: #eae3d5;
+  --color-base-content: #3b2f26;
+
+  --color-primary: #b45309;
+  --color-primary-content: #fff7ed;
+  --color-secondary: #f59e0b;
+  --color-secondary-content: #3b2f26;
+  --color-accent: #b45309;
+  --color-accent-content: #fff7ed;
+  --color-neutral: #3b2f26;
+  --color-neutral-content: #faf6f0;
+
+  --color-info: #0ea5e9;
+  --color-info-content: #ffffff;
+  --color-success: #16a34a;
+  --color-success-content: #ffffff;
+  --color-warning: #f59e0b;
+  --color-warning-content: #3b2f26;
+  --color-error: #dc2626;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@theme {
+  --font-heading: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@source "./**/*.{ts,tsx}";
+@source not "./**/*.test.{ts,tsx}";
