@@ -207,7 +207,7 @@ All bindings are declared per-app in `wrangler.jsonc` and typed once in `libs/in
 | ✅ **P0-006** | `libs/db` — Drizzle config, D1 binding helpers, **initial schema** (Market, City, User), migrations via `wrangler d1 migrations`, **atomic-transaction helper** (`db.batch()` + atomic SQL for safe check-then-write) | P0-005 | FR-G1/G2, §7 | M |
 | ✅ **P0-007** | Seed D1: DZ (active) + MA (open) markets + major cities | P0-006 | FR-G5, §10.2 | S |
 | ✅ **P0-008** | `libs/auth` — Better Auth: **passwordless email-OTP + OAuth (Google/GitHub/LinkedIn) + account linking** + RBAC (member/host/sponsor_contact/moderator/admin); **sessions in D1**, not KV; `EmailProvider` + `DevEmailProvider`; bearer; D1 rate-limiting; **Turnstile verifier + authz middleware** (app mount + admin role layer defer to P1, when D1 is provisioned) | P0-006 | FR-A1/A4/A5 | L |
-| **P0-009** | `libs/i18n` — locale resources (fr-DZ, ar-DZ), RTL direction, fallback chain, money/date/number formatting | P0-001 | FR-L1..L6 | M |
+| ✅ **P0-009** | `libs/i18n` — Paraglide (Arabic-first: `ar`/`en`/`fr`, Latin digits, RTL, fallback chain, money/date/number formatting); pure cookie `detectLocale`. App wiring deferred to P1-017 (needs real localized routes) | P0-001 | FR-L1..L6 | M |
 | **P0-010** | `libs/ui` — Tailwind v4 + DaisyUI theme, design tokens, RTL-aware base components (Button, Card, Input, Badge, Modal, Table primitives) | P0-009 | NFR-8, NFR-9 | M |
 | **P0-011** | `libs/infra` — `wrangler types` → shared typed `Env`, secrets inventory, Nx tags, resource naming, **local Cloudflare Images dev adapter** (serves raw R2 bytes) | P0-002 | §4, §5 | S |
 | **P0-012** | `libs/server-fns` scaffold — `createServerFn` base, authz middleware, typed error envelope, logging context | P0-008, P0-011 | §3.2, NFR-7 | M |
@@ -249,7 +249,7 @@ All bindings are declared per-app in `wrangler.jsonc` and typed once in `libs/in
 | **P1-014** | `apps/admin`: sponsorship **Order** management + manual **"mark as paid"** (Year 1 payments) + audit log | P0-015, P1-011 | FR-M5, FR-P3 | M |
 | **P1-015** | Semantic search over events (Vectorize index + embeddings on create/update) in `ui` | P0-017, P1-005 | §2 (search) | M |
 | **P1-016** | `apps/dashboard` host view: manage events + RSVPs (TanStack Table/Virtual) | P1-005, P1-008 | FR-E7 | M |
-| **P1-017** | i18n full parity: ar-DZ (RTL) for every P1 screen; locale fallback verified | P0-009 | FR-L1..L6, NFR-8 | M |
+| **P1-017** | i18n app wiring + parity: `__root` cookie-locale detection (`<html lang dir>`), localize every P1 screen in `ar` (RTL) with fallback; **disable TanStack Start streaming SSR** (the [#6223](https://github.com/TanStack/router/issues/6223) Arabic UTF-8 fix — verify the Start knob or `React.lazy` localized routes) | P0-009 | FR-L1..L6, NFR-8 | M |
 | **P1-018** | Security hardening pass: **rate limiting via Durable Object + WAF** (not KV) on all create/auth endpoints, CSP, RBAC checks on every server-fn | P0-012 | NFR-4 | M |
 | **P1-019** | Observability: Analytics Engine dashboards (events created, RSVPs, density per city/market) + alerts | P0-014 | NFR-7 | M |
 | **P1-020** | PWA: web manifest + service worker (`vite-plugin-pwa`), offline shell, prerendered city pages; verify PWA Builder score | P1-002 | D11, NFR-12 | M |
