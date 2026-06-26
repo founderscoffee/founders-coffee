@@ -22,10 +22,12 @@ A DaisyUI custom theme. **Components use semantic classes only** (`bg-base-100`,
 | `base-100` | `#FAF6F0` (warm cream) | Page background |
 | `base-200` | `#FFFDFB` (off-white) | Cards / containers |
 | `base-300` | `#EAE3D5` (soft beige) | Borders / dividers |
-| `primary` | `#D97706` (coffee roast) | Accents, badges, focus ring |
+| `primary` | `#B45309` (coffee roast, AA) | Accents, badges, focus ring |
 | `secondary` | `#F59E0B` (amber) | Hover / secondary accent |
 
-**Typography:** `Outfit` for headings, `Inter` for body (loaded once in the app shell). Weights: 400 body, 500 UI controls, 700 headings.
+> **WCAG AA (NFR-8):** `primary` is `#B45309` (not `#D97706`) so that `primary`/`primary-content` (`#FFF7ED`) clears the 4.5:1 contrast ratio for normal text. **DaisyUI v5 note:** every `*-content` and state color (`info`/`success`/`warning`/`error` + their `-content`) must be set explicitly in the theme block — v5 no longer auto-derives foregrounds.
+
+**Typography:** `Outfit` for headings, `Inter` for body (self-hosted via `@fontsource-variable`, loaded once in `libs/ui`). Weights: 400 body, 500 UI controls, 700 headings.
 
 ---
 
