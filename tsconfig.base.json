@@ -17,9 +17,8 @@
     "strict": true,
     "target": "es2022",
     "customConditions": ["@founders-coffee/source"],
-    "baseUrl": ".",
     "paths": {
-      "@founders-coffee/core": ["libs/core/src/index.ts"]
+      "@founders-coffee/core": ["./libs/core/src/index.ts"]
     }
   }
 }
