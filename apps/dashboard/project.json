@@ -3,7 +3,7 @@
   "projectType": "application",
   "sourceRoot": "apps/dashboard/src",
   "prefix": "founders-coffee",
-  "tags": ["type:app", "layer:ui", "domain:dashboard"],
+  "tags": ["type:app", "domain:dashboard"],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",

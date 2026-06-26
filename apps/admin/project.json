@@ -3,7 +3,7 @@
   "projectType": "application",
   "sourceRoot": "apps/admin/src",
   "prefix": "founders-coffee",
-  "tags": ["type:app", "layer:ui", "domain:admin"],
+  "tags": ["type:app", "domain:admin"],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
