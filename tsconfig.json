@@ -11,6 +11,9 @@
     },
     {
       "path": "./libs/auth"
+    },
+    {
+      "path": "./libs/i18n"
     }
   ]
 }

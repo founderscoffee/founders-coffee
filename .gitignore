@@ -18,6 +18,7 @@ node_modules
 **/routeTree.gen.ts
 **/routeTree.gen.js
 **/worker-configuration.d.ts
+libs/i18n/src/paraglide/
 
 # ── Vite / Vitest cache ──
 .vite

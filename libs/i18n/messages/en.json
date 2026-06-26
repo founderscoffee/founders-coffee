@@ -1,0 +1,5 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "welcome_title": "Welcome to founders.coffee",
+  "edit_to_start": "Edit src/routes/index.tsx to get started."
+}

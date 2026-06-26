@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/i18n"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "vitest.config.ts", "src/paraglide/**"],
+  "references": [{ "path": "../core/tsconfig.lib.json" }]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "i18n",
+  "projectType": "library",
+  "sourceRoot": "libs/i18n/src",
+  "tags": ["type:lib", "layer:shared", "domain:i18n"],
+  "targets": {
+    "generate-i18n": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "paraglide-js compile --project libs/i18n/project.inlang --outdir libs/i18n/src/paraglide --strategy cookie baseLocale --emit-ts-declarations"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["generate-i18n"],
+      "options": {
+        "command": "tsc --build tsconfig.json --emitDeclarationOnly",
+        "cwd": "libs/i18n"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["generate-i18n"],
+      "options": {
+        "command": "tsc --build tsconfig.lib.json",
+        "cwd": "libs/i18n"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["generate-i18n"],
+      "options": {
+        "command": "vitest run",
+        "cwd": "libs/i18n"
+      }
+    }
+  }
+}

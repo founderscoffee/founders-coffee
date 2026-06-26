@@ -24,6 +24,8 @@
     "@cloudflare/vitest-pool-workers": "latest",
     "@cloudflare/workers-types": "^4.20251101.0",
     "@eslint/js": "^10.0.1",
+    "@inlang/paraglide-js": "^2.20.2",
+    "@inlang/paraglide-vite": "^1.4.0",
     "@nx/eslint": "23.0.1",
     "@nx/eslint-plugin": "23.0.1",
     "@nx/js": "23.0.1",
