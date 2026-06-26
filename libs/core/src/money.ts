@@ -2,10 +2,11 @@
  * Money value object — the ONLY legal representation of money in the system.
  * (AGENTS.md §6: always `{ amount_minor, currency }`; integer minor units; never floats.)
  *
- * Expanded in P0-005 (arithmetic, conversion, parsing, Result-based validation).
  * All founders.coffee currencies use 100 minor units per major unit:
  *   DZD (centime), MAD (santim), EGP (piastre), SAR (halala), AED (fils).
  */
+
+import { AppError, err, ok, type Result } from './result.js';
 
 export type CurrencyCode = 'DZD' | 'MAD' | 'EGP' | 'SAR' | 'AED';
 
@@ -34,4 +35,47 @@ export function moneyToString({ amount_minor, currency }: Money): string {
   const major = Math.trunc(amount_minor / MINOR_UNITS_PER_MAJOR);
   const minor = Math.abs(amount_minor % MINOR_UNITS_PER_MAJOR);
   return `${major}.${String(minor).padStart(2, '0')} ${currency}`;
+}
+
+/** A zero Money value in the given currency. */
+export function zeroMoney(currency: CurrencyCode): Money {
+  return { amount_minor: 0, currency };
+}
+
+/** Add two same-currency Money values. Throws on currency mismatch. */
+export function addMoney(a: Money, b: Money): Money {
+  assertSameCurrency(a, b);
+  return { amount_minor: a.amount_minor + b.amount_minor, currency: a.currency };
+}
+
+/** Subtract two same-currency Money values. Throws on currency mismatch. */
+export function subtractMoney(a: Money, b: Money): Money {
+  assertSameCurrency(a, b);
+  return { amount_minor: a.amount_minor - b.amount_minor, currency: a.currency };
+}
+
+/**
+ * Result-based creation: returns `err` instead of throwing for invalid input.
+ * Prefer this inside server functions (which return Result); use `createMoney`
+ * only where throwing is acceptable (e.g., hard-coded constants).
+ */
+export function createMoneySafe(
+  amount_minor: number,
+  currency: CurrencyCode,
+): Result<Money> {
+  if (!Number.isInteger(amount_minor)) {
+    return err(
+      new AppError(
+        'money_non_integer',
+        `Money.amount_minor must be an integer (minor units), received ${amount_minor}`,
+      ),
+    );
+  }
+  return ok({ amount_minor, currency });
+}
+
+function assertSameCurrency(a: Money, b: Money): void {
+  if (a.currency !== b.currency) {
+    throw new Error(`Money currency mismatch: ${a.currency} vs ${b.currency}`);
+  }
 }
