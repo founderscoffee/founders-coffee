@@ -199,11 +199,11 @@ All bindings are declared per-app in `wrangler.jsonc` and typed once in `libs/in
 
 | ID | Title | Deps | Implements | Size |
 |---|---|---|---|---|
-| **P0-001** | Nx workspace + TanStack Config: tsconfig paths, ESLint (with boundary rules §5), Prettier, Vitest base, package scripts | — | NFR-10 | M |
-| **P0-002** | Scaffold `apps/ui` — TanStack Start + `@cloudflare/vite-plugin` + `wrangler.jsonc` + dev/preview/deploy scripts | P0-001 | NFR-12 | M |
-| **P0-003** | Scaffold `apps/dashboard` (same base) | P0-001 | NFR-12 | M |
-| **P0-004** | Scaffold `apps/admin` (same base) + **Cloudflare Access** policy **+ in-Worker `Cf-Access-Jwt-Assertion` JWT verification + disable `workers.dev` route** | P0-001 | FR-M, NFR-4 | M |
-| **P0-005** | `libs/core` — env loader, app config, **Money** value object, Result/Error envelope, id factory, feature-flag reader | P0-001 | §7 (Money), NFR-4 | M |
+| ✅ **P0-001** | Nx workspace + TanStack Config: tsconfig paths, ESLint (with boundary rules §5), Prettier, Vitest base, package scripts | — | NFR-10 | M |
+| ✅ **P0-002** | Scaffold `apps/ui` — TanStack Start + `@cloudflare/vite-plugin` + `wrangler.jsonc` + dev/preview/deploy scripts | P0-001 | NFR-12 | M |
+| ✅ **P0-003** | Scaffold `apps/dashboard` (same base) | P0-001 | NFR-12 | M |
+| ✅ **P0-004** | Scaffold `apps/admin` (same base) + **Cloudflare Access** policy **+ in-Worker `Cf-Access-Jwt-Assertion` JWT verification + disable `workers.dev` route** | P0-001 | FR-M, NFR-4 | M |
+| ✅ **P0-005** | `libs/core` — env loader, app config, **Money** value object, Result/Error envelope, id factory, feature-flag reader | P0-001 | §7 (Money), NFR-4 | M |
 | **P0-006** | `libs/db` — Drizzle config, D1 binding helpers, **initial schema** (Market, City, User), migrations via `wrangler d1 migrations`, **atomic-transaction helper** (`db.batch()` + atomic SQL for safe check-then-write) | P0-005 | FR-G1/G2, §7 | M |
 | **P0-007** | Seed D1: DZ (active) + MA (open) markets + major cities | P0-006 | FR-G5, §10.2 | S |
 | **P0-008** | `libs/auth` — Better Auth server config + client + RBAC; **sessions in D1 (Drizzle), not KV**; cookie + token strategies; **`SmsProvider` interface + `DevSmsProvider`** (logs OTP to console) for phone OTP | P0-006 | FR-A1/A4/A5 | L |
