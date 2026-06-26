@@ -171,7 +171,7 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 
 - **FR-L1** All user-facing strings shall be **externalized** to locale resources. Zero hardcoded copy.
 - **FR-L2** The UI shall support **right-to-left (RTL) and left-to-right (LTR)** layout driven by the active locale/market direction.
-- **FR-L3** The system shall use a **locale fallback chain** (e.g., `ar-EG → ar → en`) so partial translations degrade gracefully.
+- **FR-L3** The system shall use a **locale fallback chain** ending at the base locale `ar` (e.g., `fr → ar`, `en → ar`) so partial translations degrade gracefully.
 - **FR-L4** Dates, times, numbers, and currencies shall be formatted per the active locale and the relevant timezone.
 - **FR-L5** User-generated content shall be tagged with a language code and **not auto-translated**.
 - **FR-L6** The default locale for a market is determined by `Market.default_locale`.
@@ -357,9 +357,12 @@ libs/
 
 ### 8.6 i18n / RTL architecture
 
-- Externalized locale resources per locale (`fr-DZ`, `ar-DZ`, `ar-MA`, `ar-EG`, `ar-SA`, `en-AE`, `ar-AE`), shared via `libs/i18n`.
-- Direction (`rtl`/`ltr`) is a first-class property of the active locale/market; every screen is built and tested in both directions from P0.
-- Locale fallback chain to avoid broken UI on partial translations.
+- **Language-level locales** (not region variants): **`ar`** (a single Modern Standard Arabic used for *all* Arabic markets), **`en`**, **`fr`**. Shared via `libs/i18n`.
+- **Arabic-first**: the base locale and platform default are **`ar`** (RTL). `fr`/`en` are selectable; the Maghreb markets also expose `fr`.
+- Messages via **Paraglide** (compile-time, type-safe); formatting via native **`Intl.*`** (full ICU on Workers, no flags). **Latin digits forced** across all locales (`numberingSystem: latn`).
+- Direction (`rtl`/`ltr`) is a first-class property of the active locale; every screen is built and tested in both directions from P0.
+- Locale fallback chain ends at the base locale `ar` (`fr → ar`, `en → ar`), so partial translations never break the UI.
+- Cookie-based locale (clean URLs, no locale prefix); first visit resolved from `Accept-Language`.
 
 ### 8.7 Scaling & growth limits (the honest ceilings)
 
@@ -400,13 +403,13 @@ libs/
 
 ### 10.2 Per-market configuration (target end-state)
 
-| Market | Locale(s)                 | Direction | Currency | Timezone          | Payment rails (P4)                   | Launch state        |
-| ------ | ------------------------- | --------- | -------- | ----------------- | ------------------------------------ | ------------------- |
-| 🇩🇿 DZ  | `fr-DZ`, `ar-DZ` (Darija) | rtl/ltr   | DZD      | Africa/Algiers    | BaridiMob, CIB, Edahabia, DZ MOB PAY | **active (launch)** |
-| 🇲🇦 MA  | `fr-MA`, `ar-MA` (Darija) | rtl/ltr   | MAD      | Africa/Casablanca | CMI, PayZone (post-liberalization)   | **open (launch)**   |
-| 🇪🇬 EG  | `ar-EG`, `en-EG`          | rtl       | EGP      | Africa/Cairo      | InstaPay (IPN), Fawry, Vodafone Cash | dark                |
-| 🇸🇦 SA  | `ar-SA`, `en-SA`          | rtl       | SAR      | Asia/Riyadh       | Mada, STC Pay, SARIE, Geidea         | dark                |
-| 🇦🇪 AE  | `en-AE`, `ar-AE`          | ltr/rtl   | AED      | Asia/Dubai        | AANI, cards, BNPL                    | dark                |
+| Market | Default locale    | Direction | Currency | Timezone          | Payment rails (P4)                   | Launch state        |
+| ------ | ----------------- | --------- | -------- | ----------------- | ------------------------------------ | ------------------- |
+| 🇩🇿 DZ  | `ar` (+`fr`,`en`) | rtl       | DZD      | Africa/Algiers    | BaridiMob, CIB, Edahabia, DZ MOB PAY | **active (launch)** |
+| 🇲🇦 MA  | `ar` (+`fr`,`en`) | rtl       | MAD      | Africa/Casablanca | CMI, PayZone (post-liberalization)   | **open (launch)**   |
+| 🇪🇬 EG  | `ar` (+`en`)      | rtl       | EGP      | Africa/Cairo      | InstaPay (IPN), Fawry, Vodafone Cash | dark                |
+| 🇸🇦 SA  | `ar` (+`en`)      | rtl       | SAR      | Asia/Riyadh       | Mada, STC Pay, SARIE, Geidea         | dark                |
+| 🇦🇪 AE  | `ar` (+`en`)      | rtl       | AED      | Asia/Dubai        | AANI, cards, BNPL                    | dark                |
 
 **Expansion order (by similarity, not ambition):** DZ → MA → EG → SA → AE.
 
