@@ -164,7 +164,7 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 - **FR-A1** The system shall maintain **one global user identity** per person (a user may relocate/travel).
 - **FR-A2** Activity and reputation shall be **scoped per market/city** (e.g., a host's Algiers history vs. a Cairo attendance history).
 - **FR-A3** Each user shall have a `home_market_id` and `home_city_id`, changeable.
-- **FR-A4** Authentication shall support email + password and at least one local-relevant method (e.g., phone/OTP). Social providers as optional.
+- **FR-A4** Authentication shall be **passwordless**: **email-OTP** (one-time code; no passwords) plus **OAuth** (Google, GitHub, LinkedIn). OAuth accounts link to a single identity by verified email (account linking enabled, trusted providers only). No passwords; no phone-based auth — phone/WhatsApp are notification-only (P1.5/D5).
 - **FR-A5** Roles: `member`, `host` (a member who has hosted), `sponsor_contact`, `admin`, `moderator`.
 
 ### 5.7 Internationalization & localization (P0)
@@ -292,7 +292,7 @@ Money (value object, used everywhere — never bare numbers)
 - **Security:** **Turnstile** (bot protection on all forms); **Cloudflare Access / Zero Trust** (gates `apps/admin` to the team).
 - **Observability:** **Analytics Engine** (product metrics) + **Web Analytics** (privacy analytics); structured logging.
 - **Secrets:** **Cloudflare Secrets Store / `wrangler secret`**.
-- **Auth:** **Better Auth** (shared config; cookie + token strategies).
+- **Auth:** **Better Auth** — passwordless email-OTP + OAuth (Google, GitHub, LinkedIn); account linking; cookie (web) + bearer token (future non-web); sessions in D1 (not KV).
 - **Mobile:** **PWA Builder** wraps `apps/ui` into App Store / Play Store packages.
 - **Testing:** **Vitest** + **Playwright** against **Miniflare** (real local Cloudflare bindings — no platform mocks).
 - **Language:** TypeScript 5.9, strict.
@@ -466,7 +466,7 @@ libs/
 | D1  | **Database**              | **Cloudflare D1**                                                                      | Edge-native, cheap, fits Workers; primary near Maghreb. Postgres is the Year-2+ escape hatch via Drizzle. |
 | D2  | **ORM**                   | **Drizzle**                                                                            | Edge-native (unlike Prisma on Workers); portable to Postgres.                                             |
 | D3  | **Frontend framework**    | **TanStack Start** (fullstack) + Query, Form, Table, Virtual, Store, Config            | Typed server functions = the backend; full TanStack toolset; end-to-end type safety; edge-native.         |
-| D4  | **Auth method**           | Email/password + phone OTP via **Better Auth**                                         | Phone is high-value in Maghreb; cookie + token strategies for web + future.                               |
+| D4  | **Auth method**           | **Passwordless** email-OTP + OAuth (Google/GitHub/LinkedIn) via **Better Auth**; account linking (trusted providers, same-email only) | Frictionless; no password storage/credential attacks; one global identity across email + OAuth (FR-A1). Sessions in D1 (not KV); D1-backed auth rate limiting. _Supersedes earlier phone-OTP choice_ — phone/WhatsApp are notification-only (P1.5/D5). |
 | D5  | **Notification channels** | Email (P1) + WhatsApp/SMS (P1.5)                                                       | WhatsApp dominant in the region.                                                                          |
 | D6  | **Hosting region**        | Cloudflare edge; **D1 primary near Maghreb**                                           | Latency + data-residency considerations.                                                                  |
 | D7  | **Monetization build**    | **Build sponsorship surfaces in P1; sell through the platform** (no manual-only phase) | Sponsorship is a built feature of the events engine; no manual validation phase.                          |
