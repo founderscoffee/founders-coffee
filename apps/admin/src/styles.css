@@ -1,5 +1,6 @@
 
-@import "tailwindcss";
+@import "@founders-coffee/ui/styles.css";
+@source "../../../libs/ui/src";
 
 * {
   box-sizing: border-box;

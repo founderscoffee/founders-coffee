@@ -1,7 +1,7 @@
 /* founders.coffee design system — "Warm Café" theme.
-   Single source of truth: apps `@import "@founders-coffee/ui/styles.css"` and add
-   `@source "../../libs/ui/src/**/*.{ts,tsx}"` (Tailwind v4 ignores node_modules,
-   so the lib's component classes must be scanned from each consuming app). */
+   Single source of truth: apps import this stylesheet and add an @source
+   directive pointing at this lib's src directory (Tailwind v4 ignores
+   node_modules, so the lib's component classes must be scanned from each app). */
 
 @import "tailwindcss";
 @import "@fontsource-variable/outfit";
@@ -63,6 +63,3 @@
     font-family: var(--font-heading);
   }
 }
-
-@source "./**/*.{ts,tsx}";
-@source not "./**/*.test.{ts,tsx}";
