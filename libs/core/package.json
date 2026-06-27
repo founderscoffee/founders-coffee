@@ -8,6 +8,11 @@
       "@founders-coffee/source": "./src/index.ts",
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./ai": {
+      "@founders-coffee/source": "./src/ai/index.ts",
+      "types": "./src/ai/index.ts",
+      "default": "./src/ai/index.ts"
     }
   }
 }
