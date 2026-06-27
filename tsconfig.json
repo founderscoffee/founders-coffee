@@ -32,6 +32,9 @@
     },
     {
       "path": "./libs/payments"
+    },
+    {
+      "path": "./libs/email"
     }
   ]
 }

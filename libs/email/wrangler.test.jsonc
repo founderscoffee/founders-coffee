@@ -1,0 +1,12 @@
+{
+  "name": "email-test",
+  "main": "./src/test-entry.ts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_destination_addresses": ["ok@example.com"]
+    }
+  ]
+}

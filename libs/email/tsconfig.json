@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "outDir": "../../dist/email",
+    "types": ["node", "@cloudflare/workers-types"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "vitest.config.ts",
+    "**/setup.ts"
+  ],
+  "references": [
+    {
+      "path": "../observability"
+    },
+    {
+      "path": "../core"
+    }
+  ]
+}

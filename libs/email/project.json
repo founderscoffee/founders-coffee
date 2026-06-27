@@ -1,0 +1,15 @@
+{
+  "name": "email",
+  "projectType": "library",
+  "sourceRoot": "libs/email/src",
+  "tags": ["type:lib", "layer:server", "domain:email"],
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "libs/email"
+      }
+    }
+  }
+}
