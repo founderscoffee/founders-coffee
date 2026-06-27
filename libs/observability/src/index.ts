@@ -12,3 +12,17 @@ export {
   runWithContext,
   type RequestContext,
 } from './context.js';
+export {
+  consoleTransport,
+  createBeaconTransport,
+  type LogTransport,
+  type BatchTransport,
+} from './transports.js';
+export { createServerLogger, type CreateServerLoggerOptions } from './server.js';
+export {
+  createMetrics,
+  buildDataPoint,
+  type MetricDimensions,
+  type Metrics,
+} from './metrics.js';
+export { ingestClientLogs } from './ingest.js';
