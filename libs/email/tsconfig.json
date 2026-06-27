@@ -15,10 +15,13 @@
   ],
   "references": [
     {
-      "path": "../observability"
+      "path": "../core"
     },
     {
-      "path": "../core"
+      "path": "../i18n"
+    },
+    {
+      "path": "../observability"
     }
   ]
 }

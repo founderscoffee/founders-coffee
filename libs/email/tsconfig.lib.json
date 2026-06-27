@@ -12,10 +12,13 @@
   ],
   "references": [
     {
-      "path": "../observability/tsconfig.lib.json"
+      "path": "../core/tsconfig.lib.json"
     },
     {
-      "path": "../core/tsconfig.lib.json"
+      "path": "../i18n/tsconfig.lib.json"
+    },
+    {
+      "path": "../observability/tsconfig.lib.json"
     }
   ]
 }
