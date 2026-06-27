@@ -26,3 +26,6 @@ export {
   type Metrics,
 } from './metrics.js';
 export { ingestClientLogs } from './ingest.js';
+export { createClientLogger, type CreateClientLoggerOptions } from './client.js';
+export { logger, configureClientLogger } from './logger.js';
+export { reportError } from './report.js';
