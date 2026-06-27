@@ -1,0 +1,23 @@
+# founders.coffee local dev vars — copy to apps/<app>/.dev.vars and fill in.
+# Real values are NEVER committed (.dev.vars is gitignored). See docs/secrets.md.
+
+# Auth (libs/auth)
+BETTER_AUTH_SECRET=change-me-to-a-long-random-string-of-at-least-32-chars
+APP_URL=http://localhost:3000
+
+# OAuth (optional — leave blank to disable a provider)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+
+# Turnstile (optional — disabled in local dev by default)
+TURNSTILE_SECRET_KEY=
+TURNSTILE_DISABLED=true
+
+# Cloudflare Access (apps/admin only)
+CF_ACCESS_TEAM_DOMAIN=
+CF_ACCESS_AUD=
+CF_ACCESS_DISABLED=true

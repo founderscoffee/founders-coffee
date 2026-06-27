@@ -26,6 +26,13 @@
         "command": "tsr generate",
         "cwd": "apps/dashboard"
       }
+    },
+    "cf-typegen": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "wrangler types",
+        "cwd": "apps/dashboard"
+      }
     }
   }
 }

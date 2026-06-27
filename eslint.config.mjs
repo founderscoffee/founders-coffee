@@ -42,7 +42,12 @@ export default [
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist', '**/out-tsc', 'libs/i18n/src/paraglide/**'],
+    ignores: [
+      '**/dist',
+      '**/out-tsc',
+      'libs/i18n/src/paraglide/**',
+      '**/worker-configuration.d.ts',
+    ],
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
