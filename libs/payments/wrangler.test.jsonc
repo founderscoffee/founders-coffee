@@ -1,0 +1,14 @@
+{
+  "name": "payments-test",
+  "main": "./src/test-entry.ts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "db",
+      "database_id": "test"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "../../dist/payments",
+    "types": ["node", "@cloudflare/workers-types"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "vitest.config.ts", "**/setup.ts"],
+  "references": [
+    { "path": "../core" },
+    { "path": "../db" },
+    { "path": "../domain/payments" },
+    { "path": "../observability" }
+  ]
+}
