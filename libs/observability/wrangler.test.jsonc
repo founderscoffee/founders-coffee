@@ -1,0 +1,10 @@
+{
+  "name": "observability-test",
+  "main": "./src/test-entry.ts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "analytics_engine_datasets": [
+    { "binding": "ANALYTICS", "dataset": "founders-coffee-metrics" }
+  ]
+}

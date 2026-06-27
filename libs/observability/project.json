@@ -1,0 +1,15 @@
+{
+  "name": "observability",
+  "projectType": "library",
+  "sourceRoot": "libs/observability/src",
+  "tags": ["type:lib", "layer:shared", "domain:observability"],
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "libs/observability"
+      }
+    }
+  }
+}
