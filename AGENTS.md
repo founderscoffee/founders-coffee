@@ -125,7 +125,7 @@ If you need data in a component that the current hook doesn't provide → add/ex
 ## 6. Domain modeling rules
 
 - **Money:** ALWAYS the `Money` value object from `libs/core` — `{ amount_minor: number (integer), currency: string (ISO 4217) }`. **Never** a bare number. **Never** floating-point math on money. All arithmetic in integer minor units.
-- **Schemas first:** define a Zod schema for every entity/command; infer TS types from it. The schema is the contract shared by `api.ts`, server functions, and forms.
+- **Schemas first:** define a Zod schema for every entity/command; infer TS types (`z.infer`). Shared primitives (Money, id, pagination, market code) live in [`libs/core/validation.ts`](../libs/core/src/validation.ts); per-domain schemas in `libs/domain/<domain>/schemas.ts`. The schema is the single contract shared by `api.ts`, server functions, and forms (DRY). Server functions validate input via `createServerFn().validator(appValidator(schema))` — invalid input throws `AppError('validation_failed')` (the §7 throw boundary). See [`docs/validation.md`](validation.md).
 - **Geo/market scoping:** every user-facing record carries `market_id` (and `city_id` where geographic) from creation. No global queries that silently cross markets.
 - **Time:** store UTC; render in the city/market timezone via `libs/i18n`. Never store localized times.
 - **IDs:** from the `libs/core` id factory — consistent format, no ad-hoc UUIDs in different styles.
@@ -137,7 +137,7 @@ If you need data in a component that the current hook doesn't provide → add/ex
 
 Every server function (`createServerFn`):
 
-1. **Validates input** with a Zod schema (inferred types exported for `api.ts`).
+1. **Validates input** with a Zod schema via `appValidator(schema)` — throws `AppError('validation_failed')` on invalid input (inferred types exported for `api.ts`).
 2. **Declares required permission** (RBAC); checked by the shared authz middleware — never inline checks.
 3. **Resolves the active market/city** from context; scopes all reads/writes.
 4. **Unwraps** the domain `Result` via `handleResult()` *inside the handler* — **throws** the typed `AppError` on `!ok` (stable code + message), returns data on `ok`. Server functions are the **throw boundary**: the thrown `AppError` is serialized by TanStack Start, so `useQuery`/`useMutation` enter `error` automatically. No leakage of internals. Read the client-side `code` via `appErrorCode()`.
