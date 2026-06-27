@@ -26,6 +26,9 @@
     },
     {
       "path": "./libs/server-fns"
+    },
+    {
+      "path": "./libs/domain/payments"
     }
   ]
 }

@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "../../../dist/domain/payments",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [],
+  "references": [{ "path": "../../core" }]
+}
