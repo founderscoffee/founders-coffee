@@ -115,7 +115,7 @@ If you need data in a component that the current hook doesn't provide → add/ex
 - **Arrow functions only.** Declare all functions, methods, and components as arrow functions (`const f = () => {}`), including object-literal methods and class methods (use arrow class fields so `this` binds to the instance). Exceptions: generator functions (`function*`) and any case where arrow syntax would change `this` binding.
 - **No inline comments.** Do not write `//` line/inline comments — names and structure are the documentation. JSDoc block comments (`/** */`) for public API docs are encouraged; toolchain directive comments (`eslint-disable`, `@ts-*`) are exempt.
 - **`libs/domain` is pure:** no Drizzle, no `Env`, no `fetch`. It takes inputs and returns outputs. I/O stays in `libs/db` and `libs/server-fns`.
-- **Error handling:** use the `Result`/`Error` envelope from `libs/core`. Server functions return typed errors via the envelope, never raw throws that reach the client. See §7.
+- **Error handling:** `libs/domain` returns the `Result` envelope; server functions unwrap it via `handleResult()` (the **throw boundary**) — throwing the typed `AppError` on failure, never raw/untyped throws. See §7.
 - **No dead code, no commented-out code, no `console.log`** in committed code. Use the structured logger (`libs/observability`).
 - **Imports:** ordered (external → `libs/*` → relative), no unused, no circular (enforced by lint).
 - **Readability over cleverness.** Code is read 10× more than written. Optimize for the reader.
@@ -140,7 +140,7 @@ Every server function (`createServerFn`):
 1. **Validates input** with a Zod schema (inferred types exported for `api.ts`).
 2. **Declares required permission** (RBAC); checked by the shared authz middleware — never inline checks.
 3. **Resolves the active market/city** from context; scopes all reads/writes.
-4. **Returns** a typed result via the `Result` envelope — `{ ok, data } | { ok: false, error }`. Errors carry a stable code + message; no leakage of internals.
+4. **Unwraps** the domain `Result` via `handleResult()` *inside the handler* — **throws** the typed `AppError` on `!ok` (stable code + message), returns data on `ok`. Server functions are the **throw boundary**: the thrown `AppError` is serialized by TanStack Start, so `useQuery`/`useMutation` enter `error` automatically. No leakage of internals. Read the client-side `code` via `appErrorCode()`.
 5. **Logs** entry/failures via `libs/observability` (structured, with market/request context).
 6. **Calls** `libs/domain` for logic and `libs/db` for persistence — never the reverse dependency.
 
@@ -207,7 +207,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
 - **Scheduling: Durable Object Alarms, not cron-polling.** For per-entity timed work (event reminders at `starts_at − 2h`, challenge phase transitions), set a DO alarm when the entity is created; the DO wakes precisely and pushes to the `NOTIFICATIONS` queue. **No global cron that scans D1.** A low-frequency cron may exist *only* as a backstop sweeper for missed alarms.
 - **Durable Object location:** set a **location hint** near the user base (Maghreb/EU) at creation; persist state in `state.storage` and write-through to D1. Reserve DOs for genuine real-time/coordination — prefer atomic D1 SQL for simple counters (e.g., RSVP capacity: `UPDATE events SET rsvps = rsvps + 1 WHERE id = ? AND rsvps < capacity`).
 - **External services go behind provider interfaces.** SMS, email, images, payments: each gets an interface (`SmsProvider`, `EmailProvider`, `ImageProvider`, `PaymentProvider`) with a **dev variant** (`DevSmsProvider` logs the OTP to console; dev image adapter serves raw R2 bytes) and a real variant. Mocking an *external service* via its interface is allowed; **mocking a Cloudflare binding is not** (use Miniflare).
-- **TanStack Query × Result envelope:** server functions return `{ ok, data } | { ok: false, error }`, but `useQuery`/`useMutation` only enter `error` on a **throw**. Always unwrap via the shared `handleResult` wrapper (throws on `ok === false`) — centralize it; never hand-check `if (!data.ok)` in components.
+- **TanStack Query × throw boundary:** server functions unwrap the domain `Result` *inside the handler* via `handleResult()` — they **throw** the typed `AppError` on failure, so `useQuery`/`useMutation` enter `error` automatically. The thrown `AppError.code` crosses the wire at runtime (TanStack serializes it; TS types the client error generically — the [#6428] gap — read it via the shared `appErrorCode()` accessor). Do **not** call `handleResult` at the component/hook layer.
 - **Turnstile verification** must forward `CF-Connecting-IP` as `remoteip` (helper in `libs/core`/`libs/server-fns`).
 - **`apps/admin` Access JWT** must be verified in-Worker (see §10); never rely on edge Access alone.
 
@@ -260,7 +260,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
 - **NEVER** hardcode user-facing strings.
 - **NEVER** add a dependency, Cloudflare service, or external integration without surfacing it and asking first.
 - **NEVER** use a Node-only library without verifying Workers/`nodejs_compat` compatibility.
-- **NEVER** throw past the server-function boundary without the typed error envelope.
+- **NEVER** throw an *untyped* error past the server-function boundary — throw the typed `AppError` (after unwrapping the domain `Result` via `handleResult`).
 - **NEVER** skip authz on a server function.
 - **NEVER** store secrets in code or commit `.env`.
 - **NEVER** use `any`, or `@ts-ignore`/`@ts-expect-error` without justification.
@@ -281,7 +281,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
 - [ ] Authz + rate-limit + Turnstile where state-changing.
 - [ ] Money via `Money` value object; no bare numbers.
 - [ ] i18n complete (fr-DZ + ar-DZ); RTL verified.
-- [ ] Errors via the `Result` envelope; structured logs on server paths.
+- [ ] Errors via the throw boundary (`AppError` after `handleResult`); structured logs on server paths.
 - [ ] Tests written and passing (Miniflare/Playwright — real platform).
 - [ ] Lint, typecheck, and **Nx boundary checks** pass.
 - [ ] Maps to a ticket ID and `FR-*`/`NFR-*`.
