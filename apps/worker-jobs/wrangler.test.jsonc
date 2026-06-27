@@ -4,10 +4,17 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "db", "database_id": "test" }
+  ],
   "send_email": [
     { "name": "EMAIL", "allowed_destination_addresses": ["ok@example.com"] }
   ],
   "queues": {
-    "consumers": [{ "queue": "founders-coffee-notifications" }]
+    "consumers": [
+      { "queue": "founders-coffee-notifications" },
+      { "queue": "founders-coffee-embeddings-jobs" },
+      { "queue": "founders-coffee-reconcile" }
+    ]
   }
 }

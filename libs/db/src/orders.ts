@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
@@ -43,6 +43,12 @@ export const transitionStatus = async (
     .run();
   const meta = (result as { meta?: { changes?: number } }).meta;
   return meta?.changes ?? 0;
+};
+
+/** Count Orders in a given status — the reconcile sweep's backlog metric (NFR-7). */
+export const countOrdersByStatus = async (db: Db, status: OrderStatus): Promise<number> => {
+  const rows = await db.select({ value: count() }).from(orders).where(eq(orders.status, status));
+  return rows[0]?.value ?? 0;
 };
 
 /** Insert a fully-formed Invoice row (1:1 with an Order). */

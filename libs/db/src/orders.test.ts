@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createDb } from './db.js';
 import {
+  countOrdersByStatus,
   createInvoice,
   createOrder,
   getInvoiceByOrderId,
@@ -95,5 +96,23 @@ describe('orders + invoices repository (real D1)', () => {
     });
     expect(invoice.orderId).toBe('ord_i1');
     expect((await getInvoiceByOrderId(db, 'ord_i1'))?.number).toBe('INV-i1');
+  });
+
+  it('counts orders by status', async () => {
+    const db = createDb(env.DB);
+    await ensureMarket(db);
+    await createOrder(db, {
+      id: 'ord_count1',
+      marketCode: 'DZ',
+      purpose: 'sponsorship',
+      amountMinor: 1000,
+      currency: 'DZD',
+      status: 'pending',
+      provider: 'manual',
+    });
+
+    const pending = await countOrdersByStatus(db, 'pending');
+    expect(pending).toBeGreaterThanOrEqual(1);
+    expect(await countOrdersByStatus(db, 'refunded')).toBe(0);
   });
 });

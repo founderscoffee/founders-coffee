@@ -23,7 +23,18 @@
         "queue": "founders-coffee-notifications",
         "max_retries": 3,
         "dead_letter_queue": "founders-coffee-notifications-dlq"
+      },
+      {
+        "queue": "founders-coffee-embeddings-jobs",
+        "max_retries": 3,
+        "dead_letter_queue": "founders-coffee-embeddings-jobs-dlq"
+      },
+      {
+        "queue": "founders-coffee-reconcile",
+        "max_retries": 3,
+        "dead_letter_queue": "founders-coffee-reconcile-dlq"
       }
     ]
-  }
+  },
+  "triggers": { "crons": ["0 3 * * *"] }
 }
