@@ -1,0 +1,13 @@
+{
+  "name": "worker-jobs-test",
+  "main": "./src/index.ts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "send_email": [
+    { "name": "EMAIL", "allowed_destination_addresses": ["ok@example.com"] }
+  ],
+  "queues": {
+    "consumers": [{ "queue": "founders-coffee-notifications" }]
+  }
+}

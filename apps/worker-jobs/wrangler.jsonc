@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "founders-coffee-worker-jobs",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/index.ts",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "founders-coffee-db",
+      "database_id": "PROVISIONED_AT_P0-019"
+    }
+  ],
+  "send_email": [{ "name": "EMAIL" }],
+  "ai": { "binding": "AI" },
+  "vectorize": [
+    { "binding": "VECTOR", "index_name": "founders-coffee-embeddings" }
+  ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "founders-coffee-notifications",
+        "max_retries": 3,
+        "dead_letter_queue": "founders-coffee-notifications-dlq"
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "worker-jobs",
+  "projectType": "application",
+  "sourceRoot": "apps/worker-jobs/src",
+  "prefix": "founders-coffee",
+  "tags": ["type:app", "domain:worker-jobs"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p tsconfig.json",
+        "cwd": "apps/worker-jobs"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "apps/worker-jobs"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "wrangler deploy",
+        "cwd": "apps/worker-jobs"
+      }
+    }
+  }
+}
