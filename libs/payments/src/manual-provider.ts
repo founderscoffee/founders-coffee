@@ -1,6 +1,6 @@
 import { AppError, err, id, ok, type Result } from '@founders-coffee/core';
-import type { OrderStatus } from '@founders-coffee/domain-payments';
-import { transition } from '@founders-coffee/domain-payments';
+import type { OrderStatus } from '@founders-coffee/domain';
+import { transition } from '@founders-coffee/domain';
 import {
   createInvoice,
   createOrder,

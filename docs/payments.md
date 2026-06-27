@@ -1,6 +1,6 @@
 # Payments — B2B monetization (Year-1 manual)
 
-The payment layer for founders.coffee. Implements **P0-015** (FR-P3, FR-M5, NFR-6, NFR-10). Lives across three libs (AGENTS §3/§6): data in `libs/db`, the status machine in `libs/domain/payments`, the provider in `libs/payments`.
+The payment layer for founders.coffee. Implements **P0-015** (FR-P3, FR-M5, NFR-6, NFR-10). Lives across three libs (AGENTS §3/§6): data in `libs/db`, the status machine in `libs/domain` (the `payments/` folder), the provider in `libs/payments`.
 
 ## Model
 
@@ -22,7 +22,7 @@ An **Order** is a *generic* payment record for "something payable" — not coupl
 
 An **Invoice** is 1:1 with its Order — the bill record (`number`, `billTo`, amount) issued to the payer.
 
-## Status machine (`libs/domain/payments`)
+## Status machine (`libs/domain`)
 
 ```
 pending ──confirm──▶ paid ──refund──▶ refunded

@@ -13,7 +13,7 @@
   "references": [
     { "path": "../core/tsconfig.lib.json" },
     { "path": "../db/tsconfig.lib.json" },
-    { "path": "../domain/payments/tsconfig.lib.json" },
+    { "path": "../domain/tsconfig.lib.json" },
     { "path": "../observability/tsconfig.lib.json" }
   ]
 }
