@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/server-fns"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "vitest.config.ts",
+    "**/setup.ts"
+  ],
+  "references": [
+    { "path": "../core/tsconfig.lib.json" },
+    { "path": "../auth/tsconfig.lib.json" },
+    { "path": "../observability/tsconfig.lib.json" }
+  ]
+}

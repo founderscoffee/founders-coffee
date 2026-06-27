@@ -44,3 +44,18 @@ export const handleResult = async <T>(promise: Promise<Result<T>>): Promise<T> =
   if (!result.ok) throw result.error;
   return result.data;
 };
+
+/**
+ * Type-safe read of the stable `code` from an error received client-side (e.g. a
+ * TanStack Query error). TanStack serializes the thrown `AppError.code` across the
+ * wire at runtime, but TypeScript types the client error generically (the [#6428]
+ * gap) — this reads it without a cast at every call site. Returns `'unknown'` when
+ * no code is present, so UI can fall back to a generic message.
+ */
+export const appErrorCode = (error: unknown): string => {
+  if (error !== null && typeof error === 'object' && 'code' in error) {
+    const code = (error as { code?: unknown }).code;
+    return typeof code === 'string' ? code : 'unknown';
+  }
+  return 'unknown';
+};

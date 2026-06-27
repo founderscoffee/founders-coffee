@@ -1,0 +1,15 @@
+{
+  "name": "server-fns",
+  "projectType": "library",
+  "sourceRoot": "libs/server-fns/src",
+  "tags": ["type:lib", "layer:server", "domain:server"],
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "libs/server-fns"
+      }
+    }
+  }
+}
