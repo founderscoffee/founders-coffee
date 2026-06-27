@@ -20,6 +20,9 @@
     },
     {
       "path": "./libs/infra"
+    },
+    {
+      "path": "./libs/observability"
     }
   ]
 }
