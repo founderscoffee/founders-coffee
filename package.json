@@ -21,7 +21,8 @@
     "better-auth": "^1.6.22",
     "class-variance-authority": "^0.7.1",
     "drizzle-orm": "latest",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@better-auth/cli": "^1.4.21",
