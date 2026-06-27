@@ -166,3 +166,78 @@ export const verification = sqliteTable('verification', {
 
 export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
+
+/* -------------------------------------------------------------------------- */
+/* Payments (P0-015) — B2B Order/Invoice, Year-1 manual confirmation           */
+/* -------------------------------------------------------------------------- */
+
+export const ORDER_PURPOSES = [
+  'sponsorship',
+  'hosted_challenge_fee',
+  'prize_payout',
+  'host_fee',
+] as const;
+export type OrderPurpose = (typeof ORDER_PURPOSES)[number];
+
+export const ORDER_STATUSES = ['pending', 'paid', 'cancelled', 'refunded'] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+const CURRENCIES = ['DZD', 'MAD', 'EGP', 'SAR', 'AED'] as const;
+
+/**
+ * Order — a generic B2B payment record (FR-P3). Pays for a sponsorship, hosted
+ * challenge, prize payout, or host fee (polymorphic `referenceType`/`referenceId`,
+ * decoupled from any one entity). Manually confirmed in Year 1 (FR-M5); gateway
+ * providers arrive behind the PaymentProvider interface in P4.
+ */
+export const orders = sqliteTable('orders', {
+  id: text('id').primaryKey(),
+  marketCode: text('market_code')
+    .notNull()
+    .references(() => markets.code),
+  purpose: text('purpose', { enum: [...ORDER_PURPOSES] }).notNull(),
+  referenceType: text('reference_type'),
+  referenceId: text('reference_id'),
+  payerUserId: text('payer_user_id').references(() => user.id),
+  amountMinor: integer('amount_minor').notNull(),
+  currency: text('currency', { enum: [...CURRENCIES] }).notNull(),
+  status: text('status', { enum: [...ORDER_STATUSES] }).notNull().default('pending'),
+  provider: text('provider').notNull().default('manual'),
+  providerRef: text('provider_ref'),
+  note: text('note'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+  refundedAt: integer('refunded_at', { mode: 'timestamp' }),
+});
+
+export type Order = typeof orders.$inferSelect;
+export type NewOrder = typeof orders.$inferInsert;
+
+/** Invoice — 1:1 with an Order; the bill record issued to the payer. */
+export const invoices = sqliteTable('invoices', {
+  id: text('id').primaryKey(),
+  orderId: text('order_id')
+    .notNull()
+    .references(() => orders.id, { onDelete: 'cascade' }),
+  number: text('number').notNull().unique(),
+  billToName: text('bill_to_name').notNull(),
+  billToEmail: text('bill_to_email').notNull(),
+  amountMinor: integer('amount_minor').notNull(),
+  currency: text('currency', { enum: [...CURRENCIES] }).notNull(),
+  notes: text('notes'),
+  issuedAt: integer('issued_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export type Invoice = typeof invoices.$inferSelect;
+export type NewInvoice = typeof invoices.$inferInsert;
