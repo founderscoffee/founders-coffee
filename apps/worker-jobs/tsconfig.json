@@ -15,5 +15,22 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "references": [
+    {
+      "path": "../../libs/observability"
+    },
+    {
+      "path": "../../libs/db"
+    },
+    {
+      "path": "../../libs/email"
+    },
+    {
+      "path": "../../libs/core"
+    },
+    {
+      "path": "../../libs/infra"
+    }
+  ]
 }
