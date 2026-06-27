@@ -11,3 +11,10 @@ export const EMBEDDING_DIMENSIONS = 1024;
 
 /** Vectorize distance metric paired with bge-m3 (normalized cosine similarity). */
 export const VECTORIZE_METRIC = 'cosine';
+
+/** Instruct LLM for moderation + summarization (Workers AI text generation → { response }). Capable
+ * and multilingual (ar/fr/en); swap to a smaller model (e.g. llama-3.2-3b) for cost tuning at P2-E. */
+export const MODERATION_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+
+/** Instruct LLM for summarization (P3 sponsorship-report narratives). */
+export const SUMMARIZE_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
