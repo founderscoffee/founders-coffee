@@ -28,16 +28,25 @@
   },
   "references": [
     {
-      "path": "../../libs/server-fns"
-    },
-    {
       "path": "../../libs/auth"
     },
     {
-      "path": "../../libs/i18n"
+      "path": "../../libs/db"
+    },
+    {
+      "path": "../../libs/ui"
+    },
+    {
+      "path": "../../libs/server-fns"
+    },
+    {
+      "path": "../../libs/core"
     },
     {
       "path": "../../libs/observability"
+    },
+    {
+      "path": "../../libs/i18n"
     }
   ]
 }

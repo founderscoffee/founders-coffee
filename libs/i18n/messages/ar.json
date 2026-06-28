@@ -1,7 +1,5 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "welcome_title": "مرحبًا بك في founders.coffee",
-  "edit_to_start": "عدّل src/routes/index.tsx للبدء.",
   "brand": "founders.coffee",
   "nav_communities": "المجتمعات",
   "picker_title": "اعثر على مجتمع رواد الأعمال المحلي لديك",

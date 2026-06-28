@@ -1,7 +1,5 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "welcome_title": "Welcome to founders.coffee",
-  "edit_to_start": "Edit src/routes/index.tsx to get started.",
   "brand": "founders.coffee",
   "nav_communities": "Communities",
   "picker_title": "Find your local founder community",
