@@ -4,5 +4,10 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // `database_id` is a placeholder until P0-019 provisions the real D1; dev (Miniflare) works,
+  // `wrangler deploy` is gated on P0-019.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "founders-coffee", "database_id": "PLACEHOLDER_P1-019" }
+  ]
 }

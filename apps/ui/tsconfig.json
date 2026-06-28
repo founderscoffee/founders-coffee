@@ -1,6 +1,6 @@
 {
   "include": ["**/*.ts", "**/*.tsx"],
-  
+
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",
@@ -25,5 +25,13 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
-  }
+  },
+  "references": [
+    {
+      "path": "../../libs/server-fns"
+    },
+    {
+      "path": "../../libs/i18n"
+    }
+  ]
 }
