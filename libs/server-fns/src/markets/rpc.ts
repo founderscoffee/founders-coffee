@@ -4,7 +4,13 @@ import { z } from 'zod';
 import { handleResult } from '@founders-coffee/core';
 
 import { getDb } from '../db.js';
-import { getMarketWithCities, listVisibleMarkets, resolveMarket } from './resolver.js';
+import {
+  getMarketWithCities,
+  listVisibleMarkets,
+  resolveCityLanding,
+  resolveMarket,
+  resolveMarketLanding,
+} from './resolver.js';
 
 /**
  * The `createServerFn` RPC wrappers over the db-injected resolver — the P1-001 deferred piece,
@@ -26,3 +32,13 @@ export const getMarketCities = createServerFn({ strict: false })
 export const getVisibleMarkets = createServerFn({ strict: false }).handler(async () =>
   listVisibleMarkets(getDb()),
 );
+
+/** Country-landing data (market + cities) by slug-or-code. Throws `market_not_found` on miss. */
+export const getMarketLanding = createServerFn({ strict: false })
+  .validator(z.object({ key: z.string() }))
+  .handler(async ({ data }) => handleResult(resolveMarketLanding(getDb(), data.key)));
+
+/** City-landing data (market + city) by market key + city slug. Throws `market_not_found`/`city_not_found`. */
+export const getCityLanding = createServerFn({ strict: false })
+  .validator(z.object({ marketKey: z.string(), citySlug: z.string() }))
+  .handler(async ({ data }) => handleResult(resolveCityLanding(getDb(), data)));
