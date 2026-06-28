@@ -2,12 +2,14 @@ import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-rou
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { getCookies, getRequestHeader } from '@tanstack/react-start/server'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { Market } from '@founders-coffee/db'
-import { brand, cookieName, detectLocale, direction, LOCALES, type Locale } from '@founders-coffee/i18n'
+import { brand, cookieName, detectLocale, direction, LOCALES, nav_login, nav_logout, type Locale } from '@founders-coffee/i18n'
 import { configureClientLogger, logger, reportError } from '@founders-coffee/observability'
 import { getVisibleMarkets } from '@founders-coffee/server-fns'
+
+import { authClient } from '../lib/auth'
 
 import appCss from '../styles.css?url'
 
@@ -66,6 +68,35 @@ const LocaleToggle = ({ locale }: { locale: Locale }) => {
   )
 }
 
+const LoginLink = ({ locale }: { locale: Locale }) => (
+  <Link to="/login" className="text-sm text-primary hover:underline">
+    {nav_login({}, { locale })}
+  </Link>
+)
+
+/**
+ * Session nav is client-only — `authClient.useSession` (better-auth/react) trips the SSR
+ * "Invalid hook call" (its react-store resolves a second React under react-dom/server), so we gate it
+ * behind a mount flag: SSR renders the static Login link, the client swaps in the real state on
+ * hydration (acceptable flicker — SSR-correct session is a later polish).
+ */
+const SessionNav = ({ locale }: { locale: Locale }) => {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return <LoginLink locale={locale} />
+  const { data: session } = authClient.useSession()
+  if (!session) return <LoginLink locale={locale} />
+  return (
+    <button
+      type="button"
+      onClick={() => authClient.signOut()}
+      className="text-sm text-base-content/70 hover:text-primary"
+    >
+      {nav_logout({}, { locale })}
+    </button>
+  )
+}
+
 const Navbar = () => {
   const markets = Route.useLoaderData()
   const { locale } = Route.useRouteContext()
@@ -89,6 +120,7 @@ const Navbar = () => {
           ))}
         </div>
         <LocaleToggle locale={locale} />
+        <SessionNav locale={locale} />
       </div>
     </nav>
   )

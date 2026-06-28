@@ -6,6 +6,7 @@
  * failure so TanStack Query enters its error state automatically.
  */
 export { getDb } from './db.js';
+export { getPublicAuthConfig } from './auth-config.js';
 export { withRequestContext, requestContextMiddleware } from './request-context.js';
 export {
   checkPermission,

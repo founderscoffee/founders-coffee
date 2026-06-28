@@ -13,5 +13,17 @@
   "login_to_host": "سجّل الدخول للاستضافة",
   "not_found_title": "الصفحة غير موجودة",
   "not_found_body": "لم نتمكن من العثور على ما تبحث عنه.",
-  "back_home": "العودة للرئيسية"
+  "back_home": "العودة للرئيسية",
+  "nav_login": "تسجيل الدخول",
+  "nav_logout": "تسجيل الخروج",
+  "login_title": "سجّل الدخول إلى founders.coffee",
+  "login_email_label": "البريد الإلكتروني",
+  "login_email_placeholder": "you@example.com",
+  "login_send_code": "أرسل الرمز",
+  "login_code_sent": "أرسلنا رمزًا من 6 أرقام إلى {email}. تنتهي صلاحيته خلال 5 دقائق.",
+  "login_code_label": "أدخل الرمز",
+  "login_verify": "تحقّق وسجّل الدخول",
+  "login_wrong_code": "رمز غير صالح أو منتهي الصلاحية.",
+  "login_resend": "إعادة إرسال الرمز",
+  "oauth_continue": "المتابعة عبر {provider}"
 }

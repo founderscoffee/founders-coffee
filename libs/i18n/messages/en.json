@@ -13,5 +13,17 @@
   "login_to_host": "Log in to host",
   "not_found_title": "Page not found",
   "not_found_body": "We couldn't find what you're looking for.",
-  "back_home": "Back home"
+  "back_home": "Back home",
+  "nav_login": "Sign in",
+  "nav_logout": "Sign out",
+  "login_title": "Sign in to founders.coffee",
+  "login_email_label": "Email",
+  "login_email_placeholder": "you@example.com",
+  "login_send_code": "Send code",
+  "login_code_sent": "We sent a 6-digit code to {email}. It expires in 5 minutes.",
+  "login_code_label": "Enter the code",
+  "login_verify": "Verify and sign in",
+  "login_wrong_code": "Invalid or expired code.",
+  "login_resend": "Resend code",
+  "oauth_continue": "Continue with {provider}"
 }
