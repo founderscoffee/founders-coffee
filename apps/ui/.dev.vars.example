@@ -1,0 +1,18 @@
+# apps/ui local dev SECRETS — copy to `.dev.vars` (gitignored) and fill in.
+# APP_URL is NOT here — it's a public var in wrangler.jsonc. See docs/secrets.md.
+
+# Auth (libs/auth) — BETTER_AUTH_SECRET must be >=32 chars. Generate one:
+#   openssl rand -base64 48
+BETTER_AUTH_SECRET=change-me-to-a-long-random-string-of-at-least-32-chars
+
+# OAuth providers (optional — leave blank to disable; email-OTP works without any)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+
+# Turnstile (optional — DevTurnstileVerifier is used when DISABLED or no key)
+TURNSTILE_SECRET_KEY=
+TURNSTILE_DISABLED=true

@@ -3,11 +3,18 @@
   "name": "founders-coffee-ui",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "src/server.ts",
   "observability": { "enabled": true },
+  "vars": { "APP_URL": "http://localhost:3000" },
   // `database_id` is a placeholder until P0-019 provisions the real D1; dev (Miniflare) works,
-  // `wrangler deploy` is gated on P0-019.
+  // `wrangler deploy` is gated on P0-019. `migrations_dir` points at the shared libs/db schema
+  // (`wrangler d1 migrations apply founders-coffee --local`).
   "d1_databases": [
-    { "binding": "DB", "database_name": "founders-coffee", "database_id": "PLACEHOLDER_P1-019" }
+    {
+      "binding": "DB",
+      "database_name": "founders-coffee",
+      "database_id": "PLACEHOLDER_P0-019",
+      "migrations_dir": "../../libs/db/migrations"
+    }
   ]
 }
