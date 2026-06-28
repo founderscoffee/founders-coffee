@@ -10,8 +10,9 @@ export { withRequestContext, requestContextMiddleware } from './request-context.
 export {
   checkPermission,
   requireAuth,
-  requirePermission,
   type PermissionResource,
   type PermissionAction,
 } from './authz.js';
+export { getAuthEnv, resolveSession } from './auth.js';
+export { authMiddleware, requirePermission } from './auth-middleware.js';
 export * from './markets/index.js';
