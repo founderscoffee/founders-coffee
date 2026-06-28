@@ -1,4 +1,4 @@
-import { createAuth, type AuthEnv } from './auth.js';
+import { createAuth, type AuthDeps, type AuthEnv } from './auth.js';
 import {
   DevTurnstileVerifier,
   TurnstileSiteVerifier,
@@ -25,10 +25,12 @@ const isTurnstileGated = (pathname: string, method: string): boolean =>
 /**
  * Build the Better Auth HTTP handler for an app, with Turnstile gating on the
  * brute-force endpoints. Construct per request (the handler is cheap; the auth
- * instance inside must not be a module singleton — see createAuth).
+ * instance inside must not be a module singleton — see createAuth). `deps`
+ * forwards to `createAuth` — pass `{ emailProvider }` to wire a real OTP sender
+ * (otherwise `createAuth` defaults to the dev console provider).
  */
-export const createAuthHandler = (env: HandlerEnv) => {
-  const { auth } = createAuth(env);
+export const createAuthHandler = (env: HandlerEnv, deps: AuthDeps = {}) => {
+  const { auth } = createAuth(env, deps);
   const turnstile: TurnstileVerifier =
     env.TURNSTILE_DISABLED === 'true' || !env.TURNSTILE_SECRET_KEY
       ? new DevTurnstileVerifier()

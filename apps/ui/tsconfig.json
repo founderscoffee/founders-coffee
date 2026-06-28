@@ -28,9 +28,6 @@
   },
   "references": [
     {
-      "path": "../../libs/auth"
-    },
-    {
       "path": "../../libs/db"
     },
     {
@@ -43,10 +40,16 @@
       "path": "../../libs/core"
     },
     {
+      "path": "../../libs/i18n"
+    },
+    {
       "path": "../../libs/observability"
     },
     {
-      "path": "../../libs/i18n"
+      "path": "../../libs/email"
+    },
+    {
+      "path": "../../libs/auth"
     }
   ]
 }

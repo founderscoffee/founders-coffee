@@ -5,7 +5,10 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
   "observability": { "enabled": true },
-  "vars": { "APP_URL": "http://localhost:3000" },
+  "vars": { "APP_URL": "http://localhost:3000", "MAIL_FROM": "no-reply@founders.coffee" },
+  // Outgoing email (OTP codes). `destination_address` left unrestricted; the sender (`MAIL_FROM`)
+  // must be a Cloudflare-verified address at deploy (P0-019). Dev uses DevEmailProvider regardless.
+  "send_email": [{ "name": "EMAIL" }],
   // `database_id` is a placeholder until P0-019 provisions the real D1; dev (Miniflare) works,
   // `wrangler deploy` is gated on P0-019. `migrations_dir` points at the shared libs/db schema
   // (`wrangler d1 migrations apply founders-coffee --local`).
