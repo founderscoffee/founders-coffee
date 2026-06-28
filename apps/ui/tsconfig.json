@@ -35,6 +35,9 @@
     },
     {
       "path": "../../libs/i18n"
+    },
+    {
+      "path": "../../libs/observability"
     }
   ]
 }
