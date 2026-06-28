@@ -5,6 +5,7 @@
  * unwrap the domain `Result` via `handleResult()` and throw the typed `AppError` on
  * failure so TanStack Query enters its error state automatically.
  */
+export { getDb } from './db.js';
 export { withRequestContext, requestContextMiddleware } from './request-context.js';
 export {
   checkPermission,
