@@ -1,5 +1,19 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "welcome_title": "Welcome to founders.coffee",
-  "edit_to_start": "Edit src/routes/index.tsx to get started."
+  "edit_to_start": "Edit src/routes/index.tsx to get started.",
+  "brand": "founders.coffee",
+  "nav_communities": "Communities",
+  "picker_title": "Find your local founder community",
+  "picker_subtitle": "Coffee meetups + hackathons for builders. No formalities.",
+  "market_hero_title": "founders.coffee in {market}",
+  "market_hero_desc": "Real meetups, real founders. No pitch decks, no pressure.",
+  "cities_in": "Cities in {market}",
+  "city_empty_title": "Be the first to host in {city}",
+  "city_empty_body": "No meetups here yet. It takes minutes to start a founders.coffee — from a café table.",
+  "city_empty_cta": "Become the host",
+  "login_to_host": "Log in to host",
+  "not_found_title": "Page not found",
+  "not_found_body": "We couldn't find what you're looking for.",
+  "back_home": "Back home"
 }
