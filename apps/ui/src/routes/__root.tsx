@@ -1,7 +1,7 @@
 import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { getCookies, getRequestHeader } from '@tanstack/react-start/server'
+import { getCookies } from '@tanstack/react-start/server'
 import { useEffect, useState } from 'react'
 
 import type { Market } from '@founders-coffee/db'
@@ -22,8 +22,7 @@ import appCss from '../styles.css?url'
 const detectLocaleFromRequest = () => {
   const value = getCookies()[cookieName]
   const cookieHeader = value ? `${cookieName}=${value}` : null
-  const accept = getRequestHeader('accept-language') ?? null
-  const locale = detectLocale(cookieHeader, accept)
+  const locale = detectLocale(cookieHeader)
   return { locale, dir: direction(locale) }
 }
 

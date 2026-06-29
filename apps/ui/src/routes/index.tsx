@@ -1,42 +1,40 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { getCookies } from '@tanstack/react-start/server'
 
-import type { Market } from '@founders-coffee/db'
-import { picker_subtitle, picker_title } from '@founders-coffee/i18n'
-import { getVisibleMarkets } from '@founders-coffee/server-fns'
-import { Card, CardBody, CardTitle } from '@founders-coffee/ui'
+import { appErrorCode } from '@founders-coffee/core'
+import { getGeoCountry, getMarketLanding } from '@founders-coffee/server-fns'
 
-const Home = () => {
-  const { locale } = Route.useRouteContext()
-  const markets = Route.useLoaderData()
+/** Algeria is the default market when geo-detection finds no match (SRS: Algeria-first). */
+const DEFAULT_MARKET_SLUG = 'algeria'
+const GEO_COOKIE = 'fc_geo'
 
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-12">
-      <header className="mb-10 text-center">
-        <h1 className="text-4xl font-bold text-primary">{picker_title({}, { locale })}</h1>
-        <p className="mt-3 text-lg text-base-content/70">{picker_subtitle({}, { locale })}</p>
-      </header>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {markets.map((mk) => (
-          <Link
-            key={mk.code}
-            to="/$market"
-            params={{ market: mk.slug }}
-            className="transition-all hover:-translate-y-0.5"
-          >
-            <Card className="h-full hover:shadow-md">
-              <CardBody>
-                <CardTitle>{mk.name}</CardTitle>
-                <p className="text-sm text-base-content/60">{mk.defaultLocale.toUpperCase()}</p>
-              </CardBody>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </div>
-  )
+/** Resolve a country code to a visible market's slug — null for dark/unknown (no leak). */
+const tryMarketSlug = async (key: string): Promise<string | null> => {
+  try {
+    const { market } = await getMarketLanding({ data: { key } })
+    return market.slug
+  } catch (error) {
+    if (appErrorCode(error) === 'market_not_found') return null
+    throw error
+  }
 }
 
+/**
+ * `/` is never a page — it redirects to the visitor's market. First visit: detect the country
+ * (CF-IPCountry or DEV_GEO) → its market, or the default (Algeria). The `fc_geo` cookie remembers
+ * the resolution so the logo (→ /) goes straight to the user's market without re-detecting.
+ */
 export const Route = createFileRoute('/')({
-  component: Home,
-  loader: (): Promise<Market[]> => getVisibleMarkets(),
+  beforeLoad: async () => {
+    const remembered = getCookies()[GEO_COOKIE]
+    const country = remembered ?? (await getGeoCountry())
+    const slug = country ? await tryMarketSlug(country) : null
+    const target = slug ?? DEFAULT_MARKET_SLUG
+    throw redirect({
+      to: '/$market',
+      params: { market: target },
+      headers: { 'Set-Cookie': `${GEO_COOKIE}=${target}; Path=/; Max-Age=31536000; SameSite=Lax` },
+    })
+  },
+  component: () => null,
 })

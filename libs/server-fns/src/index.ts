@@ -12,6 +12,7 @@
  * Authed server-fns import them directly from their modules (`./db`, `./auth-middleware`).
  */
 export { getPublicAuthConfig } from './auth-config.js';
+export { getGeoCountry } from './geo.js';
 export { withRequestContext, requestContextMiddleware } from './request-context.js';
 export {
   checkPermission,
