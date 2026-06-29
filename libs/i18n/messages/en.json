@@ -12,7 +12,7 @@
   "no_events_yet": "No events yet — be the first to host",
   "city_empty_title": "Be the first to host in {city}",
   "city_empty_body": "No meetups here yet. It takes minutes to start a founders.coffee — from a café table.",
-  "city_empty_cta": "Become the host",
+  "city_empty_cta": "Host the first meetup",
   "login_to_host": "Log in to host",
   "not_found_title": "Page not found",
   "not_found_body": "We couldn't find what you're looking for.",
@@ -37,5 +37,12 @@
   "footer_terms": "Terms",
   "footer_partners": "Partners",
   "footer_sponsors_disclosed": "Disclosed sponsors — never covert.",
-  "footer_copyright": "© 2026 founders.coffee — made at a café table."
+  "footer_copyright": "© 2026 founders.coffee — made at a café table.",
+  "city_empty_bullet1": "List the meetup",
+  "city_empty_bullet2": "Pick a café",
+  "city_empty_bullet3": "Set the time",
+  "back_to_market": "Back to {market}",
+  "login_or": "or",
+  "error_title": "Something went wrong",
+  "error_body": "Please try again later."
 }

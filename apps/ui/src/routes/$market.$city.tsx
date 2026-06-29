@@ -1,30 +1,47 @@
-import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
+import { Link, createFileRoute, notFound, redirect } from '@tanstack/react-router'
 
 import { appErrorCode } from '@founders-coffee/core'
-import { city_empty_body, city_empty_cta, city_empty_title, type Locale } from '@founders-coffee/i18n'
+import {
+  back_to_market,
+  city_empty_body,
+  city_empty_bullet1,
+  city_empty_bullet2,
+  city_empty_bullet3,
+  city_empty_cta,
+  city_empty_title,
+  type Locale,
+} from '@founders-coffee/i18n'
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns'
-import { buttonVariants, Card, CardBody } from '@founders-coffee/ui'
 
 const CityLanding = () => {
   const { locale } = Route.useRouteContext()
-  const { city } = Route.useLoaderData()
+  const { market, city } = Route.useLoaderData()
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16">
-      <Card>
-        <CardBody className="items-center text-center">
-          <h1 className="text-3xl font-bold text-primary">
-            {city_empty_title({ city: city.name }, { locale })}
-          </h1>
-          <p className="mt-3 text-base-content/70">{city_empty_body({}, { locale })}</p>
-          {/* Forward-link to /login (P1-003). Plain anchor: TanStack's type-safe Link rejects the
-              not-yet-existing route; /login 404s (notFoundComponent) until auth UI lands. */}
-          <a href="/login" className={`${buttonVariants({ variant: 'primary' })} mt-6`}>
-            {city_empty_cta({}, { locale })}
-          </a>
-        </CardBody>
-      </Card>
-    </div>
+    <section className="mx-auto max-w-lg px-4 py-16 text-center">
+      <div className="mb-4 text-6xl" aria-hidden="true">☕</div>
+      <h1 className="text-3xl font-extrabold text-primary">
+        {city_empty_title({ city: city.name }, { locale })}
+      </h1>
+      <p className="mt-3 text-base-content/70">{city_empty_body({}, { locale })}</p>
+      <ul className="mx-auto mt-6 flex max-w-sm flex-col gap-2 text-sm text-base-content/60">
+        <li>{city_empty_bullet1({}, { locale })}</li>
+        <li>{city_empty_bullet2({}, { locale })}</li>
+        <li>{city_empty_bullet3({}, { locale })}</li>
+      </ul>
+      <Link to="/login" className="btn btn-primary btn-lg mt-8 gap-1">
+        {city_empty_cta({}, { locale })}
+      </Link>
+      <div className="mt-4">
+        <Link
+          to="/$market"
+          params={{ market: market.slug }}
+          className="text-sm text-base-content/40 hover:text-primary"
+        >
+          {back_to_market({ market: market.name }, { locale })}
+        </Link>
+      </div>
+    </section>
   )
 }
 

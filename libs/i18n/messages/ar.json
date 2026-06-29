@@ -12,7 +12,7 @@
   "no_events_yet": "لا فعاليات بعد — كن أول من يستضيف",
   "city_empty_title": "كن أول من يستضيف في {city}",
   "city_empty_body": "لا توجد لقاءات هنا بعد. يستغرق تنظيم founders.coffee دقائق فقط — من طاولة مقهى.",
-  "city_empty_cta": "كن مضيفًا",
+  "city_empty_cta": "استضف اللقاء الأول",
   "login_to_host": "سجّل الدخول للاستضافة",
   "not_found_title": "الصفحة غير موجودة",
   "not_found_body": "لم نتمكن من العثور على ما تبحث عنه.",
@@ -37,5 +37,12 @@
   "footer_terms": "الشروط",
   "footer_partners": "الشركاء",
   "footer_sponsors_disclosed": "رعاة معلَنون — لا إخفاء أبداً.",
-  "footer_copyright": "© 2026 founders.coffee — صُنع على طاولة مقهى."
+  "footer_copyright": "© 2026 founders.coffee — صُنع على طاولة مقهى.",
+  "city_empty_bullet1": "أنشئ اللقاء",
+  "city_empty_bullet2": "اختر مقهى",
+  "city_empty_bullet3": "حدد الوقت",
+  "back_to_market": "العودة إلى {market}",
+  "login_or": "أو",
+  "error_title": "حدث خطأ ما",
+  "error_body": "يرجى المحاولة مرة أخرى لاحقاً."
 }

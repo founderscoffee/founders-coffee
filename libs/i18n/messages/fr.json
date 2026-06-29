@@ -12,7 +12,7 @@
   "no_events_yet": "Pas encore d'événements — soyez le premier à héberger",
   "city_empty_title": "Soyez le premier à héberger à {city}",
   "city_empty_body": "Pas encore de rencontres ici. Quelques minutes suffisent pour lancer un founders.coffee — depuis une table de café.",
-  "city_empty_cta": "Devenir l'hôte",
+  "city_empty_cta": "Animer la première rencontre",
   "login_to_host": "Se connecter pour héberger",
   "not_found_title": "Page introuvable",
   "not_found_body": "Nous n'avons pas trouvé ce que vous cherchez.",
@@ -37,5 +37,12 @@
   "footer_terms": "Conditions",
   "footer_partners": "Partenaires",
   "footer_sponsors_disclosed": "Sponsors divulgués — jamais cachés.",
-  "footer_copyright": "© 2026 founders.coffee — fait à une table de café."
+  "footer_copyright": "© 2026 founders.coffee — fait à une table de café.",
+  "city_empty_bullet1": "Créer la rencontre",
+  "city_empty_bullet2": "Choisir un café",
+  "city_empty_bullet3": "Fixer l'heure",
+  "back_to_market": "Retour à {market}",
+  "login_or": "ou",
+  "error_title": "Une erreur s'est produite",
+  "error_body": "Veuillez réessayer plus tard."
 }
