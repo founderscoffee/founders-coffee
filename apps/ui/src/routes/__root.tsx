@@ -5,7 +5,26 @@ import { getCookies } from '@tanstack/react-start/server'
 import { useEffect, useState } from 'react'
 
 import type { Market } from '@founders-coffee/db'
-import { brand, cookieName, detectLocale, direction, LOCALES, nav_login, nav_logout, type Locale } from '@founders-coffee/i18n'
+import {
+  brand,
+  cookieName,
+  detectLocale,
+  direction,
+  footer_about,
+  footer_company,
+  footer_contact,
+  footer_copyright,
+  footer_partners,
+  footer_privacy,
+  footer_sponsors_disclosed,
+  footer_tagline,
+  footer_terms,
+  LOCALES,
+  nav_communities,
+  nav_login,
+  nav_logout,
+  type Locale,
+} from '@founders-coffee/i18n'
 import { configureClientLogger, logger, reportError } from '@founders-coffee/observability'
 import { getVisibleMarkets } from '@founders-coffee/server-fns'
 
@@ -13,12 +32,6 @@ import { authClient } from '../lib/auth'
 
 import appCss from '../styles.css?url'
 
-/**
- * Resolve the active locale from the request — cookie first (FR-L6 override), then
- * `Accept-Language`, then the base locale. Runs once at SSR (root is always active); the cookie
- * value is reconstructed as a header entry to match `detectLocale`'s signature. Message rendering
- * threads `{ locale }` explicitly downstream (the i18n design — no global runtime state).
- */
 const detectLocaleFromRequest = () => {
   const value = getCookies()[cookieName]
   const cookieHeader = value ? `${cookieName}=${value}` : null
@@ -26,10 +39,6 @@ const detectLocaleFromRequest = () => {
   return { locale, dir: direction(locale) }
 }
 
-/**
- * Client-only bootstrap: point the isomorphic `logger` at `/client-logs` + capture uncaught errors
- * and promise rejections through `reportError` (beacons via the client logger → Workers Logs, AGENTS §13).
- */
 const useClientObservability = () => {
   useEffect(() => {
     configureClientLogger({ endpoint: '/client-logs' })
@@ -45,22 +54,21 @@ const useClientObservability = () => {
   }, [])
 }
 
-/** Switch the active locale (cookie-based, clean URLs — SRS §8.6) + reload to re-resolve. */
 const LocaleToggle = ({ locale }: { locale: Locale }) => {
   const change = (l: Locale) => {
     document.cookie = `${cookieName}=${l}; path=/; max-age=31536000; samesite=lax`
     window.location.reload()
   }
   return (
-    <div className="flex gap-2 text-sm">
+    <div className="flex gap-1 rounded-field border border-base-300 bg-base-100 p-1">
       {LOCALES.map((l) => (
         <button
           key={l}
           type="button"
           onClick={() => change(l)}
-          className={l === locale ? 'font-bold text-primary' : 'text-base-content/60 hover:text-base-content'}
+          className={`rounded-[calc(var(--radius-field)-0.25rem)] px-2 py-1 text-xs font-bold ${l === locale ? 'bg-neutral text-neutral-content' : 'text-base-content/40'}`}
         >
-          {l}
+          {l === 'ar' ? 'ع' : l.toUpperCase()}
         </button>
       ))}
     </div>
@@ -73,12 +81,6 @@ const LoginLink = ({ locale }: { locale: Locale }) => (
   </Link>
 )
 
-/**
- * Session nav is client-only — `authClient.useSession` (better-auth/react) trips the SSR
- * "Invalid hook call" (its react-store resolves a second React under react-dom/server), so we gate it
- * behind a mount flag: SSR renders the static Login link, the client swaps in the real state on
- * hydration (acceptable flicker — SSR-correct session is a later polish).
- */
 const SessionNav = ({ locale }: { locale: Locale }) => {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -97,31 +99,86 @@ const SessionNav = ({ locale }: { locale: Locale }) => {
 }
 
 const Navbar = () => {
-  const markets = Route.useLoaderData()
   const { locale } = Route.useRouteContext()
   return (
-    <nav className="flex items-center justify-between gap-4 border-b border-base-300 px-4 py-3">
-      <Link to="/" className="text-lg font-bold text-primary">
-        {brand({}, { locale })}
-      </Link>
-      <div className="flex items-center gap-4">
-        <div className="flex gap-3 text-sm">
-          {markets.map((mk) => (
-            <Link
-              key={mk.code}
-              to="/$market"
-              params={{ market: mk.slug }}
-              className="text-base-content/80 hover:text-primary"
-              activeProps={{ className: 'text-primary font-semibold' }}
-            >
-              {mk.name}
-            </Link>
-          ))}
-        </div>
-        <LocaleToggle locale={locale} />
+    <nav className="sticky top-0 z-50 border-b border-base-300 bg-base-100/80 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+        <Link to="/" className="text-lg font-extrabold text-primary">
+          {brand({}, { locale })}
+        </Link>
         <SessionNav locale={locale} />
       </div>
     </nav>
+  )
+}
+
+const Footer = () => {
+  const markets = Route.useLoaderData()
+  const { locale } = Route.useRouteContext()
+  return (
+    <footer className="mt-16 border-t border-base-300 bg-base-200">
+      <div className="mx-auto max-w-5xl px-4 py-12">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <Link to="/" className="text-lg font-extrabold text-primary">
+              {brand({}, { locale })}
+            </Link>
+            <p className="mt-2 max-w-xs text-sm text-base-content/60">
+              {footer_tagline({}, { locale })}
+            </p>
+          </div>
+          <nav className="flex flex-col gap-2">
+            <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-base-content/40">
+              {nav_communities({}, { locale })}
+            </h2>
+            {markets.map((mk) => (
+              <Link
+                key={mk.code}
+                to="/$market"
+                params={{ market: mk.slug }}
+                className="text-sm text-base-content/60 hover:text-primary"
+              >
+                {mk.name}
+              </Link>
+            ))}
+          </nav>
+          <nav className="flex flex-col gap-2">
+            <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-base-content/40">
+              {footer_company({}, { locale })}
+            </h2>
+            <a href="/about" className="text-sm text-base-content/60 hover:text-primary">
+              {footer_about({}, { locale })}
+            </a>
+            <a href="/contact" className="text-sm text-base-content/60 hover:text-primary">
+              {footer_contact({}, { locale })}
+            </a>
+            <a href="/privacy" className="text-sm text-base-content/60 hover:text-primary">
+              {footer_privacy({}, { locale })}
+            </a>
+            <a href="/terms" className="text-sm text-base-content/60 hover:text-primary">
+              {footer_terms({}, { locale })}
+            </a>
+          </nav>
+          <div>
+            <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-base-content/40">
+              {footer_partners({}, { locale })}
+            </h2>
+            <p className="text-sm italic text-base-content/50">
+              {footer_sponsors_disclosed({}, { locale })}
+            </p>
+          </div>
+        </div>
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-base-300 pt-6">
+          <p className="text-sm text-base-content/40">{footer_copyright({}, { locale })}</p>
+          <LocaleToggle locale={locale} />
+          <div className="flex gap-2">
+            <a href="#" aria-label="X" className="btn btn-circle btn-ghost btn-sm">𝕏</a>
+            <a href="#" aria-label="LinkedIn" className="btn btn-circle btn-ghost btn-sm">in</a>
+            <a href="#" aria-label="reddit" className="btn btn-circle btn-ghost btn-sm">r/</a>
+          </div>
+        </div>
+      </div>
+    </footer>
   )
 }
 
@@ -137,6 +194,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
       <body className="bg-base-100 text-base-content">
         <Navbar />
         <main>{children}</main>
+        <Footer />
         <TanStackDevtools
           config={{ position: 'bottom-right' }}
           plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}

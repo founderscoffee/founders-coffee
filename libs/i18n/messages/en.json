@@ -28,5 +28,14 @@
   "login_verify": "Verify and sign in",
   "login_wrong_code": "Invalid or expired code.",
   "login_resend": "Resend code",
-  "oauth_continue": "Continue with {provider}"
+  "oauth_continue": "Continue with {provider}",
+  "footer_tagline": "Real meetups, real founders. No formalities.",
+  "footer_company": "Company",
+  "footer_about": "About",
+  "footer_contact": "Contact",
+  "footer_privacy": "Privacy",
+  "footer_terms": "Terms",
+  "footer_partners": "Partners",
+  "footer_sponsors_disclosed": "Disclosed sponsors — never covert.",
+  "footer_copyright": "© 2026 founders.coffee — made at a café table."
 }

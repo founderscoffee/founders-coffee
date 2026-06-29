@@ -28,5 +28,14 @@
   "login_verify": "تحقّق وسجّل الدخول",
   "login_wrong_code": "رمز غير صالح أو منتهي الصلاحية.",
   "login_resend": "إعادة إرسال الرمز",
-  "oauth_continue": "المتابعة عبر {provider}"
+  "oauth_continue": "المتابعة عبر {provider}",
+  "footer_tagline": "لقاءات حقيقية على طاولة مقهى. بلا رسميات.",
+  "footer_company": "الشركة",
+  "footer_about": "من نحن",
+  "footer_contact": "تواصل معنا",
+  "footer_privacy": "الخصوصية",
+  "footer_terms": "الشروط",
+  "footer_partners": "الشركاء",
+  "footer_sponsors_disclosed": "رعاة معلَنون — لا إخفاء أبداً.",
+  "footer_copyright": "© 2026 founders.coffee — صُنع على طاولة مقهى."
 }
