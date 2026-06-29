@@ -1,23 +1,27 @@
-# Landing pages — routing, data, i18n
+# Landing pages — routing, data, i18n (revised IA)
 
-P1-002 — the first real UI: a market picker, country landings, and city landings. The first
-consumer of the P1-001 markets layer + P1-017 wiring.
+**Revised IA (UI/UX batch):** there is **no global market-picker**. `/` redirects to the visitor's
+market — detected via `CF-IPCountry`, defaulting to **Algeria**. The **country landing is the single
+main page** (hero + aura cities + market-scoped discover tabs). Arabic is the default language
+(`Accept-Language` dropped — SRS §8.6 amended). The Warm Café design system: Tajawal (Arabic),
+paper-grain texture, daisyUI hover-3d + aura-glow, tabs-lift.
 
-## Routing — market-prefixed, slug-canonical
+## Routing — geo-routing to default-Algeria, slug-canonical
 
-**Locale is cookie-based (SRS §8.6 — clean URLs, no locale prefix).** The path segment is the
-**market** (geographic context); the **locale** (ar/en/fr) comes from the `PARAGLIDE_LOCALE` cookie
-+ `Accept-Language`, resolved in `__root`'s `beforeLoad` (P1-017). They're orthogonal — a visitor can
-read `/morocco` in `fr`.
+**Locale is cookie-based, Arabic-first** (SRS §8.6 amended — `Accept-Language` is no longer
+consulted; the locale toggle in the footer is the only override). The **market** is the path segment.
 
-- **`/`** — market picker ([`index.tsx`](../apps/ui/src/routes/index.tsx)): `getVisibleMarkets`.
+- **`/`** — never a page; redirects to the visitor's market ([`index.tsx`](../apps/ui/src/routes/index.tsx)):
+  `getGeoCountry` (CF-IPCountry or DEV_GEO) → `getMarketLanding` → the market's slug, or default
+  Algeria. An `fc_geo` cookie remembers the resolution so the logo (→ /) is stable.
 - **`/{market}`** — country landing ([`$market/index.tsx`](../apps/ui/src/routes/$market/index.tsx)):
-  `getMarketLanding({key})` → market + cities (FR-G6).
+  hero + "Host in {market}" CTA + city buttons (name + event count + `aura-glow` if events>0) +
+  discover tabs (Events/Hackathons, `tabs-lift`).
 - **`/{market}/{city}`** — city landing ([`$market.$city.tsx`](../apps/ui/src/routes/$market.$city.tsx)):
-  `getCityLanding({marketKey, citySlug})` → market + city.
+  the polished "Be the first host" empty state (FR-E6).
 
 **Slug URLs are canonical** (`/morocco`, `/morocco/casablanca`); the **code alias redirects**
-(`/dz` → 307 `/algeria`, `/dz/algiers` → `/algeria/algiers`). Each loader canonicalizes: if the path
+(`/dz` → 307 `/algeria`). Each loader canonicalizes: if the path
 segment isn't the resolved market's slug, `throw redirect(...)`. Resolution is slug-then-code
 (`findMarketByKey` in [resolver.ts](../libs/server-fns/src/markets/resolver.ts)).
 
