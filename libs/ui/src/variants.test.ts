@@ -9,8 +9,8 @@ describe('libs/ui cva variants (literal class strings Tailwind can scan)', () =>
     expect(buttonVariants()).toBe('btn btn-primary btn-md');
   });
 
-  it('Button composes variant + size + fullWidth', () => {
-    expect(buttonVariants({ variant: 'secondary', size: 'sm', fullWidth: true })).toBe(
+  it('Button composes variant + size + isFullWidth', () => {
+    expect(buttonVariants({ variant: 'secondary', size: 'sm', isFullWidth: true })).toBe(
       'btn btn-secondary btn-sm w-full',
     );
   });

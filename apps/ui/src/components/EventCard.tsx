@@ -1,13 +1,12 @@
 import { going_count, type Locale } from '@founders-coffee/i18n'
 
+import { initials } from '../lib/utils'
 import type { SampleEvent } from '../lib/sample-events'
 
-import { Hover3D } from './hover-3d'
-
-const initials = (name: string): string => name.charAt(0)
+import { Hover3D } from './Hover3D'
 
 /**
- * A 720×150 event card with daisyUI `hover-3d` (tilt + shine on hover). Semantic `<article>` with
+ * A 720x150 event card with daisyUI `hover-3d` (tilt + shine on hover). Semantic `<article>` with
  * a date widget, the title, a metadata row, and an avatar-group social-proof footer.
  */
 export const EventCard = ({ event, locale }: { event: SampleEvent; locale: Locale }) => {
@@ -18,14 +17,12 @@ export const EventCard = ({ event, locale }: { event: SampleEvent; locale: Local
   return (
     <Hover3D>
       <article className="card card-side bg-base-200 border border-base-300 max-w-[720px]">
-        {/* Date widget */}
         <div className="flex flex-col items-center justify-center bg-primary/10 text-primary rounded-box gap-0.5 px-3 py-2 m-2 min-w-16">
           <span className="text-xs font-bold uppercase tracking-wide">{event.date.day_of_week}</span>
           <span className="text-2xl font-extrabold leading-none">{event.date.day}</span>
           <span className="text-xs font-bold uppercase opacity-80">{event.date.month}</span>
         </div>
 
-        {/* Card body */}
         <div className="card-body gap-1 p-3 pe-4">
           <h3 className="card-title text-base leading-snug">{event.title}</h3>
           <p className="text-sm text-base-content/60">

@@ -18,12 +18,12 @@ export const buttonVariants = cva('btn', {
       md: 'btn-md',
       lg: 'btn-lg',
     },
-    fullWidth: {
+    isFullWidth: {
       true: 'w-full',
       false: '',
     },
   },
-  defaultVariants: { variant: 'primary', size: 'md', fullWidth: false },
+  defaultVariants: { variant: 'primary', size: 'md', isFullWidth: false },
 });
 
 export interface ButtonProps
@@ -31,11 +31,11 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, fullWidth, type = 'button', ...props }, ref) => (
+  ({ className, variant, size, isFullWidth, type = 'button', ...props }, ref) => (
     <button
       ref={ref}
       type={type}
-      className={cn(buttonVariants({ variant, size, fullWidth }), className)}
+      className={cn(buttonVariants({ variant, size, isFullWidth }), className)}
       {...props}
     />
   ),
