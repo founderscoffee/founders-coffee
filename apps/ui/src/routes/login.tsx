@@ -59,13 +59,14 @@ const LoginPage = () => {
   const verify = async () => {
     setBusy(true)
     setError(null)
-    const { error: verifyError } = await authClient.signIn.emailOtp({ email, otp })
+    const { data, error: verifyError } = await authClient.signIn.emailOtp({ email, otp })
     setBusy(false)
     if (verifyError) {
       setError(login_wrong_code({}, { locale }))
       return
     }
-    window.location.href = redirect
+    const needsOnboarding = !data?.user?.homeMarketCode
+    window.location.href = needsOnboarding ? '/onboarding' : redirect
   }
 
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>

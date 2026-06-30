@@ -44,5 +44,22 @@
   "back_to_market": "Retour à {market}",
   "login_or": "ou",
   "error_title": "Une erreur s'est produite",
-  "error_body": "Veuillez réessayer plus tard."
+  "error_body": "Veuillez réessayer plus tard.",
+  "onboarding_title": "Définissez votre localisation",
+  "onboarding_subtitle": "Choisissez votre pays, région et ville pour voir les rencontres à proximité.",
+  "onboarding_country": "Pays",
+  "onboarding_state": "Région",
+  "onboarding_city": "Ville",
+  "onboarding_search_city": "Rechercher...",
+  "onboarding_save": "Enregistrer",
+  "profile_title": "Votre profil",
+  "profile_role": "Rôle",
+  "profile_home_location": "Localisation",
+  "profile_edit": "Modifier",
+  "profile_save": "Enregistrer",
+  "public_events_hosted": "Événements organisés",
+  "public_no_events": "Aucun événement organisé",
+  "role_member": "Membre",
+  "role_host": "Hôte",
+  "role_admin": "Admin"
 }

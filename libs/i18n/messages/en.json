@@ -44,5 +44,22 @@
   "back_to_market": "Back to {market}",
   "login_or": "or",
   "error_title": "Something went wrong",
-  "error_body": "Please try again later."
+  "error_body": "Please try again later.",
+  "onboarding_title": "Set your home location",
+  "onboarding_subtitle": "Pick your country, state, and city so we can show you nearby meetups.",
+  "onboarding_country": "Country",
+  "onboarding_state": "State",
+  "onboarding_city": "City",
+  "onboarding_search_city": "Search city...",
+  "onboarding_save": "Save + continue",
+  "profile_title": "Your profile",
+  "profile_role": "Role",
+  "profile_home_location": "Home location",
+  "profile_edit": "Edit",
+  "profile_save": "Save changes",
+  "public_events_hosted": "Events hosted",
+  "public_no_events": "No events hosted yet",
+  "role_member": "Member",
+  "role_host": "Host",
+  "role_admin": "Admin"
 }

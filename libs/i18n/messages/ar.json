@@ -44,5 +44,22 @@
   "back_to_market": "العودة إلى {market}",
   "login_or": "أو",
   "error_title": "حدث خطأ ما",
-  "error_body": "يرجى المحاولة مرة أخرى لاحقاً."
+  "error_body": "يرجى المحاولة مرة أخرى لاحقاً.",
+  "onboarding_title": "حدد موقعك",
+  "onboarding_subtitle": "اختر بلدك وولايتك ومدينتك لنظهر لك اللقاءات القريبة.",
+  "onboarding_country": "البلد",
+  "onboarding_state": "الولاية",
+  "onboarding_city": "المدينة",
+  "onboarding_search_city": "ابحث عن مدينة...",
+  "onboarding_save": "احفظ وواصل",
+  "profile_title": "ملفك الشخصي",
+  "profile_role": "الدور",
+  "profile_home_location": "الموقع",
+  "profile_edit": "تعديل",
+  "profile_save": "حفظ التغييرات",
+  "public_events_hosted": "فعاليات نظمها",
+  "public_no_events": "لم ينظم أي فعاليات بعد",
+  "role_member": "عضو",
+  "role_host": "مضيف",
+  "role_admin": "مشرف"
 }
