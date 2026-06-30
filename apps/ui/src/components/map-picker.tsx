@@ -1,7 +1,6 @@
 import mapboxgl from 'mapbox-gl'
 import { Map } from 'react-map-gl/mapbox'
 import { useEffect, useRef, useState } from 'react'
-import { Coffee } from 'lucide-react'
 
 export interface VenueSelection {
   name: string
@@ -58,7 +57,7 @@ export const MapPicker = ({
           duration: 1500,
         })
       },
-      () => {},
+      () => undefined,
       { enableHighAccuracy: true, timeout: 5000 },
     )
   }, [])
@@ -69,7 +68,7 @@ export const MapPicker = ({
       const res = await fetch(
         `https://api.mapbox.com/search/search/v1?q=${encodeURIComponent(query)}&language=ar,fr,en&limit=5&access_token=${token}`,
       )
-      const data = await res.json()
+      const data: { features?: Array<{ name?: string; place_name?: string; geometry?: { coordinates?: [number, number] }; properties?: { name?: string; address?: string } }> } = await res.json()
       if (data.features) {
         setResults(
           data.features.map((f: { name?: string; place_name?: string; geometry?: { coordinates?: [number, number] }; properties?: { name?: string; address?: string } }) => ({

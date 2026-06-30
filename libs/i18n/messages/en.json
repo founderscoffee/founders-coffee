@@ -61,5 +61,22 @@
   "public_no_events": "No events hosted yet",
   "role_member": "Member",
   "role_host": "Host",
-  "role_admin": "Admin"
+  "role_admin": "Admin",
+  "host_step1": "Where are you grabbing coffee?",
+  "host_step2": "When?",
+  "host_step3": "What is it about?",
+  "host_title_ph": "Coffee + code, or just coffee?",
+  "host_desc_ph": "Just talking about [topic], no slides allowed",
+  "host_venue_ph": "Search for a café…",
+  "host_capacity": "Capacity",
+  "host_capacity_unlimited": "Unlimited",
+  "host_language": "Language",
+  "host_category": "Category",
+  "host_publish": "Publish",
+  "host_next": "Next",
+  "host_back": "Back",
+  "host_select_venue": "Pick a café from the map",
+  "host_pick_datetime": "Pick a date and time",
+  "host_title_label": "Title",
+  "host_desc_label": "Description"
 }

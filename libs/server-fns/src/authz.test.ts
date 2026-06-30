@@ -8,8 +8,8 @@ describe('checkPermission', () => {
     expect(checkPermission('host', 'event', 'create')).toBe(true);
   });
 
-  it('denies a member from creating events', () => {
-    expect(checkPermission('member', 'event', 'create')).toBe(false);
+  it('allows a member to create events (any user can host)', () => {
+    expect(checkPermission('member', 'event', 'create')).toBe(true);
   });
 
   it('allows a member to read events', () => {
@@ -44,7 +44,7 @@ describe('requirePermission', () => {
   });
 
   it('throws forbidden when the role lacks the permission', () => {
-    expect(() => requirePermission(session('member'), 'event', 'create')).toThrowError(
+    expect(() => requirePermission(session('sponsor_contact'), 'event', 'create')).toThrowError(
       /Permission denied/,
     );
   });

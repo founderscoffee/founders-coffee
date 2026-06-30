@@ -61,5 +61,22 @@
   "public_no_events": "لم ينظم أي فعاليات بعد",
   "role_member": "عضو",
   "role_host": "مضيف",
-  "role_admin": "مشرف"
+  "role_admin": "مشرف",
+  "host_step1": "أين ستحتسي القهوة؟",
+  "host_step2": "متى؟",
+  "host_step3": "ما الموضوع؟",
+  "host_title_ph": "قهوة وبرمجة، أم قهوة فقط؟",
+  "host_desc_ph": "نتحدث عن [الموضوع] فقط، بدون شرائح",
+  "host_venue_ph": "ابحث عن مقهى…",
+  "host_capacity": "السعة",
+  "host_capacity_unlimited": "مفتوحة",
+  "host_language": "اللغة",
+  "host_category": "التصنيف",
+  "host_publish": "انشر",
+  "host_next": "التالي",
+  "host_back": "رجوع",
+  "host_select_venue": "اختر مقهى من الخريطة",
+  "host_pick_datetime": "اختر التاريخ والوقت",
+  "host_title_label": "العنوان",
+  "host_desc_label": "الوصف"
 }

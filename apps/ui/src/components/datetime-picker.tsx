@@ -9,55 +9,38 @@ import { Calendar } from 'vanilla-calendar-pro'
  * The calendar IS the UI (no separate input — `inputMode` defaults to `false`).
  */
 export const DatetimePicker = ({
-  value,
   onChange,
 }: {
   value: number | null
   onChange: (epoch: number) => void
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const calendarRef = useRef<Calendar | null>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
 
+    const readValue = (self: Calendar) => {
+      const dates = self.context.selectedDates
+      if (!dates?.[0]) return
+      const dateStr = dates[0]
+      const timeStr = self.context.selectedTime ?? '00:00'
+      const epoch = new Date(`${dateStr}T${timeStr}:00`).getTime()
+      if (!Number.isNaN(epoch)) onChange(epoch)
+    }
+
     const calendar = new Calendar(containerRef.current, {
       type: 'default',
-      selectionTimeMode: '24',
-      settings: {
-        selection: {
-          day: 'single',
-          time: true,
-        },
-        visibility: {
-          theme: 'light',
-        },
-      },
-      actions: {
-        clickDay(e, self) {
-          updateValue(self)
-        },
-        changeTime(e, self) {
-          updateValue(self)
-        },
-      },
+      selectionTimeMode: 24,
+      onClickDate: (self: Calendar) => readValue(self),
+      onChangeTime: (self: Calendar) => readValue(self),
     })
-    calendarRef.current = calendar
     const destroy = calendar.init()
 
     return () => {
       destroy()
       calendar.destroy()
     }
-  }, [])
-
-  const updateValue = (self: { selectedDates: string[]; selectedTime?: string }) => {
-    if (!self.selectedDates?.[0]) return
-    const dateStr = self.selectedDates[0]
-    const timeStr = self.selectedTime ?? '00:00'
-    const epoch = new Date(`${dateStr}T${timeStr}:00`).getTime()
-    if (!Number.isNaN(epoch)) onChange(epoch)
-  }
+  }, [onChange])
 
   return <div ref={containerRef} className="vanilla-calendar" data-vc="wrapper" />
 }

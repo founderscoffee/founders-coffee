@@ -61,5 +61,22 @@
   "public_no_events": "Aucun événement organisé",
   "role_member": "Membre",
   "role_host": "Hôte",
-  "role_admin": "Admin"
+  "role_admin": "Admin",
+  "host_step1": "Où prends-tu un café ?",
+  "host_step2": "Quand ?",
+  "host_step3": "De quoi parle-t-on ?",
+  "host_title_ph": "Café + code, ou juste un café ?",
+  "host_desc_ph": "On parle de [sujet], pas de slides",
+  "host_venue_ph": "Rechercher un café…",
+  "host_capacity": "Capacité",
+  "host_capacity_unlimited": "Illimitée",
+  "host_language": "Langue",
+  "host_category": "Catégorie",
+  "host_publish": "Publier",
+  "host_next": "Suivant",
+  "host_back": "Retour",
+  "host_select_venue": "Choisis un café sur la carte",
+  "host_pick_datetime": "Choisis la date et l'heure",
+  "host_title_label": "Titre",
+  "host_desc_label": "Description"
 }
