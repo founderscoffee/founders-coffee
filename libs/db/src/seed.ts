@@ -1,27 +1,22 @@
 import type { Db } from './db.js';
 import { batch } from './atomic.js';
-import { cities, markets } from './schema.js';
-import type { NewCity, NewMarket } from './schema.js';
+import { markets } from './schema.js';
+import type { NewMarket } from './schema.js';
 
 /**
- * Initial market/city seed — the launch configuration (SRS §10.2, FR-G5).
+ * Initial market seed — the launch configuration (SRS §10.2, FR-G5).
  *
- * Only the two launch markets are seeded:
- *   - DZ → `active`  (full operational investment — the free-events wedge goes live here)
- *   - MA → `open`    (visible, self-serve posting allowed, reads demand; no investment)
- * EG/SA/AE stay `dark` and are NOT seeded at launch (density-gated, §2.2).
+ * Three target countries (P1-004 restructure — Morocco dropped):
+ *   - DZ → `active`  (Algeria-first — the launch market)
+ *   - EG → `active`  (Egypt)
+ *   - SA → `active`  (Saudi Arabia)
  *
- * Defaults chosen here are admin-configurable post-launch (FR-M1): market state,
- * feature flags and brand overrides can all be changed from `apps/admin` without
- * a redeploy. `seed()` only ever INSERTs-if-absent, so re-running it never
- * overwrites edits an admin has made.
+ * Cities are NOT seeded here — they live as server-side TS files in
+ * `libs/domain/src/geo/data/` (full datasets: DZ 1,541 communes, EG 396 cities,
+ * SA 4,581 cities). The `cities` D1 table is dropped (migration 0002).
  *
- * Locale/direction: Arabic-first (SRS §8.6) — both DZ and MA default to `ar`
- * (Modern Standard Arabic, RTL), with `fr`/`en` selectable. Language is
- * language-level (not region-variant); region concerns (timezone, currency)
- * stay on the market.
+ * `seed()` only ever INSERTs-if-absent, so re-running never overwrites admin edits.
  */
-
 export const SEED_MARKETS: readonly NewMarket[] = [
   {
     code: 'DZ',
@@ -40,14 +35,30 @@ export const SEED_MARKETS: readonly NewMarket[] = [
     },
   },
   {
-    code: 'MA',
-    name: 'Morocco',
-    slug: 'morocco',
+    code: 'EG',
+    name: 'Egypt',
+    slug: 'egypt',
     defaultLocale: 'ar',
-    defaultCurrency: 'MAD',
-    timezone: 'Africa/Casablanca',
+    defaultCurrency: 'EGP',
+    timezone: 'Africa/Cairo',
     direction: 'rtl',
-    state: 'open',
+    state: 'active',
+    featureFlags: {
+      events: true,
+      hackathons: false,
+      payments: false,
+      recruiting: false,
+    },
+  },
+  {
+    code: 'SA',
+    name: 'Saudi Arabia',
+    slug: 'saudi-arabia',
+    defaultLocale: 'ar',
+    defaultCurrency: 'SAR',
+    timezone: 'Asia/Riyadh',
+    direction: 'rtl',
+    state: 'active',
     featureFlags: {
       events: true,
       hackathons: false,
@@ -57,50 +68,14 @@ export const SEED_MARKETS: readonly NewMarket[] = [
   },
 ];
 
-/** Build a seeded city row with a stable, globally-unique id. */
-const city = (
-  marketCode: NewCity['marketCode'],
-  slug: string,
-  name: string,
-  timezone: string,
-): NewCity => ({
-  id: `${marketCode.toLowerCase()}_${slug}`,
-  marketCode,
-  name,
-  slug,
-  timezone,
-});
-
-/** Major pre-seeded cities per market (FR-G5). Both countries are single-timezone. */
-export const SEED_CITIES: readonly NewCity[] = [
-  city('DZ', 'algiers', 'Alger', 'Africa/Algiers'),
-  city('DZ', 'oran', 'Oran', 'Africa/Algiers'),
-  city('DZ', 'constantine', 'Constantine', 'Africa/Algiers'),
-  city('DZ', 'annaba', 'Annaba', 'Africa/Algiers'),
-  city('DZ', 'blida', 'Blida', 'Africa/Algiers'),
-  city('MA', 'casablanca', 'Casablanca', 'Africa/Casablanca'),
-  city('MA', 'rabat', 'Rabat', 'Africa/Casablanca'),
-  city('MA', 'marrakech', 'Marrakech', 'Africa/Casablanca'),
-  city('MA', 'fes', 'Fès', 'Africa/Casablanca'),
-  city('MA', 'tanger', 'Tanger', 'Africa/Casablanca'),
-];
-
 /**
- * Idempotently seed launch markets + cities into D1.
- *
- * Inserts use `ON CONFLICT DO NOTHING`, so this is safe to re-run any number of
- * times and will never duplicate rows or clobber admin edits. All statements run
- * in one atomic `db.batch()` round-trip (D1 has no interactive transactions —
- * AGENTS.md §11); markets precede their cities so the
- * `cities.market_code → markets.code` foreign key holds within the batch.
+ * Idempotently seed launch markets into D1. `ON CONFLICT DO NOTHING` — safe to re-run.
+ * Runs in one atomic `db.batch()` round-trip (AGENTS.md §11).
  */
 export const seed = async (db: Db): Promise<void> => {
   await batch(db, [
     ...SEED_MARKETS.map((market) =>
       db.insert(markets).values(market).onConflictDoNothing(),
-    ),
-    ...SEED_CITIES.map((cityRow) =>
-      db.insert(cities).values(cityRow).onConflictDoNothing(),
     ),
   ]);
 };

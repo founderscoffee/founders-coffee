@@ -50,23 +50,6 @@ export const markets = sqliteTable('markets', {
 export type Market = typeof markets.$inferSelect;
 export type NewMarket = typeof markets.$inferInsert;
 
-/** City — a geographic unit within a market. */
-export const cities = sqliteTable('cities', {
-  id: text('id').primaryKey(),
-  marketCode: text('market_code')
-    .notNull()
-    .references(() => markets.code),
-  name: text('name').notNull(),
-  slug: text('slug').notNull(),
-  timezone: text('timezone').notNull(),
-  createdAt: integer('created_at')
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
-
-export type City = typeof cities.$inferSelect;
-export type NewCity = typeof cities.$inferInsert;
-
 /* -------------------------------------------------------------------------- */
 /* Better Auth identity tables                                                 */
 /* -------------------------------------------------------------------------- */
@@ -85,6 +68,7 @@ export const user = sqliteTable('user', {
   banReason: text('ban_reason'),
   banExpires: integer('ban_expires', { mode: 'timestamp' }),
   homeMarketCode: text('home_market_code').references(() => markets.code),
+  homeState: text('home_state'),
   homeCityId: text('home_city_id'),
   localePref: text('locale_pref'),
   createdAt: integer('created_at', { mode: 'timestamp' })

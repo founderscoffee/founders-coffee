@@ -76,6 +76,7 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     user: {
       additionalFields: {
         homeMarketCode: { type: 'string', required: false, input: false },
+        homeState: { type: 'string', required: false, input: false },
         homeCityId: { type: 'string', required: false, input: false },
         localePref: { type: 'string', required: false, input: false },
       },
