@@ -14,6 +14,7 @@
 export { getPublicAuthConfig } from './auth-config.js';
 export { getGeoCountry } from './geo.js';
 export { getCities, getFeaturedCities, getStates } from './geo-rpc.js';
+export * from './events/index.js';
 export { getMyProfile, getPublicProfile, setHomeLocation } from './profile.js';
 export type { UserProfile, PublicProfile } from './profile.js';
 export { withRequestContext, requestContextMiddleware } from './request-context.js';
