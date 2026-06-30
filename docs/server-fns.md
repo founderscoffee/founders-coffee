@@ -1,65 +1,45 @@
 # Server functions — the backend (`libs/server-fns`)
 
-The backend of founders.coffee is **server functions** (`createServerFn` from `@tanstack/react-start`), all defined once in `libs/server-fns` and consumed by every app. Implements **P0-012** (scaffold) + AGENTS.md §7.
+The backend of founders.coffee is **server functions** (`createServerFn` from `@tanstack/react-start`),
+all defined in `libs/server-fns` and consumed by every app via the client-safe barrel. Implements
+AGENTS.md §7.
 
-## Data flow (AGENTS.md §4)
+## Modules
 
-```
-Component → hook (TanStack Query) → api.ts → libs/server-fns → libs/domain → libs/db → D1
-```
+| Module | What | Status |
+|---|---|---|
+| `request-context.ts` | `requestContextMiddleware` (per-request id via ALS + failure logging), `withRequestContext` | ✅ P0-012 |
+| `authz.ts` | `checkPermission`, `requireAuth`, `requirePermission` (pure RBAC checks) | ✅ P0-012 |
+| `auth.ts` | `getAuthEnv`, `resolveSession` (pure — no `/server` import; pool-testable) | ✅ P1-017 |
+| `auth-middleware.ts` | `authMiddleware` (per-request session), `requirePermission(resource, action)` factory — carries `@tanstack/react-start/server` (isolated from the barrel) | ✅ P1-017 |
+| `db.ts` | `getDb()` — env-injection via `cloudflare:workers` (the P1-017 solution) | ✅ P1-017 |
+| `geo.ts` | `getGeoCountry` — CF-IPCountry + DEV_GEO fallback | ✅ P1-017 |
+| `geo-rpc.ts` | `getStates`, `getCities`, `getFeaturedCities` — delegate to domain geo | ✅ P1-004 |
+| `auth-config.ts` | `getPublicAuthConfig` — Turnstile sitekey + OAuth availability | ✅ P1-003 |
+| `profile.ts` | `getMyProfile` (authed), `setHomeLocation` (validated + D1 write), `getPublicProfile` (public, FR-E7) | ✅ P1-004 |
+| `markets/resolver.ts` | `resolveMarket`, `resolveMarketLanding` (+ featured cities from geo), `resolveCityLanding` (via `geo.findCityBySlug`), `listVisibleMarkets` | ✅ P1-001/004 |
+| `markets/rpc.ts` | `getMarket`, `getMarketLanding`, `getCityLanding`, `getVisibleMarkets` | ✅ P1-001/017 |
+| `events/status-machine.ts` | `published ↔ cancelled` transitions | ✅ P1-005 |
+| `events/resolver.ts` | `createEventResolver` (validates geo + generates slug), `resolveEvent`, `listEvents` | ✅ P1-005 |
+| `events/rpc.ts` | `createEvent` (authed + Zod), `getEvent`, `getUpcomingEvents` (cursor pagination) | ✅ P1-005 |
 
-Server functions are the **throw boundary** between the pure domain layer (which returns `Result`) and the client (which receives thrown errors).
-
-## The hybrid error model (the P0-012 decision)
+## The hybrid error model
 
 - **`libs/domain`** returns `Result<T>` (`{ ok, data } | { ok: false, error }`). Pure — no throws.
-- **`libs/server-fns`** unwraps that `Result` *inside the handler* via the shared `handleResult()` ([libs/core](../libs/core/src/result.ts)) — **throws the `AppError` on `!ok`, returns the data on `ok`**.
-- The thrown `AppError` (stable `code` + `message`) is serialized across the wire by TanStack Start → `useQuery`/`useMutation` enter their `error` state **automatically**. No `handleResult` bridge at the component layer.
+- **`libs/server-fns`** unwraps via `handleResult()` — **throws `AppError` on `!ok`**, returns data on `ok`.
+- TanStack Start serializes the thrown `AppError.code` across the wire → `useQuery`/loaders enter
+  their error state automatically.
+- Read the stable `code` client-side: `appErrorCode(error)` (the [#6428] typing gap).
 
-Read the error's stable `code` client-side with `appErrorCode(error)` (TanStack types the client error generically — the [#6428] gap):
+## The client-safe barrel (`libs/server-fns/src/index.ts`)
 
-```ts
-import { appErrorCode } from '@founders-coffee/core';
+Exports ONLY: `createServerFn` RPC wrappers, types, and pure helpers. **Server-only internals**
+(`getDb`, `authMiddleware`, `getAuthEnv`, `resolveSession`) are NOT re-exported — they'd drag
+`cloudflare:workers` / `@tanstack/react-start/server` into the browser bundle (the P1-003 barrel fix).
 
-const rsvpMutation = useMutation({
-  mutationFn: () => api.rsvp(eventId),
-  onError: (error) => {
-    switch (appErrorCode(error)) {            // 'event_full' | 'forbidden' | 'rate_limited' | 'unknown'
-      case 'event_full': toast.error(m.eventFull()); break;
-      default: toast.error(m.genericError());
-    }
-  },
-});
-```
+## RBAC
 
-## The feature-fn pattern (P1-001+)
-
-```ts
-import { createServerFn } from '@tanstack/react-start';
-import { handleResult } from '@founders-coffee/core';
-import { requestContextMiddleware } from '@founders-coffee/server-fns';
-import { createEvent } from '@founders-coffee/domain/events';
-import { eventInputSchema } from '@founders-coffee/domain/events';
-
-export const createEventFn = createServerFn()
-  .middleware([requestContextMiddleware /* , authMiddleware, requirePermission('event','create') */])
-  .validator(eventInputSchema)                       // P0-013 (Zod)
-  .handler(async ({ data }) => handleResult(createEvent(data)));
-```
-
-- `.middleware([...])` — `requestContextMiddleware` (now) + the auth/permission middleware (P1-017). **Add the global middleware to the fn's array** so TanStack types its context (globals are deduped).
-- `.handler` — calls the domain fn, unwraps via `handleResult`. Returns data; throws `AppError` on failure.
-- Never construct `createAuth`/`createDb` at module scope — always per-request inside the handler (the TanStack #5323 D1-write-lock trap).
-
-## What's wired now vs deferred
-
-| Piece | Status |
-|---|---|
-| `libs/server-fns` — `requestContextMiddleware` (per-request id + logging), authz primitives (`checkPermission`/`requireAuth`/`requirePermission`), `handleResult` throw boundary, `appErrorCode` | ✅ **P0-012** |
-| `authMiddleware` + `requirePermission` **middleware instances** (resolve session from `env`, check RBAC) | ⏳ **P1-017** (need `env`) |
-| `createStart` global middleware registration + `createCsrfMiddleware()` | ⏳ **P1-017** (app wiring) |
-| Cloudflare `env`-injection (how a server-fn reaches `env.DB`) | ⏳ **P1-017** — `@cloudflare/vite-plugin` 1.42.3 has no `getCloudflareContext`; solve empirically with the real app |
-
-Until P1-017 wires `env`-access + `createStart`, feature server-fns can't run end-to-end (apps are placeholders). The **foundation** — error model, request-context logging, authz logic — is complete and tested.
+`member` can `event:create` (any logged-in user can host — P1-006). The `host` role stays for
+future use (verified-host badges). `requirePermission('event', 'create')` still gates the RPC.
 
 [#6428]: https://github.com/TanStack/router/issues/6428

@@ -1,54 +1,49 @@
-# UI Design Specification — founders.coffee `apps/ui` (Public Events Feed)
+# UI Design Specification — founders.coffee `apps/ui`
 
-| Field | Value |
-|---|---|
-| Document | UI Design Spec — public events feed |
-| Version | 1.0 |
-| Status | Clean — visual direction locked |
-| Owner | Engineering / Design |
-| Last updated | 2026-06-25 |
-| Applies to | `apps/ui` public events feed → tokens in `libs/ui`, patterns in P1-002 / P1-007 |
-
-> Visual direction for the public events feed. **Tokens live once in `libs/ui`** as a semantic DaisyUI theme; **component patterns feed P1-002** (landing + "be the first host" empty state) **and P1-007** (event list/detail). Global rules (AGENTS.md: real data / no mocks; NFR-8 accessibility; FR-S3 disclosed sponsorship) apply as usual and are not repeated here.
+> Visual direction for the public app. **Tokens live once in `libs/ui`** as a semantic DaisyUI
+> theme; **component patterns feed P1-002** (landing pages), **P1-006** (event creation), and
+> **P1-007** (event list/detail). Global rules (AGENTS.md: real data / no mocks; NFR-8
+> accessibility; FR-S3 disclosed sponsorship) apply as usual.
 
 ---
 
 ## 1. Theme — "Warm Café" (semantic tokens, defined once in `libs/ui`)
 
-A DaisyUI custom theme. **Components use semantic classes only** (`bg-base-100`, `text-primary`, `border-base-300`, `bg-primary/10`, etc.) — **no raw palette or hex values in components** (AGENTS.md §8). Rebrand or dark mode = edit the theme once.
+A DaisyUI custom theme + **paper grain** texture (a faint SVG noise on the body background).
+**Components use semantic classes only** (`bg-base-100`, `text-primary`, `border-base-300`,
+`bg-primary/10`) — **no raw palette or hex values in components** (AGENTS.md §8).
 
 | Token | Value | Used for |
 |---|---|---|
-| `base-100` | `#FAF6F0` (warm cream) | Page background |
+| `base-100` | `#FAF6F0` (warm cream) | Page background (with grain overlay) |
 | `base-200` | `#FFFDFB` (off-white) | Cards / containers |
 | `base-300` | `#EAE3D5` (soft beige) | Borders / dividers |
 | `primary` | `#B45309` (coffee roast, AA) | Accents, badges, focus ring |
 | `secondary` | `#F59E0B` (amber) | Hover / secondary accent |
 
-> **WCAG AA (NFR-8):** `primary` is `#B45309` (not `#D97706`) so that `primary`/`primary-content` (`#FFF7ED`) clears the 4.5:1 contrast ratio for normal text. **DaisyUI v5 note:** every `*-content` and state color (`info`/`success`/`warning`/`error` + their `-content`) must be set explicitly in the theme block — v5 no longer auto-derives foregrounds.
-
-**Typography:** `Outfit` for headings, `Inter` for body (self-hosted via `@fontsource-variable`, loaded once in `libs/ui`). Weights: 400 body, 500 UI controls, 700 headings.
+**Typography:** `Outfit` for headings + `Inter` for body (self-hosted via `@fontsource-variable`).
+`Tajawal` for Arabic (the fonts stack has it as a fallback after the Latin face — per-glyph
+selection). Weights: 400 body, 500 UI, 700 headings, 800 hero.
 
 ---
 
 ## 2. Layout
 
-Editorial, single-column, centered feed — `max-w-3xl mx-auto` with generous vertical rhythm (`gap-y-8`).
+The revised IA (P1-004): **no global picker**. `/` redirects to the visitor's market
+(geo-routing). The **country landing is the main page**.
 
 ```
 +-----------------------------------------------------------+
-| Navbar: Logo | Nav Links | Market/Locale Switcher         |
+| Navbar: Logo                              [Sign in/user]   |  ← sticky, translucent
 +-----------------------------------------------------------+
-| Hero: "No-formalities" headline + short description       |
-|   └─ Density badge (active builders per city)             |
+| Hero: market badge + title + tagline + [Host in {market}] |  ← warm radial glow
+|   Cities: [Algiers · 0] [Oran · 0] …                     |  ← aura-glow when events>0
 +-----------------------------------------------------------+
-| Filters: Cities (flags) · Topics · Date  (capsule chips)  |
+| Discover tabs (tabs-lift): [Events to discover] [Hackathons] |
+|   Event Feed: vertical stack of hover-3d event cards      |
 +-----------------------------------------------------------+
-| Tabs: [ All | Upcoming | Past ]                           |
-+-----------------------------------------------------------+
-| Event Feed: vertical stack of date-badge event cards      |
-+-----------------------------------------------------------+
-| Partner Venues grid: vetted café logos (grayscale→color)  |
+| Footer: brand | Communities | Company/Legal | Partners     |  ← locale toggle lives here
+|   © 2026 founders.coffee   [ع EN FR]   [𝕏] [in] [r/]      |
 +-----------------------------------------------------------+
 ```
 
@@ -56,33 +51,58 @@ Editorial, single-column, centered feed — `max-w-3xl mx-auto` with generous ve
 
 ## 3. Components
 
-### 3.1 Hero + Density badge
-Bold "no-formalities" headline + one-line description. A **live density badge** showing active builders per city — reinforces community credibility. (Real data only — AGENTS.md no-mocks.)
+### 3.1 Hero
+Market badge (`badge badge-outline badge-primary`) + editorial title (`market_hero_title`) +
+tagline + **"Host in {market}"** CTA (`btn btn-primary shadow-lg shadow-primary/30`). A warm
+radial-glow div sits behind the hero (`-z-10`). Featured cities render as buttons with a count
+badge (`badge badge-sm`); **aura-glow** wraps buttons whose market has events (count > 0).
 
-### 3.2 Filter chips (capsule)
-`rounded-full` capsule buttons, grouped by **Cities** (with country flags), **Topics**, **Date**. Active state: `text-primary` on `bg-primary/10`. Mobile: horizontal scroll (`flex-nowrap overflow-x-auto scrollbar-none`).
+### 3.2 Event card (`EventCard.tsx`)
+720×150, `card-side`, wrapped in **Hover3D** (daisyUI `.hover-3d` with 8 zone overlays for
+tilt + shine). Left: date widget (`THU` accent / `2` large / `JUL`). Body: title
+(`font-bold`) + metadata (`time · venue, city`) + avatar-group (`avatar-placeholder` initials)
++ `+N going`.
 
-### 3.3 Event card (the core feed)
-Horizontal flex row:
-- **Date badge (start):** stacked Month (small, uppercase) over Day (large) — `bg-primary/10 text-primary border border-base-300 rounded-lg`.
-- **Middle:** Title (`font-bold text-lg`), start time, café name with a map-pin icon.
-- **End:** overlapping avatar stack (`flex -space-x-2`, 3–4 avatars) + `"+N attending"` pill.
-- **Hover:** `hover:-translate-y-0.5 hover:shadow-md transition-all duration-200`.
+### 3.3 City empty state (`CityLanding.tsx`)
+☕ icon + "Be the first to host in {city}" + value bullets (List the meetup · Pick a café ·
+Set the time) + **"Host the first meetup"** CTA → `/login` + back-to-market link.
 
-### 3.4 Partner venues grid
-2×4 café logos, grayscale → full color on hover. Framed as **vetted partner venues** (the "Coffee Anchors" / Founder-Picks:venues surface — sponsorship plan SP-013).
+### 3.4 Host create wizard (`HostCreatePage.tsx`)
+3-step wizard (daisyUI `steps`) implementing **progressive disclosure** (see
+[`docs/psy.md`](./psy.md)):
+- Step 1 "Where?" — cascading country/state/city select + **Mapbox map picker** (browser
+  geolocation → `flyTo`, café search via Search Box API, DOM coffee marker).
+- Step 2 "When?" — **vanilla-calendar-pro** (daisyUI-themed, 24h time picker) + capacity select.
+- Step 3 "What?" — title (casual placeholder: "Coffee + code, or just coffee?"), description,
+  language enum, category enum → `createEvent` RPC.
+
+Lazy-loaded: mapbox-gl (~700KB) + vanilla-calendar-pro never touch the initial bundle.
+
+### 3.5 Navbar + Footer
+- **Navbar**: sticky, translucent (`backdrop-blur`), logo + `SessionNav` only. No Communities,
+  no locale toggle (both moved to the footer).
+- **Footer**: brand + Communities (data-driven market links) + Company/Legal (forward-ref anchors)
+  + Partners (FR-S3 disclosed sponsors) + locale toggle + social (X, LinkedIn, reddit).
+
+### 3.6 Error / 404 states
+Locale-aware (via `useRouterState` reading the root match's context). 404: ☕ icon +
+`not_found_title/body` + "Back home". Error: ⚠️ + `error_title/body` + "Back home" (no reload).
 
 ---
 
 ## 4. RTL & responsive
 
-- **Logical CSS properties only** (`ps-` / `pe-` / `ms-` / `me-`) — DaisyUI flips layout automatically under `dir="rtl"`, which is driven by the active market/locale (FR-L2).
-- Date badge and avatar stack reflow to the correct side automatically via logical properties.
-- **< 640px:** event card restacks vertically (date badge on top, info below) to maximise title space.
+- **Logical CSS properties only** (`ps-` / `pe-` / `ms-` / `me-`) — DaisyUI flips under `dir="rtl"`.
+- **Arabic-first** — `<html lang="ar" dir="rtl">` is the default; `en`/`fr` are selectable via
+  the footer toggle.
+- **< 640px:** event card restacks vertically; wizard steps remain; map height shrinks to 250px.
 
 ---
 
 ## 5. Where this lives
 
-- **Tokens/theme** → `libs/ui` (single source of truth for all three apps).
-- **Component patterns** → P1-002 (landing page + "be the first host" empty state) and P1-007 (event list/detail) acceptance criteria.
+- **Tokens/theme + grain** → `libs/ui/src/styles.css` (single source of truth).
+- **Shared components** → `apps/ui/src/components/` (PascalCase: `EventCard.tsx`, `MapPicker.tsx`,
+  `Navbar.tsx`, etc.).
+- **Route files** → thin: `createFileRoute` + loader + `<Component />`. No inline component logic.
+- **Design reference** → [`docs/psy.md`](./psy.md) (progressive disclosure, casual copy).
