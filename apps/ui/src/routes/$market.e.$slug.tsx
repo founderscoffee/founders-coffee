@@ -1,0 +1,59 @@
+import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
+
+import { appErrorCode } from '@founders-coffee/core';
+import {
+  getEvent,
+  getMarket,
+  getPublicProfile,
+  type EventWithAttendance,
+} from '@founders-coffee/server-fns';
+import type { Market } from '@founders-coffee/db';
+import type { PublicProfile } from '@founders-coffee/server-fns';
+
+import { EventDetail } from '../components/EventDetail';
+
+type EventDetailLoaderData = {
+  market: Market;
+  event: EventWithAttendance;
+  host: PublicProfile;
+};
+
+export const Route = createFileRoute('/$market/e/$slug')({
+  component: () => {
+    const { locale } = Route.useRouteContext();
+    const { market, event, host } = Route.useLoaderData();
+    return <EventDetail locale={locale} market={market} event={event} host={host} />;
+  },
+  loader: async ({ params }): Promise<EventDetailLoaderData> => {
+    let market: Market;
+    try {
+      market = await getMarket({ data: { slug: params.market } });
+    } catch (error) {
+      if (appErrorCode(error) === 'market_not_found') throw notFound();
+      throw error;
+    }
+    if (params.market !== market.slug) {
+      throw redirect({ to: '/$market/e/$slug', params: { market: market.slug, slug: params.slug } });
+    }
+
+    let event: EventWithAttendance;
+    try {
+      event = await getEvent({ data: { marketCode: market.code, slug: params.slug } });
+    } catch (error) {
+      if (appErrorCode(error) === 'event_not_found') throw notFound();
+      throw error;
+    }
+
+    const host = await getPublicProfile({ data: { userId: event.hostId } });
+    return { market, event, host };
+  },
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: `${loaderData?.event.title ?? 'founders.coffee'} — founders.coffee` },
+      { name: 'description', content: loaderData?.event.description ?? '' },
+      { property: 'og:title', content: loaderData?.event.title ?? 'founders.coffee' },
+      { property: 'og:description', content: loaderData?.event.description ?? '' },
+      { property: 'og:type', content: 'event' },
+    ],
+  }),
+});

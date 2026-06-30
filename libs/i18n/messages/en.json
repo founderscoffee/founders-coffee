@@ -78,5 +78,14 @@
   "host_select_venue": "Pick a café from the map",
   "host_pick_datetime": "Pick a date and time",
   "host_title_label": "Title",
-  "host_desc_label": "Description"
+  "host_desc_label": "Description",
+  "event_when": "When",
+  "event_where": "Where",
+  "event_host": "Hosted by",
+  "event_capacity": "Capacity",
+  "event_no_cap": "No limit",
+  "event_free": "Free",
+  "cat_coffee_meetup": "Coffee meetup",
+  "cat_workshop": "Workshop",
+  "cat_demo_day": "Demo day"
 }

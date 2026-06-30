@@ -78,5 +78,14 @@
   "host_select_venue": "اختر مقهى من الخريطة",
   "host_pick_datetime": "اختر التاريخ والوقت",
   "host_title_label": "العنوان",
-  "host_desc_label": "الوصف"
+  "host_desc_label": "الوصف",
+  "event_when": "متى",
+  "event_where": "أين",
+  "event_host": "باستضافة",
+  "event_capacity": "السعة",
+  "event_no_cap": "بدون حد",
+  "event_free": "مجاني",
+  "cat_coffee_meetup": "لقاء قهوة",
+  "cat_workshop": "ورشة عمل",
+  "cat_demo_day": "يوم العروض"
 }

@@ -78,5 +78,14 @@
   "host_select_venue": "Choisis un café sur la carte",
   "host_pick_datetime": "Choisis la date et l'heure",
   "host_title_label": "Titre",
-  "host_desc_label": "Description"
+  "host_desc_label": "Description",
+  "event_when": "Quand",
+  "event_where": "Où",
+  "event_host": "Animé par",
+  "event_capacity": "Capacité",
+  "event_no_cap": "Sans limite",
+  "event_free": "Gratuit",
+  "cat_coffee_meetup": "Rencontre café",
+  "cat_workshop": "Atelier",
+  "cat_demo_day": "Démo day"
 }
