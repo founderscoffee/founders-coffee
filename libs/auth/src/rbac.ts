@@ -22,7 +22,7 @@ const statements = {
 export const ac = createAccessControl(statements);
 
 export const roles = {
-  member: ac.newRole({ event: ['read'], sponsorship: ['read'] }),
+  member: ac.newRole({ event: ['create', 'read'], sponsorship: ['read'] }),
   host: ac.newRole({ event: ['create', 'read'], sponsorship: ['read'] }),
   sponsor_contact: ac.newRole({ event: ['read'], sponsorship: ['read'] }),
   moderator: ac.newRole({ event: ['create', 'read'], sponsorship: ['read'] }),

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 /**
  * Schema (SRS §7) — owned entirely by `libs/db` (single source of truth for D1).
@@ -178,6 +178,9 @@ export const events = sqliteTable('events', {
   language: text('language', { enum: [...EVENT_LANGUAGES] }).notNull(),
   category: text('category', { enum: [...EVENT_CATEGORIES] }).notNull(),
   isFree: integer('is_free', { mode: 'boolean' }).notNull().default(true),
+  latitude: real('latitude'),
+  longitude: real('longitude'),
+  venueAddress: text('venue_address'),
   slug: text('slug').notNull(),
   status: text('status', { enum: [...EVENT_STATUSES] }).notNull().default('published'),
   createdAt: integer('created_at', { mode: 'timestamp' })

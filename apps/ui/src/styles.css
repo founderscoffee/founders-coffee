@@ -1,5 +1,7 @@
 
 @import "@founders-coffee/ui/styles.css";
+@import "vanilla-calendar-pro/styles/index.css";
+@import "mapbox-gl/dist/mapbox-gl.css";
 @source "../../../libs/ui/src";
 
 * {

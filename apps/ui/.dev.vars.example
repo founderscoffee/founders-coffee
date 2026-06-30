@@ -22,3 +22,6 @@ TURNSTILE_DISABLED=true
 # Geo-routing dev override — Miniflare doesn't set CF-IPCountry. Set to a country code (DZ, MA)
 # to test the geo-redirect for that market. Leave unset → default (Algeria).
 DEV_GEO=
+
+# Mapbox public token (client-side — safe to expose). Get one at account.mapbox.com
+MAPBOX_TOKEN=

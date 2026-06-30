@@ -5,7 +5,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
   "observability": { "enabled": true },
-  "vars": { "APP_URL": "http://localhost:3000", "MAIL_FROM": "no-reply@founders.coffee" },
+  "vars": { "APP_URL": "http://localhost:3000", "MAIL_FROM": "no-reply@founders.coffee", "MAPBOX_TOKEN": "" },
   // Outgoing email (OTP codes). `destination_address` left unrestricted; the sender (`MAIL_FROM`)
   // must be a Cloudflare-verified address at deploy (P0-019). Dev uses DevEmailProvider regardless.
   "send_email": [{ "name": "EMAIL" }],
