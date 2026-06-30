@@ -7,6 +7,11 @@ export interface MarketWithCities {
   readonly cities: readonly geo.GeoCity[];
 }
 
+export interface MarketCity {
+  readonly market: Market;
+  readonly city: geo.GeoCity;
+}
+
 /**
  * Find a visible market by slug-or-code (slug first, then uppercase code). Dark markets and unknown
  * keys both return `undefined` (no existence leak). Shared by the landing resolvers so the URL can be
@@ -56,4 +61,23 @@ export const resolveMarketLanding = async (db: Db, key: string): Promise<Result<
     return err(new AppError('market_not_found', `No visible market for ${key}`));
   }
   return ok({ market, cities: geo.getFeaturedCities(market.code) });
+};
+
+/**
+ * Resolve a visible market + one city (by slug) — the city is validated against the domain geo TS
+ * data (NOT D1). Unknown market → `market_not_found`; city slug not found → `city_not_found`.
+ */
+export const resolveCityLanding = async (
+  db: Db,
+  { marketKey, citySlug }: { marketKey: string; citySlug: string },
+): Promise<Result<MarketCity>> => {
+  const market = await findMarketByKey(db, marketKey);
+  if (!market) {
+    return err(new AppError('market_not_found', `No visible market for ${marketKey}`));
+  }
+  const city = geo.findCityBySlug(market.code, citySlug);
+  if (!city) {
+    return err(new AppError('city_not_found', `No city ${citySlug} in ${market.code}`));
+  }
+  return ok({ market, city });
 };

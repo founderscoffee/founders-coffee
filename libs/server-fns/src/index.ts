@@ -13,6 +13,7 @@
  */
 export { getPublicAuthConfig } from './auth-config.js';
 export { getGeoCountry } from './geo.js';
+export { getCities, getFeaturedCities, getStates } from './geo-rpc.js';
 export { withRequestContext, requestContextMiddleware } from './request-context.js';
 export {
   checkPermission,

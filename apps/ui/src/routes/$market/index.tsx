@@ -60,7 +60,7 @@ const MarketLanding = () => {
               params={{ market: market.slug, city: c.slug }}
               className="btn btn-ghost gap-2 border border-base-300 hover:border-primary"
             >
-              {c.name}
+              {locale === 'ar' ? c.nameAr : c.name}
               <span className="badge badge-sm bg-base-300 text-base-content/40">0</span>
             </Link>
           ))}

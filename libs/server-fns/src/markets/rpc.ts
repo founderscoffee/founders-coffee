@@ -6,6 +6,7 @@ import { handleResult } from '@founders-coffee/core';
 import { getDb } from '../db.js';
 import {
   listVisibleMarkets,
+  resolveCityLanding,
   resolveMarket,
   resolveMarketLanding,
 } from './resolver.js';
@@ -29,3 +30,8 @@ export const getVisibleMarkets = createServerFn({ strict: false }).handler(async
 export const getMarketLanding = createServerFn({ strict: false })
   .validator(z.object({ key: z.string() }))
   .handler(async ({ data }) => handleResult(resolveMarketLanding(getDb(), data.key)));
+
+/** City-landing data (market + city) by market key + city slug. City validated from geo TS data. */
+export const getCityLanding = createServerFn({ strict: false })
+  .validator(z.object({ marketKey: z.string(), citySlug: z.string() }))
+  .handler(async ({ data }) => handleResult(resolveCityLanding(getDb(), data)));

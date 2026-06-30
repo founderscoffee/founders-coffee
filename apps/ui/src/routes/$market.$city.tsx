@@ -16,12 +16,13 @@ import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns'
 const CityLanding = () => {
   const { locale } = Route.useRouteContext()
   const { market, city } = Route.useLoaderData()
+  const cityDisplayName = locale === 'ar' ? city.nameAr : city.name
 
   return (
     <section className="mx-auto max-w-lg px-4 py-16 text-center">
       <div className="mb-4 text-6xl" aria-hidden="true">☕</div>
       <h1 className="text-3xl font-extrabold text-primary">
-        {city_empty_title({ city: city.name }, { locale })}
+        {city_empty_title({ city: cityDisplayName }, { locale })}
       </h1>
       <p className="mt-3 text-base-content/70">{city_empty_body({}, { locale })}</p>
       <ul className="mx-auto mt-6 flex max-w-sm flex-col gap-2 text-sm text-base-content/60">
