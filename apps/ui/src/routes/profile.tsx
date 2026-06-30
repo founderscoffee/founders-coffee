@@ -1,23 +1,17 @@
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import {
-  getCities,
-  getStates,
-  onboarding_city,
-  onboarding_country,
   onboarding_search_city,
-  onboarding_state,
   profile_edit,
   profile_home_location,
-  profile_role,
   profile_save,
-  profile_title,
   role_admin,
   role_host,
   role_member,
 } from '@founders-coffee/i18n'
-import { getMyProfile, getMarketLanding, setHomeLocation, type UserProfile } from '@founders-coffee/server-fns'
+import { getCities, getMyProfile, getStates, setHomeLocation, type UserProfile } from '@founders-coffee/server-fns'
+import type { geo } from '@founders-coffee/domain'
 
 const COUNTRIES = [
   { code: 'DZ', name: '🇩🇿 Algeria', nameAr: '🇩🇿 الجزائر' },
@@ -36,7 +30,7 @@ const initials = (name: string): string =>
 
 const ProfilePage = () => {
   const { locale } = Route.useRouteContext()
-  const profile = Route.useLoaderData()
+  const { profile, states, cities } = Route.useLoaderData()
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -44,9 +38,6 @@ const ProfilePage = () => {
   const [country, setCountry] = useState(profile.homeMarketCode ?? 'DZ')
   const [stateVal, setStateVal] = useState(profile.homeState ?? '')
   const [city, setCity] = useState(profile.homeCityId ?? '')
-
-  const { states } = Route.useLoaderDeps()
-  const { cities } = Route.useLoaderDeps()
 
   const [citySearch, setCitySearch] = useState('')
   const [showCityList, setShowCityList] = useState(false)
@@ -175,13 +166,13 @@ const ProfilePage = () => {
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
-  loaderDeps: ({ search }) => ({ country: search.country, state: search.state }),
-  loader: async ({ deps }) => {
+  loaderDeps: ({ search }) => ({ country: (search as { country?: string }).country, state: (search as { state?: string }).state }),
+  loader: async ({ deps }): Promise<{ profile: UserProfile; states: readonly geo.GeoState[]; cities: readonly geo.GeoCity[] }> => {
     const profile = await getMyProfile()
     const country = deps.country ?? profile.homeMarketCode ?? 'DZ'
     const states = await getStates({ data: { country } })
-    const state = deps.state ?? profile.homeState ?? ''
-    const cities = state ? await getCities({ data: { country, state } }) : []
+    const stateParam = deps.state ?? profile.homeState ?? ''
+    const cities = stateParam ? await getCities({ data: { country, state: stateParam } }) : []
     return { profile, states, cities }
   },
 })

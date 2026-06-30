@@ -4,10 +4,10 @@ import { describe, expect, it } from 'vitest';
 
 import { batch } from './atomic.js';
 import { createDb } from './db.js';
-import { cities, markets, user } from './schema.js';
+import { markets, user } from './schema.js';
 
 describe('libs/db (real D1 via Miniflare)', () => {
-  it('round-trips market + city + user', async () => {
+  it('round-trips market + user', async () => {
     const db = createDb(env.DB);
     await db
       .insert(markets)
@@ -29,23 +29,12 @@ describe('libs/db (real D1 via Miniflare)', () => {
       })
       .run();
     await db
-      .insert(cities)
-      .values({
-        id: 'city_algiers',
-        marketCode: 'DZ',
-        name: 'Algiers',
-        slug: 'algiers',
-        timezone: 'Africa/Algiers',
-      })
-      .run();
-    await db
       .insert(user)
       .values({
         id: 'usr_m1',
         name: 'Founder One',
         email: 'founder@example.dz',
         homeMarketCode: 'DZ',
-        homeCityId: 'city_algiers',
       })
       .run();
 

@@ -1,9 +1,7 @@
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 
 import {
-  getCities,
-  getStates,
   onboarding_city,
   onboarding_country,
   onboarding_save,
@@ -12,10 +10,9 @@ import {
   onboarding_subtitle,
   onboarding_title,
 } from '@founders-coffee/i18n'
-import { getMarketLanding, setHomeLocation } from '@founders-coffee/server-fns'
+import { getCities, getStates, setHomeLocation } from '@founders-coffee/server-fns'
+import type { geo } from '@founders-coffee/domain'
 import { getCookies } from '@tanstack/react-start/server'
-
-import { authClient } from '../lib/auth'
 
 const COUNTRIES = [
   { code: 'DZ', name: '🇩🇿 Algeria', nameAr: '🇩🇿 الجزائر' },
@@ -192,11 +189,11 @@ const OnboardingPage = () => {
 
 export const Route = createFileRoute('/onboarding')({
   component: OnboardingPage,
-  loader: async ({ location }) => {
+  loader: async ({ location }): Promise<{ states: readonly geo.GeoState[]; cities: readonly geo.GeoCity[] }> => {
     const country = new URLSearchParams(location.search).get('country') ?? getCookies()['fc_geo']?.toUpperCase() ?? 'DZ'
     const states = await getStates({ data: { country } })
-    const state = new URLSearchParams(location.search).get('state') ?? ''
-    const cities = state ? await getCities({ data: { country, state } }) : []
+    const stateParam = new URLSearchParams(location.search).get('state') ?? ''
+    const cities = stateParam ? await getCities({ data: { country, state: stateParam } }) : []
     return { states, cities }
   },
 })

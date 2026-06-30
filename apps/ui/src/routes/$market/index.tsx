@@ -55,7 +55,7 @@ const MarketLanding = () => {
           {cities.map((c) => (
             /* count = 0 today (no events); P1-007 adds real counts + aura-glow */
             <Link
-              key={c.id}
+              key={c.code}
               to="/$market/$city"
               params={{ market: market.slug, city: c.slug }}
               className="btn btn-ghost gap-2 border border-base-300 hover:border-primary"

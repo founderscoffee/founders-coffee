@@ -65,7 +65,7 @@ const LoginPage = () => {
       setError(login_wrong_code({}, { locale }))
       return
     }
-    const needsOnboarding = !data?.user?.homeMarketCode
+    const needsOnboarding = !(data?.user as { homeMarketCode?: string } | null | undefined)?.homeMarketCode
     window.location.href = needsOnboarding ? '/onboarding' : redirect
   }
 
