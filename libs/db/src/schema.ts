@@ -152,6 +152,47 @@ export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
 
 /* -------------------------------------------------------------------------- */
+/* Events (P1-005) — free local meetups (FR-E1/E2/E4)                         */
+/* -------------------------------------------------------------------------- */
+
+export const EVENT_LANGUAGES = ['ar', 'en', 'fr', 'ar_en', 'ar_fr'] as const;
+export const EVENT_CATEGORIES = ['coffee-meetup', 'workshop', 'demo-day'] as const;
+export const EVENT_STATUSES = ['published', 'cancelled'] as const;
+
+/** Event — a free local meetup created by a host (FR-E1). Always `is_free` (FR-E2). */
+export const events = sqliteTable('events', {
+  id: text('id').primaryKey(),
+  hostId: text('host_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  marketCode: text('market_code')
+    .notNull()
+    .references(() => markets.code),
+  stateCode: text('state_code').notNull(),
+  cityCode: text('city_code').notNull(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  venue: text('venue').notNull(),
+  startsAt: integer('starts_at', { mode: 'timestamp' }).notNull(),
+  capacity: integer('capacity').notNull().default(0),
+  language: text('language', { enum: [...EVENT_LANGUAGES] }).notNull(),
+  category: text('category', { enum: [...EVENT_CATEGORIES] }).notNull(),
+  isFree: integer('is_free', { mode: 'boolean' }).notNull().default(true),
+  slug: text('slug').notNull(),
+  status: text('status', { enum: [...EVENT_STATUSES] }).notNull().default('published'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+});
+
+export type Event = typeof events.$inferSelect;
+export type NewEvent = typeof events.$inferInsert;
+
+/* -------------------------------------------------------------------------- */
 /* Payments (P0-015) — B2B Order/Invoice, Year-1 manual confirmation           */
 /* -------------------------------------------------------------------------- */
 

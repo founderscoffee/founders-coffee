@@ -1,0 +1,22 @@
+CREATE TABLE `events` (
+	`id` text PRIMARY KEY NOT NULL,
+	`host_id` text NOT NULL,
+	`market_code` text NOT NULL,
+	`state_code` text NOT NULL,
+	`city_code` text NOT NULL,
+	`title` text NOT NULL,
+	`description` text NOT NULL,
+	`venue` text NOT NULL,
+	`starts_at` integer NOT NULL,
+	`capacity` integer DEFAULT 0 NOT NULL,
+	`language` text NOT NULL,
+	`category` text NOT NULL,
+	`is_free` integer DEFAULT true NOT NULL,
+	`slug` text NOT NULL,
+	`status` text DEFAULT 'published' NOT NULL,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`cancelled_at` integer,
+	FOREIGN KEY (`host_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`market_code`) REFERENCES `markets`(`code`) ON UPDATE no action ON DELETE no action
+);
