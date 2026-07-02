@@ -3,21 +3,46 @@ import type { AiRuntime, VectorizeRuntime } from '@founders-coffee/core/ai';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { createDb } from '@founders-coffee/db';
 import { RESOURCES } from '@founders-coffee/infra';
+import {
+  DevNotificationSmsProvider,
+  TwilioProgrammableSmsProvider,
+  type NotificationSmsProvider,
+} from '@founders-coffee/notifications';
 
 import type { Env } from './env.js';
 import { processEmbeddings } from './jobs/embeddings.js';
 import type { EmbeddingsMessage, NotificationMessage } from './jobs/messages.js';
 import { processNotification } from './jobs/notifications.js';
 import { runReconcile } from './jobs/reconcile.js';
+import { sweepNotifications } from './jobs/notification-sweep.js';
 
 const DEFAULT_FROM = 'noreply@founders.coffee';
 
 type JobMessage = EmbeddingsMessage | NotificationMessage;
 
+const createSmsProvider = (env: Env): NotificationSmsProvider => {
+  if (env.TWILIO_AID && env.TWILIO_SEC && env.TWILIO_SMS_FROM) {
+    return new TwilioProgrammableSmsProvider({
+      TWILIO_AID: env.TWILIO_AID,
+      TWILIO_SEC: env.TWILIO_SEC,
+      TWILIO_SMS_FROM: env.TWILIO_SMS_FROM,
+    });
+  }
+  return new DevNotificationSmsProvider();
+};
+
 /** Route one queue message to its consumer. Returns `Result` — the handler acks on ok, retries on err. */
-const dispatch = async (queue: string, body: JobMessage, env: Env): Promise<Result<unknown>> => {
+const dispatch = async (
+  queue: string,
+  body: JobMessage,
+  env: Env,
+): Promise<Result<unknown>> => {
+  const db = createDb(env.DB);
+  const email = createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM);
+  const sms = createSmsProvider(env);
+
   if (queue === RESOURCES.queues.notifications) {
-    return processNotification(createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM), body as NotificationMessage);
+    return processNotification(body as NotificationMessage, { email, sms });
   }
   if (queue === RESOURCES.queues.embeddings) {
     return processEmbeddings(
@@ -27,22 +52,33 @@ const dispatch = async (queue: string, body: JobMessage, env: Env): Promise<Resu
     );
   }
   if (queue === RESOURCES.queues.reconcile) {
-    return runReconcile(createDb(env.DB));
+    return runReconcile(db);
   }
   return ok(undefined);
 };
 
 /**
- * apps/worker-jobs — the system worker (no UI). Consumes NOTIFICATIONS (→ email), EMBEDDINGS (→ AI
- * reindex), RECONCILE (→ payment-backlog sweep); a daily cron drives reconcile as a backstop.
- * Per-message ack/retry: a failed message retries individually (no re-sending siblings); exhausted
- * retries fall through to the per-queue DLQ. DO Alarms (P1-010) own per-entity scheduling, not this cron.
+ * apps/worker-jobs — the system worker (no UI). Consumes NOTIFICATIONS
+ * (→ SMS + email), EMBEDDINGS (→ AI reindex), RECONCILE (→ payment-backlog
+ * sweep). A cron drives reconcile as a backstop + notification sweep for
+ * pending scheduled notifications.
+ *
+ * Per-message ack/retry: a failed message retries individually (no
+ * re-sending siblings); exhausted retries fall through to the per-queue DLQ.
  */
 export default {
   fetch: () => new Response('ok'),
 
-  scheduled: async (_controller: ScheduledController, env: Env) => {
-    await runReconcile(createDb(env.DB));
+  scheduled: async (controller: ScheduledController, env: Env) => {
+    const db = createDb(env.DB);
+
+    if (controller.cron === '*/1 * * * *') {
+      await sweepNotifications(db, createSmsProvider(env), createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM));
+    }
+
+    if (controller.cron === '0 3 * * *') {
+      await runReconcile(db);
+    }
   },
 
   queue: async (batch: MessageBatch<JobMessage>, env: Env) => {

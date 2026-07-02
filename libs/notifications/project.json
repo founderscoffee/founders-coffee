@@ -1,0 +1,15 @@
+{
+  "name": "notifications",
+  "projectType": "library",
+  "sourceRoot": "libs/notifications/src",
+  "tags": ["type:lib", "layer:server", "domain:notifications"],
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "libs/notifications"
+      }
+    }
+  }
+}

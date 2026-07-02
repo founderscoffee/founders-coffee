@@ -6,4 +6,9 @@ export interface Env {
   readonly EMAIL: SendEmail;
   readonly AI: Ai;
   readonly VECTOR: VectorizeIndex;
+  readonly TWILIO_AID?: string;
+  readonly TWILIO_SEC?: string;
+  readonly TWILIO_SMS_FROM?: string;
+  readonly FIREBASE_PROJECT_ID?: string;
+  readonly FIREBASE_SERVICE_ACCOUNT?: string;
 }
