@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { badgeVariants } from './components/badge.js';
-import { buttonVariants } from './components/button.js';
-import { inputVariants } from './components/input.js';
+import { badgeVariants } from './components/Badge.js';
+import { buttonVariants } from './components/Button.js';
+import { inputVariants } from './components/Input.js';
 
 describe('libs/ui cva variants (literal class strings Tailwind can scan)', () => {
   it('Button defaults to primary md', () => {

@@ -1,20 +1,26 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { admin, bearer, emailOTP } from 'better-auth/plugins';
+import { admin, bearer, emailOTP, phoneNumber } from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 
-import { optionalEnv } from '@founders-coffee/core';
+import { AppError, optionalEnv } from '@founders-coffee/core';
 import { account, createDb, session, user, verification } from '@founders-coffee/db';
 
 import type { EmailProvider } from './providers/email.js';
 import { DevEmailProvider } from './providers/email.js';
+import type { SmsProvider } from './providers/sms.js';
+import { DevSmsProvider, TwilioVerifySmsProvider } from './providers/sms.js';
 import { ac, roles } from './rbac.js';
 
 /**
  * Environment the auth factory needs. `DB` is the D1 binding (reached via
  * `cloudflare:workers` `env.DB` inside the request). OAuth client secrets are
  * optional — providers are only enabled when both id + secret are present, so
- * dev (email-OTP only) works without any OAuth credentials configured.
+ * dev (phone-OTP via DevSmsProvider + email-OTP) works without any OAuth credentials configured.
+ *
+ * Twilio env vars are optional — when absent, `DevSmsProvider` logs OTPs to
+ * console (dev + tests). Production must have `TWILIO_SID`, `TWILIO_AID`, and
+ * `TWILIO_SEC` set via `wrangler secret`.
  */
 export interface AuthEnv {
   DB: D1Database;
@@ -26,12 +32,33 @@ export interface AuthEnv {
   GITHUB_CLIENT_SECRET?: string;
   LINKEDIN_CLIENT_ID?: string;
   LINKEDIN_CLIENT_SECRET?: string;
+  TWILIO_SID?: string;
+  TWILIO_AID?: string;
+  TWILIO_SEC?: string;
 }
 
 export interface AuthDeps {
   /** Defaults to {@link DevEmailProvider}. Inject a capture-capable one in tests. */
   emailProvider?: EmailProvider;
+  /** Defaults to {@link DevSmsProvider}. Inject a real one in production. */
+  smsProvider?: SmsProvider;
 }
+
+/**
+ * Build an SmsProvider from auth env vars. Returns `DevSmsProvider` when Twilio
+ * env vars are absent (dev + tests) or `TwilioVerifySmsProvider` when all three
+ * vars are present.
+ */
+const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
+  if (env.TWILIO_SID && env.TWILIO_AID && env.TWILIO_SEC) {
+    return new TwilioVerifySmsProvider({
+      TWILIO_SID: env.TWILIO_SID,
+      TWILIO_AID: env.TWILIO_AID,
+      TWILIO_SEC: env.TWILIO_SEC,
+    });
+  }
+  return new DevSmsProvider();
+};
 
 /**
  * Build a Better Auth instance bound to the request's D1.
@@ -41,11 +68,12 @@ export interface AuthDeps {
  * module singleton + a per-request instance contend for D1's write lock
  * (the TanStack #5323 ~30s-hang trap).
  *
- * Auth model (FR-A4/D4): passwordless email-OTP + OAuth (Google/GitHub/LinkedIn);
+ * Auth model (FR-A4/D4): passwordless phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google/GitHub/LinkedIn);
  * sessions in D1 (never KV); D1-backed auth rate-limiting; strict account linking.
  */
 export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
+  const smsProvider = deps.smsProvider ?? smsProviderFromEnv(env);
   const db = createDb(env.DB);
 
   const auth = betterAuth({
@@ -96,13 +124,35 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
         expiresIn: 300,
         allowedAttempts: 3,
       }),
+      phoneNumber({
+        sendOTP: async ({ phoneNumber: phone, code }) => {
+          const result = await smsProvider.sendOtp({
+            phoneNumber: phone,
+            code,
+          });
+          if (result?.fraudGuardBlocked) {
+            throw new AppError(
+              'fraud_guard_blocked',
+              'This number is temporarily blocked. Try email instead.',
+            );
+          }
+        },
+        verifyOTP: smsProvider.verifyOtp
+          ? ((verifyOtp) =>
+              ({ phoneNumber: phone, code }: { phoneNumber: string; code: string }) =>
+                verifyOtp({ phoneNumber: phone, code }))(smsProvider.verifyOtp)
+          : undefined,
+        otpLength: 6,
+        expiresIn: 300,
+        allowedAttempts: 3,
+      }),
       admin({ ac, roles, defaultRole: 'member', adminRoles: ['admin'] }),
       bearer(),
       tanstackStartCookies(),
     ],
   });
 
-  return { auth, emailProvider };
+  return { auth, emailProvider, smsProvider };
 };
 
 export type AuthInstance = ReturnType<typeof createAuth>['auth'];

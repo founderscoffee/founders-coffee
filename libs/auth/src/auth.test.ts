@@ -24,7 +24,7 @@ const post = (path: string, body: unknown, cookie?: string): Request => {
   });
 };
 
-describe('libs/auth — passwordless email-OTP (real D1 via Miniflare)', () => {
+describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflare)', () => {
   it('auto-registers, verifies the email, and opens a session on OTP sign-in', async () => {
     const emailProvider = new DevEmailProvider();
     const { auth } = createAuth(authEnv, { emailProvider });

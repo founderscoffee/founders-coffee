@@ -1,5 +1,6 @@
 export * from './rbac.js';
 export * from './providers/email.js';
+export * from './providers/sms.js';
 export * from './providers/turnstile.js';
 export { createAuth, hasSocialProviders } from './auth.js';
 export type { AuthEnv, AuthDeps, AuthInstance } from './auth.js';

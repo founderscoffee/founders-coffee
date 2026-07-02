@@ -16,7 +16,14 @@ export interface HandlerEnv extends AuthEnv {
  * The client sends the Turnstile token in the `cf-turnstile-response` header
  * (header-based so we don't have to parse/clone the request body).
  */
-const TURNSTILE_SUFFIXES = ['/send-verification-otp', '/sign-in/email-otp', '/verify-email'];
+const TURNSTILE_SUFFIXES = [
+  '/send-verification-otp',
+  '/sign-in/email-otp',
+  '/verify-email',
+  '/phone-number/send-otp',
+  '/phone-number/verify',
+  '/phone-number/request-password-reset',
+];
 
 const isTurnstileGated = (pathname: string, method: string): boolean =>
   method === 'POST' &&
