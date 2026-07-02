@@ -11,6 +11,7 @@ import { getVisibleMarkets } from '@founders-coffee/server-fns'
 
 import { Footer } from '../components/Footer'
 import { Navbar } from '../components/Navbar'
+import { AppProviders } from '../lib/app-providers'
 
 import appCss from '../styles.css?url'
 
@@ -47,9 +48,11 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
         <HeadContent />
       </head>
       <body className="bg-base-100 text-base-content">
-        <Navbar locale={locale} />
-        <main>{children}</main>
-        <Footer locale={locale} markets={markets} />
+        <AppProviders>
+          <Navbar locale={locale} />
+          <main>{children}</main>
+          <Footer locale={locale} markets={markets} />
+        </AppProviders>
         <TanStackDevtools
           config={{ position: 'bottom-right' }}
           plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}

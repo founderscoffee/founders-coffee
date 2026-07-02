@@ -19,5 +19,19 @@
       "database_id": "PLACEHOLDER_P0-019",
       "migrations_dir": "../../libs/db/migrations"
     }
+  ],
+  // Durable Objects — one DO per in-progress event (P1-010).
+  // EventLiveDO manages real-time WebSocket connections for the live dashboard.
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "EVENT_LIVE",
+        "class_name": "EventLiveDO",
+        "script_name": "founders-coffee-ui"
+      }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_classes": ["EventLiveDO"] }
   ]
 }

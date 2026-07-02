@@ -9,6 +9,7 @@ import { createOtpEmailProvider } from './lib/auth-email.js';
 export interface UiEnv extends HandlerEnv {
   EMAIL: SendEmail;
   MAIL_FROM: string;
+  EVENT_LIVE: DurableObjectNamespace;
 }
 
 /**
@@ -26,6 +27,7 @@ const authHandler = (env: UiEnv) => {
 /**
  * Custom Workers entry for apps/ui. react-router 1.170.16 has no file-based API routes, so raw HTTP
  * endpoints mount here before the TanStack delegate:
+ *   - `GET /api/live/:eventId` → WebSocket upgrade → EventLiveDO (real-time live dashboard)
  *   - `POST /client-logs` → `ingestClientLogs` (re-emits through the server console transport →
  *     Workers Logs/Logpush, the same stream as server logs). Basic shape validation only;
  *     Durable-Object rate limiting lands at P1-018.
@@ -38,6 +40,22 @@ const authHandler = (env: UiEnv) => {
 export default {
   fetch: async (request: Request, env: UiEnv): Promise<Response> => {
     const url = new URL(request.url);
+
+    /** WebSocket upgrade → EventLiveDO (P1-010). */
+    if (url.pathname.startsWith('/api/live/')) {
+      const eventId = url.pathname.split('/api/live/')[1]?.split('/')[0];
+      if (!eventId) return new Response('Missing event id', { status: 400 });
+
+      const upgradeHeader = request.headers.get('Upgrade');
+      if (upgradeHeader !== 'websocket') {
+        return new Response('Expected WebSocket upgrade', { status: 426 });
+      }
+
+      const doId = env.EVENT_LIVE.idFromName(`event:${eventId}`);
+      const doStub = env.EVENT_LIVE.get(doId);
+      return doStub.fetch(request);
+    }
+
     if (url.pathname === '/client-logs' && request.method === 'POST') {
       const body = (await request.json().catch(() => null)) as { entries?: unknown } | null;
       if (body && Array.isArray(body.entries)) ingestClientLogs(body.entries as LogEntry[]);

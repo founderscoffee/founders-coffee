@@ -6,6 +6,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { cloudflare } from '@cloudflare/vite-plugin'
+import { serwist } from '@serwist/vite'
 
 const config = defineConfig({
   resolve: {
@@ -19,8 +20,19 @@ const config = defineConfig({
     devtools(),
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({
+      importProtection: {
+        exclude: [/\/routes\//],
+      },
+    }),
     viteReact(),
+    serwist({
+      swSrc: 'src/sw.ts',
+      swDest: 'sw.js',
+      globDirectory: 'dist',
+      injectionPoint: 'self.__SW_MANIFEST',
+      rollupFormat: 'iife',
+    }),
   ],
 })
 

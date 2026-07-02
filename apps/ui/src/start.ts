@@ -9,8 +9,15 @@ import { requestContextMiddleware } from '@founders-coffee/server-fns';
  * `createCsrfMiddleware()` is re-installed explicitly to keep same-origin protection on every
  * server-fn (custom prod origin lands in Phase C). `requestContextMiddleware` gives every
  * server-fn a per-request id in the ALS context the structured logger reads (AGENTS §13).
+ *
+ * Both `default` and `startInstance` exports are required:
+ * - `default` is the legacy TanStack Start export
+ * - `startInstance` is the named export expected by `@tanstack/start-client-core`'s hydrateStart
  */
-export default createStart(() => ({
+const app = createStart(() => ({
   requestMiddleware: [createCsrfMiddleware()],
   functionMiddleware: [requestContextMiddleware],
 }));
+
+export const startInstance = app;
+export default app;
