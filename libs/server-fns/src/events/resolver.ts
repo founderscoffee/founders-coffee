@@ -11,6 +11,8 @@ import {
   type NewEvent,
 } from '@founders-coffee/db';
 
+import { type EventAttendance } from './attendance.js';
+
 const slugify = (title: string): string =>
   title
     .toLowerCase()
@@ -109,14 +111,63 @@ export const resolveEvent = async (
   return ok(event);
 };
 
-/** List upcoming published events, optionally scoped to a market/city (cursor-based). */
+/**
+ * A feed event with display city names attached server-side. The geo dataset is server-only —
+ * resolving city names in the client would bundle the full 6,518-city dataset into the UI build.
+ * This is the resolver-layer type; the RPC layer enriches it with attendance fields.
+ */
+export type EventFeedItemBase = Event & {
+  readonly cityName: string;
+  readonly cityNameAr: string;
+};
+
+/**
+ * A feed event with display city names + optional attendance fields.
+ * The resolver produces items WITHOUT attendance; the RPC layer enriches them
+ * via `attachAttendance`. UI components should guard: `event.goingCount != null`.
+ */
+export type EventFeedItem = EventFeedItemBase & Partial<EventAttendance>;
+
+/** Attach display city names (falls back to the city code if the geo record is missing). */
+const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
+  rows.map((e) => {
+    const city = geo.findCity(e.marketCode, e.cityCode);
+    return {
+      ...e,
+      cityName: city?.name ?? e.cityCode,
+      cityNameAr: city?.nameAr ?? city?.name ?? e.cityCode,
+    };
+  });
+
+export interface EventFeedPage {
+  readonly items: readonly EventFeedItemBase[];
+  readonly nextCursor: { readonly startsAt: number; readonly id: string } | null;
+}
+
+/** List upcoming published events, optionally scoped to a market/city (composite cursor). */
 export const listEvents = async (
   db: Db,
-  opts: { marketCode?: string; cityCode?: string; after?: number; limit?: number } = {},
-): Promise<Event[]> =>
-  listUpcomingEvents(db, {
+  opts: {
+    marketCode?: string;
+    cityCode?: string;
+    afterStartsAt?: number;
+    afterId?: string;
+    limit?: number;
+  } = {},
+): Promise<EventFeedPage> => {
+  const limit = opts.limit ?? 20;
+  const rows = await listUpcomingEvents(db, {
     marketCode: opts.marketCode,
     cityCode: opts.cityCode,
-    after: opts.after ? new Date(opts.after) : undefined,
-    limit: opts.limit,
+    afterStartsAt: opts.afterStartsAt ? new Date(opts.afterStartsAt) : undefined,
+    afterId: opts.afterId,
+    limit: limit + 1,
   });
+  const items = attachCityNames(rows.slice(0, limit));
+  const hasMore = rows.length > limit;
+  const last = items[items.length - 1];
+  return {
+    items,
+    nextCursor: hasMore && last ? { startsAt: last.startsAt.getTime(), id: last.id } : null,
+  };
+};

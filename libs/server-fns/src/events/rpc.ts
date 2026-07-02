@@ -5,7 +5,10 @@ import { appValidator, handleResult, marketCodeSchema } from '@founders-coffee/c
 
 import { requireAuth } from '../authz.js';
 import { requirePermission } from '../auth-middleware.js';
+import { resolveSession } from '../auth.js';
+import { getRequest } from '@tanstack/react-start/server';
 import { getDb } from '../db.js';
+import { attachAttendance } from './attendance.js';
 import { createEventResolver, listEvents, resolveEvent, type EventCreateInput } from './resolver.js';
 
 const eventCreateSchema = z.object({
@@ -34,7 +37,10 @@ export const createEvent = createServerFn({ strict: false })
     return handleResult(createEventResolver(getDb(), session.user.id, data as EventCreateInput));
   });
 
-/** Get a single event by id or (marketCode + slug). Public — no auth required. */
+/**
+ * Get a single event by id or (marketCode + slug). Public — no auth required.
+ * Attaches attendance fields (goingCount, remaining, viewerRsvp).
+ */
 export const getEvent = createServerFn({ strict: false })
   .validator(
     z.object({
@@ -43,20 +49,36 @@ export const getEvent = createServerFn({ strict: false })
       slug: z.string().optional(),
     }),
   )
-  .handler(async ({ data }) => handleResult(resolveEvent(getDb(), data)));
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const event = await handleResult(resolveEvent(db, data));
+    const session = await resolveSession(getRequest().headers);
+    const [enriched] = await attachAttendance(db, [event], session?.user?.id);
+    return enriched;
+  });
 
 /**
- * List upcoming published events (cursor-based). Public. Pass `after` (a startsAt epoch ms) for
- * pagination — returns only events with `startsAt > after`, ordered ASC. Optionally scope to a
- * marketCode and/or cityCode.
+ * List upcoming published events (composite cursor). Public. Pass `afterStartsAt` (a startsAt epoch
+ * ms) + `afterId` (the last item's id) for pagination; with both, the query continues strictly after
+ * that `(startsAt, id)` pair so tied `startsAt` values are never skipped. Only `afterStartsAt` falls
+ * back to `startsAt > afterStartsAt`. Optionally scope to a marketCode and/or cityCode. Returns feed
+ * items with display city names attached (server-side — geo data is never bundled to the client).
+ * Attaches attendance fields for each event.
  */
 export const getUpcomingEvents = createServerFn({ strict: false })
   .validator(
     z.object({
       marketCode: z.string().optional(),
       cityCode: z.string().optional(),
-      after: z.number().optional(),
+      afterStartsAt: z.number().optional(),
+      afterId: z.string().optional(),
       limit: z.number().int().min(1).max(100).default(20),
     }),
   )
-  .handler(async ({ data }) => listEvents(getDb(), data));
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const page = await listEvents(db, data);
+    const session = await resolveSession(getRequest().headers);
+    const enriched = await attachAttendance(db, page.items, session?.user?.id);
+    return { ...page, items: enriched };
+  });

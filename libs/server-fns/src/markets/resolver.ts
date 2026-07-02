@@ -1,15 +1,30 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
-import { getMarketByCode, getMarketBySlug, listMarkets, type Db, type Market } from '@founders-coffee/db';
+import {
+  countUpcomingByCity,
+  getMarketByCode,
+  getMarketBySlug,
+  listMarkets,
+  type Db,
+  type Market,
+} from '@founders-coffee/db';
 import { geo, markets } from '@founders-coffee/domain';
+
+import { listEvents, type EventFeedItem } from '../events/resolver.js';
 
 export interface MarketWithCities {
   readonly market: Market;
   readonly cities: readonly geo.GeoCity[];
+  /** First page of upcoming events across the market (the Discover feed). */
+  readonly events: readonly EventFeedItem[];
+  /** Upcoming event counts per city code (drives the city-badge counts + aura). */
+  readonly cityEventCounts: Record<string, number>;
 }
 
 export interface MarketCity {
   readonly market: Market;
   readonly city: geo.GeoCity;
+  /** First page of upcoming events in this city (FR-E5). */
+  readonly events: readonly EventFeedItem[];
 }
 
 /**
@@ -60,7 +75,11 @@ export const resolveMarketLanding = async (db: Db, key: string): Promise<Result<
   if (!market) {
     return err(new AppError('market_not_found', `No visible market for ${key}`));
   }
-  return ok({ market, cities: geo.getFeaturedCities(market.code) });
+  const [{ items: events }, cityEventCounts] = await Promise.all([
+    listEvents(db, { marketCode: market.code, limit: 20 }),
+    countUpcomingByCity(db, market.code),
+  ]);
+  return ok({ market, cities: geo.getFeaturedCities(market.code), events, cityEventCounts });
 };
 
 /**
@@ -79,5 +98,6 @@ export const resolveCityLanding = async (
   if (!city) {
     return err(new AppError('city_not_found', `No city ${citySlug} in ${market.code}`));
   }
-  return ok({ market, city });
+  const { items: events } = await listEvents(db, { marketCode: market.code, cityCode: city.code, limit: 20 });
+  return ok({ market, city, events });
 };

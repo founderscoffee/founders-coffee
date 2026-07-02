@@ -11,9 +11,10 @@ import {
   role_member,
   type Locale,
 } from '@founders-coffee/i18n'
-import { setHomeLocation, type UserProfile } from '@founders-coffee/server-fns'
+import type { UserProfile } from '@founders-coffee/server-fns'
 import type { geo } from '@founders-coffee/domain'
 
+import { useUpdateProfile } from '../features/profile/hooks'
 import { CitySearchCombobox } from './CitySearchCombobox'
 import { COUNTRIES } from '../lib/constants'
 import { initials } from '../lib/utils'
@@ -33,6 +34,7 @@ type ProfilePageProps = {
 
 export const ProfilePage = ({ locale, profile, states, cities }: ProfilePageProps) => {
   const navigate = useNavigate()
+  const updateProfileMutation = useUpdateProfile()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -45,7 +47,7 @@ export const ProfilePage = ({ locale, profile, states, cities }: ProfilePageProp
   const handleSave = async () => {
     if (!country || !stateVal || !city) return
     setSaving(true)
-    await setHomeLocation({ data: { marketCode: country, state: stateVal, city } })
+    await updateProfileMutation.mutateAsync({ data: { marketCode: country, state: stateVal, city } })
     setEditing(false)
     setSaving(false)
     navigate({ to: '/profile' })

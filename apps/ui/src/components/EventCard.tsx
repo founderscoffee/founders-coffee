@@ -1,57 +1,54 @@
-import { going_count, type Locale } from '@founders-coffee/i18n'
+import { Link } from '@tanstack/react-router'
 
-import { initials } from '../lib/utils'
-import type { SampleEvent } from '../lib/sample-events'
+import { formatDate, going_count, type Locale } from '@founders-coffee/i18n'
+import type { EventFeedItem } from '@founders-coffee/server-fns'
 
 import { Hover3D } from './Hover3D'
 
+type EventCardProps = {
+  event: EventFeedItem
+  locale: Locale
+  /** Event market's IANA timezone — dates render in the event's TZ, not the viewer's (FR-L4). */
+  timezone: string
+  marketSlug: string
+}
+
 /**
- * A 720x150 event card with daisyUI `hover-3d` (tilt + shine on hover). Semantic `<article>` with
- * a date widget, the title, a metadata row, and an avatar-group social-proof footer.
+ * A 720px event card with daisyUI `hover-3d` (tilt + shine). The whole card links to the event
+ * detail page. The date widget renders in the event's market timezone. The going-count line is
+ * gated on `goingCount` (absent until P1-008 wires RSVP attendance) — never shown with a fake number.
  */
-export const EventCard = ({ event, locale }: { event: SampleEvent; locale: Locale }) => {
-  const names = event.attendees.featured_names
-  const totalGoing = names.length + event.attendees.additional_count
-  const avatars = names.slice(0, 3)
+export const EventCard = ({ event, locale, timezone, marketSlug }: EventCardProps) => {
+  const start = new Date(event.startsAt)
+  const weekday = formatDate(start, locale, { timeZone: timezone, weekday: 'short' })
+  const day = formatDate(start, locale, { timeZone: timezone, day: 'numeric' })
+  const month = formatDate(start, locale, { timeZone: timezone, month: 'short' })
+  const time = formatDate(start, locale, { timeZone: timezone, hour: '2-digit', minute: '2-digit' })
+  const cityName = locale === 'ar' ? event.cityNameAr : event.cityName
 
   return (
     <Hover3D>
-      <article className="card card-side bg-base-200 border border-base-300 max-w-[720px]">
-        <div className="flex flex-col items-center justify-center bg-primary/10 text-primary rounded-box gap-0.5 px-3 py-2 m-2 min-w-16">
-          <span className="text-xs font-bold uppercase tracking-wide">{event.date.day_of_week}</span>
-          <span className="text-2xl font-extrabold leading-none">{event.date.day}</span>
-          <span className="text-xs font-bold uppercase opacity-80">{event.date.month}</span>
-        </div>
-
-        <div className="card-body gap-1 p-3 pe-4">
-          <h3 className="card-title text-base leading-snug">{event.title}</h3>
-          <p className="text-sm text-base-content/60">
-            {event.time} <span className="opacity-40">·</span> {event.location.venue}، {event.location.city}
-          </p>
-          <div className="flex items-center gap-2 mt-1">
-            <div className="avatar-group">
-              {avatars.map((n) => (
-                <div key={n} className="avatar avatar-placeholder">
-                  <div className="w-7 rounded-full bg-neutral text-neutral-content">
-                    <span className="text-[10px] font-bold">{initials(n)}</span>
-                  </div>
-                </div>
-              ))}
-              {totalGoing > avatars.length && (
-                <div className="avatar avatar-placeholder">
-                  <div className="w-7 rounded-full bg-base-300 text-base-content/60">
-                    <span className="text-[10px] font-bold">+{totalGoing - avatars.length}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-            <span className="text-xs text-base-content/60">
-              {names.slice(0, 2).join('، ')}{' '}
-              {going_count({ count: totalGoing }, { locale })}
-            </span>
+      <Link to="/$market/e/$slug" params={{ market: marketSlug, slug: event.slug }} className="block">
+        <article className="card card-side max-w-[720px] border border-base-300 bg-base-200">
+          <div className="m-2 flex min-w-16 flex-col items-center justify-center gap-0.5 rounded-box bg-primary/10 px-3 py-2 text-primary">
+            <span className="text-xs font-bold uppercase tracking-wide">{weekday}</span>
+            <span className="text-2xl font-extrabold leading-none">{day}</span>
+            <span className="text-xs font-bold uppercase opacity-80">{month}</span>
           </div>
-        </div>
-      </article>
+
+          <div className="card-body gap-1 p-3 pe-4">
+            <h3 className="card-title text-base leading-snug">{event.title}</h3>
+            <p className="text-sm text-base-content/60">
+              {time} <span className="opacity-40">·</span> {event.venue}{locale === 'ar' ? '،' : ','} {cityName}
+            </p>
+            {event.goingCount != null ? (
+              <p className="mt-1 text-xs text-base-content/60">
+                {going_count({ count: event.goingCount }, { locale })}
+              </p>
+            ) : null}
+          </div>
+        </article>
+      </Link>
     </Hover3D>
   )
 }

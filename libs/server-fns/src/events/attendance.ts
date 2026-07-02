@@ -1,22 +1,44 @@
-import type { Event } from '@founders-coffee/db';
+import type { Event, Db } from '@founders-coffee/db';
+import { getRsvpsForEvents } from '@founders-coffee/db';
 
 /**
- * Attendance fields attached to an event response. Populated by P1-008 (RSVP + atomic capacity).
- * See [`docs/p1-007-008-contract.md`](../../../../docs/p1-007-008-contract.md) §1.
+ * Attendance fields attached to an event response. Populated by `attachAttendance`.
  */
 export interface EventAttendance {
-  /** Count of RSVPs with status = 'going'. */
+  /** Count of RSVPs with status = 'going'. From the denormalized `events.rsvps` counter. */
   readonly goingCount: number;
-  /** Remaining seats. `null` ⇔ capacity === 0 (unlimited / free-form). */
+  /** Remaining seats. `null` ⇔ capacity === 0 (unlimited). */
   readonly remaining: number | null;
-  /** The viewer's RSVP. `null` ⇔ logged-out or not RSVP'd. */
+  /** The viewer's RSVP status. `null` ⇔ logged-out or not RSVP'd. */
   readonly viewerRsvp: 'going' | null;
 }
 
+/** An event with required attendance fields. */
+export type EventWithAttendance = Event & EventAttendance;
+
 /**
- * During the P1-007 ∥ P1-008 parallel period the attendance fields are OPTIONAL (absent until
- * P1-008). P1-008 narrows this to `Event & EventAttendance` (required) and populates the fields at
- * the RPC layer. UI MUST render them defensively — guard with `event.goingCount != null` and never
- * assume a field is present, never stub a fake `0`.
+ * Attach attendance fields to a list of events. No N+1 — uses the denormalized
+ * `events.rsvps` counter for `goingCount` and a single batched query for `viewerRsvp`.
+ *
+ * `goingCount` = `event.rsvps` (free — already on the row).
+ * `remaining` = `capacity === 0 ? null : capacity - event.rsvps`.
+ * `viewerRsvp` = one grouped query for all events, mapped back.
  */
-export type EventWithAttendance = Event & Partial<EventAttendance>;
+export const attachAttendance = async <T extends Event>(
+  db: Db,
+  events: readonly T[],
+  viewerId?: string | null,
+): Promise<(T & EventAttendance)[]> => {
+  const eventIds = events.map((e) => e.id);
+
+  const viewerRsvps = viewerId
+    ? await getRsvpsForEvents(db, { eventIds, userId: viewerId })
+    : new Map<string, 'going' | 'waitlist' | 'cancelled'>();
+
+  return events.map((event) => ({
+    ...event,
+    goingCount: event.rsvps,
+    remaining: event.capacity === 0 ? null : event.capacity - event.rsvps,
+    viewerRsvp: viewerRsvps.get(event.id) === 'going' ? 'going' : null,
+  }));
+};

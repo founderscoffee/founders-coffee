@@ -53,6 +53,20 @@ export const EventDetail = ({ locale, market, event, host }: EventDetailProps) =
   const capacityText =
     event.capacity === 0 ? event_no_cap({}, { locale }) : `${event_capacity({}, { locale })}: ${event.capacity}`;
 
+  /** Schema.org Event JSON-LD (inline — valid for crawlers anywhere in the HTML). */
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: event.title,
+    description: event.description,
+    startDate: new Date(event.startsAt).toISOString(),
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    eventStatus: 'https://schema.org/EventScheduled',
+    inLanguage: event.language,
+    location: { '@type': 'Place', name: event.venue, address: event.venueAddress ?? undefined },
+    organizer: { '@type': 'Person', name: host.name },
+  };
+
   return (
     <article className="mx-auto max-w-2xl px-4 py-10">
       <div className="flex flex-wrap gap-2">
@@ -100,6 +114,10 @@ export const EventDetail = ({ locale, market, event, host }: EventDetailProps) =
       </div>
 
       <p className="mt-4 text-xs text-base-content/40">{capacityText}</p>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </article>
   );
 };

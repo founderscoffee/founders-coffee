@@ -20,10 +20,10 @@ import {
   host_title_ph,
   type Locale,
 } from '@founders-coffee/i18n'
-import { createEvent } from '@founders-coffee/server-fns'
 import { Button, Input } from '@founders-coffee/ui'
 import type { geo } from '@founders-coffee/domain'
 
+import { useCreateEvent } from '../features/events/hooks'
 import { COUNTRIES } from '../lib/constants'
 
 const MapPicker = lazy(() => import('./MapPicker').then((m) => ({ default: m.MapPicker })))
@@ -52,6 +52,7 @@ type HostCreatePageProps = {
 
 export const HostCreatePage = ({ locale, states, cities, mapboxToken }: HostCreatePageProps) => {
   const navigate = useNavigate()
+  const createEventMutation = useCreateEvent()
 
   const [step, setStep] = useState(1)
   const [country, setCountry] = useState('DZ')
@@ -77,7 +78,7 @@ export const HostCreatePage = ({ locale, states, cities, mapboxToken }: HostCrea
     if (!venue || startsAt === null) return
     setPublishing(true)
     try {
-      await createEvent({
+      await createEventMutation.mutateAsync({
         data: {
           marketCode: country,
           stateCode,

@@ -1,6 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
-import { getCookies } from '@tanstack/react-start/server'
+import { useState } from 'react'
 
 import {
   onboarding_city,
@@ -12,9 +11,9 @@ import {
   onboarding_title,
   type Locale,
 } from '@founders-coffee/i18n'
-import { setHomeLocation } from '@founders-coffee/server-fns'
 import type { geo } from '@founders-coffee/domain'
 
+import { useUpdateProfile } from '../features/profile/hooks'
 import { CitySearchCombobox } from './CitySearchCombobox'
 import { COUNTRIES } from '../lib/constants'
 
@@ -22,17 +21,12 @@ type OnboardingPageProps = {
   locale: Locale
   states: readonly geo.GeoState[]
   cities: readonly geo.GeoCity[]
+  initialCountry: string
 }
 
-export const OnboardingPage = ({ locale, states, cities }: OnboardingPageProps) => {
+export const OnboardingPage = ({ locale, states, cities, initialCountry }: OnboardingPageProps) => {
   const navigate = useNavigate()
-
-  const geoCookie = getCookies()['fc_geo'] ?? 'algeria'
-
-  const initialCountry = useMemo(() => {
-    const match = COUNTRIES.find((c) => c.code === geoCookie.toUpperCase())
-    return match?.code ?? 'DZ'
-  }, [geoCookie])
+  const updateProfileMutation = useUpdateProfile()
 
   const [country, setCountry] = useState<string>(initialCountry)
   const [state, setState] = useState('')
@@ -53,7 +47,7 @@ export const OnboardingPage = ({ locale, states, cities }: OnboardingPageProps) 
   const handleSave = async () => {
     if (!country || !state || !city) return
     setSaving(true)
-    await setHomeLocation({ data: { marketCode: country, state, city } })
+    await updateProfileMutation.mutateAsync({ data: { marketCode: country, state, city } })
     const marketSlug = COUNTRIES.find((c) => c.code === country)?.name.toLowerCase().replace(' ', '-') ?? 'algeria'
     navigate({ to: '/$market', params: { market: marketSlug } })
     setSaving(false)

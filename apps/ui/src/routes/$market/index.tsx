@@ -7,18 +7,29 @@ import { getMarketLanding, type MarketWithCities } from '@founders-coffee/server
 import { MarketLanding } from '../../components/MarketLanding'
 
 export const Route = createFileRoute('/$market/')({
+  staticData: { prerender: true },
   component: () => {
     const { locale } = Route.useRouteContext()
-    const { market, cities } = Route.useLoaderData()
-    return <MarketLanding locale={locale} market={market} cities={cities} />
+    const { market, cities, events, cityEventCounts } = Route.useLoaderData()
+    return (
+      <MarketLanding
+        locale={locale}
+        market={market}
+        cities={cities}
+        cityEventCounts={cityEventCounts}
+        events={events}
+      />
+    )
   },
   loader: async ({ params }): Promise<MarketWithCities> => {
     try {
-      const { market, cities } = await getMarketLanding({ data: { key: params.market } })
+      const { market, cities, events, cityEventCounts } = await getMarketLanding({
+        data: { key: params.market },
+      })
       if (params.market !== market.slug) {
         throw redirect({ to: '/$market', params: { market: market.slug } })
       }
-      return { market, cities }
+      return { market, cities, events, cityEventCounts }
     } catch (error) {
       if (appErrorCode(error) === 'market_not_found') throw notFound()
       throw error

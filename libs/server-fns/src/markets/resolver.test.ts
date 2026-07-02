@@ -83,6 +83,8 @@ describe('resolveMarketLanding (slug-or-code key)', () => {
     if (bySlug.ok) {
       expect(bySlug.data.market.code).toBe('EG');
       expect(Array.isArray(bySlug.data.cities)).toBe(true);
+      expect(Array.isArray(bySlug.data.events)).toBe(true);
+      expect(typeof bySlug.data.cityEventCounts).toBe('object');
     }
     expect(byCode.ok).toBe(true);
     if (byCode.ok) expect(byCode.data.market.code).toBe('EG');
@@ -112,6 +114,7 @@ describe('resolveCityLanding (market-scoped, validated via geo TS data)', () => 
     if (result.ok) {
       expect(result.data.market.code).toBe('DZ');
       expect(result.data.city.slug).toBe('adrar');
+      expect(Array.isArray(result.data.events)).toBe(true);
     }
   });
 

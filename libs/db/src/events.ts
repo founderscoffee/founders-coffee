@@ -1,4 +1,4 @@
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq, gt, or, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import { events, type Event, type Event as EventRow, type NewEvent } from './schema.js';
@@ -30,32 +30,64 @@ export const getEventBySlug = async (
 };
 
 /**
- * List upcoming published events, optionally scoped to a market and/or city. Cursor-based: `after`
- * is a `startsAt` timestamp — only events with `startsAt > after` are returned (ASC order, so the
- * next page continues from the last item's `startsAt`). `limit` caps the page size.
+ * List upcoming published events, optionally scoped to a market and/or city. Cursor-based with a
+ * **composite `(startsAt, id)` cursor** so events sharing a `startsAt` are never skipped: ordered
+ * `startsAt, id` ASC, and the cursor is `afterStartsAt` + `afterId` (continue strictly after that
+ * pair). If only `afterStartsAt` is given (no `afterId`), falls back to `startsAt > afterStartsAt`.
+ * `limit` caps the page size.
  */
 export const listUpcomingEvents = async (
   db: Db,
   opts: {
     marketCode?: string;
     cityCode?: string;
-    after?: Date;
+    afterStartsAt?: Date;
+    afterId?: string;
     limit?: number;
   } = {},
 ): Promise<Event[]> => {
-  const conditions = [
-    eq(events.status, 'published'),
-    opts.after ? gt(events.startsAt, opts.after) : gt(events.startsAt, new Date(0)),
-  ];
-  if (opts.marketCode) conditions.push(eq(events.marketCode, opts.marketCode));
-  if (opts.cityCode) conditions.push(eq(events.cityCode, opts.cityCode));
+  const cursor = opts.afterStartsAt
+    ? opts.afterId
+      ? or(
+          gt(events.startsAt, opts.afterStartsAt),
+          and(eq(events.startsAt, opts.afterStartsAt), gt(events.id, opts.afterId)),
+        )
+      : gt(events.startsAt, opts.afterStartsAt)
+    : gt(events.startsAt, new Date(0));
 
   return db
     .select()
     .from(events)
-    .where(and(...conditions))
-    .orderBy(events.startsAt)
+    .where(
+      and(
+        cursor,
+        eq(events.status, 'published'),
+        opts.marketCode ? eq(events.marketCode, opts.marketCode) : undefined,
+        opts.cityCode ? eq(events.cityCode, opts.cityCode) : undefined,
+      ),
+    )
+    .orderBy(events.startsAt, events.id)
     .limit(opts.limit ?? 20);
+};
+
+/**
+ * Count upcoming published events per city in a market (for the landing-page city badges). One
+ * grouped query — avoids an N+1 per featured city. Returns `{ [cityCode]: count }`.
+ */
+export const countUpcomingByCity = async (
+  db: Db,
+  marketCode: string,
+): Promise<Record<string, number>> => {
+  const rows = await db
+    .select({ cityCode: events.cityCode, count: sql<number>`count(*)` })
+    .from(events)
+    .where(
+      and(eq(events.marketCode, marketCode), eq(events.status, 'published'), gt(events.startsAt, new Date())),
+    )
+    .groupBy(events.cityCode);
+  const counts: Record<string, number> = {};
+  for (const row of rows) counts[row.cityCode] = Number(row.count);
+  return counts;
 };
 
 /**
