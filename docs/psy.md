@@ -1,5 +1,7 @@
 This psychological evaluation explores the architectural and design decisions of **founders.coffee** through the lenses of Cognitive Psychology and Behavioral Economics.
 
+> **Auth model update (SRS FR-A4/D4 amended):** The platform now uses **phone-OTP (Twilio Verify) as the primary auth method**, with email-OTP as secondary/billing fallback. This directly addresses the "context-switching tax" identified in §1 below — phone-OTP eliminates the need to exit the PWA to check email, reducing the extraneous cognitive load spike at the auth boundary. The core analysis of email-OTP friction remains valid for the secondary email-OTP path and for future markets where email may be primary.
+
 The core thesis of this project is highly sound: leveraging an existing, centuries-old Algerian café culture as a behavioral sandbox reduces the friction of real-world coordination. However, translating an informal physical habit into a digital product journey introduces subtle psychological barriers that could lead to user drop-off if not addressed natively.
 
 ---

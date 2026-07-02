@@ -1,7 +1,6 @@
-# Auth UI — email-OTP + OAuth
+# Auth UI — phone-OTP + email-OTP + OAuth
 
-P1-003 — the user-facing auth layer. **Passwordless: email-OTP + OAuth** (FR-A4/D4 — phone-OTP was
-superseded; phone/WhatsApp are notification-only). No passwords.
+P1-003 — the user-facing auth layer. **Passwordless: phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth** (FR-A4/D4 — amended to phone-OTP primary). No passwords.
 
 ## The flow
 

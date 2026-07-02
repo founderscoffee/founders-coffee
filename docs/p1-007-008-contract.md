@@ -81,7 +81,7 @@ populates). Both are scheduled (007a lands first), so there is no live conflict.
 | `libs/server-fns/src/events/rpc.ts` | — | — | wraps `getEvent`/`getUpcomingEvents` w/ `attachAttendance` |
 | `libs/server-fns/src/events/resolver.ts` | — | — | — (untouched) |
 | `libs/server-fns/src/rsvps/*` (new) | — | — | **creates** (resolver + rpc) |
-| `libs/db/src/rsvps.ts` + schema + migration `0005` | — | — | **creates** |
+| `libs/db/src/rsvps.ts` + schema + migration `0006` | — | — | **creates** |
 | `libs/db/src/events.ts` (cursor-tie fix + `countUpcomingByCity`) | — | **edits** | — |
 | `libs/server-fns/src/markets/resolver.ts` (`getCityLanding` → +events) | — | **edits** | — |
 | `libs/auth/src/rbac.ts` (ensure `member` → `rsvp:*`) | — | — | **edits** (if absent) |

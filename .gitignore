@@ -19,6 +19,8 @@ node_modules
 **/routeTree.gen.js
 **/worker-configuration.d.ts
 libs/i18n/src/paraglide/
+public/sw*
+public/swe-worker*
 
 # ── Vite / Vitest cache ──
 .vite
@@ -81,3 +83,4 @@ testem.log
 # ── System Files ──
 .DS_Store
 Thumbs.db
+firebase-service-account.json

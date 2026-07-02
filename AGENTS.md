@@ -36,7 +36,7 @@ Every code change maps to a ticket ID in the plan, which maps to `FR-*`/`NFR-*` 
 - **Styling:** **Tailwind CSS v4 + DaisyUI** (shared in `libs/ui`).
 - **Validation:** **Zod** (source of truth for types).
 - **DB:** **Cloudflare D1** + **Drizzle ORM**.
-- **Auth:** **Better Auth** (email/password + phone OTP; cookie + token).
+- **Auth:** **Better Auth** (phone-OTP via Twilio Verify + email-OTP + OAuth; cookie + token).
 - **Cloudflare services:** D1, R2, Images, KV, Queues, Cron, Durable Objects, Workflows, Workers AI, Vectorize, Browser Rendering, Turnstile, Access/Zero Trust, Email (native), Analytics Engine, Web Analytics, Secrets Store, Smart Placement.
 - **Email:** Cloudflare Email (native) + React Email templates.
 - **Mobile:** PWA Builder wraps `apps/ui`.

@@ -164,7 +164,7 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 - **FR-A1** The system shall maintain **one global user identity** per person (a user may relocate/travel).
 - **FR-A2** Activity and reputation shall be **scoped per market/city** (e.g., a host's Algiers history vs. a Cairo attendance history).
 - **FR-A3** Each user shall have a `home_market_id` and `home_city_id`, changeable.
-- **FR-A4** Authentication shall be **passwordless**: **email-OTP** (one-time code; no passwords) plus **OAuth** (Google, GitHub, LinkedIn). OAuth accounts link to a single identity by verified email (account linking enabled, trusted providers only). No passwords; no phone-based auth — phone/WhatsApp are notification-only (P1.5/D5).
+- **FR-A4** Authentication shall be **passwordless**: **phone-OTP via SMS** (primary; Twilio Verify) plus **email-OTP** (secondary/billing) plus **OAuth** (Google, GitHub, LinkedIn). Phone-OTP is the primary login method for mobile-first Maghreb markets (118% mobile connections, DZ). Email-OTP remains for OAuth account linking, billing receipts, and users without phone access. OAuth accounts link to a single identity by verified email (account linking enabled, trusted providers only). No passwords.
 - **FR-A5** Roles: `member`, `host` (a member who has hosted), `sponsor_contact`, `admin`, `moderator`.
 
 ### 5.7 Internationalization & localization (P0)
@@ -186,7 +186,7 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 
 ### 5.9 Notifications & communications (P1)
 
-- **FR-N1** The system shall send notifications via at minimum email; SMS/WhatsApp are high-value additions for the Maghreb (to be confirmed).
+- **FR-N1** The system shall send notifications via **SMS (Twilio Verify/Programmable SMS)** as the primary channel for Maghreb markets, with **email (Cloudflare Email)** as the fallback and billing channel. Push notifications (FCM/APNs) arrive in Phase 6 via native app.
 - **FR-N2** Notification preferences shall be user-configurable.
 - **FR-N3** Notifications shall be localized.
 
@@ -234,9 +234,28 @@ User
 Event
   id, market_id, city_id, host_user_id
   title, description, venue, starts_at, capacity, language, category
-  rsvp[], is_free = true
+  rsvps (denormalized counter), is_free = true
+  latitude, longitude, venue_address
   sponsorships[]                 // sponsor surfaces attached (FR-S2)
   // reserved-for-later (P2+): challenge_id, prize (Money)
+
+EventRsvp
+  event_id, user_id              // UNIQUE(event_id, user_id) — idempotent RSVP
+  status (confirmed | cancelled)
+  created_at
+
+ScheduledNotification           (Phase 4 — Cron + due-rows scheduler)
+  id, event_id, user_id
+  channel (sms | email), template_key
+  payload (JSON), status (pending | sent | failed)
+  send_at (unix timestamp), created_at
+  // Indexed on (send_at, status) for efficient Cron sweep
+
+PushSubscription                (Phase 6 — web push via FCM HTTP v1; Phase 8 — native push via EdgePush)
+  id, user_id, token (device token or FCM web push token)
+  platform (ios | android | web), surface (pwa | rn), market_code
+  created_at, updated_at
+  // Multiple tokens per user (multiple devices); invalidated on logout or DeviceNotRegistered
 
 Challenge
   id, market_id, host_user_id (or sponsor_id), is_free_hosted
@@ -292,7 +311,7 @@ Money (value object, used everywhere — never bare numbers)
 - **Security:** **Turnstile** (bot protection on all forms); **Cloudflare Access / Zero Trust** (gates `apps/admin` to the team).
 - **Observability:** **Analytics Engine** (product metrics) + **Web Analytics** (privacy analytics); structured logging.
 - **Secrets:** **Cloudflare Secrets Store / `wrangler secret`**.
-- **Auth:** **Better Auth** — passwordless email-OTP + OAuth (Google, GitHub, LinkedIn); account linking; cookie (web) + bearer token (future non-web); sessions in D1 (not KV).
+- **Auth:** **Better Auth** — passwordless phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google, GitHub, LinkedIn); account linking; cookie (web) + bearer token (future non-web); sessions in D1 (not KV).
 - **Mobile:** **PWA Builder** wraps `apps/ui` into App Store / Play Store packages.
 - **Testing:** **Vitest** + **Playwright** against **Miniflare** (real local Cloudflare bindings — no platform mocks).
 - **Language:** TypeScript 5.9, strict.
@@ -469,8 +488,8 @@ libs/
 | D1  | **Database**              | **Cloudflare D1**                                                                      | Edge-native, cheap, fits Workers; primary near Maghreb. Postgres is the Year-2+ escape hatch via Drizzle. |
 | D2  | **ORM**                   | **Drizzle**                                                                            | Edge-native (unlike Prisma on Workers); portable to Postgres.                                             |
 | D3  | **Frontend framework**    | **TanStack Start** (fullstack) + Query, Form, Table, Virtual, Store, Config            | Typed server functions = the backend; full TanStack toolset; end-to-end type safety; edge-native.         |
-| D4  | **Auth method**           | **Passwordless** email-OTP + OAuth (Google/GitHub/LinkedIn) via **Better Auth**; account linking (trusted providers, same-email only) | Frictionless; no password storage/credential attacks; one global identity across email + OAuth (FR-A1). Sessions in D1 (not KV); D1-backed auth rate limiting. _Supersedes earlier phone-OTP choice_ — phone/WhatsApp are notification-only (P1.5/D5). |
-| D5  | **Notification channels** | Email (P1) + WhatsApp/SMS (P1.5)                                                       | WhatsApp dominant in the region.                                                                          |
+| D4  | **Auth method**           | **Passwordless** phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google/GitHub/LinkedIn) via **Better Auth**; account linking (trusted providers, same-email only) | Phone-OTP is the lowest-friction method in mobile-first Maghreb markets (118% mobile connections, Algeria). Email retained for OAuth linking, billing, and fallback. No passwords. One global identity (FR-A1). Sessions in D1 (not KV); D1-backed auth rate limiting. Twilio Verify provides stateless OTP + Fraud Guard. _Amends prior D4 (email-OTP primary) per market validation._ |
+| D5  | **Notification channels** | SMS via Twilio (P1, primary for Maghreb) + Email via Cloudflare Email (P1, billing + fallback) + Push via Expo Push API (Phase 6, native only) | SMS dominant in Algeria/Morocco (no two-way SMS in DZ — inbound killed). Email for billing receipts and OTP fallback. Web push demoted (iOS 16.4+ PWA limit in DZ); native push (FCM/APNs) via Expo in Phase 6. |
 | D6  | **Hosting region**        | Cloudflare edge; **D1 primary near Maghreb**                                           | Latency + data-residency considerations.                                                                  |
 | D7  | **Monetization build**    | **Build sponsorship surfaces in P1; sell through the platform** (no manual-only phase) | Sponsorship is a built feature of the events engine; no manual validation phase.                          |
 | D8  | **Hackathon engine**      | **Build the full engine in P2** (no manual validation); ship P1 events first           | Staged shipping gives real users before P2; first real challenge is the demand signal.                    |

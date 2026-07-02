@@ -35,6 +35,9 @@
     },
     {
       "path": "./libs/email"
+    },
+    {
+      "path": "./libs/notifications"
     }
   ]
 }
