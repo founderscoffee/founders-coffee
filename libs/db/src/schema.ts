@@ -10,8 +10,8 @@ import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
  * here — not generated into `libs/auth` — so the data layer owns all persistence
  * and there is one migration source.
  *
- * Auth model (FR-A4/D4): passwordless email-OTP + OAuth (Google/GitHub/LinkedIn).
- * No passwords, no phone. `user.role` is a plain string (Better Auth stores
+ * Auth model (FR-A4/D4): passwordless phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google/GitHub/LinkedIn).
+ * No passwords. `user.role` is a plain string (Better Auth stores
  * roles as text; a DB enum cannot represent the plugin's model) constrained in
  * app code via the RBAC map in `libs/auth`.
  */
@@ -70,6 +70,10 @@ export const user = sqliteTable('user', {
   homeMarketCode: text('home_market_code').references(() => markets.code),
   homeState: text('home_state'),
   homeCityId: text('home_city_id'),
+  phoneNumber: text('phone_number'),
+  phoneNumberVerified: integer('phone_number_verified', { mode: 'boolean' })
+    .notNull()
+    .default(false),
   localePref: text('locale_pref'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
@@ -134,7 +138,7 @@ export const account = sqliteTable('account', {
 export type Account = typeof account.$inferSelect;
 export type NewAccount = typeof account.$inferInsert;
 
-/** Verification — hashed email-OTP codes + tokens (storeOTP: "hashed"). */
+/** Verification — hashed OTP codes + tokens (storeOTP: "hashed"). Used for both phone-OTP and email-OTP. */
 export const verification = sqliteTable('verification', {
   id: text('id').primaryKey(),
   identifier: text('identifier').notNull(),
@@ -174,6 +178,7 @@ export const events = sqliteTable('events', {
   description: text('description').notNull(),
   venue: text('venue').notNull(),
   startsAt: integer('starts_at', { mode: 'timestamp' }).notNull(),
+  rsvps: integer('rsvps').notNull().default(0),
   capacity: integer('capacity').notNull().default(0),
   language: text('language', { enum: [...EVENT_LANGUAGES] }).notNull(),
   category: text('category', { enum: [...EVENT_CATEGORIES] }).notNull(),
@@ -194,6 +199,35 @@ export const events = sqliteTable('events', {
 
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;
+
+/* -------------------------------------------------------------------------- */
+/* RSVPs (P1-008) — event attendance + atomic capacity                         */
+/* -------------------------------------------------------------------------- */
+
+export const RSVP_STATUSES = ['going', 'waitlist', 'cancelled'] as const;
+
+/** Event RSVP — one per user per event (UNIQUE constraint). Drives the atomic capacity check. */
+export const eventRsvps = sqliteTable('event_rsvps', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  status: text('status', { enum: [...RSVP_STATUSES] })
+    .notNull()
+    .default('going'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export type EventRsvp = typeof eventRsvps.$inferSelect;
+export type NewEventRsvp = typeof eventRsvps.$inferInsert;
 
 /* -------------------------------------------------------------------------- */
 /* Payments (P0-015) — B2B Order/Invoice, Year-1 manual confirmation           */
@@ -269,3 +303,107 @@ export const invoices = sqliteTable('invoices', {
 
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
+
+/* -------------------------------------------------------------------------- */
+/* Notifications (P1-009) — scheduled SMS + email notifications               */
+/* -------------------------------------------------------------------------- */
+
+export const NOTIFICATION_CHANNELS = ['sms', 'email'] as const;
+export const NOTIFICATION_STATUSES = [
+  'pending',
+  'sent',
+  'delivered',
+  'failed',
+] as const;
+export const NOTIFICATION_TEMPLATE_KEYS = [
+  'rsvp_confirmation',
+  'reminder_72h',
+  'reminder_24h',
+] as const;
+
+/**
+ * Scheduled notification — one row per notification to send.
+ * The Cron sweep (worker-jobs) reads `pending` rows where `send_at <= now`,
+ * dispatches via the queue, and marks them `sent`/`failed`.
+ *
+ * `payload` is a JSON blob containing template-specific data (phone number,
+ * event title, starts_at, locale, etc.) — the consumer parses it and renders
+ * the SMS text or email HTML.
+ *
+ * `fallback_channel` triggers email retry when SMS fails permanently (3 attempts).
+ */
+export const scheduledNotifications = sqliteTable(
+  'scheduled_notifications',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    channel: text('channel', { enum: [...NOTIFICATION_CHANNELS] })
+      .notNull()
+      .default('sms'),
+    status: text('status', { enum: [...NOTIFICATION_STATUSES] })
+      .notNull()
+      .default('pending'),
+    templateKey: text('template_key', {
+      enum: [...NOTIFICATION_TEMPLATE_KEYS],
+    }).notNull(),
+    payload: text('payload', { mode: 'json' })
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    sendAt: integer('send_at', { mode: 'timestamp' }).notNull(),
+    attempts: integer('attempts').notNull().default(0),
+    lastError: text('last_error'),
+    fallbackChannel: text('fallback_channel', {
+      enum: ['email'],
+    }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+);
+
+export type ScheduledNotification =
+  typeof scheduledNotifications.$inferSelect;
+export type NewScheduledNotification =
+  typeof scheduledNotifications.$inferInsert;
+
+/* -------------------------------------------------------------------------- */
+/* Push subscriptions (P1-010) — web push via FCM HTTP v1                      */
+/* -------------------------------------------------------------------------- */
+
+export const PUSH_PLATFORMS = ['ios', 'android', 'web'] as const;
+export const PUSH_SURFACES = ['pwa', 'rn'] as const;
+
+/**
+ * Push subscription — one row per device token. Multiple tokens per user
+ * (multi-device). Invalidated on logout or `DeviceNotRegistered` response.
+ * Tokens are registered on app install / login.
+ */
+export const pushSubscriptions = sqliteTable('push_subscriptions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  platform: text('platform', { enum: [...PUSH_PLATFORMS] }).notNull(),
+  surface: text('surface', { enum: [...PUSH_SURFACES] }).notNull(),
+  marketCode: text('market_code')
+    .notNull()
+    .references(() => markets.code),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
