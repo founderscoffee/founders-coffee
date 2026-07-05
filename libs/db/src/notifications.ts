@@ -2,6 +2,7 @@ import { and, eq, lte } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
+  NOTIFICATION_CHANNELS,
   scheduledNotifications,
   type NewScheduledNotification,
   type ScheduledNotification,
@@ -20,7 +21,7 @@ export const enqueueNotification = async (
     id: string;
     eventId: string;
     userId: string;
-    channel: 'sms' | 'email';
+    channel: (typeof NOTIFICATION_CHANNELS)[number];
     templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
     payload: Record<string, unknown>;
     sendAt: Date;
