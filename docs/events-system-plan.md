@@ -18,7 +18,7 @@
 | `apps/admin` | Internal team | Web-only | ❌ separate |
 
 **Implications this locks:**
-- The **Live Dashboard + host event-management live in `apps/ui`/`apps/mobile`**, NOT `apps/dashboard`. (`docs/new-design.md` placed the Live Dashboard in dashboard under an older model — superseded.) → **P1-016 ("apps/dashboard host view") is re-scoped**: host tools stay in the member app; dashboard becomes sponsor-only.
+- The **Live Dashboard + host event-management live in `apps/ui`/`apps/mobile`**, NOT `apps/dashboard`. → **P1-016 ("apps/dashboard host view") is re-scoped**: host tools stay in the member app; dashboard becomes sponsor-only.
 - **Mobile effort is `apps/ui` only** — one app to build in RN.
 
 ## Decisions locked
@@ -176,14 +176,25 @@ const Countdown = ({ seconds }: { seconds: number }) => (
 ```
 
 # Phase 2 — Discovery surface
-City-search hero on `/{market}` (per `docs/new-design.md`): lowercase editorial copy, "Enter your city → Find Coffee", hyper-local social proof ("🔥 N meetups this week in {city}" via `countUpcomingByCity`), and the **dynamic empty-state pivot** (open city + 0 events → "{city} is an open canvas. be the first to host.").
+City-search hero on `/{market}`: warm editorial copy, a unified city-search bar (input + CTA rendered as one component), hyper-local social proof ("🔥 N meetups this week in {city}" via `countUpcomingByCity`), and the **dynamic empty-state pivot** (open city + 0 events → "{city} is an open canvas. be the first to host."). The hero search satisfies curiosity *before* introducing any identity gate — the CTA only routes to auth/host-creation once intent is captured.
 
-**i18n keys** (externalized per FR-L1 — zero hardcoded copy):
-- `hero.search.placeholder` → "Enter your city"
-- `hero.search.cta` → "Find Coffee"
-- `hero.social_proof` → "{count} meetups this week in {city}"
-- `hero.empty_city` → "{city} is an open canvas. be the first to host."
+**Dynamic CTA contract:** the search CTA's behavior branches on the city selection state:
+- No city selected or city with events → routes to `/login` (auth gate before browsing/profile)
+- City selected but empty (`open` market, 0 events) → routes to `/host/create?city={code}` (creation flow, no auth gate upfront — the host form challenges mid-journey via Better Auth)
+
+This conversion-flow continuity (anonymous discovery → soft auth gate → host creation, all in `apps/ui`) is why host creation lives in the public app rather than `apps/dashboard`.
+
+**i18n keys** (externalized per FR-L1 — zero hardcoded copy; snake_case, Paraglide-generated):
+- `hero_tagline` → "شراكات تبدأ بقهوة" (ar) / "Partnerships start over coffee" (en) / "Les partenariats commencent autour d'un café" (fr)
+- `hero_subtitle` → "نجمع رواد الأعمال لبناء العلاقات, اكتشاف فرص الشراكة و النمو معًا" (ar) / "We bring entrepreneurs together to build relationships, discover partnership opportunities, and grow together" (en) / "Nous réunissons les entrepreneurs pour tisser des relations, découvrir des opportunités de partenariat et grandir ensemble" (fr)
+- `hero_search_placeholder` → "ابحث عن مدينتك..." (ar)
+- `hero_search_cta` → "ابحث عن لقاء" (ar)
+- `hero_social_proof` → "{count} لقاءات هذا الأسبوع في {city}" (ar)
+- `hero_empty_city` → "{city} لوحة مفتوحة." (ar)
+- `hero_empty_subtitle` → "لا توجد لقاءات مخططة في {city} هذا الأسبوع. خصّ 60 ثانية لتحجز طاولة مقهى وتأسّس مجتمعك المحلي." (ar)
+- `hero_empty_cta` → "استضف أول قهوة في {city}" (ar)
 - Locale files: `ar.json`, `en.json`, `fr.json` with fallback chain `fr → ar`, `en → ar` (SRS §8.6).
+- Base locale is `ar` (per `libs/i18n/project.inlang/settings.json`); the locale catalog above shows the ar source — en/fr are translated equivalents, kept in sync via `npx nx run i18n:generate-i18n`.
 
 # Phase 3 — Event list + detail (P1-007)
 - **Event feed** in `apps/ui`: TanStack Virtual for long lists, cursor-based pagination (reuses `listUpcomingEvents` from P1-005).
@@ -324,16 +335,38 @@ RN iOS        →  Worker  →  EdgePush SDK  →  APNs  →  device
 - **Multilingual queries:** search queries are language-agnostic (bge-m3 handles multilingual natively). No language detection needed on the query path.
 
 # Phase 8 — Mobile app (React Native / Expo) — member-only
-> Direction confirmed (RN/Expo). Architecture details pending the running mobile-tooling research;
-> placeholders below will be filled from its findings.
+> ✅ **Research complete (verified, Jul 2026 — 108 agents, 0 errors).** Architecture below reflects the
+> verified reuse-vs-rewrite verdicts. Sources: Nx, Expo, TanStack Start, Better Auth, @rnmapbox/maps,
+> Cloudflare docs.
 
-- **`apps/mobile`** (Expo Router + EAS Build/Update) in the Nx monorepo, consuming the deployed Cloudflare Workers API.
-- **Reuse (logic layer):** `libs/domain`, `libs/core`, the `apps/ui/src/hooks` api+hooks layer, react-query, types. *(Research will confirm per-lib: server-fns RPC stubs RN-compat, Paraglide-in-RN, Better Auth RN client.)*
-- **Rewrite (UI):** TanStack Router → Expo Router; Tailwind/DaisyUI → NativeWind; `react-map-gl` → `@rnmapbox/maps`; all components.
-- **Native push:** EdgePush (self-hosted on CF Workers) → **FCM (Android) + APNs (iOS)**. Client uses `getDevicePushTokenAsync()` (native tokens, not Expo proprietary tokens). Subscriptions in D1.
-- **Real-time:** RN WebSocket → `EventLiveDO` (same DO as web).
-- **Background location** (host "arrived"): research-pending (`expo-location` vs paid lib).
+- **`apps/mobile`** — Expo **SDK 55 / RN 0.83 / React 19.2** (Router + EAS Build/Update), added via `nx add @nx/expo` + `nx g @nx/expo:app apps/mobile`. libs/* use TS-source-only exports (no build step) → Metro consumes directly.
+- ⚠️ **Monorepo hazard (verified, 3-0):** duplicate React/RN versions are unsupported (apps/ui ships react-dom, apps/mobile ships react-native → must be isolated per-app). Mitigate with root `resolutions`/`overrides` + Expo `experiments.autolinkingModuleResolution` (auto-enabled SDK 55+).
+- **EAS Build from day one** — `@rnmapbox/maps` requires custom native code → **not Expo Go** (dev-client / EAS Build mandatory). Pin `RNMapboxMapsVersion` explicitly (the "v11 default" claim was refuted 1-2).
+
+**Verified reuse-vs-rewrite matrix:**
+
+| Layer | Verdict |
+|---|---|
+| `libs/domain` (pure TS) | ✅ Reuse |
+| `libs/auth` (Better Auth) | ✅ Reuse — official **`@better-auth/expo`** plugin on the *same* `better-auth/react` client; sessions in `expo-secure-store`; authenticated fetches via the **Bearer plugin** (`set-auth-token` → `Authorization: Bearer`) |
+| `@tanstack/react-query` | ✅ Reuse (no adapter). Wire `onlineManager.setEventListener` + `expo-network` for refetch-on-reconnect (not automatic on RN). |
+| **`libs/server-fns` (createServerFn)** | ❌ **Does NOT port (3-0)** — TanStack Start defines only Node-server + Browser-client; no RN target (client machinery assumes DOM/localStorage/hydration). **RN calls the deployed Worker's HTTP endpoints directly via `fetch`** (the server-fn RPC URLs are HTTP → RN can hit them directly, or expose dedicated plain routes). |
+| `apps/ui/src/hooks` (react-query hooks) | ◐ Partial — hook signatures + react-query wiring reuse; each `queryFn` swaps the server-fn stub → a `fetch` call (per the server-fns row). |
+| `libs/i18n` (Paraglide) | ⚠️ **Unverified / probable rewrite** — not in the RN Directory; `expo-doctor` flags it. Plan RN-specific i18n (storage-backed locale) until proven. |
+| UI / routing / styling / map | ❌ Rewrite — TanStack Router → Expo Router; Tailwind/DaisyUI → NativeWind; `react-map-gl` → `@rnmapbox/maps`; all components. |
+- **Native push:** EdgePush (self-hosted on CF Workers) → **FCM (Android) + APNs (iOS)**. Client uses `getDevicePushTokenAsync()` (native tokens, not Expo proprietary tokens). Subscriptions in D1. ✅ **Fallback verified:** Expo Push API (`https://exp.host/--/api/v2/push/send`) via plain `fetch` — no auth, no SDK, no deps (limits: 600/sec/project, ≤100/req) — so the EdgePush → Expo-Push fallback is dependency-free and Workers-safe.
+- **Real-time:** RN's built-in WebSocket → `EventLiveDO` (verified 3-0: DO Hibernation WebSocket = textbook multi-client coordination; RN connects directly; hibernation = zero idle GB-s billing).
+- **Background location** ("host arrived"): foreground `expo-location` ✅ verified; continuous background tracking (paid `react-native-background-geolocation`) + store approval = **open** — re-decide when the Live Dashboard spec is finalized.
+- **Auth — phone verification via Firebase PNV:** Replace Twilio Verify with **Firebase Phone Number Verification** (carrier-network silent verification, no SMS) for the RN app. The Firebase Auth SDK on Android/iOS communicates directly with the carrier to silently verify the user's phone number. PWA/Web continues using Twilio Verify + email-OTP since carrier APIs are unavailable on web. Benefits for RN users:
+  - **Zero SMS cost** ($0.005/verification vs ~$0.31 via Twilio)
+  - **No Fraud Guard issues** (carrier-grade verification, no +213 blocking)
+  - **Silent UX** — user grants permission once, no OTP code entry
+  - **Sim-swap detection** built in (carrier signals if the SIM changed)
+  - Requires the native Firebase SDK — only works on Android/iOS, not Web/PWA.
+  - Auth flow: RN app → Firebase PNV (silent carrier check) → returns phone hash → server verifies the Firebase token → creates/looks up Better Auth session. The existing Better Auth `phoneNumber` plugin + `phoneNumberVerified` field on the user schema are reused.
 - **OTA updates:** EAS Update (push JS bundle without store review).
+
+**Open items (resolve during build):** Paraglide RN-compat (probable i18n rewrite) · continuous background-geo strategy · Algeria Android-vs-iOS market data (the "Android-first" call is inference, not verified data) · explicit RN-vs-Capacitor cost (committed to RN).
 
 **Push token schema** (must be designed before Phase 6 execution):
 - D1 table `push_subscriptions`: `id`, `user_id` (FK→user), `token` (native device token), `platform` (`ios` | `android` | `web`), `surface` (`pwa` | `rn`), `market_code`, `created_at`, `updated_at`.
@@ -355,17 +388,17 @@ Phase 0 (prereqs, mostly ✅) → 1 (refactor + SMS OTP) → 2 (hero) → 3 (eve
 ## Risks / open items
 | Risk | Status / mitigation |
 |---|---|
-| Fraud Guard blocks first +213 OTPs (error 60410) | Phase 0: Safe List / Geo Permissions (blocking prerequisite) |
+| Fraud Guard blocks first +213 OTPs (error 60410) | Phase 0: Safe List / Geo Permissions (blocking prerequisite); mitigated for RN users by Firebase PNV (carrier-network verification, no SMS — Phase 8) |
 | DO Free daily caps (100k req / 13k GB-s) | Monitor in Phase 6; Paid only if exceeded |
 | RN second-UI cost | Mitigated by the shared logic layer (Phase 1A) — that's the cross-platform seam |
-| RN architecture unknowns (server-fns/Paraglide/Better-Auth RN-compat) | Pending the running mobile-tooling research |
+| RN reuse verdicts | ✅ Resolved Jul-2026: server-fns ❌ doesn't port (RN → Worker HTTP via `fetch`); Better Auth ✅ via `@better-auth/expo`+Bearer; react-query ✅; `@rnmapbox/maps` ✅ (EAS Build, not Expo Go); Paraglide ⚠️ still unverified (probable i18n rewrite) |
 | SMS delivery failure (carrier blocks, invalid numbers) | Phase 5: retry + fallback to email + delivery tracking via Twilio callbacks |
 | RSVP abuse (spam, scripted) | Phase 4: DO rate limiter + WAF + Turnstile (three-layer defense) |
 | WebSocket session expiry mid-connection | Phase 6: DO verifies session via D1 lookup on each message; `auth_expired` close frame (code 4001) + 3x re-auth with backoff |
 | Push token invalidation (app reinstall, device change) | Phase 8: `DeviceNotRegistered` callback → D1 cleanup; logout invalidation |
 | PWA web push iOS reach low (requires PWA install, 16.4+) | Native push in Phase 8 is the real channel for iOS; web push is bonus for Android Chrome |
 | EdgePush maturity (v1.0/v1.1) | Self-hosted, same CF stack; fallback: Expo Push API (one function name change) |
-| Firebase project setup (service account, VAPID keys) | Phase 0 prerequisite; one project covers both web push and native Android via FCM |
+| Firebase project setup (service account, VAPID keys, Firebase PNV) | Phase 0 prerequisite; one project covers web push, native Android push via FCM, and Firebase PNV for carrier-based phone verification in the RN app |
 
 ## Recommended first step
 Commit P1-007b, then **Phase 1A (refactor) + Phase 1B (SMS OTP)**. The refactor's logic layer is
