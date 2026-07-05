@@ -8,6 +8,11 @@ import { MarketLanding } from '../../components/MarketLanding'
 
 export const Route = createFileRoute('/$market/')({
   staticData: { prerender: true },
+  pendingComponent: () => (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <span className="loading loading-dots loading-lg text-primary" />
+    </div>
+  ),
   component: () => {
     const { locale } = Route.useRouteContext()
     const { market, cities, events, cityEventCounts } = Route.useLoaderData()

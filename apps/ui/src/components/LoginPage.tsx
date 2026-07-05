@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   brand,
@@ -71,6 +71,30 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
 
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
     authClient.signIn.social({ provider, callbackURL: redirect })
+
+  const abortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    if (step !== 'otp') return
+    if (!('credentials' in navigator)) return
+
+    const ac = new AbortController()
+    abortRef.current = ac
+
+    navigator.credentials
+      .get({ otp: { transport: ['sms'] }, signal: ac.signal } as CredentialRequestOptions)
+      .then((otpCred) => {
+        if (otpCred && 'code' in otpCred) {
+          setOtp(otpCred.code as string)
+        }
+      })
+      .catch(() => { /* WebOTP not available or aborted */ })
+
+    return () => {
+      ac.abort()
+      abortRef.current = null
+    }
+  }, [step])
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">

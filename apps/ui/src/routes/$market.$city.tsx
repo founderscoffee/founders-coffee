@@ -28,13 +28,36 @@ export const Route = createFileRoute('/$market/$city')({
       throw error
     }
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.city.name ?? 'founders.coffee'} — founders.coffee` },
-      {
-        name: 'description',
-        content: city_empty_body({}, { locale: (loaderData?.market.defaultLocale ?? 'ar') as Locale }),
-      },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const locale = (loaderData?.market.defaultLocale ?? 'ar') as Locale
+    const cityName = loaderData?.city.name ?? 'founders.coffee'
+    const isEmpty = (loaderData?.events.length ?? 0) === 0
+    const citySlug = loaderData?.city.slug ?? ''
+    const marketSlug = loaderData?.market.slug ?? ''
+
+    return {
+      meta: [
+        { title: `${cityName} — founders.coffee` },
+        {
+          name: 'description',
+          content: city_empty_body({}, { locale }),
+        },
+        ...(isEmpty
+          ? [{ name: 'robots' as const, content: 'noindex,follow' }]
+          : [{ name: 'robots' as const, content: 'index,follow' }]),
+      ],
+      scripts: [
+        {
+          type: 'application/ld+json',
+          children: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Place',
+            name: `${cityName} — founders.coffee community`,
+            description: city_empty_body({}, { locale }),
+            url: `https://founders.coffee/${marketSlug}/${citySlug}`,
+          }),
+        },
+      ],
+    }
+  },
 })

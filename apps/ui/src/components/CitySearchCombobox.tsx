@@ -8,6 +8,7 @@ type CitySearchComboboxProps = {
   value: string
   onSelect: (code: string) => void
   placeholder: string
+  noMatchText: string
   disabled?: boolean
   locale: Locale
   className?: string
@@ -18,13 +19,20 @@ const MAX_VISIBLE = 20
 /**
  * Searchable city dropdown. Filters by name (LTR) or nameAr (includes). The selected city's
  * localized name is shown in the input until the user clears it to search again. Supports keyboard
- * navigation: ArrowUp/Down to move, Enter to select, Escape to close.
+ * navigation: ArrowUp/Down to move, Enter to select (active option or first match), Escape to close.
+ *
+ * Interaction contract:
+ * - Enter selects the active option, or the first match if none is highlighted (trained search behavior)
+ * - A clear (×) button resets the selection and re-focuses the input
+ * - An empty-matches state ("No cities match ...") renders inside the dropdown when the filter yields 0
+ * - `aria-selected` reflects the chosen value, not the keyboard highlight
  */
 export const CitySearchCombobox = ({
   cities,
   value,
   onSelect,
   placeholder,
+  noMatchText,
   disabled,
   locale,
   className,
@@ -33,6 +41,7 @@ export const CitySearchCombobox = ({
   const [showCityList, setShowCityList] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const listRef = useRef<HTMLUListElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const isMouseDown = useRef(false)
 
   const filteredCities = useMemo(
@@ -63,8 +72,27 @@ export const CitySearchCombobox = ({
     [onSelect],
   )
 
+  const clearSelection = useCallback(() => {
+    onSelect('')
+    setCitySearch('')
+    setShowCityList(true)
+    setActiveIndex(-1)
+    inputRef.current?.focus()
+  }, [onSelect])
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showCityList || visibleCities.length === 0) return
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (visibleCities.length === 0) return
+      if (activeIndex >= 0 && activeIndex < visibleCities.length) {
+        selectCity(visibleCities[activeIndex].code)
+      } else {
+        selectCity(visibleCities[0].code)
+      }
+      return
+    }
+
+    if (visibleCities.length === 0) return
 
     switch (e.key) {
       case 'ArrowDown': {
@@ -75,13 +103,6 @@ export const CitySearchCombobox = ({
       case 'ArrowUp': {
         e.preventDefault()
         setActiveIndex((prev) => (prev > 0 ? prev - 1 : visibleCities.length - 1))
-        break
-      }
-      case 'Enter': {
-        e.preventDefault()
-        if (activeIndex >= 0 && activeIndex < visibleCities.length) {
-          selectCity(visibleCities[activeIndex].code)
-        }
         break
       }
       case 'Escape': {
@@ -105,16 +126,21 @@ export const CitySearchCombobox = ({
   }
 
   const listboxId = 'city-search-listbox'
+  const showNoMatch = citySearch.length > 0 && visibleCities.length === 0
 
   return (
-    <div className={`relative ${className ?? ''}`}>
+    <div className={`relative flex items-center ${className ?? ''}`}>
+      <span className="pointer-events-none absolute start-4 text-base-content/40" aria-hidden="true">
+        📍
+      </span>
       <input
+        ref={inputRef}
         type="text"
-        className="input input-bordered h-12 w-full ps-4 pe-10"
+        className="input h-12 w-full border-0 bg-transparent ps-11 pe-10 shadow-none focus:outline-none"
         placeholder={placeholder}
         value={inputValue}
         role="combobox"
-        aria-expanded={showCityList && visibleCities.length > 0}
+        aria-expanded={showCityList && (visibleCities.length > 0 || showNoMatch)}
         aria-controls={listboxId}
         aria-activedescendant={activeIndex >= 0 ? `city-option-${activeIndex}` : undefined}
         aria-autocomplete="list"
@@ -130,7 +156,17 @@ export const CitySearchCombobox = ({
         onBlur={handleBlur}
         disabled={disabled}
       />
-      {showCityList && visibleCities.length > 0 && (
+      {value && (
+        <button
+          type="button"
+          onClick={clearSelection}
+          aria-label="Clear selection"
+          className="absolute end-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-base-content/40 hover:bg-base-200 hover:text-base-content"
+        >
+          ✕
+        </button>
+      )}
+      {showCityList && (visibleCities.length > 0 || showNoMatch) && (
         <ul
           ref={listRef}
           id={listboxId}
@@ -139,24 +175,39 @@ export const CitySearchCombobox = ({
           aria-label={placeholder}
           onMouseDown={handleMouseDown}
         >
-          {visibleCities.map((c, i) => (
-            <li key={c.code} id={`city-option-${i}`} role="option" aria-selected={i === activeIndex}>
-              <button
-                type="button"
-                className={`flex w-full justify-between px-4 py-2.5 text-start text-sm ${
-                  i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
-                }`}
-                tabIndex={-1}
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  selectCity(c.code)
-                }}
-              >
-                <span>{locale === 'ar' ? c.nameAr : c.name}</span>
-                <span className="text-base-content/40">{c.code}</span>
-              </button>
+          {showNoMatch ? (
+            <li
+              className="px-4 py-2.5 text-sm text-base-content/50"
+              role="status"
+              aria-live="polite"
+            >
+              {noMatchText.replace('{query}', citySearch)}
             </li>
-          ))}
+          ) : (
+            visibleCities.map((c, i) => (
+              <li
+                key={c.code}
+                id={`city-option-${i}`}
+                role="option"
+                aria-selected={c.code === value}
+              >
+                <button
+                  type="button"
+                  className={`flex w-full justify-between px-4 py-2.5 text-start text-sm ${
+                    i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
+                  }`}
+                  tabIndex={-1}
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    selectCity(c.code)
+                  }}
+                >
+                  <span>{locale === 'ar' ? c.nameAr : c.name}</span>
+                  <span className="text-base-content/40">{c.code}</span>
+                </button>
+              </li>
+            ))
+          )}
         </ul>
       )}
     </div>

@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import {
+  hero_search_no_match,
   onboarding_city,
   onboarding_country,
   onboarding_save,
@@ -115,6 +116,7 @@ export const OnboardingPage = ({ locale, states, cities, initialCountry }: Onboa
               value={city}
               onSelect={setCity}
               placeholder={onboarding_search_city({}, { locale })}
+              noMatchText={hero_search_no_match({ query: '{query}' }, { locale })}
               disabled={!state}
               locale={locale}
             />

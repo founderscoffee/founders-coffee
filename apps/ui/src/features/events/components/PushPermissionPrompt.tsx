@@ -3,11 +3,13 @@
  * Asks the user to enable push notifications before triggering
  * the native browser permission dialog.
  *
- * Uses the contextual soft-prompt pattern from new-design.md:
+ * Contextual soft-prompt pattern (give value before asking for access):
  * - "Keep me updated" → triggers native browser push permission
  * - "Not now, stick to SMS" → defers, saves preference in localStorage
  *
  * Registered on the "hook" moment (after RSVP) when motivation is high.
+ * Asking on page load gets reflexive "Block" clicks; asking after a commitment
+ * when the user understands why notifications matter wins the opt-in.
  */
 
 import { useState, useEffect } from 'react';
