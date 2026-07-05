@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { appValidator, handleResult, marketCodeSchema } from '@founders-coffee/core';
 
 import { getDb } from '../db.js';
+import { rateLimit } from '../rate-limit.js';
 import { joinWaitlistResolver, type JoinWaitlistInput } from './resolver.js';
 
 const joinWaitlistSchema = z.object({
@@ -21,6 +22,7 @@ const joinWaitlistSchema = z.object({
  * For now the validator + D1 UNIQUE constraint provide the basic guardrails.
  */
 export const joinWaitlist = createServerFn({ strict: false })
+  .middleware([rateLimit('join_waitlist', 5, 600_000)])
   .validator(appValidator(joinWaitlistSchema))
   .handler(async ({ data }) =>
     handleResult(

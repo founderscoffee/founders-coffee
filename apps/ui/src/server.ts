@@ -7,6 +7,7 @@ import { ingestClientLogs, type LogEntry } from '@founders-coffee/observability'
 import { createOtpEmailProvider } from './lib/auth-email.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
+export { RateLimiterDO } from './durable-objects/RateLimiterDO';
 
 /** apps/ui env: auth handler env + the Email binding + sender address (OTP email). */
 export interface UiEnv extends HandlerEnv {

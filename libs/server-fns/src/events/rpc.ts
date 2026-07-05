@@ -8,6 +8,7 @@ import { requirePermission } from '../auth-middleware.js';
 import { resolveSession } from '../auth.js';
 import { getRequest } from '@tanstack/react-start/server';
 import { getDb } from '../db.js';
+import { rateLimit } from '../rate-limit.js';
 import { attachAttendance } from './attendance.js';
 import { createEventResolver, listEvents, resolveEvent, type EventCreateInput } from './resolver.js';
 
@@ -30,7 +31,7 @@ const eventCreateSchema = z.object({
  * resolver generates the id + slug, validates the geo state/city, and inserts the row.
  */
 export const createEvent = createServerFn({ strict: false })
-  .middleware([requirePermission('event', 'create')])
+  .middleware([requirePermission('event', 'create'), rateLimit('create_event', 5, 600_000)])
   .validator(appValidator(eventCreateSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);

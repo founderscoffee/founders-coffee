@@ -28,10 +28,16 @@
         "name": "EVENT_LIVE",
         "class_name": "EventLiveDO",
         "script_name": "founders-coffee-ui"
+      },
+      {
+        "name": "RATE_LIMITER",
+        "class_name": "RateLimiterDO",
+        "script_name": "founders-coffee-ui"
       }
     ]
   },
   "migrations": [
-    { "tag": "v1", "new_classes": ["EventLiveDO"] }
+    { "tag": "v1", "new_classes": ["EventLiveDO"] },
+    { "tag": "v2", "new_sqlite_classes": ["RateLimiterDO"] }
   ]
 }
