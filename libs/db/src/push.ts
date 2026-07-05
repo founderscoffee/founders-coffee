@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
@@ -23,31 +23,32 @@ export const registerPushToken = async (
   },
 ): Promise<PushSubscriptionRow> => {
   const existing = await db
-    .select({ id: pushSubscriptions.id })
+    .select({ id: pushSubscriptions.id, userId: pushSubscriptions.userId })
     .from(pushSubscriptions)
     .where(eq(pushSubscriptions.token, opts.token))
     .limit(1);
 
   if (existing.length > 0) {
-    await db
-      .update(pushSubscriptions)
-      .set({
+    if (existing[0].userId === opts.userId) {
+      await db
+        .update(pushSubscriptions)
+        .set({ marketCode: opts.marketCode, updatedAt: new Date() })
+        .where(eq(pushSubscriptions.id, existing[0].id));
+      return {
+        id: existing[0].id,
         userId: opts.userId,
+        token: opts.token,
+        platform: opts.platform,
+        surface: opts.surface,
         marketCode: opts.marketCode,
+        createdAt: new Date(),
         updatedAt: new Date(),
-      })
-      .where(eq(pushSubscriptions.token, opts.token));
-
-    return {
-      id: existing[0].id,
-      userId: opts.userId,
-      token: opts.token,
-      platform: opts.platform,
-      surface: opts.surface,
-      marketCode: opts.marketCode,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      };
+    }
+    /* Token belongs to a different user (device changed hands) — explicitly delete then re-insert
+       below. Never silently reassign user_id, or a caller could hijack another user's notifications
+       by registering their token. */
+    await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, existing[0].id));
   }
 
   const row = {
@@ -71,11 +72,11 @@ export const registerPushToken = async (
  */
 export const removePushToken = async (
   db: Db,
-  opts: { token: string },
+  opts: { token: string; userId: string },
 ): Promise<void> => {
   await db
     .delete(pushSubscriptions)
-    .where(eq(pushSubscriptions.token, opts.token));
+    .where(and(eq(pushSubscriptions.token, opts.token), eq(pushSubscriptions.userId, opts.userId)));
 };
 
 /**

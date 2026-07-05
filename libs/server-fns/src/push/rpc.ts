@@ -45,7 +45,7 @@ export const removePushTokenFn = createServerFn({ strict: false })
   .middleware([authMiddleware])
   .validator(appValidator(z.object({ token: z.string().min(1) })))
   .handler(async ({ context, data }) => {
-    requireAuth(context.session);
+    const session = requireAuth(context.session);
     const db = getDb();
-    await removePushToken(db, { token: data.token });
+    await removePushToken(db, { token: data.token, userId: session.user.id });
   });

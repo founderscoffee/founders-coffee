@@ -60,10 +60,12 @@ export class TwilioProgrammableSmsProvider
   implements NotificationSmsProvider
 {
   readonly name = 'twilio-sms';
+  private readonly accountSid: string;
   private readonly authHeader: string;
   private readonly fromNumber: string;
 
   constructor(env: TwilioSmsEnv) {
+    this.accountSid = env.TWILIO_AID;
     this.authHeader = `Basic ${btoa(`${env.TWILIO_AID}:${env.TWILIO_SEC}`)}`;
     this.fromNumber = env.TWILIO_SMS_FROM;
   }
@@ -71,7 +73,7 @@ export class TwilioProgrammableSmsProvider
   send = async (
     args: SendNotificationSmsArgs,
   ): Promise<Result<SendNotificationSmsResult>> => {
-    const url = `${TWILIO_MESSAGES_URL}/${btoa(this.authHeader.replace('Basic ', ''))}/Messages.json`;
+    const url = `${TWILIO_MESSAGES_URL}/${this.accountSid}/Messages.json`;
     const body = new URLSearchParams({
       To: args.to,
       From: this.fromNumber,
