@@ -14,7 +14,7 @@
  * Authed server-fns import the rest directly from their modules (`./db`, `./auth-middleware`).
  */
 export { getPublicAuthConfig } from './auth-config.js';
-export { getMapboxToken } from './config.js';
+export { getFirebaseConfig, getMapboxToken } from './config.js';
 export { getGeoCountry } from './geo.js';
 export { getCities, getFeaturedCities, getStates } from './geo-rpc.js';
 export * from './events/index.js';

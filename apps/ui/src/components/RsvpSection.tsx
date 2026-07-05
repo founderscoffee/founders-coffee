@@ -1,4 +1,5 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import {
@@ -15,6 +16,7 @@ import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 import { useCancelRsvp, useCreateRsvp } from '../features/events/hooks';
 import { useAuth } from '../lib/app-providers';
+import { PushPermissionPrompt } from '../features/events/components/PushPermissionPrompt';
 
 export type RsvpSectionProps = {
   event: EventWithAttendance;
@@ -33,6 +35,7 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
   const router = useRouter();
   const createRsvp = useCreateRsvp();
   const cancelRsvp = useCancelRsvp();
+  const [showPushPrompt, setShowPushPrompt] = useState(false);
 
   const isGoing = event.viewerRsvp === 'going';
   const isFull = event.capacity > 0 && event.remaining !== null && event.remaining <= 0;
@@ -45,7 +48,10 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
     createRsvp.mutate(
       { data: { eventId: event.id } },
       {
-        onSuccess: () => router.invalidate(),
+        onSuccess: () => {
+          router.invalidate();
+          setShowPushPrompt(true);
+        },
         onError: (error) => {
           const code = appErrorCode(error);
           if (code === 'event_full') {
@@ -112,6 +118,16 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
       )}
       {event.capacity === 0 && (
         <p className="text-sm text-base-content/60">{rsvp_no_limit({}, { locale })}</p>
+      )}
+      {showPushPrompt && (
+        <PushPermissionPrompt
+          onAccept={async () => {
+            setShowPushPrompt(false);
+            const { requestPushPermission } = await import('../lib/push');
+            await requestPushPermission(event.marketCode);
+          }}
+          onDecline={() => setShowPushPrompt(false)}
+        />
       )}
     </div>
   );
