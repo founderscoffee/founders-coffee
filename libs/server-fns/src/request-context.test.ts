@@ -1,10 +1,22 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { getRequestContext } from '@founders-coffee/observability';
+import { setLogger, type Logger } from '@founders-coffee/observability';
+import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { withRequestContext } from './request-context.js';
 
+const consoleLogger: Logger = {
+  debug: (m) => console.debug(m),
+  info: (m) => console.info(m),
+  warn: (m) => console.warn(m),
+  error: (m, c) => console.error(m, c),
+  fatal: (m) => console.error(m),
+  child: () => consoleLogger,
+};
+
 describe('withRequestContext', () => {
+  beforeAll(() => setLogger(consoleLogger));
+
   it('generates a requestId available in the request context', async () => {
     let captured: string | undefined;
     await withRequestContext(async () => {

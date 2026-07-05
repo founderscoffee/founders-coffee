@@ -1,6 +1,7 @@
 import { createMiddleware } from '@tanstack/react-start';
 
-import { reportError, runWithContext } from '@founders-coffee/observability';
+import { reportError } from '@founders-coffee/observability';
+import { runWithContext } from '@founders-coffee/observability/context';
 
 const generateRequestId = (): string => crypto.randomUUID();
 

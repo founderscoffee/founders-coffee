@@ -1,9 +1,12 @@
+import '@founders-coffee/observability/server-init';
 import handler from '@tanstack/react-start/server-entry';
 
 import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
 import { ingestClientLogs, type LogEntry } from '@founders-coffee/observability';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
+
+export { EventLiveDO } from './durable-objects/EventLiveDO';
 
 /** apps/ui env: auth handler env + the Email binding + sender address (OTP email). */
 export interface UiEnv extends HandlerEnv {

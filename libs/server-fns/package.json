@@ -8,6 +8,11 @@
       "@founders-coffee/source": "./src/index.ts",
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./request-context": {
+      "@founders-coffee/source": "./src/request-context.ts",
+      "types": "./src/request-context.ts",
+      "default": "./src/request-context.ts"
     }
   },
   "dependencies": {

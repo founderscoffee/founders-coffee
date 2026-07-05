@@ -1,3 +1,4 @@
+import '@founders-coffee/observability/server-init';
 import { ok, type Result } from '@founders-coffee/core';
 import type { AiRuntime, VectorizeRuntime } from '@founders-coffee/core/ai';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';

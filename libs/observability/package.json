@@ -8,6 +8,16 @@
       "@founders-coffee/source": "./src/index.ts",
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./context": {
+      "@founders-coffee/source": "./src/context.ts",
+      "types": "./src/context.ts",
+      "default": "./src/context.ts"
+    },
+    "./server-init": {
+      "@founders-coffee/source": "./src/server-init.ts",
+      "types": "./src/server-init.ts",
+      "default": "./src/server-init.ts"
     }
   }
 }
