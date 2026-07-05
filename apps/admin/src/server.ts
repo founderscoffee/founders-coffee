@@ -1,3 +1,4 @@
+import '@founders-coffee/observability/server-init';
 import handler from '@tanstack/react-start/server-entry';
 
 import { verifyAccessJwt, type AdminEnv } from './access-guard.js';

@@ -15,7 +15,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "founders-coffee",
+      "database_name": "founders-coffee-db",
       "database_id": "PLACEHOLDER_P0-019",
       "migrations_dir": "../../libs/db/migrations"
     }
