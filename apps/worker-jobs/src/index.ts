@@ -6,8 +6,10 @@ import { createDb } from '@founders-coffee/db';
 import { RESOURCES } from '@founders-coffee/infra';
 import {
   DevNotificationSmsProvider,
+  FcmPushProvider,
   TwilioProgrammableSmsProvider,
   type NotificationSmsProvider,
+  type PushProvider,
 } from '@founders-coffee/notifications';
 
 import type { Env } from './env.js';
@@ -30,6 +32,16 @@ const createSmsProvider = (env: Env): NotificationSmsProvider => {
     });
   }
   return new DevNotificationSmsProvider();
+};
+
+const createPushProvider = (env: Env): PushProvider | null => {
+  if (env.FIREBASE_PROJECT_ID && env.FIREBASE_SERVICE_ACCOUNT) {
+    return new FcmPushProvider({
+      projectId: env.FIREBASE_PROJECT_ID,
+      serviceAccountJson: env.FIREBASE_SERVICE_ACCOUNT,
+    });
+  }
+  return null;
 };
 
 /** Route one queue message to its consumer. Returns `Result` — the handler acks on ok, retries on err. */
@@ -74,7 +86,7 @@ export default {
     const db = createDb(env.DB);
 
     if (controller.cron === '*/1 * * * *') {
-      await sweepNotifications(db, createSmsProvider(env), createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM));
+      await sweepNotifications(db, createSmsProvider(env), createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM), createPushProvider(env));
     }
 
     if (controller.cron === '0 3 * * *') {

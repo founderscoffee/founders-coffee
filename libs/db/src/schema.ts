@@ -311,7 +311,7 @@ export type NewInvoice = typeof invoices.$inferInsert;
 /* Notifications (P1-009) — scheduled SMS + email notifications               */
 /* -------------------------------------------------------------------------- */
 
-export const NOTIFICATION_CHANNELS = ['sms', 'email'] as const;
+export const NOTIFICATION_CHANNELS = ['sms', 'email', 'push'] as const;
 export const NOTIFICATION_STATUSES = [
   'pending',
   'sent',

@@ -1,7 +1,7 @@
-import { listPendingNotifications, markNotificationSent, markNotificationFailed } from '@founders-coffee/db';
+import { getPushTokensByUser, listPendingNotifications, markNotificationFailed, markNotificationSent } from '@founders-coffee/db';
 import type { Db } from '@founders-coffee/db';
 import type { EmailProvider } from '@founders-coffee/email';
-import type { NotificationSmsProvider } from '@founders-coffee/notifications';
+import type { NotificationSmsProvider, PushProvider } from '@founders-coffee/notifications';
 
 const SWEEP_LIMIT = 100;
 
@@ -18,6 +18,7 @@ export const sweepNotifications = async (
   db: Db,
   sms: NotificationSmsProvider,
   email: EmailProvider,
+  push?: PushProvider | null,
 ): Promise<void> => {
   const now = new Date();
   const pending = await listPendingNotifications(db, {
@@ -61,6 +62,19 @@ export const sweepNotifications = async (
           error: result.error.message,
           canFallback: false,
         });
+      }
+    } else if (channel === 'push' && push) {
+      const tokens = await getPushTokensByUser(db, { userId: notification.userId });
+      const pushPayload = payload as { pushTitle: string; pushBody: string };
+      let anyOk = tokens.length === 0;
+      for (const t of tokens) {
+        const result = await push.send({ token: t.token, title: pushPayload.pushTitle, body: pushPayload.pushBody });
+        if (result.ok) anyOk = true;
+      }
+      if (anyOk) {
+        await markNotificationSent(db, { id: notification.id });
+      } else {
+        await markNotificationFailed(db, { id: notification.id, error: 'Push delivery failed', canFallback: false });
       }
     }
   }
