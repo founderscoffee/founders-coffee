@@ -98,6 +98,24 @@ const buildEmailPayload = (
   }
 };
 
+const buildPushPayload = (
+  templateKey: 'reminder_72h' | 'reminder_24h',
+  payload: NotificationPayload,
+): { pushTitle: string; pushBody: string } => {
+  switch (templateKey) {
+    case 'reminder_72h':
+      return {
+        pushTitle: `Reminder: ${payload.eventTitle}`,
+        pushBody: `Your meetup is in 3 days. Tap to view details.`,
+      };
+    case 'reminder_24h':
+      return {
+        pushTitle: `Tomorrow: ${payload.eventTitle}`,
+        pushBody: `Your meetup is tomorrow. Tap to manage your seat.`,
+      };
+  }
+};
+
 /**
  * Enqueue RSVP confirmation + reminder notifications for a new RSVP.
  *
@@ -177,6 +195,16 @@ export const enqueueRsvpNotifications = async (
         sendAt: new Date(startsAtMs - SEVEN_DAYS_MS),
         fallbackChannel: fallback,
       });
+      const pushPayload72 = buildPushPayload(reminder72Key, basePayload);
+      await enqueueNotification(db, {
+        id: id('ntf'),
+        eventId: opts.eventId,
+        userId: opts.userId,
+        channel: 'push',
+        templateKey: reminder72Key,
+        payload: { ...basePayload, ...pushPayload72 },
+        sendAt: new Date(startsAtMs - SEVEN_DAYS_MS),
+      });
     }
   }
 
@@ -197,6 +225,16 @@ export const enqueueRsvpNotifications = async (
           : { ...basePayload, ...emailPayload },
         sendAt: new Date(startsAtMs - TWENTY_FOUR_HOURS_MS),
         fallbackChannel: fallback,
+      });
+      const pushPayload24 = buildPushPayload(reminder24Key, basePayload);
+      await enqueueNotification(db, {
+        id: id('ntf'),
+        eventId: opts.eventId,
+        userId: opts.userId,
+        channel: 'push',
+        templateKey: reminder24Key,
+        payload: { ...basePayload, ...pushPayload24 },
+        sendAt: new Date(startsAtMs - TWENTY_FOUR_HOURS_MS),
       });
     }
   }
