@@ -78,6 +78,7 @@ export const useEventLive = (
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
+  const intentionalCloseRef = useRef(false);
 
   const send = useCallback((msg: OutboundMsg) => {
     const ws = wsRef.current;
@@ -126,6 +127,7 @@ export const useEventLive = (
           case 'auth_expired':
             setConnectionState('error');
             setError('Session expired. Please refresh.');
+            intentionalCloseRef.current = true;
             ws.close(4001, 'auth_expired');
             break;
           case 'roster_update':
@@ -140,6 +142,7 @@ export const useEventLive = (
           case 'event_cancelled':
             setConnectionState('error');
             setError('This event has been cancelled.');
+            intentionalCloseRef.current = true;
             ws.close(1000, 'event_cancelled');
             break;
         }
@@ -152,7 +155,10 @@ export const useEventLive = (
       if (!mountedRef.current) return;
       wsRef.current = null;
 
-      if (connectionState === 'error') return;
+      if (intentionalCloseRef.current) {
+        intentionalCloseRef.current = false;
+        return;
+      }
 
       setConnectionState('disconnected');
 
@@ -172,7 +178,7 @@ export const useEventLive = (
       setConnectionState('error');
       setError('WebSocket connection failed');
     };
-  }, [eventId, sessionToken, send, connectionState]);
+  }, [eventId, sessionToken, send]);
 
   useEffect(() => {
     mountedRef.current = true;
