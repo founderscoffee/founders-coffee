@@ -1,5 +1,6 @@
-import { useNavigate } from '@tanstack/react-router';
-import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useRouter } from '@tanstack/react-router';
+
+import { appErrorCode } from '@founders-coffee/core';
 import {
   rsvp_already,
   rsvp_cancel,
@@ -10,11 +11,10 @@ import {
   rsvp_remaining,
   type Locale,
 } from '@founders-coffee/i18n';
-import { appErrorCode } from '@founders-coffee/core';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import { useCancelRsvp, useCreateRsvp } from '../features/events/hooks';
 import { useAuth } from '../lib/app-providers';
-import { useCreateRsvp, useCancelRsvp } from '../features/events/hooks';
 
 export type RsvpSectionProps = {
   event: EventWithAttendance;
@@ -22,19 +22,20 @@ export type RsvpSectionProps = {
 };
 
 /**
- * RSVP slot on the event-detail page ([`docs/p1-007-008-contract.md`](../../../docs/p1-007-008-contract.md)
- * §2). P1-008 implements the real "I'm attending" / capacity / cancel UI.
+ * RSVP slot on the event-detail page. "I'm attending" → atomic capacity check; cancel releases the
+ * seat. On success the active route loader is refetched via `router.invalidate()` (TanStack Router
+ * re-runs the current route's loader) so viewerRsvp/remaining/goingCount refresh without a reload.
+ * All copy is localized via the `{ locale }` option (FR-L1).
  */
-export const RsvpSection = ({ event, locale: _locale }: RsvpSectionProps) => {
+export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const router = useRouter();
   const createRsvp = useCreateRsvp();
   const cancelRsvp = useCancelRsvp();
 
   const isGoing = event.viewerRsvp === 'going';
-  const isFull =
-    event.capacity > 0 && event.remaining !== null && event.remaining <= 0;
+  const isFull = event.capacity > 0 && event.remaining !== null && event.remaining <= 0;
 
   const handleRsvp = () => {
     if (!isAuthenticated) {
@@ -44,17 +45,15 @@ export const RsvpSection = ({ event, locale: _locale }: RsvpSectionProps) => {
     createRsvp.mutate(
       { data: { eventId: event.id } },
       {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['event', event.id] });
-        },
+        onSuccess: () => router.invalidate(),
         onError: (error) => {
           const code = appErrorCode(error);
           if (code === 'event_full') {
-            alert(rsvp_event_full());
+            alert(rsvp_event_full({}, { locale }));
           } else if (code === 'already_rsvpd') {
-            alert(rsvp_already());
+            alert(rsvp_already({}, { locale }));
           } else {
-            alert(rsvp_error());
+            alert(rsvp_error({}, { locale }));
           }
         },
       },
@@ -65,11 +64,9 @@ export const RsvpSection = ({ event, locale: _locale }: RsvpSectionProps) => {
     cancelRsvp.mutate(
       { data: { eventId: event.id } },
       {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['event', event.id] });
-        },
+        onSuccess: () => router.invalidate(),
         onError: () => {
-          alert(rsvp_error());
+          alert(rsvp_error({}, { locale }));
         },
       },
     );
@@ -79,18 +76,18 @@ export const RsvpSection = ({ event, locale: _locale }: RsvpSectionProps) => {
     <div className="flex flex-col gap-3">
       {isGoing ? (
         <>
-          <div className="badge badge-success badge-lg">{rsvp_already()}</div>
+          <div className="badge badge-success badge-lg">{rsvp_already({}, { locale })}</div>
           <button
             className="btn btn-outline btn-error btn-sm"
             onClick={handleCancel}
             disabled={cancelRsvp.isPending}
           >
-            {rsvp_cancel()}
+            {rsvp_cancel({}, { locale })}
           </button>
         </>
       ) : isFull ? (
         <button className="btn btn-disabled btn-lg" disabled>
-          {rsvp_event_full()}
+          {rsvp_event_full({}, { locale })}
         </button>
       ) : (
         <button
@@ -101,7 +98,7 @@ export const RsvpSection = ({ event, locale: _locale }: RsvpSectionProps) => {
           {createRsvp.isPending ? (
             <span className="loading loading-spinner loading-sm" />
           ) : (
-            rsvp_cta()
+            rsvp_cta({}, { locale })
           )}
         </button>
       )}
@@ -109,9 +106,12 @@ export const RsvpSection = ({ event, locale: _locale }: RsvpSectionProps) => {
       {event.capacity > 0 && event.remaining !== null && (
         <p className="text-sm text-base-content/60">
           {event.remaining > 0
-            ? rsvp_remaining({ count: String(event.remaining) })
-            : rsvp_no_limit()}
+            ? rsvp_remaining({ count: String(event.remaining) }, { locale })
+            : rsvp_event_full({}, { locale })}
         </p>
+      )}
+      {event.capacity === 0 && (
+        <p className="text-sm text-base-content/60">{rsvp_no_limit({}, { locale })}</p>
       )}
     </div>
   );

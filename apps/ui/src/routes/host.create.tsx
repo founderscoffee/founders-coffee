@@ -1,28 +1,31 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getCookies } from '@tanstack/react-start/server'
+import { z } from 'zod'
 
-import { getStates } from '@founders-coffee/server-fns'
-import type { geo } from '@founders-coffee/domain'
+import { getMapboxToken } from '@founders-coffee/server-fns'
 
 import { HostCreatePage } from '../components/HostCreatePage'
 import { COUNTRIES } from '../lib/constants'
 
 export const Route = createFileRoute('/host/create')({
+  validateSearch: z.object({ city: z.string().optional() }),
   component: () => {
     const { locale } = Route.useRouteContext()
-    const { states, cities, mapboxToken } = Route.useLoaderData()
-    return <HostCreatePage locale={locale} states={states} cities={cities} mapboxToken={mapboxToken} />
+    const { mapboxToken, initialCountry } = Route.useLoaderData()
+    const { city: cityFromUrl } = Route.useSearch()
+    return (
+      <HostCreatePage
+        locale={locale}
+        mapboxToken={mapboxToken}
+        initialCountry={initialCountry}
+        initialCityCode={cityFromUrl}
+      />
+    )
   },
-  loader: async (): Promise<{
-    states: readonly geo.GeoState[]
-    cities: readonly geo.GeoCity[]
-    mapboxToken: string
-  }> => {
+  loader: async (): Promise<{ mapboxToken: string; initialCountry: string }> => {
     const geoCookie = getCookies()['fc_geo'] ?? 'algeria'
-    const country = COUNTRIES.find((c) => c.code === geoCookie.toUpperCase())?.code ?? 'DZ'
-    const states = await getStates({ data: { country } })
-    const cities: readonly geo.GeoCity[] = []
-    const mapboxToken = (getCookies() as Record<string, string>).MAPBOX_TOKEN ?? ''
-    return { states, cities, mapboxToken }
+    const initialCountry = COUNTRIES.find((c) => c.code === geoCookie.toUpperCase())?.code ?? 'DZ'
+    const mapboxToken = await getMapboxToken()
+    return { mapboxToken, initialCountry }
   },
 })

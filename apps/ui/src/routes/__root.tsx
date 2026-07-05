@@ -39,7 +39,7 @@ const useClientObservability = () => {
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { locale, dir } = Route.useRouteContext()
-  const markets = Route.useLoaderData()
+  const markets = Route.useLoaderData() ?? []
   useClientObservability()
 
   return (

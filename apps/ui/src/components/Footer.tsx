@@ -39,7 +39,7 @@ export const Footer = ({ locale, markets }: FooterProps) => (
           <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-base-content/40">
             {nav_communities({}, { locale })}
           </h2>
-          {markets.map((mk) => (
+          {(markets ?? []).map((mk) => (
             <Link
               key={mk.code}
               to="/$market"

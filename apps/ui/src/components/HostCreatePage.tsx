@@ -12,6 +12,7 @@ import {
   host_next,
   host_pick_datetime,
   host_publish,
+  host_publish_error,
   host_select_venue,
   host_step1,
   host_step2,
@@ -21,9 +22,9 @@ import {
   type Locale,
 } from '@founders-coffee/i18n'
 import { Button, Input } from '@founders-coffee/ui'
-import type { geo } from '@founders-coffee/domain'
 
 import { useCreateEvent } from '../features/events/hooks'
+import { useCities, useStates } from '../features/geo/hooks'
 import { COUNTRIES } from '../lib/constants'
 
 const MapPicker = lazy(() => import('./MapPicker').then((m) => ({ default: m.MapPicker })))
@@ -45,19 +46,19 @@ const CATEGORIES = [
 
 type HostCreatePageProps = {
   locale: Locale
-  states: readonly geo.GeoState[]
-  cities: readonly geo.GeoCity[]
   mapboxToken: string
+  initialCountry: string
+  initialCityCode?: string
 }
 
-export const HostCreatePage = ({ locale, states, cities, mapboxToken }: HostCreatePageProps) => {
+export const HostCreatePage = ({ locale, mapboxToken, initialCountry, initialCityCode }: HostCreatePageProps) => {
   const navigate = useNavigate()
   const createEventMutation = useCreateEvent()
 
   const [step, setStep] = useState(1)
-  const [country, setCountry] = useState('DZ')
+  const [country, setCountry] = useState(initialCountry)
   const [stateCode, setStateCode] = useState('')
-  const [cityCode, setCityCode] = useState('')
+  const [cityCode, setCityCode] = useState(initialCityCode ?? '')
   const [venue, setVenue] = useState<{ name: string; address: string; lat: number; lng: number } | null>(null)
   const [startsAt, setStartsAt] = useState<number | null>(null)
   const [capacity, setCapacity] = useState(0)
@@ -66,9 +67,13 @@ export const HostCreatePage = ({ locale, states, cities, mapboxToken }: HostCrea
   const [language, setLanguage] = useState(locale === 'ar' ? 'ar' : locale)
   const [category, setCategory] = useState('coffee-meetup')
   const [publishing, setPublishing] = useState(false)
+  const [publishError, setPublishError] = useState<string | null>(null)
+
+  const { data: states } = useStates(country)
+  const { data: cities } = useCities(country, stateCode)
 
   const canProceed = () => {
-    if (step === 1) return country && stateCode && cityCode && venue
+    if (step === 1) return !!(country && stateCode && cityCode && venue)
     if (step === 2) return startsAt !== null
     if (step === 3) return title.length >= 3 && description.length >= 10
     return false
@@ -77,6 +82,7 @@ export const HostCreatePage = ({ locale, states, cities, mapboxToken }: HostCrea
   const handlePublish = async () => {
     if (!venue || startsAt === null) return
     setPublishing(true)
+    setPublishError(null)
     try {
       await createEventMutation.mutateAsync({
         data: {
@@ -92,8 +98,10 @@ export const HostCreatePage = ({ locale, states, cities, mapboxToken }: HostCrea
           category,
         },
       })
-      const marketSlug = COUNTRIES.find((c) => c.code === country)?.name.toLowerCase().replace(/\s+/g, '-') ?? 'algeria'
+      const marketSlug = COUNTRIES.find((c) => c.code === country)?.slug ?? 'algeria'
       navigate({ to: '/$market', params: { market: marketSlug } })
+    } catch {
+      setPublishError(host_publish_error({}, { locale }))
     } finally {
       setPublishing(false)
     }
@@ -119,14 +127,14 @@ export const HostCreatePage = ({ locale, states, cities, mapboxToken }: HostCrea
 
           <select className="select select-bordered select-sm" value={stateCode} onChange={(e) => { setStateCode(e.target.value); setCityCode('') }}>
             <option value="">—</option>
-            {states.map((s: geo.GeoState) => (
+            {(states ?? []).map((s) => (
               <option key={s.code} value={s.code}>{locale === 'ar' ? s.nameAr : s.name}</option>
             ))}
           </select>
 
           <select className="select select-bordered select-sm" value={cityCode} onChange={(e) => setCityCode(e.target.value)}>
             <option value="">—</option>
-            {cities.map((c: geo.GeoCity) => (
+            {(cities ?? []).map((c) => (
               <option key={c.code} value={c.code}>{locale === 'ar' ? c.nameAr : c.name}</option>
             ))}
           </select>
@@ -231,6 +239,7 @@ export const HostCreatePage = ({ locale, states, cities, mapboxToken }: HostCrea
               {host_publish({}, { locale })}
             </Button>
           </div>
+          {publishError && <p className="text-sm text-error" role="alert">{publishError}</p>}
         </div>
       )}
     </div>
