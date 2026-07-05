@@ -7,6 +7,7 @@ export * from './orders.js';
 export * from './events.js';
 export * from './markets.js';
 export * from './rsvps.js';
+export * from './waitlist.js';
 export * from './notifications.js';
 export * from './push.js';
 export * from './users.js';

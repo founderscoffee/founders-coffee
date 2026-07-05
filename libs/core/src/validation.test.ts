@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { AppError } from './result.js';
 import {
   appValidator,
+  emailSchema,
   idSchema,
   marketCodeSchema,
   moneySchema,
@@ -61,5 +62,15 @@ describe('primitive schemas', () => {
     if (defaulted.success) expect(defaulted.data).toEqual({ page: 1, pageSize: 20 });
     expect(paginationSchema.safeParse({ page: 0 }).success).toBe(false);
     expect(paginationSchema.safeParse({ pageSize: 200 }).success).toBe(false);
+  });
+
+  it('emailSchema accepts valid emails, trims+lowercases, and rejects malformed', () => {
+    expect(emailSchema.safeParse('founder@example.com').success).toBe(true);
+    expect(emailSchema.safeParse('  Founder@Example.COM  ').success).toBe(true);
+    const normalized = emailSchema.safeParse('  Founder@Example.COM  ');
+    if (normalized.success) expect(normalized.data).toBe('founder@example.com');
+    expect(emailSchema.safeParse('not-an-email').success).toBe(false);
+    expect(emailSchema.safeParse('missing@domain').success).toBe(false);
+    expect(emailSchema.safeParse('@nodomain.com').success).toBe(false);
   });
 });

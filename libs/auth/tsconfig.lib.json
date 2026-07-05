@@ -12,10 +12,13 @@
   ],
   "references": [
     {
-      "path": "../db/tsconfig.lib.json"
+      "path": "../observability/tsconfig.lib.json"
     },
     {
       "path": "../core/tsconfig.lib.json"
+    },
+    {
+      "path": "../db/tsconfig.lib.json"
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 /**
  * Schema (SRS §7) — owned entirely by `libs/db` (single source of truth for D1).
@@ -407,3 +407,35 @@ export const pushSubscriptions = sqliteTable('push_subscriptions', {
 
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
+
+/**
+ * City waitlist — anonymous demand capture for empty cities (FR-E6 "emptiness reads as invitation").
+ * When a user searches a city with zero events, they can leave their email to be notified when the
+ * first meetup launches. Same email can waitlist multiple cities (one row per city), but not the
+ * same city twice — enforced by the composite unique index. `notifiedAt` is set when the first-event
+ * notification fires, so the reverse loop (host creates event → email all waitlist entries) can
+ * distinguish pending from notified.
+ */
+export const cityWaitlist = sqliteTable(
+  'city_waitlist',
+  {
+    id: text('id').primaryKey(),
+    email: text('email').notNull(),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    cityCode: text('city_code').notNull(),
+    locale: text('locale').notNull(),
+    notifiedAt: integer('notified_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => ({
+    emailCityUnique: uniqueIndex('city_waitlist_email_city_unique').on(t.email, t.cityCode),
+    cityCodeIdx: index('city_waitlist_city_code_index').on(t.cityCode),
+  }),
+);
+
+export type CityWaitlistRow = typeof cityWaitlist.$inferSelect;
+export type NewCityWaitlist = typeof cityWaitlist.$inferInsert;

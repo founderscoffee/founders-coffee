@@ -32,6 +32,9 @@ export const idSchema = z.string().regex(/^[a-z]{2,8}_[0-9a-f]{32}$/, 'Invalid i
 /** ISO-3166-1 alpha-2 market code (e.g. `DZ`, `MA`). */
 export const marketCodeSchema = z.string().regex(/^[A-Z]{2}$/, 'Invalid market code');
 
+/** Email — trimmed + lowercased, max 254 (RFC 5321). Shared by waitlist, billing, and notifications. */
+export const emailSchema = z.string().trim().toLowerCase().email().max(254);
+
 /** Common list-endpoint pagination input (sensible defaults). */
 export const paginationSchema = z.object({
   page: z.number().int().positive().default(1),
