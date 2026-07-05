@@ -55,11 +55,22 @@ const buildSmsBody = (
   }
 };
 
+const escapeHtml = (s: string): string =>
+  s.replace(/[&<>"']/g, (c) => {
+    if (c === '&') return '&amp;';
+    if (c === '<') return '&lt;';
+    if (c === '>') return '&gt;';
+    if (c === '"') return '&quot;';
+    return '&#39;';
+  });
+
 const buildEmailPayload = (
   templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h',
   payload: NotificationPayload,
 ): { subject: string; html: string; text: string } => {
   const eventUrl = `https://founders.coffee/${payload.marketCode}/e/${payload.eventSlug}`;
+  const title = escapeHtml(payload.eventTitle);
+  const venue = escapeHtml(payload.venue);
   const dateStr = new Date(payload.startsAt).toLocaleDateString(
     payload.locale === 'ar' ? 'ar-DZ' : payload.locale === 'fr' ? 'fr-DZ' : 'en',
     { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' },
@@ -69,19 +80,19 @@ const buildEmailPayload = (
     case 'rsvp_confirmation':
       return {
         subject: `You're in! ${payload.eventTitle}`,
-        html: `<p>You're confirmed for <strong>${payload.eventTitle}</strong> on ${dateStr} at ${payload.venue}.</p><p><a href="${eventUrl}">View event</a></p>`,
+        html: `<p>You're confirmed for <strong>${title}</strong> on ${dateStr} at ${venue}.</p><p><a href="${eventUrl}">View event</a></p>`,
         text: `You're confirmed for ${payload.eventTitle} on ${dateStr} at ${payload.venue}. ${eventUrl}`,
       };
     case 'reminder_72h':
       return {
         subject: `Reminder: ${payload.eventTitle} in 3 days`,
-        html: `<p><strong>${payload.eventTitle}</strong> is in 3 days on ${dateStr}.</p><p><a href="${eventUrl}">View event</a></p>`,
+        html: `<p><strong>${title}</strong> is in 3 days on ${dateStr}.</p><p><a href="${eventUrl}">View event</a></p>`,
         text: `${payload.eventTitle} is in 3 days on ${dateStr}. ${eventUrl}`,
       };
     case 'reminder_24h':
       return {
         subject: `Tomorrow: ${payload.eventTitle}`,
-        html: `<p>Don't forget! <strong>${payload.eventTitle}</strong> is tomorrow at ${payload.venue}.</p><p><a href="${eventUrl}">View event</a></p>`,
+        html: `<p>Don't forget! <strong>${title}</strong> is tomorrow at ${venue}.</p><p><a href="${eventUrl}">View event</a></p>`,
         text: `Don't forget! ${payload.eventTitle} is tomorrow at ${payload.venue}. ${eventUrl}`,
       };
   }

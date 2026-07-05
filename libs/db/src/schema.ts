@@ -224,7 +224,10 @@ export const eventRsvps = sqliteTable('event_rsvps', {
   updatedAt: integer('updated_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),
-});
+}, (t) => ({
+  eventIdUserIdUnique: uniqueIndex('event_rsvps_event_id_user_id_unique').on(t.eventId, t.userId),
+  userIdIdx: index('event_rsvps_user_id_index').on(t.userId),
+}));
 
 export type EventRsvp = typeof eventRsvps.$inferSelect;
 export type NewEventRsvp = typeof eventRsvps.$inferInsert;
@@ -367,6 +370,11 @@ export const scheduledNotifications = sqliteTable(
       .notNull()
       .default(sql`(unixepoch())`),
   },
+  (t) => ({
+    pendingIdx: index('idx_scheduled_notifications_pending').on(t.sendAt).where(sql`status = 'pending'`),
+    eventIdIdx: index('scheduled_notifications_event_id_index').on(t.eventId),
+    userIdIdx: index('scheduled_notifications_user_id_index').on(t.userId),
+  }),
 );
 
 export type ScheduledNotification =

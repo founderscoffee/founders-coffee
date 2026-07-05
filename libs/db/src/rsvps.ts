@@ -54,16 +54,11 @@ export const createRsvp = async (
 };
 
 /**
- * Cancel (hard-delete) an RSVP and decrement the denormalized counter.
- *
- * Two-step approach (D1 batch cannot conditionally skip statements):
- *   1. Check if the RSVP exists and belongs to the user
- *   2. If yes, batch: DELETE + counter decrement
- *
- * The ownership check is a read-before-write, but it's safe because:
- *   - Only the RSVP owner can cancel (RBAC + ownership gate in the server-fn)
- *   - The window between check and delete is tiny
- *   - A concurrent cancel by the same user is idempotent (second delete affects 0 rows)
+ * Cancel (hard-delete) an RSVP and decrement the denormalized counter. The decrement is gated on
+ * the DELETE actually removing a row — two concurrent cancels by the same user can't drive the
+ * counter negative (the second DELETE affects 0 rows → no decrement). The `rsvps > 0` guard is a
+ * belt-and-suspenders against any drift. Not a single batch (D1 batch can't conditionally skip a
+ * statement); correctness over a false atomicity that drifted the counter.
  */
 export const cancelRsvp = async (
   db: Db,
@@ -72,38 +67,26 @@ export const cancelRsvp = async (
     userId: string;
   },
 ): Promise<{ deleted: boolean }> => {
-  const existing = await db
-    .select({ id: eventRsvps.id })
-    .from(eventRsvps)
+  const result = (await db
+    .delete(eventRsvps)
     .where(
       and(
         eq(eventRsvps.eventId, opts.eventId),
         eq(eventRsvps.userId, opts.userId),
       ),
-    )
-    .limit(1);
+    )) as { meta?: { changes?: number } };
 
-  if (existing.length === 0) return { deleted: false };
+  if ((result.meta?.changes ?? 0) === 0) return { deleted: false };
 
-  await batch(db, [
-    db
-      .delete(eventRsvps)
-      .where(
-        and(
-          eq(eventRsvps.eventId, opts.eventId),
-          eq(eventRsvps.userId, opts.userId),
-        ),
+  await db
+    .update(events)
+    .set({ rsvps: sql`rsvps - 1` })
+    .where(
+      and(
+        eq(events.id, opts.eventId),
+        sql`${events.rsvps} > 0`,
       ),
-    db
-      .update(events)
-      .set({ rsvps: sql`rsvps - 1` })
-      .where(
-        and(
-          eq(events.id, opts.eventId),
-          sql`${events.rsvps} > 0`,
-        ),
-      ),
-  ]);
+    );
 
   return { deleted: true };
 };
