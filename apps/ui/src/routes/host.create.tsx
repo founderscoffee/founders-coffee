@@ -5,26 +5,26 @@ import { z } from 'zod'
 import { getMapboxToken } from '@founders-coffee/server-fns'
 
 import { HostCreatePage } from '../components/HostCreatePage'
-import { COUNTRIES } from '../lib/constants'
 
 export const Route = createFileRoute('/host/create')({
   validateSearch: z.object({ city: z.string().optional() }),
   component: () => {
-    const { locale } = Route.useRouteContext()
+    const { locale, markets } = Route.useRouteContext()
     const { mapboxToken, initialCountry } = Route.useLoaderData()
     const { city: cityFromUrl } = Route.useSearch()
     return (
       <HostCreatePage
         locale={locale}
+        markets={markets}
         mapboxToken={mapboxToken}
         initialCountry={initialCountry}
         initialCityCode={cityFromUrl}
       />
     )
   },
-  loader: async (): Promise<{ mapboxToken: string; initialCountry: string }> => {
+  loader: async ({ context }): Promise<{ mapboxToken: string; initialCountry: string }> => {
     const geoCookie = getCookies()['fc_geo'] ?? 'algeria'
-    const initialCountry = COUNTRIES.find((c) => c.code === geoCookie.toUpperCase())?.code ?? 'DZ'
+    const initialCountry = context.markets.find((m: { code: string }) => m.code === geoCookie.toUpperCase())?.code ?? 'DZ'
     const mapboxToken = await getMapboxToken()
     return { mapboxToken, initialCountry }
   },

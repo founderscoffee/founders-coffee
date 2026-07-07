@@ -21,6 +21,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
   {
     code: 'DZ',
     name: 'Algeria',
+    nameAr: 'الجزائر',
     slug: 'algeria',
     defaultLocale: 'ar',
     defaultCurrency: 'DZD',
@@ -37,6 +38,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
   {
     code: 'EG',
     name: 'Egypt',
+    nameAr: 'مصر',
     slug: 'egypt',
     defaultLocale: 'ar',
     defaultCurrency: 'EGP',
@@ -53,6 +55,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
   {
     code: 'SA',
     name: 'Saudi Arabia',
+    nameAr: 'السعودية',
     slug: 'saudi-arabia',
     defaultLocale: 'ar',
     defaultCurrency: 'SAR',

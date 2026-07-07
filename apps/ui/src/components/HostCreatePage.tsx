@@ -25,7 +25,7 @@ import { Button, Input } from '@founders-coffee/ui'
 
 import { useCreateEvent } from '../features/events/hooks'
 import { useCities, useStates } from '../features/geo/hooks'
-import { COUNTRIES } from '../lib/constants'
+import type { Market } from '@founders-coffee/db'
 
 const MapPicker = lazy(() => import('./MapPicker').then((m) => ({ default: m.MapPicker })))
 const DatetimePicker = lazy(() => import('./DatetimePicker').then((m) => ({ default: m.DatetimePicker })))
@@ -46,12 +46,13 @@ const CATEGORIES = [
 
 type HostCreatePageProps = {
   locale: Locale
+  markets: readonly Market[]
   mapboxToken: string
   initialCountry: string
   initialCityCode?: string
 }
 
-export const HostCreatePage = ({ locale, mapboxToken, initialCountry, initialCityCode }: HostCreatePageProps) => {
+export const HostCreatePage = ({ locale, markets, mapboxToken, initialCountry, initialCityCode }: HostCreatePageProps) => {
   const navigate = useNavigate()
   const createEventMutation = useCreateEvent()
 
@@ -98,7 +99,7 @@ export const HostCreatePage = ({ locale, mapboxToken, initialCountry, initialCit
           category,
         },
       })
-      const marketSlug = COUNTRIES.find((c) => c.code === country)?.slug ?? 'algeria'
+      const marketSlug = markets.find((m) => m.code === country)?.slug ?? 'algeria'
       navigate({ to: '/$market', params: { market: marketSlug } })
     } catch {
       setPublishError(host_publish_error({}, { locale }))
@@ -120,8 +121,8 @@ export const HostCreatePage = ({ locale, mapboxToken, initialCountry, initialCit
           <h2 className="text-lg font-bold">{host_step1({}, { locale })}</h2>
 
           <select className="select select-bordered select-sm" value={country} onChange={(e) => { setCountry(e.target.value); setStateCode(''); setCityCode('') }}>
-            {COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>{locale === 'ar' ? c.nameAr : c.name}</option>
+            {markets.map((m) => (
+              <option key={m.code} value={m.code}>{locale === 'ar' ? (m.nameAr ?? m.name) : m.name}</option>
             ))}
           </select>
 

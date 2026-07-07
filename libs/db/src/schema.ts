@@ -28,6 +28,7 @@ type MarketFeatureFlags = {
 export const markets = sqliteTable('markets', {
   code: text('code').primaryKey(),
   name: text('name').notNull(),
+  nameAr: text('name_ar'),
   slug: text('slug').notNull().unique(),
   defaultLocale: text('default_locale').notNull(),
   defaultCurrency: text('default_currency', {

@@ -38,8 +38,7 @@ const useClientObservability = () => {
 }
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
-  const { locale, dir } = Route.useRouteContext()
-  const markets = Route.useLoaderData() ?? []
+  const { locale, dir, markets } = Route.useRouteContext()
   useClientObservability()
 
   return (
@@ -64,8 +63,11 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
 }
 
 export const Route = createRootRoute({
-  beforeLoad: () => detectLocaleFromRequest(),
-  loader: (): Promise<Market[]> => getVisibleMarkets(),
+  beforeLoad: async () => {
+    const { locale, dir } = detectLocaleFromRequest();
+    const markets = await getVisibleMarkets();
+    return { locale, dir, markets: markets ?? [] };
+  },
   head: () => ({
     meta: [
       { charSet: 'utf-8' },

@@ -16,16 +16,17 @@ import type { geo } from '@founders-coffee/domain'
 
 import { useUpdateProfile } from '../features/profile/hooks'
 import { CitySearchCombobox } from './CitySearchCombobox'
-import { COUNTRIES } from '../lib/constants'
+import type { Market } from '@founders-coffee/db'
 
 type OnboardingPageProps = {
   locale: Locale
+  markets: readonly Market[]
   states: readonly geo.GeoState[]
   cities: readonly geo.GeoCity[]
   initialCountry: string
 }
 
-export const OnboardingPage = ({ locale, states, cities, initialCountry }: OnboardingPageProps) => {
+export const OnboardingPage = ({ locale, markets, states, cities, initialCountry }: OnboardingPageProps) => {
   const navigate = useNavigate()
   const updateProfileMutation = useUpdateProfile()
 
@@ -49,7 +50,7 @@ export const OnboardingPage = ({ locale, states, cities, initialCountry }: Onboa
     if (!country || !state || !city) return
     setSaving(true)
     await updateProfileMutation.mutateAsync({ data: { marketCode: country, state, city } })
-    const marketSlug = COUNTRIES.find((c) => c.code === country)?.name.toLowerCase().replace(' ', '-') ?? 'algeria'
+    const marketSlug = markets.find((m) => m.code === country)?.slug ?? 'algeria'
     navigate({ to: '/$market', params: { market: marketSlug } })
     setSaving(false)
   }
@@ -80,9 +81,9 @@ export const OnboardingPage = ({ locale, states, cities, initialCountry }: Onboa
               value={country}
               onChange={(e) => handleCountryChange(e.target.value)}
             >
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {locale === 'ar' ? c.nameAr : c.name}
+              {markets.map((m) => (
+                <option key={m.code} value={m.code}>
+                  {locale === 'ar' ? (m.nameAr ?? m.name) : m.name}
                 </option>
               ))}
             </select>

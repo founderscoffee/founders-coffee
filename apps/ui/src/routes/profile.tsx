@@ -7,9 +7,9 @@ import { ProfilePage } from '../components/ProfilePage'
 
 export const Route = createFileRoute('/profile')({
   component: () => {
-    const { locale } = Route.useRouteContext()
+    const { locale, markets } = Route.useRouteContext()
     const { profile, states, cities } = Route.useLoaderData()
-    return <ProfilePage locale={locale} profile={profile} states={states} cities={cities} />
+    return <ProfilePage locale={locale} profile={profile} markets={markets} states={states} cities={cities} />
   },
   loaderDeps: ({ search }) => ({ country: (search as { country?: string }).country, state: (search as { state?: string }).state }),
   loader: async ({ deps }): Promise<{ profile: UserProfile; states: readonly geo.GeoState[]; cities: readonly geo.GeoCity[] }> => {

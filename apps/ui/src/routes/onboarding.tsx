@@ -5,17 +5,16 @@ import { getCities, getStates } from '@founders-coffee/server-fns'
 import type { geo } from '@founders-coffee/domain'
 
 import { OnboardingPage } from '../components/OnboardingPage'
-import { COUNTRIES } from '../lib/constants'
 
 export const Route = createFileRoute('/onboarding')({
   component: () => {
-    const { locale } = Route.useRouteContext()
+    const { locale, markets } = Route.useRouteContext()
     const { states, cities, initialCountry } = Route.useLoaderData()
-    return <OnboardingPage locale={locale} states={states} cities={cities} initialCountry={initialCountry} />
+    return <OnboardingPage locale={locale} markets={markets} states={states} cities={cities} initialCountry={initialCountry} />
   },
-  loader: async ({ location }): Promise<{ states: readonly geo.GeoState[]; cities: readonly geo.GeoCity[]; initialCountry: string }> => {
+  loader: async ({ context, location }): Promise<{ states: readonly geo.GeoState[]; cities: readonly geo.GeoCity[]; initialCountry: string }> => {
     const geoCookie = getCookies()['fc_geo'] ?? 'algeria'
-    const initialCountry = COUNTRIES.find((c) => c.code === geoCookie.toUpperCase())?.code ?? 'DZ'
+    const initialCountry = context.markets.find((m: { code: string }) => m.code === geoCookie.toUpperCase())?.code ?? 'DZ'
     const states = await getStates({ data: { country: initialCountry } })
     const stateParam = new URLSearchParams(location.search).get('state') ?? ''
     const cities = stateParam ? await getCities({ data: { country: initialCountry, state: stateParam } }) : []

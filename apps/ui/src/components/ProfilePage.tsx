@@ -17,7 +17,7 @@ import type { geo } from '@founders-coffee/domain'
 
 import { useUpdateProfile } from '../features/profile/hooks'
 import { CitySearchCombobox } from './CitySearchCombobox'
-import { COUNTRIES } from '../lib/constants'
+import type { Market } from '@founders-coffee/db'
 import { initials } from '../lib/utils'
 
 const ROLE_LABELS: Record<string, (l: { locale: string }) => string> = {
@@ -29,11 +29,12 @@ const ROLE_LABELS: Record<string, (l: { locale: string }) => string> = {
 type ProfilePageProps = {
   locale: Locale
   profile: UserProfile
+  markets: readonly Market[]
   states: readonly geo.GeoState[]
   cities: readonly geo.GeoCity[]
 }
 
-export const ProfilePage = ({ locale, profile, states, cities }: ProfilePageProps) => {
+export const ProfilePage = ({ locale, profile, markets, states, cities }: ProfilePageProps) => {
   const navigate = useNavigate()
   const updateProfileMutation = useUpdateProfile()
   const [editing, setEditing] = useState(false)
@@ -101,8 +102,8 @@ export const ProfilePage = ({ locale, profile, states, cities }: ProfilePageProp
                 value={country}
                 onChange={(e) => { setCountry(e.target.value); setStateVal(''); setCity('') }}
               >
-                {COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>{locale === 'ar' ? c.nameAr : c.name}</option>
+                {markets.map((m) => (
+                  <option key={m.code} value={m.code}>{locale === 'ar' ? (m.nameAr ?? m.name) : m.name}</option>
                 ))}
               </select>
               <select
