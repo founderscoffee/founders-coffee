@@ -1,5 +1,7 @@
 import mapboxgl from 'mapbox-gl'
 import { Map } from 'react-map-gl/mapbox'
+
+import { host_venue_ph, type Locale } from '@founders-coffee/i18n'
 import { useEffect, useRef, useState } from 'react'
 
 export interface VenueSelection {
@@ -32,10 +34,12 @@ interface SearchResult {
 export const MapPicker = ({
   country,
   token,
+  locale,
   onSelect,
 }: {
   country: string
   token: string
+  locale: Locale
   onSelect: (venue: VenueSelection) => void
 }) => {
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -105,7 +109,7 @@ export const MapPicker = ({
         <input
           type="text"
           className="input input-bordered w-full"
-          placeholder="Search for a café…"
+          placeholder={host_venue_ph({}, { locale })}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

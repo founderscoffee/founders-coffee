@@ -144,7 +144,7 @@ export const HostCreatePage = ({ locale, markets, mapboxToken, initialCountry, i
             <div>
               <p className="mb-2 text-sm text-base-content/60">{host_select_venue({}, { locale })}</p>
               <Suspense fallback={<div className="h-72 rounded-box bg-base-200" />}>
-                <MapPicker country={country} token={mapboxToken} onSelect={setVenue} />
+                <MapPicker country={country} token={mapboxToken} locale={locale} onSelect={setVenue} />
               </Suspense>
             </div>
           )}
