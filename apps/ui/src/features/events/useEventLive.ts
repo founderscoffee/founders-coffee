@@ -64,10 +64,7 @@ interface OutboundMsg {
 const MAX_RECONNECT_DELAY = 30_000;
 const INITIAL_RECONNECT_DELAY = 1_000;
 
-export const useEventLive = (
-  eventId: string,
-  sessionToken: string | null,
-): UseEventLiveResult => {
+export const useEventLive = (eventId: string): UseEventLiveResult => {
   const [roster, setRoster] = useState<RosterUser[]>([]);
   const [host, setHost] = useState<HostState | null>(null);
   const [connectionState, setConnectionState] =
@@ -88,7 +85,7 @@ export const useEventLive = (
   }, []);
 
   const connect = useCallback(() => {
-    if (!sessionToken || !eventId) return;
+    if (!eventId) return;
 
     if (wsRef.current) {
       wsRef.current.close();
@@ -106,7 +103,6 @@ export const useEventLive = (
     ws.onopen = () => {
       if (!mountedRef.current) return;
       setConnectionState('authenticating');
-      send({ type: 'auth', sessionToken });
     };
 
     ws.onmessage = (event) => {
@@ -178,7 +174,7 @@ export const useEventLive = (
       setConnectionState('error');
       setError('WebSocket connection failed');
     };
-  }, [eventId, sessionToken, send]);
+  }, [eventId, send]);
 
   useEffect(() => {
     mountedRef.current = true;

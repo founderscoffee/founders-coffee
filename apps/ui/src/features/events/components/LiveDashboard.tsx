@@ -21,7 +21,6 @@ import {
 
 export interface LiveDashboardProps {
   eventId: string;
-  sessionToken: string | null;
   currentUserId: string;
   isHost: boolean;
 }
@@ -76,7 +75,6 @@ const connectionBadge = (state: ConnectionState): string => {
 
 export const LiveDashboard = ({
   eventId,
-  sessionToken,
   currentUserId,
   isHost,
 }: LiveDashboardProps) => {
@@ -89,7 +87,7 @@ export const LiveDashboard = ({
     sendWalkingIn,
     sendRunningLate,
     sendTablePin,
-  } = useEventLive(eventId, sessionToken);
+  } = useEventLive(eventId);
 
   const [tableNumber, setTableNumber] = useState<string>('');
   const [visualCue, setVisualCue] = useState('');

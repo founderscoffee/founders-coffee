@@ -11,6 +11,8 @@ import type { Market } from '@founders-coffee/db';
 import type { PublicProfile } from '@founders-coffee/server-fns';
 
 import { EventDetail } from '../components/EventDetail';
+import { LiveDashboard } from '../features/events/components/LiveDashboard';
+import { useAuth } from '../lib/app-providers';
 
 type EventDetailLoaderData = {
   market: Market;
@@ -22,7 +24,19 @@ export const Route = createFileRoute('/$market/e/$slug')({
   component: () => {
     const { locale } = Route.useRouteContext();
     const { market, event, host } = Route.useLoaderData();
-    return <EventDetail locale={locale} market={market} event={event} host={host} />;
+    const { user } = useAuth();
+    return (
+      <>
+        <EventDetail locale={locale} market={market} event={event} host={host} />
+        {user && (
+          <LiveDashboard
+            eventId={event.id}
+            currentUserId={user.id}
+            isHost={user.id === event.hostId}
+          />
+        )}
+      </>
+    );
   },
   loader: async ({ params }): Promise<EventDetailLoaderData> => {
     let market: Market;

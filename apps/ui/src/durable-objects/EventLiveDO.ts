@@ -130,7 +130,7 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       const eventId = new URL(request.url).pathname.split('/').pop() ?? '';
       this.eventId = eventId;
       await this.ensureRehydrated();
-      return this.handleUpgrade();
+      return this.handleUpgrade(request);
     }
     return new Response('Method not allowed', { status: 405 });
   };
@@ -172,7 +172,7 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
   /* -------------------------------------------------------------------------- */
 
-  private handleUpgrade = (): Response => {
+  private handleUpgrade = (request: Request): Response => {
     const pair = new WebSocketPair();
     const [clientWs, serverWs] = [pair[0], pair[1]];
 
@@ -184,13 +184,77 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       authenticated: false,
     });
 
-    /* Prompt for auth — NOT auth_ok (the client must not treat an unverified upgrade as connected). */
-    this.sendTo(clientWs, {
-      type: 'auth_required',
-      message: 'Send an auth message with your session token',
-    });
+    /* Cookie-based auth — the 101 returns immediately; auth_ok/expired is sent once the session is
+       verified from the browser's automatically-sent Cookie header (L4: the client can't read the
+       httpOnly session cookie to send it as a message, so the DO reads it on upgrade). */
+    this.authenticateConnection(serverWs, clientWs, request);
 
     return new Response(null, { status: 101, webSocket: clientWs });
+  };
+
+  private verifyFromCookie = async (request: Request): Promise<VerifyResult> => {
+    const cookieHeader = request.headers.get('Cookie');
+    if (!cookieHeader) return { ok: false, reason: 'no_session' };
+
+    for (const part of cookieHeader.split(';')) {
+      const eq = part.indexOf('=');
+      if (eq < 0) continue;
+      const value = part.slice(eq + 1).trim();
+      if (!value) continue;
+      const result = await this.verifySession(value);
+      if (result.ok || (!result.ok && result.reason === 'not_allowed')) return result;
+    }
+    return { ok: false, reason: 'no_session' };
+  };
+
+  private authenticateConnection = async (
+    serverWs: WebSocket,
+    clientWs: WebSocket,
+    request: Request,
+  ): Promise<void> => {
+    const result = await this.verifyFromCookie(request);
+
+    if (!result.ok) {
+      if (result.reason === 'db_error') {
+        this.sendTo(clientWs, { type: 'error', message: 'Temporary auth error, please retry' });
+        return;
+      }
+      this.sendTo(clientWs, {
+        type: 'auth_expired',
+        message: result.reason === 'not_allowed' ? 'Not invited to this event' : 'Session expired',
+      });
+      serverWs.close(4001, 'auth_expired');
+      return;
+    }
+
+    const conn = this.connections.get(serverWs);
+    if (!conn) return;
+
+    this.connections.set(serverWs, {
+      ...conn,
+      userId: result.userId,
+      userName: result.userName,
+      isHost: result.isHost,
+      authenticated: true,
+    });
+
+    if (result.isHost && !this.host) {
+      this.host = { userId: result.userId, arrived: false };
+      await this.persistState();
+    }
+
+    if (!this.attendees.has(result.userId)) {
+      this.attendees.set(result.userId, {
+        userId: result.userId,
+        name: result.userName,
+        status: 'connected',
+      });
+      await this.persistState();
+    }
+
+    this.sendTo(clientWs, { type: 'auth_ok', message: 'Authenticated' });
+    this.broadcastRoster();
+    if (this.host) this.broadcastHost();
   };
 
   private handleMessage = async (ws: WebSocket, msg: ClientMessage): Promise<void> => {
