@@ -123,7 +123,7 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
         <PushPermissionPrompt
           onAccept={async () => {
             setShowPushPrompt(false);
-            const { requestPushPermission } = await import('../lib/push');
+            const { requestPushPermission } = await import('../features/push/client');
             await requestPushPermission(event.marketCode);
           }}
           onDecline={() => setShowPushPrompt(false)}

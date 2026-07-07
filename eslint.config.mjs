@@ -32,9 +32,43 @@ const noLineComments = {
   },
 };
 
+const noServerFnsInComponents = {
+  meta: {
+    type: 'problem',
+    schema: [],
+    messages: {
+      noServerFns:
+        'Components/lib must not import {{source}} at runtime — use the hooks/api layer (features/*/hooks.ts). Type-only imports are allowed. (AGENTS.md §4)',
+    },
+  },
+  create: (context) => {
+    const filename = context.filename ?? context.getFilename();
+    if (!/\/src\/(components|lib)\//.test(filename)) return {};
+
+    const BANNED = [
+      '@founders-coffee/server-fns',
+      '@founders-coffee/db',
+      '@founders-coffee/domain',
+    ];
+
+    return {
+      ImportDeclaration: (node) => {
+        if (node.importKind === 'type') return;
+        const source = node.source.value;
+        if (BANNED.some((b) => source === b || source.startsWith(b + '/'))) {
+          context.report({ node, messageId: 'noServerFns', data: { source } });
+        }
+      },
+    };
+  },
+};
+
 const localPlugin = {
   meta: { name: 'founders-coffee-local', version: '1.0.0' },
-  rules: { 'no-line-comments': noLineComments },
+  rules: {
+    'no-line-comments': noLineComments,
+    'no-server-fns-in-components': noServerFnsInComponents,
+  },
 };
 
 export default [
@@ -128,6 +162,7 @@ export default [
         },
       ],
       'local/no-line-comments': 'error',
+      'local/no-server-fns-in-components': 'error',
     },
   },
 ];
