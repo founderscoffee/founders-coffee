@@ -101,6 +101,7 @@
   "host_duration": "Duration",
   "host_duration_min": "{n} min",
   "host_time": "Time",
+  "host_time_past": "That time has already passed — choose a future time",
   "host_selected_time": "Selected time",
   "host_language": "Language",
   "host_category": "Category",

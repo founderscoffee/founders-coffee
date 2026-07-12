@@ -21,6 +21,7 @@ import {
   host_step2_sub,
   host_step3,
   host_step3_sub,
+  host_time_past,
   host_title_label,
   host_title_ph,
   type Locale,
@@ -87,7 +88,7 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
     step === 1
       ? !!venue
       : step === 2
-        ? startsAt !== null && endsAt !== null && startsAt > Date.now()
+        ? startsAt !== null && endsAt !== null
         : title.length >= 3 && description.length >= 10
 
   const stepTitle = step === 1 ? host_step1({}, { locale }) : step === 2 ? host_step2({}, { locale }) : host_step3({}, { locale })
@@ -144,7 +145,17 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
     }
   }
 
-  const next = () => (step === 3 ? handlePublish() : setStep((s) => s + 1))
+  const next = () => {
+    /* Future-check lives in the handler (not in `canProceed`) so the button's disabled state stays a
+       pure function of selection — Date.now() in render is a hydration-mismatch risk. Past dates are
+       already blocked by the calendar; this catches a same-day past time. */
+    if (step === 2 && startsAt !== null && startsAt <= Date.now()) {
+      setPublishError(host_time_past({}, { locale }))
+      return
+    }
+    setPublishError(null)
+    return step === 3 ? handlePublish() : setStep((s) => s + 1)
+  }
   const prev = () => setStep((s) => Math.max(1, s - 1))
 
   return (
@@ -194,9 +205,11 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
                         onChange={(s, e) => {
                           setStartsAt(s)
                           setEndsAt(e)
+                          setPublishError(null)
                         }}
                         locale={locale}
                       />
+                      {publishError && <p className="text-sm text-error" role="alert">{publishError}</p>}
                     </div>
                   )}
 
