@@ -20,6 +20,7 @@ const eventCreateSchema = z.object({
   description: z.string().min(10).max(2000),
   venue: z.string().min(2).max(200),
   startsAt: z.number().int().positive(),
+  endsAt: z.number().int().positive().optional(),
   capacity: z.number().int().min(0).max(10000).default(0),
   language: z.enum(['ar', 'en', 'fr', 'ar_en', 'ar_fr']),
   category: z.enum(['coffee-meetup', 'workshop', 'demo-day']),

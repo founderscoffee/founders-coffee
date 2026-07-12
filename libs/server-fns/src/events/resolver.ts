@@ -46,6 +46,7 @@ export interface EventCreateInput {
   description: string;
   venue: string;
   startsAt: number;
+  endsAt?: number;
   capacity: number;
   language: string;
   category: string;
@@ -80,6 +81,7 @@ export const createEventResolver = async (
     description: input.description,
     venue: input.venue,
     startsAt: new Date(input.startsAt),
+    endsAt: input.endsAt ? new Date(input.endsAt) : null,
     capacity: input.capacity,
     language: input.language as NewEvent['language'],
     category: input.category as NewEvent['category'],

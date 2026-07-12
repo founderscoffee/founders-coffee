@@ -179,6 +179,7 @@ export const events = sqliteTable('events', {
   description: text('description').notNull(),
   venue: text('venue').notNull(),
   startsAt: integer('starts_at', { mode: 'timestamp' }).notNull(),
+  endsAt: integer('ends_at', { mode: 'timestamp' }),
   rsvps: integer('rsvps').notNull().default(0),
   capacity: integer('capacity').notNull().default(0),
   language: text('language', { enum: [...EVENT_LANGUAGES] }).notNull(),
