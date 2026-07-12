@@ -12,21 +12,5 @@
     "vitest.config.ts",
     "**/setup.ts"
   ],
-  "references": [
-    {
-      "path": "../observability"
-    },
-    {
-      "path": "../domain"
-    },
-    {
-      "path": "../db"
-    },
-    {
-      "path": "../auth"
-    },
-    {
-      "path": "../core"
-    }
-  ]
+  "references": []
 }

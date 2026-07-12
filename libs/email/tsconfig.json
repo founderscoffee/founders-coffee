@@ -13,15 +13,5 @@
     "vitest.config.ts",
     "**/setup.ts"
   ],
-  "references": [
-    {
-      "path": "../core"
-    },
-    {
-      "path": "../i18n"
-    },
-    {
-      "path": "../observability"
-    }
-  ]
+  "references": []
 }

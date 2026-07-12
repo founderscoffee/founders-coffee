@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getCities, getMyProfile, getStates, type UserProfile } from '@founders-coffee/server-fns'
 import type { geo } from '@founders-coffee/domain'
 
-import { ProfilePage } from '../components/ProfilePage'
+import { ProfilePage } from '../components/profile/ProfilePage'
 
 export const Route = createFileRoute('/profile')({
   component: () => {

@@ -2,7 +2,7 @@ import { createFileRoute, useSearch } from '@tanstack/react-router'
 
 import { getPublicAuthConfig } from '@founders-coffee/server-fns'
 
-import { LoginPage } from '../components/LoginPage'
+import { LoginPage } from '../components/auth/LoginPage'
 
 export const Route = createFileRoute('/login')({
   component: () => {

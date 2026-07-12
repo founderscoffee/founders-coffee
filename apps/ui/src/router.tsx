@@ -1,4 +1,5 @@
 import { Link, createRouter as createTanStackRouter, useRouterState } from '@tanstack/react-router'
+import { parseSearchWith, stringifySearchWith } from '@tanstack/router-core'
 import { useEffect } from 'react'
 
 import {
@@ -54,6 +55,11 @@ const DefaultNotFoundComponent = () => {
   )
 }
 
+const parseSearch = parseSearchWith((val: string) => val)
+const stringifySearch = stringifySearchWith(JSON.stringify, () => {
+  throw 0
+})
+
 export const getRouter = () => {
   const router = createTanStackRouter({
     routeTree,
@@ -62,6 +68,8 @@ export const getRouter = () => {
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: DefaultErrorComponent,
     defaultNotFoundComponent: DefaultNotFoundComponent,
+    parseSearch,
+    stringifySearch,
   })
 
   return router

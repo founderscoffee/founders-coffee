@@ -25,7 +25,6 @@ type EventDetailProps = {
   host: PublicProfile;
 };
 
-/** Compact, locale-independent language code(s) for the language badge (e.g. `AR + FR`). */
 const LANGUAGE_LABEL: Record<EventWithAttendance['language'], string> = {
   ar: 'AR',
   en: 'EN',
@@ -53,7 +52,6 @@ export const EventDetail = ({ locale, market, event, host }: EventDetailProps) =
   const capacityText =
     event.capacity === 0 ? event_no_cap({}, { locale }) : `${event_capacity({}, { locale })}: ${event.capacity}`;
 
-  /** Schema.org Event JSON-LD (inline — valid for crawlers anywhere in the HTML). */
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Event',

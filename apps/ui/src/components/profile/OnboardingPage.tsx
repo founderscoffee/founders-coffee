@@ -14,8 +14,8 @@ import {
 } from '@founders-coffee/i18n'
 import type { geo } from '@founders-coffee/domain'
 
-import { useUpdateProfile } from '../features/profile/hooks'
-import { CitySearchCombobox } from './CitySearchCombobox'
+import { useUpdateProfile } from '../../features/profile/hooks'
+import { CitySearchCombobox } from '../ui/CitySearchCombobox'
 import type { Market } from '@founders-coffee/db'
 
 type OnboardingPageProps = {

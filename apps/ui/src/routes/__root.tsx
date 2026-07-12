@@ -1,6 +1,4 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
 import { getCookies } from '@tanstack/react-start/server'
 import { useEffect } from 'react'
 
@@ -9,8 +7,8 @@ import { cookieName, detectLocale, direction } from '@founders-coffee/i18n'
 import { configureClientLogger, logger, reportError } from '@founders-coffee/observability'
 import { getVisibleMarkets } from '@founders-coffee/server-fns'
 
-import { Footer } from '../components/Footer'
-import { Navbar } from '../components/Navbar'
+import { Footer } from '../components/shell/Footer'
+import { Navbar } from '../components/shell/Navbar'
 import { AppProviders } from '../lib/app-providers'
 
 import appCss from '../styles.css?url'
@@ -52,10 +50,6 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
           <main>{children}</main>
           <Footer locale={locale} markets={markets} />
         </AppProviders>
-        <TanStackDevtools
-          config={{ position: 'bottom-right' }}
-          plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}
-        />
         <Scripts />
       </body>
     </html>

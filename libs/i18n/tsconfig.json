@@ -6,6 +6,11 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["**/*.test.ts", "**/*.spec.ts", "vitest.config.ts", "src/paraglide/**"],
-  "references": [{ "path": "../core" }]
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "vitest.config.ts",
+    "src/paraglide/**"
+  ],
+  "references": []
 }

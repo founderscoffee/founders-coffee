@@ -90,6 +90,22 @@ export const countUpcomingByCity = async (
   return counts;
 };
 
+export const countUpcomingByState = async (
+  db: Db,
+  marketCode: string,
+): Promise<Record<string, number>> => {
+  const rows = await db
+    .select({ stateCode: events.stateCode, count: sql<number>`count(*)` })
+    .from(events)
+    .where(
+      and(eq(events.marketCode, marketCode), eq(events.status, 'published'), gt(events.startsAt, new Date())),
+    )
+    .groupBy(events.stateCode);
+  const counts: Record<string, number> = {};
+  for (const row of rows) counts[row.stateCode] = Number(row.count);
+  return counts;
+};
+
 /**
  * Atomic status transition — D1-safe check-then-write (no interactive transactions). Returns the
  * number of rows changed (0 = no-op / wrong from-state, 1 = success).

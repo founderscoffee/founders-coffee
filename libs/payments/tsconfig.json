@@ -6,11 +6,11 @@
     "types": ["node", "@cloudflare/workers-types"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["**/*.test.ts", "**/*.spec.ts", "vitest.config.ts", "**/setup.ts"],
-  "references": [
-    { "path": "../core" },
-    { "path": "../db" },
-    { "path": "../domain" },
-    { "path": "../observability" }
-  ]
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "vitest.config.ts",
+    "**/setup.ts"
+  ],
+  "references": []
 }

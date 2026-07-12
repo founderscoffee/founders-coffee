@@ -3,21 +3,15 @@ import { Link } from '@tanstack/react-router'
 import { formatDate, going_count, type Locale } from '@founders-coffee/i18n'
 import type { EventFeedItem } from '@founders-coffee/server-fns'
 
-import { Hover3D } from './Hover3D'
+import { Hover3D } from '../ui/Hover3D'
 
 type EventCardProps = {
   event: EventFeedItem
   locale: Locale
-  /** Event market's IANA timezone — dates render in the event's TZ, not the viewer's (FR-L4). */
   timezone: string
   marketSlug: string
 }
 
-/**
- * A 720px event card with daisyUI `hover-3d` (tilt + shine). The whole card links to the event
- * detail page. The date widget renders in the event's market timezone. The going-count line is
- * gated on `goingCount` (absent until P1-008 wires RSVP attendance) — never shown with a fake number.
- */
 export const EventCard = ({ event, locale, timezone, marketSlug }: EventCardProps) => {
   const start = new Date(event.startsAt)
   const weekday = formatDate(start, locale, { timeZone: timezone, weekday: 'short' })

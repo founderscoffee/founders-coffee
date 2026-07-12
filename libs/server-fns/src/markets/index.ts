@@ -4,7 +4,7 @@ export {
   resolveMarket,
   resolveMarketLanding,
 } from './resolver.js';
-export type { MarketWithCities, MarketCity } from './resolver.js';
+export type { MarketWithCities, MarketCity, TrendingCity, TrendingState } from './resolver.js';
 export {
   getCityLanding,
   getMarket,

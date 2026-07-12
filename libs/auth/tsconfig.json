@@ -12,15 +12,5 @@
     "vitest.config.ts",
     "**/setup.ts"
   ],
-  "references": [
-    {
-      "path": "../observability"
-    },
-    {
-      "path": "../core"
-    },
-    {
-      "path": "../db"
-    }
-  ]
+  "references": []
 }

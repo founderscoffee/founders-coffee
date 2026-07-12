@@ -10,7 +10,7 @@ import {
 import type { Market } from '@founders-coffee/db';
 import type { PublicProfile } from '@founders-coffee/server-fns';
 
-import { EventDetail } from '../components/EventDetail';
+import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { useAuth } from '../lib/app-providers';
 

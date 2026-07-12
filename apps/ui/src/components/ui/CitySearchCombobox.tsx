@@ -16,17 +16,6 @@ type CitySearchComboboxProps = {
 
 const MAX_VISIBLE = 20
 
-/**
- * Searchable city dropdown. Filters by name (LTR) or nameAr (includes). The selected city's
- * localized name is shown in the input until the user clears it to search again. Supports keyboard
- * navigation: ArrowUp/Down to move, Enter to select (active option or first match), Escape to close.
- *
- * Interaction contract:
- * - Enter selects the active option, or the first match if none is highlighted (trained search behavior)
- * - A clear (×) button resets the selection and re-focuses the input
- * - An empty-matches state ("No cities match ...") renders inside the dropdown when the filter yields 0
- * - `aria-selected` reflects the chosen value, not the keyboard highlight
- */
 export const CitySearchCombobox = ({
   cities,
   value,
@@ -170,7 +159,7 @@ export const CitySearchCombobox = ({
         <ul
           ref={listRef}
           id={listboxId}
-          className="dropdown-content z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-box border border-base-300 bg-base-100 shadow-lg"
+          className="absolute start-0 top-full z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-box border border-base-300 bg-base-100 shadow-lg"
           role="listbox"
           aria-label={placeholder}
           onMouseDown={handleMouseDown}
@@ -193,7 +182,7 @@ export const CitySearchCombobox = ({
               >
                 <button
                   type="button"
-                  className={`flex w-full justify-between px-4 py-2.5 text-start text-sm ${
+                  className={`flex w-full px-4 py-2.5 text-start text-sm ${
                     i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
                   }`}
                   tabIndex={-1}
@@ -203,7 +192,6 @@ export const CitySearchCombobox = ({
                   }}
                 >
                   <span>{locale === 'ar' ? c.nameAr : c.name}</span>
-                  <span className="text-base-content/40">{c.code}</span>
                 </button>
               </li>
             ))

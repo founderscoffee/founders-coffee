@@ -8,7 +8,7 @@ import {
 } from '@founders-coffee/i18n'
 import type { PublicProfile } from '@founders-coffee/server-fns'
 
-import { initials } from '../lib/utils'
+import { initials } from '../../lib/utils'
 
 type PublicProfilePageProps = {
   locale: Locale

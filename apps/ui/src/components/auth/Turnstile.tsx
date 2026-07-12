@@ -7,7 +7,6 @@ interface TurnstileApi {
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
 
-/** Read the Turnstile API the script attaches to `window` (cast — no ambient declaration). */
 const getTurnstile = (): TurnstileApi | undefined =>
   (window as unknown as { turnstile?: TurnstileApi }).turnstile
 
@@ -31,12 +30,6 @@ const loadTurnstile = (): Promise<void> => {
   return loading
 }
 
-/**
- * Inline Cloudflare Turnstile widget (no `@marsidev` dependency) — loads the CF script once, renders
- * the challenge imperatively, and calls `onToken` when solved. The token is sent as the
- * `cf-turnstile-response` header on the OTP request (the server's createAuthHandler verifies it).
- * Client-only (useEffect) — renders nothing during SSR.
- */
 export const Turnstile = ({
   sitekey,
   onToken,

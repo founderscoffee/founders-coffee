@@ -15,10 +15,10 @@ import {
 import type { UserProfile } from '@founders-coffee/server-fns'
 import type { geo } from '@founders-coffee/domain'
 
-import { useUpdateProfile } from '../features/profile/hooks'
-import { CitySearchCombobox } from './CitySearchCombobox'
+import { useUpdateProfile } from '../../features/profile/hooks'
+import { CitySearchCombobox } from '../ui/CitySearchCombobox'
 import type { Market } from '@founders-coffee/db'
-import { initials } from '../lib/utils'
+import { initials } from '../../lib/utils'
 
 const ROLE_LABELS: Record<string, (l: { locale: string }) => string> = {
   member: () => 'role_member',

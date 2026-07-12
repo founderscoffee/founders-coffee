@@ -7,12 +7,5 @@
   },
   "include": ["src/**/*.ts"],
   "exclude": [],
-  "references": [
-    {
-      "path": "../core"
-    },
-    {
-      "path": "../i18n"
-    }
-  ]
+  "references": []
 }

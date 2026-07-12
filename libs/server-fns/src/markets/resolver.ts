@@ -1,6 +1,7 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import {
   countUpcomingByCity,
+  countUpcomingByState,
   getMarketByCode,
   getMarketBySlug,
   listMarkets,
@@ -18,6 +19,18 @@ export interface MarketWithCities {
   readonly events: readonly EventFeedItem[];
   /** Upcoming event counts per city code (drives the city-badge counts + aura). */
   readonly cityEventCounts: Record<string, number>;
+  /** Top 3 states by upcoming events, each with its 12–20 most-active cities (the Trending section). */
+  readonly trendingStates: readonly TrendingState[];
+}
+
+export interface TrendingCity {
+  readonly city: geo.GeoCity;
+  readonly count: number;
+}
+
+export interface TrendingState {
+  readonly state: geo.GeoState;
+  readonly cities: readonly TrendingCity[];
 }
 
 export interface MarketCity {
@@ -75,11 +88,64 @@ export const resolveMarketLanding = async (db: Db, key: string): Promise<Result<
   if (!market) {
     return err(new AppError('market_not_found', `No visible market for ${key}`));
   }
-  const [{ items: events }, cityEventCounts] = await Promise.all([
+  const [{ items: events }, cityEventCounts, trendingStates] = await Promise.all([
     listEvents(db, { marketCode: market.code, limit: 20 }),
     countUpcomingByCity(db, market.code),
+    resolveTrendingStates(db, market.code),
   ]);
-  return ok({ market, cities: geo.getFeaturedCities(market.code), events, cityEventCounts });
+  return ok({
+    market,
+    cities: geo.getFeaturedCities(market.code),
+    events,
+    cityEventCounts,
+    trendingStates,
+  });
+};
+
+/**
+ * Top 3 trending states (wilayas/governorates/regions) for the Trending section. States are ranked
+ * by upcoming event count; ties break by the state capital's event count (the `featured` city —
+ * "capitals first"), then by state code. Each state returns its 12–20 most-active cities: ranked by
+ * event count then name, sized via `clamp(eventCityCount, 12, 20)` — so a state with no events shows
+ * exactly 12 (the min), one with 25 event cities shows 20 (the max).
+ */
+export const resolveTrendingStates = async (
+  db: Db,
+  marketCode: string,
+): Promise<readonly TrendingState[]> => {
+  const [stateCounts, cityCounts] = await Promise.all([
+    countUpcomingByState(db, marketCode),
+    countUpcomingByCity(db, marketCode),
+  ]);
+  const states = geo.getStates(marketCode);
+  const capitalByState = new Map(geo.getFeaturedCities(marketCode).map((c) => [c.stateCode, c]));
+
+  const topStates = states
+    .map((state) => {
+      const capital = capitalByState.get(state.code);
+      return {
+        state,
+        count: stateCounts[state.code] ?? 0,
+        capitalCount: capital ? (cityCounts[capital.code] ?? 0) : 0,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.count - a.count ||
+        b.capitalCount - a.capitalCount ||
+        a.state.code.localeCompare(b.state.code),
+    )
+    .slice(0, 3);
+
+  return topStates.map(({ state }) => {
+    const ranked = geo
+      .getCities(marketCode, state.code)
+      .map((city) => ({ city, count: cityCounts[city.code] ?? 0 }))
+      .sort((a, b) => b.count - a.count || a.city.name.localeCompare(b.city.name));
+    const eventCityCount = ranked.filter((r) => r.count > 0).length;
+    const showN = Math.max(12, Math.min(20, eventCityCount));
+    return { state, cities: ranked.slice(0, showN) };
+  });
 };
 
 /**

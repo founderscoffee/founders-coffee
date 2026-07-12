@@ -4,7 +4,7 @@ import { getCookies } from '@tanstack/react-start/server'
 import { getCities, getStates } from '@founders-coffee/server-fns'
 import type { geo } from '@founders-coffee/domain'
 
-import { OnboardingPage } from '../components/OnboardingPage'
+import { OnboardingPage } from '../components/profile/OnboardingPage'
 
 export const Route = createFileRoute('/onboarding')({
   component: () => {

@@ -18,8 +18,8 @@ import {
 } from '@founders-coffee/i18n'
 import { Button, Input } from '@founders-coffee/ui'
 
+import { authClient } from '../../lib/auth'
 import { Turnstile } from './Turnstile'
-import { authClient } from '../lib/auth'
 
 const OAUTH_PROVIDERS = ['google', 'github', 'linkedin'] as const
 
@@ -88,7 +88,7 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
           setOtp(otpCred.code as string)
         }
       })
-      .catch(() => { /* WebOTP not available or aborted */ })
+      .catch(() => {})
 
     return () => {
       ac.abort()

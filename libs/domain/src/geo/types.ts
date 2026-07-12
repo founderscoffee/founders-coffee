@@ -14,3 +14,9 @@ export interface GeoCity {
   readonly stateCode: string
   readonly featured: boolean
 }
+
+/** A city + its parent state — the result of a location search (hero typeahead). */
+export interface CitySearchResult {
+  readonly city: GeoCity
+  readonly state: GeoState
+}

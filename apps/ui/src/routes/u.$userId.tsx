@@ -3,7 +3,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { appErrorCode } from '@founders-coffee/core'
 import { getPublicProfile, type PublicProfile } from '@founders-coffee/server-fns'
 
-import { PublicProfilePage } from '../components/PublicProfilePage'
+import { PublicProfilePage } from '../components/profile/PublicProfilePage'
 
 export const Route = createFileRoute('/u/$userId')({
   component: () => {

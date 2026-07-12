@@ -15,14 +15,13 @@ import type { Market } from '@founders-coffee/db'
 import type { geo } from '@founders-coffee/domain'
 import type { EventFeedItem } from '@founders-coffee/server-fns'
 
-import { useUpcomingEvents } from '../features/events/hooks'
-import { EventCard } from './EventCard'
+import { useUpcomingEvents } from '../../features/events/hooks'
+import { EventCard } from '../events/EventCard'
 
 type CityLandingProps = {
   locale: Locale
   market: Market
   city: geo.GeoCity
-  /** First page of upcoming events in this city (FR-E5). Empty ⇒ the "be the first host" CTA. */
   events: readonly EventFeedItem[]
 }
 

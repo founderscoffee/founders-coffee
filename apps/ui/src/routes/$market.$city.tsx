@@ -4,7 +4,7 @@ import { appErrorCode } from '@founders-coffee/core'
 import { city_empty_body, type Locale } from '@founders-coffee/i18n'
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns'
 
-import { CityLanding } from '../components/CityLanding'
+import { CityLanding } from '../components/landing/CityLanding'
 
 export const Route = createFileRoute('/$market/$city')({
   staticData: { prerender: true },

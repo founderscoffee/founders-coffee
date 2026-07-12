@@ -14,21 +14,15 @@ import {
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
-import { useCancelRsvp, useCreateRsvp } from '../features/events/hooks';
-import { useAuth } from '../lib/app-providers';
-import { PushPermissionPrompt } from '../features/events/components/PushPermissionPrompt';
+import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
+import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
+import { useAuth } from '../../lib/app-providers';
 
 export type RsvpSectionProps = {
   event: EventWithAttendance;
   locale: Locale;
 };
 
-/**
- * RSVP slot on the event-detail page. "I'm attending" → atomic capacity check; cancel releases the
- * seat. On success the active route loader is refetched via `router.invalidate()` (TanStack Router
- * re-runs the current route's loader) so viewerRsvp/remaining/goingCount refresh without a reload.
- * All copy is localized via the `{ locale }` option (FR-L1).
- */
 export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -123,7 +117,7 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
         <PushPermissionPrompt
           onAccept={async () => {
             setShowPushPrompt(false);
-            const { requestPushPermission } = await import('../features/push/client');
+            const { requestPushPermission } = await import('../../features/push/client');
             await requestPushPermission(event.marketCode);
           }}
           onDecline={() => setShowPushPrompt(false)}

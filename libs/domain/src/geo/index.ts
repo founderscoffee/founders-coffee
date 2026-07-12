@@ -1,7 +1,7 @@
 import { DZ_CITIES, DZ_STATES } from './data/dz.js'
 import { EG_CITIES, EG_STATES } from './data/eg.js'
 import { SA_CITIES, SA_STATES } from './data/sa.js'
-import type { GeoCity, GeoState } from './types.js'
+import type { CitySearchResult, GeoCity, GeoState } from './types.js'
 
 /**
  * Geographic data (server-side TS files — NOT bundled in the client). Full datasets for DZ (58
@@ -44,4 +44,40 @@ export const findCity = (country: string, cityCode: string): GeoCity | undefined
 export const findState = (country: string, stateCode: string): GeoState | undefined =>
   (STATES[country] ?? []).find((s) => s.code === stateCode)
 
-export type { GeoCity, GeoState } from './types.js'
+/**
+ * Search a country's cities by free-text query, matching the city name (LTR `name` or `nameAr`) OR
+ * the parent state name. Returns up to `limit` results ranked: city-name hits first (more specific),
+ * then featured (capitals), then alphabetical. Each result carries the parent state so the UI can
+ * show "City, State" for disambiguation (city names repeat across states). Used by the hero
+ * typeahead — the full dataset (thousands of cities) stays server-side; only matches are returned.
+ */
+export const searchLocations = (
+  country: string,
+  query: string,
+  limit = 20,
+): readonly CitySearchResult[] => {
+  const q = query.trim()
+  if (!q) return []
+  const qLower = q.toLowerCase()
+  const stateByCode = new Map((STATES[country] ?? []).map((s) => [s.code, s]))
+
+  const scored: { city: GeoCity; state: GeoState; rank: number }[] = []
+  for (const city of CITIES[country] ?? []) {
+    const state = stateByCode.get(city.stateCode)
+    if (!state) continue
+    const cityHit = city.name.toLowerCase().includes(qLower) || city.nameAr.includes(q)
+    const stateHit = state.name.toLowerCase().includes(qLower) || state.nameAr.includes(q)
+    if (cityHit || stateHit) {
+      scored.push({ city, state, rank: cityHit ? 0 : 1 })
+    }
+  }
+  scored.sort(
+    (a, b) =>
+      a.rank - b.rank ||
+      Number(b.city.featured) - Number(a.city.featured) ||
+      a.city.name.localeCompare(b.city.name),
+  )
+  return scored.slice(0, limit).map(({ city, state }) => ({ city, state }))
+}
+
+export type { CitySearchResult, GeoCity, GeoState } from './types.js'
