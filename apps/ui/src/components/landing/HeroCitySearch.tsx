@@ -146,7 +146,7 @@ export const HeroCitySearch = ({
               {noMatchText.replace('{query}', query)}
             </li>
           ) : (
-            results.map((r, i) => (
+            results.map((r: { city: geo.GeoCity; state: { name: string; nameAr: string } }, i: number) => (
               <li
                 key={`${r.city.stateCode}-${r.city.code}`}
                 id={`hero-city-option-${i}`}

@@ -397,7 +397,7 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       name: string;
       host_id: string;
       rsvpd: number;
-    } | null = null;
+    } | null;
 
     try {
       row = await this.env.DB.prepare(

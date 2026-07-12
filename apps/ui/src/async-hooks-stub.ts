@@ -6,19 +6,19 @@
  * without dragging Node into the browser bundle. SSR builds keep the real `node:async_hooks`.
  */
 export class AsyncLocalStorage<T = unknown> {
-  enterWith(_store: T): void {}
+  enterWith = (_store: T): void => {
+    /* noop — browser stub */
+  }
 
-  disable(): void {}
+  disable = (): void => {
+    /* noop — browser stub */
+  }
 
-  exit(callback: () => void): void {
+  exit = (callback: () => void): void => {
     callback()
   }
 
-  run<TResult>(_store: T, callback: () => TResult): TResult {
-    return callback()
-  }
+  run = <TResult>(_store: T, callback: () => TResult): TResult => callback()
 
-  getStore(): T | undefined {
-    return undefined
-  }
+  getStore = (): T | undefined => undefined
 }

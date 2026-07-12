@@ -88,7 +88,9 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
           setOtp(otpCred.code as string)
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        /* WebOTP unavailable on this browser — ignore */
+      })
 
     return () => {
       ac.abort()

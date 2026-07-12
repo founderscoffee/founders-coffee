@@ -22,6 +22,9 @@ import { serwist } from '@serwist/vite'
 const clientNodeBuiltinStubs: Plugin = {
   name: 'client-node-builtin-stubs',
   enforce: 'pre',
+  /* Method (not arrow) on purpose: Vite calls this hook with `this` = PluginContext, which
+     exposes `this.environment`. An arrow would capture module scope and lose the binding. */
+  // eslint-disable-next-line no-restricted-syntax
   resolveId(source) {
     if (this.environment?.name !== 'client') return null
     const stubs: Record<string, string> = {

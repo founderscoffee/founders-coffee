@@ -2,7 +2,6 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { getCookies } from '@tanstack/react-start/server'
 import { useEffect } from 'react'
 
-import type { Market } from '@founders-coffee/db'
 import { cookieName, detectLocale, direction } from '@founders-coffee/i18n'
 import { configureClientLogger, logger, reportError } from '@founders-coffee/observability'
 import { getVisibleMarkets } from '@founders-coffee/server-fns'
