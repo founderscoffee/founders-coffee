@@ -1,9 +1,10 @@
-import { Clock } from 'lucide-react'
 import { useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { arDZ, enUS, fr } from 'react-day-picker/locale'
 
 import { host_time, type Locale } from '@founders-coffee/i18n'
+
+import { TimePicker } from './TimePicker'
 
 /** Map the app locale to a react-day-picker locale. Algeria-first → `arDZ` (Algerian Arabic). */
 const DAYPICKER_LOCALE = { ar: arDZ, en: enUS, fr } as const
@@ -12,45 +13,52 @@ const DAYPICKER_DIR = { ar: 'rtl', en: 'ltr', fr: 'ltr' } as const
 const pad = (n: number) => String(n).padStart(2, '0')
 const toHHMM = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`
 
-/** Combine a calendar date + an "HH:MM" time string into a local epoch (ms). */
-const combine = (date: Date | undefined, time: string): number | null => {
-  if (!date) return null
-  const [hh, mm] = (time || '00:00').split(':').map(Number)
-  const d = new Date(date)
-  d.setHours(hh || 0, mm || 0, 0, 0)
-  return d.getTime()
+/** Combine a calendar date + from/to "HH:MM" into local epochs (ms). */
+const combineRange = (
+  date: Date | undefined,
+  from: string,
+  to: string,
+): { startsAt: number | null; endsAt: number | null } => {
+  if (!date) return { startsAt: null, endsAt: null }
+  const [fh, fm] = from.split(':').map(Number)
+  const [th, tm] = to.split(':').map(Number)
+  const start = new Date(date)
+  start.setHours(fh || 0, fm || 0, 0, 0)
+  const end = new Date(date)
+  end.setHours(th || 0, tm || 0, 0, 0)
+  return { startsAt: start.getTime(), endsAt: end.getTime() }
 }
 
 type DatetimePickerProps = {
-  value: number | null
-  onChange: (epoch: number) => void
+  startsAt: number | null
+  endsAt: number | null
+  onChange: (startsAt: number | null, endsAt: number | null) => void
   locale: Locale
 }
 
 /**
- * Date (react-day-picker) + time (native `<input type="time">`) picker. react-day-picker is
- * React-native with first-class RTL + locale support, so (unlike the old imperative calendar)
- * it needs no memo / dynamic-import gymnastics. The initial `value` seeds both inputs at mount;
- * the wizard remounts step content via `key={step}`, so navigating back restores the pick.
- *
- * Note: dates display in `Africa/Algiers` (DayPicker `timeZone`) but the epoch is built in the
- * browser's local zone — fine for Algeria-first hosts. Past dates are disabled.
+ * Date (react-day-picker) + time RANGE (timepicker-ui) picker. The calendar picks the day, the range
+ * picker picks the start→end window; together they produce startsAt + endsAt (the event's ends_at
+ * column). Both are React-friendly (the timepicker is wrapped imperatively in `TimePicker`, kept
+ * client-only by this component's `React.lazy` boundary). The initial values seed both at mount; the
+ * wizard remounts step content via `key={step}`, so navigating back restores the pick. Past dates are
+ * disabled; the date displays in `Africa/Algiers` but the epoch uses the browser's local zone.
  */
-export const DatetimePicker = ({ value, onChange, locale }: DatetimePickerProps) => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => (value ? new Date(value) : undefined))
-  const [timeStr, setTimeStr] = useState(() => (value ? toHHMM(new Date(value)) : '18:00'))
+export const DatetimePicker = ({ startsAt, endsAt, onChange, locale }: DatetimePickerProps) => {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => (startsAt ? new Date(startsAt) : undefined))
+  const [fromTime, setFromTime] = useState(() => (startsAt ? toHHMM(new Date(startsAt)) : '18:00'))
+  const [toTime, setToTime] = useState(() => (endsAt ? toHHMM(new Date(endsAt)) : '19:00'))
 
   const handleDate = (d: Date | undefined) => {
     setSelectedDate(d)
-    const epoch = combine(d, timeStr)
-    if (epoch !== null) onChange(epoch)
+    const next = combineRange(d, fromTime, toTime)
+    onChange(next.startsAt, next.endsAt)
   }
-  const handleTime = (t: string) => {
-    setTimeStr(t)
-    if (selectedDate) {
-      const epoch = combine(selectedDate, t)
-      if (epoch !== null) onChange(epoch)
-    }
+  const handleRange = (from: string, to: string) => {
+    setFromTime(from)
+    setToTime(to)
+    const next = combineRange(selectedDate, from, to)
+    onChange(next.startsAt, next.endsAt)
   }
 
   const startOfToday = new Date()
@@ -77,15 +85,7 @@ export const DatetimePicker = ({ value, onChange, locale }: DatetimePickerProps)
 
       <label className="form-control">
         <span className="mb-1 block text-sm text-base-content/70">{host_time({}, { locale })}</span>
-        <div className="relative">
-          <Clock className="pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 text-base-content/40 ltr:left-3 rtl:right-3" />
-          <input
-            type="time"
-            value={timeStr}
-            onChange={(e) => handleTime(e.target.value)}
-            className="input input-bordered w-full ltr:pl-9 ltr:pr-3 rtl:pr-9 rtl:pl-3"
-          />
-        </div>
+        <TimePicker from={fromTime} to={toTime} onChange={handleRange} locale={locale} />
       </label>
     </div>
   )

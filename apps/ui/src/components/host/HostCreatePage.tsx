@@ -4,12 +4,9 @@ import { lazy, Suspense, useState } from 'react'
 
 import {
   host_back,
-  host_capacity,
-  host_capacity_unlimited,
   host_category,
   host_desc_label,
   host_desc_ph,
-  host_duration,
   host_duration_min,
   host_language,
   host_next,
@@ -55,9 +52,6 @@ const CATEGORIES = [
   { value: 'demo-day', labelAr: 'يوم العروض', labelEn: 'Demo Day' },
 ] as const
 
-/** Session length options, in minutes. Stored as `endsAt = startsAt + duration`. */
-const DURATIONS = [30, 60, 120, 180] as const
-
 type HostCreatePageProps = {
   locale: Locale
   market: Market
@@ -73,8 +67,7 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
   const [venue, setVenue] = useState<VenueSelection | null>(null)
   const [searchValue, setSearchValue] = useState('')
   const [startsAt, setStartsAt] = useState<number | null>(null)
-  const [duration, setDuration] = useState<number>(60)
-  const [capacity, setCapacity] = useState(0)
+  const [endsAt, setEndsAt] = useState<number | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [language, setLanguage] = useState(locale === 'ar' ? 'ar' : locale)
@@ -94,7 +87,7 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
     step === 1
       ? !!venue
       : step === 2
-        ? startsAt !== null && startsAt > Date.now()
+        ? startsAt !== null && endsAt !== null && startsAt > Date.now()
         : title.length >= 3 && description.length >= 10
 
   const stepTitle = step === 1 ? host_step1({}, { locale }) : step === 2 ? host_step2({}, { locale }) : host_step3({}, { locale })
@@ -114,17 +107,17 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
         <span className="truncate text-xs font-semibold text-base-content">{venue.name}</span>
       </span>
     ) : null,
-    startsAt !== null ? (
+    startsAt !== null && endsAt !== null ? (
       <span key="time" className="flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-base-300/70 bg-base-100 px-2.5 py-1 shadow-sm">
         <CalendarClock className="size-3.5 shrink-0 text-primary" />
         <span className="truncate text-xs font-semibold text-base-content">{whenLabel}</span>
-        <span className="shrink-0 rounded-full bg-primary/10 px-1.5 text-[10px] font-bold text-primary">{host_duration_min({ n: duration }, { locale })}</span>
+        <span className="shrink-0 rounded-full bg-primary/10 px-1.5 text-[10px] font-bold text-primary">{host_duration_min({ n: Math.round((endsAt - startsAt) / 60_000) }, { locale })}</span>
       </span>
     ) : null,
   ]
 
   const handlePublish = async () => {
-    if (!venue || startsAt === null) return
+    if (!venue || startsAt === null || endsAt === null) return
     setPublishing(true)
     setPublishError(null)
     try {
@@ -137,8 +130,8 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
           description,
           venue: venue.name,
           startsAt,
-          endsAt: startsAt + duration * 60_000,
-          capacity,
+          endsAt,
+          capacity: 0,
           language,
           category,
         },
@@ -195,26 +188,15 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
 
                   {step === 2 && (
                     <div className="space-y-4">
-                      <DatetimePicker value={startsAt} onChange={setStartsAt} locale={locale} />
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className="form-control">
-                          <span className="mb-1 text-sm text-base-content/70">{host_duration({}, { locale })}</span>
-                          <select className="select select-bordered" value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
-                            {DURATIONS.map((d) => <option key={d} value={d}>{host_duration_min({ n: d }, { locale })}</option>)}
-                          </select>
-                        </label>
-                        <label className="form-control">
-                          <span className="mb-1 text-sm text-base-content/70">{host_capacity({}, { locale })}</span>
-                          <select className="select select-bordered" value={capacity} onChange={(e) => setCapacity(Number(e.target.value))}>
-                            <option value={0}>{host_capacity_unlimited({}, { locale })}</option>
-                            <option value={5}>5</option>
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                          </select>
-                        </label>
-                      </div>
+                      <DatetimePicker
+                        startsAt={startsAt}
+                        endsAt={endsAt}
+                        onChange={(s, e) => {
+                          setStartsAt(s)
+                          setEndsAt(e)
+                        }}
+                        locale={locale}
+                      />
                     </div>
                   )}
 

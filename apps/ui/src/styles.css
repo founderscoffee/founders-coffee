@@ -1,7 +1,7 @@
-
-@import "@founders-coffee/ui/styles.css";
-@import "react-day-picker/style.css";
-@import "mapbox-gl/dist/mapbox-gl.css";
+@import '@founders-coffee/ui/styles.css';
+@import 'react-day-picker/style.css';
+@import 'mapbox-gl/dist/mapbox-gl.css';
+@import 'timepicker-ui/main.css';
 @source "../../../libs/ui/src";
 
 * {
@@ -30,17 +30,23 @@ mapbox-search-box input {
   border-radius: 0.75rem !important;
   border: 1px solid var(--color-base-300) !important;
   background: var(--color-base-100) !important;
-  box-shadow: 0 1px 2px rgba(44, 27, 18, 0.04), 0 4px 16px rgba(44, 27, 18, 0.04) !important;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  box-shadow:
+    0 1px 2px rgba(44, 27, 18, 0.04),
+    0 4px 16px rgba(44, 27, 18, 0.04) !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease !important;
 }
 
 mapbox-search-box input:focus {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 4px rgba(74, 56, 44, 0.12), 0 8px 24px rgba(44, 27, 18, 0.08) !important;
+  box-shadow:
+    0 0 0 4px rgba(74, 56, 44, 0.12),
+    0 8px 24px rgba(44, 27, 18, 0.08) !important;
   outline: none !important;
 }
 
-mapbox-search-box [role="listbox"] {
+mapbox-search-box [role='listbox'] {
   border-radius: 0.75rem !important;
   border: 1px solid var(--color-base-300) !important;
   box-shadow: 0 16px 40px rgba(44, 27, 18, 0.14) !important;
@@ -48,35 +54,97 @@ mapbox-search-box [role="listbox"] {
   margin-top: 6px !important;
 }
 
-mapbox-search-box [role="option"] {
+mapbox-search-box [role='option'] {
   padding-block: 0.6rem !important;
 }
 
 /* micro-interactions */
 @keyframes host-fade-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.host-fade-up { animation: host-fade-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.host-fade-up {
+  animation: host-fade-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
 
 @keyframes host-pin-drop {
-  0% { transform: translateY(-14px); opacity: 0; }
-  60% { transform: translateY(3px); }
-  100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(3px);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
-.host-pin { animation: host-pin-drop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.host-pin {
+  animation: host-pin-drop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
 
 @keyframes host-pin-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(74, 56, 44, 0.4); }
-  70% { box-shadow: 0 0 0 16px rgba(74, 56, 44, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(74, 56, 44, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 56, 44, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(74, 56, 44, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 56, 44, 0);
+  }
 }
-.host-pin-pulse { animation: host-pin-pulse 2.2s ease-out infinite; }
+.host-pin-pulse {
+  animation: host-pin-pulse 2.2s ease-out infinite;
+}
 
 /* warm coffee backdrop for the wizard */
 .host-wizard-bg {
   background:
-    radial-gradient(1200px 480px at 15% -10%, rgba(245, 158, 11, 0.10), transparent 60%),
-    radial-gradient(1000px 420px at 95% 0%, rgba(217, 119, 87, 0.08), transparent 55%);
+    radial-gradient(
+      1200px 480px at 15% -10%,
+      rgba(245, 158, 11, 0.1),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 420px at 95% 0%,
+      rgba(217, 119, 87, 0.08),
+      transparent 55%
+    );
 }
 
+/* timepicker-ui → warm-cafe theme (single instance in the host wizard). Overrides the default
+   Material-3 purple palette on both the input wrapper and the body-appended modal. */
+.tp-ui-wrapper,
+.tp-ui-modal {
+  --tp-primary: #4a382c;
+  --tp-primary-rgb: 74, 56, 44;
+  --tp-on-primary: #faf6f0;
+  --tp-primary-container: #eae3d5;
+  --tp-on-primary-container: #2a211a;
+  --tp-bg: #faf6f0;
+  --tp-surface: #fffdfb;
+  --tp-surface-container: #f3ece0;
+  --tp-surface-hover: #eae3d5;
+  --tp-input-bg: #fffdfb;
+  --tp-text: #2a211a;
+  --tp-text-secondary: #6b5d4f;
+  --tp-on-surface: #2a211a;
+  --tp-on-surface-variant: #6b5d4f;
+  --tp-outline: #4a382c;
+  --tp-outline-variant: #eae3d5;
+  --tp-am-pm-active: #eae3d5;
+  --tp-border: #eae3d5;
+  --tp-hover-bg: #eae3d5;
+}
+
+.tp-ui-wrapper-time {
+  direction: initial !important;
+}
