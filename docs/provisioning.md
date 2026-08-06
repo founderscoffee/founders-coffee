@@ -4,6 +4,24 @@ Implements **P0-019**. Runbook for standing up both deploy environments. Resourc
 from [`libs/infra/src/resources.ts`](../libs/infra/src/resources.ts); every account-scoped resource is
 created once per environment with an `-staging` / `-production` suffix.
 
+## Status
+
+Steps 1–5 are **done** for both environments and staging is serving on
+`https://staging.founders.coffee`. Step 6 (Email Sending DNS, Cloudflare Access for `apps/admin`,
+the `www` redirect) is still outstanding, and the third-party secrets below are unset — each degrades
+a feature rather than breaking the deploy, except where noted.
+
+| Unset secret | Consequence |
+| ------------ | ----------- |
+| `MAPBOX_TOKEN` | The café map picker on `/host/create` cannot load. |
+| `TURNSTILE_SECRET_KEY` | No bot protection on signup / login / RSVP (AGENTS.md §10 requires it). |
+| `TWILIO_SID` / `TWILIO_AID` / `TWILIO_SEC` | Phone-OTP silently falls back to `DevSmsProvider`, which **logs the OTP instead of sending it** — anyone able to read Worker logs can log in as any phone number. Set these before exposing signup. |
+| `FIREBASE_*` | Web push disabled; `getFirebaseConfig` returns `null`. |
+| `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` | `apps/admin` rejects every request until Access is configured. |
+
+Email Sending is the other hard gap: until the SPF/DKIM/DMARC records exist, the `EMAIL` binding
+cannot send, so email-OTP login and RSVP notifications fail in both deployed environments.
+
 ## What each environment needs
 
 | Resource | Staging | Production | Provisioned by |
@@ -52,21 +70,24 @@ npx wrangler vectorize create founders-coffee-embeddings-production --dimensions
 
 ## 2. Record the D1 IDs in the wrangler configs
 
-`wrangler d1 create` prints a `database_id`. Replace the placeholders in both files — each appears
-twice, once per environment:
+`wrangler d1 create` prints a `database_id`. It is an account-scoped identifier, not a credential —
+it is useless without the API token — so it is committed in the wrangler configs.
 
-| File | Placeholder |
-| ---- | ----------- |
-| `apps/ui/wrangler.jsonc` | `PROVISION_STAGING_D1_ID`, `PROVISION_PRODUCTION_D1_ID` |
-| `apps/worker-jobs/wrangler.jsonc` | `PROVISION_STAGING_D1_ID`, `PROVISION_PRODUCTION_D1_ID` |
+| Environment | Database ID | Region |
+| ----------- | ----------- | ------ |
+| staging | `cbbba018-a4e3-491a-9a02-7995aa45315b` | WEUR |
+| production | `7685fda1-7bc0-4907-a37a-a77e8daa5ecb` | WEUR |
+
+`--location weur` puts the primary near the Maghreb/EU user base (AGENTS.md §11.5).
 
 The top-level `LOCAL_DEV_ONLY` value is deliberate: Miniflare keys local D1 off `database_name`, and
 the top-level config is never deployed.
 
-| Environment | Database ID |
-| ----------- | ----------- |
-| staging | _record after creation_ |
-| production | _record after creation_ |
+> **Always pass `--env` to `wrangler d1` commands.** The top-level config declares
+> `database_name: founders-coffee-db-staging` with the `LOCAL_DEV_ONLY` id, so a bare
+> `wrangler d1 execute founders-coffee-db-staging --remote` resolves to that placeholder and fails
+> against `/d1/database/LOCAL_DEV_ONLY/`. Production has no top-level entry, so it silently falls
+> back to an API lookup by name and appears to work — the inconsistency is the trap.
 
 ## 3. Apply migrations
 
@@ -77,9 +98,23 @@ npm run migrate:production
 
 ## 4. Seed the markets
 
-The market rows (DZ, EG, SA — all `active`) are seeded idempotently by
+The market rows (DZ, EG, SA — all `active`) are defined in
 [`libs/db/src/seed.ts`](../libs/db/src/seed.ts). Cities are **not** in D1; the 6,518-city datasets are
 server-side TS files in `libs/domain/src/geo/data/`.
+
+`seed()` takes a Drizzle `Db` and today has no caller outside the test suite, so a deployed database
+must be seeded with the equivalent idempotent SQL. Without it every market lookup misses and the
+site cannot render:
+
+```sh
+cd apps/worker-jobs
+npx wrangler d1 execute founders-coffee-db-staging --remote --env staging \
+  --command "INSERT INTO markets (code, name, name_ar, slug, default_locale, default_currency, timezone, direction, state, feature_flags) VALUES ('DZ','Algeria','الجزائر','algeria','ar','DZD','Africa/Algiers','rtl','active','{\"events\":true,\"hackathons\":false,\"payments\":false,\"recruiting\":false}') ON CONFLICT (code) DO NOTHING"
+```
+
+Repeat per market and per environment. Folding this into a migration (so every environment,
+including a fresh local one, self-seeds through the existing CI migration step) is the obvious
+follow-up — it would also remove the second source of truth this command creates.
 
 ## 5. Set secrets per environment
 
@@ -116,10 +151,17 @@ for `www` rather than a second custom domain.
 ## 7. Verify
 
 ```sh
-npx wrangler d1 execute founders-coffee-db-staging --remote --command "select code, state from markets"
+cd apps/worker-jobs
+npx wrangler d1 execute founders-coffee-db-staging --remote --env staging \
+  --command "select code, state from markets"
 npx wrangler vectorize get founders-coffee-embeddings-staging
-cd apps/worker-jobs && npx wrangler deploy --dry-run --env production
+npx wrangler deploy --dry-run --env production
 ```
+
+A plain `curl` against a deployed app returns **403 Forbidden**: the CSRF middleware in
+`apps/ui/src/start.ts` accepts only `Sec-Fetch-Site: none` or `same-origin`, and curl sends no such
+header. Add `-H 'Sec-Fetch-Site: none'` to smoke-test from the shell. The first response is then a
+`307` to the geo-resolved market (`/algeria` from an Algerian edge), not a `200`.
 
 ## Plan notes
 

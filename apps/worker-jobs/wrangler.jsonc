@@ -35,7 +35,7 @@
         {
           "binding": "DB",
           "database_name": "founders-coffee-db-staging",
-          "database_id": "PROVISION_STAGING_D1_ID",
+          "database_id": "cbbba018-a4e3-491a-9a02-7995aa45315b",
           "migrations_dir": "../../libs/db/migrations"
         }
       ],
@@ -51,7 +51,7 @@
         {
           "binding": "DB",
           "database_name": "founders-coffee-db-production",
-          "database_id": "PROVISION_PRODUCTION_D1_ID",
+          "database_id": "7685fda1-7bc0-4907-a37a-a77e8daa5ecb",
           "migrations_dir": "../../libs/db/migrations"
         }
       ],
