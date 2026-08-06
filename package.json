@@ -16,18 +16,19 @@
     "affected:test": "nx affected -t test",
     "ui:dev": "npm -w apps/ui run dev",
     "ui:build": "npm -w apps/ui run build",
-    "ui:deploy": "npm -w apps/ui run deploy",
     "ui:preview": "npm -w apps/ui run preview",
     "dashboard:dev": "npm -w apps/dashboard run dev",
     "dashboard:build": "npm -w apps/dashboard run build",
-    "dashboard:deploy": "npm -w apps/dashboard run deploy",
     "dashboard:preview": "npm -w apps/dashboard run preview",
     "admin:dev": "npm -w apps/admin run dev",
     "admin:build": "npm -w apps/admin run build",
-    "admin:deploy": "npm -w apps/admin run deploy",
     "admin:preview": "npm -w apps/admin run preview",
     "worker-jobs:dev": "npm -w apps/worker-jobs run dev",
-    "worker-jobs:deploy": "npm -w apps/worker-jobs run deploy"
+    "migrate:local": "nx run worker-jobs:migrate:local",
+    "migrate:staging": "nx run worker-jobs:migrate:staging",
+    "migrate:production": "nx run worker-jobs:migrate:production",
+    "deploy:staging": "nx run-many -t deploy:staging",
+    "deploy:production": "nx run-many -t deploy:production"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",

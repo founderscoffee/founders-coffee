@@ -13,11 +13,20 @@
         "cwd": "apps/admin"
       }
     },
-    "deploy": {
+    "deploy:staging": {
       "executor": "nx:run-commands",
       "options": {
         "command": "vite build && wrangler deploy",
-        "cwd": "apps/admin"
+        "cwd": "apps/admin",
+        "env": { "CLOUDFLARE_ENV": "staging" }
+      }
+    },
+    "deploy:production": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vite build && wrangler deploy",
+        "cwd": "apps/admin",
+        "env": { "CLOUDFLARE_ENV": "production" }
       }
     },
     "generate-routes": {

@@ -1,0 +1,50 @@
+name: CI
+
+# Runs on every pull request and on every push to main, and is called by deploy.yml as a
+# gate before any Cloudflare deploy. Needs no Cloudflare credentials: the integration
+# tests run against Miniflare (real local D1/Queues/Email bindings), not the live account.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck, lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Restore Nx cache
+        uses: actions/cache@v4
+        with:
+          path: .nx/cache
+          key: nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            nx-${{ runner.os }}-
+
+      - run: npm ci
+
+      # `nx.json` sets `sync.applyChanges: true`, so local runs silently repair the
+      # tsconfig project references. This asserts the repaired state was committed.
+      - name: Check Nx tsconfig project references are in sync
+        run: npx nx sync:check
+
+      # `lint` includes the Nx module-boundary rules that enforce the one-directional
+      # data flow (AGENTS.md §4), so a boundary violation fails CI here.
+      - name: Typecheck, lint and test
+        run: npx nx run-many -t typecheck lint test

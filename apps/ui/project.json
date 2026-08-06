@@ -13,11 +13,20 @@
         "cwd": "apps/ui"
       }
     },
-    "deploy": {
+    "deploy:staging": {
       "executor": "nx:run-commands",
       "options": {
         "command": "vite build && wrangler deploy",
-        "cwd": "apps/ui"
+        "cwd": "apps/ui",
+        "env": { "CLOUDFLARE_ENV": "staging" }
+      }
+    },
+    "deploy:production": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vite build && wrangler deploy",
+        "cwd": "apps/ui",
+        "env": { "CLOUDFLARE_ENV": "production" }
       }
     },
     "generate-routes": {

@@ -5,17 +5,60 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/index.ts",
   "observability": { "enabled": true },
+
+  // ── Top-level = local dev (`wrangler dev`, Miniflare) ────────────────────────────────────────
+  // Deploys always target a named environment below. Workers AI and Vectorize are not emulated by
+  // Miniflare (see docs/ai.md), so those bindings only do real work once deployed.
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "founders-coffee-db",
-      "database_id": "PROVISIONED_AT_P0-019"
+      "database_name": "founders-coffee-db-staging",
+      "database_id": "LOCAL_DEV_ONLY",
+      "migrations_dir": "../../libs/db/migrations"
     }
   ],
   "send_email": [{ "name": "EMAIL" }],
   "ai": { "binding": "AI" },
-  "vectorize": [
-    { "binding": "VECTOR", "index_name": "founders-coffee-embeddings" }
-  ],
-  "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] }
+  "vectorize": [{ "binding": "VECTOR", "index_name": "founders-coffee-embeddings-staging" }],
+  "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
+
+  // ── Deploy environments ──────────────────────────────────────────────────────────────────────
+  // This app has no Vite build, so it deploys with `wrangler deploy --env <name>` (unlike the three
+  // TanStack apps, which select their environment at build time via `CLOUDFLARE_ENV`).
+  // No routes and no workers.dev subdomain: the two cron triggers are the only entry points.
+  // `*/1 * * * *` drives the scheduled-notification sweep, `0 3 * * *` the payment-backlog reconcile.
+  "env": {
+    "staging": {
+      "name": "founders-coffee-worker-jobs-staging",
+      "workers_dev": false,
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "founders-coffee-db-staging",
+          "database_id": "PROVISION_STAGING_D1_ID",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "send_email": [{ "name": "EMAIL" }],
+      "ai": { "binding": "AI" },
+      "vectorize": [{ "binding": "VECTOR", "index_name": "founders-coffee-embeddings-staging" }],
+      "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] }
+    },
+    "production": {
+      "name": "founders-coffee-worker-jobs-production",
+      "workers_dev": false,
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "founders-coffee-db-production",
+          "database_id": "PROVISION_PRODUCTION_D1_ID",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "send_email": [{ "name": "EMAIL" }],
+      "ai": { "binding": "AI" },
+      "vectorize": [{ "binding": "VECTOR", "index_name": "founders-coffee-embeddings-production" }],
+      "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] }
+    }
+  }
 }

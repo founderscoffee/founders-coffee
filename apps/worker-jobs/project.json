@@ -19,10 +19,38 @@
         "cwd": "apps/worker-jobs"
       }
     },
-    "deploy": {
+    "deploy:staging": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "wrangler deploy",
+        "command": "wrangler deploy --env staging",
+        "cwd": "apps/worker-jobs"
+      }
+    },
+    "deploy:production": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "wrangler deploy --env production",
+        "cwd": "apps/worker-jobs"
+      }
+    },
+    "migrate:staging": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "wrangler d1 migrations apply founders-coffee-db-staging --remote --env staging",
+        "cwd": "apps/worker-jobs"
+      }
+    },
+    "migrate:production": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "wrangler d1 migrations apply founders-coffee-db-production --remote --env production",
+        "cwd": "apps/worker-jobs"
+      }
+    },
+    "migrate:local": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "wrangler d1 migrations apply founders-coffee-db-staging --local",
         "cwd": "apps/worker-jobs"
       }
     }

@@ -1,0 +1,84 @@
+name: Deploy
+
+# A push to develop deploys staging automatically. Production is deliberately NOT
+# triggered by pushing to main: it requires an explicit manual run, which is the approval
+# gate. GitHub's required-reviewer protection rule would be the better mechanism, but it
+# needs GitHub Pro/Team on a private repository — see docs/ci.md for how to switch once
+# the plan allows it.
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target Cloudflare environment
+        type: choice
+        options: [staging, production]
+        required: true
+        default: staging
+
+# Deploys are never cancelled mid-flight: interrupting between the migration step and
+# the Worker deploy would leave the schema ahead of the code.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    name: Resolve target environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.pick.outputs.environment }}
+    steps:
+      # Production may only be deployed from `main`, so a manual run against a feature
+      # branch cannot reach it. A push to develop always resolves to staging.
+      - id: pick
+        env:
+          REQUESTED: ${{ inputs.environment }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          RESOLVED="${REQUESTED:-staging}"
+          if [ "$RESOLVED" = "production" ] && [ "$BRANCH" != "main" ]; then
+            echo "::error::Refusing to deploy production from '$BRANCH'. Run this workflow from main."
+            exit 1
+          fi
+          echo "environment=$RESOLVED" >> "$GITHUB_OUTPUT"
+          echo "Deploying to $RESOLVED (ref: $BRANCH)"
+
+  verify:
+    name: Verify
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Migrate and deploy
+    needs: [resolve, verify]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve.outputs.environment }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TARGET_ENV: ${{ needs.resolve.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Migrations run before any build. The Cloudflare Vite plugin writes a flattened
+      # `.wrangler/deploy/config.json` during `vite build`, which redirects later wrangler
+      # commands in that directory and makes `--env` invalid — so schema first, then code.
+      - name: Apply D1 migrations
+        run: npx nx run worker-jobs:migrate:${{ env.TARGET_ENV }}
+
+      # `--parallel=1` keeps the four Workers' logs readable and makes a partial failure
+      # unambiguous. apps/ui, apps/dashboard and apps/admin select their environment via
+      # CLOUDFLARE_ENV at build time; apps/worker-jobs uses `wrangler deploy --env`.
+      - name: Deploy Workers
+        run: npx nx run-many -t deploy:${{ env.TARGET_ENV }} --parallel=1 --output-style=stream

@@ -5,39 +5,93 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
   "observability": { "enabled": true },
-  "vars": { "APP_URL": "http://localhost:3000", "MAIL_FROM": "no-reply@founders.coffee", "MAPBOX_TOKEN": "" },
-  // Outgoing email (OTP codes). `destination_address` left unrestricted; the sender (`MAIL_FROM`)
-  // must be a Cloudflare-verified address at deploy (P0-019). Dev uses DevEmailProvider regardless.
+
+  // Durable Objects must be SQLite-backed: key-value backed namespaces can no longer be created
+  // (Cloudflare changelog 2026-07-09) and the Workers Free plan never supported them. Both classes
+  // only use the `ctx.storage.get/put` KV API, which SQLite-backed objects implement natively.
+  // `script_name` is deliberately absent — the DO classes live in THIS script, and naming it would
+  // pin every environment to the production script.
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["EventLiveDO"] },
+    { "tag": "v2", "new_sqlite_classes": ["RateLimiterDO"] }
+  ],
+
+  // ── Top-level = local dev (`vite dev`, Miniflare) ────────────────────────────────────────────
+  // Deploys always target a named environment below, so nothing here reaches Cloudflare.
+  // `database_id` is unused by Miniflare, which keys local D1 off `database_name`.
+  "vars": {
+    "APP_URL": "http://localhost:3000",
+    "MAIL_FROM": "no-reply@founders.coffee"
+  },
   "send_email": [{ "name": "EMAIL" }],
-  // `database_id` is a placeholder until P0-019 provisions the real D1; dev (Miniflare) works,
-  // `wrangler deploy` is gated on P0-019. `migrations_dir` points at the shared libs/db schema
-  // (`wrangler d1 migrations apply founders-coffee --local`).
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "founders-coffee-db",
-      "database_id": "PLACEHOLDER_P0-019",
+      "database_name": "founders-coffee-db-staging",
+      "database_id": "LOCAL_DEV_ONLY",
       "migrations_dir": "../../libs/db/migrations"
     }
   ],
-  // Durable Objects — one DO per in-progress event (P1-010).
-  // EventLiveDO manages real-time WebSocket connections for the live dashboard.
   "durable_objects": {
     "bindings": [
-      {
-        "name": "EVENT_LIVE",
-        "class_name": "EventLiveDO",
-        "script_name": "founders-coffee-ui"
-      },
-      {
-        "name": "RATE_LIMITER",
-        "class_name": "RateLimiterDO",
-        "script_name": "founders-coffee-ui"
-      }
+      { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
+      { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" }
     ]
   },
-  "migrations": [
-    { "tag": "v1", "new_classes": ["EventLiveDO"] },
-    { "tag": "v2", "new_sqlite_classes": ["RateLimiterDO"] }
-  ]
+
+  // ── Deploy environments ──────────────────────────────────────────────────────────────────────
+  // Bindings (`vars`, `durable_objects`, `d1_databases`, `send_email`) are non-inheritable and are
+  // restated per environment on purpose. Selected at BUILD time via `CLOUDFLARE_ENV` — the
+  // Cloudflare Vite plugin flattens the chosen environment into the deploy config, so
+  // `wrangler deploy` takes no `--env` flag for this app.
+  "env": {
+    "staging": {
+      "name": "founders-coffee-ui-staging",
+      "workers_dev": true,
+      "routes": [{ "pattern": "staging.founders.coffee", "custom_domain": true }],
+      "vars": {
+        "APP_URL": "https://staging.founders.coffee",
+        "MAIL_FROM": "no-reply@founders.coffee"
+      },
+      "send_email": [{ "name": "EMAIL" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "founders-coffee-db-staging",
+          "database_id": "PROVISION_STAGING_D1_ID",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
+          { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" }
+        ]
+      }
+    },
+    "production": {
+      "name": "founders-coffee-ui-production",
+      "workers_dev": false,
+      "routes": [{ "pattern": "founders.coffee", "custom_domain": true }],
+      "vars": {
+        "APP_URL": "https://founders.coffee",
+        "MAIL_FROM": "no-reply@founders.coffee"
+      },
+      "send_email": [{ "name": "EMAIL" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "founders-coffee-db-production",
+          "database_id": "PROVISION_PRODUCTION_D1_ID",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
+          { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" }
+        ]
+      }
+    }
+  }
 }

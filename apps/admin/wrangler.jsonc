@@ -4,6 +4,29 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "observability": { "enabled": true },
+
+  // `workers_dev: false` in every environment is a security requirement, not a preference: the
+  // in-Worker `Cf-Access-Jwt-Assertion` check in `src/access-guard.ts` is bypassable via the raw
+  // workers.dev URL, so the subdomain must stay disabled (AGENTS.md §10).
   "workers_dev": false,
-  "observability": { "enabled": true }
+
+  // Top-level = local dev. `CF_ACCESS_DISABLED=true` in `.dev.vars` bypasses the JWT guard locally;
+  // `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are secrets in the deployed environments.
+  "vars": { "APP_URL": "http://localhost:3002" },
+
+  "env": {
+    "staging": {
+      "name": "founders-coffee-admin-staging",
+      "workers_dev": false,
+      "routes": [{ "pattern": "admin-staging.founders.coffee", "custom_domain": true }],
+      "vars": { "APP_URL": "https://admin-staging.founders.coffee" }
+    },
+    "production": {
+      "name": "founders-coffee-admin-production",
+      "workers_dev": false,
+      "routes": [{ "pattern": "admin.founders.coffee", "custom_domain": true }],
+      "vars": { "APP_URL": "https://admin.founders.coffee" }
+    }
+  }
 }

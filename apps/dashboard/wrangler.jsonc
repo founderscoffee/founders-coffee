@@ -4,5 +4,24 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+
+  // Top-level = local dev. The sponsor portal (P3) has no server-fns wired yet, so it carries no
+  // D1 or auth bindings; those are added in the same change that wires them.
+  "vars": { "APP_URL": "http://localhost:3001" },
+
+  "env": {
+    "staging": {
+      "name": "founders-coffee-dashboard-staging",
+      "workers_dev": true,
+      "routes": [{ "pattern": "app-staging.founders.coffee", "custom_domain": true }],
+      "vars": { "APP_URL": "https://app-staging.founders.coffee" }
+    },
+    "production": {
+      "name": "founders-coffee-dashboard-production",
+      "workers_dev": false,
+      "routes": [{ "pattern": "app.founders.coffee", "custom_domain": true }],
+      "vars": { "APP_URL": "https://app.founders.coffee" }
+    }
+  }
 }
