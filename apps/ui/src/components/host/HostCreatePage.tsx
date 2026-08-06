@@ -1,14 +1,12 @@
 import { useNavigate } from '@tanstack/react-router'
-import { CalendarClock, Coffee, MapPin } from 'lucide-react'
+import { CalendarClock, MapPin } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
 
 import {
   host_back,
-  host_category,
   host_desc_label,
   host_desc_ph,
   host_duration_min,
-  host_language,
   host_next,
   host_page_sub,
   host_page_title,
@@ -39,20 +37,6 @@ import { Stepper } from './Stepper'
 const HostMap = lazy(() => import('./HostMap').then((m) => ({ default: m.HostMap })))
 const VenueSearch = lazy(() => import('./VenueSearch').then((m) => ({ default: m.VenueSearch })))
 
-const LANGUAGES = [
-  { value: 'ar', label: 'العربية', labelEn: 'Arabic' },
-  { value: 'en', label: 'English', labelEn: 'English' },
-  { value: 'fr', label: 'Français', labelEn: 'French' },
-  { value: 'ar_en', label: 'العربية + English', labelEn: 'Arabic + English' },
-  { value: 'ar_fr', label: 'العربية + Français', labelEn: 'Arabic + French' },
-] as const
-
-const CATEGORIES = [
-  { value: 'coffee-meetup', labelAr: 'لقاء قهوة', labelEn: 'Coffee Meetup' },
-  { value: 'workshop', labelAr: 'ورشة', labelEn: 'Workshop' },
-  { value: 'demo-day', labelAr: 'يوم العروض', labelEn: 'Demo Day' },
-] as const
-
 type HostCreatePageProps = {
   locale: Locale
   market: Market
@@ -71,8 +55,6 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
   const [endsAt, setEndsAt] = useState<number | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [language, setLanguage] = useState(locale === 'ar' ? 'ar' : locale)
-  const [category, setCategory] = useState('coffee-meetup')
   const [publishing, setPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
 
@@ -133,8 +115,8 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
           startsAt,
           endsAt,
           capacity: 0,
-          language,
-          category,
+          language: locale === 'ar' ? 'ar' : locale,
+          category: 'coffee-meetup',
         },
       })
       navigate({ to: '/$market', params: { market: market.slug } })
@@ -215,12 +197,6 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
 
                   {step === 3 && (
                     <div className="space-y-4">
-                      {venue && (
-                        <div className="rounded-xl bg-base-200/60 p-3 text-sm">
-                          <p className="flex items-center gap-1.5 font-semibold"><Coffee className="size-4" />{venue.name}</p>
-                          <p className="mt-0.5 text-base-content/60">{venue.address}</p>
-                        </div>
-                      )}
                       <label className="form-control">
                         <span className="mb-1 text-sm text-base-content/70">{host_title_label({}, { locale })}</span>
                         <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={host_title_ph({}, { locale })} maxLength={120} />
@@ -229,20 +205,6 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
                         <span className="mb-1 text-sm text-base-content/70">{host_desc_label({}, { locale })}</span>
                         <textarea className="textarea textarea-bordered" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={host_desc_ph({}, { locale })} maxLength={2000} />
                       </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className="form-control">
-                          <span className="mb-1 text-sm text-base-content/70">{host_language({}, { locale })}</span>
-                          <select className="select select-bordered" value={language} onChange={(e) => setLanguage(e.target.value)}>
-                            {LANGUAGES.map((l) => <option key={l.value} value={l.value}>{locale === 'ar' ? l.label : l.labelEn}</option>)}
-                          </select>
-                        </label>
-                        <label className="form-control">
-                          <span className="mb-1 text-sm text-base-content/70">{host_category({}, { locale })}</span>
-                          <select className="select select-bordered" value={category} onChange={(e) => setCategory(e.target.value)}>
-                            {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{locale === 'ar' ? c.labelAr : c.labelEn}</option>)}
-                          </select>
-                        </label>
-                      </div>
                       {publishError && <p className="text-sm text-error" role="alert">{publishError}</p>}
                     </div>
                   )}
