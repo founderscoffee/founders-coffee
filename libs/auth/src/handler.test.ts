@@ -83,6 +83,47 @@ describe('libs/auth handler — captcha gating (real D1 via Miniflare)', () => {
     expect(res.headers.get('set-cookie')).toContain('=');
   });
 
+  it('waits for an async email provider to finish before responding', async () => {
+    const sent: string[] = [];
+    const handler = createAuthHandler(
+      { ...baseEnv, TURNSTILE_DISABLED: 'true' },
+      {
+        emailProvider: {
+          sendOtp: async ({ email }) => {
+            await scheduler.wait(0);
+            sent.push(email);
+          },
+        },
+      },
+    );
+
+    const res = await handler(sendOtp('async-provider@example.dz'));
+
+    expect(res.status).toBe(200);
+    expect(sent).toEqual(['async-provider@example.dz']);
+  });
+
+  it('runs a failing provider to completion before responding, though Better Auth swallows the error', async () => {
+    const attempts: string[] = [];
+    const handler = createAuthHandler(
+      { ...baseEnv, TURNSTILE_DISABLED: 'true' },
+      {
+        emailProvider: {
+          sendOtp: async ({ email }) => {
+            await scheduler.wait(0);
+            attempts.push(email);
+            throw new Error('send failed');
+          },
+        },
+      },
+    );
+
+    const res = await handler(sendOtp('async-failure@example.dz'));
+
+    expect(attempts).toEqual(['async-failure@example.dz']);
+    expect(res.status).toBe(200);
+  });
+
   it('leaves ungated endpoints reachable without a captcha token', async () => {
     const handler = createAuthHandler(baseEnv, { emailProvider: new DevEmailProvider() });
 

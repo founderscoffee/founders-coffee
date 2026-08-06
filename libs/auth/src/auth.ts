@@ -135,7 +135,7 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
       }),
       emailOTP({
         sendVerificationOTP: async ({ email, otp, type }) => {
-          emailProvider.sendOtp({ email, otp, type });
+          await emailProvider.sendOtp({ email, otp, type });
         },
         storeOTP: 'hashed',
         otpLength: 6,

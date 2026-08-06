@@ -14,9 +14,10 @@ const OTP_SUBJECTS: Record<OtpType, string> = {
  * Adapter: Better Auth's email-OTP plugin calls `sendOtp({email, otp, type})`; this renders a
  * NotificationEmail with the code + sends it via the real Cloudflare Email binding (D13). The two
  * EmailProvider interfaces differ (auth's `sendOtp` vs email's structured `send → Result`), so the
- * bridge lives here, in the app. On send failure we log + throw — Better Auth surfaces it (the
- * send-verification-otp endpoint already acknowledges the email, so no extra existence leak). Locale
- * is the base `ar` (no session/market context at signup).
+ * bridge lives here, in the app. On send failure we log + throw, but Better Auth does not surface it:
+ * `runInBackgroundOrAwait` catches the rejection and still answers 200, so this log line is the only
+ * signal a code never left the building — alert on it. Locale is the base `ar` (no session/market
+ * context at signup).
  */
 export const createOtpEmailProvider = (
   emailBinding: SendEmail,
@@ -38,7 +39,7 @@ export const createOtpEmailProvider = (
       text,
     });
     if (!result.ok) {
-      logger.warn('otp_email_failed', { type, code: result.error.code });
+      logger.error('otp_email_failed', { type, code: result.error.code });
       throw result.error;
     }
   },
