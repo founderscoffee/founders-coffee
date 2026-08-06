@@ -108,9 +108,9 @@ no Twilio vars → `DevNotificationSmsProvider` (logs); no Firebase vars → pus
 | Var                         | Required | Description                                                     |
 | --------------------------- | -------- | --------------------------------------------------------------- |
 | `MAIL_FROM`                 | yes      | Sender email for notification mail (wrangler `var`). Same address as apps/ui. |
-| `TWILIO_AID`                | optional | Twilio Account SID (AC…) for Programmable SMS.                  |
-| `TWILIO_SEC`                | optional | Twilio Auth Token.                                              |
-| `TWILIO_SMS_FROM`           | optional | Sending number or messaging-service SID.                        |
+| `TWILIO_AID`                | optional | Twilio Account SID (AC…) for Programmable SMS. Must be the **live** SID, not the test one — test credentials return `20008` on every call. |
+| `TWILIO_SEC`                | optional | Twilio Auth Token (live, matching `TWILIO_AID`).                |
+| `TWILIO_SMS_FROM`           | optional | Alphanumeric sender ID, sent as Twilio's `From` (wrangler `var`, not a secret). DZ supports dynamic alpha senders with no pre-registration, but Mobilis rejects generic IDs, so it must read as the brand. A messaging-service SID (`MG…`) will **not** work — that needs a separate `MessagingServiceSid` parameter. Numeric senders fail on Mobilis. |
 | `FIREBASE_PROJECT_ID`       | optional | FCM project id.                                                 |
 | `FIREBASE_SERVICE_ACCOUNT`  | optional | Full service-account JSON. Set with `wrangler secret put … < file`. |
 
