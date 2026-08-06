@@ -1,5 +1,6 @@
 import { createAuth, type AuthDeps, type AuthEnv } from './auth.js';
 import {
+  DenyTurnstileVerifier,
   DevTurnstileVerifier,
   TurnstileSiteVerifier,
   type TurnstileVerifier,
@@ -30,6 +31,19 @@ const isTurnstileGated = (pathname: string, method: string): boolean =>
   TURNSTILE_SUFFIXES.some((suffix) => pathname.endsWith(suffix));
 
 /**
+ * Select the verifier for the gated endpoints. The bypass requires an explicit
+ * `TURNSTILE_DISABLED=true`; a merely *absent* secret key denies instead, because these endpoints
+ * send SMS and email on the account's bill and an unprotected `/phone-number/send-otp` is an open
+ * SMS-pumping relay. Failing closed turns a forgotten secret into a visible outage rather than a
+ * silent hole (AGENTS.md §10).
+ */
+const selectTurnstileVerifier = (env: HandlerEnv): TurnstileVerifier => {
+  if (env.TURNSTILE_DISABLED === 'true') return new DevTurnstileVerifier();
+  if (!env.TURNSTILE_SECRET_KEY) return new DenyTurnstileVerifier();
+  return new TurnstileSiteVerifier(env.TURNSTILE_SECRET_KEY);
+};
+
+/**
  * Build the Better Auth HTTP handler for an app, with Turnstile gating on the
  * brute-force endpoints. Construct per request (the handler is cheap; the auth
  * instance inside must not be a module singleton — see createAuth). `deps`
@@ -38,10 +52,7 @@ const isTurnstileGated = (pathname: string, method: string): boolean =>
  */
 export const createAuthHandler = (env: HandlerEnv, deps: AuthDeps = {}) => {
   const { auth } = createAuth(env, deps);
-  const turnstile: TurnstileVerifier =
-    env.TURNSTILE_DISABLED === 'true' || !env.TURNSTILE_SECRET_KEY
-      ? new DevTurnstileVerifier()
-      : new TurnstileSiteVerifier(env.TURNSTILE_SECRET_KEY);
+  const turnstile: TurnstileVerifier = selectTurnstileVerifier(env);
 
   return async (request: Request): Promise<Response> => {
     const url = new URL(request.url);

@@ -36,3 +36,12 @@ export class TurnstileSiteVerifier implements TurnstileVerifier {
 export class DevTurnstileVerifier implements TurnstileVerifier {
   verify = async (): Promise<boolean> => true;
 }
+
+/**
+ * Deny verifier: always fails. Used when no secret key is configured and the bypass was not
+ * explicitly requested, so a misconfigured deployment refuses the gated endpoints instead of
+ * silently serving them unprotected (AGENTS.md §10).
+ */
+export class DenyTurnstileVerifier implements TurnstileVerifier {
+  verify = async (): Promise<boolean> => false;
+}

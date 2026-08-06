@@ -44,9 +44,21 @@ in the repository; both are read server-side and handed to the client by a serve
 
 | Var                    | Required | Description                                                                                             |
 | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| `TURNSTILE_SECRET_KEY` | optional | Server-side siteverify key. Omit / `TURNSTILE_DISABLED=true` in dev.                                    |
-| `TURNSTILE_DISABLED`   | optional | `"true"` bypasses Turnstile in local dev.                                                               |
+| `TURNSTILE_SECRET_KEY` | yes      | Server-side siteverify key. **Omitting it denies the gated endpoints**, it does not disable the check.   |
+| `TURNSTILE_DISABLED`   | optional | `"true"` bypasses Turnstile. The only bypass — local dev only, never in a deployed environment.          |
 | `TURNSTILE_SITE_KEY`   | public   | Client-side site key (safe to expose in client bundles). Dev: `1x00000000000000000000AA` (always-pass). |
+
+`TURNSTILE_SECRET_KEY` and `TURNSTILE_SITE_KEY` must be set **together**. `getPublicAuthConfig`
+returns `turnstileSiteKey: null` when the site key is absent, so the widget never renders, the client
+sends no token, and siteverify rejects every request — a secret key without a site key locks users
+out of login entirely.
+
+The gate fails **closed** (`selectTurnstileVerifier` in `libs/auth/src/handler.ts`): the bypass
+requires an explicit `TURNSTILE_DISABLED=true`, and a merely absent secret key denies. These
+endpoints spend money — an unprotected `/phone-number/send-otp` is an open SMS-pumping relay against
+the Twilio account — so a forgotten secret must be a visible outage, not a silent hole (AGENTS.md
+§10). The dev-only `1x00000000000000000000AA` site key and `TURNSTILE_DISABLED` must never be set on
+a deployed environment.
 
 ### SMS / Twilio Verify (`libs/auth` phoneNumber provider) — apps/ui, apps/dashboard, apps/admin
 
