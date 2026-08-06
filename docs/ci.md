@@ -124,7 +124,24 @@ afterwards so local `wrangler` commands stop being redirected to the built confi
 
 ## Why CI can fail where local passes
 
-Two traps, both already hit and fixed — worth knowing before adding an app or a Worker binding.
+Three traps, all already hit and fixed — worth knowing before adding an app or a Worker binding.
+
+**Gitignored codegen that no target depends on.** `libs/i18n/src/index.ts` re-exports
+`./paraglide/messages.js` and `./paraglide/runtime.js`, which `paraglide-js compile` generates into a
+gitignored directory. `i18n`'s own `typecheck`, `build` and `test` targets declare
+`dependsOn: ["generate-i18n"]`, but the app `deploy:*` targets did not — so the staging deploy failed
+with `UNRESOLVED_IMPORT` on a fresh checkout while passing locally, where the directory lingered from
+an earlier run. `public`'s `typecheck` and both `deploy` targets now depend on `i18n:generate-i18n`
+explicitly. `apps/dashboard` and `apps/admin` import no i18n, directly or transitively, so they are
+deliberately left out. Reproduce with:
+
+```sh
+rm -rf libs/i18n/src/paraglide && npx nx run public:deploy:staging
+```
+
+The general rule: any target that bundles a library's *source* needs that library's codegen as a
+`dependsOn`. Depending on `^build` is not enough, because Vite compiles `libs/*/src` directly and
+never reads the `tsc` output.
 
 **Generated Cloudflare types.** `worker-configuration.d.ts` is produced by `wrangler types` and is
 gitignored, so it exists on a developer machine and never in CI. `apps/ui` originally relied on it for

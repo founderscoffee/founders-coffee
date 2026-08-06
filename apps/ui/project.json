@@ -7,7 +7,10 @@
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
-      "dependsOn": [{ "target": "generate-routes" }],
+      "dependsOn": [
+        { "target": "generate-routes" },
+        { "projects": ["i18n"], "target": "generate-i18n" }
+      ],
       "options": {
         "command": "tsc --noEmit -p tsconfig.json",
         "cwd": "apps/ui"
@@ -15,6 +18,7 @@
     },
     "deploy:staging": {
       "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": ["i18n"], "target": "generate-i18n" }],
       "options": {
         "command": "vite build && wrangler deploy",
         "cwd": "apps/ui",
@@ -23,6 +27,7 @@
     },
     "deploy:production": {
       "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": ["i18n"], "target": "generate-i18n" }],
       "options": {
         "command": "vite build && wrangler deploy",
         "cwd": "apps/ui",
