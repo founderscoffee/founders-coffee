@@ -36,14 +36,14 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
 
   const handleRsvp = () => {
     if (!isAuthenticated) {
-      navigate({ to: '/login', search: { redirect: window.location.pathname } });
+      void navigate({ to: '/login', search: { redirect: window.location.pathname } });
       return;
     }
     createRsvp.mutate(
       { data: { eventId: event.id } },
       {
         onSuccess: () => {
-          router.invalidate();
+          void router.invalidate();
           setShowPushPrompt(true);
         },
         onError: (error) => {

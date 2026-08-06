@@ -52,7 +52,7 @@ export const ProfilePage = ({ locale, profile, markets, states, cities }: Profil
     await updateProfileMutation.mutateAsync({ data: { marketCode: country, state: stateVal, city } })
     setEditing(false)
     setSaving(false)
-    navigate({ to: '/profile' })
+    void navigate({ to: '/profile' })
   }
 
   return (

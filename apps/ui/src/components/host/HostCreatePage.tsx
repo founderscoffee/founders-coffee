@@ -119,7 +119,7 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
           category: 'coffee-meetup',
         },
       })
-      navigate({ to: '/$market', params: { market: market.slug } })
+      void navigate({ to: '/$market', params: { market: market.slug } })
     } catch {
       setPublishError(host_publish_error({}, { locale }))
     } finally {

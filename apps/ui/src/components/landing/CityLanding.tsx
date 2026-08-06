@@ -39,7 +39,7 @@ export const CityLanding = ({ locale, market, city, events }: CityLandingProps) 
   const items = data?.pages.flatMap((p) => p.items) ?? events
 
   const loadMore = () => {
-    fetchNextPage()
+    void fetchNextPage()
   }
 
   if (items.length === 0) {

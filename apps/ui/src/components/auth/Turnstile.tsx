@@ -44,7 +44,7 @@ export const Turnstile = ({
 
   useEffect(() => {
     let cancelled = false
-    loadTurnstile().then(() => {
+    void loadTurnstile().then(() => {
       if (cancelled || !containerRef.current) return
       const api = getTurnstile()
       if (!api) return

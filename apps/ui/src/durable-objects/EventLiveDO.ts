@@ -187,7 +187,7 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     /* Cookie-based auth — the 101 returns immediately; auth_ok/expired is sent once the session is
        verified from the browser's automatically-sent Cookie header (L4: the client can't read the
        httpOnly session cookie to send it as a message, so the DO reads it on upgrade). */
-    this.authenticateConnection(serverWs, clientWs, request);
+    void this.authenticateConnection(serverWs, clientWs, request);
 
     return new Response(null, { status: 101, webSocket: clientWs });
   };

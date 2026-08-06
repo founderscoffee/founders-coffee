@@ -165,4 +165,33 @@ export default [
       'local/no-server-fns-in-components': 'error',
     },
   },
+  /* Type-aware pass: a promise that is neither awaited, returned, nor handed to
+     ctx.waitUntil() is cancelled when a Worker invocation completes, so a floating
+     promise is silent data loss on this platform — an unawaited OTP send shipped a
+     200 with no email. Cloudflare recommends this exact rule. */
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'],
+    /* Mirrors what the tsconfigs exclude: type-aware rules need a file to belong to a
+       TS project, and tests/config/setup files deliberately sit outside them. */
+    ignores: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      '**/*.config.ts',
+      '**/*.config.mts',
+      '**/setup.ts',
+      '**/e2e/**',
+      'vitest.workspace.ts',
+    ],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+    },
+  },
 ];

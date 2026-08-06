@@ -135,7 +135,7 @@ export const HostMap = ({
         onClick={(e) => {
           const { lng, lat } = (e as { lngLat: { lng: number; lat: number } })
             .lngLat;
-          reverseGeocode(accessToken, lng, lat).then((rev) => {
+          void reverseGeocode(accessToken, lng, lat).then((rev) => {
             onVenueSelect({
               name: rev?.name ?? 'Selected location',
               address: rev?.address ?? `${lat.toFixed(4)}, ${lng.toFixed(4)}`,

@@ -51,7 +51,7 @@ export const OnboardingPage = ({ locale, markets, states, cities, initialCountry
     setSaving(true)
     await updateProfileMutation.mutateAsync({ data: { marketCode: country, state, city } })
     const marketSlug = markets.find((m) => m.code === country)?.slug ?? 'algeria'
-    navigate({ to: '/$market', params: { market: marketSlug } })
+    void navigate({ to: '/$market', params: { market: marketSlug } })
     setSaving(false)
   }
 

@@ -44,7 +44,7 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
       if (!node || !hasNextPage || isFetchingNextPage) return;
       const observer = new IntersectionObserver(
         (entries) => {
-          if (entries[0]?.isIntersecting) fetchNextPage();
+          if (entries[0]?.isIntersecting) void fetchNextPage();
         },
         { rootMargin: '200px' },
       );
