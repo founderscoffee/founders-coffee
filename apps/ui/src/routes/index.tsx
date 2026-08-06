@@ -1,8 +1,9 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { getCookies } from '@tanstack/react-start/server'
 
 import { appErrorCode } from '@founders-coffee/core'
 import { getGeoCountry, getMarketLanding } from '@founders-coffee/server-fns'
+
+import { readCookies } from '../lib/cookies'
 
 /** Algeria is the default market when geo-detection finds no match (SRS: Algeria-first). */
 const DEFAULT_MARKET_SLUG = 'algeria'
@@ -26,7 +27,7 @@ const tryMarketSlug = async (key: string): Promise<string | null> => {
  */
 export const Route = createFileRoute('/')({
   beforeLoad: async () => {
-    const remembered = getCookies()[GEO_COOKIE]
+    const remembered = readCookies()[GEO_COOKIE]
     const country = remembered ?? (await getGeoCountry())
     const slug = country ? await tryMarketSlug(country) : null
     const target = slug ?? DEFAULT_MARKET_SLUG

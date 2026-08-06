@@ -1,21 +1,19 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { getCookies } from '@tanstack/react-start/server'
 import { useEffect } from 'react'
 
-import { cookieName, detectLocale, direction } from '@founders-coffee/i18n'
+import { detectLocale, direction } from '@founders-coffee/i18n'
 import { configureClientLogger, logger, reportError } from '@founders-coffee/observability'
 import { getVisibleMarkets } from '@founders-coffee/server-fns'
 
 import { Footer } from '../components/shell/Footer'
 import { Navbar } from '../components/shell/Navbar'
 import { AppProviders } from '../lib/app-providers'
+import { readCookieHeader } from '../lib/cookies'
 
 import appCss from '../styles.css?url'
 
-const detectLocaleFromRequest = () => {
-  const value = getCookies()[cookieName]
-  const cookieHeader = value ? `${cookieName}=${value}` : null
-  const locale = detectLocale(cookieHeader)
+const detectActiveLocale = () => {
+  const locale = detectLocale(readCookieHeader())
   return { locale, dir: direction(locale) }
 }
 
@@ -57,7 +55,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
 
 export const Route = createRootRoute({
   beforeLoad: async () => {
-    const { locale, dir } = detectLocaleFromRequest();
+    const { locale, dir } = detectActiveLocale();
     const markets = await getVisibleMarkets();
     return { locale, dir, markets: markets ?? [] };
   },
