@@ -63,7 +63,7 @@ const { html, text } = await renderEmail(RsvpConfirmationEmail, {
   locale, greeting, lines, cta: { label, href },
 });
 await handleResult(
-  createCloudflareEmailProvider(env.EMAIL, 'noreply@founders.coffee').send({
+  createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM).send({
     to: recipient.email, subject, html, text,
   }),
 );

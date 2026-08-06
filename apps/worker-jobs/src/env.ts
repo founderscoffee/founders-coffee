@@ -4,6 +4,7 @@
 export interface Env {
   readonly DB: D1Database;
   readonly EMAIL: SendEmail;
+  readonly MAIL_FROM: string;
   readonly AI: Ai;
   readonly VECTOR: VectorizeIndex;
   readonly TWILIO_AID?: string;

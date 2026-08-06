@@ -19,8 +19,6 @@ import { processNotification } from './jobs/notifications.js';
 import { runReconcile } from './jobs/reconcile.js';
 import { sweepNotifications } from './jobs/notification-sweep.js';
 
-const DEFAULT_FROM = 'noreply@founders.coffee';
-
 type JobMessage = EmbeddingsMessage | NotificationMessage;
 
 const createSmsProvider = (env: Env): NotificationSmsProvider => {
@@ -51,7 +49,7 @@ const dispatch = async (
   env: Env,
 ): Promise<Result<unknown>> => {
   const db = createDb(env.DB);
-  const email = createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM);
+  const email = createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM);
   const sms = createSmsProvider(env);
 
   if (queue === RESOURCES.queues.notifications) {
@@ -86,7 +84,7 @@ export default {
     const db = createDb(env.DB);
 
     if (controller.cron === '*/1 * * * *') {
-      await sweepNotifications(db, createSmsProvider(env), createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM), createPushProvider(env));
+      await sweepNotifications(db, createSmsProvider(env), createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM), createPushProvider(env));
     }
 
     if (controller.cron === '0 3 * * *') {

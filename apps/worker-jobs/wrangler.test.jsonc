@@ -4,6 +4,9 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  "vars": {
+    "MAIL_FROM": "no-reply@founders.coffee"
+  },
   "d1_databases": [
     { "binding": "DB", "database_name": "db", "database_id": "test" }
   ],

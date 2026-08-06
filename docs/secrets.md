@@ -107,6 +107,7 @@ no Twilio vars → `DevNotificationSmsProvider` (logs); no Firebase vars → pus
 
 | Var                         | Required | Description                                                     |
 | --------------------------- | -------- | --------------------------------------------------------------- |
+| `MAIL_FROM`                 | yes      | Sender email for notification mail (wrangler `var`). Same address as apps/ui. |
 | `TWILIO_AID`                | optional | Twilio Account SID (AC…) for Programmable SMS.                  |
 | `TWILIO_SEC`                | optional | Twilio Auth Token.                                              |
 | `TWILIO_SMS_FROM`           | optional | Sending number or messaging-service SID.                        |
