@@ -46,7 +46,7 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
     setError(null)
     const { error: sendError } = await authClient.emailOtp.sendVerificationOtp(
       { email, type: 'sign-in' },
-      { headers: { 'cf-turnstile-response': token } },
+      { headers: { 'x-captcha-response': token } },
     )
     setBusy(false)
     if (sendError) {

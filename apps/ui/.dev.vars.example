@@ -13,7 +13,8 @@ GITHUB_CLIENT_SECRET=
 LINKEDIN_CLIENT_ID=
 LINKEDIN_CLIENT_SECRET=
 
-# Turnstile (optional — DevTurnstileVerifier is used when DISABLED or no SECRET_KEY).
+# Turnstile. TURNSTILE_DISABLED=true is the only bypass — without it, an absent
+# TURNSTILE_SECRET_KEY makes the OTP-send endpoints refuse with 503 rather than run unprotected.
 # TURNSTILE_SITE_KEY is the public client-side key (dev uses CF's always-pass test key).
 TURNSTILE_SECRET_KEY=
 TURNSTILE_SITE_KEY=1x00000000000000000000AA

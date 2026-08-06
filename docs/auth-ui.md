@@ -36,10 +36,15 @@ P1-003 — the user-facing auth layer. **Passwordless: phone-OTP (Twilio Verify,
 
 ## Turnstile widget (inline, no dependency)
 
-`apps/ui/src/components/turnstile.tsx` loads the CF script once + renders the challenge
+`apps/ui/src/components/auth/Turnstile.tsx` loads the CF script once + renders the challenge
 imperatively (`window.turnstile.render`). The callback stores the token; the login form sends it as
-the `cf-turnstile-response` header. Client-only (`useEffect`) — not in SSR HTML. Dev uses CF's
-always-pass test sitekey (`1x00000000000000000000AA`); server `DevTurnstileVerifier` auto-passes.
+the `x-captcha-response` header, which is what Better Auth's `captcha` plugin reads. Client-only
+(`useEffect`) — not in SSR HTML. Dev uses CF's always-pass test sitekey
+(`1x00000000000000000000AA`) with `TURNSTILE_DISABLED=true`, which is the only bypass.
+
+Only the OTP *send* step carries the token. The sign-in step is not gated — a Turnstile token is
+single-use, so gating both would demand two challenge solves per login. See
+[`libs/auth/src/captcha.ts`](../libs/auth/src/captcha.ts).
 
 ## Session state in the navbar
 

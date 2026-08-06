@@ -53,12 +53,24 @@ returns `turnstileSiteKey: null` when the site key is absent, so the widget neve
 sends no token, and siteverify rejects every request — a secret key without a site key locks users
 out of login entirely.
 
-The gate fails **closed** (`selectTurnstileVerifier` in `libs/auth/src/handler.ts`): the bypass
-requires an explicit `TURNSTILE_DISABLED=true`, and a merely absent secret key denies. These
-endpoints spend money — an unprotected `/phone-number/send-otp` is an open SMS-pumping relay against
-the Twilio account — so a forgotten secret must be a visible outage, not a silent hole (AGENTS.md
-§10). The dev-only `1x00000000000000000000AA` site key and `TURNSTILE_DISABLED` must never be set on
-a deployed environment.
+Verification is Better Auth's official `captcha` plugin (`provider: 'cloudflare-turnstile'`),
+registered in `createAuth` when the secret key is present. It reads the token from the
+`x-captcha-response` header, calls siteverify under a 10-second deadline, and rejects a missing or
+invalid token. The gated paths are listed once in
+[`libs/auth/src/captcha.ts`](../libs/auth/src/captcha.ts) — only the endpoints that *send* an SMS or
+an email.
+
+The gate fails **closed**. `TURNSTILE_DISABLED=true` is the only bypass; when the secret key is
+merely absent the plugin is not registered at all, so `createAuthHandler` refuses the gated
+endpoints with a 503. These endpoints spend money — an unprotected `/phone-number/send-otp` is an
+open SMS-pumping relay against the Twilio account — so a forgotten secret must be a visible outage,
+not a silent hole (AGENTS.md §10). The dev-only `1x00000000000000000000AA` site key and
+`TURNSTILE_DISABLED` must never be set on a deployed environment.
+
+Better Auth resolves the `remoteip` it forwards to siteverify, and the key for its D1-backed rate
+limiter, from `advanced.ipAddress.ipAddressHeaders`. That is pinned to `cf-connecting-ip` rather than
+the library default `x-forwarded-for`, because on Workers only the former is set by the edge and
+cannot be forged by the client (AGENTS.md §11.5).
 
 ### SMS / Twilio Verify (`libs/auth` phoneNumber provider) — apps/ui, apps/dashboard, apps/admin
 

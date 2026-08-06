@@ -1,11 +1,12 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { admin, bearer, emailOTP, phoneNumber } from 'better-auth/plugins';
+import { admin, bearer, captcha, emailOTP, phoneNumber } from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 
 import { AppError, optionalEnv } from '@founders-coffee/core';
 import { account, createDb, session, user, verification } from '@founders-coffee/db';
 
+import { captchaEndpointsFor } from './captcha.js';
 import type { EmailProvider } from './providers/email.js';
 import { DevEmailProvider } from './providers/email.js';
 import type { SmsProvider } from './providers/sms.js';
@@ -35,6 +36,8 @@ export interface AuthEnv {
   TWILIO_SID?: string;
   TWILIO_AID?: string;
   TWILIO_SEC?: string;
+  TURNSTILE_SECRET_KEY?: string;
+  TURNSTILE_DISABLED?: string;
 }
 
 export interface AuthDeps {
@@ -70,6 +73,15 @@ const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
  *
  * Auth model (FR-A4/D4): passwordless phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google/GitHub/LinkedIn);
  * sessions in D1 (never KV); D1-backed auth rate-limiting; strict account linking.
+ *
+ * `ipAddressHeaders` is pinned to `cf-connecting-ip` rather than Better Auth's default
+ * `x-forwarded-for`: on Workers only the former is set by the edge and cannot be forged by the
+ * client (AGENTS §11.5). Both the D1-backed rate limiter and the captcha plugin's `remoteip` key off
+ * this, so the default would let a client choose its own rate-limit bucket.
+ *
+ * The captcha plugin is registered unconditionally (see `captchaEndpointsFor` for why) and an absent
+ * secret key is not a bypass: the plugin errors on the gated endpoints, and `createAuthHandler`
+ * refuses them outright with a clearer 503 before it gets that far.
  */
 export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
@@ -112,9 +124,15 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     advanced: {
       useSecureCookies: true,
       defaultCookieAttributes: { sameSite: 'lax', httpOnly: true, secure: true },
+      ipAddress: { ipAddressHeaders: ['cf-connecting-ip'] },
     },
     rateLimit: { storage: 'database' },
     plugins: [
+      captcha({
+        provider: 'cloudflare-turnstile',
+        secretKey: env.TURNSTILE_SECRET_KEY ?? '',
+        endpoints: captchaEndpointsFor(env.TURNSTILE_DISABLED === 'true'),
+      }),
       emailOTP({
         sendVerificationOTP: async ({ email, otp, type }) => {
           emailProvider.sendOtp({ email, otp, type });
