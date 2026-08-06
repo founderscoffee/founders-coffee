@@ -122,6 +122,26 @@ The dry run prints the resolved binding table, which is the fastest way to confi
 points at the D1 database, Vectorize index and vars you expect. Delete `apps/ui/.wrangler/deploy`
 afterwards so local `wrangler` commands stop being redirected to the built config.
 
+## Why CI can fail where local passes
+
+Two traps, both already hit and fixed — worth knowing before adding an app or a Worker binding.
+
+**Generated Cloudflare types.** `worker-configuration.d.ts` is produced by `wrangler types` and is
+gitignored, so it exists on a developer machine and never in CI. `apps/ui` originally relied on it for
+the Workers runtime globals (`SendEmail`, `DurableObjectNamespace`, `ExportedHandler`, the
+`cloudflare:workers` module), which typechecked locally and failed with 19 errors in CI. Any project
+using Workers types must list `@cloudflare/workers-types` in its tsconfig `types` — as
+`apps/admin`, `apps/worker-jobs` and `libs/server-fns` do — rather than depending on the generated
+file. To reproduce CI locally, delete the file first:
+
+```sh
+rm -f apps/*/worker-configuration.d.ts && npx nx run-many -t typecheck
+```
+
+**Filename casing.** macOS is case-insensitive, Linux runners are not. An import of `./Button.js`
+resolving to `button.tsx` works locally and fails outright in CI. AGENTS §5 requires the file name to
+match the exported component in PascalCase; that rule is what keeps CI honest.
+
 ## Not yet wired
 
 - **Playwright e2e smoke** (P0-021) — no post-deploy health check runs today.
