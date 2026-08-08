@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { arDZ, enUS, fr } from 'react-day-picker/locale'
 
@@ -34,6 +34,11 @@ type DatetimePickerProps = {
   endsAt: number | null
   onChange: (startsAt: number | null, endsAt: number | null) => void
   locale: Locale
+  /**
+   * `top` — time control sits above the calendar card (step 2 wizard layout).
+   * `bottom` — time control sits under the calendar inside the parent card.
+   */
+  timePlacement?: 'top' | 'bottom'
 }
 
 /**
@@ -44,49 +49,83 @@ type DatetimePickerProps = {
  * wizard remounts step content via `key={step}`, so navigating back restores the pick. Past dates are
  * disabled; the date displays in `Africa/Algiers` but the epoch uses the browser's local zone.
  */
-export const DatetimePicker = ({ startsAt, endsAt, onChange, locale }: DatetimePickerProps) => {
+export const DatetimePicker = ({
+  startsAt,
+  endsAt,
+  onChange,
+  locale,
+  timePlacement = 'bottom',
+}: DatetimePickerProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => (startsAt ? new Date(startsAt) : undefined))
   const [fromTime, setFromTime] = useState(() => (startsAt ? toHHMM(new Date(startsAt)) : '18:00'))
   const [toTime, setToTime] = useState(() => (endsAt ? toHHMM(new Date(endsAt)) : '19:00'))
+  const selectedDateRef = useRef(selectedDate)
+  selectedDateRef.current = selectedDate
+  const fromTimeRef = useRef(fromTime)
+  fromTimeRef.current = fromTime
+  const toTimeRef = useRef(toTime)
+  toTimeRef.current = toTime
 
   const handleDate = (d: Date | undefined) => {
     setSelectedDate(d)
-    const next = combineRange(d, fromTime, toTime)
+    selectedDateRef.current = d
+    const next = combineRange(d, fromTimeRef.current, toTimeRef.current)
     onChange(next.startsAt, next.endsAt)
   }
   const handleRange = (from: string, to: string) => {
     setFromTime(from)
     setToTime(to)
-    const next = combineRange(selectedDate, from, to)
+    fromTimeRef.current = from
+    toTimeRef.current = to
+    const next = combineRange(selectedDateRef.current, from, to)
     onChange(next.startsAt, next.endsAt)
   }
 
   const startOfToday = new Date()
   startOfToday.setHours(0, 0, 0, 0)
 
-  return (
-    <div className="space-y-3">
-      <div className="flex justify-center overflow-x-auto">
-        <DayPicker
-          mode="single"
-          animate
-          dir={DAYPICKER_DIR[locale]}
-          locale={DAYPICKER_LOCALE[locale]}
-          numerals="latn"
-          firstWeekContainsDate={1}
-          numberOfMonths={1}
-          showOutsideDays
-          timeZone="Africa/Algiers"
-          selected={selectedDate}
-          onSelect={handleDate}
-          disabled={{ before: startOfToday }}
-        />
-      </div>
+  const timeControl = (
+    <label className="form-control shrink-0">
+      <span className="mb-1 block text-sm text-base-content/70">{host_time({}, { locale })}</span>
+      <TimePicker from={fromTime} to={toTime} onChange={handleRange} locale={locale} />
+    </label>
+  )
 
-      <label className="form-control">
-        <span className="mb-1 block text-sm text-base-content/70">{host_time({}, { locale })}</span>
-        <TimePicker from={fromTime} to={toTime} onChange={handleRange} locale={locale} />
-      </label>
+  const calendar = (
+    <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+      <DayPicker
+        className="react-day-picker host-daypicker"
+        mode="single"
+        animate
+        dir={DAYPICKER_DIR[locale]}
+        locale={DAYPICKER_LOCALE[locale]}
+        numerals="latn"
+        firstWeekContainsDate={1}
+        numberOfMonths={1}
+        showOutsideDays
+        timeZone="Africa/Algiers"
+        selected={selectedDate}
+        onSelect={handleDate}
+        disabled={{ before: startOfToday }}
+      />
+    </div>
+  )
+
+  if (timePlacement === 'top') {
+    return (
+      <div className="flex flex-col gap-3">
+        {timeControl}
+        <div className="flex h-[400px] flex-col rounded-[1.25rem] border border-base-300/60 bg-base-100/70 p-5 shadow-xl shadow-base-content/5 backdrop-blur-md md:p-6">
+          {calendar}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {calendar}
+      {timeControl}
     </div>
   )
 }

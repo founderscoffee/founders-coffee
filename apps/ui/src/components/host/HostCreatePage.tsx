@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { CalendarClock, MapPin } from 'lucide-react'
+import { CalendarClock, MapPin, MousePointerClick } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
 
 import {
@@ -14,9 +14,6 @@ import {
   host_publish_error,
   host_step1,
   host_step1_helper,
-  host_step1_sub,
-  host_step2,
-  host_step2_sub,
   host_step3,
   host_step3_sub,
   host_time_past,
@@ -66,15 +63,19 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
     setSearchValue(v.address || v.name)
   }
 
+  /** Matches TimePicker `minDuration: 30` — zero/negative ranges must not unlock Next. */
+  const hasValidTimeRange =
+    startsAt !== null && endsAt !== null && endsAt - startsAt >= 30 * 60_000
+
   const canProceed =
     step === 1
       ? !!venue
       : step === 2
-        ? startsAt !== null && endsAt !== null
+        ? hasValidTimeRange
         : title.length >= 3 && description.length >= 10
 
-  const stepTitle = step === 1 ? host_step1({}, { locale }) : step === 2 ? host_step2({}, { locale }) : host_step3({}, { locale })
-  const stepSub = step === 1 ? host_step1_sub({}, { locale }) : step === 2 ? host_step2_sub({}, { locale }) : host_step3_sub({}, { locale })
+  const stepTitle = step === 1 ? host_step1({}, { locale }) : host_step3({}, { locale })
+  const stepSub = step === 3 ? host_step3_sub({}, { locale }) : null
 
   const whenLabel =
     startsAt !== null
@@ -90,7 +91,7 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
         <span className="truncate text-xs font-semibold text-base-content">{venue.name}</span>
       </span>
     ) : null,
-    startsAt !== null && endsAt !== null ? (
+    hasValidTimeRange ? (
       <span key="time" className="flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-base-300/70 bg-base-100 px-2.5 py-1 shadow-sm">
         <CalendarClock className="size-3.5 shrink-0 text-primary" />
         <span className="truncate text-xs font-semibold text-base-content">{whenLabel}</span>
@@ -131,6 +132,7 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
     /* Future-check lives in the handler (not in `canProceed`) so the button's disabled state stays a
        pure function of selection — Date.now() in render is a hydration-mismatch risk. Past dates are
        already blocked by the calendar; this catches a same-day past time. */
+    if (step === 2 && !hasValidTimeRange) return
     if (step === 2 && startsAt !== null && startsAt <= Date.now()) {
       setPublishError(host_time_past({}, { locale }))
       return
@@ -142,10 +144,27 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
 
   return (
     <div className="host-wizard-bg min-h-screen">
-      <div className="mx-auto max-w-6xl px-4 pt-8 pb-28 md:pt-12 md:pb-32">
-        <header className="host-fade-up mb-8 max-w-2xl">
-          <h1 className="text-4xl font-bold tracking-tight text-base-content md:text-5xl">{host_page_title({}, { locale })}</h1>
-          <p className="mt-3 text-lg text-base-content/60">{host_page_sub({}, { locale })}</p>
+      <div className="mx-auto max-w-6xl px-4 pt-8 pb-12 md:pt-12 md:pb-16">
+        <header className="host-fade-up mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0 max-w-2xl">
+            <h1 className="text-4xl font-bold tracking-tight text-base-content md:text-5xl">{host_page_title({}, { locale })}</h1>
+            <p className="mt-3 text-lg text-base-content/60">{host_page_sub({}, { locale })}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {step > 1 && (
+              <Button variant="ghost" onClick={prev} className="h-12 px-5 text-base font-semibold">
+                {host_back({}, { locale })}
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              onClick={next}
+              disabled={!canProceed || publishing}
+              className="h-12 min-w-28 px-6 text-base font-semibold"
+            >
+              {step === 3 ? host_publish({}, { locale }) : host_next({}, { locale })}
+            </Button>
+          </div>
         </header>
 
         <div className="mb-8">
@@ -153,78 +172,71 @@ export const HostCreatePage = ({ locale, market, city, mapboxToken }: HostCreate
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.85fr_1fr]">
-          <div className="order-2 lg:order-1">
-            <ClientOnly fallback={<div className="h-[320px] w-full rounded-2xl bg-base-200 md:h-[560px]" />}>
-              <Suspense fallback={<div className="h-[320px] w-full rounded-2xl bg-base-200 md:h-[560px]" />}>
+          <div className="order-2 flex flex-col lg:order-1">
+            {step === 2 && <div className="mb-3 hidden h-[4.5rem] lg:block" aria-hidden="true" />}
+            <ClientOnly fallback={<div className="h-[400px] w-full rounded-2xl bg-base-200" />}>
+              <Suspense fallback={<div className="h-[400px] w-full rounded-2xl bg-base-200" />}>
                 <HostMap accessToken={mapboxToken} venue={venue} city={city} marketCode={market.code} locale={locale} onVenueSelect={selectVenue} />
               </Suspense>
             </ClientOnly>
           </div>
 
           <div className="order-1 lg:order-2">
-            <div className="rounded-[1.25rem] border border-base-300/60 bg-base-100/70 p-6 shadow-xl shadow-base-content/5 backdrop-blur-md md:p-7">
+            {step === 2 ? (
               <div className="host-fade-up" key={step}>
-                <h2 className="text-2xl font-bold tracking-tight text-base-content">{stepTitle}</h2>
-                <p className="mt-1 text-base text-base-content/60">{stepSub}</p>
+                <DatetimePicker
+                  startsAt={startsAt}
+                  endsAt={endsAt}
+                  onChange={(s, e) => {
+                    setStartsAt(s)
+                    setEndsAt(e)
+                    setPublishError(null)
+                  }}
+                  locale={locale}
+                  timePlacement="top"
+                />
+                {publishError && <p className="mt-2 text-sm text-error" role="alert">{publishError}</p>}
+              </div>
+            ) : (
+              <div className="flex h-[400px] flex-col rounded-[1.25rem] border border-base-300/60 bg-base-100/70 p-6 shadow-xl shadow-base-content/5 backdrop-blur-md md:p-7">
+                <div className="host-fade-up flex min-h-0 flex-1 flex-col" key={step}>
+                  <h2 className="text-2xl font-bold tracking-tight text-base-content">{stepTitle}</h2>
+                  {stepSub && <p className="mt-1 text-base text-base-content/60">{stepSub}</p>}
 
-                <div className="mt-6">
-                  {step === 1 && (
-                    <div className="space-y-3">
-                      <p className="text-sm text-base-content/50">{host_step1_helper({}, { locale })}</p>
-                      <ClientOnly fallback={<div className="h-14 rounded-xl bg-base-200" />}>
-                        <Suspense fallback={<div className="h-14 rounded-xl bg-base-200" />}>
-                          <VenueSearch accessToken={mapboxToken} locale={locale} cityName={cityName} marketIso={marketIso} value={searchValue} onChange={setSearchValue} onVenueSelect={selectVenue} />
-                        </Suspense>
-                      </ClientOnly>
-                    </div>
-                  )}
+                  <div className="mt-6 flex min-h-0 flex-1 flex-col">
+                    {step === 1 && (
+                      <div className="mt-auto flex flex-col gap-3">
+                        <p className="flex items-start gap-2 text-sm text-base-content/50">
+                          <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <MousePointerClick className="size-4" aria-hidden="true" />
+                          </span>
+                          <span>{host_step1_helper({}, { locale })}</span>
+                        </p>
+                        <ClientOnly fallback={<div className="h-14 rounded-xl bg-base-200" />}>
+                          <Suspense fallback={<div className="h-14 rounded-xl bg-base-200" />}>
+                            <VenueSearch accessToken={mapboxToken} locale={locale} cityName={cityName} marketIso={marketIso} value={searchValue} onChange={setSearchValue} onVenueSelect={selectVenue} />
+                          </Suspense>
+                        </ClientOnly>
+                      </div>
+                    )}
 
-                  {step === 2 && (
-                    <div className="space-y-4">
-                      <DatetimePicker
-                        startsAt={startsAt}
-                        endsAt={endsAt}
-                        onChange={(s, e) => {
-                          setStartsAt(s)
-                          setEndsAt(e)
-                          setPublishError(null)
-                        }}
-                        locale={locale}
-                      />
-                      {publishError && <p className="text-sm text-error" role="alert">{publishError}</p>}
-                    </div>
-                  )}
-
-                  {step === 3 && (
-                    <div className="space-y-4">
-                      <label className="form-control">
-                        <span className="mb-1 text-sm text-base-content/70">{host_title_label({}, { locale })}</span>
-                        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={host_title_ph({}, { locale })} maxLength={120} />
-                      </label>
-                      <label className="form-control">
-                        <span className="mb-1 text-sm text-base-content/70">{host_desc_label({}, { locale })}</span>
-                        <textarea className="textarea textarea-bordered" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={host_desc_ph({}, { locale })} maxLength={2000} />
-                      </label>
-                      {publishError && <p className="text-sm text-error" role="alert">{publishError}</p>}
-                    </div>
-                  )}
+                    {step === 3 && (
+                      <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">
+                        <label className="form-control">
+                          <span className="mb-1 text-sm text-base-content/70">{host_title_label({}, { locale })}</span>
+                          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={host_title_ph({}, { locale })} maxLength={120} />
+                        </label>
+                        <label className="form-control">
+                          <span className="mb-1 text-sm text-base-content/70">{host_desc_label({}, { locale })}</span>
+                          <textarea className="textarea textarea-bordered" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={host_desc_ph({}, { locale })} maxLength={2000} />
+                        </label>
+                        {publishError && <p className="text-sm text-error" role="alert">{publishError}</p>}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex gap-3 rounded-[1.25rem] border border-base-300/60 bg-base-100/90 p-3 shadow-2xl shadow-base-content/10 backdrop-blur-lg">
-            {step > 1 && (
-              <Button variant="ghost" onClick={prev} className="h-14 flex-1 text-base font-semibold sm:flex-none sm:px-8">{host_back({}, { locale })}</Button>
             )}
-            <Button variant="primary" onClick={next} disabled={!canProceed || publishing} className="h-14 flex-1 text-base font-semibold">
-              {step === 3 ? host_publish({}, { locale }) : host_next({}, { locale })}
-            </Button>
           </div>
         </div>
       </div>

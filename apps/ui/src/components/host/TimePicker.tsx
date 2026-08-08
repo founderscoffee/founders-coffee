@@ -46,6 +46,8 @@ const getRangeManager = (picker: TimepickerUI): RangeManager | undefined => {
  */
 export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   useEffect(() => {
     const el = inputRef.current
@@ -58,7 +60,7 @@ export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
       labels: { ok: l.ok, cancel: l.cancel },
       callbacks: {
         onRangeConfirm: (data) => {
-          if (data.from && data.to) onChange(data.from, data.to)
+          if (data.from && data.to) onChangeRef.current(data.from, data.to)
         },
       },
     })

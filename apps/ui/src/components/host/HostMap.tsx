@@ -127,7 +127,7 @@ export const HostMap = ({
   }, [venue?.lng, venue?.lat]);
 
   return (
-    <div className="relative h-[320px] w-full overflow-hidden rounded-2xl border border-base-300 shadow-xl shadow-base-content/5 md:h-[560px]">
+    <div className="relative h-[400px] w-full overflow-hidden rounded-2xl border border-base-300 shadow-xl shadow-base-content/5">
       <Map
         ref={mapRef as never}
         initialViewState={initial}
