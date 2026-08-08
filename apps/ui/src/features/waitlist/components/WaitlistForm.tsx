@@ -11,6 +11,7 @@ import {
 } from '@founders-coffee/i18n';
 import { useState } from 'react';
 
+import { LegalNotice } from '../../../components/company/LegalNotice';
 import { useJoinWaitlist } from '../hooks';
 
 type WaitlistFormProps = {
@@ -76,36 +77,39 @@ export const WaitlistForm = ({ locale, marketCode, cityCode, cityName }: Waitlis
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-2 sm:flex-row">
-      <input
-        type="email"
-        inputMode="email"
-        value={email}
-        onChange={(e) => {
-          setEmail(e.target.value);
-          if (localError) setLocalError(null);
-        }}
-        placeholder={hero_waitlist_placeholder({}, { locale })}
-        aria-label={hero_waitlist_placeholder({}, { locale })}
-        aria-invalid={!!localError}
-        className="input input-bordered h-10 flex-1 text-sm"
-        disabled={joinWaitlist.isPending}
-        required
-      />
-      <button
-        type="submit"
-        className="btn btn-outline btn-sm h-10"
-        disabled={joinWaitlist.isPending}
-      >
-        {joinWaitlist.isPending
-          ? hero_waitlist_submitting({}, { locale })
-          : hero_waitlist_submit({}, { locale })}
-      </button>
+    <div className="mt-3 space-y-2">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row">
+        <input
+          type="email"
+          inputMode="email"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (localError) setLocalError(null);
+          }}
+          placeholder={hero_waitlist_placeholder({}, { locale })}
+          aria-label={hero_waitlist_placeholder({}, { locale })}
+          aria-invalid={!!localError}
+          className="input input-bordered h-10 flex-1 text-sm"
+          disabled={joinWaitlist.isPending}
+          required
+        />
+        <button
+          type="submit"
+          className="btn btn-outline btn-sm h-10"
+          disabled={joinWaitlist.isPending}
+        >
+          {joinWaitlist.isPending
+            ? hero_waitlist_submitting({}, { locale })
+            : hero_waitlist_submit({}, { locale })}
+        </button>
+      </form>
       {localError && (
-        <p className="text-xs text-error sm:col-span-2" role="alert">
+        <p className="text-xs text-error" role="alert">
           {localError}
         </p>
       )}
-    </form>
+      <LegalNotice locale={locale} className="text-start sm:text-center" />
+    </div>
   );
 };

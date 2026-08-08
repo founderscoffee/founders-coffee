@@ -9,6 +9,7 @@ import { Footer } from '../components/shell/Footer'
 import { Navbar } from '../components/shell/Navbar'
 import { AppProviders } from '../lib/app-providers'
 import { readCookieHeader } from '../lib/cookies'
+import { SITE_ORIGIN, organizationJsonLd } from '../lib/seo'
 
 import appCss from '../styles.css?url'
 
@@ -64,9 +65,26 @@ export const Route = createRootRoute({
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'founders.coffee' },
-      { name: 'description', content: 'founders.coffee — local founder communities' },
+      {
+        name: 'description',
+        content: 'founders.coffee - local founder communities that meet over coffee.',
+      },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:site_name', content: 'founders.coffee' },
+      { property: 'og:title', content: 'founders.coffee' },
+      {
+        property: 'og:description',
+        content: 'Local founder communities that meet over coffee - real conversations, no formalities.',
+      },
+      { property: 'og:url', content: SITE_ORIGIN },
+      { name: 'twitter:card', content: 'summary' },
+      { name: 'theme-color', content: '#3C2A21' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'canonical', href: SITE_ORIGIN },
+    ],
+    scripts: [{ type: 'application/ld+json', children: organizationJsonLd() }],
   }),
   shellComponent: RootDocument,
 })

@@ -1,0 +1,6 @@
+export { aboutContent } from './about'
+export { CONTACT_EMAIL, PRIVACY_EMAIL, contactContent } from './contact'
+export { cookiesContent } from './cookies'
+export { privacyContent } from './privacy'
+export { termsContent } from './terms'
+export type { CompanyPageContent, CompanySection } from './types'

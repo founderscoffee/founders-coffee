@@ -18,6 +18,7 @@ import {
 } from '@founders-coffee/i18n'
 import { Button, Input } from '@founders-coffee/ui'
 
+import { LegalNotice } from '../company/LegalNotice'
 import { authClient } from '../../lib/auth'
 import { Turnstile } from './Turnstile'
 
@@ -127,6 +128,7 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
               <Button onClick={sendCode} disabled={!emailValid || !token || busy} isFullWidth>
                 {login_send_code({}, { locale })}
               </Button>
+              <LegalNotice locale={locale} className="mt-1" />
               {hasSocial && (
                 <>
                   <div className="divider text-xs text-base-content/40">
@@ -170,6 +172,7 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
               <Button onClick={verify} disabled={otp.length !== 6 || busy} isFullWidth>
                 {login_verify({}, { locale })}
               </Button>
+              <LegalNotice locale={locale} />
               <Button variant="ghost" onClick={() => setStep('email')} disabled={busy} isFullWidth>
                 {login_resend({}, { locale })}
               </Button>
