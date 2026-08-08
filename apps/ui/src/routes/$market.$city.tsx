@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
 
 import { appErrorCode } from '@founders-coffee/core'
-import { city_empty_body, type Locale } from '@founders-coffee/i18n'
+import { city_empty_title, type Locale } from '@founders-coffee/i18n'
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns'
 
 import { CityLanding } from '../components/landing/CityLanding'
@@ -30,17 +30,21 @@ export const Route = createFileRoute('/$market/$city')({
   },
   head: ({ loaderData }) => {
     const locale = (loaderData?.market.defaultLocale ?? 'ar') as Locale
-    const cityName = loaderData?.city.name ?? 'founders.coffee'
+    const cityName =
+      locale === 'ar'
+        ? (loaderData?.city.nameAr ?? loaderData?.city.name ?? 'founders.coffee')
+        : (loaderData?.city.name ?? 'founders.coffee')
     const isEmpty = (loaderData?.events.length ?? 0) === 0
     const citySlug = loaderData?.city.slug ?? ''
     const marketSlug = loaderData?.market.slug ?? ''
+    const description = city_empty_title({ city: cityName }, { locale })
 
     return {
       meta: [
-        { title: `${cityName} — founders.coffee` },
+        { title: `${cityName} - founders.coffee` },
         {
           name: 'description',
-          content: city_empty_body({}, { locale }),
+          content: description,
         },
         ...(isEmpty
           ? [{ name: 'robots' as const, content: 'noindex,follow' }]
@@ -52,8 +56,8 @@ export const Route = createFileRoute('/$market/$city')({
           children: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Place',
-            name: `${cityName} — founders.coffee community`,
-            description: city_empty_body({}, { locale }),
+            name: `${cityName} - founders.coffee community`,
+            description,
             url: `https://founders.coffee/${marketSlug}/${citySlug}`,
           }),
         },

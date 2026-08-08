@@ -2,13 +2,12 @@ import { Link } from '@tanstack/react-router'
 
 import {
   back_to_market,
-  city_empty_body,
-  city_empty_bullet1,
-  city_empty_bullet2,
-  city_empty_bullet3,
   city_empty_cta,
   city_empty_title,
   feed_load_more,
+  host_step1,
+  host_step2,
+  host_step3,
   type Locale,
 } from '@founders-coffee/i18n'
 import type { Market } from '@founders-coffee/db'
@@ -17,6 +16,7 @@ import type { EventFeedItem } from '@founders-coffee/server-fns'
 
 import { useUpcomingEvents } from '../../features/events/hooks'
 import { EventCard } from '../events/EventCard'
+import { Stepper } from '../host/Stepper'
 
 type CityLandingProps = {
   locale: Locale
@@ -27,8 +27,12 @@ type CityLandingProps = {
 
 const PAGE_SIZE = 20
 
+const marketDisplayName = (market: Market, locale: Locale) =>
+  locale === 'ar' ? (market.nameAr ?? market.name) : market.name
+
 export const CityLanding = ({ locale, market, city, events }: CityLandingProps) => {
   const cityDisplayName = locale === 'ar' ? city.nameAr : city.name
+  const marketName = marketDisplayName(market, locale)
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useUpcomingEvents({
     marketCode: market.code,
@@ -43,19 +47,31 @@ export const CityLanding = ({ locale, market, city, events }: CityLandingProps) 
   }
 
   if (items.length === 0) {
+    const stepLabels = [
+      host_step1({}, { locale }),
+      host_step2({}, { locale }),
+      host_step3({}, { locale }),
+    ]
+
     return (
       <section className="mx-auto max-w-lg px-4 py-16 text-center">
-        <div className="mb-4 text-6xl" aria-hidden="true">☕</div>
+        <div className="mb-4 text-6xl" aria-hidden="true">
+          ☕
+        </div>
         <h1 className="text-3xl font-extrabold text-primary">
           {city_empty_title({ city: cityDisplayName }, { locale })}
         </h1>
-        <p className="mt-3 text-base-content/70">{city_empty_body({}, { locale })}</p>
-        <ul className="mx-auto mt-6 flex max-w-sm flex-col gap-2 text-sm text-base-content/60">
-          <li>{city_empty_bullet1({}, { locale })}</li>
-          <li>{city_empty_bullet2({}, { locale })}</li>
-          <li>{city_empty_bullet3({}, { locale })}</li>
-        </ul>
-        <Link to="/login" className="btn btn-primary btn-lg mt-8 gap-1">
+
+        <div className="mx-auto mt-10 max-w-md">
+          <Stepper current={1} total={3} labels={stepLabels} />
+        </div>
+
+        <Link
+          to="/$market/host/create"
+          params={{ market: market.slug }}
+          search={{ city: city.code, state: city.stateCode }}
+          className="btn btn-primary btn-lg mt-10 gap-1"
+        >
           {city_empty_cta({}, { locale })}
         </Link>
         <div className="mt-4">
@@ -64,7 +80,7 @@ export const CityLanding = ({ locale, market, city, events }: CityLandingProps) 
             params={{ market: market.slug }}
             className="text-sm text-base-content/40 hover:text-primary"
           >
-            {back_to_market({ market: market.name }, { locale })}
+            {back_to_market({ market: marketName }, { locale })}
           </Link>
         </div>
       </section>
@@ -86,7 +102,12 @@ export const CityLanding = ({ locale, market, city, events }: CityLandingProps) 
         ))}
         {hasNextPage ? (
           <div className="pt-2">
-            <button type="button" className="btn btn-outline btn-sm" onClick={loadMore} disabled={isFetchingNextPage}>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={loadMore}
+              disabled={isFetchingNextPage}
+            >
               {feed_load_more({}, { locale })}
             </button>
           </div>
@@ -98,7 +119,7 @@ export const CityLanding = ({ locale, market, city, events }: CityLandingProps) 
           params={{ market: market.slug }}
           className="text-sm text-base-content/40 hover:text-primary"
         >
-          {back_to_market({ market: market.name }, { locale })}
+          {back_to_market({ market: marketName }, { locale })}
         </Link>
       </div>
     </section>
