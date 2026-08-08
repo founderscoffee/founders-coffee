@@ -99,7 +99,7 @@ export const OnboardingPage = ({ locale, markets, states, cities, initialCountry
               onChange={(e) => handleStateChange(e.target.value)}
               disabled={!country}
             >
-              <option value="">—</option>
+              <option value="">-</option>
               {states.map((s) => (
                 <option key={s.code} value={s.code}>
                   {locale === 'ar' ? s.nameAr : s.name}

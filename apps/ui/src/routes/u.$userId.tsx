@@ -20,6 +20,6 @@ export const Route = createFileRoute('/u/$userId')({
     }
   },
   head: ({ loaderData }) => ({
-    meta: [{ title: `${loaderData?.name ?? 'Profile'} — founders.coffee` }],
+    meta: [{ title: `${loaderData?.name ?? 'Profile'} - founders.coffee` }],
   }),
 })

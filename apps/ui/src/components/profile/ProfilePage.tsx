@@ -91,9 +91,9 @@ export const ProfilePage = ({ locale, profile, markets, states, cities }: Profil
           {!editing ? (
             <div className="space-y-1 text-sm">
               <p className="text-base-content/70">
-                {profile.homeCityNameAr && locale === 'ar' ? profile.homeCityNameAr : profile.homeCityName ?? '—'}
+                {profile.homeCityNameAr && locale === 'ar' ? profile.homeCityNameAr : profile.homeCityName ?? '-'}
               </p>
-              <p className="text-base-content/50">{profile.homeStateName ?? '—'}</p>
+              <p className="text-base-content/50">{profile.homeStateName ?? '-'}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -111,7 +111,7 @@ export const ProfilePage = ({ locale, profile, markets, states, cities }: Profil
                 value={stateVal}
                 onChange={(e) => { setStateVal(e.target.value); setCity('') }}
               >
-                <option value="">—</option>
+                <option value="">-</option>
                 {states.map((s) => (
                   <option key={s.code} value={s.code}>{locale === 'ar' ? s.nameAr : s.name}</option>
                 ))}

@@ -69,7 +69,7 @@ export const Route = createFileRoute('/$market/e/$slug')({
       : '';
     return {
       meta: [
-        { title: `${loaderData?.event.title ?? 'founders.coffee'} — founders.coffee` },
+        { title: `${loaderData?.event.title ?? 'founders.coffee'} - founders.coffee` },
         { name: 'description', content: description },
         { property: 'og:title', content: loaderData?.event.title ?? 'founders.coffee' },
         { property: 'og:description', content: description },

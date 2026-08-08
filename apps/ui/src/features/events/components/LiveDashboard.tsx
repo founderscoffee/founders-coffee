@@ -207,7 +207,7 @@ export const LiveDashboard = ({
             <input
               type="text"
               className="input input-bordered input-sm"
-              placeholder="Visual cue — e.g. wearing a green cap"
+              placeholder="Visual cue - e.g. wearing a green cap"
               value={visualCue}
               onChange={(e) => setVisualCue(e.target.value)}
             />

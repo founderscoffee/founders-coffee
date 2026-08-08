@@ -4,10 +4,10 @@ import { NotificationEmail } from '@founders-coffee/email/templates';
 import { logger } from '@founders-coffee/observability';
 
 const OTP_SUBJECTS: Record<OtpType, string> = {
-  'sign-in': 'founders.coffee — your sign-in code',
-  'email-verification': 'founders.coffee — your verification code',
-  'forget-password': 'founders.coffee — your password-reset code',
-  'change-email': 'founders.coffee — your email-change code',
+  'sign-in': 'founders.coffee - your sign-in code',
+  'email-verification': 'founders.coffee - your verification code',
+  'forget-password': 'founders.coffee - your password-reset code',
+  'change-email': 'founders.coffee - your email-change code',
 };
 
 /**

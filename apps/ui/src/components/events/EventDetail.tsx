@@ -84,7 +84,7 @@ export const EventDetail = ({ locale, market, event, host }: EventDetailProps) =
           <dt className="text-xs font-bold uppercase tracking-widest text-base-content/40">{event_where({}, { locale })}</dt>
           <dd>
             {event.venue}
-            {event.venueAddress ? <span className="text-base-content/60"> — {event.venueAddress}</span> : null}
+            {event.venueAddress ? <span className="text-base-content/60"> - {event.venueAddress}</span> : null}
             {event.latitude != null && event.longitude != null ? (
               <span className="text-base-content/40">
                 {' '}📍 {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
