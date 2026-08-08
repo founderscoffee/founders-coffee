@@ -84,3 +84,5 @@ testem.log
 .DS_Store
 Thumbs.db
 firebase-service-account.json
+test-results/
+playwright-report/

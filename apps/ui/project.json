@@ -47,6 +47,13 @@
         "command": "wrangler types",
         "cwd": "apps/ui"
       }
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx playwright test --config=playwright.config.ts",
+        "cwd": "apps/ui"
+      }
     }
   }
 }
