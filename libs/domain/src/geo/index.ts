@@ -32,9 +32,16 @@ export const getCities = (country: string, stateCode: string): readonly GeoCity[
 export const getFeaturedCities = (country: string): readonly GeoCity[] =>
   (CITIES[country] ?? []).filter((c) => c.featured)
 
+/** Legacy slugs kept resolvable after display/slug renames (e.g. Alger Centre → Algiers). */
+const CITY_SLUG_ALIASES: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  DZ: { 'alger-centre': 'algiers' },
+}
+
 /** Find a city by its URL slug (for the city page /{market}/{city-slug}). */
-export const findCityBySlug = (country: string, slug: string): GeoCity | undefined =>
-  (CITIES[country] ?? []).find((c) => c.slug === slug)
+export const findCityBySlug = (country: string, slug: string): GeoCity | undefined => {
+  const canonical = CITY_SLUG_ALIASES[country]?.[slug] ?? slug
+  return (CITIES[country] ?? []).find((c) => c.slug === canonical)
+}
 
 /** Find a city by its code (for profile validation). */
 export const findCity = (country: string, cityCode: string): GeoCity | undefined =>

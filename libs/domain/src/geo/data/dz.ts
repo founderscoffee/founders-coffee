@@ -1484,7 +1484,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'بجاية',
     slug: 'bejaia',
     stateCode: '06',
-    featured: false,
+    featured: true,
   },
   {
     code: '210',
@@ -2020,7 +2020,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'بشار',
     slug: 'bechar',
     stateCode: '08',
-    featured: false,
+    featured: true,
   },
   {
     code: '268',
@@ -2916,7 +2916,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'تبسة',
     slug: 'tebessa',
     stateCode: '12',
-    featured: false,
+    featured: true,
   },
   {
     code: '383',
@@ -3956,7 +3956,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'تيزي وزو',
     slug: 'tizi-ouzou',
     stateCode: '15',
-    featured: false,
+    featured: true,
   },
   {
     code: '487',
@@ -4488,11 +4488,11 @@ export const DZ_CITIES: readonly GeoCity[] = [
   },
   {
     code: '556',
-    name: 'Alger Centre',
-    nameAr: 'الجزائر الوسطى',
-    slug: 'alger-centre',
+    name: 'Algiers',
+    nameAr: 'الجزائر',
+    slug: 'algiers',
     stateCode: '16',
-    featured: false,
+    featured: true,
   },
   {
     code: '582',
@@ -5460,7 +5460,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'سطيف',
     slug: 'setif',
     stateCode: '19',
-    featured: false,
+    featured: true,
   },
   {
     code: '678',
@@ -5684,7 +5684,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'سعيدة',
     slug: 'saida',
     stateCode: '20',
-    featured: false,
+    featured: true,
   },
   {
     code: '749',
@@ -6372,7 +6372,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'سيدي بلعباس',
     slug: 'sidi-bel-abbes',
     stateCode: '22',
-    featured: false,
+    featured: true,
   },
   {
     code: '791',
@@ -7260,7 +7260,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'المدية',
     slug: 'medea',
     stateCode: '26',
-    featured: false,
+    featured: true,
   },
   {
     code: '959',
@@ -9252,7 +9252,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'برج بوعريرج',
     slug: 'b-b-arreridj',
     stateCode: '34',
-    featured: false,
+    featured: true,
   },
   {
     code: '1168',
@@ -9468,7 +9468,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'بومرداس',
     slug: 'boumerdes',
     stateCode: '35',
-    featured: false,
+    featured: true,
   },
   {
     code: '1209',
@@ -10076,7 +10076,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'الوادي',
     slug: 'el-oued',
     stateCode: '39',
-    featured: false,
+    featured: true,
   },
   {
     code: '1321',
@@ -11204,7 +11204,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'عين الدفلى',
     slug: 'ain-defla',
     stateCode: '44',
-    featured: false,
+    featured: true,
   },
   {
     code: '1442',
@@ -11300,7 +11300,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'النعامة',
     slug: 'naama',
     stateCode: '45',
-    featured: false,
+    featured: true,
   },
   {
     code: '1454',
@@ -11524,7 +11524,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'عين تموشنت',
     slug: 'ain-temouchent',
     stateCode: '46',
-    featured: false,
+    featured: true,
   },
   {
     code: '1470',
@@ -11620,7 +11620,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'غرداية',
     slug: 'ghardaia',
     stateCode: '47',
-    featured: false,
+    featured: true,
   },
   {
     code: '1516',
@@ -12076,7 +12076,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'بني عباس',
     slug: 'beni-abbes',
     stateCode: '52',
-    featured: false,
+    featured: true,
   },
   {
     code: '282',
@@ -12156,7 +12156,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'عين صالح',
     slug: 'ain-salah',
     stateCode: '53',
-    featured: false,
+    featured: true,
   },
   {
     code: '358',
@@ -12180,7 +12180,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'عين قزام',
     slug: 'ain-guezzam',
     stateCode: '54',
-    featured: false,
+    featured: true,
   },
   {
     code: '1107',
@@ -12348,7 +12348,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'المغير',
     slug: 'el-m-ghaier',
     stateCode: '57',
-    featured: false,
+    featured: true,
   },
   {
     code: '1303',
@@ -12372,7 +12372,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
     nameAr: 'المنيعة',
     slug: 'el-meniaa',
     stateCode: '58',
-    featured: false,
+    featured: true,
   },
   {
     code: '1499',

@@ -32,6 +32,22 @@ export const EG_STATES: readonly GeoState[] = [
 
 export const EG_CITIES: readonly GeoCity[] = [
   {
+    code: '397',
+    name: 'Cairo',
+    nameAr: 'القاهرة',
+    slug: 'cairo',
+    stateCode: '1',
+    featured: true,
+  },
+  {
+    code: '398',
+    name: 'Alexandria',
+    nameAr: 'الإسكندرية',
+    slug: 'alexandria',
+    stateCode: '3',
+    featured: true,
+  },
+  {
     code: '1',
     name: '15 May',
     nameAr: '15 مايو',
@@ -1125,7 +1141,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'المنصورة',
     slug: 'mansoura',
     stateCode: '4',
-    featured: false,
+    featured: true,
   },
   {
     code: '138',
@@ -1277,7 +1293,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'الغردقة',
     slug: 'hurghada',
     stateCode: '5',
-    featured: false,
+    featured: true,
   },
   {
     code: '157',
@@ -1341,7 +1357,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'دمنهور',
     slug: 'damanhour',
     stateCode: '6',
-    featured: false,
+    featured: true,
   },
   {
     code: '165',
@@ -1565,7 +1581,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'طنطا',
     slug: 'tanta',
     stateCode: '8',
-    featured: false,
+    featured: true,
   },
   {
     code: '193',
@@ -1701,7 +1717,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'شبين الكوم',
     slug: 'shbeen-el-koom',
     stateCode: '10',
-    featured: false,
+    featured: true,
   },
   {
     code: '210',
@@ -1877,7 +1893,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'بنها',
     slug: 'banha',
     stateCode: '12',
-    featured: false,
+    featured: true,
   },
   {
     code: '232',
@@ -1973,7 +1989,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'الخارجة',
     slug: 'el-kharga',
     stateCode: '13',
-    featured: false,
+    featured: true,
   },
   {
     code: '244',
@@ -2245,7 +2261,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'بني سويف',
     slug: 'bani-sweif',
     stateCode: '17',
-    featured: false,
+    featured: true,
   },
   {
     code: '278',
@@ -2325,7 +2341,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'بورسعيد',
     slug: 'porsaid',
     stateCode: '18',
-    featured: false,
+    featured: true,
   },
   {
     code: '288',
@@ -2477,7 +2493,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'الزقازيق',
     slug: 'zagazig',
     stateCode: '20',
-    featured: false,
+    featured: true,
   },
   {
     code: '307',
@@ -2637,7 +2653,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'شرم الشيخ',
     slug: 'sharm-el-shaikh',
     stateCode: '21',
-    featured: false,
+    featured: true,
   },
   {
     code: '327',
@@ -2701,7 +2717,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'كفر الشيخ',
     slug: 'kafr-el-sheikh',
     stateCode: '22',
-    featured: false,
+    featured: true,
   },
   {
     code: '335',
@@ -2813,7 +2829,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'مرسى مطروح',
     slug: 'marsa-matrouh',
     stateCode: '23',
-    featured: false,
+    featured: true,
   },
   {
     code: '349',
@@ -3045,7 +3061,7 @@ export const EG_CITIES: readonly GeoCity[] = [
     nameAr: 'العريش',
     slug: 'arish',
     stateCode: '26',
-    featured: false,
+    featured: true,
   },
   {
     code: '378',

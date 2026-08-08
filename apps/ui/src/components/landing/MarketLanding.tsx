@@ -1,7 +1,7 @@
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import { type Locale } from '@founders-coffee/i18n';
-import type { EventFeedItem, TrendingState } from '@founders-coffee/server-fns';
+import type { EventFeedItem, TrendingSection } from '@founders-coffee/server-fns';
 
 import { DiscoverFeed } from './DiscoverFeed';
 import { MarketHero } from './MarketHero';
@@ -13,7 +13,7 @@ type MarketLandingProps = {
   cities: readonly geo.GeoCity[];
   cityEventCounts: Record<string, number>;
   events: readonly EventFeedItem[];
-  trendingStates: readonly TrendingState[];
+  trending: TrendingSection;
 };
 
 export const MarketLanding = ({
@@ -21,7 +21,7 @@ export const MarketLanding = ({
   market,
   cityEventCounts,
   events,
-  trendingStates,
+  trending,
 }: MarketLandingProps) => (
   <>
     <MarketHero
@@ -29,11 +29,7 @@ export const MarketLanding = ({
       market={market}
       cityEventCounts={cityEventCounts}
     />
-    <TrendingStates
-      locale={locale}
-      market={market}
-      trendingStates={trendingStates}
-    />
+    <TrendingStates locale={locale} market={market} trending={trending} />
     <DiscoverFeed locale={locale} market={market} events={events} />
   </>
 );

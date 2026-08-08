@@ -15,7 +15,7 @@ export const Route = createFileRoute('/$market/')({
   ),
   component: () => {
     const { locale } = Route.useRouteContext()
-    const { market, cities, events, cityEventCounts, trendingStates } = Route.useLoaderData()
+    const { market, cities, events, cityEventCounts, trending } = Route.useLoaderData()
     return (
       <MarketLanding
         locale={locale}
@@ -23,19 +23,19 @@ export const Route = createFileRoute('/$market/')({
         cities={cities}
         cityEventCounts={cityEventCounts}
         events={events}
-        trendingStates={trendingStates}
+        trending={trending}
       />
     )
   },
   loader: async ({ params }): Promise<MarketWithCities> => {
     try {
-      const { market, cities, events, cityEventCounts, trendingStates } = await getMarketLanding({
+      const { market, cities, events, cityEventCounts, trending } = await getMarketLanding({
         data: { key: params.market },
       })
       if (params.market !== market.slug) {
         throw redirect({ to: '/$market', params: { market: market.slug } })
       }
-      return { market, cities, events, cityEventCounts, trendingStates }
+      return { market, cities, events, cityEventCounts, trending }
     } catch (error) {
       if (appErrorCode(error) === 'market_not_found') throw notFound()
       throw error
@@ -43,7 +43,7 @@ export const Route = createFileRoute('/$market/')({
   },
   head: ({ loaderData }) => ({
     meta: [
-      { title: `${loaderData?.market.name ?? 'founders.coffee'} — founders.coffee` },
+      { title: `${loaderData?.market.name ?? 'founders.coffee'} - founders.coffee` },
       {
         name: 'description',
         content: market_hero_desc({}, { locale: (loaderData?.market.defaultLocale ?? 'ar') as Locale }),

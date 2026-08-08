@@ -19,8 +19,11 @@ export interface MarketWithCities {
   readonly events: readonly EventFeedItem[];
   /** Upcoming event counts per city code (drives the city-badge counts + aura). */
   readonly cityEventCounts: Record<string, number>;
-  /** Top 3 states by upcoming events, each with its 12–20 most-active cities (the Trending section). */
-  readonly trendingStates: readonly TrendingState[];
+  /**
+   * Browse section under the hero. Cold markets use `variant: 'major'` (featured cities only).
+   * Markets with upcoming events use `variant: 'active'` (states/cities that actually have meetups).
+   */
+  readonly trending: TrendingSection;
 }
 
 export interface TrendingCity {
@@ -29,9 +32,81 @@ export interface TrendingCity {
 }
 
 export interface TrendingState {
-  readonly state: geo.GeoState;
+  /** When null, the UI renders a flat city list (cold “major cities” mode). */
+  readonly state: geo.GeoState | null;
   readonly cities: readonly TrendingCity[];
 }
+
+/** Landing browse section: curated majors when empty, activity-ranked when warm. */
+export interface TrendingSection {
+  readonly variant: 'major' | 'active';
+  readonly groups: readonly TrendingState[];
+}
+
+/** Max featured cities shown on a cold (zero-event) market landing. */
+const COLD_MAJOR_CITY_CAP = 18;
+/** Max states in the warm “active cities” section. */
+const WARM_STATE_CAP = 3;
+/** Max cities per warm state (only cities with upcoming events). */
+const WARM_CITY_CAP = 8;
+
+/**
+ * Preferred browse order for cold landings. Unknown featured cities follow alphabetically.
+ * Shared policy for every market — only the slug list is country-specific.
+ */
+const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
+  DZ: [
+    'algiers',
+    'oran',
+    'constantine',
+    'bejaia',
+    'setif',
+    'annaba',
+    'blida',
+    'batna',
+    'tlemcen',
+    'tizi-ouzou',
+    'djelfa',
+    'sidi-bel-abbes',
+    'biskra',
+    'tebessa',
+    'skikda',
+    'tiaret',
+    'bechar',
+    'mostaganem',
+  ],
+  EG: [
+    'cairo',
+    'alexandria',
+    'giza',
+    'mansoura',
+    'tanta',
+    'hurghada',
+    'sharm-el-shaikh',
+    'aswan',
+    'luxor',
+    'ismailia',
+    'suez',
+    'zagazig',
+    'damanhour',
+    'minya',
+  ],
+  SA: [
+    'riyadh',
+    'makkah',
+    'dammam',
+    'madinah',
+    'tabuk',
+    'abha',
+    'buraidah',
+    'jazan',
+    'hail',
+    'najran',
+    'bahah',
+    'arar',
+    'sakaka',
+  ],
+};
 
 export interface MarketCity {
   readonly market: Market;
@@ -88,7 +163,7 @@ export const resolveMarketLanding = async (db: Db, key: string): Promise<Result<
   if (!market) {
     return err(new AppError('market_not_found', `No visible market for ${key}`));
   }
-  const [{ items: events }, cityEventCounts, trendingStates] = await Promise.all([
+  const [{ items: events }, cityEventCounts, trending] = await Promise.all([
     listEvents(db, { marketCode: market.code, limit: 20 }),
     countUpcomingByCity(db, market.code),
     resolveTrendingStates(db, market.code),
@@ -98,54 +173,66 @@ export const resolveMarketLanding = async (db: Db, key: string): Promise<Result<
     cities: geo.getFeaturedCities(market.code),
     events,
     cityEventCounts,
-    trendingStates,
+    trending,
   });
 };
 
+const coldMajorCities = (marketCode: string): TrendingSection => {
+  const priority = new Map((COLD_PRIORITY_SLUGS[marketCode] ?? []).map((slug, i) => [slug, i]));
+  const cities = [...geo.getFeaturedCities(marketCode)]
+    .map((city) => ({ city, count: 0 }))
+    .sort(
+      (a, b) =>
+        (priority.get(a.city.slug) ?? 1_000) - (priority.get(b.city.slug) ?? 1_000) ||
+        a.city.name.localeCompare(b.city.name),
+    )
+    .slice(0, COLD_MAJOR_CITY_CAP);
+  if (cities.length === 0) return { variant: 'major', groups: [] };
+  return { variant: 'major', groups: [{ state: null, cities }] };
+};
+
+const warmActiveCities = (
+  marketCode: string,
+  stateCounts: Record<string, number>,
+  cityCounts: Record<string, number>,
+): TrendingSection => {
+  const topStates = geo
+    .getStates(marketCode)
+    .map((state) => ({ state, count: stateCounts[state.code] ?? 0 }))
+    .filter((s) => s.count > 0)
+    .sort((a, b) => b.count - a.count || a.state.code.localeCompare(b.state.code))
+    .slice(0, WARM_STATE_CAP);
+
+  const groups = topStates.map(({ state }) => {
+    const cities = geo
+      .getCities(marketCode, state.code)
+      .map((city) => ({ city, count: cityCounts[city.code] ?? 0 }))
+      .filter((c) => c.count > 0)
+      .sort((a, b) => b.count - a.count || a.city.name.localeCompare(b.city.name))
+      .slice(0, WARM_CITY_CAP);
+    return { state, cities };
+  });
+
+  return { variant: 'active', groups: groups.filter((g) => g.cities.length > 0) };
+};
+
 /**
- * Top 3 trending states (wilayas/governorates/regions) for the Trending section. States are ranked
- * by upcoming event count; ties break by the state capital's event count (the `featured` city —
- * "capitals first"), then by state code. Each state returns its 12–20 most-active cities: ranked by
- * event count then name, sized via `clamp(eventCityCount, 12, 20)` — so a state with no events shows
- * exactly 12 (the min), one with 25 event cities shows 20 (the max).
+ * Browse section for a market landing.
+ *
+ * - **Cold** (no upcoming events): flat list of featured/major cities — never pads empty communes.
+ * - **Warm**: top states by upcoming events; only cities with `count > 0` (no zero-badge padding).
  */
 export const resolveTrendingStates = async (
   db: Db,
   marketCode: string,
-): Promise<readonly TrendingState[]> => {
+): Promise<TrendingSection> => {
   const [stateCounts, cityCounts] = await Promise.all([
     countUpcomingByState(db, marketCode),
     countUpcomingByCity(db, marketCode),
   ]);
-  const states = geo.getStates(marketCode);
-  const capitalByState = new Map(geo.getFeaturedCities(marketCode).map((c) => [c.stateCode, c]));
-
-  const topStates = states
-    .map((state) => {
-      const capital = capitalByState.get(state.code);
-      return {
-        state,
-        count: stateCounts[state.code] ?? 0,
-        capitalCount: capital ? (cityCounts[capital.code] ?? 0) : 0,
-      };
-    })
-    .sort(
-      (a, b) =>
-        b.count - a.count ||
-        b.capitalCount - a.capitalCount ||
-        a.state.code.localeCompare(b.state.code),
-    )
-    .slice(0, 3);
-
-  return topStates.map(({ state }) => {
-    const ranked = geo
-      .getCities(marketCode, state.code)
-      .map((city) => ({ city, count: cityCounts[city.code] ?? 0 }))
-      .sort((a, b) => b.count - a.count || a.city.name.localeCompare(b.city.name));
-    const eventCityCount = ranked.filter((r) => r.count > 0).length;
-    const showN = Math.max(12, Math.min(20, eventCityCount));
-    return { state, cities: ranked.slice(0, showN) };
-  });
+  const totalUpcoming = Object.values(cityCounts).reduce((sum, n) => sum + n, 0);
+  if (totalUpcoming === 0) return coldMajorCities(marketCode);
+  return warmActiveCities(marketCode, stateCounts, cityCounts);
 };
 
 /**
