@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// Prefer localhost over 127.0.0.1 — Vite often binds IPv6 ::1 via "localhost" only.
+/** Prefer localhost over 127.0.0.1 — Vite often binds IPv6 ::1 via "localhost" only. */
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
 
 export default defineConfig({

@@ -176,7 +176,7 @@ describe('resolveTrendingStates (cold vs warm)', () => {
       expect(cities.every((c) => c.count === 0)).toBe(true);
       expect(cities.every((c) => c.city.featured)).toBe(true);
 
-      // Must not pad Adrar/Chlef-style empty communes as "popular".
+      /** Must not pad Adrar/Chlef-style empty communes as "popular". */
       const slugs = cities.map((c) => c.city.slug);
       if (code === 'DZ') {
         expect(slugs[0]).toBe('algiers');
