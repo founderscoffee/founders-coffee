@@ -17,7 +17,7 @@ export default createStart(() => ({
 }));
 ```
 
-- **`createCsrfMiddleware()` is re-installed explicitly.** Defining `src/start.ts` *disables*
+- **`createCsrfMiddleware()` is re-installed explicitly.** Defining `src/start.ts` _disables_
   TanStack's auto-installed CSRF middleware (and shows a dev warning). Re-adding it preserves the
   same-origin protection on server-fns. Default origin = the request URL (fine for dev); explicit
   multi-domain prod origin is configured at deploy.
@@ -27,7 +27,7 @@ export default createStart(() => ({
 
 ## 2. Custom Workers entry — `apps/ui/src/server.ts`
 
-react-router 1.170.16 has **no file-based API routes** (`createAPIFileRoute`/`createServerRoute`), so
+The installed TanStack Start/Router stack has **no file-based API routes** matching this need, so
 raw HTTP endpoints mount in a custom Workers entry (apps/admin's proven pattern) that delegates
 everything else to the TanStack server handler. `wrangler.jsonc` `main` → `src/server.ts`:
 
@@ -35,9 +35,11 @@ everything else to the TanStack server handler. `wrangler.jsonc` `main` → `src
 export default {
   fetch: async (request, env) => {
     const url = new URL(request.url);
-    if (url.pathname === '/client-logs' && request.method === 'POST') { /* ingestClientLogs */ }
+    if (url.pathname === '/client-logs' && request.method === 'POST') {
+      /* ingestClientLogs */
+    }
     if (url.pathname.startsWith('/api/auth/')) return createAuthHandler(env)(request);
-    return handler.fetch(request);  // SSR + server-fns — loads start.ts; getDb reads cloudflare:workers
+    return handler.fetch(request); // SSR + server-fns — loads start.ts; getDb reads cloudflare:workers
   },
 } satisfies ExportedHandler<HandlerEnv>;
 ```
@@ -82,12 +84,13 @@ Turnstile gating on the brute-force endpoints). The server-fn primitives live in
   that needs identity — NOT global, so public RPCs (markets resolver) stay anonymous.
 - **`requirePermission(resource, action)`** — middleware factory (composing `authMiddleware`) that
   throws `AppError('unauthenticated'|'forbidden')` at the data boundary:
-  `createServerFn().middleware([requirePermission('event', 'create')])` (AGENTS §11.2 — the data
+  `createServerFn().middleware([requirePermission('event', 'create')])` (AGENTS §7/§10 — the data
   boundary, not just a route guard).
 
 `getAuthEnv` narrows `cloudflare:workers` env to `AuthEnv` (DB + `BETTER_AUTH_SECRET` + `APP_URL`).
-Dev needs `apps/ui/.dev.vars` (BETTER_AUTH_SECRET) + local D1 migrations
-(`wrangler d1 migrations apply founders-coffee --local`); prod D1 + real secret land at P0-019.
+Dev needs `apps/ui/.dev.vars` (`BETTER_AUTH_SECRET`) plus local D1 migrations. Deployed D1 IDs are
+declared, while account-side database state and real secret presence must be verified through the
+provisioning runbook.
 
 ## 6. Observability — `/client-logs` + client logger + `reportError` (Phase C)
 
@@ -95,7 +98,7 @@ Dev needs `apps/ui/.dev.vars` (BETTER_AUTH_SECRET) + local D1 migrations
   console transport → Workers Logs/Logpush (the same stream as server logs; sanitizes again
   server-side). Basic shape validation only — Durable-Object rate limiting is **P1-018**.
 - **Client bootstrap** (`__root` `useClientObservability`) — `configureClientLogger({ endpoint: '/client-logs' })`
-  + window `error`/`unhandledrejection` → `reportError(..., logger)` (beacons via the isomorphic logger).
+  - window `error`/`unhandledrejection` → `reportError(..., logger)` (beacons via the isomorphic logger).
 - **Route errors** — `router.tsx` `defaultErrorComponent` calls `reportError` (client render errors);
   SSR loader errors are already reported by `requestContextMiddleware`. `createStart` has no `onError`,
   so this is the catch. (Minimal placeholder UI — P1-002 localizes it.)
@@ -108,14 +111,18 @@ through the custom entry (`start.ts` + `getDb` unregressed); server-fns tests gr
 `resolveSession` + authz).
 
 **Deferred (P0-019 / deploy):**
+
 - **`ANALYTICS` binding** — product metrics (Analytics Engine); NOT needed for the log stream.
 - **CSRF prod origin** — `createCsrfMiddleware({ origin })` for prod domains.
-- **Real D1 + `BETTER_AUTH_SECRET`** — prod sessions need P0-019 (dev uses local Miniflare D1 + `.dev.vars`).
+- **Deployed D1 + `BETTER_AUTH_SECRET` verification** — production sessions require both even though
+  their presence cannot be established from source control alone.
 
 ## Notes
-- **#6223 (Arabic UTF-8 streaming SSR)** is **obsolete** — fixed in `react-start` ≥1.143.8; installed
-  is 1.168.26. No streaming-SSR knob or `React.lazy` workaround is needed.
-- **`database_id`** in `apps/ui/wrangler.jsonc` is a placeholder until **P0-019** provisions the real D1.
+
+- **#6223 (Arabic UTF-8 streaming SSR)** is obsolete in the installed TanStack Start version. No
+  streaming-SSR knob or `React.lazy` workaround is needed.
+- Staging and production D1 IDs are declared in `apps/ui/wrangler.jsonc`; only the top-level local
+  configuration deliberately uses `LOCAL_DEV_ONLY`.
 - **`/server` import isolation** — `@tanstack/react-start/server` transitively loads `createStartHandler`
   (a vite-plugin virtual entry) the vitest pool can't resolve; the server-fns lib keeps that import in
   `auth-middleware.ts` only, so the pool-tested `resolveSession` (`auth.ts`) stays clean.

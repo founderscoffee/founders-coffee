@@ -4,8 +4,8 @@ Zod is the **single source of truth** for input shapes across founders.coffee (A
 
 ## Where schemas live
 
-- **Shared primitives → `libs/core/validation.ts`** (client-accessible): `moneySchema` (+ `currencySchema`), `idSchema`, `marketCodeSchema`, `paginationSchema`. Reuse these; don't redefine Money / id shapes.
-- **Per-domain entity/command schemas → `libs/domain/<domain>/schemas.ts`** (created with each domain, P1-005+). These compose the primitives and are the contract for that domain's server-fns + forms.
+- **Shared primitives → `libs/core/src/validation.ts`** (client-accessible): `moneySchema` (+ `currencySchema`), `idSchema`, `marketCodeSchema`, `paginationSchema`. Reuse these; don't redefine Money / id shapes.
+- **Per-domain entity/command schemas → `libs/domain/src/<domain>/schemas.ts`** (created with each domain). These compose the primitives and are the contract for that domain's server-fns + forms.
 
 ## Server-function input validation
 
@@ -17,8 +17,8 @@ import { appValidator } from '@founders-coffee/core';
 import { createEventSchema } from '@founders-coffee/domain/events';
 
 export const createEventFn = createServerFn()
-  .validator(appValidator(createEventSchema))   // throws AppError on bad input
-  .handler(async ({ data }) => handleResult(createEvent(data)));  // data is typed (z.infer)
+  .validator(appValidator(createEventSchema)) // throws AppError on bad input
+  .handler(async ({ data }) => handleResult(createEvent(data))); // data is typed (z.infer)
 ```
 
 The handler's `data` is the **parsed, typed** value — no manual parsing inside the handler.
@@ -31,23 +31,19 @@ import { appErrorCode } from '@founders-coffee/core';
 onError: (error) => {
   if (appErrorCode(error) === 'validation_failed') {
     const fields = (error as { details?: { fields?: Record<string, string[]> } }).details?.fields ?? {};
-    setFormErrors(fields);                         // field-level messages from Zod
+    setFormErrors(fields); // field-level messages from Zod
   }
-}
+};
 ```
 
 `appErrorCode` returns `'validation_failed'` (TanStack serializes the `AppError` — the #6428 typing gap is bridged by the accessor).
 
 ## Forms reuse the same schema (DRY)
 
-TanStack Form validates client-side with the **same** schema — no parallel validation:
-
-```ts
-import { zodValidator } from '@tanstack/zod-adapter';   // only on the client, for forms
-const form = useForm({ defaultValues: ..., validators: { onChange: zodValidator(createEventSchema) } });
-```
-
-(Forms may use `@tanstack/zod-adapter`'s `zodValidator` for field-level UI; server-fns use `appValidator` for the typed throw boundary. Same Zod schema both sides.)
+The current UI forms use ordinary React state. That implementation is approved and may remain.
+Client-side validation must still use the same domain Zod schema as the server boundary; do not
+create a second hand-written validation contract. TanStack Form is optional when its ergonomics are
+useful, not a mandatory dependency.
 
 ## Conventions
 

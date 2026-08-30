@@ -6,22 +6,27 @@ AGENTS.md §7.
 
 ## Modules
 
-| Module | What | Status |
-|---|---|---|
-| `request-context.ts` | `requestContextMiddleware` (per-request id via ALS + failure logging), `withRequestContext` | ✅ P0-012 |
-| `authz.ts` | `checkPermission`, `requireAuth`, `requirePermission` (pure RBAC checks) | ✅ P0-012 |
-| `auth.ts` | `getAuthEnv`, `resolveSession` (pure — no `/server` import; pool-testable) | ✅ P1-017 |
-| `auth-middleware.ts` | `authMiddleware` (per-request session), `requirePermission(resource, action)` factory — carries `@tanstack/react-start/server` (isolated from the barrel) | ✅ P1-017 |
-| `db.ts` | `getDb()` — env-injection via `cloudflare:workers` (the P1-017 solution) | ✅ P1-017 |
-| `geo.ts` | `getGeoCountry` — CF-IPCountry + DEV_GEO fallback | ✅ P1-017 |
-| `geo-rpc.ts` | `getStates`, `getCities`, `getFeaturedCities` — delegate to domain geo | ✅ P1-004 |
-| `auth-config.ts` | `getPublicAuthConfig` — Turnstile sitekey + OAuth availability | ✅ P1-003 |
-| `profile.ts` | `getMyProfile` (authed), `setHomeLocation` (validated + D1 write), `getPublicProfile` (public, FR-E7) | ✅ P1-004 |
-| `markets/resolver.ts` | `resolveMarket`, `resolveMarketLanding` (+ featured cities from geo), `resolveCityLanding` (via `geo.findCityBySlug`), `listVisibleMarkets` | ✅ P1-001/004 |
-| `markets/rpc.ts` | `getMarket`, `getMarketLanding`, `getCityLanding`, `getVisibleMarkets` | ✅ P1-001/017 |
-| `events/status-machine.ts` | `published ↔ cancelled` transitions | ✅ P1-005 |
-| `events/resolver.ts` | `createEventResolver` (validates geo + generates slug), `resolveEvent`, `listEvents` | ✅ P1-005 |
-| `events/rpc.ts` | `createEvent` (authed + Zod), `getEvent`, `getUpcomingEvents` (cursor pagination) | ✅ P1-005 |
+| Module                      | What                                                                                                                                                      | Status                                                         |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `request-context.ts`        | `requestContextMiddleware` (per-request id via ALS + failure logging), `withRequestContext`                                                               | ✅ P0-012                                                      |
+| `authz.ts`                  | `checkPermission`, `requireAuth`, `requirePermission` (pure RBAC checks)                                                                                  | ✅ P0-012                                                      |
+| `auth.ts`                   | `getAuthEnv`, `resolveSession` (pure — no `/server` import; pool-testable)                                                                                | ✅ P1-017                                                      |
+| `auth-middleware.ts`        | `authMiddleware` (per-request session), `requirePermission(resource, action)` factory — carries `@tanstack/react-start/server` (isolated from the barrel) | ✅ P1-017                                                      |
+| `db.ts`                     | `getDb()` — env-injection via `cloudflare:workers` (the P1-017 solution)                                                                                  | ✅ P1-017                                                      |
+| `geo.ts`                    | `getGeoCountry` — CF-IPCountry + DEV_GEO fallback                                                                                                         | ✅ P1-017                                                      |
+| `geo-rpc.ts`                | `getStates`, `getCities`, `getFeaturedCities` — delegate to domain geo                                                                                    | ✅ P1-004                                                      |
+| `auth-config.ts`            | `getPublicAuthConfig` — Turnstile sitekey + OAuth availability                                                                                            | ✅ P1-003                                                      |
+| `profile.ts`                | `getMyProfile` (authed), `setHomeLocation` (validated + D1 write), `getPublicProfile` (public, FR-E7)                                                     | ✅ P1-004                                                      |
+| `markets/resolver.ts`       | `resolveMarket`, `resolveMarketLanding` (+ featured cities from geo), `resolveCityLanding` (via `geo.findCityBySlug`), `listVisibleMarkets`               | ✅ P1-001/004                                                  |
+| `markets/rpc.ts`            | `getMarket`, `getMarketLanding`, `getCityLanding`, `getVisibleMarkets`                                                                                    | ✅ P1-001/017                                                  |
+| `events/status-machine.ts`  | `published ↔ cancelled` transitions                                                                                                                       | ✅ P1-005                                                      |
+| `events/resolver.ts`        | `createEventResolver` (validates geo + generates slug), `resolveEvent`, `listEvents`                                                                      | ✅ P1-005                                                      |
+| `events/rpc.ts`             | `createEvent` (authed + Zod), `getEvent`, `getUpcomingEvents` (cursor pagination)                                                                         | ✅ P1-005                                                      |
+| `rsvps/*`                   | RSVP/cancellation RPCs, attendance updates, and notification production                                                                                   | Blocked: full-capacity atomicity defect in the repository path |
+| `waitlist/*`                | Anonymous waitlist signup and lookup flow                                                                                                                 | Implemented                                                    |
+| `notifications/producer.ts` | Persists confirmation/reminder work                                                                                                                       | Partial: current worker polls D1; migrate to DO alarms → Queue |
+| `push/rpc.ts` / `config.ts` | Authenticated FCM token registration/removal and public PWA configuration                                                                                 | Implemented; production credentials unverified                 |
+| `rate-limit.ts`             | Durable Object rate-limit middleware                                                                                                                      | Partial: endpoint and WAF coverage audit remains               |
 
 ## The hybrid error model
 

@@ -6,39 +6,45 @@ created once per environment with an `-staging` / `-production` suffix.
 
 ## Status
 
-Steps 1–5 are **done** for both environments and staging is serving on
-`https://staging.founders.coffee`. Step 6 (Email Sending DNS, Cloudflare Access for `apps/admin`,
-the `www` redirect) is still outstanding, and the third-party secrets below are unset — each degrades
-a feature rather than breaking the deploy, except where noted.
+**Last checked: 2026-08-30.** Repository configuration contains staging and production D1 IDs,
+Vectorize bindings, Worker routes, migrations, and deployment targets. Cloudflare dashboard state and
+secret presence are not externally observable and must be verified with the commands in §7.
 
-| Unset secret | Consequence |
-| ------------ | ----------- |
-| `MAPBOX_TOKEN` | The café map picker on `/host/create` cannot load. |
-| `TURNSTILE_SECRET_KEY` | No bot protection on signup / login / RSVP (AGENTS.md §10 requires it). |
-| `TWILIO_SID` / `TWILIO_AID` / `TWILIO_SEC` | Phone-OTP silently falls back to `DevSmsProvider`, which **logs the OTP instead of sending it** — anyone able to read Worker logs can log in as any phone number. Set these before exposing signup. |
-| `FIREBASE_*` | Web push disabled; `getFirebaseConfig` returns `null`. |
-| `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` | `apps/admin` rejects every request until Access is configured. |
+A bounded check from the current engineering environment could not verify the public endpoints:
+staging hosts timed out and production hostnames did not resolve from that environment. Treat every
+deployment as **unverified**, not serving, until §7 succeeds from a normal network and the Cloudflare
+dashboard confirms the routes. The earlier undated claim that staging was serving has been removed.
 
-Email Sending is the other hard gap: until the SPF/DKIM/DMARC records exist, the `EMAIL` binding
-cannot send, so email-OTP login and RSVP notifications fail in both deployed environments.
+| Unset secret                               | Consequence                                                                                                                                   |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MAPBOX_TOKEN`                             | The café map picker on `/{market}/host/create` cannot load.                                                                                   |
+| `TURNSTILE_SECRET_KEY`                     | Gated auth endpoints fail closed with `503`; event/RSVP coverage still requires the P1-018 audit.                                             |
+| `TWILIO_SID` / `TWILIO_AID` / `TWILIO_SEC` | Current auth code falls back to `DevSmsProvider`, which logs OTPs. This is a release blocker: deployed environments must fail closed instead. |
+| `TWILIO_SMS_FROM`                          | SMS fallback delivery cannot send with the configured notification provider.                                                                  |
+| `FIREBASE_*`                               | Web push disabled; `getFirebaseConfig` returns `null`.                                                                                        |
+| `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD`  | `apps/admin` rejects every request until Access is configured.                                                                                |
+
+Email Sending is another hard gap: until the required sender and DNS records exist, the `EMAIL`
+binding cannot send, so email-OTP login and any explicitly email-based workflow fail in deployed
+environments.
 
 ## What each environment needs
 
-| Resource | Staging | Production | Provisioned by |
-| -------- | ------- | ---------- | -------------- |
-| D1 database | `founders-coffee-db-staging` | `founders-coffee-db-production` | wrangler |
-| Vectorize index | `founders-coffee-embeddings-staging` | `founders-coffee-embeddings-production` | wrangler |
-| Workers AI | binding only | binding only | nothing to create |
-| Durable Objects | `EventLiveDO`, `RateLimiterDO` | same | created on first deploy |
-| Custom domains | `staging.founders.coffee`, `app-staging.`, `admin-staging.` | `founders.coffee`, `app.`, `admin.` | `wrangler deploy` (zone must exist) |
-| Email Sending | shared | shared | **dashboard + DNS (manual)** |
-| Access (admin) | `admin-staging.founders.coffee` | `admin.founders.coffee` | **dashboard (manual)** |
-| Turnstile | test keys or real widget | real widget | dashboard |
+| Resource        | Staging                                                     | Production                              | Provisioned by                      |
+| --------------- | ----------------------------------------------------------- | --------------------------------------- | ----------------------------------- |
+| D1 database     | `founders-coffee-db-staging`                                | `founders-coffee-db-production`         | wrangler                            |
+| Vectorize index | `founders-coffee-embeddings-staging`                        | `founders-coffee-embeddings-production` | wrangler                            |
+| Workers AI      | binding only                                                | binding only                            | nothing to create                   |
+| Durable Objects | `EventLiveDO`, `RateLimiterDO`                              | same                                    | created on first deploy             |
+| Custom domains  | `staging.founders.coffee`, `app-staging.`, `admin-staging.` | `founders.coffee`, `app.`, `admin.`     | `wrangler deploy` (zone must exist) |
+| Email Sending   | shared                                                      | shared                                  | **dashboard + DNS (manual)**        |
+| Access (admin)  | `admin-staging.founders.coffee`                             | `admin.founders.coffee`                 | **dashboard (manual)**              |
+| Turnstile       | test keys or real widget                                    | real widget                             | dashboard                           |
 
-**Not provisioned yet** — no app declares these bindings, so creating them now would be unused
-infrastructure: R2 (`founders-coffee-images`), KV (`founders-coffee-flags`), Queues, Analytics Engine.
-Notifications currently flow through the D1 `scheduled_notifications` table plus the one-minute cron
-in `apps/worker-jobs`, not through Queues.
+**Required but not yet verified/provisioned:** R2 (`founders-coffee-images`), KV
+(`founders-coffee-flags`), Notifications Queue + DLQ, and Analytics Engine. Notifications currently
+flow through a non-compliant one-minute D1 scan. The highest-priority remediation is per-event Durable
+Object alarms → Notifications Queue, with only a low-frequency recovery sweep.
 
 ## API token scopes
 
@@ -73,10 +79,10 @@ npx wrangler vectorize create founders-coffee-embeddings-production --dimensions
 `wrangler d1 create` prints a `database_id`. It is an account-scoped identifier, not a credential —
 it is useless without the API token — so it is committed in the wrangler configs.
 
-| Environment | Database ID | Region |
-| ----------- | ----------- | ------ |
-| staging | `cbbba018-a4e3-491a-9a02-7995aa45315b` | WEUR |
-| production | `7685fda1-7bc0-4907-a37a-a77e8daa5ecb` | WEUR |
+| Environment | Database ID                            | Region |
+| ----------- | -------------------------------------- | ------ |
+| staging     | `cbbba018-a4e3-491a-9a02-7995aa45315b` | WEUR   |
+| production  | `7685fda1-7bc0-4907-a37a-a77e8daa5ecb` | WEUR   |
 
 `--location weur` puts the primary near the Maghreb/EU user base (AGENTS.md §11.5).
 
@@ -98,7 +104,8 @@ npm run migrate:production
 
 ## 4. Seed the markets
 
-The market rows (DZ, EG, SA — all `active`) are defined in
+The required market rows are DZ (`active`), EG/SA (`open`), and MA/AE (`dark`). The current seed file
+still marks DZ/EG/SA `active`; P0-007 remains blocked until code and deployed rows are aligned. Rows are defined in
 [`libs/db/src/seed.ts`](../libs/db/src/seed.ts). Cities are **not** in D1; the 6,518-city datasets are
 server-side TS files in `libs/domain/src/geo/data/`.
 
@@ -135,9 +142,9 @@ valid in production.
 These have no wrangler equivalent.
 
 **Email Sending** — Dashboard → Email → enable the Email Service for `founders.coffee` and add the
-generated SPF/DKIM/DMARC records. Until this is done the `EMAIL` binding cannot send, so email-OTP
-login and RSVP email notifications fail in the deployed environments. Phone-OTP via Twilio is
-unaffected.
+required sender and DNS records. Until this is done the `EMAIL` binding cannot send, so email-OTP
+login and any explicitly email-based workflow fail in the deployed environments. Phone-OTP via
+Twilio is unaffected.
 
 **Cloudflare Access for `apps/admin`** — Zero Trust → Access → Applications, one application per
 environment (`admin.founders.coffee`, `admin-staging.founders.coffee`) with an email-OTP or
@@ -163,8 +170,7 @@ A plain `curl` against a deployed app returns **403 Forbidden**: the CSRF middle
 header. Add `-H 'Sec-Fetch-Site: none'` to smoke-test from the shell. The first response is then a
 `307` to the geo-resolved market (`/algeria` from an Algerian edge), not a `200`.
 
-## Plan notes
+## Repository conventions
 
-Two decisions in [`p0-019-020-021-plan.md`](p0-019-020-021-plan.md) were superseded: CI is GitHub
-Actions rather than GitLab (the repository moved to GitHub), and there are two environments rather
-than a single free-tier `test` environment.
+CI uses GitHub Actions, and the deployed environments are staging and production. Historical
+provisioning plans that described GitLab or a single free-tier test environment have been deleted.

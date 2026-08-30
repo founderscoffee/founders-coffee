@@ -1,47 +1,64 @@
-# worker-jobs — Queue + Cron consumer (`apps/worker-jobs`)
+# Worker jobs
 
-The system worker for founders.coffee — the 4th app (SRS D12, 8.2). No UI. It's the async backbone: it consumes Queues + a Cron trigger so request paths stay fast + resilient. Implements **P0-018** (§4).
+`apps/worker-jobs` is the non-UI Cloudflare Worker for asynchronous delivery, indexing, and operational reconciliation. This document describes both the current implementation and the required production architecture as of 2026-08-30.
 
-## What it consumes
+## Current implementation
 
-| Queue / trigger | Consumer does | Uses |
-|---|---|---|
-| `NOTIFICATIONS` | dispatch a pre-rendered email | `libs/email` (`CloudflareEmailProvider`) |
-| `EMBEDDINGS` | re-embed + upsert docs into Vectorize | `core/ai` (`reindex`) |
-| `RECONCILE` (cron + queue) | count pending orders → backlog metric (NFR-7) | `libs/db` (`countOrdersByStatus`) + `libs/observability` |
-| cron (`0 3 * * *`, daily) | drives `RECONCILE` as a backstop | — |
+| Entry point                     | Current behavior                                                             | Status                                                                                     |
+| ------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `fetch`                         | Returns the worker health response                                           | Complete                                                                                   |
+| scheduled trigger, every minute | Queries D1 for due notifications and delivers them directly                  | Blocked: violates the per-entity scheduling decision                                       |
+| scheduled trigger, daily        | Reconciles pending-order counts and records the backlog metric               | Complete as a recovery/operational job                                                     |
+| `queue` handler                 | Contains processors for notification, embedding, and reconciliation messages | Partial: consumer code exists, but production queue bindings and delivery are not verified |
 
-Queue names are canonical in `RESOURCES.queues` ([libs/infra/src/resources.ts](libs/infra/src/resources.ts)). **Producers are the other apps** (UI/dashboard/admin server-fns) — they enqueue via producer bindings (wired at P1-009/P1-005). worker-jobs **only consumes**.
+The minute-by-minute D1 notification scan is temporary operational debt. The persisted notification
+set also currently causes SMS/email work to coexist with push rather than invoking SMS strictly as
+the fallback. Neither behavior is the intended design or a basis for additional timed features.
 
-## Per-message ack/retry + DLQ
+## Required notification architecture
 
-The `queue` handler processes each message individually: on `ok` → `message.ack()`; on `err` → `message.retry()`. A failing message is retried **on its own** (no re-sending siblings — avoids double-email). After `max_retries: 3`, Cloudflare routes it to the per-queue dead-letter queue (declared in `wrangler.jsonc`). A DLQ *consumer* (alert/replay) is P1; for now DLQ messages persist + surface via observability.
-
-## Processor pattern (testable)
-
-Each consumer's logic is a processor function with **injected dependencies** ([src/jobs/](apps/worker-jobs/src/jobs/)):
-
-```ts
-processNotification(email: EmailProvider, msg)         // fake provider in tests
-processEmbeddings(ai: AiRuntime, vectorize, msg)        // fake ports in tests
-runReconcile(db: Db)                                    // real D1 in tests
+```text
+Event or challenge mutation
+  -> schedule a Durable Object alarm for the entity
+  -> alarm publishes a delivery command to NOTIFICATIONS
+  -> worker-jobs consumes the message
+  -> PWA web push is attempted first
+  -> SMS is used as the fallback when push is unavailable or fails
 ```
 
-The thin `ExportedHandler` ([src/index.ts](apps/worker-jobs/src/index.ts)) wires real `env.*` to the processors (`createCloudflareEmailProvider(env.EMAIL, …)`, `env.AI as AiRuntime`, `createDb(env.DB)`). This separation is what makes the consumers unit-testable.
+- Durable Object alarms own per-entity timing.
+- The queue provides retry isolation and dead-letter handling.
+- A low-frequency D1 sweep may recover missed alarms; it is not the primary scheduler.
+- Email remains appropriate for authentication, billing, and explicitly email-based workflows. It is not the default event-reminder channel.
+- Notification preferences and idempotency must be enforced before delivery.
 
-## Testing (AGENTS §12 — no binding mocks)
+This migration is the highest-priority platform blocker in the active implementation plan.
 
-- **NOTIFICATIONS** — `processNotification` with a fake `EmailProvider`; the handler end-to-end via `createMessageBatch` + `worker.queue(batch, env, ctx)` + `getQueueResult` against the **real Miniflare `EMAIL`** binding (acks an allowed recipient, retries a disallowed one).
-- **EMBEDDINGS** — `processEmbeddings` with fake `AiRuntime`/`VectorizeRuntime` ports. Miniflare does **not** emulate Workers AI / Vectorize (remote-proxy only — see `docs/ai.md`), so the handler's AI/Vectorize path isn't exercised in Miniflare; the processor's port-fake test covers the logic, and real-binding integration is a staging concern.
-- **RECONCILE** — `runReconcile` against **real D1** (Miniflare, with `libs/db` migrations applied in `setup.ts`).
+## Queue processors
 
-## Scheduling philosophy
+The worker currently recognizes these message families:
 
-DO Alarms (P1-010) own **per-entity** timing (event reminders, challenge phase transitions) — this worker's cron is a **backstop only** (the daily reconcile sweep), never a D1-polling reminder loop.
+- notifications: push/SMS/email delivery commands;
+- embeddings: Workers AI generation followed by Vectorize upsert;
+- reconciliation: operational checks and metrics.
 
-## Bindings + deferrals
+Processor logic is kept separate from the thin Cloudflare handler so it can be tested directly. Cloudflare bindings themselves must be exercised through Miniflare or a real environment, never replaced by binding mocks.
 
-- **Bindings** (`wrangler.jsonc`): `DB`, `EMAIL`, `AI`, `VECTOR`, + the 3 queue consumers (each `max_retries: 3` + a DLQ). Provisioning (real `database_id`, sender-domain verification, DLQ queues created) is **P0-019**; the `database_id` is a placeholder until then.
-- **Producer bindings cross-app** — UI/dashboard/admin each need producer bindings to enqueue NOTIFICATIONS/EMBEDDINGS (P1-009/P1-005, provisioned P0-019).
-- **`Env`** is defined manually ([src/env.ts](apps/worker-jobs/src/env.ts)) like `apps/admin`'s `AdminEnv` — typecheck needs no `wrangler types` step.
-- **P1-009** notifications producer (RSVP/reminder triggers → enqueue). **P1-014** reconcile admin nudges for stale payments. **P2-E** moderation (separate consumer/queue).
+## Provisioning requirements
+
+Production operation requires:
+
+- producer and consumer bindings for `NOTIFICATIONS` and any other enabled queue;
+- retry limits and a dead-letter queue with an alert/replay runbook;
+- notification Durable Object bindings and migrations;
+- D1, Workers AI, Vectorize, email, Firebase, Twilio, and Analytics bindings or credentials for the channels actually enabled;
+- environment-specific resource names and verified staging delivery before production promotion.
+
+The declarations in source control do not prove that the resources exist in the Cloudflare account. See [provisioning.md](provisioning.md) for the dated verification state.
+
+## Verification
+
+- Unit-test message validation, channel selection, idempotency, and error classification.
+- Use Miniflare for D1, Queues, Durable Objects, and supported Cloudflare bindings.
+- Verify Workers AI, Vectorize, Firebase, Twilio, and sender configuration in staging where local emulation is insufficient.
+- Exercise retry and dead-letter behavior before enabling production producers.

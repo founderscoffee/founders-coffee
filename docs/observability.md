@@ -26,7 +26,7 @@ A separate binding for product events (events created, RSVPs, density per city/m
 
 ```ts
 import {
-  logger,            // isomorphic singleton — same API on Worker + browser
+  logger, // isomorphic singleton — same API on Worker + browser
   createServerLogger,
   createClientLogger,
   configureClientLogger,
@@ -65,16 +65,19 @@ Threshold is set **programmatically**, not via an env var: `createServerLogger({
 
 ## Wiring status
 
-| Piece | Status |
-|---|---|
-| `libs/observability` (logger, metrics, ingest, reportError, context, sanitize) | ✅ **P0-014** — complete, 36 Miniflare/pure tests |
-| Workers Observability `console.*` capture | ✅ enabled (`observability: { enabled: true }` in each app `wrangler.jsonc`) |
-| AsyncLocalStorage request-context propagation | ✅ verified (propagates across awaits under `nodejs_compat`) |
-| Client `/client-logs` ingestion endpoint + `configureClientLogger` + `reportError` → `onError`/error boundaries | ⏳ **P1-017** (app wiring; apps are placeholders until then) |
-| `ANALYTICS` binding + Logpush destination + dashboard/alerts | ⏳ **P0-019** / **P1-019** (provisioning) |
+| Piece                                                                                                           | Status                                                                |
+| --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `libs/observability` (logger, metrics, ingest, reportError, context, sanitize)                                  | Complete in code and tests                                            |
+| Workers Observability `console.*` capture                                                                       | Complete in source configuration (`observability: { enabled: true }`) |
+| AsyncLocalStorage request-context propagation                                                                   | Complete in tests under `nodejs_compat`                               |
+| Client `/client-logs` ingestion endpoint + `configureClientLogger` + `reportError` → `onError`/error boundaries | Complete in `apps/ui`                                                 |
+| `ANALYTICS` binding + Logpush destination + dashboard/alerts                                                    | Planned/Unverified under P0-019 and P1-019                            |
 
-Until P1-017 wires the endpoint, client logs buffer and flush via beacon to a URL that 404s — fire-and-forget, no crash. The **lib is complete**; only the app-side endpoint is deferred (same pattern as P0-008/P0-009).
+The other app shells must wire the same ingestion and error-reporting path as they become functional. Account-side Analytics Engine and Logpush configuration remains subject to the dated provisioning verification rather than being assumed from source declarations.
 
 ## Logpush setup (P0-019)
 
-Workers Trace Events (the `console.*` output this lib emits) are pushed to a destination via **Logpush** (dashboard/API, not code): create a Logpush job for the account-scoped `workers_trace_events` dataset → R2 or a third party (Datadog/Elastic/BigQuery). Whatever Workers Observability captures — including these structured JSON lines — is persisted there. See https://developers.cloudflare.com/logs.
+To persist Workers Trace Events outside the default retention, create a **Logpush** job through the
+dashboard/API for the account-scoped `workers_trace_events` dataset and send it to an approved
+destination. This is required operational configuration, not a source-controlled capability, and is
+currently unverified. See https://developers.cloudflare.com/logs.

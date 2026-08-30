@@ -14,29 +14,32 @@ The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, F
 
 ## Resolution model
 
-- **Market `code`/`slug` is the primary key** — resolved from a path (`/algeria`). Slug URLs are
+- **Market `code` is the D1 primary key; `slug` is the canonical URL key** — resolved from a path (`/algeria`). Slug URLs are
   canonical (`/algeria`); code alias redirects (`/dz` → 307 `/algeria`).
-- **3 target countries**: DZ (active), EG (active), SA (active). Morocco dropped. Adding a country
-  is seed data (D1) + a geo TS data file (zero code in the resolver).
+- **Canonical market policy**: DZ (`active`), EG/SA (`open`), MA/AE (`dark`). The current seed still
+  marks DZ/EG/SA `active` and does not include MA/AE, so P0-007 remains blocked until code and deployed
+  rows are aligned. Geography datasets currently exist for DZ/EG/SA. Adding or correcting state/city
+  data requires a reviewed dataset change and deployment; market visibility and feature activation
+  remain D1 configuration.
 - **State visibility (FR-G3)**: `markets.isMarketVisible(state)` — `dark` hidden, `open`/`active`
   visible. Dark → `market_not_found` (no existence leak).
 - **State machine**: `dark → open → active` (+ rollback) via `markets.transition`.
-- **Arabic-first**: `detectLocale(cookie) → ar` (Accept-Language dropped — SRS §8.6 amended). The
-  locale toggle (footer) is the only override.
+- **Arabic-first**: preference/cookie → market default → `ar`; supported locales are `ar`, `fr`,
+  and `en`. Browser `Accept-Language` does not override the selected locale.
 
 ## API
 
-| Where | Export | Role |
-|---|---|---|
-| domain (`markets.*`) | `MarketState`, `canTransition`, `transition`, `isMarketVisible`, `VISIBLE_STATES` | pure state logic |
-| domain (`geo.*`) | `getStates`, `getCities`, `getFeaturedCities`, `findCityBySlug`, `findCity`, `findState` | TS data queries |
-| domain (`geo.*`) | `GeoState`, `GeoCity` types | `{ code, name, nameAr, slug?, stateCode, featured }` |
-| db | `getMarketByCode`, `getMarketBySlug`, `listMarkets({states?})` | market queries only |
-| server-fns | `resolveMarket(db, {code?, slug?})` | public market resolution |
-| server-fns | `resolveMarketLanding(db, key)` | market + **featured cities** from geo TS data |
-| server-fns | `resolveCityLanding(db, {marketKey, citySlug})` | market + city (validated via `geo.findCityBySlug`) |
-| server-fns (RPC) | `getMarket`, `getMarketLanding`, `getCityLanding`, `getVisibleMarkets` | client-safe wrappers |
-| server-fns (RPC) | `getStates`, `getCities`, `getFeaturedCities` | geo data RPCs |
+| Where                | Export                                                                                   | Role                                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| domain (`markets.*`) | `MarketState`, `canTransition`, `transition`, `isMarketVisible`, `VISIBLE_STATES`        | pure state logic                                                                             |
+| domain (`geo.*`)     | `getStates`, `getCities`, `getFeaturedCities`, `findCityBySlug`, `findCity`, `findState` | TS data queries                                                                              |
+| domain (`geo.*`)     | `GeoState`, `GeoCity` types                                                              | `{ code, name, nameAr, slug, stateCode, featured }` for cities; states omit city-only fields |
+| db                   | `getMarketByCode`, `getMarketBySlug`, `listMarkets({states?})`                           | market queries only                                                                          |
+| server-fns           | `resolveMarket(db, {code?, slug?})`                                                      | public market resolution                                                                     |
+| server-fns           | `resolveMarketLanding(db, key)`                                                          | market + **featured cities** from geo TS data                                                |
+| server-fns           | `resolveCityLanding(db, {marketKey, citySlug})`                                          | market + city (validated via `geo.findCityBySlug`)                                           |
+| server-fns (RPC)     | `getMarket`, `getMarketLanding`, `getCityLanding`, `getVisibleMarkets`                   | client-safe wrappers                                                                         |
+| server-fns (RPC)     | `getStates`, `getCities`, `getFeaturedCities`                                            | geo data RPCs                                                                                |
 
 ## Geo-routing
 
@@ -44,6 +47,7 @@ The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, F
 `getGeoCountry`. An `fc_geo` cookie remembers the resolution so the logo re-visits the same market.
 
 ## Notes
+
 - **Geo data is server-side** (TS files in `libs/domain/src/geo/data/`). The client gets filtered
   subsets via RPCs — the full 6,518-city dataset never touches the browser bundle.
 - **Featured cities** (state capitals) drive the landing page's city buttons. All cities are

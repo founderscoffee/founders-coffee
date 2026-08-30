@@ -2,13 +2,17 @@
 
 Implements **P0-020**. Two workflows, two Cloudflare environments, four Workers per environment.
 
+**Source configuration last checked: 2026-08-30.** The workflow files match the behavior below.
+GitHub environment, secret, billing-plan, and recent-run state were not verified from the current
+engineering environment and must be checked in the repository settings before relying on deployment.
+
 ## Branch → environment mapping
 
-| Trigger | Cloudflare environment | Gate |
-| ------- | ---------------------- | ---- |
-| push to `develop` | `staging` | none — deploys automatically |
-| manual run from `main` | `production` | the manual run **is** the gate |
-| push to `main` | none | runs `ci.yml` only |
+| Trigger                | Cloudflare environment | Gate                           |
+| ---------------------- | ---------------------- | ------------------------------ |
+| push to `develop`      | `staging`              | none — deploys automatically   |
+| manual run from `main` | `production`           | the manual run **is** the gate |
+| push to `main`         | none                   | runs `ci.yml` only             |
 
 ### Why production is manual rather than reviewer-approved
 
@@ -31,8 +35,8 @@ gh api -X PUT repos/<owner>/<repo>/environments/production \
   -f 'reviewers[][type]=User' -F "reviewers[][id]=$(gh api user --jq .id)"
 ```
 
-Both `staging` and `production` GitHub Environments already exist, so environment-scoped secrets work
-either way.
+Both `staging` and `production` GitHub Environments are required so environment-scoped secrets work
+either way; verify their current existence and settings in GitHub.
 
 ## Workflows
 
@@ -67,10 +71,10 @@ resolves the Cloudflare environment at **build** time and writes a flattened con
 `wrangler deploy` then picks up automatically. Passing `--env` to `wrangler deploy` is invalid for
 them. `apps/worker-jobs` has no Vite build and uses the normal `--env` flag.
 
-| App | Command |
-| --- | ------- |
+| App                        | Command                                              |
+| -------------------------- | ---------------------------------------------------- |
 | `ui`, `dashboard`, `admin` | `CLOUDFLARE_ENV=<env> vite build && wrangler deploy` |
-| `worker-jobs` | `wrangler deploy --env <env>` |
+| `worker-jobs`              | `wrangler deploy --env <env>`                        |
 
 Both forms are encoded in the Nx `deploy:staging` / `deploy:production` targets, so use those rather
 than calling wrangler directly. There is deliberately **no** bare `deploy` target: it would publish to
@@ -92,13 +96,13 @@ npm run migrate:local        # local Miniflare D1
 
 Repository secrets (**Settings → Secrets and variables → Actions**):
 
-| Secret | Purpose |
-| ------ | ------- |
-| `CLOUDFLARE_API_TOKEN` | Read automatically by wrangler |
+| Secret                  | Purpose                        |
+| ----------------------- | ------------------------------ |
+| `CLOUDFLARE_API_TOKEN`  | Read automatically by wrangler |
 | `CLOUDFLARE_ACCOUNT_ID` | Read automatically by wrangler |
 
-Environments (**Settings → Environments**): `staging` and `production` — both created, neither
-carrying protection rules (see above). Application secrets are **not** stored in GitHub: they live in
+Environments (**Settings → Environments**): `staging` and `production`, currently intended without
+protection rules (see above). Application secrets are **not** stored in GitHub: they live in
 Cloudflare via `wrangler secret put` and survive redeploys. See [`secrets.md`](secrets.md).
 
 ## Deploying by hand
@@ -139,7 +143,7 @@ deliberately left out. Reproduce with:
 rm -rf libs/i18n/src/paraglide && npx nx run public:deploy:staging
 ```
 
-The general rule: any target that bundles a library's *source* needs that library's codegen as a
+The general rule: any target that bundles a library's _source_ needs that library's codegen as a
 `dependsOn`. Depending on `^build` is not enough, because Vite compiles `libs/*/src` directly and
 never reads the `tsc` output.
 

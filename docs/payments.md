@@ -4,21 +4,21 @@ The payment layer for founders.coffee. Implements **P0-015** (FR-P3, FR-M5, NFR-
 
 ## Model
 
-- **B2B only — founders never pay.** Every Order is paid by a sponsor, a host of a paid challenge, or the platform (prize payouts). Invisible to founders.
+- **Community participation is free.** Membership, events, participation, and ordinary hosting never create an Order. Sponsors and commercial hosted-challenge clients may pay for B2B services; the platform may owe prize payouts.
 - **In-market, in-currency** (NFR-6) — no cross-border, no FX. Orders carry `marketCode` + a `Money` amount (`amount_minor` integer + `currency`).
 - **Year 1 = recorded, executed manually.** An admin confirms an Order after the external payment lands (bank transfer / BaridiMob). Automated gateway providers arrive in **P4** behind the `PaymentProvider` interface.
 
 ## Order / Invoice
 
-An **Order** is a *generic* payment record for "something payable" — not coupled to any one entity:
+An **Order** is a _generic_ payment record for "something payable" — not coupled to any one entity:
 
-| field | meaning |
-|---|---|
-| `purpose` | `sponsorship` \| `hosted_challenge_fee` \| `prize_payout` \| `host_fee` |
-| `referenceType` / `referenceId` | polymorphic link to what's paid (e.g. `sponsorship` / a sponsorship id — Sponsorship lands SP-001/P1-011) |
-| `amountMinor` + `currency` | the `Money` value |
-| `status` | `pending` → `paid` / `cancelled`; `paid` → `refunded` |
-| `provider` / `providerRef` | `manual` (Year 1); gateway + txn ref in P4 |
+| field                           | meaning                                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `purpose`                       | `sponsorship` \| `hosted_challenge_fee` \| `prize_payout`; legacy `host_fee` is deprecated and must not be used |
+| `referenceType` / `referenceId` | polymorphic link to what's paid (e.g. `sponsorship` / a sponsorship id — Sponsorship lands SP-001/P1-011)       |
+| `amountMinor` + `currency`      | the `Money` value                                                                                               |
+| `status`                        | `pending` → `paid` / `cancelled`; `paid` → `refunded`                                                           |
+| `provider` / `providerRef`      | `manual` (Year 1); gateway + txn ref in P4                                                                      |
 
 An **Invoice** is 1:1 with its Order — the bill record (`number`, `billTo`, amount) issued to the payer.
 
@@ -29,16 +29,17 @@ pending ──confirm──▶ paid ──refund──▶ refunded
    │
    └──cancel──▶ cancelled
 ```
+
 `cancelled` and `refunded` are terminal. `failed`/`disputed` arrive with P4 gateway providers. Pure (`canTransition` / `transition` → `Result`); the provider stays in the Result flow.
 
 ## The provider (`libs/payments`)
 
 ```ts
 interface PaymentProvider {
-  initiate(input): Promise<Result<Order>>;   // create pending order + invoice
-  confirm(orderId, actor): Promise<Result<Order>>;   // pending → paid (atomic + idempotent)
-  cancel(orderId, actor): Promise<Result<Order>>;    // pending → cancelled
-  refund(orderId, actor, reason?): Promise<Result<Order>>;  // paid → refunded
+  initiate(input): Promise<Result<Order>>; // create pending order + invoice
+  confirm(orderId, actor): Promise<Result<Order>>; // pending → paid (atomic + idempotent)
+  cancel(orderId, actor): Promise<Result<Order>>; // pending → cancelled
+  refund(orderId, actor, reason?): Promise<Result<Order>>; // paid → refunded
 }
 ```
 

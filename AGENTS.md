@@ -4,9 +4,9 @@
 
 ## 0. Authoritative references (in order)
 
-1. **This file** — *how* we build (rules).
-2. [`docs/srs.md`](docs/srs.md) — *what* we build (requirements, `FR-*`/`NFR-*`).
-3. [`docs/implementation-plan.md`](docs/implementation-plan.md) — *when* we build it (phases, tickets).
+1. **This file** — _how_ we build (rules).
+2. [`docs/srs.md`](docs/srs.md) — _what_ we build (requirements, `FR-*`/`NFR-*`).
+3. [`docs/implementation-plan.md`](docs/implementation-plan.md) — _when_ we build it (phases, tickets).
 4. Parent `~/CLAUDE.md` — repo tooling (code-review-graph MCP: use graph tools before grep/glob).
 
 Every code change maps to a ticket ID in the plan, which maps to `FR-*`/`NFR-*` in the SRS. No orphan work.
@@ -30,7 +30,7 @@ Every code change maps to a ticket ID in the plan, which maps to `FR-*`/`NFR-*` 
 
 **Use exactly these. Anything else requires explicit approval.**
 
-- **Monorepo:** Nx 23 + TanStack Config. TypeScript 5.9, **strict**.
+- **Monorepo:** Nx 23 + TanStack Config. TypeScript 6, **strict**.
 - **Apps:** TanStack Start (fullstack: SSR + typed server functions). Runtime: **Cloudflare Workers**.
 - **TanStack:** Router, Query (server state), Form (forms), Table (data grids), Virtual (long lists), Store (client UI state).
 - **Styling:** **Tailwind CSS v4 + DaisyUI** (shared in `libs/ui`).
@@ -39,7 +39,7 @@ Every code change maps to a ticket ID in the plan, which maps to `FR-*`/`NFR-*` 
 - **Auth:** **Better Auth** (phone-OTP via Twilio Verify + email-OTP + OAuth; cookie + token).
 - **Cloudflare services:** D1, R2, Images, KV, Queues, Cron, Durable Objects, Workflows, Workers AI, Vectorize, Browser Rendering, Turnstile, Access/Zero Trust, Email (native), Analytics Engine, Web Analytics, Secrets Store, Smart Placement.
 - **Email:** Cloudflare Email (native) + React Email templates.
-- **Mobile:** PWA Builder wraps `apps/ui`.
+- **Mobile:** installable Serwist PWA from `apps/ui`; PWA Builder may package that same PWA for stores. A separate native app is not committed scope.
 - **Testing:** Vitest + Playwright + Miniflare.
 
 **Forbidden stack:** NestJS, Prisma, Express, Next.js, Redux, raw `fetch` in components, Node-only libraries (unless `nodejs_compat`-verified), mock frameworks for Cloudflare bindings.
@@ -53,7 +53,7 @@ Every code change maps to a ticket ID in the plan, which maps to `FR-*`/`NFR-*` 
 ```
 apps/
   ui/              # public site + PWA — anon, SEO/prerendered
-  dashboard/       # founders/hosts/sponsors — authenticated
+  dashboard/       # sponsors — authenticated analytics and account portal
   admin/           # project owners — authenticated + Cloudflare Access gated
   worker-jobs/     # Queue + Cron consumers (no UI)
 libs/
@@ -64,11 +64,13 @@ libs/
   server-fns/      # createServerFn definitions per domain (the backend)
   i18n/            # locales, RTL, fallback, money/date formatting
   ui/              # Tailwind v4 + DaisyUI design system, shared components
-  ai/              # Workers AI + Vectorize clients
+  notifications/   # notification delivery providers (PWA push + SMS fallback)
   payments/        # PaymentProvider interface + ManualProvider (Y1) + DZ adapters (P4)
   email/           # Cloudflare Email + React Email templates
   observability/   # logger, Analytics Engine metrics, error reporting
-  infra/           # wrangler configs, typed Env (wrangler types), seeds, Nx tags
+  infra/           # wrangler configs, typed Env (wrangler types), resource names, Nx tags
+
+libs/core/src/ai/  # server-only Workers AI + Vectorize ports and clients
 ```
 
 ### Per-app internal structure (mandatory)
@@ -113,7 +115,7 @@ If you need data in a component that the current hook doesn't provide → add/ex
 - **Naming:** clear, domain-aligned, no abbreviations except well-known ones (`id`, `url`). Boolean props prefixed `is`/`has`/`can`. **All functions and methods use camelCase** — no exceptions.
 - **Functions:** small, single-purpose, pure where possible. Side effects live in server functions / repositories, not in components or domain logic.
 - **Route files are thin.** Route files (`routes/*.tsx`) contain **only** layout + wiring (auth guard, data loading, hooks). **Zero component logic** in route files — all UI components live in `components/` or `features/<domain>/components/`.
-- **Component naming = file name.** The exported component name must exactly match the file name in PascalCase: `DatetimePicker.tsx` exports `DatetimePicker`, `MapPicker.tsx` exports `MapPicker`. No mismatches.
+- **Component naming = file name.** The exported component name must exactly match the file name in PascalCase: `DatetimePicker.tsx` exports `DatetimePicker`, `HostMap.tsx` exports `HostMap`. No mismatches.
 - **Arrow functions only.** Declare all functions, methods, and components as arrow functions (`const f = () => {}`), including object-literal methods and class methods (use arrow class fields so `this` binds to the instance). Exceptions: generator functions (`function*`) and any case where arrow syntax would change `this` binding.
 - **No inline comments.** Do not write `//` line/inline comments — names and structure are the documentation. JSDoc block comments (`/** */`) for public API docs are encouraged; toolchain directive comments (`eslint-disable`, `@ts-*`) are exempt.
 - **`libs/domain` is pure:** no Drizzle, no `Env`, no `fetch`. It takes inputs and returns outputs. I/O stays in `libs/db` and `libs/server-fns`.
@@ -127,8 +129,8 @@ If you need data in a component that the current hook doesn't provide → add/ex
 ## 6. Domain modeling rules
 
 - **Money:** ALWAYS the `Money` value object from `libs/core` — `{ amount_minor: number (integer), currency: string (ISO 4217) }`. **Never** a bare number. **Never** floating-point math on money. All arithmetic in integer minor units.
-- **Schemas first:** define a Zod schema for every entity/command; infer TS types (`z.infer`). Shared primitives (Money, id, pagination, market code) live in [`libs/core/validation.ts`](../libs/core/src/validation.ts); per-domain schemas in `libs/domain/<domain>/schemas.ts`. The schema is the single contract shared by `api.ts`, server functions, and forms (DRY). Server functions validate input via `createServerFn().validator(appValidator(schema))` — invalid input throws `AppError('validation_failed')` (the §7 throw boundary). See [`docs/validation.md`](validation.md).
-- **Geo/market scoping:** every user-facing record carries `market_id` (and `city_id` where geographic) from creation. No global queries that silently cross markets.
+- **Schemas first:** define a Zod schema for every entity/command; infer TS types (`z.infer`). Shared primitives (Money, id, pagination, market code) live in [`libs/core/src/validation.ts`](libs/core/src/validation.ts); per-domain schemas live in `libs/domain/src/<domain>/schemas.ts`. The schema is the single contract shared by `api.ts`, server functions, and forms (DRY). Server functions validate input via `createServerFn().validator(appValidator(schema))` — invalid input throws `AppError('validation_failed')` (the §7 throw boundary). See [`docs/validation.md`](docs/validation.md).
+- **Geo/market scoping:** every user-facing record carries `market_code` and, where geographic, `state_code`/`city_code` from creation. `market_code` references D1; state/city codes reference the versioned server-side geography datasets. No global queries that silently cross markets.
 - **Time:** store UTC; render in the city/market timezone via `libs/i18n`. Never store localized times.
 - **IDs:** from the `libs/core` id factory — consistent format, no ad-hoc UUIDs in different styles.
 - **Enums/status:** as string union types backed by Zod enums; status transitions live in `libs/domain` (e.g., Order: `pending → paid → refunded`).
@@ -142,7 +144,7 @@ Every server function (`createServerFn`):
 1. **Validates input** with a Zod schema via `appValidator(schema)` — throws `AppError('validation_failed')` on invalid input (inferred types exported for `api.ts`).
 2. **Declares required permission** (RBAC); checked by the shared authz middleware — never inline checks.
 3. **Resolves the active market/city** from context; scopes all reads/writes.
-4. **Unwraps** the domain `Result` via `handleResult()` *inside the handler* — **throws** the typed `AppError` on `!ok` (stable code + message), returns data on `ok`. Server functions are the **throw boundary**: the thrown `AppError` is serialized by TanStack Start, so `useQuery`/`useMutation` enter `error` automatically. No leakage of internals. Read the client-side `code` via `appErrorCode()`.
+4. **Unwraps** the domain `Result` via `handleResult()` _inside the handler_ — **throws** the typed `AppError` on `!ok` (stable code + message), returns data on `ok`. Server functions are the **throw boundary**: the thrown `AppError` is serialized by TanStack Start, so `useQuery`/`useMutation` enter `error` automatically. No leakage of internals. Read the client-side `code` via `appErrorCode()`.
 5. **Logs** entry/failures via `libs/observability` (structured, with market/request context).
 6. **Calls** `libs/domain` for logic and `libs/db` for persistence — never the reverse dependency.
 
@@ -155,7 +157,7 @@ State-changing server functions (create event, RSVP, signup, submit challenge) a
 - **Presentational + thin.** Components receive props, call hooks (`hooks.ts`) for data, and dispatch via hooks. They **never** import server functions, DB, Drizzle, or domain internals.
 - **Organized by domain** in `features/<domain>/components/`. Cross-domain shared UI lives in `libs/ui`.
 - **Styling:** Tailwind v4 + DaisyUI. Use design tokens / DaisyUI components; avoid arbitrary inline values where a token exists. RTL-aware (use logical properties — `ps-`/`pe-`/`ms-`/`me-`, not `pl-`/`pr-`).
-- **Forms:** TanStack Form + the domain's Zod schema (reused — DRY).
+- **Forms:** shared Zod schemas remain the contract. TanStack Form is available for forms that benefit from it; local React state is also acceptable when validation still reuses the shared schema and the component remains thin.
 - **Tables/grids:** TanStack Table. **Long lists:** TanStack Virtual.
 - **Client UI state** (toasts, modals, non-server state): TanStack Store.
 - **Accessibility:** WCAG 2.1 AA. Semantic HTML, keyboard nav, focus management, ARIA only when semantic HTML is insufficient. Every interactive element reachable by keyboard.
@@ -167,7 +169,7 @@ State-changing server functions (create event, RSVP, signup, submit challenge) a
 
 - **Zero hardcoded user-facing strings.** All copy in `libs/i18n` locale resources.
 - **Every screen must work in both RTL and LTR.** Direction is driven by the active locale/market. Test both.
-- **Locale fallback chain** (`ar-EG → ar → en`); never break the UI on a missing translation.
+- **Supported locales:** `ar`, `fr`, and `en`, with `ar` as the final fallback. Locale resolution is user preference/cookie → market default → `ar`; do not override it with browser `Accept-Language`.
 - **User-generated content is not auto-translated.** Tag it with a language code; render as authored.
 - **Format** dates, times, numbers, and currency per active locale + market timezone.
 
@@ -196,7 +198,7 @@ State-changing server functions (create event, RSVP, signup, submit challenge) a
 - **Queries:** use Drizzle's query builder; parameterize everything (no string interpolation into SQL).
 - **Transactions — D1 is batch-only:** D1 supports **batch** transactions (`db.batch([...])`) but **not interactive read→decide→write** across awaits. A Drizzle `db.transaction(async tx => { const x = await tx.select(); if (x) await tx.update(); })` is **not atomic** on D1 — it is a TOCTOU race. For check-then-write use **single atomic SQL** (`INSERT … SELECT … WHERE`, `ON CONFLICT`, CTEs, atomic `UPDATE … WHERE rsvps < cap`) inside `db.batch()`. Provide a `libs/db` atomic helper so the unsafe pattern is hard to reach for (see §11.5).
 - **Performance:** watch query cost (D1 throughput is tied to query duration). Index hot paths. Avoid N+1. Re-review before crossing the §8.7 D1 size ceiling (monitor monthly).
-- **Seeds:** market/city/reference data via `libs/infra` seeds (DZ active, MA open, …).
+- **Market configuration:** D1 rows define DZ (`active`), EG/SA (`open`), and future MA/AE (`dark`). Versioned state/city reference data lives in `libs/domain/src/geo/data`; updating that reference data requires a reviewed code change.
 
 ---
 
@@ -206,10 +208,10 @@ These are non-negotiable platform-specific rules; several correct common mistake
 
 - **Workers KV is eventually consistent (~60s).** **NEVER** use KV for rate-limiting counters (use a Durable Object + WAF), session storage (use D1), or any read-after-write that must be consistent. KV is for hot cache, feature flags, and idempotent reads only.
 - **D1 transactions are batch-only** (see §11). Never write interactive read→write logic.
-- **Scheduling: Durable Object Alarms, not cron-polling.** For per-entity timed work (event reminders at `starts_at − 2h`, challenge phase transitions), set a DO alarm when the entity is created; the DO wakes precisely and pushes to the `NOTIFICATIONS` queue. **No global cron that scans D1.** A low-frequency cron may exist *only* as a backstop sweeper for missed alarms.
+- **Scheduling: Durable Object Alarms, not cron-polling.** For per-entity timed work (configured event reminders, challenge phase transitions), set a DO alarm when the entity is created or changed; the DO wakes precisely and pushes to the `NOTIFICATIONS` queue. **No global cron that scans D1.** A low-frequency cron may exist _only_ as a backstop sweeper for missed alarms.
 - **Durable Object location:** set a **location hint** near the user base (Maghreb/EU) at creation; persist state in `state.storage` and write-through to D1. Reserve DOs for genuine real-time/coordination — prefer atomic D1 SQL for simple counters (e.g., RSVP capacity: `UPDATE events SET rsvps = rsvps + 1 WHERE id = ? AND rsvps < capacity`).
-- **External services go behind provider interfaces.** SMS, email, images, payments: each gets an interface (`SmsProvider`, `EmailProvider`, `ImageProvider`, `PaymentProvider`) with a **dev variant** (`DevSmsProvider` logs the OTP to console; dev image adapter serves raw R2 bytes) and a real variant. Mocking an *external service* via its interface is allowed; **mocking a Cloudflare binding is not** (use Miniflare).
-- **TanStack Query × throw boundary:** server functions unwrap the domain `Result` *inside the handler* via `handleResult()` — they **throw** the typed `AppError` on failure, so `useQuery`/`useMutation` enter `error` automatically. The thrown `AppError.code` crosses the wire at runtime (TanStack serializes it; TS types the client error generically — the [#6428] gap — read it via the shared `appErrorCode()` accessor). Do **not** call `handleResult` at the component/hook layer.
+- **External services go behind provider interfaces.** SMS, email, images, payments: each gets an interface (`SmsProvider`, `EmailProvider`, `ImageProvider`, `PaymentProvider`) with a **dev variant** (`DevSmsProvider` logs the OTP to console; dev image adapter serves raw R2 bytes) and a real variant. Mocking an _external service_ via its interface is allowed; **mocking a Cloudflare binding is not** (use Miniflare).
+- **TanStack Query × throw boundary:** server functions unwrap the domain `Result` _inside the handler_ via `handleResult()` — they **throw** the typed `AppError` on failure, so `useQuery`/`useMutation` enter `error` automatically. The thrown `AppError.code` crosses the wire at runtime (TanStack serializes it; TS types the client error generically — the [#6428] gap — read it via the shared `appErrorCode()` accessor). Do **not** call `handleResult` at the component/hook layer.
 - **Turnstile verification** must forward `CF-Connecting-IP` as `remoteip` (helper in `libs/core`/`libs/server-fns`).
 - **`apps/admin` Access JWT** must be verified in-Worker (see §10); never rely on edge Access alone.
 
@@ -262,7 +264,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
 - **NEVER** hardcode user-facing strings.
 - **NEVER** add a dependency, Cloudflare service, or external integration without surfacing it and asking first.
 - **NEVER** use a Node-only library without verifying Workers/`nodejs_compat` compatibility.
-- **NEVER** throw an *untyped* error past the server-function boundary — throw the typed `AppError` (after unwrapping the domain `Result` via `handleResult`).
+- **NEVER** throw an _untyped_ error past the server-function boundary — throw the typed `AppError` (after unwrapping the domain `Result` via `handleResult`).
 - **NEVER** skip authz on a server function.
 - **NEVER** store secrets in code or commit `.env`.
 - **NEVER** use `any`, or `@ts-ignore`/`@ts-expect-error` without justification.
@@ -282,7 +284,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
 - [ ] Inputs Zod-validated; types inferred and reused.
 - [ ] Authz + rate-limit + Turnstile where state-changing.
 - [ ] Money via `Money` value object; no bare numbers.
-- [ ] i18n complete (fr-DZ + ar-DZ); RTL verified.
+- [ ] i18n complete (`ar`, `fr`, and `en`); RTL and LTR verified.
 - [ ] Errors via the throw boundary (`AppError` after `handleResult`); structured logs on server paths.
 - [ ] Tests written and passing (Miniflare/Playwright — real platform).
 - [ ] Lint, typecheck, and **Nx boundary checks** pass.
@@ -293,7 +295,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
 
 ## 18. When in doubt
 
-- **Ambiguity about *what* to build** → check `docs/srs.md`. Still unclear → ask.
-- **Ambiguity about *when* or sequencing** → check `docs/implementation-plan.md`.
+- **Ambiguity about _what_ to build** → check `docs/srs.md`. Still unclear → ask.
+- **Ambiguity about _when_ or sequencing** → check `docs/implementation-plan.md`.
 - **Tempted to add a library/service/integration** → stop and ask (§1.8).
 - **Tempted to skip a rule "just this once"** → don't. The rules exist because the team chose them deliberately. Raise it in a ticket instead.

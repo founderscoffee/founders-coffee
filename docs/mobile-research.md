@@ -1,5 +1,9 @@
 # React Native (Expo) — Mobile Research for `apps/mobile`
 
+> **Non-authoritative research, 2026-08-30.** The committed mobile surface is the installable
+> Serwist PWA in `apps/ui`, optionally packaged with PWA Builder. This document does not create an
+> `apps/mobile` roadmap commitment or authorize the dependencies it discusses.
+
 > Research date: 2026-07-01. Sources: Expo docs, Better Auth issues/docs, Paraglide GitHub,
 > expo-server-sdk GitHub, StatCounter, DataReportal, 6Wresearch, TanStack Query docs.
 
@@ -7,20 +11,21 @@
 
 ## 1. Algeria Mobile Market Reality
 
-| Metric | Value | Source |
-|---|---|---|
-| Mobile connections | 55.6M (117% of population) | DataReportal 2026 |
-| Internet users | 37.8M (79.5% penetration) | DataReportal 2026 |
-| Mobile internet subscribers | 20M | StateGlobe 2026 |
-| Median mobile download speed | 41.21 Mbps | Ookla via DataReportal |
-| Android market share | ~85%+ (Samsung #1, Xiaomi #2) | StatCounter Jan 2026 |
-| iOS market share | ~10-12% (Apple #3) | StatCounter Jan 2026 |
-| Budget phones (A$100-150) | Samsung Galaxy A-series, Xiaomi Redmi, Oppo, Realme | 6Wresearch |
-| Average mobile data/user | 15 GB/month | StateGlobe 2026 |
-| Broadband (3G/4G/5G) | 94.5% of connections | GSMA via DataReportal |
-| 5G status | Early rollout, limited coverage | 6Wresearch |
+| Metric                       | Value                                               | Source                 |
+| ---------------------------- | --------------------------------------------------- | ---------------------- |
+| Mobile connections           | 55.6M (117% of population)                          | DataReportal 2026      |
+| Internet users               | 37.8M (79.5% penetration)                           | DataReportal 2026      |
+| Mobile internet subscribers  | 20M                                                 | StateGlobe 2026        |
+| Median mobile download speed | 41.21 Mbps                                          | Ookla via DataReportal |
+| Android market share         | ~85%+ (Samsung #1, Xiaomi #2)                       | StatCounter Jan 2026   |
+| iOS market share             | ~10-12% (Apple #3)                                  | StatCounter Jan 2026   |
+| Budget phones (A$100-150)    | Samsung Galaxy A-series, Xiaomi Redmi, Oppo, Realme | 6Wresearch             |
+| Average mobile data/user     | 15 GB/month                                         | StateGlobe 2026        |
+| Broadband (3G/4G/5G)         | 94.5% of connections                                | GSMA via DataReportal  |
+| 5G status                    | Early rollout, limited coverage                     | 6Wresearch             |
 
 **Key implications for `apps/mobile`:**
+
 - **Android-first**: ~85%+ of the market. iOS is a minority — optimize for Android, ensure iOS works but don't over-invest.
 - **Budget devices**: Samsung A-series, Xiaomi Redmi, Oppo. RAM: 2-4GB typical. App must be lightweight.
 - **4G dominant**: 94.5% broadband connections. Offline-first is less critical than in truly offline markets, but intermittent connectivity is common.
@@ -33,38 +38,38 @@
 
 ### ✅ REUSABLE (shared `libs/*` — consume as-is)
 
-| Layer | Package | Reuse method | Notes |
-|---|---|---|---|
-| **Domain logic** | `libs/domain` | Import directly | Pure TS, no I/O. Money, status machines, validation, capacity math — all portable. |
-| **Core utilities** | `libs/core` | Import directly | Money value object, Result/Error, id factory, feature flags, env config. |
-| **DB schema** | `libs/db` | Import types only | Drizzle schema types (`Event`, `User`, etc.) are reusable. The D1 binding itself stays on the Worker. |
-| **Auth RBAC** | `libs/auth` | Import types + `checkPermission` | RBAC map and permission types are pure. The server-side `createAuth` stays on the Worker. |
-| **i18n messages** | `libs/i18n` | Share locale JSON files | The `messages/{ar,en,fr}.json` files are pure data. Paraglide compilation differs (see §3). |
-| **Server-fns** | `libs/server-fns` | **NOT directly usable** | `createServerFn` is TanStack Start–specific. The RN app calls the **deployed Worker API** via `fetch` instead. |
+| Layer              | Package           | Reuse method                     | Notes                                                                                                          |
+| ------------------ | ----------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Domain logic**   | `libs/domain`     | Import directly                  | Pure TS, no I/O. Money, status machines, validation, capacity math — all portable.                             |
+| **Core utilities** | `libs/core`       | Import directly                  | Money value object, Result/Error, id factory, feature flags, env config.                                       |
+| **DB schema**      | `libs/db`         | Import types only                | Drizzle schema types (`Event`, `User`, etc.) are reusable. The D1 binding itself stays on the Worker.          |
+| **Auth RBAC**      | `libs/auth`       | Import types + `checkPermission` | RBAC map and permission types are pure. The server-side `createAuth` stays on the Worker.                      |
+| **i18n messages**  | `libs/i18n`       | Share locale JSON files          | The `messages/{ar,en,fr}.json` files are pure data. Paraglide compilation differs (see §3).                    |
+| **Server-fns**     | `libs/server-fns` | **NOT directly usable**          | `createServerFn` is TanStack Start–specific. The RN app calls the **deployed Worker API** via `fetch` instead. |
 
 ### 🔄 REWRITE (UI layer — native components)
 
-| Web (apps/ui) | React Native equivalent | Notes |
-|---|---|---|
-| Tailwind CSS + DaisyUI | **NativeWind** (Tailwind for RN) | Same utility-class mental model, different runtime. DaisyUI components must be replaced with native equivalents or custom components. |
-| TanStack Router (file-based) | **Expo Router** (file-based) | Same file-based routing concept. Expo Router v6 uses React Navigation under the hood. |
-| `react-map-gl` + Mapbox | **`@rnmapbox/maps`** | Official Mapbox RN SDK. Same API surface, different rendering. |
-| `vanilla-calendar-pro` | Native date picker | Use `@react-native-community/datetimepicker` or a custom component. |
-| Lucide icons | **`lucide-react-native`** | Same icons, RN-compatible. |
-| HTML `<div>`, `<span>`, `<input>` | `<View>`, `<Text>`, `<TextInput>` | Standard RN primitives. |
-| CSS (`styles.css`) | **StyleSheet** / NativeWind | No CSS files in RN. |
+| Web (apps/ui)                        | React Native equivalent           | Notes                                                                                                                                 |
+| ------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Tailwind CSS + DaisyUI               | **NativeWind** (Tailwind for RN)  | Same utility-class mental model, different runtime. DaisyUI components must be replaced with native equivalents or custom components. |
+| TanStack Router (file-based)         | **Expo Router** (file-based)      | Same file-based routing concept. Expo Router v6 uses React Navigation under the hood.                                                 |
+| `react-map-gl` + Mapbox              | **`@rnmapbox/maps`**              | Official Mapbox RN SDK. Same API surface, different rendering.                                                                        |
+| `react-day-picker` + `timepicker-ui` | Native date/time picker           | Use `@react-native-community/datetimepicker` or a custom component.                                                                   |
+| Lucide icons                         | **`lucide-react-native`**         | Same icons, RN-compatible.                                                                                                            |
+| HTML `<div>`, `<span>`, `<input>`    | `<View>`, `<Text>`, `<TextInput>` | Standard RN primitives.                                                                                                               |
+| CSS (`styles.css`)                   | **StyleSheet** / NativeWind       | No CSS files in RN.                                                                                                                   |
 
 ### 🔌 NEW (RN-specific — doesn't exist in web)
 
-| Feature | Package | Notes |
-|---|---|---|
-| **Push notifications** | `expo-notifications` | Client-side: register for push, handle incoming. Server-side: Expo Push API via fetch (see §4). |
-| **Secure storage** | `expo-secure-store` | For auth session tokens (replaces browser cookies). Required by Better Auth Expo plugin. |
-| **Deep linking** | Expo Router built-in | `betterauthrn://` scheme for OAuth callback. |
-| **Network state** | `expo-network` | For TanStack Query `onlineManager` (refetch on reconnect). |
-| **Camera/location** | `expo-camera`, `expo-location` | Host "arrived" feature (Phase 5). |
-| **OTA updates** | EAS Update | Push JS bundle updates without store review. |
-| **Splash screen** | `expo-splash-screen` | Native splash while app loads. |
+| Feature                | Package                        | Notes                                                                                           |
+| ---------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
+| **Push notifications** | `expo-notifications`           | Client-side: register for push, handle incoming. Server-side: Expo Push API via fetch (see §4). |
+| **Secure storage**     | `expo-secure-store`            | For auth session tokens (replaces browser cookies). Required by Better Auth Expo plugin.        |
+| **Deep linking**       | Expo Router built-in           | `betterauthrn://` scheme for OAuth callback.                                                    |
+| **Network state**      | `expo-network`                 | For TanStack Query `onlineManager` (refetch on reconnect).                                      |
+| **Camera/location**    | `expo-camera`, `expo-location` | Host "arrived" feature (Phase 5).                                                               |
+| **OTA updates**        | EAS Update                     | Push JS bundle updates without store review.                                                    |
+| **Splash screen**      | `expo-splash-screen`           | Native splash while app loads.                                                                  |
 
 ---
 
@@ -163,6 +168,7 @@ apps/mobile/
 ```
 
 **Data flow (mirrors web's §4 contract):**
+
 ```
 Component → hook (TanStack Query) → api.ts → fetch → deployed Worker API → libs/server-fns → libs/domain → libs/db → D1
 ```
@@ -173,16 +179,16 @@ The only difference: `api.ts` calls `fetch` instead of importing `libs/server-fn
 
 ## 5. Risk Summary
 
-| Risk | Severity | Mitigation |
-|---|---|---|
-| Budget Android devices (2-4GB RAM) | High | Keep bundle size small; lazy-load non-critical screens; test on low-end devices |
-| Better Auth crypto.subtle in Hermes | Medium | Use Better Auth ≥1.3.10 (fixed). No polyfill needed. |
-| Paraglide not RN-native | Medium | Use `react-i18next` in RN, share `messages/*.json` with web |
-| `expo-server-sdk` broken on Workers | Low | Use raw `fetch` to Expo Push API — no SDK needed |
-| Expo Server Functions conflict with TanStack Start | Low | Don't use Expo Server Functions — RN is a client calling existing Worker API |
-| iOS minority (~10-12% in DZ) | Low | Optimize for Android; ensure iOS works but don't over-invest |
-| App Review 4.2 (Apple) | Medium | Ensure genuine app-like value; EAS Update for OTA; PWA Builder as fallback |
-| Offline/intermittent connectivity | Low-Med | TanStack Query `onlineManager` + `expo-network`; cache-first for read-heavy screens |
+| Risk                                               | Severity | Mitigation                                                                          |
+| -------------------------------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| Budget Android devices (2-4GB RAM)                 | High     | Keep bundle size small; lazy-load non-critical screens; test on low-end devices     |
+| Better Auth crypto.subtle in Hermes                | Medium   | Use Better Auth ≥1.3.10 (fixed). No polyfill needed.                                |
+| Paraglide not RN-native                            | Medium   | Use `react-i18next` in RN, share `messages/*.json` with web                         |
+| `expo-server-sdk` broken on Workers                | Low      | Use raw `fetch` to Expo Push API — no SDK needed                                    |
+| Expo Server Functions conflict with TanStack Start | Low      | Don't use Expo Server Functions — RN is a client calling existing Worker API        |
+| iOS minority (~10-12% in DZ)                       | Low      | Optimize for Android; ensure iOS works but don't over-invest                        |
+| App Review 4.2 (Apple)                             | Medium   | Ensure genuine app-like value; EAS Update for OTA; PWA Builder as fallback          |
+| Offline/intermittent connectivity                  | Low-Med  | TanStack Query `onlineManager` + `expo-network`; cache-first for read-heavy screens |
 
 ---
 

@@ -1,5 +1,8 @@
 # Projects — Idea Validation & Community Showcase Feature
 
+> **Unapproved proposal, 2026-08-30.** This feature is outside the committed SRS and implementation
+> plan. Nothing in this document authorizes implementation, dependencies, migrations, or services.
+
 **A free-form project showcase where founders share what they're building, get structured community feedback, attract sponsor interest, and organically evolve ideas into challenges.**
 
 This feature fills the missing connective tissue between events ("I met someone") and challenges ("Let's build something together") — giving founders a place to say **"Here's what I'm working on — what do you think?"**
@@ -9,7 +12,7 @@ This feature fills the missing connective tissue between events ("I met someone"
 ## User Review Required
 
 > [!IMPORTANT]
-> This is **new scope** — no existing `FR-*` requirement covers a standalone project showcase. The SRS (FR-P1/FR-P2) frames idea validation as a *use case of paid hosted challenges*, not as a free community feature. This proposal creates a **free layer** that complements (and feeds into) the paid challenge pipeline.
+> This is **new scope** — no existing `FR-*` requirement covers a standalone project showcase. The SRS (FR-P1/FR-P2) frames idea validation as a _use case of paid hosted challenges_, not as a free community feature. This proposal creates a **free layer** that complements (and feeds into) the paid challenge pipeline.
 
 > [!WARNING]
 > **Phase placement decision needed.** The research recommends **P2.5 or P3** — after the hackathon engine but before/alongside sponsorship management. Inserting this into P1 or early P2 would delay the events and hackathon engines. See the [Phase Placement](#phase-placement) section below.
@@ -51,7 +54,8 @@ This feature fills the missing connective tissue between events ("I met someone"
 ```
 
 **Brand alignment:**
-- ✅ **"Founders never pay"** — posting a project is free, always
+
+- ✅ **Community project sharing is free** — posting a project never creates a charge; a founder may separately pay only when acting as a commercial client for a commissioned B2B service
 - ✅ **"No formalities"** — structured but informal (not a pitch deck)
 - ✅ **"Community adds value; is not mined"** — feedback is organic, never transactional
 - ✅ **B2B revenue preserved** — sponsors pay for visibility into community signals, not founders
@@ -65,7 +69,7 @@ New FR IDs use `FR-PJ*` prefix to avoid collision with `FR-P*` (talent pipeline)
 ### Core Project CRUD
 
 - **FR-PJ1** Any authenticated user shall be able to **create a project** with: title, one-line tagline, problem statement, proposed solution, current stage (enum: `idea`, `prototype`, `mvp`, `launched`), what feedback they're seeking (free text), optional links (repo, demo, landing page), optional media (images/screenshots via R2), tags/categories, spoken language.
-- **FR-PJ2** A project shall be **scoped to a market** (`market_id`) and optionally to a city (`city_id`). Projects are discoverable within their market.
+- **FR-PJ2** A project shall carry `market_code` and, when geographically scoped, `state_code` and `city_code`. Projects are discoverable within their market.
 - **FR-PJ3** A project shall have a **status machine**: `draft → published → archived`. Only `published` projects are publicly visible. Owners can archive/unarchive.
 - **FR-PJ4** A project shall have a unique, human-readable **slug** (per market) for shareable URLs: `/{market}/projects/{slug}`.
 - **FR-PJ5** A project shall display the **owner's public profile** (linked to FR-E7 host profile / existing public profile at `/u/$userId`).
@@ -115,12 +119,12 @@ New FR IDs use `FR-PJ*` prefix to avoid collision with `FR-P*` (talent pipeline)
 
 **Recommended: P2.5 (parallel with late P2, before P3)**
 
-| Consideration | Rationale |
-|---|---|
-| **Why not P1?** | P1 is the events engine that ships live — adding Projects would delay the critical first launch |
-| **Why not early P2?** | P2 is the hackathon engine, already fully specified (HACK-001 through HACK-021). Don't disrupt it |
-| **Why P2.5?** | Projects are structurally simpler than challenges (no teams, judging, prizes). They can be built in parallel with late P2. The challenge linkage (FR-PJ15) needs P2 but can be deferred |
-| **Before P3** | Projects create the engagement data that sponsors consume (FR-PJ12/13). Building Projects before the sponsor dashboard (P3) means the dashboard launches with real data |
+| Consideration         | Rationale                                                                                                                                                                               |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Why not P1?**       | P1 is the events engine that ships live — adding Projects would delay the critical first launch                                                                                         |
+| **Why not early P2?** | P2 is the hackathon engine, already fully specified (HACK-001 through HACK-021). Don't disrupt it                                                                                       |
+| **Why P2.5?**         | Projects are structurally simpler than challenges (no teams, judging, prizes). They can be built in parallel with late P2. The challenge linkage (FR-PJ15) needs P2 but can be deferred |
+| **Before P3**         | Projects create the engagement data that sponsors consume (FR-PJ12/13). Building Projects before the sponsor dashboard (P3) means the dashboard launches with real data                 |
 
 **Suggested ticket range:** `PJ-001` through `PJ-012` (estimated)
 
@@ -276,6 +280,7 @@ npx nx e2e ui-e2e --grep="projects"
 ```
 
 **Key test scenarios:**
+
 - Create project → publish → verify visibility on market/city pages
 - Submit reaction → verify count aggregation (atomic SQL)
 - Submit structured feedback → verify display on project page
@@ -287,7 +292,8 @@ npx nx e2e ui-e2e --grep="projects"
 - Market scoping: project in DZ not visible in MA listing
 
 ### Manual Verification
-- RTL layout verification (ar-DZ locale) for all project pages
+
+- RTL layout verification with the `ar` locale for all project pages, plus LTR verification in `fr` and `en`
 - Empty-state UX: city with no projects shows "Share the first project" CTA
 - Mobile PWA: project creation form usability on small screens
 - Sponsor dashboard: trending projects feed with real engagement data

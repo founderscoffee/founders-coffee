@@ -1,68 +1,44 @@
-# Auth UI — phone-OTP + email-OTP + OAuth
+# Authentication UI
 
-P1-003 — the user-facing auth layer. **Passwordless: phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth** (FR-A4/D4 — amended to phone-OTP primary). No passwords.
+Authentication is passwordless and implemented with Better Auth. The backend supports email OTP, phone OTP, and configured OAuth providers; the current `apps/ui` login screen exposes email OTP and conditional OAuth.
 
-## The flow
+## Current user flow
 
-1. **Email step**: enter email → the inline Turnstile widget produces a token →
-   `authClient.emailOtp.sendVerificationOtp({email, type:'sign-in'}, {headers:{'cf-turnstile-response': token}})`.
-   The server's `createAuthHandler` (P1-017) verifies the Turnstile token on the brute-force
-   endpoints, then Better Auth emails the 6-digit code (`otpLength:6`, `expiresIn:300s`,
-   `allowedAttempts:3`, hashed).
-2. **Verify step**: enter the code → `authClient.signIn.emailOtp({email, otp})` → session cookie set
-   → `window.location.href = redirect` (the `?redirect=` search param, or `/`). First sign-in
-   **auto-creates** the user (no separate signup).
-3. **OAuth** (conditional): `authClient.signIn.social({provider, callbackURL})` — buttons only when
-   `getPublicAuthConfig().hasSocial` (secrets configured). **Dev: disabled** (no secrets) → email-OTP only.
+1. The user enters an email address and completes Turnstile.
+2. `apps/ui` requests a Better Auth email verification code.
+3. The user submits the code and Better Auth creates the session cookie.
+4. A new or incomplete profile is redirected to `/onboarding`; otherwise the requested redirect or home route is used.
+5. OAuth buttons appear only for configured providers.
 
-## Backend (pre-existing)
+The navigation reads the Better Auth session client-side and switches between login and logout. Server-rendered session-aware navigation remains a possible polish item, not a prerequisite for the existing flow.
 
-- **P0-008** Better Auth: `createAuth`/`createAuthHandler`/`createAuthClient`, email-OTP plugin
-  (`storeOTP:'hashed'`, D1-backed rate limiting), admin RBAC plugin, account linking by verified email.
-- **P1-017** `/api/auth/*` mount (apps/ui `server.ts`), `authMiddleware`/`requirePermission` for
-  server-fns. `/login` is the CTA target from the P1-002 city empty state.
+## Backend capabilities
 
-## Real OTP email (the P1-003 backend gap)
+- sessions and Better Auth rate-limit records are stored in D1;
+- email and phone OTPs are short-lived, attempt-limited, and hashed where Better Auth supports it;
+- Turnstile protects OTP-send endpoints;
+- the trusted client IP is derived from `CF-Connecting-IP`;
+- authorization is centralized through the shared RBAC layer;
+- OAuth providers are disabled when their credentials are absent.
 
-`createAuth` defaulted to `DevEmailProvider` (console.log only). P1-003 wires the real sender:
+Phone OTP via Twilio Verify is a backend capability but is not currently presented by the login screen. Documentation must not call it the active primary UI until that screen exists.
 
-- **`apps/ui/src/auth-email.ts`** — adapter: Better Auth's `sendOtp({email,otp,type})` → renders
-  `NotificationEmail` (reused, no new template) + sends via `createCloudflareEmailProvider`
-  (`libs/email`, the `EMAIL` binding). The two `EmailProvider` interfaces differ, so the bridge lives
-  in the app. Logs + throws on send failure.
-- **`libs/auth/handler.ts`** — `createAuthHandler(env, deps?)` forwards `{ emailProvider }` to `createAuth`.
-- **Dev/prod split** (`server.ts`): localhost keeps `DevEmailProvider` (OTP visible in the Worker
-  console for the smoke); prod uses the real binding. Locale: base `ar` (no session/market at signup).
+## Email OTP delivery
 
-## Turnstile widget (inline, no dependency)
+The UI app adapts the auth-specific OTP interface to the general Cloudflare Email provider. Production uses the `EMAIL` binding and a verified sender. Local development may use a development provider so a developer can complete the login flow.
 
-`apps/ui/src/components/auth/Turnstile.tsx` loads the CF script once + renders the challenge
-imperatively (`window.turnstile.render`). The callback stores the token; the login form sends it as
-the `x-captcha-response` header, which is what Better Auth's `captcha` plugin reads. Client-only
-(`useEffect`) — not in SSR HTML. Dev uses CF's always-pass test sitekey
-(`1x00000000000000000000AA`) with `TURNSTILE_DISABLED=true`, which is the only bypass.
+## Security and release requirements
 
-Only the OTP *send* step carries the token. The sign-in step is not gated — a Turnstile token is
-single-use, so gating both would demand two challenge solves per login. See
-[`libs/auth/src/captcha.ts`](../libs/auth/src/captcha.ts).
+- Missing Turnstile configuration fails the protected deployed endpoints closed.
+- `TURNSTILE_DISABLED=true` and development Turnstile keys are local-only.
+- Twilio development logging is local-only. The current missing-credential fallback in the shared auth provider must fail closed before phone OTP is enabled in a deployed UI.
+- Production cookie domain, HTTPS, and cross-subdomain behavior must be verified in staging.
+- The admin app remains protected by Cloudflare Access and must also verify the Access JWT inside the Worker.
 
-## Session state in the navbar
+## App ownership
 
-`apps/ui/src/lib/auth.ts` — the `better-auth/react` client (provides `useSession`). The navbar
-(`__root.tsx`) shows Login ↔ Logout. **`useSession` is gated behind a mount flag** (client-only):
-better-auth's `react-store` resolves a second React under `react-dom/server` → "Invalid hook call" in
-SSR. So SSR renders the static Login link; the client swaps in the real state on hydration
-(acceptable flicker — SSR-correct session via a root-loader server-fn is a later polish).
+- `apps/ui`: member and host authentication, onboarding, profile, and event participation.
+- `apps/dashboard`: sponsor-only application; authenticated sponsor flows are planned as that shell is implemented.
+- `apps/admin`: internal operations; Cloudflare Access is present, while full Better Auth/RBAC wiring remains planned.
 
-## Notes / verified
-- **Secure cookies on localhost** — `auth.ts` sets `secure: true`; verified the session cookie
-  persists on `http://localhost:3000` (browsers/curl treat localhost as secure-context). No
-  relaxation needed.
-- **Endpoints** — Better Auth emailOTP: `POST /api/auth/email-otp/send-verification-otp` +
-  `POST /api/auth/sign-in/email-otp` (the client knows the paths; `createAuthHandler`'s Turnstile
-  gating matches by `.endsWith`).
-- **Deferred** — dashboard auth (P1-006, shared session via cookie domain); SSR-correct session
-  (root-loader); localized OTP email + onboarding (`home_market`/`home_city`, P1-004); OAuth tested
-  in prod (needs secrets).
-- **Cross-app session** — `apps/ui` + `apps/dashboard` are separate Workers; the session cookie must
-  be scoped to the parent domain for the host's session to transfer (deployment model TBD, P0-019).
+Onboarding for market, state, and city is implemented in `apps/ui`. The geographic values use canonical market/state/city codes and the current versioned TypeScript reference datasets.

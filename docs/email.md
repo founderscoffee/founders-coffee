@@ -1,15 +1,21 @@
-# Email — Cloudflare Email native send + React Email templates
+# Email
 
-The notification send primitive for founders.coffee. Implements **P0-016** (FR-N1, FR-N3, D13). Lives in `libs/email` (layer:server). The first real consumer is **P1-009** (notifications queue producer → `apps/worker-jobs` consumer → this lib).
+`libs/email` provides the general Cloudflare Email delivery adapter and React Email rendering for founders.coffee. Authentication keeps its purpose-specific OTP adapter in `libs/auth`; the two interfaces are intentionally separate.
 
-## Model
+Email is used for authentication, billing, and workflows that explicitly select email. Event reminders use PWA web push first and SMS as the fallback.
 
-- **Cloudflare Email, native** (D13 — zero external vendors). Sends through the `EMAIL` binding (`send_email`), which gives auto SPF/DKIM/DMARC for the verified sender domain (provisioned at **P0-019**).
-- **Structured `send()` — no MIME construction.** Cloudflare's Email Service takes `{ to, from, subject, html, text, cc, bcc, replyTo, headers }` and assembles the RFC 5322 MIME itself. The legacy `EmailMessage` + `mimetext` (raw-MIME) path is not used — so `postal-mime`/`mimetext` are **not** dependencies.
-- **One real provider, no dev variant.** `CloudflareEmailProvider` works in dev (Miniflare emulates `send_email` — captures mail to a local sink) and prod (real Email Service), exactly like D1/R2 need no dev variant.
-- **General pipeline, distinct from auth.** `libs/auth` keeps its OTP-specific `EmailProvider` (`sendOtp`). This lib is the *general* notification pipeline (`send`). They are intentionally separate; unify only if duplication bites.
+## Current implementation
 
-## The provider (`libs/email`)
+- `CloudflareEmailProvider` sends through the native `EMAIL` binding.
+- `renderEmail` produces HTML and plain-text output.
+- `EmailBase` supplies the shared localized, RTL-aware shell.
+- `NotificationEmail` supplies the currently implemented general template.
+- provider errors are mapped to stable application error codes.
+- provider, renderer, and mapping tests cover the current library behavior.
+
+The complete localized template set for RSVP, reminders, host messages, sponsorship, and billing is partial work; documentation must not describe it as already shipped.
+
+## Provider contract
 
 ```ts
 interface EmailProvider {
@@ -18,62 +24,39 @@ interface EmailProvider {
 }
 ```
 
-`SendEmailInput` mirrors the structured builder. `send` returns `Result` (the P0-012 hybrid model — server-fns/worker-jobs unwrap via `handleResult`).
+Create the provider per request or worker invocation with the binding and a verified default sender. The provider returns `Result`; server-function or worker boundaries convert failures through the shared typed-error handling.
 
-```ts
-const provider = createCloudflareEmailProvider(env.EMAIL, defaultFrom);
-const result = await provider.send({ to, subject, html, text });
-```
+## Error handling
 
-Construct **per request** (`createCloudflareEmailProvider(env.EMAIL, defaultFrom)`) — never a module singleton. `defaultFrom` is the verified sender address; `input.from` overrides it. On failure, Cloudflare throws an `Error` with a `.code`; the provider catches it and returns `err(AppError(...))` carrying the `providerCode`.
+| Provider condition                      | Application code             | Delivery behavior                                                                       |
+| --------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------- |
+| rate or daily limit                     | `email_rate_limited`         | Retry only when a queue-backed workflow permits it                                      |
+| suppressed recipient                    | `email_recipient_suppressed` | Stop sending to that recipient and persist suppression when that feature is implemented |
+| sender, validation, or delivery failure | `email_send_failed`          | Treat as configuration or delivery failure and alert appropriately                      |
 
-## Error-code mapping
+The original provider code remains diagnostic metadata; secrets and message content must not be logged.
 
-Cloudflare's error codes map to stable `AppError` codes so callers can react:
+## Localization
 
-| CF code | `AppError.code` | Caller action |
-|---|---|---|
-| `E_RATE_LIMIT_EXCEEDED`, `E_DAILY_LIMIT_EXCEEDED` | `email_rate_limited` | retry (P1-009 queue DLQ) |
-| `E_RECIPIENT_SUPPRESSED` | `email_recipient_suppressed` | stop sending to that address |
-| everything else (`E_SENDER_NOT_VERIFIED`, `E_VALIDATION_ERROR`, `E_DELIVERY_FAILED`, …) | `email_send_failed` | config/programming bug |
+- Supported locales are exactly `ar`, `fr`, and `en`.
+- Templates receive localized strings as props; they do not embed product copy.
+- Arabic renders with `lang="ar"` and `dir="rtl"`; French and English render LTR.
+- Every message includes a plain-text alternative.
 
-`mapEmailProviderCode` is pure + unit-tested across the documented CF code table. The original `providerCode` is always in `error.details` for diagnostics.
+## Cloudflare setup
 
-## Render pipeline + templates
+Production requires an `EMAIL` binding, a verified sending identity, and all DNS records required by Cloudflare Email. DNS and sender verification are provisioning steps and must be checked in the account; they are not guaranteed merely by declaring the binding.
 
-```ts
-const { html, text } = await renderEmail(NotificationEmail, { locale, greeting, lines, cta });
-```
+Miniflare exercises supported binding behavior locally. Sender-domain verification and real delivery must also be tested in staging.
 
-`renderEmail` renders a React Email template to HTML + a plain-text fallback (two passes of `@react-email/render`, which uses `react-dom/server` — proven on Workers by `apps/web` SSR). Templates are **pure layout**; localized strings are passed in as props (the caller resolves them via `libs/i18n` `m` at P1-009).
+## Delivery architecture
 
-- **`EmailBase`** — shared shell. Sets `lang` + `dir` from the locale via `libs/i18n`'s `direction` (FR-N3 — `dir="rtl"` for Arabic). 560px card, system-font stack, Warm Café neutral palette. Every template composes inside it.
-- **`NotificationEmail`** — example localized template (`greeting` / `lines` / `cta` / `footer`). Proves the pipeline + RTL path. The full template set (RSVP, reminder, host, sponsorship) lands at **P1-009**.
+Current notification delivery includes direct scheduled-worker paths. The required architecture is producer → Queue → `apps/worker-jobs` consumer, with per-message retry and dead-letter handling. Until those bindings and routes are verified, queue retry must be described as planned rather than operational.
 
-## Testing (AGENTS §12 — no binding mocks)
+## Remaining work
 
-- **`cloudflare-provider.test.ts`** runs against the **real Miniflare `EMAIL` binding**: an allowed recipient resolves to `{ messageId }`; a disallowed recipient throws → the provider returns `err` with a `providerCode`. (Miniflare emulates `send_email` but exposes no capture API, so content assertions live in the pure render test.)
-- **`render.test.ts`** — pure: renders an Arabic email → asserts `dir="rtl"`/`lang="ar"` + localized content in the HTML + the plain-text part; `dir="ltr"` for a Latin locale.
-- **`error-codes.test.ts`** — pure mapping across the CF code table.
-
-## Using it from a consumer (P1-009)
-
-```ts
-const { html, text } = await renderEmail(RsvpConfirmationEmail, {
-  locale, greeting, lines, cta: { label, href },
-});
-await handleResult(
-  createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM).send({
-    to: recipient.email, subject, html, text,
-  }),
-);
-```
-
-The **caller** (P1-009 worker-jobs consumer) enforces notification preferences (FR-N2) before sending and drives retry/DLQ for `email_rate_limited` via the queue. The provider is the synchronous send primitive.
-
-## Deferrals
-
-- **Attachments** (SP-009 PDF reports) — the structured API supports them; the interface adds the field when P1-009 first needs it (the workers-types `EmailAttachment` is a discriminated union — align then).
-- **Suppression persistence** — `email_recipient_suppressed` is surfaced distinctly; a suppression table to stop re-sending arrives with P1-009.
-- **Full localized template set** — RSVP/reminder/host/sponsorship templates + the Paraglide `m` call sites land at P1-009.
-- **Sender-domain verification** (D13 SPF/DKIM/DMARC) — a provisioning concern, **P0-019** (not code). An unverified `from` throws `E_SENDER_NOT_VERIFIED` → `email_send_failed`.
+- complete and verify the localized template inventory;
+- connect email only to workflows that explicitly require it;
+- persist recipient suppression where applicable;
+- prove staging sender configuration and delivery;
+- exercise retry/dead-letter behavior once queue-backed email producers are enabled.
