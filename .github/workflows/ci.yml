@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   verify:
-    name: Typecheck, lint and test
+    name: Format, sync, audit, typecheck, lint, test and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -39,12 +39,18 @@ jobs:
 
       - run: npm ci
 
+      - name: Check formatting
+        run: npm run format:check
+
       # `nx.json` sets `sync.applyChanges: true`, so local runs silently repair the
       # tsconfig project references. This asserts the repaired state was committed.
       - name: Check Nx tsconfig project references are in sync
         run: npx nx sync:check
 
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
       # `lint` includes the Nx module-boundary rules that enforce the one-directional
       # data flow (AGENTS.md §4), so a boundary violation fails CI here.
-      - name: Typecheck, lint and test
-        run: npx nx run-many -t typecheck lint test
+      - name: Typecheck, lint, test and build
+        run: npx nx run-many -t typecheck lint test build

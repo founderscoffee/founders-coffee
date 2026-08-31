@@ -47,10 +47,13 @@ credentials — the integration tests run against Miniflare with real local D1/Q
 (AGENTS.md §12), not the live account.
 
 1. `npm ci`
-2. `nx sync:check` — asserts the tsconfig project references are committed. `nx.json` sets
+2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
+3. `nx sync:check` — asserts the tsconfig project references are committed. `nx.json` sets
    `sync.applyChanges: true`, so local runs repair them silently; this catches the un-committed repair.
-3. `nx run-many -t typecheck lint test` — `lint` includes the Nx module-boundary rules, so a
-   violation of the one-directional data flow (AGENTS.md §4) fails here.
+4. `npm audit --audit-level=high` — fails on high or critical vulnerabilities in the committed
+   dependency graph.
+5. `nx run-many -t typecheck lint test build` — verifies every production build; `lint` includes the
+   Nx module-boundary rules, so a violation of the one-directional data flow (AGENTS.md §4) fails here.
 
 The Nx local cache (`.nx/cache`) is restored via `actions/cache`, keyed on `package-lock.json`.
 
@@ -166,4 +169,3 @@ match the exported component in PascalCase; that rule is what keeps CI honest.
 ## Not yet wired
 
 - **Playwright e2e smoke** (P0-021) — no post-deploy health check runs today.
-- **Dependency/CVE scan** (§14 of the implementation plan).

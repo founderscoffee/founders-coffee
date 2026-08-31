@@ -94,7 +94,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P0-017 | Complete | Workers AI/Vectorize ports and core operations            | —                                                                              |
 | P0-018 | Blocked  | Jobs Worker                                               | Replace reminder polling; provision/bind Notifications Queue                   |
 | P0-019 | Partial  | Staging/production Cloudflare provisioning                | Complete and verify manual DNS, Access, secrets, Queues, and required bindings |
-| P0-020 | Partial  | GitHub Actions verification and environment deployments   | Add dependency/CVE scanning and verify account-side environment configuration  |
+| P0-020 | Partial  | GitHub Actions verification and environment deployments   | Verify account-side environment configuration                                  |
 | P0-021 | Partial  | Miniflare and Playwright harness                          | Full critical-flow e2e and CI execution remain                                 |
 
 ## 5. Phase P1 — events launch
