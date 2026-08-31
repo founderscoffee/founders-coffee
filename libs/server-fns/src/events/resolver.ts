@@ -5,10 +5,9 @@ import {
   type EventCreateInput,
 } from '@founders-coffee/domain';
 import {
-  createEvent as createEventRow,
+  createEventIfRouteAvailable,
   getEvent,
   getEventBySlug,
-  isSlugTaken,
   listUpcomingEvents,
   type Db,
   type Event,
@@ -25,35 +24,30 @@ const slugify = (title: string): string =>
     .slice(0, 60)
     .replace(/^-+|-+$/g, '');
 
-const randomSuffix = (): string => Math.random().toString(36).slice(2, 6);
+const MAX_EVENT_SLUG_LENGTH = 80;
 
-const generateUniqueSlug = async (
-  db: Db,
-  marketCode: string,
+export const eventSlugCandidates = (
   title: string,
-): Promise<string> => {
+  eventId: string,
+): readonly [string, string] => {
   const base = slugify(title) || 'event';
-  let slug = base;
-  let attempts = 0;
-  while (await isSlugTaken(db, marketCode, slug)) {
-    slug = `${base}-${randomSuffix()}`;
-    attempts += 1;
-    if (attempts > 10) {
-      slug = `${base}-${Date.now().toString(36)}`;
-      break;
-    }
-  }
-  return slug;
+  const suffix = eventId.replace(/^evt_/, '').toLowerCase();
+  const suffixedBase = base.slice(
+    0,
+    Math.max(1, MAX_EVENT_SLUG_LENGTH - suffix.length - 1),
+  );
+  return [base, `${suffixedBase}-${suffix}`];
 };
 
 /**
  * Validate + create a new event. Generates the id + slug, validates the geo state/city against the
  * TS data, and inserts the row. Returns the created Event.
  */
-export const createEventResolver = async (
+export const createEventResolverWithId = async (
   db: Db,
   hostId: string,
   input: EventCreateInput,
+  eventId: string,
 ): Promise<Result<Event>> => {
   const city = geo.findCity(input.marketCode, input.cityCode);
   if (!city) {
@@ -74,9 +68,8 @@ export const createEventResolver = async (
     );
   }
 
-  const slug = await generateUniqueSlug(db, input.marketCode, input.title);
-  const row: NewEvent = {
-    id: id('evt'),
+  const row: Omit<NewEvent, 'slug'> = {
+    id: eventId,
     hostId,
     marketCode: input.marketCode,
     stateCode: city.stateCode,
@@ -93,13 +86,28 @@ export const createEventResolver = async (
     language: input.language,
     category: input.category,
     isFree: true,
-    slug,
     status: 'published',
   };
 
-  const created = await createEventRow(db, row);
-  return ok(created);
+  for (const slug of eventSlugCandidates(input.title, eventId)) {
+    const created = await createEventIfRouteAvailable(db, { ...row, slug });
+    if (created) return ok(created);
+  }
+
+  return err(
+    new AppError(
+      'event_route_conflict',
+      `Unable to reserve an event route in ${input.marketCode}`,
+    ),
+  );
 };
+
+export const createEventResolver = async (
+  db: Db,
+  hostId: string,
+  input: EventCreateInput,
+): Promise<Result<Event>> =>
+  createEventResolverWithId(db, hostId, input, id('evt'));
 
 /** Resolve a single event by id or by (marketCode + slug). Returns `event_not_found` on miss. */
 export const resolveEvent = async (

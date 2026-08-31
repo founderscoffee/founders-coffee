@@ -14,6 +14,19 @@ export const createEvent = async (db: Db, row: NewEvent): Promise<Event> => {
   return result[0];
 };
 
+/** Atomically insert only when the event route key is available in its market. */
+export const createEventIfRouteAvailable = async (
+  db: Db,
+  row: NewEvent,
+): Promise<Event | undefined> => {
+  const result = await db
+    .insert(events)
+    .values(row)
+    .onConflictDoNothing({ target: [events.marketCode, events.slug] })
+    .returning();
+  return result[0];
+};
+
 /** Fetch an event by its primary key. */
 export const getEvent = async (
   db: Db,
@@ -158,14 +171,4 @@ export const countEventsByStatus = async (
     .from(events)
     .where(eq(events.status, status));
   return rows.length;
-};
-
-/** Check if a slug is already taken within a market (for slug uniqueness). */
-export const isSlugTaken = async (
-  db: Db,
-  marketCode: string,
-  slug: string,
-): Promise<boolean> => {
-  const existing = await getEventBySlug(db, marketCode, slug);
-  return existing !== undefined;
 };

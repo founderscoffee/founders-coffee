@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `events_market_code_slug_unique` ON `events` (`market_code`,`slug`);

@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                               |
 | -------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 and EC-02 complete, EC-03 through EC-10 not started                                                   |
+| Status         | Active; EC-01 through EC-03 complete, EC-04 through EC-10 not started                                               |
 | Last reviewed  | 2026-08-31                                                                                                          |
 | Scope          | Authenticated host event creation in `apps/ui`, from route entry through durable D1 persistence and discoverability |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                              |
@@ -170,6 +170,7 @@ Completion evidence:
 
 **Parent:** P1-005
 **Requirements:** FR-G2, FR-E5, FR-E7; NFR-4, NFR-12
+**Status:** Complete — 2026-08-31
 
 Work:
 
@@ -185,6 +186,14 @@ Verification:
 - Apply migrations to a fresh Miniflare D1 database and to a database seeded at the prior schema version.
 - Integration tests attempt concurrent same-title creation in one market and verify distinct canonical routes.
 - Verify that the same readable slug may exist in different markets if that remains the intended route model.
+
+Completion evidence:
+
+- Read-only duplicate preflight queries returned zero duplicate `(market_code, slug)` groups in local, staging, and production D1. The remote queries reported zero rows written.
+- Drizzle migration `0012_amusing_mesmero.sql` adds the forward-only `events_market_code_slug_unique` composite unique index. Wrangler applied it successfully to local D1; staging and production were not migrated.
+- Event creation now attempts the readable base slug with an atomic `INSERT ... ON CONFLICT (market_code, slug) DO NOTHING`, then one deterministic event-ID-suffixed candidate. Exhausting both candidates returns the typed `event_route_conflict` error.
+- Real Miniflare D1 tests cover a fresh schema, upgrade from migration 0011 with data preserved, same-slug insertion across different markets, concurrent same-title creation, and bounded-candidate exhaustion.
+- Repository-wide format, lint, typecheck, test, and build gates pass without E2E. Lint retains four unrelated pre-existing warnings and reports no errors.
 
 ### EC-04 — Complete venue selection and persistence
 

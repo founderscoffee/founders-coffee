@@ -6,9 +6,9 @@ import { createDb, seed, user, type Db, type NewUser } from './index.js';
 import {
   countEventsByStatus,
   createEvent,
+  createEventIfRouteAvailable,
   getEvent,
   getEventBySlug,
-  isSlugTaken,
   listUpcomingEvents,
   transitionEventStatus,
 } from './events.js';
@@ -46,8 +46,9 @@ const setupDb = async (): Promise<Db> => {
 };
 
 let counter = 0;
+let slugCounter = 0;
 const nextId = () => `evt_t${String(++counter).padStart(3, '0')}`;
-const nextSlug = () => `test-slug-${counter}`;
+const nextSlug = () => `test-slug-${++slugCounter}`;
 
 describe('events queries (real D1)', () => {
   it('creates + fetches an event by id', async () => {
@@ -76,15 +77,31 @@ describe('events queries (real D1)', () => {
     expect(wrongMarket).toBeUndefined();
   });
 
-  it('checks slug uniqueness', async () => {
+  it('atomically reserves a route within one market', async () => {
     const db = await setupDb();
     const id = nextId();
     const slug = nextSlug();
-    await createEvent(db, { ...baseEvent, id, slug });
+    const first = await createEventIfRouteAvailable(db, {
+      ...baseEvent,
+      id,
+      slug,
+    });
+    const conflict = await createEventIfRouteAvailable(db, {
+      ...baseEvent,
+      id: nextId(),
+      slug,
+    });
+    const otherMarket = await createEventIfRouteAvailable(db, {
+      ...baseEvent,
+      id: nextId(),
+      marketCode: 'EG',
+      slug,
+    });
 
-    expect(await isSlugTaken(db, 'DZ', slug)).toBe(true);
-    expect(await isSlugTaken(db, 'DZ', 'different-slug')).toBe(false);
-    expect(await isSlugTaken(db, 'EG', slug)).toBe(false);
+    expect(first?.slug).toBe(slug);
+    expect(conflict).toBeUndefined();
+    expect(otherMarket?.marketCode).toBe('EG');
+    expect(otherMarket?.slug).toBe(slug);
   });
 
   it('lists upcoming events with cursor pagination', async () => {

@@ -9,5 +9,10 @@
       "database_name": "db",
       "database_id": "test",
     },
+    {
+      "binding": "PRIOR_DB",
+      "database_name": "prior-db",
+      "database_id": "prior-test",
+    },
   ],
 }

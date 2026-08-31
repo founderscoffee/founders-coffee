@@ -11,7 +11,12 @@ import {
 } from '@founders-coffee/db';
 import { eventCreateSchema } from '@founders-coffee/domain';
 
-import { createEventResolver, resolveEvent } from './resolver.js';
+import {
+  createEventResolver,
+  createEventResolverWithId,
+  eventSlugCandidates,
+  resolveEvent,
+} from './resolver.js';
 
 const TEST_HOST_ID = 'usr_resolvehost01';
 
@@ -117,6 +122,42 @@ describe('createEventResolver (real D1)', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('validation_failed');
+  });
+
+  it('reserves distinct routes for concurrent same-title creation', async () => {
+    const db = await setupDb();
+    const input = createInput({ title: 'Concurrent route reservation' });
+
+    const results = await Promise.all([
+      createEventResolver(db, TEST_HOST_ID, input),
+      createEventResolver(db, TEST_HOST_ID, input),
+    ]);
+
+    expect(results.every((result) => result.ok)).toBe(true);
+    const slugs = results.flatMap((result) =>
+      result.ok ? [result.data.slug] : [],
+    );
+    expect(new Set(slugs).size).toBe(2);
+    expect(slugs).toContain('concurrent-route-reservation');
+  });
+
+  it('returns a typed error when every bounded route candidate conflicts', async () => {
+    const db = await setupDb();
+    const eventId = 'evt_000000000000000000000000collision';
+    const title = 'Exhausted route candidates';
+    const [baseSlug, suffixedSlug] = eventSlugCandidates(title, eventId);
+    await createEvent(db, baseEvent(nextId(), baseSlug));
+    await createEvent(db, baseEvent(nextId(), suffixedSlug));
+
+    const result = await createEventResolverWithId(
+      db,
+      TEST_HOST_ID,
+      createInput({ title }),
+      eventId,
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('event_route_conflict');
   });
 });
 
