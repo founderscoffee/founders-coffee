@@ -1,0 +1,52 @@
+import { CalendarClock } from 'lucide-react';
+
+import {
+  direction,
+  formatScheduleDateTime,
+  host_selected_time,
+  type Locale,
+} from '@founders-coffee/i18n';
+
+type ScheduleSummaryProps = {
+  startsAt: number;
+  endsAt: number;
+  locale: Locale;
+  timeZone: string;
+};
+
+export const ScheduleSummary = ({
+  startsAt,
+  endsAt,
+  locale,
+  timeZone,
+}: ScheduleSummaryProps) => {
+  const label = host_selected_time({}, { locale });
+  const start = formatScheduleDateTime(startsAt, locale, timeZone);
+  const end = formatScheduleDateTime(endsAt, locale, timeZone);
+
+  return (
+    <section
+      className="rounded-xl border border-primary/20 bg-primary/5 p-3"
+      aria-label={label}
+      dir={direction(locale)}
+    >
+      <div className="flex items-start gap-2">
+        <CalendarClock
+          className="mt-0.5 size-4 shrink-0 text-primary"
+          aria-hidden="true"
+        />
+        <div className="min-w-0">
+          <h3 className="text-xs font-bold uppercase tracking-wide text-base-content/50">
+            {label}
+          </h3>
+          <p className="mt-1 text-sm font-semibold text-base-content">
+            <time dateTime={new Date(startsAt).toISOString()}>{start}</time>
+            <span aria-hidden="true"> – </span>
+            <time dateTime={new Date(endsAt).toISOString()}>{end}</time>
+          </p>
+          <p className="mt-1 text-xs text-base-content/50">{timeZone}</p>
+        </div>
+      </div>
+    </section>
+  );
+};

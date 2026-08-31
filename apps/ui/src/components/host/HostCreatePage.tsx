@@ -7,6 +7,8 @@ import {
   host_desc_label,
   host_desc_ph,
   host_duration_min,
+  host_time_invalid,
+  host_time_nonexistent,
   host_next,
   host_page_sub,
   host_page_title,
@@ -17,6 +19,9 @@ import {
   host_step3,
   host_step3_sub,
   host_time_past,
+  host_time_zone_error,
+  formatDate,
+  type ZonedDateTimeError,
   host_title_label,
   host_title_ph,
   type Locale,
@@ -29,6 +34,7 @@ import { useCreateEvent } from '../../features/events/hooks';
 import { ClientOnly } from './ClientOnly';
 import { DatetimePicker } from './DatetimePicker';
 import type { VenueSelection } from './HostMap';
+import { ScheduleSummary } from './ScheduleSummary';
 import { Stepper } from './Stepper';
 
 const HostMap = lazy(() =>
@@ -89,13 +95,21 @@ export const HostCreatePage = ({
 
   const whenLabel =
     startsAt !== null
-      ? new Intl.DateTimeFormat(locale, {
+      ? formatDate(new Date(startsAt), locale, {
+          timeZone: market.timezone,
           day: 'numeric',
           month: 'short',
           hour: '2-digit',
           minute: '2-digit',
-        }).format(new Date(startsAt))
+        })
       : '';
+
+  const dateTimeErrorMessage = (error: ZonedDateTimeError): string =>
+    error === 'nonexistent_time'
+      ? host_time_nonexistent({}, { locale })
+      : error === 'invalid_time_zone'
+        ? host_time_zone_error({}, { locale })
+        : host_time_invalid({}, { locale });
 
   /** Summary pills rendered on the stepper's connectors — the location pill on segment 1–2
    *  (once a venue is chosen), the time pill on segment 2–3 (once a datetime is chosen). */
@@ -254,7 +268,13 @@ export const HostCreatePage = ({
                     setEndsAt(e);
                     setPublishError(null);
                   }}
+                  onError={(error) => {
+                    setPublishError(
+                      error === null ? null : dateTimeErrorMessage(error),
+                    );
+                  }}
                   locale={locale}
+                  timeZone={market.timezone}
                   timePlacement="top"
                 />
                 {publishError && (
@@ -316,6 +336,14 @@ export const HostCreatePage = ({
 
                     {step === 3 && (
                       <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">
+                        {startsAt !== null && endsAt !== null && (
+                          <ScheduleSummary
+                            startsAt={startsAt}
+                            endsAt={endsAt}
+                            locale={locale}
+                            timeZone={market.timezone}
+                          />
+                        )}
                         <label className="form-control">
                           <span className="mb-1 text-sm text-base-content/70">
                             {host_title_label({}, { locale })}

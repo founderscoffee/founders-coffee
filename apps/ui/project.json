@@ -17,6 +17,14 @@
         "cwd": "apps/ui"
       }
     },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": ["i18n"], "target": "generate-i18n" }],
+      "options": {
+        "command": "vitest run",
+        "cwd": "apps/ui"
+      }
+    },
     "deploy:staging": {
       "executor": "nx:run-commands",
       "dependsOn": [{ "projects": ["i18n"], "target": "generate-i18n" }],

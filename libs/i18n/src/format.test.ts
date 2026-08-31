@@ -6,6 +6,7 @@ import {
   formatDate,
   formatMoney,
   formatNumber,
+  formatScheduleDateTime,
   hasOnlyLatinDigits,
 } from './format.js';
 
@@ -44,4 +45,18 @@ describe('libs/i18n formatting (Latin digits forced)', () => {
     });
     expect(hasOnlyLatinDigits(fr)).toBe(true);
   });
+
+  it.each(['ar', 'fr', 'en'] as const)(
+    'formats a %s schedule confirmation with a numeric market offset',
+    (locale) => {
+      const formatted = formatScheduleDateTime(
+        Date.UTC(2026, 8, 15, 17, 30),
+        locale,
+        'Africa/Algiers',
+      );
+      expect(hasOnlyLatinDigits(formatted)).toBe(true);
+      expect(formatted).toContain('18:30');
+      expect(formatted).toContain('01:00');
+    },
+  );
 });

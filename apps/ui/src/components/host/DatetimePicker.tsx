@@ -1,8 +1,14 @@
 import { useRef, useState } from 'react';
-import { DayPicker } from 'react-day-picker';
+import { DayPicker, TZDate } from 'react-day-picker';
 import { arDZ, enUS, fr } from 'react-day-picker/locale';
 
-import { host_time, type Locale } from '@founders-coffee/i18n';
+import {
+  getZonedWallClock,
+  host_time,
+  resolveZonedTimeRange,
+  type Locale,
+  type ZonedDateTimeError,
+} from '@founders-coffee/i18n';
 
 import { TimePicker } from './TimePicker';
 
@@ -11,29 +17,46 @@ const DAYPICKER_LOCALE = { ar: arDZ, en: enUS, fr } as const;
 const DAYPICKER_DIR = { ar: 'rtl', en: 'ltr', fr: 'ltr' } as const;
 
 const pad = (n: number) => String(n).padStart(2, '0');
-const toHHMM = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const toHHMM = (epochMs: number, timeZone: string) => {
+  const wallClock = getZonedWallClock(epochMs, timeZone);
+  return `${pad(wallClock.hour)}:${pad(wallClock.minute)}`;
+};
 
-/** Combine a calendar date + from/to "HH:MM" into local epochs (ms). */
 const combineRange = (
   date: Date | undefined,
   from: string,
   to: string,
-): { startsAt: number | null; endsAt: number | null } => {
-  if (!date) return { startsAt: null, endsAt: null };
-  const [fh, fm] = from.split(':').map(Number);
-  const [th, tm] = to.split(':').map(Number);
-  const start = new Date(date);
-  start.setHours(fh || 0, fm || 0, 0, 0);
-  const end = new Date(date);
-  end.setHours(th || 0, tm || 0, 0, 0);
-  return { startsAt: start.getTime(), endsAt: end.getTime() };
+  timeZone: string,
+):
+  | { ok: true; startsAt: number | null; endsAt: number | null }
+  | { ok: false; reason: ZonedDateTimeError } => {
+  if (!date) return { ok: true, startsAt: null, endsAt: null };
+  const result = resolveZonedTimeRange(
+    {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+    },
+    from,
+    to,
+    timeZone,
+  );
+  return result.ok
+    ? {
+        ok: true,
+        startsAt: result.startsAt,
+        endsAt: result.endsAt,
+      }
+    : { ok: false, reason: result.reason };
 };
 
 type DatetimePickerProps = {
   startsAt: number | null;
   endsAt: number | null;
   onChange: (startsAt: number | null, endsAt: number | null) => void;
+  onError: (error: ZonedDateTimeError | null) => void;
   locale: Locale;
+  timeZone: string;
   /**
    * `top` — time control sits above the calendar card (step 2 wizard layout).
    * `bottom` — time control sits under the calendar inside the parent card.
@@ -46,24 +69,26 @@ type DatetimePickerProps = {
  * picker picks the start→end window; together they produce startsAt + endsAt (the event's ends_at
  * column). Both are React-friendly (the timepicker is wrapped imperatively in `TimePicker`, kept
  * client-only by this component's `React.lazy` boundary). The initial values seed both at mount; the
- * wizard remounts step content via `key={step}`, so navigating back restores the pick. Past dates are
- * disabled; the date displays in `Africa/Algiers` but the epoch uses the browser's local zone.
+ * wizard remounts step content via `key={step}`, so navigating back restores the pick. Calendar and
+ * wall-clock conversion both use the event market's IANA timezone.
  */
 export const DatetimePicker = ({
   startsAt,
   endsAt,
   onChange,
+  onError,
   locale,
+  timeZone,
   timePlacement = 'bottom',
 }: DatetimePickerProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
-    startsAt ? new Date(startsAt) : undefined,
+    startsAt ? new TZDate(startsAt, timeZone) : undefined,
   );
   const [fromTime, setFromTime] = useState(() =>
-    startsAt ? toHHMM(new Date(startsAt)) : '18:00',
+    startsAt ? toHHMM(startsAt, timeZone) : '18:00',
   );
   const [toTime, setToTime] = useState(() =>
-    endsAt ? toHHMM(new Date(endsAt)) : '19:00',
+    endsAt ? toHHMM(endsAt, timeZone) : '19:00',
   );
   const selectedDateRef = useRef(selectedDate);
   selectedDateRef.current = selectedDate;
@@ -75,7 +100,18 @@ export const DatetimePicker = ({
   const handleDate = (d: Date | undefined) => {
     setSelectedDate(d);
     selectedDateRef.current = d;
-    const next = combineRange(d, fromTimeRef.current, toTimeRef.current);
+    const next = combineRange(
+      d,
+      fromTimeRef.current,
+      toTimeRef.current,
+      timeZone,
+    );
+    if (!next.ok) {
+      onChange(null, null);
+      onError(next.reason);
+      return;
+    }
+    onError(null);
     onChange(next.startsAt, next.endsAt);
   };
   const handleRange = (from: string, to: string) => {
@@ -83,12 +119,17 @@ export const DatetimePicker = ({
     setToTime(to);
     fromTimeRef.current = from;
     toTimeRef.current = to;
-    const next = combineRange(selectedDateRef.current, from, to);
+    const next = combineRange(selectedDateRef.current, from, to, timeZone);
+    if (!next.ok) {
+      onChange(null, null);
+      onError(next.reason);
+      return;
+    }
+    onError(null);
     onChange(next.startsAt, next.endsAt);
   };
 
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
+  const today = new TZDate(Date.now(), timeZone);
 
   const timeControl = (
     <label className="form-control shrink-0">
@@ -116,10 +157,11 @@ export const DatetimePicker = ({
         firstWeekContainsDate={1}
         numberOfMonths={1}
         showOutsideDays
-        timeZone="Africa/Algiers"
+        timeZone={timeZone}
+        today={today}
         selected={selectedDate}
         onSelect={handleDate}
-        disabled={{ before: startOfToday }}
+        disabled={{ before: today }}
       />
     </div>
   );

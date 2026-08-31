@@ -63,6 +63,24 @@ export const formatDate = (
   options: { timeZone: string } & Intl.DateTimeFormatOptions,
 ): string => dateFormatter(locale, options).format(date);
 
+/** Format an event instant for confirmation with its market's numeric UTC offset. */
+export const formatScheduleDateTime = (
+  epochMs: number,
+  locale: Locale,
+  timeZone: string,
+): string =>
+  dateFormatter(locale, {
+    timeZone,
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZoneName: 'longOffset',
+  }).format(new Date(epochMs));
+
 /** True if a formatted string is free of Arabic-Indic digits (Latin-digit guard). */
 export const hasOnlyLatinDigits = (formatted: string): boolean =>
   !ARABIC_INDIC.test(formatted);

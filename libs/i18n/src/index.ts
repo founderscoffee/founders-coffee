@@ -8,3 +8,4 @@ export {
 export * from './locale.js';
 export * from './detect.js';
 export * from './format.js';
+export * from './zoned-time.js';
