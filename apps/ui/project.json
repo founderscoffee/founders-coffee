@@ -8,6 +8,7 @@
     "typecheck": {
       "executor": "nx:run-commands",
       "dependsOn": [
+        "^build",
         { "target": "generate-routes" },
         { "projects": ["i18n"], "target": "generate-i18n" }
       ],

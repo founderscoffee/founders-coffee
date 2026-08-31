@@ -59,11 +59,16 @@
       "cache": true
     },
     "test": {
-      "inputs": ["default", "^production", "{workspaceRoot}/vitest.workspace.ts"],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/vitest.workspace.ts"
+      ],
       "cache": true
     },
     "typecheck": {
       "dependsOn": ["^build"],
+      "inputs": ["default", "^production"],
       "cache": true
     }
   }
