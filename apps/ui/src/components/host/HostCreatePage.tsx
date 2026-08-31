@@ -138,11 +138,13 @@ export const HostCreatePage = ({
       await createEventMutation.mutateAsync({
         data: {
           marketCode: market.code,
-          stateCode: city.stateCode,
           cityCode: city.code,
           title,
           description,
-          venue: venue.name,
+          venueName: venue.name,
+          venueAddress: venue.address,
+          latitude: venue.lat,
+          longitude: venue.lng,
           startsAt,
           endsAt,
           capacity: 0,

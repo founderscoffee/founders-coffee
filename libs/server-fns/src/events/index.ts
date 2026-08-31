@@ -7,9 +7,9 @@ export {
   createEventResolver,
   listEvents,
   resolveEvent,
-  type EventCreateInput,
   type EventFeedItem,
   type EventFeedItemBase,
   type EventFeedPage,
 } from './resolver.js';
+export type { EventCreateInput } from '@founders-coffee/domain';
 export { createEvent, getEvent, getUpcomingEvents } from './rpc.js';

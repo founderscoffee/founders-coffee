@@ -1,39 +1,17 @@
 import { createServerFn } from '@tanstack/react-start';
+import { getRequest } from '@tanstack/react-start/server';
 import { z } from 'zod';
 
-import {
-  appValidator,
-  handleResult,
-  marketCodeSchema,
-} from '@founders-coffee/core';
+import { appValidator, handleResult } from '@founders-coffee/core';
+import { eventCreateSchema } from '@founders-coffee/domain';
 
 import { requireAuth } from '../authz.js';
 import { requirePermission } from '../auth-middleware.js';
 import { resolveSession } from '../auth.js';
-import { getRequest } from '@tanstack/react-start/server';
 import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
 import { attachAttendance } from './attendance.js';
-import {
-  createEventResolver,
-  listEvents,
-  resolveEvent,
-  type EventCreateInput,
-} from './resolver.js';
-
-const eventCreateSchema = z.object({
-  marketCode: marketCodeSchema,
-  stateCode: z.string(),
-  cityCode: z.string(),
-  title: z.string().min(3).max(120),
-  description: z.string().min(10).max(2000),
-  venue: z.string().min(2).max(200),
-  startsAt: z.number().int().positive(),
-  endsAt: z.number().int().positive().optional(),
-  capacity: z.number().int().min(0).max(10000).default(0),
-  language: z.enum(['ar', 'en', 'fr', 'ar_en', 'ar_fr']),
-  category: z.enum(['coffee-meetup', 'workshop', 'demo-day']),
-});
+import { createEventResolver, listEvents, resolveEvent } from './resolver.js';
 
 /**
  * Create a new free event (FR-E1). Requires the `event:create` permission (host/moderator/admin).
@@ -48,9 +26,7 @@ export const createEvent = createServerFn({ strict: false })
   .validator(appValidator(eventCreateSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
-    return handleResult(
-      createEventResolver(getDb(), session.user.id, data as EventCreateInput),
-    );
+    return handleResult(createEventResolver(getDb(), session.user.id, data));
   });
 
 /**

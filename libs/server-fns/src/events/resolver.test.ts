@@ -9,8 +9,9 @@ import {
   type Db,
   type NewUser,
 } from '@founders-coffee/db';
+import { eventCreateSchema } from '@founders-coffee/domain';
 
-import { resolveEvent } from './resolver.js';
+import { createEventResolver, resolveEvent } from './resolver.js';
 
 const TEST_HOST_ID = 'usr_resolvehost01';
 
@@ -57,6 +58,67 @@ const createTestEvent = async (
   await createEvent(db, baseEvent(id, slug));
   return { id, slug };
 };
+
+const createInput = (overrides: Record<string, unknown> = {}) =>
+  eventCreateSchema.parse({
+    marketCode: 'DZ',
+    cityCode: '1',
+    title: 'Resolver creation event',
+    description: 'A complete event created through the resolver.',
+    venueName: 'Café des Délices',
+    venueAddress: '12 Rue des Entrepreneurs, Alger',
+    latitude: 36.7538,
+    longitude: 3.0588,
+    startsAt: new Date('2099-01-15T18:00:00Z').getTime(),
+    endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
+    capacity: 24,
+    language: 'ar_fr',
+    category: 'coffee-meetup',
+    ...overrides,
+  });
+
+describe('createEventResolver (real D1)', () => {
+  it('derives state ownership and persists the complete shared command', async () => {
+    const db = await setupDb();
+
+    const result = await createEventResolver(db, TEST_HOST_ID, createInput());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toMatchObject({
+        hostId: TEST_HOST_ID,
+        marketCode: 'DZ',
+        stateCode: '01',
+        cityCode: '1',
+        title: 'Resolver creation event',
+        venue: 'Café des Délices',
+        venueAddress: '12 Rue des Entrepreneurs, Alger',
+        latitude: 36.7538,
+        longitude: 3.0588,
+        capacity: 24,
+        language: 'ar_fr',
+        category: 'coffee-meetup',
+        isFree: true,
+      });
+      expect(result.data.endsAt?.toISOString()).toBe(
+        '2099-01-15T19:00:00.000Z',
+      );
+    }
+  });
+
+  it('rejects an unknown city without accepting a client-owned state', async () => {
+    const db = await setupDb();
+
+    const result = await createEventResolver(
+      db,
+      TEST_HOST_ID,
+      createInput({ cityCode: 'unknown-city' }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('validation_failed');
+  });
+});
 
 describe('resolveEvent (real D1)', () => {
   it('resolves a published event by marketCode + slug', async () => {

@@ -1,5 +1,9 @@
 import { AppError, err, id, ok, type Result } from '@founders-coffee/core';
-import { events as eventsDomain, geo } from '@founders-coffee/domain';
+import {
+  events as eventsDomain,
+  geo,
+  type EventCreateInput,
+} from '@founders-coffee/domain';
 import {
   createEvent as createEventRow,
   getEvent,
@@ -42,20 +46,6 @@ const generateUniqueSlug = async (
   return slug;
 };
 
-export interface EventCreateInput {
-  marketCode: string;
-  stateCode: string;
-  cityCode: string;
-  title: string;
-  description: string;
-  venue: string;
-  startsAt: number;
-  endsAt?: number;
-  capacity: number;
-  language: string;
-  category: string;
-}
-
 /**
  * Validate + create a new event. Generates the id + slug, validates the geo state/city against the
  * TS data, and inserts the row. Returns the created Event.
@@ -65,15 +55,6 @@ export const createEventResolver = async (
   hostId: string,
   input: EventCreateInput,
 ): Promise<Result<Event>> => {
-  const state = geo.findState(input.marketCode, input.stateCode);
-  if (!state) {
-    return err(
-      new AppError(
-        'validation_failed',
-        `Unknown state ${input.stateCode} for ${input.marketCode}`,
-      ),
-    );
-  }
   const city = geo.findCity(input.marketCode, input.cityCode);
   if (!city) {
     return err(
@@ -83,22 +64,34 @@ export const createEventResolver = async (
       ),
     );
   }
+  const state = geo.findState(input.marketCode, city.stateCode);
+  if (!state) {
+    return err(
+      new AppError(
+        'validation_failed',
+        `Unknown state ${city.stateCode} for ${input.marketCode}`,
+      ),
+    );
+  }
 
   const slug = await generateUniqueSlug(db, input.marketCode, input.title);
   const row: NewEvent = {
     id: id('evt'),
     hostId,
     marketCode: input.marketCode,
-    stateCode: input.stateCode,
+    stateCode: city.stateCode,
     cityCode: input.cityCode,
     title: input.title,
     description: input.description,
-    venue: input.venue,
+    venue: input.venueName,
+    venueAddress: input.venueAddress,
+    latitude: input.latitude,
+    longitude: input.longitude,
     startsAt: new Date(input.startsAt),
-    endsAt: input.endsAt ? new Date(input.endsAt) : null,
+    endsAt: new Date(input.endsAt),
     capacity: input.capacity,
-    language: input.language as NewEvent['language'],
-    category: input.category as NewEvent['category'],
+    language: input.language,
+    category: input.category,
     isFree: true,
     slug,
     status: 'published',
