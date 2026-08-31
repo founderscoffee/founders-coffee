@@ -34,9 +34,17 @@ export interface PublicProfile {
   readonly homeCityNameAr: string | null;
 }
 
-const resolveHomeNames = (u: User): Pick<UserProfile, 'homeStateName' | 'homeCityName' | 'homeCityNameAr'> => {
-  const state = u.homeMarketCode && u.homeState ? geo.findState(u.homeMarketCode, u.homeState) : undefined;
-  const city = u.homeMarketCode && u.homeCityId ? geo.findCity(u.homeMarketCode, u.homeCityId) : undefined;
+const resolveHomeNames = (
+  u: User,
+): Pick<UserProfile, 'homeStateName' | 'homeCityName' | 'homeCityNameAr'> => {
+  const state =
+    u.homeMarketCode && u.homeState
+      ? geo.findState(u.homeMarketCode, u.homeState)
+      : undefined;
+  const city =
+    u.homeMarketCode && u.homeCityId
+      ? geo.findCity(u.homeMarketCode, u.homeCityId)
+      : undefined;
   return {
     homeStateName: state?.name ?? null,
     homeCityName: city?.name ?? null,
@@ -44,7 +52,10 @@ const resolveHomeNames = (u: User): Pick<UserProfile, 'homeStateName' | 'homeCit
   };
 };
 
-const toUserProfile = (u: User): UserProfile => ({ ...u, ...resolveHomeNames(u) });
+const toUserProfile = (u: User): UserProfile => ({
+  ...u,
+  ...resolveHomeNames(u),
+});
 
 const toPublicProfile = (u: User): PublicProfile => {
   const names = resolveHomeNames(u);
@@ -64,7 +75,11 @@ export const getMyProfile = createServerFn({ strict: false })
   .handler(async ({ context }) => {
     const session = requireAuth(context.session);
     const db = getDb();
-    const rows = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
+    const rows = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1);
     if (!rows[0]) throw new AppError('not_found', 'User not found');
     return toUserProfile(rows[0]);
   });
@@ -85,13 +100,25 @@ export const setHomeLocation = createServerFn({ strict: false })
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
     const state = geo.findState(data.marketCode, data.state);
-    if (!state) throw new AppError('validation_failed', `Unknown state ${data.state} for ${data.marketCode}`);
+    if (!state)
+      throw new AppError(
+        'validation_failed',
+        `Unknown state ${data.state} for ${data.marketCode}`,
+      );
     const city = geo.findCity(data.marketCode, data.city);
-    if (!city) throw new AppError('validation_failed', `Unknown city ${data.city} for ${data.marketCode}`);
+    if (!city)
+      throw new AppError(
+        'validation_failed',
+        `Unknown city ${data.city} for ${data.marketCode}`,
+      );
     const db = getDb();
     await db
       .update(user)
-      .set({ homeMarketCode: data.marketCode, homeState: data.state, homeCityId: data.city })
+      .set({
+        homeMarketCode: data.marketCode,
+        homeState: data.state,
+        homeCityId: data.city,
+      })
       .where(eq(user.id, session.user.id))
       .run();
     return { ok: true as const };
@@ -102,7 +129,11 @@ export const getPublicProfile = createServerFn({ strict: false })
   .validator(z.object({ userId: z.string() }))
   .handler(async ({ data }) => {
     const db = getDb();
-    const rows = await db.select().from(user).where(eq(user.id, data.userId)).limit(1);
+    const rows = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, data.userId))
+      .limit(1);
     if (!rows[0]) throw new AppError('not_found', 'User not found');
     return toPublicProfile(rows[0]);
   });

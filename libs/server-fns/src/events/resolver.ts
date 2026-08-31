@@ -23,7 +23,11 @@ const slugify = (title: string): string =>
 
 const randomSuffix = (): string => Math.random().toString(36).slice(2, 6);
 
-const generateUniqueSlug = async (db: Db, marketCode: string, title: string): Promise<string> => {
+const generateUniqueSlug = async (
+  db: Db,
+  marketCode: string,
+  title: string,
+): Promise<string> => {
   const base = slugify(title) || 'event';
   let slug = base;
   let attempts = 0;
@@ -63,11 +67,21 @@ export const createEventResolver = async (
 ): Promise<Result<Event>> => {
   const state = geo.findState(input.marketCode, input.stateCode);
   if (!state) {
-    return err(new AppError('validation_failed', `Unknown state ${input.stateCode} for ${input.marketCode}`));
+    return err(
+      new AppError(
+        'validation_failed',
+        `Unknown state ${input.stateCode} for ${input.marketCode}`,
+      ),
+    );
   }
   const city = geo.findCity(input.marketCode, input.cityCode);
   if (!city) {
-    return err(new AppError('validation_failed', `Unknown city ${input.cityCode} for ${input.marketCode}`));
+    return err(
+      new AppError(
+        'validation_failed',
+        `Unknown city ${input.cityCode} for ${input.marketCode}`,
+      ),
+    );
   }
 
   const slug = await generateUniqueSlug(db, input.marketCode, input.title);
@@ -105,10 +119,20 @@ export const resolveEvent = async (
       ? await getEventBySlug(db, input.marketCode, input.slug)
       : undefined;
   if (!event) {
-    return err(new AppError('event_not_found', `No event for ${input.id ?? input.slug ?? '(none)'}`));
+    return err(
+      new AppError(
+        'event_not_found',
+        `No event for ${input.id ?? input.slug ?? '(none)'}`,
+      ),
+    );
   }
-  if (event.status !== 'published' && !eventsDomain.canTransition(event.status, 'published')) {
-    return err(new AppError('event_not_found', `Event ${event.id} is not available`));
+  if (
+    event.status !== 'published' &&
+    !eventsDomain.canTransition(event.status, 'published')
+  ) {
+    return err(
+      new AppError('event_not_found', `Event ${event.id} is not available`),
+    );
   }
   return ok(event);
 };
@@ -143,7 +167,10 @@ const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
 
 export interface EventFeedPage {
   readonly items: readonly EventFeedItemBase[];
-  readonly nextCursor: { readonly startsAt: number; readonly id: string } | null;
+  readonly nextCursor: {
+    readonly startsAt: number;
+    readonly id: string;
+  } | null;
 }
 
 /** List upcoming published events, optionally scoped to a market/city (composite cursor). */
@@ -161,7 +188,9 @@ export const listEvents = async (
   const rows = await listUpcomingEvents(db, {
     marketCode: opts.marketCode,
     cityCode: opts.cityCode,
-    afterStartsAt: opts.afterStartsAt ? new Date(opts.afterStartsAt) : undefined,
+    afterStartsAt: opts.afterStartsAt
+      ? new Date(opts.afterStartsAt)
+      : undefined,
     afterId: opts.afterId,
     limit: limit + 1,
   });
@@ -170,6 +199,9 @@ export const listEvents = async (
   const last = items[items.length - 1];
   return {
     items,
-    nextCursor: hasMore && last ? { startsAt: last.startsAt.getTime(), id: last.id } : null,
+    nextCursor:
+      hasMore && last
+        ? { startsAt: last.startsAt.getTime(), id: last.id }
+        : null,
   };
 };

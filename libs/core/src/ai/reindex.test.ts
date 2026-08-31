@@ -28,7 +28,9 @@ describe('reindex', () => {
   it('embeds + upserts a short document under its id', async () => {
     const { runtime, upserted } = captureIndex();
 
-    const result = await reindex(fakeAi([0.1, 0.2]), runtime, [{ id: 'evt_1', text: 'hello' }]);
+    const result = await reindex(fakeAi([0.1, 0.2]), runtime, [
+      { id: 'evt_1', text: 'hello' },
+    ]);
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -40,16 +42,24 @@ describe('reindex', () => {
   it('chunks a long document into sub-vectors keyed id#index', async () => {
     const { runtime, upserted } = captureIndex();
 
-    await reindex(fakeAi([0.5]), runtime, [{ id: 'evt_1', text: 'x'.repeat(10_000) }]);
+    await reindex(fakeAi([0.5]), runtime, [
+      { id: 'evt_1', text: 'x'.repeat(10_000) },
+    ]);
 
     expect(upserted).toHaveLength(3);
-    expect(upserted.map((u) => u.id)).toEqual(['evt_1#0', 'evt_1#1', 'evt_1#2']);
+    expect(upserted.map((u) => u.id)).toEqual([
+      'evt_1#0',
+      'evt_1#1',
+      'evt_1#2',
+    ]);
   });
 
   it('returns ok with empty upserted for blank text', async () => {
     const { runtime } = captureIndex();
 
-    const result = await reindex(fakeAi([0.5]), runtime, [{ id: 'evt_1', text: '   ' }]);
+    const result = await reindex(fakeAi([0.5]), runtime, [
+      { id: 'evt_1', text: '   ' },
+    ]);
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.upserted).toEqual([]);

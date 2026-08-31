@@ -24,14 +24,29 @@ const buildClientLogger = (
   bound: LogContext,
   buffer: LogEntry[],
 ): Logger => {
-  const push = (entryLevel: LogLevel, msg: string, context?: LogContext): void => {
+  const push = (
+    entryLevel: LogLevel,
+    msg: string,
+    context?: LogContext,
+  ): void => {
     if (!shouldLog(entryLevel, level)) return;
-    const merged = sanitize({ ...bound, ...context }) as Record<string, unknown>;
+    const merged = sanitize({ ...bound, ...context }) as Record<
+      string,
+      unknown
+    >;
     buffer.push({ ...merged, ts: isoNow(), level: entryLevel, msg, service });
     if (buffer.length >= bufferSize) flush();
   };
   const child = (context: LogContext): Logger =>
-    buildClientLogger(flush, bufferSize, level, transport, service, { ...bound, ...context }, buffer);
+    buildClientLogger(
+      flush,
+      bufferSize,
+      level,
+      transport,
+      service,
+      { ...bound, ...context },
+      buffer,
+    );
   return {
     debug: (msg, context) => push('debug', msg, context),
     info: (msg, context) => push('info', msg, context),
@@ -67,7 +82,9 @@ const attachUnloadListeners = (flush: () => void): void => {
  * never throws on transport failure. The receiving endpoint is wired per-app
  * (P1-017).
  */
-export const createClientLogger = (options: CreateClientLoggerOptions = {}): Logger => {
+export const createClientLogger = (
+  options: CreateClientLoggerOptions = {},
+): Logger => {
   const transport = options.transport ?? createBeaconTransport('/client-logs');
   const level: LogLevel = options.level ?? 'info';
   const bufferSize = options.bufferSize ?? DEFAULT_BUFFER_SIZE;
@@ -78,7 +95,15 @@ export const createClientLogger = (options: CreateClientLoggerOptions = {}): Log
     const batch = buffer.splice(0, buffer.length);
     transport(batch);
   };
-  const logger = buildClientLogger(flush, bufferSize, level, transport, service, {}, buffer);
+  const logger = buildClientLogger(
+    flush,
+    bufferSize,
+    level,
+    transport,
+    service,
+    {},
+    buffer,
+  );
   attachUnloadListeners(flush);
   return logger;
 };

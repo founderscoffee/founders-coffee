@@ -107,12 +107,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -283,12 +279,8 @@
           "name": "events_host_id_user_id_fk",
           "tableFrom": "events",
           "tableTo": "user",
-          "columnsFrom": [
-            "host_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["host_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -296,12 +288,8 @@
           "name": "events_market_code_markets_code_fk",
           "tableFrom": "events",
           "tableTo": "markets",
-          "columnsFrom": [
-            "market_code"
-          ],
-          "columnsTo": [
-            "code"
-          ],
+          "columnsFrom": ["market_code"],
+          "columnsTo": ["code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -389,9 +377,7 @@
       "indexes": {
         "invoices_number_unique": {
           "name": "invoices_number_unique",
-          "columns": [
-            "number"
-          ],
+          "columns": ["number"],
           "isUnique": true
         }
       },
@@ -400,12 +386,8 @@
           "name": "invoices_order_id_orders_id_fk",
           "tableFrom": "invoices",
           "tableTo": "orders",
-          "columnsFrom": [
-            "order_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["order_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -499,9 +481,7 @@
       "indexes": {
         "markets_slug_unique": {
           "name": "markets_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         }
       },
@@ -643,12 +623,8 @@
           "name": "orders_market_code_markets_code_fk",
           "tableFrom": "orders",
           "tableTo": "markets",
-          "columnsFrom": [
-            "market_code"
-          ],
-          "columnsTo": [
-            "code"
-          ],
+          "columnsFrom": ["market_code"],
+          "columnsTo": ["code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -656,12 +632,8 @@
           "name": "orders_payer_user_id_user_id_fk",
           "tableFrom": "orders",
           "tableTo": "user",
-          "columnsFrom": [
-            "payer_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payer_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -742,9 +714,7 @@
       "indexes": {
         "session_token_unique": {
           "name": "session_token_unique",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "isUnique": true
         }
       },
@@ -753,12 +723,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -884,9 +850,7 @@
       "indexes": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },
@@ -895,12 +859,8 @@
           "name": "user_home_market_code_markets_code_fk",
           "tableFrom": "user",
           "tableTo": "markets",
-          "columnsFrom": [
-            "home_market_code"
-          ],
-          "columnsTo": [
-            "code"
-          ],
+          "columnsFrom": ["home_market_code"],
+          "columnsTo": ["code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

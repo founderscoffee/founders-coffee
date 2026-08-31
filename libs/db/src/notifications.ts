@@ -116,11 +116,7 @@ export const markNotificationFailed = async (
     })
     .where(eq(scheduledNotifications.id, opts.id));
 
-  if (
-    opts.canFallback &&
-    existing.fallbackChannel &&
-    newAttempts >= 3
-  ) {
+  if (opts.canFallback && existing.fallbackChannel && newAttempts >= 3) {
     const fallbackId = `${existing.id}_fb`;
     await db.insert(scheduledNotifications).values({
       id: fallbackId,
@@ -204,10 +200,7 @@ export const hasPendingNotification = async (
       and(
         eq(scheduledNotifications.eventId, opts.eventId),
         eq(scheduledNotifications.userId, opts.userId),
-        eq(
-          scheduledNotifications.templateKey,
-          opts.templateKey,
-        ),
+        eq(scheduledNotifications.templateKey, opts.templateKey),
         eq(scheduledNotifications.status, 'pending'),
       ),
     )

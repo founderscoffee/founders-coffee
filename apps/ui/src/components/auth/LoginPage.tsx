@@ -1,5 +1,5 @@
-import { Link } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react'
+import { Link } from '@tanstack/react-router';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   brand,
@@ -15,89 +15,102 @@ import {
   login_wrong_code,
   oauth_continue,
   type Locale,
-} from '@founders-coffee/i18n'
-import { Button, Input } from '@founders-coffee/ui'
+} from '@founders-coffee/i18n';
+import { Button, Input } from '@founders-coffee/ui';
 
-import { LegalNotice } from '../company/LegalNotice'
-import { authClient } from '../../lib/auth'
-import { Turnstile } from './Turnstile'
+import { LegalNotice } from '../company/LegalNotice';
+import { authClient } from '../../lib/auth';
+import { Turnstile } from './Turnstile';
 
-const OAUTH_PROVIDERS = ['google', 'github', 'linkedin'] as const
+const OAUTH_PROVIDERS = ['google', 'github', 'linkedin'] as const;
 
 type LoginPageProps = {
-  locale: Locale
-  turnstileSiteKey: string | null
-  hasSocial: boolean
-  redirect: string
-}
+  locale: Locale;
+  turnstileSiteKey: string | null;
+  hasSocial: boolean;
+  redirect: string;
+};
 
-export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: LoginPageProps) => {
-  const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
-  const [step, setStep] = useState<'email' | 'otp'>('email')
-  const [token, setToken] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+export const LoginPage = ({
+  locale,
+  turnstileSiteKey,
+  hasSocial,
+  redirect,
+}: LoginPageProps) => {
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
+  const [token, setToken] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const emailValid = /.+@.+\..+/.test(email)
+  const emailValid = /.+@.+\..+/.test(email);
 
   const sendCode = async () => {
-    if (!emailValid || !token) return
-    setBusy(true)
-    setError(null)
+    if (!emailValid || !token) return;
+    setBusy(true);
+    setError(null);
     const { error: sendError } = await authClient.emailOtp.sendVerificationOtp(
       { email, type: 'sign-in' },
       { headers: { 'x-captcha-response': token } },
-    )
-    setBusy(false)
+    );
+    setBusy(false);
     if (sendError) {
-      setError(sendError.message ?? 'error')
-      return
+      setError(sendError.message ?? 'error');
+      return;
     }
-    setStep('otp')
-  }
+    setStep('otp');
+  };
 
   const verify = async () => {
-    setBusy(true)
-    setError(null)
-    const { data, error: verifyError } = await authClient.signIn.emailOtp({ email, otp })
-    setBusy(false)
+    setBusy(true);
+    setError(null);
+    const { data, error: verifyError } = await authClient.signIn.emailOtp({
+      email,
+      otp,
+    });
+    setBusy(false);
     if (verifyError) {
-      setError(login_wrong_code({}, { locale }))
-      return
+      setError(login_wrong_code({}, { locale }));
+      return;
     }
-    const needsOnboarding = !(data?.user as { homeMarketCode?: string } | null | undefined)?.homeMarketCode
-    window.location.href = needsOnboarding ? '/onboarding' : redirect
-  }
+    const needsOnboarding = !(
+      data?.user as { homeMarketCode?: string } | null | undefined
+    )?.homeMarketCode;
+    window.location.href = needsOnboarding ? '/onboarding' : redirect;
+  };
 
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
-    authClient.signIn.social({ provider, callbackURL: redirect })
+    authClient.signIn.social({ provider, callbackURL: redirect });
 
-  const abortRef = useRef<AbortController | null>(null)
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (step !== 'otp') return
-    if (!('credentials' in navigator)) return
+    if (step !== 'otp') return;
+    if (!('credentials' in navigator)) return;
 
-    const ac = new AbortController()
-    abortRef.current = ac
+    const ac = new AbortController();
+    abortRef.current = ac;
 
     navigator.credentials
-      .get({ otp: { transport: ['sms'] }, signal: ac.signal } as CredentialRequestOptions)
+      .get({
+        otp: { transport: ['sms'] },
+        signal: ac.signal,
+      } as CredentialRequestOptions)
       .then((otpCred) => {
         if (otpCred && 'code' in otpCred) {
-          setOtp(otpCred.code as string)
+          setOtp(otpCred.code as string);
         }
       })
       .catch(() => {
         /* WebOTP unavailable on this browser — ignore */
-      })
+      });
 
     return () => {
-      ac.abort()
-      abortRef.current = null
-    }
-  }, [step])
+      ac.abort();
+      abortRef.current = null;
+    };
+  }, [step]);
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
@@ -107,7 +120,9 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
             <Link to="/" className="text-xl font-extrabold text-primary">
               {brand({}, { locale })}
             </Link>
-            <h1 className="mt-2 text-2xl font-bold">{login_title({}, { locale })}</h1>
+            <h1 className="mt-2 text-2xl font-bold">
+              {login_title({}, { locale })}
+            </h1>
           </div>
 
           {step === 'email' ? (
@@ -123,9 +138,15 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
                   placeholder={login_email_placeholder({}, { locale })}
                 />
               </label>
-              {turnstileSiteKey && <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />}
+              {turnstileSiteKey && (
+                <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
+              )}
               {error && <p className="text-sm text-error">{error}</p>}
-              <Button onClick={sendCode} disabled={!emailValid || !token || busy} isFullWidth>
+              <Button
+                onClick={sendCode}
+                disabled={!emailValid || !token || busy}
+                isFullWidth
+              >
                 {login_send_code({}, { locale })}
               </Button>
               <LegalNotice locale={locale} className="mt-1" />
@@ -168,12 +189,23 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
                   onChange={(e) => setOtp(e.target.value)}
                 />
               </label>
-              {error && <p className="text-center text-sm text-error">{error}</p>}
-              <Button onClick={verify} disabled={otp.length !== 6 || busy} isFullWidth>
+              {error && (
+                <p className="text-center text-sm text-error">{error}</p>
+              )}
+              <Button
+                onClick={verify}
+                disabled={otp.length !== 6 || busy}
+                isFullWidth
+              >
                 {login_verify({}, { locale })}
               </Button>
               <LegalNotice locale={locale} />
-              <Button variant="ghost" onClick={() => setStep('email')} disabled={busy} isFullWidth>
+              <Button
+                variant="ghost"
+                onClick={() => setStep('email')}
+                disabled={busy}
+                isFullWidth
+              >
                 {login_resend({}, { locale })}
               </Button>
             </>
@@ -181,5 +213,5 @@ export const LoginPage = ({ locale, turnstileSiteKey, hasSocial, redirect }: Log
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

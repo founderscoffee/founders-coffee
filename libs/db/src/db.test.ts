@@ -38,10 +38,18 @@ describe('libs/db (real D1 via Miniflare)', () => {
       })
       .run();
 
-    const market = await db.select().from(markets).where(eq(markets.code, 'DZ')).all();
+    const market = await db
+      .select()
+      .from(markets)
+      .where(eq(markets.code, 'DZ'))
+      .all();
     expect(market[0]?.defaultCurrency).toBe('DZD');
 
-    const userRow = await db.select().from(user).where(eq(user.id, 'usr_m1')).all();
+    const userRow = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, 'usr_m1'))
+      .all();
     expect(userRow[0]?.email).toBe('founder@example.dz');
     expect(userRow[0]?.role).toBe('member');
   });
@@ -49,8 +57,12 @@ describe('libs/db (real D1 via Miniflare)', () => {
   it('batch executes statements atomically', async () => {
     const db = createDb(env.DB);
     await batch(db, [
-      db.insert(user).values({ id: 'usr_b1', name: 'B One', email: 'b1@example.dz' }),
-      db.insert(user).values({ id: 'usr_b2', name: 'B Two', email: 'b2@example.dz' }),
+      db
+        .insert(user)
+        .values({ id: 'usr_b1', name: 'B One', email: 'b1@example.dz' }),
+      db
+        .insert(user)
+        .values({ id: 'usr_b2', name: 'B Two', email: 'b2@example.dz' }),
     ]);
     const rows = await db.select().from(user).all();
     expect(rows.map((u) => u.id)).toEqual(

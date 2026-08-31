@@ -36,7 +36,12 @@ const seedDarkMarket = async (db: Db): Promise<void> => {
       timezone: 'Asia/Dubai',
       direction: 'rtl',
       state: 'dark',
-      featureFlags: { events: false, hackathons: false, payments: false, recruiting: false },
+      featureFlags: {
+        events: false,
+        hackathons: false,
+        payments: false,
+        recruiting: false,
+      },
     })
     .onConflictDoNothing()
     .run();
@@ -120,7 +125,10 @@ describe('resolveCityLanding (market-scoped, validated via geo TS data)', () => 
     const db = createDb(env.DB);
     await seed(db);
 
-    const result = await resolveCityLanding(db, { marketKey: 'dz', citySlug: 'adrar' });
+    const result = await resolveCityLanding(db, {
+      marketKey: 'dz',
+      citySlug: 'adrar',
+    });
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -134,7 +142,10 @@ describe('resolveCityLanding (market-scoped, validated via geo TS data)', () => 
     const db = createDb(env.DB);
     await seed(db);
 
-    const result = await resolveCityLanding(db, { marketKey: 'dz', citySlug: 'riyadh' });
+    const result = await resolveCityLanding(db, {
+      marketKey: 'dz',
+      citySlug: 'riyadh',
+    });
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('city_not_found');
@@ -144,7 +155,10 @@ describe('resolveCityLanding (market-scoped, validated via geo TS data)', () => 
     const db = createDb(env.DB);
     await seed(db);
 
-    const result = await resolveCityLanding(db, { marketKey: 'zz', citySlug: 'anywhere' });
+    const result = await resolveCityLanding(db, {
+      marketKey: 'zz',
+      citySlug: 'anywhere',
+    });
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('market_not_found');
@@ -248,7 +262,9 @@ describe('resolveTrendingStates (cold vs warm)', () => {
 
     const allCities = trending.groups.flatMap((g) => g.cities);
     expect(allCities.every((c) => c.count > 0)).toBe(true);
-    expect(allCities.map((c) => c.city.slug).sort()).toEqual(['algiers', 'oran'].sort());
+    expect(allCities.map((c) => c.city.slug).sort()).toEqual(
+      ['algiers', 'oran'].sort(),
+    );
     expect(trending.groups.every((g) => g.state !== null)).toBe(true);
   });
 });

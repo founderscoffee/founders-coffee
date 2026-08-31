@@ -1,5 +1,12 @@
 import { sql } from 'drizzle-orm';
-import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import {
+  index,
+  integer,
+  real,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from 'drizzle-orm/sqlite-core';
 
 /**
  * Schema (SRS §7) — owned entirely by `libs/db` (single source of truth for D1).
@@ -161,7 +168,11 @@ export type NewVerification = typeof verification.$inferInsert;
 /* -------------------------------------------------------------------------- */
 
 export const EVENT_LANGUAGES = ['ar', 'en', 'fr', 'ar_en', 'ar_fr'] as const;
-export const EVENT_CATEGORIES = ['coffee-meetup', 'workshop', 'demo-day'] as const;
+export const EVENT_CATEGORIES = [
+  'coffee-meetup',
+  'workshop',
+  'demo-day',
+] as const;
 export const EVENT_STATUSES = ['published', 'cancelled'] as const;
 
 /** Event — a free local meetup created by a host (FR-E1). Always `is_free` (FR-E2). */
@@ -189,7 +200,9 @@ export const events = sqliteTable('events', {
   longitude: real('longitude'),
   venueAddress: text('venue_address'),
   slug: text('slug').notNull(),
-  status: text('status', { enum: [...EVENT_STATUSES] }).notNull().default('published'),
+  status: text('status', { enum: [...EVENT_STATUSES] })
+    .notNull()
+    .default('published'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -209,27 +222,34 @@ export type NewEvent = typeof events.$inferInsert;
 export const RSVP_STATUSES = ['going', 'waitlist', 'cancelled'] as const;
 
 /** Event RSVP — one per user per event (UNIQUE constraint). Drives the atomic capacity check. */
-export const eventRsvps = sqliteTable('event_rsvps', {
-  id: text('id').primaryKey(),
-  eventId: text('event_id')
-    .notNull()
-    .references(() => events.id, { onDelete: 'cascade' }),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  status: text('status', { enum: [...RSVP_STATUSES] })
-    .notNull()
-    .default('going'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-}, (t) => ({
-  eventIdUserIdUnique: uniqueIndex('event_rsvps_event_id_user_id_unique').on(t.eventId, t.userId),
-  userIdIdx: index('event_rsvps_user_id_index').on(t.userId),
-}));
+export const eventRsvps = sqliteTable(
+  'event_rsvps',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    status: text('status', { enum: [...RSVP_STATUSES] })
+      .notNull()
+      .default('going'),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => ({
+    eventIdUserIdUnique: uniqueIndex('event_rsvps_event_id_user_id_unique').on(
+      t.eventId,
+      t.userId,
+    ),
+    userIdIdx: index('event_rsvps_user_id_index').on(t.userId),
+  }),
+);
 
 export type EventRsvp = typeof eventRsvps.$inferSelect;
 export type NewEventRsvp = typeof eventRsvps.$inferInsert;
@@ -246,7 +266,12 @@ export const ORDER_PURPOSES = [
 ] as const;
 export type OrderPurpose = (typeof ORDER_PURPOSES)[number];
 
-export const ORDER_STATUSES = ['pending', 'paid', 'cancelled', 'refunded'] as const;
+export const ORDER_STATUSES = [
+  'pending',
+  'paid',
+  'cancelled',
+  'refunded',
+] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 const CURRENCIES = ['DZD', 'MAD', 'EGP', 'SAR', 'AED'] as const;
@@ -268,7 +293,9 @@ export const orders = sqliteTable('orders', {
   payerUserId: text('payer_user_id').references(() => user.id),
   amountMinor: integer('amount_minor').notNull(),
   currency: text('currency', { enum: [...CURRENCIES] }).notNull(),
-  status: text('status', { enum: [...ORDER_STATUSES] }).notNull().default('pending'),
+  status: text('status', { enum: [...ORDER_STATUSES] })
+    .notNull()
+    .default('pending'),
   provider: text('provider').notNull().default('manual'),
   providerRef: text('provider_ref'),
   note: text('note'),
@@ -373,14 +400,15 @@ export const scheduledNotifications = sqliteTable(
       .default(sql`(unixepoch())`),
   },
   (t) => ({
-    pendingIdx: index('idx_scheduled_notifications_pending').on(t.sendAt).where(sql`status = 'pending'`),
+    pendingIdx: index('idx_scheduled_notifications_pending')
+      .on(t.sendAt)
+      .where(sql`status = 'pending'`),
     eventIdIdx: index('scheduled_notifications_event_id_index').on(t.eventId),
     userIdIdx: index('scheduled_notifications_user_id_index').on(t.userId),
   }),
 );
 
-export type ScheduledNotification =
-  typeof scheduledNotifications.$inferSelect;
+export type ScheduledNotification = typeof scheduledNotifications.$inferSelect;
 export type NewScheduledNotification =
   typeof scheduledNotifications.$inferInsert;
 
@@ -442,7 +470,10 @@ export const cityWaitlist = sqliteTable(
       .default(sql`(unixepoch())`),
   },
   (t) => ({
-    emailCityUnique: uniqueIndex('city_waitlist_email_city_unique').on(t.email, t.cityCode),
+    emailCityUnique: uniqueIndex('city_waitlist_email_city_unique').on(
+      t.email,
+      t.cityCode,
+    ),
     cityCodeIdx: index('city_waitlist_city_code_index').on(t.cityCode),
   }),
 );

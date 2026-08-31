@@ -1,4 +1,4 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router';
 
 /**
  * Market layout — the parent of `/$market/index` (country landing) and `/$market/$city` (city
@@ -8,4 +8,4 @@ import { Outlet, createFileRoute } from '@tanstack/react-router'
  */
 export const Route = createFileRoute('/$market')({
   component: () => <Outlet />,
-})
+});

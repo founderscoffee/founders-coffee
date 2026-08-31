@@ -2,7 +2,12 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
-import { discover_events, discover_workshops, no_events_yet, type Locale } from '@founders-coffee/i18n';
+import {
+  discover_events,
+  discover_workshops,
+  no_events_yet,
+  type Locale,
+} from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
 import { useUpcomingEvents } from '../../features/events/hooks';
@@ -21,14 +26,21 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
   const [tab, setTab] = useState<'events' | 'workshops'>('events');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useUpcomingEvents({
-    marketCode: market.code,
-    limit: PAGE_SIZE,
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useUpcomingEvents({
+      marketCode: market.code,
+      limit: PAGE_SIZE,
+    });
 
-  const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? events, [data, events]);
+  const items = useMemo(
+    () => data?.pages.flatMap((p) => p.items) ?? events,
+    [data, events],
+  );
   const visible = useMemo(
-    () => (tab === 'workshops' ? items.filter((e) => e.category === 'workshop') : items),
+    () =>
+      tab === 'workshops'
+        ? items.filter((e) => e.category === 'workshop')
+        : items,
     [tab, items],
   );
 
@@ -76,7 +88,12 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
       </div>
       {visible.length > 0 ? (
         <div ref={scrollRef} className="relative max-h-[800px] overflow-auto">
-          <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              position: 'relative',
+            }}
+          >
             {virtualizer.getVirtualItems().map((virtualRow) => {
               const event = visible[virtualRow.index];
               const isLast = virtualRow.index === visible.length - 1;
@@ -105,7 +122,9 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
           </div>
         </div>
       ) : (
-        <p className="py-12 text-center text-base-content/40">{no_events_yet({}, { locale })}</p>
+        <p className="py-12 text-center text-base-content/40">
+          {no_events_yet({}, { locale })}
+        </p>
       )}
       {isFetchingNextPage && (
         <div className="flex justify-center py-4">

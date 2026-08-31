@@ -1,20 +1,20 @@
-import { useRef, useState } from 'react'
+import { useRef, useState } from 'react';
 
-import type { Locale } from '@founders-coffee/i18n'
-import type { geo } from '@founders-coffee/domain'
+import type { Locale } from '@founders-coffee/i18n';
+import type { geo } from '@founders-coffee/domain';
 
-import { useCitySearch } from '../../features/geo/hooks'
+import { useCitySearch } from '../../features/geo/hooks';
 
 type HeroCitySearchProps = {
-  marketCode: string
-  locale: Locale
-  placeholder: string
-  noMatchText: string
-  selected?: geo.GeoCity
-  onSelect: (city: geo.GeoCity) => void
-  onClear: () => void
-  className?: string
-}
+  marketCode: string;
+  locale: Locale;
+  placeholder: string;
+  noMatchText: string;
+  selected?: geo.GeoCity;
+  onSelect: (city: geo.GeoCity) => void;
+  onClear: () => void;
+  className?: string;
+};
 
 export const HeroCitySearch = ({
   marketCode,
@@ -26,61 +26,68 @@ export const HeroCitySearch = ({
   onClear,
   className,
 }: HeroCitySearchProps) => {
-  const [query, setQuery] = useState('')
-  const [open, setOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isMouseDown = useRef(false)
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isMouseDown = useRef(false);
 
-  const { data, isFetching } = useCitySearch(marketCode, query)
-  const results = data ?? []
-  const listboxId = 'hero-city-listbox'
-  const showNoMatch = query.trim().length > 0 && !isFetching && results.length === 0
-  const showList = open && (results.length > 0 || showNoMatch)
+  const { data, isFetching } = useCitySearch(marketCode, query);
+  const results = data ?? [];
+  const listboxId = 'hero-city-listbox';
+  const showNoMatch =
+    query.trim().length > 0 && !isFetching && results.length === 0;
+  const showList = open && (results.length > 0 || showNoMatch);
 
   const inputValue = selected
-    ? (locale === 'ar' ? selected.nameAr : selected.name)
-    : query
+    ? locale === 'ar'
+      ? selected.nameAr
+      : selected.name
+    : query;
 
   const choose = (city: geo.GeoCity) => {
-    onSelect(city)
-    setQuery('')
-    setOpen(false)
-    setActiveIndex(-1)
-  }
+    onSelect(city);
+    setQuery('');
+    setOpen(false);
+    setActiveIndex(-1);
+  };
 
   const clear = () => {
-    onClear()
-    setQuery('')
-    setOpen(true)
-    setActiveIndex(-1)
-    inputRef.current?.focus()
-  }
+    onClear();
+    setQuery('');
+    setOpen(true);
+    setActiveIndex(-1);
+    inputRef.current?.focus();
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault()
-      if (results.length === 0) return
-      const idx = activeIndex >= 0 && activeIndex < results.length ? activeIndex : 0
-      choose(results[idx].city)
-      return
+      e.preventDefault();
+      if (results.length === 0) return;
+      const idx =
+        activeIndex >= 0 && activeIndex < results.length ? activeIndex : 0;
+      choose(results[idx].city);
+      return;
     }
-    if (results.length === 0) return
+    if (results.length === 0) return;
     if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setActiveIndex((p) => (p < results.length - 1 ? p + 1 : 0))
+      e.preventDefault();
+      setActiveIndex((p) => (p < results.length - 1 ? p + 1 : 0));
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setActiveIndex((p) => (p > 0 ? p - 1 : results.length - 1))
+      e.preventDefault();
+      setActiveIndex((p) => (p > 0 ? p - 1 : results.length - 1));
     } else if (e.key === 'Escape') {
-      setOpen(false)
-      setActiveIndex(-1)
+      setOpen(false);
+      setActiveIndex(-1);
     }
-  }
+  };
 
   return (
     <div className={`relative flex items-center ${className ?? ''}`}>
-      <span className="pointer-events-none absolute start-4 text-base-content/40" aria-hidden="true">
+      <span
+        className="pointer-events-none absolute start-4 text-base-content/40"
+        aria-hidden="true"
+      >
         📍
       </span>
       <input
@@ -92,23 +99,25 @@ export const HeroCitySearch = ({
         role="combobox"
         aria-expanded={showList}
         aria-controls={listboxId}
-        aria-activedescendant={activeIndex >= 0 ? `hero-city-option-${activeIndex}` : undefined}
+        aria-activedescendant={
+          activeIndex >= 0 ? `hero-city-option-${activeIndex}` : undefined
+        }
         aria-autocomplete="list"
         aria-label={placeholder}
         onChange={(e) => {
-          setQuery(e.target.value)
-          onClear()
-          setOpen(true)
-          setActiveIndex(-1)
+          setQuery(e.target.value);
+          onClear();
+          setOpen(true);
+          setActiveIndex(-1);
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
         onBlur={() => {
           if (!isMouseDown.current) {
-            setOpen(false)
-            setActiveIndex(-1)
+            setOpen(false);
+            setActiveIndex(-1);
           }
-          isMouseDown.current = false
+          isMouseDown.current = false;
         }}
       />
       {isFetching && query && (
@@ -134,7 +143,7 @@ export const HeroCitySearch = ({
           role="listbox"
           aria-label={placeholder}
           onMouseDown={() => {
-            isMouseDown.current = true
+            isMouseDown.current = true;
           }}
         >
           {showNoMatch ? (
@@ -146,34 +155,42 @@ export const HeroCitySearch = ({
               {noMatchText.replace('{query}', query)}
             </li>
           ) : (
-            results.map((r: { city: geo.GeoCity; state: { name: string; nameAr: string } }, i: number) => (
-              <li
-                key={`${r.city.stateCode}-${r.city.code}`}
-                id={`hero-city-option-${i}`}
-                role="option"
-                aria-selected={selected?.code === r.city.code}
-              >
-                <button
-                  type="button"
-                  className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-sm ${
-                    i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
-                  }`}
-                  tabIndex={-1}
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    choose(r.city)
-                  }}
+            results.map(
+              (
+                r: {
+                  city: geo.GeoCity;
+                  state: { name: string; nameAr: string };
+                },
+                i: number,
+              ) => (
+                <li
+                  key={`${r.city.stateCode}-${r.city.code}`}
+                  id={`hero-city-option-${i}`}
+                  role="option"
+                  aria-selected={selected?.code === r.city.code}
                 >
-                  <span>{locale === 'ar' ? r.city.nameAr : r.city.name}</span>
-                  <span className="text-xs text-base-content/40">
-                    {locale === 'ar' ? r.state.nameAr : r.state.name}
-                  </span>
-                </button>
-              </li>
-            ))
+                  <button
+                    type="button"
+                    className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-sm ${
+                      i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
+                    }`}
+                    tabIndex={-1}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      choose(r.city);
+                    }}
+                  >
+                    <span>{locale === 'ar' ? r.city.nameAr : r.city.name}</span>
+                    <span className="text-xs text-base-content/40">
+                      {locale === 'ar' ? r.state.nameAr : r.state.name}
+                    </span>
+                  </button>
+                </li>
+              ),
+            )
           )}
         </ul>
       )}
     </div>
-  )
-}
+  );
+};

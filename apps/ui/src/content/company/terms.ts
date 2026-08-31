@@ -1,12 +1,13 @@
-import type { Locale } from '@founders-coffee/i18n'
+import type { Locale } from '@founders-coffee/i18n';
 
-import { CONTACT_EMAIL } from './contact'
-import type { CompanyPageContent } from './types'
+import { CONTACT_EMAIL } from './contact';
+import type { CompanyPageContent } from './types';
 
 export const termsContent: Record<Locale, CompanyPageContent> = {
   en: {
     title: 'Terms',
-    description: 'Terms of use for founders.coffee - accounts, hosting, and community rules.',
+    description:
+      'Terms of use for founders.coffee - accounts, hosting, and community rules.',
     updated: '8 August 2026',
     sections: [
       {
@@ -51,7 +52,8 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
   },
   ar: {
     title: 'الشروط',
-    description: 'شروط استخدام founders.coffee - الحسابات والاستضافة وقواعد المجتمع.',
+    description:
+      'شروط استخدام founders.coffee - الحسابات والاستضافة وقواعد المجتمع.',
     updated: '8 أغسطس 2026',
     sections: [
       {
@@ -96,7 +98,8 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
   },
   fr: {
     title: 'Conditions',
-    description: 'Conditions d’utilisation de founders.coffee - comptes, organisation et règles communautaires.',
+    description:
+      'Conditions d’utilisation de founders.coffee - comptes, organisation et règles communautaires.',
     updated: '8 août 2026',
     sections: [
       {
@@ -139,4 +142,4 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
       },
     ],
   },
-}
+};

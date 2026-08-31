@@ -17,10 +17,12 @@ import {
  * transitively loads `createStartHandler` (a vite-plugin virtual entry) which the vitest pool can't
  * resolve — so only this glue module carries that import; the pool-tested `resolveSession` stays clean.
  */
-export const authMiddleware = createMiddleware({ type: 'function' }).server(async ({ next }) => {
-  const session = await resolveSession(getRequest().headers);
-  return next({ context: { session } });
-});
+export const authMiddleware = createMiddleware({ type: 'function' }).server(
+  async ({ next }) => {
+    const session = await resolveSession(getRequest().headers);
+    return next({ context: { session } });
+  },
+);
 
 /**
  * Server-function middleware factory: require an authenticated session whose role is granted
@@ -29,7 +31,10 @@ export const authMiddleware = createMiddleware({ type: 'function' }).server(asyn
  * the data boundary itself, not just a route guard (AGENTS §11.2). Depends on {@link authMiddleware}
  * for `context.session`.
  */
-export const requirePermission = (resource: PermissionResource, action: PermissionAction) =>
+export const requirePermission = (
+  resource: PermissionResource,
+  action: PermissionAction,
+) =>
   createMiddleware({ type: 'function' })
     .middleware([authMiddleware])
     .server(({ context, next }) => {

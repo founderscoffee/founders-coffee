@@ -84,18 +84,15 @@ export const PushPermissionPrompt = ({
       <div className="modal-box">
         <h3 className="text-lg font-bold">never miss a seat.</h3>
         <p className="py-4 text-sm opacity-70">
-          We only use notifications to let you know when the host arrives,
-          what table they are at, or if an event changes location.
-          No marketing spam, ever.
+          We only use notifications to let you know when the host arrives, what
+          table they are at, or if an event changes location. No marketing spam,
+          ever.
         </p>
         <div className="modal-action">
           <button className="btn btn-primary btn-sm" onClick={handleAccept}>
             Keep me updated
           </button>
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={handleDecline}
-          >
+          <button className="btn btn-ghost btn-sm" onClick={handleDecline}>
             Not now, stick to SMS
           </button>
         </div>

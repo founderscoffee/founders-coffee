@@ -1,5 +1,5 @@
-import { createIsomorphicFn } from '@tanstack/react-start'
-import { getCookies } from '@tanstack/react-start/server'
+import { createIsomorphicFn } from '@tanstack/react-start';
+import { getCookies } from '@tanstack/react-start/server';
 
 /**
  * Decodes a cookie value, falling back to the raw text when it is not valid percent-encoding.
@@ -8,11 +8,11 @@ import { getCookies } from '@tanstack/react-start/server'
  */
 const decodeValue = (value: string): string => {
   try {
-    return decodeURIComponent(value)
+    return decodeURIComponent(value);
   } catch {
-    return value
+    return value;
   }
-}
+};
 
 const parseCookieJar = (jar: string): Record<string, string> =>
   Object.fromEntries(
@@ -21,12 +21,15 @@ const parseCookieJar = (jar: string): Record<string, string> =>
       .map((part) => part.trim())
       .filter((part) => part.length > 0)
       .map((part) => {
-        const separator = part.indexOf('=')
+        const separator = part.indexOf('=');
         return separator < 0
           ? ([part, ''] as const)
-          : ([part.slice(0, separator), decodeValue(part.slice(separator + 1))] as const)
+          : ([
+              part.slice(0, separator),
+              decodeValue(part.slice(separator + 1)),
+            ] as const);
       }),
-  )
+  );
 
 /**
  * Cookie access that survives a client-side navigation. TanStack Router re-runs `beforeLoad` and
@@ -36,12 +39,12 @@ const parseCookieJar = (jar: string): Record<string, string> =>
  */
 export const readCookies = createIsomorphicFn()
   .server((): Record<string, string> => getCookies())
-  .client((): Record<string, string> => parseCookieJar(document.cookie))
+  .client((): Record<string, string> => parseCookieJar(document.cookie));
 
 /** The active cookies rendered back as a `Cookie` header, for parsers that expect one. */
 export const readCookieHeader = (): string | null => {
-  const entries = Object.entries(readCookies())
+  const entries = Object.entries(readCookies());
   return entries.length === 0
     ? null
-    : entries.map(([name, value]) => `${name}=${value}`).join('; ')
-}
+    : entries.map(([name, value]) => `${name}=${value}`).join('; ');
+};

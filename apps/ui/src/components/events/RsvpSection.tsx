@@ -32,11 +32,15 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
   const [showPushPrompt, setShowPushPrompt] = useState(false);
 
   const isGoing = event.viewerRsvp === 'going';
-  const isFull = event.capacity > 0 && event.remaining !== null && event.remaining <= 0;
+  const isFull =
+    event.capacity > 0 && event.remaining !== null && event.remaining <= 0;
 
   const handleRsvp = () => {
     if (!isAuthenticated) {
-      void navigate({ to: '/login', search: { redirect: window.location.pathname } });
+      void navigate({
+        to: '/login',
+        search: { redirect: window.location.pathname },
+      });
       return;
     }
     createRsvp.mutate(
@@ -76,7 +80,9 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
     <div className="flex flex-col gap-3">
       {isGoing ? (
         <>
-          <div className="badge badge-success badge-lg">{rsvp_already({}, { locale })}</div>
+          <div className="badge badge-success badge-lg">
+            {rsvp_already({}, { locale })}
+          </div>
           <button
             className="btn btn-outline btn-error btn-sm"
             onClick={handleCancel}
@@ -111,13 +117,16 @@ export const RsvpSection = ({ event, locale }: RsvpSectionProps) => {
         </p>
       )}
       {event.capacity === 0 && (
-        <p className="text-sm text-base-content/60">{rsvp_no_limit({}, { locale })}</p>
+        <p className="text-sm text-base-content/60">
+          {rsvp_no_limit({}, { locale })}
+        </p>
       )}
       {showPushPrompt && (
         <PushPermissionPrompt
           onAccept={async () => {
             setShowPushPrompt(false);
-            const { requestPushPermission } = await import('../../features/push/client');
+            const { requestPushPermission } =
+              await import('../../features/push/client');
             await requestPushPermission(event.marketCode);
           }}
           onDecline={() => setShowPushPrompt(false)}

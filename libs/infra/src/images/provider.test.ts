@@ -10,7 +10,9 @@ describe('R2ImageProvider (real Miniflare R2)', () => {
       httpMetadata: { contentType: 'image/png' },
     });
 
-    const res = await new R2ImageProvider(env.IMAGES_BUCKET).fetch('logos/main.png');
+    const res = await new R2ImageProvider(env.IMAGES_BUCKET).fetch(
+      'logos/main.png',
+    );
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toBe('image/png');
     expect(res.headers.get('cache-control')).toContain('max-age=31536000');
@@ -18,7 +20,9 @@ describe('R2ImageProvider (real Miniflare R2)', () => {
   });
 
   it('returns 404 for a missing key', async () => {
-    const res = await new R2ImageProvider(env.IMAGES_BUCKET).fetch('does/not/exist.png');
+    const res = await new R2ImageProvider(env.IMAGES_BUCKET).fetch(
+      'does/not/exist.png',
+    );
     expect(res.status).toBe(404);
   });
 });

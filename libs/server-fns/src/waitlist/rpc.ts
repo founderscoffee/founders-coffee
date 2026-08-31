@@ -1,7 +1,11 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 
-import { appValidator, handleResult, marketCodeSchema } from '@founders-coffee/core';
+import {
+  appValidator,
+  handleResult,
+  marketCodeSchema,
+} from '@founders-coffee/core';
 
 import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
@@ -25,7 +29,5 @@ export const joinWaitlist = createServerFn({ strict: false })
   .middleware([rateLimit('join_waitlist', 5, 600_000)])
   .validator(appValidator(joinWaitlistSchema))
   .handler(async ({ data }) =>
-    handleResult(
-      joinWaitlistResolver(getDb(), data as JoinWaitlistInput),
-    ),
+    handleResult(joinWaitlistResolver(getDb(), data as JoinWaitlistInput)),
   );

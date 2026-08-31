@@ -22,7 +22,10 @@ const rsvpCancelSchema = z.object({
  * Returns `{ status: 'going' }` on success, or throws `event_full` / `already_rsvpd`.
  */
 export const createRsvp = createServerFn({ strict: false })
-  .middleware([requirePermission('rsvp', 'create'), rateLimit('create_rsvp', 10, 600_000)])
+  .middleware([
+    requirePermission('rsvp', 'create'),
+    rateLimit('create_rsvp', 10, 600_000),
+  ])
   .validator(appValidator(rsvpCreateSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
@@ -39,7 +42,10 @@ export const createRsvp = createServerFn({ strict: false })
  * Ownership-gated: only the RSVP owner can cancel.
  */
 export const cancelRsvp = createServerFn({ strict: false })
-  .middleware([requirePermission('rsvp', 'update'), rateLimit('cancel_rsvp', 10, 600_000)])
+  .middleware([
+    requirePermission('rsvp', 'update'),
+    rateLimit('cancel_rsvp', 10, 600_000),
+  ])
   .validator(appValidator(rsvpCancelSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);

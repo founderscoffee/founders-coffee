@@ -31,7 +31,9 @@ describe('processEmbeddings', () => {
   });
 
   it('returns ok with empty upserted for no docs', async () => {
-    const result = await processEmbeddings(fakeAi([0.1]), fakeVectorize(), { docs: [] });
+    const result = await processEmbeddings(fakeAi([0.1]), fakeVectorize(), {
+      docs: [],
+    });
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.upserted).toEqual([]);

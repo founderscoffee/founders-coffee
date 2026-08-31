@@ -1,12 +1,12 @@
-import { cookieName, LOCALES, type Locale } from '@founders-coffee/i18n'
+import { cookieName, LOCALES, type Locale } from '@founders-coffee/i18n';
 
-type LocaleToggleProps = { locale: Locale }
+type LocaleToggleProps = { locale: Locale };
 
 export const LocaleToggle = ({ locale }: LocaleToggleProps) => {
   const change = (l: Locale) => {
-    document.cookie = `${cookieName}=${l}; path=/; max-age=31536000; samesite=lax`
-    window.location.reload()
-  }
+    document.cookie = `${cookieName}=${l}; path=/; max-age=31536000; samesite=lax`;
+    window.location.reload();
+  };
   return (
     <div className="flex gap-1 rounded-field border border-base-300 bg-base-100 p-1">
       {LOCALES.map((l) => (
@@ -20,5 +20,5 @@ export const LocaleToggle = ({ locale }: LocaleToggleProps) => {
         </button>
       ))}
     </div>
-  )
-}
+  );
+};

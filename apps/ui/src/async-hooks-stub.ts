@@ -8,17 +8,17 @@
 export class AsyncLocalStorage<T = unknown> {
   enterWith = (_store: T): void => {
     /* noop — browser stub */
-  }
+  };
 
   disable = (): void => {
     /* noop — browser stub */
-  }
+  };
 
   exit = (callback: () => void): void => {
-    callback()
-  }
+    callback();
+  };
 
-  run = <TResult>(_store: T, callback: () => TResult): TResult => callback()
+  run = <TResult>(_store: T, callback: () => TResult): TResult => callback();
 
-  getStore = (): T | undefined => undefined
+  getStore = (): T | undefined => undefined;
 }

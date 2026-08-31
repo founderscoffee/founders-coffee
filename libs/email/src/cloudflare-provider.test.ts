@@ -22,7 +22,10 @@ describe('CloudflareEmailProvider (real Miniflare EMAIL binding)', () => {
 
   it('returns err with a providerCode when the recipient is not allowed', async () => {
     const provider = createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM);
-    const result = await provider.send({ ...baseInput, to: 'blocked@example.com' });
+    const result = await provider.send({
+      ...baseInput,
+      to: 'blocked@example.com',
+    });
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -34,7 +37,10 @@ describe('CloudflareEmailProvider (real Miniflare EMAIL binding)', () => {
 
   it('honours an explicit input.from over defaultFrom', async () => {
     const provider = createCloudflareEmailProvider(env.EMAIL, DEFAULT_FROM);
-    const result = await provider.send({ ...baseInput, from: 'events@founders.coffee' });
+    const result = await provider.send({
+      ...baseInput,
+      from: 'events@founders.coffee',
+    });
 
     expect(result.ok).toBe(true);
   });

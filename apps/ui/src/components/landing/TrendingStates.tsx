@@ -1,7 +1,11 @@
 import { Link } from '@tanstack/react-router';
 
 import type { Market } from '@founders-coffee/db';
-import { hero_active_cities, hero_major_cities, type Locale } from '@founders-coffee/i18n';
+import {
+  hero_active_cities,
+  hero_major_cities,
+  type Locale,
+} from '@founders-coffee/i18n';
 import type { TrendingSection } from '@founders-coffee/server-fns';
 
 type TrendingStatesProps = {
@@ -10,7 +14,11 @@ type TrendingStatesProps = {
   trending: TrendingSection;
 };
 
-export const TrendingStates = ({ locale, market, trending }: TrendingStatesProps) => {
+export const TrendingStates = ({
+  locale,
+  market,
+  trending,
+}: TrendingStatesProps) => {
   if (trending.groups.length === 0) return null;
 
   const title =
@@ -35,7 +43,9 @@ export const TrendingStates = ({ locale, market, trending }: TrendingStatesProps
               {cities.map(({ city, count }) => (
                 <div
                   key={city.code}
-                  className={count > 0 ? 'aura aura-glow rounded-full' : 'rounded-full'}
+                  className={
+                    count > 0 ? 'aura aura-glow rounded-full' : 'rounded-full'
+                  }
                 >
                   <Link
                     to="/$market/$city"

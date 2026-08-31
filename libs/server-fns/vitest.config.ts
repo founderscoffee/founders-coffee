@@ -1,6 +1,9 @@
 import path from 'node:path';
 
-import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
+import {
+  cloudflareTest,
+  readD1Migrations,
+} from '@cloudflare/vitest-pool-workers';
 import { defineConfig } from 'vitest/config';
 
 /**
@@ -9,7 +12,9 @@ import { defineConfig } from 'vitest/config';
  * bindings). The request-context + authz logic is exercised directly too.
  */
 export default defineConfig(async () => {
-  const migrations = await readD1Migrations(path.join(__dirname, '../db/migrations'));
+  const migrations = await readD1Migrations(
+    path.join(__dirname, '../db/migrations'),
+  );
   return {
     plugins: [
       cloudflareTest({

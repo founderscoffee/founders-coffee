@@ -1,6 +1,11 @@
 import { env } from 'cloudflare:workers';
 
-import { createAuth, getSession, type AuthEnv, type AuthSession } from '@founders-coffee/auth';
+import {
+  createAuth,
+  getSession,
+  type AuthEnv,
+  type AuthSession,
+} from '@founders-coffee/auth';
 
 /**
  * Narrow the Workers env to the auth factory's shape (DB + BETTER_AUTH_SECRET + APP_URL + optional
@@ -15,7 +20,9 @@ export const getAuthEnv = (): AuthEnv => env as AuthEnv;
  * import), so it is directly testable in the Workers pool without the vite-plugin virtual modules.
  * `authMiddleware` ([auth-middleware.ts](./auth-middleware.ts)) wraps this with the request read.
  */
-export const resolveSession = async (headers: Headers): Promise<AuthSession | null> => {
+export const resolveSession = async (
+  headers: Headers,
+): Promise<AuthSession | null> => {
   const { auth } = createAuth(getAuthEnv());
   return getSession(auth, headers);
 };

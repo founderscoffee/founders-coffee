@@ -11,10 +11,6 @@ export const getUser = async (
   db: Db,
   userId: string,
 ): Promise<User | undefined> => {
-  const rows = await db
-    .select()
-    .from(user)
-    .where(eq(user.id, userId))
-    .limit(1);
+  const rows = await db.select().from(user).where(eq(user.id, userId)).limit(1);
   return rows[0];
 };

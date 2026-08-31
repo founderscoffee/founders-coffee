@@ -24,7 +24,10 @@ export const upsertDocuments = async (
     return ok({ upserted: result.ids });
   } catch (error) {
     return err(
-      new AppError('vectorize_upsert_failed', error instanceof Error ? error.message : 'upsert failed'),
+      new AppError(
+        'vectorize_upsert_failed',
+        error instanceof Error ? error.message : 'upsert failed',
+      ),
     );
   }
 };
@@ -47,7 +50,10 @@ export const search = async (
     return ok([...result.matches].sort((a, b) => b.score - a.score));
   } catch (error) {
     return err(
-      new AppError('vectorize_query_failed', error instanceof Error ? error.message : 'query failed'),
+      new AppError(
+        'vectorize_query_failed',
+        error instanceof Error ? error.message : 'query failed',
+      ),
     );
   }
 };

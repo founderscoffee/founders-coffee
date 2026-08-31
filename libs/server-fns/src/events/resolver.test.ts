@@ -1,7 +1,14 @@
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
-import { createDb, createEvent, seed, user, type Db, type NewUser } from '@founders-coffee/db';
+import {
+  createDb,
+  createEvent,
+  seed,
+  user,
+  type Db,
+  type NewUser,
+} from '@founders-coffee/db';
 
 import { resolveEvent } from './resolver.js';
 
@@ -42,7 +49,9 @@ const baseEvent = (id: string, slug: string) => ({
   slug,
 });
 
-const createTestEvent = async (db: Db): Promise<{ id: string; slug: string }> => {
+const createTestEvent = async (
+  db: Db,
+): Promise<{ id: string; slug: string }> => {
   const id = nextId();
   const slug = nextSlug();
   await createEvent(db, baseEvent(id, slug));
@@ -71,7 +80,10 @@ describe('resolveEvent (real D1)', () => {
   it('returns event_not_found for an unknown slug', async () => {
     const db = await setupDb();
 
-    const result = await resolveEvent(db, { marketCode: 'DZ', slug: 'does-not-exist' });
+    const result = await resolveEvent(db, {
+      marketCode: 'DZ',
+      slug: 'does-not-exist',
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('event_not_found');
   });

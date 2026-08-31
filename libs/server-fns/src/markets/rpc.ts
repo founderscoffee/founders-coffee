@@ -19,17 +19,21 @@ import {
  * serializable, but not provably so to TS (zod still validates inputs at runtime).
  */
 export const getMarket = createServerFn({ strict: false })
-  .validator(z.object({ code: z.string().optional(), slug: z.string().optional() }))
+  .validator(
+    z.object({ code: z.string().optional(), slug: z.string().optional() }),
+  )
   .handler(async ({ data }) => handleResult(resolveMarket(getDb(), data)));
 
-export const getVisibleMarkets = createServerFn({ strict: false }).handler(async () =>
-  listVisibleMarkets(getDb()),
+export const getVisibleMarkets = createServerFn({ strict: false }).handler(
+  async () => listVisibleMarkets(getDb()),
 );
 
 /** Country-landing data (market + featured cities from TS geo data) by slug-or-code. */
 export const getMarketLanding = createServerFn({ strict: false })
   .validator(z.object({ key: z.string() }))
-  .handler(async ({ data }) => handleResult(resolveMarketLanding(getDb(), data.key)));
+  .handler(async ({ data }) =>
+    handleResult(resolveMarketLanding(getDb(), data.key)),
+  );
 
 /** City-landing data (market + city) by market key + city slug. City validated from geo TS data. */
 export const getCityLanding = createServerFn({ strict: false })

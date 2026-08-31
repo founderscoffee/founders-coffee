@@ -10,7 +10,10 @@ interface ConsumeResult {
 }
 
 interface RateLimiterStub {
-  consume: (opts: { limit: number; windowMs: number }) => Promise<ConsumeResult>;
+  consume: (opts: {
+    limit: number;
+    windowMs: number;
+  }) => Promise<ConsumeResult>;
 }
 
 const identityFor = (sessionUserId?: string): string => {
@@ -26,12 +29,20 @@ const identityFor = (sessionUserId?: string): string => {
  */
 export const rateLimit = (action: string, limit: number, windowMs: number) =>
   createMiddleware({ type: 'function' }).server(async ({ context, next }) => {
-    const sessionUserId = (context as unknown as { session?: { user?: { id?: string } } })?.session?.user?.id;
-    const namespace = (env as { RATE_LIMITER: DurableObjectNamespace }).RATE_LIMITER;
+    const sessionUserId = (
+      context as unknown as { session?: { user?: { id?: string } } }
+    )?.session?.user?.id;
+    const namespace = (env as { RATE_LIMITER: DurableObjectNamespace })
+      .RATE_LIMITER;
     const id = namespace.idFromName(`${identityFor(sessionUserId)}:${action}`);
-    const result = await (namespace.get(id) as unknown as RateLimiterStub).consume({ limit, windowMs });
+    const result = await (
+      namespace.get(id) as unknown as RateLimiterStub
+    ).consume({ limit, windowMs });
     if (!result.allowed) {
-      throw new AppError('rate_limited', `Too many ${action} requests. Try again shortly.`);
+      throw new AppError(
+        'rate_limited',
+        `Too many ${action} requests. Try again shortly.`,
+      );
     }
     return next();
   });

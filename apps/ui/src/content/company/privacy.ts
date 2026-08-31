@@ -1,12 +1,13 @@
-import type { Locale } from '@founders-coffee/i18n'
+import type { Locale } from '@founders-coffee/i18n';
 
-import { CONTACT_EMAIL, PRIVACY_EMAIL } from './contact'
-import type { CompanyPageContent } from './types'
+import { CONTACT_EMAIL, PRIVACY_EMAIL } from './contact';
+import type { CompanyPageContent } from './types';
 
 export const privacyContent: Record<Locale, CompanyPageContent> = {
   en: {
     title: 'Privacy',
-    description: 'How founders.coffee collects, uses, and protects your personal data.',
+    description:
+      'How founders.coffee collects, uses, and protects your personal data.',
     updated: '8 August 2026',
     sections: [
       {
@@ -132,7 +133,8 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
   },
   fr: {
     title: 'Confidentialité',
-    description: 'Comment founders.coffee collecte, utilise et protège vos données personnelles.',
+    description:
+      'Comment founders.coffee collecte, utilise et protège vos données personnelles.',
     updated: '8 août 2026',
     sections: [
       {
@@ -193,4 +195,4 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       },
     ],
   },
-}
+};

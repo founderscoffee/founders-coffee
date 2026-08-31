@@ -1,7 +1,12 @@
 import { and, eq, gt, or, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
-import { events, type Event, type Event as EventRow, type NewEvent } from './schema.js';
+import {
+  events,
+  type Event,
+  type Event as EventRow,
+  type NewEvent,
+} from './schema.js';
 
 /** Create a new event row (the caller builds the full object including id + slug). */
 export const createEvent = async (db: Db, row: NewEvent): Promise<Event> => {
@@ -10,7 +15,10 @@ export const createEvent = async (db: Db, row: NewEvent): Promise<Event> => {
 };
 
 /** Fetch an event by its primary key. */
-export const getEvent = async (db: Db, id: string): Promise<Event | undefined> => {
+export const getEvent = async (
+  db: Db,
+  id: string,
+): Promise<Event | undefined> => {
   const rows = await db.select().from(events).where(eq(events.id, id)).limit(1);
   return rows[0];
 };
@@ -50,7 +58,10 @@ export const listUpcomingEvents = async (
     ? opts.afterId
       ? or(
           gt(events.startsAt, opts.afterStartsAt),
-          and(eq(events.startsAt, opts.afterStartsAt), gt(events.id, opts.afterId)),
+          and(
+            eq(events.startsAt, opts.afterStartsAt),
+            gt(events.id, opts.afterId),
+          ),
         )
       : gt(events.startsAt, opts.afterStartsAt)
     : gt(events.startsAt, new Date(0));
@@ -82,7 +93,11 @@ export const countUpcomingByCity = async (
     .select({ cityCode: events.cityCode, count: sql<number>`count(*)` })
     .from(events)
     .where(
-      and(eq(events.marketCode, marketCode), eq(events.status, 'published'), gt(events.startsAt, new Date())),
+      and(
+        eq(events.marketCode, marketCode),
+        eq(events.status, 'published'),
+        gt(events.startsAt, new Date()),
+      ),
     )
     .groupBy(events.cityCode);
   const counts: Record<string, number> = {};
@@ -98,7 +113,11 @@ export const countUpcomingByState = async (
     .select({ stateCode: events.stateCode, count: sql<number>`count(*)` })
     .from(events)
     .where(
-      and(eq(events.marketCode, marketCode), eq(events.status, 'published'), gt(events.startsAt, new Date())),
+      and(
+        eq(events.marketCode, marketCode),
+        eq(events.status, 'published'),
+        gt(events.startsAt, new Date()),
+      ),
     )
     .groupBy(events.stateCode);
   const counts: Record<string, number> = {};
@@ -134,7 +153,10 @@ export const countEventsByStatus = async (
   db: Db,
   status: EventRow['status'],
 ): Promise<number> => {
-  const rows = await db.select({ value: events.id }).from(events).where(eq(events.status, status));
+  const rows = await db
+    .select({ value: events.id })
+    .from(events)
+    .where(eq(events.status, status));
   return rows.length;
 };
 

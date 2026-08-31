@@ -10,9 +10,9 @@ describe('libs/ui cva variants (literal class strings Tailwind can scan)', () =>
   });
 
   it('Button composes variant + size + isFullWidth', () => {
-    expect(buttonVariants({ variant: 'secondary', size: 'sm', isFullWidth: true })).toBe(
-      'btn btn-secondary btn-sm w-full',
-    );
+    expect(
+      buttonVariants({ variant: 'secondary', size: 'sm', isFullWidth: true }),
+    ).toBe('btn btn-secondary btn-sm w-full');
   });
 
   it('Badge defaults to neutral md', () => {

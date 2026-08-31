@@ -20,8 +20,7 @@ export interface SmsNotificationMessage {
 
 /** Discriminated union — consumer checks `message.channel` to route. */
 export type NotificationMessage =
-  | EmailNotificationMessage
-  | SmsNotificationMessage;
+  EmailNotificationMessage | SmsNotificationMessage;
 
 /** Documents to re-embed + upsert into Vectorize (the EMBEDDINGS queue payload). */
 export interface EmbeddingsMessage {

@@ -1,4 +1,9 @@
-import { createExecutionContext, createMessageBatch, env, getQueueResult } from 'cloudflare:test';
+import {
+  createExecutionContext,
+  createMessageBatch,
+  env,
+  getQueueResult,
+} from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 import { RESOURCES } from '@founders-coffee/infra';
 
@@ -6,9 +11,20 @@ import type { NotificationMessage } from './jobs/messages.js';
 import worker from './index.js';
 
 const runHandler = async (to: string) => {
-  const batch = createMessageBatch<NotificationMessage>(RESOURCES.queues.notifications, [
-    { body: { to, subject: 'RSVP confirmed', html: '<p>See you Saturday.</p>' }, timestamp: new Date(), attempts: 1 },
-  ]);
+  const batch = createMessageBatch<NotificationMessage>(
+    RESOURCES.queues.notifications,
+    [
+      {
+        body: {
+          to,
+          subject: 'RSVP confirmed',
+          html: '<p>See you Saturday.</p>',
+        },
+        timestamp: new Date(),
+        attempts: 1,
+      },
+    ],
+  );
   const ctx = createExecutionContext();
   await worker.queue(batch, env, ctx);
   return getQueueResult(batch, ctx);

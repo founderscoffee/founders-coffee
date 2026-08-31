@@ -19,8 +19,5 @@ import type { Db } from './db.js';
  * plain array (so callers can build batches dynamically / mix table types) and
  * satisfies the tuple constraint internally.
  */
-export const batch = (
-  db: Db,
-  statements: readonly BatchItem<'sqlite'>[],
-) =>
+export const batch = (db: Db, statements: readonly BatchItem<'sqlite'>[]) =>
   db.batch(statements as unknown as Parameters<Db['batch']>[0]);

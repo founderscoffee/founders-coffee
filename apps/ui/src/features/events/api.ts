@@ -8,7 +8,7 @@ import {
   type EventFeedItem,
   type EventFeedPage,
   type EventWithAttendance,
-} from '@founders-coffee/server-fns'
+} from '@founders-coffee/server-fns';
 
 export const eventsApi = {
   getUpcomingEvents,
@@ -16,8 +16,13 @@ export const eventsApi = {
   getEvent,
   createRsvp,
   cancelRsvp,
-}
+};
 
-export type { EventCreateInput, EventFeedItem, EventFeedPage, EventWithAttendance }
-export type CreateEventInput = { data: EventCreateInput }
-export type RsvpInput = { data: { eventId: string } }
+export type {
+  EventCreateInput,
+  EventFeedItem,
+  EventFeedPage,
+  EventWithAttendance,
+};
+export type CreateEventInput = { data: EventCreateInput };
+export type RsvpInput = { data: { eventId: string } };

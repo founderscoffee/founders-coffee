@@ -6,15 +6,27 @@ import { createServerLogger } from './server.js';
 import type { LogEntry } from './types.js';
 import type { LogTransport } from './transports.js';
 
-const captureLogger = (): { logger: ReturnType<typeof createServerLogger>; entries: LogEntry[] } => {
+const captureLogger = (): {
+  logger: ReturnType<typeof createServerLogger>;
+  entries: LogEntry[];
+} => {
   const entries: LogEntry[] = [];
-  return { logger: createServerLogger({ transport: ((e: LogEntry) => void entries.push(e)) as LogTransport }), entries };
+  return {
+    logger: createServerLogger({
+      transport: ((e: LogEntry) => void entries.push(e)) as LogTransport,
+    }),
+    entries,
+  };
 };
 
 describe('reportError', () => {
   it('reports an AppError with its stable code + stack', () => {
     const { logger, entries } = captureLogger();
-    reportError(new AppError('not_found', 'missing thing'), { market: 'DZ' }, logger);
+    reportError(
+      new AppError('not_found', 'missing thing'),
+      { market: 'DZ' },
+      logger,
+    );
     expect(entries[0].msg).toBe('missing thing');
     expect((entries[0] as Record<string, unknown>).code).toBe('not_found');
     expect((entries[0] as Record<string, unknown>).market).toBe('DZ');

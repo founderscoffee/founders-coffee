@@ -21,4 +21,5 @@ export const runWithContext = <T>(ctx: RequestContext, fn: () => T): T =>
   storage.run(ctx, fn);
 
 /** The active request context, or `{}` when not inside a `runWithContext` scope. */
-export const getRequestContext = (): RequestContext => storage.getStore() ?? EMPTY_CONTEXT;
+export const getRequestContext = (): RequestContext =>
+  storage.getStore() ?? EMPTY_CONTEXT;

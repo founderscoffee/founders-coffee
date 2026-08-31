@@ -1,5 +1,5 @@
-import { useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 
 import {
   hero_search_no_match,
@@ -11,65 +11,82 @@ import {
   onboarding_subtitle,
   onboarding_title,
   type Locale,
-} from '@founders-coffee/i18n'
-import type { geo } from '@founders-coffee/domain'
+} from '@founders-coffee/i18n';
+import type { geo } from '@founders-coffee/domain';
 
-import { useUpdateProfile } from '../../features/profile/hooks'
-import { CitySearchCombobox } from '../ui/CitySearchCombobox'
-import type { Market } from '@founders-coffee/db'
+import { useUpdateProfile } from '../../features/profile/hooks';
+import { CitySearchCombobox } from '../ui/CitySearchCombobox';
+import type { Market } from '@founders-coffee/db';
 
 type OnboardingPageProps = {
-  locale: Locale
-  markets: readonly Market[]
-  states: readonly geo.GeoState[]
-  cities: readonly geo.GeoCity[]
-  initialCountry: string
-}
+  locale: Locale;
+  markets: readonly Market[];
+  states: readonly geo.GeoState[];
+  cities: readonly geo.GeoCity[];
+  initialCountry: string;
+};
 
-export const OnboardingPage = ({ locale, markets, states, cities, initialCountry }: OnboardingPageProps) => {
-  const navigate = useNavigate()
-  const updateProfileMutation = useUpdateProfile()
+export const OnboardingPage = ({
+  locale,
+  markets,
+  states,
+  cities,
+  initialCountry,
+}: OnboardingPageProps) => {
+  const navigate = useNavigate();
+  const updateProfileMutation = useUpdateProfile();
 
-  const [country, setCountry] = useState<string>(initialCountry)
-  const [state, setState] = useState('')
-  const [city, setCity] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [country, setCountry] = useState<string>(initialCountry);
+  const [state, setState] = useState('');
+  const [city, setCity] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleCountryChange = (code: string) => {
-    setCountry(code)
-    setState('')
-    setCity('')
-  }
+    setCountry(code);
+    setState('');
+    setCity('');
+  };
 
   const handleStateChange = (code: string) => {
-    setState(code)
-    setCity('')
-  }
+    setState(code);
+    setCity('');
+  };
 
   const handleSave = async () => {
-    if (!country || !state || !city) return
-    setSaving(true)
-    await updateProfileMutation.mutateAsync({ data: { marketCode: country, state, city } })
-    const marketSlug = markets.find((m) => m.code === country)?.slug ?? 'algeria'
-    void navigate({ to: '/$market', params: { market: marketSlug } })
-    setSaving(false)
-  }
+    if (!country || !state || !city) return;
+    setSaving(true);
+    await updateProfileMutation.mutateAsync({
+      data: { marketCode: country, state, city },
+    });
+    const marketSlug =
+      markets.find((m) => m.code === country)?.slug ?? 'algeria';
+    void navigate({ to: '/$market', params: { market: marketSlug } });
+    setSaving(false);
+  };
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
       <div className="card border border-base-300 bg-base-200">
         <div className="card-body gap-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">{onboarding_title({}, { locale })}</h1>
+            <h1 className="text-2xl font-bold">
+              {onboarding_title({}, { locale })}
+            </h1>
             <p className="mt-1 text-sm text-base-content/60">
               {onboarding_subtitle({}, { locale })}
             </p>
           </div>
 
           <ul className="steps steps-horizontal w-full">
-            <li className={`step ${country ? 'step-primary' : ''}`}>{onboarding_country({}, { locale })}</li>
-            <li className={`step ${state ? 'step-primary' : ''}`}>{onboarding_state({}, { locale })}</li>
-            <li className={`step ${city ? 'step-primary' : ''}`}>{onboarding_city({}, { locale })}</li>
+            <li className={`step ${country ? 'step-primary' : ''}`}>
+              {onboarding_country({}, { locale })}
+            </li>
+            <li className={`step ${state ? 'step-primary' : ''}`}>
+              {onboarding_state({}, { locale })}
+            </li>
+            <li className={`step ${city ? 'step-primary' : ''}`}>
+              {onboarding_city({}, { locale })}
+            </li>
           </ul>
 
           <label className="form-control">
@@ -117,7 +134,10 @@ export const OnboardingPage = ({ locale, markets, states, cities, initialCountry
               value={city}
               onSelect={setCity}
               placeholder={onboarding_search_city({}, { locale })}
-              noMatchText={hero_search_no_match({ query: '{query}' }, { locale })}
+              noMatchText={hero_search_no_match(
+                { query: '{query}' },
+                { locale },
+              )}
               disabled={!state}
               locale={locale}
             />
@@ -134,5 +154,5 @@ export const OnboardingPage = ({ locale, markets, states, cities, initialCountry
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

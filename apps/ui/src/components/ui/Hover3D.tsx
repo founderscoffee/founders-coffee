@@ -10,4 +10,4 @@ export const Hover3D = ({ children }: { children: React.ReactNode }) => (
     <div aria-hidden="true" />
     <div aria-hidden="true" />
   </div>
-)
+);

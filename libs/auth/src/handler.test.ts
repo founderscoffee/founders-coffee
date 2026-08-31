@@ -10,7 +10,10 @@ const baseEnv: HandlerEnv = {
   APP_URL: env.APP_URL,
 };
 
-const sendOtp = (email: string, headers: Record<string, string> = {}): Request =>
+const sendOtp = (
+  email: string,
+  headers: Record<string, string> = {},
+): Request =>
   new Request(`${env.APP_URL}/api/auth/email-otp/send-verification-otp`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...headers },
@@ -125,7 +128,9 @@ describe('libs/auth handler — captcha gating (real D1 via Miniflare)', () => {
   });
 
   it('leaves ungated endpoints reachable without a captcha token', async () => {
-    const handler = createAuthHandler(baseEnv, { emailProvider: new DevEmailProvider() });
+    const handler = createAuthHandler(baseEnv, {
+      emailProvider: new DevEmailProvider(),
+    });
 
     const res = await handler(
       new Request(`${env.APP_URL}/api/auth/get-session`, { method: 'GET' }),

@@ -1,4 +1,10 @@
-import { ac, type AuthSession, requireSession, type Role, roles } from '@founders-coffee/auth';
+import {
+  ac,
+  type AuthSession,
+  requireSession,
+  type Role,
+  roles,
+} from '@founders-coffee/auth';
 import { AppError } from '@founders-coffee/core';
 
 type Statements = typeof ac.statements;

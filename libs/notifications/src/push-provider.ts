@@ -134,19 +134,14 @@ export class FcmPushProvider implements PushProvider {
   private readonly projectId: string;
   private readonly serviceAccount: FirebaseServiceAccount;
 
-  constructor(opts: {
-    projectId: string;
-    serviceAccountJson: string;
-  }) {
+  constructor(opts: { projectId: string; serviceAccountJson: string }) {
     this.projectId = opts.projectId;
     this.serviceAccount = JSON.parse(
       opts.serviceAccountJson,
     ) as FirebaseServiceAccount;
   }
 
-  send = async (
-    args: SendPushArgs,
-  ): Promise<Result<SendPushResult>> => {
+  send = async (args: SendPushArgs): Promise<Result<SendPushResult>> => {
     const jwt = await buildFcmJwt(this.serviceAccount);
     const url = `https://fcm.googleapis.com/v1/projects/${this.projectId}/messages:send`;
 
@@ -191,9 +186,7 @@ export class FcmPushProvider implements PushProvider {
 
         return err(
           new AppError(
-            isPermanent
-              ? 'push_permanent_failure'
-              : 'push_transient_failure',
+            isPermanent ? 'push_permanent_failure' : 'push_transient_failure',
             `FCM error ${fcmError?.code ?? res.status}: ${fcmError?.message ?? 'unknown'}`,
           ),
         );
@@ -224,9 +217,7 @@ export class DevPushProvider implements PushProvider {
   readonly name = 'dev-push';
   readonly sent: SendPushArgs[] = [];
 
-  send = async (
-    args: SendPushArgs,
-  ): Promise<Result<SendPushResult>> => {
+  send = async (args: SendPushArgs): Promise<Result<SendPushResult>> => {
     this.sent.push(args);
     console.log(
       `[DevPushProvider] Push to ${args.token.slice(0, 20)}...: ${args.title} — ${args.body}`,

@@ -27,10 +27,14 @@ export const moneySchema = z.object({
 });
 
 /** Generic prefixed id — `<prefix>_<32 hex>` from the id factory ([ids.ts](./ids.ts)). */
-export const idSchema = z.string().regex(/^[a-z]{2,8}_[0-9a-f]{32}$/, 'Invalid id');
+export const idSchema = z
+  .string()
+  .regex(/^[a-z]{2,8}_[0-9a-f]{32}$/, 'Invalid id');
 
 /** ISO-3166-1 alpha-2 market code (e.g. `DZ`, `MA`). */
-export const marketCodeSchema = z.string().regex(/^[A-Z]{2}$/, 'Invalid market code');
+export const marketCodeSchema = z
+  .string()
+  .regex(/^[A-Z]{2}$/, 'Invalid market code');
 
 /** Email — trimmed + lowercased, max 254 (RFC 5321). Shared by waitlist, billing, and notifications. */
 export const emailSchema = z.string().trim().toLowerCase().email().max(254);

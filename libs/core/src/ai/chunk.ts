@@ -5,7 +5,10 @@
  */
 const DEFAULT_MAX_CHARS = 4000;
 
-export const chunkText = (text: string, maxChars = DEFAULT_MAX_CHARS): string[] => {
+export const chunkText = (
+  text: string,
+  maxChars = DEFAULT_MAX_CHARS,
+): string[] => {
   const clean = text.trim();
   if (clean.length === 0) return [];
   if (clean.length <= maxChars) return [clean];

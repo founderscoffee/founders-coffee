@@ -1,10 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 
 import type { Db } from './db.js';
-import {
-  pushSubscriptions,
-  type PushSubscriptionRow,
-} from './schema.js';
+import { pushSubscriptions, type PushSubscriptionRow } from './schema.js';
 
 /**
  * Register a push subscription. Upserts on token (unique) — if the token
@@ -48,7 +45,9 @@ export const registerPushToken = async (
     /* Token belongs to a different user (device changed hands) — explicitly delete then re-insert
        below. Never silently reassign user_id, or a caller could hijack another user's notifications
        by registering their token. */
-    await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, existing[0].id));
+    await db
+      .delete(pushSubscriptions)
+      .where(eq(pushSubscriptions.id, existing[0].id));
   }
 
   const row = {
@@ -63,7 +62,7 @@ export const registerPushToken = async (
   };
 
   await db.insert(pushSubscriptions).values(row);
-    return row as PushSubscriptionRow;
+  return row as PushSubscriptionRow;
 };
 
 /**
@@ -76,7 +75,12 @@ export const removePushToken = async (
 ): Promise<void> => {
   await db
     .delete(pushSubscriptions)
-    .where(and(eq(pushSubscriptions.token, opts.token), eq(pushSubscriptions.userId, opts.userId)));
+    .where(
+      and(
+        eq(pushSubscriptions.token, opts.token),
+        eq(pushSubscriptions.userId, opts.userId),
+      ),
+    );
 };
 
 /**
@@ -112,9 +116,7 @@ export const getPushTokensForEvent = async (
     userId: string;
   }>
 > => {
-  const { eventRsvps, pushSubscriptions: ps } = await import(
-    './schema.js'
-  );
+  const { eventRsvps, pushSubscriptions: ps } = await import('./schema.js');
 
   const rows = await db
     .select({

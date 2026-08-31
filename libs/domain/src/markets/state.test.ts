@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { canTransition, isMarketVisible, transition, VISIBLE_STATES } from './state.js';
+import {
+  canTransition,
+  isMarketVisible,
+  transition,
+  VISIBLE_STATES,
+} from './state.js';
 
 describe('market state machine', () => {
   it('allows dark→open, open→active, active→open, open→dark', () => {

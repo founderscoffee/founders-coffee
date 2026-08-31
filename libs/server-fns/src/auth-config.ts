@@ -8,10 +8,12 @@ import { hasSocialProviders, type AuthEnv } from '@founders-coffee/auth';
  * and whether any OAuth provider is configured (drives the social-buttons UI). OAuth secrets stay
  * server-side; only the boolean crosses the wire.
  */
-export const getPublicAuthConfig = createServerFn({ strict: false }).handler(async () => {
-  const e = env as AuthEnv & { TURNSTILE_SITE_KEY?: string };
-  return {
-    turnstileSiteKey: e.TURNSTILE_SITE_KEY ?? null,
-    hasSocial: hasSocialProviders(e),
-  };
-});
+export const getPublicAuthConfig = createServerFn({ strict: false }).handler(
+  async () => {
+    const e = env as AuthEnv & { TURNSTILE_SITE_KEY?: string };
+    return {
+      turnstileSiteKey: e.TURNSTILE_SITE_KEY ?? null,
+      hasSocial: hasSocialProviders(e),
+    };
+  },
+);

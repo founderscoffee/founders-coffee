@@ -32,7 +32,8 @@ export const setLogger = (next: Logger): void => {
   override = next;
 };
 
-const isBrowser = typeof (globalThis as { window?: unknown }).window !== 'undefined';
+const isBrowser =
+  typeof (globalThis as { window?: unknown }).window !== 'undefined';
 
 /** Safe fallback for non-browser contexts without an injected server logger (e.g. tests, misconfigured
  *  Workers) — drops logs silently instead of attempting the browser beacon transport (whose relative
@@ -47,7 +48,8 @@ const noopFallback: Logger = {
   child: () => noopFallback,
 };
 
-const resolve = (): Logger => override ?? (isBrowser ? clientLogger() : noopFallback);
+const resolve = (): Logger =>
+  override ?? (isBrowser ? clientLogger() : noopFallback);
 
 /**
  * The centralized isomorphic logger — the SAME `.info/.warn/.error/.child` API on Worker and

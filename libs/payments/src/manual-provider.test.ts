@@ -19,7 +19,12 @@ const ensureMarket = async (db: Db): Promise<void> => {
       timezone: 'Africa/Algiers',
       direction: 'rtl',
       state: 'active',
-      featureFlags: { events: true, hackathons: false, payments: true, recruiting: false },
+      featureFlags: {
+        events: true,
+        hackathons: false,
+        payments: true,
+        recruiting: false,
+      },
     })
     .onConflictDoNothing()
     .run();
@@ -35,7 +40,9 @@ const initiate = async (db: Db, amountMinor = 2000) =>
     billTo: { name: 'Sponsor Co', email: 'ap@sponsor.co' },
   });
 
-const unwrap = async <T>(p: Promise<{ ok: true; data: T } | { ok: false; error: unknown }>) => {
+const unwrap = async <T>(
+  p: Promise<{ ok: true; data: T } | { ok: false; error: unknown }>,
+) => {
   const r = await p;
   if (!r.ok) throw new Error('expected ok');
   return r.data;
@@ -101,6 +108,7 @@ describe('ManualProvider (real D1)', () => {
     const db = createDb(env.DB);
     const result = await createManualProvider(db).confirm('ord_missing', actor);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toHaveProperty('code', 'order_not_found');
+    if (!result.ok)
+      expect(result.error).toHaveProperty('code', 'order_not_found');
   });
 });

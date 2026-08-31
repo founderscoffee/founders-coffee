@@ -16,7 +16,10 @@ const recorder = (): { transport: LogTransport; entries: LogEntry[] } => {
 describe('server logger', () => {
   it('emits a sanitized structured entry tagged worker', () => {
     const { transport, entries } = recorder();
-    createServerLogger({ transport }).info('hello', { market: 'DZ', token: 'leak' });
+    createServerLogger({ transport }).info('hello', {
+      market: 'DZ',
+      token: 'leak',
+    });
     expect(entries).toHaveLength(1);
     expect(entries[0].msg).toBe('hello');
     expect(entries[0].level).toBe('info');
@@ -56,7 +59,9 @@ describe('server logger', () => {
 
   it('child loggers bind context', () => {
     const { transport, entries } = recorder();
-    createServerLogger({ transport }).child({ market: 'EG', locale: 'ar' }).info('scoped');
+    createServerLogger({ transport })
+      .child({ market: 'EG', locale: 'ar' })
+      .info('scoped');
     expect(entries[0].market).toBe('EG');
     expect(entries[0].locale).toBe('ar');
   });
@@ -73,7 +78,9 @@ describe('server logger', () => {
 
 describe('metrics', () => {
   it('buildDataPoint shapes event -> index/blobs/doubles', () => {
-    expect(buildDataPoint('event_created', [1], { market: 'DZ', city: 'algiers' })).toEqual({
+    expect(
+      buildDataPoint('event_created', [1], { market: 'DZ', city: 'algiers' }),
+    ).toEqual({
       indexes: ['DZ'],
       doubles: [1],
       blobs: ['event_created', 'algiers', ''],
@@ -81,7 +88,9 @@ describe('metrics', () => {
   });
 
   it('trackCount carries the numeric value', () => {
-    expect(buildDataPoint('payment_amount', [1250], { market: 'DZ' }).doubles).toEqual([1250]);
+    expect(
+      buildDataPoint('payment_amount', [1250], { market: 'DZ' }).doubles,
+    ).toEqual([1250]);
   });
 
   it('defaults the index to global when no market', () => {
@@ -90,8 +99,12 @@ describe('metrics', () => {
 
   it('writes to the REAL Analytics Engine binding without throwing', () => {
     const metrics = createMetrics(env.ANALYTICS);
-    expect(() => metrics.trackEvent('event_created', { market: 'DZ', city: 'algiers' })).not.toThrow();
-    expect(() => metrics.trackCount('payment_amount', 1250, { market: 'DZ' })).not.toThrow();
+    expect(() =>
+      metrics.trackEvent('event_created', { market: 'DZ', city: 'algiers' }),
+    ).not.toThrow();
+    expect(() =>
+      metrics.trackCount('payment_amount', 1250, { market: 'DZ' }),
+    ).not.toThrow();
     expect(() => metrics.trackEvent('page_view')).not.toThrow();
   });
 });

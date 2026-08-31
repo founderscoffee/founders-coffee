@@ -2,7 +2,12 @@ import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import { logger } from '@founders-coffee/observability';
 
 import { mapEmailProviderCode, readEmailProviderCode } from './error-codes.js';
-import type { EmailAddress, EmailProvider, SendEmailInput, SendEmailResult } from './provider.js';
+import type {
+  EmailAddress,
+  EmailProvider,
+  SendEmailInput,
+  SendEmailResult,
+} from './provider.js';
 
 /** Compact, PII-light log value for recipients (count when many, address when one). */
 const describeRecipients = (to: string | string[]): string =>
@@ -22,7 +27,10 @@ export const createCloudflareEmailProvider = (
 
   send: async (input: SendEmailInput): Promise<Result<SendEmailResult>> => {
     try {
-      const result = await email.send({ ...input, from: input.from ?? defaultFrom });
+      const result = await email.send({
+        ...input,
+        from: input.from ?? defaultFrom,
+      });
       logger.info('email.sent', {
         messageId: result.messageId,
         subject: input.subject,
@@ -31,7 +39,10 @@ export const createCloudflareEmailProvider = (
       return ok(result);
     } catch (error) {
       const providerCode = readEmailProviderCode(error);
-      logger.warn('email.send_failed', { providerCode, subject: input.subject });
+      logger.warn('email.send_failed', {
+        providerCode,
+        subject: input.subject,
+      });
       return err(
         new AppError(
           mapEmailProviderCode(providerCode),

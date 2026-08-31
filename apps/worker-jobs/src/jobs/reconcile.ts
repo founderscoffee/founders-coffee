@@ -12,7 +12,9 @@ export interface ReconcileResult {
  * payments lands at P1-014. Idempotent (a read-only count). Returns `Result` so the handler acks on
  * ok, retries on err.
  */
-export const runReconcile = async (db: Db): Promise<Result<ReconcileResult>> => {
+export const runReconcile = async (
+  db: Db,
+): Promise<Result<ReconcileResult>> => {
   try {
     const pending = await countOrdersByStatus(db, 'pending');
     logger.info('reconcile.pending_backlog', { count: pending });

@@ -81,12 +81,7 @@ export const cancelRsvp = async (
   await db
     .update(events)
     .set({ rsvps: sql`rsvps - 1` })
-    .where(
-      and(
-        eq(events.id, opts.eventId),
-        sql`${events.rsvps} > 0`,
-      ),
-    );
+    .where(and(eq(events.id, opts.eventId), sql`${events.rsvps} > 0`));
 
   return { deleted: true };
 };

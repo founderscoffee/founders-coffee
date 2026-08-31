@@ -5,19 +5,19 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "vars": {
-    "MAIL_FROM": "no-reply@founders.coffee"
+    "MAIL_FROM": "no-reply@founders.coffee",
   },
   "d1_databases": [
-    { "binding": "DB", "database_name": "db", "database_id": "test" }
+    { "binding": "DB", "database_name": "db", "database_id": "test" },
   ],
   "send_email": [
-    { "name": "EMAIL", "allowed_destination_addresses": ["ok@example.com"] }
+    { "name": "EMAIL", "allowed_destination_addresses": ["ok@example.com"] },
   ],
   "queues": {
     "consumers": [
       { "queue": "founders-coffee-notifications" },
       { "queue": "founders-coffee-embeddings-jobs" },
-      { "queue": "founders-coffee-reconcile" }
-    ]
-  }
+      { "queue": "founders-coffee-reconcile" },
+    ],
+  },
 }

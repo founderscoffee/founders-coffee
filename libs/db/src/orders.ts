@@ -18,7 +18,10 @@ export const createOrder = async (db: Db, row: NewOrder): Promise<Order> => {
 };
 
 /** Fetch an Order by id. */
-export const getOrder = async (db: Db, id: string): Promise<Order | undefined> => {
+export const getOrder = async (
+  db: Db,
+  id: string,
+): Promise<Order | undefined> => {
   const rows = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
   return rows[0];
 };
@@ -46,19 +49,35 @@ export const transitionStatus = async (
 };
 
 /** Count Orders in a given status — the reconcile sweep's backlog metric (NFR-7). */
-export const countOrdersByStatus = async (db: Db, status: OrderStatus): Promise<number> => {
-  const rows = await db.select({ value: count() }).from(orders).where(eq(orders.status, status));
+export const countOrdersByStatus = async (
+  db: Db,
+  status: OrderStatus,
+): Promise<number> => {
+  const rows = await db
+    .select({ value: count() })
+    .from(orders)
+    .where(eq(orders.status, status));
   return rows[0]?.value ?? 0;
 };
 
 /** Insert a fully-formed Invoice row (1:1 with an Order). */
-export const createInvoice = async (db: Db, row: NewInvoice): Promise<Invoice> => {
+export const createInvoice = async (
+  db: Db,
+  row: NewInvoice,
+): Promise<Invoice> => {
   const result = await db.insert(invoices).values(row).returning();
   return result[0];
 };
 
 /** Fetch the Invoice for an Order (1:1). */
-export const getInvoiceByOrderId = async (db: Db, orderId: string): Promise<Invoice | undefined> => {
-  const rows = await db.select().from(invoices).where(eq(invoices.orderId, orderId)).limit(1);
+export const getInvoiceByOrderId = async (
+  db: Db,
+  orderId: string,
+): Promise<Invoice | undefined> => {
+  const rows = await db
+    .select()
+    .from(invoices)
+    .where(eq(invoices.orderId, orderId))
+    .limit(1);
   return rows[0];
 };

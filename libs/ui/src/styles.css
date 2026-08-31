@@ -3,20 +3,20 @@
    directive pointing at this lib's src directory (Tailwind v4 ignores
    node_modules, so the lib's component classes must be scanned from each app). */
 
-@import "tailwindcss";
-@import "@fontsource-variable/outfit";
-@import "@fontsource-variable/inter";
-@import "@fontsource/tajawal/400.css";
-@import "@fontsource/tajawal/500.css";
-@import "@fontsource/tajawal/700.css";
-@import "@fontsource/tajawal/800.css";
+@import 'tailwindcss';
+@import '@fontsource-variable/outfit';
+@import '@fontsource-variable/inter';
+@import '@fontsource/tajawal/400.css';
+@import '@fontsource/tajawal/500.css';
+@import '@fontsource/tajawal/700.css';
+@import '@fontsource/tajawal/800.css';
 
 @plugin "daisyui" {
   themes: false;
 }
 
 @plugin "daisyui/theme" {
-  name: "warm-cafe";
+  name: 'warm-cafe';
   default: true;
   prefersdark: false;
   color-scheme: light;
@@ -24,15 +24,15 @@
   --color-base-100: #faf6f0;
   --color-base-200: #fffdfb;
   --color-base-300: #eae3d5;
-  --color-base-content: #2C1B12;
+  --color-base-content: #2c1b12;
 
-  --color-primary: #4A382C;
+  --color-primary: #4a382c;
   --color-primary-content: #faf6f0;
-  --color-secondary: #2C1B12;
+  --color-secondary: #2c1b12;
   --color-secondary-content: #faf6f0;
-  --color-accent: #4A382C;
+  --color-accent: #4a382c;
   --color-accent-content: #faf6f0;
-  --color-neutral: #2C1B12;
+  --color-neutral: #2c1b12;
   --color-neutral-content: #faf6f0;
 
   --color-info: #0ea5e9;
@@ -40,7 +40,7 @@
   --color-success: #16a34a;
   --color-success-content: #ffffff;
   --color-warning: #f59e0b;
-  --color-warning-content: #2C1B12;
+  --color-warning-content: #2c1b12;
   --color-error: #dc2626;
   --color-error-content: #ffffff;
 
@@ -55,8 +55,10 @@
 }
 
 @theme {
-  --font-heading: "Outfit Variable", "Tajawal", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Inter Variable", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+  --font-heading:
+    'Outfit Variable', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+  --font-body:
+    'Inter Variable', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* "Warm Café" paper grain — a faint fractal-noise texture over the cream base,
@@ -66,7 +68,12 @@
     font-family: var(--font-body);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .23 0 0 0 0 .18 0 0 0 0 .15 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-heading);
   }
 }

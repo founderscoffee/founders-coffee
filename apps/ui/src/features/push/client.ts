@@ -13,7 +13,10 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 
-import { getFirebaseConfig, registerPushTokenFn } from '@founders-coffee/server-fns';
+import {
+  getFirebaseConfig,
+  registerPushTokenFn,
+} from '@founders-coffee/server-fns';
 
 let app: FirebaseApp | null = null;
 
@@ -33,7 +36,9 @@ const ensureMessaging = async () => {
  * Request push permission + register the FCM token. Called from the PushPermissionPrompt onAccept
  * callback. No-ops silently if push isn't available/configured.
  */
-export const requestPushPermission = async (marketCode: string): Promise<void> => {
+export const requestPushPermission = async (
+  marketCode: string,
+): Promise<void> => {
   try {
     const messaging = await ensureMessaging();
     if (!messaging) return;

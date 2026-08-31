@@ -1,4 +1,9 @@
-import { createDb, eq, session as sessionTable, user as userTable } from '@founders-coffee/db';
+import {
+  createDb,
+  eq,
+  session as sessionTable,
+  user as userTable,
+} from '@founders-coffee/db';
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
@@ -20,7 +25,9 @@ const authEnv = {
 const base = `${env.APP_URL}/api/auth`;
 
 const post = (path: string, body: unknown, cookie?: string): Request => {
-  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+  };
   if (cookie) headers.cookie = cookie;
   return new Request(`${base}${path}`, {
     method: 'POST',
@@ -45,13 +52,21 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     const otp = sent.otp;
     expect(otp).toHaveLength(6);
 
-    const signInRes = await auth.handler(post('/sign-in/email-otp', { email, otp }));
+    const signInRes = await auth.handler(
+      post('/sign-in/email-otp', { email, otp }),
+    );
     expect(signInRes.status).toBe(200);
-    const sessionCookie = (signInRes.headers.get('set-cookie') ?? '').split(';')[0];
+    const sessionCookie = (signInRes.headers.get('set-cookie') ?? '').split(
+      ';',
+    )[0];
     expect(sessionCookie).toContain('=');
 
     const db = createDb(env.DB);
-    const users = await db.select().from(userTable).where(eq(userTable.email, email)).all();
+    const users = await db
+      .select()
+      .from(userTable)
+      .where(eq(userTable.email, email))
+      .all();
     expect(users).toHaveLength(1);
     const created = users[0];
     if (!created) throw new Error('user was not created');
@@ -65,7 +80,10 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
       .all();
     expect(sessions.length).toBeGreaterThanOrEqual(1);
 
-    const session = await getSession(auth, new Headers({ cookie: sessionCookie }));
+    const session = await getSession(
+      auth,
+      new Headers({ cookie: sessionCookie }),
+    );
     expect(session?.user.email).toBe(email);
     expect(session?.user.role).toBe('member');
     expect(() => requireRole(session, 'member')).not.toThrow();

@@ -15,10 +15,22 @@ const throwingAi = (message: string): AiRuntime => ({
 
 describe('embed', () => {
   it('parses a bge-m3 response into vectors preserving order', async () => {
-    const result = await embed(aiReturning({ data: [[0.1, 0.2], [0.3, 0.4]] }), ['one', 'two']);
+    const result = await embed(
+      aiReturning({
+        data: [
+          [0.1, 0.2],
+          [0.3, 0.4],
+        ],
+      }),
+      ['one', 'two'],
+    );
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data.vectors).toEqual([[0.1, 0.2], [0.3, 0.4]]);
+    if (result.ok)
+      expect(result.data.vectors).toEqual([
+        [0.1, 0.2],
+        [0.3, 0.4],
+      ]);
   });
 
   it('returns ok with empty vectors for no input', async () => {

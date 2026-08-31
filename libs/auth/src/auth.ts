@@ -1,10 +1,22 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { admin, bearer, captcha, emailOTP, phoneNumber } from 'better-auth/plugins';
+import {
+  admin,
+  bearer,
+  captcha,
+  emailOTP,
+  phoneNumber,
+} from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 
 import { AppError, optionalEnv } from '@founders-coffee/core';
-import { account, createDb, session, user, verification } from '@founders-coffee/db';
+import {
+  account,
+  createDb,
+  session,
+  user,
+  verification,
+} from '@founders-coffee/db';
 
 import { captchaEndpointsFor } from './captcha.js';
 import type { EmailProvider } from './providers/email.js';
@@ -104,13 +116,28 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     },
     socialProviders: {
       ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
-        ? { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET } }
+        ? {
+            google: {
+              clientId: env.GOOGLE_CLIENT_ID,
+              clientSecret: env.GOOGLE_CLIENT_SECRET,
+            },
+          }
         : {}),
       ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
-        ? { github: { clientId: env.GITHUB_CLIENT_ID, clientSecret: env.GITHUB_CLIENT_SECRET } }
+        ? {
+            github: {
+              clientId: env.GITHUB_CLIENT_ID,
+              clientSecret: env.GITHUB_CLIENT_SECRET,
+            },
+          }
         : {}),
       ...(env.LINKEDIN_CLIENT_ID && env.LINKEDIN_CLIENT_SECRET
-        ? { linkedin: { clientId: env.LINKEDIN_CLIENT_ID, clientSecret: env.LINKEDIN_CLIENT_SECRET } }
+        ? {
+            linkedin: {
+              clientId: env.LINKEDIN_CLIENT_ID,
+              clientSecret: env.LINKEDIN_CLIENT_SECRET,
+            },
+          }
         : {}),
     },
     user: {
@@ -123,7 +150,11 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     },
     advanced: {
       useSecureCookies: true,
-      defaultCookieAttributes: { sameSite: 'lax', httpOnly: true, secure: true },
+      defaultCookieAttributes: {
+        sameSite: 'lax',
+        httpOnly: true,
+        secure: true,
+      },
       ipAddress: { ipAddressHeaders: ['cf-connecting-ip'] },
     },
     rateLimit: { storage: 'database' },
@@ -156,9 +187,17 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
           }
         },
         verifyOTP: smsProvider.verifyOtp
-          ? ((verifyOtp) =>
-              ({ phoneNumber: phone, code }: { phoneNumber: string; code: string }) =>
-                verifyOtp({ phoneNumber: phone, code }))(smsProvider.verifyOtp)
+          ? (
+              (verifyOtp) =>
+              ({
+                phoneNumber: phone,
+                code,
+              }: {
+                phoneNumber: string;
+                code: string;
+              }) =>
+                verifyOtp({ phoneNumber: phone, code })
+            )(smsProvider.verifyOtp)
           : undefined,
         otpLength: 6,
         expiresIn: 300,

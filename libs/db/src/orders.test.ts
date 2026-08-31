@@ -25,7 +25,12 @@ const ensureMarket = async (db: Db): Promise<void> => {
       timezone: 'Africa/Algiers',
       direction: 'rtl',
       state: 'active',
-      featureFlags: { events: true, hackathons: false, payments: true, recruiting: false },
+      featureFlags: {
+        events: true,
+        hackathons: false,
+        payments: true,
+        recruiting: false,
+      },
     })
     .onConflictDoNothing()
     .run();

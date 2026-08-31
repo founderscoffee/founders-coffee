@@ -1,5 +1,10 @@
 import type { Result } from '@founders-coffee/core';
-import { reindex, type AiRuntime, type ReindexResult, type VectorizeRuntime } from '@founders-coffee/core/ai';
+import {
+  reindex,
+  type AiRuntime,
+  type ReindexResult,
+  type VectorizeRuntime,
+} from '@founders-coffee/core/ai';
 
 import type { EmbeddingsMessage } from './messages.js';
 

@@ -121,12 +121,17 @@ export class EventLiveDO extends DurableObject<DoEnv> {
   constructor(ctx: DurableObjectState, env: DoEnv) {
     super(ctx, env);
 
-    ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'));
+    ctx.setWebSocketAutoResponse(
+      new WebSocketRequestResponsePair('ping', 'pong'),
+    );
   }
 
   /** HTTP handler — upgrades to WebSocket (extracting the eventId from the URL) or 405. */
   fetch = async (request: Request): Promise<Response> => {
-    if (request.method === 'GET' && request.headers.get('Upgrade') === 'websocket') {
+    if (
+      request.method === 'GET' &&
+      request.headers.get('Upgrade') === 'websocket'
+    ) {
       const eventId = new URL(request.url).pathname.split('/').pop() ?? '';
       this.eventId = eventId;
       await this.ensureRehydrated();
@@ -135,7 +140,10 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     return new Response('Method not allowed', { status: 405 });
   };
 
-  webSocketMessage = async (ws: WebSocket, message: string | ArrayBuffer): Promise<void> => {
+  webSocketMessage = async (
+    ws: WebSocket,
+    message: string | ArrayBuffer,
+  ): Promise<void> => {
     if (typeof message !== 'string') return;
 
     let parsed: unknown;
@@ -192,7 +200,9 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     return new Response(null, { status: 101, webSocket: clientWs });
   };
 
-  private verifyFromCookie = async (request: Request): Promise<VerifyResult> => {
+  private verifyFromCookie = async (
+    request: Request,
+  ): Promise<VerifyResult> => {
     const cookieHeader = request.headers.get('Cookie');
     if (!cookieHeader) return { ok: false, reason: 'no_session' };
 
@@ -202,7 +212,8 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       const value = part.slice(eq + 1).trim();
       if (!value) continue;
       const result = await this.verifySession(value);
-      if (result.ok || (!result.ok && result.reason === 'not_allowed')) return result;
+      if (result.ok || (!result.ok && result.reason === 'not_allowed'))
+        return result;
     }
     return { ok: false, reason: 'no_session' };
   };
@@ -216,12 +227,18 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
     if (!result.ok) {
       if (result.reason === 'db_error') {
-        this.sendTo(clientWs, { type: 'error', message: 'Temporary auth error, please retry' });
+        this.sendTo(clientWs, {
+          type: 'error',
+          message: 'Temporary auth error, please retry',
+        });
         return;
       }
       this.sendTo(clientWs, {
         type: 'auth_expired',
-        message: result.reason === 'not_allowed' ? 'Not invited to this event' : 'Session expired',
+        message:
+          result.reason === 'not_allowed'
+            ? 'Not invited to this event'
+            : 'Session expired',
       });
       serverWs.close(4001, 'auth_expired');
       return;
@@ -257,7 +274,10 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     if (this.host) this.broadcastHost();
   };
 
-  private handleMessage = async (ws: WebSocket, msg: ClientMessage): Promise<void> => {
+  private handleMessage = async (
+    ws: WebSocket,
+    msg: ClientMessage,
+  ): Promise<void> => {
     switch (msg.type) {
       case 'auth':
         await this.handleAuth(ws, msg.sessionToken);
@@ -277,7 +297,10 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     }
   };
 
-  private handleAuth = async (ws: WebSocket, sessionToken: string): Promise<void> => {
+  private handleAuth = async (
+    ws: WebSocket,
+    sessionToken: string,
+  ): Promise<void> => {
     const conn = this.connections.get(ws);
     if (!conn || !this.eventId) return;
 
@@ -285,12 +308,18 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     if (!result.ok) {
       if (result.reason === 'db_error') {
         /* Transient D1 error — do NOT close; tell the client to retry shortly. */
-        this.sendTo(ws, { type: 'error', message: 'Temporary auth error, please retry' });
+        this.sendTo(ws, {
+          type: 'error',
+          message: 'Temporary auth error, please retry',
+        });
         return;
       }
       this.sendTo(ws, {
         type: 'auth_expired',
-        message: result.reason === 'not_allowed' ? 'Not invited to this event' : 'Session expired',
+        message:
+          result.reason === 'not_allowed'
+            ? 'Not invited to this event'
+            : 'Session expired',
       });
       ws.close(4001, 'auth_expired');
       return;
@@ -363,7 +392,10 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     }
   };
 
-  private handleRunningLate = async (ws: WebSocket, etaMinutes?: number): Promise<void> => {
+  private handleRunningLate = async (
+    ws: WebSocket,
+    etaMinutes?: number,
+  ): Promise<void> => {
     const conn = this.connections.get(ws);
     if (!conn?.authenticated) return;
     const attendee = this.attendees.get(conn.userId);
@@ -375,7 +407,10 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     }
   };
 
-  private handleTablePin = async (ws: WebSocket, tableNumber: number): Promise<void> => {
+  private handleTablePin = async (
+    ws: WebSocket,
+    tableNumber: number,
+  ): Promise<void> => {
     const conn = this.connections.get(ws);
     if (!conn?.authenticated) return;
     /* Only THIS event's host (verified in handleAuth) may pin — not any host/admin role (H1). */
@@ -384,14 +419,19 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       await this.persistState();
       this.broadcastHost();
     } else {
-      this.sendTo(ws, { type: 'error', message: 'Only the host can pin tables' });
+      this.sendTo(ws, {
+        type: 'error',
+        message: 'Only the host can pin tables',
+      });
     }
   };
 
   /* -------------------------------------------------------------------------- */
   /* Auth — verifies session AND event membership (host-of-this-event OR RSVP'd) */
 
-  private verifySession = async (sessionToken: string): Promise<VerifyResult> => {
+  private verifySession = async (
+    sessionToken: string,
+  ): Promise<VerifyResult> => {
     let row: {
       user_id: string;
       name: string;

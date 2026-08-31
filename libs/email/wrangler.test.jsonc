@@ -6,7 +6,7 @@
   "send_email": [
     {
       "name": "EMAIL",
-      "allowed_destination_addresses": ["ok@example.com"]
-    }
-  ]
+      "allowed_destination_addresses": ["ok@example.com"],
+    },
+  ],
 }

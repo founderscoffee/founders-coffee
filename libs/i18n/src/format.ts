@@ -16,20 +16,23 @@ const numberFormatter = (locale: Locale, options: Intl.NumberFormatOptions) => {
   const key = `${locale}:${JSON.stringify(options)}`;
   const cached = numberCache.get(key);
   if (cached) return cached;
-  const fmt = new Intl.NumberFormat(locale, { numberingSystem: 'latn', ...options });
+  const fmt = new Intl.NumberFormat(locale, {
+    numberingSystem: 'latn',
+    ...options,
+  });
   numberCache.set(key, fmt);
   return fmt;
 };
 
 const dateCache = new Map<string, Intl.DateTimeFormat>();
-const dateFormatter = (
-  locale: Locale,
-  options: Intl.DateTimeFormatOptions,
-) => {
+const dateFormatter = (locale: Locale, options: Intl.DateTimeFormatOptions) => {
   const key = `${locale}:${JSON.stringify(options)}`;
   const cached = dateCache.get(key);
   if (cached) return cached;
-  const fmt = new Intl.DateTimeFormat(locale, { numberingSystem: 'latn', ...options });
+  const fmt = new Intl.DateTimeFormat(locale, {
+    numberingSystem: 'latn',
+    ...options,
+  });
   dateCache.set(key, fmt);
   return fmt;
 };
@@ -37,7 +40,10 @@ const dateFormatter = (
 /** Format a Money value (minor units) per locale; CLDR controls decimals. */
 export const formatMoney = (money: Money, locale: Locale): string => {
   const major = money.amount_minor / 100;
-  return numberFormatter(locale, { style: 'currency', currency: money.currency }).format(major);
+  return numberFormatter(locale, {
+    style: 'currency',
+    currency: money.currency,
+  }).format(major);
 };
 
 /** Format a number per locale with Latin digits. */

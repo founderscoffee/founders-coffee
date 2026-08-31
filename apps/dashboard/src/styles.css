@@ -1,5 +1,4 @@
-
-@import "@founders-coffee/ui/styles.css";
+@import '@founders-coffee/ui/styles.css';
 @source "../../../libs/ui/src";
 
 * {
@@ -15,4 +14,3 @@ body,
 body {
   margin: 0;
 }
-

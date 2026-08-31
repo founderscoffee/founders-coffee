@@ -14,7 +14,9 @@ describe('mapEmailProviderCode', () => {
   });
 
   it('maps suppression to email_recipient_suppressed', () => {
-    expect(mapEmailProviderCode('E_RECIPIENT_SUPPRESSED')).toBe('email_recipient_suppressed');
+    expect(mapEmailProviderCode('E_RECIPIENT_SUPPRESSED')).toBe(
+      'email_recipient_suppressed',
+    );
   });
 
   it('maps every other documented Cloudflare code to email_send_failed', () => {
@@ -44,7 +46,9 @@ describe('mapEmailProviderCode', () => {
 
 describe('readEmailProviderCode', () => {
   it('reads .code from a thrown Error-like object', () => {
-    const error = Object.assign(new Error('boom'), { code: 'E_RATE_LIMIT_EXCEEDED' });
+    const error = Object.assign(new Error('boom'), {
+      code: 'E_RATE_LIMIT_EXCEEDED',
+    });
     expect(readEmailProviderCode(error)).toBe('E_RATE_LIMIT_EXCEEDED');
   });
 

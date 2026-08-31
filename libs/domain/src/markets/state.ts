@@ -15,7 +15,10 @@ export const VISIBLE_STATES: readonly MarketState[] = ['open', 'active'];
 export const canTransition = (from: MarketState, to: MarketState): boolean =>
   TRANSITIONS[from].includes(to);
 
-export const transition = (from: MarketState, to: MarketState): Result<MarketState> =>
+export const transition = (
+  from: MarketState,
+  to: MarketState,
+): Result<MarketState> =>
   canTransition(from, to)
     ? ok(to)
     : err(
@@ -26,4 +29,5 @@ export const transition = (from: MarketState, to: MarketState): Result<MarketSta
       );
 
 /** A market is publicly visible unless it is `dark` (FR-G3). */
-export const isMarketVisible = (state: MarketState): boolean => VISIBLE_STATES.includes(state);
+export const isMarketVisible = (state: MarketState): boolean =>
+  VISIBLE_STATES.includes(state);

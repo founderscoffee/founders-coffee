@@ -22,11 +22,20 @@ type MarketHeroProps = {
   cityEventCounts: Record<string, number>;
 };
 
-export const MarketHero = ({ locale, market, cityEventCounts }: MarketHeroProps) => {
-  const [selectedCity, setSelectedCity] = useState<geo.GeoCity | undefined>(undefined);
+export const MarketHero = ({
+  locale,
+  market,
+  cityEventCounts,
+}: MarketHeroProps) => {
+  const [selectedCity, setSelectedCity] = useState<geo.GeoCity | undefined>(
+    undefined,
+  );
 
-  const selectedCityCount = selectedCity ? (cityEventCounts[selectedCity.code] ?? 0) : 0;
-  const isSelectedCityEmpty = selectedCity !== undefined && selectedCityCount === 0;
+  const selectedCityCount = selectedCity
+    ? (cityEventCounts[selectedCity.code] ?? 0)
+    : 0;
+  const isSelectedCityEmpty =
+    selectedCity !== undefined && selectedCityCount === 0;
   const cityDisplayName = selectedCity
     ? locale === 'ar'
       ? selectedCity.nameAr
@@ -64,7 +73,14 @@ export const MarketHero = ({ locale, market, cityEventCounts }: MarketHeroProps)
           <Link
             {...(selectedCity
               ? isSelectedCityEmpty
-                ? { to: '/$market/host/create', params: { market: market.slug }, search: { city: selectedCity.code, state: selectedCity.stateCode } }
+                ? {
+                    to: '/$market/host/create',
+                    params: { market: market.slug },
+                    search: {
+                      city: selectedCity.code,
+                      state: selectedCity.stateCode,
+                    },
+                  }
                 : {
                     to: '/$market/$city',
                     params: { market: market.slug, city: selectedCity.slug },

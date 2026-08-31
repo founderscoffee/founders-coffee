@@ -120,7 +120,10 @@ export interface MarketCity {
  * keys both return `undefined` (no existence leak). Shared by the landing resolvers so the URL can be
  * either canonical slug (`/algeria`) or the code alias (`/dz`).
  */
-const findMarketByKey = async (db: Db, key: string): Promise<Market | undefined> => {
+const findMarketByKey = async (
+  db: Db,
+  key: string,
+): Promise<Market | undefined> => {
   const bySlug = await getMarketBySlug(db, key);
   if (bySlug && markets.isMarketVisible(bySlug.state)) return bySlug;
   const byCode = await getMarketByCode(db, key.toUpperCase());
@@ -143,7 +146,10 @@ export const resolveMarket = async (
       : undefined;
   if (!market || !markets.isMarketVisible(market.state)) {
     return err(
-      new AppError('market_not_found', `No visible market for ${input.code ?? input.slug ?? '(none)'}`),
+      new AppError(
+        'market_not_found',
+        `No visible market for ${input.code ?? input.slug ?? '(none)'}`,
+      ),
     );
   }
   return ok(market);
@@ -158,10 +164,15 @@ export const listVisibleMarkets = (db: Db): Promise<Market[]> =>
  * the domain geo TS data (server-side, NOT D1 — the `cities` table is dropped). Dark/unknown →
  * `market_not_found` (no leak). The country-landing loader calls this + canonicalizes the URL.
  */
-export const resolveMarketLanding = async (db: Db, key: string): Promise<Result<MarketWithCities>> => {
+export const resolveMarketLanding = async (
+  db: Db,
+  key: string,
+): Promise<Result<MarketWithCities>> => {
   const market = await findMarketByKey(db, key);
   if (!market) {
-    return err(new AppError('market_not_found', `No visible market for ${key}`));
+    return err(
+      new AppError('market_not_found', `No visible market for ${key}`),
+    );
   }
   const [{ items: events }, cityEventCounts, trending] = await Promise.all([
     listEvents(db, { marketCode: market.code, limit: 20 }),
@@ -178,12 +189,15 @@ export const resolveMarketLanding = async (db: Db, key: string): Promise<Result<
 };
 
 const coldMajorCities = (marketCode: string): TrendingSection => {
-  const priority = new Map((COLD_PRIORITY_SLUGS[marketCode] ?? []).map((slug, i) => [slug, i]));
+  const priority = new Map(
+    (COLD_PRIORITY_SLUGS[marketCode] ?? []).map((slug, i) => [slug, i]),
+  );
   const cities = [...geo.getFeaturedCities(marketCode)]
     .map((city) => ({ city, count: 0 }))
     .sort(
       (a, b) =>
-        (priority.get(a.city.slug) ?? 1_000) - (priority.get(b.city.slug) ?? 1_000) ||
+        (priority.get(a.city.slug) ?? 1_000) -
+          (priority.get(b.city.slug) ?? 1_000) ||
         a.city.name.localeCompare(b.city.name),
     )
     .slice(0, COLD_MAJOR_CITY_CAP);
@@ -200,7 +214,9 @@ const warmActiveCities = (
     .getStates(marketCode)
     .map((state) => ({ state, count: stateCounts[state.code] ?? 0 }))
     .filter((s) => s.count > 0)
-    .sort((a, b) => b.count - a.count || a.state.code.localeCompare(b.state.code))
+    .sort(
+      (a, b) => b.count - a.count || a.state.code.localeCompare(b.state.code),
+    )
     .slice(0, WARM_STATE_CAP);
 
   const groups = topStates.map(({ state }) => {
@@ -208,12 +224,17 @@ const warmActiveCities = (
       .getCities(marketCode, state.code)
       .map((city) => ({ city, count: cityCounts[city.code] ?? 0 }))
       .filter((c) => c.count > 0)
-      .sort((a, b) => b.count - a.count || a.city.name.localeCompare(b.city.name))
+      .sort(
+        (a, b) => b.count - a.count || a.city.name.localeCompare(b.city.name),
+      )
       .slice(0, WARM_CITY_CAP);
     return { state, cities };
   });
 
-  return { variant: 'active', groups: groups.filter((g) => g.cities.length > 0) };
+  return {
+    variant: 'active',
+    groups: groups.filter((g) => g.cities.length > 0),
+  };
 };
 
 /**
@@ -230,7 +251,10 @@ export const resolveTrendingStates = async (
     countUpcomingByState(db, marketCode),
     countUpcomingByCity(db, marketCode),
   ]);
-  const totalUpcoming = Object.values(cityCounts).reduce((sum, n) => sum + n, 0);
+  const totalUpcoming = Object.values(cityCounts).reduce(
+    (sum, n) => sum + n,
+    0,
+  );
   if (totalUpcoming === 0) return coldMajorCities(marketCode);
   return warmActiveCities(marketCode, stateCounts, cityCounts);
 };
@@ -245,12 +269,20 @@ export const resolveCityLanding = async (
 ): Promise<Result<MarketCity>> => {
   const market = await findMarketByKey(db, marketKey);
   if (!market) {
-    return err(new AppError('market_not_found', `No visible market for ${marketKey}`));
+    return err(
+      new AppError('market_not_found', `No visible market for ${marketKey}`),
+    );
   }
   const city = geo.findCityBySlug(market.code, citySlug);
   if (!city) {
-    return err(new AppError('city_not_found', `No city ${citySlug} in ${market.code}`));
+    return err(
+      new AppError('city_not_found', `No city ${citySlug} in ${market.code}`),
+    );
   }
-  const { items: events } = await listEvents(db, { marketCode: market.code, cityCode: city.code, limit: 20 });
+  const { items: events } = await listEvents(db, {
+    marketCode: market.code,
+    cityCode: city.code,
+    limit: 20,
+  });
   return ok({ market, city, events });
 };

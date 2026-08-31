@@ -27,7 +27,12 @@ export const Route = createFileRoute('/$market/e/$slug')({
     const { user } = useAuth();
     return (
       <>
-        <EventDetail locale={locale} market={market} event={event} host={host} />
+        <EventDetail
+          locale={locale}
+          market={market}
+          event={event}
+          host={host}
+        />
         {user && (
           <LiveDashboard
             eventId={event.id}
@@ -47,12 +52,17 @@ export const Route = createFileRoute('/$market/e/$slug')({
       throw error;
     }
     if (params.market !== market.slug) {
-      throw redirect({ to: '/$market/e/$slug', params: { market: market.slug, slug: params.slug } });
+      throw redirect({
+        to: '/$market/e/$slug',
+        params: { market: market.slug, slug: params.slug },
+      });
     }
 
     let event: EventWithAttendance;
     try {
-      event = await getEvent({ data: { marketCode: market.code, slug: params.slug } });
+      event = await getEvent({
+        data: { marketCode: market.code, slug: params.slug },
+      });
     } catch (error) {
       if (appErrorCode(error) === 'event_not_found') throw notFound();
       throw error;
@@ -69,9 +79,14 @@ export const Route = createFileRoute('/$market/e/$slug')({
       : '';
     return {
       meta: [
-        { title: `${loaderData?.event.title ?? 'founders.coffee'} - founders.coffee` },
+        {
+          title: `${loaderData?.event.title ?? 'founders.coffee'} - founders.coffee`,
+        },
         { name: 'description', content: description },
-        { property: 'og:title', content: loaderData?.event.title ?? 'founders.coffee' },
+        {
+          property: 'og:title',
+          content: loaderData?.event.title ?? 'founders.coffee',
+        },
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'event' },
       ],

@@ -1,7 +1,15 @@
-import { getPushTokensByUser, listPendingNotifications, markNotificationFailed, markNotificationSent } from '@founders-coffee/db';
+import {
+  getPushTokensByUser,
+  listPendingNotifications,
+  markNotificationFailed,
+  markNotificationSent,
+} from '@founders-coffee/db';
 import type { Db } from '@founders-coffee/db';
 import type { EmailProvider } from '@founders-coffee/email';
-import type { NotificationSmsProvider, PushProvider } from '@founders-coffee/notifications';
+import type {
+  NotificationSmsProvider,
+  PushProvider,
+} from '@founders-coffee/notifications';
 
 const SWEEP_LIMIT = 100;
 
@@ -38,8 +46,7 @@ export const sweepNotifications = async (
       if (result.ok) {
         await markNotificationSent(db, { id: notification.id });
       } else {
-        const isPermanent =
-          result.error.code === 'sms_permanent_failure';
+        const isPermanent = result.error.code === 'sms_permanent_failure';
         await markNotificationFailed(db, {
           id: notification.id,
           error: result.error.message,
@@ -64,17 +71,27 @@ export const sweepNotifications = async (
         });
       }
     } else if (channel === 'push' && push) {
-      const tokens = await getPushTokensByUser(db, { userId: notification.userId });
+      const tokens = await getPushTokensByUser(db, {
+        userId: notification.userId,
+      });
       const pushPayload = payload as { pushTitle: string; pushBody: string };
       let anyOk = tokens.length === 0;
       for (const t of tokens) {
-        const result = await push.send({ token: t.token, title: pushPayload.pushTitle, body: pushPayload.pushBody });
+        const result = await push.send({
+          token: t.token,
+          title: pushPayload.pushTitle,
+          body: pushPayload.pushBody,
+        });
         if (result.ok) anyOk = true;
       }
       if (anyOk) {
         await markNotificationSent(db, { id: notification.id });
       } else {
-        await markNotificationFailed(db, { id: notification.id, error: 'Push delivery failed', canFallback: false });
+        await markNotificationFailed(db, {
+          id: notification.id,
+          error: 'Push delivery failed',
+          canFallback: false,
+        });
       }
     }
   }

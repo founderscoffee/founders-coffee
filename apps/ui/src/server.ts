@@ -2,7 +2,10 @@ import '@founders-coffee/observability/server-init';
 import handler from '@tanstack/react-start/server-entry';
 
 import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
-import { ingestClientLogs, type LogEntry } from '@founders-coffee/observability';
+import {
+  ingestClientLogs,
+  type LogEntry,
+} from '@founders-coffee/observability';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
 
@@ -24,7 +27,9 @@ export interface UiEnv extends HandlerEnv {
 const authHandler = (env: UiEnv) => {
   const isDev = env.APP_URL.startsWith('http://localhost');
   const emailProvider =
-    !isDev && env.EMAIL ? createOtpEmailProvider(env.EMAIL, env.MAIL_FROM) : undefined;
+    !isDev && env.EMAIL
+      ? createOtpEmailProvider(env.EMAIL, env.MAIL_FROM)
+      : undefined;
   return createAuthHandler(env, emailProvider ? { emailProvider } : {});
 };
 
@@ -61,8 +66,11 @@ export default {
     }
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
-      const body = (await request.json().catch(() => null)) as { entries?: unknown } | null;
-      if (body && Array.isArray(body.entries)) ingestClientLogs(body.entries as LogEntry[]);
+      const body = (await request.json().catch(() => null)) as {
+        entries?: unknown;
+      } | null;
+      if (body && Array.isArray(body.entries))
+        ingestClientLogs(body.entries as LogEntry[]);
       return new Response(null, { status: 204 });
     }
     if (url.pathname.startsWith('/api/auth/')) return authHandler(env)(request);

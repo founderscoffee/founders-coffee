@@ -130,7 +130,11 @@ mapbox-search-box [role='option'] {
   --rdp-nav_button-width: 2rem;
   --rdp-nav-height: 2.25rem;
   --rdp-accent-color: var(--color-primary);
-  --rdp-accent-background-color: color-mix(in oklab, var(--color-primary) 14%, transparent);
+  --rdp-accent-background-color: color-mix(
+    in oklab,
+    var(--color-primary) 14%,
+    transparent
+  );
   --rdp-today-color: var(--color-primary);
   font-size: 0.875rem;
   margin: 0;

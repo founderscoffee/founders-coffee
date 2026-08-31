@@ -1,41 +1,46 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
+import { useEffect } from 'react';
 
-import { detectLocale, direction } from '@founders-coffee/i18n'
-import { configureClientLogger, logger, reportError } from '@founders-coffee/observability'
-import { getVisibleMarkets } from '@founders-coffee/server-fns'
+import { detectLocale, direction } from '@founders-coffee/i18n';
+import {
+  configureClientLogger,
+  logger,
+  reportError,
+} from '@founders-coffee/observability';
+import { getVisibleMarkets } from '@founders-coffee/server-fns';
 
-import { Footer } from '../components/shell/Footer'
-import { Navbar } from '../components/shell/Navbar'
-import { AppProviders } from '../lib/app-providers'
-import { readCookieHeader } from '../lib/cookies'
-import { SITE_ORIGIN, organizationJsonLd } from '../lib/seo'
+import { Footer } from '../components/shell/Footer';
+import { Navbar } from '../components/shell/Navbar';
+import { AppProviders } from '../lib/app-providers';
+import { readCookieHeader } from '../lib/cookies';
+import { SITE_ORIGIN, organizationJsonLd } from '../lib/seo';
 
-import appCss from '../styles.css?url'
+import appCss from '../styles.css?url';
 
 const detectActiveLocale = () => {
-  const locale = detectLocale(readCookieHeader())
-  return { locale, dir: direction(locale) }
-}
+  const locale = detectLocale(readCookieHeader());
+  return { locale, dir: direction(locale) };
+};
 
 const useClientObservability = () => {
   useEffect(() => {
-    configureClientLogger({ endpoint: '/client-logs' })
-    const onError = (event: ErrorEvent) => reportError(event.error, { source: 'window' }, logger)
+    configureClientLogger({ endpoint: '/client-logs' });
+    const onError = (event: ErrorEvent) =>
+      reportError(event.error, { source: 'window' }, logger);
     const onRejection = (event: PromiseRejectionEvent) =>
-      reportError(event.reason, { source: 'window' }, logger)
-    window.addEventListener('error', onError)
-    window.addEventListener('unhandledrejection', onRejection)
+      reportError(event.reason, { source: 'window' }, logger);
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection);
     return () => {
-      window.removeEventListener('error', onError)
-      window.removeEventListener('unhandledrejection', onRejection)
-    }
-  }, [])
-}
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection);
+    };
+  }, []);
+};
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
-  const { locale, dir, markets } = Route.useRouteContext()
-  useClientObservability()
+  const { locale, dir, markets } = Route.useRouteContext();
+  useClientObservability();
 
   return (
     <html lang={locale} dir={dir}>
@@ -51,8 +56,8 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
         <Scripts />
       </body>
     </html>
-  )
-}
+  );
+};
 
 export const Route = createRootRoute({
   beforeLoad: async () => {
@@ -67,14 +72,16 @@ export const Route = createRootRoute({
       { title: 'founders.coffee' },
       {
         name: 'description',
-        content: 'founders.coffee - local founder communities that meet over coffee.',
+        content:
+          'founders.coffee - local founder communities that meet over coffee.',
       },
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: 'founders.coffee' },
       { property: 'og:title', content: 'founders.coffee' },
       {
         property: 'og:description',
-        content: 'Local founder communities that meet over coffee - real conversations, no formalities.',
+        content:
+          'Local founder communities that meet over coffee - real conversations, no formalities.',
       },
       { property: 'og:url', content: SITE_ORIGIN },
       { name: 'twitter:card', content: 'summary' },
@@ -87,4 +94,4 @@ export const Route = createRootRoute({
     scripts: [{ type: 'application/ld+json', children: organizationJsonLd() }],
   }),
   shellComponent: RootDocument,
-})
+});

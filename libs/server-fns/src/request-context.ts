@@ -28,6 +28,6 @@ export const withRequestContext = async <T>(fn: () => Promise<T>): Promise<T> =>
  * globally in `createStart` (P1-017) and add to each feature fn's `.middleware([...])`
  * for typed context.
  */
-export const requestContextMiddleware = createMiddleware({ type: 'function' }).server(
-  async ({ next }) => withRequestContext(() => next()),
-);
+export const requestContextMiddleware = createMiddleware({
+  type: 'function',
+}).server(async ({ next }) => withRequestContext(() => next()));

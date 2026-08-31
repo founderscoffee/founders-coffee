@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router';
 
 import {
   back_to_market,
@@ -9,49 +9,55 @@ import {
   host_step2,
   host_step3,
   type Locale,
-} from '@founders-coffee/i18n'
-import type { Market } from '@founders-coffee/db'
-import type { geo } from '@founders-coffee/domain'
-import type { EventFeedItem } from '@founders-coffee/server-fns'
+} from '@founders-coffee/i18n';
+import type { Market } from '@founders-coffee/db';
+import type { geo } from '@founders-coffee/domain';
+import type { EventFeedItem } from '@founders-coffee/server-fns';
 
-import { useUpcomingEvents } from '../../features/events/hooks'
-import { EventCard } from '../events/EventCard'
-import { Stepper } from '../host/Stepper'
+import { useUpcomingEvents } from '../../features/events/hooks';
+import { EventCard } from '../events/EventCard';
+import { Stepper } from '../host/Stepper';
 
 type CityLandingProps = {
-  locale: Locale
-  market: Market
-  city: geo.GeoCity
-  events: readonly EventFeedItem[]
-}
+  locale: Locale;
+  market: Market;
+  city: geo.GeoCity;
+  events: readonly EventFeedItem[];
+};
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 20;
 
 const marketDisplayName = (market: Market, locale: Locale) =>
-  locale === 'ar' ? (market.nameAr ?? market.name) : market.name
+  locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
 
-export const CityLanding = ({ locale, market, city, events }: CityLandingProps) => {
-  const cityDisplayName = locale === 'ar' ? city.nameAr : city.name
-  const marketName = marketDisplayName(market, locale)
+export const CityLanding = ({
+  locale,
+  market,
+  city,
+  events,
+}: CityLandingProps) => {
+  const cityDisplayName = locale === 'ar' ? city.nameAr : city.name;
+  const marketName = marketDisplayName(market, locale);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useUpcomingEvents({
-    marketCode: market.code,
-    cityCode: city.code,
-    limit: PAGE_SIZE,
-  })
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useUpcomingEvents({
+      marketCode: market.code,
+      cityCode: city.code,
+      limit: PAGE_SIZE,
+    });
 
-  const items = data?.pages.flatMap((p) => p.items) ?? events
+  const items = data?.pages.flatMap((p) => p.items) ?? events;
 
   const loadMore = () => {
-    void fetchNextPage()
-  }
+    void fetchNextPage();
+  };
 
   if (items.length === 0) {
     const stepLabels = [
       host_step1({}, { locale }),
       host_step2({}, { locale }),
       host_step3({}, { locale }),
-    ]
+    ];
 
     return (
       <section className="mx-auto max-w-lg px-4 py-16 text-center">
@@ -84,7 +90,7 @@ export const CityLanding = ({ locale, market, city, events }: CityLandingProps) 
           </Link>
         </div>
       </section>
-    )
+    );
   }
 
   return (
@@ -123,5 +129,5 @@ export const CityLanding = ({ locale, market, city, events }: CityLandingProps) 
         </Link>
       </div>
     </section>
-  )
-}
+  );
+};

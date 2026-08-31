@@ -29,7 +29,10 @@ describe('moderate', () => {
   });
 
   it('returns clean (no review) for a clean decision', async () => {
-    const result = await moderate(aiResponding('{"flagged": false, "categories": []}'), 'fine text');
+    const result = await moderate(
+      aiResponding('{"flagged": false, "categories": []}'),
+      'fine text',
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -39,7 +42,10 @@ describe('moderate', () => {
   });
 
   it('requires review when the model output is unparseable (fail-safe)', async () => {
-    const result = await moderate(aiResponding('the model rambled with no JSON'), 'some text');
+    const result = await moderate(
+      aiResponding('the model rambled with no JSON'),
+      'some text',
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -49,7 +55,10 @@ describe('moderate', () => {
   });
 
   it('tolerates JSON embedded in surrounding prose', async () => {
-    const result = await moderate(aiResponding('Here: {"flagged": true, "categories": ["hate"]} done'), 'text');
+    const result = await moderate(
+      aiResponding('Here: {"flagged": true, "categories": ["hate"]} done'),
+      'text',
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.flagged).toBe(true);

@@ -14,7 +14,10 @@ import {
 
 import type { Env } from './env.js';
 import { processEmbeddings } from './jobs/embeddings.js';
-import type { EmbeddingsMessage, NotificationMessage } from './jobs/messages.js';
+import type {
+  EmbeddingsMessage,
+  NotificationMessage,
+} from './jobs/messages.js';
 import { processNotification } from './jobs/notifications.js';
 import { runReconcile } from './jobs/reconcile.js';
 import { sweepNotifications } from './jobs/notification-sweep.js';
@@ -84,7 +87,12 @@ export default {
     const db = createDb(env.DB);
 
     if (controller.cron === '*/1 * * * *') {
-      await sweepNotifications(db, createSmsProvider(env), createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM), createPushProvider(env));
+      await sweepNotifications(
+        db,
+        createSmsProvider(env),
+        createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
+        createPushProvider(env),
+      );
     }
 
     if (controller.cron === '0 3 * * *') {

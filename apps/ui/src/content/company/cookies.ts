@@ -1,7 +1,7 @@
-import type { Locale } from '@founders-coffee/i18n'
+import type { Locale } from '@founders-coffee/i18n';
 
-import { CONTACT_EMAIL } from './contact'
-import type { CompanyPageContent } from './types'
+import { CONTACT_EMAIL } from './contact';
+import type { CompanyPageContent } from './types';
 
 export const cookiesContent: Record<Locale, CompanyPageContent> = {
   en: {
@@ -35,7 +35,8 @@ export const cookiesContent: Record<Locale, CompanyPageContent> = {
   },
   ar: {
     title: 'ملفات تعريف الارتباط',
-    description: 'كيف يستخدم founders.coffee ملفات تعريف الارتباط والتقنيات المشابهة.',
+    description:
+      'كيف يستخدم founders.coffee ملفات تعريف الارتباط والتقنيات المشابهة.',
     updated: '8 أغسطس 2026',
     sections: [
       {
@@ -64,7 +65,8 @@ export const cookiesContent: Record<Locale, CompanyPageContent> = {
   },
   fr: {
     title: 'Cookies',
-    description: 'Comment founders.coffee utilise les cookies et technologies similaires.',
+    description:
+      'Comment founders.coffee utilise les cookies et technologies similaires.',
     updated: '8 août 2026',
     sections: [
       {
@@ -91,4 +93,4 @@ export const cookiesContent: Record<Locale, CompanyPageContent> = {
       },
     ],
   },
-}
+};

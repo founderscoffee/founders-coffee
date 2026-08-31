@@ -11,7 +11,8 @@ export const inputVariants = cva('input input-bordered', {
 });
 
 export interface InputProps
-  extends InputHTMLAttributes<HTMLInputElement>,
+  extends
+    InputHTMLAttributes<HTMLInputElement>,
     VariantProps<typeof inputVariants> {}
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(

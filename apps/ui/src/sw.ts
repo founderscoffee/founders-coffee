@@ -58,9 +58,7 @@ self.addEventListener('push', (event: PushEvent) => {
     tag: 'founders-coffee-push',
   };
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title, options),
-  );
+  event.waitUntil(self.registration.showNotification(payload.title, options));
 });
 
 /** Notification click handler — opens the relevant URL. */

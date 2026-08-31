@@ -25,7 +25,10 @@ export const consoleTransport: LogTransport = (entry) => {
 };
 
 const post = (endpoint: string, payload: string): boolean => {
-  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+  if (
+    typeof navigator !== 'undefined' &&
+    typeof navigator.sendBeacon === 'function'
+  ) {
     try {
       return navigator.sendBeacon(endpoint, payload);
     } catch {
@@ -45,5 +48,7 @@ const post = (endpoint: string, payload: string): boolean => {
  * `fetch(url, { keepalive })`. Guards for SSR / no-`navigator` — never throws.
  * The receiving endpoint is wired per-app (P1-017).
  */
-export const createBeaconTransport = (endpoint: string): BatchTransport => (entries) =>
-  post(endpoint, JSON.stringify({ entries }));
+export const createBeaconTransport =
+  (endpoint: string): BatchTransport =>
+  (entries) =>
+    post(endpoint, JSON.stringify({ entries }));

@@ -24,7 +24,10 @@ export const canTransition = (from: OrderStatus, to: OrderStatus): boolean =>
  * Returns `ok(next)` or `err(AppError('invalid_order_transition'))` so callers
  * (the PaymentProvider) stay in the Result flow — no throws in domain.
  */
-export const transition = (from: OrderStatus, to: OrderStatus): Result<OrderStatus> =>
+export const transition = (
+  from: OrderStatus,
+  to: OrderStatus,
+): Result<OrderStatus> =>
   canTransition(from, to)
     ? ok(to)
     : err(

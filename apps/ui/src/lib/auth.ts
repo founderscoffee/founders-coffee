@@ -1,5 +1,5 @@
-import { adminClient, emailOTPClient } from 'better-auth/client/plugins'
-import { createAuthClient } from 'better-auth/react'
+import { adminClient, emailOTPClient } from 'better-auth/client/plugins';
+import { createAuthClient } from 'better-auth/react';
 
 /**
  * React auth client (same-origin → `/api/auth/*`). The React entry adds the `useSession` hook; the
@@ -7,4 +7,4 @@ import { createAuthClient } from 'better-auth/react'
  */
 export const authClient = createAuthClient({
   plugins: [emailOTPClient(), adminClient()],
-})
+});

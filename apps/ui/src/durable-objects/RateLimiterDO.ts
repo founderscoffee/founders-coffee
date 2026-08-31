@@ -17,7 +17,10 @@ export interface ConsumeResult {
  * token-bucket, never KV). `consume` refills based on elapsed wall-clock, then decrements a token.
  */
 export class RateLimiterDO extends DurableObject {
-  consume = async (opts: { limit: number; windowMs: number }): Promise<ConsumeResult> => {
+  consume = async (opts: {
+    limit: number;
+    windowMs: number;
+  }): Promise<ConsumeResult> => {
     const now = Date.now();
     const refillPerMs = opts.limit / opts.windowMs;
     const state =
@@ -28,7 +31,10 @@ export class RateLimiterDO extends DurableObject {
     const refilled = Math.min(opts.limit, state.tokens + elapsed * refillPerMs);
 
     if (refilled < 1) {
-      await this.ctx.storage.put('bucket', { tokens: refilled, lastRefill: now });
+      await this.ctx.storage.put('bucket', {
+        tokens: refilled,
+        lastRefill: now,
+      });
       return { allowed: false, remaining: Math.floor(refilled) };
     }
 

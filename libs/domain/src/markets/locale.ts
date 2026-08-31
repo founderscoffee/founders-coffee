@@ -5,5 +5,10 @@ import { type Locale, isLocale } from '@founders-coffee/i18n';
  * locale, otherwise the market's `default_locale`. Locale is *derived* from the market — it is
  * never the lookup key (`ar` maps to both DZ and MA, so locale→market is ambiguous).
  */
-export const resolveLocaleFor = (defaultLocale: Locale, cookieLocale?: string): Locale =>
-  cookieLocale !== undefined && isLocale(cookieLocale) ? cookieLocale : defaultLocale;
+export const resolveLocaleFor = (
+  defaultLocale: Locale,
+  cookieLocale?: string,
+): Locale =>
+  cookieLocale !== undefined && isLocale(cookieLocale)
+    ? cookieLocale
+    : defaultLocale;

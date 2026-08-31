@@ -13,7 +13,9 @@ const parseVectors = (raw: unknown): number[][] => {
     const data = (raw as { data?: unknown }).data;
     if (
       Array.isArray(data) &&
-      data.every((v) => Array.isArray(v) && v.every((n) => typeof n === 'number'))
+      data.every(
+        (v) => Array.isArray(v) && v.every((n) => typeof n === 'number'),
+      )
     ) {
       return data as number[][];
     }
@@ -36,11 +38,19 @@ export const embed = async (
     const vectors = parseVectors(raw);
     if (vectors.length !== texts.length) {
       return err(
-        new AppError('ai_embed_failed', `Expected ${texts.length} vectors, got ${vectors.length}`),
+        new AppError(
+          'ai_embed_failed',
+          `Expected ${texts.length} vectors, got ${vectors.length}`,
+        ),
       );
     }
     return ok({ vectors });
   } catch (error) {
-    return err(new AppError('ai_embed_failed', error instanceof Error ? error.message : 'embed failed'));
+    return err(
+      new AppError(
+        'ai_embed_failed',
+        error instanceof Error ? error.message : 'embed failed',
+      ),
+    );
   }
 };

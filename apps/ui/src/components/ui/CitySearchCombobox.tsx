@@ -1,20 +1,20 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react';
 
-import type { Locale } from '@founders-coffee/i18n'
-import type { geo } from '@founders-coffee/domain'
+import type { Locale } from '@founders-coffee/i18n';
+import type { geo } from '@founders-coffee/domain';
 
 type CitySearchComboboxProps = {
-  cities: readonly geo.GeoCity[]
-  value: string
-  onSelect: (code: string) => void
-  placeholder: string
-  noMatchText: string
-  disabled?: boolean
-  locale: Locale
-  className?: string
-}
+  cities: readonly geo.GeoCity[];
+  value: string;
+  onSelect: (code: string) => void;
+  placeholder: string;
+  noMatchText: string;
+  disabled?: boolean;
+  locale: Locale;
+  className?: string;
+};
 
-const MAX_VISIBLE = 20
+const MAX_VISIBLE = 20;
 
 export const CitySearchCombobox = ({
   cities,
@@ -26,12 +26,12 @@ export const CitySearchCombobox = ({
   locale,
   className,
 }: CitySearchComboboxProps) => {
-  const [citySearch, setCitySearch] = useState('')
-  const [showCityList, setShowCityList] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const listRef = useRef<HTMLUListElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isMouseDown = useRef(false)
+  const [citySearch, setCitySearch] = useState('');
+  const [showCityList, setShowCityList] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const listRef = useRef<HTMLUListElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isMouseDown = useRef(false);
 
   const filteredCities = useMemo(
     () =>
@@ -43,83 +43,90 @@ export const CitySearchCombobox = ({
           )
         : cities,
     [cities, citySearch],
-  )
+  );
 
-  const visibleCities = filteredCities.slice(0, MAX_VISIBLE)
-  const selected = cities.find((c) => c.code === value)
+  const visibleCities = filteredCities.slice(0, MAX_VISIBLE);
+  const selected = cities.find((c) => c.code === value);
   const inputValue = value
-    ? (locale === 'ar' ? selected?.nameAr : selected?.name) ?? citySearch
-    : citySearch
+    ? ((locale === 'ar' ? selected?.nameAr : selected?.name) ?? citySearch)
+    : citySearch;
 
   const selectCity = useCallback(
     (code: string) => {
-      onSelect(code)
-      setCitySearch('')
-      setShowCityList(false)
-      setActiveIndex(-1)
+      onSelect(code);
+      setCitySearch('');
+      setShowCityList(false);
+      setActiveIndex(-1);
     },
     [onSelect],
-  )
+  );
 
   const clearSelection = useCallback(() => {
-    onSelect('')
-    setCitySearch('')
-    setShowCityList(true)
-    setActiveIndex(-1)
-    inputRef.current?.focus()
-  }, [onSelect])
+    onSelect('');
+    setCitySearch('');
+    setShowCityList(true);
+    setActiveIndex(-1);
+    inputRef.current?.focus();
+  }, [onSelect]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault()
-      if (visibleCities.length === 0) return
+      e.preventDefault();
+      if (visibleCities.length === 0) return;
       if (activeIndex >= 0 && activeIndex < visibleCities.length) {
-        selectCity(visibleCities[activeIndex].code)
+        selectCity(visibleCities[activeIndex].code);
       } else {
-        selectCity(visibleCities[0].code)
+        selectCity(visibleCities[0].code);
       }
-      return
+      return;
     }
 
-    if (visibleCities.length === 0) return
+    if (visibleCities.length === 0) return;
 
     switch (e.key) {
       case 'ArrowDown': {
-        e.preventDefault()
-        setActiveIndex((prev) => (prev < visibleCities.length - 1 ? prev + 1 : 0))
-        break
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev < visibleCities.length - 1 ? prev + 1 : 0,
+        );
+        break;
       }
       case 'ArrowUp': {
-        e.preventDefault()
-        setActiveIndex((prev) => (prev > 0 ? prev - 1 : visibleCities.length - 1))
-        break
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev > 0 ? prev - 1 : visibleCities.length - 1,
+        );
+        break;
       }
       case 'Escape': {
-        setShowCityList(false)
-        setActiveIndex(-1)
-        break
+        setShowCityList(false);
+        setActiveIndex(-1);
+        break;
       }
     }
-  }
+  };
 
   const handleMouseDown = () => {
-    isMouseDown.current = true
-  }
+    isMouseDown.current = true;
+  };
 
   const handleBlur = () => {
     if (!isMouseDown.current) {
-      setShowCityList(false)
-      setActiveIndex(-1)
+      setShowCityList(false);
+      setActiveIndex(-1);
     }
-    isMouseDown.current = false
-  }
+    isMouseDown.current = false;
+  };
 
-  const listboxId = 'city-search-listbox'
-  const showNoMatch = citySearch.length > 0 && visibleCities.length === 0
+  const listboxId = 'city-search-listbox';
+  const showNoMatch = citySearch.length > 0 && visibleCities.length === 0;
 
   return (
     <div className={`relative flex items-center ${className ?? ''}`}>
-      <span className="pointer-events-none absolute start-4 text-base-content/40" aria-hidden="true">
+      <span
+        className="pointer-events-none absolute start-4 text-base-content/40"
+        aria-hidden="true"
+      >
         📍
       </span>
       <input
@@ -129,16 +136,20 @@ export const CitySearchCombobox = ({
         placeholder={placeholder}
         value={inputValue}
         role="combobox"
-        aria-expanded={showCityList && (visibleCities.length > 0 || showNoMatch)}
+        aria-expanded={
+          showCityList && (visibleCities.length > 0 || showNoMatch)
+        }
         aria-controls={listboxId}
-        aria-activedescendant={activeIndex >= 0 ? `city-option-${activeIndex}` : undefined}
+        aria-activedescendant={
+          activeIndex >= 0 ? `city-option-${activeIndex}` : undefined
+        }
         aria-autocomplete="list"
         aria-label={placeholder}
         onChange={(e) => {
-          setCitySearch(e.target.value)
-          onSelect('')
-          setShowCityList(true)
-          setActiveIndex(-1)
+          setCitySearch(e.target.value);
+          onSelect('');
+          setShowCityList(true);
+          setActiveIndex(-1);
         }}
         onFocus={() => setShowCityList(true)}
         onKeyDown={handleKeyDown}
@@ -187,8 +198,8 @@ export const CitySearchCombobox = ({
                   }`}
                   tabIndex={-1}
                   onMouseDown={(e) => {
-                    e.preventDefault()
-                    selectCity(c.code)
+                    e.preventDefault();
+                    selectCity(c.code);
                   }}
                 >
                   <span>{locale === 'ar' ? c.nameAr : c.name}</span>
@@ -199,5 +210,5 @@ export const CitySearchCombobox = ({
         </ul>
       )}
     </div>
-  )
-}
+  );
+};

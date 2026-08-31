@@ -34,4 +34,6 @@ export const searchCities = createServerFn({ strict: false })
       limit: z.number().int().min(1).max(50).optional(),
     }),
   )
-  .handler(async ({ data }) => geo.searchLocations(data.marketCode, data.query, data.limit));
+  .handler(async ({ data }) =>
+    geo.searchLocations(data.marketCode, data.query, data.limit),
+  );

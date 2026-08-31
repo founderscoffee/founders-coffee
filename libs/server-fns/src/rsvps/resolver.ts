@@ -40,7 +40,9 @@ export const createRsvpResolver = async (
     return err(new AppError('event_not_found', 'Event not found'));
   }
   if (event.status !== 'published') {
-    return err(new AppError('event_not_available', 'This event is no longer available'));
+    return err(
+      new AppError('event_not_available', 'This event is no longer available'),
+    );
   }
 
   const existing = await getRsvpForUser(db, {
@@ -48,7 +50,9 @@ export const createRsvpResolver = async (
     userId: opts.userId,
   });
   if (existing) {
-    return err(new AppError('already_rsvpd', 'You are already attending this event'));
+    return err(
+      new AppError('already_rsvpd', 'You are already attending this event'),
+    );
   }
 
   try {
@@ -108,7 +112,9 @@ export const cancelRsvpResolver = async (
     userId: opts.userId,
   });
   if (!existing) {
-    return err(new AppError('rsvp_not_found', 'You are not attending this event'));
+    return err(
+      new AppError('rsvp_not_found', 'You are not attending this event'),
+    );
   }
 
   const result = await cancelRsvpRow(db, {

@@ -33,7 +33,12 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * Bot protection: server-fn Turnstile middleware doesn't exist yet (Phase 7 follow-up); the
  * validator + D1 UNIQUE constraint provide basic guardrails for now.
  */
-export const WaitlistForm = ({ locale, marketCode, cityCode, cityName }: WaitlistFormProps) => {
+export const WaitlistForm = ({
+  locale,
+  marketCode,
+  cityCode,
+  cityName,
+}: WaitlistFormProps) => {
   const [email, setEmail] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
   const joinWaitlist = useJoinWaitlist();

@@ -14,7 +14,13 @@ describe('libs/auth RBAC', () => {
   });
 
   it('every Role value resolves to a configured role', () => {
-    const all: Role[] = ['member', 'host', 'sponsor_contact', 'moderator', 'admin'];
+    const all: Role[] = [
+      'member',
+      'host',
+      'sponsor_contact',
+      'moderator',
+      'admin',
+    ];
     for (const r of all) {
       expect(roles[r]).toBeTruthy();
     }

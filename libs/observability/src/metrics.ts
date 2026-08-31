@@ -8,7 +8,11 @@ export interface Metrics {
   /** Record one occurrence of `event` (count = 1) tagged with dimensions. */
   readonly trackEvent: (event: string, dims?: MetricDimensions) => void;
   /** Record a numeric `value` for `event` (e.g. a payment amount) with dimensions. */
-  readonly trackCount: (event: string, value: number, dims?: MetricDimensions) => void;
+  readonly trackCount: (
+    event: string,
+    value: number,
+    dims?: MetricDimensions,
+  ) => void;
 }
 
 /**
@@ -34,7 +38,8 @@ export const buildDataPoint = (
  * binding (reached via `env.ANALYTICS` in the request) where you create the metrics.
  */
 export const createMetrics = (analytics: AnalyticsEngineDataset): Metrics => ({
-  trackEvent: (event, dims = {}) => analytics.writeDataPoint(buildDataPoint(event, [1], dims)),
+  trackEvent: (event, dims = {}) =>
+    analytics.writeDataPoint(buildDataPoint(event, [1], dims)),
   trackCount: (event, value, dims = {}) =>
     analytics.writeDataPoint(buildDataPoint(event, [value], dims)),
 });

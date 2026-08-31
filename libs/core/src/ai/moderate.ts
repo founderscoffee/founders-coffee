@@ -49,7 +49,10 @@ const parseDecision = (raw: unknown): ParsedDecision => {
  * escalates flagged content to human review and never auto-blocks — a hedge against the higher
  * false-positive rate moderation models show on Arabic text.
  */
-export const moderate = async (ai: AiRuntime, text: string): Promise<Result<ModerationResult>> => {
+export const moderate = async (
+  ai: AiRuntime,
+  text: string,
+): Promise<Result<ModerationResult>> => {
   if (text.trim().length === 0) {
     return ok({ flagged: false, categories: [], reviewRequired: false });
   }
@@ -61,13 +64,20 @@ export const moderate = async (ai: AiRuntime, text: string): Promise<Result<Mode
       ],
     });
     const response = (raw as { response?: unknown }).response;
-    const decision = parseDecision(extractJson(typeof response === 'string' ? response : ''));
+    const decision = parseDecision(
+      extractJson(typeof response === 'string' ? response : ''),
+    );
     return ok({
       flagged: decision.flagged,
       categories: decision.categories,
       reviewRequired: decision.flagged || !decision.parsed,
     });
   } catch (error) {
-    return err(new AppError('ai_moderation_failed', error instanceof Error ? error.message : 'moderation failed'));
+    return err(
+      new AppError(
+        'ai_moderation_failed',
+        error instanceof Error ? error.message : 'moderation failed',
+      ),
+    );
   }
 };

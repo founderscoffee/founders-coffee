@@ -1,1 +1,5 @@
-export { canTransition, transition, type EventStatus } from './status-machine.js';
+export {
+  canTransition,
+  transition,
+  type EventStatus,
+} from './status-machine.js';

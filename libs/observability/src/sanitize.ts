@@ -4,9 +4,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_DEPTH = 8;
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' &&
-  value !== null &&
-  value.constructor === Object;
+  typeof value === 'object' && value !== null && value.constructor === Object;
 
 const maskEmail = (value: string): string => {
   const at = value.indexOf('@');
@@ -27,7 +25,8 @@ export const sanitize = (
   seen = new WeakSet<object>(),
 ): unknown => {
   if (depth > MAX_DEPTH) return '[max-depth]';
-  if (typeof value === 'string') return EMAIL.test(value) ? maskEmail(value) : value;
+  if (typeof value === 'string')
+    return EMAIL.test(value) ? maskEmail(value) : value;
   if (value === null || typeof value !== 'object') return value;
   if (seen.has(value)) return '[circular]';
   seen.add(value);
@@ -37,7 +36,9 @@ export const sanitize = (
   if (!isPlainObject(value)) return value;
   const out: Record<string, unknown> = {};
   for (const [key, raw] of Object.entries(value)) {
-    out[key] = SECRET_KEY.test(key) ? '[redacted]' : sanitize(raw, depth + 1, seen);
+    out[key] = SECRET_KEY.test(key)
+      ? '[redacted]'
+      : sanitize(raw, depth + 1, seen);
   }
   return out;
 };

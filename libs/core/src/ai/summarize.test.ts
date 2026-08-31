@@ -15,7 +15,10 @@ const throwingAi = (): AiRuntime => ({
 
 describe('summarize', () => {
   it('returns the trimmed summary string', async () => {
-    const result = await summarize(aiResponding('  A concise summary.  '), 'long text');
+    const result = await summarize(
+      aiResponding('  A concise summary.  '),
+      'long text',
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data).toBe('A concise summary.');

@@ -12,7 +12,11 @@ import {
 } from '@founders-coffee/db';
 import { logger } from '@founders-coffee/observability';
 
-import type { InitiatePaymentInput, PaymentActor, PaymentProvider } from './provider.js';
+import type {
+  InitiatePaymentInput,
+  PaymentActor,
+  PaymentProvider,
+} from './provider.js';
 
 const now = (): Date => new Date();
 
@@ -35,16 +39,27 @@ export const createManualProvider = (db: Db): PaymentProvider => {
   ): Promise<Result<Order>> => {
     const order = await getOrder(db, orderId);
     if (!order) {
-      return err(new AppError('order_not_found', `Order not found: ${orderId}`));
+      return err(
+        new AppError('order_not_found', `Order not found: ${orderId}`),
+      );
     }
     if (order.status === to) {
-      logger.info(`payment.${eventName}.idempotent`, { orderId, actorUserId: actor.userId });
+      logger.info(`payment.${eventName}.idempotent`, {
+        orderId,
+        actorUserId: actor.userId,
+      });
       return ok(order);
     }
     const allowed = transition(order.status, to);
     if (!allowed.ok) return err(allowed.error);
 
-    const changed = await transitionStatus(db, orderId, order.status, to, patch);
+    const changed = await transitionStatus(
+      db,
+      orderId,
+      order.status,
+      to,
+      patch,
+    );
     if (changed === 0) {
       const current = await getOrder(db, orderId);
       if (current?.status === to) return ok(current);
@@ -57,7 +72,12 @@ export const createManualProvider = (db: Db): PaymentProvider => {
     }
     const updated = await getOrder(db, orderId);
     if (!updated) {
-      return err(new AppError('order_not_found', `Order vanished after transition: ${orderId}`));
+      return err(
+        new AppError(
+          'order_not_found',
+          `Order vanished after transition: ${orderId}`,
+        ),
+      );
     }
     logger.info(`payment.${eventName}`, {
       orderId,
@@ -107,7 +127,13 @@ export const createManualProvider = (db: Db): PaymentProvider => {
       changeStatus(orderId, 'paid', actor, { paidAt: now() }, 'confirmed'),
 
     cancel: (orderId, actor) =>
-      changeStatus(orderId, 'cancelled', actor, { cancelledAt: now() }, 'cancelled'),
+      changeStatus(
+        orderId,
+        'cancelled',
+        actor,
+        { cancelledAt: now() },
+        'cancelled',
+      ),
 
     refund: (orderId, actor, reason) =>
       changeStatus(

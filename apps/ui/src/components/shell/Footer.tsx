@@ -1,7 +1,7 @@
-import { Link } from '@tanstack/react-router'
-import { Coffee, Heart } from 'lucide-react'
+import { Link } from '@tanstack/react-router';
+import { Coffee, Heart } from 'lucide-react';
 
-import type { Market } from '@founders-coffee/db'
+import type { Market } from '@founders-coffee/db';
 import {
   brand,
   footer_about,
@@ -18,33 +18,36 @@ import {
   footer_terms,
   nav_communities,
   type Locale,
-} from '@founders-coffee/i18n'
+} from '@founders-coffee/i18n';
 
-import { LocaleToggle } from './LocaleToggle'
+import { LocaleToggle } from './LocaleToggle';
 
 type FooterProps = {
-  locale: Locale
-  markets: readonly Market[]
-}
+  locale: Locale;
+  markets: readonly Market[];
+};
 
 const marketLabel = (market: Market, locale: Locale) =>
-  locale === 'ar' ? (market.nameAr ?? market.name) : market.name
+  locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
 
 const linkClass =
-  'text-[0.9375rem] leading-6 text-base-content/65 transition-colors hover:text-primary focus-visible:outline-none focus-visible:text-primary'
+  'text-[0.9375rem] leading-6 text-base-content/65 transition-colors hover:text-primary focus-visible:outline-none focus-visible:text-primary';
 
 const headingClass =
-  'mb-3 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-base-content/45'
+  'mb-3 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-base-content/45';
 
 export const Footer = ({ locale, markets }: FooterProps) => {
-  const hostMarket = markets[0]
+  const hostMarket = markets[0];
 
   return (
     <footer className="mt-20 border-t border-base-300/70 bg-base-200/90">
       <div className="mx-auto max-w-5xl px-4 py-14 md:py-16">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="flex flex-col lg:col-span-4">
-            <Link to="/" className="group inline-flex items-center gap-3 self-start">
+            <Link
+              to="/"
+              className="group inline-flex items-center gap-3 self-start"
+            >
               <img
                 src="/logo-fc.svg"
                 alt=""
@@ -62,7 +65,10 @@ export const Footer = ({ locale, markets }: FooterProps) => {
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link to="/" className="btn btn-primary btn-sm h-10 gap-2 px-4 text-[0.875rem] font-semibold shadow-none">
+              <Link
+                to="/"
+                className="btn btn-primary btn-sm h-10 gap-2 px-4 text-[0.875rem] font-semibold shadow-none"
+              >
                 <Coffee className="size-3.5 opacity-90" aria-hidden="true" />
                 {footer_cta({}, { locale })}
               </Link>
@@ -79,8 +85,13 @@ export const Footer = ({ locale, markets }: FooterProps) => {
           </div>
 
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:col-span-8 lg:pt-1">
-            <nav aria-label={nav_communities({}, { locale })} className="flex flex-col gap-2.5">
-              <h2 className={headingClass}>{nav_communities({}, { locale })}</h2>
+            <nav
+              aria-label={nav_communities({}, { locale })}
+              className="flex flex-col gap-2.5"
+            >
+              <h2 className={headingClass}>
+                {nav_communities({}, { locale })}
+              </h2>
               {(markets ?? []).map((mk) => (
                 <Link
                   key={mk.code}
@@ -93,7 +104,10 @@ export const Footer = ({ locale, markets }: FooterProps) => {
               ))}
             </nav>
 
-            <nav aria-label={footer_company({}, { locale })} className="flex flex-col gap-2.5">
+            <nav
+              aria-label={footer_company({}, { locale })}
+              className="flex flex-col gap-2.5"
+            >
               <h2 className={headingClass}>{footer_company({}, { locale })}</h2>
               <Link to="/about" className={linkClass}>
                 {footer_about({}, { locale })}
@@ -134,5 +148,5 @@ export const Footer = ({ locale, markets }: FooterProps) => {
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};

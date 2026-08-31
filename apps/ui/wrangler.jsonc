@@ -13,7 +13,7 @@
   // pin every environment to the production script.
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["EventLiveDO"] },
-    { "tag": "v2", "new_sqlite_classes": ["RateLimiterDO"] }
+    { "tag": "v2", "new_sqlite_classes": ["RateLimiterDO"] },
   ],
 
   // ── Top-level = local dev (`vite dev`, Miniflare) ────────────────────────────────────────────
@@ -21,7 +21,7 @@
   // `database_id` is unused by Miniflare, which keys local D1 off `database_name`.
   "vars": {
     "APP_URL": "http://localhost:3000",
-    "MAIL_FROM": "no-reply@founders.coffee"
+    "MAIL_FROM": "no-reply@founders.coffee",
   },
   "send_email": [{ "name": "EMAIL" }],
   "d1_databases": [
@@ -29,14 +29,14 @@
       "binding": "DB",
       "database_name": "founders-coffee-db-staging",
       "database_id": "LOCAL_DEV_ONLY",
-      "migrations_dir": "../../libs/db/migrations"
-    }
+      "migrations_dir": "../../libs/db/migrations",
+    },
   ],
   "durable_objects": {
     "bindings": [
       { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
-      { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" }
-    ]
+      { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" },
+    ],
   },
 
   // ── Deploy environments ──────────────────────────────────────────────────────────────────────
@@ -48,10 +48,12 @@
     "staging": {
       "name": "founders-coffee-ui-staging",
       "workers_dev": true,
-      "routes": [{ "pattern": "staging.founders.coffee", "custom_domain": true }],
+      "routes": [
+        { "pattern": "staging.founders.coffee", "custom_domain": true },
+      ],
       "vars": {
         "APP_URL": "https://staging.founders.coffee",
-        "MAIL_FROM": "no-reply@founders.coffee"
+        "MAIL_FROM": "no-reply@founders.coffee",
       },
       "send_email": [{ "name": "EMAIL" }],
       "d1_databases": [
@@ -59,15 +61,15 @@
           "binding": "DB",
           "database_name": "founders-coffee-db-staging",
           "database_id": "cbbba018-a4e3-491a-9a02-7995aa45315b",
-          "migrations_dir": "../../libs/db/migrations"
-        }
+          "migrations_dir": "../../libs/db/migrations",
+        },
       ],
       "durable_objects": {
         "bindings": [
           { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
-          { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" }
-        ]
-      }
+          { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" },
+        ],
+      },
     },
     "production": {
       "name": "founders-coffee-ui-production",
@@ -75,7 +77,7 @@
       "routes": [{ "pattern": "founders.coffee", "custom_domain": true }],
       "vars": {
         "APP_URL": "https://founders.coffee",
-        "MAIL_FROM": "no-reply@founders.coffee"
+        "MAIL_FROM": "no-reply@founders.coffee",
       },
       "send_email": [{ "name": "EMAIL" }],
       "d1_databases": [
@@ -83,15 +85,15 @@
           "binding": "DB",
           "database_name": "founders-coffee-db-production",
           "database_id": "7685fda1-7bc0-4907-a37a-a77e8daa5ecb",
-          "migrations_dir": "../../libs/db/migrations"
-        }
+          "migrations_dir": "../../libs/db/migrations",
+        },
       ],
       "durable_objects": {
         "bindings": [
           { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
-          { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" }
-        ]
-      }
-    }
-  }
+          { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" },
+        ],
+      },
+    },
+  },
 }

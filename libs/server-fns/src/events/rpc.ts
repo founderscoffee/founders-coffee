@@ -1,7 +1,11 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 
-import { appValidator, handleResult, marketCodeSchema } from '@founders-coffee/core';
+import {
+  appValidator,
+  handleResult,
+  marketCodeSchema,
+} from '@founders-coffee/core';
 
 import { requireAuth } from '../authz.js';
 import { requirePermission } from '../auth-middleware.js';
@@ -10,7 +14,12 @@ import { getRequest } from '@tanstack/react-start/server';
 import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
 import { attachAttendance } from './attendance.js';
-import { createEventResolver, listEvents, resolveEvent, type EventCreateInput } from './resolver.js';
+import {
+  createEventResolver,
+  listEvents,
+  resolveEvent,
+  type EventCreateInput,
+} from './resolver.js';
 
 const eventCreateSchema = z.object({
   marketCode: marketCodeSchema,
@@ -32,11 +41,16 @@ const eventCreateSchema = z.object({
  * resolver generates the id + slug, validates the geo state/city, and inserts the row.
  */
 export const createEvent = createServerFn({ strict: false })
-  .middleware([requirePermission('event', 'create'), rateLimit('create_event', 5, 600_000)])
+  .middleware([
+    requirePermission('event', 'create'),
+    rateLimit('create_event', 5, 600_000),
+  ])
   .validator(appValidator(eventCreateSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
-    return handleResult(createEventResolver(getDb(), session.user.id, data as EventCreateInput));
+    return handleResult(
+      createEventResolver(getDb(), session.user.id, data as EventCreateInput),
+    );
   });
 
 /**

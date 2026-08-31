@@ -25,7 +25,9 @@ export interface SmsProvider {
    * Throws `AppError('sms_failed')` on transient errors (carrier reject, network).
    * The caller is responsible for rate-limiting + Fraud Guard short-circuit caching.
    */
-  sendOtp(args: SendSmsOtpArgs): Promise<{ fraudGuardBlocked?: boolean } | void>;
+  sendOtp(
+    args: SendSmsOtpArgs,
+  ): Promise<{ fraudGuardBlocked?: boolean } | void>;
 
   /**
    * Optional: verify an OTP code. When set, Better Auth's phoneNumber plugin

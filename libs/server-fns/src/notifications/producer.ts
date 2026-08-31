@@ -41,7 +41,11 @@ const buildSmsBody = (
 ): string => {
   const eventUrl = `https://founders.coffee/${payload.marketCode}/e/${payload.eventSlug}`;
   const dateStr = new Date(payload.startsAt).toLocaleDateString(
-    payload.locale === 'ar' ? 'ar-DZ' : payload.locale === 'fr' ? 'fr-DZ' : 'en',
+    payload.locale === 'ar'
+      ? 'ar-DZ'
+      : payload.locale === 'fr'
+        ? 'fr-DZ'
+        : 'en',
     { weekday: 'long', month: 'short', day: 'numeric' },
   );
 
@@ -72,8 +76,18 @@ const buildEmailPayload = (
   const title = escapeHtml(payload.eventTitle);
   const venue = escapeHtml(payload.venue);
   const dateStr = new Date(payload.startsAt).toLocaleDateString(
-    payload.locale === 'ar' ? 'ar-DZ' : payload.locale === 'fr' ? 'fr-DZ' : 'en',
-    { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' },
+    payload.locale === 'ar'
+      ? 'ar-DZ'
+      : payload.locale === 'fr'
+        ? 'fr-DZ'
+        : 'en',
+    {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    },
   );
 
   switch (templateKey) {
@@ -160,7 +174,13 @@ export const enqueueRsvpNotifications = async (
 
   /** RSVP confirmation — immediate. */
   const confirmKey = 'rsvp_confirmation' as const;
-  if (!(await hasPendingNotification(db, { eventId: opts.eventId, userId: opts.userId, templateKey: confirmKey }))) {
+  if (
+    !(await hasPendingNotification(db, {
+      eventId: opts.eventId,
+      userId: opts.userId,
+      templateKey: confirmKey,
+    }))
+  ) {
     const smsBody = buildSmsBody(confirmKey, basePayload);
     const emailPayload = buildEmailPayload(confirmKey, basePayload);
     await enqueueNotification(db, {
@@ -169,9 +189,10 @@ export const enqueueRsvpNotifications = async (
       userId: opts.userId,
       channel,
       templateKey: confirmKey,
-      payload: channel === 'sms'
-        ? { ...basePayload, smsBody }
-        : { ...basePayload, ...emailPayload },
+      payload:
+        channel === 'sms'
+          ? { ...basePayload, smsBody }
+          : { ...basePayload, ...emailPayload },
       sendAt: new Date(),
       fallbackChannel: fallback,
     });
@@ -180,7 +201,13 @@ export const enqueueRsvpNotifications = async (
   /** T-72h reminder — only if event is >72h away. */
   if (startsAtMs - now > SEVEN_DAYS_MS) {
     const reminder72Key = 'reminder_72h' as const;
-    if (!(await hasPendingNotification(db, { eventId: opts.eventId, userId: opts.userId, templateKey: reminder72Key }))) {
+    if (
+      !(await hasPendingNotification(db, {
+        eventId: opts.eventId,
+        userId: opts.userId,
+        templateKey: reminder72Key,
+      }))
+    ) {
       const smsBody = buildSmsBody(reminder72Key, basePayload);
       const emailPayload = buildEmailPayload(reminder72Key, basePayload);
       await enqueueNotification(db, {
@@ -189,9 +216,10 @@ export const enqueueRsvpNotifications = async (
         userId: opts.userId,
         channel,
         templateKey: reminder72Key,
-        payload: channel === 'sms'
-          ? { ...basePayload, smsBody }
-          : { ...basePayload, ...emailPayload },
+        payload:
+          channel === 'sms'
+            ? { ...basePayload, smsBody }
+            : { ...basePayload, ...emailPayload },
         sendAt: new Date(startsAtMs - SEVEN_DAYS_MS),
         fallbackChannel: fallback,
       });
@@ -211,7 +239,13 @@ export const enqueueRsvpNotifications = async (
   /** T-24h reminder — only if event is >24h away. */
   if (startsAtMs - now > TWENTY_FOUR_HOURS_MS) {
     const reminder24Key = 'reminder_24h' as const;
-    if (!(await hasPendingNotification(db, { eventId: opts.eventId, userId: opts.userId, templateKey: reminder24Key }))) {
+    if (
+      !(await hasPendingNotification(db, {
+        eventId: opts.eventId,
+        userId: opts.userId,
+        templateKey: reminder24Key,
+      }))
+    ) {
       const smsBody = buildSmsBody(reminder24Key, basePayload);
       const emailPayload = buildEmailPayload(reminder24Key, basePayload);
       await enqueueNotification(db, {
@@ -220,9 +254,10 @@ export const enqueueRsvpNotifications = async (
         userId: opts.userId,
         channel,
         templateKey: reminder24Key,
-        payload: channel === 'sms'
-          ? { ...basePayload, smsBody }
-          : { ...basePayload, ...emailPayload },
+        payload:
+          channel === 'sms'
+            ? { ...basePayload, smsBody }
+            : { ...basePayload, ...emailPayload },
         sendAt: new Date(startsAtMs - TWENTY_FOUR_HOURS_MS),
         fallbackChannel: fallback,
       });

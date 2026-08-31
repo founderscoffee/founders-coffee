@@ -16,7 +16,13 @@
 export { getPublicAuthConfig } from './auth-config.js';
 export { getFirebaseConfig, getMapboxToken } from './config.js';
 export { getGeoCountry } from './geo.js';
-export { getCities, getCity, getFeaturedCities, getStates, searchCities } from './geo-rpc.js';
+export {
+  getCities,
+  getCity,
+  getFeaturedCities,
+  getStates,
+  searchCities,
+} from './geo-rpc.js';
 export * from './events/index.js';
 export * from './rsvps/index.js';
 export * from './waitlist/index.js';

@@ -67,5 +67,7 @@ export const findPendingWaitlistForCity = async (
   return db
     .select()
     .from(cityWaitlist)
-    .where(and(eq(cityWaitlist.cityCode, cityCode), isNull(cityWaitlist.notifiedAt)));
+    .where(
+      and(eq(cityWaitlist.cityCode, cityCode), isNull(cityWaitlist.notifiedAt)),
+    );
 };

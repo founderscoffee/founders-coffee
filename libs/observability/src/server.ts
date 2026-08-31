@@ -45,7 +45,9 @@ const buildLogger = (
  * fresh instance per request only if you need a per-request transport. Defaults:
  * console transport, `info` threshold.
  */
-export const createServerLogger = (options: CreateServerLoggerOptions = {}): Logger => {
+export const createServerLogger = (
+  options: CreateServerLoggerOptions = {},
+): Logger => {
   const threshold: LogLevel = options.level ?? 'info';
   const transport = options.transport ?? consoleTransport;
   return buildLogger(transport, threshold, options.service ?? 'worker', {});

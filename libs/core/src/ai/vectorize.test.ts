@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import type { VectorizeMatch, VectorizeQueryOptions, VectorizeRuntime } from './ports.js';
+import type {
+  VectorizeMatch,
+  VectorizeQueryOptions,
+  VectorizeRuntime,
+} from './ports.js';
 import { search, upsertDocuments } from './vectorize.js';
 
 const captureIndex = (matches: readonly VectorizeMatch[] = []) => {
@@ -24,12 +28,16 @@ const throwingQueryIndex = (): VectorizeRuntime => ({
 
 describe('search', () => {
   it('returns matches sorted by score descending', async () => {
-    const { runtime } = captureIndex([{ id: 'low', score: 0.1 }, { id: 'high', score: 0.9 }]);
+    const { runtime } = captureIndex([
+      { id: 'low', score: 0.1 },
+      { id: 'high', score: 0.9 },
+    ]);
 
     const result = await search(runtime, [0.5], { topK: 5 });
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data.map((m) => m.id)).toEqual(['high', 'low']);
+    if (result.ok)
+      expect(result.data.map((m) => m.id)).toEqual(['high', 'low']);
   });
 
   it('passes the filter + default topK through to the index', async () => {

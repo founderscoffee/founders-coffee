@@ -1,5 +1,8 @@
 import type { EmailProvider, OtpType } from '@founders-coffee/auth';
-import { createCloudflareEmailProvider, renderEmail } from '@founders-coffee/email';
+import {
+  createCloudflareEmailProvider,
+  renderEmail,
+} from '@founders-coffee/email';
 import { NotificationEmail } from '@founders-coffee/email/templates';
 import { logger } from '@founders-coffee/observability';
 

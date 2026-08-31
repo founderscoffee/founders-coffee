@@ -40,5 +40,9 @@ export const requireRole = (
  * Used at deploy (no `createUser` — passwordless). Safe to re-run (idempotent).
  */
 export const ensureAdmin = async (db: Db, email: string): Promise<void> => {
-  await db.update(user).set({ role: 'admin' }).where(eq(user.email, email)).run();
+  await db
+    .update(user)
+    .set({ role: 'admin' })
+    .where(eq(user.email, email))
+    .run();
 };

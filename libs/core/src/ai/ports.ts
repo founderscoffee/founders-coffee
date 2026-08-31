@@ -35,7 +35,9 @@ export interface VectorizeQueryOptions {
 
 /** The subset of the Vectorize `VectorizeIndex` binding we call. */
 export interface VectorizeRuntime {
-  upsert(docs: readonly VectorizeUpsertDoc[]): Promise<{ readonly ids: readonly string[] }>;
+  upsert(
+    docs: readonly VectorizeUpsertDoc[],
+  ): Promise<{ readonly ids: readonly string[] }>;
   query(
     vector: readonly number[],
     options: VectorizeQueryOptions,

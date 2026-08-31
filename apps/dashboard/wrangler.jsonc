@@ -14,14 +14,16 @@
     "staging": {
       "name": "founders-coffee-dashboard-staging",
       "workers_dev": true,
-      "routes": [{ "pattern": "app-staging.founders.coffee", "custom_domain": true }],
-      "vars": { "APP_URL": "https://app-staging.founders.coffee" }
+      "routes": [
+        { "pattern": "app-staging.founders.coffee", "custom_domain": true },
+      ],
+      "vars": { "APP_URL": "https://app-staging.founders.coffee" },
     },
     "production": {
       "name": "founders-coffee-dashboard-production",
       "workers_dev": false,
       "routes": [{ "pattern": "app.founders.coffee", "custom_domain": true }],
-      "vars": { "APP_URL": "https://app.founders.coffee" }
-    }
-  }
+      "vars": { "APP_URL": "https://app.founders.coffee" },
+    },
+  },
 }

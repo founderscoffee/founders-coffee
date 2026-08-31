@@ -1,4 +1,12 @@
-import { Body, Container, Head, Hr, Html, Preview, Text } from '@react-email/components';
+import {
+  Body,
+  Container,
+  Head,
+  Hr,
+  Html,
+  Preview,
+  Text,
+} from '@react-email/components';
 import { type CSSProperties, type ReactNode } from 'react';
 import { direction, type Locale } from '@founders-coffee/i18n';
 

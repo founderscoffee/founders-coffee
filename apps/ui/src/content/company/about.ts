@@ -1,11 +1,12 @@
-import type { Locale } from '@founders-coffee/i18n'
+import type { Locale } from '@founders-coffee/i18n';
 
-import type { CompanyPageContent } from './types'
+import type { CompanyPageContent } from './types';
 
 export const aboutContent: Record<Locale, CompanyPageContent> = {
   en: {
     title: 'About founders.coffee',
-    description: 'Local founder communities that meet over coffee - real conversations, no formalities.',
+    description:
+      'Local founder communities that meet over coffee - real conversations, no formalities.',
     updated: '8 August 2026',
     sections: [
       {
@@ -38,7 +39,8 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
   },
   ar: {
     title: 'عن founders.coffee',
-    description: 'مجتمعات رواد أعمال تلتقي حول القهوة - حوارات حقيقية بلا رسميات.',
+    description:
+      'مجتمعات رواد أعمال تلتقي حول القهوة - حوارات حقيقية بلا رسميات.',
     updated: '8 أغسطس 2026',
     sections: [
       {
@@ -103,4 +105,4 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
       },
     ],
   },
-}
+};

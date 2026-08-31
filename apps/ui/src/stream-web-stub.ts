@@ -8,14 +8,17 @@
  * constructors as globals — so re-exporting the globals is a spec-correct polyfill, not a fake.
  * SSR builds keep the real `node:stream/web`.
  */
-export const ReadableStream = globalThis.ReadableStream
-export const ReadableStreamDefaultReader = globalThis.ReadableStreamDefaultReader
-export const ReadableStreamBYOBReader = globalThis.ReadableStreamBYOBReader
-export const WritableStream = globalThis.WritableStream
-export const WritableStreamDefaultWriter = globalThis.WritableStreamDefaultWriter
-export const WritableStreamDefaultController = globalThis.WritableStreamDefaultController
-export const TransformStream = globalThis.TransformStream
-export const ByteLengthQueuingStrategy = globalThis.ByteLengthQueuingStrategy
-export const CountQueuingStrategy = globalThis.CountQueuingStrategy
-export const TextEncoderStream = globalThis.TextEncoderStream
-export const TextDecoderStream = globalThis.TextDecoderStream
+export const ReadableStream = globalThis.ReadableStream;
+export const ReadableStreamDefaultReader =
+  globalThis.ReadableStreamDefaultReader;
+export const ReadableStreamBYOBReader = globalThis.ReadableStreamBYOBReader;
+export const WritableStream = globalThis.WritableStream;
+export const WritableStreamDefaultWriter =
+  globalThis.WritableStreamDefaultWriter;
+export const WritableStreamDefaultController =
+  globalThis.WritableStreamDefaultController;
+export const TransformStream = globalThis.TransformStream;
+export const ByteLengthQueuingStrategy = globalThis.ByteLengthQueuingStrategy;
+export const CountQueuingStrategy = globalThis.CountQueuingStrategy;
+export const TextEncoderStream = globalThis.TextEncoderStream;
+export const TextDecoderStream = globalThis.TextDecoderStream;

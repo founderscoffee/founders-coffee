@@ -1,43 +1,56 @@
-import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
+import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
-import { appErrorCode } from '@founders-coffee/core'
-import { city_empty_title, type Locale } from '@founders-coffee/i18n'
-import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns'
+import { appErrorCode } from '@founders-coffee/core';
+import { city_empty_title, type Locale } from '@founders-coffee/i18n';
+import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
-import { CityLanding } from '../components/landing/CityLanding'
+import { CityLanding } from '../components/landing/CityLanding';
 
 export const Route = createFileRoute('/$market/$city')({
   staticData: { prerender: true },
   component: () => {
-    const { locale } = Route.useRouteContext()
-    const { market, city, events } = Route.useLoaderData()
-    return <CityLanding locale={locale} market={market} city={city} events={events} />
+    const { locale } = Route.useRouteContext();
+    const { market, city, events } = Route.useLoaderData();
+    return (
+      <CityLanding
+        locale={locale}
+        market={market}
+        city={city}
+        events={events}
+      />
+    );
   },
   loader: async ({ params }): Promise<MarketCity> => {
     try {
       const { market, city, events } = await getCityLanding({
         data: { marketKey: params.market, citySlug: params.city },
-      })
+      });
       if (params.market !== market.slug) {
-        throw redirect({ to: '/$market/$city', params: { market: market.slug, city: params.city } })
+        throw redirect({
+          to: '/$market/$city',
+          params: { market: market.slug, city: params.city },
+        });
       }
-      return { market, city, events }
+      return { market, city, events };
     } catch (error) {
-      const code = appErrorCode(error)
-      if (code === 'market_not_found' || code === 'city_not_found') throw notFound()
-      throw error
+      const code = appErrorCode(error);
+      if (code === 'market_not_found' || code === 'city_not_found')
+        throw notFound();
+      throw error;
     }
   },
   head: ({ loaderData }) => {
-    const locale = (loaderData?.market.defaultLocale ?? 'ar') as Locale
+    const locale = (loaderData?.market.defaultLocale ?? 'ar') as Locale;
     const cityName =
       locale === 'ar'
-        ? (loaderData?.city.nameAr ?? loaderData?.city.name ?? 'founders.coffee')
-        : (loaderData?.city.name ?? 'founders.coffee')
-    const isEmpty = (loaderData?.events.length ?? 0) === 0
-    const citySlug = loaderData?.city.slug ?? ''
-    const marketSlug = loaderData?.market.slug ?? ''
-    const description = city_empty_title({ city: cityName }, { locale })
+        ? (loaderData?.city.nameAr ??
+          loaderData?.city.name ??
+          'founders.coffee')
+        : (loaderData?.city.name ?? 'founders.coffee');
+    const isEmpty = (loaderData?.events.length ?? 0) === 0;
+    const citySlug = loaderData?.city.slug ?? '';
+    const marketSlug = loaderData?.market.slug ?? '';
+    const description = city_empty_title({ city: cityName }, { locale });
 
     return {
       meta: [
@@ -62,6 +75,6 @@ export const Route = createFileRoute('/$market/$city')({
           }),
         },
       ],
-    }
+    };
   },
-})
+});

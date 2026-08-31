@@ -14,7 +14,4 @@ export type {
   SendPushArgs,
   SendPushResult,
 } from './push-provider.js';
-export {
-  FcmPushProvider,
-  DevPushProvider,
-} from './push-provider.js';
+export { FcmPushProvider, DevPushProvider } from './push-provider.js';

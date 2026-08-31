@@ -107,12 +107,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -174,12 +170,8 @@
           "name": "cities_market_code_markets_code_fk",
           "tableFrom": "cities",
           "tableTo": "markets",
-          "columnsFrom": [
-            "market_code"
-          ],
-          "columnsTo": [
-            "code"
-          ],
+          "columnsFrom": ["market_code"],
+          "columnsTo": ["code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -273,9 +265,7 @@
       "indexes": {
         "markets_slug_unique": {
           "name": "markets_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         }
       },
@@ -356,9 +346,7 @@
       "indexes": {
         "session_token_unique": {
           "name": "session_token_unique",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "isUnique": true
         }
       },
@@ -367,12 +355,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -491,9 +475,7 @@
       "indexes": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },
@@ -502,12 +484,8 @@
           "name": "user_home_market_code_markets_code_fk",
           "tableFrom": "user",
           "tableTo": "markets",
-          "columnsFrom": [
-            "home_market_code"
-          ],
-          "columnsTo": [
-            "code"
-          ],
+          "columnsFrom": ["home_market_code"],
+          "columnsTo": ["code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

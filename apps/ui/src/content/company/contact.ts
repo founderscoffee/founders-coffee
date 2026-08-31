@@ -1,15 +1,16 @@
-import type { Locale } from '@founders-coffee/i18n'
+import type { Locale } from '@founders-coffee/i18n';
 
-import type { CompanyPageContent } from './types'
+import type { CompanyPageContent } from './types';
 
 /** Public inbox for support, partnerships, and privacy requests. */
-export const CONTACT_EMAIL = 'contact@founders.coffee'
-export const PRIVACY_EMAIL = CONTACT_EMAIL
+export const CONTACT_EMAIL = 'contact@founders.coffee';
+export const PRIVACY_EMAIL = CONTACT_EMAIL;
 
 export const contactContent: Record<Locale, CompanyPageContent> = {
   en: {
     title: 'Contact',
-    description: 'Reach the founders.coffee team for support, privacy requests, or partnerships.',
+    description:
+      'Reach the founders.coffee team for support, privacy requests, or partnerships.',
     updated: '8 August 2026',
     sections: [
       {
@@ -35,7 +36,8 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
   },
   ar: {
     title: 'تواصل معنا',
-    description: 'تواصل مع فريق founders.coffee للدعم أو طلبات الخصوصية أو الشراكات.',
+    description:
+      'تواصل مع فريق founders.coffee للدعم أو طلبات الخصوصية أو الشراكات.',
     updated: '8 أغسطس 2026',
     sections: [
       {
@@ -86,4 +88,4 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
       },
     ],
   },
-}
+};

@@ -4,12 +4,12 @@ import {
   getVisibleMarkets,
   type MarketCity,
   type MarketWithCities,
-} from '@founders-coffee/server-fns'
+} from '@founders-coffee/server-fns';
 
 export const marketsApi = {
   getVisibleMarkets,
   getMarketLanding,
   getCityLanding,
-}
+};
 
-export type { MarketCity, MarketWithCities }
+export type { MarketCity, MarketWithCities };

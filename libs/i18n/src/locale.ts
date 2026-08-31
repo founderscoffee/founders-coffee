@@ -7,4 +7,5 @@ export const DEFAULT_LOCALE: Locale = baseLocale;
 export const LOCALES: readonly Locale[] = locales;
 
 /** Layout direction for a locale (SRS FR-L2). Arabic → rtl; en/fr → ltr. */
-export const direction = (locale: Locale): 'rtl' | 'ltr' => getTextDirection(locale);
+export const direction = (locale: Locale): 'rtl' | 'ltr' =>
+  getTextDirection(locale);

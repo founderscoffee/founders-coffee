@@ -2,7 +2,10 @@
 export type EmailProviderCode = string;
 
 /** Codes that mean "try again later" — surfaced as `email_rate_limited` for the P1-009 retry/DLQ. */
-export const EMAIL_RATE_LIMIT_CODES: readonly string[] = ['E_RATE_LIMIT_EXCEEDED', 'E_DAILY_LIMIT_EXCEEDED'];
+export const EMAIL_RATE_LIMIT_CODES: readonly string[] = [
+  'E_RATE_LIMIT_EXCEEDED',
+  'E_DAILY_LIMIT_EXCEEDED',
+];
 
 /**
  * Map a Cloudflare Email Service provider code to a stable `AppError` code so callers can react:

@@ -13,7 +13,11 @@
  *
  * Wired via `resolve.alias` (environment: 'client') in vite.config.ts.
  */
-import { renderToString, renderToStaticMarkup, renderToReadableStream } from 'react-dom/server.browser';
+import {
+  renderToString,
+  renderToStaticMarkup,
+  renderToReadableStream,
+} from 'react-dom/server.browser';
 
 /* `resume` and `version` exist at runtime in react-dom/server.browser.js but are missing from
    the @types/react-dom declaration. @ts-expect-error justified per AGENTS §5 (upstream type gap). */
@@ -38,5 +42,11 @@ const ReactDOMServer: ReactDOMServerLike = {
   version,
 };
 
-export { renderToString, renderToStaticMarkup, renderToReadableStream, resume, version };
+export {
+  renderToString,
+  renderToStaticMarkup,
+  renderToReadableStream,
+  resume,
+  version,
+};
 export default ReactDOMServer;

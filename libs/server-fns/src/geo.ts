@@ -10,8 +10,10 @@ import { env } from 'cloudflare:workers';
  * Client-safe: the `getRequestHeader` + `cloudflare:workers` imports are inside the handler (server),
  * so TanStack's createServerFn split drops them from the browser bundle.
  */
-export const getGeoCountry = createServerFn({ strict: false }).handler(async () => {
-  const header = getRequestHeader('cf-ipcountry');
-  if (header) return header;
-  return (env as { DEV_GEO?: string }).DEV_GEO ?? null;
-});
+export const getGeoCountry = createServerFn({ strict: false }).handler(
+  async () => {
+    const header = getRequestHeader('cf-ipcountry');
+    if (header) return header;
+    return (env as { DEV_GEO?: string }).DEV_GEO ?? null;
+  },
+);

@@ -21,7 +21,9 @@ describe('checkPermission', () => {
   });
 
   it('allows reading sponsorships for all roles', () => {
-    expect(checkPermission('sponsor_contact', 'sponsorship', 'read')).toBe(true);
+    expect(checkPermission('sponsor_contact', 'sponsorship', 'read')).toBe(
+      true,
+    );
   });
 });
 
@@ -40,13 +42,15 @@ describe('requireAuth', () => {
 
 describe('requirePermission', () => {
   it('throws unauthenticated without a session', () => {
-    expect(() => requirePermission(null, 'event', 'create')).toThrowError(AppError);
+    expect(() => requirePermission(null, 'event', 'create')).toThrowError(
+      AppError,
+    );
   });
 
   it('throws forbidden when the role lacks the permission', () => {
-    expect(() => requirePermission(session('sponsor_contact'), 'event', 'create')).toThrowError(
-      /Permission denied/,
-    );
+    expect(() =>
+      requirePermission(session('sponsor_contact'), 'event', 'create'),
+    ).toThrowError(/Permission denied/);
   });
 
   it('returns the session when the role has the permission', () => {

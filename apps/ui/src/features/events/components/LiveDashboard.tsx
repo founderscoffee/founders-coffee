@@ -142,11 +142,11 @@ export const LiveDashboard = ({
             <p className="text-sm font-medium opacity-70">Host</p>
             {host.arrived ? (
               <div className="mt-1">
-                <p className="font-semibold">{host.visualCue ?? 'At the venue'}</p>
+                <p className="font-semibold">
+                  {host.visualCue ?? 'At the venue'}
+                </p>
                 {host.tableNumber && (
-                  <p className="text-sm opacity-70">
-                    Table {host.tableNumber}
-                  </p>
+                  <p className="text-sm opacity-70">Table {host.tableNumber}</p>
                 )}
               </div>
             ) : (
@@ -212,7 +212,10 @@ export const LiveDashboard = ({
               onChange={(e) => setVisualCue(e.target.value)}
             />
             <div className="flex gap-2">
-              <button className="btn btn-primary btn-sm" onClick={handleArrived}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={handleArrived}
+              >
                 Confirm
               </button>
               <button
@@ -237,9 +240,7 @@ export const LiveDashboard = ({
             <button
               className="btn btn-sm"
               disabled={!tableNumber}
-              onClick={() =>
-                sendTablePin(parseInt(tableNumber, 10))
-              }
+              onClick={() => sendTablePin(parseInt(tableNumber, 10))}
             >
               Update Table
             </button>

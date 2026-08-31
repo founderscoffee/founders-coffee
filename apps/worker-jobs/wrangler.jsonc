@@ -10,19 +10,21 @@
   // Deploys always target a named environment below. Workers AI and Vectorize are not emulated by
   // Miniflare (see docs/ai.md), so those bindings only do real work once deployed.
   "vars": {
-    "MAIL_FROM": "no-reply@founders.coffee"
+    "MAIL_FROM": "no-reply@founders.coffee",
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "founders-coffee-db-staging",
       "database_id": "LOCAL_DEV_ONLY",
-      "migrations_dir": "../../libs/db/migrations"
-    }
+      "migrations_dir": "../../libs/db/migrations",
+    },
   ],
   "send_email": [{ "name": "EMAIL" }],
   "ai": { "binding": "AI" },
-  "vectorize": [{ "binding": "VECTOR", "index_name": "founders-coffee-embeddings-staging" }],
+  "vectorize": [
+    { "binding": "VECTOR", "index_name": "founders-coffee-embeddings-staging" },
+  ],
   "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
 
   // ── Deploy environments ──────────────────────────────────────────────────────────────────────
@@ -40,40 +42,50 @@
       "workers_dev": false,
       "vars": {
         "MAIL_FROM": "no-reply@founders.coffee",
-        "TWILIO_SMS_FROM": "FCoffee"
+        "TWILIO_SMS_FROM": "FCoffee",
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "founders-coffee-db-staging",
           "database_id": "cbbba018-a4e3-491a-9a02-7995aa45315b",
-          "migrations_dir": "../../libs/db/migrations"
-        }
+          "migrations_dir": "../../libs/db/migrations",
+        },
       ],
       "send_email": [{ "name": "EMAIL" }],
       "ai": { "binding": "AI" },
-      "vectorize": [{ "binding": "VECTOR", "index_name": "founders-coffee-embeddings-staging" }],
-      "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] }
+      "vectorize": [
+        {
+          "binding": "VECTOR",
+          "index_name": "founders-coffee-embeddings-staging",
+        },
+      ],
+      "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
     },
     "production": {
       "name": "founders-coffee-worker-jobs-production",
       "workers_dev": false,
       "vars": {
         "MAIL_FROM": "no-reply@founders.coffee",
-        "TWILIO_SMS_FROM": "FCoffee"
+        "TWILIO_SMS_FROM": "FCoffee",
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "founders-coffee-db-production",
           "database_id": "7685fda1-7bc0-4907-a37a-a77e8daa5ecb",
-          "migrations_dir": "../../libs/db/migrations"
-        }
+          "migrations_dir": "../../libs/db/migrations",
+        },
       ],
       "send_email": [{ "name": "EMAIL" }],
       "ai": { "binding": "AI" },
-      "vectorize": [{ "binding": "VECTOR", "index_name": "founders-coffee-embeddings-production" }],
-      "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] }
-    }
-  }
+      "vectorize": [
+        {
+          "binding": "VECTOR",
+          "index_name": "founders-coffee-embeddings-production",
+        },
+      ],
+      "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
+    },
+  },
 }

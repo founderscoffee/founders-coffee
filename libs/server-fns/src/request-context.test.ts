@@ -22,7 +22,9 @@ describe('withRequestContext', () => {
     await withRequestContext(async () => {
       captured = getRequestContext().requestId;
     });
-    expect(captured).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(captured).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
   });
 
   it('propagates the requestId across awaits', async () => {

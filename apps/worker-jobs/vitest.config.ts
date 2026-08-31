@@ -1,6 +1,9 @@
 import path from 'node:path';
 
-import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
+import {
+  cloudflareTest,
+  readD1Migrations,
+} from '@cloudflare/vitest-pool-workers';
 import { defineConfig } from 'vitest/config';
 
 /**
@@ -10,7 +13,9 @@ import { defineConfig } from 'vitest/config';
  * via injected port fakes (jobs/embeddings.test.ts) — never env.AI/env.VECTOR.
  */
 export default defineConfig(async () => {
-  const migrations = await readD1Migrations(path.join(__dirname, '../../libs/db/migrations'));
+  const migrations = await readD1Migrations(
+    path.join(__dirname, '../../libs/db/migrations'),
+  );
   return {
     plugins: [
       cloudflareTest({

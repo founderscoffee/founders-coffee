@@ -1,8 +1,8 @@
-import type { Locale } from '@founders-coffee/i18n'
+import type { Locale } from '@founders-coffee/i18n';
 
-import { CONTACT_EMAIL } from '../content/company'
+import { CONTACT_EMAIL } from '../content/company';
 
-export const SITE_ORIGIN = 'https://founders.coffee'
+export const SITE_ORIGIN = 'https://founders.coffee';
 
 export const organizationJsonLd = () =>
   JSON.stringify({
@@ -22,19 +22,24 @@ export const organizationJsonLd = () =>
         availableLanguage: ['ar', 'en', 'fr'],
       },
     ],
-  })
+  });
 
 type CompanyHeadInput = {
-  locale: Locale
-  path: string
-  title: string
-  description: string
-}
+  locale: Locale;
+  path: string;
+  title: string;
+  description: string;
+};
 
 /** Shared meta + WebPage JSON-LD for About / Contact / Privacy / Terms / Cookies. */
-export const companyPageHead = ({ locale, path, title, description }: CompanyHeadInput) => {
-  const url = `${SITE_ORIGIN}${path}`
-  const fullTitle = `${title} - founders.coffee`
+export const companyPageHead = ({
+  locale,
+  path,
+  title,
+  description,
+}: CompanyHeadInput) => {
+  const url = `${SITE_ORIGIN}${path}`;
+  const fullTitle = `${title} - founders.coffee`;
 
   return {
     meta: [
@@ -46,7 +51,11 @@ export const companyPageHead = ({ locale, path, title, description }: CompanyHea
       { property: 'og:title', content: fullTitle },
       { property: 'og:description', content: description },
       { property: 'og:url', content: url },
-      { property: 'og:locale', content: locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US' },
+      {
+        property: 'og:locale',
+        content:
+          locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US',
+      },
       { name: 'twitter:card', content: 'summary' },
       { name: 'twitter:title', content: fullTitle },
       { name: 'twitter:description', content: description },
@@ -61,10 +70,14 @@ export const companyPageHead = ({ locale, path, title, description }: CompanyHea
           name: fullTitle,
           description,
           url,
-          isPartOf: { '@type': 'WebSite', name: 'founders.coffee', url: SITE_ORIGIN },
+          isPartOf: {
+            '@type': 'WebSite',
+            name: 'founders.coffee',
+            url: SITE_ORIGIN,
+          },
           inLanguage: locale,
         }),
       },
     ],
-  }
-}
+  };
+};

@@ -1,7 +1,10 @@
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import { type Locale } from '@founders-coffee/i18n';
-import type { EventFeedItem, TrendingSection } from '@founders-coffee/server-fns';
+import type {
+  EventFeedItem,
+  TrendingSection,
+} from '@founders-coffee/server-fns';
 
 import { DiscoverFeed } from './DiscoverFeed';
 import { MarketHero } from './MarketHero';

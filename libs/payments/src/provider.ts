@@ -33,5 +33,9 @@ export interface PaymentProvider {
   initiate(input: InitiatePaymentInput): Promise<Result<Order>>;
   confirm(orderId: string, actor: PaymentActor): Promise<Result<Order>>;
   cancel(orderId: string, actor: PaymentActor): Promise<Result<Order>>;
-  refund(orderId: string, actor: PaymentActor, reason?: string): Promise<Result<Order>>;
+  refund(
+    orderId: string,
+    actor: PaymentActor,
+    reason?: string,
+  ): Promise<Result<Order>>;
 }

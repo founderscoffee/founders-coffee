@@ -1,6 +1,6 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 
-import appCss from '../styles.css?url'
+import appCss from '../styles.css?url';
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -13,8 +13,8 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
         <Scripts />
       </body>
     </html>
-  )
-}
+  );
+};
 
 export const Route = createRootRoute({
   head: () => ({
@@ -38,4 +38,4 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
-})
+});

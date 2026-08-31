@@ -33,7 +33,9 @@ describe('Result envelope', () => {
 
 describe('appErrorCode', () => {
   it('reads the code from an AppError-shaped object', () => {
-    expect(appErrorCode(new AppError('event_full', 'no seats'))).toBe('event_full');
+    expect(appErrorCode(new AppError('event_full', 'no seats'))).toBe(
+      'event_full',
+    );
   });
 
   it('reads the code from a plain object with a string code', () => {

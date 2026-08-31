@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "db",
-      "database_id": "test"
-    }
-  ]
+      "database_id": "test",
+    },
+  ],
 }

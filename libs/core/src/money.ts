@@ -46,13 +46,19 @@ export const zeroMoney = (currency: CurrencyCode): Money => ({
 /** Add two same-currency Money values. Throws on currency mismatch. */
 export const addMoney = (a: Money, b: Money): Money => {
   assertSameCurrency(a, b);
-  return { amount_minor: a.amount_minor + b.amount_minor, currency: a.currency };
+  return {
+    amount_minor: a.amount_minor + b.amount_minor,
+    currency: a.currency,
+  };
 };
 
 /** Subtract two same-currency Money values. Throws on currency mismatch. */
 export const subtractMoney = (a: Money, b: Money): Money => {
   assertSameCurrency(a, b);
-  return { amount_minor: a.amount_minor - b.amount_minor, currency: a.currency };
+  return {
+    amount_minor: a.amount_minor - b.amount_minor,
+    currency: a.currency,
+  };
 };
 
 /**

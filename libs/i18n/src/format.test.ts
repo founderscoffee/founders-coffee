@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { Money } from '@founders-coffee/core';
 
-import { formatDate, formatMoney, formatNumber, hasOnlyLatinDigits } from './format.js';
+import {
+  formatDate,
+  formatMoney,
+  formatNumber,
+  hasOnlyLatinDigits,
+} from './format.js';
 
 const arMoney: Money = { amount_minor: 123456, currency: 'DZD' };
 

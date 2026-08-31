@@ -27,11 +27,7 @@ export interface HostState {
 }
 
 export type ConnectionState =
-  | 'disconnected'
-  | 'connecting'
-  | 'authenticating'
-  | 'connected'
-  | 'error';
+  'disconnected' | 'connecting' | 'authenticating' | 'connected' | 'error';
 
 export interface UseEventLiveResult {
   roster: RosterUser[];
@@ -159,10 +155,7 @@ export const useEventLive = (eventId: string): UseEventLiveResult => {
       setConnectionState('disconnected');
 
       const delay = reconnectDelayRef.current;
-      reconnectDelayRef.current = Math.min(
-        delay * 2,
-        MAX_RECONNECT_DELAY,
-      );
+      reconnectDelayRef.current = Math.min(delay * 2, MAX_RECONNECT_DELAY);
 
       reconnectTimerRef.current = setTimeout(() => {
         if (mountedRef.current) connect();

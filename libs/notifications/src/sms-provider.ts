@@ -41,8 +41,7 @@ export interface TwilioSmsEnv {
   TWILIO_SMS_FROM: string;
 }
 
-const TWILIO_MESSAGES_URL =
-  'https://api.twilio.com/2010-04-01/Accounts';
+const TWILIO_MESSAGES_URL = 'https://api.twilio.com/2010-04-01/Accounts';
 
 /**
  * Real SMS provider using Twilio Programmable SMS (Messages API).
@@ -56,9 +55,7 @@ const TWILIO_MESSAGES_URL =
  * - 21614 (not mobile) → permanent failure
  * - All others → transient (retryable)
  */
-export class TwilioProgrammableSmsProvider
-  implements NotificationSmsProvider
-{
+export class TwilioProgrammableSmsProvider implements NotificationSmsProvider {
   readonly name = 'twilio-sms';
   private readonly accountSid: string;
   private readonly authHeader: string;
@@ -97,8 +94,7 @@ export class TwilioProgrammableSmsProvider
           message?: string;
         };
 
-        const isPermanent =
-          data.code === 21211 || data.code === 21614;
+        const isPermanent = data.code === 21211 || data.code === 21614;
 
         return err(
           new AppError(
@@ -136,9 +132,7 @@ export class TwilioProgrammableSmsProvider
  * Records all sent messages in the `sent` array for test assertions
  * (same pattern as `DevSmsProvider` in `libs/auth`).
  */
-export class DevNotificationSmsProvider
-  implements NotificationSmsProvider
-{
+export class DevNotificationSmsProvider implements NotificationSmsProvider {
   readonly name = 'dev-sms';
   readonly sent: SendNotificationSmsArgs[] = [];
 
@@ -146,9 +140,7 @@ export class DevNotificationSmsProvider
     args: SendNotificationSmsArgs,
   ): Promise<Result<SendNotificationSmsResult>> => {
     this.sent.push(args);
-    console.log(
-      `[DevNotificationSmsProvider] SMS to ${args.to}: ${args.body}`,
-    );
+    console.log(`[DevNotificationSmsProvider] SMS to ${args.to}: ${args.body}`);
     return ok({ sid: `dev_sms_${Date.now()}`, segments: 1 });
   };
 }

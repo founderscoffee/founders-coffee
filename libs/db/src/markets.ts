@@ -4,14 +4,28 @@ import type { Db } from './db.js';
 import { markets, type Market } from './schema.js';
 
 /** Fetch a market by its primary key (code). */
-export const getMarketByCode = async (db: Db, code: string): Promise<Market | undefined> => {
-  const rows = await db.select().from(markets).where(eq(markets.code, code)).limit(1);
+export const getMarketByCode = async (
+  db: Db,
+  code: string,
+): Promise<Market | undefined> => {
+  const rows = await db
+    .select()
+    .from(markets)
+    .where(eq(markets.code, code))
+    .limit(1);
   return rows[0];
 };
 
 /** Fetch a market by slug (path-style resolution, e.g. `/algeria`). */
-export const getMarketBySlug = async (db: Db, slug: string): Promise<Market | undefined> => {
-  const rows = await db.select().from(markets).where(eq(markets.slug, slug)).limit(1);
+export const getMarketBySlug = async (
+  db: Db,
+  slug: string,
+): Promise<Market | undefined> => {
+  const rows = await db
+    .select()
+    .from(markets)
+    .where(eq(markets.slug, slug))
+    .limit(1);
   return rows[0];
 };
 
@@ -23,7 +37,10 @@ export const listMarkets = async (
 ): Promise<Market[]> => {
   const rows =
     opts.states && opts.states.length > 0
-      ? await db.select().from(markets).where(inArray(markets.state, [...opts.states]))
+      ? await db
+          .select()
+          .from(markets)
+          .where(inArray(markets.state, [...opts.states]))
       : await db.select().from(markets);
   return rows;
 };

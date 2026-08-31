@@ -6,10 +6,7 @@
  */
 
 export type OtpType =
-  | 'sign-in'
-  | 'email-verification'
-  | 'forget-password'
-  | 'change-email';
+  'sign-in' | 'email-verification' | 'forget-password' | 'change-email';
 
 export interface SendOtpArgs {
   email: string;

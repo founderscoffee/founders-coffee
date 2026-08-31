@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/react-router'
-import { Check, Copy, Mail } from 'lucide-react'
-import { useState } from 'react'
+import { Link } from '@tanstack/react-router';
+import { Check, Copy, Mail } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   contact_copy_email,
@@ -13,21 +13,21 @@ import {
   page_legal_draft_notice,
   page_on_this_page,
   type Locale,
-} from '@founders-coffee/i18n'
+} from '@founders-coffee/i18n';
 
-import type { CompanyPageContent } from '../../content/company'
-import { CONTACT_EMAIL } from '../../content/company'
+import type { CompanyPageContent } from '../../content/company';
+import { CONTACT_EMAIL } from '../../content/company';
 
 type CompanyPageProps = {
-  locale: Locale
-  content: CompanyPageContent
+  locale: Locale;
+  content: CompanyPageContent;
   /** Show mailto + copy actions (contact page). */
-  showEmailActions?: boolean
+  showEmailActions?: boolean;
   /** Which related legal links to show at the bottom. */
-  related?: ReadonlyArray<'privacy' | 'terms' | 'cookies'>
+  related?: ReadonlyArray<'privacy' | 'terms' | 'cookies'>;
   /** Show “product draft pending counsel” notice (Privacy / Terms / Cookies). */
-  showLegalDraftNotice?: boolean
-}
+  showLegalDraftNotice?: boolean;
+};
 
 const sectionDomId = (heading: string, index: number) => {
   const slug = heading
@@ -36,9 +36,9 @@ const sectionDomId = (heading: string, index: number) => {
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-|-$/g, '')
-    .slice(0, 48)
-  return `s-${index}-${slug || 'section'}`
-}
+    .slice(0, 48);
+  return `s-${index}-${slug || 'section'}`;
+};
 
 export const CompanyPage = ({
   locale,
@@ -47,22 +47,22 @@ export const CompanyPage = ({
   related = ['privacy', 'terms', 'cookies'],
   showLegalDraftNotice = false,
 }: CompanyPageProps) => {
-  const [copied, setCopied] = useState(false)
-  const showToc = content.sections.length >= 4
+  const [copied, setCopied] = useState(false);
+  const showToc = content.sections.length >= 4;
   const sections = content.sections.map((section, index) => ({
     ...section,
     id: sectionDomId(section.heading, index),
-  }))
+  }));
 
   const copyEmail = async () => {
     try {
-      await navigator.clipboard.writeText(CONTACT_EMAIL)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(CONTACT_EMAIL);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      setCopied(false)
+      setCopied(false);
     }
-  }
+  };
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 md:py-16">
@@ -131,7 +131,9 @@ export const CompanyPage = ({
                   href={`#${section.id}`}
                   className="text-[0.9375rem] leading-6 text-base-content/70 transition-colors hover:text-primary"
                 >
-                  <span className="me-2 text-base-content/35">{index + 1}.</span>
+                  <span className="me-2 text-base-content/35">
+                    {index + 1}.
+                  </span>
                   {section.heading}
                 </a>
               </li>
@@ -183,5 +185,5 @@ export const CompanyPage = ({
         </nav>
       ) : null}
     </article>
-  )
-}
+  );
+};

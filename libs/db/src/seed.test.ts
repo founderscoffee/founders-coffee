@@ -40,7 +40,9 @@ describe('libs/db seed (real D1 via Miniflare)', () => {
     await seed(db);
     await seed(db);
 
-    const [{ marketTotal }] = await db.select({ marketTotal: count() }).from(markets);
+    const [{ marketTotal }] = await db
+      .select({ marketTotal: count() })
+      .from(markets);
     expect(marketTotal).toBe(SEED_MARKETS.length);
   });
 });

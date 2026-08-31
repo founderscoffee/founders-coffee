@@ -11,9 +11,15 @@ const TRANSITIONS: Record<EventStatus, readonly EventStatus[]> = {
 export const canTransition = (from: EventStatus, to: EventStatus): boolean =>
   TRANSITIONS[from].includes(to);
 
-export const transition = (from: EventStatus, to: EventStatus): Result<EventStatus> =>
+export const transition = (
+  from: EventStatus,
+  to: EventStatus,
+): Result<EventStatus> =>
   canTransition(from, to)
     ? ok(to)
     : err(
-        new AppError('invalid_event_transition', `Cannot transition event from '${from}' to '${to}'`),
+        new AppError(
+          'invalid_event_transition',
+          `Cannot transition event from '${from}' to '${to}'`,
+        ),
       );

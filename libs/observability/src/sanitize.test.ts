@@ -29,7 +29,10 @@ describe('sanitize', () => {
     expect(sanitize(42)).toBe(42);
     expect(sanitize(null)).toBe(null);
     expect(sanitize(true)).toBe(true);
-    expect(sanitize([{ otp: '123' }, 'ok'])).toEqual([{ otp: '[redacted]' }, 'ok']);
+    expect(sanitize([{ otp: '123' }, 'ok'])).toEqual([
+      { otp: '[redacted]' },
+      'ok',
+    ]);
   });
 
   it('handles circular references', () => {
@@ -41,7 +44,9 @@ describe('sanitize', () => {
   });
 
   it('caps depth at the configured maximum', () => {
-    const deep = { a: { b: { c: { d: { e: { f: { g: { h: { i: 'x' } } } } } } } } };
+    const deep = {
+      a: { b: { c: { d: { e: { f: { g: { h: { i: 'x' } } } } } } } },
+    };
     expect(JSON.stringify(sanitize(deep))).toContain('[max-depth]');
   });
 });

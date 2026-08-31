@@ -1,12 +1,12 @@
-import { defineConfig, type Plugin } from 'vite'
-import { fileURLToPath } from 'node:url'
+import { defineConfig, type Plugin } from 'vite';
+import { fileURLToPath } from 'node:url';
 
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 
-import viteReact from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import { cloudflare } from '@cloudflare/vite-plugin'
-import { serwist } from '@serwist/vite'
+import viteReact from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { cloudflare } from '@cloudflare/vite-plugin';
+import { serwist } from '@serwist/vite';
 
 /* Isomorphic meta-framework code statically imports Node built-ins whose server-side branches never
    run in the browser — better-auth core + the observability server logger pull `AsyncLocalStorage`
@@ -26,15 +26,21 @@ const clientNodeBuiltinStubs: Plugin = {
      exposes `this.environment`. An arrow would capture module scope and lose the binding. */
   // eslint-disable-next-line no-restricted-syntax
   resolveId(source) {
-    if (this.environment?.name !== 'client') return null
+    if (this.environment?.name !== 'client') return null;
     const stubs: Record<string, string> = {
-      'node:async_hooks': fileURLToPath(new URL('./src/async-hooks-stub.ts', import.meta.url)),
-      'node:stream/web': fileURLToPath(new URL('./src/stream-web-stub.ts', import.meta.url)),
-      'node:stream': fileURLToPath(new URL('./src/stream-stub.ts', import.meta.url)),
-    }
-    return stubs[source] ?? null
+      'node:async_hooks': fileURLToPath(
+        new URL('./src/async-hooks-stub.ts', import.meta.url),
+      ),
+      'node:stream/web': fileURLToPath(
+        new URL('./src/stream-web-stub.ts', import.meta.url),
+      ),
+      'node:stream': fileURLToPath(
+        new URL('./src/stream-stub.ts', import.meta.url),
+      ),
+    };
+    return stubs[source] ?? null;
   },
-}
+};
 
 export default defineConfig(({ command }) => ({
   resolve: {
@@ -53,7 +59,9 @@ export default defineConfig(({ command }) => ({
            shim applies to every env — harmless, since the re-exported namespace resolves fine in
            Workerd too. */
         find: 'react-dom/server',
-        replacement: fileURLToPath(new URL('./src/react-dom-server-shim.ts', import.meta.url)),
+        replacement: fileURLToPath(
+          new URL('./src/react-dom-server-shim.ts', import.meta.url),
+        ),
         environment: 'client',
       },
     ],
@@ -81,4 +89,4 @@ export default defineConfig(({ command }) => ({
       disable: command === 'serve',
     }),
   ],
-}))
+}));

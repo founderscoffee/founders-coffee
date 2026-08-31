@@ -20,7 +20,9 @@ import { requestContextMiddleware } from '@founders-coffee/server-fns/request-co
  * - `startInstance` is the named export expected by `@tanstack/start-client-core`'s hydrateStart
  */
 const app = createStart(() => ({
-  requestMiddleware: [createCsrfMiddleware({ secFetchSite: ['none', 'same-origin'] })],
+  requestMiddleware: [
+    createCsrfMiddleware({ secFetchSite: ['none', 'same-origin'] }),
+  ],
   functionMiddleware: [requestContextMiddleware],
 }));
 

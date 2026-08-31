@@ -9,7 +9,10 @@ const SUMMARIZE_SYSTEM = `Summarize the following text for a founder-community r
  * Summarize text via an instruct LLM (used for P3 sponsorship-report narratives). Empty input
  * short-circuits to an empty summary; a missing/blank model response surfaces as an error.
  */
-export const summarize = async (ai: AiRuntime, text: string): Promise<Result<string>> => {
+export const summarize = async (
+  ai: AiRuntime,
+  text: string,
+): Promise<Result<string>> => {
   if (text.trim().length === 0) return ok('');
   try {
     const raw = await ai.run(SUMMARIZE_MODEL, {
@@ -24,6 +27,11 @@ export const summarize = async (ai: AiRuntime, text: string): Promise<Result<str
     }
     return ok(response.trim());
   } catch (error) {
-    return err(new AppError('ai_summarize_failed', error instanceof Error ? error.message : 'summarize failed'));
+    return err(
+      new AppError(
+        'ai_summarize_failed',
+        error instanceof Error ? error.message : 'summarize failed',
+      ),
+    );
   }
 };

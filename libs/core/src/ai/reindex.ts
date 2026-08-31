@@ -2,7 +2,11 @@ import { err, ok, type Result } from '../result.js';
 
 import { chunkText } from './chunk.js';
 import { embed } from './embed.js';
-import type { AiRuntime, VectorizeRuntime, VectorizeUpsertDoc } from './ports.js';
+import type {
+  AiRuntime,
+  VectorizeRuntime,
+  VectorizeUpsertDoc,
+} from './ports.js';
 import { upsertDocuments } from './vectorize.js';
 
 export interface ReindexDocument {

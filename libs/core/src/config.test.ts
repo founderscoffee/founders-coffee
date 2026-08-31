@@ -12,7 +12,11 @@ describe('app config', () => {
 
   it('honours provided values', () => {
     expect(
-      createConfig({ name: 'founders.coffee', env: 'production', defaultMarketCode: 'MA' }),
+      createConfig({
+        name: 'founders.coffee',
+        env: 'production',
+        defaultMarketCode: 'MA',
+      }),
     ).toEqual({
       name: 'founders.coffee',
       env: 'production',

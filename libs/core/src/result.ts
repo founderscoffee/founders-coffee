@@ -39,7 +39,9 @@ export const err = <E = AppError>(error: E): Err<E> => ({ ok: false, error });
  * `useMutation` enter their error state automatically. The single, DRY bridge between
  * the Result envelope and React Query — never replicate `if (!data.ok)` in components.
  */
-export const handleResult = async <T>(promise: Promise<Result<T>>): Promise<T> => {
+export const handleResult = async <T>(
+  promise: Promise<Result<T>>,
+): Promise<T> => {
   const result = await promise;
   if (!result.ok) throw result.error;
   return result.data;

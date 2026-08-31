@@ -4,7 +4,10 @@ import { createClientLogger } from './client.js';
 import { createBeaconTransport, type BatchTransport } from './transports.js';
 import type { LogEntry } from './types.js';
 
-const batchRecorder = (): { transport: BatchTransport; batches: LogEntry[][] } => {
+const batchRecorder = (): {
+  transport: BatchTransport;
+  batches: LogEntry[][];
+} => {
   const batches: LogEntry[][] = [];
   return { transport: (entries) => void batches.push(entries), batches };
 };
@@ -12,7 +15,11 @@ const batchRecorder = (): { transport: BatchTransport; batches: LogEntry[][] } =
 describe('client logger', () => {
   it('buffers entries and flushes a batch when the buffer fills', () => {
     const { transport, batches } = batchRecorder();
-    const logger = createClientLogger({ transport, bufferSize: 2, level: 'debug' });
+    const logger = createClientLogger({
+      transport,
+      bufferSize: 2,
+      level: 'debug',
+    });
     logger.info('a');
     expect(batches).toHaveLength(0);
     logger.info('b');
@@ -24,7 +31,9 @@ describe('client logger', () => {
 
   it('sanitizes before buffering', () => {
     const { transport, batches } = batchRecorder();
-    createClientLogger({ transport, bufferSize: 1, level: 'debug' }).info('x', { token: 'leak' });
+    createClientLogger({ transport, bufferSize: 1, level: 'debug' }).info('x', {
+      token: 'leak',
+    });
     expect((batches[0][0] as Record<string, unknown>).token).toBe('[redacted]');
   });
 
@@ -36,7 +45,11 @@ describe('client logger', () => {
 
   it('respects the level threshold', () => {
     const { transport, batches } = batchRecorder();
-    const logger = createClientLogger({ transport, bufferSize: 1, level: 'warn' });
+    const logger = createClientLogger({
+      transport,
+      bufferSize: 1,
+      level: 'warn',
+    });
     logger.info('skipped');
     logger.warn('kept');
     expect(batches).toHaveLength(1);
@@ -45,7 +58,9 @@ describe('client logger', () => {
 
   it('child loggers bind context', () => {
     const { transport, batches } = batchRecorder();
-    createClientLogger({ transport, bufferSize: 1, level: 'debug' }).child({ market: 'EG' }).info('x');
+    createClientLogger({ transport, bufferSize: 1, level: 'debug' })
+      .child({ market: 'EG' })
+      .info('x');
     expect(batches[0][0].market).toBe('EG');
   });
 
@@ -62,7 +77,9 @@ describe('createBeaconTransport', () => {
     g.navigator = { sendBeacon };
     try {
       const transport = createBeaconTransport('/client-logs');
-      const entries = [{ ts: 't', level: 'info', msg: 'hi', service: 'ui' }] as LogEntry[];
+      const entries = [
+        { ts: 't', level: 'info', msg: 'hi', service: 'ui' },
+      ] as LogEntry[];
       expect(transport(entries)).toBe(true);
       expect(sendBeacon).toHaveBeenCalledOnce();
       const [url, body] = sendBeacon.mock.calls[0] as [string, string];
