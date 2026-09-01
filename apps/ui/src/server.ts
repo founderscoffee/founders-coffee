@@ -6,13 +6,12 @@ import {
   ingestClientLogs,
   type LogEntry,
 } from '@founders-coffee/observability';
+export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
-export { RateLimiterDO } from './durable-objects/RateLimiterDO';
 
-/** apps/ui env: auth handler env + the Email binding + sender address (OTP email). */
 export interface UiEnv extends HandlerEnv {
   EMAIL: SendEmail;
   MAIL_FROM: string;
@@ -33,24 +32,10 @@ const authHandler = (env: UiEnv) => {
   return createAuthHandler(env, emailProvider ? { emailProvider } : {});
 };
 
-/**
- * Custom Workers entry for apps/ui. react-router 1.170.16 has no file-based API routes, so raw HTTP
- * endpoints mount here before the TanStack delegate:
- *   - `GET /api/live/:eventId` → WebSocket upgrade → EventLiveDO (real-time live dashboard)
- *   - `POST /client-logs` → `ingestClientLogs` (re-emits through the server console transport →
- *     Workers Logs/Logpush, the same stream as server logs). Basic shape validation only;
- *     Durable-Object rate limiting lands at P1-018.
- *   - `/api/auth/*` → Better Auth (createAuthHandler — per-request auth + Turnstile gating on the
- *     brute-force endpoints + real OTP email in prod).
- *   - everything else → the TanStack Start server handler, which loads `src/start.ts` (CSRF +
- *     requestContextMiddleware) and serves SSR + server-fns. Those read the D1 binding through
- *     `cloudflare:workers` (`getDb`), not this `env` arg (AGENTS §11.5).
- */
 export default {
   fetch: async (request: Request, env: UiEnv): Promise<Response> => {
     const url = new URL(request.url);
 
-    /** WebSocket upgrade → EventLiveDO (P1-010). */
     if (url.pathname.startsWith('/api/live/')) {
       const eventId = url.pathname.split('/api/live/')[1]?.split('/')[0];
       if (!eventId) return new Response('Missing event id', { status: 400 });

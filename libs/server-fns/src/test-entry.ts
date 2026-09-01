@@ -1,4 +1,5 @@
-/** Minimal worker entry so the vitest-pool-workers runtime can boot. */
+export { RateLimiterDO } from './rate-limiter-do.js';
+
 export default {
   fetch: () => new Response('ok'),
 };

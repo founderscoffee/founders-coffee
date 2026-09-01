@@ -13,6 +13,11 @@
       "@founders-coffee/source": "./src/request-context.ts",
       "types": "./src/request-context.ts",
       "default": "./src/request-context.ts"
+    },
+    "./rate-limiter-do": {
+      "@founders-coffee/source": "./src/rate-limiter-do.ts",
+      "types": "./src/rate-limiter-do.ts",
+      "default": "./src/rate-limiter-do.ts"
     }
   },
   "dependencies": {

@@ -12,6 +12,8 @@ type HostCreateLoaderData = {
   market: Market;
   city: geo.GeoCity;
   mapboxToken: string;
+  turnstileSiteKey: string | null;
+  isTurnstileBypassed: boolean;
 };
 
 export const Route = createFileRoute('/$market/host/create')({
@@ -22,13 +24,16 @@ export const Route = createFileRoute('/$market/host/create')({
   loaderDeps: ({ search }) => ({ city: search.city }),
   component: () => {
     const { locale } = Route.useRouteContext();
-    const { market, city, mapboxToken } = Route.useLoaderData();
+    const { market, city, mapboxToken, turnstileSiteKey, isTurnstileBypassed } =
+      Route.useLoaderData();
     return (
       <HostCreatePage
         locale={locale}
         market={market}
         city={city}
         mapboxToken={mapboxToken}
+        turnstileSiteKey={turnstileSiteKey}
+        isTurnstileBypassed={isTurnstileBypassed}
       />
     );
   },
@@ -56,7 +61,16 @@ export const Route = createFileRoute('/$market/host/create')({
     if (!city) {
       throw redirect({ to: '/$market', params: { market: market.slug } });
     }
-    const mapboxToken = await eventsApi.getMapboxToken();
-    return { market, city, mapboxToken };
+    const [mapboxToken, authConfig] = await Promise.all([
+      eventsApi.getMapboxToken(),
+      eventsApi.getPublicAuthConfig(),
+    ]);
+    return {
+      market,
+      city,
+      mapboxToken,
+      turnstileSiteKey: authConfig.turnstileSiteKey,
+      isTurnstileBypassed: authConfig.isTurnstileBypassed,
+    };
   },
 });

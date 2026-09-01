@@ -21,6 +21,7 @@
   // `database_id` is unused by Miniflare, which keys local D1 off `database_name`.
   "vars": {
     "APP_URL": "http://localhost:3000",
+    "APP_ENVIRONMENT": "development",
     "MAIL_FROM": "no-reply@founders.coffee",
   },
   "send_email": [{ "name": "EMAIL" }],
@@ -53,6 +54,7 @@
       ],
       "vars": {
         "APP_URL": "https://staging.founders.coffee",
+        "APP_ENVIRONMENT": "staging",
         "MAIL_FROM": "no-reply@founders.coffee",
       },
       "send_email": [{ "name": "EMAIL" }],
@@ -77,6 +79,7 @@
       "routes": [{ "pattern": "founders.coffee", "custom_domain": true }],
       "vars": {
         "APP_URL": "https://founders.coffee",
+        "APP_ENVIRONMENT": "production",
         "MAIL_FROM": "no-reply@founders.coffee",
       },
       "send_email": [{ "name": "EMAIL" }],

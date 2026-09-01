@@ -7,10 +7,11 @@ import {
   getHostMapContext,
   getMapboxToken,
   getMarket,
+  getPublicAuthConfig,
   getUpcomingEvents,
   reverseEventVenue,
   searchEventVenues,
-  type EventCreateInput,
+  type EventCreateRequestInput,
   type EventFeedItem,
   type EventFeedPage,
   type EventWithAttendance,
@@ -30,17 +31,18 @@ export const eventsApi = {
   getMarket,
   getCity,
   getMapboxToken,
+  getPublicAuthConfig,
 };
 
 export type {
-  EventCreateInput,
+  EventCreateRequestInput,
   EventFeedItem,
   EventFeedPage,
   EventWithAttendance,
   HostMapContext,
   VenueCandidate,
 };
-export type CreateEventInput = { data: EventCreateInput };
+export type CreateEventInput = { data: EventCreateRequestInput };
 export type RsvpInput = { data: { eventId: string } };
 export type HostMapLocationInput = {
   marketCode: string;

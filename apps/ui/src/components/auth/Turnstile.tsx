@@ -3,9 +3,18 @@ import { useEffect, useRef } from 'react';
 interface TurnstileApi {
   render: (
     el: HTMLElement,
-    opts: { sitekey: string; callback: (token: string) => void },
+    opts: {
+      sitekey: string;
+      action?: string;
+      appearance?: 'always' | 'execute' | 'interaction-only';
+      callback: (token: string) => void;
+      'error-callback': () => void;
+      'expired-callback': () => void;
+      'timeout-callback': () => void;
+    },
   ) => string;
   remove: (id: string) => void;
+  reset: (id: string) => void;
 }
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
@@ -15,6 +24,7 @@ const getTurnstile = (): TurnstileApi | undefined =>
 
 let loading: Promise<void> | null = null;
 const loadTurnstile = (): Promise<void> => {
+  if (getTurnstile()) return Promise.resolve();
   if (loading) return loading;
   loading = new Promise((resolve) => {
     const existing = document.querySelector<HTMLScriptElement>(
@@ -37,10 +47,16 @@ const loadTurnstile = (): Promise<void> => {
 
 export const Turnstile = ({
   sitekey,
+  action,
+  appearance = 'always',
+  resetKey = 0,
   onToken,
 }: {
   sitekey: string;
-  onToken: (token: string) => void;
+  action?: string;
+  appearance?: 'always' | 'execute' | 'interaction-only';
+  resetKey?: number;
+  onToken: (token: string | null) => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
@@ -53,9 +69,18 @@ export const Turnstile = ({
       if (cancelled || !containerRef.current) return;
       const api = getTurnstile();
       if (!api) return;
+      const resetWidget = () => {
+        onTokenRef.current(null);
+        if (widgetId.current) api.reset(widgetId.current);
+      };
       widgetId.current = api.render(containerRef.current, {
         sitekey,
+        action,
+        appearance,
         callback: (token) => onTokenRef.current(token),
+        'error-callback': resetWidget,
+        'expired-callback': resetWidget,
+        'timeout-callback': resetWidget,
       });
     });
     return () => {
@@ -63,7 +88,7 @@ export const Turnstile = ({
       const api = getTurnstile();
       if (widgetId.current && api) api.remove(widgetId.current);
     };
-  }, [sitekey]);
+  }, [action, appearance, resetKey, sitekey]);
 
   return <div ref={containerRef} />;
 };

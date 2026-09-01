@@ -4,11 +4,17 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RateLimiterDO"] }],
+  "durable_objects": {
+    "bindings": [{ "name": "RATE_LIMITER", "class_name": "RateLimiterDO" }],
+  },
   "d1_databases": [
     { "binding": "DB", "database_name": "db", "database_id": "test" },
   ],
   "vars": {
     "BETTER_AUTH_SECRET": "test-secret-at-least-32-characters-long-aaaaaaaa",
     "APP_URL": "http://localhost",
+    "APP_ENVIRONMENT": "development",
+    "TURNSTILE_DISABLED": "true",
   },
 }

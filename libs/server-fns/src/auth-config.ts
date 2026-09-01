@@ -10,9 +10,14 @@ import { hasSocialProviders, type AuthEnv } from '@founders-coffee/auth';
  */
 export const getPublicAuthConfig = createServerFn({ strict: false }).handler(
   async () => {
-    const e = env as AuthEnv & { TURNSTILE_SITE_KEY?: string };
+    const e = env as AuthEnv & {
+      APP_ENVIRONMENT?: string;
+      TURNSTILE_SITE_KEY?: string;
+    };
     return {
       turnstileSiteKey: e.TURNSTILE_SITE_KEY ?? null,
+      isTurnstileBypassed:
+        e.APP_ENVIRONMENT === 'development' && e.TURNSTILE_DISABLED === 'true',
       hasSocial: hasSocialProviders(e),
     };
   },

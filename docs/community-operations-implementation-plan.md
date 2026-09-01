@@ -87,19 +87,19 @@ Drizzle, domain internals, or server functions from a component.
 
 ## 4. Current baseline and gaps
 
-| Area                      | Current evidence                                                                                 | Required result                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| Event creation            | EC-01 through EC-05 complete; EC-06 through EC-10 pending                                        | EC-10 complete before this plan starts                                                                  |
-| RSVP                      | Immediate flow exists; full-capacity atomicity remains blocked                                   | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
-| Notifications             | Providers exist; one-minute D1 polling and parallel channel scheduling violate the locked design | DO alarms -> Queue -> push-first/SMS-fallback before post-event prompts                                 |
-| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened         | Explicit held/did-not-happen closeout separate from publication status                                  |
-| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not      | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
-| Feedback                  | No post-event participant or host pulse                                                          | One small, optional, localized pulse per eligible person                                                |
-| Repeat hosting            | Hosts must recreate every event from scratch                                                     | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
-| Admin app                 | Access JWT guard and empty TanStack shell only                                                   | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
-| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository    | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
-| Metrics                   | Analytics API foundation exists; account binding/dashboard unverified                            | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
-| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded            | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
+| Area                      | Current evidence                                                                                         | Required result                                                                                         |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Event creation            | EC-01 through EC-05 complete; EC-06 code complete with WAF evidence pending; EC-07 through EC-10 pending | EC-10 complete before this plan starts                                                                  |
+| RSVP                      | Immediate flow exists; full-capacity atomicity remains blocked                                           | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
+| Notifications             | Providers exist; one-minute D1 polling and parallel channel scheduling violate the locked design         | DO alarms -> Queue -> push-first/SMS-fallback before post-event prompts                                 |
+| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                 | Explicit held/did-not-happen closeout separate from publication status                                  |
+| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not              | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
+| Feedback                  | No post-event participant or host pulse                                                                  | One small, optional, localized pulse per eligible person                                                |
+| Repeat hosting            | Hosts must recreate every event from scratch                                                             | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
+| Admin app                 | Access JWT guard and empty TanStack shell only                                                           | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
+| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository            | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
+| Metrics                   | Analytics API foundation exists; account binding/dashboard unverified                                    | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
+| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                    | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
 
 ## 5. Locked product and data decisions
 

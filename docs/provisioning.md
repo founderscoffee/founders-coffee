@@ -10,7 +10,7 @@ created once per environment with an `-staging` / `-production` suffix.
 
 ## Status
 
-**Last checked: 2026-08-30.** Repository configuration contains staging and production D1 IDs,
+**Last checked: 2026-09-01.** Repository configuration contains staging and production D1 IDs,
 Vectorize bindings, Worker routes, migrations, and deployment targets. Cloudflare dashboard state and
 secret presence are not externally observable and must be verified with the commands in §7.
 
@@ -19,10 +19,18 @@ staging hosts timed out and production hostnames did not resolve from that envir
 deployment as **unverified**, not serving, until §7 succeeds from a normal network and the Cloudflare
 dashboard confirms the routes. The earlier undated claim that staging was serving has been removed.
 
+The current Wrangler OAuth session was inspected on 2026-09-01. It can manage Workers, D1, routes,
+and Turnstile widgets, but it does not have `Zone WAF Edit` or `Firewall Services Edit`. Therefore
+the EC-06 rate-limiting rules could not be created or inspected from this environment. Event creation
+now fails closed in staging and production until the rule ID and behavioral check for each
+environment are recorded in [`deployment-evidence.md`](./deployment-evidence.md) and the Worker
+secret `EVENT_CREATE_WAF_CONFIGURED` is set to `true`.
+
 | Unset secret                              | Consequence                                                                                                                                |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `MAPBOX_TOKEN`                            | The café map picker on `/{market}/host/create` cannot load.                                                                                |
 | `TURNSTILE_SECRET_KEY`                    | Gated auth endpoints fail closed with `503`; event/RSVP coverage still requires the P1-018 audit.                                          |
+| `EVENT_CREATE_WAF_CONFIGURED`             | Event creation fails closed before Siteverify, Mapbox, or D1 work in staging and production.                                               |
 | `TWILIO_SID`                              | Phone login remains disabled without a Verify Service SID. Deployed phone-OTP endpoints must fail closed rather than use `DevSmsProvider`. |
 | `TWILIO_AID` / `TWILIO_SEC`               | SMS fallback cannot send, and deployed phone-OTP endpoints must remain fail-closed.                                                        |
 | `TWILIO_SMS_FROM`                         | SMS fallback delivery cannot send with the configured notification provider.                                                               |
@@ -44,7 +52,8 @@ environments.
 | Custom domains  | `staging.founders.coffee`, `app-staging.`, `admin-staging.` | `founders.coffee`, `app.`, `admin.`     | `wrangler deploy` (zone must exist) |
 | Email Sending   | shared                                                      | shared                                  | **dashboard + DNS (manual)**        |
 | Access (admin)  | `admin-staging.founders.coffee`                             | `admin.founders.coffee`                 | **dashboard (manual)**              |
-| Turnstile       | test keys or real widget                                    | real widget                             | dashboard                           |
+| Turnstile       | real widget restricted to `staging.founders.coffee`         | real widget                             | dashboard                           |
+| WAF rate limit  | host-specific `/_serverFn/` edge-volume rule                | host-specific `/_serverFn/` rule        | dashboard / Rulesets API            |
 
 **Declared but not yet verified/provisioned:** R2 (`founders-coffee-images`), KV
 (`founders-coffee-flags`), Notifications Queue + DLQ, and Analytics Engine. Of these, the Queue/DLQ
@@ -68,6 +77,7 @@ Create a custom token at **My Profile → API Tokens → Create Custom Token**:
   `Account Settings: Read`
 - **Account** — `Turnstile: Edit` (only to create widgets via API)
 - **Zone** — `Workers Routes: Edit`, `DNS: Edit`, `Zone: Read` (required for the custom domains)
+- **Zone** — `Zone WAF: Edit` or `Firewall Services: Edit` (required for the EC-06 rate-limiting rules)
 
 Export it before running anything below:
 
@@ -169,6 +179,28 @@ origin, binds the shared environment D1 and Email Sending resources, and require
 email to match the verified Better Auth email on every privileged request. The staging Access policy
 must include only the dedicated staging-admin identity used by CO-11; the two product identities and
 their roles are recorded and revoked together after the rehearsal.
+
+**Event-create WAF rate limit** — Security → Security rules → Rate limiting rules. Create the
+staging and production rules from the exact committed definitions in
+`libs/infra/cloudflare/waf`. Each rule applies to its hostname and the stable TanStack
+`/_serverFn/` path, counts by edge colo and source IP, allows 120 requests per 60 seconds, and blocks
+for 60 seconds. Keep rate-limiting rules at the end of the `http_ratelimit` phase as Cloudflare
+requires. Record each rule ID before enabling the corresponding Worker marker:
+
+```sh
+cd apps/ui
+npx wrangler secret put EVENT_CREATE_WAF_CONFIGURED --env staging
+npx wrangler secret put EVENT_CREATE_WAF_CONFIGURED --env production
+```
+
+Enter `true` only after verification. For the independent staging check, temporarily change only the
+staging rule to five requests per 60 seconds, issue six harmless authenticated server-function
+requests from one test IP, confirm the sixth is blocked by WAF in Security Events, restore the
+committed 120-request threshold, and then separately exhaust the five-per-ten-minute `create_event`
+Durable Object bucket with valid fresh Turnstile tokens. The WAF test must not create events; the DO
+test may use disposable staging events that are removed through the normal operational path. Record
+timestamps, rule ID, response statuses, and restored threshold. Never run the reduced threshold or
+load test against production.
 
 **`www` redirect** — production binds the apex `founders.coffee` only. Add a Cloudflare Redirect Rule
 for `www` rather than a second custom domain.

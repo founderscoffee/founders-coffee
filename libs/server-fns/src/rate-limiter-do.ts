@@ -10,17 +10,13 @@ export interface ConsumeResult {
   remaining: number;
 }
 
-/**
- * Token-bucket rate limiter — one Durable Object per (identity, action) pair, keyed via
- * `idFromName(`${identity}:${action}`)`. Single-threaded DO ⇒ strongly consistent — the only
- * correct primitive for identity-scoped rate limiting on Cloudflare (AGENTS §10/§11.5: DO
- * token-bucket, never KV). `consume` refills based on elapsed wall-clock, then decrements a token.
- */
 export class RateLimiterDO extends DurableObject {
-  consume = async (opts: {
+  /** Cloudflare RPC requires callable methods on the class prototype. */
+  // eslint-disable-next-line no-restricted-syntax -- Cloudflare RPC rejects arrow-field methods.
+  async consume(opts: {
     limit: number;
     windowMs: number;
-  }): Promise<ConsumeResult> => {
+  }): Promise<ConsumeResult> {
     const now = Date.now();
     const refillPerMs = opts.limit / opts.windowMs;
     const state =
@@ -41,5 +37,5 @@ export class RateLimiterDO extends DurableObject {
     const tokens = refilled - 1;
     await this.ctx.storage.put('bucket', { tokens, lastRefill: now });
     return { allowed: true, remaining: Math.floor(tokens) };
-  };
+  }
 }

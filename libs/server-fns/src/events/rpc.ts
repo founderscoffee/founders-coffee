@@ -3,7 +3,6 @@ import { getRequest } from '@tanstack/react-start/server';
 import { z } from 'zod';
 
 import { appValidator, handleResult } from '@founders-coffee/core';
-import { eventCreateSchema } from '@founders-coffee/domain';
 
 import { requireAuth } from '../authz.js';
 import { requirePermission } from '../auth-middleware.js';
@@ -11,24 +10,32 @@ import { resolveSession } from '../auth.js';
 import { getDb } from '../db.js';
 import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
+import { requireEventCreateTurnstile } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
 import { createEventResolver, listEvents, resolveEvent } from './resolver.js';
+import { eventCreateRequestSchema } from './schemas.js';
 
 /**
  * Create a new free event (FR-E1). Requires the `event:create` permission (host/moderator/admin).
  * The host's session provides the `hostId`. The input is Zod-validated via `appValidator`. The
  * resolver generates the id + slug, validates the geo state/city, and inserts the row.
  */
-export const createEvent = createServerFn({ strict: false })
+export const createEvent = createServerFn({ method: 'POST', strict: false })
   .middleware([
     requirePermission('event', 'create'),
     rateLimit('create_event', 5, 600_000),
+    requireEventCreateTurnstile,
   ])
-  .validator(appValidator(eventCreateSchema))
+  .validator(appValidator(eventCreateRequestSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
     return handleResult(
-      createEventResolver(getDb(), getMapProvider(), session.user.id, data),
+      createEventResolver(
+        getDb(),
+        getMapProvider(),
+        session.user.id,
+        data.event,
+      ),
     );
   });
 

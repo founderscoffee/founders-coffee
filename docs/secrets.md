@@ -45,20 +45,22 @@ in the repository; both are read server-side and handed to the client by a serve
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`     | optional | GitHub OAuth.                                                                               |
 | `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | optional | LinkedIn OAuth.                                                                             |
 
-### Turnstile (`libs/auth` handler) — apps/ui
+### Turnstile and event-create WAF evidence — apps/ui
 
-| Var                    | Required | Description                                                                                             |
-| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| `TURNSTILE_SECRET_KEY` | yes      | Server-side siteverify key. **Omitting it denies the gated endpoints**, it does not disable the check.  |
-| `TURNSTILE_DISABLED`   | optional | `"true"` bypasses Turnstile. The only bypass — local dev only, never in a deployed environment.         |
-| `TURNSTILE_SITE_KEY`   | public   | Client-side site key (safe to expose in client bundles). Dev: `1x00000000000000000000AA` (always-pass). |
+| Var                           | Required | Description                                                                                                                      |
+| ----------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_ENVIRONMENT`             | yes      | Committed Worker var: `development`, `staging`, or `production`; prevents local security bypasses from working when deployed.    |
+| `TURNSTILE_SECRET_KEY`        | yes      | Server-side siteverify key. **Omitting it denies the gated endpoints**, it does not disable the check.                           |
+| `TURNSTILE_DISABLED`          | local    | `"true"` bypasses Turnstile only when `APP_ENVIRONMENT=development`; it fails closed in staging and production.                  |
+| `TURNSTILE_SITE_KEY`          | public   | Client-side site key (safe to expose in client bundles). Local automated tests may use `1x00000000000000000000AA` (always-pass). |
+| `EVENT_CREATE_WAF_CONFIGURED` | deployed | Set to `"true"` only after the environment's WAF rule ID and behavioral evidence are recorded; absence blocks deployed creation. |
 
 `TURNSTILE_SECRET_KEY` and `TURNSTILE_SITE_KEY` must be set **together**. `getPublicAuthConfig`
 returns `turnstileSiteKey: null` when the site key is absent, so the widget never renders, the client
 sends no token, and siteverify rejects every request — a secret key without a site key locks users
 out of login entirely.
 
-Verification is Better Auth's official `captcha` plugin (`provider: 'cloudflare-turnstile'`),
+Authentication verification is Better Auth's official `captcha` plugin (`provider: 'cloudflare-turnstile'`),
 registered in `createAuth` when the secret key is present. It reads the token from the
 `x-captcha-response` header, calls siteverify under a 10-second deadline, and rejects a missing or
 invalid token. The gated paths are listed once in
@@ -71,6 +73,15 @@ endpoints with a 503. These endpoints spend money — an unprotected `/phone-num
 open SMS-pumping relay against the Twilio account — so a forgotten secret must be a visible outage,
 not a silent hole (AGENTS.md §10). The dev-only `1x00000000000000000000AA` site key and
 `TURNSTILE_DISABLED` must never be set on a deployed environment.
+Deployed staging uses a real widget restricted to `staging.founders.coffee`; Cloudflare's dummy test
+keys return fixed test metadata and cannot satisfy the strict event action and hostname checks.
+
+Event creation uses the shared provider in `libs/server-fns/src/turnstile`. It validates the
+`create_event` action and environment hostname, uses an idempotency key, and forwards only the
+Cloudflare-set `CF-Connecting-IP`. A missing secret, a deployed bypass, or a missing
+`EVENT_CREATE_WAF_CONFIGURED=true` marker fails closed before Mapbox or D1 creation work. The marker
+is evidence, not the WAF itself: set it only after the account rule is verified according to
+[`provisioning.md`](./provisioning.md) and recorded in [`deployment-evidence.md`](./deployment-evidence.md).
 
 Better Auth resolves the `remoteip` it forwards to siteverify, and the key for its D1-backed rate
 limiter, from `advanced.ipAddress.ipAddressHeaders`. That is pinned to `cf-connecting-ip` rather than

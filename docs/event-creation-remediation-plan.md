@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 through EC-05 complete, EC-06 through EC-10 not started                                                                                                      |
+| Status         | Active; EC-01 through EC-05 complete, EC-06 implementation complete with account-side WAF evidence pending, EC-07 through EC-10 not started                                |
 | Last reviewed  | 2026-09-01                                                                                                                                                                 |
 | Scope          | Authenticated host event creation in `apps/ui`, from route entry through durable D1 persistence and discoverability                                                        |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
@@ -286,6 +286,7 @@ Completion evidence:
 
 **Parent:** P1-018
 **Requirements:** NFR-4
+**Status:** Implementation complete; staging/production WAF evidence pending — 2026-09-01
 
 Work:
 
@@ -302,6 +303,19 @@ Verification:
 - Integration tests cover valid, missing, invalid, expired, replayed, and provider-unavailable Turnstile responses plus DO rate-limit exhaustion.
 - Confirm the remote IP is forwarded without logging the token or full IP as product telemetry.
 - Staging tests verify WAF and application limits independently using a safe low-volume procedure.
+
+Implementation evidence:
+
+- Event creation is explicitly `POST` and runs centralized authorization, the five-per-ten-minute identity-scoped Durable Object policy, deployed WAF configuration enforcement, and Turnstile verification before Mapbox or D1 creation work.
+- The reusable server-side Turnstile provider calls Siteverify with a 10-second deadline, a per-attempt idempotency key, the `create_event` action, the environment hostname, and `CF-Connecting-IP` as `remoteip`. It converts missing, invalid, expired/replayed, action/hostname mismatch, malformed response, HTTP failure, and network failure into stable typed errors without logging the token or IP.
+- The event wizard uses an interaction-only managed widget on its final current step, transports the token outside the domain command, disables publish until verification succeeds, and removes/reissues the widget after mutation failure. Expiry, widget error, and interaction timeout clear the token and actively reset the widget for a fresh response.
+- `RateLimiterDO` now lives once in `libs/server-fns`, is exported by the public Worker, and uses the prototype method required by Cloudflare RPC. A real Miniflare Durable Object test proves that the explicit `create_event` bucket allows five requests and rejects the sixth.
+- Miniflare tests cover valid, missing, invalid, expired, replayed, action/hostname mismatch, provider HTTP/payload/network failure, development-only bypass, missing deployed configuration, WAF fail-closed behavior, and DO exhaustion. UI component tests cover managed widget behavior, expiry, reissue, token transport, and mutation-failure reset.
+- Separate staging and production `http_ratelimit` rule definitions are committed under `libs/infra/cloudflare/waf`, using a 120-request/60-second IP edge-volume ceiling for the stable `/_serverFn/` path. The application refuses deployed event creation until `EVENT_CREATE_WAF_CONFIGURED=true` is recorded for that Worker environment.
+
+Remaining account gate:
+
+- The current Wrangler OAuth token has Workers, D1, zone-read, and Turnstile-write access but no `Zone WAF Edit` or `Firewall Services Edit` permission. It cannot create or inspect the required zone rate-limiting rules. Do not set `EVENT_CREATE_WAF_CONFIGURED=true` until each rule ID and the independent low-volume staging result are recorded in [deployment evidence](./deployment-evidence.md).
 
 ### EC-07 — Finish the authenticated, localized wizard
 
