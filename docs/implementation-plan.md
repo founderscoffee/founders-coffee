@@ -61,20 +61,20 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 
 ## 3. Platform state
 
-| Capability             | Required architecture                                        | Current state                                                                                              |
-| ---------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| Sessions               | D1                                                           | Implemented                                                                                                |
-| Identity rate limiting | Durable Object + WAF; Better Auth may additionally use D1    | Partial; DO exists, WAF coverage is unverified                                                             |
-| Feature/config cache   | KV for idempotent reads only                                 | Planned, not bound                                                                                         |
-| Event reminders        | DO alarms → Notifications Queue; low-frequency Cron recovery | **Blocked:** current one-minute D1 polling must be replaced                                                |
-| PWA push               | FCM web push                                                 | Implemented; production credentials must be verified                                                       |
-| SMS fallback           | Twilio Programmable SMS via `libs/notifications`             | Partial; provider exists, but the producer still schedules SMS/email alongside push instead of on fallback |
-| Authentication SMS     | Twilio Verify via `libs/auth`                                | Implemented; deployed environments must fail closed if credentials are absent                              |
-| Email                  | Cloudflare Email                                             | Code complete; sender-domain/DNS activation requires verification                                          |
-| Search/AI              | Workers AI + Vectorize                                       | Foundations implemented; nonessential AI work is future and not a community-release blocker                |
-| Uploads                | R2 + Images                                                  | Provider foundation only; resources not bound                                                              |
-| Product metrics        | Analytics Engine                                             | Library foundation only; binding/dashboards planned                                                        |
-| Admin isolation        | Access + in-Worker JWT verification + no `workers.dev`       | Worker guard complete; Access configuration requires verification                                          |
+| Capability             | Required architecture                                        | Current state                                                                                                 |
+| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Sessions               | D1                                                           | Implemented                                                                                                   |
+| Identity rate limiting | Durable Object + WAF; Better Auth may additionally use D1    | Partial; DO and fail-closed WAF contract exist, but account-side rule IDs and staging behavior are unverified |
+| Feature/config cache   | KV for idempotent reads only                                 | Planned, not bound                                                                                            |
+| Event reminders        | DO alarms → Notifications Queue; low-frequency Cron recovery | **Blocked:** current one-minute D1 polling must be replaced                                                   |
+| PWA push               | FCM web push                                                 | Implemented; production credentials must be verified                                                          |
+| SMS fallback           | Twilio Programmable SMS via `libs/notifications`             | Partial; provider exists, but the producer still schedules SMS/email alongside push instead of on fallback    |
+| Authentication SMS     | Twilio Verify via `libs/auth`                                | Implemented; deployed environments must fail closed if credentials are absent                                 |
+| Email                  | Cloudflare Email                                             | Code complete; sender-domain/DNS activation requires verification                                             |
+| Search/AI              | Workers AI + Vectorize                                       | Foundations implemented; nonessential AI work is future and not a community-release blocker                   |
+| Uploads                | R2 + Images                                                  | Provider foundation only; resources not bound                                                                 |
+| Product metrics        | Analytics Engine                                             | Library foundation only; binding/dashboards planned                                                           |
+| Admin isolation        | Access + in-Worker JWT verification + no `workers.dev`       | Worker guard complete; Access configuration requires verification                                             |
 
 ## 4. Phase P0 — foundation
 
@@ -111,7 +111,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-003 | Partial  | Email-OTP login UI, OAuth UI, and dormant phone-OTP capability       | Verify current email/OAuth production flow; keep unexposed phone endpoints fail-closed                                                       |
 | P1-004 | Partial  | Geography datasets, onboarding, profiles                             | Profile persistence still uses legacy `home_state`/`home_city_id`; migrate to canonical state/city code names                                |
 | P1-005 | Complete | Event domain, repository, server functions                           | —                                                                                                                                            |
-| P1-006 | Partial  | Event creation wizard and Mapbox venue selection                     | EC-01 through EC-05 complete; finish EC-06 through EC-10 and verify the production credential                                                |
+| P1-006 | Partial  | Event creation wizard and Mapbox venue selection                     | EC-01 through EC-05 complete; EC-06 code complete with WAF evidence pending; finish EC-07 through EC-10 and verify production credentials    |
 | P1-007 | Complete | Event feed/detail, virtualization, SEO metadata                      | Full prerender verification remains under P1-020                                                                                             |
 | P1-008 | Blocked  | Immediate idempotent RSVP and cancellation                           | Fix full-capacity atomicity so a rejected RSVP cannot be inserted; complete Turnstile/WAF coverage                                           |
 | P1-009 | Blocked  | PWA push primary, SMS fallback, email-specific delivery              | CO-02 fixes alarms/Queue/fallback; CO-05/06/08 add idempotent host, attendee, correction, and did-not-happen delivery                        |
@@ -123,7 +123,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-015 | Future   | Semantic event search                                                | Reconsider only when event density makes semantic search materially useful                                                                   |
 | P1-016 | Complete | Host tools assigned to `apps/ui`; dashboard sponsor-only             | No separate host dashboard will be built                                                                                                     |
 | P1-017 | Partial  | App middleware, D1 injection, auth mount, i18n, observability wiring | Public app wiring is complete; admin session/D1/i18n/observability wiring and correlated Access/Better Auth context remain under CO-04       |
-| P1-018 | Partial  | Security hardening                                                   | DO limiter exists; CSP, WAF, Turnstile coverage, and endpoint audit remain                                                                   |
+| P1-018 | Partial  | Security hardening                                                   | Event creation has DO + Turnstile + fail-closed WAF contract; account WAF evidence, CSP, RSVP coverage, and endpoint audit remain            |
 | P1-019 | Partial  | Observability                                                        | Structured logs exist; Analytics dashboards and alerts remain                                                                                |
 | P1-020 | Partial  | Installable PWA                                                      | Manifest/service worker exist; offline, prerender, Lighthouse, and PWA Builder verification remain                                           |
 | P1-021 | Partial  | End-to-end tests                                                     | EC-10 and CO-11 require local/staging release evidence; E2E remains outside CI by current decision                                           |
@@ -132,22 +132,29 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 
 ### Immediate sequence
 
-1. **Plan 1 — EC-06 through EC-10:** finish the
+1. **AR-01 — restore the dependency-audit gate first:** CI is red at head because
+   `npm audit --audit-level=high` exits 1, so no pull request in any plan can pass verification.
+   See the [Audit Remediation Plan](./audit-remediation-plan.md).
+2. **Plan 1 — close the EC-06 WAF account gate, then EC-07 through EC-10:** finish the
    [Event Creation Remediation Plan](./event-creation-remediation-plan.md), including local and
    staging release evidence. Do not begin Plan 2 production work before EC-10 is Complete.
-2. **Plan 2 — CO-01 immediately after EC-10:** begin the
+3. **Plan 2 — CO-01 immediately after EC-10:** begin the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
    with the operating contract and baseline.
-3. **CO-02 / P1-008 / P1-009 / P0-018:** correct RSVP full-capacity atomicity, replace one-minute
+4. **CO-02 / P1-008 / P1-009 / P0-018:** correct RSVP full-capacity atomicity, replace one-minute
    polling with per-event Durable Object alarms → Notifications Queue, and enforce push-first/SMS
-   fallback before post-event automation relies on those paths.
-4. **CO-03 through CO-11 / P1-009 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout,
+   fallback before post-event automation relies on those paths. AR-02 through AR-05 in the
+   [Audit Remediation Plan](./audit-remediation-plan.md) carry the audited defects in these paths,
+   including notification rows that never reach a terminal state and the unmetered map endpoints.
+5. **CO-03 through CO-11 / P1-009 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout,
    attendance, feedback, repeat-host support, the secure correlated-identity admin surface,
    trust/moderation, weekly reviews, metrics, a real rollback flag, and three-checkpoint staged
    operations verification in the documented order.
-5. **P0-007/P1-004/P0-019:** complete remaining market/home-location and dated deployment evidence
+6. **AR-06 through AR-10:** close the remaining audited security, i18n, enforcement, and hygiene
+   deviations alongside the operations work.
+7. **P0-007/P1-004/P0-019:** complete remaining market/home-location and dated deployment evidence
    where it blocks the community operations flow.
-6. Complete only the moderation, trust, PWA, accessibility, performance, and operational work
+8. Complete only the moderation, trust, PWA, accessibility, performance, and operational work
    required to run the community reliably. Do not pull future sponsorship, challenge, talent,
    payment, or expansion work into this sequence.
 
