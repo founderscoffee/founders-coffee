@@ -3,6 +3,10 @@
 > **Unapproved proposal, 2026-08-30.** This feature is outside the committed SRS and implementation
 > plan. Nothing in this document authorizes implementation, dependencies, migrations, or services.
 
+> **Release decision, 2026-09-01.** The project showcase is outside the community-building release
+> and remains a future proposal. It may not be reconsidered until the community validation gate is
+> met and Founder / Product explicitly opens future product work.
+
 **A free-form project showcase where founders share what they're building, get structured community feedback, attract sponsor interest, and organically evolve ideas into challenges.**
 
 This feature fills the missing connective tissue between events ("I met someone") and challenges ("Let's build something together") — giving founders a place to say **"Here's what I'm working on — what do you think?"**
@@ -15,7 +19,9 @@ This feature fills the missing connective tissue between events ("I met someone"
 > This is **new scope** — no existing `FR-*` requirement covers a standalone project showcase. The SRS (FR-P1/FR-P2) frames idea validation as a _use case of paid hosted challenges_, not as a free community feature. This proposal creates a **free layer** that complements (and feeds into) the paid challenge pipeline.
 
 > [!WARNING]
-> **Phase placement decision needed.** The research recommends **P2.5 or P3** — after the hackathon engine but before/alongside sponsorship management. Inserting this into P1 or early P2 would delay the events and hackathon engines. See the [Phase Placement](#phase-placement) section below.
+> **No phase placement is authorized.** If the proposal is reopened after the community validation
+> gate, its placement and scope must be decided then. It must not enter P1 or delay the community
+> release. See the historical [Phase Placement](#phase-placement) research below.
 
 ---
 

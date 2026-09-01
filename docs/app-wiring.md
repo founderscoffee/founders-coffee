@@ -1,9 +1,14 @@
 # App wiring — `createStart`, custom entry, env-injection, i18n, auth, observability
 
-The P0-012 → **P1-017** linchpin: connecting the TanStack Start router to (a) global middleware,
-(b) the Cloudflare Worker `env`, (c) i18n locale detection, (d) Better Auth, and (e) the client→server
-log stream. **Phase A + B + C are complete.** Only the `ANALYTICS` binding + prod CSRF origin remain
-(P0-019 / deploy).
+This shared wiring currently serves the [community-building release](./release-strategy.md). Its
+ability to support other app shells is architectural preparation, not authorization to activate
+sponsor, challenge, talent, payment, or expansion work.
+
+The P0-012 → **P1-017** linchpin connects a TanStack Start router to (a) global middleware, (b) the
+Cloudflare Worker `env`, (c) i18n locale detection, (d) Better Auth, and (e) the client→server log
+stream. **Phase A + B + C are complete for `apps/ui`.** `apps/admin` still requires the CO-04 D1,
+i18n, observability, admin-origin Better Auth, and correlated Access identity wiring; account-side
+`ANALYTICS` plus production CSRF-origin verification also remain under P0-019/deployment.
 
 ## 1. `createStart` — `apps/ui/src/start.ts`
 
@@ -62,7 +67,8 @@ export const getDb = (): Db => createDb((env as { DB: D1Database }).DB);
 - `cloudflare:workers`'s `env` is typed `Cloudflare.Env`. Apps generate `DB` on it via
   `wrangler types` (the gitignored `worker-configuration.d.ts`), but **the lib has no runtime
   wrangler**, so `getDb` narrows at the single call site.
-- **Every consuming app MUST declare a `DB` binding** (`apps/ui` + `apps/worker-jobs` do). The markets
+- **Every consuming app MUST declare a `DB` binding** (`apps/ui` + `apps/worker-jobs` do;
+  `apps/admin` adds and verifies it in CO-04). The markets
   RPC wrappers ([`libs/server-fns/src/markets/rpc.ts`](../libs/server-fns/src/markets/rpc.ts)) call the
   db-injected resolver via `getDb()`, unwrapping `Result` through `handleResult` (the throw boundary).
   `strict: false` because `Market.brandOverrides` (`Record<string, unknown>`) isn't provably serializable.

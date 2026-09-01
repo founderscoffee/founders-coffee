@@ -1,13 +1,24 @@
 # Event Creation Remediation Plan
 
-| Field          | Value                                                                                                               |
-| -------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 through EC-03 complete, EC-04 through EC-10 not started                                               |
-| Last reviewed  | 2026-08-31                                                                                                          |
-| Scope          | Authenticated host event creation in `apps/ui`, from route entry through durable D1 persistence and discoverability |
-| Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                              |
-| Requirements   | FR-G2, FR-G3, FR-G6, FR-E1, FR-E2, FR-E5, FR-E7, FR-E9; NFR-4, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11, NFR-12          |
-| Related plans  | [Implementation plan](./implementation-plan.md), [Events system plan](./events-system-plan.md)                      |
+| Field          | Value                                                                                                                                                                      |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; EC-01 through EC-04 complete, EC-05 through EC-10 not started                                                                                                      |
+| Last reviewed  | 2026-09-01                                                                                                                                                                 |
+| Scope          | Authenticated host event creation in `apps/ui`, from route entry through durable D1 persistence and discoverability                                                        |
+| Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
+| Requirements   | FR-G2, FR-G3, FR-G6, FR-E1, FR-E2, FR-E5, FR-E7, FR-E9; NFR-4, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11, NFR-12                                                                 |
+| Related plans  | [Implementation plan](./implementation-plan.md), [Events system plan](./events-system-plan.md), [Community Operations Plan](./community-operations-implementation-plan.md) |
+
+This remediation is current-release work because frictionless, trustworthy event hosting is part
+of the community-building loop. It does not authorize sponsorship, challenges, talent, payments,
+or expansion; those remain behind the [community validation gate](./release-strategy.md).
+
+This is Plan 1 in the active delivery sequence. Plan 2 is the
+[Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md).
+No Plan 2 production work begins before EC-10 is complete; CO-01 starts immediately after the EC-10
+handoff. Event creation remains owned here, so the second plan does not duplicate this remediation.
+The EC-10 staging event proves only the creation slice and is never treated as a post-event
+attendance/feedback fixture; CO-11 creates a separately identified, real-time operational run.
 
 ## 1. Objective
 
@@ -199,6 +210,7 @@ Completion evidence:
 
 **Parent:** P1-006
 **Requirements:** FR-G2, FR-E1; NFR-4, NFR-10
+**Status:** Complete — 2026-09-01
 
 Work:
 
@@ -221,6 +233,24 @@ Verification:
 - Component tests prove search selection and map-click selection populate the same normalized venue model.
 - Component/provider tests reject out-of-city and non-venue results, verify explicit-only geolocation, and prove marker drag refreshes or invalidates the address.
 - Inspect the persisted D1 row after a staging creation and compare it with the selected venue.
+
+Completion evidence:
+
+- A `MapProvider` boundary owns city viewport lookup, venue search, and reverse lookup. The Mapbox implementation validates every provider response, uses a six-second timeout, maps failures to stable `AppError` codes, and fails closed when `MAPBOX_TOKEN` is absent.
+- Validated server functions expose map operations through `apps/ui/src/features/events/api.ts` and query hooks. React components no longer fetch Mapbox search/geocoding APIs or import server functions directly; the unused Search JS React dependency and styles were removed.
+- The provider restricts results by canonical market, city context, city bounds, exact supported café/coworking categories, and POI feature type. Reverse lookup rejects coordinates outside the city and rejects a returned POI more than 250 metres from the selected point.
+- Event creation reverse-validates the coordinates again before D1 insertion and persists the provider-normalized venue name, address, latitude, and longitude instead of trusting client-owned venue text.
+- The map starts at the server-resolved city viewport, constrains panning to its bounds, requests geolocation only from the explicit locate control, and invalidates the selected venue while click/drag reverse lookup is pending. Search and map loading, empty, timeout/provider failure, denial, unsupported-venue, out-of-city, and retry states are localized in `ar`, `fr`, and `en`.
+- Provider and resolver tests cover normalization, malformed responses and bounds, Arabic locale forwarding, canonical geography, city/country/type/category filtering, false-positive retail categories, out-of-city selection, reverse-distance enforcement, typed failures, pre-write rejection, and provider-owned persistence. The server-function suite passes 47 tests against real Miniflare/D1 bindings.
+- Component tests prove that search and map-click selection produce the same normalized venue model, that search is unavailable without valid map context, that marker drag invalidates stale venue data, that stale reverse-geocode responses cannot replace newer selections, and that geolocation is requested only after the explicit locate action. The public-app suite passes nine tests across three files.
+- The workspace-wide Undici override is upgraded to `7.29.0`, restoring the supported `jsdom` component-test environment while retaining green Miniflare suites. `npm audit` reports zero vulnerabilities.
+- Repository-wide format, lint, typecheck, test, and build gates pass without E2E. The built-in browser verified the Arabic failure/retry path with an intentionally invalid token and confirmed that progression remains disabled.
+
+Operational confirmations and release gates:
+
+- On 2026-09-01, the project owner confirmed that the paid Mapbox entitlement permits founders.coffee to persist the normalized POI name, address, and coordinates used by event records.
+- Validate POI coverage and result quality for the active/open DZ, EG, and SA markets with the production account before release. Existing staging behavior is positive evidence for Algeria, but it is not a contractual coverage guarantee.
+- Complete one authenticated staging creation and inspect its persisted D1 row during EC-10 release verification. This requires a live credential and disposable host account and is not a code-completion blocker for EC-04.
 
 ### EC-05 — Harden the create server pipeline
 

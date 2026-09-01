@@ -5,14 +5,20 @@
 | Field           | Value                                                                                                 |
 | --------------- | ----------------------------------------------------------------------------------------------------- |
 | Document        | SRS — founders.coffee                                                                                 |
-| Version         | 1.3                                                                                                   |
+| Version         | 1.6                                                                                                   |
 | Status          | Approved — architecture locked                                                                        |
 | Owner           | Founder / Product                                                                                     |
-| Last updated    | 2026-08-30                                                                                            |
+| Last updated    | 2026-09-01                                                                                            |
 | Target stack    | Nx monorepo · TanStack Start (fullstack) · Drizzle + Cloudflare D1 · Better Auth · Cloudflare Workers |
 | Source research | Market validation sessions (Algeria + MENA) — see Appendix A                                          |
 
 > **How to read this document.** Sections 1–4 are product/business context. Sections 5–9 are the requirements (Functional, Non-functional, Data, Architecture, UX) with stable IDs (`FR-*`, `NFR-*`) for traceability into the implementation plan. Sections 10–14 cover configuration, extensibility guardrails, compliance, risks, and decisions. Everything needed to produce a detailed implementation plan should be derivable from this document.
+
+> **Current release boundary.** The first release is solely for community building through free
+> local events, repeat participation, hosts, and the operations required to run that loop reliably.
+> Hackathons, sponsorship products, talent, payments, and expansion are future work. They do not
+> begin until the community density gate is met and Founder / Product explicitly opens the next
+> phase. See [Release Strategy — Community First](./release-strategy.md).
 
 ---
 
@@ -22,15 +28,18 @@
 
 **founders.coffee** is a **community business**: an informal, "no formalities" platform where local founders, builders, and students meet over coffee to discover their ecosystem, find collaborators, and grow together. It is composed of three reinforcing layers:
 
-1. **Local events (free)** — anyone hosts a casual coffee meetup at a local café; anyone joins. The acquisition engine and the cultural core.
-2. **Online hackathons / challenges** — a community-positive engagement layer (free for students) and a monetizable surface (paid hosted challenges for founders/companies/sponsors).
-3. **Sponsorships & partnerships** — the primary revenue.
+1. **Local events (free; current release)** — anyone hosts a casual coffee meetup at a local café; anyone joins. This is the community engine, the cultural core, and the sole focus of the first release.
+2. **Online hackathons / challenges (future)** — a possible community-positive engagement and commercial layer, gated by proven community density.
+3. **Sponsorships & partnerships (future)** — a possible revenue layer that is valuable only after a real community exists.
 
 ### 1.2 Brand principles (non-negotiable)
 
 - **"No formalities."** Informal, warm, low-stakes. The brand is anti-corporate, anti-pitch-deck.
-- **Community participation stays free.** Membership, events, participation, and ordinary community hosting are always free. Sponsors and organizations—including a founder acting as a commercial challenge client—may pay for clearly separated B2B services.
-- **Community adds value; it is not mined.** We monetize _access to_ the community through sponsorships and challenges, never through transactional fees on members.
+- **Community participation stays free.** Membership, events, participation, and ordinary community
+  hosting are always free. If a future commercial phase is explicitly approved, organizations may
+  pay only for clearly separated B2B services.
+- **Community adds value; it is not mined.** Any future monetization may fund access to community
+  opportunities through disclosed B2B products, never transactional fees on members.
 
 ### 1.3 Why this, why now (condensed)
 
@@ -48,42 +57,46 @@
 ### 2.1 Primary business goals
 
 1. **Achieve local community density in Algiers** before any monetization or expansion. Density is the only moat.
-2. **Validate the free events wedge** as a low-cost, multi-market demand sensor.
-3. **Generate B2B revenue** through disclosed sponsorships and paid hosted challenges without charging community members for ordinary participation or hosting.
-4. **Remain architecturally ready** to expand beyond Algeria without rewriting the platform. Egypt and Saudi Arabia are open self-serve markets; Morocco and the UAE remain dark until geography and operational readiness are complete.
+2. **Validate the free events wedge** through repeat participation and a healthy host loop in the initial Algeria/Algiers community.
+3. **Keep future B2B revenue options documented, but do not launch them** until community density is proven and Founder / Product explicitly approves the next phase.
+4. **Remain architecturally ready** for future expansion without making expansion part of the current release. Egypt and Saudi Arabia may remain configured as open markets; operations stay focused on Algeria/Algiers.
 
 ### 2.2 Success metrics (density-gated)
 
 Activation of a market and of monetized features is **gated by density thresholds**, not by ambition. The operating threshold is:
 
-| Gate                                | Threshold                                                                                                                                              |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Market: `dark` → `open`             | Architecture/config ready; landing page published; no active seeding.                                                                                  |
-| Market: `open` → `active`           | **≥ 8 completed events/month for 3 consecutive months, ≥ 3 recurring hosts, and host retention ≥ 60%.**                                                |
-| Activate **hackathons** in a market | Market is `active` **AND** `hackathons` feature flag on **AND** the first real challenge is instrumented (payments still manual in Year 1 — see §8.5). |
-| Expand operational investment       | The candidate market meets the same density gate and has moderation and operational readiness.                                                         |
+| Gate                                  | Threshold                                                                                                                                                            |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Market: `dark` → `open`               | Architecture/config ready; landing page published; no active seeding.                                                                                                |
+| Market: `open` → `active`             | **≥ 8 completed events/month for 3 consecutive months, ≥ 3 recurring hosts, and host retention ≥ 60%.**                                                              |
+| Open any post-community roadmap phase | Community release stable **AND** Algiers density threshold met **AND** repeat participation/host-loop evidence reviewed **AND** explicit Founder / Product approval. |
+| Activate **hackathons** in a market   | Post-community phase explicitly approved **AND** market is `active` **AND** `hackathons` feature flag on **AND** the first real challenge is instrumented.           |
+| Expand operational investment         | The candidate market meets the same density gate and has moderation and operational readiness.                                                                       |
 
-### 2.3 Explicit non-goals (MVP)
+### 2.3 Explicit non-goals (current release)
 
 - We are **not** building a global Devpost competitor.
-- We are **not** charging for membership, community events, participation, or ordinary hosting. Commercial clients may pay for explicitly commissioned B2B services.
+- We are **not** charging for membership, community events, participation, or ordinary hosting. Any
+  commercial B2B service belongs to a future explicitly approved phase.
 - We are **not** operating/seeding all target markets at launch (architecture everywhere; operation in one).
-- We are **not** running transactional recruiting/placements. (A community-positive talent pipeline via the challenge funnel is in scope; transactional recruiting is out.)
-- We are **not** doing cross-border payments; all money flows are strictly in-market, in-currency.
-- We are **not** automating payments in Year 1 — payments are **recorded but executed manually** (§8.5).
+- We are **not** launching hackathons, sponsorship products, sponsor dashboards, talent workflows, billing, payment execution, Founder Picks, or the proposed project showcase in the community-building release.
+- We are **not** running talent or recruiting workflows in this release. Any future warm-introduction
+  model requires explicit opt-in; transactional recruiting remains out of scope.
+- We are **not** executing or recording product payment flows in this release. Any future approved
+  flow must remain in-market and in-currency (§8.5).
 
 ---
 
 ## 3. Stakeholders & personas
 
-| Persona                   | Description                                                                                               | Core need                                                                                                                                                                                           |
-| ------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Founder / Builder**     | Local entrepreneur, developer, student builder                                                            | Belong to a trusted local community; meet collaborators; learn; win/join challenges. Community participation is free.                                                                               |
-| **Host**                  | A founder or community lead who creates a coffee meetup or challenge                                      | A frictionless way to convene people; visibility; reputation.                                                                                                                                       |
-| **Participant**           | Attends events / joins challenges                                                                         | Discover nearby relevant events; RSVP; participate; (later) win local-currency prizes.                                                                                                              |
-| **Sponsor**               | Telco, bank, labelled startup, ecosystem funder                                                           | Trusted, repeated reach into young local builders; (later) talent/brand outcomes. Pays.                                                                                                             |
-| **Challenge host (paid)** | A funded founder, company, or (rarely) investor who runs a challenge to source talent or validate an idea | A vetted pool of local builders + a platform to run the challenge + local payouts. Pays a flat fee.                                                                                                 |
-| **Project owner / Admin** | Internal team running founders.coffee                                                                     | Manage market configuration and flags, vet hosts, moderate content, configure sponsorships, and reconcile manual payments. State/city dataset changes remain code-reviewed. Served by `apps/admin`. |
+| Persona                     | Description                                                                                                        | Core need                                                                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Founder / Builder**       | Local entrepreneur, developer, or student builder                                                                  | Belong to a trusted local community, meet collaborators, learn, attend, return, and host. Community participation is free.                                       |
+| **Host**                    | A founder or community lead who creates a free local meetup                                                        | A frictionless way to convene people, build trust, and establish a healthy recurring community ritual.                                                           |
+| **Participant**             | Attends local community events                                                                                     | Discover relevant nearby events, RSVP, attend, return, and form useful local relationships.                                                                      |
+| **Sponsor (future)**        | Telco, bank, labelled startup, ecosystem funder                                                                    | A later stakeholder only after the community has measurable density and trust.                                                                                   |
+| **Challenge host (future)** | A funded founder, company, or (rarely) investor who may later run a challenge to source talent or validate an idea | A future B2B need; not a current-release persona.                                                                                                                |
+| **Project owner / Admin**   | Internal team running founders.coffee                                                                              | Operate the community, vet hosts, moderate events/users, and protect trust and safety. Future commercial administration remains dormant. Served by `apps/admin`. |
 
 ---
 
@@ -91,17 +104,23 @@ Activation of a market and of monetized features is **gated by density threshold
 
 ### 4.1 Phase summary
 
-The two core engines are **both built as real software** (no manual validation phases). They are **staged**: the events engine ships live first, then the hackathon engine, so the platform has real users and revenue runway before the second engine lands.
+Delivery is stage-gated. The community event loop ships first and remains the only active product
+scope until it proves durable local density. Future engines remain documented so they can be
+evaluated later, but they are not current commitments and must not distract from community building.
 
-| Phase                                    | Scope                                                                                                                                                                                                                     | Exit criteria                                                                                                        |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **P0 — Foundation**                      | Multi-market architecture, i18n/RTL, identity (Better Auth), geo model, market config, feature-flag system, payment _abstraction interface_ (no integrations), shared Nx libs scaffolded.                                 | All three apps + shared libs scaffolded; one market (DZ) configured; empty-state UX works.                           |
-| **P1 — Events engine (ships live)**      | **Full** events engine for DZ (`active`) plus self-serve EG/SA (`open`): create/list/RSVP, host profiles, city discovery, "be the first host" empty state, notifications, moderation, and disclosed sponsorship surfaces. | **Live in production.** Algiers density threshold met; first sponsorship sold (payment recorded, executed manually). |
-| **P2 — Hackathon engine (full)**         | **Full** challenge engine: creation (free for students/community), teams, submissions, judging, leaderboards, winner tracking — behind per-market feature flag. Prize payouts **recorded; executed manually** (Year 1).   | First hosted challenge delivered end-to-end; manual payout to winner completed.                                      |
-| **P3 — Sponsorship management & talent** | Sponsor management dashboard, "Founder Picks" surfaces, talent pipeline (warm intros from the challenge funnel).                                                                                                          | Recurring sponsorship revenue; talent intros tracked.                                                                |
-| **P4 — Payments automation & expansion** | Wire DZ payment providers behind the abstraction; advance other markets only when geography, operations, compliance, and density gates are satisfied.                                                                     | Automated payouts live in DZ; at least one additional market meets its activation gate.                              |
+| Phase                                           | Scope                                                                                                                                                                                                                                                     | Exit criteria                                                                                             |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **P0 — Foundation**                             | Multi-market architecture, i18n/RTL, identity (Better Auth), geo model, market config, feature-flag system, payment _abstraction interface_ (no integrations), shared Nx libs scaffolded.                                                                 | All three apps + shared libs scaffolded; one market (DZ) configured; empty-state UX works.                |
+| **P1 — Community release (ships now)**          | Free local-event loop: discovery, profiles, hosting, RSVP/pre-start cancellation, reminders, closeout, attendance, feedback, repeat hosting, lightweight trust/moderation, Arabic-first PWA/admin operations, accessibility, security, and observability. | Production-stable community flow; operational community-building can proceed.                             |
+| **Community validation gate**                   | Operate the Algiers community, recruit credible hosts, deliver consistently useful meetups, and measure repeat participation and host retention.                                                                                                          | Density threshold met, host loop healthy, and Founder / Product explicitly approves further product work. |
+| **P2 — Challenges (future option)**             | Challenge creation, teams, submissions, judging, results, and associated commercial workflows, only if opened after the validation gate.                                                                                                                  | Defined only when the phase is explicitly approved.                                                       |
+| **P3 — Sponsorship and talent (future option)** | Sponsor products, measurement, dashboard, Founder Picks, and opt-in talent workflows, only if opened after the validation gate.                                                                                                                           | Defined only when the phase is explicitly approved.                                                       |
+| **P4 — Payments and expansion (future option)** | Provider automation and additional-market operations only after community, compliance, and market-specific readiness are demonstrated.                                                                                                                    | Defined only when the phase is explicitly approved.                                                       |
 
-> **Sequencing principle (updated):** no manual validation phases — both engines are built. But **P1 (events) ships to production before P2 (hackathons)** so the platform gathers real users, data, and revenue while the second engine is built. The hackathon engine is **feature-flagged per market** and its **first real challenge is instrumented as the demand signal** (see Risk R-H1, §14). Payments are **manual for Year 1** and automated in P4.
+> **Sequencing principle:** finish and operate the community release first. Do not begin the
+> hackathon, sponsorship, talent, payment, or expansion phases merely because their plans or
+> foundations exist. If the community loop fails, fix or reconsider that proposition instead of
+> compensating with later product layers.
 
 ---
 
@@ -122,29 +141,58 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 
 - **FR-E1** Any authenticated user (a _host_) shall be able to create a free local event: title, description, venue (café/coworking), date/time (in the city's timezone), capacity, language, category.
 - **FR-E2** All events shall be **free** (`is_free = true`). Paid events/tickets are out of scope.
-- **FR-E3** Any authenticated user shall be able to **RSVP** to an event and cancel.
+- **FR-E3** Any authenticated user shall be able to **RSVP** to an event and cancel while trusted
+  server time is strictly before `startsAt`. At and after `startsAt`, create/cancel/restore shall be
+  rejected and RSVP intent shall remain immutable for attendance eligibility.
 - **FR-E4** The system shall enforce capacity and show remaining seats.
 - **FR-E5** Each city landing page shall display that city's upcoming events.
 - **FR-E6** **Empty-state UX:** a city with no events shall invite the visitor to become the first host ("Be the first to host a founders.coffee in {city}"). It must never appear "dead."
 - **FR-E7** Hosts shall have a public profile showing their hosted events (reputation).
 - **FR-E8** The system shall send notifications: RSVP confirmations, reminders before the event, host notifications on new RSVPs.
 - **FR-E9** Events shall support tagging the spoken/written language (user-generated content is not auto-translated).
-- **FR-E10** (Anti-no-show) The system shall use timely reminders and effortless cancellation to reduce no-shows. RSVP remains immediate and shall not require a seat hold, vow, or second confirmation.
+- **FR-E10** (Anti-no-show) The system shall use timely reminders and effortless pre-start
+  cancellation to reduce no-shows. RSVP remains immediate and shall not require a seat hold, vow,
+  or second confirmation.
+- **FR-E11** After an event ends, its host shall record whether it was held or did not happen. An
+  elapsed end time alone shall not count as a completed event. Legacy rows with no `endsAt` shall be
+  excluded from closeout and completed-event metrics, shown as an admin attention state, and changed
+  only through explicit audited backfill.
+- **FR-E12** For a held event, the host shall record attended/no-show outcomes for eligible going
+  RSVPs frozen at `startsAt` and an aggregate anonymous walk-in count. Attendance outcome shall
+  remain separate from RSVP intent and shall not be exposed publicly at member level. Every
+  person-level admin correction shall retain append-only actor, Access subject, reason, time, and
+  before/after audit evidence.
+- **FR-E13** A member recorded as attended shall be able to submit one private, updateable,
+  time-bounded feedback pulse containing a structured value rating, return intent, and optional
+  bounded comment. A held closeout submitted within seven days of `endsAt` shall invite eligible
+  members; create/update access shall end fourteen days after `endsAt`, and a late closeout shall not
+  reopen the window. A non-empty comment shall carry its authored `ar`, `fr`, or `en` language.
+- **FR-E14** The system shall send localized post-event prompts using PWA push first and SMS fallback:
+  an idempotent closeout prompt to the host after event end, feedback/return to attended members
+  after a timely held closeout, and a transparent notice to frozen going members when the host
+  records `did_not_happen`.
+- **FR-E15** A host shall be able to start another event from a completed event using safe prefilled
+  values. The new event shall pass the complete event-create validation, authorization, abuse, and
+  persistence flow with fresh schedule, ID, slug, and security response.
 
-### 5.3 Online hackathons / challenges (P2, gated)
+### 5.3 Online hackathons / challenges (future, post-community gate)
 
-> Gated by: market state = `active` **AND** `hackathons` feature flag on. Free for students/community; paid for hosted challenges. Prize payouts are recorded and executed manually in Year 1.
+> Gated by the full post-community approval decision, then by market state = `active` and the
+> `hackathons` feature flag. If opened, community participation remains free; any initial prize
+> payout process is manual-first.
 
 - **FR-H1** Any authorized user shall be able to **create a challenge**: problem statement, rules, timeline, judging criteria, prize (Money, local currency), eligibility.
 - **FR-H2** Challenges shall be **free to create** for students/community (acquisition). Paid "hosted challenges" are a separate B2B flow (see §5.5).
 - **FR-H3** Participants shall be able to **register, form/join teams, and submit** entries (link/repo/text/media).
 - **FR-H4** The system shall support **judging**: rubric-based scoring by assigned judges, with conflict-of-interest handling.
 - **FR-H5** The system shall display **leaderboards / results** and winner(s).
-- **FR-H6** Winners shall be owed **prize payouts in the local currency**. In Year 1 the payout is **recorded in-system and executed manually** (e.g., BaridiMob push); the local-currency payout remains the core differentiator vs global platforms.
+- **FR-H6** If this future phase opens, winners shall be owed **prize payouts in the local
+  currency**. The initial payout process is recorded in-system and executed manually; automation
+  requires separate approval and compliance review.
 - **FR-H7** The system shall support sponsor attachment to a challenge (branding, prize funding) — see §5.4.
 - **FR-H8** A challenge shall be **scoped to a market** (in-market participants, in-currency prizes). Cross-market challenges are out of scope.
 
-### 5.4 Sponsorships & partnerships (surfaces in P1, management in P3)
+### 5.4 Sponsorships & partnerships (future, post-community gate)
 
 - **FR-S1** The system shall support configurable **sponsorship packages** (see §10.3 for the catalog and indicative pricing).
 - **FR-S2** A sponsor shall be attachable to: a city/event series ("Coffee Series Sponsor"), a single event, a challenge, or a "Founder Picks" category.
@@ -152,11 +200,13 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 - **FR-S4** Sponsors shall have a dashboard (in `apps/dashboard`) showing reach/engagement metrics (events sponsored, builders reached, RSVPs).
 - **FR-S5** "Founder Picks" shall be a categorized recommendation surface (tools/services/venues) where sponsorship is disclosed, never deceptive.
 
-### 5.5 Paid hosted challenges & talent pipeline (P2/P3)
+### 5.5 Paid hosted challenges & talent pipeline (future, post-community gate)
 
 - **FR-P1** A commercial client (company, sponsor, fund, or founder acting in a business-client capacity) shall be able to commission a hosted challenge to **source talent or validate an idea**, paying a flat fee.
 - **FR-P2** The system shall capture the challenge host's intent (e.g., "find a technical co-founder", "validate concept", "brand + hiring").
-- **FR-P3** Collection of the hosted-challenge service fee shall be **recorded as an Order** and, in Year 1, **confirmed manually** by an admin after external payment. The generic `host_fee` purpose is deprecated because it is ambiguous and must not be used for ordinary community hosting.
+- **FR-P3** If this future commercial phase opens, the hosted-challenge service fee shall be
+  recorded as an Order and initially confirmed manually by an admin after external payment. The
+  generic `host_fee` purpose is deprecated and must never be used for ordinary community hosting.
 - **FR-P4** (Community-positive talent) The system shall enable **warm introductions** between challenge participants and interested hosts/funders, with explicit participant opt-in. This is **not** transactional recruiting and must feel organic.
 
 ### 5.6 Identity & accounts (P0)
@@ -164,7 +214,10 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 - **FR-A1** The system shall maintain **one global user identity** per person (a user may relocate/travel).
 - **FR-A2** Activity and reputation shall be **scoped per market/city** (e.g., a host's Algiers history vs. a Cairo attendance history).
 - **FR-A3** Each user shall have changeable `home_market_code`, `home_state_code`, and `home_city_code` values.
-- **FR-A4** Authentication shall be **passwordless**: **phone-OTP via SMS** (primary; Twilio Verify) plus **email-OTP** (secondary/billing) plus **OAuth** (Google, GitHub, LinkedIn). Phone-OTP is the primary login method for mobile-first Maghreb markets (118% mobile connections, DZ). Email-OTP remains for OAuth account linking, billing receipts, and users without phone access. OAuth accounts link to a single identity by verified email (account linking enabled, trusted providers only). No passwords.
+- **FR-A4** Authentication shall be **passwordless**. The current community release exposes
+  **email OTP** plus configured OAuth providers. Phone OTP via Twilio Verify is a backend capability
+  but is not an active user flow until a separately reviewed phone-login UI is enabled. OAuth
+  accounts link to a single identity by verified email (trusted providers only). No passwords.
 - **FR-A5** Roles: `member`, `host` (a member who has hosted), `sponsor_contact`, `admin`, `moderator`.
 
 ### 5.7 Internationalization & localization (P0)
@@ -178,15 +231,48 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 
 ### 5.8 Admin & moderation (P0/P1) — served by `apps/admin`
 
-- **FR-M1** Project owners (admins) shall be able to configure D1-backed market state, feature flags, payment confirmation, and brand overrides without deploys. State/city reference data remains versioned code until a separately approved admin-geography feature exists.
-- **FR-M2** Moderators shall be able to review/remove events, challenges, and user-generated content, with **language/region awareness** (a market's content is moderated by someone fluent in its language/culture).
+- **FR-M1** Project owners shall have the operational controls required to run the current community.
+  D1-backed market/feature configuration and future commercial controls require separate roadmap
+  approval. State/city reference data remains versioned code.
+- **FR-M2** Moderators shall be able to review/remove events, profiles, and current user-generated
+  content, with **language/region awareness**. Future challenge content is added only if that phase
+  is opened.
 - **FR-M3** The system shall support host verification (light trust mechanism) to reduce spam/abuse without adding formality.
-- **FR-M4** The system shall log moderation + payment-confirmation actions for audit.
-- **FR-M5** Admins shall be able to **confirm manual payments** ("mark as paid") for sponsorship orders, hosted-challenge fees, and prize payouts (Year 1 flow, §8.5).
+- **FR-M4** The system shall log current moderation and trust actions for audit. Future commercial
+  actions require the same audit standard if enabled.
+- **FR-M5 (future)** If a commercial phase is approved, admins shall be able to confirm manual
+  payments for sponsorship orders, hosted-challenge fees, and prize payouts (§8.5).
+- **FR-M6** Authorized moderators/admins shall have a market-scoped operations workspace for
+  upcoming events, overdue closeouts, event outcomes, attendance aggregates, delivery failures,
+  moderation, host trust, and audited correction. Ordinary hosts shall complete their own events in
+  `apps/ui`, not `apps/admin`. Every privileged request shall verify the Access JWT, resolve an
+  admin-owned Better Auth session, require equality between their verified emails, and carry both
+  the Access subject and Better Auth user ID into authorization and audit context. Two valid but
+  unrelated identities shall fail closed. A closeout-outcome correction shall atomically reconcile
+  pending feedback invitations, future feedback eligibility, did-not-happen participant notice,
+  retained audit evidence, and completed-event metrics.
+- **FR-M7** Authorized admins shall have a community-health dashboard implementing the canonical
+  completed-event, recurring-host, 60-day host-retention, repeat-participation, RSVP-conversion,
+  no-show, return-intent, host-again-intent, closeout-backlog, and four-week schedule definitions.
+  Every rate shall show its numerator, denominator, window, timezone, and as-of time.
+- **FR-M8** The weekly community review shall be stored as a market-scoped D1 record with evidence
+  window, structured bottleneck, bounded intervention, owner, due date, and follow-up result. No CRM
+  shall be required for the current release, and the bounded text shall contain no member PII.
+- **FR-M9** A `communityOperations` feature flag, disabled until acceptance, shall gate closeout,
+  feedback, repeat-host, operations, and metrics entry points at both UI and server boundaries.
+  Disabling it shall preserve data and shall not disable moderation or host-trust safety controls.
+- **FR-M10** Closeout, attendance, feedback, host trust, audit, and weekly-review records shall be
+  market-scoped at rest. Host trust shall be unique per market/member. Host friction shall use
+  `venue`, `scheduling`, `promotion`, `attendance`, `format`, `safety`, or `other_structured`;
+  correction/moderation shall use `host_request`, `member_dispute`, `data_entry_error`, `safety`,
+  `policy`, or `delivery_recovery`. A bounded private note shall be required for
+  `other_structured` and excluded from logs/Analytics. Weekly bottleneck shall use `host_supply`,
+  `calendar_consistency`, `venue_readiness`, `discovery`, `rsvp_conversion`, `attendance`,
+  `event_quality`, `return_behavior`, or `product_reliability`.
 
 ### 5.9 Notifications & communications (P1)
 
-- **FR-N1** Event notifications shall use **PWA web push (FCM)** as the primary channel for subscribed devices and **Twilio Programmable SMS** as fallback. Email remains the authentication, billing, and explicitly-email channel. Twilio Verify is used only for phone authentication.
+- **FR-N1** Event notifications shall use **PWA web push (FCM)** as the primary channel for subscribed devices and **Twilio Programmable SMS** as fallback. Email remains the authentication and explicitly-email channel. Future billing may use email if enabled; Twilio Verify is authentication-only.
 - **FR-N2** Notification preferences shall be user-configurable.
 - **FR-N3** Notifications shall be localized.
 
@@ -194,20 +280,20 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 
 ## 6. Non-functional requirements
 
-| ID         | Category             | Requirement                                                                                                                                                                                                                                                       |
-| ---------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **NFR-1**  | Performance          | Event listing/detail server functions shall respond ≤ 300ms (p95) at MVP load.                                                                                                                                                                                    |
-| **NFR-2**  | Scalability          | Stateless Workers (auto-scaling edge); no single-market coupling in hot paths. See §8.7 for the D1 data-scale ceiling and escape hatches.                                                                                                                         |
-| **NFR-3**  | Availability         | MVP target: 99.5% uptime; graceful degradation if a payment provider or external service is unavailable.                                                                                                                                                          |
-| **NFR-4**  | Security             | OWASP top-10 controls; input validation at the server-function layer (Zod); secrets via Wrangler env/Cloudflare secrets, never in repo; rate limiting on auth and create endpoints.                                                                               |
-| **NFR-5**  | Privacy              | Minimal PII collection; explicit consent for talent-pipeline opt-in (FR-P4); data export/retention policy per market.                                                                                                                                             |
-| **NFR-6**  | Compliance           | Payment flows must comply with each market's regulator (Algeria: Bank of Algeria / postal regulations; MA: post-CMI-liberalization rules; EG: CBE; SA: SAMA; AE: ADGM/CBUAE). No cross-border money movement. Year 1 manual execution limits regulatory exposure. |
-| **NFR-7**  | Observability        | Structured logging, request tracing, metrics (events created, RSVPs, density per city/market), alerting on payment-confirmation backlog. Cloudflare observability enabled.                                                                                        |
-| **NFR-8**  | Accessibility        | Frontend shall meet WCAG 2.1 AA, validated in both LTR and RTL.                                                                                                                                                                                                   |
-| **NFR-9**  | Internationalization | All features must work correctly under RTL and for multi-currency/multi-timezone without code branches per market.                                                                                                                                                |
-| **NFR-10** | Maintainability      | Strict TypeScript; clean Nx library boundaries; adding a market or payment provider must not touch unrelated modules.                                                                                                                                             |
-| **NFR-11** | Testability          | Unit tests for domain logic (Vitest/Jest); e2e for critical flows (events RSVP, challenge judging + payout confirmation).                                                                                                                                         |
-| **NFR-12** | Deployability        | Each app deploys to Cloudflare Workers via Wrangler (`wrangler deploy`); buildable via Nx/Vite targets.                                                                                                                                                           |
+| ID         | Category             | Requirement                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **NFR-1**  | Performance          | Event listing/detail server functions shall respond ≤ 300ms (p95) at MVP load.                                                                                                                                                                                                                                                                                                                     |
+| **NFR-2**  | Scalability          | Stateless Workers (auto-scaling edge); no single-market coupling in hot paths. See §8.7 for the D1 data-scale ceiling and escape hatches.                                                                                                                                                                                                                                                          |
+| **NFR-3**  | Availability         | MVP target: 99.5% uptime; graceful degradation if a current external service is unavailable. Future payment-provider behavior is assessed only when that phase opens.                                                                                                                                                                                                                              |
+| **NFR-4**  | Security             | OWASP top-10 controls; input validation at the server-function layer (Zod); secrets via Wrangler env/Cloudflare secrets, never in repo; rate limiting on auth and create endpoints.                                                                                                                                                                                                                |
+| **NFR-5**  | Privacy              | Minimal PII collection; explicit consent for talent-pipeline opt-in (FR-P4); export/deletion support; closeout, attendance, structured feedback, weekly reviews, and audit retained 24 months; feedback comments 12 months; current host trust for the account lifetime and 24 months after closure/last transition; non-PII monthly aggregates indefinitely, unless applicable law requires less. |
+| **NFR-6**  | Compliance           | The community release must meet applicable privacy, communications, and event-operation obligations. Any future payment flow requires a separate market-specific regulatory review and no cross-border money movement.                                                                                                                                                                             |
+| **NFR-7**  | Observability        | Structured logging, request tracing, community metrics (events created/completed, RSVPs, repeat participation, recurring hosts, density per city/market), and alerts on current operational failures. Cloudflare observability enabled.                                                                                                                                                            |
+| **NFR-8**  | Accessibility        | Frontend shall meet WCAG 2.1 AA, validated in both LTR and RTL.                                                                                                                                                                                                                                                                                                                                    |
+| **NFR-9**  | Internationalization | All features must work correctly under RTL and for multi-currency/multi-timezone without code branches per market.                                                                                                                                                                                                                                                                                 |
+| **NFR-10** | Maintainability      | Strict TypeScript; clean Nx library boundaries; adding a market or payment provider must not touch unrelated modules.                                                                                                                                                                                                                                                                              |
+| **NFR-11** | Testability          | Unit/integration tests for domain and server logic; Playwright for signup → create event → RSVP and the three-checkpoint reminder → RSVP-freeze → real event end → closeout → feedback → admin review flow. Deployed test-only clock/completion endpoints are forbidden. Future phases add acceptance flows only if approved.                                                                      |
+| **NFR-12** | Deployability        | Each app deploys to Cloudflare Workers via Wrangler (`wrangler deploy`); buildable via Nx/Vite targets.                                                                                                                                                                                                                                                                                            |
 
 ---
 
@@ -220,7 +306,7 @@ Market (D1)
   code (DZ | MA | EG | SA | AE), name, slug
   default_locale, default_currency, timezone, direction (rtl|ltr)
   state (dark | open | active)
-  feature_flags { events, hackathons, payments, recruiting }
+  feature_flags { events, communityOperations, hackathons, payments, recruiting }
   payment_providers[]            // empty until P4 wiring
   brand_overrides {}             // accent color, tagline key, etc.
 
@@ -233,7 +319,7 @@ User
 
 Event
   id, market_code, state_code, city_code, host_user_id
-  title, description, venue, starts_at, capacity, language, category
+  title, description, venue, starts_at, ends_at, capacity, language, category
   rsvps (denormalized counter), is_free = true
   latitude, longitude, venue_address
   sponsorships[]                 // sponsor surfaces attached (FR-S2)
@@ -241,8 +327,43 @@ Event
 
 EventRsvp
   event_id, user_id              // UNIQUE(event_id, user_id) — idempotent RSVP
-  status (confirmed | cancelled)
+  status (going | waitlist | cancelled)
   created_at
+  // Mutations stop at starts_at; the frozen going set determines attendance eligibility.
+
+EventCloseout
+  event_id, market_code, state_code, city_code
+  outcome (held | did_not_happen), walk_in_count, would_host_again, host_friction[]
+  submitted_by_user_id, submitted_at, updated_by_user_id, updated_at, version
+
+EventAttendance
+  id, event_id, user_id, market_code, state_code, city_code
+  outcome (attended | no_show), recorded_by_user_id, recorded_at, updated_at
+  // UNIQUE(event_id, user_id); every correction also appends an OperationsAudit row.
+
+EventFeedback
+  id, event_id, user_id, market_code, state_code, city_code
+  value_rating, would_return, bounded_comment?, comment_language?
+  created_at, updated_at
+  // UNIQUE(event_id, user_id); comment_language is required when comment is non-empty.
+
+HostTrust
+  id, market_code, user_id, status, reason_code, reviewed_by_user_id, reviewed_at, updated_at
+  // UNIQUE(market_code, user_id)
+
+OperationsAudit
+  id, market_code, actor_user_id, access_subject?, action, target_type, target_id
+  reason_code, bounded_non_pii_metadata, created_at
+
+OperationsReview
+  id, market_code, state_code?, city_code?, evidence_window_start, evidence_window_end
+  bottleneck, bounded_intervention, owner_user_id, due_at, follow_up_result?
+  created_by_user_id, created_at, updated_at
+
+CommunityMetricSnapshot
+  id, market_code, scope_type, non_null_scope_code, period_month, metric_key
+  numerator, denominator?, computed_at
+  // Market-local non-PII monthly aggregate retained after bounded raw-data expiry.
 
 ScheduledNotification
   id, event_id, user_id
@@ -250,6 +371,7 @@ ScheduledNotification
   payload (JSON), status (pending | sent | failed)
   send_at (unix timestamp), created_at
   // Event alarms enqueue due work; a low-frequency sweep only recovers missed alarms.
+  // One logical event delivery selects push first and creates SMS fallback only when needed.
 
 PushSubscription                (PWA web push via FCM HTTP v1)
   id, user_id, token (device token or FCM web push token)
@@ -257,26 +379,26 @@ PushSubscription                (PWA web push via FCM HTTP v1)
   created_at, updated_at
   // Multiple tokens per user (multiple devices); invalidated on logout or DeviceNotRegistered
 
-Challenge
+Challenge   (future, only after post-community approval)
   id, market_code, host_user_id (or sponsor_id), commercial_client_id?
   problem, rules, timeline, judging_criteria, prize (Money), currency
   participants[], teams[], submissions[], judges[], winners[]
   status (draft | live | judging | completed)
 
-Sponsor
+Sponsor   (future)
   id, name, logo, markets[], package_type, surfaces[]
 
-Sponsorship
+Sponsorship   (future)
   sponsor_id, surface (series | event | challenge | founder_picks_category)
   market_code, start_date, end_date, disclosure_text
 
-Order / Invoice   (Year 1: manual payments)
+Order / Invoice   (future commercial phase: manual-first payments)
   id, market_code, type (sponsorship | hosted_challenge_fee | prize_payout)
   amount (Money), currency, status (pending | paid | refunded | failed)
   payer_ref, payee_ref, due_date, paid_at
   confirmed_by_admin_id         // who marked it paid (FR-M5)
   external_ref                  // bank transfer / BaridiMob txn id, entered manually
-  // Year 1: NO provider integration. Admin confirms after external payment.
+  // Initial future phase: no provider integration. Admin confirms after external payment.
 
 PaymentRecord   (P4+: populated when providers are wired)
   id, market_code, provider_code, type (collection | payout)
@@ -287,7 +409,9 @@ Money (value object, used everywhere — never bare numbers)
   currency: string    // ISO 4217 (DZD, MAD, EGP, SAR, AED)
 ```
 
-**Rule:** monetary values are always `{ amount_minor, currency }`. Never store or pass a bare number for money. In Year 1, money is _recorded and confirmed manually_; no automated provider calls exist.
+**Rule:** monetary values are always `{ amount_minor, currency }`. Never store or pass a bare
+number for money. The current release has no product payment flow. If a commercial phase is opened,
+its initial approach is manual recording/confirmation with no automated provider calls.
 
 ---
 
@@ -311,7 +435,9 @@ Money (value object, used everywhere — never bare numbers)
 - **Security:** **Turnstile** (bot protection on all forms); **Cloudflare Access / Zero Trust** (gates `apps/admin` to the team).
 - **Observability:** **Analytics Engine** (product metrics) + **Web Analytics** (privacy analytics); structured logging.
 - **Secrets:** **Cloudflare Secrets Store / `wrangler secret`**.
-- **Auth:** **Better Auth** — passwordless phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google, GitHub, LinkedIn); account linking; cookie (web) + bearer token (future non-web); sessions in D1 (not KV).
+- **Auth:** **Better Auth** — the current UI uses passwordless email OTP plus configured OAuth
+  providers; phone OTP via Twilio Verify is a dormant backend capability. Account linking uses
+  trusted providers; web sessions live in D1 (not KV), with bearer-token readiness for future clients.
 - **Mobile:** `apps/ui` is an installable Serwist PWA. PWA Builder may package that same PWA for stores; a separate native app is not committed scope.
 - **Testing:** **Vitest** + **Playwright** against **Miniflare** (real local Cloudflare bindings — no platform mocks).
 - **Language:** TypeScript 6, strict.
@@ -323,8 +449,8 @@ Three independent, fullstack TanStack Start apps (each its own Worker) + a dedic
 | App                    | Audience                                                   | Role                                                                                                                                                                                               | Notes                                                                                   |
 | ---------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | **`apps/ui`**          | Public                                                     | The community site: events discovery, city landing pages, host profiles, SEO/prerendered, the "be the first host" empty state. **This is the installable PWA**; PWA Builder packaging is optional. | Anon-accessible; heavily prerendered.                                                   |
-| **`apps/dashboard`**   | Sponsors (authenticated)                                   | Sponsorship account management, analytics, reporting, and commercial challenge commissioning.                                                                                                      | Authenticated, dynamic; no member/host event workflows.                                 |
-| **`apps/admin`**       | Project owners / internal team (authenticated, privileged) | D1-backed market config, feature flags, moderation queue, host verification, **manual payment confirmation** (Year 1), sponsorship management.                                                     | Strictly separated; gated by **Cloudflare Access**; privileged code never ships public. |
+| **`apps/dashboard`**   | Future sponsors (authenticated)                            | Dormant shell for a possible future sponsorship/commercial-challenge product.                                                                                                                      | Outside the current release; no member/host event workflows.                            |
+| **`apps/admin`**       | Project owners / internal team (authenticated, privileged) | Current event/user moderation, host trust, and essential community operations; future market/commercial controls remain dormant.                                                                   | Strictly separated; gated by **Cloudflare Access**; privileged code never ships public. |
 | **`apps/worker-jobs`** | System (no UI)                                             | Queue consumers for notifications and AI reindexing plus coarse recovery/reconciliation jobs. Per-entity timing originates in Durable Object alarms.                                               | Consumes Queues and recovery Cron; shares `libs/*`.                                     |
 
 **Shared Nx libraries** (written once, consumed by all apps' server functions):
@@ -339,7 +465,7 @@ libs/
   i18n/            // locales, RTL, fallback, money/date formatting
   ui/              // Tailwind v4 + DaisyUI design system, shared components
   notifications/   // PWA push and notification-SMS delivery providers
-  payments/        // PaymentProvider interface + ManualProvider (Y1) + DZ adapters (P4)
+  payments/        // dormant future PaymentProvider foundation; not current-release scope
   email/           // Cloudflare Email integration + React Email templates
   observability/   // logging, Analytics Engine metrics, error reporting
   infra/           // wrangler configs, typed Env (cf-typegen), seeds, Nx tags
@@ -358,12 +484,18 @@ Server-only Workers AI and Vectorize ports live at `libs/core/src/ai` and are ex
 ### 8.4 Multi-market architecture rules
 
 - **Single D1 database, `market_code` foreign-key column** (not separate tenants). No multi-tenant isolation.
-- **Feature flags per market** drive which engines are active where (e.g., challenges only where `feature_flags.hackathons === true`).
+- **Feature flags per market** drive current rollback and future activation (for example,
+  `communityOperations` for the accepted operations slice and future challenges only where
+  `feature_flags.hackathons === true`).
 - **Per-market configuration** (locale, currency, timezone, direction, brand) is data-driven, not hardcoded.
 
-### 8.5 Payment handling — manual in Year 1, automated in P4
+### 8.5 Payment handling — future only, manual-first if activated
 
-- **Abstraction defined now, no adapters wired in Year 1:**
+There is no product payment flow in the community-building release. Existing payment abstractions
+may remain as dormant foundations; they are not launch requirements and must not be extended without
+passing the community validation gate and receiving explicit Founder / Product approval.
+
+- **Existing abstraction, retained for a possible future phase:**
   ```
   interface PaymentProvider {
     marketCode: string;
@@ -372,8 +504,10 @@ Server-only Workers AI and Vectorize ports live at `libs/core/src/ai` and are ex
     status(id: string): Promise<PaymentStatus>;
   }
   ```
-- **Year 1 (P1–P3):** money is recorded as `Order`/`Invoice` rows; an admin **confirms payment manually** in `apps/admin` ("mark as paid") after an external bank transfer / BaridiMob push. No provider calls, no webhooks, no merchant-of-record.
-- **P4:** implement DZ adapters (`BaridiMobProvider`, `CibProvider`) behind the same interface, replacing manual confirmation with automated flows. Later markets (MA/EG/SA/AE) wire their own adapters.
+- **Initial approved commercial phase:** money may be recorded as `Order`/`Invoice` rows and an
+  admin confirms external payment manually. No provider calls, webhooks, or merchant-of-record.
+- **P4, if separately approved:** implement compliant DZ adapters behind the same interface.
+  Additional markets require their own readiness and compliance decisions.
 - Collections and payouts are modeled as **separate flows** (different regulators).
 
 ### 8.6 i18n / RTL architecture
@@ -434,7 +568,10 @@ Server-only Workers AI and Vectorize ports live at `libs/core/src/ai` and are ex
 
 **Expansion rule:** operate DZ first. EG and SA remain self-serve `open`; either advances only after the density gate. MA and AE remain `dark` until geography and operational readiness are complete.
 
-### 10.3 Sponsorship catalog (indicative pricing, DZ)
+### 10.3 Future sponsorship research (indicative pricing, DZ)
+
+This catalog is preserved only as future research. It is not a launch offer, current sales plan, or
+authorization to build sponsor surfaces before the community gate.
 
 | Package                              | Description                                                                                            | Indicative price (Y1)            |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------ | -------------------------------- |
@@ -444,25 +581,27 @@ Server-only Workers AI and Vectorize ports live at `libs/core/src/ai` and are ex
 | **Single-event partner**             | One event/mixer branding + hiring booth                                                                | 150–400K DZD / event             |
 | **Hosted challenge** (paid, P2)      | Flat fee to commission a talent/idea-validation challenge                                              | 1–3M DZD per challenge           |
 
-(Prices are indicative and must be validated with real sponsor conversations before being committed. Year 1: payment recorded as an Order, confirmed manually by admin.)
+(Prices are indicative and must be revalidated if the future sponsorship phase is ever opened. Any
+initial approved payment operation would be recorded as an Order and confirmed manually by an
+admin.)
 
 ---
 
 ## 11. Extensibility guardrails (build now vs. defer)
 
-**Build now (cheap, prevents painful rewrites):**
+**Retain or complete for the community release:**
 
 - i18n framework with RTL from line one (FR-L1/L2/L3) in `libs/i18n`.
 - `Money` value object used everywhere (NFR-9, §7).
-- Payment **abstraction interface** (§8.5) — defined now, **no adapters** in Year 1.
 - `market_code` plus `state_code`/`city_code` on geographic records; per-market config + feature flags (FR-G, §8.4).
 - Externalized copy; direction-aware layout.
 - Timezone-safe date/time handling.
 - Drizzle schema in `libs/db` (portable to Postgres).
 
-**Defer (do NOT build now):**
+**Defer (do NOT build for the community release):**
 
-- Payment **provider integrations** (DZ and others) — Year 1 is manual confirmation (§8.5).
+- Additional sponsorship, challenge, talent, billing, or payment functionality, even where a foundation already exists.
+- Payment recording, confirmation, and provider integrations (§8.5).
 - Multi-tenant DB isolation (not needed).
 - i18n CMS (static JSON resources suffice until scale).
 - Cross-border payments / cross-market challenges.
@@ -474,7 +613,8 @@ Server-only Workers AI and Vectorize ports live at `libs/core/src/ai` and are ex
 
 ## 12. Compliance, privacy & trust
 
-- **Payments:** Year 1 manual execution (admin-confirmed bank transfer / BaridiMob) intentionally limits regulatory exposure. Each market's automated collection/payout flow (P4) must comply with its regulator (NFR-6). Document compliance requirements per market before P4.
+- **Future payments:** if a commercial phase is approved, begin manual-first and complete the
+  applicable market-specific compliance review before any collection or payout work (NFR-6).
 - **Startup Label (DZ):** Investigate obtaining Algeria's startup label (4-year tax exemption + Startup Fund access) as a structural advantage. (Operational, not software — but flagged here.)
 - **Content moderation:** Language/region-aware (FR-M2); a market's content is moderated by a fluent moderator, via `apps/admin`.
 - **Talent opt-in:** Explicit, revocable consent for any warm-intro/talent pipeline use of a member's data (FR-P4, NFR-5).
@@ -485,42 +625,43 @@ Server-only Workers AI and Vectorize ports live at `libs/core/src/ai` and are ex
 
 ## 13. Decisions (resolved)
 
-| #   | Decision                  | Resolution                                                                                                                                                                                     | Rationale                                                                                                                                                                                                                                                                                                                                                                               |
-| --- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | **Database**              | **Cloudflare D1**                                                                                                                                                                              | Edge-native, cheap, fits Workers; primary near Maghreb. Postgres is the Year-2+ escape hatch via Drizzle.                                                                                                                                                                                                                                                                               |
-| D2  | **ORM**                   | **Drizzle**                                                                                                                                                                                    | Edge-native (unlike Prisma on Workers); portable to Postgres.                                                                                                                                                                                                                                                                                                                           |
-| D3  | **Frontend framework**    | **TanStack Start** (fullstack) + Query, Form, Table, Virtual, Store, Config                                                                                                                    | Typed server functions = the backend; full TanStack toolset; end-to-end type safety; edge-native.                                                                                                                                                                                                                                                                                       |
-| D4  | **Auth method**           | **Passwordless** phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google/GitHub/LinkedIn) via **Better Auth**; account linking (trusted providers, same-email only) | Phone-OTP is the lowest-friction method in mobile-first Maghreb markets (118% mobile connections, Algeria). Email retained for OAuth linking, billing, and fallback. No passwords. One global identity (FR-A1). Sessions in D1 (not KV); D1-backed auth rate limiting. Twilio Verify provides stateless OTP + Fraud Guard. _Amends prior D4 (email-OTP primary) per market validation._ |
-| D5  | **Notification channels** | PWA web push via FCM (primary) + Twilio Programmable SMS (fallback) + Cloudflare Email (authentication/billing/explicit email)                                                                 | Keeps event communication immediate while retaining SMS coverage when push is unavailable. Twilio Verify remains authentication-only.                                                                                                                                                                                                                                                   |
-| D6  | **Hosting region**        | Cloudflare edge; **D1 primary near Maghreb**                                                                                                                                                   | Latency + data-residency considerations.                                                                                                                                                                                                                                                                                                                                                |
-| D7  | **Monetization build**    | **Build sponsorship surfaces in P1; sell through the platform** (no manual-only phase)                                                                                                         | Sponsorship is a built feature of the events engine; no manual validation phase.                                                                                                                                                                                                                                                                                                        |
-| D8  | **Hackathon engine**      | **Build the full engine in P2** (no manual validation); ship P1 events first                                                                                                                   | Staged shipping gives real users before P2; first real challenge is the demand signal.                                                                                                                                                                                                                                                                                                  |
-| D9  | **Backend architecture**  | **Fullstack TanStack Start; no gateway; retire NestJS**                                                                                                                                        | Single client (the PWA); server functions preserve type safety; no NestJS on Workers.                                                                                                                                                                                                                                                                                                   |
-| D10 | **Payments**              | **Manual for Year 1** (record + admin-confirm); automate DZ in P4                                                                                                                              | Payments hardest to automate / easiest to do manually; defers regulatory + integration risk.                                                                                                                                                                                                                                                                                            |
-| D11 | **Mobile**                | **Installable Serwist PWA**; optional PWA Builder packaging                                                                                                                                    | One member client and no separate native codebase. React Native/Expo remains research, not committed scope.                                                                                                                                                                                                                                                                             |
-| D12 | **App separation**        | **Three apps** (`ui`, `dashboard`, `admin`) + `worker-jobs`                                                                                                                                    | Clean separation + security isolation from day 1; dedicated jobs worker.                                                                                                                                                                                                                                                                                                                |
-| D13 | **Email**                 | **Cloudflare Email** (native) + React Email templates                                                                                                                                          | Zero external vendors; native Worker binding; auto SPF/DKIM/DMARC.                                                                                                                                                                                                                                                                                                                      |
-| D14 | **Styling / UI**          | **Tailwind CSS v4 + DaisyUI**                                                                                                                                                                  | Shared design system; RTL-aware; fast build.                                                                                                                                                                                                                                                                                                                                            |
-| D15 | **AI & search**           | **Workers AI + Vectorize**                                                                                                                                                                     | Semantic search over events/challenges; AI moderation; recommendations.                                                                                                                                                                                                                                                                                                                 |
-| D16 | **CF platform services**  | **R2 + Images, KV, Durable Objects, Workflows, Browser Rendering, Turnstile, Access, Analytics Engine**                                                                                        | Single-vendor platform; real-time, orchestration, uploads, security, metrics — all native.                                                                                                                                                                                                                                                                                              |
+| #   | Decision                  | Resolution                                                                                                                                                                        | Rationale                                                                                                                                                                                               |
+| --- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | **Database**              | **Cloudflare D1**                                                                                                                                                                 | Edge-native, cheap, fits Workers; primary near Maghreb. Postgres is the Year-2+ escape hatch via Drizzle.                                                                                               |
+| D2  | **ORM**                   | **Drizzle**                                                                                                                                                                       | Edge-native (unlike Prisma on Workers); portable to Postgres.                                                                                                                                           |
+| D3  | **Frontend framework**    | **TanStack Start** (fullstack) + Query, Form, Table, Virtual, Store, Config                                                                                                       | Typed server functions = the backend; full TanStack toolset; end-to-end type safety; edge-native.                                                                                                       |
+| D4  | **Auth method**           | **Passwordless Better Auth.** Current UI: email OTP plus configured OAuth. Dormant capability: phone OTP via Twilio Verify, enabled only after a separately approved UI decision. | Matches operational reality while preserving one global identity, trusted account linking, no passwords, D1 sessions, and centralized rate limiting.                                                    |
+| D5  | **Notification channels** | PWA web push via FCM (primary) + Twilio Programmable SMS (fallback) + Cloudflare Email (authentication/billing/explicit email)                                                    | Keeps event communication immediate while retaining SMS coverage when push is unavailable. Twilio Verify remains authentication-only.                                                                   |
+| D6  | **Hosting region**        | Cloudflare edge; **D1 primary near Maghreb**                                                                                                                                      | Latency + data-residency considerations.                                                                                                                                                                |
+| D7  | **Monetization build**    | **Deferred until after the community validation gate and explicit Founder / Product approval.**                                                                                   | A sponsor product has no durable value before founders.coffee has a real, trusted, repeat community. Existing foundations are not a launch commitment.                                                  |
+| D8  | **Hackathon engine**      | **Future option, not current committed delivery.** It may be opened only after the community validation gate and explicit approval.                                               | Challenges cannot rescue a weak community loop and must not distract from proving the local event community first.                                                                                      |
+| D9  | **Backend architecture**  | **Fullstack TanStack Start; no gateway; retire NestJS**                                                                                                                           | Single client (the PWA); server functions preserve type safety; no NestJS on Workers.                                                                                                                   |
+| D10 | **Payments**              | **No current-release flow.** If a commercial phase opens, start manual-first; automation remains a separate P4 decision.                                                          | Keeps payment and regulatory work from delaying community validation while preserving a low-risk future path.                                                                                           |
+| D11 | **Mobile**                | **Installable Serwist PWA**; optional PWA Builder packaging                                                                                                                       | One member client and no separate native codebase. React Native/Expo remains research, not committed scope.                                                                                             |
+| D12 | **App separation**        | **Three apps** (`ui`, `dashboard`, `admin`) + `worker-jobs`                                                                                                                       | Clean separation + security isolation from day 1; dedicated jobs worker.                                                                                                                                |
+| D13 | **Email**                 | **Cloudflare Email** (native) + React Email templates                                                                                                                             | Zero external vendors; native Worker binding; auto SPF/DKIM/DMARC.                                                                                                                                      |
+| D14 | **Styling / UI**          | **Tailwind CSS v4 + DaisyUI**                                                                                                                                                     | Shared design system; RTL-aware; fast build.                                                                                                                                                            |
+| D15 | **AI & search**           | **Workers AI + Vectorize**                                                                                                                                                        | Semantic search over events/challenges; AI moderation; recommendations.                                                                                                                                 |
+| D16 | **CF platform services**  | **R2 + Images, KV, Durable Objects, Workflows, Browser Rendering, Turnstile, Access, Analytics Engine**                                                                           | Single-vendor platform; real-time, orchestration, uploads, security, metrics — all native.                                                                                                              |
+| D17 | **First release scope**   | **Community building only:** free local events, repeat participation, hosts, trust/moderation, and the PWA operations required to run that loop.                                  | If community density and repeat participation fail, later sponsorship, challenge, talent, payment, and expansion layers will not succeed. Future work requires the density gate plus explicit approval. |
 
 ---
 
 ## 14. Risks & mitigations
 
-| Risk                                                                                     | Severity | Mitigation                                                                                                                                                                                                                                                                         |
-| ---------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **R-H1: Hackathon engine built before demand validation** (overriding manual validation) | **High** | (1) Feature-flag per market — cheap to disable if wrong. (2) Ship P1 events first so the platform has real users before P2. (3) **Instrument the first real challenge hard** (host acquisition cost, builder participation, dropout, renewal) — it is the demand test, post-build. |
-| **Cold-start / no-show death spiral** (free events → 30–50% no-show → hosts quit)        | High     | Density-first (one city); timely reminders and easy cancellation (FR-E10); hand-recruit first hosts.                                                                                                                                                                               |
-| **Ghost-town across markets** (multi-market spread thin)                                 | High     | Three-state model (§10.1); density-gated activation (§2.2); seed only DZ.                                                                                                                                                                                                          |
-| **D1 data ceiling** (~10 GB / DB, no auto-sharding)                                      | Medium   | Drizzle→Postgres migration path; per-market D1 sharding option (§8.7).                                                                                                                                                                                                             |
-| **Manual-payment operational drag** (Year 1)                                             | Medium   | Clean Order/Invoice model + admin confirmation (FR-M5); automate in P4 behind the existing interface.                                                                                                                                                                              |
-| **Brand dilution** (sponsor formality creeps in)                                         | Medium   | Disclosed-only sponsorships; one sponsor per event; organic feel (FR-S3, §9).                                                                                                                                                                                                      |
-| **RTL/i18n technical debt**                                                              | Medium   | Build RTL-correct from P0 (FR-L2); shared `libs/i18n`; never defer.                                                                                                                                                                                                                |
-| **TanStack Start maturity**                                                              | Medium   | Accept the maturity tax for type safety; mitigate with shared libs + solid testing.                                                                                                                                                                                                |
-| **PWA push availability** (permission, installation, browser support)                    | Medium   | Ask contextually, store preferences, and use SMS fallback when no valid push subscription exists.                                                                                                                                                                                  |
-| **"Why not just use Devpost/Meetup?"**                                                   | Medium   | Local payouts + local sponsors + local-language community are the differentiators.                                                                                                                                                                                                 |
-| **Regulatory change** (e.g., MA CMI liberalization)                                      | Low-Med  | Payment abstraction isolates per-market changes (§8.5).                                                                                                                                                                                                                            |
+| Risk                                                                              | Severity | Mitigation                                                                                                                                                                          |
+| --------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R-H1: Future layers distract from community validation**                        | **High** | Keep hackathons, sponsorship, talent, payments, and expansion outside the current release. Open a future phase only after the density gate and explicit Founder / Product approval. |
+| **Cold-start / no-show death spiral** (free events → 30–50% no-show → hosts quit) | High     | Density-first (one city); timely reminders and easy cancellation (FR-E10); hand-recruit first hosts.                                                                                |
+| **Ghost-town across markets** (multi-market spread thin)                          | High     | Three-state model (§10.1); density-gated activation (§2.2); seed only DZ.                                                                                                           |
+| **D1 data ceiling** (~10 GB / DB, no auto-sharding)                               | Medium   | Drizzle→Postgres migration path; per-market D1 sharding option (§8.7).                                                                                                              |
+| **Future payment operational drag**                                               | Medium   | Do not activate payments in the community release; if later approved, start manual-first and measure operational cost before automation.                                            |
+| **Brand dilution from future commercial layers**                                  | Medium   | Keep sponsor surfaces out of the current release; if later approved, require clear disclosure and preserve the community experience.                                                |
+| **RTL/i18n technical debt**                                                       | Medium   | Build RTL-correct from P0 (FR-L2); shared `libs/i18n`; never defer.                                                                                                                 |
+| **TanStack Start maturity**                                                       | Medium   | Accept the maturity tax for type safety; mitigate with shared libs + solid testing.                                                                                                 |
+| **PWA push availability** (permission, installation, browser support)             | Medium   | Ask contextually, store preferences, and use SMS fallback when no valid push subscription exists.                                                                                   |
+| **"Why not just use Meetup or a group chat?"**                                    | Medium   | Win through trusted local curation, Arabic/French/English community context, frictionless hosting, reliable reminders, and a repeat founder ritual—not through feature breadth.     |
+| **Regulatory change** (e.g., MA CMI liberalization)                               | Low-Med  | Payment abstraction isolates per-market changes (§8.5).                                                                                                                             |
 
 ---
 
@@ -533,7 +674,8 @@ Server-only Workers AI and Vectorize ports live at `libs/core/src/ai` and are ex
 - **Hosted challenge** — a paid challenge commissioned by a founder/company to source talent or validate an idea.
 - **Founder Picks** — a categorized, disclosed recommendation surface (sponsorable).
 - **Money** — a `{ amount_minor, currency }` value object; the only legal representation of money in the system.
-- **Order / Invoice** — a recorded payable/receivable; in Year 1 its status is flipped to `paid` by an admin after an external manual payment.
+- **Order / Invoice** — a dormant future payable/receivable model; if a commercial phase opens,
+  its initial status may be confirmed manually by an admin after external payment.
 - **Server function** — a TanStack Start function that runs on the Worker (the backend), with typed input/output; calls D1 via Drizzle.
 
 ---

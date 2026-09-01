@@ -2,13 +2,19 @@
 
 ## Member and host experience in `apps/ui`
 
-| Field        | Value                                                                         |
-| ------------ | ----------------------------------------------------------------------------- |
-| Status       | Active; core loop implemented, launch hardening incomplete                    |
-| Last updated | 2026-08-30                                                                    |
-| Parent plan  | [Implementation plan, P1](./implementation-plan.md#5-phase-p1--events-launch) |
+| Field        | Value                                                                            |
+| ------------ | -------------------------------------------------------------------------------- |
+| Status       | Active; core loop implemented, launch hardening incomplete                       |
+| Last updated | 2026-09-01                                                                       |
+| Parent plan  | [Implementation plan, P1](./implementation-plan.md#5-phase-p1--community-launch) |
+| Strategy     | [Community-first release](./release-strategy.md)                                 |
+| Operations   | [Community Operations Plan](./community-operations-implementation-plan.md)       |
 
-This plan covers the member and host event experience. `apps/dashboard` is sponsor-only and `apps/admin` is the internal operations console. The installable Serwist PWA is the committed mobile surface; React Native/Expo is not committed scope.
+This plan is the core of the current community-building release. It covers the member and host event
+experience required to create repeat local participation. `apps/dashboard` and payment operations
+are future scope. `apps/admin` contributes only the lightweight trust, moderation, and operations
+needed to run the community. The installable Serwist PWA is the committed mobile surface;
+React Native/Expo is not committed scope.
 
 ## 1. Locked behavior
 
@@ -17,9 +23,13 @@ This plan covers the member and host event experience. `apps/dashboard` is spons
 - Canonical market URLs use slugs (`/algeria`); code aliases redirect (`/dz` → `/algeria`).
 - Locale resolution is preference/cookie → market default → `ar`. Supported locales are `ar`, `fr`, and `en`.
 - Any authenticated member may host a free event in a visible market.
-- RSVP is immediate and idempotent. There is no seat-hold or second confirmation lifecycle.
+- RSVP is immediate and idempotent before event start. Create, cancel, and restore stop when trusted
+  server time reaches `startsAt`, freezing the going set for attendance; there is no seat-hold or
+  second confirmation lifecycle.
 - PWA web push is the primary event-notification channel; SMS is fallback.
-- Phone authentication uses Twilio Verify. Notification fallback uses Twilio Programmable SMS through a separate provider contract.
+- The current UI uses email OTP and configured OAuth. Phone OTP via Twilio Verify is a dormant
+  backend capability, not an active login flow. Notification fallback uses Twilio Programmable SMS
+  through a separate provider contract.
 - Per-event reminders use Durable Object alarms → Notifications Queue. Cron is recovery-only.
 
 ## 2. Implemented member flow
@@ -41,7 +51,7 @@ Implemented surfaces include:
 - onboarding, private profile, and public host profile;
 - three-step host creation with Mapbox venue selection and local-time scheduling;
 - virtualized event feed, city feed, event detail, host attribution, and SEO metadata;
-- RSVP/cancellation UI and attendance counts;
+- RSVP/cancellation UI and RSVP counts;
 - PWA manifest/service worker and FCM subscription storage;
 - Durable Object WebSocket live attendance state;
 - anonymous city waitlist;
@@ -73,7 +83,10 @@ The desired operation is a single atomic D1 capacity decision plus idempotent me
 - a full event must not insert an RSVP row;
 - duplicate RSVP attempts must not increment the counter;
 - cancellation must not decrement twice or produce a negative count;
-- integration tests must exercise concurrent/full/duplicate/cancel paths against real D1.
+- creating, cancelling, or restoring an RSVP is permitted only while trusted server time is strictly
+  before `startsAt`; the frozen going set is the sole person-level attendance-eligibility source;
+- integration tests must exercise concurrent/full/duplicate/cancel paths and exact-start boundary
+  races against real D1.
 
 The current full-capacity path is **blocked** until the update/insert behavior is corrected and regression-tested.
 
@@ -83,7 +96,8 @@ The current full-capacity path is **blocked** until the update/insert behavior i
 
 1. Send PWA web push when the user has a valid subscription and permits the category.
 2. Fall back to Twilio Programmable SMS when push is unavailable or permanently fails.
-3. Use Cloudflare Email for authentication, billing, and explicitly email-based communications—not as the default event reminder.
+3. Use Cloudflare Email for authentication and explicitly email-based communications—not as the
+   default event reminder. Future billing may use it only if that phase is approved.
 
 ### Scheduling policy
 
@@ -107,7 +121,7 @@ notification remediation.
 
 - only the event host or a currently RSVP’d attendee may connect;
 - sessions are revalidated during the connection, not only at upgrade;
-- cancelled RSVPs lose access;
+- pre-start cancelled RSVPs lose access; at/after start, the frozen going set controls access;
 - all inbound messages are Zod-validated;
 - stale connections are removed after heartbeat timeout;
 - host/table/arrival state survives hibernation in Durable Object storage;
@@ -128,8 +142,18 @@ The feature is **Partial** until session-expiry, cancellation, and heartbeat beh
 ## 9. Deferred work
 
 - sponsorship surfaces and sponsor media (P1-011/P1-012);
-- admin moderation and manual payment UI (P1-013/P1-014);
+- manual payment UI and non-community admin functionality (P1-014);
 - semantic event search (P1-015);
 - Browser Rendering OG images (P1-022);
 - admin-managed geography;
 - any separate native mobile application.
+
+These items do not become active merely when launch hardening is complete. Sponsorship, challenge,
+talent, payment, and expansion work requires the community validation gate and explicit Founder /
+Product approval. Essential event moderation and lightweight host trust are current-release work,
+not deferred monetization scope.
+
+After EC-10 completes, the Community Operations Plan becomes the immediate next execution track. It
+owns post-event closeout, attendance, feedback, repeat-host support, admin operations, trust,
+moderation, and community-health evidence. This plan continues to own RSVP and notification
+correctness; CO-02 treats those blockers as inherited prerequisites rather than redefining them.

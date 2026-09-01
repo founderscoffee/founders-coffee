@@ -1,5 +1,9 @@
 # CI/CD — GitHub Actions → Cloudflare Workers
 
+CI protects delivery of the [community-building release](./release-strategy.md). Future app shells
+and dormant foundations may continue to compile, but they are not launch features. Per the current
+project decision, Playwright E2E remains a local/staging release gate and is not run in CI.
+
 Implements **P0-020**. Two workflows, two Cloudflare environments, four Workers per environment.
 
 **Source configuration last checked: 2026-08-30.** The workflow files match the behavior below.

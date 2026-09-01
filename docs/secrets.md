@@ -1,5 +1,10 @@
 # Secrets & environment variables — inventory
 
+This inventory includes dormant foundations, but only credentials consumed by the
+[community-building release](./release-strategy.md) are current launch requirements. Future sponsor,
+challenge, talent, payment, AI/search, and expansion secrets become required only after that phase is
+explicitly approved and enabled.
+
 Source of truth for every secret / env var across the apps. **Real values live only in
 `wrangler secret` / Cloudflare Secrets Store (prod) or `.dev.vars` (local dev, gitignored).**
 Never commit real secrets (AGENTS.md §10).
@@ -74,15 +79,16 @@ cannot be forged by the client (AGENTS.md §11.5).
 
 ### SMS / Twilio Verify (`libs/auth` phoneNumber provider) — apps/ui
 
-| Var          | Required   | Description                                                                          |
-| ------------ | ---------- | ------------------------------------------------------------------------------------ |
-| `TWILIO_SID` | production | Twilio Verify Service SID (VA…). Missing deployed credentials are a release blocker. |
-| `TWILIO_AID` | production | Twilio Account SID (AC…).                                                            |
-| `TWILIO_SEC` | production | Twilio Auth Token. Set via `wrangler secret`.                                        |
+| Var          | Required                    | Description                                                                            |
+| ------------ | --------------------------- | -------------------------------------------------------------------------------------- |
+| `TWILIO_SID` | when phone login is enabled | Twilio Verify Service SID (VA…). The current UI does not expose phone login.           |
+| `TWILIO_AID` | when phone login is enabled | Twilio Account SID (AC…). Notification delivery has its own current requirement below. |
+| `TWILIO_SEC` | when phone login is enabled | Twilio Auth Token. Notification delivery has its own current requirement below.        |
 
-`DevSmsProvider` is for local development only. The current fallback to it when deployed credentials
-are absent must be changed to fail closed before release; logging an OTP in a deployed Worker is not
-an acceptable production fallback.
+`DevSmsProvider` is for local development only. Even while phone login remains unexposed, deployed
+phone-OTP endpoints must fail closed when credentials are absent; logging an OTP in a deployed
+Worker is not an acceptable fallback. Real Verify credentials become a product requirement only if
+the phone-login UI is explicitly enabled.
 
 ### Mapbox — apps/ui
 
@@ -146,9 +152,9 @@ prove account-side provisioning. The last verified state is recorded in
 
 ## Per-app matrix
 
-| App                | Current or required integration                                                                                                 |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/ui`          | Better Auth, Turnstile, Twilio Verify, email OTP, Mapbox, Firebase public web configuration                                     |
-| `apps/dashboard`   | Sponsor-only shell today; its future authenticated sponsor flows require Better Auth and the applicable protection secrets      |
-| `apps/admin`       | Cloudflare Access guard today; Better Auth/RBAC integration remains planned                                                     |
-| `apps/worker-jobs` | Firebase service account for primary push, Twilio Programmable SMS for fallback, and email only for explicitly email-based jobs |
+| App                | Current or required integration                                                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/ui`          | Better Auth, Turnstile, email OTP, Mapbox, and Firebase public web configuration; Twilio Verify remains dormant/fail-closed until phone login is enabled |
+| `apps/dashboard`   | Sponsor-only shell today; its future authenticated sponsor flows require Better Auth and the applicable protection secrets                               |
+| `apps/admin`       | Cloudflare Access guard today; CO-04 must add an admin-origin Better Auth session and require its verified email to match the Access identity            |
+| `apps/worker-jobs` | Firebase service account for primary push, Twilio Programmable SMS for fallback, and email only for explicitly email-based jobs                          |

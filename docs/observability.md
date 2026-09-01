@@ -2,6 +2,10 @@
 
 `libs/observability` gives founders.coffee **one logger API for both the UI (browser) and the backend (Cloudflare Workers)**, with every log funneling to a single place, plus product metrics in Analytics Engine. Implements **P0-014** (NFR-7) and **AGENTS.md §13**.
 
+For the [community-building release](./release-strategy.md), product dashboards prioritize events
+created/completed, RSVPs, cancellations/no-shows, repeat participation, recurring hosts, and density
+by city/market. Payment and sponsor metrics are retained only as future examples.
+
 ## The two planes
 
 ### 1. Application logs (structured lines) → Workers Logs → Logpush
@@ -20,7 +24,11 @@ The browser cannot reach Workers Logs directly, so **client logs funnel through 
 
 ### 2. Product metrics (counts/sums) → Analytics Engine
 
-A separate binding for product events (events created, RSVPs, density per city/market, payments confirmed) that feed the **P1-019 dashboards**. `createMetrics(env.ANALYTICS)` shapes data points as: `index1` = market, `blob1` = event name, `blob2/3` = city/locale, `doubles` = values.
+A separate binding for community product events (events created/completed, RSVPs, repeat
+participation, recurring hosts, and density per city/market) feeds the **P1-019 dashboards**.
+`createMetrics(env.ANALYTICS)` shapes data points as: `index1` = market, `blob1` = event name,
+`blob2/3` = city/locale, `doubles` = values. Payment metrics become relevant only if a future
+commercial phase is explicitly opened.
 
 ## API
 
@@ -49,7 +57,7 @@ const log = logger.child({ market: 'DZ', requestId });
 // Product metrics (server-side, real binding):
 const metrics = createMetrics(env.ANALYTICS);
 metrics.trackEvent('event_created', { market: 'DZ', city: 'algiers' });
-metrics.trackCount('payment_amount', order.total.amount_minor, { market: 'DZ' });
+metrics.trackCount('repeat_participant', 1, { market: 'DZ', city: 'algiers' });
 
 // Error hook (wire into onError / error boundaries / unhandledrejection):
 reportError(error, { requestId });

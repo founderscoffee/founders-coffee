@@ -1,5 +1,10 @@
 # Landing pages — routing, data, i18n (revised IA)
 
+This is the primary discovery surface for the
+[community-building release](./release-strategy.md). It promotes free local events and workshops;
+future challenge, sponsor, talent, payment, project, and expansion surfaces do not belong in the
+current landing-page information architecture.
+
 **Revised IA (UI/UX batch):** there is **no global market-picker**. `/` redirects to the visitor's
 market — detected via `CF-IPCountry`, defaulting to **Algeria**. The **market landing is the single
 main page** (hero + aura cities + market-scoped discover tabs). Arabic is the default language
@@ -16,7 +21,7 @@ consulted; the locale toggle in the footer is the only override). The **market**
   Algeria. An `fc_geo` cookie remembers the resolution so the logo (→ /) is stable.
 - **`/{market}`** — market landing ([`$market/index.tsx`](../apps/ui/src/routes/$market/index.tsx)):
   hero + "Host in {market}" CTA + city buttons (name + event count + `aura-glow` if events>0) +
-  discover tabs and the current market-scoped event feed.
+  Events/Workshops discover tabs and the current market-scoped event feed.
 - **`/{market}/{city}`** — city landing ([`$market.$city.tsx`](../apps/ui/src/routes/$market.$city.tsx)):
   the polished "Be the first host" empty state (FR-E6).
 

@@ -1,5 +1,10 @@
 # AI — Workers AI + Vectorize client (`core/ai`)
 
+> **Release scope:** this is an existing technical foundation, not a current product commitment.
+> Per the [community-first strategy](./release-strategy.md), AI work proceeds only when it directly
+> removes a demonstrated blocker in the free local-event loop. Semantic search, challenge tooling,
+> and sponsor reporting remain future work and must not delay the first release.
+
 The AI/search client foundation for founders.coffee. Implements **P0-017** (SRS 8.1, D15): Workers AI (embeddings, moderation, summaries) + Vectorize (semantic search over events/challenges). Lives in **`core/src/ai/`**, exported via a server-only subpath **`@founders-coffee/core/ai`** (the main `@founders-coffee/core` barrel stays pure-primitive, so browser bundles never pull AI code). Per the "no new libs" directive, this is a module of `core`, not a separate library.
 
 ## Why ports-and-adapters (the Miniflare limitation)
@@ -59,7 +64,7 @@ filters, moderation parsing, and summarization behavior.
 ## Consumers + deferrals
 
 - **P0-018** `apps/worker-jobs` contains the EMBEDDINGS consumer path, but production queue binding and delivery remain unverified.
-- **P1-015** UI semantic search → `embed` (query) + `search`.
-- **P2-E** hackathon moderation/plagiarism → `moderate` + similarity heuristics.
-- **P3** sponsorship reports → `summarize`.
+- **P1-015 (future)** UI semantic search → `embed` (query) + `search`; reconsider only when event density makes it useful.
+- **P2-E (future)** hackathon moderation/plagiarism → `moderate` + similarity heuristics.
+- **P3 (future)** sponsorship reports → `summarize`.
 - **Provisioning (P0-019):** staging and production Vectorize indexes use environment-specific names with **1024 dims + cosine metric** (must match bge-m3); each consumer declares `AI` + `VECTOR` bindings. Account-side existence and real calls must be verified. Mismatched dimensions produce invalid recall.

@@ -2,6 +2,10 @@
 
 Authentication is passwordless and implemented with Better Auth. The backend supports email OTP, phone OTP, and configured OAuth providers; the current `apps/ui` login screen exposes email OTP and conditional OAuth.
 
+Authentication in the [current release](./release-strategy.md) exists to support community members,
+hosts, profiles, event creation, and RSVP. Sponsor and commercial-client authentication belongs to
+future work and is not a release requirement.
+
 ## Current user flow
 
 1. The user enters an email address and completes Turnstile.
@@ -33,12 +37,16 @@ The UI app adapts the auth-specific OTP interface to the general Cloudflare Emai
 - `TURNSTILE_DISABLED=true` and development Turnstile keys are local-only.
 - Twilio development logging is local-only. The current missing-credential fallback in the shared auth provider must fail closed before phone OTP is enabled in a deployed UI.
 - Production cookie domain, HTTPS, and cross-subdomain behavior must be verified in staging.
-- The admin app remains protected by Cloudflare Access and must also verify the Access JWT inside the Worker.
+- The admin app remains protected by Cloudflare Access and must also verify the Access JWT inside the
+  Worker. Its admin-owned Better Auth session stays on the admin origin; every privileged request
+  must match the verified Access email to the verified Better Auth email and carry both the Access
+  subject and Better Auth user ID into authorization/audit context.
 
 ## App ownership
 
 - `apps/ui`: member and host authentication, onboarding, profile, and event participation.
-- `apps/dashboard`: sponsor-only application; authenticated sponsor flows are planned as that shell is implemented.
-- `apps/admin`: internal operations; Cloudflare Access is present, while full Better Auth/RBAC wiring remains planned.
+- `apps/dashboard`: future sponsor-only application; it remains outside the community release.
+- `apps/admin`: internal operations; Cloudflare Access is present, while the correlated
+  Better Auth/RBAC session wiring remains planned under CO-04.
 
 Onboarding for market, state, and city is implemented in `apps/ui`. The geographic values use canonical market/state/city codes and the current versioned TypeScript reference datasets.

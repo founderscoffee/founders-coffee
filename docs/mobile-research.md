@@ -2,7 +2,9 @@
 
 > **Non-authoritative research, 2026-08-30.** The committed mobile surface is the installable
 > Serwist PWA in `apps/ui`, optionally packaged with PWA Builder. This document does not create an
-> `apps/mobile` roadmap commitment or authorize the dependencies it discusses.
+> `apps/mobile` roadmap commitment or authorize the dependencies it discusses. A separate native
+> app is outside the [community-building release](./release-strategy.md) and may be reconsidered only
+> after the community validation gate and explicit Founder / Product approval.
 
 > Research date: 2026-07-01. Sources: Expo docs, Better Auth issues/docs, Paraglide GitHub,
 > expo-server-sdk GitHub, StatCounter, DataReportal, 6Wresearch, TanStack Query docs.
@@ -30,7 +32,8 @@
 - **Budget devices**: Samsung A-series, Xiaomi Redmi, Oppo. RAM: 2-4GB typical. App must be lightweight.
 - **4G dominant**: 94.5% broadband connections. Offline-first is less critical than in truly offline markets, but intermittent connectivity is common.
 - **15 GB/month average**: Users have decent data plans, but don't ship bloated bundles.
-- **SMS is king**: 118% mobile connections. Phone-OTP is the right primary auth method.
+- **SMS is broadly available**, but this research does not override the current email-OTP/OAuth UI.
+  Phone OTP remains a possible future UX decision that requires evidence and explicit approval.
 
 ---
 

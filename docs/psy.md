@@ -2,6 +2,10 @@
 
 These notes translate the founders.coffee brand into interaction guidance. They are subordinate to the SRS and describe design principles, not independent requirements.
 
+For the [first release](./release-strategy.md), every product choice should strengthen the free local
+community loop: discover, attend, return, and host. Commercial or future-product mental models must
+not leak into member and host experiences.
+
 ## Core premise
 
 The product should make informal real-world connection feel easier, not turn a café meetup into a professional event platform. Warmth, local relevance, progressive disclosure, and low coordination effort matter more than feature density or prestige signals.
@@ -22,7 +26,10 @@ An empty city can look abandoned. The product should frame it as an invitation t
 
 ### RSVP
 
-RSVP is an immediate, idempotent action. Do not add a seat-hold, vow, WhatsApp confirmation, or other secondary commitment flow. Accountability should come from clear expectations and timely notifications, not extra transactional friction.
+RSVP and cancellation are immediate and idempotent before event start. At `startsAt`, intent freezes
+so the host has a stable attendance list. Do not add a seat-hold, vow, WhatsApp confirmation, or
+other secondary commitment flow. Accountability should come from clear expectations, an obvious
+pre-start cancellation path, and timely notifications—not extra transactional friction.
 
 ### Reminders
 
@@ -34,7 +41,8 @@ PWA web push is the primary event-reminder channel and SMS is the fallback. Copy
 - Prefer local city and event context over global activity counts.
 - Use genuine social proof; never fabricate attendance or scarcity.
 - Avoid corporate, exclusive, or prestige language.
-- Keep sponsorship visibly disclosed and separate from community identity.
+- Keep future sponsorship absent from the community release; if later activated, disclose it and
+  keep it separate from community identity.
 - Make error, loading, and empty states preserve user agency.
 - Test every important screen in RTL `ar` and LTR `fr` and `en`.
 - Keep accessibility and keyboard operation at WCAG 2.1 AA.
@@ -42,7 +50,7 @@ PWA web push is the primary event-reminder channel and SMS is the fallback. Copy
 ## App ownership
 
 - `apps/ui`: members, hosts, city discovery, events, profiles, and the PWA.
-- `apps/dashboard`: sponsors and commercial challenge clients.
-- `apps/admin`: internal moderation, payment confirmation, and operations.
+- `apps/dashboard`: future sponsors and commercial challenge clients; not part of the first release.
+- `apps/admin`: current moderation/trust/operations; future payment confirmation stays dormant.
 
 This ownership prevents host/community flows from inheriting the more formal mental model of a commercial dashboard.

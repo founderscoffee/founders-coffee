@@ -1,5 +1,9 @@
 # Validation — Zod conventions
 
+These conventions apply to the [community-building release](./release-strategy.md) and to any future
+phase only after it is explicitly approved. A future schema or dormant model is not evidence that
+its product flow is launched or currently authorized.
+
 Zod is the **single source of truth** for input shapes across founders.coffee (AGENTS.md §6, NFR-4). Types are inferred (`z.infer`) and reused by `api.ts`, server functions, and forms — one schema per command, never duplicated. Implements **P0-013**.
 
 ## Where schemas live

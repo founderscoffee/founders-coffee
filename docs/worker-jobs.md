@@ -2,6 +2,10 @@
 
 `apps/worker-jobs` is the non-UI Cloudflare Worker for asynchronous delivery, indexing, and operational reconciliation. This document describes both the current implementation and the required production architecture as of 2026-08-30.
 
+The [community-building release](./release-strategy.md) requires only event reminders and the
+operational work needed to run the local community reliably. Challenge, sponsor, billing, payment,
+and nonessential embedding jobs remain future work even where processor foundations exist.
+
 ## Current implementation
 
 | Entry point                     | Current behavior                                                             | Status                                                                                     |
@@ -18,7 +22,7 @@ the fallback. Neither behavior is the intended design or a basis for additional 
 ## Required notification architecture
 
 ```text
-Event or challenge mutation
+Event mutation
   -> schedule a Durable Object alarm for the entity
   -> alarm publishes a delivery command to NOTIFICATIONS
   -> worker-jobs consumes the message
@@ -29,7 +33,8 @@ Event or challenge mutation
 - Durable Object alarms own per-entity timing.
 - The queue provides retry isolation and dead-letter handling.
 - A low-frequency D1 sweep may recover missed alarms; it is not the primary scheduler.
-- Email remains appropriate for authentication, billing, and explicitly email-based workflows. It is not the default event-reminder channel.
+- Email remains appropriate for authentication and explicitly email-based workflows. Future billing
+  may use email if that phase is opened. Email is not the default event-reminder channel.
 - Notification preferences and idempotency must be enforced before delivery.
 
 This migration is the highest-priority platform blocker in the active implementation plan.
@@ -39,8 +44,8 @@ This migration is the highest-priority platform blocker in the active implementa
 The worker currently recognizes these message families:
 
 - notifications: push/SMS/email delivery commands;
-- embeddings: Workers AI generation followed by Vectorize upsert;
-- reconciliation: operational checks and metrics.
+- embeddings: future Workers AI generation followed by Vectorize upsert; not required for launch;
+- reconciliation: current community-operational checks and any dormant future payment checks.
 
 Processor logic is kept separate from the thin Cloudflare handler so it can be tested directly. Cloudflare bindings themselves must be exercised through Miniflare or a real environment, never replaced by binding mocks.
 
@@ -51,7 +56,8 @@ Production operation requires:
 - producer and consumer bindings for `NOTIFICATIONS` and any other enabled queue;
 - retry limits and a dead-letter queue with an alert/replay runbook;
 - notification Durable Object bindings and migrations;
-- D1, Workers AI, Vectorize, email, Firebase, Twilio, and Analytics bindings or credentials for the channels actually enabled;
+- D1, email, Firebase, Twilio, and Analytics bindings or credentials for the current community
+  channels; Workers AI and Vectorize only if a separately approved current use is enabled;
 - environment-specific resource names and verified staging delivery before production promotion.
 
 The declarations in source control do not prove that the resources exist in the Cloudflare account. See [provisioning.md](provisioning.md) for the dated verification state.

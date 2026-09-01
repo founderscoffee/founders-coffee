@@ -2,13 +2,13 @@
 
 ## founders.coffee — current delivery plan (P0–P4)
 
-| Field        | Value                |
-| ------------ | -------------------- |
-| Version      | 2.0                  |
-| Status       | Active               |
-| Owner        | Engineering          |
-| Last updated | 2026-08-30           |
-| Derived from | [SRS v1.3](./srs.md) |
+| Field        | Value                                                                              |
+| ------------ | ---------------------------------------------------------------------------------- |
+| Version      | 2.3                                                                                |
+| Status       | Active                                                                             |
+| Owner        | Engineering                                                                        |
+| Last updated | 2026-09-01                                                                         |
+| Derived from | [SRS v1.6](./srs.md) and [community-first release strategy](./release-strategy.md) |
 
 This document is the current sequencing and status source. Status is evidence-based:
 
@@ -16,6 +16,7 @@ This document is the current sequencing and status source. Status is evidence-ba
 - **Partial** — useful implementation exists, but acceptance or operational work remains.
 - **Blocked** — unsafe to call complete; a named defect or prerequisite must be resolved first.
 - **Planned** — no production implementation yet.
+- **Future** — intentionally outside the current release and blocked from active delivery until the community validation gate and explicit Founder / Product approval.
 
 ## 1. Canonical product and architecture decisions
 
@@ -31,6 +32,10 @@ This document is the current sequencing and status source. Status is evidence-ba
 - TanStack Form is optional; local React state is acceptable when it reuses the shared Zod contract.
 - AI lives at `@founders-coffee/core/ai`; delivery providers live in `libs/notifications`.
 - Community membership, events, participation, and ordinary hosting are free. Commercial hosted challenges are B2B services.
+- The current release is community-building only: free local events, repeat participation, hosts,
+  trust/moderation, and the PWA operations required to run that loop.
+- Hackathons, sponsorship products, talent, payments, and expansion are future work. Existing
+  foundations may remain, but none is a current launch requirement or an authorized next task.
 
 ## 2. Repository and data flow
 
@@ -66,100 +71,124 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | SMS fallback           | Twilio Programmable SMS via `libs/notifications`             | Partial; provider exists, but the producer still schedules SMS/email alongside push instead of on fallback |
 | Authentication SMS     | Twilio Verify via `libs/auth`                                | Implemented; deployed environments must fail closed if credentials are absent                              |
 | Email                  | Cloudflare Email                                             | Code complete; sender-domain/DNS activation requires verification                                          |
-| Search/AI              | Workers AI + Vectorize                                       | Foundations implemented; event search UI planned                                                           |
+| Search/AI              | Workers AI + Vectorize                                       | Foundations implemented; nonessential AI work is future and not a community-release blocker                |
 | Uploads                | R2 + Images                                                  | Provider foundation only; resources not bound                                                              |
 | Product metrics        | Analytics Engine                                             | Library foundation only; binding/dashboards planned                                                        |
 | Admin isolation        | Access + in-Worker JWT verification + no `workers.dev`       | Worker guard complete; Access configuration requires verification                                          |
 
 ## 4. Phase P0 — foundation
 
-| ID     | Status   | Scope                                                     | Remaining evidence or work                                                     |
-| ------ | -------- | --------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| P0-001 | Complete | Nx workspace, TypeScript, lint boundaries, Vitest         | —                                                                              |
-| P0-002 | Complete | Public TanStack Start Worker                              | —                                                                              |
-| P0-003 | Complete | Sponsor dashboard scaffold                                | Product UI belongs to P3                                                       |
-| P0-004 | Partial  | Admin Worker and Access JWT guard                         | Configure and verify Access in both environments                               |
-| P0-005 | Complete | Core Result, AppError, Money, IDs, config                 | —                                                                              |
-| P0-006 | Complete | D1/Drizzle schema, migrations, atomic helpers             | —                                                                              |
-| P0-007 | Blocked  | Market configuration and geography                        | Change seed/config to DZ active, EG/SA open, MA/AE dark                        |
-| P0-008 | Partial  | Better Auth, phone/email OTP, OAuth, RBAC                 | Production must fail closed when Twilio/email providers are absent             |
-| P0-009 | Complete | Arabic-first `ar`/`fr`/`en` i18n and formatting           | —                                                                              |
-| P0-010 | Complete | Shared Tailwind/DaisyUI design system                     | —                                                                              |
-| P0-011 | Partial  | Typed resources and image-provider foundation             | Production R2/Images binding remains planned                                   |
-| P0-012 | Complete | Server-function throw boundary, context, authz primitives | —                                                                              |
-| P0-013 | Complete | Shared Zod validation convention                          | —                                                                              |
-| P0-014 | Partial  | Structured logging and metrics API                        | Analytics binding, dashboards, and alerts remain                               |
-| P0-015 | Partial  | Manual Order/Invoice payment foundation                   | Remove legacy `host_fee` from the schema/tests through a reviewed migration    |
-| P0-016 | Partial  | Cloudflare Email provider and templates                   | Verify sender-domain activation; complete production templates                 |
-| P0-017 | Complete | Workers AI/Vectorize ports and core operations            | —                                                                              |
-| P0-018 | Blocked  | Jobs Worker                                               | Replace reminder polling; provision/bind Notifications Queue                   |
-| P0-019 | Partial  | Staging/production Cloudflare provisioning                | Complete and verify manual DNS, Access, secrets, Queues, and required bindings |
-| P0-020 | Partial  | GitHub Actions verification and environment deployments   | Verify account-side environment configuration                                  |
-| P0-021 | Partial  | Miniflare and Playwright harness                          | Full critical-flow e2e and CI execution remain                                 |
+| ID     | Status   | Scope                                                     | Remaining evidence or work                                                                          |
+| ------ | -------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| P0-001 | Complete | Nx workspace, TypeScript, lint boundaries, Vitest         | —                                                                                                   |
+| P0-002 | Complete | Public TanStack Start Worker                              | —                                                                                                   |
+| P0-003 | Complete | Future sponsor dashboard scaffold                         | Dormant foundation; no community-release product UI                                                 |
+| P0-004 | Partial  | Admin Worker and Access JWT guard                         | Configure and verify Access in both environments                                                    |
+| P0-005 | Complete | Core Result, AppError, Money, IDs, config                 | —                                                                                                   |
+| P0-006 | Complete | D1/Drizzle schema, migrations, atomic helpers             | —                                                                                                   |
+| P0-007 | Blocked  | Market configuration and geography                        | Change seed/config to DZ active, EG/SA open, MA/AE dark                                             |
+| P0-008 | Partial  | Better Auth, phone/email OTP, OAuth, RBAC                 | Production must fail closed when Twilio/email providers are absent                                  |
+| P0-009 | Complete | Arabic-first `ar`/`fr`/`en` i18n and formatting           | —                                                                                                   |
+| P0-010 | Complete | Shared Tailwind/DaisyUI design system                     | —                                                                                                   |
+| P0-011 | Partial  | Typed resources and image-provider foundation             | Production R2/Images binding remains planned                                                        |
+| P0-012 | Complete | Server-function throw boundary, context, authz primitives | —                                                                                                   |
+| P0-013 | Complete | Shared Zod validation convention                          | —                                                                                                   |
+| P0-014 | Partial  | Structured logging and metrics API                        | Analytics binding, dashboards, and alerts remain                                                    |
+| P0-015 | Partial  | Future manual Order/Invoice payment foundation            | Dormant foundation; legacy cleanup is not a community-release blocker                               |
+| P0-016 | Partial  | Cloudflare Email provider and templates                   | Verify sender-domain activation; complete production templates                                      |
+| P0-017 | Complete | Future Workers AI/Vectorize foundation                    | No current work unless the community event loop demonstrates a concrete need                        |
+| P0-018 | Blocked  | Jobs Worker                                               | Replace reminder polling; provision/bind Notifications Queue                                        |
+| P0-019 | Partial  | Staging/production Cloudflare provisioning                | Complete and verify manual DNS, Access, secrets, Queues, and required bindings                      |
+| P0-020 | Partial  | GitHub Actions verification and environment deployments   | Verify account-side environment configuration                                                       |
+| P0-021 | Partial  | Miniflare and Playwright harness                          | Critical-flow E2E remains a local/staging release gate; E2E is excluded from CI by current decision |
 
-## 5. Phase P1 — events launch
+## 5. Phase P1 — community launch
 
-| ID     | Status   | Scope                                                                | Remaining evidence or work                                                                                                 |
-| ------ | -------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| P1-001 | Complete | Market resolution and visibility                                     | Align seed states under P0-007                                                                                             |
-| P1-002 | Complete | Geo redirect, canonical market/city pages, empty states              | —                                                                                                                          |
-| P1-003 | Partial  | Email-OTP login UI, OAuth UI, and phone-OTP backend capability       | Phone login UI is not implemented; provider fail-closed and production verification remain                                 |
-| P1-004 | Partial  | Geography datasets, onboarding, profiles                             | Profile persistence still uses legacy `home_state`/`home_city_id`; migrate to canonical state/city code names              |
-| P1-005 | Complete | Event domain, repository, server functions                           | —                                                                                                                          |
-| P1-006 | Partial  | Event creation wizard and Mapbox venue selection                     | Verify production credential; move remaining Mapbox calls behind the feature API and localize remaining inline copy        |
-| P1-007 | Complete | Event feed/detail, virtualization, SEO metadata                      | Full prerender verification remains under P1-020                                                                           |
-| P1-008 | Blocked  | Immediate idempotent RSVP and cancellation                           | Fix full-capacity atomicity so a rejected RSVP cannot be inserted; complete Turnstile/WAF coverage                         |
-| P1-009 | Blocked  | PWA push primary, SMS fallback, email-specific delivery              | Replace minute polling with DO alarms → Queue; enforce fallback rather than parallel SMS/email; add delivery observability |
-| P1-010 | Partial  | Live event Durable Object/WebSocket experience                       | Verify per-message session expiry, heartbeat cleanup, and cancellation behavior                                            |
-| P1-011 | Planned  | Disclosed sponsorship surfaces                                       | —                                                                                                                          |
-| P1-012 | Planned  | Sponsor media through R2/Images                                      | —                                                                                                                          |
-| P1-013 | Planned  | Admin markets, flags, verification, moderation                       | Geography reference data remains versioned code, not admin-managed                                                         |
-| P1-014 | Planned  | Admin manual payment confirmation and audit                          | —                                                                                                                          |
-| P1-015 | Planned  | Semantic event search                                                | —                                                                                                                          |
-| P1-016 | Complete | Host tools assigned to `apps/ui`; dashboard sponsor-only             | No separate host dashboard will be built                                                                                   |
-| P1-017 | Complete | App middleware, D1 injection, auth mount, i18n, observability wiring | —                                                                                                                          |
-| P1-018 | Partial  | Security hardening                                                   | DO limiter exists; CSP, WAF, Turnstile coverage, and endpoint audit remain                                                 |
-| P1-019 | Partial  | Observability                                                        | Structured logs exist; Analytics dashboards and alerts remain                                                              |
-| P1-020 | Partial  | Installable PWA                                                      | Manifest/service worker exist; offline, prerender, Lighthouse, and PWA Builder verification remain                         |
-| P1-021 | Partial  | End-to-end tests                                                     | Current coverage is narrow and not part of CI                                                                              |
-| P1-022 | Planned  | Browser-rendered OG images                                           | —                                                                                                                          |
+| ID     | Status   | Scope                                                                | Remaining evidence or work                                                                                                                   |
+| ------ | -------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1-001 | Complete | Market resolution and visibility                                     | Align seed states under P0-007                                                                                                               |
+| P1-002 | Complete | Geo redirect, canonical market/city pages, empty states              | —                                                                                                                                            |
+| P1-003 | Partial  | Email-OTP login UI, OAuth UI, and dormant phone-OTP capability       | Verify current email/OAuth production flow; keep unexposed phone endpoints fail-closed                                                       |
+| P1-004 | Partial  | Geography datasets, onboarding, profiles                             | Profile persistence still uses legacy `home_state`/`home_city_id`; migrate to canonical state/city code names                                |
+| P1-005 | Complete | Event domain, repository, server functions                           | —                                                                                                                                            |
+| P1-006 | Partial  | Event creation wizard and Mapbox venue selection                     | EC-01 through EC-04 complete; finish EC-05 through EC-10 and verify the production credential                                                |
+| P1-007 | Complete | Event feed/detail, virtualization, SEO metadata                      | Full prerender verification remains under P1-020                                                                                             |
+| P1-008 | Blocked  | Immediate idempotent RSVP and cancellation                           | Fix full-capacity atomicity so a rejected RSVP cannot be inserted; complete Turnstile/WAF coverage                                           |
+| P1-009 | Blocked  | PWA push primary, SMS fallback, email-specific delivery              | CO-02 fixes alarms/Queue/fallback; CO-05/06/08 add idempotent host, attendee, correction, and did-not-happen delivery                        |
+| P1-010 | Partial  | Live event Durable Object/WebSocket experience                       | Verify per-message session expiry, heartbeat cleanup, and cancellation behavior                                                              |
+| P1-011 | Future   | Disclosed sponsorship surfaces                                       | Post-community gate; not part of the current release                                                                                         |
+| P1-012 | Future   | Sponsor media through R2/Images                                      | Post-community gate; not part of the current release                                                                                         |
+| P1-013 | Planned  | Community moderation, host trust, and essential operations           | CO-04/08/09 build correlated admin auth, event operations, weekly review, corrections, trust, moderation, and audit                          |
+| P1-014 | Future   | Admin manual payment confirmation and audit                          | Post-community gate; not part of the current release                                                                                         |
+| P1-015 | Future   | Semantic event search                                                | Reconsider only when event density makes semantic search materially useful                                                                   |
+| P1-016 | Complete | Host tools assigned to `apps/ui`; dashboard sponsor-only             | No separate host dashboard will be built                                                                                                     |
+| P1-017 | Partial  | App middleware, D1 injection, auth mount, i18n, observability wiring | Public app wiring is complete; admin session/D1/i18n/observability wiring and correlated Access/Better Auth context remain under CO-04       |
+| P1-018 | Partial  | Security hardening                                                   | DO limiter exists; CSP, WAF, Turnstile coverage, and endpoint audit remain                                                                   |
+| P1-019 | Partial  | Observability                                                        | Structured logs exist; Analytics dashboards and alerts remain                                                                                |
+| P1-020 | Partial  | Installable PWA                                                      | Manifest/service worker exist; offline, prerender, Lighthouse, and PWA Builder verification remain                                           |
+| P1-021 | Partial  | End-to-end tests                                                     | EC-10 and CO-11 require local/staging release evidence; E2E remains outside CI by current decision                                           |
+| P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                 |
+| P1-023 | Planned  | Community operations and retention loop                              | After EC-10, deliver CO-01 through CO-11 with RSVP freeze, closeout/attendance/feedback, weekly reviews, metrics, and feature-flagged launch |
 
 ### Immediate sequence
 
-1. **P1-009/P0-018:** replace the one-minute notification scan with per-event Durable Object alarms feeding a real Notifications Queue; retain only a low-frequency recovery sweep and correct delivery to push-first/SMS-fallback.
-2. **P1-008:** correct RSVP full-capacity atomicity and add a regression integration test against real D1.
-3. **P0-007/P1-004/P0-019:** align market states, migrate legacy home-location column names to state/city codes, and finish dated deployment verification.
-4. **P1-018:** complete Turnstile, WAF, CSP, and endpoint security coverage.
-5. **P1-021:** add the critical member flow to Playwright and CI.
-6. Continue sponsorship/admin/search/PWA launch work only after blockers 1–5 are cleared.
+1. **Plan 1 — EC-05 through EC-10:** finish the
+   [Event Creation Remediation Plan](./event-creation-remediation-plan.md), including local and
+   staging release evidence. Do not begin Plan 2 production work before EC-10 is Complete.
+2. **Plan 2 — CO-01 immediately after EC-10:** begin the
+   [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
+   with the operating contract and baseline.
+3. **CO-02 / P1-008 / P1-009 / P0-018:** correct RSVP full-capacity atomicity, replace one-minute
+   polling with per-event Durable Object alarms → Notifications Queue, and enforce push-first/SMS
+   fallback before post-event automation relies on those paths.
+4. **CO-03 through CO-11 / P1-009 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout,
+   attendance, feedback, repeat-host support, the secure correlated-identity admin surface,
+   trust/moderation, weekly reviews, metrics, a real rollback flag, and three-checkpoint staged
+   operations verification in the documented order.
+5. **P0-007/P1-004/P0-019:** complete remaining market/home-location and dated deployment evidence
+   where it blocks the community operations flow.
+6. Complete only the moderation, trust, PWA, accessibility, performance, and operational work
+   required to run the community reliably. Do not pull future sponsorship, challenge, talent,
+   payment, or expansion work into this sequence.
 
 ### P1 exit criteria
 
 - urgent scheduler, RSVP, and security blockers resolved;
 - production secrets, Email Sending, Access, and push/SMS delivery verified;
-- full signup → create event → RSVP → notification → cancellation flow green in Playwright;
+- full signup → create event → RSVP → notification → pre-start cancellation flow green in Playwright;
 - RTL/LTR, offline PWA behavior, and performance budget verified;
-- disclosed sponsorship surface and manual confirmation workflow live;
-- Algiers meets the density gate.
+- essential event moderation and lightweight host-trust operations verified;
+- RSVP intent frozen at event start; post-event prompts, closeout, attendance, feedback windows,
+  admin identity correlation, weekly review records, and rollback behavior verified;
+- held/did-not-happen correction side effects and bounded retention/anonymization verified;
+- community release live and ready for the Algiers operating phase.
 
-## 6. Phase P2 — challenge engine
+### Community validation gate
 
-**Status: Planned.** Execute through [the challenge plan](./hackathon-engine-plan.md) after P1 exit. It remains feature-flagged and uses Workflows/DO alarms plus Queues for lifecycle work—never global D1 polling.
+Technical P1 completion does not authorize P2–P4. After launch, operate the Algiers community until
+it demonstrates at least eight completed events per month for three consecutive months, at least
+three recurring hosts, at least 60% host retention, and evidence of healthy repeat participation.
+Founder / Product must review that evidence and explicitly open any future phase. If the community
+loop fails, prioritize fixing or reconsidering it instead of starting a later product layer.
+
+## 6. Phase P2 — challenge engine (future)
+
+**Status: Future.** This is not active or current-release scope. It may be reconsidered through [the challenge plan](./hackathon-engine-plan.md) only after the community validation gate and explicit Founder / Product approval. If opened, it remains feature-flagged and uses Workflows/DO alarms plus Queues for lifecycle work—never global D1 polling.
 
 Deliver challenge creation, registration, teams, submissions, judging, results, integrity controls, and manual local-currency payouts. Community participation is free; commercial hosted challenges are paid B2B services.
 
-## 7. Phase P3 — sponsorship and talent
+## 7. Phase P3 — sponsorship and talent (future)
 
-**Status: Planned.** Execute through [the sponsorship measurement plan](./sponsorship-measurement-plan.md).
+**Status: Future.** This is not active or current-release scope. Reconsider it only after the community validation gate and explicit Founder / Product approval, using [the sponsorship measurement plan](./sponsorship-measurement-plan.md) as research rather than authorization.
 
 - `apps/dashboard` becomes the sponsor-only portal.
 - Disclosed sponsorship, measurement, and reporting remain mandatory.
 - Talent introductions require explicit, revocable participant consent.
 - [The Projects proposal](./projects-feature-plan.md) is not committed scope.
 
-## 8. Phase P4 — automated payments and expansion
+## 8. Phase P4 — automated payments and expansion (future)
 
-**Status: Planned.** Automate DZ providers behind `PaymentProvider` only after compliance review. Advance EG or SA from `open` to `active` only after the density gate. MA and AE remain `dark` until geography and operational readiness exist.
+**Status: Future.** Payment automation and additional-market operations require the community validation gate, explicit Founder / Product approval, and the relevant compliance review. EG/SA configuration does not authorize operational expansion. MA and AE remain `dark` until geography and operational readiness exist.
 
 ## 9. Continuous gates
 

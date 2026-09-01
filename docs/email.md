@@ -2,7 +2,9 @@
 
 `libs/email` provides the general Cloudflare Email delivery adapter and React Email rendering for founders.coffee. Authentication keeps its purpose-specific OTP adapter in `libs/auth`; the two interfaces are intentionally separate.
 
-Email is used for authentication, billing, and workflows that explicitly select email. Event reminders use PWA web push first and SMS as the fallback.
+In the current community release, email is used for authentication and workflows that explicitly
+select email. Event reminders use PWA web push first and SMS as the fallback. Billing email is a
+future capability under the [release strategy](./release-strategy.md).
 
 ## Current implementation
 
@@ -13,7 +15,9 @@ Email is used for authentication, billing, and workflows that explicitly select 
 - provider errors are mapped to stable application error codes.
 - provider, renderer, and mapping tests cover the current library behavior.
 
-The complete localized template set for RSVP, reminders, host messages, sponsorship, and billing is partial work; documentation must not describe it as already shipped.
+The localized template set for current community workflows remains partial and must not be
+described as already shipped. Sponsorship and billing templates are future work, not gaps that can
+delay the community release.
 
 ## Provider contract
 

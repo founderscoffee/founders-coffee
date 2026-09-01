@@ -6,10 +6,16 @@
 
 1. **This file** — _how_ we build (rules).
 2. [`docs/srs.md`](docs/srs.md) — _what_ we build (requirements, `FR-*`/`NFR-*`).
-3. [`docs/implementation-plan.md`](docs/implementation-plan.md) — _when_ we build it (phases, tickets).
-4. Parent `~/CLAUDE.md` — repo tooling (code-review-graph MCP: use graph tools before grep/glob).
+3. [`docs/release-strategy.md`](docs/release-strategy.md) — _what ships now_ (community-building release boundary and future-work gate).
+4. [`docs/implementation-plan.md`](docs/implementation-plan.md) — _when_ we build it (phases, tickets).
+5. Parent `~/CLAUDE.md` — repo tooling (code-review-graph MCP: use graph tools before grep/glob).
 
 Every code change maps to a ticket ID in the plan, which maps to `FR-*`/`NFR-*` in the SRS. No orphan work.
+
+The current release is community-building only. Free local events, repeat participation, hosts,
+trust, and the supporting PWA operations are current scope. Challenges, sponsorship products,
+talent, payments, and expansion are future work gated by demonstrated community density and an
+explicit Founder / Product decision.
 
 ---
 
@@ -53,7 +59,7 @@ Every code change maps to a ticket ID in the plan, which maps to `FR-*`/`NFR-*` 
 ```
 apps/
   ui/              # public site + PWA — anon, SEO/prerendered
-  dashboard/       # sponsors — authenticated analytics and account portal
+  dashboard/       # future sponsors — dormant authenticated analytics/account shell
   admin/           # project owners — authenticated + Cloudflare Access gated
   worker-jobs/     # Queue + Cron consumers (no UI)
 libs/
@@ -65,7 +71,7 @@ libs/
   i18n/            # locales, RTL, fallback, money/date formatting
   ui/              # Tailwind v4 + DaisyUI design system, shared components
   notifications/   # notification delivery providers (PWA push + SMS fallback)
-  payments/        # PaymentProvider interface + ManualProvider (Y1) + DZ adapters (P4)
+  payments/        # dormant future PaymentProvider foundation; not current-release scope
   email/           # Cloudflare Email + React Email templates
   observability/   # logger, Analytics Engine metrics, error reporting
   infra/           # wrangler configs, typed Env (wrangler types), resource names, Nx tags
@@ -79,7 +85,7 @@ libs/core/src/ai/  # server-only Workers AI + Vectorize ports and clients
 apps/<app>/src/
   routes/              # TanStack Router file-based routes — thin (layout + wiring only)
   features/
-    <domain>/          # events/, challenges/, sponsorships/, ...
+    <domain>/          # events/ now; future domains only after explicit roadmap approval
       api.ts           # ONLY place that imports libs/server-fns
       hooks.ts         # TanStack Query hooks — ONLY thing components call for data
       components/      # domain components
@@ -148,7 +154,9 @@ Every server function (`createServerFn`):
 5. **Logs** entry/failures via `libs/observability` (structured, with market/request context).
 6. **Calls** `libs/domain` for logic and `libs/db` for persistence — never the reverse dependency.
 
-State-changing server functions (create event, RSVP, signup, submit challenge) are additionally **rate-limited (Durable Object + WAF — never KV; see §11.5)** and **Turnstile-protected** at the edge/middleware layer.
+State-changing server functions (currently signup, create event, and RSVP; future mutations when
+their phases are approved) are additionally **rate-limited (Durable Object + WAF — never KV; see
+§11.5)** and **Turnstile-protected** at the edge/middleware layer.
 
 ---
 
@@ -178,9 +186,12 @@ State-changing server functions (create event, RSVP, signup, submit challenge) a
 ## 10. Security rules
 
 - **Authn:** Better Auth only. **Sessions in D1 (via Drizzle) — not KV** (KV is eventually consistent; see §11.5). Token strategy ready for future non-web clients.
-- **Authz:** centralized RBAC (`member`, `host`, `sponsor_contact`, `moderator`, `admin`). Permission declared per server function; enforced in one middleware. **Never** spread authz checks ad hoc.
+- **Authz:** centralized RBAC (`member`, `host`, `moderator`, `admin`; future
+  `sponsor_contact`). Permission declared per server function; enforced in one middleware. **Never**
+  spread authz checks ad hoc.
 - **Input validation:** Zod at every server-function boundary. No unvalidated input reaches domain/DB.
-- **Bot protection:** Turnstile on signup, login, event creation, RSVP, challenge submission.
+- **Bot protection:** Turnstile on signup, login, event creation, and RSVP. Future state-changing
+  flows inherit the same requirement if their roadmap phase is approved.
 - **Rate limiting:** **Durable Object token-bucket** (identity-scoped, strongly consistent) + **Cloudflare WAF Rate Limiting** (blunt volume, edge) — **never KV** (see §11.5).
 - **Admin isolation:** `apps/admin` is gated by **Cloudflare Access** (team SSO/allow-list) **and** the Worker verifies the `Cf-Access-Jwt-Assertion` JWT against the team JWKS + **disables its `workers.dev` route** (Access alone is bypassable via the raw Worker URL).
 - **Secrets:** `wrangler secret` / Secrets Store only. Never committed. `.env` for local dev only; `.env.example` sanitized.
@@ -208,7 +219,10 @@ These are non-negotiable platform-specific rules; several correct common mistake
 
 - **Workers KV is eventually consistent (~60s).** **NEVER** use KV for rate-limiting counters (use a Durable Object + WAF), session storage (use D1), or any read-after-write that must be consistent. KV is for hot cache, feature flags, and idempotent reads only.
 - **D1 transactions are batch-only** (see §11). Never write interactive read→write logic.
-- **Scheduling: Durable Object Alarms, not cron-polling.** For per-entity timed work (configured event reminders, challenge phase transitions), set a DO alarm when the entity is created or changed; the DO wakes precisely and pushes to the `NOTIFICATIONS` queue. **No global cron that scans D1.** A low-frequency cron may exist _only_ as a backstop sweeper for missed alarms.
+- **Scheduling: Durable Object Alarms, not cron-polling.** For current per-event reminders, set a
+  DO alarm when the event is created or changed; the DO wakes precisely and pushes to the
+  `NOTIFICATIONS` queue. Any future timed entity follows the same model if approved. **No global cron
+  that scans D1.** A low-frequency cron may exist _only_ as a backstop sweeper for missed alarms.
 - **Durable Object location:** set a **location hint** near the user base (Maghreb/EU) at creation; persist state in `state.storage` and write-through to D1. Reserve DOs for genuine real-time/coordination — prefer atomic D1 SQL for simple counters (e.g., RSVP capacity: `UPDATE events SET rsvps = rsvps + 1 WHERE id = ? AND rsvps < capacity`).
 - **External services go behind provider interfaces.** SMS, email, images, payments: each gets an interface (`SmsProvider`, `EmailProvider`, `ImageProvider`, `PaymentProvider`) with a **dev variant** (`DevSmsProvider` logs the OTP to console; dev image adapter serves raw R2 bytes) and a real variant. Mocking an _external service_ via its interface is allowed; **mocking a Cloudflare binding is not** (use Miniflare).
 - **TanStack Query × throw boundary:** server functions unwrap the domain `Result` _inside the handler_ via `handleResult()` — they **throw** the typed `AppError` on failure, so `useQuery`/`useMutation` enter `error` automatically. The thrown `AppError.code` crosses the wire at runtime (TanStack serializes it; TS types the client error generically — the [#6428] gap — read it via the shared `appErrorCode()` accessor). Do **not** call `handleResult` at the component/hook layer.
@@ -223,7 +237,9 @@ These are non-negotiable platform-specific rules; several correct common mistake
 - **Unit (Vitest):** pure logic in `libs/domain` (money math, capacity, scoring, status machines).
 - **Integration (Vitest + Miniflare):** server functions + repositories against **real local** D1/R2/KV/Queues/AI/Vectorize. **Never mock Cloudflare bindings.**
 - **Component (Vitest + Testing Library):** presentational components in isolation.
-- **E2E (Playwright):** critical flows per app (signup → create event → RSVP; admin confirms sponsorship; challenge submit → judge → winner).
+- **E2E (Playwright):** the current critical flow is signup → create event → RSVP, exercised as a
+  local/staging release gate. Future apps/phases add their own E2E only when approved. Under the
+  current project decision, E2E is excluded from CI.
 - **Coverage gates** on `libs/domain` and `libs/server-fns`. No skipping tests with `.skip` in committed code without a linked ticket.
 
 ---
@@ -231,8 +247,11 @@ These are non-negotiable platform-specific rules; several correct common mistake
 ## 13. Observability rules
 
 - **Structured logging** (`libs/observability`) with market + request context on every server path.
-- **Analytics Engine** metrics for product events (events created, RSVPs, density per city/market, payments confirmed).
-- **Alerting** on payment-confirmation backlog, error-rate spikes, and D1 size growth.
+- **Analytics Engine** metrics for current community health (events created/completed, RSVPs,
+  repeat participation, recurring hosts, density per city/market). Future commercial metrics remain
+  dormant until their phase is approved.
+- **Alerting** on current delivery/error-rate failures and D1 size growth. Future commercial alerts
+  are added only with that phase.
 - **No `console.*`** in committed code.
 
 ---
@@ -250,7 +269,9 @@ These are non-negotiable platform-specific rules; several correct common mistake
 
 - **One ticket per PR.** PR title/description references the ticket ID and the `FR-*`/`NFR-*` it implements.
 - **Conventional commits** (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`), scoped to the domain (`feat(events): …`).
-- **CI must be green:** typecheck, lint, **boundary checks**, unit + integration (Miniflare), e2e (smoke). No merging on red.
+- **CI must be green:** typecheck, lint, **boundary checks**, and unit + integration tests
+  (Miniflare). The current explicit decision keeps E2E outside CI and requires it locally/on staging
+  for release. No merging on red.
 - **Small, reviewable diffs.** If a PR touches more than one concern, split it.
 - **Never commit secrets**, `.env`, `dist/`, or `wrangler`-generated `.wrangler/` artifacts (`.gitignore` must cover them).
 

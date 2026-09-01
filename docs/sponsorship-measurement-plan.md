@@ -1,16 +1,19 @@
 # Sponsorship Value-Delivery & Measurement — Implementation Plan
 
-| Field        | Value                                                                                                                                          |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Document     | Sponsorship Measurement Plan — founders.coffee                                                                                                 |
-| Version      | 1.0                                                                                                                                            |
-| Status       | Planned P3 design; not an operational-status document                                                                                          |
-| Owner        | Engineering + Growth                                                                                                                           |
-| Last updated | 2026-06-25                                                                                                                                     |
-| Derived from | [SRS v1.2](./srs.md) (FR-S1..S5, FR-P4, §5.4, §10.3) · [implementation-plan.md](./implementation-plan.md) Phase P3 · [AGENTS.md](../AGENTS.md) |
-| Phase        | P3 (expands epics P3-A, P3-C, P3-D + touches P1-011/012/014, P2)                                                                               |
+| Field        | Value                                                                                                                                                                                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Document     | Sponsorship Measurement Plan — founders.coffee                                                                                                                                                 |
+| Version      | 1.1                                                                                                                                                                                            |
+| Status       | Future research plan; outside the current release and not authorized for implementation                                                                                                        |
+| Owner        | Engineering + Growth                                                                                                                                                                           |
+| Last updated | 2026-09-01                                                                                                                                                                                     |
+| Derived from | [SRS v1.6](./srs.md) (FR-S1..S5, FR-P4, §5.4, §10.3) · [implementation-plan.md](./implementation-plan.md) future P3 · [release-strategy.md](./release-strategy.md) · [AGENTS.md](../AGENTS.md) |
+| Phase        | Future P3 option; requires the community validation gate and explicit Founder / Product approval                                                                                               |
 
-> This plan operationalizes _how_ sponsors receive value they can **see and measure** — and the infrastructure to deliver, attribute, and report it. It is the detailed expansion of the main plan's P3 sponsorship epics. All recommendations below are validated against 2025–2026 sponsorship-measurement industry consensus (see §2).
+> This document preserves research for a possible future sponsorship product. Sponsorship is not
+> part of the community-building release, and this plan does not authorize implementation, sales,
+> dependencies, migrations, services, or product activation. Reopen it only after the community
+> validation gate and explicit Founder / Product approval.
 
 The SRS, AGENTS.md, and active implementation plan remain authoritative. This design does not imply that its queues, bindings, dashboards, or reports are provisioned today.
 
@@ -22,7 +25,9 @@ Sponsors pay for **a business outcome** (acquisition, talent, brand), not logos.
 
 This plan defines the data model, Cloudflare-native attribution pipeline, sponsor dashboard, reporting, and the privacy/brand-safety guardrails that make sponsorship a **renewable, defensible** revenue line.
 
-**Hard precondition (restated):** measurable value exists only after **community density** (P1). Do not sell sponsorships at scale before the audience exists; the audience _is_ the product.
+**Hard precondition (restated):** measurable value exists only after **community density**. Do not
+build or sell the sponsorship product before the documented density threshold, healthy repeat
+participation, and explicit Founder / Product approval; the audience is the product.
 
 ---
 
@@ -202,7 +207,7 @@ Format mirrors the main plan. `SP-*` IDs. Dependencies reference main-plan ticke
 | **SP-010** | **Brand-lift micro-surveys**: pre/post-event survey component, results into metrics (D1)                                                                                                   | SP-001, P1-007         | §3 (Brand lift), §6 | D1                                                  | S    |
 | **SP-011** | **Privacy/consent + retention**: anonymous-ref enforcement, opt-in talent consent flow, retention policy job, aggregated-only sponsor views                                                | SP-001, P0-008         | FR-P4, NFR-5, §7    | D1, Cron                                            | M    |
 | **SP-012** | **CRM export + integration**: CSV export + outbound webhook (sponsor CRM: HubSpot-class) with event payload                                                                                | SP-008                 | §3                  | Workers, Queues                                     | S    |
-| **SP-013** | **Sponsored-Coffee voucher attribution**: link voucher redemptions (SRS §5.4) to sponsor metrics + café reconciliation (manual payment, Year 1)                                            | SP-006, P0-015         | FR-S2, §10.3        | D1, Queues                                          | M    |
+| **SP-013** | **Sponsored-Coffee voucher attribution**: link voucher redemptions (SRS §5.4) to sponsor metrics + café reconciliation (manual-first payment)                                              | SP-006, P0-015         | FR-S2, §10.3        | D1, Queues                                          | M    |
 | **SP-014** | **Sponsored-challenge attribution**: link P2 challenge participation/submissions to sponsor (talent signal + engagement metrics)                                                           | SP-001, P2             | FR-H7, §3           | D1, Analytics Engine                                | M    |
 | **SP-015** | **Sponsor onboarding + Order**: sponsorship package catalog, self-serve purchase → `Order` → manual "mark as paid" (P0-015) → activate sponsorship + disclosure                            | SP-001, P0-015, P1-014 | FR-S1, §10.3        | D1                                                  | M    |
 | **SP-016** | **Tests (Miniflare) + e2e**: full attribution flow (scan → aggregate → dashboard), conversion ingest, report generation; no platform mocks                                                 | SP-008, SP-009         | NFR-11              | Miniflare, Playwright                               | M    |
@@ -216,7 +221,9 @@ Format mirrors the main plan. `SP-*` IDs. Dependencies reference main-plan ticke
 
 - **Requires (must exist first):** P0-006 (`libs/db`), P0-008 (auth/RBAC incl. `sponsor_contact` role), P0-010 (`libs/ui`), P0-011 (`libs/infra`), P0-015 (`libs/payments` + Order), P0-016 (`libs/email`), P0-018 (`worker-jobs`), P1-014 (sponsor Order admin).
 - **Feeds into:** P3-A (sponsor portal = SP-008/015), P3-C (talent pipeline = SP-007), P3-D (sponsor reconciliation = SP-009/013).
-- **Density gate:** do not launch sponsor acquisition (SP-015 marketing) until P1 density thresholds are met — the metrics will be empty and sponsors will churn.
+- **Community gate:** do not build or launch sponsor acquisition until the stable-release, density,
+  repeat-participation, and host-loop evidence has been reviewed and Founder / Product explicitly
+  opens the phase. Meeting a numeric density threshold alone is insufficient.
 
 ---
 
@@ -236,7 +243,9 @@ Format mirrors the main plan. `SP-*` IDs. Dependencies reference main-plan ticke
 
 ## 12. Pricing evolution (informed by measurement)
 
-Year 1 prices (1.5–3M DZD anchor) are **guesses until baselined**. Use the first 2–3 founding sponsors to measure **cost-per-reached-builder** and **value-per-hire**, then:
+Any future launch prices (including the researched 1.5–3M DZD anchor) are **guesses until
+baselined**. If this phase is approved, use the first 2–3 founding sponsors to measure
+**cost-per-reached-builder** and **value-per-hire**, then:
 
 - Move toward **performance-based** pricing (pay-per-acquisition / pay-per-hire) for sponsors who want it — the 2025–26 industry trend.
 - Keep **talent access bundled** into every package (the defensible premium).

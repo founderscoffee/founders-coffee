@@ -2,8 +2,9 @@
 
 > Visual direction for the public app. **Tokens live once in `libs/ui`** as a semantic DaisyUI
 > theme; **component patterns feed P1-002** (landing pages), **P1-006** (event creation), and
-> **P1-007** (event list/detail). Global rules (AGENTS.md: real data / no mocks; NFR-8
-> accessibility; FR-S3 disclosed sponsorship) apply as usual.
+> **P1-007** (event list/detail). This specification covers the
+> [community-building release](./release-strategy.md): member, host, and free local-event surfaces
+> only. Sponsor, challenge, talent, payment, and expansion UI remains future work.
 
 ---
 
@@ -13,13 +14,13 @@ A DaisyUI custom theme + **paper grain** texture (a faint SVG noise on the body 
 **Components use semantic classes only** (`bg-base-100`, `text-primary`, `border-base-300`,
 `bg-primary/10`) — **no raw palette or hex values in components** (AGENTS.md §8).
 
-| Token       | Value                        | Used for                             |
-| ----------- | ---------------------------- | ------------------------------------ |
-| `base-100`  | `#FAF6F0` (warm cream)       | Page background (with grain overlay) |
-| `base-200`  | `#FFFDFB` (off-white)        | Cards / containers                   |
-| `base-300`  | `#EAE3D5` (soft beige)       | Borders / dividers                   |
-| `primary`   | `#B45309` (coffee roast, AA) | Accents, badges, focus ring          |
-| `secondary` | `#F59E0B` (amber)            | Hover / secondary accent             |
+| Token       | Value                    | Used for                             |
+| ----------- | ------------------------ | ------------------------------------ |
+| `base-100`  | `#FAF6F0` (warm cream)   | Page background (with grain overlay) |
+| `base-200`  | `#FFFDFB` (off-white)    | Cards / containers                   |
+| `base-300`  | `#EAE3D5` (soft beige)   | Borders / dividers                   |
+| `primary`   | `#4A382C` (coffee brown) | Primary actions, accents, focus ring |
+| `secondary` | `#2C1B12` (dark roast)   | Secondary emphasis                   |
 
 **Typography:** `Outfit` for headings + `Inter` for body (self-hosted via `@fontsource-variable`).
 `Tajawal` for Arabic (the fonts stack has it as a fallback after the Latin face — per-glyph
@@ -39,11 +40,11 @@ The revised IA (P1-004): **no global picker**. `/` redirects to the visitor's ma
 | Hero: market badge + title + tagline + [Host in {market}] |  ← warm radial glow
 |   Cities: [Algiers · 0] [Oran · 0] …                     |  ← aura-glow when events>0
 +-----------------------------------------------------------+
-| Discover tabs (tabs-lift): [Events to discover] [Hackathons] |
+| Discover tabs (tabs-lift): [Events] [Workshops]             |
 |   Event Feed: vertical stack of hover-3d event cards      |
 +-----------------------------------------------------------+
-| Footer: brand | Communities | Company/Legal | Partners     |  ← locale toggle lives here
-|   © 2026 founders.coffee   [ع EN FR]   [𝕏] [in] [r/]      |
+| Footer: brand | Communities | Company | Legal              |  ← locale toggle lives here
+|   © 2026 founders.coffee                         [ع EN FR]  |
 +-----------------------------------------------------------+
 ```
 
@@ -88,8 +89,8 @@ landing-page bundle.
 
 - **Navbar**: sticky, translucent (`backdrop-blur`), logo + `SessionNav` only. No Communities,
   no locale toggle (both moved to the footer).
-- **Footer**: brand + Communities (data-driven market links) + Company/Legal (forward-ref anchors)
-  - Partners (FR-S3 disclosed sponsors) + locale toggle + social (X, LinkedIn, reddit).
+- **Footer**: brand + community CTA + Communities (data-driven market links) + Company + Legal +
+  locale toggle. Sponsor/partner surfaces are deliberately absent from the community release.
 
 ### 3.6 Error / 404 states
 

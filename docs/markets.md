@@ -1,5 +1,9 @@
 # Markets — domain, queries, resolution
 
+The architecture remains multi-market, but the [current release](./release-strategy.md) is
+Algeria-first with an operational focus on Algiers. Configured future markets do not authorize
+seeding, launch operations, or expansion before the community validation gate.
+
 The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, FR-L6), updated in
 **P1-004** (cities → TS data) + **P1-005** (events). Splits across:
 

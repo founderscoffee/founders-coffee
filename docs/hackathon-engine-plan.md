@@ -1,18 +1,22 @@
 # Hackathon Engine — Implementation Plan
 
-| Field        | Value                                                                                                                                                                                                                            |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Document     | Hackathon Engine Plan — founders.coffee                                                                                                                                                                                          |
-| Version      | 1.0                                                                                                                                                                                                                              |
-| Status       | Planned P2 design; not yet implemented                                                                                                                                                                                           |
-| Owner        | Engineering                                                                                                                                                                                                                      |
-| Last updated | 2026-06-25                                                                                                                                                                                                                       |
-| Derived from | [SRS v1.2](./srs.md) (FR-H1..H8, FR-P1..P4, §5.3/§5.5) · [implementation-plan.md](./implementation-plan.md) Phase P2 · [AGENTS.md](../AGENTS.md) · [sponsorship-measurement-plan.md](./sponsorship-measurement-plan.md) (SP-014) |
-| Phase        | P2 (expands epics P2-A…P2-F)                                                                                                                                                                                                     |
+| Field        | Value                                                                                                                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Document     | Hackathon Engine Plan — founders.coffee                                                                                                                                                          |
+| Version      | 1.1                                                                                                                                                                                              |
+| Status       | Future research plan; outside the current release and not authorized for implementation                                                                                                          |
+| Owner        | Engineering                                                                                                                                                                                      |
+| Last updated | 2026-09-01                                                                                                                                                                                       |
+| Derived from | [SRS v1.6](./srs.md) (FR-H1..H8, FR-P1..P4, §5.3/§5.5) · [implementation-plan.md](./implementation-plan.md) future P2 · [release-strategy.md](./release-strategy.md) · [AGENTS.md](../AGENTS.md) |
+| Phase        | Future P2 option; requires the community validation gate and explicit Founder / Product approval                                                                                                 |
 
-> This plan specifies a **fully functional hackathon/challenge engine**: lifecycle state machines, host management (create/edit/cancel/pause), participant registration & eligibility, team formation, submissions, judging/scoring, results/leaderboard, prizes & payouts, communications, integrity/anti-abuse, and timezone handling — all on our locked Cloudflare stack. It replaces the main plan's P2 epics with executable `HACK-*` tickets.
+> This document preserves research for a possible future hackathon/challenge engine. It is not part
+> of the community-building release, is not an active execution plan, and does not authorize code,
+> dependencies, migrations, services, or product activation. Reopen it only after the community
+> validation gate and explicit Founder / Product approval.
 
-The SRS, AGENTS.md, and active implementation plan remain authoritative. This document does not imply that its schemas, queues, routes, or integrations exist today.
+The release strategy, SRS, AGENTS.md, and active implementation plan remain authoritative. This
+document does not imply that its schemas, queues, routes, or integrations exist today.
 
 ---
 
@@ -94,7 +98,8 @@ forming ──min members met + build starts──▶ active ──submission/bu
 - **Create/edit** (TanStack Form + Zod): title, slug, problem statement, rules, code of conduct, banner (R2), tracks[], eligibility {regions[], min_age, affiliations[]}, team_min/team_max, schedule (reg/build/submission/judging/results timestamps + timezone), prize pool (Money) + per-track/place prizes, judging config (criteria[], scale, weights, judges_per_submission, blind flag), AI policy, COI enabled.
 - **Publish**: validates required fields; sets `announced`; launches the lifecycle Workflow.
 - **Edit**: allowed while `draft`/`announced`/`registration_open` (with constraints — cannot shorten an elapsed deadline). Locked fields once a phase passes.
-- **Cancel/Pause**: server-fn with reason; Workflow notified; participants/teams notified via Queue; refunds per policy (Year 1: manual Order refund).
+- **Cancel/Pause**: server-fn with reason; Workflow notified; participants/teams notified via Queue;
+  refunds per the future phase's approved policy (manual-first Order refund initially).
 
 ### 4.2 Registration & eligibility (participant)
 
@@ -140,7 +145,9 @@ forming ──min members met + build starts──▶ active ──submission/bu
 
 - **Prize config**: per place (1st/2nd/3rd) and/or per track; `Prize` rows with `Money`.
 - **Winner declaration**: at results, top-ranked submissions per prize → `PrizeWinner`.
-- **Payout (Year 1 manual)**: creates a payout `Order` → admin confirms via BaridiMob/bank in `apps/admin` (libs/payments `ManualProvider`, FR-M5). P4 automates.
+- **Payout (initial future phase, manual-first)**: creates a payout `Order` → admin confirms the
+  external BaridiMob/bank transfer in `apps/admin` (`ManualProvider`, FR-M5). A separately approved
+  P4 may automate it.
 - **Receipt/certificate**: Browser Rendering PDF → R2 → Cloudflare Email.
 
 ### 4.8 Communication
@@ -181,7 +188,7 @@ forming ──min members met + build starts──▶ active ──submission/bu
 | **KV**                | Hot challenge-config cache; leaderboard cache                                                               |
 | **Analytics Engine**  | Participation metrics (ties to [sponsorship plan SP-014](./sponsorship-measurement-plan.md))                |
 | **Turnstile**         | Register / submit / team-join                                                                               |
-| **libs/payments**     | Commercial challenge service-fee `Order` + prize payouts (manual Year 1 → P4 automated)                     |
+| **libs/payments**     | Future commercial challenge fee + prize Orders (manual-first → optional approved P4 automation)             |
 
 ---
 
@@ -284,7 +291,7 @@ Certificate
 | **HACK-009** | **Judging execution**: judge UI (score per criterion + comment, autosave, recuse); deadline                                                                                                   | HACK-008           | FR-H4, §4.5        | D1                                   | M    |
 | **HACK-010** | **Score aggregation**: weighted average (excludes COI recusals), multi-judge averaging, deterministic tie-break → `ScoreAggregation`                                                          | HACK-009           | FR-H4/H5, §4.6     | D1, Queues                           | M    |
 | **HACK-011** | **Results & leaderboard**: overall + per-track ranking, winner declaration, **live leaderboard DO** at results                                                                                | HACK-010           | FR-H5, §4.6        | Durable Object, KV                   | M    |
-| **HACK-012** | **Prizes & payouts**: prize config per place/track; winner→`PrizeWinner`; payout `Order` (manual Year 1 via `ManualProvider`); PDF receipt                                                    | HACK-011, P0-015   | FR-H6, FR-M5, §4.7 | D1, libs/payments, Browser Rendering | M    |
+| **HACK-012** | **Prizes & payouts**: prize config per place/track; winner→`PrizeWinner`; payout `Order` (manual-first via `ManualProvider`); PDF receipt                                                     | HACK-011, P0-015   | FR-H6, FR-M5, §4.7 | D1, libs/payments, Browser Rendering | M    |
 | **HACK-013** | **Announcements + Q&A**: host announcements (pinned + emailed); optional Q&A thread; moderation                                                                                               | HACK-001, P0-016   | §4.8               | D1, Queues, Email                    | M    |
 | **HACK-014** | **Notifications & reminders**: reg-open/deadline(24h/1h)/judging-due/results/payout via DO alarms + Workflow → Queues → Email                                                                 | HACK-002, P0-016   | FR-E8/FR-N1, §4.9  | DO Alarms, Queues, Email             | M    |
 | **HACK-015** | **Integrity & anti-abuse**: plagiarism/AI-policy reporting + `Disqualification` workflow (evidence to R2); Turnstile + rate-limits on actions; CoC enforcement                                | HACK-006, P0-008   | §5                 | D1, R2, Turnstile, DO                | M    |
@@ -302,7 +309,9 @@ Certificate
 ## 10. Dependencies & gating
 
 - **Requires (P0):** P0-006 (db), P0-008 (auth/RBAC), P0-010 (ui), P0-011 (infra), P0-015 (payments), P0-016 (email), P0-017 (ai), P0-018 (worker-jobs), P0-021 (test harness).
-- **Requires (P1):** events engine live — challenges need community density to have participants (SRS §2.2 gate: `active` market + hackathons flag + first challenge instrumented).
+- **Requires (post-launch):** the full community validation gate, evidence of healthy repeat
+  participation, and explicit Founder / Product approval. A live events engine or feature flag alone
+  does not authorize challenge work.
 - **Feeds:** [sponsorship-measurement-plan.md SP-014](./sponsorship-measurement-plan.md) (sponsored-challenge attribution) and the talent pipeline (P3-C).
 - **Feature-flagged** per market (`feature_flags.hackathons`); disabled where a market isn't `active` or payments aren't available.
 
@@ -316,7 +325,7 @@ Certificate
 | **Judging integrity** (bias, COI, fatigue)                | High     | 3–4 criteria only; COI recusal; blind mode; calibration; multi-judge averaging; deterministic tie-break (§4.5/4.6)             |
 | **Deadline/timezone bugs** (late submits, wrong phase)    | High     | Server-side UTC enforcement; Durable Object alarm-driven transitions; never trust client clock (§8)                            |
 | **Plagiarism/AI abuse**                                   | Medium   | Mandatory disclosure + attestation; Workers AI heuristics + human moderation; DQ workflow (§5) — honest about detection limits |
-| **Payout regulatory** (prize money)                       | Medium   | Year 1 manual (BaridiMob/bank) limits exposure; P4 automation behind compliance (NFR-6)                                        |
+| **Payout regulatory** (prize money)                       | Medium   | Manual-first operation limits exposure; any P4 automation stays behind compliance review (NFR-6)                               |
 | **Lifecycle orchestration complexity**                    | Low-Med  | Use DO alarms for timing and reserve Workflows for genuinely multi-step durable operations; monitor cost and recovery          |
 | **Live leaderboard DO consistency**                       | Low      | DO single-writer for rankings; D1 source of truth                                                                              |
 | **Host abuse** (fake challenge, prize non-payment)        | Medium   | Host verification (FR-M3); payouts flow through platform Order (admin-confirmed), never host-direct                            |
@@ -328,5 +337,5 @@ Certificate
 A **complete, production-grade hackathon engine**: configurable by an authorized community or
 commercial challenge organizer, fully lifecycle-driven (no cron polling), fair judging with
 COI/blind/calibration, integrity controls aligned with 2025–2026 AI/plagiarism norms, manual prize
-payouts (Year 1) with a clean P4 automation path, certificates, search, and full observability — all
+manual-first payouts with a possible P4 automation path, certificates, search, and full observability — all
 on the locked Cloudflare stack and consistent with AGENTS.md.

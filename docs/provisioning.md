@@ -1,5 +1,9 @@
 # Cloudflare provisioning — staging + production
 
+This runbook distinguishes resources required for the
+[community-building release](./release-strategy.md) from dormant future foundations. A declared
+future binding is not a launch blocker unless a current community workflow consumes it.
+
 Implements **P0-019**. Runbook for standing up both deploy environments. Resource base names come
 from [`libs/infra/src/resources.ts`](../libs/infra/src/resources.ts); every account-scoped resource is
 created once per environment with an `-staging` / `-production` suffix.
@@ -15,14 +19,15 @@ staging hosts timed out and production hostnames did not resolve from that envir
 deployment as **unverified**, not serving, until §7 succeeds from a normal network and the Cloudflare
 dashboard confirms the routes. The earlier undated claim that staging was serving has been removed.
 
-| Unset secret                               | Consequence                                                                                                                                   |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MAPBOX_TOKEN`                             | The café map picker on `/{market}/host/create` cannot load.                                                                                   |
-| `TURNSTILE_SECRET_KEY`                     | Gated auth endpoints fail closed with `503`; event/RSVP coverage still requires the P1-018 audit.                                             |
-| `TWILIO_SID` / `TWILIO_AID` / `TWILIO_SEC` | Current auth code falls back to `DevSmsProvider`, which logs OTPs. This is a release blocker: deployed environments must fail closed instead. |
-| `TWILIO_SMS_FROM`                          | SMS fallback delivery cannot send with the configured notification provider.                                                                  |
-| `FIREBASE_*`                               | Web push disabled; `getFirebaseConfig` returns `null`.                                                                                        |
-| `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD`  | `apps/admin` rejects every request until Access is configured.                                                                                |
+| Unset secret                              | Consequence                                                                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `MAPBOX_TOKEN`                            | The café map picker on `/{market}/host/create` cannot load.                                                                                |
+| `TURNSTILE_SECRET_KEY`                    | Gated auth endpoints fail closed with `503`; event/RSVP coverage still requires the P1-018 audit.                                          |
+| `TWILIO_SID`                              | Phone login remains disabled without a Verify Service SID. Deployed phone-OTP endpoints must fail closed rather than use `DevSmsProvider`. |
+| `TWILIO_AID` / `TWILIO_SEC`               | SMS fallback cannot send, and deployed phone-OTP endpoints must remain fail-closed.                                                        |
+| `TWILIO_SMS_FROM`                         | SMS fallback delivery cannot send with the configured notification provider.                                                               |
+| `FIREBASE_*`                              | Web push disabled; `getFirebaseConfig` returns `null`.                                                                                     |
+| `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` | `apps/admin` rejects every request until Access is configured.                                                                             |
 
 Email Sending is another hard gap: until the required sender and DNS records exist, the `EMAIL`
 binding cannot send, so email-OTP login and any explicitly email-based workflow fail in deployed
@@ -41,10 +46,19 @@ environments.
 | Access (admin)  | `admin-staging.founders.coffee`                             | `admin.founders.coffee`                 | **dashboard (manual)**              |
 | Turnstile       | test keys or real widget                                    | real widget                             | dashboard                           |
 
-**Required but not yet verified/provisioned:** R2 (`founders-coffee-images`), KV
-(`founders-coffee-flags`), Notifications Queue + DLQ, and Analytics Engine. Notifications currently
-flow through a non-compliant one-minute D1 scan. The highest-priority remediation is per-event Durable
-Object alarms → Notifications Queue, with only a low-frequency recovery sweep.
+**Declared but not yet verified/provisioned:** R2 (`founders-coffee-images`), KV
+(`founders-coffee-flags`), Notifications Queue + DLQ, and Analytics Engine. Of these, the Queue/DLQ
+and Analytics Engine support the current community release. R2/KV and the existing AI/Vectorize
+foundation are not launch blockers unless a current community workflow is explicitly enabled that
+requires them. Notifications currently flow through a non-compliant one-minute D1 scan. The
+highest-priority remediation is per-event Durable Object alarms → Notifications Queue, with only a
+low-frequency recovery sweep.
+
+Current launch provisioning requires D1, event/rate-limit Durable Objects, custom domains, Email
+Sending for email OTP, Turnstile, Mapbox, FCM web push, Twilio Programmable SMS fallback, the
+Notifications Queue/DLQ, Analytics Engine, and Access for the essential admin surface. Workers AI,
+Vectorize, future image/media storage, sponsor/dashboard integrations, and payment infrastructure do
+not delay the community release.
 
 ## API token scopes
 
@@ -150,7 +164,11 @@ Twilio is unaffected.
 environment (`admin.founders.coffee`, `admin-staging.founders.coffee`) with an email-OTP or
 allow-list policy. Record `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` and set them as secrets on the
 admin Worker. Access alone is not sufficient — the Worker verifies the JWT itself and keeps
-`workers_dev: false` in every environment (AGENTS.md §10).
+`workers_dev: false` in every environment (AGENTS.md §10). CO-04 also mounts Better Auth on the admin
+origin, binds the shared environment D1 and Email Sending resources, and requires the verified Access
+email to match the verified Better Auth email on every privileged request. The staging Access policy
+must include only the dedicated staging-admin identity used by CO-11; the two product identities and
+their roles are recorded and revoked together after the rehearsal.
 
 **`www` redirect** — production binds the apex `founders.coffee` only. Add a Cloudflare Redirect Rule
 for `www` rather than a second custom domain.

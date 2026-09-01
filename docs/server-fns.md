@@ -1,5 +1,9 @@
 # Server functions — the backend (`libs/server-fns`)
 
+For the [community-building release](./release-strategy.md), active product functions serve auth,
+profiles, markets, free events, RSVP, trust/moderation, notifications, and their operations.
+Foundations or types for future product layers do not make those layers current scope.
+
 The backend of founders.coffee is **server functions** (`createServerFn` from `@tanstack/react-start`),
 all defined in `libs/server-fns` and consumed by every app via the client-safe barrel. Implements
 AGENTS.md §7.
@@ -22,7 +26,7 @@ AGENTS.md §7.
 | `events/status-machine.ts`  | `published ↔ cancelled` transitions                                                                                                                       | ✅ P1-005                                                      |
 | `events/resolver.ts`        | `createEventResolver` (validates geo + generates slug), `resolveEvent`, `listEvents`                                                                      | ✅ P1-005                                                      |
 | `events/rpc.ts`             | `createEvent` (authed + Zod), `getEvent`, `getUpcomingEvents` (cursor pagination)                                                                         | ✅ P1-005                                                      |
-| `rsvps/*`                   | RSVP/cancellation RPCs, attendance updates, and notification production                                                                                   | Blocked: full-capacity atomicity defect in the repository path |
+| `rsvps/*`                   | RSVP/cancellation RPCs, RSVP counters, and notification production                                                                                        | Blocked: full-capacity atomicity defect in the repository path |
 | `waitlist/*`                | Anonymous waitlist signup and lookup flow                                                                                                                 | Implemented                                                    |
 | `notifications/producer.ts` | Persists confirmation/reminder work                                                                                                                       | Partial: current worker polls D1; migrate to DO alarms → Queue |
 | `push/rpc.ts` / `config.ts` | Authenticated FCM token registration/removal and public PWA configuration                                                                                 | Implemented; production credentials unverified                 |
