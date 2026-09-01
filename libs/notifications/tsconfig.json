@@ -6,7 +6,12 @@
     "types": ["node", "@cloudflare/workers-types"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["**/*.test.ts", "**/*.spec.ts", "vitest.config.ts"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.fixtures.ts",
+    "vitest.config.ts"
+  ],
   "references": [
     {
       "path": "../core"

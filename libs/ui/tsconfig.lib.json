@@ -4,5 +4,10 @@
     "outDir": "../../dist/ui"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["**/*.test.ts", "**/*.test.tsx", "vitest.config.ts"]
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.fixtures.ts",
+    "**/*.test.tsx",
+    "vitest.config.ts"
+  ]
 }

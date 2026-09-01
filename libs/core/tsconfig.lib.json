@@ -4,5 +4,11 @@
     "outDir": "../../dist/core"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["**/*.test.ts", "**/*.spec.ts", "**/*.test.tsx", "**/*.spec.tsx"]
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.fixtures.ts",
+    "**/*.test.tsx",
+    "**/*.spec.tsx"
+  ]
 }
