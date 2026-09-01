@@ -14,6 +14,9 @@ import {
   host_page_title,
   host_publish,
   host_publish_error,
+  host_map_error,
+  host_map_loading,
+  host_retry,
   host_step1,
   host_step1_helper,
   host_step3,
@@ -30,10 +33,10 @@ import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import { Button, Input } from '@founders-coffee/ui';
 
-import { useCreateEvent } from '../../features/events/hooks';
+import { useCreateEvent, useHostMapContext } from '../../features/events/hooks';
+import type { VenueSelection } from '../../features/events/types';
 import { ClientOnly } from './ClientOnly';
 import { DatetimePicker } from './DatetimePicker';
-import type { VenueSelection } from './HostMap';
 import { ScheduleSummary } from './ScheduleSummary';
 import { Stepper } from './Stepper';
 
@@ -59,6 +62,11 @@ export const HostCreatePage = ({
 }: HostCreatePageProps) => {
   const navigate = useNavigate();
   const createEventMutation = useCreateEvent();
+  const mapContext = useHostMapContext({
+    marketCode: market.code,
+    cityCode: city.code,
+    locale,
+  });
 
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
@@ -71,8 +79,6 @@ export const HostCreatePage = ({
   const [publishError, setPublishError] = useState<string | null>(null);
 
   const cityName = locale === 'ar' ? city.nameAr : city.name;
-  const marketIso = market.code.toLowerCase();
-
   const selectVenue = (v: VenueSelection) => {
     setVenue(v);
     setSearchValue(v.address || v.name);
@@ -157,8 +163,8 @@ export const HostCreatePage = ({
           description,
           venueName: venue.name,
           venueAddress: venue.address,
-          latitude: venue.lat,
-          longitude: venue.lng,
+          latitude: venue.latitude,
+          longitude: venue.longitude,
           startsAt,
           endsAt,
           capacity: 0,
@@ -245,14 +251,41 @@ export const HostCreatePage = ({
                   <div className="h-[400px] w-full rounded-2xl bg-base-200" />
                 }
               >
-                <HostMap
-                  accessToken={mapboxToken}
-                  venue={venue}
-                  city={city}
-                  marketCode={market.code}
-                  locale={locale}
-                  onVenueSelect={selectVenue}
-                />
+                {mapContext.data ? (
+                  <HostMap
+                    accessToken={mapboxToken}
+                    venue={venue}
+                    viewport={mapContext.data}
+                    cityCode={city.code}
+                    marketCode={market.code}
+                    locale={locale}
+                    onVenueSelect={selectVenue}
+                    onVenueInvalidate={() => {
+                      setVenue(null);
+                      setSearchValue('');
+                    }}
+                  />
+                ) : mapContext.isError ? (
+                  <div className="flex h-[400px] flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center">
+                    <p className="text-sm text-error" role="alert">
+                      {host_map_error({}, { locale })}
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => void mapContext.refetch()}
+                    >
+                      {host_retry({}, { locale })}
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className="flex h-[400px] items-center justify-center rounded-2xl bg-base-200"
+                    role="status"
+                  >
+                    <span className="loading loading-spinner me-2" />
+                    {host_map_loading({}, { locale })}
+                  </div>
+                )}
               </Suspense>
             </ClientOnly>
           </div>
@@ -321,11 +354,12 @@ export const HostCreatePage = ({
                             }
                           >
                             <VenueSearch
-                              accessToken={mapboxToken}
                               locale={locale}
                               cityName={cityName}
-                              marketIso={marketIso}
+                              cityCode={city.code}
+                              marketCode={market.code}
                               value={searchValue}
+                              isDisabled={!mapContext.data}
                               onChange={setSearchValue}
                               onVenueSelect={selectVenue}
                             />

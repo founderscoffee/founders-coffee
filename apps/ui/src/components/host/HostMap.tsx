@@ -1,210 +1,263 @@
-import { Crosshair, Minus, Plus } from 'lucide-react';
+import { Crosshair, Minus, Plus, RefreshCw } from 'lucide-react';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 import { Map, Marker } from 'react-map-gl/mapbox';
 
+import { appErrorCode } from '@founders-coffee/core';
 import {
+  host_geolocation_denied,
   host_locate_me,
+  host_map_error,
+  host_map_label,
+  host_retry,
   host_selected_location,
+  host_venue_outside_city,
+  host_venue_resolving,
+  host_venue_unsupported,
+  host_zoom_in,
+  host_zoom_out,
   type Locale,
 } from '@founders-coffee/i18n';
-import type { geo } from '@founders-coffee/domain';
 
-export interface VenueSelection {
-  name: string;
-  address: string;
-  lat: number;
-  lng: number;
-}
-
-const COUNTRY_CENTERS: Record<string, { lat: number; lng: number }> = {
-  DZ: { lat: 28.0339, lng: 1.6596 },
-  EG: { lat: 26.8206, lng: 30.8025 },
-  SA: { lat: 23.8859, lng: 45.0792 },
-};
+import { useReverseEventVenue } from '../../features/events/hooks';
+import type {
+  HostMapViewport,
+  VenueSelection,
+} from '../../features/events/types';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
 
-type Coord = { lng: number; lat: number };
+type Coordinates = { longitude: number; latitude: number };
 
 type HostMapProps = {
   accessToken: string;
   venue: VenueSelection | null;
-  city: geo.GeoCity;
+  viewport: HostMapViewport;
+  cityCode: string;
   marketCode: string;
   locale: Locale;
-  onVenueSelect: (v: VenueSelection) => void;
+  onVenueSelect: (venue: VenueSelection) => void;
+  onVenueInvalidate: () => void;
 };
 
-const tryGeolocation = (): Promise<Coord | null> =>
+const locateVisitor = (): Promise<Coordinates | null> =>
   new Promise((resolve) => {
     if (!navigator.geolocation) return resolve(null);
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ lng: pos.coords.longitude, lat: pos.coords.latitude }),
+      (position) =>
+        resolve({
+          longitude: position.coords.longitude,
+          latitude: position.coords.latitude,
+        }),
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: 6000 },
+      { enableHighAccuracy: true, timeout: 6_000 },
     );
   });
 
-const geocodeCity = async (
-  token: string,
-  name: string,
-  iso: string,
-): Promise<Coord | null> => {
-  try {
-    const res = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(name)}.json?country=${iso}&limit=1&access_token=${token}`,
-    );
-    const data = (await res.json()) as {
-      features?: Array<{ geometry?: { coordinates?: [number, number] } }>;
-    };
-    const c = data.features?.[0]?.geometry?.coordinates;
-    return c ? { lng: c[0], lat: c[1] } : null;
-  } catch {
-    return null;
-  }
-};
-
-const reverseGeocode = async (
-  token: string,
-  lng: number,
-  lat: number,
-): Promise<{ name: string; address: string } | null> => {
-  try {
-    const res = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?limit=1&access_token=${token}`,
-    );
-    const data = (await res.json()) as {
-      features?: Array<{
-        place_name?: string;
-        properties?: { name?: string };
-        text?: string;
-      }>;
-    };
-    const f = data.features?.[0];
-    if (!f) return null;
-    const name = f.properties?.name ?? f.text ?? 'Location';
-    return { name, address: f.place_name ?? name };
-  } catch {
-    return null;
-  }
-};
-
-const CONTROL_CLS =
-  'flex h-11 w-11 items-center justify-center rounded-xl border border-base-300/60 bg-base-100/85 text-base-content shadow-lg backdrop-blur-md transition hover:bg-base-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary/40';
+const CONTROL_CLASS =
+  'flex h-11 w-11 items-center justify-center rounded-xl border border-base-300/60 bg-base-100/85 text-base-content shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-primary/40';
 
 export const HostMap = ({
   accessToken,
   venue,
-  city,
+  viewport,
+  cityCode,
   marketCode,
   locale,
   onVenueSelect,
+  onVenueInvalidate,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
-  const countryCenter = COUNTRY_CENTERS[marketCode] ?? COUNTRY_CENTERS.DZ;
-  const marketIso = marketCode.toLowerCase();
-  const cityName = locale === 'ar' ? city.nameAr : city.name;
-  const [initial] = useState(() =>
-    venue
-      ? { longitude: venue.lng, latitude: venue.lat, zoom: 15 }
-      : { longitude: countryCenter.lng, latitude: countryCenter.lat, zoom: 5 },
+  const reverseRequestId = useRef(0);
+  const reverseVenue = useReverseEventVenue();
+  const [mapKey, setMapKey] = useState(0);
+  const [hasMapError, setHasMapError] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [lastCoordinates, setLastCoordinates] = useState<Coordinates | null>(
+    null,
   );
 
-  const flyTo = (lng: number, lat: number, zoom: number) =>
-    mapRef.current?.flyTo({ center: [lng, lat], zoom, duration: 1500 });
+  const flyTo = (longitude: number, latitude: number, zoom: number): void => {
+    mapRef.current?.flyTo({
+      center: [longitude, latitude],
+      zoom,
+      duration: 1_000,
+    });
+  };
 
-  const handleLoad = async () => {
-    if (venue) return;
-    const geo = await tryGeolocation();
-    if (geo) return flyTo(geo.lng, geo.lat, 13);
-    const c = await geocodeCity(accessToken, cityName, marketIso);
-    if (c) flyTo(c.lng, c.lat, 11);
+  const venueErrorMessage = (error: unknown): string => {
+    const code = appErrorCode(error);
+    return code === 'map_venue_outside_city'
+      ? host_venue_outside_city({}, { locale })
+      : code === 'map_venue_unsupported'
+        ? host_venue_unsupported({}, { locale })
+        : host_map_error({}, { locale });
+  };
+
+  const resolveCoordinates = async (
+    coordinates: Coordinates,
+  ): Promise<void> => {
+    const requestId = reverseRequestId.current + 1;
+    reverseRequestId.current = requestId;
+    setLastCoordinates(coordinates);
+    setLocationError(null);
+    onVenueInvalidate();
+    try {
+      const resolved = await reverseVenue.mutateAsync({
+        marketCode,
+        cityCode,
+        locale,
+        ...coordinates,
+      });
+      if (requestId !== reverseRequestId.current) return;
+      onVenueSelect(resolved);
+    } catch (error) {
+      if (requestId !== reverseRequestId.current) return;
+      setLocationError(venueErrorMessage(error));
+    }
   };
 
   useEffect(() => {
-    if (venue) flyTo(venue.lng, venue.lat, 15);
-  }, [venue?.lng, venue?.lat]);
+    if (!venue) return;
+    reverseRequestId.current += 1;
+    flyTo(venue.longitude, venue.latitude, 15);
+  }, [venue?.providerId, venue?.longitude, venue?.latitude]);
+
+  if (hasMapError) {
+    return (
+      <div className="flex h-[400px] w-full flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center">
+        <p className="text-sm text-error" role="alert">
+          {host_map_error({}, { locale })}
+        </p>
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => {
+            setHasMapError(false);
+            setMapKey((value) => value + 1);
+          }}
+        >
+          <RefreshCw className="size-4" aria-hidden="true" />
+          {host_retry({}, { locale })}
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative h-[400px] w-full overflow-hidden rounded-2xl border border-base-300 shadow-xl shadow-base-content/5">
+    <div
+      className="relative h-[400px] w-full overflow-hidden rounded-2xl border border-base-300 shadow-xl shadow-base-content/5"
+      aria-label={host_map_label({}, { locale })}
+    >
       <Map
+        key={mapKey}
         ref={mapRef as never}
-        initialViewState={initial}
-        onLoad={handleLoad}
-        onClick={(e) => {
-          const { lng, lat } = (e as { lngLat: { lng: number; lat: number } })
-            .lngLat;
-          void reverseGeocode(accessToken, lng, lat).then((rev) => {
-            onVenueSelect({
-              name: rev?.name ?? 'Selected location',
-              address: rev?.address ?? `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-              lat,
-              lng,
-            });
-          });
+        initialViewState={{
+          longitude: venue?.longitude ?? viewport.center.longitude,
+          latitude: venue?.latitude ?? viewport.center.latitude,
+          zoom: venue ? 15 : 11,
         }}
+        maxBounds={[
+          [viewport.bounds[0], viewport.bounds[1]],
+          [viewport.bounds[2], viewport.bounds[3]],
+        ]}
+        onClick={(event) => {
+          const { lng, lat } = event.lngLat;
+          void resolveCoordinates({ longitude: lng, latitude: lat });
+        }}
+        onError={() => setHasMapError(true)}
         mapboxAccessToken={accessToken}
         mapStyle={MAP_STYLE}
         style={{ width: '100%', height: '100%' }}
       >
         {venue && (
           <Marker
-            longitude={venue.lng}
-            latitude={venue.lat}
+            longitude={venue.longitude}
+            latitude={venue.latitude}
             draggable
             anchor="bottom"
-            onDragEnd={(e) => {
-              const { lng, lat } = e.lngLat;
-              onVenueSelect({
-                ...(venue ?? { name: 'Selected location', address: '' }),
-                lng,
-                lat,
+            onDragEnd={(event) => {
+              void resolveCoordinates({
+                longitude: event.lngLat.lng,
+                latitude: event.lngLat.lat,
               });
             }}
           >
             <div className="host-pin">
               <div className="host-pin-pulse flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-primary text-base shadow-xl">
-                ☕
+                <span aria-hidden="true">☕</span>
               </div>
             </div>
           </Marker>
         )}
       </Map>
 
-      <div className="absolute right-3 top-3 flex flex-col gap-2">
+      <div className="absolute end-3 top-3 flex flex-col gap-2">
         <button
           type="button"
           onClick={() => mapRef.current?.zoomIn()}
-          className={CONTROL_CLS}
-          aria-label="Zoom in"
+          className={CONTROL_CLASS}
+          aria-label={host_zoom_in({}, { locale })}
         >
-          <Plus className="h-5 w-5" />
+          <Plus className="h-5 w-5" aria-hidden="true" />
         </button>
         <button
           type="button"
           onClick={() => mapRef.current?.zoomOut()}
-          className={CONTROL_CLS}
-          aria-label="Zoom out"
+          className={CONTROL_CLASS}
+          aria-label={host_zoom_out({}, { locale })}
         >
-          <Minus className="h-5 w-5" />
+          <Minus className="h-5 w-5" aria-hidden="true" />
         </button>
         <button
           type="button"
           onClick={async () => {
-            const geo = await tryGeolocation();
-            if (geo) flyTo(geo.lng, geo.lat, 14);
+            setLocationError(null);
+            const coordinates = await locateVisitor();
+            if (coordinates) {
+              flyTo(coordinates.longitude, coordinates.latitude, 14);
+            } else {
+              setLocationError(host_geolocation_denied({}, { locale }));
+            }
           }}
-          className={CONTROL_CLS}
+          className={CONTROL_CLASS}
           aria-label={host_locate_me({}, { locale })}
           title={host_locate_me({}, { locale })}
         >
-          <Crosshair className="h-5 w-5" />
+          <Crosshair className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
 
-      {venue && (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 md:right-auto md:left-4 md:max-w-xs">
+      {reverseVenue.isPending && (
+        <p
+          className="absolute inset-x-3 top-3 me-14 rounded-xl bg-base-100/90 p-3 text-sm shadow-lg backdrop-blur-md"
+          role="status"
+        >
+          <span className="loading loading-spinner loading-xs me-2" />
+          {host_venue_resolving({}, { locale })}
+        </p>
+      )}
+
+      {locationError && (
+        <div
+          className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-error/30 bg-base-100/95 p-3 shadow-lg"
+          role="alert"
+        >
+          <span className="text-sm text-error">{locationError}</span>
+          {lastCoordinates && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => void resolveCoordinates(lastCoordinates)}
+            >
+              {host_retry({}, { locale })}
+            </button>
+          )}
+        </div>
+      )}
+
+      {venue && !locationError && !reverseVenue.isPending && (
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 md:start-4 md:end-auto md:max-w-xs">
           <div className="rounded-2xl border border-base-300/60 bg-base-100/85 p-3 shadow-xl backdrop-blur-md">
             <p className="text-xs font-medium text-base-content/50">
               {host_selected_location({}, { locale })}

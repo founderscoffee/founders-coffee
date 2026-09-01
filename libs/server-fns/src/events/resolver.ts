@@ -15,6 +15,8 @@ import {
 } from '@founders-coffee/db';
 
 import { type EventAttendance } from './attendance.js';
+import type { MapProvider } from '../maps/provider.js';
+import { reverseEventVenueResolver } from '../maps/resolver.js';
 
 const slugify = (title: string): string =>
   title
@@ -45,6 +47,7 @@ export const eventSlugCandidates = (
  */
 export const createEventResolverWithId = async (
   db: Db,
+  mapProvider: MapProvider,
   hostId: string,
   input: EventCreateInput,
   eventId: string,
@@ -68,6 +71,19 @@ export const createEventResolverWithId = async (
     );
   }
 
+  const venueValidation = await reverseEventVenueResolver(mapProvider, {
+    marketCode: input.marketCode,
+    cityCode: input.cityCode,
+    locale: input.language.startsWith('fr')
+      ? 'fr'
+      : input.language.startsWith('en')
+        ? 'en'
+        : 'ar',
+    latitude: input.latitude,
+    longitude: input.longitude,
+  });
+  if (!venueValidation.ok) return venueValidation;
+
   const row: Omit<NewEvent, 'slug'> = {
     id: eventId,
     hostId,
@@ -76,10 +92,10 @@ export const createEventResolverWithId = async (
     cityCode: input.cityCode,
     title: input.title,
     description: input.description,
-    venue: input.venueName,
-    venueAddress: input.venueAddress,
-    latitude: input.latitude,
-    longitude: input.longitude,
+    venue: venueValidation.data.name,
+    venueAddress: venueValidation.data.address,
+    latitude: venueValidation.data.latitude,
+    longitude: venueValidation.data.longitude,
     startsAt: new Date(input.startsAt),
     endsAt: new Date(input.endsAt),
     capacity: input.capacity,
@@ -104,10 +120,11 @@ export const createEventResolverWithId = async (
 
 export const createEventResolver = async (
   db: Db,
+  mapProvider: MapProvider,
   hostId: string,
   input: EventCreateInput,
 ): Promise<Result<Event>> =>
-  createEventResolverWithId(db, hostId, input, id('evt'));
+  createEventResolverWithId(db, mapProvider, hostId, input, id('evt'));
 
 /** Resolve a single event by id or by (marketCode + slug). Returns `event_not_found` on miss. */
 export const resolveEvent = async (

@@ -5,7 +5,7 @@ export default defineConfig({
     conditions: ['@founders-coffee/source'],
   },
   test: {
-    environment: 'node',
+    environment: 'jsdom',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
   },
 });

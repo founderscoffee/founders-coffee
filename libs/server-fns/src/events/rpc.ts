@@ -9,6 +9,7 @@ import { requireAuth } from '../authz.js';
 import { requirePermission } from '../auth-middleware.js';
 import { resolveSession } from '../auth.js';
 import { getDb } from '../db.js';
+import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
 import { attachAttendance } from './attendance.js';
 import { createEventResolver, listEvents, resolveEvent } from './resolver.js';
@@ -26,7 +27,9 @@ export const createEvent = createServerFn({ strict: false })
   .validator(appValidator(eventCreateSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
-    return handleResult(createEventResolver(getDb(), session.user.id, data));
+    return handleResult(
+      createEventResolver(getDb(), getMapProvider(), session.user.id, data),
+    );
   });
 
 /**

@@ -24,6 +24,7 @@ export {
   searchCities,
 } from './geo-rpc.js';
 export * from './events/index.js';
+export * from './maps/index.js';
 export * from './rsvps/index.js';
 export * from './waitlist/index.js';
 export * from './notifications/index.js';

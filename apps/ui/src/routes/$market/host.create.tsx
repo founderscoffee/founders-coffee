@@ -4,13 +4,9 @@ import { z } from 'zod';
 import { appErrorCode } from '@founders-coffee/core';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
-import {
-  getCity,
-  getMapboxToken,
-  getMarket,
-} from '@founders-coffee/server-fns';
 
 import { HostCreatePage } from '../../components/host/HostCreatePage';
+import { eventsApi } from '../../features/events/api';
 
 type HostCreateLoaderData = {
   market: Market;
@@ -39,7 +35,7 @@ export const Route = createFileRoute('/$market/host/create')({
   loader: async ({ params, deps }): Promise<HostCreateLoaderData> => {
     let market: Market;
     try {
-      market = await getMarket({ data: { slug: params.market } });
+      market = await eventsApi.getMarket({ data: { slug: params.market } });
     } catch (error) {
       if (appErrorCode(error) === 'market_not_found') throw notFound();
       throw error;
@@ -54,13 +50,13 @@ export const Route = createFileRoute('/$market/host/create')({
     if (!deps.city) {
       throw redirect({ to: '/$market', params: { market: market.slug } });
     }
-    const city = await getCity({
+    const city = await eventsApi.getCity({
       data: { country: market.code, cityCode: deps.city },
     });
     if (!city) {
       throw redirect({ to: '/$market', params: { market: market.slug } });
     }
-    const mapboxToken = await getMapboxToken();
+    const mapboxToken = await eventsApi.getMapboxToken();
     return { market, city, mapboxToken };
   },
 });

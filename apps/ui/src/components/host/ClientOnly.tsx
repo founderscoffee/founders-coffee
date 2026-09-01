@@ -2,8 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 /**
  * Renders `fallback` on the server (and during the first client pass), then `children` after mount.
- * Used to keep modules that touch browser-only globals (e.g. `@mapbox/search-js-react`, whose web
- * components reference `document` at import time) out of the SSR bundle entirely.
+ * Used to keep modules that touch browser-only globals, such as the WebGL map renderer, out of the
+ * SSR bundle entirely.
  */
 export const ClientOnly = ({
   children,

@@ -18,46 +18,6 @@ body {
   margin: 0;
 }
 
-/* ===== Host wizard — premium Mapbox SearchBox + map polish ===== */
-
-mapbox-search-box {
-  display: block;
-}
-
-mapbox-search-box input {
-  height: 56px !important;
-  min-height: 56px !important;
-  border-radius: 0.75rem !important;
-  border: 1px solid var(--color-base-300) !important;
-  background: var(--color-base-100) !important;
-  box-shadow:
-    0 1px 2px rgba(44, 27, 18, 0.04),
-    0 4px 16px rgba(44, 27, 18, 0.04) !important;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease !important;
-}
-
-mapbox-search-box input:focus {
-  border-color: var(--color-primary) !important;
-  box-shadow:
-    0 0 0 4px rgba(74, 56, 44, 0.12),
-    0 8px 24px rgba(44, 27, 18, 0.08) !important;
-  outline: none !important;
-}
-
-mapbox-search-box [role='listbox'] {
-  border-radius: 0.75rem !important;
-  border: 1px solid var(--color-base-300) !important;
-  box-shadow: 0 16px 40px rgba(44, 27, 18, 0.14) !important;
-  overflow: hidden;
-  margin-top: 6px !important;
-}
-
-mapbox-search-box [role='option'] {
-  padding-block: 0.6rem !important;
-}
-
 /* micro-interactions */
 @keyframes host-fade-up {
   from {
@@ -177,9 +137,4 @@ mapbox-search-box [role='option'] {
 
 .tp-ui-wrapper-time {
   direction: initial !important;
-}
-mapbox-search-box {
-  div {
-    border-radius: 12px !important;
-  }
 }

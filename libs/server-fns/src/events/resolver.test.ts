@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 import {
+  countEventsByStatus,
   createDb,
   createEvent,
   seed,
@@ -10,7 +11,9 @@ import {
   type NewUser,
 } from '@founders-coffee/db';
 import { eventCreateSchema } from '@founders-coffee/domain';
+import { AppError, err, ok } from '@founders-coffee/core';
 
+import type { MapProvider } from '../maps/provider.js';
 import {
   createEventResolver,
   createEventResolverWithId,
@@ -19,6 +22,24 @@ import {
 } from './resolver.js';
 
 const TEST_HOST_ID = 'usr_resolvehost01';
+
+const testMapProvider = {
+  name: 'test-map',
+  getCityViewport: async () =>
+    ok({
+      center: { latitude: 36.7538, longitude: 3.0588 },
+      bounds: [2.9, 36.6, 3.3, 36.9] as const,
+    }),
+  searchVenues: async () => ok([]),
+  reverseVenue: async (input) =>
+    ok({
+      providerId: 'test-venue',
+      name: 'Café des Délices',
+      address: '12 Rue des Entrepreneurs, Alger',
+      latitude: input.latitude,
+      longitude: input.longitude,
+    }),
+} satisfies MapProvider;
 
 const testHost: NewUser = {
   id: TEST_HOST_ID,
@@ -86,7 +107,12 @@ describe('createEventResolver (real D1)', () => {
   it('derives state ownership and persists the complete shared command', async () => {
     const db = await setupDb();
 
-    const result = await createEventResolver(db, TEST_HOST_ID, createInput());
+    const result = await createEventResolver(
+      db,
+      testMapProvider,
+      TEST_HOST_ID,
+      createInput(),
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -116,6 +142,7 @@ describe('createEventResolver (real D1)', () => {
 
     const result = await createEventResolver(
       db,
+      testMapProvider,
       TEST_HOST_ID,
       createInput({ cityCode: 'unknown-city' }),
     );
@@ -124,13 +151,70 @@ describe('createEventResolver (real D1)', () => {
     if (!result.ok) expect(result.error.code).toBe('validation_failed');
   });
 
+  it('rejects an unsupported venue before writing to D1', async () => {
+    const db = await setupDb();
+    const before = await countEventsByStatus(db, 'published');
+    const rejectingMapProvider: MapProvider = {
+      ...testMapProvider,
+      reverseVenue: async () =>
+        err(new AppError('map_venue_unsupported', 'Select a supported venue')),
+    };
+
+    const result = await createEventResolver(
+      db,
+      rejectingMapProvider,
+      TEST_HOST_ID,
+      createInput({ title: 'Rejected venue event' }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+    expect(await countEventsByStatus(db, 'published')).toBe(before);
+  });
+
+  it('persists the provider-verified venue instead of client-owned venue text', async () => {
+    const db = await setupDb();
+    const verifiedMapProvider: MapProvider = {
+      ...testMapProvider,
+      reverseVenue: async () =>
+        ok({
+          providerId: 'verified-venue',
+          name: 'Verified Coworking Space',
+          address: '8 Verified Street, Algiers',
+          latitude: 36.754,
+          longitude: 3.059,
+        }),
+    };
+
+    const result = await createEventResolver(
+      db,
+      verifiedMapProvider,
+      TEST_HOST_ID,
+      createInput({
+        title: 'Canonical venue event',
+        venueName: 'Untrusted venue',
+        venueAddress: 'Untrusted address',
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toMatchObject({
+        venue: 'Verified Coworking Space',
+        venueAddress: '8 Verified Street, Algiers',
+        latitude: 36.754,
+        longitude: 3.059,
+      });
+    }
+  });
+
   it('reserves distinct routes for concurrent same-title creation', async () => {
     const db = await setupDb();
     const input = createInput({ title: 'Concurrent route reservation' });
 
     const results = await Promise.all([
-      createEventResolver(db, TEST_HOST_ID, input),
-      createEventResolver(db, TEST_HOST_ID, input),
+      createEventResolver(db, testMapProvider, TEST_HOST_ID, input),
+      createEventResolver(db, testMapProvider, TEST_HOST_ID, input),
     ]);
 
     expect(results.every((result) => result.ok)).toBe(true);
@@ -151,6 +235,7 @@ describe('createEventResolver (real D1)', () => {
 
     const result = await createEventResolverWithId(
       db,
+      testMapProvider,
       TEST_HOST_ID,
       createInput({ title }),
       eventId,

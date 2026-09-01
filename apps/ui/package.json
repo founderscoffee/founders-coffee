@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.51.1",
-    "@mapbox/search-js-react": "^1.5.1",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-ssr-query": "latest",

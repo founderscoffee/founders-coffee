@@ -1,51 +1,162 @@
-import { SearchBox } from '@mapbox/search-js-react';
+import { MapPin, RefreshCw } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-import { host_venue_search_ph, type Locale } from '@founders-coffee/i18n';
+import { appErrorCode } from '@founders-coffee/core';
+import {
+  host_retry,
+  host_venue_no_results,
+  host_venue_search_error,
+  host_venue_search_label,
+  host_venue_search_loading,
+  host_venue_search_ph,
+  type Locale,
+} from '@founders-coffee/i18n';
 
-import type { VenueSelection } from './HostMap';
+import { useVenueSearch } from '../../features/events/hooks';
+import type { VenueSelection } from '../../features/events/types';
 
 type VenueSearchProps = {
-  accessToken: string;
   locale: Locale;
   cityName: string;
-  marketIso: string;
+  cityCode: string;
+  marketCode: string;
   value: string;
-  onChange: (v: string) => void;
-  onVenueSelect: (v: VenueSelection) => void;
+  isDisabled?: boolean;
+  onChange: (value: string) => void;
+  onVenueSelect: (venue: VenueSelection) => void;
 };
 
-/** Thin client-only wrapper around the Mapbox `<SearchBox>` (kept out of the SSR bundle). */
+const SEARCH_DELAY_MS = 350;
+
 export const VenueSearch = ({
-  accessToken,
   locale,
   cityName,
-  marketIso,
+  cityCode,
+  marketCode,
   value,
+  isDisabled = false,
   onChange,
   onVenueSelect,
-}: VenueSearchProps) => (
-  <SearchBox
-    accessToken={accessToken}
-    options={{ language: locale, country: marketIso }}
-    placeholder={host_venue_search_ph({ city: cityName }, { locale })}
-    value={value}
-    onChange={onChange}
-    onClear={() => onChange('')}
-    onRetrieve={(res) => {
-      const f = res.features?.[0];
-      if (!f) return;
-      const [lng, lat] = f.geometry.coordinates;
-      const p = f.properties as {
-        name?: string;
-        full_address?: string;
-        place_name?: string;
-      };
-      onVenueSelect({
-        name: p.name ?? p.full_address ?? 'Venue',
-        address: p.full_address ?? p.place_name ?? '',
-        lat,
-        lng,
-      });
-    }}
-  />
-);
+}: VenueSearchProps) => {
+  const [query, setQuery] = useState(value.trim());
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setQuery(value.trim()), SEARCH_DELAY_MS);
+    return () => clearTimeout(timeout);
+  }, [value]);
+
+  const search = useVenueSearch({
+    marketCode,
+    cityCode,
+    locale,
+    query: isOpen && !isDisabled ? query : '',
+  });
+  const hasQuery = query.length >= 2;
+  const isResultsVisible = hasQuery && isOpen && !isDisabled;
+  const results = hasQuery ? (search.data ?? []) : [];
+  const errorCode = appErrorCode(search.error);
+  const errorMessage =
+    errorCode === 'map_venue_outside_city' ||
+    errorCode === 'map_venue_unsupported'
+      ? host_venue_no_results({}, { locale })
+      : host_venue_search_error({}, { locale });
+
+  return (
+    <div className="relative">
+      <label htmlFor="venue-search" className="sr-only">
+        {host_venue_search_label({}, { locale })}
+      </label>
+      <input
+        id="venue-search"
+        type="search"
+        className="input input-bordered h-14 w-full rounded-xl bg-base-100 text-base"
+        placeholder={host_venue_search_ph({ city: cityName }, { locale })}
+        value={value}
+        disabled={isDisabled}
+        autoComplete="off"
+        aria-controls="venue-search-results"
+        aria-expanded={
+          isResultsVisible && (search.isFetching || results.length > 0)
+        }
+        aria-autocomplete="list"
+        onFocus={() => {
+          if (!isDisabled) setIsOpen(true);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') setIsOpen(false);
+        }}
+        onChange={(event) => {
+          setIsOpen(true);
+          onChange(event.target.value);
+        }}
+      />
+
+      {isResultsVisible && (
+        <div
+          id="venue-search-results"
+          className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-xl"
+        >
+          {search.isFetching ? (
+            <p className="flex items-center gap-2 p-4 text-sm" role="status">
+              <span className="loading loading-spinner loading-sm" />
+              {host_venue_search_loading({}, { locale })}
+            </p>
+          ) : search.isError ? (
+            <div
+              className="flex items-center justify-between gap-3 p-4"
+              role="alert"
+            >
+              <span className="text-sm text-error">{errorMessage}</span>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => void search.refetch()}
+              >
+                <RefreshCw className="size-4" aria-hidden="true" />
+                {host_retry({}, { locale })}
+              </button>
+            </div>
+          ) : results.length === 0 ? (
+            <p className="p-4 text-sm text-base-content/60" role="status">
+              {host_venue_no_results({}, { locale })}
+            </p>
+          ) : (
+            <ul
+              role="listbox"
+              aria-label={host_venue_search_label({}, { locale })}
+            >
+              {results.map((venue) => (
+                <li key={venue.providerId} role="presentation">
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected="false"
+                    className="flex w-full items-start gap-3 border-b border-base-200 p-3 text-start transition last:border-b-0 hover:bg-base-200 focus-visible:bg-base-200"
+                    onClick={() => {
+                      setIsOpen(false);
+                      onVenueSelect(venue);
+                    }}
+                  >
+                    <MapPin
+                      className="mt-0.5 size-4 shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">
+                        {venue.name}
+                      </span>
+                      <span className="block truncate text-xs text-base-content/60">
+                        {venue.address}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};

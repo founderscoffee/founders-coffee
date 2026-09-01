@@ -1,6 +1,15 @@
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 
-import { eventsApi, type CreateEventInput, type RsvpInput } from './api';
+import {
+  eventsApi,
+  type CreateEventInput,
+  type HostMapContext,
+  type HostMapLocationInput,
+  type RsvpInput,
+  type VenueCandidate,
+  type VenueReverseInput,
+  type VenueSearchInput,
+} from './api';
 
 type UpcomingEventsParams = Parameters<typeof eventsApi.getUpcomingEvents>[0];
 
@@ -30,6 +39,29 @@ export const useEvent = (slug: string) =>
 export const useCreateEvent = () =>
   useMutation({
     mutationFn: (input: CreateEventInput) => eventsApi.createEvent(input),
+  });
+
+export const useHostMapContext = (input: HostMapLocationInput) =>
+  useQuery<HostMapContext>({
+    queryKey: ['events', 'host-map', input],
+    queryFn: () => eventsApi.getHostMapContext({ data: input }),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+
+export const useVenueSearch = (input: VenueSearchInput) =>
+  useQuery<readonly VenueCandidate[]>({
+    queryKey: ['events', 'venue-search', input],
+    queryFn: () => eventsApi.searchEventVenues({ data: input }),
+    enabled: input.query.trim().length >= 2,
+    staleTime: 60_000,
+    retry: false,
+  });
+
+export const useReverseEventVenue = () =>
+  useMutation<VenueCandidate, Error, VenueReverseInput>({
+    mutationFn: (input: VenueReverseInput) =>
+      eventsApi.reverseEventVenue({ data: input }),
   });
 
 export const useCreateRsvp = () =>
