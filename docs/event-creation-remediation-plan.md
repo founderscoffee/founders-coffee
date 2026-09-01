@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 through EC-04 complete, EC-05 through EC-10 not started                                                                                                      |
+| Status         | Active; EC-01 through EC-05 complete, EC-06 through EC-10 not started                                                                                                      |
 | Last reviewed  | 2026-09-01                                                                                                                                                                 |
 | Scope          | Authenticated host event creation in `apps/ui`, from route entry through durable D1 persistence and discoverability                                                        |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
@@ -256,6 +256,7 @@ Operational confirmations and release gates:
 
 **Parent:** P1-005, P1-018
 **Requirements:** FR-G2, FR-G3, FR-E1, FR-E2; NFR-4, NFR-7, NFR-10
+**Status:** Complete — 2026-09-01
 
 Work:
 
@@ -272,6 +273,14 @@ Verification:
 
 - Miniflare integration tests cover unauthenticated, unauthorized, dark market, disabled feature, invalid city, invalid schedule, invalid coordinates, success, and repository/provider failure.
 - Tests assert that host ID, state code, `isFree`, ID, slug, and timestamps cannot be forged by the client.
+
+Completion evidence:
+
+- The create server function retains centralized `event:create` authorization, identity-scoped rate limiting, shared `appValidator(eventCreateSchema)` validation, and the `handleResult()` throw boundary.
+- The resolver loads the requested market from D1 before provider work, accepts only `open` or `active` markets with events enabled, resolves canonical city/state codes from the versioned geography, and persists the complete server-owned event row.
+- Unexpected provider and D1 repository exceptions are reported through structured observability and returned as the stable `event_creation_failed` error without exposing provider or database internals.
+- Miniflare tests cover authentication and permission rejection, boundary validation, market/feature/geography rejection, successful complete persistence, provider failure, repository failure, and concurrent route allocation. Domain schema tests reject every server-owned creation field.
+- Repository-wide Nx sync, formatting, typecheck, lint, non-E2E tests, and builds pass. E2E remains intentionally outside CI and is reserved for EC-10 local/staging release verification.
 
 ### EC-06 — Add complete anti-abuse protection
 

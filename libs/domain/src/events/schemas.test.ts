@@ -201,14 +201,22 @@ describe('eventCreateSchema', () => {
     );
   });
 
-  it.each(['stateCode', 'hostId', 'isFree', 'slug'])(
-    'rejects the server-owned %s field',
-    (field) => {
-      expect(
-        eventCreateSchema.safeParse(validInput({ [field]: 'forged' })).success,
-      ).toBe(false);
-    },
-  );
+  it.each([
+    'id',
+    'stateCode',
+    'hostId',
+    'isFree',
+    'slug',
+    'status',
+    'rsvps',
+    'createdAt',
+    'updatedAt',
+    'cancelledAt',
+  ])('rejects the server-owned %s field', (field) => {
+    expect(
+      eventCreateSchema.safeParse(validInput({ [field]: 'forged' })).success,
+    ).toBe(false);
+  });
 
   it.each([
     'marketCode',

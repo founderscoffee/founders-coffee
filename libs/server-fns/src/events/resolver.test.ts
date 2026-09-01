@@ -1,18 +1,22 @@
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
+import { AppError, appValidator, err, ok } from '@founders-coffee/core';
 import {
   countEventsByStatus,
   createDb,
   createEvent,
+  eq,
+  getMarketByCode,
+  markets,
   seed,
   user,
   type Db,
   type NewUser,
 } from '@founders-coffee/db';
 import { eventCreateSchema } from '@founders-coffee/domain';
-import { AppError, err, ok } from '@founders-coffee/core';
 
+import { requirePermission } from '../authz.js';
 import type { MapProvider } from '../maps/provider.js';
 import {
   createEventResolver,
@@ -52,6 +56,19 @@ const testHost: NewUser = {
 const setupDb = async (): Promise<Db> => {
   const db = createDb(env.DB);
   await seed(db);
+  await db
+    .update(markets)
+    .set({
+      state: 'active',
+      featureFlags: {
+        events: true,
+        hackathons: false,
+        payments: false,
+        recruiting: false,
+      },
+    })
+    .where(eq(markets.code, 'DZ'))
+    .run();
   await db.insert(user).values(testHost).onConflictDoNothing().run();
   return db;
 };
@@ -85,23 +102,80 @@ const createTestEvent = async (
   return { id, slug };
 };
 
+const rawCreateInput = (overrides: Record<string, unknown> = {}) => ({
+  marketCode: 'DZ',
+  cityCode: '1',
+  title: 'Resolver creation event',
+  description: 'A complete event created through the resolver.',
+  venueName: 'Café des Délices',
+  venueAddress: '12 Rue des Entrepreneurs, Alger',
+  latitude: 36.7538,
+  longitude: 3.0588,
+  startsAt: new Date('2099-01-15T18:00:00Z').getTime(),
+  endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
+  capacity: 24,
+  language: 'ar_fr',
+  category: 'coffee-meetup',
+  ...overrides,
+});
+
 const createInput = (overrides: Record<string, unknown> = {}) =>
-  eventCreateSchema.parse({
-    marketCode: 'DZ',
-    cityCode: '1',
-    title: 'Resolver creation event',
-    description: 'A complete event created through the resolver.',
-    venueName: 'Café des Délices',
-    venueAddress: '12 Rue des Entrepreneurs, Alger',
-    latitude: 36.7538,
-    longitude: 3.0588,
-    startsAt: new Date('2099-01-15T18:00:00Z').getTime(),
-    endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
-    capacity: 24,
-    language: 'ar_fr',
-    category: 'coffee-meetup',
-    ...overrides,
+  eventCreateSchema.parse(rawCreateInput(overrides));
+
+const validationErrorFor = (input: unknown): AppError | undefined => {
+  try {
+    appValidator(eventCreateSchema)(input);
+    return undefined;
+  } catch (error) {
+    return error instanceof AppError ? error : undefined;
+  }
+};
+
+describe('create-event boundary (Miniflare)', () => {
+  it('rejects unauthenticated and unauthorized creation through centralized authz', async () => {
+    const db = await setupDb();
+    const before = await countEventsByStatus(db, 'published');
+
+    expect(() => requirePermission(null, 'event', 'create')).toThrowError(
+      expect.objectContaining({ code: 'unauthenticated' }),
+    );
+    expect(() =>
+      requirePermission(
+        { user: { role: 'sponsor_contact' } } as never,
+        'event',
+        'create',
+      ),
+    ).toThrowError(expect.objectContaining({ code: 'forbidden' }));
+    expect(await countEventsByStatus(db, 'published')).toBe(before);
   });
+
+  it.each([
+    [
+      'past schedule',
+      (() => {
+        const startsAt = Date.now() - 60_000;
+        return { startsAt, endsAt: startsAt + 3_600_000 };
+      })(),
+    ],
+    [
+      'reversed schedule',
+      (() => {
+        const startsAt = Date.now() + 3_600_000;
+        return { startsAt, endsAt: startsAt - 60_000 };
+      })(),
+    ],
+    ['invalid latitude', { latitude: 91 }],
+    ['invalid longitude', { longitude: 181 }],
+  ])('rejects %s through appValidator before a D1 write', async (_, patch) => {
+    const db = await setupDb();
+    const before = await countEventsByStatus(db, 'published');
+
+    const error = validationErrorFor(rawCreateInput(patch));
+
+    expect(error?.code).toBe('validation_failed');
+    expect(await countEventsByStatus(db, 'published')).toBe(before);
+  });
+});
 
 describe('createEventResolver (real D1)', () => {
   it('derives state ownership and persists the complete shared command', async () => {
@@ -130,10 +204,129 @@ describe('createEventResolver (real D1)', () => {
         language: 'ar_fr',
         category: 'coffee-meetup',
         isFree: true,
+        status: 'published',
+        rsvps: 0,
       });
+      expect(result.data.id).toMatch(/^evt_[0-9a-f]{32}$/);
+      expect(result.data.slug).toBe('resolver-creation-event');
+      expect(result.data.createdAt).toBeInstanceOf(Date);
+      expect(result.data.updatedAt).toBeInstanceOf(Date);
       expect(result.data.endsAt?.toISOString()).toBe(
         '2099-01-15T19:00:00.000Z',
       );
+    }
+  });
+
+  it('allows event creation in an open market', async () => {
+    const db = await setupDb();
+    await db
+      .update(markets)
+      .set({ state: 'open' })
+      .where(eq(markets.code, 'DZ'))
+      .run();
+
+    const result = await createEventResolver(
+      db,
+      testMapProvider,
+      TEST_HOST_ID,
+      createInput({ title: 'Open market event' }),
+    );
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('rejects unknown and dark markets with the same non-leaking error', async () => {
+    const db = await setupDb();
+    await db
+      .update(markets)
+      .set({ state: 'dark' })
+      .where(eq(markets.code, 'DZ'))
+      .run();
+
+    const darkResult = await createEventResolver(
+      db,
+      testMapProvider,
+      TEST_HOST_ID,
+      createInput({ title: 'Dark market event' }),
+    );
+    const unknownResult = await createEventResolver(
+      db,
+      testMapProvider,
+      TEST_HOST_ID,
+      createInput({ marketCode: 'ZZ', title: 'Unknown market event' }),
+    );
+
+    expect(darkResult.ok).toBe(false);
+    expect(unknownResult.ok).toBe(false);
+    if (!darkResult.ok) {
+      expect(darkResult.error.code).toBe('event_market_unavailable');
+      expect(darkResult.error.message).not.toContain('DZ');
+    }
+    if (!unknownResult.ok) {
+      expect(unknownResult.error.code).toBe('event_market_unavailable');
+      expect(unknownResult.error.message).not.toContain('ZZ');
+    }
+  });
+
+  it('rejects a market whose events feature is disabled', async () => {
+    const db = await setupDb();
+    const market = await getMarketByCode(db, 'DZ');
+    expect(market).toBeDefined();
+    if (!market) return;
+    await db
+      .update(markets)
+      .set({ featureFlags: { ...market.featureFlags, events: false } })
+      .where(eq(markets.code, 'DZ'))
+      .run();
+
+    const result = await createEventResolver(
+      db,
+      testMapProvider,
+      TEST_HOST_ID,
+      createInput({ title: 'Disabled events feature' }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('event_creation_disabled');
+  });
+
+  it('maps an unexpected provider exception to a stable non-leaking error', async () => {
+    const db = await setupDb();
+    const throwingProvider: MapProvider = {
+      ...testMapProvider,
+      reverseVenue: async () => {
+        throw new Error('provider-internal-sensitive-detail');
+      },
+    };
+
+    const result = await createEventResolver(
+      db,
+      throwingProvider,
+      TEST_HOST_ID,
+      createInput({ title: 'Throwing provider event' }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('event_creation_failed');
+      expect(result.error.message).not.toContain('provider-internal');
+    }
+  });
+
+  it('maps a D1 repository failure to a stable non-leaking error', async () => {
+    const db = await setupDb();
+
+    const result = await createEventResolver(
+      db,
+      testMapProvider,
+      'usr_missing_host',
+      createInput({ title: 'Missing host event' }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('event_creation_failed');
+      expect(result.error.message).not.toMatch(/foreign|constraint|user/i);
     }
   });
 

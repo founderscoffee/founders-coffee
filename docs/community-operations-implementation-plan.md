@@ -89,7 +89,7 @@ Drizzle, domain internals, or server functions from a component.
 
 | Area                      | Current evidence                                                                                 | Required result                                                                                         |
 | ------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| Event creation            | EC-01 through EC-04 complete; EC-05 through EC-10 pending                                        | EC-10 complete before this plan starts                                                                  |
+| Event creation            | EC-01 through EC-05 complete; EC-06 through EC-10 pending                                        | EC-10 complete before this plan starts                                                                  |
 | RSVP                      | Immediate flow exists; full-capacity atomicity remains blocked                                   | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
 | Notifications             | Providers exist; one-minute D1 polling and parallel channel scheduling violate the locked design | DO alarms -> Queue -> push-first/SMS-fallback before post-event prompts                                 |
 | Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened         | Explicit held/did-not-happen closeout separate from publication status                                  |

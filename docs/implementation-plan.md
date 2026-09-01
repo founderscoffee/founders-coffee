@@ -111,7 +111,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-003 | Partial  | Email-OTP login UI, OAuth UI, and dormant phone-OTP capability       | Verify current email/OAuth production flow; keep unexposed phone endpoints fail-closed                                                       |
 | P1-004 | Partial  | Geography datasets, onboarding, profiles                             | Profile persistence still uses legacy `home_state`/`home_city_id`; migrate to canonical state/city code names                                |
 | P1-005 | Complete | Event domain, repository, server functions                           | —                                                                                                                                            |
-| P1-006 | Partial  | Event creation wizard and Mapbox venue selection                     | EC-01 through EC-04 complete; finish EC-05 through EC-10 and verify the production credential                                                |
+| P1-006 | Partial  | Event creation wizard and Mapbox venue selection                     | EC-01 through EC-05 complete; finish EC-06 through EC-10 and verify the production credential                                                |
 | P1-007 | Complete | Event feed/detail, virtualization, SEO metadata                      | Full prerender verification remains under P1-020                                                                                             |
 | P1-008 | Blocked  | Immediate idempotent RSVP and cancellation                           | Fix full-capacity atomicity so a rejected RSVP cannot be inserted; complete Turnstile/WAF coverage                                           |
 | P1-009 | Blocked  | PWA push primary, SMS fallback, email-specific delivery              | CO-02 fixes alarms/Queue/fallback; CO-05/06/08 add idempotent host, attendee, correction, and did-not-happen delivery                        |
@@ -132,7 +132,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 
 ### Immediate sequence
 
-1. **Plan 1 — EC-05 through EC-10:** finish the
+1. **Plan 1 — EC-06 through EC-10:** finish the
    [Event Creation Remediation Plan](./event-creation-remediation-plan.md), including local and
    staging release evidence. Do not begin Plan 2 production work before EC-10 is Complete.
 2. **Plan 2 — CO-01 immediately after EC-10:** begin the

@@ -2,21 +2,24 @@ import { AppError, err, id, ok, type Result } from '@founders-coffee/core';
 import {
   events as eventsDomain,
   geo,
+  markets,
   type EventCreateInput,
 } from '@founders-coffee/domain';
 import {
   createEventIfRouteAvailable,
   getEvent,
   getEventBySlug,
+  getMarketByCode,
   listUpcomingEvents,
   type Db,
   type Event,
   type NewEvent,
 } from '@founders-coffee/db';
+import { reportError } from '@founders-coffee/observability';
 
-import { type EventAttendance } from './attendance.js';
 import type { MapProvider } from '../maps/provider.js';
 import { reverseEventVenueResolver } from '../maps/resolver.js';
+import { type EventAttendance } from './attendance.js';
 
 const slugify = (title: string): string =>
   title
@@ -42,8 +45,8 @@ export const eventSlugCandidates = (
 };
 
 /**
- * Validate + create a new event. Generates the id + slug, validates the geo state/city against the
- * TS data, and inserts the row. Returns the created Event.
+ * Validate + create a new event. Generates the id + slug, requires an enabled visible D1 market,
+ * resolves canonical geo state/city, verifies the venue, and inserts the complete free-event row.
  */
 export const createEventResolverWithId = async (
   db: Db,
@@ -52,70 +55,99 @@ export const createEventResolverWithId = async (
   input: EventCreateInput,
   eventId: string,
 ): Promise<Result<Event>> => {
-  const city = geo.findCity(input.marketCode, input.cityCode);
-  if (!city) {
+  try {
+    const market = await getMarketByCode(db, input.marketCode);
+    if (!market || !markets.isMarketVisible(market.state)) {
+      return err(
+        new AppError(
+          'event_market_unavailable',
+          'Event creation is unavailable in this market',
+        ),
+      );
+    }
+    if (!market.featureFlags.events) {
+      return err(
+        new AppError(
+          'event_creation_disabled',
+          'Event creation is currently disabled in this market',
+        ),
+      );
+    }
+
+    const city = geo.findCity(input.marketCode, input.cityCode);
+    if (!city) {
+      return err(
+        new AppError(
+          'validation_failed',
+          `Unknown city ${input.cityCode} for ${input.marketCode}`,
+        ),
+      );
+    }
+    const state = geo.findState(input.marketCode, city.stateCode);
+    if (!state) {
+      return err(
+        new AppError(
+          'validation_failed',
+          `Unknown state ${city.stateCode} for ${input.marketCode}`,
+        ),
+      );
+    }
+
+    const venueValidation = await reverseEventVenueResolver(mapProvider, {
+      marketCode: input.marketCode,
+      cityCode: input.cityCode,
+      locale: input.language.startsWith('fr')
+        ? 'fr'
+        : input.language.startsWith('en')
+          ? 'en'
+          : 'ar',
+      latitude: input.latitude,
+      longitude: input.longitude,
+    });
+    if (!venueValidation.ok) return venueValidation;
+
+    const row: Omit<NewEvent, 'slug'> = {
+      id: eventId,
+      hostId,
+      marketCode: market.code,
+      stateCode: state.code,
+      cityCode: city.code,
+      title: input.title,
+      description: input.description,
+      venue: venueValidation.data.name,
+      venueAddress: venueValidation.data.address,
+      latitude: venueValidation.data.latitude,
+      longitude: venueValidation.data.longitude,
+      startsAt: new Date(input.startsAt),
+      endsAt: new Date(input.endsAt),
+      capacity: input.capacity,
+      language: input.language,
+      category: input.category,
+      isFree: true,
+      status: 'published',
+    };
+
+    for (const slug of eventSlugCandidates(input.title, eventId)) {
+      const created = await createEventIfRouteAvailable(db, { ...row, slug });
+      if (created) return ok(created);
+    }
+
     return err(
       new AppError(
-        'validation_failed',
-        `Unknown city ${input.cityCode} for ${input.marketCode}`,
+        'event_route_conflict',
+        `Unable to reserve an event route in ${input.marketCode}`,
       ),
     );
-  }
-  const state = geo.findState(input.marketCode, city.stateCode);
-  if (!state) {
+  } catch (error) {
+    reportError(error, {
+      operation: 'create_event',
+      market: input.marketCode,
+      city: input.cityCode,
+    });
     return err(
-      new AppError(
-        'validation_failed',
-        `Unknown state ${city.stateCode} for ${input.marketCode}`,
-      ),
+      new AppError('event_creation_failed', 'The event could not be created'),
     );
   }
-
-  const venueValidation = await reverseEventVenueResolver(mapProvider, {
-    marketCode: input.marketCode,
-    cityCode: input.cityCode,
-    locale: input.language.startsWith('fr')
-      ? 'fr'
-      : input.language.startsWith('en')
-        ? 'en'
-        : 'ar',
-    latitude: input.latitude,
-    longitude: input.longitude,
-  });
-  if (!venueValidation.ok) return venueValidation;
-
-  const row: Omit<NewEvent, 'slug'> = {
-    id: eventId,
-    hostId,
-    marketCode: input.marketCode,
-    stateCode: city.stateCode,
-    cityCode: input.cityCode,
-    title: input.title,
-    description: input.description,
-    venue: venueValidation.data.name,
-    venueAddress: venueValidation.data.address,
-    latitude: venueValidation.data.latitude,
-    longitude: venueValidation.data.longitude,
-    startsAt: new Date(input.startsAt),
-    endsAt: new Date(input.endsAt),
-    capacity: input.capacity,
-    language: input.language,
-    category: input.category,
-    isFree: true,
-    status: 'published',
-  };
-
-  for (const slug of eventSlugCandidates(input.title, eventId)) {
-    const created = await createEventIfRouteAvailable(db, { ...row, slug });
-    if (created) return ok(created);
-  }
-
-  return err(
-    new AppError(
-      'event_route_conflict',
-      `Unable to reserve an event route in ${input.marketCode}`,
-    ),
-  );
 };
 
 export const createEventResolver = async (
