@@ -12,10 +12,6 @@ type LegalNoticeProps = {
   className?: string;
 };
 
-/**
- * Compact Privacy + Terms notice for data-capture surfaces (login OTP, waitlist).
- * Message uses <<PRIVACY>> / <<TERMS>> markers replaced with linked labels.
- */
 export const LegalNotice = ({ locale, className = '' }: LegalNoticeProps) => {
   const template = auth_legal_notice(
     { privacy: '<<PRIVACY>>', terms: '<<TERMS>>' },

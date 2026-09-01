@@ -187,21 +187,11 @@ export const resolveEvent = async (
   return ok(event);
 };
 
-/**
- * A feed event with display city names attached server-side. The geo dataset is server-only —
- * resolving city names in the client would bundle the full 6,518-city dataset into the UI build.
- * This is the resolver-layer type; the RPC layer enriches it with attendance fields.
- */
 export type EventFeedItemBase = Event & {
   readonly cityName: string;
   readonly cityNameAr: string;
 };
 
-/**
- * A feed event with display city names + optional attendance fields.
- * The resolver produces items WITHOUT attendance; the RPC layer enriches them
- * via `attachAttendance`. UI components should guard: `event.goingCount != null`.
- */
 export type EventFeedItem = EventFeedItemBase & Partial<EventAttendance>;
 
 /** Attach display city names (falls back to the city code if the geo record is missing). */

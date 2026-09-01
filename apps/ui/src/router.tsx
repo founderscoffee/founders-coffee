@@ -18,7 +18,6 @@ import { logger, reportError } from '@founders-coffee/observability';
 
 import { routeTree } from './routeTree.gen';
 
-/** Read the active locale from the root match's context (router-level components have no route context). */
 const useLocale = (): Locale =>
   useRouterState({
     select: (s) =>

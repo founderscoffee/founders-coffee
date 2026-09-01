@@ -1,16 +1,4 @@
-/**
- * useEventLive — React hook for the real-time live dashboard WebSocket.
- * Connects to the EventLiveDO via `/api/live/{eventId}`.
- *
- * Handles: connection, auth (session token), reconnection with exponential
- * backoff, message dispatch to state. Returns live roster + host state.
- */
-
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-/* -------------------------------------------------------------------------- */
-/* Types                                                                       */
-/* -------------------------------------------------------------------------- */
 
 export interface RosterUser {
   userId: string;
@@ -41,10 +29,6 @@ export interface UseEventLiveResult {
   disconnect: () => void;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Outbound messages                                                           */
-/* -------------------------------------------------------------------------- */
-
 interface OutboundMsg {
   type: 'auth' | 'arrived' | 'walking_in' | 'running_late' | 'table_pin';
   sessionToken?: string;
@@ -52,10 +36,6 @@ interface OutboundMsg {
   visualCue?: string;
   etaMinutes?: number;
 }
-
-/* -------------------------------------------------------------------------- */
-/* Hook                                                                        */
-/* -------------------------------------------------------------------------- */
 
 const MAX_RECONNECT_DELAY = 30_000;
 const INITIAL_RECONNECT_DELAY = 1_000;
@@ -139,7 +119,7 @@ export const useEventLive = (eventId: string): UseEventLiveResult => {
             break;
         }
       } catch {
-        /* empty */
+        return;
       }
     };
 

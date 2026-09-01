@@ -3,12 +3,6 @@ import { EG_CITIES, EG_STATES } from './data/eg.js';
 import { SA_CITIES, SA_STATES } from './data/sa.js';
 import type { CitySearchResult, GeoCity, GeoState } from './types.js';
 
-/**
- * Geographic data (server-side TS files — NOT bundled in the client). Full datasets for DZ (58
- * wilayas + 1,541 communes), EG (27 governorates + 396 cities), SA (13 regions + 4,581 cities).
- * Queried via server-fns (RPC stubs) from the UI. Normalized to universal "state" + "city".
- */
-
 const STATES: Readonly<Record<string, readonly GeoState[]>> = {
   DZ: DZ_STATES,
   EG: EG_STATES,
@@ -36,7 +30,6 @@ export const getCities = (
 export const getFeaturedCities = (country: string): readonly GeoCity[] =>
   (CITIES[country] ?? []).filter((c) => c.featured);
 
-/** Legacy slugs kept resolvable after display/slug renames (e.g. Alger Centre → Algiers). */
 const CITY_SLUG_ALIASES: Readonly<
   Record<string, Readonly<Record<string, string>>>
 > = {

@@ -21,11 +21,8 @@ import { CONTACT_EMAIL } from '../../content/company';
 type CompanyPageProps = {
   locale: Locale;
   content: CompanyPageContent;
-  /** Show mailto + copy actions (contact page). */
   showEmailActions?: boolean;
-  /** Which related legal links to show at the bottom. */
   related?: ReadonlyArray<'privacy' | 'terms' | 'cookies'>;
-  /** Show “product draft pending counsel” notice (Privacy / Terms / Cookies). */
   showLegalDraftNotice?: boolean;
 };
 

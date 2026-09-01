@@ -3,20 +3,6 @@ import { batch } from './atomic.js';
 import { markets } from './schema.js';
 import type { NewMarket } from './schema.js';
 
-/**
- * Initial market seed — the launch configuration (SRS §10.2, FR-G5).
- *
- * Three target countries (P1-004 restructure — Morocco dropped):
- *   - DZ → `active`  (Algeria-first — the launch market)
- *   - EG → `active`  (Egypt)
- *   - SA → `active`  (Saudi Arabia)
- *
- * Cities are NOT seeded here — they live as server-side TS files in
- * `libs/domain/src/geo/data/` (full datasets: DZ 1,541 communes, EG 396 cities,
- * SA 4,581 cities). The `cities` D1 table is dropped (migration 0002).
- *
- * `seed()` only ever INSERTs-if-absent, so re-running never overwrites admin edits.
- */
 export const SEED_MARKETS: readonly NewMarket[] = [
   {
     code: 'DZ',

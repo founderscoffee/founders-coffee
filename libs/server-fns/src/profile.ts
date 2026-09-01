@@ -9,7 +9,6 @@ import { getDb } from './db.js';
 import { requireAuth } from './authz.js';
 import { authMiddleware } from './auth-middleware.js';
 
-/** The current user's profile with resolved home-location names from the geo TS data. */
 export interface UserProfile {
   readonly id: string;
   readonly name: string;
@@ -24,7 +23,6 @@ export interface UserProfile {
   readonly homeCityNameAr: string | null;
 }
 
-/** A user's public profile (FR-E7 — no email). */
 export interface PublicProfile {
   readonly id: string;
   readonly name: string;

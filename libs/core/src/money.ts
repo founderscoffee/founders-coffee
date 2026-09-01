@@ -1,11 +1,3 @@
-/**
- * Money value object — the ONLY legal representation of money in the system.
- * (AGENTS.md §6: always `{ amount_minor, currency }`; integer minor units; never floats.)
- *
- * All founders.coffee currencies use 100 minor units per major unit:
- *   DZD (centime), MAD (santim), EGP (piastre), SAR (halala), AED (fils).
- */
-
 import { AppError, err, ok, type Result } from './result.js';
 
 export type CurrencyCode = 'DZD' | 'MAD' | 'EGP' | 'SAR' | 'AED';

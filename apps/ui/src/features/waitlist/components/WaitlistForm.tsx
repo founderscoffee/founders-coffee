@@ -23,16 +23,6 @@ type WaitlistFormProps = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/**
- * Inline waitlist form shown on the empty-city state (Phase 5). Single email input + submit.
- * Anonymous (no session) — the demand-capture layer that converts dead-ends into signals.
- *
- * States: idle → submitting → success | already_waitlisted | error. The success and already
- * states replace the form with a confirmation message so the user gets clear closure.
- *
- * Bot protection: server-fn Turnstile middleware doesn't exist yet (Phase 7 follow-up); the
- * validator + D1 UNIQUE constraint provide basic guardrails for now.
- */
 export const WaitlistForm = ({
   locale,
   marketCode,

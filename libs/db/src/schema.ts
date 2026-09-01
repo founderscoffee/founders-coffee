@@ -8,22 +8,6 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core';
 
-/**
- * Schema (SRS §7) — owned entirely by `libs/db` (single source of truth for D1).
- *
- * The identity tables (`user`, `session`, `account`, `verification`) are shaped to
- * what Better Auth (1.6.x) expects (SQLite/D1 dialect). `libs/auth` configures
- * Better Auth against this schema via the Drizzle adapter. We keep the columns
- * here — not generated into `libs/auth` — so the data layer owns all persistence
- * and there is one migration source.
- *
- * Auth model (FR-A4/D4): passwordless phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google/GitHub/LinkedIn).
- * No passwords. `user.role` is a plain string (Better Auth stores
- * roles as text; a DB enum cannot represent the plugin's model) constrained in
- * app code via the RBAC map in `libs/auth`.
- */
-
-/** Per-market feature flags, stored as JSON on the market row. */
 type MarketFeatureFlags = {
   events: boolean;
   hackathons: boolean;
@@ -31,7 +15,6 @@ type MarketFeatureFlags = {
   recruiting: boolean;
 };
 
-/** Market — a country configuration (DZ | MA | EG | SA | AE). */
 export const markets = sqliteTable('markets', {
   code: text('code').primaryKey(),
   name: text('name').notNull(),
@@ -58,11 +41,6 @@ export const markets = sqliteTable('markets', {
 export type Market = typeof markets.$inferSelect;
 export type NewMarket = typeof markets.$inferInsert;
 
-/* -------------------------------------------------------------------------- */
-/* Better Auth identity tables                                                 */
-/* -------------------------------------------------------------------------- */
-
-/** User — global identity (Better Auth core + admin plugin + our additional fields). */
 export const user = sqliteTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -94,7 +72,6 @@ export const user = sqliteTable('user', {
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
 
-/** Session — sessions live in D1, never KV (AGENTS.md §11.5). */
 export const session = sqliteTable('session', {
   id: text('id').primaryKey(),
   userId: text('user_id')
@@ -116,7 +93,6 @@ export const session = sqliteTable('session', {
 export type Session = typeof session.$inferSelect;
 export type NewSession = typeof session.$inferInsert;
 
-/** Account — OAuth providers (google/github/linkedin). No credential accounts (passwordless). */
 export const account = sqliteTable('account', {
   id: text('id').primaryKey(),
   userId: text('user_id')
@@ -146,7 +122,6 @@ export const account = sqliteTable('account', {
 export type Account = typeof account.$inferSelect;
 export type NewAccount = typeof account.$inferInsert;
 
-/** Verification — hashed OTP codes + tokens (storeOTP: "hashed"). Used for both phone-OTP and email-OTP. */
 export const verification = sqliteTable('verification', {
   id: text('id').primaryKey(),
   identifier: text('identifier').notNull(),
@@ -162,10 +137,6 @@ export const verification = sqliteTable('verification', {
 
 export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
-
-/* -------------------------------------------------------------------------- */
-/* Events (P1-005) — free local meetups (FR-E1/E2/E4)                         */
-/* -------------------------------------------------------------------------- */
 
 export const EVENT_LANGUAGES = ['ar', 'en', 'fr', 'ar_en', 'ar_fr'] as const;
 export const EVENT_CATEGORIES = [
@@ -224,10 +195,6 @@ export const events = sqliteTable(
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;
 
-/* -------------------------------------------------------------------------- */
-/* RSVPs (P1-008) — event attendance + atomic capacity                         */
-/* -------------------------------------------------------------------------- */
-
 export const RSVP_STATUSES = ['going', 'waitlist', 'cancelled'] as const;
 
 /** Event RSVP — one per user per event (UNIQUE constraint). Drives the atomic capacity check. */
@@ -263,10 +230,6 @@ export const eventRsvps = sqliteTable(
 export type EventRsvp = typeof eventRsvps.$inferSelect;
 export type NewEventRsvp = typeof eventRsvps.$inferInsert;
 
-/* -------------------------------------------------------------------------- */
-/* Payments (P0-015) — B2B Order/Invoice, Year-1 manual confirmation           */
-/* -------------------------------------------------------------------------- */
-
 export const ORDER_PURPOSES = [
   'sponsorship',
   'hosted_challenge_fee',
@@ -285,12 +248,6 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 const CURRENCIES = ['DZD', 'MAD', 'EGP', 'SAR', 'AED'] as const;
 
-/**
- * Order — a generic B2B payment record (FR-P3). Pays for a sponsorship, hosted
- * challenge, prize payout, or host fee (polymorphic `referenceType`/`referenceId`,
- * decoupled from any one entity). Manually confirmed in Year 1 (FR-M5); gateway
- * providers arrive behind the PaymentProvider interface in P4.
- */
 export const orders = sqliteTable('orders', {
   id: text('id').primaryKey(),
   marketCode: text('market_code')
@@ -322,7 +279,6 @@ export const orders = sqliteTable('orders', {
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 
-/** Invoice — 1:1 with an Order; the bill record issued to the payer. */
 export const invoices = sqliteTable('invoices', {
   id: text('id').primaryKey(),
   orderId: text('order_id')
@@ -344,10 +300,6 @@ export const invoices = sqliteTable('invoices', {
 
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
-
-/* -------------------------------------------------------------------------- */
-/* Notifications (P1-009) — scheduled SMS + email notifications               */
-/* -------------------------------------------------------------------------- */
 
 export const NOTIFICATION_CHANNELS = ['sms', 'email', 'push'] as const;
 export const NOTIFICATION_STATUSES = [
@@ -421,18 +373,9 @@ export type ScheduledNotification = typeof scheduledNotifications.$inferSelect;
 export type NewScheduledNotification =
   typeof scheduledNotifications.$inferInsert;
 
-/* -------------------------------------------------------------------------- */
-/* Push subscriptions (P1-010) — web push via FCM HTTP v1                      */
-/* -------------------------------------------------------------------------- */
-
 export const PUSH_PLATFORMS = ['ios', 'android', 'web'] as const;
 export const PUSH_SURFACES = ['pwa', 'rn'] as const;
 
-/**
- * Push subscription — one row per device token. Multiple tokens per user
- * (multi-device). Invalidated on logout or `DeviceNotRegistered` response.
- * Tokens are registered on app install / login.
- */
 export const pushSubscriptions = sqliteTable('push_subscriptions', {
   id: text('id').primaryKey(),
   userId: text('user_id')

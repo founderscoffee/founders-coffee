@@ -8,7 +8,6 @@ const DEFAULT_BUFFER_SIZE = 10;
 const isoNow = (): string => new Date().toISOString();
 
 export interface CreateClientLoggerOptions {
-  /** Batch transport (tests use a recorder). Defaults to a beacon transport. */
   readonly transport?: BatchTransport;
   readonly level?: LogLevel;
   readonly bufferSize?: number;

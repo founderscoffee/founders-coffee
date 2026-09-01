@@ -1,7 +1,3 @@
-/**
- * App-level configuration (identity, deployment environment, default market).
- * Pure data + a validating factory.
- */
 export type AppEnvironment = 'development' | 'staging' | 'production';
 
 export interface AppConfig {

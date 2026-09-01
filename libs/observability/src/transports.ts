@@ -1,10 +1,8 @@
 import type { LogLevel } from './levels.js';
 import type { LogEntry } from './types.js';
 
-/** A transport sinks one finished, sanitized LogEntry. Injectable for tests. */
 export type LogTransport = (entry: LogEntry) => void;
 
-/** A batch transport sinks many entries at once (client → server forwarding). */
 export type BatchTransport = (entries: LogEntry[]) => boolean;
 
 const consoleFor: Record<LogLevel, (line: string) => void> = {

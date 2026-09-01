@@ -5,9 +5,7 @@ import { consoleTransport, type LogTransport } from './transports.js';
 import type { LogContext, LogEntry, LogService, Logger } from './types.js';
 
 export interface CreateServerLoggerOptions {
-  /** Injectable transport (tests use a recorder). Defaults to consoleTransport. */
   readonly transport?: LogTransport;
-  /** Minimum level to emit. Defaults to `info`. */
   readonly level?: LogLevel;
   readonly service?: LogService;
 }

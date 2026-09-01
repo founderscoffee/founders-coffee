@@ -1,7 +1,5 @@
-/** Cloudflare Email Service error codes thrown as `Error.code` (per the Workers API docs). */
 export type EmailProviderCode = string;
 
-/** Codes that mean "try again later" — surfaced as `email_rate_limited` for the P1-009 retry/DLQ. */
 export const EMAIL_RATE_LIMIT_CODES: readonly string[] = [
   'E_RATE_LIMIT_EXCEEDED',
   'E_DAILY_LIMIT_EXCEEDED',

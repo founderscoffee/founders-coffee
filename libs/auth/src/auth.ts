@@ -25,16 +25,6 @@ import type { SmsProvider } from './providers/sms.js';
 import { DevSmsProvider, TwilioVerifySmsProvider } from './providers/sms.js';
 import { ac, roles } from './rbac.js';
 
-/**
- * Environment the auth factory needs. `DB` is the D1 binding (reached via
- * `cloudflare:workers` `env.DB` inside the request). OAuth client secrets are
- * optional — providers are only enabled when both id + secret are present, so
- * dev (phone-OTP via DevSmsProvider + email-OTP) works without any OAuth credentials configured.
- *
- * Twilio env vars are optional — when absent, `DevSmsProvider` logs OTPs to
- * console (dev + tests). Production must have `TWILIO_SID`, `TWILIO_AID`, and
- * `TWILIO_SEC` set via `wrangler secret`.
- */
 export interface AuthEnv {
   DB: D1Database;
   BETTER_AUTH_SECRET: string;
@@ -53,9 +43,7 @@ export interface AuthEnv {
 }
 
 export interface AuthDeps {
-  /** Defaults to {@link DevEmailProvider}. Inject a capture-capable one in tests. */
   emailProvider?: EmailProvider;
-  /** Defaults to {@link DevSmsProvider}. Inject a real one in production. */
   smsProvider?: SmsProvider;
 }
 

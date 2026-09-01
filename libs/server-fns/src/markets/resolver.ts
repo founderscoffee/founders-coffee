@@ -15,14 +15,8 @@ import { listEvents, type EventFeedItem } from '../events/resolver.js';
 export interface MarketWithCities {
   readonly market: Market;
   readonly cities: readonly geo.GeoCity[];
-  /** First page of upcoming events across the market (the Discover feed). */
   readonly events: readonly EventFeedItem[];
-  /** Upcoming event counts per city code (drives the city-badge counts + aura). */
   readonly cityEventCounts: Record<string, number>;
-  /**
-   * Browse section under the hero. Cold markets use `variant: 'major'` (featured cities only).
-   * Markets with upcoming events use `variant: 'active'` (states/cities that actually have meetups).
-   */
   readonly trending: TrendingSection;
 }
 
@@ -32,28 +26,19 @@ export interface TrendingCity {
 }
 
 export interface TrendingState {
-  /** When null, the UI renders a flat city list (cold “major cities” mode). */
   readonly state: geo.GeoState | null;
   readonly cities: readonly TrendingCity[];
 }
 
-/** Landing browse section: curated majors when empty, activity-ranked when warm. */
 export interface TrendingSection {
   readonly variant: 'major' | 'active';
   readonly groups: readonly TrendingState[];
 }
 
-/** Max featured cities shown on a cold (zero-event) market landing. */
 const COLD_MAJOR_CITY_CAP = 18;
-/** Max states in the warm “active cities” section. */
 const WARM_STATE_CAP = 3;
-/** Max cities per warm state (only cities with upcoming events). */
 const WARM_CITY_CAP = 8;
 
-/**
- * Preferred browse order for cold landings. Unknown featured cities follow alphabetically.
- * Shared policy for every market — only the slug list is country-specific.
- */
 const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
   DZ: [
     'algiers',
@@ -111,7 +96,6 @@ const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
 export interface MarketCity {
   readonly market: Market;
   readonly city: geo.GeoCity;
-  /** First page of upcoming events in this city (FR-E5). */
   readonly events: readonly EventFeedItem[];
 }
 

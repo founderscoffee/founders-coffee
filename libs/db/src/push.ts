@@ -42,9 +42,6 @@ export const registerPushToken = async (
         updatedAt: new Date(),
       };
     }
-    /* Token belongs to a different user (device changed hands) — explicitly delete then re-insert
-       below. Never silently reassign user_id, or a caller could hijack another user's notifications
-       by registering their token. */
     await db
       .delete(pushSubscriptions)
       .where(eq(pushSubscriptions.id, existing[0].id));

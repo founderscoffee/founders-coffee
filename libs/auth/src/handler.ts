@@ -1,7 +1,6 @@
 import { createAuth, type AuthDeps, type AuthEnv } from './auth.js';
 import { isCaptchaGated } from './captcha.js';
 
-/** Environment the HTTP handler needs. Identical to {@link AuthEnv}. */
 export type HandlerEnv = AuthEnv;
 
 /**

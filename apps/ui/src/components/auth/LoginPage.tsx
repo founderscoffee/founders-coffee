@@ -102,9 +102,7 @@ export const LoginPage = ({
           setOtp(otpCred.code as string);
         }
       })
-      .catch(() => {
-        /* WebOTP unavailable on this browser — ignore */
-      });
+      .catch(() => undefined);
 
     return () => {
       ac.abort();

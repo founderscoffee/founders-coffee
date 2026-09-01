@@ -2,7 +2,6 @@ import type { Locale } from '@founders-coffee/i18n';
 
 import type { CompanyPageContent } from './types';
 
-/** Public inbox for support, partnerships, and privacy requests. */
 export const CONTACT_EMAIL = 'contact@founders.coffee';
 export const PRIVACY_EMAIL = CONTACT_EMAIL;
 

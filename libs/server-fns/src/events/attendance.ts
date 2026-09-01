@@ -1,19 +1,12 @@
 import type { Event, Db } from '@founders-coffee/db';
 import { getRsvpsForEvents } from '@founders-coffee/db';
 
-/**
- * Attendance fields attached to an event response. Populated by `attachAttendance`.
- */
 export interface EventAttendance {
-  /** Count of RSVPs with status = 'going'. From the denormalized `events.rsvps` counter. */
   readonly goingCount: number;
-  /** Remaining seats. `null` ⇔ capacity === 0 (unlimited). */
   readonly remaining: number | null;
-  /** The viewer's RSVP status. `null` ⇔ logged-out or not RSVP'd. */
   readonly viewerRsvp: 'going' | null;
 }
 
-/** An event with required attendance fields. */
 export type EventWithAttendance = Event & EventAttendance;
 
 /**

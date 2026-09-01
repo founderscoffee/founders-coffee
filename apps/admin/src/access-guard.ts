@@ -1,19 +1,5 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
-/**
- * Cloudflare Access JWT verification — defense in depth for apps/admin.
- *
- * Edge Cloudflare Access already gates traffic, but it can be bypassed if the raw
- * Worker URL is reachable or DNS is misconfigured. This guard verifies the
- * `Cf-Access-Jwt-Assertion` JWT (RS256) against the team's public keys, so the
- * Worker itself rejects any request that didn't come through Access.
- *
- * Configure via wrangler vars/secrets (see `.dev.vars.example`):
- *   CF_ACCESS_TEAM_DOMAIN  e.g. "founders.cloudflareaccess.com"
- *   CF_ACCESS_AUD          the Access Application Audience Tag
- *   CF_ACCESS_DISABLED     "true" to bypass in LOCAL DEV ONLY
- */
-
 export interface AdminEnv {
   CF_ACCESS_TEAM_DOMAIN: string;
   CF_ACCESS_AUD: string;

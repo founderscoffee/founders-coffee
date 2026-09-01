@@ -71,15 +71,6 @@ const dispatch = async (
   return ok(undefined);
 };
 
-/**
- * apps/worker-jobs — the system worker (no UI). Consumes NOTIFICATIONS
- * (→ SMS + email), EMBEDDINGS (→ AI reindex), RECONCILE (→ payment-backlog
- * sweep). A cron drives reconcile as a backstop + notification sweep for
- * pending scheduled notifications.
- *
- * Per-message ack/retry: a failed message retries individually (no
- * re-sending siblings); exhausted retries fall through to the per-queue DLQ.
- */
 export default {
   fetch: () => new Response('ok'),
 

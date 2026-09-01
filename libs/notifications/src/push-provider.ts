@@ -1,16 +1,3 @@
-/**
- * Push notification provider interface — sends web push via FCM HTTP v1 API
- * (AGENTS.md §11.7: external services behind a provider interface).
- *
- * Manual JWT signing via Workers Web Crypto (no third-party library).
- * The Firebase service account's private key is used to sign a JWT
- * that authenticates with FCM's OAuth2 endpoint.
- *
- * FCM HTTP v1 API:
- * POST https://fcm.googleapis.com/v1/projects/{projectId}/messages:send
- * Authorization: Bearer {jwt}
- */
-
 import { AppError, type Result, ok, err } from '@founders-coffee/core';
 
 export interface SendPushArgs {
@@ -25,17 +12,11 @@ export interface SendPushResult {
   readonly messageId: string;
 }
 
-/**
- * Provider for sending push notifications via FCM HTTP v1.
- * Supports both web push (PWA) and native Android (RN).
- * iOS native push goes through EdgePush (Phase 8).
- */
 export interface PushProvider {
   readonly name: string;
   send(args: SendPushArgs): Promise<Result<SendPushResult>>;
 }
 
-/** Firebase service account JSON shape (only the fields we need for JWT signing). */
 interface FirebaseServiceAccount {
   project_id: string;
   private_key: string;
@@ -115,20 +96,6 @@ const pemToBinary = (pem: string): ArrayBuffer => {
   return bytes.buffer;
 };
 
-/**
- * Real push provider using FCM HTTP v1 API.
- * Manual JWT signing via Workers Web Crypto — no third-party dependencies.
- *
- * Supports:
- * - Web push (PWA): `message.webpush` payload with `notification` field
- * - Android (RN): `message.token` with FCM registration token
- * - iOS (RN): NOT supported — goes through EdgePush (Phase 8)
- *
- * Error handling:
- * - `UNREGISTERED` / `INVALID_ARGUMENT` → permanent failure (delete token)
- * - `SenderIdMismatch` → permanent failure (wrong project)
- * - All others → transient (retryable)
- */
 export class FcmPushProvider implements PushProvider {
   readonly name = 'fcm';
   private readonly projectId: string;
@@ -208,11 +175,6 @@ export class FcmPushProvider implements PushProvider {
   };
 }
 
-/**
- * Dev push provider: logs every message to the console so local devs can
- * read push payloads. Records all sent messages in the `sent` array for
- * test assertions (same pattern as `DevSmsProvider`, `DevNotificationSmsProvider`).
- */
 export class DevPushProvider implements PushProvider {
   readonly name = 'dev-push';
   readonly sent: SendPushArgs[] = [];

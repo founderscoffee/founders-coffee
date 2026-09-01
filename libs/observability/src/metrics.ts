@@ -5,9 +5,7 @@ export interface MetricDimensions {
 }
 
 export interface Metrics {
-  /** Record one occurrence of `event` (count = 1) tagged with dimensions. */
   readonly trackEvent: (event: string, dims?: MetricDimensions) => void;
-  /** Record a numeric `value` for `event` (e.g. a payment amount) with dimensions. */
   readonly trackCount: (
     event: string,
     value: number,

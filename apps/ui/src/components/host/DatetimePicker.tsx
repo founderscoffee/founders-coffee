@@ -12,7 +12,6 @@ import {
 
 import { TimePicker } from './TimePicker';
 
-/** Map the app locale to a react-day-picker locale. Algeria-first → `arDZ` (Algerian Arabic). */
 const DAYPICKER_LOCALE = { ar: arDZ, en: enUS, fr } as const;
 const DAYPICKER_DIR = { ar: 'rtl', en: 'ltr', fr: 'ltr' } as const;
 
@@ -57,21 +56,9 @@ type DatetimePickerProps = {
   onError: (error: ZonedDateTimeError | null) => void;
   locale: Locale;
   timeZone: string;
-  /**
-   * `top` — time control sits above the calendar card (step 2 wizard layout).
-   * `bottom` — time control sits under the calendar inside the parent card.
-   */
   timePlacement?: 'top' | 'bottom';
 };
 
-/**
- * Date (react-day-picker) + time RANGE (timepicker-ui) picker. The calendar picks the day, the range
- * picker picks the start→end window; together they produce startsAt + endsAt (the event's ends_at
- * column). Both are React-friendly (the timepicker is wrapped imperatively in `TimePicker`, kept
- * client-only by this component's `React.lazy` boundary). The initial values seed both at mount; the
- * wizard remounts step content via `key={step}`, so navigating back restores the pick. Calendar and
- * wall-clock conversion both use the event market's IANA timezone.
- */
 export const DatetimePicker = ({
   startsAt,
   endsAt,

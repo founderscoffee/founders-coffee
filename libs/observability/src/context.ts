@@ -1,6 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
-/** Request-scoped fields attached to every log within a request (AGENTS.md §13). */
 export interface RequestContext {
   readonly market?: string;
   readonly locale?: string;

@@ -4,14 +4,7 @@ import { Fragment, type ReactNode } from 'react';
 type StepperProps = {
   current: number;
   total: number;
-  /**
-   * Optional content rendered centered on each connector — `segments[0]` sits between icons 1
-   * and 2, `segments[1]` between 2 and 3, etc. Pass `null`/`undefined` for a plain connector.
-   * The track + fill line run behind the content (which needs an opaque background to sit on
-   * the line); everything shares the row's vertical center.
-   */
   segments?: ReactNode[];
-  /** Optional label under each step icon — centered on that icon’s midpoint. */
   labels?: ReactNode[];
 };
 

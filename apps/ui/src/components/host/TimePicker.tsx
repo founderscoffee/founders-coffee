@@ -4,13 +4,10 @@ import { RangePlugin } from 'timepicker-ui/plugins/range';
 
 import { host_time, type Locale } from '@founders-coffee/i18n';
 
-/* Register the range plugin once (module singleton, client-side via the lazy DatetimePicker chunk). */
 PluginRegistry.register(RangePlugin);
 
 type TimePickerProps = {
-  /** Start time "HH:MM" (24h). */
   from: string;
-  /** End time "HH:MM" (24h). */
   to: string;
   onChange: (from: string, to: string) => void;
   locale: Locale;
@@ -24,10 +21,6 @@ const LABELS = {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/* timepicker-ui exposes no public setter for the range "to" slot, but the range manager
-   (managers.plugins.range) has `setActivePart` + `handleMinuteCommit`, which set the active
-   part's value AND re-render its segment. We use them to auto-advance "to" = from + 1h whenever
-   the host picks/edits the start. Fragile w.r.t. upstream renames — pinned to timepicker-ui 4.x. */
 type RangeManager = {
   setActivePart: (p: 'from' | 'to') => void;
   handleMinuteCommit: (v: { hour: string; minutes: string }) => void;
@@ -43,13 +36,6 @@ const getRangeManager = (picker: TimepickerUI): RangeManager | undefined => {
   return plugins.range ?? plugins.get?.('range');
 };
 
-/**
- * Material-style time RANGE picker (timepicker-ui v4 + RangePlugin). Read-only input that opens a
- * 24h clock modal with from/to segments; `onRangeConfirm` returns the chosen window, which feeds the
- * event's startsAt/endsAt directly (min 30 min, max 8 h). When the host sets the start, the end
- * auto-advances to start + 1 h. Runs once per mount — the step remounts via `key={step}`, so the
- * seeded from/to restore the prior pick. Themed to warm-cafe via styles.css.
- */
 export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const onChangeRef = useRef(onChange);
@@ -78,8 +64,6 @@ export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
     });
     picker.create();
 
-    /* Auto-link: track the start slot; when we switch to the end slot right after the start
-       changed, set end = start + 1h. `fromDirty` gates it so manually editing the end is respected. */
     const rm = getRangeManager(picker);
     let activePart: 'from' | 'to' = 'from';
     let fromHour = from.slice(0, 2);

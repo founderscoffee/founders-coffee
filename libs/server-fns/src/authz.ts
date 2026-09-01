@@ -9,9 +9,7 @@ import { AppError } from '@founders-coffee/core';
 
 type Statements = typeof ac.statements;
 
-/** Permission resources, derived from the RBAC statements ([rbac.ts](../../auth/src/rbac.ts)). */
 export type PermissionResource = keyof Statements;
-/** Allowed action for a permission resource. */
 export type PermissionAction = Statements[PermissionResource][number];
 
 type AuthorizeRequest = Partial<Record<PermissionResource, PermissionAction[]>>;

@@ -1,16 +1,3 @@
-/**
- * Service worker — Serwist (InjectManifest mode).
- * Handles precaching (via Serwist) + push notifications (custom handlers).
- *
- * Push payload format (from FCM HTTP v1):
- * {
- *   title: "Host Arrived",
- *   body: "Amine is at Café Tantonville — wearing a black cap",
- *   url: "/dz/e/coffee-meetup-saturday"
- * }
- */
-
-/* eslint-disable-next-line local/no-line-comments -- TypeScript triple-slash directive */
 /// <reference lib="webworker" />
 
 import { defaultCache } from '@serwist/vite/worker';

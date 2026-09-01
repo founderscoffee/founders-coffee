@@ -2,13 +2,6 @@ import type { Money } from '@founders-coffee/core';
 
 import type { Locale } from './locale.js';
 
-/**
- * Locale-aware formatting over native `Intl.*` (full ICU on Workers, no flags).
- * **Latin digits forced everywhere** (`numberingSystem: 'latn'`) — overrides
- * CLDR's Arabic-Indic default for `ar` (SRS §8.6 decision). Formatters are cached
- * because construction is the expensive part on the edge.
- */
-
 const ARABIC_INDIC = /[٠-٩]/;
 
 const numberCache = new Map<string, Intl.NumberFormat>();

@@ -45,11 +45,6 @@ const footerStyle: CSSProperties = {
   textAlign: 'center',
 };
 
-/**
- * Shared email shell. Sets `lang` + `dir` from the locale (FR-N3 — RTL for Arabic) via
- * libs/i18n's `direction`. Centered 560px card on the Warm Café neutral background, system-font
- * stack. Every email template composes inside this base.
- */
 export const EmailBase = ({ locale, preview, children }: EmailBaseProps) => (
   <Html lang={locale} dir={direction(locale)}>
     <Head />

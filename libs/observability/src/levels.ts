@@ -1,6 +1,5 @@
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
-/** Numeric weight per level (higher = more severe). Drives threshold filtering. */
 export const LOG_LEVEL_ORDER: Record<LogLevel, number> = {
   debug: 10,
   info: 20,

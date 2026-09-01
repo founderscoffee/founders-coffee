@@ -4,7 +4,6 @@ import { eq, type Db, user } from '@founders-coffee/db';
 import type { AuthInstance } from './auth.js';
 import type { Role } from './rbac.js';
 
-/** Inferred Better Auth session shape (user carries `role` from the admin plugin). */
 export type AuthSession = NonNullable<
   Awaited<ReturnType<AuthInstance['api']['getSession']>>
 >;

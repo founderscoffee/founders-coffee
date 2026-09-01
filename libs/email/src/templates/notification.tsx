@@ -43,11 +43,6 @@ const ctaButtonStyle: CSSProperties = {
   textDecoration: 'none',
 };
 
-/**
- * Example localized notification email proving the render pipeline + RTL path. Localized text is
- * passed in as props (the caller resolves strings via libs/i18n `m` at P1-009); this template is
- * pure layout. The full template set (RSVP, reminder, host, sponsorship) lands at P1-009.
- */
 export const NotificationEmail = ({
   locale,
   preview,

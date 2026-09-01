@@ -1,10 +1,5 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 
-/**
- * Order lifecycle states (the authoritative type; the `orders` DB column stores
- * the same string values). Refunds + cancellations are terminal; `failed`/
- * `disputed` arrive with P4 gateway providers.
- */
 export type OrderStatus = 'pending' | 'paid' | 'cancelled' | 'refunded';
 
 const TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {

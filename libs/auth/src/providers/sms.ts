@@ -1,13 +1,3 @@
-/**
- * SMS provider interface — the only way SMS OTP codes leave the system
- * (AGENTS.md §11.7: external services behind a provider interface). The real
- * provider (Twilio Verify) lands with `libs/auth`; `DevSmsProvider` is wired
- * for dev + tests.
- *
- * This interface is SHARED between auth OTP and notification SMS (Phase 5) —
- * one provider interface, not parallel ones (DRY).
- */
-
 import { AppError } from '@founders-coffee/core';
 import { logger } from '@founders-coffee/observability';
 
@@ -17,31 +7,13 @@ export interface SendSmsOtpArgs {
 }
 
 export interface SmsProvider {
-  /**
-   * Send an OTP code via SMS. Returns `{ fraudGuardBlocked: true }` if Twilio
-   * Fraud Guard (error 60410) blocked the number — caller should surface
-   * "Try email instead." and skip retries for 12h.
-   *
-   * Throws `AppError('sms_failed')` on transient errors (carrier reject, network).
-   * The caller is responsible for rate-limiting + Fraud Guard short-circuit caching.
-   */
   sendOtp(
     args: SendSmsOtpArgs,
   ): Promise<{ fraudGuardBlocked?: boolean } | void>;
 
-  /**
-   * Optional: verify an OTP code. When set, Better Auth's phoneNumber plugin
-   * delegates verification to this method instead of internal verification.
-   * Used by Twilio Verify (which generates its own codes).
-   */
   verifyOtp?(args: { phoneNumber: string; code: string }): Promise<boolean>;
 }
 
-/**
- * Dev SMS provider: records every sent code (observable in tests) and logs it
- * to the console so local devs can read the OTP to sign in. Dev-only by design —
- * production swaps in a real `SmsProvider`.
- */
 export class DevSmsProvider implements SmsProvider {
   readonly sent: SendSmsOtpArgs[] = [];
 
@@ -61,14 +33,6 @@ export interface TwilioEnv {
 
 const TWILIO_VERIFY_URL = 'https://verify.twilio.com/v2/Services';
 
-/**
- * Real SMS provider using Twilio Verify (Send + Check Verification Code).
- * Stateless OTP (Twilio Verify handles code generation + verification).
- *
- * Fraud Guard (error 60410): Twilio returns `{ status: 'failed' }` with
- * `send_code_attempts[].attempt_error.code === 60410`. Maps to
- * `{ fraudGuardBlocked: true }` — caller caches this for 12h and short-circuits.
- */
 export class TwilioVerifySmsProvider implements SmsProvider {
   private readonly serviceSid: string;
   private readonly authHeader: string;

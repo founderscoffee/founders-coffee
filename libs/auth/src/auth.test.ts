@@ -11,10 +11,6 @@ import { createAuth } from './auth.js';
 import { getSession, requireRole } from './middleware.js';
 import { DevEmailProvider } from './providers/email.js';
 
-/**
- * The captcha bypass is explicit here so these cases exercise the OTP flows rather than Turnstile:
- * without it the gated send endpoint fails closed. The gate itself is covered in `handler.test.ts`.
- */
 const authEnv = {
   DB: env.DB,
   BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,

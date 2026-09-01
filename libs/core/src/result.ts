@@ -1,11 +1,3 @@
-/**
- * Result/Error envelope — the typed error channel for server functions.
- * (AGENTS.md §7: server fns return Result; §11.5: TanStack Query unwraps via handleResult.)
- *
- * Components never hand-check `!ok`; they consume server state through TanStack Query,
- * whose error states only activate when a function *throws* — hence `handleResult`.
- */
-
 export interface Ok<T> {
   readonly ok: true;
   readonly data: T;
@@ -18,7 +10,6 @@ export interface Err<E> {
 
 export type Result<T, E = AppError> = Ok<T> | Err<E>;
 
-/** Typed application error carrying a stable machine `code` + human `message`. */
 export class AppError extends Error {
   constructor(
     readonly code: string,

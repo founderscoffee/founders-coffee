@@ -1,6 +1,5 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 
-/** Event lifecycle states (no draft — events publish immediately on creation). */
 export type EventStatus = 'published' | 'cancelled';
 
 const TRANSITIONS: Record<EventStatus, readonly EventStatus[]> = {

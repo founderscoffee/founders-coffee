@@ -120,10 +120,16 @@ If you need data in a component that the current hook doesn't provide → add/ex
 - **Strict TypeScript.** No `any`. No `@ts-ignore`/`@ts-expect-error` without an inline justification comment. `noUnusedLocals`, `noImplicitReturns`, strict null checks — on.
 - **Naming:** clear, domain-aligned, no abbreviations except well-known ones (`id`, `url`). Boolean props prefixed `is`/`has`/`can`. **All functions and methods use camelCase** — no exceptions.
 - **Functions:** small, single-purpose, pure where possible. Side effects live in server functions / repositories, not in components or domain logic.
+- **Files cap at 300 lines.** Enforced as a build-breaking lint error (`max-lines`), counting blank and comment lines so the number matches `wc -l`. A file over the cap is doing more than one job — **split it by responsibility**, never reformat it under the limit. The only exemptions are files another rule requires to be single (`libs/db/src/schema.ts` per §11, the versioned geo datasets); they are enumerated in `eslint.config.mjs`, never disabled inline.
 - **Route files are thin.** Route files (`routes/*.tsx`) contain **only** layout + wiring (auth guard, data loading, hooks). **Zero component logic** in route files — all UI components live in `components/` or `features/<domain>/components/`.
 - **Component naming = file name.** The exported component name must exactly match the file name in PascalCase: `DatetimePicker.tsx` exports `DatetimePicker`, `HostMap.tsx` exports `HostMap`. No mismatches.
 - **Arrow functions only.** Declare all functions, methods, and components as arrow functions (`const f = () => {}`), including object-literal methods and class methods (use arrow class fields so `this` binds to the instance). Exceptions: generator functions (`function*`) and any case where arrow syntax would change `this` binding.
-- **No inline comments.** Do not write `//` line/inline comments — names and structure are the documentation. JSDoc block comments (`/** */`) for public API docs are encouraged; toolchain directive comments (`eslint-disable`, `@ts-*`) are exempt.
+- **Comments.** Names and structure are the documentation. Enforced as build-breaking lint errors (`local/comment-policy`), and auto-fixable — `eslint --fix` deletes anything the policy disallows.
+  - **`.tsx` carries no comments at all.** Not JSDoc, not block, not `//`, not `{/* */}`. If a component needs explaining, the fix is a clearer name or a smaller component.
+  - **`.ts` carries only JSDoc (`/** */`) documenting a function.** No file headers, no narrative block comments, no JSDoc on types, interfaces, or plain constants. A JSDoc block counts as a function's when it leads the function or any declaration wrapping it.
+  - **Toolchain directive comments are exempt everywhere** (`eslint-disable`, `@ts-*`, `prettier-`, `globals`, `istanbul`) — the toolchain cannot work without them. Put the `@ts-expect-error` justification §5 requires inside the directive itself.
+  - **Non-TypeScript files** (`.js`, `.mjs`, `.cjs`, config) keep the looser rule: no `//` line comments, block comments allowed.
+  - An intentionally empty block cannot be annotated with a comment, so give it a real statement (`return;`) or an expression body (`() => undefined`) instead.
 - **`libs/domain` is pure:** no Drizzle, no `Env`, no `fetch`. It takes inputs and returns outputs. I/O stays in `libs/db` and `libs/server-fns`.
 - **Error handling:** `libs/domain` returns the `Result` envelope; server functions unwrap it via `handleResult()` (the **throw boundary**) — throwing the typed `AppError` on failure, never raw/untyped throws. See §7.
 - **No dead code, no commented-out code, no `console.log`** in committed code. Use the structured logger (`libs/observability`).
@@ -240,6 +246,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
 - **E2E (Playwright):** the current critical flow is signup → create event → RSVP, exercised as a
   local/staging release gate. Future apps/phases add their own E2E only when approved. Under the
   current project decision, E2E is excluded from CI.
+- **Shared fixtures end in `.fixtures.ts`.** When more than one suite needs the same setup (a seeded D1, a provider fake, a builder), put it in a `*.fixtures.ts` module beside the suites. Every project's tsconfig excludes that suffix alongside `*.test.ts`, so fixtures never reach a library build, and the type-aware lint pass skips it for the same reason. A fixture file with any other name ships in `dist/`.
 - **Coverage gates** on `libs/domain` and `libs/server-fns`. No skipping tests with `.skip` in committed code without a linked ticket.
 
 ---

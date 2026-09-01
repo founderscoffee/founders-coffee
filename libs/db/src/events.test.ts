@@ -106,7 +106,6 @@ describe('events queries (real D1)', () => {
 
   it('lists upcoming events with cursor pagination', async () => {
     const db = await setupDb();
-    /** Use a unique city code to isolate this test's events from other tests */
     const cityCode = 'pgtest';
     const idA = nextId();
     await createEvent(db, {
@@ -287,7 +286,6 @@ describe('events queries (real D1)', () => {
 
     const published = await countEventsByStatus(db, 'published');
     const cancelled = await countEventsByStatus(db, 'cancelled');
-    /** Published count includes events from other tests — just verify the ratio */
     expect(published).toBeGreaterThan(0);
     expect(cancelled).toBeGreaterThanOrEqual(1);
   });

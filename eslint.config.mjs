@@ -1,9 +1,17 @@
 import nx from '@nx/eslint-plugin';
 
 /**
- * Local rule: ban `//` line comments (AGENTS.md §5 — no inline comments).
- * JSDoc and plain block comments are allowed; toolchain directive comments
- * (eslint- / @ts- / prettier- / istanbul) are exempt so the toolchain keeps working.
+ * Toolchain directives are exempt from every comment rule below — without them `eslint-disable`,
+ * `@ts-expect-error` and TypeScript `/// <reference />` could not be written at all.
+ */
+const isDirectiveComment = (value) =>
+  /^\s*(eslint-(disable|enable)(-(next-)?line)?|@ts-|\/\s*<reference|globals?\s|@internal|istanbul |prettier-)/.test(
+    value,
+  );
+
+/**
+ * Local rule: ban `//` line comments outside TypeScript (AGENTS.md §5). TypeScript files are held
+ * to the stricter `comment-policy` rule instead, so the two never both fire on one comment.
  */
 const noLineComments = {
   meta: {
@@ -11,21 +19,112 @@ const noLineComments = {
     schema: [],
     messages: {
       noLine:
-        'No `//` line comments — use JSDoc `/** */` for documentation (AGENTS.md §5). Directive comments (eslint-/@ts-) are allowed.',
+        'No `//` line comments — use a block comment for documentation (AGENTS.md §5). Directive comments (eslint-/@ts-) are allowed.',
     },
   },
   create: (context) => {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
-    const isDirective = (value) =>
-      /^\s*(eslint-(disable|enable)(-(next-)?line)?|@ts-|globals?\s|@internal|istanbul |prettier-)/.test(
-        value,
-      );
     return {
       Program: () => {
         for (const comment of sourceCode.getAllComments()) {
-          if (comment.type === 'Line' && !isDirective(comment.value)) {
+          if (comment.type === 'Line' && !isDirectiveComment(comment.value)) {
             context.report({ node: comment, messageId: 'noLine' });
           }
+        }
+      },
+    };
+  },
+};
+
+/**
+ * Local rule: the TypeScript comment policy (AGENTS.md §5).
+ *
+ * `.tsx` carries no comments at all — markup and component names are the documentation.
+ * `.ts` carries only JSDoc (`/** *\/`) documenting a function; file headers, narrative block
+ * comments, and JSDoc on types, interfaces or plain constants are all removed.
+ *
+ * Auto-fixable: the fixer deletes the comment token, and the whole line when the comment owns it.
+ * A comment is treated as a function's JSDoc when it leads the function or any declaration wrapping
+ * it, so `\/** *\/ export const f = () => {}` and a documented object method both qualify.
+ */
+const commentPolicy = {
+  meta: {
+    type: 'suggestion',
+    fixable: 'code',
+    schema: [],
+    messages: {
+      tsx: 'No comments in .tsx — names and structure are the documentation (AGENTS.md §5). Only toolchain directives are exempt.',
+      ts: 'Only JSDoc documenting a function is allowed in .ts (AGENTS.md §5). Only toolchain directives are exempt.',
+    },
+  },
+  create: (context) => {
+    const filename = context.filename ?? context.getFilename();
+    const isTsx = /\.tsx$/.test(filename);
+    const isTs = /\.(ts|mts|cts)$/.test(filename);
+    if (!isTsx && !isTs) return {};
+
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const functionDocs = new Set();
+
+    /** Declaration nodes a JSDoc block may sit in front of while still documenting the function. */
+    const WRAPPERS = new Set([
+      'VariableDeclarator',
+      'VariableDeclaration',
+      'ExportNamedDeclaration',
+      'ExportDefaultDeclaration',
+      'Property',
+      'PropertyDefinition',
+      'MethodDefinition',
+      'CallExpression',
+      'MemberExpression',
+      'TSAsExpression',
+    ]);
+
+    const markFunctionDoc = (node) => {
+      if (isTsx) return;
+      let current = node;
+      while (current) {
+        for (const comment of sourceCode.getCommentsBefore(current)) {
+          if (comment.type === 'Block' && comment.value.startsWith('*')) {
+            functionDocs.add(comment);
+          }
+        }
+        if (current.parent && WRAPPERS.has(current.parent.type)) {
+          current = current.parent;
+        } else break;
+      }
+    };
+
+    const removal = (comment) => (fixer) => {
+      const text = sourceCode.getText();
+      let start = comment.range[0];
+      let end = comment.range[1];
+      while (
+        start > 0 &&
+        (text[start - 1] === ' ' || text[start - 1] === '\t')
+      ) {
+        start--;
+      }
+      if (start === 0 || text[start - 1] === '\n') {
+        if (text[end] === '\r') end++;
+        if (text[end] === '\n') end++;
+      }
+      return fixer.removeRange([start, end]);
+    };
+
+    return {
+      ArrowFunctionExpression: markFunctionDoc,
+      FunctionDeclaration: markFunctionDoc,
+      FunctionExpression: markFunctionDoc,
+      'Program:exit': () => {
+        for (const comment of sourceCode.getAllComments()) {
+          if (isDirectiveComment(comment.value)) continue;
+          if (functionDocs.has(comment)) continue;
+          context.report({
+            node: comment,
+            messageId: isTsx ? 'tsx' : 'ts',
+            fix: removal(comment),
+          });
         }
       },
     };
@@ -68,6 +167,7 @@ const localPlugin = {
   rules: {
     'no-line-comments': noLineComments,
     'no-server-fns-in-components': noServerFnsInComponents,
+    'comment-policy': commentPolicy,
   },
 };
 
@@ -161,9 +261,37 @@ export default [
             'Use an arrow function — object/class methods as arrow fields. (AGENTS.md §5 — constructors & generators excepted.)',
         },
       ],
-      'local/no-line-comments': 'error',
       'local/no-server-fns-in-components': 'error',
+      /* Files cap at 300 lines (AGENTS.md §5 — small, single-purpose units). Blank lines and
+         comments count, so the number matches `wc -l` and the editor gutter with no arithmetic.
+         A file that outgrows the cap is a file doing more than one job: split it by responsibility,
+         do not reformat it under the limit. Exemptions are enumerated below, never inline. */
+      'max-lines': [
+        'error',
+        { max: 300, skipBlankLines: false, skipComments: false },
+      ],
     },
+  },
+  /* Comment policy (AGENTS.md §5). TypeScript gets `comment-policy`; everything else keeps the
+     plain line-comment ban. Scoped so exactly one rule fires per comment. */
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'],
+    rules: { 'local/comment-policy': 'error' },
+  },
+  {
+    files: ['**/*.js', '**/*.jsx', '**/*.cjs', '**/*.mjs'],
+    rules: { 'local/no-line-comments': 'error' },
+  },
+  /* Permanent `max-lines` exemptions — each is required to be one file by another rule.
+     Nothing else belongs here; a file that is merely large belongs in the list after this one. */
+  {
+    files: [
+      /* §11 — versioned state/city reference datasets, data rather than logic. */
+      'libs/domain/src/geo/data/*.ts',
+      /* §11 — "Schema in one place: libs/db. Never define tables elsewhere." */
+      'libs/db/src/schema.ts',
+    ],
+    rules: { 'max-lines': 'off' },
   },
   /* Type-aware pass: a promise that is neither awaited, returned, nor handed to
      ctx.waitUntil() is cancelled when a Worker invocation completes, so a floating
@@ -178,6 +306,7 @@ export default [
       '**/*.test.tsx',
       '**/*.spec.ts',
       '**/*.spec.tsx',
+      '**/*.fixtures.ts',
       '**/*.config.ts',
       '**/*.config.mts',
       '**/setup.ts',

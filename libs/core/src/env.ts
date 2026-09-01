@@ -1,10 +1,5 @@
 import { AppError } from './result.js';
 
-/**
- * Typed env accessors. Pure: the caller passes the runtime env object
- * (the Workers `env`, from `cloudflare:workers` or the fetch handler arg), so `core`
- * stays Workers-agnostic and testable with a plain object.
- */
 export type Env = Record<string, string | undefined>;
 
 /** Read a required string env var; throws `AppError('env_missing')` if absent/empty. */

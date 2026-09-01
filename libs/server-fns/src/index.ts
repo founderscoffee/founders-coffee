@@ -1,18 +1,3 @@
-/**
- * founders.coffee server-function foundation (AGENTS.md §7): the `createServerFn` RPCs + authz
- * primitives. Server functions are the throw boundary — they unwrap the domain `Result` via
- * `handleResult()` and throw the typed `AppError` on failure so TanStack Query enters its error
- * state automatically.
- *
- * Client-facing barrel — only createServerFn RPCs (TanStack compiles these to client stubs) and the
- * pure authz helpers. The server-only internals — `getDb`/`getAuthEnv`/`resolveSession` (import
- * `cloudflare:workers`), `authMiddleware`/`requirePermission` (import `@tanstack/react-start/server`),
- * and `requestContextMiddleware`/`withRequestContext` (import `node:async_hooks` via
- * `@founders-coffee/observability/context`) — are intentionally NOT re-exported here: they would drag
- * unresolvable server imports into the browser bundle. App server entries (`start.ts`) import the
- * request-context middleware from the `@founders-coffee/server-fns/request-context` subpath.
- * Authed server-fns import the rest directly from their modules (`./db`, `./auth-middleware`).
- */
 export { getPublicAuthConfig } from './auth-config.js';
 export { getFirebaseConfig, getMapboxToken } from './config.js';
 export { getGeoCountry } from './geo.js';

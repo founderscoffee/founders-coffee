@@ -1,12 +1,3 @@
-/**
- * LiveDashboard — real-time view for in-progress events. Activates ~30 min
- * before startsAt. Shows host status, attendee roster, and spatial cues.
- *
- * Two modes:
- * - Host view: "I've Arrived" button, table pin, visual cue input
- * - Attendee view: "Walking In" / "Running Late" toggles, live roster
- */
-
 import { useState } from 'react';
 
 import {
@@ -15,19 +6,11 @@ import {
   type ConnectionState,
 } from '../useEventLive';
 
-/* -------------------------------------------------------------------------- */
-/* Props                                                                       */
-/* -------------------------------------------------------------------------- */
-
 export interface LiveDashboardProps {
   eventId: string;
   currentUserId: string;
   isHost: boolean;
 }
-
-/* -------------------------------------------------------------------------- */
-/* Helpers                                                                     */
-/* -------------------------------------------------------------------------- */
 
 const statusLabel = (status: RosterUser['status']): string => {
   switch (status) {
@@ -68,10 +51,6 @@ const connectionBadge = (state: ConnectionState): string => {
       return 'badge-error';
   }
 };
-
-/* -------------------------------------------------------------------------- */
-/* Component                                                                   */
-/* -------------------------------------------------------------------------- */
 
 export const LiveDashboard = ({
   eventId,

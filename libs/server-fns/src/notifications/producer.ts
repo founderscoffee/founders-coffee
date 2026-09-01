@@ -1,15 +1,3 @@
-/**
- * Notification producer — builds payloads and enqueues rows into
- * `scheduled_notifications`. Called from server-fns after successful
- * RSVP or event creation (AGENTS.md §7: server functions are the
- * throw boundary, domain logic in libs/domain).
- *
- * Three notification types:
- * - `rsvp_confirmation`: immediate (send_at = now)
- * - `reminder_72h`: three days before event (send_at = startsAt - 72h)
- * - `reminder_24h`: twenty-four hours before event (send_at = startsAt - 24h)
- */
-
 import { id } from '@founders-coffee/core';
 import {
   enqueueNotification,
@@ -172,7 +160,6 @@ export const enqueueRsvpNotifications = async (
     locale: opts.locale,
   };
 
-  /** RSVP confirmation — immediate. */
   const confirmKey = 'rsvp_confirmation' as const;
   if (
     !(await hasPendingNotification(db, {
@@ -198,7 +185,6 @@ export const enqueueRsvpNotifications = async (
     });
   }
 
-  /** T-72h reminder — only if event is >72h away. */
   if (startsAtMs - now > SEVEN_DAYS_MS) {
     const reminder72Key = 'reminder_72h' as const;
     if (
@@ -236,7 +222,6 @@ export const enqueueRsvpNotifications = async (
     }
   }
 
-  /** T-24h reminder — only if event is >24h away. */
   if (startsAtMs - now > TWENTY_FOUR_HOURS_MS) {
     const reminder24Key = 'reminder_24h' as const;
     if (

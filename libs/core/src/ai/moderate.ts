@@ -6,8 +6,6 @@ import type { AiRuntime } from './ports.js';
 export interface ModerationResult {
   readonly flagged: boolean;
   readonly categories: readonly string[];
-  /** True when flagged OR when the model output was unparseable — moderation never auto-blocks; a
-   * human reviews (hedge against Arabic/moderation false-positives). */
   readonly reviewRequired: boolean;
 }
 
