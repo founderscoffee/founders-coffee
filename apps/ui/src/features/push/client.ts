@@ -1,10 +1,7 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 
-import {
-  getFirebaseConfig,
-  registerPushTokenFn,
-} from '@founders-coffee/server-fns';
+import { readPushConfig, registerPushToken } from './api';
 
 let app: FirebaseApp | null = null;
 
@@ -13,7 +10,7 @@ const ensureMessaging = async () => {
   if (typeof window === 'undefined' || !('Notification' in window)) return null;
   if (!(await isSupported())) return null;
 
-  const config = await getFirebaseConfig();
+  const config = await readPushConfig();
   if (!config) return null;
 
   app = initializeApp(config);
@@ -34,15 +31,13 @@ export const requestPushPermission = async (
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return;
 
-    const config = await getFirebaseConfig();
+    const config = await readPushConfig();
     if (!config) return;
 
     const token = await getToken(messaging, { vapidKey: config.vapidKey });
     if (!token) return;
 
-    await registerPushTokenFn({
-      data: { token, platform: 'web', surface: 'pwa', marketCode },
-    });
+    await registerPushToken({ token, marketCode });
   } catch {
     return;
   }

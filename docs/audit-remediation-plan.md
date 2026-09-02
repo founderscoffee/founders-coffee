@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-04 and AR-11 complete; AR-05 through AR-10, AR-12 and AR-13 planned                                                                                                         |
+| Status         | Active; AR-01 through AR-05, AR-11 and AR-12 complete; AR-06 through AR-10 and AR-13 planned                                                                                                         |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -478,7 +478,7 @@ the mechanism §11 mandates.
 
 **Parent:** P1-018
 **Requirements:** NFR-4
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-06.
 
@@ -740,7 +740,7 @@ owns the repository root.
 
 **Parent:** P0-021
 **Requirements:** NFR-10, NFR-11
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-17, and the `features/` half of F-11.
 

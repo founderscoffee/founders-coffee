@@ -113,6 +113,8 @@ Component → hook (TanStack Query) → api.ts → libs/server-fns → libs/doma
 
 If you need data in a component that the current hook doesn't provide → add/extend the hook. Never reach past the `api.ts` layer.
 
+**`libs/domain` is the one exception, and only for feature logic.** §16 keeps it out of components, but §6 requires the opposite of the form layer — the schema is the single contract shared by `api.ts`, server functions, and forms. So `features/<domain>/*.ts` may import it at runtime to reuse a schema; `features/<domain>/components/`, `components/` and `lib/` may not. `libs/server-fns` and `libs/db` stay confined to `api.ts` regardless. `local/no-server-fns-in-components` enforces exactly this split, and covers `features/` — it did not until 2026-09-02, which is how a direct server-function import in `features/push/client.ts` went unreported.
+
 ---
 
 ## 5. Code-quality bar
