@@ -1,18 +1,10 @@
 import { eq, sql } from 'drizzle-orm';
-import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { batch } from './atomic.js';
-import { createDb, type Db } from './index.js';
+import type { Db } from './index.js';
+import { cancelRsvp, createRsvp, isDuplicateRsvpError } from './rsvps.js';
 import {
-  RSVP_INSERT_COLUMNS,
-  cancelRsvp,
-  createRsvp,
-  getRsvpForUser,
-  isDuplicateRsvpError,
-} from './rsvps.js';
-import {
-  captureError,
   counters,
   fill,
   members,

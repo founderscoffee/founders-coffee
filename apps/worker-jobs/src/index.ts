@@ -78,12 +78,11 @@ export default {
     const db = createDb(env.DB);
 
     if (controller.cron === '*/1 * * * *') {
-      await sweepNotifications(
-        db,
-        createSmsProvider(env),
-        createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
-        createPushProvider(env),
-      );
+      await sweepNotifications(db, {
+        sms: createSmsProvider(env),
+        email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
+        push: createPushProvider(env),
+      });
     }
 
     if (controller.cron === '0 3 * * *') {

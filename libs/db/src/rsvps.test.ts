@@ -1,25 +1,17 @@
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { batch } from './atomic.js';
 import { createDb, type Db } from './index.js';
+import { RSVP_INSERT_COLUMNS, createRsvp, getRsvpForUser } from './rsvps.js';
 import {
-  RSVP_INSERT_COLUMNS,
-  cancelRsvp,
-  createRsvp,
-  getRsvpForUser,
-  isDuplicateRsvpError,
-} from './rsvps.js';
-import {
-  captureError,
   counters,
   fill,
   members,
   seedEvent,
   setupDb,
 } from './rsvps.fixtures.js';
-import { eventRsvps, events } from './schema.js';
+import { eventRsvps } from './schema.js';
 
 describe('rsvp insert-select column contract', () => {
   it('matches the column list Drizzle generates for event_rsvps', () => {

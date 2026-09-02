@@ -307,6 +307,7 @@ export const NOTIFICATION_STATUSES = [
   'sent',
   'delivered',
   'failed',
+  'cancelled',
 ] as const;
 export const NOTIFICATION_TEMPLATE_KEYS = [
   'rsvp_confirmation',
@@ -316,14 +317,21 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
 
 /**
  * Scheduled notification — one row per notification to send.
- * The Cron sweep (worker-jobs) reads `pending` rows where `send_at <= now`,
- * dispatches via the queue, and marks them `sent`/`failed`.
+ * The Cron sweep (worker-jobs) reads the oldest `pending` rows where `send_at <= now`, dispatches
+ * each on its channel, and resolves every one it selected. A retryable failure keeps the row
+ * `pending` with `attempts` incremented and `send_at` deferred; the row goes terminally `failed`
+ * once the attempt budget is spent or the provider reports a permanent error.
  *
  * `payload` is a JSON blob containing template-specific data (phone number,
  * event title, starts_at, locale, etc.) — the consumer parses it and renders
  * the SMS text or email HTML.
  *
- * `fallback_channel` triggers email retry when SMS fails permanently (3 attempts).
+ * `fallback_channel` names the channel to try once this row fails terminally. `fallback_of` points
+ * the resulting row back at the one it replaces and is UNIQUE, so a parent can spawn at most one
+ * fallback however many times the failure path runs.
+ *
+ * `cancelled` is terminal and distinct from `failed`: the notification was retired because the RSVP
+ * or event went away, not because delivery did not work.
  */
 export const scheduledNotifications = sqliteTable(
   'scheduled_notifications',
@@ -353,6 +361,7 @@ export const scheduledNotifications = sqliteTable(
     fallbackChannel: text('fallback_channel', {
       enum: ['email'],
     }),
+    fallbackOf: text('fallback_of'),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -366,6 +375,9 @@ export const scheduledNotifications = sqliteTable(
       .where(sql`status = 'pending'`),
     eventIdIdx: index('scheduled_notifications_event_id_index').on(t.eventId),
     userIdIdx: index('scheduled_notifications_user_id_index').on(t.userId),
+    fallbackOfUnique: uniqueIndex(
+      'scheduled_notifications_fallback_of_unique',
+    ).on(t.fallbackOf),
   }),
 );
 

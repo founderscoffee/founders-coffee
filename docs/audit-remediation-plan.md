@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01, AR-04 and AR-11 complete; AR-02, AR-03, AR-05 through AR-10, AR-12 and AR-13 planned                                                                                                  |
+| Status         | Active; AR-01, AR-02, AR-04 and AR-11 complete; AR-03, AR-05 through AR-10, AR-12 and AR-13 planned                                                                                                  |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -154,7 +154,7 @@ The `AR-*` identifiers are local work packages under the existing parent tickets
 the repository's P0/P1 ticket IDs.
 
 Recommended order: AR-01 first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
-production consequences; AR-04 is complete. Then AR-09, which restores the mechanisms that would
+production consequences; AR-02 and AR-04 are complete, and AR-03 now follows directly from AR-02. Then AR-09, which restores the mechanisms that would
 have caught several of the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
 rewrites the same sweep. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule
 allows. AR-01 and AR-11 are complete.
@@ -198,7 +198,7 @@ Completion evidence:
 
 **Parent:** P0-018, P1-009
 **Requirements:** FR-N1; NFR-3, NFR-7
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-02 and F-03. These are one defect in two forms: the status lifecycle allows a row to be
 neither delivered nor retired.
@@ -233,15 +233,68 @@ Work:
   `cancelNotificationsByUserEvent`; introduce a distinct cancelled state with the reviewed migration
   it requires.
 
-Verification:
+Completion evidence:
 
-- Miniflare and D1 integration tests prove: a push row with no configured provider reaches a terminal
-  state in one sweep; a hundred previously stuck rows cannot block a newly due SMS row; a retryable
-  SMS failure remains `pending` with a deferred `send_at` and is retried; the email fallback row is
-  created exactly once when the budget is exhausted; a cancelled row is distinguishable from a failed
-  row.
-- A regression test asserts that no dispatch path can leave a selected row `pending` with unchanged
-  `attempts`.
+Both defects were reproduced on the pre-fix code before anything was changed, by checking the two
+original files back into the tree and running a probe against them:
+
+```text
+LEGACY_F02>>> after 5 sweeps: status=pending attempts=0
+LEGACY_F03>>> rows=1 statuses=sms:failed:a1
+```
+
+The push row never advanced, and the documented email fallback was never created. The same probe on
+the fixed code:
+
+```text
+FIXED_F02>>> after 5 sweeps: status=failed attempts=1
+FIXED_F03>>> rows=2 statuses=sms:failed:a1,email:sent:a0
+```
+
+- Per-channel dispatch moved to `notification-dispatch.ts`. A channel with no configured provider is
+  **absent** from the dispatcher map rather than mapped to a no-op, and the sweep resolves an
+  unroutable row terminally — which is what keeps it out of every later selection window.
+- Every path now ends in `markNotificationSent` or `markNotificationFailed`. A provider that throws
+  is converted to a retryable failure instead of aborting the sweep and leaving the rest of the
+  window `pending`.
+- `markNotificationFailed` decides retry versus terminal **inside** the statement
+  (`status = CASE WHEN permanent OR attempts + 1 >= max THEN 'failed' ELSE 'pending' END`), defers
+  `send_at` by a backoff, and creates the fallback row in the same batch at the moment the row goes
+  terminal. That is what makes the documented fallback reachable at all.
+- Exactly-one-fallback is now a **database invariant**: migration `0013` adds `fallback_of` with a
+  UNIQUE index, so a replayed failure path cannot spawn a second fallback for the same parent. The
+  deterministic `${id}_fb` identifier is gone. SQLite treats NULLs as distinct in a unique index, so
+  ordinary rows are unaffected — asserted by test.
+- `listPendingNotifications` orders by `send_at, id`.
+- Cancellation writes the new terminal `cancelled` state, distinguishable from a delivery failure.
+- A user with no registered device token is now a permanent push failure rather than a silent
+  success: nothing was delivered, and recording `sent` both misreported delivery and skipped any
+  fallback the row carried.
+
+Verification — 22 new tests against real D1 under Miniflare:
+
+- A push row with no configured provider reaches a terminal state in one sweep.
+- A full window of 100 unroutable rows is cleared in one sweep and the next newly due SMS row is
+  reached on the following one.
+- A transient failure stays `pending` with `attempts` incremented and `send_at` deferred; it is not
+  re-selected until the backoff elapses, and fails terminally once the budget is spent.
+- The email fallback is created exactly once, links back through `fallback_of`, and is delivered on
+  the next sweep. A replayed failure path creates no second fallback.
+- A cancelled row is `cancelled`, not `failed`, and is not re-selected.
+- Regression: across push, SMS and email in one sweep, no selected row is left `pending` with
+  unchanged `attempts`.
+- Two overlapping sweeps advance the row once and create one fallback.
+- Migration `0013` is tested for data preservation on the prior schema, and the UNIQUE index is
+  proven to reject a second fallback for the same parent.
+- `migrations.test.ts` asserted `TEST_MIGRATIONS.at(-1)` was `0012`, so adding `0013` broke it. It
+  now locates migrations by name, and a later migration cannot silently retarget an existing test.
+
+Limits of the evidence, deliberately left to AR-03: there is still no claim or lease, so two
+overlapping sweeps both select the same rows and a row can be dispatched twice. Delivery is
+at-least-once. The `status = 'pending'` guard means only one sweep advances the row and only one
+fallback is created, but it does not prevent a duplicate send. A D1 write failure also leaves a row
+untouched — the store being unavailable is the one case where state cannot be recorded, and the next
+sweep retries it. Both bounds are recorded in the sweep's own documentation.
 
 ### AR-03 — Claim scheduled notifications before dispatch
 
@@ -740,8 +793,8 @@ admin applications; or move E2E into CI, which remains excluded by current proje
 ## 8. Definition of done
 
 - [x] All seven verification gates pass, including `npm audit --audit-level=high`. (AR-01, 2026-09-02)
-- [ ] No scheduled notification can remain selectable indefinitely, and the documented retry and
-      email fallback are exercised by tests rather than described by comments.
+- [x] No scheduled notification can remain selectable indefinitely, and the documented retry and
+      email fallback are exercised by tests rather than described by comments. (AR-02, 2026-09-02)
 - [x] A rejected full-capacity RSVP writes nothing, and no untyped error crosses a server-function
       boundary. (AR-04, 2026-09-02)
 - [ ] Every state-changing server function declares a permission and enforces a rate limit; anonymous
