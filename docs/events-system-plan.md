@@ -132,7 +132,8 @@ The feature is **Partial** until session-expiry, cancellation, and heartbeat beh
 ## 8. Launch hardening
 
 - Complete Turnstile coverage for event creation and RSVP.
-- Configure WAF rate limits in addition to the identity-scoped Durable Object limiter.
+- Retain the active shared Free-plan WAF rule in addition to identity-scoped Durable Object limits.
+  Re-run the production behavioral probe after the apex DNS record serves traffic.
 - Apply strict CSP and secure headers.
 - Bind Analytics Engine and add delivery/density/error/SMS-cost dashboards and alerts.
 - Verify offline shell, city/event prerendering, Lighthouse score, and optional PWA Builder packaging.

@@ -2,8 +2,8 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 through EC-05 complete, EC-06 implementation complete with account-side WAF evidence pending, EC-07 through EC-10 not started                                |
-| Last reviewed  | 2026-09-01                                                                                                                                                                 |
+| Status         | Active; EC-01 through EC-06 complete, EC-07 through EC-10 not started                                                                                                      |
+| Last reviewed  | 2026-09-02                                                                                                                                                                 |
 | Scope          | Authenticated host event creation in `apps/ui`, from route entry through durable D1 persistence and discoverability                                                        |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
 | Requirements   | FR-G2, FR-G3, FR-G6, FR-E1, FR-E2, FR-E5, FR-E7, FR-E9; NFR-4, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11, NFR-12                                                                 |
@@ -286,7 +286,7 @@ Completion evidence:
 
 **Parent:** P1-018
 **Requirements:** NFR-4
-**Status:** Implementation complete; staging/production WAF evidence pending — 2026-09-01
+**Status:** Complete — 2026-09-02
 
 Work:
 
@@ -311,11 +311,13 @@ Implementation evidence:
 - The event wizard uses an interaction-only managed widget on its final current step, transports the token outside the domain command, disables publish until verification succeeds, and removes/reissues the widget after mutation failure. Expiry, widget error, and interaction timeout clear the token and actively reset the widget for a fresh response.
 - `RateLimiterDO` now lives once in `libs/server-fns`, is exported by the public Worker, and uses the prototype method required by Cloudflare RPC. A real Miniflare Durable Object test proves that the explicit `create_event` bucket allows five requests and rejects the sixth.
 - Miniflare tests cover valid, missing, invalid, expired, replayed, action/hostname mismatch, provider HTTP/payload/network failure, development-only bypass, missing deployed configuration, WAF fail-closed behavior, and DO exhaustion. UI component tests cover managed widget behavior, expiry, reissue, token transport, and mutation-failure reset.
-- Separate staging and production `http_ratelimit` rule definitions are committed under `libs/infra/cloudflare/waf`, using a 120-request/60-second IP edge-volume ceiling for the stable `/_serverFn/` path. The application refuses deployed event creation until `EVENT_CREATE_WAF_CONFIGURED=true` is recorded for that Worker environment.
+- One Free-plan-compatible `http_ratelimit` rule definition is committed under `libs/infra/cloudflare/waf`, using a 20-request/10-second IP edge-volume ceiling for `/api/auth/` and the stable `/_serverFn/` path across the zone. The application refuses deployed event creation until `EVENT_CREATE_WAF_CONFIGURED=true` is recorded for that Worker environment.
 
-Remaining account gate:
+Account evidence:
 
-- The current Wrangler OAuth token has Workers, D1, zone-read, and Turnstile-write access but no `Zone WAF Edit` or `Firewall Services Edit` permission. It cannot create or inspect the required zone rate-limiting rules. Do not set `EVENT_CREATE_WAF_CONFIGURED=true` until each rule ID and the independent low-volume staging result are recorded in [deployment evidence](./deployment-evidence.md).
+- The Cloudflare Free zone permits one path-based rate-limiting rule. The obsolete leaked-password rule was replaced in place because Better Auth is passwordless; the shared rule now protects both auth and server-function paths for staging and production.
+- Rulesets API readback confirms rule `d11c283bee39488293e86d519e9c546d` is enabled with the committed expression, 20 requests per 10 seconds, and a 10-second block. Both Worker environments have the `EVENT_CREATE_WAF_CONFIGURED=true` evidence marker.
+- A harmless staging probe proved the sixth request was blocked with `429` at a temporary five-request threshold, after which the committed configuration was restored. Production configuration is covered by the same zone rule; its behavioral probe remains an EC-10 deployment check because the apex hostname does not yet resolve.
 
 ### EC-07 — Finish the authenticated, localized wizard
 
@@ -403,11 +405,11 @@ The final command is a local/staging release check, not a CI job under the curre
 
 Work:
 
-- Confirm staging has the Mapbox and Turnstile secrets, D1/DO/Analytics bindings, and WAF rule before deployment.
+- Confirm staging has the Mapbox and Turnstile secrets, D1/DO/Analytics bindings, and the active shared WAF rule before the EC-10 release deployment.
 - Apply the D1 migration to staging, deploy the Worker, and run the critical Playwright flow with an authorized disposable account.
 - Inspect the created event in the UI and D1, confirm the city feed and public host profile, and verify logs/metrics.
 - Test from a browser timezone different from the market timezone and in all three locales.
-- Record the migration ID, Worker deployment version, WAF rule identifier, test event ID, and test result in the deployment evidence location used by the repository.
+- Record the migration ID, Worker deployment version, shared WAF rule identifier, production behavioral result after DNS activation, test event ID, and test result in the deployment evidence location used by the repository.
 - Repeat the configuration preflight for production, apply the migration before the compatible Worker deployment, and perform one authorized smoke creation.
 - Close P1-006 only when the credential, feature API, localization, persistence, and route behavior are verified. Update P1-018/P1-019/P1-021 only for the evidence actually completed.
 

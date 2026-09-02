@@ -81,7 +81,9 @@ the current sequence.
 ## Active execution plans
 
 1. Complete the [Event Creation Remediation Plan](./event-creation-remediation-plan.md) through
-   EC-10.
+   EC-10. EC-06 is complete with the active shared Free-plan WAF rule. EC-07 through EC-09 may
+   continue now; EC-10 remains gated on its deployment, production DNS/WAF behavior, and smoke
+   evidence.
 2. Immediately after EC-10, begin the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
    at CO-01.

@@ -10,7 +10,7 @@ created once per environment with an `-staging` / `-production` suffix.
 
 ## Status
 
-**Last checked: 2026-09-01.** Repository configuration contains staging and production D1 IDs,
+**Last checked: 2026-09-02.** Repository configuration contains staging and production D1 IDs,
 Vectorize bindings, Worker routes, migrations, and deployment targets. Cloudflare dashboard state and
 secret presence are not externally observable and must be verified with the commands in §7.
 
@@ -19,12 +19,11 @@ staging hosts timed out and production hostnames did not resolve from that envir
 deployment as **unverified**, not serving, until §7 succeeds from a normal network and the Cloudflare
 dashboard confirms the routes. The earlier undated claim that staging was serving has been removed.
 
-The current Wrangler OAuth session was inspected on 2026-09-01. It can manage Workers, D1, routes,
-and Turnstile widgets, but it does not have `Zone WAF Edit` or `Firewall Services Edit`. Therefore
-the EC-06 rate-limiting rules could not be created or inspected from this environment. Event creation
-now fails closed in staging and production until the rule ID and behavioral check for each
-environment are recorded in [`deployment-evidence.md`](./deployment-evidence.md) and the Worker
-secret `EVENT_CREATE_WAF_CONFIGURED` is set to `true`.
+A dedicated API token activated the shared EC-06 WAF rule on 2026-09-02. The zone is on the Free
+Website plan, so its single rate-limiting-rule slot now protects both `/api/auth/` and `/_serverFn/`
+for every hostname. The rule and both Worker evidence markers are active. Staging behavior is
+verified; production behavior must be verified after the apex DNS record serves traffic. See
+[`deployment-evidence.md`](./deployment-evidence.md) for the rule ID and response evidence.
 
 | Unset secret                              | Consequence                                                                                                                                |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -53,7 +52,7 @@ environments.
 | Email Sending   | shared                                                      | shared                                  | **dashboard + DNS (manual)**        |
 | Access (admin)  | `admin-staging.founders.coffee`                             | `admin.founders.coffee`                 | **dashboard (manual)**              |
 | Turnstile       | real widget restricted to `staging.founders.coffee`         | real widget                             | dashboard                           |
-| WAF rate limit  | host-specific `/_serverFn/` edge-volume rule                | host-specific `/_serverFn/` rule        | dashboard / Rulesets API            |
+| WAF rate limit  | shared `/api/auth/` + `/_serverFn/` edge-volume rule        | same zone-wide rule                     | dashboard / Rulesets API            |
 
 **Declared but not yet verified/provisioned:** R2 (`founders-coffee-images`), KV
 (`founders-coffee-flags`), Notifications Queue + DLQ, and Analytics Engine. Of these, the Queue/DLQ
@@ -180,12 +179,13 @@ email to match the verified Better Auth email on every privileged request. The s
 must include only the dedicated staging-admin identity used by CO-11; the two product identities and
 their roles are recorded and revoked together after the rehearsal.
 
-**Event-create WAF rate limit** — Security → Security rules → Rate limiting rules. Create the
-staging and production rules from the exact committed definitions in
-`libs/infra/cloudflare/waf`. Each rule applies to its hostname and the stable TanStack
-`/_serverFn/` path, counts by edge colo and source IP, allows 120 requests per 60 seconds, and blocks
-for 60 seconds. Keep rate-limiting rules at the end of the `http_ratelimit` phase as Cloudflare
-requires. Record each rule ID before enabling the corresponding Worker marker:
+**Shared Free-plan WAF rate limit** — Security → Security rules → Rate limiting rules. Apply the
+exact definition in `libs/infra/cloudflare/waf/free-shared-mutation-rate-limit-rule.json`. The one
+zone-wide rule covers `/api/auth/` and the stable TanStack `/_serverFn/` path across staging and
+production, counts by edge colo and source IP, allows 20 requests per 10 seconds, and blocks for 10
+seconds. These are the Free plan's supported characteristics, period, timeout, and path-only match.
+Keep the rule at the end of the `http_ratelimit` phase as Cloudflare requires. Record the shared rule
+ID before enabling each Worker marker:
 
 ```sh
 cd apps/ui
@@ -193,14 +193,15 @@ npx wrangler secret put EVENT_CREATE_WAF_CONFIGURED --env staging
 npx wrangler secret put EVENT_CREATE_WAF_CONFIGURED --env production
 ```
 
-Enter `true` only after verification. For the independent staging check, temporarily change only the
-staging rule to five requests per 60 seconds, issue six harmless authenticated server-function
-requests from one test IP, confirm the sixth is blocked by WAF in Security Events, restore the
-committed 120-request threshold, and then separately exhaust the five-per-ten-minute `create_event`
-Durable Object bucket with valid fresh Turnstile tokens. The WAF test must not create events; the DO
-test may use disposable staging events that are removed through the normal operational path. Record
-timestamps, rule ID, response statuses, and restored threshold. Never run the reduced threshold or
-load test against production.
+Enter `true` only after verification. For the independent staging check, temporarily narrow the rule
+to the unique nonexistent path `/_serverFn/ec06-waf-free-plan-probe` and set five requests per 10
+seconds. Issue six requests from one test IP, confirm the sixth is blocked by WAF, and restore the
+committed shared expression and 20-request threshold immediately. Then separately exhaust the
+five-per-ten-minute `create_event` Durable Object bucket with valid fresh Turnstile tokens. The WAF
+test must not create events; the DO test may use disposable staging events removed through the
+normal operational path. Record timestamps, the shared rule ID, response statuses, and restored
+configuration. Run the production behavioral check only after the apex hostname resolves, using the
+same unique-path procedure without changing the live shared expression longer than the test window.
 
 **`www` redirect** — production binds the apex `founders.coffee` only. Add a Cloudflare Redirect Rule
 for `www` rather than a second custom domain.

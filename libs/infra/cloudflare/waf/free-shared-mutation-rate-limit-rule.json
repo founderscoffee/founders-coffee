@@ -1,0 +1,11 @@
+{
+  "description": "founders.coffee shared auth and server-function edge volume limit",
+  "expression": "(starts_with(http.request.uri.path, \"/_serverFn/\") or starts_with(http.request.uri.path, \"/api/auth/\"))",
+  "action": "block",
+  "ratelimit": {
+    "characteristics": ["cf.colo.id", "ip.src"],
+    "period": 10,
+    "requests_per_period": 20,
+    "mitigation_timeout": 10
+  }
+}

@@ -138,8 +138,8 @@ it was taken at `1167e0d`.
 6. **The throw boundary is absolute.** Every anticipated failure crossing a server function is a
    typed `AppError`. A constraint violation is anticipated.
 7. **Metered third-party calls are never anonymous and unmetered.** Any server function that forwards
-   to a billed external API carries identity-scoped rate limiting at minimum, independent of the edge
-   WAF rule, whose account-side state is separately unverified.
+   to a billed external API carries identity-scoped rate limiting at minimum. The active shared
+   Free-plan WAF is a blunt edge layer and does not replace endpoint-specific application limits.
 8. **User-facing notification copy lives in `libs/i18n`.** No user-facing string is authored in
    `libs/server-fns`. Environment-specific URLs come from configuration.
 9. **Enforcement mechanisms are themselves tested.** A lint rule or coverage gate that silently fails
@@ -485,9 +485,10 @@ Closes F-06.
 Current behavior: `libs/server-fns/src/maps/rpc.ts:18–33` defines `getHostMapContext`,
 `searchEventVenues`, and `reverseEventVenue` with a validator and nothing else — no session, no
 permission, no rate-limit middleware, no Turnstile. Each forwards to the Mapbox Geocoding API, which
-bills per request. Any caller reaching `/_serverFn/` can drive that bill. The only current defence is
-the edge WAF rule at 120 requests per minute per colo and IP, whose account-side existence is recorded
-as unverified in [`deployment-evidence.md`](./deployment-evidence.md).
+bills per request. Any caller reaching `/_serverFn/` can drive that bill. The active shared WAF caps
+gross IP volume across the server-function surface, but it cannot distinguish these paid provider
+calls from other functions. These endpoints therefore require their own application limit before
+release.
 
 Work:
 

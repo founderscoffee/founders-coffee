@@ -53,7 +53,7 @@ in the repository; both are read server-side and handed to the client by a serve
 | `TURNSTILE_SECRET_KEY`        | yes      | Server-side siteverify key. **Omitting it denies the gated endpoints**, it does not disable the check.                           |
 | `TURNSTILE_DISABLED`          | local    | `"true"` bypasses Turnstile only when `APP_ENVIRONMENT=development`; it fails closed in staging and production.                  |
 | `TURNSTILE_SITE_KEY`          | public   | Client-side site key (safe to expose in client bundles). Local automated tests may use `1x00000000000000000000AA` (always-pass). |
-| `EVENT_CREATE_WAF_CONFIGURED` | deployed | Set to `"true"` only after the environment's WAF rule ID and behavioral evidence are recorded; absence blocks deployed creation. |
+| `EVENT_CREATE_WAF_CONFIGURED` | yes      | Set to `true` only after the shared zone WAF rule is active and recorded; absence intentionally blocks deployed creation.        |
 
 `TURNSTILE_SECRET_KEY` and `TURNSTILE_SITE_KEY` must be set **together**. `getPublicAuthConfig`
 returns `turnstileSiteKey: null` when the site key is absent, so the widget never renders, the client
@@ -82,6 +82,9 @@ Cloudflare-set `CF-Connecting-IP`. A missing secret, a deployed bypass, or a mis
 `EVENT_CREATE_WAF_CONFIGURED=true` marker fails closed before Mapbox or D1 creation work. The marker
 is evidence, not the WAF itself: set it only after the account rule is verified according to
 [`provisioning.md`](./provisioning.md) and recorded in [`deployment-evidence.md`](./deployment-evidence.md).
+The shared Free-plan rule was activated and recorded on 2026-09-02, and the marker was uploaded to
+both staging and production Workers. The marker remains an evidence gate rather than a substitute
+for WAF enforcement; remove it if the shared rule is disabled or no longer matches these paths.
 
 Better Auth resolves the `remoteip` it forwards to siteverify, and the key for its D1-backed rate
 limiter, from `advanced.ipAddress.ipAddressHeaders`. That is pinned to `cf-connecting-ip` rather than
