@@ -3,6 +3,7 @@ import handler from '@tanstack/react-start/server-entry';
 
 import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
 import { withSecurityHeaders } from '@founders-coffee/core';
+import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
 import {
   ingestClientLogs,
   logger,
@@ -73,7 +74,9 @@ export default {
       }
 
       const doId = env.EVENT_LIVE.idFromName(`event:${eventId}`);
-      const doStub = env.EVENT_LIVE.get(doId);
+      const doStub = env.EVENT_LIVE.get(doId, {
+        locationHint: DURABLE_OBJECT_LOCATION_HINT,
+      });
       return secure(await doStub.fetch(request));
     }
 

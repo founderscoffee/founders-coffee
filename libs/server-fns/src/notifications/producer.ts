@@ -19,7 +19,7 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
-const SEVEN_DAYS_MS = 72 * 60 * 60 * 1000;
+const SEVENTY_TWO_HOURS_MS = 72 * 60 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
 export interface NotificationPayload {
@@ -144,7 +144,7 @@ export const enqueueRsvpNotifications = async (
     });
   }
 
-  if (startsAtMs - now > SEVEN_DAYS_MS) {
+  if (startsAtMs - now > SEVENTY_TWO_HOURS_MS) {
     const reminder72Key = 'reminder_72h' as const;
     if (
       !(await hasPendingNotification(db, {
@@ -173,7 +173,7 @@ export const enqueueRsvpNotifications = async (
           channel === 'sms'
             ? { ...basePayload, smsBody }
             : { ...basePayload, ...emailPayload },
-        sendAt: new Date(startsAtMs - SEVEN_DAYS_MS),
+        sendAt: new Date(startsAtMs - SEVENTY_TWO_HOURS_MS),
         fallbackChannel: fallback,
       });
       const pushPayload72 = pushPayloadFor(
@@ -188,7 +188,7 @@ export const enqueueRsvpNotifications = async (
         channel: 'push',
         templateKey: reminder72Key,
         payload: { ...basePayload, ...pushPayload72 },
-        sendAt: new Date(startsAtMs - SEVEN_DAYS_MS),
+        sendAt: new Date(startsAtMs - SEVENTY_TWO_HOURS_MS),
       });
     }
   }

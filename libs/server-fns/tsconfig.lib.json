@@ -22,6 +22,9 @@
       "path": "../domain/tsconfig.lib.json"
     },
     {
+      "path": "../infra/tsconfig.lib.json"
+    },
+    {
       "path": "../db/tsconfig.lib.json"
     },
     {

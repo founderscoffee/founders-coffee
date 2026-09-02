@@ -50,8 +50,6 @@ explicit Founder / Product decision.
 
 **Forbidden stack:** NestJS, Prisma, Express, Next.js, Redux, raw `fetch` in components, Node-only libraries (unless `nodejs_compat`-verified), mock frameworks for Cloudflare bindings.
 
-> `apps/api` (NestJS) is **legacy/deprecated** — do not extend it. It will be removed during P0. All backend logic lives in `libs/server-fns`.
-
 ---
 
 ## 3. Repository layout (where things go)
@@ -304,7 +302,6 @@ These are non-negotiable platform-specific rules; several correct common mistake
 - **NEVER** write interactive read→write transaction logic on D1 (it is not atomic) — use atomic single-statement SQL or `db.batch()`.
 - **NEVER** gate `apps/admin` on Cloudflare Access alone — always verify `Cf-Access-Jwt-Assertion` in-Worker and disable the `workers.dev` route.
 - **NEVER** change the DB schema without a migration.
-- **NEVER** extend `apps/api` (NestJS) — it is deprecated.
 - **NEVER** merge with failing typecheck/lint/boundary/tests.
 
 ---

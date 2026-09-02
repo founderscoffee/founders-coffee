@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-07, AR-09, AR-11 and AR-12 complete; AR-08 partial; AR-10 and AR-13 planned                                                                                                 |
+| Status         | Active; AR-01 through AR-07 and AR-09 through AR-12 complete; AR-08 partial; AR-13 planned                                                                                                           |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -849,7 +849,7 @@ exit 0. The AR-01 gate would otherwise have gone red on the next push.
 
 **Parent:** P1-018, P1-019
 **Requirements:** NFR-4, NFR-7, NFR-10
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-15.
 
@@ -872,10 +872,50 @@ Work:
   `libs/server-fns/src/config.ts` with the typed `Env` from `libs/infra` if it already carries the
   bindings; otherwise record why the cast is unavoidable.
 
-Verification:
+Completion evidence — all six items:
 
-- Repository-wide format, sync, typecheck, lint, test, and build gates pass.
-- A test proves a new rate-limiter bucket is created with the configured location hint.
+- **Location hint.** `DURABLE_OBJECT_LOCATION_HINT` (`weur`) lives in `libs/infra` and is applied at
+  both call sites, `rateLimit()` and the live-event room in `apps/ui/src/server.ts`. Western Europe
+  is the closest Cloudflare placement region to the Maghreb user base; `afr` is accepted by the API
+  but has no Durable Object capacity today. Note the hint belongs on `namespace.get()`, not on
+  `idFromName` — a test asserts a hinted and an unhinted stub address the same bucket, so adding the
+  hint cannot silently split existing buckets in two.
+- **`SEVEN_DAYS_MS` renamed** to `SEVENTY_TWO_HOURS_MS`. The value was always 72 hours.
+- **Eviction path.** One object exists per identity-and-action pair, so the population grows with
+  every distinct caller and never shrinks. `consume` now arms an alarm 24 hours out and `alarm()`
+  deletes an idle bucket, or re-arms if the bucket was used since. Deleting is safe precisely because
+  the bucket is idle: a caller returning later would have refilled to full anyway, so an evicted
+  bucket and a fresh one grant the same allowance.
+- **Version pinning.** The ten `"latest"` specifiers across `apps/ui`, `apps/admin`,
+  `apps/dashboard` and `libs/server-fns` are replaced with pinned ranges at the versions already in
+  the lockfile. Any `npm install` could previously have moved the framework silently.
+- **`apps/api` removed** from `AGENTS.md` §2 and §16. The application is gone; a rule forbidding work
+  on something that no longer exists misleads the next reader. The general NestJS ban in the
+  forbidden-stack list stays.
+- **Typed env.** `libs/infra` now declares `WorkerEnv`, which §3 already names it as the home for,
+  and `libs/server-fns/src/env.ts` performs the single narrowing. The three untyped casts in
+  `rate-limit.ts` and `config.ts` are gone. `WorkerEnv` is optional almost everywhere on purpose: a
+  binding absent from one environment must be something the code checks for, not a build error. An
+  absent `RATE_LIMITER` now fails closed rather than throwing on a property of `undefined`.
+
+The coverage gate added in AR-09 immediately paid for itself: this ticket's new code dropped
+`libs/server-fns` below all four thresholds on the first run.
+
+```text
+ERROR: Coverage for lines (69.63%) does not meet global threshold (70%)
+ERROR: Coverage for functions (63.63%) does not meet global threshold (64%)
+ERROR: Coverage for statements (68.53%) does not meet global threshold (69%)
+ERROR: Coverage for branches (66.06%) does not meet global threshold (67%)
+```
+
+The thresholds were **not** lowered to accommodate it. Nine tests were added instead, covering the
+eviction alarm through `runInDurableObject` — idle bucket deleted, active bucket re-armed, missing
+bucket cleared, alarm armed on use — and the env accessor. `libs/server-fns` is back above every
+threshold at 70.30 / 67.27 / 65.03 / 71.35. An untested eviction path would have been the same shape
+of defect as F-02.
+
+Verification: repository-wide format, sync, audit, typecheck, lint, test and build pass — 17
+projects, 596 tests, zero errors.
 
 ### AR-11 — Split the files grandfathered past the 300-line cap
 

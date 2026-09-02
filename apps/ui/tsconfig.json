@@ -28,22 +28,7 @@
   },
   "references": [
     {
-      "path": "../../libs/domain"
-    },
-    {
-      "path": "../../libs/ui"
-    },
-    {
-      "path": "../../libs/db"
-    },
-    {
-      "path": "../../libs/server-fns"
-    },
-    {
-      "path": "../../libs/core"
-    },
-    {
-      "path": "../../libs/i18n"
+      "path": "../../libs/infra"
     },
     {
       "path": "../../libs/observability"
@@ -53,6 +38,24 @@
     },
     {
       "path": "../../libs/auth"
+    },
+    {
+      "path": "../../libs/domain"
+    },
+    {
+      "path": "../../libs/core"
+    },
+    {
+      "path": "../../libs/db"
+    },
+    {
+      "path": "../../libs/server-fns"
+    },
+    {
+      "path": "../../libs/ui"
+    },
+    {
+      "path": "../../libs/i18n"
     }
   ]
 }

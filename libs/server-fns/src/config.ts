@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
-import { env } from 'cloudflare:workers';
+
+import { workerEnv } from './env.js';
 
 import { requireEnv } from '@founders-coffee/core';
 
@@ -11,7 +12,10 @@ import { requireEnv } from '@founders-coffee/core';
  */
 export const getMapboxToken = createServerFn({ strict: false }).handler(
   async () =>
-    requireEnv(env as Record<string, string | undefined>, 'MAPBOX_TOKEN'),
+    requireEnv(
+      workerEnv() as unknown as Record<string, string | undefined>,
+      'MAPBOX_TOKEN',
+    ),
 );
 
 /**
@@ -21,13 +25,7 @@ export const getMapboxToken = createServerFn({ strict: false }).handler(
  */
 export const getFirebaseConfig = createServerFn({ strict: false }).handler(
   async () => {
-    const e = env as {
-      FIREBASE_API_KEY?: string;
-      FIREBASE_PROJECT_ID?: string;
-      FIREBASE_MESSAGING_SENDER_ID?: string;
-      FIREBASE_APP_ID?: string;
-      FIREBASE_VAPID_KEY?: string;
-    };
+    const e = workerEnv();
     if (!e.FIREBASE_API_KEY || !e.FIREBASE_PROJECT_ID || !e.FIREBASE_VAPID_KEY)
       return null;
     return {
