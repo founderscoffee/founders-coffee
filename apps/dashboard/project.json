@@ -3,11 +3,16 @@
   "projectType": "application",
   "sourceRoot": "apps/dashboard/src",
   "prefix": "founders-coffee",
-  "tags": ["type:app", "domain:dashboard"],
+  "tags": ["type:app", "domain:dashboard", "layer:app-ui"],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
-      "dependsOn": ["^build", { "target": "generate-routes" }],
+      "dependsOn": [
+        "^build",
+        {
+          "target": "generate-routes"
+        }
+      ],
       "options": {
         "command": "tsc --noEmit -p tsconfig.json",
         "cwd": "apps/dashboard"
@@ -18,7 +23,9 @@
       "options": {
         "command": "vite build && wrangler deploy",
         "cwd": "apps/dashboard",
-        "env": { "CLOUDFLARE_ENV": "staging" }
+        "env": {
+          "CLOUDFLARE_ENV": "staging"
+        }
       }
     },
     "deploy:production": {
@@ -26,7 +33,9 @@
       "options": {
         "command": "vite build && wrangler deploy",
         "cwd": "apps/dashboard",
-        "env": { "CLOUDFLARE_ENV": "production" }
+        "env": {
+          "CLOUDFLARE_ENV": "production"
+        }
       }
     },
     "generate-routes": {

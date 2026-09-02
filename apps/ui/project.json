@@ -3,14 +3,19 @@
   "projectType": "application",
   "sourceRoot": "apps/ui/src",
   "prefix": "founders-coffee",
-  "tags": ["type:app", "domain:public"],
+  "tags": ["type:app", "domain:public", "layer:app-ui"],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
       "dependsOn": [
         "^build",
-        { "target": "generate-routes" },
-        { "projects": ["i18n"], "target": "generate-i18n" }
+        {
+          "target": "generate-routes"
+        },
+        {
+          "projects": ["i18n"],
+          "target": "generate-i18n"
+        }
       ],
       "options": {
         "command": "tsc --noEmit -p tsconfig.json",
@@ -19,7 +24,12 @@
     },
     "test": {
       "executor": "nx:run-commands",
-      "dependsOn": [{ "projects": ["i18n"], "target": "generate-i18n" }],
+      "dependsOn": [
+        {
+          "projects": ["i18n"],
+          "target": "generate-i18n"
+        }
+      ],
       "options": {
         "command": "vitest run",
         "cwd": "apps/ui"
@@ -27,20 +37,34 @@
     },
     "deploy:staging": {
       "executor": "nx:run-commands",
-      "dependsOn": [{ "projects": ["i18n"], "target": "generate-i18n" }],
+      "dependsOn": [
+        {
+          "projects": ["i18n"],
+          "target": "generate-i18n"
+        }
+      ],
       "options": {
         "command": "vite build && wrangler deploy",
         "cwd": "apps/ui",
-        "env": { "CLOUDFLARE_ENV": "staging" }
+        "env": {
+          "CLOUDFLARE_ENV": "staging"
+        }
       }
     },
     "deploy:production": {
       "executor": "nx:run-commands",
-      "dependsOn": [{ "projects": ["i18n"], "target": "generate-i18n" }],
+      "dependsOn": [
+        {
+          "projects": ["i18n"],
+          "target": "generate-i18n"
+        }
+      ],
       "options": {
         "command": "vite build && wrangler deploy",
         "cwd": "apps/ui",
-        "env": { "CLOUDFLARE_ENV": "production" }
+        "env": {
+          "CLOUDFLARE_ENV": "production"
+        }
       }
     },
     "generate-routes": {

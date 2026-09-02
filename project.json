@@ -8,6 +8,13 @@
         "command": "eslint eslint.config.mjs vitest.workspace.ts tools",
         "cwd": "."
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config tools/vitest.config.ts",
+        "cwd": "."
+      }
     }
   }
 }

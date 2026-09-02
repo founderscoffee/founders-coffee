@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-07, AR-11 and AR-12 complete; AR-08 partial; AR-09, AR-10 and AR-13 planned                                                                                                 |
+| Status         | Active; AR-01 through AR-07, AR-11 and AR-12 complete; AR-08 and AR-09 partial; AR-10 and AR-13 planned                                                                                              |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -749,9 +749,10 @@ Boundary — what is deliberately not done, and why:
 
 **Parent:** P0-001, P0-021
 **Requirements:** NFR-10, NFR-11
-**Status:** Planned
+**Status:** Partial — F-11 closed 2026-09-02; F-12 blocked on a dependency decision
 
-Closes F-11 and F-12. These are the mechanisms that would have caught several of the other findings.
+Closes F-11. F-12 needs a coverage provider that is not installed; see the boundary at the end of
+this ticket. These are the mechanisms that would have caught several of the other findings.
 
 Current behavior:
 
@@ -776,11 +777,48 @@ Work:
 - Configure vitest coverage for `libs/domain` and `libs/server-fns` with thresholds set from a
   measured baseline, and collect it in CI.
 
-Verification:
+Completion evidence — F-11:
 
-- A deliberate violation in `features/<domain>/components/` fails lint.
-- Coverage runs in CI and fails below threshold.
-- Repository-wide gates still pass with the layer tags applied.
+- The local rule's path test was widened under AR-12 and now carries a `RuleTester` fixture suite
+  proving each case rather than a manual probe: a `features/<domain>/components/` file importing
+  `server-fns` fails, the same file importing `domain` fails under §16, `features/<domain>/api.ts`
+  importing `server-fns` passes as §3 designates, feature logic importing `domain` passes as §6
+  requires, and a type-only `db` import passes anywhere.
+- Those tests live at the repository root beside the rules they cover, so `workspace-root` gained a
+  `test` target. `nx run-many -t test` — the command CI already runs — now covers them; nothing ran
+  them before.
+- The application projects carry layer tags, so the Nx constraints engage where they asserted
+  nothing:
+
+| Project                         | Tag            | May depend on                    |
+| ------------------------------- | -------------- | -------------------------------- |
+| `apps/ui`, `admin`, `dashboard` | `layer:app-ui` | ui, shared, server, domain, data |
+| `apps/worker-jobs`              | `layer:server` | server, domain, data, shared     |
+
+- `layer:app-ui` rather than `layer:ui` is deliberate. A UI application genuinely reaches the server
+  layer — `features/<domain>/api.ts` and route loaders call server functions, which is the designed
+  path — while `libs/ui` must never do so. One tag cannot be both, because Nx combines constraints
+  rather than overriding them, so reusing `layer:ui` would have forced a choice between unlocking
+  the design system and failing 87 legitimate imports. Splitting them keeps `libs/ui` strict and
+  turns an application's reach into an explicit list instead of the absence of a tag. The file-level
+  half — that only `api.ts` may hold those imports — stays with
+  `local/no-server-fns-in-components`.
+- `apps/worker-jobs` is tagged `layer:server` because that is what it is: a queue and cron consumer
+  with no UI. It can no longer import `libs/ui` or any application code.
+- Both constraints were probed rather than assumed. `worker-jobs` importing `libs/ui` and `libs/ui`
+  importing `server-fns` each fail lint with the expected message; both probes were removed.
+- Repository-wide gates pass with the tags applied: 17 projects, 588 tests, zero boundary
+  violations.
+
+Boundary — F-12 is not done:
+
+`AGENTS.md` §12 requires coverage gates on `libs/domain` and `libs/server-fns`. Vitest cannot collect
+coverage without a provider package, and neither `@vitest/coverage-v8` nor
+`@vitest/coverage-istanbul` is installed or declared anywhere. §1.8 requires surfacing a new
+dependency and asking before adding it, so the provider is **not** installed and no half-wired
+coverage configuration is shipped. Adding `@vitest/coverage-v8` as a dev dependency is the whole of
+what is needed; thresholds should then be set from the measured baseline rather than guessed, and
+collected in CI.
 
 ### AR-10 — Correctness and hygiene cleanup
 

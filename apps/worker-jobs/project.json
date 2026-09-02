@@ -3,7 +3,7 @@
   "projectType": "application",
   "sourceRoot": "apps/worker-jobs/src",
   "prefix": "founders-coffee",
-  "tags": ["type:app", "domain:worker-jobs"],
+  "tags": ["type:app", "domain:worker-jobs", "layer:server"],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
