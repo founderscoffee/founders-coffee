@@ -7,6 +7,8 @@ import {
   markNotificationSent,
 } from '@founders-coffee/db';
 import type { Db, ScheduledNotification } from '@founders-coffee/db';
+import { notifications } from '@founders-coffee/domain';
+import { logger } from '@founders-coffee/observability';
 
 import {
   CHANNEL_SUPPRESSES_DUPLICATES,
@@ -28,6 +30,7 @@ export interface SweepReport {
   readonly reclaimed: number;
   readonly contended: number;
   readonly unconfirmed: number;
+  readonly invalidPayload: number;
 }
 
 const errorMessage = (error: unknown): string =>
@@ -42,9 +45,10 @@ const errorMessage = (error: unknown): string =>
 const dispatch = async (
   dispatcher: Dispatcher,
   notification: ScheduledNotification,
+  parsed: notifications.ParsedNotificationPayload,
 ): Promise<DispatchOutcome> => {
   try {
-    return await dispatcher(notification);
+    return await dispatcher(notification, parsed);
   } catch (error) {
     return {
       kind: 'failed',
@@ -68,6 +72,13 @@ const dispatch = async (
  * that throws is a retryable failure, and a row whose bookkeeping itself fails is retried rather
  * than abandoning the rest of the window. `sent + retrying + failed + contended` therefore equals
  * `selected + reclaimed` on every run, `contended` being rows another sweep resolved first.
+ *
+ * A row's payload is parsed before anything is dispatched, never cast. A persisted JSON blob
+ * crossing back into code is untrusted input (§7, §10): a row written by an older schema or a
+ * partial write would otherwise reach a provider with `undefined` in a required field, and the
+ * provider's complaint would be filed as a delivery failure rather than the data defect it is. A
+ * payload that does not parse is retired terminally with a distinguishable reason and logged, so it
+ * is never dispatched and never selected again.
  *
  * Rows are claimed before anything is dispatched. Each sweep makes an outbound provider call per
  * row, so a run can outlast the one-minute cron tick; without the claim the next tick re-selected
@@ -109,6 +120,7 @@ export const sweepNotifications = async (
     fallbacksCreated: 0,
     contended: 0,
     unconfirmed: 0,
+    invalidPayload: 0,
   };
 
   const recordFailure = async (
@@ -172,8 +184,27 @@ export const sweepNotifications = async (
       continue;
     }
 
+    const parsed = notifications.parseNotificationPayload(
+      notification.channel,
+      notification.payload,
+    );
+    if (!parsed.ok) {
+      tally.invalidPayload++;
+      logger.error('notification.invalid_payload', {
+        id: notification.id,
+        channel: notification.channel,
+        reason: parsed.reason,
+      });
+      await recordFailure(
+        notification,
+        `invalid_payload: ${parsed.reason}`,
+        true,
+      );
+      continue;
+    }
+
     await beginNotificationDispatch(db, { id: notification.id, now });
-    const outcome = await dispatch(dispatcher, notification);
+    const outcome = await dispatch(dispatcher, notification, parsed.value);
     if (outcome.kind === 'failed') {
       await recordFailure(notification, outcome.error, outcome.permanent);
       continue;

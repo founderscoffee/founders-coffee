@@ -43,6 +43,7 @@ export const UNTYPED_FILES = [
 export const IGNORED = [
   '**/dist',
   '**/out-tsc',
+  '**/coverage',
   'libs/i18n/src/paraglide/**',
   '**/worker-configuration.d.ts',
 ];

@@ -1,4 +1,5 @@
 import { id } from '@founders-coffee/core';
+import { notifications } from '@founders-coffee/domain';
 import { formatDate } from '@founders-coffee/i18n';
 import {
   eventUrlFor,
@@ -49,6 +50,27 @@ const dateFor = (
       ? { hour: '2-digit' as const, minute: '2-digit' as const }
       : {}),
   });
+
+/**
+ * Refuse to persist a payload the sweep would later reject.
+ *
+ * The contract is enforced on both sides of the row: the producer cannot write a shape the
+ * dispatcher cannot parse, so an `invalid_payload` failure can only ever mean a row older than this
+ * schema or one written by something else. Throwing is right here — the caller is inside the RSVP
+ * transaction path, and a malformed notification is a bug in this file, not a user error.
+ */
+const validPayload = (
+  channel: 'sms' | 'email' | 'push',
+  payload: Record<string, unknown>,
+): Record<string, unknown> => {
+  const parsed = notifications.parseNotificationPayload(channel, payload);
+  if (!parsed.ok) {
+    throw new Error(
+      `notification payload rejected for channel '${channel}': ${parsed.reason}`,
+    );
+  }
+  return payload;
+};
 
 const valuesFor = (
   payload: NotificationPayload,
@@ -135,10 +157,12 @@ export const enqueueRsvpNotifications = async (
       userId: opts.userId,
       channel,
       templateKey: confirmKey,
-      payload:
+      payload: validPayload(
+        channel,
         channel === 'sms'
-          ? { ...basePayload, smsBody }
+          ? { ...basePayload, smsBody, ...emailPayload }
           : { ...basePayload, ...emailPayload },
+      ),
       sendAt: new Date(),
       fallbackChannel: fallback,
     });
@@ -169,10 +193,12 @@ export const enqueueRsvpNotifications = async (
         userId: opts.userId,
         channel,
         templateKey: reminder72Key,
-        payload:
+        payload: validPayload(
+          channel,
           channel === 'sms'
-            ? { ...basePayload, smsBody }
+            ? { ...basePayload, smsBody, ...emailPayload }
             : { ...basePayload, ...emailPayload },
+        ),
         sendAt: new Date(startsAtMs - SEVENTY_TWO_HOURS_MS),
         fallbackChannel: fallback,
       });
@@ -187,7 +213,7 @@ export const enqueueRsvpNotifications = async (
         userId: opts.userId,
         channel: 'push',
         templateKey: reminder72Key,
-        payload: { ...basePayload, ...pushPayload72 },
+        payload: validPayload('push', { ...basePayload, ...pushPayload72 }),
         sendAt: new Date(startsAtMs - SEVENTY_TWO_HOURS_MS),
       });
     }
@@ -218,10 +244,12 @@ export const enqueueRsvpNotifications = async (
         userId: opts.userId,
         channel,
         templateKey: reminder24Key,
-        payload:
+        payload: validPayload(
+          channel,
           channel === 'sms'
-            ? { ...basePayload, smsBody }
+            ? { ...basePayload, smsBody, ...emailPayload }
             : { ...basePayload, ...emailPayload },
+        ),
         sendAt: new Date(startsAtMs - TWENTY_FOUR_HOURS_MS),
         fallbackChannel: fallback,
       });
@@ -236,7 +264,7 @@ export const enqueueRsvpNotifications = async (
         userId: opts.userId,
         channel: 'push',
         templateKey: reminder24Key,
-        payload: { ...basePayload, ...pushPayload24 },
+        payload: validPayload('push', { ...basePayload, ...pushPayload24 }),
         sendAt: new Date(startsAtMs - TWENTY_FOUR_HOURS_MS),
       });
     }

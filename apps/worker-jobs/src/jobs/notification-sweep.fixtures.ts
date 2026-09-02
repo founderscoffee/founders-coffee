@@ -78,6 +78,7 @@ export const enqueue = async (
     sendAt?: Date;
     fallbackChannel?: 'email';
     templateKey?: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
+    payload?: Record<string, unknown>;
   } = {},
 ): Promise<string> => {
   const rowId = `ntf_sweep${String(++counter).padStart(3, '0')}`;
@@ -88,6 +89,12 @@ export const enqueue = async (
     channel: overrides.channel ?? 'sms',
     templateKey: overrides.templateKey ?? 'rsvp_confirmation',
     payload: {
+      eventTitle: 'Sweep fixture',
+      eventSlug: 'sweep-fixture-event',
+      marketCode: 'DZ',
+      startsAt: '2099-01-15T18:00:00.000Z',
+      venue: 'Café des Délices, Hydra',
+      locale: 'en',
       phoneNumber: '+213600000000',
       smsBody: 'body',
       email: 'member@sweep.test',
@@ -95,6 +102,7 @@ export const enqueue = async (
       html: '<p>hi</p>',
       pushTitle: 'title',
       pushBody: 'body',
+      ...overrides.payload,
     },
     sendAt: overrides.sendAt ?? new Date('2020-01-01T00:00:00Z'),
     fallbackChannel: overrides.fallbackChannel,

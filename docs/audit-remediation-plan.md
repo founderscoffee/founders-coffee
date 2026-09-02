@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-07 and AR-09 through AR-12 complete; AR-08 partial; AR-13 planned                                                                                                           |
+| Status         | Active; AR-01 through AR-07 and AR-09 through AR-13 complete; AR-08 partial                                                                                                                          |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -1017,7 +1017,7 @@ Verification:
 
 **Parent:** P0-018
 **Requirements:** FR-N1; NFR-4
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-18. Sequence after AR-02, which rewrites the same sweep's status lifecycle.
 
@@ -1040,12 +1040,61 @@ Work:
 - Have the producers validate with the same schema before insert, so the contract is enforced on
   both sides of the row.
 
-Verification:
+Completion evidence:
 
-- A seeded row with a malformed payload is marked terminally failed, is not dispatched, and does not
-  reappear in the next sweep.
+- `libs/domain/src/notifications/schemas.ts` holds one schema per channel and
+  `parseNotificationPayload(channel, payload)`, which returns a discriminated result. The payload
+  carries no channel of its own — that lives on the row — so the union is discriminated at the parse
+  site rather than by a field, which also keeps existing rows parseable.
+- The sweep parses once per row before dispatching anything. A payload that does not parse is
+  retired terminally with an `invalid_payload` reason naming every failing field, logged
+  structurally, never dispatched and never selected again. `SweepReport` gained `invalidPayload`.
+- All three casts are gone from `apps/worker-jobs`; dispatchers receive the parsed payload and
+  narrow on its channel.
+- The producer validates with the same schema before insert, so the contract holds on both sides of
+  the row. A rejected payload throws, because at that point it is a bug in the producer rather than
+  a user error.
+- Unknown keys pass through rather than failing. The payload is a content envelope that has grown
+  fields before and will again; the schemas assert what each channel needs, not what nothing else
+  may carry.
+
+Found by this work rather than listed in the ticket — the SMS-to-email fallback delivered an empty
+message. AR-02 made that fallback reachable and it inherits the parent row's payload unchanged, but
+the producer wrote email content only on email-channel rows:
+
+```text
+PRODUCER>>> channel=sms fallback=email keys=email,eventSlug,eventTitle,locale,marketCode,phoneNumber,smsBody,startsAt,venue
+```
+
+No `subject`, no `html`. The fallback row reached Cloudflare Email with both undefined. The SMS
+schema now requires the email content and the producer writes it, which looks redundant on an SMS
+row and is exactly what makes its fallback deliverable. A test drives the whole path: permanent SMS
+failure, fallback created, fallback delivered, `invalidPayload` zero.
+
+Verification — 20 new tests:
+
+- A row missing a required field, and one with a wrong field type, are both retired terminally with
+  the failing field named; neither is dispatched, and neither is selected on the next sweep.
 - A valid row of each channel dispatches unchanged.
-- No `as` cast of a payload remains in `apps/worker-jobs`.
+- The accounting identity still holds when a row is retired as invalid.
+- The schema unit tests cover every channel, an unknown channel, a non-object payload, each missing
+  or malformed field, unknown-key passthrough, and that an SMS payload validates as an email payload
+  — which is precisely what the fallback relies on.
+- `grep "payload as"` over `apps/worker-jobs/src` returns nothing.
+
+The fixtures themselves had been writing payloads with no base fields at all, and every sweep test
+passed on them. They now write valid payloads, which is the same defect this ticket exists to
+prevent, one layer up.
+
+`libs/domain` coverage rose from 59.80/40.00/40.00/63.15 to 65.54/45.45/44.44/68.75, and its
+thresholds are ratcheted up to the new floor so the gain cannot silently erode.
+
+One defect introduced by AR-09 and caught here: `server-fns:lint` failed intermittently inside
+`nx run-many` while passing on its own. ESLint was linting the coverage report that the `test` task
+writes concurrently, so files vanished mid-run —
+`ENOENT: ... libs/server-fns/coverage/lcov-report/block-navigation.js`. `.gitignore` hides that
+directory from git, but flat-config ESLint does not read `.gitignore`. `**/coverage` is now in the
+lint ignore list, and three consecutive full runs pass.
 
 ## 5. Required test matrix
 
@@ -1124,6 +1173,6 @@ admin applications; or move E2E into CI, which remains excluded by current proje
       owning plan in section 6.
 - [ ] No runtime import of `libs/server-fns`, `libs/db`, or `libs/domain` exists outside `api.ts`,
       and the boundary rule covers `features/` so a new one cannot land unnoticed.
-- [ ] No notification payload is cast rather than parsed, on either side of the row.
+- [x] No notification payload is cast rather than parsed, on either side of the row. (AR-13, 2026-09-02)
 - [ ] The implementation plan's status table is updated from the evidence this plan produces, and no
       `Partial` or `Blocked` item is promoted without it.

@@ -1,5 +1,6 @@
 import { getPushTokensByUser, type Db } from '@founders-coffee/db';
 import type { ScheduledNotification } from '@founders-coffee/db';
+import type { notifications } from '@founders-coffee/domain';
 import type { EmailProvider } from '@founders-coffee/email';
 import type {
   NotificationSmsProvider,
@@ -16,6 +17,7 @@ export type DispatchOutcome =
 
 export type Dispatcher = (
   notification: ScheduledNotification,
+  payload: notifications.ParsedNotificationPayload,
 ) => Promise<DispatchOutcome>;
 
 export interface DispatchProviders {
@@ -34,14 +36,13 @@ const failed = (error: string, permanent: boolean): DispatchOutcome => ({
 
 const smsDispatcher =
   (sms: NotificationSmsProvider): Dispatcher =>
-  async (notification) => {
-    const payload = notification.payload as {
-      phoneNumber: string;
-      smsBody: string;
-    };
+  async (notification, parsed) => {
+    if (parsed.channel !== 'sms') {
+      return failed(`channel_mismatch: ${parsed.channel}`, true);
+    }
     const result = await sms.send({
-      to: payload.phoneNumber,
-      body: payload.smsBody,
+      to: parsed.payload.phoneNumber,
+      body: parsed.payload.smsBody,
       dedupeKey: notification.id,
     });
     if (result.ok) return sent;
@@ -53,18 +54,15 @@ const smsDispatcher =
 
 const emailDispatcher =
   (email: EmailProvider): Dispatcher =>
-  async (notification) => {
-    const payload = notification.payload as {
-      email: string;
-      subject: string;
-      html: string;
-      text?: string;
-    };
+  async (notification, parsed) => {
+    if (parsed.channel !== 'email') {
+      return failed(`channel_mismatch: ${parsed.channel}`, true);
+    }
     const result = await email.send({
-      to: payload.email,
-      subject: payload.subject,
-      html: payload.html,
-      text: payload.text,
+      to: parsed.payload.email,
+      subject: parsed.payload.subject,
+      html: parsed.payload.html,
+      text: parsed.payload.text,
       headers: { 'Message-ID': `<${notification.id}@founders.coffee>` },
     });
     return result.ok ? sent : failed(result.error.message, false);
@@ -78,7 +76,10 @@ const emailDispatcher =
  */
 const pushDispatcher =
   (db: Db, push: PushProvider): Dispatcher =>
-  async (notification) => {
+  async (notification, parsed) => {
+    if (parsed.channel !== 'push') {
+      return failed(`channel_mismatch: ${parsed.channel}`, true);
+    }
     const tokens = await getPushTokensByUser(db, {
       userId: notification.userId,
     });
@@ -86,16 +87,12 @@ const pushDispatcher =
       return failed('no_push_tokens: user has no registered device', true);
     }
 
-    const payload = notification.payload as {
-      pushTitle: string;
-      pushBody: string;
-    };
     let lastError = 'push delivery failed';
     for (const token of tokens) {
       const result = await push.send({
         token: token.token,
-        title: payload.pushTitle,
-        body: payload.pushBody,
+        title: parsed.payload.pushTitle,
+        body: parsed.payload.pushBody,
         dedupeKey: notification.id,
       });
       if (result.ok) return sent;
