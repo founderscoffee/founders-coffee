@@ -1,4 +1,16 @@
 import { id } from '@founders-coffee/core';
+import { formatDate } from '@founders-coffee/i18n';
+import {
+  eventUrlFor,
+  resolveNotificationContext,
+  type NotificationContext,
+} from './context.js';
+import {
+  emailPayloadFor,
+  pushPayloadFor,
+  smsBodyFor,
+  type TemplateValues,
+} from './templates.js';
 import {
   enqueueNotification,
   hasPendingNotification,
@@ -23,100 +35,34 @@ export interface NotificationPayload {
   capacity?: number;
 }
 
-const buildSmsBody = (
-  templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h',
-  payload: NotificationPayload,
-): string => {
-  const eventUrl = `https://founders.coffee/${payload.marketCode}/e/${payload.eventSlug}`;
-  const dateStr = new Date(payload.startsAt).toLocaleDateString(
-    payload.locale === 'ar'
-      ? 'ar-DZ'
-      : payload.locale === 'fr'
-        ? 'fr-DZ'
-        : 'en',
-    { weekday: 'long', month: 'short', day: 'numeric' },
-  );
-
-  switch (templateKey) {
-    case 'rsvp_confirmation':
-      return `You're in! ${payload.eventTitle} — ${dateStr} at ${payload.venue}. See you there! ${eventUrl}`;
-    case 'reminder_72h':
-      return `${payload.eventTitle} is in 3 days (${dateStr}). Don't forget! ${eventUrl}`;
-    case 'reminder_24h':
-      return `Tomorrow: ${payload.eventTitle} at ${payload.venue}. See you at ${dateStr}! ${eventUrl}`;
-  }
-};
-
-const escapeHtml = (s: string): string =>
-  s.replace(/[&<>"']/g, (c) => {
-    if (c === '&') return '&amp;';
-    if (c === '<') return '&lt;';
-    if (c === '>') return '&gt;';
-    if (c === '"') return '&quot;';
-    return '&#39;';
+const dateFor = (
+  startsAt: string,
+  context: NotificationContext,
+  withTime: boolean,
+): string =>
+  formatDate(new Date(startsAt), context.locale, {
+    timeZone: context.timeZone,
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    ...(withTime
+      ? { hour: '2-digit' as const, minute: '2-digit' as const }
+      : {}),
   });
 
-const buildEmailPayload = (
-  templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h',
+const valuesFor = (
   payload: NotificationPayload,
-): { subject: string; html: string; text: string } => {
-  const eventUrl = `https://founders.coffee/${payload.marketCode}/e/${payload.eventSlug}`;
-  const title = escapeHtml(payload.eventTitle);
-  const venue = escapeHtml(payload.venue);
-  const dateStr = new Date(payload.startsAt).toLocaleDateString(
-    payload.locale === 'ar'
-      ? 'ar-DZ'
-      : payload.locale === 'fr'
-        ? 'fr-DZ'
-        : 'en',
-    {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    },
-  );
-
-  switch (templateKey) {
-    case 'rsvp_confirmation':
-      return {
-        subject: `You're in! ${payload.eventTitle}`,
-        html: `<p>You're confirmed for <strong>${title}</strong> on ${dateStr} at ${venue}.</p><p><a href="${eventUrl}">View event</a></p>`,
-        text: `You're confirmed for ${payload.eventTitle} on ${dateStr} at ${payload.venue}. ${eventUrl}`,
-      };
-    case 'reminder_72h':
-      return {
-        subject: `Reminder: ${payload.eventTitle} in 3 days`,
-        html: `<p><strong>${title}</strong> is in 3 days on ${dateStr}.</p><p><a href="${eventUrl}">View event</a></p>`,
-        text: `${payload.eventTitle} is in 3 days on ${dateStr}. ${eventUrl}`,
-      };
-    case 'reminder_24h':
-      return {
-        subject: `Tomorrow: ${payload.eventTitle}`,
-        html: `<p>Don't forget! <strong>${title}</strong> is tomorrow at ${venue}.</p><p><a href="${eventUrl}">View event</a></p>`,
-        text: `Don't forget! ${payload.eventTitle} is tomorrow at ${payload.venue}. ${eventUrl}`,
-      };
-  }
-};
-
-const buildPushPayload = (
-  templateKey: 'reminder_72h' | 'reminder_24h',
-  payload: NotificationPayload,
-): { pushTitle: string; pushBody: string } => {
-  switch (templateKey) {
-    case 'reminder_72h':
-      return {
-        pushTitle: `Reminder: ${payload.eventTitle}`,
-        pushBody: `Your meetup is in 3 days. Tap to view details.`,
-      };
-    case 'reminder_24h':
-      return {
-        pushTitle: `Tomorrow: ${payload.eventTitle}`,
-        pushBody: `Your meetup is tomorrow. Tap to manage your seat.`,
-      };
-  }
-};
+  context: NotificationContext,
+  withTime: boolean,
+): TemplateValues => ({
+  title: payload.eventTitle,
+  venue: payload.venue,
+  date: dateFor(payload.startsAt, context, withTime),
+  url: eventUrlFor({
+    marketCode: payload.marketCode,
+    eventSlug: payload.eventSlug,
+  }),
+});
 
 /**
  * Enqueue RSVP confirmation + reminder notifications for a new RSVP.
@@ -140,9 +86,14 @@ export const enqueueRsvpNotifications = async (
     venue: string;
     phoneNumber?: string | null;
     email?: string;
-    locale: string;
+    locale?: string | null;
   },
 ): Promise<void> => {
+  const context = await resolveNotificationContext(db, {
+    preferred: opts.locale,
+    marketCode: opts.marketCode,
+  });
+  const locale = context.locale;
   const now = Date.now();
   const startsAtMs = opts.startsAt.getTime();
   const hasPhone = Boolean(opts.phoneNumber);
@@ -157,7 +108,7 @@ export const enqueueRsvpNotifications = async (
     marketCode: opts.marketCode,
     startsAt: opts.startsAt.toISOString(),
     venue: opts.venue,
-    locale: opts.locale,
+    locale: context.locale,
   };
 
   const confirmKey = 'rsvp_confirmation' as const;
@@ -168,8 +119,16 @@ export const enqueueRsvpNotifications = async (
       templateKey: confirmKey,
     }))
   ) {
-    const smsBody = buildSmsBody(confirmKey, basePayload);
-    const emailPayload = buildEmailPayload(confirmKey, basePayload);
+    const smsBody = smsBodyFor(
+      confirmKey,
+      valuesFor(basePayload, context, false),
+      locale,
+    );
+    const emailPayload = emailPayloadFor(
+      confirmKey,
+      valuesFor(basePayload, context, true),
+      locale,
+    );
     await enqueueNotification(db, {
       id: id('ntf'),
       eventId: opts.eventId,
@@ -194,8 +153,16 @@ export const enqueueRsvpNotifications = async (
         templateKey: reminder72Key,
       }))
     ) {
-      const smsBody = buildSmsBody(reminder72Key, basePayload);
-      const emailPayload = buildEmailPayload(reminder72Key, basePayload);
+      const smsBody = smsBodyFor(
+        reminder72Key,
+        valuesFor(basePayload, context, false),
+        locale,
+      );
+      const emailPayload = emailPayloadFor(
+        reminder72Key,
+        valuesFor(basePayload, context, true),
+        locale,
+      );
       await enqueueNotification(db, {
         id: id('ntf'),
         eventId: opts.eventId,
@@ -209,7 +176,11 @@ export const enqueueRsvpNotifications = async (
         sendAt: new Date(startsAtMs - SEVEN_DAYS_MS),
         fallbackChannel: fallback,
       });
-      const pushPayload72 = buildPushPayload(reminder72Key, basePayload);
+      const pushPayload72 = pushPayloadFor(
+        reminder72Key,
+        valuesFor(basePayload, context, true),
+        locale,
+      );
       await enqueueNotification(db, {
         id: id('ntf'),
         eventId: opts.eventId,
@@ -231,8 +202,16 @@ export const enqueueRsvpNotifications = async (
         templateKey: reminder24Key,
       }))
     ) {
-      const smsBody = buildSmsBody(reminder24Key, basePayload);
-      const emailPayload = buildEmailPayload(reminder24Key, basePayload);
+      const smsBody = smsBodyFor(
+        reminder24Key,
+        valuesFor(basePayload, context, false),
+        locale,
+      );
+      const emailPayload = emailPayloadFor(
+        reminder24Key,
+        valuesFor(basePayload, context, true),
+        locale,
+      );
       await enqueueNotification(db, {
         id: id('ntf'),
         eventId: opts.eventId,
@@ -246,7 +225,11 @@ export const enqueueRsvpNotifications = async (
         sendAt: new Date(startsAtMs - TWENTY_FOUR_HOURS_MS),
         fallbackChannel: fallback,
       });
-      const pushPayload24 = buildPushPayload(reminder24Key, basePayload);
+      const pushPayload24 = pushPayloadFor(
+        reminder24Key,
+        valuesFor(basePayload, context, true),
+        locale,
+      );
       await enqueueNotification(db, {
         id: id('ntf'),
         eventId: opts.eventId,

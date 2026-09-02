@@ -82,7 +82,7 @@ export const createRsvpResolver = async (
       venue: event.venue,
       phoneNumber: user.phoneNumber,
       email: user.email,
-      locale: user.localePref ?? 'en',
+      locale: user.localePref,
     });
   }
 

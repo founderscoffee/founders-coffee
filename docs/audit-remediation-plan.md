@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-06, AR-11 and AR-12 complete; AR-07 through AR-10 and AR-13 planned                                                                                                         |
+| Status         | Active; AR-01 through AR-07, AR-11 and AR-12 complete; AR-08 through AR-10 and AR-13 planned                                                                                                         |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -607,7 +607,7 @@ typecheck, not by an integration test that exercises a rejected role over the wi
 
 **Parent:** P1-009
 **Requirements:** FR-N3; NFR-9
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-10.
 
@@ -628,12 +628,50 @@ Work:
   itself.
 - Keep the existing HTML escaping on interpolated user-generated content.
 
-Verification:
+Completion evidence:
 
-- Unit tests prove each template renders in all three locales with correct interpolation and that
-  Arabic output is RTL-safe.
-- An i18n parity test fails if any notification key is missing from any locale.
-- An integration test proves a staging-configured environment produces staging links.
+- Sixteen `ntf_*` keys carry the three template families across `ar`, `fr` and `en`: SMS body, email
+  subject/html/text, and push title/body. `templates.ts` renders them; the English literals are gone
+  from `producer.ts`.
+- Locale resolution follows the documented order — member preference, then market default, then
+  `ar`. It previously fell back to `en` at the RSVP call site, which inverted that order and wrote to
+  an Arabic-default market's members in English.
+- The base URL comes from `APP_URL`, so each environment links to itself. It was hardcoded to
+  production in four places, which meant a staging reminder sent a member to the live site.
+- HTML escaping is preserved and now applied to every interpolated value including the URL, because
+  Paraglide substitutes placeholders verbatim. Plain-text and SMS variants are deliberately left
+  unescaped.
+
+Found by this work rather than listed in the ticket:
+
+- **Dates rendered in the Worker's UTC, not the market's zone**, because `toLocaleDateString` was
+  called with no `timeZone`. §6 requires storing UTC and rendering in the market zone. For an event
+  at `2099-01-15T23:30Z` the two disagree on the day: `Thursday, Jan 15, 11:30 PM` in UTC against
+  `Friday, Jan 16, 12:30 AM` in `Africa/Algiers`. Every evening event in Algiers was being announced
+  on the wrong day. `resolveNotificationContext` now returns the market time zone alongside the
+  locale from the single market read the locale fallback already needed.
+- **The public barrel re-exported the producer**, so introducing a `cloudflare:workers` import into
+  its module graph broke the client build. Nothing outside `libs/server-fns/src` imported any of the
+  four symbols, so the re-export is removed rather than worked around.
+
+Verification — 78 new tests:
+
+- Every template renders in all three locales with full interpolation and no unresolved placeholder;
+  Arabic output is in Arabic script and French is not silently English.
+- A hostile title is escaped in the HTML variant and left intact in the text and SMS variants.
+- An i18n parity test fails if any `ntf_*` key is missing from a locale, if placeholder sets drift
+  between locales, or if the three files stop having identical keys.
+- Locale resolution is proven for preference, market default, unknown market, and an unsupported
+  stored preference — the last two land on `ar`, never `en`.
+- End to end against real D1: the enqueued payload for an Arabic member is in Arabic, links to the
+  configured environment rather than production, names `Friday` rather than `Thursday`, and contains
+  no unresolved placeholder.
+
+Deviation, recorded rather than silent: the ticket asks for rendering "at send time". Rendering stays
+at enqueue time, where it already was, because moving it means the sweep must parse the payload it
+currently casts — which is AR-13's work on the same code. The consequence is that a member who
+changes locale after RSVPing keeps the original language on already-scheduled reminders. Worth
+revisiting when AR-13 lands.
 
 ### AR-08 — Add secure response headers and a strict CSP
 

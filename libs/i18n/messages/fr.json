@@ -239,5 +239,21 @@
   "live_update_table": "Mettre à jour la table",
   "live_eta_minutes": "ETA en minutes",
   "host_publish_error": "Échec de la publication. Réessayez.",
-  "hero_waitlist_error": "Une erreur est survenue. Réessayez."
+  "hero_waitlist_error": "Une erreur est survenue. Réessayez.",
+  "ntf_sms_confirmation": "C'est confirmé ! {title} — {date} à {venue}. À bientôt ! {url}",
+  "ntf_sms_reminder_72h": "{title}, c'est dans 3 jours ({date}). N'oubliez pas ! {url}",
+  "ntf_sms_reminder_24h": "Demain : {title} à {venue}. Rendez-vous {date} ! {url}",
+  "ntf_email_confirmation_subject": "C'est confirmé ! {title}",
+  "ntf_email_confirmation_html": "<p>Votre place est confirmée pour <strong>{title}</strong>, le {date} à {venue}.</p><p><a href=\"{url}\">Voir l'événement</a></p>",
+  "ntf_email_confirmation_text": "Votre place est confirmée pour {title}, le {date} à {venue}. {url}",
+  "ntf_email_reminder_72h_subject": "Rappel : {title} dans 3 jours",
+  "ntf_email_reminder_72h_html": "<p><strong>{title}</strong>, c'est dans 3 jours, le {date}.</p><p><a href=\"{url}\">Voir l'événement</a></p>",
+  "ntf_email_reminder_72h_text": "{title}, c'est dans 3 jours, le {date}. {url}",
+  "ntf_email_reminder_24h_subject": "Demain : {title}",
+  "ntf_email_reminder_24h_html": "<p>N'oubliez pas ! <strong>{title}</strong>, c'est demain à {venue}.</p><p><a href=\"{url}\">Voir l'événement</a></p>",
+  "ntf_email_reminder_24h_text": "N'oubliez pas ! {title}, c'est demain à {venue}. {url}",
+  "ntf_push_reminder_72h_title": "Rappel : {title}",
+  "ntf_push_reminder_72h_body": "Votre rencontre est dans 3 jours. Touchez pour voir les détails.",
+  "ntf_push_reminder_24h_title": "Demain : {title}",
+  "ntf_push_reminder_24h_body": "Votre rencontre est demain. Touchez pour gérer votre place."
 }

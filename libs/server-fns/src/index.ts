@@ -12,7 +12,6 @@ export * from './events/index.js';
 export * from './maps/index.js';
 export * from './rsvps/index.js';
 export * from './waitlist/index.js';
-export * from './notifications/index.js';
 export * from './push/index.js';
 export type { EventFeedPage } from './events/resolver.js';
 export { getMyProfile, getPublicProfile, setHomeLocation } from './profile.js';

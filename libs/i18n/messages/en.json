@@ -239,5 +239,21 @@
   "live_update_table": "Update Table",
   "live_eta_minutes": "ETA in minutes",
   "host_publish_error": "Couldn't publish. Try again.",
-  "hero_waitlist_error": "Something went wrong. Try again."
+  "hero_waitlist_error": "Something went wrong. Try again.",
+  "ntf_sms_confirmation": "You're in! {title} — {date} at {venue}. See you there! {url}",
+  "ntf_sms_reminder_72h": "{title} is in 3 days ({date}). Don't forget! {url}",
+  "ntf_sms_reminder_24h": "Tomorrow: {title} at {venue}. See you at {date}! {url}",
+  "ntf_email_confirmation_subject": "You're in! {title}",
+  "ntf_email_confirmation_html": "<p>You're confirmed for <strong>{title}</strong> on {date} at {venue}.</p><p><a href=\"{url}\">View event</a></p>",
+  "ntf_email_confirmation_text": "You're confirmed for {title} on {date} at {venue}. {url}",
+  "ntf_email_reminder_72h_subject": "Reminder: {title} in 3 days",
+  "ntf_email_reminder_72h_html": "<p><strong>{title}</strong> is in 3 days on {date}.</p><p><a href=\"{url}\">View event</a></p>",
+  "ntf_email_reminder_72h_text": "{title} is in 3 days on {date}. {url}",
+  "ntf_email_reminder_24h_subject": "Tomorrow: {title}",
+  "ntf_email_reminder_24h_html": "<p>Don't forget! <strong>{title}</strong> is tomorrow at {venue}.</p><p><a href=\"{url}\">View event</a></p>",
+  "ntf_email_reminder_24h_text": "Don't forget! {title} is tomorrow at {venue}. {url}",
+  "ntf_push_reminder_72h_title": "Reminder: {title}",
+  "ntf_push_reminder_72h_body": "Your meetup is in 3 days. Tap to view details.",
+  "ntf_push_reminder_24h_title": "Tomorrow: {title}",
+  "ntf_push_reminder_24h_body": "Your meetup is tomorrow. Tap to manage your seat."
 }

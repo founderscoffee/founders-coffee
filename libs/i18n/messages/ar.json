@@ -239,5 +239,21 @@
   "live_update_table": "تحديث الطاولة",
   "live_eta_minutes": "الوقت المتبقي بالدقائق",
   "host_publish_error": "تعذّر النشر. حاول مرة أخرى.",
-  "hero_waitlist_error": "حدث خطأ. حاول مرة أخرى."
+  "hero_waitlist_error": "حدث خطأ. حاول مرة أخرى.",
+  "ntf_sms_confirmation": "تم تأكيد حضورك! {title} — {date} في {venue}. نراك هناك! {url}",
+  "ntf_sms_reminder_72h": "{title} بعد 3 أيام ({date}). لا تنسَ! {url}",
+  "ntf_sms_reminder_24h": "غداً: {title} في {venue}. نراك في {date}! {url}",
+  "ntf_email_confirmation_subject": "تم تأكيد حضورك! {title}",
+  "ntf_email_confirmation_html": "<p>تم تأكيد حضورك في <strong>{title}</strong> يوم {date} في {venue}.</p><p><a href=\"{url}\">عرض الفعالية</a></p>",
+  "ntf_email_confirmation_text": "تم تأكيد حضورك في {title} يوم {date} في {venue}. {url}",
+  "ntf_email_reminder_72h_subject": "تذكير: {title} بعد 3 أيام",
+  "ntf_email_reminder_72h_html": "<p><strong>{title}</strong> بعد 3 أيام، يوم {date}.</p><p><a href=\"{url}\">عرض الفعالية</a></p>",
+  "ntf_email_reminder_72h_text": "{title} بعد 3 أيام، يوم {date}. {url}",
+  "ntf_email_reminder_24h_subject": "غداً: {title}",
+  "ntf_email_reminder_24h_html": "<p>لا تنسَ! <strong>{title}</strong> غداً في {venue}.</p><p><a href=\"{url}\">عرض الفعالية</a></p>",
+  "ntf_email_reminder_24h_text": "لا تنسَ! {title} غداً في {venue}. {url}",
+  "ntf_push_reminder_72h_title": "تذكير: {title}",
+  "ntf_push_reminder_72h_body": "لقاؤك بعد 3 أيام. اضغط لعرض التفاصيل.",
+  "ntf_push_reminder_24h_title": "غداً: {title}",
+  "ntf_push_reminder_24h_body": "لقاؤك غداً. اضغط لإدارة مقعدك."
 }

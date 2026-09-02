@@ -13,6 +13,9 @@
   ],
   "references": [
     {
+      "path": "../i18n/tsconfig.lib.json"
+    },
+    {
       "path": "../observability/tsconfig.lib.json"
     },
     {
@@ -22,10 +25,10 @@
       "path": "../db/tsconfig.lib.json"
     },
     {
-      "path": "../auth/tsconfig.lib.json"
+      "path": "../core/tsconfig.lib.json"
     },
     {
-      "path": "../core/tsconfig.lib.json"
+      "path": "../auth/tsconfig.lib.json"
     }
   ]
 }
