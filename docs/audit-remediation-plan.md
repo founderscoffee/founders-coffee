@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-05, AR-11 and AR-12 complete; AR-06 through AR-10 and AR-13 planned                                                                                                         |
+| Status         | Active; AR-01 through AR-06, AR-11 and AR-12 complete; AR-07 through AR-10 and AR-13 planned                                                                                                         |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -512,7 +512,7 @@ Verification:
 
 **Parent:** P1-018
 **Requirements:** NFR-4
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-14.
 
@@ -535,12 +535,73 @@ Work:
 - Audit the remaining server functions for the same omission and record the result, so the endpoint
   audit named in P1-018 is closed rather than sampled.
 
-Verification:
+Completion evidence:
 
-- Miniflare tests prove each endpoint rejects an unauthorized role, rejects beyond its rate limit, and
-  succeeds for a permitted caller.
-- A test proves the waitlist rejects a missing or replayed Turnstile response and fails closed when
-  the secret is absent outside local development.
+- The RBAC model gains `profile: ['update']` and `push: ['manage']`, granted to every authenticated
+  role because both are self-service on the caller's own account. `setHomeLocation`,
+  `registerPushTokenFn` and `removePushTokenFn` now declare those permissions and carry
+  identity-scoped limits: 10 home-location changes and 20 push-token writes per ten minutes, sized
+  for actions that happen at onboarding, install and logout rather than in a loop.
+- `joinWaitlist` carries Turnstile. The middleware is generalized into `requireTurnstile(action)`
+  and its response is pinned to `join_waitlist`, so one minted on the waitlist form cannot be
+  replayed against event creation. The `EVENT_CREATE_WAF_CONFIGURED` gate stays on event creation
+  only — applying it everywhere would take unrelated endpoints down until that one account-side rule
+  is configured.
+- Adding the server-side requirement alone would have broken the waitlist: the form sent no token
+  and every gate still passed, because the component tests mock the API layer. The widget is wired
+  into `WaitlistForm` through the existing `usePublicAuthConfig` hook, submission is blocked until a
+  response is obtained, and a failed submission reissues the challenge. Three component tests cover
+  blocked-without-token, submitted-with-token, and the development bypass.
+- `JoinWaitlistRequest` is now a distinct wire type. The resolver's `JoinWaitlistInput` was doing
+  double duty as the request type, which is why adding one wire-only field became a type error at
+  every call site.
+
+### Endpoint audit — closes the P1-018 audit rather than sampling it
+
+All 27 server functions were enumerated with their middleware chains. The state-changing surface is
+now complete:
+
+| Endpoint              | Method | Protection                                         |
+| --------------------- | ------ | -------------------------------------------------- |
+| `createEvent`         | POST   | `event:create` + rate limit + Turnstile + WAF gate |
+| `createRsvp`          | POST   | `rsvp:create` + rate limit                         |
+| `cancelRsvp`          | POST   | `rsvp:update` + rate limit                         |
+| `setHomeLocation`     | POST   | `profile:update` + rate limit                      |
+| `registerPushTokenFn` | POST   | `push:manage` + rate limit                         |
+| `removePushTokenFn`   | POST   | `push:manage` + rate limit                         |
+| `joinWaitlist`        | POST   | Turnstile + rate limit (anonymous by design)       |
+
+Two results recorded rather than fixed silently:
+
+- **Every mutation except `createEvent` was served over `GET`.** `createServerFn` defaults to
+  `method: 'GET'` when none is given, so `createRsvp`, `cancelRsvp`, `setHomeLocation`, both push
+  writes and `joinWaitlist` all mutated state on a safe method. The CSRF middleware accepts
+  `Sec-Fetch-Site: none` so a direct navigation would have passed it, and any intermediary that
+  replays a GET could have repeated the write. All six now declare `method: 'POST'`. This was found
+  by the audit rather than listed in the ticket.
+- **The twenty remaining functions are reads and stay anonymous by design** — geography, markets,
+  public event and profile reads, and the two public client configs. `getMyProfile` is
+  session-enforced in its handler. A literal reading of §7 asks every server function to declare a
+  permission; applying RBAC to a public city listing would be noise, so the deviation is recorded
+  here rather than papered over.
+- **RSVP still has no Turnstile**, which §10 requires alongside signup, login and event creation.
+  Out of AR-06's scope, which named the authorization and waitlist gaps; recorded so the §10 gap is
+  not lost.
+
+Verification — 14 new tests:
+
+- Every authenticated role, including the dormant `sponsor_contact`, may update its own profile and
+  manage its own push registrations; `sponsor_contact` still cannot create an event or an RSVP, so
+  the new grants did not widen anything else.
+- Turnstile actions are distinct per flow.
+- The waitlist provider fails closed outside development with no secret and on an explicit
+  `TURNSTILE_DISABLED=true`, and builds a real provider when configured.
+- The form will not submit before verification, submits the token once obtained, and submits without
+  one only when the deployment bypasses Turnstile.
+
+Not testable here, and stated rather than implied: `createServerFn` cannot be imported in the
+Miniflare pool, so the middleware chains themselves are asserted by the audit table above and by
+typecheck, not by an integration test that exercises a rejected role over the wire.
 
 ### AR-07 — Localize notification content
 

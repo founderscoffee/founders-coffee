@@ -21,7 +21,7 @@ const rsvpCancelSchema = z.object({
  * Create an RSVP for an event. Requires `rsvp:create` permission (member/host/moderator/admin).
  * Returns `{ status: 'going' }` on success, or throws `event_full` / `already_rsvpd`.
  */
-export const createRsvp = createServerFn({ strict: false })
+export const createRsvp = createServerFn({ method: 'POST', strict: false })
   .middleware([
     requirePermission('rsvp', 'create'),
     rateLimit('create_rsvp', 10, 600_000),
@@ -41,7 +41,7 @@ export const createRsvp = createServerFn({ strict: false })
  * Cancel an RSVP. Requires `rsvp:update` permission (member/host/moderator/admin).
  * Ownership-gated: only the RSVP owner can cancel.
  */
-export const cancelRsvp = createServerFn({ strict: false })
+export const cancelRsvp = createServerFn({ method: 'POST', strict: false })
   .middleware([
     requirePermission('rsvp', 'update'),
     rateLimit('cancel_rsvp', 10, 600_000),

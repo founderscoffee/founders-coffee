@@ -4,7 +4,8 @@ import { z } from 'zod';
 import { appValidator, id } from '@founders-coffee/core';
 import { registerPushToken, removePushToken } from '@founders-coffee/db';
 
-import { authMiddleware } from '../auth-middleware.js';
+import { requirePermission } from '../auth-middleware.js';
+import { rateLimit } from '../rate-limit.js';
 import { requireAuth } from '../authz.js';
 import { getDb } from '../db.js';
 
@@ -20,8 +21,14 @@ const registerPushSchema = z.object({
  * Called after the user accepts the push permission prompt.
  * Upserts on token (unique) — updates user_id if the token already exists.
  */
-export const registerPushTokenFn = createServerFn({ strict: false })
-  .middleware([authMiddleware])
+export const registerPushTokenFn = createServerFn({
+  method: 'POST',
+  strict: false,
+})
+  .middleware([
+    requirePermission('push', 'manage'),
+    rateLimit('push_token', 20, 600_000),
+  ])
   .validator(appValidator(registerPushSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
@@ -41,8 +48,14 @@ export const registerPushTokenFn = createServerFn({ strict: false })
  * Remove a push notification token. Called on logout or when
  * FCM returns DeviceNotRegistered / InvalidToken.
  */
-export const removePushTokenFn = createServerFn({ strict: false })
-  .middleware([authMiddleware])
+export const removePushTokenFn = createServerFn({
+  method: 'POST',
+  strict: false,
+})
+  .middleware([
+    requirePermission('push', 'manage'),
+    rateLimit('push_token', 20, 600_000),
+  ])
   .validator(appValidator(z.object({ token: z.string().min(1) })))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);

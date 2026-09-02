@@ -7,7 +7,8 @@ import { geo } from '@founders-coffee/domain';
 
 import { getDb } from './db.js';
 import { requireAuth } from './authz.js';
-import { authMiddleware } from './auth-middleware.js';
+import { authMiddleware, requirePermission } from './auth-middleware.js';
+import { rateLimit } from './rate-limit.js';
 
 export interface UserProfile {
   readonly id: string;
@@ -86,8 +87,11 @@ export const getMyProfile = createServerFn({ strict: false })
  * Set the current user's home location (onboarding / profile edit). Validates state + city against
  * the geo TS data, then writes directly to D1 (`input: false` blocks Better Auth's updateUser).
  */
-export const setHomeLocation = createServerFn({ strict: false })
-  .middleware([authMiddleware])
+export const setHomeLocation = createServerFn({ method: 'POST', strict: false })
+  .middleware([
+    requirePermission('profile', 'update'),
+    rateLimit('set_home_location', 10, 600_000),
+  ])
   .validator(
     z.object({
       marketCode: z.string(),

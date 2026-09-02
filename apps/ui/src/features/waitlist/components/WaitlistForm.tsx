@@ -12,6 +12,8 @@ import {
 import { useState } from 'react';
 
 import { LegalNotice } from '../../../components/company/LegalNotice';
+import { Turnstile } from '../../../components/auth/Turnstile';
+import { usePublicAuthConfig } from '../../auth/hooks';
 import { useJoinWaitlist } from '../hooks';
 
 type WaitlistFormProps = {
@@ -31,7 +33,13 @@ export const WaitlistForm = ({
 }: WaitlistFormProps) => {
   const [email, setEmail] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const joinWaitlist = useJoinWaitlist();
+  const authConfig = usePublicAuthConfig();
+  const sitekey = authConfig.data?.turnstileSiteKey ?? null;
+  const isBypassed = authConfig.data?.isTurnstileBypassed === true;
+  const isVerified = isBypassed || turnstileToken !== null;
 
   const validate = (value: string): boolean => {
     if (!EMAIL_RE.test(value)) {
@@ -46,15 +54,24 @@ export const WaitlistForm = ({
     e.preventDefault();
     const trimmed = email.trim().toLowerCase();
     if (!validate(trimmed)) return;
+    if (!isVerified) return;
 
     try {
       const result = (await joinWaitlist.mutateAsync({
-        data: { email: trimmed, marketCode, cityCode, locale },
+        data: {
+          email: trimmed,
+          marketCode,
+          cityCode,
+          locale,
+          turnstileToken: turnstileToken ?? undefined,
+        },
       })) as { status: 'joined' | 'already_waitlisted' };
       if (result?.status === 'already_waitlisted') {
         setLocalError(hero_waitlist_already({ city: cityName }, { locale }));
       }
     } catch (error) {
+      setTurnstileToken(null);
+      setTurnstileResetKey((value) => value + 1);
       if (appErrorCode(error) === 'validation_failed') {
         setLocalError(hero_waitlist_invalid_email({}, { locale }));
       } else {
@@ -92,13 +109,22 @@ export const WaitlistForm = ({
         <button
           type="submit"
           className="btn btn-outline btn-sm h-10"
-          disabled={joinWaitlist.isPending}
+          disabled={joinWaitlist.isPending || !isVerified}
         >
           {joinWaitlist.isPending
             ? hero_waitlist_submitting({}, { locale })
             : hero_waitlist_submit({}, { locale })}
         </button>
       </form>
+      {sitekey && !isBypassed && (
+        <Turnstile
+          sitekey={sitekey}
+          action="join_waitlist"
+          appearance="interaction-only"
+          resetKey={turnstileResetKey}
+          onToken={setTurnstileToken}
+        />
+      )}
       {localError && (
         <p className="text-xs text-error" role="alert">
           {localError}
