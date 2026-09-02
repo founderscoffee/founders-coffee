@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 and AR-11 complete, AR-02 through AR-10 and AR-12 through AR-13 planned                                                                                                                |
+| Status         | Active; AR-01, AR-04 and AR-11 complete; AR-02, AR-03, AR-05 through AR-10, AR-12 and AR-13 planned                                                                                                  |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -154,8 +154,8 @@ The `AR-*` identifiers are local work packages under the existing parent tickets
 the repository's P0/P1 ticket IDs.
 
 Recommended order: AR-01 first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
-production consequences. Then AR-09, which restores the mechanisms that would have caught several of
-the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
+production consequences; AR-04 is complete. Then AR-09, which restores the mechanisms that would
+have caught several of the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
 rewrites the same sweep. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule
 allows. AR-01 and AR-11 are complete.
 
@@ -278,9 +278,9 @@ Note: AR-03 is superseded if the queue migration under P0-018 lands first. See s
 
 **Parent:** P1-008
 **Requirements:** FR-E3, FR-E4; NFR-4, NFR-10
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
-Closes F-04 and F-05. Both live in the same twenty lines.
+Closes F-04 and F-05. Both lived in the same twenty lines.
 
 Current behavior:
 
@@ -306,13 +306,50 @@ AND (capacity = 0 OR rsvps < capacity))`, paired with the guarded counter increm
 - Confirm the same review for `cancelRsvp`, whose two-statement decrement is deliberate and
   documented; keep it only if the review confirms the reasoning still holds.
 
-Verification:
+Completion evidence:
 
-- Miniflare and D1 tests prove: an RSVP at exactly full capacity inserts no row and leaves the counter
-  unchanged; concurrent RSVPs against the final seat produce exactly one attendee; a concurrent
-  duplicate returns `already_rsvpd` rather than an untyped throw; unlimited capacity, expressed as
-  `0`, continues to accept.
-- A test asserts the attendee row count and the denormalized counter agree after every scenario.
+- The insert now selects its row _from_ `events` under the capacity predicate
+  (`INSERT INTO event_rsvps (...) SELECT ... FROM events WHERE id = ? AND (capacity = 0 OR rsvps <
+capacity)`), so it produces one row when a seat is free and none when it is not. It is ordered
+  before the counter update on purpose: it must read `rsvps` before the counter moves, or the final
+  seat would increment the counter while inserting no attendee. Both statements carry the same
+  predicate in one batch, so they see one snapshot and either both apply or neither does.
+- `already_rsvpd` is now derived from the `UNIQUE(event_id, user_id)` violation. The classifier walks
+  the `cause` chain, because Drizzle replaces `message` with the failed SQL on the non-batch path and
+  keeps the driver error as the cause; a Drizzle version that started doing that for batches would
+  otherwise have turned a duplicate back into an untyped throw. Both shapes are covered by test.
+- The unreachable `error.message === 'event_full'` comparison is deleted, and the repository doc
+  comments now describe what the code does.
+- `cancelRsvp` was reviewed as the ticket required, and its reasoning did **not** hold: the claim
+  that "D1 batch can't conditionally skip a statement" is wrong, since a `WHERE` clause does exactly
+  that. It is now one batch — the guarded decrement ordered before the delete so it reads
+  `event_rsvps` while the row still exists — closing the window where a crash between the two
+  statements dropped a row without decrementing.
+- `RSVP_INSERT_COLUMNS` pins the column list Drizzle generates from the schema. A column added to
+  `event_rsvps` would widen that list and break the insert at runtime only; the contract test turns
+  that into a failing unit test instead.
+
+Verification — 26 new tests, all against real D1 under Miniflare:
+
+- At exactly full capacity the attempt writes nothing: no attendee row, counter unchanged.
+- The final seat is accepted and the next attempt rejected, with the counter and rows still in step.
+- Unlimited capacity, expressed as `0`, continues to accept.
+- A duplicate returns `already_rsvpd`, sequentially and concurrently, never an untyped throw. A
+  non-duplicate driver error (an FK violation) still propagates.
+- Cancelling frees the seat, a double cancel decrements once, and the counter is never driven below
+  zero.
+- Resolver-level tests assert the typed `AppError` codes reach the throw boundary and that a
+  rejected attempt enqueues no notifications.
+- An invariant test asserts `counter === attendees` after each of 120 randomized rsvp/cancel
+  operations, and after ten rounds of five concurrent operations.
+- The invariant test was run against the pre-fix implementation and **fails** there, so it
+  discriminates rather than merely passing. A separate probe reproduced F-04 exactly on the old
+  code: at capacity the counter stayed at 1 while the attendee rows reached 2.
+
+Limits of the evidence: Miniflare serializes D1 access, so the concurrency tests prove the predicate
+and batch-atomicity logic rather than true multi-isolate parallelism. The production guarantee rests
+on D1's documented batch-as-transaction semantics and SQLite's single-writer serialization, which is
+the mechanism §11 mandates.
 
 ### AR-05 — Rate-limit the map server functions
 
@@ -705,8 +742,8 @@ admin applications; or move E2E into CI, which remains excluded by current proje
 - [x] All seven verification gates pass, including `npm audit --audit-level=high`. (AR-01, 2026-09-02)
 - [ ] No scheduled notification can remain selectable indefinitely, and the documented retry and
       email fallback are exercised by tests rather than described by comments.
-- [ ] A rejected full-capacity RSVP writes nothing, and no untyped error crosses a server-function
-      boundary.
+- [x] A rejected full-capacity RSVP writes nothing, and no untyped error crosses a server-function
+      boundary. (AR-04, 2026-09-02)
 - [ ] Every state-changing server function declares a permission and enforces a rate limit; anonymous
       and metered endpoints carry the additional protection their exposure requires.
 - [ ] Notification content is localized in `ar`, `fr`, and `en` from `libs/i18n`, with parity enforced

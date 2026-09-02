@@ -4,20 +4,65 @@ import { batch } from './atomic.js';
 import type { Db } from './db.js';
 import { eventRsvps, events, type EventRsvp } from './schema.js';
 
+export type CreateRsvpOutcome = 'created' | 'event_full' | 'already_rsvpd';
+
+export const RSVP_INSERT_COLUMNS = [
+  'id',
+  'event_id',
+  'user_id',
+  'status',
+  'created_at',
+  'updated_at',
+] as const;
+
 /**
- * Create an RSVP for an event. Atomic capacity check via D1 batch (AGENTS.md §11):
- *   1. UPDATE events SET rsvps = rsvps + 1 WHERE id = ? AND (capacity = 0 OR rsvps < capacity)
- *   2. INSERT INTO event_rsvps (id, event_id, user_id, status)
+ * True when a driver error is the `UNIQUE(event_id, user_id)` violation on `event_rsvps`, i.e. the
+ * user already holds an RSVP for this event.
  *
- * `capacity = 0` means unlimited (the WHERE clause skips the capacity gate).
+ * D1 reports it as `UNIQUE constraint failed: event_rsvps.event_id, event_rsvps.user_id`. The
+ * columns are matched as well as the constraint text, so a unique violation on some other table
+ * inside the same batch is never swallowed as `already_rsvpd`. The `cause` chain is walked because
+ * Drizzle replaces `message` with the failed SQL on some code paths and keeps the driver error as
+ * the cause; a version that starts doing so for batches would otherwise silently turn a duplicate
+ * into an untyped throw. `isDuplicateRsvpMessage` is asserted against the live D1 text by test.
+ */
+const isDuplicateRsvpMessage = (message: string): boolean =>
+  message.includes('UNIQUE constraint failed') &&
+  (message.includes('event_rsvps.event_id') ||
+    message.includes('event_rsvps_event_id_user_id_unique'));
+
+export const isDuplicateRsvpError = (error: unknown): boolean => {
+  let current: unknown = error;
+  for (let depth = 0; current && depth < 5; depth++) {
+    const message =
+      current instanceof Error ? current.message : String(current);
+    if (isDuplicateRsvpMessage(message)) return true;
+    current = current instanceof Error ? current.cause : undefined;
+  }
+  return false;
+};
+
+const hasCapacity = (eventId: string) =>
+  sql`id = ${eventId} AND (capacity = 0 OR rsvps < capacity)`;
+
+/**
+ * Create an RSVP, writing nothing at all when the event is full (AGENTS.md §11 — atomic
+ * single-statement SQL, never read-then-write).
  *
- * D1 batch is atomic: if the INSERT violates UNIQUE(event_id, user_id), the entire
- * batch rolls back — the counter UPDATE is undone. The caller catches the UNIQUE
- * violation and maps it to `already_rsvpd`.
+ * The insert selects its row *from* `events` under the capacity predicate, so it produces one row
+ * when a seat is free and none when it is not. Its value list must line up with the column list
+ * Drizzle generates from the schema, which `RSVP_INSERT_COLUMNS` pins by test — a column added to
+ * `event_rsvps` would otherwise widen that list and break the insert at runtime only. It is written first on purpose: it must read `rsvps`
+ * before the counter moves, or the final seat would increment the counter while inserting no
+ * attendee. The counter update carries the same predicate and runs in the same D1 batch, so both
+ * observe one snapshot of `events` and either both apply or neither does.
  *
- * If the UPDATE affects 0 rows (event is full), the batch still succeeds but the
- * counter was not incremented. The caller checks the UPDATE result to detect
- * `event_full`.
+ * `capacity = 0` means unlimited, so the predicate short-circuits.
+ *
+ * Concurrency: D1 serializes the batches, so a race for the last seat lets exactly one through —
+ * the loser's select finds no qualifying event row. A concurrent duplicate by the same user
+ * violates `UNIQUE(event_id, user_id)`, which rolls the whole batch back and surfaces here as
+ * `already_rsvpd` rather than an untyped throw (AGENTS.md §16).
  */
 export const createRsvp = async (
   db: Db,
@@ -26,39 +71,36 @@ export const createRsvp = async (
     eventId: string;
     userId: string;
   },
-): Promise<{ status: 'going'; eventFull: boolean }> => {
-  const rsvpRow = {
-    id: opts.id,
-    eventId: opts.eventId,
-    userId: opts.userId,
-    status: 'going' as const,
-  };
-
-  const results = await batch(db, [
-    db
-      .update(events)
-      .set({ rsvps: sql`rsvps + 1` })
-      .where(
-        and(
-          eq(events.id, opts.eventId),
-          sql`(${events.capacity} = 0 OR ${events.rsvps} < ${events.capacity})`,
-        ),
+): Promise<{ outcome: CreateRsvpOutcome }> => {
+  try {
+    const results = await batch(db, [
+      db.insert(eventRsvps).select(
+        sql`SELECT ${opts.id}, ${opts.eventId}, ${opts.userId}, 'going', unixepoch(), unixepoch()
+            FROM events WHERE ${hasCapacity(opts.eventId)}`,
       ),
-    db.insert(eventRsvps).values(rsvpRow),
-  ]);
+      db
+        .update(events)
+        .set({ rsvps: sql`rsvps + 1` })
+        .where(hasCapacity(opts.eventId)),
+    ]);
 
-  const updateResult = results[0] as { meta?: { changes?: number } };
-  const eventFull = (updateResult.meta?.changes ?? 0) === 0;
-
-  return { status: 'going', eventFull };
+    const insertResult = results[0] as { meta?: { changes?: number } };
+    const inserted = insertResult.meta?.changes ?? 0;
+    return { outcome: inserted === 1 ? 'created' : 'event_full' };
+  } catch (error) {
+    if (isDuplicateRsvpError(error)) return { outcome: 'already_rsvpd' };
+    throw error;
+  }
 };
 
 /**
- * Cancel (hard-delete) an RSVP and decrement the denormalized counter. The decrement is gated on
- * the DELETE actually removing a row — two concurrent cancels by the same user can't drive the
- * counter negative (the second DELETE affects 0 rows → no decrement). The `rsvps > 0` guard is a
- * belt-and-suspenders against any drift. Not a single batch (D1 batch can't conditionally skip a
- * statement); correctness over a false atomicity that drifted the counter.
+ * Cancel (hard-delete) an RSVP and decrement the denormalized counter in one D1 batch, so a row can
+ * never be removed without its counter following (AGENTS.md §11).
+ *
+ * The decrement is written first and gated on the RSVP still existing, so it reads `event_rsvps`
+ * before the delete removes the row. Cancelling something that was never there decrements nothing,
+ * and two concurrent cancels decrement once: the loser's `EXISTS` finds no row. The `rsvps > 0`
+ * guard is belt-and-braces against pre-existing drift.
  */
 export const cancelRsvp = async (
   db: Db,
@@ -67,23 +109,28 @@ export const cancelRsvp = async (
     userId: string;
   },
 ): Promise<{ deleted: boolean }> => {
-  const result = (await db
-    .delete(eventRsvps)
-    .where(
-      and(
-        eq(eventRsvps.eventId, opts.eventId),
-        eq(eventRsvps.userId, opts.userId),
+  const results = await batch(db, [
+    db
+      .update(events)
+      .set({ rsvps: sql`rsvps - 1` })
+      .where(
+        sql`id = ${opts.eventId} AND rsvps > 0 AND EXISTS (
+              SELECT 1 FROM event_rsvps
+              WHERE event_id = ${opts.eventId} AND user_id = ${opts.userId}
+            )`,
       ),
-    )) as { meta?: { changes?: number } };
+    db
+      .delete(eventRsvps)
+      .where(
+        and(
+          eq(eventRsvps.eventId, opts.eventId),
+          eq(eventRsvps.userId, opts.userId),
+        ),
+      ),
+  ]);
 
-  if ((result.meta?.changes ?? 0) === 0) return { deleted: false };
-
-  await db
-    .update(events)
-    .set({ rsvps: sql`rsvps - 1` })
-    .where(and(eq(events.id, opts.eventId), sql`${events.rsvps} > 0`));
-
-  return { deleted: true };
+  const deleteResult = results[1] as { meta?: { changes?: number } };
+  return { deleted: (deleteResult.meta?.changes ?? 0) > 0 };
 };
 
 /**

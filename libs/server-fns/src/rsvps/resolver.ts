@@ -18,15 +18,15 @@ export interface RsvpResult {
 }
 
 /**
- * Create an RSVP for an event. Validates:
- *   - Event exists and is published
- *   - Event is not cancelled
- *   - User is not the host (optional — hosts can attend their own events)
- *   - User has not already RSVP'd (idempotent: returns `already_rsvpd`)
- *   - Event is not full (`event_full`)
+ * Create an RSVP for an event.
  *
- * After successful RSVP, enqueues notification (confirmation + reminders)
- * via the notifications producer (P1-009).
+ * Rejects with `event_not_found` for a missing event, `event_not_available` for one that is not
+ * published, `already_rsvpd` when the member already holds a seat, and `event_full` at capacity.
+ * Capacity and duplication are both decided by `createRsvp`'s atomic batch, not by the reads above
+ * it: the `getRsvpForUser` lookup is a fast path that keeps the common case off the write path, and
+ * a member who slips past it is still rejected by `UNIQUE(event_id, user_id)`.
+ *
+ * Notifications (confirmation + reminders) are enqueued only when a seat was actually taken.
  */
 export const createRsvpResolver = async (
   db: Db,
@@ -55,40 +55,38 @@ export const createRsvpResolver = async (
     );
   }
 
-  try {
-    const result = await createRsvpRow(db, {
-      id: id('rsvp'),
+  const { outcome } = await createRsvpRow(db, {
+    id: id('rsvp'),
+    eventId: opts.eventId,
+    userId: opts.userId,
+  });
+
+  if (outcome === 'event_full') {
+    return err(new AppError('event_full', 'This event is full'));
+  }
+  if (outcome === 'already_rsvpd') {
+    return err(
+      new AppError('already_rsvpd', 'You are already attending this event'),
+    );
+  }
+
+  const user = await getUser(db, opts.userId);
+  if (user) {
+    await enqueueRsvpNotifications(db, {
       eventId: opts.eventId,
       userId: opts.userId,
+      eventTitle: event.title,
+      eventSlug: event.slug,
+      marketCode: event.marketCode,
+      startsAt: event.startsAt,
+      venue: event.venue,
+      phoneNumber: user.phoneNumber,
+      email: user.email,
+      locale: user.localePref ?? 'en',
     });
-
-    if (result.eventFull) {
-      return err(new AppError('event_full', 'This event is full'));
-    }
-
-    const user = await getUser(db, opts.userId);
-    if (user) {
-      await enqueueRsvpNotifications(db, {
-        eventId: opts.eventId,
-        userId: opts.userId,
-        eventTitle: event.title,
-        eventSlug: event.slug,
-        marketCode: event.marketCode,
-        startsAt: event.startsAt,
-        venue: event.venue,
-        phoneNumber: user.phoneNumber,
-        email: user.email,
-        locale: user.localePref ?? 'en',
-      });
-    }
-
-    return ok({ status: result.status });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'event_full') {
-      return err(new AppError('event_full', 'This event is full'));
-    }
-    throw error;
   }
+
+  return ok({ status: 'going' });
 };
 
 /**
