@@ -131,6 +131,11 @@ describe('selection window cannot be starved', () => {
     db = await setupDb();
   });
 
+  /**
+   * Deliberately long: it enqueues a full `SWEEP_LIMIT` window and reads every row back, which is
+   * several hundred D1 round trips. The window size is the point — a smaller one would not prove
+   * the window can be cleared — so the timeout gives way rather than the coverage.
+   */
   it('clears a full window of unroutable rows and reaches the next row', async () => {
     const stuck: string[] = [];
     for (let i = 0; i < 100; i++) {
@@ -157,7 +162,7 @@ describe('selection window cannot be starved', () => {
     for (const rowId of stuck) {
       expect((await rowById(db, rowId))?.status).toBe('failed');
     }
-  });
+  }, 30_000);
 
   it('selects the oldest due rows first', async () => {
     const newer = await enqueue(db, {

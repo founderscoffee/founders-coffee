@@ -160,6 +160,12 @@ describe('duplicate-RSVP error detection', () => {
 });
 
 describe('counter/attendee invariant under mixed traffic', () => {
+  /**
+   * Deliberately long: 120 randomized operations, each followed by a full read-back, is roughly
+   * 360 D1 round trips. It runs in ~130ms locally and comfortably inside 5s, but a shared CI
+   * runner is slow enough to blow the default timeout — which it did. The step count is the
+   * property being tested, so the timeout gives way rather than the coverage.
+   */
   it('never diverges across a randomized rsvp/cancel sequence', async () => {
     const db = await setupDb();
     const capacity = 3;
@@ -188,7 +194,7 @@ describe('counter/attendee invariant under mixed traffic', () => {
       expect(counter).toBeGreaterThanOrEqual(0);
       expect(counter).toBeLessThanOrEqual(capacity);
     }
-  });
+  }, 30_000);
 
   it('holds when the same batch of operations is issued concurrently', async () => {
     const db = await setupDb();
