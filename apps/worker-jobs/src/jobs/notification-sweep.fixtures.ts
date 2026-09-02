@@ -165,6 +165,24 @@ export const fakePush = (outcome: 'ok' | 'err'): PushProvider => ({
       : err(new AppError('push_transient_failure', 'push boom')),
 });
 
+/** An SMS provider that records every send, so a test can count dispatches rather than row states. */
+export const countingSms = (): {
+  provider: NotificationSmsProvider;
+  sends: string[];
+} => {
+  const sends: string[] = [];
+  return {
+    sends,
+    provider: {
+      name: 'counting-sms',
+      send: async (input) => {
+        sends.push(input.to);
+        return ok({ sid: `sm${sends.length}`, segments: 1 });
+      },
+    },
+  };
+};
+
 export const throwingSms = (): NotificationSmsProvider => ({
   name: 'throwing-sms',
   send: async () => {

@@ -1,0 +1,2 @@
+ALTER TABLE `scheduled_notifications` ADD `claimed_at` integer;--> statement-breakpoint
+CREATE INDEX `idx_scheduled_notifications_processing` ON `scheduled_notifications` (`claimed_at`) WHERE status = 'processing';

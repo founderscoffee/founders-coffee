@@ -304,6 +304,7 @@ export type NewInvoice = typeof invoices.$inferInsert;
 export const NOTIFICATION_CHANNELS = ['sms', 'email', 'push'] as const;
 export const NOTIFICATION_STATUSES = [
   'pending',
+  'processing',
   'sent',
   'delivered',
   'failed',
@@ -332,6 +333,11 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
  *
  * `cancelled` is terminal and distinct from `failed`: the notification was retired because the RSVP
  * or event went away, not because delivery did not work.
+ *
+ * `processing` is the in-flight claim. A sweep moves due rows into it atomically before dispatching
+ * anything, so an overlapping sweep sees no rows left to take. `claimed_at` bounds that claim: an
+ * invocation that dies mid-run leaves rows `processing` forever otherwise, and a later sweep
+ * reclaims anything older than the claim timeout.
  */
 export const scheduledNotifications = sqliteTable(
   'scheduled_notifications',
@@ -362,6 +368,7 @@ export const scheduledNotifications = sqliteTable(
       enum: ['email'],
     }),
     fallbackOf: text('fallback_of'),
+    claimedAt: integer('claimed_at', { mode: 'timestamp' }),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -378,6 +385,9 @@ export const scheduledNotifications = sqliteTable(
     fallbackOfUnique: uniqueIndex(
       'scheduled_notifications_fallback_of_unique',
     ).on(t.fallbackOf),
+    processingIdx: index('idx_scheduled_notifications_processing')
+      .on(t.claimedAt)
+      .where(sql`status = 'processing'`),
   }),
 );
 

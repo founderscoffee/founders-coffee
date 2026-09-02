@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01, AR-02, AR-04 and AR-11 complete; AR-03, AR-05 through AR-10, AR-12 and AR-13 planned                                                                                                  |
+| Status         | Active; AR-01 through AR-04 and AR-11 complete; AR-05 through AR-10, AR-12 and AR-13 planned                                                                                                         |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -154,7 +154,7 @@ The `AR-*` identifiers are local work packages under the existing parent tickets
 the repository's P0/P1 ticket IDs.
 
 Recommended order: AR-01 first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
-production consequences; AR-02 and AR-04 are complete, and AR-03 now follows directly from AR-02. Then AR-09, which restores the mechanisms that would
+production consequences; AR-02, AR-03 and AR-04 are complete. Then AR-09, which restores the mechanisms that would
 have caught several of the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
 rewrites the same sweep. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule
 allows. AR-01 and AR-11 are complete.
@@ -300,7 +300,7 @@ sweep retries it. Both bounds are recorded in the sweep's own documentation.
 
 **Parent:** P0-018, P1-009
 **Requirements:** FR-N1; NFR-3, NFR-7
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-07.
 
@@ -318,12 +318,56 @@ Work:
   a timestamp that a later sweep may reclaim, or keep the claim window smaller than the retry budget.
 - Add the reviewed migration for the new status value.
 
-Verification:
+Completion evidence:
 
-- An integration test runs two concurrent sweeps against the same due set and asserts each row is
-  dispatched exactly once.
-- A test proves a claimed row abandoned by a failed invocation becomes eligible again within the
-  documented window.
+The defect was reproduced on the pre-fix code before anything changed, by checking the three
+original files back into the tree and counting provider calls rather than row states:
+
+```text
+LEGACY_F07>>> rows=6 provider sends=12
+FIXED_F07>>>  rows=6 provider sends=6
+```
+
+Two overlapping sweeps sent every notification twice. They now send each once.
+
+- `claimDueNotifications` is a single
+  `UPDATE ... WHERE id IN (SELECT ... ORDER BY send_at, id LIMIT n) RETURNING *`. It moves the
+  window to the new `processing` status and hands back exactly the rows this caller won, so
+  overlapping sweeps operate on disjoint sets — the loser's `status = 'pending'` predicate no longer
+  matches. Claim and read are one atomic statement, so there is no window between them.
+- `markNotificationSent` and `markNotificationFailed` are now guarded on `status = 'processing'` and
+  clear `claimed_at`, so only the sweep holding the claim can resolve a row. A stale invocation
+  returning late cannot overwrite the outcome of the sweep that reclaimed it.
+- Migration `0014` adds `claimed_at` and a partial index on it for `status = 'processing'`.
+- Stale claims are released through the **ordinary failure path** rather than a bespoke one, so a
+  reclaim spends one attempt from the existing budget and either defers the row or retires it with
+  its fallback. That is what stops a repeatedly dying invocation from reclaiming the same row
+  forever — a bespoke "set it back to pending" reclaim would have looped without bound.
+- The claim timeout is 900 seconds, chosen against a hundred serial provider calls at their timeout
+  rather than their typical latency. A timeout shorter than the slowest plausible sweep would let a
+  later sweep reclaim rows still in flight and dispatch them again, turning the fix into the bug.
+- `libs/db/src/notifications.ts` reached 358 lines and was split by responsibility into
+  `notification-claim.ts` (claim and reclaim), `notification-failure.ts` (resolution, budget,
+  fallback) and `notifications.ts` (enqueue, reads, cancellation).
+
+Verification — 13 new tests against real D1:
+
+- Two overlapping sweeps over six due rows produce exactly six provider sends.
+- A claim moves rows to `processing`, stamps `claimed_at`, hides them from the pending read, and
+  leaves nothing for a second claim to take.
+- `markNotificationSent` on a row the caller does not hold is a no-op.
+- A fresh claim is left alone; one past the timeout returns to `pending` with an attempt spent,
+  `claimed_at` cleared, a `claim_expired` reason and a deferred `send_at`, and is delivered later.
+- Reclaims consume the attempt budget, so a repeatedly dying run retires the row, creating its
+  fallback exactly once.
+- `sent + retrying + failed + contended` equals `selected + reclaimed` on every run, including when
+  two sweeps race the same stale claim.
+- Migration `0014` is tested for data preservation and for the partial index.
+
+Limits of the evidence: delivery remains at-least-once by design. An invocation that dies after the
+provider accepted a message but before the row was marked sent will send it again when the claim
+expires. Closing that needs provider-side idempotency keys, not a database change. What the claim
+removes is the routine case — every overlapping tick re-dispatching the entire window.
 
 Note: AR-03 is superseded if the queue migration under P0-018 lands first. See section 6.
 

@@ -114,7 +114,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-006 | Partial  | Event creation wizard and Mapbox venue selection                     | EC-01 through EC-05 complete; EC-06 code complete with WAF evidence pending; finish EC-07 through EC-10 and verify production credentials                                                                                                                                                                                                               |
 | P1-007 | Complete | Event feed/detail, virtualization, SEO metadata                      | Full prerender verification remains under P1-020                                                                                                                                                                                                                                                                                                        |
 | P1-008 | Partial  | Immediate idempotent RSVP and cancellation                           | Full-capacity atomicity is fixed and proven by AR-04: a rejected RSVP writes nothing, a duplicate returns the typed `already_rsvpd`, and counter and attendee rows are asserted to agree. Remaining: `§10` requires Turnstile on RSVP and it is absent                                                                                                  |
-| P1-009 | Blocked  | PWA push primary, SMS fallback, email-specific delivery              | AR-02 delivered the reachable fallback and guaranteed terminal state. Still blocked: CO-02 owns alarms and the Queue, AR-03 the claim/lease that makes delivery better than at-least-once, AR-06 the `ar`/`fr`/`en` notification copy; CO-05/06/08 add idempotent host, attendee, correction, and did-not-happen delivery                               |
+| P1-009 | Blocked  | PWA push primary, SMS fallback, email-specific delivery              | AR-02 delivered the reachable fallback and guaranteed terminal state. Still blocked: CO-02 owns alarms and the Queue, AR-03 gave it an atomic claim so overlapping sweeps no longer re-dispatch the window, AR-06 owns the `ar`/`fr`/`en` notification copy; CO-05/06/08 add idempotent host, attendee, correction, and did-not-happen delivery         |
 | P1-010 | Partial  | Live event Durable Object/WebSocket experience                       | Verify per-message session expiry, heartbeat cleanup, and cancellation behavior                                                                                                                                                                                                                                                                         |
 | P1-011 | Future   | Disclosed sponsorship surfaces                                       | Post-community gate; not part of the current release                                                                                                                                                                                                                                                                                                    |
 | P1-012 | Future   | Sponsor media through R2/Images                                      | Post-community gate; not part of the current release                                                                                                                                                                                                                                                                                                    |
@@ -133,41 +133,38 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 ### Immediate sequence
 
 Audit-remediation tickets are tracked in the
-[Audit Remediation Plan](./audit-remediation-plan.md). Four are closed as of 2026-09-02: **AR-01**
+[Audit Remediation Plan](./audit-remediation-plan.md). Five are closed as of 2026-09-02: **AR-01**
 (dependency-audit gate), **AR-11** (300-line cap, and the toolchain that enforces it), **AR-04**
-(RSVP capacity atomicity and typed duplicate), and **AR-02** (terminal state and a reachable
-notification fallback). CI is green and staging is deployed.
+(RSVP capacity atomicity and typed duplicate), **AR-02** (terminal state and a reachable
+notification fallback), and **AR-03** (atomic claim before dispatch). CI is green and staging is
+deployed.
 
-1. **AR-03 — claim scheduled notifications before dispatch.** It now follows directly from AR-02:
-   the sweep resolves every row it selects, but two overlapping sweeps still select the same rows,
-   so delivery is at-least-once and a row can be sent twice. This is the last correctness gap in the
-   delivery path that does not require the scheduler rewrite.
-2. **Plan 1 — close the EC-06 WAF account gate, then EC-07 through EC-10:** finish the
+1. **Plan 1 — close the EC-06 WAF account gate, then EC-07 through EC-10:** finish the
    [Event Creation Remediation Plan](./event-creation-remediation-plan.md), including local and
    staging release evidence. Do not begin Plan 2 production work before EC-10 is Complete.
-3. **AR-05 and AR-12 alongside Plan 1.** AR-05 meters the three anonymous map endpoints, which the
+2. **AR-05 and AR-12 alongside Plan 1.** AR-05 meters the three anonymous map endpoints, which the
    creation wizard itself calls and which proxy paid Mapbox requests. AR-12 closes the `api.ts`
    boundary in `features/`, where one live violation already sits, and widens the rule so a second
    one cannot land unnoticed.
-4. **Plan 2 — CO-01 immediately after EC-10:** begin the
+3. **Plan 2 — CO-01 immediately after EC-10:** begin the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
    with the operating contract and baseline.
-5. **CO-02 / P0-018 / P1-009:** replace one-minute polling with per-event Durable Object alarms
+4. **CO-02 / P0-018 / P1-009:** replace one-minute polling with per-event Durable Object alarms
    feeding a Notifications Queue, and bind that queue — no wrangler config binds one today, so the
    `queue` consumer in `worker-jobs` is unreachable once deployed. AR-13 belongs here: the sweep
    still casts notification payloads rather than parsing them, and CO-02 rewrites the same code.
-6. **CO-03 through CO-11 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout, attendance,
+5. **CO-03 through CO-11 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout, attendance,
    feedback, repeat-host support, the secure correlated-identity admin surface, trust/moderation,
    weekly reviews, metrics, a real rollback flag, and three-checkpoint staged operations
    verification in the documented order.
-7. **AR-06 through AR-10:** close the remaining audited security, i18n, enforcement, and hygiene
+6. **AR-06 through AR-10:** close the remaining audited security, i18n, enforcement, and hygiene
    deviations alongside the operations work. AR-08 (no CSP or security headers exist anywhere) and
    AR-09 (no coverage gates; apps carry no `layer:*` tag) are the two with the widest blast radius.
-8. **P0-007/P1-004/P0-019:** complete remaining market/home-location and dated deployment evidence
+7. **P0-007/P1-004/P0-019:** complete remaining market/home-location and dated deployment evidence
    where it blocks the community operations flow. P0-019 now has a concrete inventory: no
    `FIREBASE_*`, `CF_ACCESS_*`, or `TWILIO_SMS_FROM` secret is set in staging, and admin fails
    closed with 403 until `CF_ACCESS_*` is configured.
-9. Complete only the moderation, trust, PWA, accessibility, performance, and operational work
+8. Complete only the moderation, trust, PWA, accessibility, performance, and operational work
    required to run the community reliably. Do not pull future sponsorship, challenge, talent,
    payment, or expansion work into this sequence.
 

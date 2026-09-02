@@ -154,3 +154,39 @@ describe('0013 — notification fallback link (real D1)', () => {
     );
   });
 });
+
+describe('0014 — notification claim (real D1)', () => {
+  it('adds claimed_at without losing existing notifications', async () => {
+    const { suffix, event, apply } = await atMigration(
+      '0014_fearless_secret_warriors.sql',
+    );
+    const rowId = `ntf_claim_${suffix}`;
+
+    await env.PRIOR_DB.prepare(
+      `INSERT INTO scheduled_notifications
+         (id, event_id, user_id, channel, status, template_key, payload, send_at,
+          attempts, fallback_channel, created_at, updated_at)
+       VALUES (?, ?, ?, 'sms', 'pending', 'rsvp_confirmation', '{"smsBody":"hi"}',
+               4102444800, 0, 'email', unixepoch(), unixepoch())`,
+    )
+      .bind(rowId, event.id, priorHost.id)
+      .run();
+
+    await apply();
+
+    const persisted = await env.PRIOR_DB.prepare(
+      'SELECT id, status, claimed_at FROM scheduled_notifications WHERE id = ?',
+    )
+      .bind(rowId)
+      .first<{ id: string; status: string; claimed_at: number | null }>();
+
+    expect(persisted).toEqual({
+      id: rowId,
+      status: 'pending',
+      claimed_at: null,
+    });
+    expect(await indexNames('scheduled_notifications')).toContain(
+      'idx_scheduled_notifications_processing',
+    );
+  });
+});

@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AppError, err, ok } from '@founders-coffee/core';
 import type { EmailProvider, SendEmailInput } from '@founders-coffee/email';
-import type {
-  NotificationSmsProvider,
-  SendNotificationSmsResult,
-} from '@founders-coffee/notifications';
+import type { NotificationSmsProvider } from '@founders-coffee/notifications';
 
 import { processNotification } from './notifications.js';
 

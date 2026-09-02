@@ -1,6 +1,7 @@
 import { id } from '@founders-coffee/core';
 import {
-  listPendingNotifications,
+  claimDueNotifications,
+  listStaleClaims,
   markNotificationFailed,
   markNotificationSent,
 } from '@founders-coffee/db';
@@ -22,6 +23,8 @@ export interface SweepReport {
   readonly failed: number;
   readonly unroutable: number;
   readonly fallbacksCreated: number;
+  readonly reclaimed: number;
+  readonly contended: number;
 }
 
 const errorMessage = (error: unknown): string =>
@@ -52,21 +55,35 @@ const dispatch = async (
  * Cron-driven sweep: takes the oldest due notifications, dispatches each on its channel, and
  * resolves every one of them.
  *
- * "Resolves every one" is the invariant this function exists to hold. `listPendingNotifications`
+ * "Resolves every one" is the invariant this function exists to hold. `claimDueNotifications`
  * returns a bounded window of the oldest due rows, so any row that can be selected without being
  * advanced occupies a slot in that window on every subsequent sweep. Enough of them and the window
  * fills with rows that can never leave it, and delivery stops on every channel at once — silently,
  * because nothing errors. Each path below therefore ends in `markNotificationSent` or
- * `markNotificationFailed`: a channel with no configured provider is terminal, a provider that
- * throws is a retryable failure, and a row whose bookkeeping itself fails is retried rather than
- * abandoning the rest of the window.
+ * `markNotificationFailed` — through the shared `recordFailure`, so a reclaimed row and a failed
+ * dispatch are accounted identically. A channel with no configured provider is terminal, a provider
+ * that throws is a retryable failure, and a row whose bookkeeping itself fails is retried rather
+ * than abandoning the rest of the window. `sent + retrying + failed + contended` therefore equals
+ * `selected + reclaimed` on every run, `contended` being rows another sweep resolved first.
  *
- * Two bounds are deliberately left to AR-03, which adds the claim/lease this does not have. Two
- * overlapping sweeps both select the same rows, so a row can be dispatched twice; delivery is
- * at-least-once, not exactly-once. The `status = 'pending'` guard inside `markNotificationFailed`
- * still means only one of them advances the row, and `fallback_of` still means only one fallback
- * is created. A D1 write failure also leaves a row untouched — the store being unavailable is the
- * one case where state cannot be recorded, and the next sweep retries it.
+ * Rows are claimed before anything is dispatched. Each sweep makes an outbound provider call per
+ * row, so a run can outlast the one-minute cron tick; without the claim the next tick re-selected
+ * the same `pending` rows and sent them all again. `claimDueNotifications` moves the window to
+ * `processing` in one guarded statement and returns exactly the rows this caller won, so
+ * overlapping sweeps operate on disjoint sets.
+ *
+ * Stale claims are released first, before new work is taken. An invocation that dies between
+ * claiming and resolving leaves rows `processing` with nothing to advance them, so each sweep
+ * routes anything past the claim timeout through the ordinary failure path — spending one attempt
+ * and either deferring the row or retiring it, which is what stops a repeatedly dying run from
+ * reclaiming the same row forever.
+ *
+ * Delivery remains at-least-once, and deliberately so: an invocation that dies after the provider
+ * accepted a message but before the row was marked sent will send it again when the claim expires.
+ * Closing that needs provider-side idempotency keys, not a database change. What the claim removes
+ * is the routine case — every overlapping tick re-dispatching the entire window. A D1 write failure
+ * likewise leaves a row claimed; the store being unavailable is the one case where state cannot be
+ * recorded, and the claim timeout is what brings the row back.
  */
 export const sweepNotifications = async (
   db: Db,
@@ -74,57 +91,78 @@ export const sweepNotifications = async (
   now: Date = new Date(),
 ): Promise<SweepReport> => {
   const dispatchers = buildDispatchers(db, providers);
-  const pending = await listPendingNotifications(db, {
-    limit: SWEEP_LIMIT,
-    now,
-  });
+  const tally = {
+    sent: 0,
+    retrying: 0,
+    failed: 0,
+    fallbacksCreated: 0,
+    contended: 0,
+  };
 
-  let sent = 0;
-  let retrying = 0;
-  let failedCount = 0;
-  let unroutable = 0;
-  let fallbacksCreated = 0;
-
-  for (const notification of pending) {
-    const dispatcher = dispatchers[notification.channel];
-
-    const outcome: DispatchOutcome = dispatcher
-      ? await dispatch(dispatcher, notification)
-      : {
-          kind: 'failed',
-          permanent: true,
-          error: `no_provider: channel '${notification.channel}' is not configured`,
-        };
-    if (!dispatcher) unroutable++;
-
+  const recordFailure = async (
+    notification: ScheduledNotification,
+    error: string,
+    permanent: boolean,
+  ): Promise<void> => {
     try {
-      if (outcome.kind === 'sent') {
-        await markNotificationSent(db, { id: notification.id });
-        sent++;
-        continue;
-      }
-
       const failure = await markNotificationFailed(db, {
         id: notification.id,
-        error: outcome.error,
-        permanent: outcome.permanent,
+        error,
+        permanent,
         fallbackId: id('ntf'),
         now,
       });
-      if (failure.fallbackCreated) fallbacksCreated++;
-      if (failure.status === 'failed') failedCount++;
-      else if (failure.status === 'pending') retrying++;
+      if (failure.fallbackCreated) tally.fallbacksCreated++;
+      if (failure.status === 'failed') tally.failed++;
+      else if (failure.status === 'pending') tally.retrying++;
+      else tally.contended++;
     } catch {
-      retrying++;
+      tally.retrying++;
+    }
+  };
+
+  const stale = await listStaleClaims(db, { limit: SWEEP_LIMIT, now });
+  for (const abandoned of stale) {
+    await recordFailure(
+      abandoned,
+      'claim_expired: the sweep holding this row did not complete',
+      false,
+    );
+  }
+
+  const claimed = await claimDueNotifications(db, { limit: SWEEP_LIMIT, now });
+  let unroutable = 0;
+
+  for (const notification of claimed) {
+    const dispatcher = dispatchers[notification.channel];
+    if (!dispatcher) {
+      unroutable++;
+      await recordFailure(
+        notification,
+        `no_provider: channel '${notification.channel}' is not configured`,
+        true,
+      );
+      continue;
+    }
+
+    const outcome = await dispatch(dispatcher, notification);
+    if (outcome.kind === 'failed') {
+      await recordFailure(notification, outcome.error, outcome.permanent);
+      continue;
+    }
+
+    try {
+      await markNotificationSent(db, { id: notification.id });
+      tally.sent++;
+    } catch {
+      tally.retrying++;
     }
   }
 
   return {
-    selected: pending.length,
-    sent,
-    retrying,
-    failed: failedCount,
+    selected: claimed.length,
+    reclaimed: stale.length,
     unroutable,
-    fallbacksCreated,
+    ...tally,
   };
 };
