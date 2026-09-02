@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-07, AR-11 and AR-12 complete; AR-08 through AR-10 and AR-13 planned                                                                                                         |
+| Status         | Active; AR-01 through AR-07, AR-11 and AR-12 complete; AR-08 partial; AR-09, AR-10 and AR-13 planned                                                                                                 |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -677,9 +677,10 @@ revisiting when AR-13 lands.
 
 **Parent:** P1-018
 **Requirements:** NFR-4
-**Status:** Planned
+**Status:** Partial — headers enforced 2026-09-02; CSP report-only pending measurement
 
-Closes F-09.
+Closes F-09 for the header set. The CSP is shipped but not yet enforcing; see the boundary at the
+end of this ticket.
 
 Current behavior: searching the repository for `Content-Security-Policy`, `Strict-Transport-Security`,
 `X-Frame-Options`, or `nonce` returns nothing. `AGENTS.md` §10 requires a secure-headers middleware
@@ -697,11 +698,52 @@ Work:
 - Add `Strict-Transport-Security`, `X-Content-Type-Options`, `Referrer-Policy`, and a frame policy.
 - Roll out in report-only mode first and record the violations observed before enforcing.
 
-Verification:
+Completion evidence:
 
-- An integration test asserts the headers are present on document and server-function responses.
-- A Playwright pass over the host wizard, login, and event detail records zero CSP violations in
-  enforcing mode across `ar`, `fr`, and `en`.
+- `libs/core/src/security-headers.ts` holds the shared policy, applied at the Worker entry of both
+  `apps/ui` and `apps/admin`. It sits at the entry rather than inside the router so it covers
+  documents, assets, server-function responses, the auth handler and error responses alike — a
+  header that only lands on some responses is the one an attacker uses. All seven return paths in
+  the public Worker are wrapped.
+- Enforced immediately, because none of them can change how a page renders:
+  `Strict-Transport-Security` (one year, `includeSubDomains`), `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, and a
+  `Permissions-Policy` that denies every sensor and payment capability and allows geolocation only
+  to the app itself.
+- The CSP enumerates exactly the three approved integrations, each justified against the built
+  bundle: Turnstile needs `script-src` and `frame-src`; Mapbox needs `api`, `events` and `*.tiles`
+  hosts plus `blob:` in `worker-src` for its renderer and `blob:`/`data:` in `img-src` for tiles;
+  Firebase needs two `connect-src` hosts and no script source because the SDK is bundled.
+  `base-uri`, `object-src` and `frame-ancestors` are `'none'`; `form-action` and `default-src` are
+  `'self'`.
+- Audited rather than assumed: every `https://` origin reachable from the built client bundle was
+  extracted and checked against the policy. All five runtime origins are covered, and the policy
+  admits nothing beyond them — a test asserts that set cannot grow silently.
+- A `/csp-report` endpoint on the public Worker feeds violations to the structured logger, so
+  report-only mode actually reports somewhere. Reporting to nowhere would have made the required
+  measurement impossible.
+
+Verification — 11 unit tests covering the header set, report-only versus enforced, the locked-down
+directives, the absence of `'unsafe-inline'` and `'unsafe-eval'` in `script-src`, the approved-origin
+allowlist, report-endpoint wiring, source merging, and that the wrapper preserves body, status,
+statusText and pre-existing headers on document, JSON and error responses.
+
+Boundary — what is deliberately not done, and why:
+
+- **The CSP ships report-only.** `CSP_ENFORCED=true` flips it per environment. The plan's own risk
+  section says the report-only phase is not optional, and the ticket requires recording observed
+  violations before enforcing.
+- **Script nonces are not wired.** TanStack emits three inline scripts and its nonce option lives at
+  `router.options.ssr.nonce`, inside a `getRouter()` factory that takes no request and runs on both
+  client and server. Threading a per-request value through it is real work that cannot be verified
+  without a browser. `script-src` therefore carries neither `'unsafe-inline'` nor a nonce, which is
+  what makes the report tell us precisely which inline scripts need one.
+- **`style-src` keeps `'unsafe-inline'`**, recorded rather than hidden: React writes inline `style`
+  attributes and streaming SSR inserts a style element before hydration. Removing it needs a style
+  nonce on the same path as the script nonce.
+- **The Playwright pass across `ar`, `fr` and `en` has not been run.** It needs a browser driven
+  against a deployed environment. Enforcing is gated on it, and on the reports the new endpoint
+  collects.
 
 ### AR-09 — Repair the two enforcement mechanisms
 

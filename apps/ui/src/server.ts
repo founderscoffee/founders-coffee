@@ -2,8 +2,10 @@ import '@founders-coffee/observability/server-init';
 import handler from '@tanstack/react-start/server-entry';
 
 import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
+import { withSecurityHeaders } from '@founders-coffee/core';
 import {
   ingestClientLogs,
+  logger,
   type LogEntry,
 } from '@founders-coffee/observability';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
@@ -16,7 +18,10 @@ export interface UiEnv extends HandlerEnv {
   EMAIL: SendEmail;
   MAIL_FROM: string;
   EVENT_LIVE: DurableObjectNamespace;
+  CSP_ENFORCED?: string;
 }
+
+const CSP_REPORT_PATH = '/csp-report';
 
 /**
  * Build the Better Auth handler with the OTP email provider wired (prod). Dev (localhost) keeps the
@@ -33,21 +38,43 @@ const authHandler = (env: UiEnv) => {
 };
 
 export default {
+  /**
+   * Serve the request, then stamp every response with the security headers (AGENTS.md §10).
+   *
+   * The wrapper sits at the entry rather than inside the router so it covers documents, assets,
+   * server-function responses and the auth handler alike — a header that only lands on some responses
+   * is the one an attacker uses. The CSP ships report-only until the violations it reports have been
+   * measured; `CSP_ENFORCED=true` flips it per environment.
+   */
   fetch: async (request: Request, env: UiEnv): Promise<Response> => {
     const url = new URL(request.url);
+    const secure = (response: Response): Response =>
+      withSecurityHeaders(response, {
+        enforceCsp: env.CSP_ENFORCED === 'true',
+        reportPath: CSP_REPORT_PATH,
+      });
+
+    if (url.pathname === CSP_REPORT_PATH && request.method === 'POST') {
+      const report = await request.json().catch(() => null);
+      if (report) logger.warn('csp.violation', { report });
+      return secure(new Response(null, { status: 204 }));
+    }
 
     if (url.pathname.startsWith('/api/live/')) {
       const eventId = url.pathname.split('/api/live/')[1]?.split('/')[0];
-      if (!eventId) return new Response('Missing event id', { status: 400 });
+      if (!eventId)
+        return secure(new Response('Missing event id', { status: 400 }));
 
       const upgradeHeader = request.headers.get('Upgrade');
       if (upgradeHeader !== 'websocket') {
-        return new Response('Expected WebSocket upgrade', { status: 426 });
+        return secure(
+          new Response('Expected WebSocket upgrade', { status: 426 }),
+        );
       }
 
       const doId = env.EVENT_LIVE.idFromName(`event:${eventId}`);
       const doStub = env.EVENT_LIVE.get(doId);
-      return doStub.fetch(request);
+      return secure(await doStub.fetch(request));
     }
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
@@ -56,9 +83,10 @@ export default {
       } | null;
       if (body && Array.isArray(body.entries))
         ingestClientLogs(body.entries as LogEntry[]);
-      return new Response(null, { status: 204 });
+      return secure(new Response(null, { status: 204 }));
     }
-    if (url.pathname.startsWith('/api/auth/')) return authHandler(env)(request);
-    return handler.fetch(request);
+    if (url.pathname.startsWith('/api/auth/'))
+      return secure(await authHandler(env)(request));
+    return secure(await handler.fetch(request));
   },
 } satisfies ExportedHandler<UiEnv>;
