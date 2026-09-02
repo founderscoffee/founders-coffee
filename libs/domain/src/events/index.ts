@@ -24,6 +24,7 @@ export {
   eventCreateSchema,
   eventDescriptionSchema,
   eventLanguageSchema,
+  eventScheduleSchema,
   eventTitleSchema,
   eventVenueAddressSchema,
   eventVenueNameSchema,

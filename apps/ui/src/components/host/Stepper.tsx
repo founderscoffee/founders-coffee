@@ -6,6 +6,8 @@ type StepperProps = {
   total: number;
   segments?: ReactNode[];
   labels?: ReactNode[];
+  ariaLabel?: string;
+  statusText?: string;
 };
 
 const stepCircleClass = (done: boolean, active: boolean) =>
@@ -20,19 +22,43 @@ const stepCircleClass = (done: boolean, active: boolean) =>
     .filter(Boolean)
     .join(' ');
 
+const stepLabelClass = (index: number, total: number) => {
+  const position =
+    index === 0
+      ? 'start-0 text-start'
+      : index === total - 1
+        ? 'end-0 text-end'
+        : 'start-1/2 -translate-x-1/2 text-center rtl:translate-x-1/2';
+  return `absolute top-0 w-28 text-xs font-medium leading-snug text-base-content/55 ${position}`;
+};
+
 export const Stepper = ({
   current,
   total,
   segments = [],
   labels = [],
+  ariaLabel,
+  statusText,
 }: StepperProps) => {
   const hasLabels = labels.some(
     (label) => label != null && label !== false && label !== '',
   );
 
   return (
-    <div className="w-full">
-      <div className="flex w-full items-center">
+    <nav className="w-full" aria-label={ariaLabel}>
+      {statusText && (
+        <p className="sr-only" role="status" aria-live="polite">
+          {statusText}
+        </p>
+      )}
+      <ol className="sr-only">
+        {Array.from({ length: total }, (_, i) => (
+          <li key={i + 1} aria-current={i + 1 === current ? 'step' : undefined}>
+            {labels[i] ?? i + 1}
+          </li>
+        ))}
+      </ol>
+      <div className="flex w-full items-center" aria-hidden="true">
         {Array.from({ length: total }, (_, i) => {
           const n = i + 1;
           const done = n < current;
@@ -47,7 +73,7 @@ export const Stepper = ({
                 <div className="relative mx-1 flex min-h-11 flex-1 items-center justify-center sm:mx-3">
                   <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-base-300" />
                   <div
-                    className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-primary transition-all duration-500"
+                    className="absolute start-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-primary transition-all duration-500"
                     style={{ width: done ? '100%' : '0%' }}
                   />
                   {segments[i] && (
@@ -67,9 +93,7 @@ export const Stepper = ({
           {Array.from({ length: total }, (_, i) => (
             <Fragment key={`label-${i + 1}`}>
               <div className="relative flex w-11 shrink-0 justify-center">
-                <p className="absolute left-1/2 top-0 w-28 -translate-x-1/2 text-center text-xs font-medium leading-snug text-base-content/55">
-                  {labels[i]}
-                </p>
+                <p className={stepLabelClass(i, total)}>{labels[i]}</p>
               </div>
               {i < total - 1 ? (
                 <div className="mx-1 flex-1 sm:mx-3" aria-hidden="true" />
@@ -78,6 +102,6 @@ export const Stepper = ({
           ))}
         </div>
       ) : null}
-    </div>
+    </nav>
   );
 };

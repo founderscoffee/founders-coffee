@@ -2,7 +2,14 @@ import { useEffect, useRef } from 'react';
 import { PluginRegistry, TimepickerUI } from 'timepicker-ui';
 import { RangePlugin } from 'timepicker-ui/plugins/range';
 
-import { host_time, type Locale } from '@founders-coffee/i18n';
+import {
+  host_time,
+  host_time_cancel,
+  host_time_from,
+  host_time_ok,
+  host_time_to,
+  type Locale,
+} from '@founders-coffee/i18n';
 
 PluginRegistry.register(RangePlugin);
 
@@ -12,12 +19,6 @@ type TimePickerProps = {
   onChange: (from: string, to: string) => void;
   locale: Locale;
 };
-
-const LABELS = {
-  ar: { ok: 'موافق', cancel: 'إلغاء', fromLabel: 'من', toLabel: 'إلى' },
-  en: { ok: 'OK', cancel: 'Cancel', fromLabel: 'Start', toLabel: 'End' },
-  fr: { ok: 'Valider', cancel: 'Annuler', fromLabel: 'Début', toLabel: 'Fin' },
-} as const;
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -45,17 +46,22 @@ export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
     const el = inputRef.current;
     if (!el) return;
 
-    const l = LABELS[locale];
+    const labels = {
+      ok: host_time_ok({}, { locale }),
+      cancel: host_time_cancel({}, { locale }),
+      fromLabel: host_time_from({}, { locale }),
+      toLabel: host_time_to({}, { locale }),
+    };
     const picker = new TimepickerUI(el, {
       clock: { type: '24h' },
       range: {
         enabled: true,
         minDuration: 30,
         maxDuration: 480,
-        fromLabel: l.fromLabel,
-        toLabel: l.toLabel,
+        fromLabel: labels.fromLabel,
+        toLabel: labels.toLabel,
       },
-      labels: { ok: l.ok, cancel: l.cancel },
+      labels: { ok: labels.ok, cancel: labels.cancel },
       callbacks: {
         onRangeConfirm: (data) => {
           if (data.from && data.to) onChangeRef.current(data.from, data.to);
@@ -105,6 +111,7 @@ export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
   return (
     <input
       ref={inputRef}
+      id="host-schedule"
       type="text"
       readOnly
       defaultValue={`${from} - ${to}`}

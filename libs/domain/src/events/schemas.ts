@@ -58,6 +58,50 @@ export const eventCapacitySchema = z
 export const eventLanguageSchema = z.enum(EVENT_LANGUAGES);
 export const eventCategorySchema = z.enum(EVENT_CATEGORIES);
 
+const addScheduleIssues = (
+  input: { startsAt: number; endsAt: number },
+  context: z.RefinementCtx,
+) => {
+  if (input.startsAt <= Date.now()) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Event start must be in the future',
+      path: ['startsAt'],
+    });
+  }
+
+  const duration = input.endsAt - input.startsAt;
+  if (duration <= 0) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Event end must be after its start',
+      path: ['endsAt'],
+    });
+    return;
+  }
+  if (duration < EVENT_DURATION_MS_MIN) {
+    context.addIssue({
+      code: 'custom',
+      message: `Event duration must be at least ${EVENT_DURATION_MINUTES_MIN} minutes`,
+      path: ['endsAt'],
+    });
+  }
+  if (duration > EVENT_DURATION_MS_MAX) {
+    context.addIssue({
+      code: 'custom',
+      message: `Event duration must not exceed ${EVENT_DURATION_MINUTES_MAX} minutes`,
+      path: ['endsAt'],
+    });
+  }
+};
+
+export const eventScheduleSchema = z
+  .object({
+    startsAt: z.number().int().positive(),
+    endsAt: z.number().int().positive(),
+  })
+  .superRefine(addScheduleIssues);
+
 export const eventCreateSchema = z
   .object({
     marketCode: marketCodeSchema,
@@ -75,39 +119,7 @@ export const eventCreateSchema = z
     category: eventCategorySchema,
   })
   .strict()
-  .superRefine((input, context) => {
-    if (input.startsAt <= Date.now()) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Event start must be in the future',
-        path: ['startsAt'],
-      });
-    }
-
-    const duration = input.endsAt - input.startsAt;
-    if (duration <= 0) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Event end must be after its start',
-        path: ['endsAt'],
-      });
-      return;
-    }
-    if (duration < EVENT_DURATION_MS_MIN) {
-      context.addIssue({
-        code: 'custom',
-        message: `Event duration must be at least ${EVENT_DURATION_MINUTES_MIN} minutes`,
-        path: ['endsAt'],
-      });
-    }
-    if (duration > EVENT_DURATION_MS_MAX) {
-      context.addIssue({
-        code: 'custom',
-        message: `Event duration must not exceed ${EVENT_DURATION_MINUTES_MAX} minutes`,
-        path: ['endsAt'],
-      });
-    }
-  });
+  .superRefine(addScheduleIssues);
 
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;
 export type EventLanguage = z.infer<typeof eventLanguageSchema>;

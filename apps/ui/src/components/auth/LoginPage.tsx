@@ -10,6 +10,7 @@ import {
   login_or,
   login_resend,
   login_send_code,
+  login_send_error,
   login_title,
   login_verify,
   login_wrong_code,
@@ -20,6 +21,7 @@ import { Button, Input } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
+import { onboardingRedirectPath } from '../../lib/redirect';
 import { Turnstile } from './Turnstile';
 
 const OAUTH_PROVIDERS = ['google', 'github', 'linkedin'] as const;
@@ -56,7 +58,7 @@ export const LoginPage = ({
     );
     setBusy(false);
     if (sendError) {
-      setError(sendError.message ?? 'error');
+      setError(login_send_error({}, { locale }));
       return;
     }
     setStep('otp');
@@ -77,11 +79,17 @@ export const LoginPage = ({
     const needsOnboarding = !(
       data?.user as { homeMarketCode?: string } | null | undefined
     )?.homeMarketCode;
-    window.location.href = needsOnboarding ? '/onboarding' : redirect;
+    window.location.href = needsOnboarding
+      ? onboardingRedirectPath(redirect)
+      : redirect;
   };
 
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
-    authClient.signIn.social({ provider, callbackURL: redirect });
+    authClient.signIn.social({
+      provider,
+      callbackURL: redirect,
+      newUserCallbackURL: onboardingRedirectPath(redirect),
+    });
 
   const abortRef = useRef<AbortController | null>(null);
 

@@ -125,7 +125,7 @@ export const HostMap = ({
 
   if (hasMapError) {
     return (
-      <div className="flex h-[400px] w-full flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center">
+      <div className="flex min-h-80 w-full flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center md:min-h-96">
         <p className="text-sm text-error" role="alert">
           {host_map_error({}, { locale })}
         </p>
@@ -146,7 +146,7 @@ export const HostMap = ({
 
   return (
     <div
-      className="relative h-[400px] w-full overflow-hidden rounded-2xl border border-base-300 shadow-xl shadow-base-content/5"
+      className="relative h-[clamp(20rem,50vh,30rem)] w-full overflow-hidden rounded-2xl border border-base-300 shadow-xl shadow-base-content/5"
       aria-label={host_map_label({}, { locale })}
     >
       <Map

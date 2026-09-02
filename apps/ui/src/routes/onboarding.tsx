@@ -1,15 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { z } from 'zod';
 
 import { getCities, getStates } from '@founders-coffee/server-fns';
 import type { geo } from '@founders-coffee/domain';
 
 import { OnboardingPage } from '../components/profile/OnboardingPage';
 import { readCookies } from '../lib/cookies';
+import { sameOriginPathSchema } from '../lib/redirect';
 
 export const Route = createFileRoute('/onboarding')({
+  validateSearch: z.object({
+    redirect: sameOriginPathSchema.catch('/').optional().default('/'),
+  }),
   component: () => {
     const { locale, markets } = Route.useRouteContext();
     const { states, cities, initialCountry } = Route.useLoaderData();
+    const { redirect } = Route.useSearch();
     return (
       <OnboardingPage
         locale={locale}
@@ -17,6 +23,7 @@ export const Route = createFileRoute('/onboarding')({
         states={states}
         cities={cities}
         initialCountry={initialCountry}
+        redirect={redirect}
       />
     );
   },

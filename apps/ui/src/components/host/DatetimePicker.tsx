@@ -157,7 +157,7 @@ export const DatetimePicker = ({
     return (
       <div className="flex flex-col gap-3">
         {timeControl}
-        <div className="flex h-[400px] flex-col rounded-[1.25rem] border border-base-300/60 bg-base-100/70 p-5 shadow-xl shadow-base-content/5 backdrop-blur-md md:p-6">
+        <div className="flex min-h-80 flex-col rounded-[1.25rem] border border-base-300/60 bg-base-100/70 p-5 md:p-6">
           {calendar}
         </div>
       </div>

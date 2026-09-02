@@ -57,7 +57,7 @@ describe('VenueSearch', () => {
         onVenueSelect={onVenueSelect}
       />,
     );
-    const searchbox = screen.getByRole('searchbox', {
+    const searchbox = screen.getByRole('combobox', {
       name: 'Search cafés and coworking venues',
     });
 
@@ -108,7 +108,7 @@ describe('VenueSearch', () => {
       />,
     );
 
-    const searchbox = screen.getByRole('searchbox', {
+    const searchbox = screen.getByRole('combobox', {
       name: 'Search cafés and coworking venues',
     });
     expect(searchbox.hasAttribute('disabled')).toBe(true);
@@ -118,5 +118,44 @@ describe('VenueSearch', () => {
       locale: 'en',
       query: '',
     });
+  });
+
+  it('supports arrow-key navigation and Enter selection', async () => {
+    const onChange = vi.fn();
+    const onVenueSelect = vi.fn();
+    const view = render(
+      <VenueSearch
+        locale="en"
+        cityName="Algiers"
+        cityCode="1"
+        marketCode="DZ"
+        value=""
+        onChange={onChange}
+        onVenueSelect={onVenueSelect}
+      />,
+    );
+    const searchbox = screen.getByRole('combobox', {
+      name: 'Search cafés and coworking venues',
+    });
+    fireEvent.focus(searchbox);
+    fireEvent.change(searchbox, { target: { value: 'cafe' } });
+    view.rerender(
+      <VenueSearch
+        locale="en"
+        cityName="Algiers"
+        cityCode="1"
+        marketCode="DZ"
+        value="cafe"
+        onChange={onChange}
+        onVenueSelect={onVenueSelect}
+      />,
+    );
+    await screen.findByRole('option', { name: /Founders Café/ });
+    fireEvent.keyDown(searchbox, { key: 'ArrowDown' });
+    expect(searchbox.getAttribute('aria-activedescendant')).toBe(
+      'venue-search-option-0',
+    );
+    fireEvent.keyDown(searchbox, { key: 'Enter' });
+    expect(onVenueSelect).toHaveBeenCalledWith(venue);
   });
 });

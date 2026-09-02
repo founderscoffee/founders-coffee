@@ -16,7 +16,7 @@ const HostMap = lazy(() =>
 );
 
 const MapSkeleton = () => (
-  <div className="h-[400px] w-full rounded-2xl bg-base-200" />
+  <div className="min-h-80 w-full rounded-2xl bg-base-200 md:min-h-96" />
 );
 
 export const HostMapPanel = ({
@@ -56,7 +56,7 @@ export const HostMapPanel = ({
           onVenueInvalidate={onVenueInvalidate}
         />
       ) : isError ? (
-        <div className="flex h-[400px] flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center">
+        <div className="flex min-h-80 flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center md:min-h-96">
           <p className="text-sm text-error" role="alert">
             {host_map_error({}, { locale })}
           </p>
@@ -66,7 +66,7 @@ export const HostMapPanel = ({
         </div>
       ) : (
         <div
-          className="flex h-[400px] items-center justify-center rounded-2xl bg-base-200"
+          className="flex min-h-80 items-center justify-center rounded-2xl bg-base-200 md:min-h-96"
           role="status"
         >
           <span className="loading loading-spinner me-2" />

@@ -1,5 +1,5 @@
 import { MapPin, RefreshCw } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import {
@@ -13,6 +13,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { useVenueSearch } from '../../features/events/hooks';
+import { VENUE_SEARCH_MAX_LENGTH } from '../../features/events/types';
 import type { VenueSelection } from '../../features/events/types';
 
 type VenueSearchProps = {
@@ -40,6 +41,8 @@ export const VenueSearch = ({
 }: VenueSearchProps) => {
   const [query, setQuery] = useState(value.trim());
   const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => setQuery(value.trim()), SEARCH_DELAY_MS);
@@ -62,29 +65,68 @@ export const VenueSearch = ({
       ? host_venue_no_results({}, { locale })
       : host_venue_search_error({}, { locale });
 
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [query, results.length]);
+
+  const chooseVenue = (venue: VenueSelection) => {
+    setIsOpen(false);
+    setActiveIndex(-1);
+    onVenueSelect(venue);
+  };
+
   return (
-    <div className="relative">
+    <div
+      ref={rootRef}
+      className="relative"
+      onBlur={(event) => {
+        if (!rootRef.current?.contains(event.relatedTarget)) setIsOpen(false);
+      }}
+    >
       <label htmlFor="venue-search" className="sr-only">
         {host_venue_search_label({}, { locale })}
       </label>
       <input
         id="venue-search"
+        maxLength={VENUE_SEARCH_MAX_LENGTH}
         type="search"
         className="input input-bordered h-14 w-full rounded-xl bg-base-100 text-base"
         placeholder={host_venue_search_ph({ city: cityName }, { locale })}
         value={value}
         disabled={isDisabled}
         autoComplete="off"
+        role="combobox"
         aria-controls="venue-search-results"
-        aria-expanded={
-          isResultsVisible && (search.isFetching || results.length > 0)
-        }
+        aria-expanded={isResultsVisible}
         aria-autocomplete="list"
+        aria-activedescendant={
+          activeIndex >= 0 ? `venue-search-option-${activeIndex}` : undefined
+        }
         onFocus={() => {
           if (!isDisabled) setIsOpen(true);
         }}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') setIsOpen(false);
+          if (event.key === 'Escape') {
+            setIsOpen(false);
+            setActiveIndex(-1);
+          }
+          if (event.key === 'ArrowDown' && results.length > 0) {
+            event.preventDefault();
+            setIsOpen(true);
+            setActiveIndex((current) => (current + 1) % results.length);
+          }
+          if (event.key === 'ArrowUp' && results.length > 0) {
+            event.preventDefault();
+            setIsOpen(true);
+            setActiveIndex((current) =>
+              current <= 0 ? results.length - 1 : current - 1,
+            );
+          }
+          if (event.key === 'Enter' && activeIndex >= 0) {
+            event.preventDefault();
+            const selected = results[activeIndex];
+            if (selected) chooseVenue(selected);
+          }
         }}
         onChange={(event) => {
           setIsOpen(true);
@@ -126,17 +168,16 @@ export const VenueSearch = ({
               role="listbox"
               aria-label={host_venue_search_label({}, { locale })}
             >
-              {results.map((venue) => (
+              {results.map((venue, index) => (
                 <li key={venue.providerId} role="presentation">
                   <button
+                    id={`venue-search-option-${index}`}
                     type="button"
                     role="option"
-                    aria-selected="false"
+                    aria-selected={index === activeIndex}
                     className="flex w-full items-start gap-3 border-b border-base-200 p-3 text-start transition last:border-b-0 hover:bg-base-200 focus-visible:bg-base-200"
-                    onClick={() => {
-                      setIsOpen(false);
-                      onVenueSelect(venue);
-                    }}
+                    onFocus={() => setActiveIndex(index)}
+                    onClick={() => chooseVenue(venue)}
                   >
                     <MapPin
                       className="mt-0.5 size-4 shrink-0 text-primary"

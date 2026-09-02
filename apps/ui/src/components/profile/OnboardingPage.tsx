@@ -24,6 +24,7 @@ type OnboardingPageProps = {
   states: readonly geo.GeoState[];
   cities: readonly geo.GeoCity[];
   initialCountry: string;
+  redirect: string;
 };
 
 export const OnboardingPage = ({
@@ -32,6 +33,7 @@ export const OnboardingPage = ({
   states,
   cities,
   initialCountry,
+  redirect,
 }: OnboardingPageProps) => {
   const navigate = useNavigate();
   const updateProfileMutation = useUpdateProfile();
@@ -60,6 +62,10 @@ export const OnboardingPage = ({
     });
     const marketSlug =
       markets.find((m) => m.code === country)?.slug ?? 'algeria';
+    if (redirect !== '/') {
+      window.location.assign(redirect);
+      return;
+    }
     void navigate({ to: '/$market', params: { market: marketSlug } });
     setSaving(false);
   };

@@ -2,9 +2,9 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 through EC-06 complete, EC-07 through EC-10 not started                                                                                                      |
+| Status         | Active; EC-01 through EC-07 complete, EC-08 through EC-10 not started                                                                                                      |
 | Last reviewed  | 2026-09-02                                                                                                                                                                 |
-| Scope          | Authenticated host event creation in `apps/ui`, from route entry through durable D1 persistence and discoverability                                                        |
+| Scope          | Host event creation in `apps/ui`, including the anonymous wizard and authenticated submission through durable D1 persistence and discoverability                           |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
 | Requirements   | FR-G2, FR-G3, FR-G6, FR-E1, FR-E2, FR-E5, FR-E7, FR-E9; NFR-4, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11, NFR-12                                                                 |
 | Related plans  | [Implementation plan](./implementation-plan.md), [Events system plan](./events-system-plan.md), [Community Operations Plan](./community-operations-implementation-plan.md) |
@@ -345,6 +345,27 @@ Verification:
 - Component tests exercise all steps, anonymous final-submit authentication handoff, post-auth draft restoration, locale-change preservation, back/forward state retention, validation messages/focus, unlimited/limited capacity, each language/category, confirmation, sticky actions, submission lock, and Turnstile reset.
 - Accessibility checks cover semantic progress, headings, DOM/reading order, labels, names, keyboard operation, focus, modal labels, and error/status announcements.
 - Render checks cover Arabic RTL and French/English LTR at 390px mobile, 768px tablet, and 1280px desktop widths with no horizontal overflow or truncated essential summary.
+
+Implementation evidence (2026-09-02):
+
+- The four-step wizard now keeps venue, coordinates, timezone-aware schedule, title, description,
+  capacity, language, category, and active step in a versioned, market/city-scoped session draft.
+  The draft excludes Turnstile responses, expires after 24 hours, and is removed only after a
+  successful create mutation.
+- Anonymous visitors reach the full confirmation state before authentication. Email OTP and OAuth
+  use a validated same-origin return path; new accounts complete onboarding first, then return to
+  the confirmation state for a fresh interaction-only Turnstile response and explicit publish.
+- Step validation projects the shared event schemas, focuses the first invalid control, and exposes
+  localized constraints, required status, character counts, inline errors, semantic progress, and
+  a complete untruncated confirmation in `ar`, `fr`, and `en`.
+- Component and utility tests cover auth restoration, locale restoration, back/forward retention,
+  limited and unlimited capacity, every schema-owned language/category option, complete payload,
+  duplicate-submit locking, safe-area actions, safe redirects, first-error focus, malformed draft
+  rejection, and Turnstile reissue. The focused public-app suite passes 42 tests across 10 files.
+- A built-in-browser Arabic RTL check at 390px found an 18px step-label overflow; the logical-edge
+  label alignment was corrected and the same DOM measurement then reported no overflow. The browser
+  safety layer blocked the subsequent reload, so the complete nine-case visual matrix remains
+  explicit EC-09 release evidence rather than being reported as observed here.
 
 ### EC-08 — Complete success, failure, and cache behavior
 

@@ -1,90 +1,237 @@
+import type { events } from '@founders-coffee/domain';
 import {
+  host_capacity,
+  host_capacity_constraints,
+  host_capacity_limited,
+  host_capacity_unlimited,
+  host_capacity_value,
+  host_category,
+  host_character_count,
   host_desc_label,
   host_desc_ph,
+  host_language,
+  host_required,
   host_title_label,
   host_title_ph,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Input } from '@founders-coffee/ui';
 
-import { Turnstile } from '../auth/Turnstile';
-import { ScheduleSummary } from './ScheduleSummary';
+import type { HostCreateFieldErrors } from '../../features/events/host-create-validation';
 
 export const HostDetailsStep = ({
   locale,
-  timeZone,
-  startsAt,
-  endsAt,
   title,
   description,
-  publishError,
-  turnstileSiteKey,
-  isTurnstileBypassed,
-  turnstileResetKey,
+  capacity,
+  language,
+  category,
+  constraints,
+  languageOptions,
+  categoryOptions,
+  errors,
   onTitleChange,
   onDescriptionChange,
-  onTurnstileToken,
+  onCapacityChange,
+  onCapacityLimitChange,
+  onLanguageChange,
+  onCategoryChange,
 }: {
   locale: Locale;
-  timeZone: string;
-  startsAt: number | null;
-  endsAt: number | null;
   title: string;
   description: string;
-  publishError: string | null;
-  turnstileSiteKey: string | null;
-  isTurnstileBypassed: boolean;
-  turnstileResetKey: number;
+  capacity: number;
+  language: events.EventLanguage;
+  category: events.EventCategory;
+  constraints: {
+    titleMin: number;
+    titleMax: number;
+    descriptionMin: number;
+    descriptionMax: number;
+    capacityMax: number;
+  };
+  languageOptions: readonly {
+    value: events.EventLanguage;
+    label: string;
+  }[];
+  categoryOptions: readonly {
+    value: events.EventCategory;
+    label: string;
+  }[];
+  errors: HostCreateFieldErrors;
   onTitleChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onTurnstileToken: (token: string | null) => void;
+  onCapacityChange: (value: number) => void;
+  onCapacityLimitChange: (enabled: boolean) => void;
+  onLanguageChange: (value: events.EventLanguage) => void;
+  onCategoryChange: (value: events.EventCategory) => void;
 }) => (
-  <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">
-    {startsAt !== null && endsAt !== null && (
-      <ScheduleSummary
-        startsAt={startsAt}
-        endsAt={endsAt}
-        locale={locale}
-        timeZone={timeZone}
-      />
-    )}
-    <label className="form-control">
-      <span className="mb-1 text-sm text-base-content/70">
-        {host_title_label({}, { locale })}
+  <div className="grid gap-5">
+    <label className="form-control" htmlFor="host-title">
+      <span className="mb-1 flex items-center justify-between gap-3 text-sm text-base-content/70">
+        <span>{host_title_label({}, { locale })}</span>
+        <span className="text-xs text-base-content/50">
+          {host_required({}, { locale })}
+        </span>
       </span>
       <Input
+        id="host-title"
         value={title}
-        onChange={(e) => onTitleChange(e.target.value)}
+        onChange={(event) => onTitleChange(event.target.value)}
         placeholder={host_title_ph({}, { locale })}
-        maxLength={120}
+        minLength={constraints.titleMin}
+        maxLength={constraints.titleMax}
+        required
+        aria-invalid={!!errors.title}
+        aria-describedby="host-title-count host-title-error"
       />
+      <span
+        id="host-title-count"
+        className="mt-1 text-end text-xs text-base-content/50"
+      >
+        {host_character_count(
+          { current: title.length, max: constraints.titleMax },
+          { locale },
+        )}
+      </span>
+      {errors.title && (
+        <span id="host-title-error" className="mt-1 text-sm text-error">
+          {errors.title}
+        </span>
+      )}
     </label>
-    <label className="form-control">
-      <span className="mb-1 text-sm text-base-content/70">
-        {host_desc_label({}, { locale })}
+
+    <label className="form-control" htmlFor="host-description">
+      <span className="mb-1 flex items-center justify-between gap-3 text-sm text-base-content/70">
+        <span>{host_desc_label({}, { locale })}</span>
+        <span className="text-xs text-base-content/50">
+          {host_required({}, { locale })}
+        </span>
       </span>
       <textarea
-        className="textarea textarea-bordered"
-        rows={4}
+        id="host-description"
+        className="textarea textarea-bordered min-h-32"
         value={description}
-        onChange={(e) => onDescriptionChange(e.target.value)}
+        onChange={(event) => onDescriptionChange(event.target.value)}
         placeholder={host_desc_ph({}, { locale })}
-        maxLength={2000}
+        minLength={constraints.descriptionMin}
+        maxLength={constraints.descriptionMax}
+        required
+        aria-invalid={!!errors.description}
+        aria-describedby="host-description-count host-description-error"
       />
+      <span
+        id="host-description-count"
+        className="mt-1 text-end text-xs text-base-content/50"
+      >
+        {host_character_count(
+          {
+            current: description.length,
+            max: constraints.descriptionMax,
+          },
+          { locale },
+        )}
+      </span>
+      {errors.description && (
+        <span id="host-description-error" className="mt-1 text-sm text-error">
+          {errors.description}
+        </span>
+      )}
     </label>
-    {turnstileSiteKey && !isTurnstileBypassed && (
-      <Turnstile
-        sitekey={turnstileSiteKey}
-        action="create_event"
-        appearance="interaction-only"
-        resetKey={turnstileResetKey}
-        onToken={onTurnstileToken}
-      />
-    )}
-    {publishError && (
-      <p className="text-sm text-error" role="alert">
-        {publishError}
-      </p>
-    )}
+
+    <fieldset className="rounded-xl border border-base-300 p-4">
+      <legend className="px-1 text-sm font-semibold">
+        {host_capacity({}, { locale })}
+      </legend>
+      <label className="flex min-h-11 items-center gap-3">
+        <input
+          type="checkbox"
+          className="toggle toggle-primary"
+          checked={capacity > 0}
+          onChange={(event) => onCapacityLimitChange(event.target.checked)}
+        />
+        <span>
+          {capacity > 0
+            ? host_capacity_limited({}, { locale })
+            : host_capacity_unlimited({}, { locale })}
+        </span>
+      </label>
+      {capacity > 0 && (
+        <label className="form-control mt-3" htmlFor="host-capacity">
+          <span className="mb-1 text-sm text-base-content/70">
+            {host_capacity_value({}, { locale })}
+          </span>
+          <Input
+            id="host-capacity"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={constraints.capacityMax}
+            step={1}
+            value={capacity}
+            onChange={(event) => onCapacityChange(Number(event.target.value))}
+            aria-invalid={!!errors.capacity}
+            aria-describedby="host-capacity-help host-capacity-error"
+          />
+          <span
+            id="host-capacity-help"
+            className="mt-1 text-xs text-base-content/50"
+          >
+            {host_capacity_constraints(
+              { max: constraints.capacityMax },
+              { locale },
+            )}
+          </span>
+          {errors.capacity && (
+            <span id="host-capacity-error" className="mt-1 text-sm text-error">
+              {errors.capacity}
+            </span>
+          )}
+        </label>
+      )}
+    </fieldset>
+
+    <div className="grid gap-4 sm:grid-cols-2">
+      <label className="form-control" htmlFor="host-language">
+        <span className="mb-1 text-sm text-base-content/70">
+          {host_language({}, { locale })}
+        </span>
+        <select
+          id="host-language"
+          className="select select-bordered w-full"
+          value={language}
+          onChange={(event) =>
+            onLanguageChange(event.target.value as events.EventLanguage)
+          }
+          aria-invalid={!!errors.language}
+        >
+          {languageOptions.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="form-control" htmlFor="host-category">
+        <span className="mb-1 text-sm text-base-content/70">
+          {host_category({}, { locale })}
+        </span>
+        <select
+          id="host-category"
+          className="select select-bordered w-full"
+          value={category}
+          onChange={(event) =>
+            onCategoryChange(event.target.value as events.EventCategory)
+          }
+          aria-invalid={!!errors.category}
+        >
+          {categoryOptions.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
   </div>
 );
