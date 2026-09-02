@@ -5,6 +5,7 @@ import { appErrorCode } from '@founders-coffee/core';
 import {
   host_retry,
   host_venue_no_results,
+  host_venue_rate_limited,
   host_venue_search_error,
   host_venue_search_label,
   host_venue_search_loading,
@@ -63,7 +64,9 @@ export const VenueSearch = ({
     errorCode === 'map_venue_outside_city' ||
     errorCode === 'map_venue_unsupported'
       ? host_venue_no_results({}, { locale })
-      : host_venue_search_error({}, { locale });
+      : errorCode === 'rate_limited'
+        ? host_venue_rate_limited({}, { locale })
+        : host_venue_search_error({}, { locale });
 
   useEffect(() => {
     setActiveIndex(-1);

@@ -161,6 +161,7 @@
   "host_venue_search_label": "Rechercher des cafés et espaces de coworking",
   "host_venue_search_loading": "Recherche des lieux à proximité…",
   "host_venue_search_error": "La recherche de lieux est momentanément indisponible.",
+  "host_venue_rate_limited": "Trop de recherches de lieux. Patientez un instant, puis réessayez.",
   "host_venue_no_results": "Aucun café ou espace de coworking pris en charge n’a été trouvé dans cette ville.",
   "host_map_label": "Carte des lieux",
   "host_map_loading": "Chargement de la carte des lieux…",

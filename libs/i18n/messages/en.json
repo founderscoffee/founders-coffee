@@ -161,6 +161,7 @@
   "host_venue_search_label": "Search cafés and coworking venues",
   "host_venue_search_loading": "Searching nearby venues…",
   "host_venue_search_error": "Venue search is unavailable right now.",
+  "host_venue_rate_limited": "Too many venue searches. Please wait a moment and try again.",
   "host_venue_no_results": "No supported cafés or coworking venues found in this city.",
   "host_map_label": "Venue map",
   "host_map_loading": "Loading the venue map…",
