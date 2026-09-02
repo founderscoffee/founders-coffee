@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 and AR-11 complete, AR-02 through AR-10 planned                                                                                                                                        |
+| Status         | Active; AR-01 and AR-11 complete, AR-02 through AR-10 and AR-12 through AR-13 planned                                                                                                                |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -110,6 +110,13 @@ records the defect and refuses to mark the work complete; "New" means it does no
 | F-14 | Medium   | New    | Three state-changing endpoints declare no permission; the waitlist has no Turnstile    | AR-06  |
 | F-15 | Low      | New    | Six correctness and hygiene defects, individually small                                | AR-10  |
 | F-16 | Low      | New    | Four files exceeded the 300-line cap introduced 2026-09-01 — resolved 2026-09-01       | AR-11  |
+| F-17 | High     | New    | `features/push/client.ts` imports `server-fns` at runtime, past the `api.ts` layer     | AR-12  |
+| F-18 | High     | New    | The notification sweep casts row payloads instead of validating them with Zod          | AR-13  |
+| F-19 | Medium   | New    | Root files were linted by nothing — resolved 2026-09-02                                | AR-11  |
+
+F-17 through F-19 were found by a second conformance pass on 2026-09-02, after AR-11 and AR-01
+closed. They are recorded here rather than folded into the 2026-09-01 baseline above, which stays as
+it was taken at `1167e0d`.
 
 ## 3. Locked remediation decisions
 
@@ -148,8 +155,9 @@ the repository's P0/P1 ticket IDs.
 
 Recommended order: AR-01 first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
 production consequences. Then AR-09, which restores the mechanisms that would have caught several of
-the others. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule allows.
-AR-01 and AR-11 are complete.
+the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
+rewrites the same sweep. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule
+allows. AR-01 and AR-11 are complete.
 
 ### AR-01 — Restore the dependency-audit gate
 
@@ -552,6 +560,88 @@ comments the split had carried over.
 - A 301-line probe file fails lint with `File has too many lines (301). Maximum allowed is 300`; a
   300-line file passes.
 
+Follow-up, 2026-09-02 — closes F-19. The cap did not bind the toolchain that enforces it.
+`eslint.config.mjs` had itself grown to 326 lines and `vitest.workspace.ts` carried a narrative
+comment, and neither failed CI: `nx run-many -t lint` runs `eslint .` per project, and no project
+owns the repository root.
+
+- The three local rules, the module-boundary contract, and the file globs moved out of
+  `eslint.config.mjs` into `tools/eslint/`, leaving 91 lines of pure wiring. Rationale moved with
+  the rule it explains rather than being deleted.
+- A `workspace-root` project lints `eslint.config.mjs`, `vitest.workspace.ts`, and `tools/`, so
+  `nx run-many -t lint` — the command CI already runs — now covers them. The root `package.json`
+  declares `nx.includedScripts: []`, without which Nx infers every root npm script as a target and
+  `workspace-root:typecheck` would recurse into `nx run-many -t typecheck`.
+- Probe: appending 220 blank lines to `eslint.config.mjs` and a comment to `vitest.workspace.ts`
+  makes `nx run-many -t lint` fail with `max-lines` and `local/no-comments`. Both were reverted.
+
+### AR-12 — Close the `api.ts` boundary in `features/`
+
+**Parent:** P0-021
+**Requirements:** NFR-10, NFR-11
+**Status:** Planned
+
+Closes F-17, and the `features/` half of F-11.
+
+Current behavior: `apps/ui/src/features/push/client.ts` imports `registerPushTokenFn` and
+`removePushTokenFn` from `@founders-coffee/server-fns` as runtime values. §3 makes `api.ts` the only
+module permitted to import `libs/server-fns`, and §4 routes every component call through
+`hooks.ts`. The `local/no-server-fns-in-components` rule cannot see it: the rule returns early
+unless the path matches `/src/(components|lib)/`, so all of `features/` — including
+`features/<domain>/components/` — is unguarded. The violation is real, not theoretical; it is the
+only one, and it exists because nothing was checking.
+
+Work:
+
+- Move the two server-function imports into `features/push/api.ts` and have `client.ts` call
+  through it, keeping the Firebase messaging setup where it is.
+- Widen the rule's path test to `/src/(components|lib|features)/`, keeping the type-only exemption
+  so `import type` from `db`/`domain` continues to pass, and allowing `features/*/api.ts` — the one
+  module §3 designates for it.
+- Add a fixture pair under the rule's own tests: a `features/x/components/` file importing
+  `server-fns` fails; `features/x/api.ts` importing the same passes.
+
+Verification:
+
+- `nx run-many -t lint` fails on a probe import in `features/<domain>/components/` and passes on the
+  same import in `api.ts`.
+- No runtime import of `server-fns`, `db`, or `domain` outside `api.ts` anywhere under `apps/*/src`.
+- Push registration still works end to end against Miniflare.
+
+### AR-13 — Validate notification payloads at the sweep boundary
+
+**Parent:** P0-018
+**Requirements:** FR-N1; NFR-4
+**Status:** Planned
+
+Closes F-18. Sequence after AR-02, which rewrites the same sweep's status lifecycle.
+
+Current behavior: `apps/worker-jobs/src/jobs/notification-sweep.ts` reads each row's `payload` and
+casts it per channel — `(payload as { phoneNumber: string }).phoneNumber`,
+`(payload as { subject: string }).subject`, `payload as { pushTitle: string; pushBody: string }`.
+A cast is not a check. A row written by an older schema, a partial write, or a future producer
+reaches Twilio, Cloudflare Email, or FCM with `undefined` where a required field belongs, and the
+resulting provider error is recorded as a delivery failure rather than the data defect it is. §7
+and §10 both require Zod validation at every boundary where untrusted data enters, and a persisted
+JSON blob crossing back into code is such a boundary.
+
+Work:
+
+- Define a discriminated union of per-channel payload schemas in `libs/domain` beside the
+  notification status machine, inferred types replacing every cast.
+- Parse the payload once per row at the top of the sweep. On a parse failure, mark the row
+  terminally failed with a distinct `invalid_payload` reason and log it structurally — never
+  dispatch it, and never leave it selectable.
+- Have the producers validate with the same schema before insert, so the contract is enforced on
+  both sides of the row.
+
+Verification:
+
+- A seeded row with a malformed payload is marked terminally failed, is not dispatched, and does not
+  reappear in the next sweep.
+- A valid row of each channel dispatches unchanged.
+- No `as` cast of a payload remains in `apps/worker-jobs`.
+
 ## 5. Required test matrix
 
 | Area                     | Level                    | Must prove                                                                                               |
@@ -627,5 +717,8 @@ admin applications; or move E2E into CI, which remains excluded by current proje
       and `libs/server-fns` in CI.
 - [ ] Every finding in section 2 is either closed by an `AR-*` ticket or explicitly assigned to its
       owning plan in section 6.
+- [ ] No runtime import of `libs/server-fns`, `libs/db`, or `libs/domain` exists outside `api.ts`,
+      and the boundary rule covers `features/` so a new one cannot land unnoticed.
+- [ ] No notification payload is cast rather than parsed, on either side of the row.
 - [ ] The implementation plan's status table is updated from the evidence this plan produces, and no
       `Partial` or `Blocked` item is promoted without it.
