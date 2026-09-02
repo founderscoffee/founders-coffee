@@ -28,6 +28,7 @@ public/swe-worker*
 
 # ── Test coverage ──
 /coverage
+**/coverage
 test-output
 
 # ── Env / secrets (never commit) ──

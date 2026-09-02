@@ -20,6 +20,19 @@ export default defineConfig(async () => {
     test: {
       include: ['src/**/*.test.ts'],
       setupFiles: ['./src/setup.ts'],
+      coverage: {
+        provider: 'istanbul',
+        all: true,
+        include: ['src/**/*.ts'],
+        exclude: ['src/**/*.test.ts', 'src/**/*.fixtures.ts', 'src/setup.ts'],
+        reporter: ['text-summary', 'lcov'],
+        thresholds: {
+          statements: 69,
+          branches: 67,
+          functions: 64,
+          lines: 70,
+        },
+      },
     },
   };
 });

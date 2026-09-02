@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-07, AR-11 and AR-12 complete; AR-08 and AR-09 partial; AR-10 and AR-13 planned                                                                                              |
+| Status         | Active; AR-01 through AR-07, AR-09, AR-11 and AR-12 complete; AR-08 partial; AR-10 and AR-13 planned                                                                                                 |
 | Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -749,10 +749,9 @@ Boundary — what is deliberately not done, and why:
 
 **Parent:** P0-001, P0-021
 **Requirements:** NFR-10, NFR-11
-**Status:** Partial — F-11 closed 2026-09-02; F-12 blocked on a dependency decision
+**Status:** Complete — 2026-09-02
 
-Closes F-11. F-12 needs a coverage provider that is not installed; see the boundary at the end of
-this ticket. These are the mechanisms that would have caught several of the other findings.
+Closes F-11 and F-12. These are the mechanisms that would have caught several of the other findings.
 
 Current behavior:
 
@@ -810,15 +809,41 @@ Completion evidence — F-11:
 - Repository-wide gates pass with the tags applied: 17 projects, 588 tests, zero boundary
   violations.
 
-Boundary — F-12 is not done:
+Completion evidence — F-12:
 
-`AGENTS.md` §12 requires coverage gates on `libs/domain` and `libs/server-fns`. Vitest cannot collect
-coverage without a provider package, and neither `@vitest/coverage-v8` nor
-`@vitest/coverage-istanbul` is installed or declared anywhere. §1.8 requires surfacing a new
-dependency and asking before adding it, so the provider is **not** installed and no half-wired
-coverage configuration is shipped. Adding `@vitest/coverage-v8` as a dev dependency is the whole of
-what is needed; thresholds should then be set from the measured baseline rather than guessed, and
-collected in CI.
+`@vitest/coverage-istanbul` is added as a dev dependency, approved under §1.8 rather than installed
+silently. `@vitest/coverage-v8` was tried first and removed: it imports `node:inspector/promises`,
+which the Workers runtime does not provide, so it cannot run in the `@cloudflare/vitest-pool-workers`
+pool that `libs/server-fns` uses for every test. Istanbul instruments at transform time and works in
+both pools, so one provider serves both libraries.
+
+Thresholds are the measured baseline, floored — not an aspiration:
+
+| Library           | Statements | Branches | Functions | Lines  |
+| ----------------- | ---------- | -------- | --------- | ------ |
+| `libs/domain`     | 59.80%     | 40.00%   | 40.00%    | 63.15% |
+| `libs/server-fns` | 69.90%     | 67.28%   | 64.53%    | 71.00% |
+
+Set at the floor of each measurement so the gate cannot pass a regression and can only be raised
+deliberately. An invented number would have failed on day one or asserted nothing — and these two
+libraries are exactly where F-02, F-03 and F-05 hid, so the number had to come from measurement.
+
+- `all: true` is essential and was nearly missed. The default counts only files a test already
+  touches, which reported `libs/domain` at **100%** while its real figure is **59.8%** — the metric
+  would have been blind to precisely the untested files that motivated this ticket.
+- The versioned geo datasets are excluded from `libs/domain`. They are data rather than logic,
+  already exempt from the line cap under §11, and 36,000 lines of them would swamp the measurement.
+- Coverage runs as part of the `test` target rather than a separate one, so the gate fires locally
+  and in CI wherever `nx run-many -t test` runs. Measured overhead is within run-to-run noise.
+- Probed: raising the `libs/domain` statement threshold to 95 makes `nx run domain:test` fail with
+  `ERROR: Coverage for statements (59.8%) does not meet global threshold (95%)`. Reverted.
+- `.gitignore` carried `/coverage`, which is root-anchored and would have let `libs/*/coverage`
+  be committed. Widened to `**/coverage`.
+
+Installing the provider refreshed the lockfile and surfaced an unrelated high-severity advisory:
+the existing `fast-uri` override pinned `^4.1.2`, which is inside the newly published vulnerable
+range `4.0.0 - 4.1.2`. Bumped to `^4.1.3`, resolving 4.1.4; `npm audit --audit-level=high` is back to
+exit 0. The AR-01 gate would otherwise have gone red on the next push.
 
 ### AR-10 — Correctness and hygiene cleanup
 
