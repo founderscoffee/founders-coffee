@@ -1,0 +1,13 @@
+{
+  "name": "workspace-root",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint eslint.config.mjs vitest.workspace.ts tools",
+        "cwd": "."
+      }
+    }
+  }
+}
