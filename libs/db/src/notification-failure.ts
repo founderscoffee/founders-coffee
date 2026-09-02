@@ -19,7 +19,12 @@ export const markNotificationSent = async (
 ): Promise<void> => {
   await db
     .update(scheduledNotifications)
-    .set({ status: 'sent', claimedAt: null, updatedAt: new Date() })
+    .set({
+      status: 'sent',
+      claimedAt: null,
+      dispatchStartedAt: null,
+      updatedAt: new Date(),
+    })
     .where(
       and(
         eq(scheduledNotifications.id, opts.id),
@@ -44,6 +49,7 @@ export const NOTIFICATION_INSERT_COLUMNS = [
   'fallback_channel',
   'fallback_of',
   'claimed_at',
+  'dispatch_started_at',
   'created_at',
   'updated_at',
 ] as const;
@@ -99,6 +105,7 @@ export const markNotificationFailed = async (
         status: sql`CASE WHEN ${isTerminal} THEN 'failed' ELSE 'pending' END`,
         sendAt: sql`CASE WHEN ${isTerminal} THEN send_at ELSE ${nowSeconds} + ${backoffSeconds} END`,
         claimedAt: null,
+        dispatchStartedAt: null,
         updatedAt: sql`${nowSeconds}`,
       })
       .where(
@@ -111,7 +118,7 @@ export const markNotificationFailed = async (
       .insert(scheduledNotifications)
       .select(
         sql`SELECT ${opts.fallbackId}, event_id, user_id, fallback_channel, 'pending', template_key,
-                   payload, ${nowSeconds}, 0, NULL, NULL, id, NULL, ${nowSeconds}, ${nowSeconds}
+                   payload, ${nowSeconds}, 0, NULL, NULL, id, NULL, NULL, ${nowSeconds}, ${nowSeconds}
             FROM scheduled_notifications
             WHERE id = ${opts.id}
               AND status = 'failed'

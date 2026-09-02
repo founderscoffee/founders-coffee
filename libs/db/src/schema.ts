@@ -338,6 +338,12 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
  * anything, so an overlapping sweep sees no rows left to take. `claimed_at` bounds that claim: an
  * invocation that dies mid-run leaves rows `processing` forever otherwise, and a later sweep
  * reclaims anything older than the claim timeout.
+ *
+ * `dispatch_started_at` separates the two ways a claim can be abandoned. Cleared on every
+ * resolution and set immediately before the provider call, it is the only record that an outbound
+ * message may already have been accepted. A reclaimed row with it unset never reached a provider
+ * and is safe to retry; one with it set has an unknown outcome, and resending it is a duplicate
+ * unless the channel can suppress one.
  */
 export const scheduledNotifications = sqliteTable(
   'scheduled_notifications',
@@ -369,6 +375,7 @@ export const scheduledNotifications = sqliteTable(
     }),
     fallbackOf: text('fallback_of'),
     claimedAt: integer('claimed_at', { mode: 'timestamp' }),
+    dispatchStartedAt: integer('dispatch_started_at', { mode: 'timestamp' }),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),

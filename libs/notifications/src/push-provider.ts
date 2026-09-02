@@ -6,6 +6,7 @@ export interface SendPushArgs {
   readonly body: string;
   readonly url?: string;
   readonly icon?: string;
+  readonly dedupeKey?: string;
 }
 
 export interface SendPushResult {
@@ -96,6 +97,14 @@ const pemToBinary = (pem: string): ArrayBuffer => {
   return bytes.buffer;
 };
 
+/**
+ * Web Push topics are restricted to URL-safe base64 characters and 32 bytes (RFC 8030 §5.4), which
+ * an opaque id prefix can exceed. Anything outside the set is dropped rather than substituted, so
+ * two different keys cannot collapse onto one topic.
+ */
+export const toPushTopic = (key: string): string =>
+  key.replace(/[^A-Za-z0-9\-_]/g, '').slice(-32);
+
 export class FcmPushProvider implements PushProvider {
   readonly name = 'fcm';
   private readonly projectId: string;
@@ -115,11 +124,14 @@ export class FcmPushProvider implements PushProvider {
     const message = {
       token: args.token,
       webpush: {
+        ...(args.dedupeKey
+          ? { headers: { Topic: toPushTopic(args.dedupeKey) } }
+          : {}),
         notification: {
           title: args.title,
           body: args.body,
           icon: args.icon ?? '/icons/icon-192.png',
-          data: { url: args.url ?? '/' },
+          data: { url: args.url ?? '/', dedupeKey: args.dedupeKey ?? null },
         },
       },
     };

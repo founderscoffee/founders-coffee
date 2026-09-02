@@ -1,0 +1,1 @@
+ALTER TABLE `scheduled_notifications` ADD `dispatch_started_at` integer;

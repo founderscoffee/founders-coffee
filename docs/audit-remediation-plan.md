@@ -364,10 +364,36 @@ Verification — 13 new tests against real D1:
   two sweeps race the same stale claim.
 - Migration `0014` is tested for data preservation and for the partial index.
 
-Limits of the evidence: delivery remains at-least-once by design. An invocation that dies after the
-provider accepted a message but before the row was marked sent will send it again when the claim
-expires. Closing that needs provider-side idempotency keys, not a database change. What the claim
-removes is the routine case — every overlapping tick re-dispatching the entire window.
+Follow-up, same day — the remaining duplicate window. AR-03 as first delivered still resent a row
+whose provider call may already have been accepted, once the claim expired. Reproduced on that code
+and then closed:
+
+```text
+LEGACY_DELIVERY>>> the first send already happened before the crash; resends=1
+FIXED_DELIVERY>>>  the first send already happened before the crash; resends=0
+```
+
+- Migration `0015` adds `dispatch_started_at`. It is written immediately before the provider call
+  and cleared by every resolution, so it is set for exactly the window in which the outcome is
+  unknowable. A reclaimed row now says which of two things happened: unset means the sweep died
+  before reaching a provider and retrying is free; set means the message may already be on its way.
+- An unconfirmed row is resent only on a channel that can suppress the duplicate. Push can, and is
+  resent. SMS and email cannot, so the row is retired with a `dispatch_unconfirmed` reason and its
+  fallback, if it has one, carries the delivery — a second SMS on someone's phone is a worse outcome
+  than a reminder they most likely already received.
+- `CHANNEL_SUPPRESSES_DUPLICATES` records that capability explicitly rather than leaving it implied.
+  Push is suppressed twice over: the Web Push `Topic` header replaces an undelivered copy in
+  transit, and the service worker now tags the notification with the sending row's key so a copy
+  that does arrive replaces the one on screen. That tag was previously the constant
+  `founders-coffee-push`, which did the opposite of what it looked like — distinct reminders
+  overwrote each other while duplicates still stacked.
+- Email carries a stable `Message-ID` derived from the row id. Receiving systems commonly but not
+  reliably collapse a repeat on it, so it is recorded as best effort and **not** as suppression.
+
+The guarantee is now exactly-once on push, at-most-once on SMS and email after an unconfirmed
+attempt, and at-least-once otherwise. Exactly-once across all three is not reachable: Twilio's
+Messages resource offers no idempotency key, so no amount of local bookkeeping can make a second
+send invisible. What is closed is every path that duplicated _silently_.
 
 Note: AR-03 is superseded if the queue migration under P0-018 lands first. See section 6.
 

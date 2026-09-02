@@ -1,5 +1,6 @@
 import { id } from '@founders-coffee/core';
 import {
+  beginNotificationDispatch,
   claimDueNotifications,
   listStaleClaims,
   markNotificationFailed,
@@ -8,6 +9,7 @@ import {
 import type { Db, ScheduledNotification } from '@founders-coffee/db';
 
 import {
+  CHANNEL_SUPPRESSES_DUPLICATES,
   buildDispatchers,
   type DispatchOutcome,
   type DispatchProviders,
@@ -25,6 +27,7 @@ export interface SweepReport {
   readonly fallbacksCreated: number;
   readonly reclaimed: number;
   readonly contended: number;
+  readonly unconfirmed: number;
 }
 
 const errorMessage = (error: unknown): string =>
@@ -78,12 +81,20 @@ const dispatch = async (
  * and either deferring the row or retiring it, which is what stops a repeatedly dying run from
  * reclaiming the same row forever.
  *
- * Delivery remains at-least-once, and deliberately so: an invocation that dies after the provider
- * accepted a message but before the row was marked sent will send it again when the claim expires.
- * Closing that needs provider-side idempotency keys, not a database change. What the claim removes
- * is the routine case — every overlapping tick re-dispatching the entire window. A D1 write failure
- * likewise leaves a row claimed; the store being unavailable is the one case where state cannot be
- * recorded, and the claim timeout is what brings the row back.
+ * The window an invocation can die in is narrowed to the provider call itself.
+ * `beginNotificationDispatch` records that a call is about to be made, and every resolution clears
+ * it, so a reclaimed row says which of two things happened. If the marker is unset the row never
+ * reached a provider and retrying is free. If it is set the outcome is unknowable — the message may
+ * already be on its way — and the row is only resent on a channel that can suppress the duplicate.
+ * On one that cannot, resending would put a second SMS on someone's phone to save a reminder they
+ * have most likely already received, so the row is retired instead and its fallback, if it has one,
+ * carries the delivery.
+ *
+ * That leaves no path that silently duplicates. It does not make delivery exactly-once, which is
+ * not reachable against providers that offer no idempotency key: the guarantee is exactly-once on
+ * push, at-most-once on SMS and email after an unconfirmed attempt, and at-least-once everywhere
+ * else. A D1 write failure likewise leaves a row claimed; the store being unavailable is the one
+ * case where state cannot be recorded, and the claim timeout is what brings the row back.
  */
 export const sweepNotifications = async (
   db: Db,
@@ -97,6 +108,7 @@ export const sweepNotifications = async (
     failed: 0,
     fallbacksCreated: 0,
     contended: 0,
+    unconfirmed: 0,
   };
 
   const recordFailure = async (
@@ -123,10 +135,25 @@ export const sweepNotifications = async (
 
   const stale = await listStaleClaims(db, { limit: SWEEP_LIMIT, now });
   for (const abandoned of stale) {
+    if (abandoned.dispatchStartedAt === null) {
+      await recordFailure(
+        abandoned,
+        'claim_expired: the sweep holding this row did not complete',
+        false,
+      );
+      continue;
+    }
+
+    tally.unconfirmed++;
+    const resendable = CHANNEL_SUPPRESSES_DUPLICATES[abandoned.channel];
     await recordFailure(
       abandoned,
-      'claim_expired: the sweep holding this row did not complete',
-      false,
+      `dispatch_unconfirmed: the provider may already have accepted this message; ${
+        resendable
+          ? 'resending because the channel suppresses a duplicate'
+          : 'not resending because the channel cannot suppress a duplicate'
+      }`,
+      !resendable,
     );
   }
 
@@ -145,6 +172,7 @@ export const sweepNotifications = async (
       continue;
     }
 
+    await beginNotificationDispatch(db, { id: notification.id, now });
     const outcome = await dispatch(dispatcher, notification);
     if (outcome.kind === 'failed') {
       await recordFailure(notification, outcome.error, outcome.permanent);

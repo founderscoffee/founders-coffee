@@ -190,3 +190,35 @@ describe('0014 — notification claim (real D1)', () => {
     );
   });
 });
+
+describe('0015 — dispatch marker (real D1)', () => {
+  it('adds dispatch_started_at without losing existing notifications', async () => {
+    const { suffix, event, apply } = await atMigration('0015_left_alice.sql');
+    const rowId = `ntf_dispatch_${suffix}`;
+
+    await env.PRIOR_DB.prepare(
+      `INSERT INTO scheduled_notifications
+         (id, event_id, user_id, channel, status, template_key, payload, send_at,
+          attempts, created_at, updated_at)
+       VALUES (?, ?, ?, 'sms', 'processing', 'rsvp_confirmation', '{}',
+               4102444800, 1, unixepoch(), unixepoch())`,
+    )
+      .bind(rowId, event.id, priorHost.id)
+      .run();
+
+    await apply();
+
+    const persisted = await env.PRIOR_DB.prepare(
+      'SELECT id, status, attempts, dispatch_started_at FROM scheduled_notifications WHERE id = ?',
+    )
+      .bind(rowId)
+      .first<Record<string, unknown>>();
+
+    expect(persisted).toEqual({
+      id: rowId,
+      status: 'processing',
+      attempts: 1,
+      dispatch_started_at: null,
+    });
+  });
+});

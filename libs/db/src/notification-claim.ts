@@ -81,3 +81,29 @@ export const listStaleClaims = async (
     )
     .limit(opts.limit);
 };
+
+/**
+ * Record that a provider call is about to be made for a claimed row.
+ *
+ * This is the only durable trace that an outbound message may have been accepted. Without it a
+ * sweep that dies mid-run is indistinguishable from one that died before dispatching, and the
+ * reclaim has to guess: resend and risk a duplicate, or drop and risk a loss. Written immediately
+ * before the call and cleared by every resolution, so the marker is set for exactly the window in
+ * which the outcome is unknowable.
+ *
+ * Guarded on the claim, so a sweep that has lost its claim cannot mark a dispatch it no longer owns.
+ */
+export const beginNotificationDispatch = async (
+  db: Db,
+  opts: { id: string; now: Date },
+): Promise<void> => {
+  await db
+    .update(scheduledNotifications)
+    .set({ dispatchStartedAt: opts.now, updatedAt: opts.now })
+    .where(
+      and(
+        eq(scheduledNotifications.id, opts.id),
+        eq(scheduledNotifications.status, 'processing'),
+      ),
+    );
+};

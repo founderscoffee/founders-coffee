@@ -3,6 +3,7 @@ import { AppError, type Result, ok, err } from '@founders-coffee/core';
 export interface SendNotificationSmsArgs {
   readonly to: string;
   readonly body: string;
+  readonly dedupeKey?: string;
 }
 
 export interface SendNotificationSmsResult {
@@ -37,6 +38,13 @@ export class TwilioProgrammableSmsProvider implements NotificationSmsProvider {
     this.fromNumber = env.TWILIO_SMS_FROM;
   }
 
+  /**
+   * Send one SMS through Twilio's Messages resource.
+   *
+   * `dedupeKey` is accepted for parity with the other channels and for logging only: Messages has
+   * no idempotency key, so nothing here can suppress a duplicate. The sweep is what decides not to
+   * resend an SMS whose previous attempt was unconfirmed.
+   */
   send = async (
     args: SendNotificationSmsArgs,
   ): Promise<Result<SendNotificationSmsResult>> => {

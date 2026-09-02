@@ -42,6 +42,7 @@ const smsDispatcher =
     const result = await sms.send({
       to: payload.phoneNumber,
       body: payload.smsBody,
+      dedupeKey: notification.id,
     });
     if (result.ok) return sent;
     return failed(
@@ -64,6 +65,7 @@ const emailDispatcher =
       subject: payload.subject,
       html: payload.html,
       text: payload.text,
+      headers: { 'Message-ID': `<${notification.id}@founders.coffee>` },
     });
     return result.ok ? sent : failed(result.error.message, false);
   };
@@ -94,12 +96,22 @@ const pushDispatcher =
         token: token.token,
         title: payload.pushTitle,
         body: payload.pushBody,
+        dedupeKey: notification.id,
       });
       if (result.ok) return sent;
       lastError = result.error.message;
     }
     return failed(lastError, false);
   };
+
+export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
+  ScheduledNotification['channel'],
+  boolean
+> = {
+  push: true,
+  email: false,
+  sms: false,
+};
 
 /**
  * Build the dispatcher for each channel this deployment can actually deliver on.
@@ -108,6 +120,15 @@ const pushDispatcher =
  * sweep resolves an unroutable row terminally, which is what keeps it out of every later selection
  * window. Push is the only optional channel — it needs Firebase credentials that a deployment may
  * not have.
+ *
+ * `CHANNEL_SUPPRESSES_DUPLICATES` above records whether redelivering on a channel is invisible to
+ * the recipient, which is the whole basis for the sweep's resend decision after an unconfirmed
+ * attempt. It is a capability, not a preference. Push qualifies twice over: the Web Push `Topic`
+ * header replaces an undelivered copy in transit, and the service worker tags the notification with
+ * the same key so a copy that does arrive replaces the one on screen. Email carries a stable
+ * `Message-ID`, which receiving systems commonly but not reliably use to collapse a repeat — best
+ * effort is not suppression, so it is recorded as `false`. Twilio's Messages resource has no
+ * idempotency key at all: a second send is a second billed SMS on someone's phone.
  */
 export const buildDispatchers = (
   db: Db,

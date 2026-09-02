@@ -22,11 +22,23 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
-/** Push notification handler. */
+/**
+ * Push notification handler.
+ *
+ * The tag is the sending notification's own key, so a redelivered copy replaces the one already on
+ * screen instead of stacking. A constant tag would do the opposite of what it looks like: distinct
+ * reminders would overwrite each other while duplicates of one still stacked across devices.
+ */
 self.addEventListener('push', (event: PushEvent) => {
   if (!event.data) return;
 
-  let payload: { title: string; body: string; url?: string; icon?: string };
+  let payload: {
+    title: string;
+    body: string;
+    url?: string;
+    icon?: string;
+    dedupeKey?: string;
+  };
   try {
     payload = event.data.json();
   } catch {
@@ -42,7 +54,7 @@ self.addEventListener('push', (event: PushEvent) => {
     badge: '/android-chrome-192x192.png',
     data: { url: payload.url ?? '/' },
     vibrate: [200, 100, 200],
-    tag: 'founders-coffee-push',
+    tag: payload.dedupeKey ?? 'founders-coffee-push',
   };
 
   event.waitUntil(self.registration.showNotification(payload.title, options));

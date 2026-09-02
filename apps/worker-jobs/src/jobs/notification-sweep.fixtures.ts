@@ -183,6 +183,24 @@ export const countingSms = (): {
   };
 };
 
+/** A push provider that records every send, including the dedupe key it was handed. */
+export const countingPush = (): {
+  provider: PushProvider;
+  sends: { token: string; dedupeKey?: string }[];
+} => {
+  const sends: { token: string; dedupeKey?: string }[] = [];
+  return {
+    sends,
+    provider: {
+      name: 'counting-push',
+      send: async (input) => {
+        sends.push({ token: input.token, dedupeKey: input.dedupeKey });
+        return ok({ messageId: `p${sends.length}` });
+      },
+    },
+  };
+};
+
 export const throwingSms = (): NotificationSmsProvider => ({
   name: 'throwing-sms',
   send: async () => {
