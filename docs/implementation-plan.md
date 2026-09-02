@@ -132,9 +132,10 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 
 ### Immediate sequence
 
-1. **AR-01 — restore the dependency-audit gate first:** CI is red at head because
-   `npm audit --audit-level=high` exits 1, so no pull request in any plan can pass verification.
-   See the [Audit Remediation Plan](./audit-remediation-plan.md).
+1. **AR-01 — restore the dependency-audit gate first: Complete (2026-09-02).**
+   `npm audit --audit-level=high` exited 1 at head, so no pull request in any plan could pass
+   verification. A `browserslist` override in the root `package.json` closes it and all seven gates
+   now pass. See the [Audit Remediation Plan](./audit-remediation-plan.md).
 2. **Plan 1 — close the EC-06 WAF account gate, then EC-07 through EC-10:** finish the
    [Event Creation Remediation Plan](./event-creation-remediation-plan.md), including local and
    staging release evidence. Do not begin Plan 2 production work before EC-10 is Complete.

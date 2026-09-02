@@ -2,8 +2,8 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-11 complete, AR-01 through AR-10 planned                                                                                                                                                  |
-| Last reviewed  | 2026-09-01                                                                                                                                                                                           |
+| Status         | Active; AR-01 and AR-11 complete, AR-02 through AR-10 planned                                                                                                                                        |
+| Last reviewed  | 2026-09-02                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
 | Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                       |
@@ -21,8 +21,10 @@ replacement, delivery-channel fallback, and post-event operations stay with the
 [Community Operations Plan](./community-operations-implementation-plan.md). Section 6 lists what was
 found but deliberately left with its existing owner.
 
-AR-01 is a prerequisite for every other ticket in the repository, not only for this plan: continuous
-integration is currently red, so no pull request can pass verification until it is resolved.
+AR-01 was a prerequisite for every other ticket in the repository, not only for this plan:
+continuous integration was red at the audited commit, so no pull request could pass verification. It
+is closed as of 2026-09-02 and all seven gates now pass; the section 2 baseline is left as it was
+recorded at `1167e0d`.
 
 ## 1. Objective
 
@@ -147,13 +149,13 @@ the repository's P0/P1 ticket IDs.
 Recommended order: AR-01 first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
 production consequences. Then AR-09, which restores the mechanisms that would have caught several of
 the others. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule allows.
-AR-11 is complete.
+AR-01 and AR-11 are complete.
 
 ### AR-01 — Restore the dependency-audit gate
 
 **Parent:** P0-020
 **Requirements:** NFR-4, NFR-12
-**Status:** Planned
+**Status:** Complete — 2026-09-02
 
 Closes F-01.
 
@@ -166,11 +168,23 @@ Work:
 - Record that the package is a build-time transitive with no Worker runtime exposure, so the change
   carries no runtime risk.
 
-Verification:
+Completion evidence:
 
+- `"browserslist": "^4.28.7"` added to `overrides`. Both advisories are fixed in `4.28.7`, the first
+  version above the `<=4.28.6` vulnerable range; the lockfile resolves `4.28.8`.
+- `npm ls browserslist --all` shows `4.28.8` on both paths: `@nx/js` through
+  `@babel/helper-compilation-targets` and `core-js-compat`, and `@serwist/vite` through
+  `@serwist/utils`, where it is reported as `overridden`.
+- The lockfile change is confined to `browserslist` and the packages it owns: `caniuse-lite`,
+  `electron-to-chromium`, `node-releases`, `baseline-browser-mapping`, and `update-browserslist-db`.
+  No application or Worker-runtime dependency moved.
+- `browserslist` is a build-time transitive of the Babel and Serwist toolchains. Nothing under
+  `apps/*/src` or `libs/*/src` imports it and it is not bundled into any Worker, so the bump carries
+  no runtime risk.
+- `npm ci` from the refreshed lockfile installs `4.28.8` and reports `found 0 vulnerabilities`.
 - `npm audit --audit-level=high` exits 0.
-- `npm ci` from a clean checkout resolves the pinned version.
-- Repository-wide format, sync, typecheck, lint, test, and build gates pass without E2E.
+- Repository-wide format, sync, typecheck, lint, test, and build gates pass without E2E: 16 projects,
+  no errors. Continuous integration is green at head for the first time since the audit.
 
 ### AR-02 — Guarantee terminal state and a reachable fallback for scheduled notifications
 
@@ -508,12 +522,15 @@ Work:
 
 Completion evidence:
 
+Line counts are as at `e6a7faa`, after the comment policy of the same series stripped the narrative
+comments the split had carried over.
+
 | Original                                         | Lines | Now | Split into                                                                                                                          |
 | ------------------------------------------------ | ----- | --- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/ui/src/durable-objects/EventLiveDO.ts`     | 521   | 289 | `event-live/protocol.ts` (85), `event-live/session.ts` (86), `event-live/roster.ts` (108)                                           |
-| `apps/ui/src/components/host/HostCreatePage.tsx` | 449   | 184 | `useHostCreateWizard.ts` (204), `HostWizardHeader` (55), `HostMapPanel` (78), `HostVenueStep` (56), `HostDetailsStep` (90)          |
-| `libs/server-fns/src/events/resolver.test.ts`    | 479   | 141 | `resolver.fixtures.ts` (131), `resolver.boundary.test.ts` (56), `resolver.persistence.test.ts` (154), `resolver.reads.test.ts` (43) |
-| `libs/server-fns/src/maps/mapbox-provider.ts`    | 336   | 185 | `mapbox-schemas.ts` (66), `mapbox-filters.ts` (124)                                                                                 |
+| `apps/ui/src/durable-objects/EventLiveDO.ts`     | 521   | 245 | `event-live/protocol.ts` (72), `event-live/session.ts` (78), `event-live/roster.ts` (99), `event-live/connections.ts` (54)          |
+| `apps/ui/src/components/host/HostCreatePage.tsx` | 449   | 183 | `useHostCreateWizard.ts` (192), `HostWizardHeader` (55), `HostMapPanel` (78), `HostVenueStep` (56), `HostDetailsStep` (90)          |
+| `libs/server-fns/src/events/resolver.test.ts`    | 479   | 141 | `resolver.fixtures.ts` (123), `resolver.boundary.test.ts` (56), `resolver.persistence.test.ts` (154), `resolver.reads.test.ts` (43) |
+| `libs/server-fns/src/maps/mapbox-provider.ts`    | 336   | 178 | `mapbox-schemas.ts` (60), `mapbox-filters.ts` (117)                                                                                 |
 
 - `EventLiveDO` now coordinates only and holds no state of its own: open sockets moved to an
   `EventConnections` registry, roster and host state to an `EventRoster` that write-throughs to
@@ -590,11 +607,12 @@ admin applications; or move E2E into CI, which remains excluded by current proje
   suppressed with rule exceptions.
 - **AR-05's policy sizing depends on real wizard behavior.** A limit set too tight breaks venue search
   for legitimate hosts; the policy must be derived from an observed session, not guessed.
-- **AR-01 is the only ticket with no execution-time risk** and gates everything else.
+- **AR-01 was the only ticket with no execution-time risk** and gated everything else. It is closed,
+  so the remaining tickets are no longer blocked on a red pipeline.
 
 ## 8. Definition of done
 
-- [ ] All seven verification gates pass, including `npm audit --audit-level=high`.
+- [x] All seven verification gates pass, including `npm audit --audit-level=high`. (AR-01, 2026-09-02)
 - [ ] No scheduled notification can remain selectable indefinitely, and the documented retry and
       email fallback are exercised by tests rather than described by comments.
 - [ ] A rejected full-capacity RSVP writes nothing, and no untyped error crosses a server-function
