@@ -1,0 +1,1 @@
+CREATE INDEX `events_host_id_index` ON `events` (`host_id`);

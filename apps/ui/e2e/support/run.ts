@@ -25,6 +25,8 @@ const IGNORED_CONSOLE = [
   /Content-Security-Policy/i,
   /favicon/i,
   /\[vite\]/i,
+  /@vite\/client/,
+  /@react-refresh/,
 ];
 
 /**
@@ -33,6 +35,8 @@ const IGNORED_CONSOLE = [
  * The gate exists to catch our own broken code, so edge-injected analytics, the bot-detection
  * beacon, report-only CSP notices and dev-server chatter are filtered out — none of them can be
  * fixed from this repository, and a gate that fails on them would be turned off within a week.
+ * Dev-server infrastructure is filtered by the origin the message came from rather than its text,
+ * because the HMR client logs a bare "Error" that says nothing about where it came from.
  * Everything else is treated as a defect and fails the run.
  */
 export const watchForApplicationErrors = (page: Page): string[] => {
@@ -43,7 +47,11 @@ export const watchForApplicationErrors = (page: Page): string[] => {
   };
   page.on('pageerror', (error) => record(`pageerror: ${error.message}`));
   page.on('console', (message: ConsoleMessage) => {
-    if (message.type() === 'error') record(`console: ${message.text()}`);
+    if (message.type() !== 'error') return;
+    const where = message.location();
+    record(
+      `console: ${message.text()} @ ${where.url}:${where.lineNumber}:${where.columnNumber}`,
+    );
   });
   return failures;
 };

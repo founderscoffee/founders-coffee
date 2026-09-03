@@ -190,6 +190,7 @@ export const events = sqliteTable(
       table.marketCode,
       table.slug,
     ),
+    index('events_host_id_index').on(table.hostId),
   ],
 );
 

@@ -76,6 +76,7 @@ export const getUpcomingEvents = createServerFn({ strict: false })
     z.object({
       marketCode: z.string().optional(),
       cityCode: z.string().optional(),
+      hostId: z.string().max(64).optional(),
       afterStartsAt: z.number().optional(),
       afterId: z.string().optional(),
       limit: z.number().int().min(1).max(100).default(20),

@@ -30,7 +30,7 @@ describe('MapboxMapProvider', () => {
     const request = new URL(requests[0]);
     expect(request.pathname).toBe('/search/searchbox/v1/forward');
     expect(request.searchParams.get('country')).toBe('DZ');
-    expect(request.searchParams.get('language')).toBe('ar');
+    expect(request.searchParams.get('language')).toBe('en');
     expect(request.searchParams.get('types')).toBe('city,place,locality');
   });
 

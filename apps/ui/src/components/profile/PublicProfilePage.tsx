@@ -6,18 +6,24 @@ import {
   role_member,
   type Locale,
 } from '@founders-coffee/i18n';
-import type { PublicProfile } from '@founders-coffee/server-fns';
+import type { Market } from '@founders-coffee/db';
+import type { EventFeedItem, PublicProfile } from '@founders-coffee/server-fns';
 
+import { EventCard } from '../events/EventCard';
 import { initials } from '../../lib/utils';
 
 type PublicProfilePageProps = {
   locale: Locale;
   profile: PublicProfile;
+  events: readonly EventFeedItem[];
+  markets: readonly Market[];
 };
 
 export const PublicProfilePage = ({
   locale,
   profile,
+  events,
+  markets,
 }: PublicProfilePageProps) => {
   const roleLabel =
     profile.role === 'host'
@@ -28,6 +34,8 @@ export const PublicProfilePage = ({
 
   const cityName =
     locale === 'ar' ? profile.homeCityNameAr : profile.homeCityName;
+
+  const marketFor = (code: string) => markets.find((m) => m.code === code);
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
@@ -58,13 +66,32 @@ export const PublicProfilePage = ({
               <div className="stat-title text-xs">
                 {public_events_hosted({}, { locale })}
               </div>
-              <div className="stat-value text-2xl">0</div>
+              <div className="stat-value text-2xl">{events.length}</div>
             </div>
           </div>
 
-          <p className="text-sm text-base-content/40">
-            {public_no_events({}, { locale })}
-          </p>
+          {events.length === 0 ? (
+            <p className="text-sm text-base-content/40">
+              {public_no_events({}, { locale })}
+            </p>
+          ) : (
+            <ul className="grid w-full gap-3 text-start">
+              {events.map((event) => {
+                const market = marketFor(event.marketCode);
+                if (!market) return null;
+                return (
+                  <li key={event.id}>
+                    <EventCard
+                      event={event}
+                      locale={locale}
+                      timezone={market.timezone}
+                      marketSlug={market.slug}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </div>
     </div>

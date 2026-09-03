@@ -157,18 +157,12 @@ describe('MapboxMapProvider venue resolution', () => {
     if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
   });
 
-  it('rejects an address outside the selected city', async () => {
-    const foreignAddress = {
+  it('rejects an address outside the selected city bounds', async () => {
+    const farAddress = {
       ...addressFeature,
-      properties: {
-        ...addressFeature.properties,
-        context: {
-          country: { name: 'Algeria', country_code: 'DZ' },
-          place: { name: 'Oran' },
-        },
-      },
+      geometry: { type: 'Point', coordinates: [-0.63, 35.69] },
     };
-    const { fetcher } = queuedFetcher([[cityFeature], [foreignAddress]]);
+    const { fetcher } = queuedFetcher([[cityFeature], [farAddress]]);
     const provider = createMapboxProvider('test-token', fetcher);
 
     const result = await provider.reverseVenue({
@@ -179,5 +173,39 @@ describe('MapboxMapProvider venue resolution', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+  });
+
+  it('resolves the city in a stable language, whatever the host is reading', async () => {
+    const { fetcher, requests } = queuedFetcher([[cityFeature], []]);
+    const provider = createMapboxProvider('test-token', fetcher);
+
+    await provider.getCityViewport({ ...location, locale: 'fr' });
+
+    expect(new URL(requests[0]).searchParams.get('language')).toBe('en');
+  });
+
+  it('accepts a venue the provider localizes under a different city name', async () => {
+    const frenchAddress = {
+      ...addressFeature,
+      properties: {
+        ...addressFeature.properties,
+        context: {
+          country: { name: 'Algérie', country_code: 'DZ' },
+          place: { name: 'Alger' },
+        },
+      },
+    };
+    const { fetcher } = queuedFetcher([[cityFeature], [frenchAddress]]);
+    const provider = createMapboxProvider('test-token', fetcher);
+
+    const result = await provider.reverseVenue({
+      ...location,
+      locale: 'fr',
+      latitude: 36.75,
+      longitude: 3.06,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.providerId).toBe('address-yousfi');
   });
 });

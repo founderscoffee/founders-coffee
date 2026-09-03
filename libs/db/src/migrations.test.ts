@@ -3,7 +3,7 @@ import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 import { createDb } from './db.js';
-import { createEvent } from './events.js';
+import { createEvent, getEvent } from './events.js';
 import { seed } from './seed.js';
 import { user, type NewUser } from './schema.js';
 
@@ -220,5 +220,18 @@ describe('0015 — dispatch marker (real D1)', () => {
       attempts: 1,
       dispatch_started_at: null,
     });
+  });
+});
+
+describe('0016 — host event index (real D1)', () => {
+  it('indexes events by host without losing existing rows', async () => {
+    const { event, apply } = await atMigration('0016_light_alex_wilder.sql');
+    expect(await indexNames('events')).not.toContain('events_host_id_index');
+
+    await apply();
+
+    expect(await indexNames('events')).toContain('events_host_id_index');
+    const kept = await getEvent(createDb(env.PRIOR_DB), event.id);
+    expect(kept?.hostId).toBe(event.hostId);
   });
 });

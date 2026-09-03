@@ -23,6 +23,7 @@ test.describe('create event experience', () => {
     await page.goto(wizardPath());
 
     await selectVenue(page, VENUE_QUERY);
+    const savedVenue = await page.locator('#venue-search').inputValue();
     await nextButton(page, locale).click();
     await expect(page.locator('.rdp-button_next')).toBeVisible();
 
@@ -41,9 +42,7 @@ test.describe('create event experience', () => {
       timeout: 30_000,
     });
     await backButton(page, other).click();
-    await expect(page.locator('#venue-search')).toHaveValue(
-      new RegExp(VENUE_QUERY),
-    );
+    await expect(page.locator('#venue-search')).toHaveValue(savedVenue);
   });
 
   test('shows localized inline validation and focuses the first invalid field', async ({

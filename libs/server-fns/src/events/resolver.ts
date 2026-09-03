@@ -231,6 +231,7 @@ export const listEvents = async (
   opts: {
     marketCode?: string;
     cityCode?: string;
+    hostId?: string;
     afterStartsAt?: number;
     afterId?: string;
     limit?: number;
@@ -240,6 +241,7 @@ export const listEvents = async (
   const rows = await listUpcomingEvents(db, {
     marketCode: opts.marketCode,
     cityCode: opts.cityCode,
+    hostId: opts.hostId,
     afterStartsAt: opts.afterStartsAt
       ? new Date(opts.afterStartsAt)
       : undefined,

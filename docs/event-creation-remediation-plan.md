@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 through EC-08 complete, EC-09 and EC-10 not started                                                                                                          |
+| Status         | Active; EC-01 through EC-09 complete, EC-10 not started                                                                                                                    |
 | Last reviewed  | 2026-09-03                                                                                                                                                                 |
 | Scope          | Host event creation in `apps/ui`, including the anonymous wizard and authenticated submission through durable D1 persistence and discoverability                           |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
@@ -452,7 +452,7 @@ Outstanding for EC-10:
 
 **Parent:** P1-021
 **Requirements:** NFR-4, NFR-8, NFR-9, NFR-11, NFR-12
-**Status:** Suite implemented 2026-09-03; the browser run is pending a local Mapbox token
+**Status:** Complete — 2026-09-03
 
 Work:
 
@@ -518,17 +518,45 @@ Implementation evidence (2026-09-03):
   analytics, the bot-detection beacon, report-only CSP notices and dev-server chatter filtered out:
   none can be fixed from this repository, and a gate that fails on them would be switched off.
 
-Outstanding:
+Execution evidence (2026-09-03):
 
-- The browser gate has not been executed. It needs a Mapbox token in `apps/ui/.dev.vars` — the
-  venue field stays disabled until the server returns the city viewport, so without one the wizard
-  cannot leave step 1. The staging secret exists but its value cannot be read back.
+- The gate ran green against a live Mapbox token: **18 of 18**, `mobile-ar` 6/6, `tablet-fr` 6/6,
+  `desktop-en` 6/6. The local database held zero events and zero users afterwards, so cleanup
+  removed exactly what each run created.
+- Running it found four production defects that every prior gate had passed, which is the whole
+  argument for a real-platform suite:
+  1. **Mapbox indexes no points of interest in DZ, MA or EG.** A POI-only venue rule made event
+     creation impossible in three of four markets, the launch market among them: eight reverse
+     lookups spread across Algiers returned eight features, none of them a POI. Fixed by the
+     address fallback recorded above; SA and FR were verified as controls with the same token.
+  2. **The host wizard was unusable in French.** Mapbox localizes place names — the same city is
+     `Algiers`, `Alger` and `الجزائر العاصمة` — and venues were filtered by comparing those to the
+     Latin name in the versioned geography. In French nothing matched, the city never resolved, the
+     viewport never loaded and the venue field stayed disabled forever. City membership is now
+     decided by the city's own bounding box and by distance from the point the host tapped, both of
+     which hold in every language; the name comparison survives only where the lookup language is
+     pinned, which is choosing the city itself.
+  3. **Onboarding could not be completed by anyone.** The route loads a state's cities from its own
+     `state` search parameter, but the choice was held in component state alone, so the loader
+     returned no cities, the combobox had nothing to offer and the save button could never enable.
+     Every newly signed-up host reached onboarding and could not leave it.
+  4. **The public host profile never listed events.** It rendered a hardcoded `0` and an
+     unconditional empty state. It now counts and lists the host's upcoming published events,
+     served by a `host_id` filter with its own index.
+- Two characteristics of the real platform the gate had to be built around, neither a defect:
+  the anonymous map-context budget is twenty requests per ten minutes per IP (AR-05), and all
+  Playwright workers share one address, so the three projects are run one at a time; and the markup
+  is interactive before React hydrates, so a selection made in that window is dropped and the
+  onboarding step retries until it sticks.
 
 Local command:
 
 ```text
-# apps/ui/.dev.vars must carry MAPBOX_TOKEN; TURNSTILE_DISABLED=true is already the dev default
-npx nx run public:e2e -- --grep "create event"
+# apps/ui/.dev.vars must carry MAPBOX_TOKEN; TURNSTILE_DISABLED=true is already the dev default.
+# One project at a time — 18 wizard loads exceed the anonymous map-context budget in one window.
+npx playwright test --project=mobile-ar
+npx playwright test --project=tablet-fr
+npx playwright test --project=desktop-en
 ```
 
 ### EC-10 — Stage, verify, and release

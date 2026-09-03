@@ -62,6 +62,7 @@ export const listUpcomingEvents = async (
   opts: {
     marketCode?: string;
     cityCode?: string;
+    hostId?: string;
     afterStartsAt?: Date;
     afterId?: string;
     limit?: number;
@@ -88,6 +89,7 @@ export const listUpcomingEvents = async (
         eq(events.status, 'published'),
         opts.marketCode ? eq(events.marketCode, opts.marketCode) : undefined,
         opts.cityCode ? eq(events.cityCode, opts.cityCode) : undefined,
+        opts.hostId ? eq(events.hostId, opts.hostId) : undefined,
       ),
     )
     .orderBy(events.startsAt, events.id)

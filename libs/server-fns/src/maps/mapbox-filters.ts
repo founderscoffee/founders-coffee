@@ -32,8 +32,19 @@ const featureCityNames = (feature: MapboxFeature): readonly string[] =>
     feature.properties.context.place?.name,
     feature.properties.context.locality?.name,
     feature.properties.context.district?.name,
+    feature.properties.context.region?.name,
   ].filter((value): value is string => value !== undefined);
 
+/**
+ * Whether a provider feature names the city the host selected.
+ *
+ * Used to pick the right city out of a forward lookup, which is requested in a fixed language so
+ * these names line up with the Latin names the versioned geography holds. It is deliberately NOT
+ * used to filter venues: Mapbox localizes place names — the same city is `Algiers`, `Alger` and
+ * `الجزائر العاصمة` — and no string comparison relates those, so filtering venues by name left the
+ * host wizard unusable in French. Venue geography is decided by the city's own bounding box and by
+ * distance from the point the host tapped, both of which are language-independent.
+ */
 export const matchesCity = (
   feature: MapboxFeature,
   input: MapProviderLocation,

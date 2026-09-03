@@ -24,6 +24,7 @@ const MAPBOX_SEARCH_URL = 'https://api.mapbox.com/search/searchbox/v1';
 const MAPBOX_TIMEOUT_MS = 6_000;
 const MAPBOX_RESULT_LIMIT = 10;
 const VENUE_TYPES = 'poi,address,street';
+const CITY_LOOKUP_LANGUAGE = 'en';
 
 type MapboxFetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -67,7 +68,7 @@ export const createMapboxProvider = (
     const result = await fetchCollection('forward', {
       q: `${input.city.name}, ${input.marketCode}`,
       country: input.marketCode,
-      language: input.locale,
+      language: CITY_LOOKUP_LANGUAGE,
       limit: '5',
       types: 'city,place,locality',
     });
@@ -101,6 +102,15 @@ export const createMapboxProvider = (
     return result.ok ? ok(result.data.context) : result;
   };
 
+  /**
+   * Candidate venues inside the selected city.
+   *
+   * City membership is decided by the city's own bounding box, never by comparing the provider's
+   * place names: those are localized — `Algiers`, `Alger`, `الجزائر العاصمة` — and no string
+   * comparison relates them, so a name filter silently emptied every result for a host reading
+   * anything but English. Supported venues are ranked above bare addresses so a real café still
+   * wins where the provider indexes one.
+   */
   const searchVenues: MapProvider['searchVenues'] = async (input) => {
     const cityResult = await resolveCity(input);
     if (!cityResult.ok) return cityResult;
@@ -119,7 +129,6 @@ export const createMapboxProvider = (
       const [longitude, latitude] = feature.geometry.coordinates;
       return (
         featureCountry(feature) === input.marketCode &&
-        matchesCity(feature, input) &&
         isWithinBounds(longitude, latitude, bounds) &&
         (isSupportedVenue(feature) || isAddressableLocation(feature))
       );
@@ -131,6 +140,13 @@ export const createMapboxProvider = (
     return ok([...supported, ...addressable].map(toVenue));
   };
 
+  /**
+   * The venue at a point the host chose.
+   *
+   * The point must already be inside the city, and the answer must be within
+   * `MAX_REVERSE_DISTANCE_METERS` of it and inside the same bounding box — distance and containment
+   * hold in every language, unlike the place names the provider returns.
+   */
   const reverseVenue: MapProvider['reverseVenue'] = async (input) => {
     const cityResult = await resolveCity(input);
     if (!cityResult.ok) return cityResult;
@@ -156,7 +172,7 @@ export const createMapboxProvider = (
       const [longitude, latitude] = candidate.geometry.coordinates;
       return (
         featureCountry(candidate) === input.marketCode &&
-        matchesCity(candidate, input) &&
+        isWithinBounds(longitude, latitude, bounds) &&
         distanceMeters(input, { latitude, longitude }) <=
           MAX_REVERSE_DISTANCE_METERS
       );
