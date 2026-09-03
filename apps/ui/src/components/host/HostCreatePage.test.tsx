@@ -25,7 +25,7 @@ describe('HostCreatePage EC-07 flow', () => {
       target: { value: '24' },
     });
     fireEvent.change(screen.getByLabelText('Language'), {
-      target: { value: 'ar_en' },
+      target: { value: 'en' },
     });
     fireEvent.change(screen.getByLabelText('Category'), {
       target: { value: 'workshop' },
@@ -36,7 +36,7 @@ describe('HostCreatePage EC-07 flow', () => {
       screen.getByRole('heading', { name: 'Review and confirm' }),
     ).toBeTruthy();
     expect(screen.getByText('12 Startup Street, Algiers')).toBeTruthy();
-    expect(screen.getByText('Arabic and English')).toBeTruthy();
+    expect(screen.getByText('English')).toBeTruthy();
     expect(screen.getByText('Workshop')).toBeTruthy();
 
     const publish = screen.getByRole('button', {
@@ -55,7 +55,7 @@ describe('HostCreatePage EC-07 flow', () => {
       data: {
         event: expect.objectContaining({
           capacity: 24,
-          language: 'ar_en',
+          language: 'en',
           category: 'workshop',
         }),
         turnstileToken: 'single-use-token',

@@ -28,7 +28,7 @@ const priorEvent = (suffix: string) => ({
   venue: 'Migration Café',
   startsAt: new Date('2099-08-01T18:00:00Z'),
   capacity: 20,
-  language: 'ar_fr' as const,
+  language: 'fr' as const,
   category: 'coffee-meetup' as const,
   slug: `prior-schema-event-${suffix}`,
 });

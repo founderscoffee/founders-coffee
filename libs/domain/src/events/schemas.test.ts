@@ -31,7 +31,7 @@ const validInput = (overrides: Record<string, unknown> = {}) => {
     startsAt,
     endsAt: startsAt + 60 * 60_000,
     capacity: 20,
-    language: 'ar_fr',
+    language: 'fr',
     category: 'coffee-meetup',
     ...overrides,
   };

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { marketCodeSchema } from '@founders-coffee/core';
 
-export const EVENT_LANGUAGES = ['ar', 'en', 'fr', 'ar_en', 'ar_fr'] as const;
+export const EVENT_LANGUAGES = ['ar', 'en', 'fr'] as const;
 export const EVENT_CATEGORIES = [
   'coffee-meetup',
   'workshop',

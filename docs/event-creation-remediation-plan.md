@@ -419,10 +419,16 @@ Implementation evidence (2026-09-03):
   duration. The log context is built from an explicit allow-list, so the title, description, venue
   name, venue address, coordinates and derived slug are structurally absent rather than filtered.
 - `events_created` is written to Analytics Engine only after the D1 row is committed, indexed by
-  market with the city as a blob. It carries no language dimension: the event language enum
-  includes `ar_fr`, and putting that in the `locale` dimension would silently corrupt every
-  dashboard that already reads it. A missing binding is logged and a throwing `writeDataPoint` is
-  reported — a metrics outage never costs a host their event.
+  market with the city and event language as blobs. A missing binding is logged and a throwing
+  `writeDataPoint` is reported — a metrics outage never costs a host their event.
+- The event language enum was narrowed to exactly `ar | en | fr`, dropping the combined `ar_en` and
+  `ar_fr` values. That is what makes the language safe to record as the `locale` dimension: the two
+  combined values were not locales, and recording them would have made `WHERE blob3 = 'ar'` quietly
+  wrong for every dashboard reading that blob. The narrowing also removed a latent defect in the
+  resolver, which derived the Mapbox venue locale with `language.startsWith('fr')` and therefore
+  resolved `ar_fr` venues in Arabic. No migration was required — `language` is plain `text` in SQL
+  and the enum was a Drizzle type-level narrowing — and a read-only check confirmed both staging
+  and production hold zero event rows, so no stored value was orphaned.
 - The `ANALYTICS` dataset binding was added to the public Worker for local, staging and production,
   and to the server-fns test Worker; a Miniflare test writes through the real binding. The account
   Analytics Engine SQL API answers, so the dataset is available to this account.

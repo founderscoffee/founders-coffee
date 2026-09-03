@@ -234,7 +234,7 @@ describe('resolveTrendingStates (cold vs warm)', () => {
       venue: 'Café Test',
       startsAt: new Date('2099-03-01T18:00:00Z'),
       capacity: 20,
-      language: 'ar_fr',
+      language: 'fr',
       category: 'coffee-meetup',
       status: 'published',
     });
@@ -250,7 +250,7 @@ describe('resolveTrendingStates (cold vs warm)', () => {
       venue: 'Café Oran',
       startsAt: new Date('2099-03-02T18:00:00Z'),
       capacity: 20,
-      language: 'ar_fr',
+      language: 'fr',
       category: 'coffee-meetup',
       status: 'published',
     });

@@ -89,7 +89,7 @@ describe('createEventWithTelemetry (real D1)', () => {
       cityCode: '1',
       stateCode: '01',
       category: 'coffee-meetup',
-      language: 'ar_fr',
+      language: 'fr',
       durationMinutes: 60,
     });
     expect(succeeded?.eventId).toMatch(/^evt_[0-9a-f]{32}$/);
@@ -99,6 +99,7 @@ describe('createEventWithTelemetry (real D1)', () => {
     expect(trackEvent).toHaveBeenCalledWith(EVENTS_CREATED_METRIC, {
       market: 'DZ',
       city: '1',
+      locale: 'fr',
     });
   });
 

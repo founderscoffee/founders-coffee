@@ -96,11 +96,7 @@ export const createEventResolverWithId = async (
     const venueValidation = await reverseEventVenueResolver(mapProvider, {
       marketCode: input.marketCode,
       cityCode: input.cityCode,
-      locale: input.language.startsWith('fr')
-        ? 'fr'
-        : input.language.startsWith('en')
-          ? 'en'
-          : 'ar',
+      locale: input.language,
       latitude: input.latitude,
       longitude: input.longitude,
     });

@@ -32,8 +32,6 @@ const LANGUAGE_LABEL: Record<EventWithAttendance['language'], string> = {
   ar: 'AR',
   en: 'EN',
   fr: 'FR',
-  ar_en: 'AR + EN',
-  ar_fr: 'AR + FR',
 };
 
 const categoryLabel = (

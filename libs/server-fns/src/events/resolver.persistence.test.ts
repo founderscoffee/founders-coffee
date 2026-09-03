@@ -42,7 +42,7 @@ describe('createEventResolver persistence (real D1)', () => {
         latitude: 36.7538,
         longitude: 3.0588,
         capacity: 24,
-        language: 'ar_fr',
+        language: 'fr',
         category: 'coffee-meetup',
         isFree: true,
         status: 'published',

@@ -23,7 +23,7 @@ const draft: HostCreateDraft = {
   title: 'Founder meetup',
   description: 'A complete founder meetup description.',
   capacity: 24,
-  language: 'ar_fr',
+  language: 'fr',
   category: 'workshop',
 };
 

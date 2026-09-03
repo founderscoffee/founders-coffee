@@ -72,7 +72,7 @@ const seedEvent = async (
     venue: 'Café des Délices, Hydra',
     startsAt: new Date('2099-01-15T18:00:00Z'),
     capacity: overrides.capacity ?? 5,
-    language: 'ar_fr',
+    language: 'fr',
     category: 'coffee-meetup',
     status: overrides.status ?? 'published',
   });

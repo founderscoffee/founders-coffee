@@ -138,7 +138,7 @@ export const verification = sqliteTable('verification', {
 export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
 
-export const EVENT_LANGUAGES = ['ar', 'en', 'fr', 'ar_en', 'ar_fr'] as const;
+export const EVENT_LANGUAGES = ['ar', 'en', 'fr'] as const;
 export const EVENT_CATEGORIES = [
   'coffee-meetup',
   'workshop',

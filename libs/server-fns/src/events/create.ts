@@ -52,9 +52,10 @@ const telemetryFor = (
  * propagated. The absent-binding case is logged rather than ignored because a silently unmetered
  * environment is indistinguishable from an environment where nobody creates events.
  *
- * Only market and city are sent. The event's language belongs to a five-value enum (`ar_fr` among
- * them) while the `locale` dimension means a UI locale, so putting one in the other would make
- * `WHERE blob3 = 'ar'` quietly wrong for every dashboard that already reads it.
+ * The event language is sent as the `locale` dimension. That is only sound because the language
+ * enum is exactly `ar | en | fr` — the same values the dimension already means. It previously also
+ * carried `ar_en` and `ar_fr`, which would have made `WHERE blob3 = 'ar'` quietly wrong for every
+ * dashboard reading that blob; narrowing the enum is what makes the breakdown safe to record.
  */
 const recordEventCreated = (
   metrics: Metrics | null,
@@ -68,6 +69,7 @@ const recordEventCreated = (
     metrics.trackEvent(EVENTS_CREATED_METRIC, {
       market: telemetry.marketCode,
       city: telemetry.cityCode,
+      locale: telemetry.language,
     });
   } catch (error) {
     reportError(error, { operation: EVENTS_CREATED_METRIC });

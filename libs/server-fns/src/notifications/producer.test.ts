@@ -51,7 +51,7 @@ const seedEvent = async (db: Db): Promise<{ id: string; slug: string }> => {
     venue: 'Café des Délices, Hydra',
     startsAt: new Date('2099-01-15T23:30:00Z'),
     capacity: 30,
-    language: 'ar_fr',
+    language: 'fr',
     category: 'coffee-meetup',
     status: 'published',
   });

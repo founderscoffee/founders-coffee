@@ -60,7 +60,7 @@ export const setupDb = async (): Promise<Db> => {
     venue: 'Café des Délices, Hydra',
     startsAt: new Date('2099-01-15T18:00:00Z'),
     capacity: 50,
-    language: 'ar_fr',
+    language: 'fr',
     category: 'coffee-meetup',
     status: 'published',
   }).catch(() => undefined);

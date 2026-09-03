@@ -4,8 +4,6 @@ import {
   cat_demo_day,
   cat_workshop,
   host_language_ar,
-  host_language_ar_en,
-  host_language_ar_fr,
   host_language_en,
   host_language_fr,
   host_step1,
@@ -42,8 +40,6 @@ export const eventLanguageLabel = (
     ar: host_language_ar,
     en: host_language_en,
     fr: host_language_fr,
-    ar_en: host_language_ar_en,
-    ar_fr: host_language_ar_fr,
   };
   return labels[language]({}, { locale });
 };
