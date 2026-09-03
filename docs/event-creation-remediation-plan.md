@@ -577,12 +577,28 @@ Configuration preflight (2026-09-03, read back from the account):
 
 Blocked on, in the order they bite:
 
-1. **The staged creation cannot authenticate a disposable host automatically.** Better Auth stores
-   one-time codes hashed, so the database cannot return the code, and a deployed environment sends
-   real mail rather than printing it — which is how the local gate reads it. An address that cannot
-   receive mail therefore cannot complete sign-in on staging. This needs either a real mailbox
-   whose code a person reads, or a person driving the login step while the rest is verified from
-   the data.
+1. ~~**The staged creation cannot authenticate a disposable host automatically.**~~ Resolved by
+   `shouldEchoSignInCode` (`apps/ui/src/lib/otp-echo.ts`), which writes the code to the Worker log
+   for reserved test addresses only. Better Auth stores codes hashed, so the database cannot return
+   one, and a deployed environment mails it rather than printing it; the echo gives the gate the
+   same line it already reads locally. It is fenced three ways and all three must hold: `OTP_ECHO`
+   explicitly `true` (absent means off), `APP_ENVIRONMENT` not `production`, and a recipient inside
+   the reserved `@e2e.invalid` domain. The last fence is the one that bounds the damage — a real
+   member requesting a code on the same deployment still has it redacted.
+
+   `apps/ui/src/lib/auth-email.test.ts` proves the echo emits a line the gate's reader parses, and
+   each fence was mutation-checked to confirm the tests discriminate rather than merely pass:
+
+   | Mutation                          | Result             |
+   | --------------------------------- | ------------------ |
+   | Production fence removed          | 1 failed, 2 passed |
+   | Test-domain fence removed         | 1 failed, 2 passed |
+   | Flag defaulted on (`!== 'false'`) | 1 failed, 2 passed |
+   | Unmutated                         | 3 passed           |
+
+   `OTP_ECHO` is set in the staging vars of `apps/ui/wrangler.jsonc` and confirmed present on the
+   deployed staging Worker. It must be removed once EC-10 is signed off.
+
 2. **Staging runs real Turnstile**, correctly: `TURNSTILE_DISABLED` is absent, and setting it would
    not bypass the check but fail it closed, because `resolveTurnstileProvider` only accepts that
    flag when `APP_ENVIRONMENT` is `development`. Whether the interaction-only widget passes for an
