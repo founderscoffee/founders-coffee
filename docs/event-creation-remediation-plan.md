@@ -625,6 +625,26 @@ Blocked on, in the order they bite:
    | A second widget in `non-interactive` mode scoped to staging       | Keeps a real control; may still refuse an automated browser       |
    | A person clicks the checkbox once, the suite continues from there | Changes nothing on the account; the gate stops being unattended   |
 
+   Attempted on 2026-09-03 with Cloudflare's testing keys (`1x00000000000000000000AA` /
+   `1x0000000000000000000000000000000AA`) set as staging secrets. This got further than any earlier
+   attempt and produced the first real evidence past the sign-in wall:
+
+   - The sign-in step passed. `OTP_ECHO` wrote `email-OTP for e2e-host-en-… (sign-in): ……` to the
+     Worker log, the gate's reader parsed it, and the disposable host authenticated on a deployed
+     environment for the first time. Better Auth's captcha plugin checks only `success`, so the
+     dummy token satisfies it.
+   - The wizard completed and publish was clicked.
+   - `createEvent` then failed with `turnstile_invalid`, and correctly. `siteverify` answers a dummy
+     token with `{"success":true,"hostname":"example.com","metadata":{"result_with_testing_key":true}}`
+     and **no `action` field**, while `createCloudflareTurnstileProvider` pins both
+     `result.action === 'create_event'` and `result.hostname === new URL(APP_URL).hostname`. That
+     pinning is the EC-06 replay defence and is not going to be relaxed for a test, so the testing
+     keys can unblock login but can never unblock event creation.
+
+   The remaining route that keeps a real control is a second widget scoped to staging in
+   `non-interactive` mode, which returns the true hostname and action. Creating it is an account
+   write this session is not permitted to make; the script is prepared for the user to run.
+
 3. ~~**Network.**~~ Cleared. The machine reached `staging.founders.coffee` and the Cloudflare API
    reliably on 2026-09-03 after an unstable earlier window; `wrangler tail --env staging` held a
    connection for the whole run.
