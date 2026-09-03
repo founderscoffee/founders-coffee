@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 through EC-09 complete, EC-10 not started                                                                                                                    |
+| Status         | EC-01 through EC-10 complete for staging; production deployment and smoke outstanding                                                                                      |
 | Last reviewed  | 2026-09-03                                                                                                                                                                 |
 | Scope          | Host event creation in `apps/ui`, including the anonymous wizard and authenticated submission through durable D1 persistence and discoverability                           |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
@@ -563,7 +563,7 @@ npx playwright test --project=desktop-en
 
 **Parent:** P1-006, P1-018, P1-019, P1-021
 **Requirements:** NFR-4, NFR-7, NFR-12
-**Status:** Preflight complete 2026-09-03; staged run 5/6, then the create-path challenge was removed by decision — see below
+**Status:** Complete — 2026-09-03. Staged run 18/18 across all three locales against the deployed Worker; three events created, verified and cleaned up. Evidence below.
 
 Configuration preflight (2026-09-03, read back from the account):
 
@@ -766,6 +766,47 @@ Both dev and the production preview are clean, local Playwright `desktop-en` is 
 `HostMap.test.tsx` now asserts both props with each one mutation-checked, so neither can be dropped
 silently again. `worker-src` no longer needs `blob:` for this path, which is an AR-08 simplification
 that can be taken separately.
+
+### EC-10 release verification — passed 2026-09-03
+
+Three projects run one at a time against `https://staging.founders.coffee` with `E2E_D1_MODE=remote`
+and `E2E_SERVER_LOG` fed by `wrangler tail --env staging --format json`. **18 of 18 passed**, the
+publish case included in every locale:
+
+| Project      | Viewport | Locale | Result |
+| ------------ | -------- | ------ | ------ |
+| `mobile-ar`  | 390×844  | ar     | 6/6    |
+| `tablet-fr`  | 768×1024 | fr     | 6/6    |
+| `desktop-en` | 1280×800 | en     | 6/6    |
+
+Three real events were created on the deployed Worker and read back out of its structured logs:
+
+| Locale | Event id                               | Market/city | State | Category | Capacity |
+| ------ | -------------------------------------- | ----------- | ----- | -------- | -------- |
+| en     | `evt_ecb60b3ce00549d1983b8681346c15dd` | DZ/556      | 16    | workshop | 24       |
+| ar     | `evt_98b3072840df47639d210335f0dbf138` | DZ/556      | 16    | workshop | 24       |
+| fr     | `evt_f955b2c781e146ffaf6593cd4b20432e` | DZ/556      | 16    | workshop | 24       |
+
+Each was preceded by `event_create_requested` carrying the same `requestId` and only the allow-list
+projection — host, market, city, category, language, capacity, duration — with no title, no
+description, no venue, no address. No `events_created_metric_unavailable` appeared in any run, so the
+`ANALYTICS` binding resolved and `writeDataPoint` did not throw. Sign-in used the `OTP_ECHO` line in
+each locale, which is the first time the echo has been exercised on a deployed environment in all
+three.
+
+Sign-in still needs Cloudflare's testing keys, because the login challenge remains and no automated
+browser clears it. They were set for the duration of the runs and the real widget restored
+immediately afterwards, with the secret read back from the Turnstile API rather than retyped.
+
+Cleanup verified by query: `0` events, `0` users, `0` RSVPs, `0` leftover verification rows.
+
+Outstanding for sign-off:
+
+- Remove `OTP_ECHO` from the staging vars in `apps/ui/wrangler.jsonc`.
+- Production preflight, migration, deployment, and one authorized smoke creation, once the apex
+  hostname resolves.
+- The staging sign-in challenge remains unautomatable, so any future staged run needs the same
+  temporary testing-key window.
 
 Work:
 
