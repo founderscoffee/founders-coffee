@@ -1,6 +1,7 @@
 export interface SecurityHeaderOptions {
   readonly enforceCsp?: boolean;
   readonly reportPath?: string;
+  readonly nonce?: string;
   readonly extraSources?: Readonly<Record<string, readonly string[]>>;
 }
 
@@ -40,14 +41,39 @@ const BASE_DIRECTIVES: Readonly<Record<string, readonly string[]>> = {
   'object-src': [NONE],
 };
 
+const NONCE_DIRECTIVE = 'script-src';
+
 const mergeSources = (
-  extra: SecurityHeaderOptions['extraSources'],
+  options: SecurityHeaderOptions,
 ): Record<string, readonly string[]> => {
   const merged: Record<string, readonly string[]> = { ...BASE_DIRECTIVES };
-  for (const [directive, sources] of Object.entries(extra ?? {})) {
+  if (options.nonce) {
+    merged[NONCE_DIRECTIVE] = [
+      ...(merged[NONCE_DIRECTIVE] ?? []),
+      `'nonce-${options.nonce}'`,
+    ];
+  }
+  for (const [directive, sources] of Object.entries(
+    options.extraSources ?? {},
+  )) {
     merged[directive] = [...(merged[directive] ?? []), ...sources];
   }
   return merged;
+};
+
+/**
+ * A fresh CSP nonce for one response.
+ *
+ * 128 bits from the runtime CSPRNG, base64-encoded as the `base64-value` the grammar expects. It
+ * must be unpredictable and never reused across responses: a nonce an attacker can guess, or one
+ * recycled from an earlier page, lets injected markup mark itself as trusted, which is the whole
+ * protection the directive provides.
+ */
+export const createCspNonce = (): string => {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
 };
 
 /**
@@ -70,15 +96,15 @@ const mergeSources = (
  * - `style-src` allows `'unsafe-inline'`. React writes inline `style` attributes and the streaming
  *   SSR inserts a style element before hydration; without it the first paint is unstyled. Removing
  *   it needs a style nonce threaded through the same path as the script nonce.
- * - `script-src` carries no `'unsafe-inline'` **and** no nonce yet. That combination is why the
- *   policy ships report-only: TanStack emits three inline scripts and its nonce option lives on
- *   `router.options.ssr.nonce`, inside a factory with no per-request access. The report is the
- *   measurement that tells us precisely which of them need one.
+ * - `script-src` carries a per-response nonce and never `'unsafe-inline'`. A browser that
+ *   understands nonces ignores `'unsafe-inline'` entirely once one is present, so the two cannot be
+ *   combined as a fallback: any inline script this origin serves must carry the nonce, and any
+ *   inline script injected into the response after the Worker has run cannot be allowed at all.
  */
 export const buildContentSecurityPolicy = (
   options: SecurityHeaderOptions = {},
 ): string => {
-  const directives = Object.entries(mergeSources(options.extraSources)).map(
+  const directives = Object.entries(mergeSources(options)).map(
     ([directive, sources]) => `${directive} ${sources.join(' ')}`,
   );
   if (options.reportPath) directives.push(`report-uri ${options.reportPath}`);

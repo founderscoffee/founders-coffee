@@ -5,6 +5,7 @@ export interface RequestContext {
   readonly locale?: string;
   readonly userId?: string;
   readonly requestId?: string;
+  readonly cspNonce?: string;
 }
 
 const EMPTY_CONTEXT: RequestContext = {};

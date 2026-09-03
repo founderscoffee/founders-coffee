@@ -2,13 +2,14 @@ import '@founders-coffee/observability/server-init';
 import handler from '@tanstack/react-start/server-entry';
 
 import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
-import { withSecurityHeaders } from '@founders-coffee/core';
+import { createCspNonce, withSecurityHeaders } from '@founders-coffee/core';
 import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
 import {
   ingestClientLogs,
   logger,
   type LogEntry,
 } from '@founders-coffee/observability';
+import { runWithContext } from '@founders-coffee/observability/context';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
@@ -44,15 +45,23 @@ export default {
    *
    * The wrapper sits at the entry rather than inside the router so it covers documents, assets,
    * server-function responses and the auth handler alike — a header that only lands on some responses
-   * is the one an attacker uses. The CSP ships report-only until the violations it reports have been
-   * measured; `CSP_ENFORCED=true` flips it per environment.
+   * is the one an attacker uses. `CSP_ENFORCED=true` flips report-only to enforced per environment.
+   *
+   * Each response gets a fresh script nonce, published to the router through the request context so
+   * that the same value reaches the header and every inline script TanStack emits. The context is
+   * the only channel that is safe here: the router factory takes no request, and a module-level
+   * variable would let two requests being served concurrently in one isolate read each other's
+   * nonce — which either blocks a legitimate page or, worse, hands a live nonce to another
+   * response.
    */
   fetch: async (request: Request, env: UiEnv): Promise<Response> => {
     const url = new URL(request.url);
+    const nonce = createCspNonce();
     const secure = (response: Response): Response =>
       withSecurityHeaders(response, {
         enforceCsp: env.CSP_ENFORCED === 'true',
         reportPath: CSP_REPORT_PATH,
+        nonce,
       });
 
     if (url.pathname === CSP_REPORT_PATH && request.method === 'POST') {
@@ -90,6 +99,8 @@ export default {
     }
     if (url.pathname.startsWith('/api/auth/'))
       return secure(await authHandler(env)(request));
-    return secure(await handler.fetch(request));
+    return runWithContext({ cspNonce: nonce }, async () =>
+      secure(await handler.fetch(request)),
+    );
   },
 } satisfies ExportedHandler<UiEnv>;

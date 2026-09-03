@@ -14,7 +14,9 @@ import {
   not_found_title,
   type Locale,
 } from '@founders-coffee/i18n';
+import { configureZodRuntime } from '@founders-coffee/core';
 import { logger, reportError } from '@founders-coffee/observability';
+import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { routeTree } from './routeTree.gen';
 
@@ -78,6 +80,8 @@ const stringifySearch = stringifySearchWith(JSON.stringify, () => {
 });
 
 export const getRouter = () => {
+  configureZodRuntime();
+
   const router = createTanStackRouter({
     routeTree,
     scrollRestoration: true,
@@ -87,6 +91,7 @@ export const getRouter = () => {
     defaultNotFoundComponent: DefaultNotFoundComponent,
     parseSearch,
     stringifySearch,
+    ssr: { nonce: getRequestContext().cspNonce },
   });
 
   return router;

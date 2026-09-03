@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildContentSecurityPolicy,
+  createCspNonce,
   securityHeaders,
   withSecurityHeaders,
 } from './security-headers.js';
@@ -96,6 +97,63 @@ describe('security headers', () => {
     expect(policy.get('connect-src')).toContain('https://example.test');
     expect(policy.get('connect-src')).toContain("'self'");
     expect(policy.get('connect-src')).toContain('https://api.mapbox.com');
+  });
+});
+
+describe('script nonce', () => {
+  it('is absent from the policy until one is supplied', () => {
+    const scriptSrc = directives(buildContentSecurityPolicy()).get(
+      'script-src',
+    );
+    expect(scriptSrc?.some((source) => source.startsWith("'nonce-"))).toBe(
+      false,
+    );
+  });
+
+  it('adds the supplied nonce to script-src and nowhere else', () => {
+    const policy = buildContentSecurityPolicy({ nonce: 'n0nce-value' });
+    const parsed = directives(policy);
+    expect(parsed.get('script-src')).toContain("'nonce-n0nce-value'");
+    for (const [name, sources] of parsed) {
+      if (name === 'script-src') continue;
+      expect(sources.join(' '), name).not.toContain('nonce-');
+    }
+  });
+
+  it('keeps self and Turnstile alongside the nonce', () => {
+    const scriptSrc = directives(
+      buildContentSecurityPolicy({ nonce: 'abc' }),
+    ).get('script-src');
+    expect(scriptSrc).toContain("'self'");
+    expect(scriptSrc).toContain('https://challenges.cloudflare.com');
+  });
+
+  it('never pairs a nonce with unsafe-inline, which browsers would ignore', () => {
+    const scriptSrc = directives(
+      buildContentSecurityPolicy({ nonce: 'abc' }),
+    ).get('script-src');
+    expect(scriptSrc).not.toContain("'unsafe-inline'");
+    expect(scriptSrc).not.toContain("'unsafe-eval'");
+  });
+
+  it('reaches the enforced and the report-only header alike', () => {
+    expect(
+      securityHeaders({ nonce: 'abc', enforceCsp: true })[
+        'content-security-policy'
+      ],
+    ).toContain("'nonce-abc'");
+    expect(
+      securityHeaders({ nonce: 'abc' })['content-security-policy-report-only'],
+    ).toContain("'nonce-abc'");
+  });
+
+  it('mints an unpredictable value that is never repeated', () => {
+    const values = Array.from({ length: 200 }, createCspNonce);
+    expect(new Set(values).size).toBe(values.length);
+    for (const value of values) {
+      expect(value).toMatch(/^[A-Za-z0-9+/]+={0,2}$/);
+      expect(atob(value)).toHaveLength(16);
+    }
   });
 });
 

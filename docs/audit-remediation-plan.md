@@ -3,7 +3,7 @@
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status         | Active; AR-01 through AR-07 and AR-09 through AR-13 complete; AR-08 partial                                                                                                                          |
-| Last reviewed  | 2026-09-02                                                                                                                                                                                           |
+| Last reviewed  | 2026-09-03                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
 | Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                       |
@@ -677,7 +677,7 @@ revisiting when AR-13 lands.
 
 **Parent:** P1-018
 **Requirements:** NFR-4
-**Status:** Partial — headers enforced 2026-09-02; CSP report-only pending measurement
+**Status:** Partial — headers enforced and script nonces wired 2026-09-03; enforcement blocked on two Cloudflare account-side injections
 
 Closes F-09 for the header set. The CSP is shipped but not yet enforcing; see the boundary at the
 end of this ticket.
@@ -728,22 +728,48 @@ directives, the absence of `'unsafe-inline'` and `'unsafe-eval'` in `script-src`
 allowlist, report-endpoint wiring, source merging, and that the wrapper preserves body, status,
 statusText and pre-existing headers on document, JSON and error responses.
 
+Measured violations (staging, 2026-09-03) — the report-only phase did its job and produced three:
+
+1. An inline script at document offset 13415, which the served HTML identifies as TanStack's
+   `$tsr-stream-barrier` — the SSR hydration coordinator. Ours.
+2. `https://static.cloudflareinsights.com/beacon.min.js/v…`, loaded by a Cloudflare-injected inline
+   script that builds a hidden iframe and appends
+   `/cdn-cgi/challenge-platform/scripts/jsd/main.js`. Not ours; injected at the edge after the
+   Worker has returned.
+3. A blocked `eval` in the client bundle, traced to Zod 4, which probes `Function('')` inside a
+   `try` to decide whether it may JIT-compile validators. The exception is caught and Zod falls
+   back to the interpreted path, but a blocked `eval` is reported whether or not the caller
+   handles it.
+
+Resolved 2026-09-03:
+
+- **Per-request script nonces are wired.** Each response mints 128 CSPRNG bits, base64-encoded. The
+  value reaches the header and the router through the AsyncLocalStorage request context, which is
+  the only safe channel: `getRouter()` takes no request, and a module-level variable would let two
+  requests served concurrently in one isolate read each other's nonce. TanStack then stamps it on
+  every script, link and style it emits, including the stream barrier, and publishes it as
+  `<meta property="csp-nonce">` so hydration reuses the same value. Verified against a local
+  Miniflare build: one nonce in the header, 34 attributes in the document, all identical, and the
+  meta tag present.
+- **Zod's JIT probe is disabled** by declaring `jitless` before the first parse, so no `eval` is
+  attempted. Nothing is lost — the JIT path was never available under this policy, and the Workers
+  runtime already disables it by user-agent.
+
 Boundary — what is deliberately not done, and why:
 
-- **The CSP ships report-only.** `CSP_ENFORCED=true` flips it per environment. The plan's own risk
-  section says the report-only phase is not optional, and the ticket requires recording observed
-  violations before enforcing.
-- **Script nonces are not wired.** TanStack emits three inline scripts and its nonce option lives at
-  `router.options.ssr.nonce`, inside a `getRouter()` factory that takes no request and runs on both
-  client and server. Threading a per-request value through it is real work that cannot be verified
-  without a browser. `script-src` therefore carries neither `'unsafe-inline'` nor a nonce, which is
-  what makes the report tell us precisely which inline scripts need one.
+- **The CSP still ships report-only, and enforcement is now blocked account-side, not in code.**
+  Two Cloudflare features inject un-nonced inline script into the response after the Worker has
+  run: JavaScript Detections (bot management) and Web Analytics auto-install, which is enabled on
+  two RUM sites for this account. A nonce and `'unsafe-inline'` cannot coexist — a browser that
+  understands nonces ignores `'unsafe-inline'` entirely — so neither injection can be allowed
+  alongside the nonce by widening the policy. Enforcing requires turning both off, which is an
+  account decision, not a code change.
 - **`style-src` keeps `'unsafe-inline'`**, recorded rather than hidden: React writes inline `style`
-  attributes and streaming SSR inserts a style element before hydration. Removing it needs a style
-  nonce on the same path as the script nonce.
+  attributes and streaming SSR inserts a style element before hydration. The nonce now reaches
+  style tags too, so removing it is a smaller change than it was, but it still needs its own
+  measurement.
 - **The Playwright pass across `ar`, `fr` and `en` has not been run.** It needs a browser driven
-  against a deployed environment. Enforcing is gated on it, and on the reports the new endpoint
-  collects.
+  against a deployed environment, and remains a prerequisite for flipping `CSP_ENFORCED=true`.
 
 ### AR-09 — Repair the two enforcement mechanisms
 
