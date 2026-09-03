@@ -21,6 +21,8 @@ export interface UiEnv extends HandlerEnv {
   MAIL_FROM: string;
   EVENT_LIVE: DurableObjectNamespace;
   CSP_ENFORCED?: string;
+  APP_ENVIRONMENT?: string;
+  OTP_ECHO?: string;
 }
 
 const CSP_REPORT_PATH = '/csp-report';
@@ -34,7 +36,7 @@ const authHandler = (env: UiEnv) => {
   const isDev = env.APP_URL.startsWith('http://localhost');
   const emailProvider =
     !isDev && env.EMAIL
-      ? createOtpEmailProvider(env.EMAIL, env.MAIL_FROM)
+      ? createOtpEmailProvider(env.EMAIL, env.MAIL_FROM, env)
       : undefined;
   return createAuthHandler(env, emailProvider ? { emailProvider } : {});
 };

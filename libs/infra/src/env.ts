@@ -24,6 +24,7 @@ export interface WorkerEnv {
   readonly FIREBASE_VAPID_KEY?: string;
 
   readonly CSP_ENFORCED?: string;
+  readonly OTP_ECHO?: string;
   readonly DEV_GEO?: string;
 }
 

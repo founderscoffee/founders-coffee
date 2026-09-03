@@ -6,6 +6,8 @@ import {
 import { NotificationEmail } from '@founders-coffee/email/templates';
 import { logger } from '@founders-coffee/observability';
 
+import { shouldEchoSignInCode, type OtpEchoEnv } from './otp-echo';
+
 const OTP_SUBJECTS: Record<OtpType, string> = {
   'sign-in': 'founders.coffee - your sign-in code',
   'email-verification': 'founders.coffee - your verification code',
@@ -25,8 +27,14 @@ const OTP_SUBJECTS: Record<OtpType, string> = {
 export const createOtpEmailProvider = (
   emailBinding: SendEmail,
   defaultFrom: string,
+  echoEnv: OtpEchoEnv = {},
 ): EmailProvider => ({
   sendOtp: async ({ email, otp, type }) => {
+    if (shouldEchoSignInCode(echoEnv, email)) {
+      logger.warn(`email-OTP for ${email} (${type}): ${otp}`, {
+        recipient: email.split('@')[0],
+      });
+    }
     const provider = createCloudflareEmailProvider(emailBinding, defaultFrom);
     const { html, text } = await renderEmail(NotificationEmail, {
       locale: 'ar',
