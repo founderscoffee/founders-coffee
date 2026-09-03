@@ -14,6 +14,11 @@
       "types": "./src/context.ts",
       "default": "./src/context.ts"
     },
+    "./server": {
+      "@founders-coffee/source": "./src/server.ts",
+      "types": "./src/server.ts",
+      "default": "./src/server.ts"
+    },
     "./server-init": {
       "@founders-coffee/source": "./src/server-init.ts",
       "types": "./src/server-init.ts",

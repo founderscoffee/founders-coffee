@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 
 import type { WorkerEnv } from '@founders-coffee/infra';
+import { createMetrics, type Metrics } from '@founders-coffee/observability';
 
 /**
  * The runtime environment, typed once.
@@ -18,3 +19,15 @@ import type { WorkerEnv } from '@founders-coffee/infra';
  * the barrel exposes joins the client module graph, which breaks the browser build.
  */
 export const workerEnv = (): WorkerEnv => env as unknown as WorkerEnv;
+
+/**
+ * The Analytics Engine metrics writer, or `null` where the dataset is not bound.
+ *
+ * Product metrics are best-effort: a missing binding means an environment that has not been given
+ * the dataset yet (local Miniflare runs, a Worker deployed before the binding landed), and callers
+ * degrade instead of failing the request that produced the measurement.
+ */
+export const workerMetrics = (): Metrics | null => {
+  const analytics = workerEnv().ANALYTICS;
+  return analytics ? createMetrics(analytics) : null;
+};

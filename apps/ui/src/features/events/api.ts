@@ -18,6 +18,7 @@ import {
   type HostMapContext,
   type VenueCandidate,
 } from '@founders-coffee/server-fns';
+import type { Event } from '@founders-coffee/db';
 
 export const eventsApi = {
   getUpcomingEvents,
@@ -43,6 +44,7 @@ export type {
   VenueCandidate,
 };
 export type CreateEventInput = { data: EventCreateRequestInput };
+export type CreatedEvent = Event;
 export type RsvpInput = { data: { eventId: string } };
 export type HostMapLocationInput = {
   marketCode: string;

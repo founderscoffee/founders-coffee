@@ -2,8 +2,8 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-01 through EC-07 complete, EC-08 through EC-10 not started                                                                                                      |
-| Last reviewed  | 2026-09-02                                                                                                                                                                 |
+| Status         | Active; EC-01 through EC-08 complete, EC-09 and EC-10 not started                                                                                                          |
+| Last reviewed  | 2026-09-03                                                                                                                                                                 |
 | Scope          | Host event creation in `apps/ui`, including the anonymous wizard and authenticated submission through durable D1 persistence and discoverability                           |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
 | Requirements   | FR-G2, FR-G3, FR-G6, FR-E1, FR-E2, FR-E5, FR-E7, FR-E9; NFR-4, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11, NFR-12                                                                 |
@@ -371,6 +371,7 @@ Implementation evidence (2026-09-02):
 
 **Parent:** P1-006, P1-019
 **Requirements:** FR-E5, FR-E7; NFR-7, NFR-9
+**Status:** Complete — 2026-09-03 (staging log correlation deferred to EC-10)
 
 Work:
 
@@ -387,6 +388,59 @@ Verification:
 - Tests assert cache invalidation/navigation and error-code mappings in all locales.
 - Integration tests assert success metrics are emitted once and never on rejected or failed writes.
 - Staging logs correlate one create request across the server path without exposing secrets or user-authored content.
+
+Implementation evidence (2026-09-03):
+
+- Publishing now resolves to the created event: the wizard reads the persisted row returned by the
+  mutation and navigates to `/$market/e/$slug`, replacing the previous redirect to the market
+  landing page, which never showed the host the event they had just created.
+- Success drops the caches the new event belongs in before navigating — the upcoming-events feed,
+  the event detail, the market landing and city feeds, and the host's public profile — and calls
+  `router.invalidate()`, which marks cached and pending route matches invalid as well as active
+  ones, so a later visit to those loader-driven pages re-runs its loader rather than serving a feed
+  recorded before the event existed. The `events` host-map and venue-search keys are deliberately
+  excluded from the prefix match: refetching them spends billed Mapbox requests to no effect.
+- Every stable code the create path can produce is mapped to localized, actionable copy in `ar`,
+  `fr` and `en`: `unauthenticated`, `forbidden`, `rate_limited`, `security_configuration_error`,
+  the four Turnstile outcomes, `validation_failed`, `event_market_unavailable`,
+  `event_creation_disabled`, the three map/venue codes, and `event_route_conflict`. An unrecognized
+  code falls back to the generic retry message, and no server-supplied message text reaches the
+  host. The message is rendered with `role="alert"`.
+- A failed publish keeps every entered value and the session draft, and actively reissues the
+  Turnstile widget, because the server has already consumed the single-use response and a retry
+  with a spent token would fail for a second, misleading reason.
+- An expired session is handled as its own case: the draft is written at the current confirmation
+  step, the token is cleared, and the host is sent through `/login` with a validated same-origin
+  return path, so re-authentication returns them to a restored confirmation state and a fresh
+  challenge rather than a lost wizard.
+- The create server function now runs through a telemetry wrapper that emits exactly one entry log
+  and one outcome log per request, correlated by the request id `requestContextMiddleware` places
+  in the ambient context, carrying host, market, city, state, category, language, capacity and
+  duration. The log context is built from an explicit allow-list, so the title, description, venue
+  name, venue address, coordinates and derived slug are structurally absent rather than filtered.
+- `events_created` is written to Analytics Engine only after the D1 row is committed, indexed by
+  market with the city as a blob. It carries no language dimension: the event language enum
+  includes `ar_fr`, and putting that in the `locale` dimension would silently corrupt every
+  dashboard that already reads it. A missing binding is logged and a throwing `writeDataPoint` is
+  reported — a metrics outage never costs a host their event.
+- The `ANALYTICS` dataset binding was added to the public Worker for local, staging and production,
+  and to the server-fns test Worker; a Miniflare test writes through the real binding. The account
+  Analytics Engine SQL API answers, so the dataset is available to this account.
+- Twelve new tests cover the outcome paths, and eight deliberate mutations of the fix were each
+  confirmed to fail them: redirecting to the market landing page, dropping either invalidation,
+  collapsing the error mapping to the generic message, removing the re-authentication handoff,
+  skipping the Turnstile reissue, widening the cache prefix to the billed Mapbox keys, emitting the
+  metric before persistence, leaking the title into a log line, and swallowing a metrics throw.
+- Gates: nx sync, `format:check`, `typecheck`, `lint`, `build`, `test` across 17 projects, and
+  `npm audit` all pass. The `server-fns` coverage floor was ratcheted to the new measured values
+  (statements 71, branches 67, functions 66, lines 72).
+
+Outstanding for EC-10:
+
+- The third verification line — "staging logs correlate one create request across the server path
+  without exposing secrets or user-authored content" — requires a real staging creation and cannot
+  be observed from the repository. Staging currently has no `FIREBASE_*`, `CF_ACCESS_*` or
+  `TWILIO_SMS_FROM` secret and no events, so this stays EC-10 release evidence.
 
 ### EC-09 — Build the real-platform regression suite
 

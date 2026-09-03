@@ -1,11 +1,9 @@
-import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
 import { events, type geo } from '@founders-coffee/domain';
 import {
   formatDate,
-  host_publish_error,
   host_time_invalid,
   host_time_nonexistent,
   host_time_zone_error,
@@ -13,10 +11,8 @@ import {
   type ZonedDateTimeError,
 } from '@founders-coffee/i18n';
 
-import { safeRedirectPath } from '../../lib/redirect';
 import { hostCreateStepCopy, hostCreateViewCopy } from './host-create-copy';
 import {
-  clearHostCreateDraft,
   readHostCreateDraft,
   writeHostCreateDraft,
   type HostCreateDraft,
@@ -30,8 +26,8 @@ import {
   validateVenueStep,
   type HostCreateFieldErrors,
 } from './host-create-validation';
-import { useCreateEvent } from './hooks';
 import type { VenueSelection } from './types';
+import { useHostPublish } from './useHostPublish';
 
 export const useHostCreateWizard = ({
   locale,
@@ -48,8 +44,6 @@ export const useHostCreateWizard = ({
   isAuthLoading: boolean;
   isTurnstileBypassed: boolean;
 }) => {
-  const navigate = useNavigate();
-  const createEventMutation = useCreateEvent();
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
   const [searchValue, setSearchValue] = useState('');
@@ -62,10 +56,6 @@ export const useHostCreateWizard = ({
   const [category, setCategory] =
     useState<events.EventCategory>('coffee-meetup');
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});
-  const [publishing, setPublishing] = useState(false);
-  const [publishError, setPublishError] = useState<string | null>(null);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
 
   const draft: HostCreateDraft = {
@@ -80,6 +70,22 @@ export const useHostCreateWizard = ({
     language,
     category,
   };
+  const {
+    publishing,
+    publishError,
+    turnstileToken,
+    turnstileResetKey,
+    clearPublishError,
+    setTurnstileToken,
+    goToLogin,
+    publish: publishEvent,
+  } = useHostPublish({
+    locale,
+    market,
+    city,
+    isTurnstileBypassed,
+    readDraft: () => draft,
+  });
 
   useEffect(() => {
     const restored = readHostCreateDraft(market.code, city.code);
@@ -148,7 +154,7 @@ export const useHostCreateWizard = ({
     setStartsAt(nextStartsAt);
     setEndsAt(nextEndsAt);
     setFieldErrors((current) => ({ ...current, schedule: undefined }));
-    setPublishError(null);
+    clearPublishError();
   };
   const setScheduleError = (error: ZonedDateTimeError | null) => {
     const message =
@@ -176,62 +182,41 @@ export const useHostCreateWizard = ({
     if (first) focusInvalidField(first);
     return first === null;
   };
-  const publish = async () => {
-    if (publishing || !venue || startsAt === null || endsAt === null) return;
-    if (!isTurnstileBypassed && turnstileToken === null) return;
-    setPublishing(true);
-    setPublishError(null);
-    try {
-      await createEventMutation.mutateAsync({
-        data: {
-          event: {
-            marketCode: market.code,
-            cityCode: city.code,
-            title,
-            description,
-            venueName: venue.name,
-            venueAddress: venue.address,
-            latitude: venue.latitude,
-            longitude: venue.longitude,
-            startsAt,
-            endsAt,
-            capacity,
-            language,
-            category,
-          },
-          turnstileToken: turnstileToken ?? undefined,
-        },
-      });
-      clearHostCreateDraft(market.code, city.code);
-      void navigate({ to: '/$market', params: { market: market.slug } });
-    } catch {
-      setPublishError(host_publish_error({}, { locale }));
-      setTurnstileToken(null);
-      setTurnstileResetKey((value) => value + 1);
-    } finally {
-      setPublishing(false);
-    }
+  const publish = () => {
+    if (!venue || startsAt === null || endsAt === null) return;
+    void publishEvent({
+      marketCode: market.code,
+      cityCode: city.code,
+      title,
+      description,
+      venueName: venue.name,
+      venueAddress: venue.address,
+      latitude: venue.latitude,
+      longitude: venue.longitude,
+      startsAt,
+      endsAt,
+      capacity,
+      language,
+      category,
+    });
   };
   const next = () => {
     if (step < 4) {
       if (!validateCurrentStep()) return;
-      setPublishError(null);
+      clearPublishError();
       setStep((current) => current + 1);
       return;
     }
     if (isAuthLoading) return;
     if (!isAuthenticated) {
       writeHostCreateDraft(market.code, city.code, draft);
-      const redirect = safeRedirectPath(
-        `${window.location.pathname}${window.location.search}`,
-      );
-      void navigate({ to: '/login', search: { redirect } });
+      goToLogin();
       return;
     }
-    void publish();
+    publish();
   };
   const prev = () => {
-    setPublishError(null);
+    clearPublishError();
     setFieldErrors({});
     setStep((current) => Math.max(1, current - 1));
   };

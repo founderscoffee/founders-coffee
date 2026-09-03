@@ -27,10 +27,10 @@ export default defineConfig(async () => {
         exclude: ['src/**/*.test.ts', 'src/**/*.fixtures.ts', 'src/setup.ts'],
         reporter: ['text-summary', 'lcov'],
         thresholds: {
-          statements: 69,
+          statements: 71,
           branches: 67,
-          functions: 64,
-          lines: 70,
+          functions: 66,
+          lines: 72,
         },
       },
     },

@@ -1,4 +1,5 @@
 import {
+  CREATED_EVENT,
   fillHostDetails,
   getHostCreateMocks,
   goToHostDetails,
@@ -50,8 +51,8 @@ describe('HostCreatePage EC-07 state', () => {
     let resolveMutation: (() => void) | undefined;
     hostCreateMocks.mutateAsync.mockImplementation(
       () =>
-        new Promise<void>((resolve) => {
-          resolveMutation = resolve;
+        new Promise((resolve) => {
+          resolveMutation = () => resolve(CREATED_EVENT);
         }),
     );
     renderHostCreateWizard();

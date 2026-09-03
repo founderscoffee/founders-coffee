@@ -4,17 +4,42 @@ import { vi } from 'vitest';
 
 import { HostCreatePage } from './HostCreatePage';
 
+export const CREATED_EVENT = {
+  id: 'evt_00000000000000000000000000000001',
+  slug: 'protected-meetup',
+  marketCode: 'DZ',
+  cityCode: '1',
+  hostId: 'usr_host01',
+};
+
 const hostCreateMocks = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
   navigate: vi.fn(),
+  routerInvalidate: vi.fn(),
+  invalidateCreatedEvent: vi.fn(),
   isAuthenticated: true,
   isLoading: false,
 }));
 
 export const getHostCreateMocks = () => hostCreateMocks;
 
+/**
+ * Restore the default mutation outcome: a resolved create returning the persisted event.
+ *
+ * The wizard reads the created event's canonical route off the mutation result, so a bare `vi.fn()`
+ * would fail every publish path for the wrong reason. Applied at module load as well as after each
+ * test, since the first test in a file runs before any teardown hook has.
+ */
+const applyDefaultHostCreateMocks = () => {
+  hostCreateMocks.mutateAsync.mockResolvedValue(CREATED_EVENT);
+  hostCreateMocks.invalidateCreatedEvent.mockResolvedValue(undefined);
+};
+
+applyDefaultHostCreateMocks();
+
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => hostCreateMocks.navigate,
+  useRouter: () => ({ invalidate: hostCreateMocks.routerInvalidate }),
 }));
 
 vi.mock('../../lib/app-providers', () => ({
@@ -26,6 +51,7 @@ vi.mock('../../lib/app-providers', () => ({
 
 vi.mock('../../features/events/hooks', () => ({
   useCreateEvent: () => ({ mutateAsync: hostCreateMocks.mutateAsync }),
+  useInvalidateCreatedEvent: () => hostCreateMocks.invalidateCreatedEvent,
   useHostMapContext: () => ({
     data: {
       center: { latitude: 36.7538, longitude: 3.0588 },
@@ -175,4 +201,15 @@ export const resetHostCreateFixtures = () => {
   hostCreateMocks.isAuthenticated = true;
   hostCreateMocks.isLoading = false;
   vi.clearAllMocks();
+  applyDefaultHostCreateMocks();
+};
+
+export const publishHostEvent = async () => {
+  await goToHostDetails();
+  fillHostDetails();
+  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Complete verification' }),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm and publish' }));
 };

@@ -8,17 +8,20 @@ import { requireAuth } from '../authz.js';
 import { requirePermission } from '../auth-middleware.js';
 import { resolveSession } from '../auth.js';
 import { getDb } from '../db.js';
+import { workerMetrics } from '../env.js';
 import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
 import { requireEventCreateTurnstile } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
-import { createEventResolver, listEvents, resolveEvent } from './resolver.js';
+import { createEventWithTelemetry } from './create.js';
+import { listEvents, resolveEvent } from './resolver.js';
 import { eventCreateRequestSchema } from './schemas.js';
 
 /**
  * Create a new free event (FR-E1). Requires the `event:create` permission (host/moderator/admin).
  * The host's session provides the `hostId`. The input is Zod-validated via `appValidator`. The
- * resolver generates the id + slug, validates the geo state/city, and inserts the row.
+ * resolver generates the id + slug, validates the geo state/city, and inserts the row; the
+ * telemetry wrapper adds the EC-08 request/success/failure logs and the `events_created` metric.
  */
 export const createEvent = createServerFn({ method: 'POST', strict: false })
   .middleware([
@@ -30,9 +33,10 @@ export const createEvent = createServerFn({ method: 'POST', strict: false })
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
     return handleResult(
-      createEventResolver(
+      createEventWithTelemetry(
         getDb(),
         getMapProvider(),
+        workerMetrics(),
         session.user.id,
         data.event,
       ),

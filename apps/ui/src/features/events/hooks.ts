@@ -1,7 +1,17 @@
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import {
+  createdEventQueryKeys,
+  type CreatedEventKeys,
+} from './created-event-cache';
+import {
   eventsApi,
+  type CreatedEvent,
   type CreateEventInput,
   type HostMapContext,
   type HostMapLocationInput,
@@ -36,10 +46,29 @@ export const useEvent = (slug: string) =>
     queryFn: () => eventsApi.getEvent({ data: { slug } }),
   });
 
+/**
+ * Create an event, typed by the server function's real return.
+ *
+ * The `createServerFn` client surface erases its handler's return to `any`, so the mutation would
+ * otherwise infer `unknown` and every caller would cast. `createEvent` resolves the persisted row,
+ * and EC-08 reads the canonical route and cache keys straight off it, so the contract is stated
+ * here once instead of at each use.
+ */
 export const useCreateEvent = () =>
-  useMutation({
-    mutationFn: (input: CreateEventInput) => eventsApi.createEvent(input),
+  useMutation<CreatedEvent, Error, CreateEventInput>({
+    mutationFn: (input) => eventsApi.createEvent(input),
   });
+
+/** Refresh every cached view that now has to show the newly created event (EC-08). */
+export const useInvalidateCreatedEvent = () => {
+  const queryClient = useQueryClient();
+  return (event: CreatedEventKeys) =>
+    Promise.all(
+      createdEventQueryKeys(event).map((queryKey) =>
+        queryClient.invalidateQueries({ queryKey }),
+      ),
+    );
+};
 
 export const useHostMapContext = (input: HostMapLocationInput) =>
   useQuery<HostMapContext>({

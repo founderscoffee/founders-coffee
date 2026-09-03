@@ -7,7 +7,7 @@
 | Version      | 2.4                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
-| Last updated | 2026-09-02                                                                         |
+| Last updated | 2026-09-03                                                                         |
 | Derived from | [SRS v1.6](./srs.md) and [community-first release strategy](./release-strategy.md) |
 
 This document is the current sequencing and status source. Status is evidence-based:
@@ -124,7 +124,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-016 | Complete | Host tools assigned to `apps/ui`; dashboard sponsor-only             | No separate host dashboard will be built                                                                                                                                                                                                                                                                                                                                                                            |
 | P1-017 | Partial  | App middleware, D1 injection, auth mount, i18n, observability wiring | Public app wiring is complete; admin session/D1/i18n/observability wiring and correlated Access/Better Auth context remain under CO-04                                                                                                                                                                                                                                                                              |
 | P1-018 | Partial  | Security hardening                                                   | Event creation has DO + Turnstile + an active shared Free-plan WAF rule. Other remaining tickets cover CSP/security headers, Turnstile on RSVP, anonymous metered map endpoints, and undeclared mutation permissions                                                                                                                                                                                                |
-| P1-019 | Partial  | Observability                                                        | Structured logs exist; Analytics dashboards and alerts remain                                                                                                                                                                                                                                                                                                                                                       |
+| P1-019 | Partial  | Observability                                                        | Structured logs and the first Analytics Engine metric (`events_created`, EC-08) exist; remaining product metrics, dashboards, and alerts remain                                                                                                                                                                                                                                                                     |
 | P1-020 | Partial  | Installable PWA                                                      | Manifest/service worker exist; offline, prerender, Lighthouse, and PWA Builder verification remain                                                                                                                                                                                                                                                                                                                  |
 | P1-021 | Partial  | End-to-end tests                                                     | EC-10 and CO-11 require local/staging release evidence; E2E remains outside CI by current decision                                                                                                                                                                                                                                                                                                                  |
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                        |
@@ -133,39 +133,38 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 ### Immediate sequence
 
 Audit-remediation tickets are tracked in the
-[Audit Remediation Plan](./audit-remediation-plan.md). Five are closed as of 2026-09-02: **AR-01**
-(dependency-audit gate), **AR-11** (300-line cap, and the toolchain that enforces it), **AR-04**
-(RSVP capacity atomicity and typed duplicate), **AR-02** (terminal state and a reachable
-notification fallback), and **AR-03** (atomic claim before dispatch). CI is green and staging is
-deployed.
+[Audit Remediation Plan](./audit-remediation-plan.md). Twelve are closed as of 2026-09-03: **AR-01**
+through **AR-07** and **AR-09** through **AR-13**. Only **AR-08** remains open, and only its second
+half — the security headers are enforced and the CSP is deployed in report-only mode, awaiting
+report measurement before enforcement. Plan 1 is closed through **EC-08**. CI is green and staging
+is deployed.
 
-1. **Plan 1 — continue EC-08 and EC-09:** finish the code and local verification in the
-   [Event Creation Remediation Plan](./event-creation-remediation-plan.md). EC-06 is complete with a
-   shared Free-plan WAF rule, and EC-07 completes the authenticated localized wizard. Do not
-   complete EC-10 or begin Plan 2 production work before the remaining deployment, credential,
-   production DNS/WAF behavior, and smoke gates are closed.
-2. **AR-05 and AR-12 alongside Plan 1.** AR-05 meters the three anonymous map endpoints, which the
-   creation wizard itself calls and which proxy paid Mapbox requests. AR-12 closes the `api.ts`
-   boundary in `features/`, where one live violation already sits, and widens the rule so a second
-   one cannot land unnoticed.
-3. **Plan 2 — CO-01 immediately after EC-10:** begin the
+1. **Plan 1 — EC-09:** build the real-platform regression suite in the
+   [Event Creation Remediation Plan](./event-creation-remediation-plan.md). EC-01 through EC-08 are
+   complete: the shared creation contract, atomic persistence, the venue boundary, authorization and
+   anti-abuse with a shared Free-plan WAF rule, the authenticated localized wizard, and the success,
+   failure, cache and observability behavior. Do not complete EC-10 or begin Plan 2 production work
+   before the remaining deployment, credential, production DNS/WAF behavior, and smoke gates are
+   closed.
+2. **Staging credentials, which gate EC-10.** Staging has no `FIREBASE_*`, no `CF_ACCESS_*` (admin
+   fails closed with 403) and no `TWILIO_SMS_FROM`. EC-10 is a release gate that wants real
+   delivery evidence, and the EC-08 staging log correlation, the AR-07 localized notifications and
+   the AR-13 payload contract have never run against a real provider.
+3. **AR-08's second half:** collect the report-only CSP reports now arriving at `/csp-report`, run
+   the Playwright pass across `ar`/`fr`/`en`, thread script nonces through
+   `router.options.ssr.nonce`, then set `CSP_ENFORCED=true`.
+4. **Plan 2 — CO-01 immediately after EC-10:** begin the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
    with the operating contract and baseline.
-4. **CO-02 / P0-018 / P1-009:** replace one-minute polling with per-event Durable Object alarms
+5. **CO-02 / P0-018 / P1-009:** replace one-minute polling with per-event Durable Object alarms
    feeding a Notifications Queue, and bind that queue — no wrangler config binds one today, so the
-   `queue` consumer in `worker-jobs` is unreachable once deployed. AR-13 belongs here: the sweep
-   still casts notification payloads rather than parsing them, and CO-02 rewrites the same code.
-5. **CO-03 through CO-11 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout, attendance,
+   `queue` consumer in `worker-jobs` is unreachable once deployed.
+6. **CO-03 through CO-11 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout, attendance,
    feedback, repeat-host support, the secure correlated-identity admin surface, trust/moderation,
    weekly reviews, metrics, a real rollback flag, and three-checkpoint staged operations
    verification in the documented order.
-6. **AR-06 through AR-10:** close the remaining audited security, i18n, enforcement, and hygiene
-   deviations alongside the operations work. AR-08 (no CSP or security headers exist anywhere) and
-   AR-09 (no coverage gates; apps carry no `layer:*` tag) are the two with the widest blast radius.
 7. **P0-007/P1-004/P0-019:** complete remaining market/home-location and dated deployment evidence
-   where it blocks the community operations flow. P0-019 now has a concrete inventory: no
-   `FIREBASE_*`, `CF_ACCESS_*`, or `TWILIO_SMS_FROM` secret is set in staging, and admin fails
-   closed with 403 until `CF_ACCESS_*` is configured.
+   where it blocks the community operations flow.
 8. Complete only the moderation, trust, PWA, accessibility, performance, and operational work
    required to run the community reliably. Do not pull future sponsorship, challenge, talent,
    payment, or expansion work into this sequence.

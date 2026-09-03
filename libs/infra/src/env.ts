@@ -4,6 +4,7 @@ export interface WorkerEnv {
   readonly RATE_LIMITER?: DurableObjectNamespace;
   readonly EVENT_LIVE?: DurableObjectNamespace;
   readonly EMAIL?: unknown;
+  readonly ANALYTICS?: AnalyticsEngineDataset;
 
   readonly APP_URL?: string;
   readonly APP_ENVIRONMENT?: string;
