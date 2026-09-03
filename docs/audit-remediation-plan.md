@@ -677,7 +677,7 @@ revisiting when AR-13 lands.
 
 **Parent:** P1-018
 **Requirements:** NFR-4
-**Status:** Partial — headers enforced and script nonces wired 2026-09-03; enforcement blocked on two Cloudflare account-side injections
+**Status:** Partial — headers enforced and script nonces wired 2026-09-03; staging capture taken and shows one remaining violation (Zod `eval`); production enforcement still blocked account-side
 
 Closes F-09 for the header set. The CSP is shipped but not yet enforcing; see the boundary at the
 end of this ticket.
@@ -768,8 +768,55 @@ Boundary — what is deliberately not done, and why:
   attributes and streaming SSR inserts a style element before hydration. The nonce now reaches
   style tags too, so removing it is a smaller change than it was, but it still needs its own
   measurement.
-- **The Playwright pass across `ar`, `fr` and `en` has not been run.** It needs a browser driven
-  against a deployed environment, and remains a prerequisite for flipping `CSP_ENFORCED=true`.
+- ~~**The Playwright pass across `ar`, `fr` and `en` has not been run.**~~ Run 2026-09-03 against
+  `https://staging.founders.coffee`: four routes — market feed, city feed, login (Turnstile) and the
+  host wizard (Mapbox) — in each of `ar`, `fr` and `en`, twelve page loads, collecting
+  `securitypolicyviolation` events rather than console text. Results below.
+
+### CSP report-only capture — staging, 2026-09-03
+
+**One distinct violation across all twelve loads**, and it is the `eval` this ticket claimed was
+already fixed:
+
+| Directive    | Blocked | Source            | Seen                               |
+| ------------ | ------- | ----------------- | ---------------------------------- |
+| `script-src` | `eval`  | `assets/src-*.js` | 18×, every load, all three locales |
+
+**The Zod `jitless` fix does not work in the deployed client.** Traced by proxying `Function` in the
+browser and reading the construction stack: the probe fires inside `new ZodObject`, at **schema
+construction**, not at first parse — and `libs/core`'s own `money.ts` constructs `z.object(...)` at
+module scope. `configureZodRuntime()` is called from `getRouter()`, so it can never win: ES imports
+are evaluated before any statement in the module that imports them. In the built client bundle the
+function is defined and **never called at all** — the barrel re-export leaves it unreferenced.
+
+Three fixes were tried and reverted rather than shipped half-working: a side-effecting
+`zod-jitless.ts` imported first in `router.tsx` (tree-shaken away), the same plus
+`"sideEffects": ["./src/zod-jitless.ts"]` in `libs/core/package.json` (call survived, but Rollup put
+it in a different chunk from the first schema, and chunk order decided against it), and reordering
+the core barrel. Import placement cannot fix this: the configuration has to be a _dependency_ of
+every `zod` import, not a statement racing them.
+
+The two candidate fixes, both of which need their own change:
+
+| Approach                                                                                            | Cost                                                                                                                                |
+| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| A `libs/core` module that configures and re-exports `z`, with every schema module importing from it | Order-proof by construction; touches every file that imports `zod`                                                                  |
+| A Vite `resolve.alias` on `zod` pointing at a configuring wrapper                                   | No source changes anywhere; aliases a core dependency in every bundle including SSR, and the wrapper must avoid resolving to itself |
+
+**The account-side injections did not appear.** No un-nonced inline script was observed on any of
+the twelve loads, and no `script-src-elem` violation was reported — report-only still reports, so
+their absence is evidence, not silence. The only un-nonced script tag anywhere was Turnstile's
+`api.js`, which is external and matches the `https://challenges.cloudflare.com` source, so it needs
+no nonce.
+
+That does not mean the blocker is gone. Web Analytics `auto_install` is still `true` on this account
+for two RUM sites, and the one that matters is registered for host `founders.coffee` — which is the
+most likely reason `staging.founders.coffee` is clean and production would not be. `email_obfuscation`
+is still `on` zone-wide; `rocket_loader` and `mirage` are both `off`.
+
+So the position is now split by environment: **staging is one fix — the `eval` above — away from
+`CSP_ENFORCED=true`. Production still needs the account decision**, and its own capture, which
+cannot be taken until the apex resolves.
 
 ### AR-09 — Repair the two enforcement mechanisms
 
