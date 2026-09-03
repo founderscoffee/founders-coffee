@@ -704,6 +704,48 @@ Sign-in and the waitlist keep their challenges; nothing about this decision touc
 remaining exposure is an authenticated account automating creation up to the two rate limits, which
 is bounded per identity and per IP but no longer bounded by being human.
 
+**Staged run after the removal, 2026-09-03.** The first attempt still stopped at sign-in: removing
+the create-path challenge does not help a test that has to log in first, and staging's managed
+widget was still refusing the browser. With Cloudflare's testing keys set temporarily — which now
+carry the whole flow, because the create path no longer pins `action` or `hostname` — the run
+reached the end in 22 seconds and **created a real event on staging**:
+
+| Evidence                 | Value                                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Sign-in code echo        | `email-OTP for e2e-host-en-ec10d0703@e2e.invalid (sign-in): ……`, read by the gate                                                 |
+| `event_create_requested` | `hostId`, `marketCode DZ`, `cityCode 556`, `category workshop`, `language en`, `capacity 24`, `durationMinutes 60` — no free text |
+| `event_create_succeeded` | `eventId evt_08cd45fa13ab4a759554e5ea0f2942ce`, `stateCode 16`, same `requestId`, 197 ms later                                    |
+| `events_created` metric  | no `events_created_metric_unavailable` log, so the binding resolved and `writeDataPoint` did not throw                            |
+| Cleanup                  | suite removed its own rows; staging D1 back to `0` events, `0` users                                                              |
+
+That is EC-08's telemetry and EC-10's persistence evidence, on a deployed environment, for the first
+time. Staging was returned to the real widget immediately afterwards.
+
+**One case still fails, on a defect this run surfaced rather than caused.** The console gate caught
+`Error: n is not defined` from `assets/HostMap-*.js`. It reproduces against a local production build
+at the identical chunk hash, so it is ours and not staging's, and it does not appear in dev.
+
+Root cause, read out of the built chunk: `mapbox-gl` builds its web worker by stringifying two of
+its own module functions and concatenating them into a blob —
+
+```js
+let a = `… var sharedChunk = {}; (` + e + `)(undefined, sharedChunk); (` + t + `)(undefined, sharedChunk); …`;
+r.workerUrl = URL.createObjectURL(new Blob([a], { type: 'text/javascript' }));
+```
+
+— which assumes those functions are self-contained. The minifier hoists a shared helper out of them,
+so the stringified source references an outer binding that does not exist inside the worker. The
+error surfaces through `react-map-gl`'s RTL-plugin callback, so the visible cost is that
+`mapbox-gl-rtl-text` never loads and **Arabic map labels are not shaped** — in an Arabic-first
+product, in the launch market. The map itself renders and every interaction in the suite works, so
+this is degradation rather than an outage.
+
+The principled fix is `mapbox-gl`'s CSP build (`mapbox-gl-csp.js` + `mapbox-gl-csp-worker.js`),
+which avoids the stringify path entirely and would also remove the blob worker that AR-08 has to
+allow. Two attempts at wiring it through `react-map-gl` — `workerUrl` alone, then `mapLib` plus
+`workerUrl` — left the map failing to render at all, so both were reverted rather than shipped. This
+needs its own change with its own verification, not a tail-end fix to an unrelated one.
+
 Work:
 
 - Confirm staging has the Mapbox and Turnstile secrets, D1/DO/Analytics bindings, and the active shared WAF rule before the EC-10 release deployment.
