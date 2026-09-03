@@ -126,7 +126,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-018 | Partial  | Security hardening                                                   | Event creation has DO + Turnstile + an active shared Free-plan WAF rule. Other remaining tickets cover CSP/security headers, Turnstile on RSVP, anonymous metered map endpoints, and undeclared mutation permissions                                                                                                                                                                                                |
 | P1-019 | Partial  | Observability                                                        | Structured logs and the first Analytics Engine metric (`events_created`, EC-08) exist; remaining product metrics, dashboards, and alerts remain                                                                                                                                                                                                                                                                     |
 | P1-020 | Partial  | Installable PWA                                                      | Manifest/service worker exist; offline, prerender, Lighthouse, and PWA Builder verification remain                                                                                                                                                                                                                                                                                                                  |
-| P1-021 | Partial  | End-to-end tests                                                     | EC-10 and CO-11 require local/staging release evidence; E2E remains outside CI by current decision                                                                                                                                                                                                                                                                                                                  |
+| P1-021 | Partial  | End-to-end tests                                                     | The EC-09 create-event gate passes 18/18 locally across ar/fr/en at 390/768/1280; staging evidence and CO-11 remain, and E2E stays outside CI by current decision                                                                                                                                                                                                                                                   |
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                        |
 | P1-023 | Planned  | Community operations and retention loop                              | After EC-10, deliver CO-01 through CO-11 with RSVP freeze, closeout/attendance/feedback, weekly reviews, metrics, and feature-flagged launch                                                                                                                                                                                                                                                                        |
 
@@ -139,13 +139,13 @@ half — the security headers are enforced and the CSP is deployed in report-onl
 report measurement before enforcement. Plan 1 is closed through **EC-08**. CI is green and staging
 is deployed.
 
-1. **Plan 1 — EC-09:** build the real-platform regression suite in the
-   [Event Creation Remediation Plan](./event-creation-remediation-plan.md). EC-01 through EC-08 are
-   complete: the shared creation contract, atomic persistence, the venue boundary, authorization and
-   anti-abuse with a shared Free-plan WAF rule, the authenticated localized wizard, and the success,
-   failure, cache and observability behavior. Do not complete EC-10 or begin Plan 2 production work
-   before the remaining deployment, credential, production DNS/WAF behavior, and smoke gates are
-   closed.
+1. **Plan 1 — EC-10:** stage, verify and release in the
+   [Event Creation Remediation Plan](./event-creation-remediation-plan.md). EC-01 through EC-09 are
+   complete; the browser gate runs 18 of 18 across `ar`/`fr`/`en` at three widths. EC-10's
+   configuration preflight passes, but the staged creation is blocked: a disposable host cannot
+   authenticate on a deployed environment, because one-time codes are stored hashed and real mail
+   is sent rather than printed. It needs a real mailbox or a person driving the login step. Do not
+   begin Plan 2 production work before that smoke and the production DNS/WAF gates are closed.
 2. **Staging credentials, which gate EC-10.** Staging has no `FIREBASE_*`, no `CF_ACCESS_*` (admin
    fails closed with 403) and no `TWILIO_SMS_FROM`. EC-10 is a release gate that wants real
    delivery evidence, and the EC-08 staging log correlation, the AR-07 localized notifications and

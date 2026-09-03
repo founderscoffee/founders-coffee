@@ -563,6 +563,32 @@ npx playwright test --project=desktop-en
 
 **Parent:** P1-006, P1-018, P1-019, P1-021
 **Requirements:** NFR-4, NFR-7, NFR-12
+**Status:** Preflight complete 2026-09-03; the staged creation is blocked, see below
+
+Configuration preflight (2026-09-03, read back from the account):
+
+| Check           | Result                                                                                                    |
+| --------------- | --------------------------------------------------------------------------------------------------------- |
+| Staging secrets | `MAPBOX_TOKEN`, `TURNSTILE_SECRET_KEY`, `TURNSTILE_SITE_KEY`, `EVENT_CREATE_WAF_CONFIGURED` all present   |
+| Bindings        | `DB`, `EVENT_LIVE`, `RATE_LIMITER`, `ANALYTICS` all present                                               |
+| D1 migrations   | current through `0016_light_alex_wilder`; "No migrations to apply"                                        |
+| Shared WAF rule | `d11c283bee39488293e86d519e9c546d`, enabled, block, 20 requests per 10s on `/_serverFn/` and `/api/auth/` |
+| Worker          | staging redeployed and serving 200                                                                        |
+
+Blocked on, in the order they bite:
+
+1. **The staged creation cannot authenticate a disposable host automatically.** Better Auth stores
+   one-time codes hashed, so the database cannot return the code, and a deployed environment sends
+   real mail rather than printing it — which is how the local gate reads it. An address that cannot
+   receive mail therefore cannot complete sign-in on staging. This needs either a real mailbox
+   whose code a person reads, or a person driving the login step while the rest is verified from
+   the data.
+2. **Staging runs real Turnstile**, correctly: `TURNSTILE_DISABLED` is absent, and setting it would
+   not bypass the check but fail it closed, because `resolveTurnstileProvider` only accepts that
+   flag when `APP_ENVIRONMENT` is `development`. Whether the interaction-only widget passes for an
+   automated browser is untested.
+3. **Network.** The machine holding the gate reaches `staging.founders.coffee` only intermittently,
+   which makes an unattended run from here unreliable regardless of the two above.
 
 Work:
 
