@@ -563,7 +563,7 @@ npx playwright test --project=desktop-en
 
 **Parent:** P1-006, P1-018, P1-019, P1-021
 **Requirements:** NFR-4, NFR-7, NFR-12
-**Status:** Preflight complete 2026-09-03; the staged creation is blocked, see below
+**Status:** Preflight complete 2026-09-03; staged run 5/6, the publish case is blocked on Turnstile, see below
 
 Configuration preflight (2026-09-03, read back from the account):
 
@@ -599,12 +599,53 @@ Blocked on, in the order they bite:
    `OTP_ECHO` is set in the staging vars of `apps/ui/wrangler.jsonc` and confirmed present on the
    deployed staging Worker. It must be removed once EC-10 is signed off.
 
-2. **Staging runs real Turnstile**, correctly: `TURNSTILE_DISABLED` is absent, and setting it would
-   not bypass the check but fail it closed, because `resolveTurnstileProvider` only accepts that
-   flag when `APP_ENVIRONMENT` is `development`. Whether the interaction-only widget passes for an
-   automated browser is untested.
-3. **Network.** The machine holding the gate reaches `staging.founders.coffee` only intermittently,
-   which makes an unattended run from here unreliable regardless of the two above.
+2. **Staging runs real Turnstile, and it is the remaining blocker.** `TURNSTILE_DISABLED` is
+   absent, and setting it would not bypass the check but fail it closed, because
+   `resolveTurnstileProvider` only accepts that flag when `APP_ENVIRONMENT` is `development`.
+   Measured on 2026-09-03 against the deployed staging Worker: the widget renders and presents the
+   `Verify you are human` checkbox, and after 60s no token reaches
+   `input[name="cf-turnstile-response"]`, so `disabled={!emailValid || !token || busy}` on the
+   send-code button never clears and the sign-in step cannot start. A trusted synthetic click on
+   the checkbox changes nothing — the challenge simply does not clear for an automated browser,
+   which is the control working as intended rather than a defect.
+
+   The account has one widget for this project, `0x4AAAAAAEIUxGIpL4ONIB_Q` (`founders-coffee`),
+   `mode: managed`, `domains: ['founders.coffee']`, `clearance_level: interactive`. The domain list
+   is not the problem: Turnstile matches subdomains, the widget renders on
+   `staging.founders.coffee`, and the five `sign-in-otp-` verification rows already in staging D1
+   from 2026-08-04 show a human passing this same widget and receiving a code. Managed mode shows
+   the checkbox because headless Chromium looks suspicious, not because the configuration is wrong.
+
+   Choosing between the ways past this is the user's call, because each one changes account
+   configuration or requires a person:
+
+   | Option                                                            | Cost                                                              |
+   | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+   | Cloudflare testing keys (`1x00000000000000000000AA`) on staging   | Official and documented; removes staging bot protection while set |
+   | A second widget in `non-interactive` mode scoped to staging       | Keeps a real control; may still refuse an automated browser       |
+   | A person clicks the checkbox once, the suite continues from there | Changes nothing on the account; the gate stops being unattended   |
+
+3. ~~**Network.**~~ Cleared. The machine reached `staging.founders.coffee` and the Cloudflare API
+   reliably on 2026-09-03 after an unstable earlier window; `wrangler tail --env staging` held a
+   connection for the whole run.
+
+Staged run, 2026-09-03, `desktop-en` against `https://staging.founders.coffee` with
+`E2E_D1_MODE=remote` and `E2E_SERVER_LOG` pointed at a `wrangler tail --format json` stream —
+**5 of 6 passed**:
+
+| Case                                                          | Result                          |
+| ------------------------------------------------------------- | ------------------------------- |
+| Keeps the draft and the active step across a locale change    | pass                            |
+| Localized inline validation, focuses the first invalid field  | pass                            |
+| Both wizard actions reachable at this viewport                | pass                            |
+| Announces semantic step progress                              | pass                            |
+| Never requests precise location without an explicit action    | pass                            |
+| Anonymous host completes the wizard, authenticates, publishes | blocked at Turnstile, see above |
+
+Everything up to the sign-in handoff therefore works against the deployed Worker, in a real
+browser, over the real edge. Staging D1 was `0` events and `0` users before and after the run, so
+the run created nothing and there was nothing to clean up. The `OTP_ECHO` echo could not be
+exercised on staging, because no code was ever requested.
 
 Work:
 
