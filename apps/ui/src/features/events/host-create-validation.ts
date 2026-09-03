@@ -8,6 +8,7 @@ import {
   host_selection_required,
   host_time_past,
   host_title_constraints,
+  host_venue_name_required,
   host_venue_required,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -18,6 +19,7 @@ import type { HostCreateDraft } from './host-create-draft';
 export type HostCreateFieldErrors = Partial<
   Record<
     | 'venue'
+    | 'venueName'
     | 'schedule'
     | 'title'
     | 'description'
@@ -30,8 +32,16 @@ export type HostCreateFieldErrors = Partial<
 
 export const validateVenueStep = (
   venue: VenueSelection | null,
+  venueName: string,
   locale: Locale,
 ): HostCreateFieldErrors => {
+  if (
+    venue &&
+    venue.kind === 'address' &&
+    !events.eventVenueNameSchema.safeParse(venueName).success
+  ) {
+    return { venueName: host_venue_name_required({}, { locale }) };
+  }
   if (
     !venue ||
     !events.eventVenueNameSchema.safeParse(venue.name).success ||
@@ -122,6 +132,7 @@ export const firstInvalidField = (
   (
     [
       'venue',
+      'venueName',
       'schedule',
       'title',
       'description',
@@ -134,6 +145,7 @@ export const firstInvalidField = (
 export const focusInvalidField = (field: keyof HostCreateFieldErrors): void => {
   const fieldIds: Record<keyof HostCreateFieldErrors, string> = {
     venue: 'venue-search',
+    venueName: 'host-venue-name',
     schedule: 'host-schedule',
     title: 'host-title',
     description: 'host-description',
@@ -152,7 +164,10 @@ export const restoredDraftStep = (
   draft: HostCreateDraft,
   locale: Locale,
 ): number => {
-  if (firstInvalidField(validateVenueStep(draft.venue, locale))) return 1;
+  if (
+    firstInvalidField(validateVenueStep(draft.venue, draft.venueName, locale))
+  )
+    return 1;
   if (
     draft.step > 2 &&
     firstInvalidField(

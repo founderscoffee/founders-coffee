@@ -79,6 +79,43 @@ describe('createEventResolver persistence (real D1)', () => {
     expect(await countEventsByStatus(db, 'published')).toBe(before);
   });
 
+  it('names an address fallback from the host while keeping the verified location', async () => {
+    const db = await setupDb();
+    const addressOnlyProvider: MapProvider = {
+      ...testMapProvider,
+      reverseVenue: async () =>
+        ok({
+          providerId: 'address-yousfi',
+          kind: 'address' as const,
+          name: '15 Rue Yousfi Mohamed',
+          address: '15 Rue Yousfi Mohamed, Alger',
+          latitude: 36.7501,
+          longitude: 3.0601,
+        }),
+    };
+
+    const result = await createEventResolver(
+      db,
+      addressOnlyProvider,
+      TEST_HOST_ID,
+      createInput({
+        title: 'Address fallback event',
+        venueName: 'Café des Délices',
+        venueAddress: 'Untrusted address',
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toMatchObject({
+        venue: 'Café des Délices',
+        venueAddress: '15 Rue Yousfi Mohamed, Alger',
+        latitude: 36.7501,
+        longitude: 3.0601,
+      });
+    }
+  });
+
   it('persists the provider-verified venue instead of client-owned venue text', async () => {
     const db = await setupDb();
     const verifiedMapProvider: MapProvider = {
@@ -86,6 +123,7 @@ describe('createEventResolver persistence (real D1)', () => {
       reverseVenue: async () =>
         ok({
           providerId: 'verified-venue',
+          kind: 'poi' as const,
           name: 'Verified Coworking Space',
           address: '8 Verified Street, Algiers',
           latitude: 36.754,

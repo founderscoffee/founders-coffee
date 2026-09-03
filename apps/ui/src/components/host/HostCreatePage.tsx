@@ -75,7 +75,7 @@ export const HostCreatePage = ({
       <span key="location" className={pillClass}>
         <MapPin className="size-3.5 shrink-0 text-primary" />
         <span className="truncate text-xs font-semibold text-base-content">
-          {wizard.venue.name}
+          {wizard.venueName || wizard.venue.name}
         </span>
       </span>
     ) : null,
@@ -140,8 +140,12 @@ export const HostCreatePage = ({
                 cityCode={city.code}
                 marketCode={market.code}
                 searchValue={wizard.searchValue}
+                venue={wizard.venue}
+                venueName={wizard.venueName}
+                nameError={wizard.fieldErrors.venueName}
                 isDisabled={!mapContext.data}
                 onSearchChange={wizard.setSearchValue}
+                onVenueNameChange={wizard.setVenueName}
                 onVenueSelect={wizard.selectVenue}
               />
               {wizard.fieldErrors.venue && (
@@ -214,6 +218,7 @@ export const HostCreatePage = ({
                   locale={locale}
                   timeZone={market.timezone}
                   venue={wizard.venue}
+                  venueName={wizard.venueName}
                   startsAt={wizard.startsAt}
                   endsAt={wizard.endsAt}
                   title={wizard.title}

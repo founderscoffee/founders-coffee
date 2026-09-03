@@ -2,6 +2,7 @@ import type {
   HostMapContext,
   MapProviderLocation,
   VenueCandidate,
+  VenueKind,
 } from './provider.js';
 import type { MapboxFeature } from './mapbox-schemas.js';
 
@@ -100,11 +101,29 @@ export const isSupportedVenue = (feature: MapboxFeature): boolean => {
   return categories.some((category) => supportedVenueTokens.has(category));
 };
 
+const ADDRESSABLE_FEATURE_TYPES = new Set(['address', 'street']);
+
+/**
+ * Whether a feature locates a real, navigable spot even though it names no business.
+ *
+ * Mapbox indexes no points of interest across the Maghreb: a reverse lookup anywhere in Algiers
+ * returns a street or an address and never a café, so a POI-only rule makes event creation
+ * impossible in the launch market rather than merely strict. An address still carries everything an
+ * attendee needs to arrive — a verified street, inside the selected city, with coordinates — so it
+ * is accepted as a location whose *label* the host supplies, while a POI keeps naming itself.
+ */
+export const isAddressableLocation = (feature: MapboxFeature): boolean =>
+  ADDRESSABLE_FEATURE_TYPES.has(feature.properties.feature_type);
+
+export const venueKind = (feature: MapboxFeature): VenueKind =>
+  isSupportedVenue(feature) ? 'poi' : 'address';
+
 export const toVenue = (feature: MapboxFeature): VenueCandidate => {
   const [longitude, latitude] = feature.geometry.coordinates;
   const formatted = feature.properties.place_formatted;
   return {
     providerId: feature.properties.mapbox_id,
+    kind: venueKind(feature),
     name: feature.properties.name,
     address:
       feature.properties.full_address ??

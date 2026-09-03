@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import type { Market } from '@founders-coffee/db';
 import { events, type geo } from '@founders-coffee/domain';
 import {
-  formatDate,
   host_time_invalid,
   host_time_nonexistent,
   host_time_zone_error,
@@ -12,6 +11,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { hostCreateStepCopy, hostCreateViewCopy } from './host-create-copy';
+import { hostScheduleSummary } from './host-create-schedule';
 import {
   readHostCreateDraft,
   writeHostCreateDraft,
@@ -46,6 +46,7 @@ export const useHostCreateWizard = ({
 }) => {
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
+  const [venueName, setVenueName] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [startsAt, setStartsAt] = useState<number | null>(null);
   const [endsAt, setEndsAt] = useState<number | null>(null);
@@ -61,6 +62,7 @@ export const useHostCreateWizard = ({
   const draft: HostCreateDraft = {
     step,
     venue,
+    venueName,
     searchValue,
     startsAt,
     endsAt,
@@ -92,6 +94,7 @@ export const useHostCreateWizard = ({
     if (restored) {
       setStep(restoredDraftStep(restored, locale));
       setVenue(restored.venue);
+      setVenueName(restored.venueName);
       setSearchValue(restored.searchValue);
       setStartsAt(restored.startsAt);
       setEndsAt(restored.endsAt);
@@ -109,6 +112,7 @@ export const useHostCreateWizard = ({
     writeHostCreateDraft(market.code, city.code, {
       step,
       venue,
+      venueName,
       searchValue,
       startsAt,
       endsAt,
@@ -124,6 +128,7 @@ export const useHostCreateWizard = ({
     city.code,
     step,
     venue,
+    venueName,
     searchValue,
     startsAt,
     endsAt,
@@ -138,13 +143,26 @@ export const useHostCreateWizard = ({
     if (step !== 4 || !isAuthenticated) setTurnstileToken(null);
   }, [step, isAuthenticated]);
 
+  /**
+   * Take a venue the server verified, and decide who names it.
+   *
+   * A point of interest names itself. Where the provider could only confirm a street address the
+   * name is cleared rather than pre-filled with it, because "15 Rue Yousfi Mohamed" is an address
+   * masquerading as a venue name — leaving it in place would let a host publish it by accident.
+   */
   const selectVenue = (selection: VenueSelection) => {
     setVenue(selection);
+    setVenueName(selection.kind === 'poi' ? selection.name : '');
     setSearchValue(selection.address || selection.name);
-    setFieldErrors((current) => ({ ...current, venue: undefined }));
+    setFieldErrors((current) => ({
+      ...current,
+      venue: undefined,
+      venueName: undefined,
+    }));
   };
   const clearVenue = () => {
     setVenue(null);
+    setVenueName('');
     setSearchValue('');
   };
   const setSchedule = (
@@ -170,7 +188,7 @@ export const useHostCreateWizard = ({
   const validateCurrentStep = (): boolean => {
     const errors =
       step === 1
-        ? validateVenueStep(venue, locale)
+        ? validateVenueStep(venue, venueName, locale)
         : step === 2
           ? validateScheduleStep(startsAt, endsAt, locale)
           : validateDetailsStep(
@@ -189,7 +207,7 @@ export const useHostCreateWizard = ({
       cityCode: city.code,
       title,
       description,
-      venueName: venue.name,
+      venueName,
       venueAddress: venue.address,
       latitude: venue.latitude,
       longitude: venue.longitude,
@@ -221,30 +239,20 @@ export const useHostCreateWizard = ({
     setStep((current) => Math.max(1, current - 1));
   };
   const stepCopy = hostCreateStepCopy(locale);
-  const hasValidTimeRange =
-    startsAt !== null &&
-    endsAt !== null &&
-    events.eventScheduleSchema.safeParse({ startsAt, endsAt }).success;
-  const whenLabel = startsAt
-    ? formatDate(new Date(startsAt), locale, {
-        timeZone: market.timezone,
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '';
+  const schedule = hostScheduleSummary(
+    startsAt,
+    endsAt,
+    locale,
+    market.timezone,
+  );
 
   return {
     ...draft,
+    ...schedule,
     fieldErrors,
     publishing,
     publishError,
     turnstileResetKey,
-    hasValidTimeRange,
-    whenLabel,
-    durationMinutes:
-      startsAt && endsAt ? Math.round((endsAt - startsAt) / 60_000) : 0,
     stepLabels: stepCopy.labels,
     stepTitle: stepCopy.labels[step - 1] ?? stepCopy.labels[0],
     stepSub: stepCopy.descriptions[step - 1] ?? null,
@@ -257,6 +265,10 @@ export const useHostCreateWizard = ({
         !isTurnstileBypassed &&
         turnstileToken === null),
     setSearchValue,
+    setVenueName: (value: string) => {
+      setVenueName(value);
+      setFieldErrors((current) => ({ ...current, venueName: undefined }));
+    },
     setTitle: (value: string) => {
       setTitle(value);
       setFieldErrors((current) => ({ ...current, title: undefined }));

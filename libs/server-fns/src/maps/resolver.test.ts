@@ -20,6 +20,7 @@ const provider = {
     ok([
       {
         providerId: `venue-${query}`,
+        kind: 'poi' as const,
         name: 'Test Café',
         address: 'Algiers',
         latitude: 36.7538,
@@ -29,6 +30,7 @@ const provider = {
   reverseVenue: async ({ latitude, longitude }) =>
     ok({
       providerId: 'venue-reverse',
+      kind: 'poi' as const,
       name: 'Test Café',
       address: 'Algiers',
       latitude,

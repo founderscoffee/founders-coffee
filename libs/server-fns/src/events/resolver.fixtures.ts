@@ -28,6 +28,7 @@ export const testMapProvider = {
   reverseVenue: async (input) =>
     ok({
       providerId: 'test-venue',
+      kind: 'poi' as const,
       name: 'Café des Délices',
       address: '12 Rue des Entrepreneurs, Alger',
       latitude: input.latitude,

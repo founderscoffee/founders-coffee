@@ -87,3 +87,5 @@ Thumbs.db
 firebase-service-account.json
 test-results/
 playwright-report/
+
+.e2e/

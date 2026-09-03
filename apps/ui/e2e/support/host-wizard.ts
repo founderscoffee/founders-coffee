@@ -3,6 +3,8 @@ import { expect, type Page } from '@playwright/test';
 import { t, type E2eLocale } from './messages';
 
 export const MARKET_SLUG = 'algeria';
+
+export const VENUE_QUERY = 'Didouche Mourad';
 export const CITY_CODE = '556';
 export const CITY_SLUG = 'algiers';
 
@@ -43,12 +45,20 @@ export const continueToLoginButton = (page: Page, locale: E2eLocale) =>
     exact: true,
   });
 
+export const HOST_VENUE_NAME = 'Café des Fondateurs';
+
 /**
  * Choose a venue through the real search box, which is the path a host actually uses.
  *
+ * `VENUE_QUERY` is a street rather than a category word on purpose: Mapbox indexes no points of
+ * interest across the Maghreb, so searching "café" matches nothing there and a host searches the
+ * street instead, naming the place themselves. A category query would pass only in a market with
+ * POI coverage, making this gate green everywhere except the market it exists to protect.
+ *
  * The field stays disabled until the server has returned the city viewport, so the wait is on the
  * control being enabled rather than on a fixed delay — a timing assumption here would make the
- * whole suite flaky on a cold Worker.
+ * whole suite flaky on a cold Worker. Where only an address could be verified the wizard asks for
+ * a name, and this fills it, mirroring what a host does.
  */
 export const selectVenue = async (
   page: Page,
@@ -59,9 +69,15 @@ export const selectVenue = async (
   await search.fill(query);
   const firstResult = page.locator('#venue-search-option-0');
   await expect(firstResult).toBeVisible({ timeout: 30_000 });
-  const venueName = (await firstResult.innerText()).split('\n')[0].trim();
+  const providerName = (await firstResult.innerText()).split('\n')[0].trim();
   await firstResult.click();
-  return venueName;
+
+  const nameField = page.locator('#host-venue-name');
+  if (await nameField.isVisible()) {
+    await nameField.fill(HOST_VENUE_NAME);
+    return HOST_VENUE_NAME;
+  }
+  return providerName;
 };
 
 /** Pick a day next month, which is always in the future and always exists. */

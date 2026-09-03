@@ -36,8 +36,11 @@ export interface HostMapContext {
   readonly bounds: readonly [number, number, number, number];
 }
 
+export type VenueKind = 'poi' | 'address';
+
 export interface VenueCandidate {
   readonly providerId: string;
+  readonly kind: VenueKind;
   readonly name: string;
   readonly address: string;
   readonly latitude: number;

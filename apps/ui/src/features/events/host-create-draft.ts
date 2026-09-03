@@ -11,6 +11,7 @@ const DRAFT_MAX_AGE_MS = 24 * 60 * 60_000;
 
 const venueSelectionSchema = z.object({
   providerId: z.string().min(1),
+  kind: z.enum(['poi', 'address']),
   name: events.eventVenueNameSchema,
   address: events.eventVenueAddressSchema,
   latitude: z.number().finite().min(-90).max(90),
@@ -24,6 +25,7 @@ const hostCreateDraftSchema = z.object({
   cityCode: z.string().min(1),
   step: z.number().int().min(1).max(4),
   venue: venueSelectionSchema.nullable(),
+  venueName: z.string().max(events.EVENT_VENUE_NAME_MAX_LENGTH),
   searchValue: z.string().max(VENUE_SEARCH_MAX_LENGTH),
   startsAt: z.number().int().positive().nullable(),
   endsAt: z.number().int().positive().nullable(),
@@ -37,6 +39,7 @@ const hostCreateDraftSchema = z.object({
 export type HostCreateDraft = {
   step: number;
   venue: VenueSelection | null;
+  venueName: string;
   searchValue: string;
   startsAt: number | null;
   endsAt: number | null;
@@ -73,6 +76,7 @@ export const readHostCreateDraft = (
     return {
       step: parsed.data.step,
       venue: parsed.data.venue,
+      venueName: parsed.data.venueName,
       searchValue: parsed.data.searchValue,
       startsAt: parsed.data.startsAt,
       endsAt: parsed.data.endsAt,
@@ -110,6 +114,7 @@ export const writeHostCreateDraft = (
         marketCode,
         cityCode,
         ...draft,
+        venueName: draft.venueName.slice(0, events.EVENT_VENUE_NAME_MAX_LENGTH),
         searchValue: draft.searchValue.slice(0, VENUE_SEARCH_MAX_LENGTH),
       }),
     );

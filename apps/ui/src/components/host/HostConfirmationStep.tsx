@@ -24,6 +24,7 @@ export const HostConfirmationStep = ({
   locale,
   timeZone,
   venue,
+  venueName,
   startsAt,
   endsAt,
   title,
@@ -41,6 +42,7 @@ export const HostConfirmationStep = ({
   locale: Locale;
   timeZone: string;
   venue: VenueSelection;
+  venueName: string;
   startsAt: number;
   endsAt: number;
   title: string;
@@ -66,7 +68,7 @@ export const HostConfirmationStep = ({
         {host_confirmation_venue({}, { locale })}
       </h3>
       <p className="mt-2 font-semibold" dir="auto">
-        {venue.name}
+        {venueName || venue.name}
       </p>
       <p className="mt-1 text-sm text-base-content/65" dir="auto">
         {venue.address}

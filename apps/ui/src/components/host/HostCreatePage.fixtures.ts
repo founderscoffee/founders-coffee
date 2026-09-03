@@ -72,26 +72,47 @@ vi.mock('./HostMap', () => ({
   }: {
     onVenueSelect: (venue: {
       providerId: string;
+      kind: 'poi' | 'address';
       name: string;
       address: string;
       latitude: number;
       longitude: number;
     }) => void;
   }) =>
-    createElement(
-      'button',
-      {
-        onClick: () =>
-          onVenueSelect({
-            providerId: 'poi-cafe',
-            name: 'Founders Café',
-            address: '12 Startup Street, Algiers',
-            latitude: 36.7538,
-            longitude: 3.0588,
-          }),
-      },
-      'Choose venue',
-    ),
+    createElement('div', null, [
+      createElement(
+        'button',
+        {
+          key: 'poi',
+          onClick: () =>
+            onVenueSelect({
+              providerId: 'poi-cafe',
+              kind: 'poi' as const,
+              name: 'Founders Café',
+              address: '12 Startup Street, Algiers',
+              latitude: 36.7538,
+              longitude: 3.0588,
+            }),
+        },
+        'Choose venue',
+      ),
+      createElement(
+        'button',
+        {
+          key: 'address',
+          onClick: () =>
+            onVenueSelect({
+              providerId: 'address-yousfi',
+              kind: 'address' as const,
+              name: '15 Rue Yousfi Mohamed',
+              address: '15 Rue Yousfi Mohamed, Alger',
+              latitude: 36.7501,
+              longitude: 3.0601,
+            }),
+        },
+        'Choose address',
+      ),
+    ]),
 }));
 
 vi.mock('./VenueSearch', () => ({

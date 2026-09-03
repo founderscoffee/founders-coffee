@@ -56,6 +56,7 @@ vi.mock('react-map-gl/mapbox', () => ({
 
 const selectedVenue: VenueSelection = {
   providerId: 'poi-cafe',
+  kind: 'poi' as const,
   name: 'Founders Café',
   address: '12 Startup Street, Algiers',
   latitude: 36.7538,
@@ -64,6 +65,7 @@ const selectedVenue: VenueSelection = {
 
 const movedVenue: VenueSelection = {
   providerId: 'poi-coworking',
+  kind: 'poi' as const,
   name: 'Founders Coworking',
   address: '18 Builder Street, Algiers',
   latitude: 36.76,

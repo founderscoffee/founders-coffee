@@ -25,6 +25,7 @@ type OnboardingPageProps = {
   cities: readonly geo.GeoCity[];
   initialCountry: string;
   redirect: string;
+  selectedState: string;
 };
 
 export const OnboardingPage = ({
@@ -34,24 +35,28 @@ export const OnboardingPage = ({
   cities,
   initialCountry,
   redirect,
+  selectedState,
 }: OnboardingPageProps) => {
   const navigate = useNavigate();
   const updateProfileMutation = useUpdateProfile();
 
   const [country, setCountry] = useState<string>(initialCountry);
-  const [state, setState] = useState('');
+  const state = selectedState;
   const [city, setCity] = useState('');
   const [saving, setSaving] = useState(false);
 
   const handleCountryChange = (code: string) => {
     setCountry(code);
-    setState('');
     setCity('');
+    void navigate({ to: '/onboarding', search: { redirect } });
   };
 
   const handleStateChange = (code: string) => {
-    setState(code);
     setCity('');
+    void navigate({
+      to: '/onboarding',
+      search: code ? { redirect, state: code } : { redirect },
+    });
   };
 
   const handleSave = async () => {

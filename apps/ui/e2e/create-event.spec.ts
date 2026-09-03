@@ -3,9 +3,9 @@ import { expect, test, type Page } from '@playwright/test';
 import {
   cleanupRun,
   findEventByTitle,
-  latestSignInOtp,
   type PersistedEvent,
 } from './support/d1';
+import { latestSignInOtp } from './support/otp';
 import { LOCALE_DIRECTION, t, type E2eLocale } from './support/messages';
 import {
   disposableEmail,
@@ -17,6 +17,7 @@ import {
 import {
   CITY_SLUG,
   MARKET_SLUG,
+  VENUE_QUERY,
   completeWizardToConfirmation,
   continueToLoginButton,
   publishButton,
@@ -56,16 +57,40 @@ const signIn = async (
     .click();
 };
 
-/** Finish onboarding when a brand-new account is sent through it before returning to the wizard. */
-const completeOnboardingIfShown = async (page: Page): Promise<void> => {
+/**
+ * Finish onboarding when a brand-new account is sent through it before returning to the wizard.
+ *
+ * The state choice is retried until it sticks, because the markup is interactive before React has
+ * hydrated and a selection made in that window is silently dropped — a real host is slower than a
+ * test runner. The city list arrives only once the chosen state is in the URL, which is what the
+ * route loads it from.
+ */
+const completeOnboardingIfShown = async (
+  page: Page,
+  locale: E2eLocale,
+): Promise<void> => {
   if (!page.url().includes('/onboarding')) return;
   const selects = page.locator('select');
   await expect(selects.first()).toBeVisible({ timeout: 15_000 });
-  await selects.nth(1).selectOption({ index: 1 });
-  const city = selects.nth(2);
-  await expect(city.locator('option')).not.toHaveCount(1, { timeout: 15_000 });
-  await city.selectOption({ index: 1 });
-  await page.getByRole('button').last().click();
+  await expect(async () => {
+    await selects.nth(1).selectOption({ index: 1 });
+    await page.waitForURL(/state=/, { timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+
+  const cityField = page.getByRole('combobox').last();
+  await cityField.click();
+  const firstCity = page
+    .locator('#city-search-listbox [role="option"]')
+    .first();
+  await expect(firstCity).toBeVisible({ timeout: 30_000 });
+  await firstCity.click();
+
+  const save = page.getByRole('button', {
+    name: t(locale, 'onboarding_save'),
+    exact: true,
+  });
+  await expect(save).toBeEnabled({ timeout: 15_000 });
+  await save.click();
 };
 
 test.describe('create event', () => {
@@ -106,7 +131,7 @@ test.describe('create event', () => {
       page,
       locale,
       details,
-      'cafe',
+      VENUE_QUERY,
     );
 
     await expect(page.getByText(title)).toBeVisible();
@@ -118,7 +143,7 @@ test.describe('create event', () => {
     await signIn(page, locale, email);
 
     await page.waitForURL(/\/(onboarding|algeria)/, { timeout: 60_000 });
-    await completeOnboardingIfShown(page);
+    await completeOnboardingIfShown(page, locale);
     await page.waitForURL(/host\/create/, { timeout: 60_000 });
 
     await expect(page.getByText(title)).toBeVisible({ timeout: 30_000 });

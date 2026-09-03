@@ -3,6 +3,7 @@ import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import {
   distanceMeters,
   featureCountry,
+  isAddressableLocation,
   isSupportedVenue,
   isWithinBounds,
   matchesCity,
@@ -22,6 +23,7 @@ import type {
 const MAPBOX_SEARCH_URL = 'https://api.mapbox.com/search/searchbox/v1';
 const MAPBOX_TIMEOUT_MS = 6_000;
 const MAPBOX_RESULT_LIMIT = 10;
+const VENUE_TYPES = 'poi,address,street';
 
 type MapboxFetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -110,22 +112,23 @@ export const createMapboxProvider = (
       country: input.marketCode,
       language: input.locale,
       limit: String(MAPBOX_RESULT_LIMIT),
-      types: 'poi',
+      types: VENUE_TYPES,
     });
     if (!result.ok) return result;
-    return ok(
-      result.data
-        .filter((feature) => {
-          const [longitude, latitude] = feature.geometry.coordinates;
-          return (
-            featureCountry(feature) === input.marketCode &&
-            matchesCity(feature, input) &&
-            isWithinBounds(longitude, latitude, bounds) &&
-            isSupportedVenue(feature)
-          );
-        })
-        .map(toVenue),
+    const candidates = result.data.filter((feature) => {
+      const [longitude, latitude] = feature.geometry.coordinates;
+      return (
+        featureCountry(feature) === input.marketCode &&
+        matchesCity(feature, input) &&
+        isWithinBounds(longitude, latitude, bounds) &&
+        (isSupportedVenue(feature) || isAddressableLocation(feature))
+      );
+    });
+    const supported = candidates.filter(isSupportedVenue);
+    const addressable = candidates.filter(
+      (feature) => !isSupportedVenue(feature),
     );
+    return ok([...supported, ...addressable].map(toVenue));
   };
 
   const reverseVenue: MapProvider['reverseVenue'] = async (input) => {
@@ -146,25 +149,26 @@ export const createMapboxProvider = (
       country: input.marketCode,
       language: input.locale,
       limit: String(MAPBOX_RESULT_LIMIT),
-      types: 'poi',
+      types: VENUE_TYPES,
     });
     if (!result.ok) return result;
-    const feature = result.data.find((candidate) => {
+    const nearby = result.data.filter((candidate) => {
       const [longitude, latitude] = candidate.geometry.coordinates;
       return (
         featureCountry(candidate) === input.marketCode &&
         matchesCity(candidate, input) &&
-        isSupportedVenue(candidate) &&
         distanceMeters(input, { latitude, longitude }) <=
           MAX_REVERSE_DISTANCE_METERS
       );
     });
+    const feature =
+      nearby.find(isSupportedVenue) ?? nearby.find(isAddressableLocation);
     return feature
       ? ok(toVenue(feature))
       : err(
           new AppError(
             'map_venue_unsupported',
-            'Select a supported café or coworking venue',
+            'Select a café, coworking space, or a street address in this city',
           ),
         );
   };

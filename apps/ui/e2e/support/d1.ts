@@ -39,23 +39,6 @@ export const d1 = <T = Record<string, unknown>>(sql: string): T[] => {
 
 const sqlString = (value: string): string => `'${value.replaceAll("'", "''")}'`;
 
-/**
- * The most recent sign-in code issued to `email`.
- *
- * Better Auth writes the one-time code to the `verification` table before handing it to the email
- * provider, so reading it here exercises the real login path instead of stubbing authentication.
- * The row's value carries the code plus bookkeeping, hence the digit match rather than an equality
- * check.
- */
-export const latestSignInOtp = (email: string): string | null => {
-  const rows = d1<{ value: string }>(
-    `SELECT value FROM verification WHERE identifier LIKE '%' || ${sqlString(email)}
-     ORDER BY created_at DESC, rowid DESC LIMIT 1`,
-  );
-  const match = rows[0]?.value?.match(/\b(\d{6})\b/);
-  return match?.[1] ?? null;
-};
-
 export interface PersistedEvent {
   readonly id: string;
   readonly slug: string;

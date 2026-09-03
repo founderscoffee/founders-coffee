@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { LOCALE_DIRECTION, t, type E2eLocale } from './support/messages';
 import { localeFor } from './support/run';
 import {
+  VENUE_QUERY,
   backButton,
   nextButton,
   selectVenue,
@@ -21,7 +22,7 @@ test.describe('create event experience', () => {
     await useLocale(page, locale, baseURL as string);
     await page.goto(wizardPath());
 
-    const venueName = await selectVenue(page, 'cafe');
+    await selectVenue(page, VENUE_QUERY);
     await nextButton(page, locale).click();
     await expect(page.locator('.rdp-button_next')).toBeVisible();
 
@@ -41,7 +42,7 @@ test.describe('create event experience', () => {
     });
     await backButton(page, other).click();
     await expect(page.locator('#venue-search')).toHaveValue(
-      new RegExp(venueName.slice(0, 8).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+      new RegExp(VENUE_QUERY),
     );
   });
 
@@ -72,7 +73,7 @@ test.describe('create event experience', () => {
     await useLocale(page, locale, baseURL as string);
     await page.goto(wizardPath());
 
-    await selectVenue(page, 'cafe');
+    await selectVenue(page, VENUE_QUERY);
     await nextButton(page, locale).click();
 
     for (const action of [backButton(page, locale), nextButton(page, locale)]) {
@@ -108,7 +109,7 @@ test.describe('create event experience', () => {
       t(locale, 'host_step1'),
     );
 
-    await selectVenue(page, 'cafe');
+    await selectVenue(page, VENUE_QUERY);
     await nextButton(page, locale).click();
 
     await expect(currentStep).toHaveText(t(locale, 'host_step2'));

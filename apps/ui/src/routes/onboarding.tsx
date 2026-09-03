@@ -11,11 +11,13 @@ import { sameOriginPathSchema } from '../lib/redirect';
 export const Route = createFileRoute('/onboarding')({
   validateSearch: z.object({
     redirect: sameOriginPathSchema.catch('/').optional().default('/'),
+    state: z.string().max(8).optional(),
   }),
+  loaderDeps: ({ search }) => ({ state: search.state }),
   component: () => {
     const { locale, markets } = Route.useRouteContext();
     const { states, cities, initialCountry } = Route.useLoaderData();
-    const { redirect } = Route.useSearch();
+    const { redirect, state } = Route.useSearch();
     return (
       <OnboardingPage
         locale={locale}
@@ -24,12 +26,13 @@ export const Route = createFileRoute('/onboarding')({
         cities={cities}
         initialCountry={initialCountry}
         redirect={redirect}
+        selectedState={state ?? ''}
       />
     );
   },
   loader: async ({
     context,
-    location,
+    deps,
   }): Promise<{
     states: readonly geo.GeoState[];
     cities: readonly geo.GeoCity[];
@@ -41,7 +44,7 @@ export const Route = createFileRoute('/onboarding')({
         (m: { code: string }) => m.code === geoCookie.toUpperCase(),
       )?.code ?? 'DZ';
     const states = await getStates({ data: { country: initialCountry } });
-    const stateParam = new URLSearchParams(location.search).get('state') ?? '';
+    const stateParam = deps.state ?? '';
     const cities = stateParam
       ? await getCities({
           data: { country: initialCountry, state: stateParam },

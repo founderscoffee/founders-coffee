@@ -1,7 +1,14 @@
 import { MousePointerClick } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 
-import { host_step1_helper, type Locale } from '@founders-coffee/i18n';
+import {
+  host_step1_helper,
+  host_venue_name_helper,
+  host_venue_name_label,
+  host_venue_name_ph,
+  type Locale,
+} from '@founders-coffee/i18n';
+import { Input } from '@founders-coffee/ui';
 
 import type { VenueSelection } from '../../features/events/types';
 import { ClientOnly } from './ClientOnly';
@@ -18,8 +25,12 @@ export const HostVenueStep = ({
   cityCode,
   marketCode,
   searchValue,
+  venue,
+  venueName,
+  nameError,
   isDisabled,
   onSearchChange,
+  onVenueNameChange,
   onVenueSelect,
 }: {
   locale: Locale;
@@ -27,8 +38,12 @@ export const HostVenueStep = ({
   cityCode: string;
   marketCode: string;
   searchValue: string;
+  venue: VenueSelection | null;
+  venueName: string;
+  nameError?: string;
   isDisabled: boolean;
   onSearchChange: (value: string) => void;
+  onVenueNameChange: (value: string) => void;
   onVenueSelect: (venue: VenueSelection) => void;
 }) => (
   <div className="mt-auto flex flex-col gap-3">
@@ -52,5 +67,32 @@ export const HostVenueStep = ({
         />
       </Suspense>
     </ClientOnly>
+    {venue?.kind === 'address' && (
+      <label className="form-control" htmlFor="host-venue-name">
+        <span className="mb-1 text-sm text-base-content/70">
+          {host_venue_name_label({}, { locale })}
+        </span>
+        <Input
+          id="host-venue-name"
+          value={venueName}
+          maxLength={200}
+          placeholder={host_venue_name_ph({}, { locale })}
+          aria-invalid={!!nameError}
+          aria-describedby="host-venue-name-help host-venue-name-error"
+          onChange={(event) => onVenueNameChange(event.target.value)}
+        />
+        <span
+          id="host-venue-name-help"
+          className="mt-1 text-xs text-base-content/50"
+        >
+          {host_venue_name_helper({}, { locale })}
+        </span>
+        {nameError && (
+          <span id="host-venue-name-error" className="mt-1 text-sm text-error">
+            {nameError}
+          </span>
+        )}
+      </label>
+    )}
   </div>
 );

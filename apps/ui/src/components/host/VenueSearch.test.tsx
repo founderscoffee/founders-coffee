@@ -21,6 +21,7 @@ vi.mock('../../features/events/hooks', () => ({
 
 const venue: VenueSelection = {
   providerId: 'poi-cafe',
+  kind: 'poi' as const,
   name: 'Founders Café',
   address: '12 Startup Street, Algiers',
   latitude: 36.7538,

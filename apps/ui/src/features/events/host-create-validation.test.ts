@@ -15,11 +15,13 @@ const validDraft: HostCreateDraft = {
   step: 4,
   venue: {
     providerId: 'poi-cafe',
+    kind: 'poi' as const,
     name: 'Founders Café',
     address: '12 Startup Street, Algiers',
     latitude: 36.7538,
     longitude: 3.0588,
   },
+  venueName: 'Founders Café',
   searchValue: 'Founders Café',
   startsAt,
   endsAt: startsAt + 60 * 60_000,
@@ -36,7 +38,9 @@ describe('host create validation', () => {
   });
 
   it('validates the shared schema projection for every step', () => {
-    expect(validateVenueStep(validDraft.venue, 'en')).toEqual({});
+    expect(
+      validateVenueStep(validDraft.venue, validDraft.venueName, 'en'),
+    ).toEqual({});
     expect(
       validateScheduleStep(validDraft.startsAt, validDraft.endsAt, 'en'),
     ).toEqual({});

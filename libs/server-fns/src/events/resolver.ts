@@ -17,9 +17,25 @@ import {
 } from '@founders-coffee/db';
 import { reportError } from '@founders-coffee/observability';
 
-import type { MapProvider } from '../maps/provider.js';
+import type { MapProvider, VenueKind } from '../maps/provider.js';
 import { reverseEventVenueResolver } from '../maps/resolver.js';
 import { type EventAttendance } from './attendance.js';
+
+/**
+ * The name an event is published under, given what the map provider could verify.
+ *
+ * A point of interest names itself, and taking the provider's name is what stops a host publishing
+ * "Café des Délices" at a location that is really somewhere else. Where the provider can only
+ * confirm a street address — which is every location in the Maghreb, since Mapbox indexes no points
+ * of interest there — the label has to come from the host, because "15 Rue Yousfi Mohamed" tells an
+ * attendee nothing about which door to walk through. The guarantee splits rather than disappears:
+ * the address and coordinates stay provider-verified and inside the selected city, while the name
+ * becomes host-authored content held to the same schema bounds as the title and description.
+ */
+const resolvedVenueName = (
+  resolved: { readonly kind: VenueKind; readonly name: string },
+  submitted: string,
+): string => (resolved.kind === 'poi' ? resolved.name : submitted);
 
 const slugify = (title: string): string =>
   title
@@ -110,7 +126,7 @@ export const createEventResolverWithId = async (
       cityCode: city.code,
       title: input.title,
       description: input.description,
-      venue: venueValidation.data.name,
+      venue: resolvedVenueName(venueValidation.data, input.venueName),
       venueAddress: venueValidation.data.address,
       latitude: venueValidation.data.latitude,
       longitude: venueValidation.data.longitude,
