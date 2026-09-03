@@ -452,6 +452,7 @@ Outstanding for EC-10:
 
 **Parent:** P1-021
 **Requirements:** NFR-4, NFR-8, NFR-9, NFR-11, NFR-12
+**Status:** Suite implemented 2026-09-03; the browser run is pending a local Mapbox token
 
 Work:
 
@@ -478,6 +479,57 @@ npx nx run ui:e2e -- --grep "create event"
 ```
 
 The final command is a local/staging release check, not a CI job under the current policy.
+
+Implementation evidence (2026-09-03):
+
+- The non-browser layers were audited against this ticket's list before anything was written, and
+  are already covered: domain tests assert the create schema's field bounds, trimming, schedule
+  ordering, future start, duration boundaries, capacity, every language and category, coordinate
+  ranges and the `isFree` invariant; `libs/i18n` covers wall-clock conversion, host-timezone
+  independence, midnight rollover, the DST gap and the DST overlap; the D1 suite covers complete
+  venue persistence, composite route uniqueness, the same slug reserved independently in two
+  markets, and concurrent allocation; the server-function suite runs against real Miniflare D1 and
+  Durable Objects throughout, with no Cloudflare binding mocked. `libs/domain/src/geo` was the one
+  real gap — the module holding `findCity`/`findState`, which the resolver uses for geography
+  validation, had no test at all — and is now covered, taking the library from 64.95% to 99.14%
+  statements.
+- The browser gate is three Playwright projects, one per width the plan names, each pinned to a
+  different application locale: `mobile-ar` at 390px, `tablet-fr` at 768px, `desktop-en` at 1280px.
+  One project per (width, locale) pair rather than a loop inside a spec, so a failure names the
+  combination that broke.
+- `create-event.spec.ts` is the critical flow: an anonymous visitor completes venue, schedule and
+  details, reaches the confirmation, is handed to login, signs in as a disposable host with a real
+  one-time code, returns to a restored confirmation, publishes, lands on the canonical event route,
+  and is then found on the city feed and the host's public profile. It asserts the persisted row
+  directly — venue name, address, coordinates, schedule ordering, future start, capacity, language,
+  category, market, city, `is_free` and `published` — because an event that renders is not proof of
+  an event that persisted.
+- `create-event-experience.spec.ts` carries the focused assertions: draft and active step surviving
+  a locale change, localized inline validation with focus moved to the first invalid control,
+  both wizard actions reachable and at least 44px tall with no horizontal overflow, semantic step
+  progress through the `aria-current` list and the live region, and that precise location is never
+  requested without an explicit action.
+- The one-time code is read from the `verification` table rather than an inbox, so the same spec
+  can run against a deployed environment where no mailbox is reachable. Test data is unique and
+  self-identifying (`E2E create-event <locale> <run id>`), and cleanup deletes the exact rows the
+  run created, addressed by id — a broadened pattern delete is one typo away from removing a real
+  member's event.
+- Application errors fail the run. Page errors and console errors are collected, with edge-injected
+  analytics, the bot-detection beacon, report-only CSP notices and dev-server chatter filtered out:
+  none can be fixed from this repository, and a gate that fails on them would be switched off.
+
+Outstanding:
+
+- The browser gate has not been executed. It needs a Mapbox token in `apps/ui/.dev.vars` — the
+  venue field stays disabled until the server returns the city viewport, so without one the wizard
+  cannot leave step 1. The staging secret exists but its value cannot be read back.
+
+Local command:
+
+```text
+# apps/ui/.dev.vars must carry MAPBOX_TOKEN; TURNSTILE_DISABLED=true is already the dev default
+npx nx run public:e2e -- --grep "create event"
+```
 
 ### EC-10 — Stage, verify, and release
 
