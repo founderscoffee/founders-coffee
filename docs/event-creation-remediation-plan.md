@@ -740,11 +740,32 @@ error surfaces through `react-map-gl`'s RTL-plugin callback, so the visible cost
 product, in the launch market. The map itself renders and every interaction in the suite works, so
 this is degradation rather than an outage.
 
-The principled fix is `mapbox-gl`'s CSP build (`mapbox-gl-csp.js` + `mapbox-gl-csp-worker.js`),
-which avoids the stringify path entirely and would also remove the blob worker that AR-08 has to
-allow. Two attempts at wiring it through `react-map-gl` — `workerUrl` alone, then `mapLib` plus
-`workerUrl` — left the map failing to render at all, so both were reverted rather than shipped. This
-needs its own change with its own verification, not a tail-end fix to an unrelated one.
+**Fixed 2026-09-03** by moving to `mapbox-gl`'s CSP build, which ships the worker as a real file
+instead of assembling one from stringified functions. Three things had to line up, and each was
+found by a failure rather than guessed:
+
+| Symptom                                                    | Cause                                                                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `TypeError: Cannot set property workerUrl … only a getter` | `react-map-gl` writes globals onto whatever `mapLib` resolves to; an ES namespace exposes only getters, so it must be handed the module's **default export** |
+| `Cannot use import statement outside a module`             | `?url` in dev resolves to a path the transform middleware rewrites to ESM, and the worker is a classic worker                                                |
+| `Unexpected token 'export'`                                | `assetsInclude` was not enough either — the dev server still appended an export                                                                              |
+
+`apps/ui/vite-mapbox-worker.ts` serves the file verbatim in both modes: a dev middleware and an
+emitted build asset at one URL, `/mapbox-gl-csp-worker-<version>.js`, handed to the app through a
+virtual module. The version in the filename means an upgrade cannot serve a cached worker from the
+previous release against a new library, and nothing is vendored into the tree.
+
+Verified by A/B on a production build at the same chunk hash:
+
+| Build  | Worker fetched from our origin | `mapbox-gl-rtl-text` fetches   | Console                   |
+| ------ | ------------------------------ | ------------------------------ | ------------------------- |
+| Before | no                             | 1 (main thread only)           | `Error: n is not defined` |
+| After  | yes, ×2                        | 3 (main thread + both workers) | clean                     |
+
+Both dev and the production preview are clean, local Playwright `desktop-en` is 6/6, and
+`HostMap.test.tsx` now asserts both props with each one mutation-checked, so neither can be dropped
+silently again. `worker-src` no longer needs `blob:` for this path, which is an AR-08 simplification
+that can be taken separately.
 
 Work:
 

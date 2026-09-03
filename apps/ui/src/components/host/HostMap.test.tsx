@@ -14,6 +14,8 @@ import { HostMap } from './HostMap';
 type MockMapProps = {
   children?: ReactNode;
   onClick?: (event: { lngLat: { lat: number; lng: number } }) => void;
+  mapLib?: unknown;
+  workerUrl?: string;
 };
 
 type MockMarkerProps = {
@@ -33,9 +35,11 @@ vi.mock('../../features/events/hooks', () => ({
 }));
 
 vi.mock('react-map-gl/mapbox', () => ({
-  Map: ({ children, onClick }: MockMapProps) => (
+  Map: ({ children, onClick, mapLib, workerUrl }: MockMapProps) => (
     <div
       data-testid="map-surface"
+      data-worker-url={workerUrl}
+      data-has-map-lib={String(mapLib !== undefined)}
       onClick={() => onClick?.({ lngLat: { lat: 36.7538, lng: 3.0588 } })}
     >
       {children}
@@ -173,6 +177,17 @@ describe('HostMap', () => {
     firstLookup.resolve(selectedVenue);
     await firstLookup.promise;
     await waitFor(() => expect(onVenueSelect).toHaveBeenCalledOnce());
+  });
+
+  it('hands Mapbox a self-hosted worker and the object it can write globals onto', () => {
+    renderMap(null, vi.fn(), vi.fn());
+    const surface = screen.getByTestId('map-surface');
+
+    expect(surface.getAttribute('data-worker-url')).toMatch(/^[^:]*\/[^:]*$/);
+    expect(surface.getAttribute('data-worker-url')).toContain(
+      'mapbox-gl-csp-worker',
+    );
+    expect(surface.getAttribute('data-has-map-lib')).toBe('true');
   });
 
   it('requests precise location only after the visitor activates Locate me', () => {

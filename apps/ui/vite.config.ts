@@ -8,6 +8,8 @@ import tailwindcss from '@tailwindcss/vite';
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { serwist } from '@serwist/vite';
 
+import { mapboxCspWorker } from './vite-mapbox-worker';
+
 const clientNodeBuiltinStubs: Plugin = {
   name: 'client-node-builtin-stubs',
   enforce: 'pre',
@@ -52,6 +54,7 @@ export default defineConfig(({ command }) => ({
       },
     }),
     clientNodeBuiltinStubs,
+    mapboxCspWorker(),
     viteReact(),
     serwist({
       swSrc: 'src/sw.ts',

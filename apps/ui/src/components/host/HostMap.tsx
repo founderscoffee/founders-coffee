@@ -24,8 +24,11 @@ import type {
   HostMapViewport,
   VenueSelection,
 } from '../../features/events/types';
+import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
+
+const mapLib = loadMapboxCsp();
 
 type Coordinates = { longitude: number; latitude: number };
 
@@ -165,7 +168,16 @@ export const HostMap = ({
           const { lng, lat } = event.lngLat;
           void resolveCoordinates({ longitude: lng, latitude: lat });
         }}
-        onError={() => setHasMapError(true)}
+        onError={(e) => {
+          console.error(
+            'MAPERR',
+            (e as never as { error?: Error }).error?.message,
+            (e as never as { error?: Error }).error?.stack,
+          );
+          setHasMapError(true);
+        }}
+        mapLib={mapLib as never}
+        workerUrl={MAPBOX_WORKER_URL}
         mapboxAccessToken={accessToken}
         mapStyle={MAP_STYLE}
         style={{ width: '100%', height: '100%' }}
