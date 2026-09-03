@@ -18,23 +18,21 @@ import { useCreateEvent, useInvalidateCreatedEvent } from './hooks';
 export type EventCreateCommand = EventCreateRequestInput['event'];
 
 /**
- * Own the final submission of the host wizard: verification, the mutation, and both outcomes.
+ * Own the final submission of the host wizard: the mutation and both of its outcomes.
  *
- * Split out of `useHostCreateWizard` because publishing is a self-contained concern with four
- * pieces of state of its own, and the wizard is already at the file-length ceiling with the step
+ * Split out of `useHostCreateWizard` because publishing is a self-contained concern with its own
+ * state and both outcome paths, and the wizard is already at the file-length ceiling with the step
  * machine it exists to run.
  */
 export const useHostPublish = ({
   locale,
   market,
   city,
-  isTurnstileBypassed,
   readDraft,
 }: {
   locale: Locale;
   market: Market;
   city: geo.GeoCity;
-  isTurnstileBypassed: boolean;
   readDraft: () => HostCreateDraft;
 }) => {
   const navigate = useNavigate();
@@ -43,8 +41,6 @@ export const useHostPublish = ({
   const invalidateCreatedEvent = useInvalidateCreatedEvent();
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const goToLogin = () => {
     const redirect = safeRedirectPath(
@@ -57,20 +53,14 @@ export const useHostPublish = ({
    * Recover from a failed publish without costing the host their work (EC-08).
    *
    * Nothing entered is cleared: the wizard state and the session draft both survive, so a paused
-   * market, an exhausted rate limit or a lapsed verification costs one button press rather than
-   * four steps of re-entry. The Turnstile response is the exception — it is single-use and the
-   * server already consumed it, so the widget is actively reissued instead of leaving a spent
-   * token that would fail the retry for a second, misleading reason.
+   * market or an exhausted rate limit costs one button press rather than four steps of re-entry.
    *
    * An expired session is the one failure the wizard cannot resolve in place. It writes the draft
-   * before leaving so the round trip through login restores the confirmation step, and the cleared
-   * token means the host returns to a fresh challenge rather than a replayed one.
+   * before leaving so the round trip through login restores the confirmation step.
    */
   const handleFailure = (error: unknown) => {
     const failure = hostPublishFailure(error, locale);
     setPublishError(failure.message);
-    setTurnstileToken(null);
-    setTurnstileResetKey((value) => value + 1);
     if (!failure.requiresReauthentication) return;
     writeHostCreateDraft(market.code, city.code, readDraft());
     goToLogin();
@@ -105,15 +95,10 @@ export const useHostPublish = ({
 
   const publish = async (event: EventCreateCommand) => {
     if (publishing) return;
-    if (!isTurnstileBypassed && turnstileToken === null) return;
     setPublishing(true);
     setPublishError(null);
     try {
-      handleSuccess(
-        await createEventMutation.mutateAsync({
-          data: { event, turnstileToken: turnstileToken ?? undefined },
-        }),
-      );
+      handleSuccess(await createEventMutation.mutateAsync({ data: { event } }));
     } catch (error) {
       handleFailure(error);
     } finally {
@@ -124,10 +109,7 @@ export const useHostPublish = ({
   return {
     publishing,
     publishError,
-    turnstileToken,
-    turnstileResetKey,
     clearPublishError: () => setPublishError(null),
-    setTurnstileToken,
     goToLogin,
     publish,
   };

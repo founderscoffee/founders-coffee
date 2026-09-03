@@ -18,7 +18,7 @@ describe('Turnstile runtime security configuration', () => {
       expect(
         (
           await development.data.verify({
-            expectedAction: 'create_event',
+            expectedAction: 'join_waitlist',
           })
         ).ok,
       ).toBe(true);

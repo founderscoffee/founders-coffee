@@ -6,7 +6,7 @@ const event = {
   marketCode: 'DZ',
   cityCode: '1',
   title: 'Protected event',
-  description: 'A complete event protected by Turnstile.',
+  description: 'A complete event for founders in the launch market.',
   venueName: 'Founders Café',
   venueAddress: '12 Startup Street, Algiers',
   latitude: 36.7538,
@@ -19,25 +19,21 @@ const event = {
 };
 
 describe('eventCreateRequestSchema', () => {
-  it('accepts the transport envelope without adding the token to the domain command', () => {
-    const result = eventCreateRequestSchema.parse({
-      event,
-      turnstileToken: 'single-use-token',
-    });
+  it('carries the domain command and nothing else', () => {
+    const result = eventCreateRequestSchema.parse({ event });
 
     expect(result.event).toEqual(event);
-    expect(result.event).not.toHaveProperty('turnstileToken');
-    expect(result.turnstileToken).toBe('single-use-token');
+    expect(Object.keys(result)).toEqual(['event']);
   });
 
-  it('rejects extra transport fields and oversized tokens', () => {
+  it('rejects extra transport fields', () => {
     expect(
       eventCreateRequestSchema.safeParse({ event, forged: true }).success,
     ).toBe(false);
     expect(
       eventCreateRequestSchema.safeParse({
         event,
-        turnstileToken: 'x'.repeat(2_049),
+        turnstileToken: 'single-use-token',
       }).success,
     ).toBe(false);
   });

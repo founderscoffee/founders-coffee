@@ -156,25 +156,6 @@ vi.mock('./ScheduleSummary', () => ({
   ScheduleSummary: () => createElement('div', null, 'Schedule summary'),
 }));
 
-vi.mock('../auth/Turnstile', () => ({
-  Turnstile: ({
-    onToken,
-    resetKey,
-  }: {
-    onToken: (token: string | null) => void;
-    resetKey?: number;
-  }) =>
-    createElement(
-      'button',
-      {
-        'data-testid': 'event-turnstile',
-        'data-reset-key': resetKey,
-        onClick: () => onToken('single-use-token'),
-      },
-      'Complete verification',
-    ),
-}));
-
 const market = {
   code: 'DZ',
   slug: 'algeria',
@@ -194,8 +175,6 @@ export const renderHostCreateWizard = (locale: 'ar' | 'fr' | 'en' = 'en') =>
       market,
       city,
       mapboxToken: 'map-token',
-      turnstileSiteKey: 'site-key',
-      isTurnstileBypassed: false,
     }),
   );
 
@@ -229,8 +208,5 @@ export const publishHostEvent = async () => {
   await goToHostDetails();
   fillHostDetails();
   fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-  fireEvent.click(
-    screen.getByRole('button', { name: 'Complete verification' }),
-  );
   fireEvent.click(screen.getByRole('button', { name: 'Confirm and publish' }));
 };

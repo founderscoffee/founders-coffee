@@ -73,13 +73,24 @@ endpoints with a 503. These endpoints spend money — an unprotected `/phone-num
 open SMS-pumping relay against the Twilio account — so a forgotten secret must be a visible outage,
 not a silent hole (AGENTS.md §10). The dev-only `1x00000000000000000000AA` site key and
 `TURNSTILE_DISABLED` must never be set on a deployed environment.
-Deployed staging uses a real widget restricted to `staging.founders.coffee`; Cloudflare's dummy test
-keys return fixed test metadata and cannot satisfy the strict event action and hostname checks.
+Deployed staging has its own widget, `founders-coffee-staging` (`0x4AAAAAAEmLQr5Hfn0DrNUo`),
+restricted to `staging.founders.coffee`. Cloudflare's dummy test keys answer `siteverify` with
+hostname `example.com` and no `action` at all, so they satisfy sign-in but never a flow that pins
+either — do not reach for them to unblock a test.
 
-Event creation uses the shared provider in `libs/server-fns/src/turnstile`. It validates the
-`create_event` action and environment hostname, uses an idempotency key, and forwards only the
-Cloudflare-set `CF-Connecting-IP`. A missing secret, a deployed bypass, or a missing
-`EVENT_CREATE_WAF_CONFIGURED=true` marker fails closed before Mapbox or D1 creation work. The marker
+Event creation carries no bot challenge. Turnstile would not issue a token to any automated
+browser in any widget mode, which left the release gate unable to exercise the create path at all,
+and the product owner chose the coverage over the challenge on 2026-09-03. Creation is still bounded
+by the authenticated `event:create` permission, the five-per-ten-minute `create_event` Durable
+Object bucket, and the account-side WAF rule; it is no longer proof-of-humanity gated, so an
+authenticated account can automate creation up to those limits.
+
+Sign-in and the waitlist keep the challenge. The waitlist uses the shared provider in
+`libs/server-fns/src/turnstile`, which validates the `join_waitlist` action and environment
+hostname, uses an idempotency key, and forwards only the Cloudflare-set `CF-Connecting-IP`.
+
+A missing secret, a deployed bypass, or a missing `EVENT_CREATE_WAF_CONFIGURED=true` marker still
+fails event creation closed before Mapbox or D1 creation work. The marker
 is evidence, not the WAF itself: set it only after the account rule is verified according to
 [`provisioning.md`](./provisioning.md) and recorded in [`deployment-evidence.md`](./deployment-evidence.md).
 The shared Free-plan rule was activated and recorded on 2026-09-02, and the marker was uploaded to

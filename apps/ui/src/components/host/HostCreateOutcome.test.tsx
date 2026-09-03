@@ -61,10 +61,6 @@ describe('HostCreatePage EC-08 outcomes', () => {
       'You have published several events recently. Wait a few minutes and try again.',
     ],
     [
-      'turnstile_expired_or_replayed',
-      'Your verification expired. Complete the check again, then publish.',
-    ],
-    [
       'validation_failed',
       'Some details are no longer valid. Review the steps and try again.',
     ],
@@ -90,7 +86,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     await screen.findByText(message);
   });
 
-  it('keeps every entered value and reissues verification after a recoverable failure', async () => {
+  it('keeps every entered value and stays publishable after a recoverable failure', async () => {
     failPublishWith('rate_limited');
     renderHostCreateWizard();
     await publishHostEvent();
@@ -99,15 +95,12 @@ describe('HostCreatePage EC-08 outcomes', () => {
     );
 
     expect(
-      screen.getByTestId('event-turnstile').getAttribute('data-reset-key'),
-    ).toBe('1');
-    expect(
       (
         screen.getByRole('button', {
           name: 'Confirm and publish',
         }) as HTMLButtonElement
       ).disabled,
-    ).toBe(true);
+    ).toBe(false);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(
@@ -137,6 +130,5 @@ describe('HostCreatePage EC-08 outcomes', () => {
     const draft = window.sessionStorage.getItem(draftKey);
     expect(draft).toContain('Protected meetup');
     expect(draft).toContain('"step":4');
-    expect(draft).not.toContain('single-use-token');
   });
 });

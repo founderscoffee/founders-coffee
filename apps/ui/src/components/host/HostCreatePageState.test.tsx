@@ -59,9 +59,6 @@ describe('HostCreatePage EC-07 state', () => {
     await goToHostDetails();
     fillHostDetails();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Complete verification' }),
-    );
     const publish = screen.getByRole('button', {
       name: 'Confirm and publish',
     }) as HTMLButtonElement;

@@ -197,7 +197,7 @@ Enter `true` only after verification. For the independent staging check, tempora
 to the unique nonexistent path `/_serverFn/ec06-waf-free-plan-probe` and set five requests per 10
 seconds. Issue six requests from one test IP, confirm the sixth is blocked by WAF, and restore the
 committed shared expression and 20-request threshold immediately. Then separately exhaust the
-five-per-ten-minute `create_event` Durable Object bucket with valid fresh Turnstile tokens. The WAF
+five-per-ten-minute `create_event` Durable Object bucket from an authenticated session. The WAF
 test must not create events; the DO test may use disposable staging events removed through the
 normal operational path. Record timestamps, the shared rule ID, response statuses, and restored
 configuration. Run the production behavioral check only after the apex hostname resolves, using the

@@ -8,7 +8,7 @@ import {
 const validResult = {
   success: true,
   hostname: 'founders.coffee',
-  action: 'create_event',
+  action: 'join_waitlist',
 };
 
 const verificationInput = (
@@ -16,7 +16,7 @@ const verificationInput = (
 ): TurnstileVerificationInput => ({
   token: 'valid-token',
   remoteIp: '203.0.113.10',
-  expectedAction: 'create_event',
+  expectedAction: 'join_waitlist',
   ...overrides,
 });
 

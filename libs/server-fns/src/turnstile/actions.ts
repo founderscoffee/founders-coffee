@@ -1,5 +1,4 @@
 export const TURNSTILE_ACTIONS = {
-  createEvent: 'create_event',
   joinWaitlist: 'join_waitlist',
 } as const;
 

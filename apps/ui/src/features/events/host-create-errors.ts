@@ -8,8 +8,6 @@ import {
   host_error_signed_out,
   host_error_title_taken,
   host_error_unavailable,
-  host_error_verification,
-  host_error_verification_unavailable,
   host_map_error,
   host_publish_error,
   host_venue_outside_city,
@@ -27,10 +25,6 @@ const PUBLISH_ERROR_MESSAGES: Record<string, HostErrorMessage> = {
   forbidden: host_error_forbidden,
   rate_limited: host_error_rate_limited,
   security_configuration_error: host_error_unavailable,
-  turnstile_required: host_error_verification,
-  turnstile_invalid: host_error_verification,
-  turnstile_expired_or_replayed: host_error_verification,
-  turnstile_unavailable: host_error_verification_unavailable,
   validation_failed: host_error_invalid,
   event_market_unavailable: host_error_market_unavailable,
   event_creation_disabled: host_error_market_disabled,
@@ -52,11 +46,11 @@ export interface HostPublishFailure {
 /**
  * Turn a failed create mutation into the localized, actionable message for the confirmation step.
  *
- * Every stable code the create path can produce — the authorization, rate-limit, Turnstile,
- * validation, market, geography and route-conflict stages — gets copy that names the action the
- * host can take, because "couldn't publish, try again" is wrong advice for a paused market and
- * useless advice for an expired session. Anything unrecognized keeps that generic retry message:
- * a new server code must degrade to a safe fallback rather than render blank.
+ * Every stable code the create path can produce — the authorization, rate-limit, validation,
+ * market, geography and route-conflict stages — gets copy that names the action the host can take,
+ * because "couldn't publish, try again" is wrong advice for a paused market and useless advice for
+ * an expired session. Anything unrecognized keeps that generic retry message: a new server code
+ * must degrade to a safe fallback rather than render blank.
  *
  * `requiresReauthentication` is separated from the message because an expired session is the one
  * failure the wizard resolves by leaving the page (EC-08), and the caller — not this mapping — owns

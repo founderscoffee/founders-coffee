@@ -71,9 +71,6 @@ describe('venue naming when only an address is verified', () => {
     expect(screen.getAllByText('Café des Délices').length).toBeGreaterThan(0);
     expect(screen.getByText('15 Rue Yousfi Mohamed, Alger')).toBeTruthy();
     fireEvent.click(
-      screen.getByRole('button', { name: 'Complete verification' }),
-    );
-    fireEvent.click(
       screen.getByRole('button', { name: 'Confirm and publish' }),
     );
 

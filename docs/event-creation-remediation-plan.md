@@ -563,7 +563,7 @@ npx playwright test --project=desktop-en
 
 **Parent:** P1-006, P1-018, P1-019, P1-021
 **Requirements:** NFR-4, NFR-7, NFR-12
-**Status:** Preflight complete 2026-09-03; staged run 5/6, the publish case is blocked on Turnstile, see below
+**Status:** Preflight complete 2026-09-03; staged run 5/6, then the create-path challenge was removed by decision — see below
 
 Configuration preflight (2026-09-03, read back from the account):
 
@@ -678,6 +678,31 @@ Everything up to the sign-in handoff therefore works against the deployed Worker
 browser, over the real edge. Staging D1 was `0` events and `0` users before and after the run, so
 the run created nothing and there was nothing to clean up. The `OTP_ECHO` echo could not be
 exercised on staging, because no code was ever requested.
+
+**Decision, 2026-09-03: the bot challenge is removed from event creation.** Presented with the
+options — keep the challenge and lose automated coverage of the create path, or keep the coverage
+and lose the challenge — the product owner chose the coverage. `requireEventCreateTurnstile` is
+gone, along with the widget on the confirmation step, the `turnstileToken` field on the request
+envelope, the four Turnstile branches in the publish error mapping, and the `createEvent` entry in
+`TURNSTILE_ACTIONS`.
+
+What this costs and what still holds:
+
+| Layer                                               | Before   | After                            |
+| --------------------------------------------------- | -------- | -------------------------------- |
+| `event:create` permission on a real session         | required | required                         |
+| `create_event` DO bucket, 5 per 10 min per identity | enforced | enforced                         |
+| Account-side WAF rule, 20 req per 10s per IP        | enforced | enforced                         |
+| `EVENT_CREATE_WAF_CONFIGURED` fail-closed gate      | enforced | enforced, now its own middleware |
+| Proof of humanity                                   | required | **none**                         |
+
+The edge rule was deliberately kept: it was previously reached through the Turnstile middleware's
+`requireWaf` option, so deleting that middleware would have silently deleted the WAF gate with it.
+It is now `requireEventCreateWafRule`, applied directly, and a separate concern.
+
+Sign-in and the waitlist keep their challenges; nothing about this decision touches them. The
+remaining exposure is an authenticated account automating creation up to the two rate limits, which
+is bounded per identity and per IP but no longer bounded by being human.
 
 Work:
 

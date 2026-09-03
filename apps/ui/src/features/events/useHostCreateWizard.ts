@@ -35,14 +35,12 @@ export const useHostCreateWizard = ({
   city,
   isAuthenticated,
   isAuthLoading,
-  isTurnstileBypassed,
 }: {
   locale: Locale;
   market: Market;
   city: geo.GeoCity;
   isAuthenticated: boolean;
   isAuthLoading: boolean;
-  isTurnstileBypassed: boolean;
 }) => {
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
@@ -75,17 +73,13 @@ export const useHostCreateWizard = ({
   const {
     publishing,
     publishError,
-    turnstileToken,
-    turnstileResetKey,
     clearPublishError,
-    setTurnstileToken,
     goToLogin,
     publish: publishEvent,
   } = useHostPublish({
     locale,
     market,
     city,
-    isTurnstileBypassed,
     readDraft: () => draft,
   });
 
@@ -138,10 +132,6 @@ export const useHostCreateWizard = ({
     language,
     category,
   ]);
-
-  useEffect(() => {
-    if (step !== 4 || !isAuthenticated) setTurnstileToken(null);
-  }, [step, isAuthenticated]);
 
   /**
    * Take a venue the server verified, and decide who names it.
@@ -252,18 +242,11 @@ export const useHostCreateWizard = ({
     fieldErrors,
     publishing,
     publishError,
-    turnstileResetKey,
     stepLabels: stepCopy.labels,
     stepTitle: stepCopy.labels[step - 1] ?? stepCopy.labels[0],
     stepSub: stepCopy.descriptions[step - 1] ?? null,
     view: hostCreateViewCopy(locale, language, category),
-    isActionDisabled:
-      publishing ||
-      isAuthLoading ||
-      (step === 4 &&
-        isAuthenticated &&
-        !isTurnstileBypassed &&
-        turnstileToken === null),
+    isActionDisabled: publishing || isAuthLoading,
     setSearchValue,
     setVenueName: (value: string) => {
       setVenueName(value);
@@ -284,7 +267,6 @@ export const useHostCreateWizard = ({
     enableCapacityLimit: (enabled: boolean) => setCapacity(enabled ? 12 : 0),
     setLanguage,
     setCategory,
-    setTurnstileToken,
     setSchedule,
     setScheduleError,
     selectVenue,

@@ -11,7 +11,7 @@ import { getDb } from '../db.js';
 import { workerMetrics } from '../env.js';
 import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
-import { requireEventCreateTurnstile } from '../turnstile/middleware.js';
+import { requireEventCreateWafRule } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
 import { createEventWithTelemetry } from './create.js';
 import { listEvents, resolveEvent } from './resolver.js';
@@ -22,12 +22,19 @@ import { eventCreateRequestSchema } from './schemas.js';
  * The host's session provides the `hostId`. The input is Zod-validated via `appValidator`. The
  * resolver generates the id + slug, validates the geo state/city, and inserts the row; the
  * telemetry wrapper adds the EC-08 request/success/failure logs and the `events_created` metric.
+ *
+ * There is deliberately no bot challenge here. Turnstile refuses to issue a token to any automated
+ * browser, whatever the widget mode, which made the release gate unable to exercise the one path
+ * it exists to protect; the product owner chose to drop the challenge rather than lose that
+ * coverage. What remains is the authenticated `event:create` permission, the five-per-ten-minute
+ * `create_event` Durable Object bucket, and the account-side edge rule — so creation is still
+ * bounded per identity and per IP, but it is no longer proof-of-humanity gated.
  */
 export const createEvent = createServerFn({ method: 'POST', strict: false })
   .middleware([
     requirePermission('event', 'create'),
     rateLimit('create_event', 5, 600_000),
-    requireEventCreateTurnstile,
+    requireEventCreateWafRule,
   ])
   .validator(appValidator(eventCreateRequestSchema))
   .handler(async ({ context, data }) => {

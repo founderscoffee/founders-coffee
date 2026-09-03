@@ -40,7 +40,7 @@ describe('Turnstile', () => {
     render(
       <Turnstile
         sitekey="site-key"
-        action="create_event"
+        action="join_waitlist"
         appearance="interaction-only"
         onToken={onToken}
       />,
@@ -50,7 +50,7 @@ describe('Turnstile', () => {
     const options = turnstile.render.mock.calls[0]?.[1];
     expect(options).toMatchObject({
       sitekey: 'site-key',
-      action: 'create_event',
+      action: 'join_waitlist',
       appearance: 'interaction-only',
     });
 

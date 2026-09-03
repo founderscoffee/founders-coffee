@@ -13,7 +13,7 @@ const hostCreateMocks = getHostCreateMocks();
 describe('HostCreatePage EC-07 flow', () => {
   afterEach(resetHostCreateFixtures);
 
-  it('submits the complete confirmed draft and reissues Turnstile after failure', async () => {
+  it('submits the complete confirmed draft and stays retryable after failure', async () => {
     hostCreateMocks.mutateAsync.mockRejectedValueOnce(
       new Error('creation failed'),
     );
@@ -42,10 +42,7 @@ describe('HostCreatePage EC-07 flow', () => {
     const publish = screen.getByRole('button', {
       name: 'Confirm and publish',
     }) as HTMLButtonElement;
-    expect(publish.disabled).toBe(true);
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Complete verification' }),
-    );
+    expect(publish.disabled).toBe(false);
     fireEvent.click(publish);
 
     await waitFor(() =>
@@ -58,15 +55,12 @@ describe('HostCreatePage EC-07 flow', () => {
           language: 'en',
           category: 'workshop',
         }),
-        turnstileToken: 'single-use-token',
       },
     });
     await waitFor(() =>
-      expect(
-        screen.getByTestId('event-turnstile').getAttribute('data-reset-key'),
-      ).toBe('1'),
+      expect(screen.getByText("Couldn't publish. Try again.")).toBeTruthy(),
     );
-    expect(publish.disabled).toBe(true);
+    expect(publish.disabled).toBe(false);
   });
 
   it('preserves an anonymous draft and hands off through a validated return path', async () => {
@@ -76,7 +70,6 @@ describe('HostCreatePage EC-07 flow', () => {
     await goToHostDetails();
     fillHostDetails();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.queryByTestId('event-turnstile')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Continue to login' }));
 
     expect(hostCreateMocks.navigate).toHaveBeenCalledWith({
@@ -87,7 +80,6 @@ describe('HostCreatePage EC-07 flow', () => {
     });
     const stored = window.sessionStorage.getItem('fc:event-draft:DZ:1');
     expect(stored).toContain('Protected meetup');
-    expect(stored).not.toContain('single-use-token');
   });
 
   it('restores the confirmation step after auth and a locale reload', async () => {
@@ -109,7 +101,6 @@ describe('HostCreatePage EC-07 flow', () => {
       await screen.findByRole('heading', { name: 'Vérifier et confirmer' }),
     ).toBeTruthy();
     expect(screen.getByText('Protected meetup')).toBeTruthy();
-    expect(screen.getByTestId('event-turnstile')).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Confirmer et publier' }),
     ).toBeTruthy();

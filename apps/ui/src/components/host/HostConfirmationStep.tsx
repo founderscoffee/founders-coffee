@@ -17,7 +17,6 @@ import {
 } from '@founders-coffee/i18n';
 
 import type { VenueSelection } from '../../features/events/types';
-import { Turnstile } from '../auth/Turnstile';
 import { ScheduleSummary } from './ScheduleSummary';
 
 export const HostConfirmationStep = ({
@@ -33,11 +32,7 @@ export const HostConfirmationStep = ({
   languageLabel,
   categoryLabel,
   isAuthenticated,
-  turnstileSiteKey,
-  isTurnstileBypassed,
-  turnstileResetKey,
   publishError,
-  onTurnstileToken,
 }: {
   locale: Locale;
   timeZone: string;
@@ -51,11 +46,7 @@ export const HostConfirmationStep = ({
   languageLabel: string;
   categoryLabel: string;
   isAuthenticated: boolean;
-  turnstileSiteKey: string | null;
-  isTurnstileBypassed: boolean;
-  turnstileResetKey: number;
   publishError: string | null;
-  onTurnstileToken: (token: string | null) => void;
 }) => (
   <div className="grid gap-5">
     <p className="text-base-content/65">
@@ -151,15 +142,6 @@ export const HostConfirmationStep = ({
       >
         {host_login_required({}, { locale })}
       </p>
-    )}
-    {isAuthenticated && turnstileSiteKey && !isTurnstileBypassed && (
-      <Turnstile
-        sitekey={turnstileSiteKey}
-        action="create_event"
-        appearance="interaction-only"
-        resetKey={turnstileResetKey}
-        onToken={onTurnstileToken}
-      />
     )}
     {publishError && (
       <p className="text-sm text-error" role="alert">

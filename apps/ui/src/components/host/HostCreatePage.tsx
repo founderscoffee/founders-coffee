@@ -27,8 +27,6 @@ type HostCreatePageProps = {
   market: Market;
   city: geo.GeoCity;
   mapboxToken: string;
-  turnstileSiteKey: string | null;
-  isTurnstileBypassed: boolean;
 };
 
 const pillClass =
@@ -39,8 +37,6 @@ export const HostCreatePage = ({
   market,
   city,
   mapboxToken,
-  turnstileSiteKey,
-  isTurnstileBypassed,
 }: HostCreatePageProps) => {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const mapContext = useHostMapContext({
@@ -54,7 +50,6 @@ export const HostCreatePage = ({
     city,
     isAuthenticated,
     isAuthLoading,
-    isTurnstileBypassed,
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousStepRef = useRef(wizard.step);
@@ -227,11 +222,7 @@ export const HostCreatePage = ({
                   languageLabel={wizard.view.languageLabel}
                   categoryLabel={wizard.view.categoryLabel}
                   isAuthenticated={isAuthenticated}
-                  turnstileSiteKey={turnstileSiteKey}
-                  isTurnstileBypassed={isTurnstileBypassed}
-                  turnstileResetKey={wizard.turnstileResetKey}
                   publishError={wizard.publishError}
-                  onTurnstileToken={wizard.setTurnstileToken}
                 />
               )}
           </section>
