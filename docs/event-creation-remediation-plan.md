@@ -800,13 +800,18 @@ immediately afterwards, with the secret read back from the Turnstile API rather 
 
 Cleanup verified by query: `0` events, `0` users, `0` RSVPs, `0` leftover verification rows.
 
+The full handoff trace CO-01 requires is recorded in
+[`deployment-evidence.md`](./deployment-evidence.md).
+
 Outstanding for sign-off:
 
-- Remove `OTP_ECHO` from the staging vars in `apps/ui/wrangler.jsonc`.
-- Production preflight, migration, deployment, and one authorized smoke creation, once the apex
-  hostname resolves.
+- ~~Remove `OTP_ECHO` from the staging vars~~ — removed 2026-09-03. The mechanism stays, fenced and
+  off by default, because a staged run has to set it again for its window.
+- Production preflight, migration, deployment, the WAF behavioral probe, and one authorized smoke
+  creation. All blocked on the same thing: the apex `founders.coffee` has no DNS record, while
+  `www` resolves and answers `301` into it, and production is bound to the apex as a custom domain.
 - The staging sign-in challenge remains unautomatable, so any future staged run needs the same
-  temporary testing-key window.
+  short, deliberate testing-key window.
 
 Work:
 

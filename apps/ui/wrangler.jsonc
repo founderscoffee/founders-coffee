@@ -55,15 +55,15 @@
       "routes": [
         { "pattern": "staging.founders.coffee", "custom_domain": true },
       ],
-      // OTP_ECHO writes a sign-in code to the log, and ONLY for a recipient in the reserved
-      // @e2e.invalid domain on a non-production environment — see src/lib/otp-echo.ts. It exists so
-      // the EC-10 release gate can sign in a disposable host here, where codes are stored hashed and
-      // mailed rather than printed. Remove it once EC-10 is signed off.
+      // A staged release gate cannot sign in on its own: codes are stored hashed and mailed rather
+      // than printed. `OTP_ECHO=true` makes src/lib/otp-echo.ts write one to the log, and only for a
+      // recipient in the reserved @e2e.invalid domain on a non-production environment. It is set for
+      // the window of a run and removed again, never left standing — EC-10 is signed off, so it is
+      // absent here.
       "vars": {
         "APP_URL": "https://staging.founders.coffee",
         "APP_ENVIRONMENT": "staging",
         "MAIL_FROM": "no-reply@founders.coffee",
-        "OTP_ECHO": "true",
       },
       "send_email": [{ "name": "EMAIL" }],
       "analytics_engine_datasets": [
