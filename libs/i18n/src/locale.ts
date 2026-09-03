@@ -1,10 +1,13 @@
-import { baseLocale, getTextDirection, locales } from './paraglide/runtime.js';
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  localeSchema,
+  type Locale,
+} from '@founders-coffee/core';
 
-export type Locale = (typeof locales)[number];
+import { getTextDirection } from './paraglide/runtime.js';
 
-export const DEFAULT_LOCALE: Locale = baseLocale;
-
-export const LOCALES: readonly Locale[] = locales;
+export { DEFAULT_LOCALE, LOCALES, localeSchema, type Locale };
 
 /** Layout direction for a locale (SRS FR-L2). Arabic → rtl; en/fr → ltr. */
 export const direction = (locale: Locale): 'rtl' | 'ltr' =>

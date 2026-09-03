@@ -52,7 +52,7 @@ export const useHostCreateWizard = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [capacity, setCapacity] = useState(0);
-  const [language, setLanguage] = useState<events.EventLanguage>(locale);
+  const [language, setLanguage] = useState<Locale>(locale);
   const [category, setCategory] =
     useState<events.EventCategory>('coffee-meetup');
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});

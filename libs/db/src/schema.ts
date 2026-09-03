@@ -8,6 +8,8 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core';
 
+import { LOCALES } from '@founders-coffee/core';
+
 type MarketFeatureFlags = {
   events: boolean;
   hackathons: boolean;
@@ -138,7 +140,6 @@ export const verification = sqliteTable('verification', {
 export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
 
-export const EVENT_LANGUAGES = ['ar', 'en', 'fr'] as const;
 export const EVENT_CATEGORIES = [
   'coffee-meetup',
   'workshop',
@@ -166,7 +167,7 @@ export const events = sqliteTable(
     endsAt: integer('ends_at', { mode: 'timestamp' }),
     rsvps: integer('rsvps').notNull().default(0),
     capacity: integer('capacity').notNull().default(0),
-    language: text('language', { enum: [...EVENT_LANGUAGES] }).notNull(),
+    language: text('language', { enum: [...LOCALES] }).notNull(),
     category: text('category', { enum: [...EVENT_CATEGORIES] }).notNull(),
     isFree: integer('is_free', { mode: 'boolean' }).notNull().default(true),
     latitude: real('latitude'),

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { LOCALES } from '@founders-coffee/core';
+
 import {
   EVENT_CAPACITY_MAX,
   EVENT_CATEGORIES,
@@ -7,7 +9,6 @@ import {
   EVENT_DESCRIPTION_MIN_LENGTH,
   EVENT_DURATION_MS_MAX,
   EVENT_DURATION_MS_MIN,
-  EVENT_LANGUAGES,
   EVENT_TITLE_MAX_LENGTH,
   EVENT_TITLE_MIN_LENGTH,
   EVENT_VENUE_ADDRESS_MAX_LENGTH,
@@ -71,7 +72,7 @@ describe('eventCreateSchema', () => {
     });
   });
 
-  it.each(EVENT_LANGUAGES)('accepts the %s event language', (language) => {
+  it.each([...LOCALES])('accepts the %s event language', (language) => {
     expect(eventCreateSchema.safeParse(validInput({ language })).success).toBe(
       true,
     );

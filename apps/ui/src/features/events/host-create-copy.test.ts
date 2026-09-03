@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { events } from '@founders-coffee/domain';
+import { LOCALES } from '@founders-coffee/i18n';
 
 import {
   eventCategoryLabel,
@@ -20,9 +21,7 @@ describe('host create copy', () => {
       expect(stepCopy.descriptions).toHaveLength(4);
       expect(stepCopy.labels.every(Boolean)).toBe(true);
       expect(stepCopy.descriptions.every(Boolean)).toBe(true);
-      expect(view.languageOptions.map(({ value }) => value)).toEqual(
-        events.EVENT_LANGUAGES,
-      );
+      expect(view.languageOptions.map(({ value }) => value)).toEqual(LOCALES);
       expect(view.categoryOptions.map(({ value }) => value)).toEqual(
         events.EVENT_CATEGORIES,
       );
@@ -36,7 +35,7 @@ describe('host create copy', () => {
   );
 
   it('labels every schema-owned language and category', () => {
-    for (const language of events.EVENT_LANGUAGES) {
+    for (const language of LOCALES) {
       expect(eventLanguageLabel(language, 'en')).toBeTruthy();
     }
     for (const category of events.EVENT_CATEGORIES) {

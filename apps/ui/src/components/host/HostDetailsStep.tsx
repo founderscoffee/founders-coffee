@@ -41,7 +41,7 @@ export const HostDetailsStep = ({
   title: string;
   description: string;
   capacity: number;
-  language: events.EventLanguage;
+  language: Locale;
   category: events.EventCategory;
   constraints: {
     titleMin: number;
@@ -51,7 +51,7 @@ export const HostDetailsStep = ({
     capacityMax: number;
   };
   languageOptions: readonly {
-    value: events.EventLanguage;
+    value: Locale;
     label: string;
   }[];
   categoryOptions: readonly {
@@ -63,7 +63,7 @@ export const HostDetailsStep = ({
   onDescriptionChange: (value: string) => void;
   onCapacityChange: (value: number) => void;
   onCapacityLimitChange: (enabled: boolean) => void;
-  onLanguageChange: (value: events.EventLanguage) => void;
+  onLanguageChange: (value: Locale) => void;
   onCategoryChange: (value: events.EventCategory) => void;
 }) => (
   <div className="grid gap-5">
@@ -200,9 +200,7 @@ export const HostDetailsStep = ({
           id="host-language"
           className="select select-bordered w-full"
           value={language}
-          onChange={(event) =>
-            onLanguageChange(event.target.value as events.EventLanguage)
-          }
+          onChange={(event) => onLanguageChange(event.target.value as Locale)}
           aria-invalid={!!errors.language}
         >
           {languageOptions.map(({ value, label }) => (

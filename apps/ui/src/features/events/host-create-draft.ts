@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
+import { localeSchema } from '@founders-coffee/core';
 import { events } from '@founders-coffee/domain';
+import type { Locale } from '@founders-coffee/i18n';
 
 import { VENUE_SEARCH_MAX_LENGTH, type VenueSelection } from './types';
 
@@ -28,7 +30,7 @@ const hostCreateDraftSchema = z.object({
   title: z.string().max(events.EVENT_TITLE_MAX_LENGTH),
   description: z.string().max(events.EVENT_DESCRIPTION_MAX_LENGTH),
   capacity: events.eventCapacitySchema,
-  language: events.eventLanguageSchema,
+  language: localeSchema,
   category: events.eventCategorySchema,
 });
 
@@ -41,7 +43,7 @@ export type HostCreateDraft = {
   title: string;
   description: string;
   capacity: number;
-  language: events.EventLanguage;
+  language: Locale;
   category: events.EventCategory;
 };
 

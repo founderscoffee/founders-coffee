@@ -14,6 +14,7 @@ import {
   host_step3_sub,
   host_step4,
   host_step4_sub,
+  LOCALES,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -33,7 +34,7 @@ export const hostCreateStepCopy = (locale: Locale) => ({
 });
 
 export const eventLanguageLabel = (
-  language: events.EventLanguage,
+  language: Locale,
   locale: Locale,
 ): string => {
   const labels = {
@@ -58,7 +59,7 @@ export const eventCategoryLabel = (
 
 export const hostCreateViewCopy = (
   locale: Locale,
-  language: events.EventLanguage,
+  language: Locale,
   category: events.EventCategory,
 ) => ({
   constraints: {
@@ -68,7 +69,7 @@ export const hostCreateViewCopy = (
     descriptionMax: events.EVENT_DESCRIPTION_MAX_LENGTH,
     capacityMax: events.EVENT_CAPACITY_MAX,
   },
-  languageOptions: events.EVENT_LANGUAGES.map((value) => ({
+  languageOptions: LOCALES.map((value) => ({
     value,
     label: eventLanguageLabel(value, locale),
   })),

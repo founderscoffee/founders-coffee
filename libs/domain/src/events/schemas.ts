@@ -1,8 +1,7 @@
 import { z } from 'zod';
 
-import { marketCodeSchema } from '@founders-coffee/core';
+import { localeSchema, marketCodeSchema } from '@founders-coffee/core';
 
-export const EVENT_LANGUAGES = ['ar', 'en', 'fr'] as const;
 export const EVENT_CATEGORIES = [
   'coffee-meetup',
   'workshop',
@@ -55,7 +54,6 @@ export const eventCapacitySchema = z
   .min(0)
   .max(EVENT_CAPACITY_MAX);
 
-export const eventLanguageSchema = z.enum(EVENT_LANGUAGES);
 export const eventCategorySchema = z.enum(EVENT_CATEGORIES);
 
 const addScheduleIssues = (
@@ -115,12 +113,11 @@ export const eventCreateSchema = z
     startsAt: z.number().int().positive(),
     endsAt: z.number().int().positive(),
     capacity: eventCapacitySchema,
-    language: eventLanguageSchema,
+    language: localeSchema,
     category: eventCategorySchema,
   })
   .strict()
   .superRefine(addScheduleIssues);
 
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;
-export type EventLanguage = z.infer<typeof eventLanguageSchema>;
 export type EventCategory = z.infer<typeof eventCategorySchema>;

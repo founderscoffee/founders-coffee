@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { baseLocale, locales } from './paraglide/runtime.js';
 import { DEFAULT_LOCALE, LOCALES, direction } from './locale.js';
 
 describe('libs/i18n locale', () => {
@@ -15,5 +16,10 @@ describe('libs/i18n locale', () => {
     expect(direction('ar')).toBe('rtl');
     expect(direction('en')).toBe('ltr');
     expect(direction('fr')).toBe('ltr');
+  });
+
+  it('agrees with the compiled Paraglide project', () => {
+    expect([...LOCALES].sort()).toEqual([...locales].sort());
+    expect(DEFAULT_LOCALE).toBe(baseLocale);
   });
 });

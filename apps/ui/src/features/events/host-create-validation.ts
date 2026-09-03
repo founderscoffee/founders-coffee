@@ -1,3 +1,4 @@
+import { localeSchema } from '@founders-coffee/core';
 import { events } from '@founders-coffee/domain';
 import {
   host_capacity_constraints,
@@ -76,7 +77,7 @@ export const validateDetailsStep = (
     title: string;
     description: string;
     capacity: number;
-    language: events.EventLanguage;
+    language: Locale;
     category: events.EventCategory;
   },
   locale: Locale,
@@ -106,7 +107,7 @@ export const validateDetailsStep = (
       { locale },
     );
   }
-  if (!events.eventLanguageSchema.safeParse(input.language).success) {
+  if (!localeSchema.safeParse(input.language).success) {
     errors.language = host_selection_required({}, { locale });
   }
   if (!events.eventCategorySchema.safeParse(input.category).success) {
