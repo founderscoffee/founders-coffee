@@ -641,9 +641,21 @@ Blocked on, in the order they bite:
      pinning is the EC-06 replay defence and is not going to be relaxed for a test, so the testing
      keys can unblock login but can never unblock event creation.
 
-   The remaining route that keeps a real control is a second widget scoped to staging in
-   `non-interactive` mode, which returns the true hostname and action. Creating it is an account
-   write this session is not permitted to make; the script is prepared for the user to run.
+   A second widget was then created for staging — `founders-coffee-staging`
+   (`0x4AAAAAAEmLQr5Hfn0DrNUo`), `mode: non-interactive`, `domains: ['staging.founders.coffee']` —
+   which returns the true hostname and action and so would satisfy the pinning honestly. It does
+   not help: the widget answers `[Cloudflare Turnstile] Error: 600010` and issues no token, in
+   headless Chromium and in real headed Chrome alike, before and after propagation.
+
+   That settles the question. Turnstile refuses this client whatever the widget mode — managed
+   renders a checkbox that ignores a trusted synthetic click, non-interactive fails outright — so
+   the challenge is failing the browser's own fingerprint, not the configuration. There is no
+   widget setting that makes the publish step automatable while a real control is in place, and
+   the control is working exactly as designed.
+
+   Staging has been put back on the managed widget, which humans demonstrably pass. The remaining
+   route to EC-10's actual evidence — the persisted row, the structured logs, the metric — is one
+   manual creation on staging with the log stream captured, which needs no automation at all.
 
 3. ~~**Network.**~~ Cleared. The machine reached `staging.founders.coffee` and the Cloudflare API
    reliably on 2026-09-03 after an unstable earlier window; `wrangler tail --env staging` held a
