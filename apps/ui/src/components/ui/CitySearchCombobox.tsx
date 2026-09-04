@@ -124,11 +124,9 @@ export const CitySearchCombobox = ({
   return (
     <div className={`relative flex items-center ${className ?? ''}`}>
       <span
-        className="pointer-events-none absolute start-4 text-taupe"
+        className="pointer-events-none absolute start-4 size-4 rounded-full border-[1.5px] border-taupe"
         aria-hidden="true"
-      >
-        📍
-      </span>
+      />
       <input
         ref={inputRef}
         type="text"
