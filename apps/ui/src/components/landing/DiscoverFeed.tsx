@@ -1,15 +1,18 @@
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { useMemo, useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
 import {
   discover_events,
   discover_workshops,
+  host_in_market,
+  load_more,
   no_events_yet,
   no_filter_match,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
+import { LogoSymbol } from '@founders-coffee/ui';
 
 import { useUpcomingEvents } from '../../features/events/hooks';
 import { EventCard } from '../events/EventCard';
@@ -21,7 +24,6 @@ const TABS = [
   { key: 'events' as const, label: discover_events },
   { key: 'workshops' as const, label: discover_workshops },
 ];
-const ITEM_HEIGHT = 104;
 
 type DiscoverFeedProps = {
   locale: Locale;
@@ -31,17 +33,20 @@ type DiscoverFeedProps = {
 
 export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
   const [tab, setTab] = useState<'events' | 'workshops'>('events');
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useUpcomingEvents({
-      marketCode: market.code,
-      limit: PAGE_SIZE,
-    });
+    useUpcomingEvents({ marketCode: market.code, limit: PAGE_SIZE });
 
   const items = useMemo(
     () => data?.pages.flatMap((p) => p.items) ?? events,
     [data, events],
+  );
+  const counts = useMemo(
+    () => ({
+      events: items.length,
+      workshops: items.filter((e) => e.category === 'workshop').length,
+    }),
+    [items],
   );
   const visible = useMemo(
     () =>
@@ -51,38 +56,19 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
     [tab, items],
   );
 
-  const virtualizer = useVirtualizer({
-    count: visible.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => ITEM_HEIGHT,
-    overscan: 5,
-  });
-
-  const lastItemRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (!node || !hasNextPage || isFetchingNextPage) return;
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0]?.isIntersecting) void fetchNextPage();
-        },
-        { rootMargin: '200px' },
-      );
-      observer.observe(node);
-      return () => observer.disconnect();
-    },
-    [hasNextPage, isFetchingNextPage, fetchNextPage],
-  );
+  const marketName =
+    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
 
   return (
-    <section className="mx-auto max-w-5xl px-4 pb-16">
-      <div role="tablist" className="mb-6 flex border-b border-base-300">
+    <section className="mx-auto max-w-content px-4 pb-16 pt-8 md:px-8">
+      <div role="tablist" className="mb-5 flex border-b border-base-300">
         {TABS.map(({ key, label }) => (
           <button
             key={key}
             type="button"
             role="tab"
             aria-selected={tab === key}
-            className={`-mb-px px-3.5 py-2.5 text-body-sm font-medium transition-colors ${
+            className={`-mb-px flex items-center gap-1.5 px-3.5 py-2.5 text-body-sm font-medium transition-colors ${
               tab === key
                 ? 'border-b-2 border-primary text-base-content'
                 : 'text-neutral hover:text-base-content'
@@ -90,44 +76,55 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
             onClick={() => setTab(key)}
           >
             {label({}, { locale })}
+            <span className="font-normal text-neutral">{counts[key]}</span>
           </button>
         ))}
       </div>
+
       {visible.length > 0 ? (
-        <div ref={scrollRef} className="relative max-h-[800px] overflow-auto">
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              position: 'relative',
-            }}
-          >
-            {virtualizer.getVirtualItems().map((virtualRow) => {
-              const event = visible[virtualRow.index];
-              const isLast = virtualRow.index === visible.length - 1;
-              return (
-                <div
-                  key={event.id}
-                  ref={isLast ? lastItemRef : undefined}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                  className="mb-4"
-                >
-                  <EventCard
-                    event={event}
-                    locale={locale}
-                    timezone={market.timezone}
-                    marketSlug={market.slug}
+        <>
+          <ul className="grid gap-3 md:grid-cols-2">
+            {visible.map((event) => (
+              <li key={event.id}>
+                <EventCard
+                  event={event}
+                  locale={locale}
+                  timezone={market.timezone}
+                  marketSlug={market.slug}
+                />
+              </li>
+            ))}
+            <li className="hidden md:block">
+              <Link
+                to="/$market/host/create"
+                params={{ market: market.slug }}
+                className="flex h-full items-center justify-center gap-3 rounded-box border border-dashed border-base-300 p-3.5 text-body-sm font-medium text-neutral transition-colors hover:border-secondary hover:text-base-content"
+              >
+                <LogoSymbol size={22} tone="muted" />
+                {host_in_market({ market: marketName }, { locale })}
+              </Link>
+            </li>
+          </ul>
+
+          {hasNextPage ? (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => void fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? (
+                  <span
+                    className="loading loading-spinner loading-xs"
+                    aria-hidden="true"
                   />
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                ) : null}
+                {load_more({}, { locale })}
+              </button>
+            </div>
+          ) : null}
+        </>
       ) : (
         <EmptyState
           title={
@@ -137,11 +134,14 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
           }
         />
       )}
-      {isFetchingNextPage && (
-        <div className="flex justify-center py-4">
-          <span className="loading loading-dots loading-md" />
-        </div>
-      )}
+
+      <Link
+        to="/$market/host/create"
+        params={{ market: market.slug }}
+        className="btn btn-secondary mt-6 w-full md:hidden"
+      >
+        {host_in_market({ market: marketName }, { locale })}
+      </Link>
     </section>
   );
 };

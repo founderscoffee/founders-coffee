@@ -296,5 +296,8 @@
   "live_status_connected": "Connecté",
   "live_eta_ph": "Arrivée dans (minutes)",
   "live_confirm": "Confirmer",
-  "live_cancel": "Annuler"
+  "live_cancel": "Annuler",
+  "nav_events": "Événements",
+  "nav_host": "Organiser",
+  "load_more": "Afficher plus"
 }

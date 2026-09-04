@@ -296,5 +296,8 @@
   "live_status_connected": "Connected",
   "live_eta_ph": "ETA in minutes",
   "live_confirm": "Confirm",
-  "live_cancel": "Cancel"
+  "live_cancel": "Cancel",
+  "nav_events": "Events",
+  "nav_host": "Host",
+  "load_more": "Load more"
 }

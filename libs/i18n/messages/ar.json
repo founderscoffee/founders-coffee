@@ -296,5 +296,8 @@
   "live_status_connected": "متصل",
   "live_eta_ph": "الوصول خلال (دقائق)",
   "live_confirm": "تأكيد",
-  "live_cancel": "إلغاء"
+  "live_cancel": "إلغاء",
+  "nav_events": "الفعاليات",
+  "nav_host": "استضِف",
+  "load_more": "تحميل المزيد"
 }
