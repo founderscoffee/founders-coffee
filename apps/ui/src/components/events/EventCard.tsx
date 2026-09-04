@@ -6,6 +6,7 @@ import {
   full_waitlist,
   going_count,
   rsvp_already,
+  rsvp_no_limit,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
@@ -25,7 +26,11 @@ export const EventCard = ({
 }: EventCardProps) => {
   const start = new Date(event.startsAt);
   const at = (options: Intl.DateTimeFormatOptions) =>
-    formatDate(start, locale, { timeZone: timezone, ...options });
+    formatDate(start, locale, {
+      timeZone: timezone,
+      hour12: false,
+      ...options,
+    });
   const cityName = locale === 'ar' ? event.cityNameAr : event.cityName;
   const remaining = event.remaining;
   const isGoing = event.viewerRsvp === 'going';
@@ -84,7 +89,11 @@ export const EventCard = ({
             <span className="ms-auto inline-flex h-[1.375rem] items-center rounded-full bg-base-200 px-2.5 text-caption font-medium text-neutral">
               {full_waitlist({}, { locale })}
             </span>
-          ) : null}
+          ) : (
+            <span className="ms-auto inline-flex h-[1.375rem] items-center rounded-full bg-base-200 px-2.5 text-caption font-medium text-neutral">
+              {rsvp_no_limit({}, { locale })}
+            </span>
+          )}
         </span>
       </span>
     </Link>

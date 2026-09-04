@@ -258,13 +258,61 @@ describe('resolveTrendingStates (cold vs warm)', () => {
     const trending = await resolveTrendingStates(db, 'DZ');
     expect(trending.variant).toBe('active');
     expect(trending.groups.length).toBeGreaterThan(0);
-    expect(trending.groups.length).toBeLessThanOrEqual(3);
 
-    const allCities = trending.groups.flatMap((g) => g.cities);
-    expect(allCities.every((c) => c.count > 0)).toBe(true);
-    expect(allCities.map((c) => c.city.slug).sort()).toEqual(
-      ['algiers', 'oran'].sort(),
+    const stateGroups = trending.groups.filter((g) => g.state !== null);
+    const pioneerGroup = trending.groups.find((g) => g.state === null);
+
+    expect(stateGroups.length).toBeLessThanOrEqual(3);
+    expect(stateGroups.flatMap((g) => g.cities).every((c) => c.count > 0)).toBe(
+      true,
     );
-    expect(trending.groups.every((g) => g.state !== null)).toBe(true);
+    expect(
+      stateGroups
+        .flatMap((g) => g.cities)
+        .map((c) => c.city.slug)
+        .sort(),
+    ).toEqual(['algiers', 'oran'].sort());
+  });
+
+  it('offers featured cities with no meetups as pioneer entries, never communes', async () => {
+    const db = createDb(env.DB);
+    await seed(db);
+    await db.insert(user).values(host).onConflictDoNothing().run();
+
+    const algiers = geo.findCityBySlug('DZ', 'algiers');
+    expect(algiers).toBeDefined();
+    if (!algiers) return;
+
+    await createEvent(db, {
+      id: 'evt_trend_pioneer',
+      slug: 'trend-pioneer-meetup',
+      hostId: host.id,
+      marketCode: 'DZ',
+      stateCode: algiers.stateCode,
+      cityCode: algiers.code,
+      title: 'Algiers founders coffee',
+      description: 'Warm-path event so the market is not cold.',
+      venue: 'Café Alger',
+      startsAt: new Date('2099-03-01T18:00:00Z'),
+      capacity: 12,
+      language: 'en',
+      category: 'coffee-meetup',
+      status: 'published',
+    });
+
+    const trending = await resolveTrendingStates(db, 'DZ');
+    const pioneer = trending.groups.find((g) => g.state === null);
+
+    expect(pioneer).toBeDefined();
+    expect(pioneer?.cities.length ?? 0).toBeGreaterThan(0);
+    expect(pioneer!.cities.every((c) => c.count === 0)).toBe(true);
+
+    const featured = new Set(
+      geo.getFeaturedCities('DZ').map((city) => city.code),
+    );
+    expect(pioneer!.cities.every((c) => featured.has(c.city.code))).toBe(true);
+    expect(pioneer!.cities.some((c) => c.city.code === algiers.code)).toBe(
+      false,
+    );
   });
 });
