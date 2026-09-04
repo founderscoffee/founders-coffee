@@ -10,7 +10,6 @@ import {
   event_no_cap,
   event_when,
   open_in_maps,
-  profile_title,
   event_where,
   formatDate,
   type Locale,
@@ -68,6 +67,7 @@ export const EventDetail = ({
     month: 'long',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   });
   const marketName =
     locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
@@ -161,20 +161,17 @@ export const EventDetail = ({
               {initials(host.name)}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block font-display font-semibold">
+              <Link
+                to="/u/$userId"
+                params={{ userId: host.id }}
+                className="block font-display font-semibold underline decoration-secondary underline-offset-[3px]"
+              >
                 {host.name}
-              </span>
+              </Link>
               <span className="block text-body-sm text-neutral">
                 {event_host({}, { locale })}
               </span>
             </span>
-            <Link
-              to="/u/$userId"
-              params={{ userId: host.id }}
-              className="btn btn-outline btn-sm"
-            >
-              {profile_title({}, { locale })}
-            </Link>
           </div>
         </div>
 
