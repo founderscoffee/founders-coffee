@@ -1,4 +1,4 @@
-/* founders.coffee design system — "Warm Café" theme.
+/* founders.coffee design system — "Round Table" theme.
    Single source of truth: apps import this stylesheet and add an @source
    directive pointing at this lib's src directory (Tailwind v4 ignores
    node_modules, so the lib's component classes must be scanned from each app). */
@@ -9,71 +9,175 @@
 @import '@fontsource/tajawal/400.css';
 @import '@fontsource/tajawal/500.css';
 @import '@fontsource/tajawal/700.css';
-@import '@fontsource/tajawal/800.css';
 
 @plugin "daisyui" {
   themes: false;
 }
 
 @plugin "daisyui/theme" {
-  name: 'warm-cafe';
+  name: 'round-table';
   default: true;
   prefersdark: false;
   color-scheme: light;
 
-  --color-base-100: #faf6f0;
-  --color-base-200: #fffdfb;
-  --color-base-300: #eae3d5;
-  --color-base-content: #2c1b12;
+  /* surfaces */
+  --color-base-100: #fffcf7; /* paper — page */
+  --color-base-200: #f3ebdd; /* linen — tinted surface, date tiles, sidebars */
+  --color-base-300: #e6dccb; /* sand — borders, dividers, disabled fill */
+  --color-base-content: #270f00; /* roast — 17.8:1 on paper */
 
-  --color-primary: #4a382c;
-  --color-primary-content: #faf6f0;
-  --color-secondary: #2c1b12;
-  --color-secondary-content: #faf6f0;
-  --color-accent: #4a382c;
-  --color-accent-content: #faf6f0;
-  --color-neutral: #2c1b12;
-  --color-neutral-content: #faf6f0;
+  /* actions */
+  --color-primary: #270f00; /* roast — primary button, active nav, links */
+  --color-primary-content: #fffcf7;
+  --color-secondary: #b4562e; /* clay — accent, chair dot, focus ring, CTA */
+  --color-secondary-content: #ffffff;
+  --color-accent: #9a4423; /* clay-deep — clay as TEXT on light surfaces (6.4:1) */
+  --color-accent-content: #fffcf7;
+  --color-neutral: #6b5b50; /* mocha — secondary text 6.3:1 */
+  --color-neutral-content: #fffcf7;
 
-  --color-info: #0ea5e9;
+  /* status — text colours pass AA on paper AND on their own tint */
+  --color-info: #2f5f8a;
   --color-info-content: #ffffff;
-  --color-success: #16a34a;
+  --color-success: #276b44;
   --color-success-content: #ffffff;
-  --color-warning: #f59e0b;
-  --color-warning-content: #2c1b12;
-  --color-error: #dc2626;
+  --color-warning: #84590d;
+  --color-warning-content: #ffffff;
+  --color-error: #b3261e;
   --color-error-content: #ffffff;
 
-  --radius-selector: 0.5rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.75rem;
+  --radius-selector: 0.375rem; /* 6px  checkbox, tabs, chips */
+  --radius-field: 0.5rem; /* 8px  inputs, buttons */
+  --radius-box: 0.75rem; /* 12px cards, dialogs */
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
-  --depth: 1;
+  --depth: 0;
   --noise: 0;
 }
 
 @theme {
-  --font-heading:
+  --font-display:
     'Outfit Variable', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
   --font-body:
     'Inter Variable', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: 'Tajawal', 'Inter Variable', system-ui, sans-serif;
+
+  --text-display: 3.5rem;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.03em;
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 1.1;
+  --text-h1--letter-spacing: -0.025em;
+  --text-h2: 2rem;
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h3: 1.5rem;
+  --text-h3--line-height: 1.25;
+  --text-h3--letter-spacing: -0.015em;
+  --text-h4: 1.25rem;
+  --text-h4--line-height: 1.3;
+  --text-h4--letter-spacing: -0.01em;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.6;
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.5;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.3;
+  --text-label--letter-spacing: 0.01em;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-overline: 0.6875rem;
+  --text-overline--line-height: 1;
+  --text-overline--letter-spacing: 0.08em;
+
+  /* status tints (surface fills behind status text) */
+  --color-info-tint: #e6eef6;
+  --color-success-tint: #e6f2ea;
+  --color-warning-tint: #fbf1da;
+  --color-error-tint: #fce8e6;
+  --color-secondary-tint: #fbede4;
+
+  --color-focus: #b4562e;
+  --color-taupe: #9a8676; /* overlines >=11px/600, icons, placeholders — never body text */
+
+  --container-content: 70rem; /* 1120px */
+  --container-prose: 42rem; /* 672px */
+
+  --shadow-1: 0 1px 2px rgba(39, 15, 0, 0.06);
+  --shadow-2: 0 2px 8px rgba(39, 15, 0, 0.08), 0 1px 2px rgba(39, 15, 0, 0.04);
+  --shadow-3:
+    0 12px 32px rgba(39, 15, 0, 0.14), 0 2px 6px rgba(39, 15, 0, 0.06);
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
 }
 
-/* "Warm Café" paper grain — a faint fractal-noise texture over the cream base,
-   applied as the body background so it sits behind all content (no z-index needed). */
 @layer base {
   body {
     font-family: var(--font-body);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .23 0 0 0 0 .18 0 0 0 0 .15 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
   }
   h1,
   h2,
   h3,
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-heading);
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+  :lang(ar) {
+    font-family: var(--font-arabic);
+    line-height: 1.65;
+    letter-spacing: 0;
+  }
+  :lang(ar) h1,
+  :lang(ar) h2,
+  :lang(ar) h3,
+  :lang(ar) h4 {
+    font-family: var(--font-arabic);
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: inherit;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Eyebrow label: uppercase Latin at 11px/600, but Arabic does not use letter case, and
+   Tajawal at 11px with tracking is unreadable — so the Arabic branch drops the
+   transform and tracking and steps the size up instead. */
+@layer components {
+  .eyebrow {
+    font-size: var(--text-overline);
+    line-height: var(--text-overline--line-height);
+    letter-spacing: var(--text-overline--letter-spacing);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-taupe);
+  }
+  :lang(ar) .eyebrow {
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+    letter-spacing: 0;
+    font-weight: 500;
+    text-transform: none;
   }
 }
