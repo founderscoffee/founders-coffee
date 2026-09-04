@@ -110,7 +110,7 @@ export const HostDetailsStep = ({
       </span>
       <textarea
         id="host-description"
-        className="textarea textarea-bordered min-h-32"
+        className="textarea textarea-bordered min-h-32 w-full"
         value={description}
         onChange={(event) => onDescriptionChange(event.target.value)}
         placeholder={host_desc_ph({}, { locale })}

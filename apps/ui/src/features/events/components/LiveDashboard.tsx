@@ -182,14 +182,14 @@ export const LiveDashboard = ({
           <div className="flex flex-col gap-2">
             <input
               type="number"
-              className="input input-bordered input-sm"
+              className="input input-bordered input-sm w-full"
               placeholder={live_table_ph({}, { locale })}
               value={tableNumber}
               onChange={(e) => setTableNumber(e.target.value)}
             />
             <input
               type="text"
-              className="input input-bordered input-sm"
+              className="input input-bordered input-sm w-full"
               placeholder={live_cue_ph({}, { locale })}
               value={visualCue}
               onChange={(e) => setVisualCue(e.target.value)}

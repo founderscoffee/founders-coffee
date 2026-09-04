@@ -114,7 +114,7 @@ export const ProfilePage = ({
           ) : (
             <div className="space-y-3">
               <select
-                className="select select-bordered select-sm"
+                className="select select-bordered select-sm w-full"
                 value={country}
                 onChange={(e) => {
                   setCountry(e.target.value);
@@ -129,7 +129,7 @@ export const ProfilePage = ({
                 ))}
               </select>
               <select
-                className="select select-bordered select-sm"
+                className="select select-bordered select-sm w-full"
                 value={stateVal}
                 onChange={(e) => {
                   setStateVal(e.target.value);

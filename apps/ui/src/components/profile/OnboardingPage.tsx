@@ -105,7 +105,7 @@ export const OnboardingPage = ({
               {onboarding_country({}, { locale })}
             </span>
             <select
-              className="select select-bordered"
+              className="select select-bordered w-full"
               value={country}
               onChange={(e) => handleCountryChange(e.target.value)}
             >
@@ -122,7 +122,7 @@ export const OnboardingPage = ({
               {onboarding_state({}, { locale })}
             </span>
             <select
-              className="select select-bordered"
+              className="select select-bordered w-full"
               value={state}
               onChange={(e) => handleStateChange(e.target.value)}
               disabled={!country}

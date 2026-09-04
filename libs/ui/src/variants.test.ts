@@ -24,6 +24,6 @@ describe('libs/ui cva variants (literal class strings Tailwind can scan)', () =>
   });
 
   it('Input defaults to md (inputSize, avoiding the native size collision)', () => {
-    expect(inputVariants()).toBe('input input-bordered input-md');
+    expect(inputVariants()).toBe('input input-bordered w-full input-md');
   });
 });
