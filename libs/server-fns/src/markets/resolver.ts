@@ -38,7 +38,7 @@ export interface TrendingSection {
 const COLD_MAJOR_CITY_CAP = 18;
 const WARM_STATE_CAP = 3;
 const WARM_CITY_CAP = 8;
-const WARM_PIONEER_CAP = 4;
+const WARM_CITY_TOTAL_CAP = 4;
 
 const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
   DZ: [
@@ -230,7 +230,7 @@ const warmActiveCities = (
         (priority.get(a.slug) ?? 1_000) - (priority.get(b.slug) ?? 1_000) ||
         a.name.localeCompare(b.name),
     )
-    .slice(0, WARM_PIONEER_CAP)
+    .slice(0, Math.max(0, WARM_CITY_TOTAL_CAP - taken.size))
     .map((city) => ({ city, count: 0 }));
 
   return {
@@ -247,7 +247,7 @@ const warmActiveCities = (
  *
  * - **Cold** (no upcoming events): flat list of featured/major cities — never pads empty communes.
  * - **Warm**: top states by upcoming events, cities with `count > 0`, then up to
- *   `WARM_PIONEER_CAP` featured cities that have none.
+ *   `WARM_CITY_TOTAL_CAP` featured cities that have none.
  *
  * The warm list used to stop at `count > 0` on the reasoning that a zero badge is noise. The
  * redesign asks for those cities anyway, and it is right to: a city with no meetups is not padding,

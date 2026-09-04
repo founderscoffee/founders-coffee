@@ -52,7 +52,7 @@ export const TrendingStates = ({
                     {count > 99 ? '+99' : count}
                   </span>
                 ) : (
-                  <LogoSymbol size={16} tone="muted" />
+                  <LogoSymbol size={18} tone="sand" />
                 )}
               </span>
               <span

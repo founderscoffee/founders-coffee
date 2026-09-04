@@ -2,13 +2,14 @@ import type { SVGProps } from 'react';
 
 import { cn } from '../lib/cn.js';
 
-type LogoTone = 'default' | 'reversed' | 'mono' | 'muted';
+type LogoTone = 'default' | 'reversed' | 'mono' | 'muted' | 'sand';
 
 const TABLE_FILL: Record<LogoTone, string> = {
   default: 'var(--color-base-content)',
   reversed: 'var(--color-base-100)',
   mono: 'var(--color-base-content)',
   muted: 'var(--color-base-200)',
+  sand: 'var(--color-base-300)',
 };
 
 type LogoSymbolProps = Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> & {
