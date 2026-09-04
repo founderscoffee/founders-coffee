@@ -149,7 +149,7 @@ export const HostMap = ({
 
   return (
     <div
-      className="relative h-[clamp(20rem,50vh,30rem)] w-full overflow-hidden rounded-box border border-base-300 shadow-[var(--shadow-2)]"
+      className="relative h-44 w-full overflow-hidden rounded-box border border-base-300 shadow-[var(--shadow-2)] md:h-[clamp(20rem,50vh,30rem)]"
       aria-label={host_map_label({}, { locale })}
     >
       <Map
