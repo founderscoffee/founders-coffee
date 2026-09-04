@@ -1,13 +1,12 @@
 name: Deploy
 
-# A push to develop deploys staging automatically. Production is deliberately NOT
-# triggered by pushing to main: it requires an explicit manual run, which is the approval
-# gate. GitHub's required-reviewer protection rule would be the better mechanism, but it
-# needs GitHub Pro/Team on a private repository — see docs/ci.md for how to switch once
-# the plan allows it.
+# Branch is the environment. A push to develop deploys staging; a push to main deploys
+# production, then tags the commit and publishes a GitHub release for it. Merging to main
+# IS the production approval gate: GitHub's required-reviewer protection rule would be the
+# better mechanism, but it needs GitHub Pro/Team on a private repository — see docs/ci.md.
 on:
   push:
-    branches: [develop]
+    branches: [develop, main]
   workflow_dispatch:
     inputs:
       environment:
@@ -17,8 +16,8 @@ on:
         required: true
         default: staging
 
-# Deploys are never cancelled mid-flight: interrupting between the migration step and
-# the Worker deploy would leave the schema ahead of the code.
+# Deploys are never cancelled mid-flight: interrupting between the migration step and the
+# Worker deploy would leave the schema ahead of the code.
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: false
@@ -33,14 +32,18 @@ jobs:
     outputs:
       environment: ${{ steps.pick.outputs.environment }}
     steps:
-      # Production may only be deployed from `main`, so a manual run against a feature
-      # branch cannot reach it. A push to develop always resolves to staging.
+      # A manual run may name its environment; a push takes it from the branch. Production
+      # may only ever be deployed from `main`, so neither a manual run against a feature
+      # branch nor a renamed branch can reach it.
       - id: pick
         env:
           REQUESTED: ${{ inputs.environment }}
           BRANCH: ${{ github.ref_name }}
         run: |
-          RESOLVED="${REQUESTED:-staging}"
+          RESOLVED="$REQUESTED"
+          if [ -z "$RESOLVED" ]; then
+            if [ "$BRANCH" = "main" ]; then RESOLVED=production; else RESOLVED=staging; fi
+          fi
           if [ "$RESOLVED" = "production" ] && [ "$BRANCH" != "main" ]; then
             echo "::error::Refusing to deploy production from '$BRANCH'. Run this workflow from main."
             exit 1
@@ -82,3 +85,50 @@ jobs:
       # CLOUDFLARE_ENV at build time; apps/worker-jobs uses `wrangler deploy --env`.
       - name: Deploy Workers
         run: npx nx run-many -t deploy:${{ env.TARGET_ENV }} --parallel=1 --output-style=stream
+
+  release:
+    name: Tag and release
+    needs: [resolve, deploy]
+    # Only a push to main releases. A manual production run is a redeploy of something
+    # already tagged, and tagging it again would claim a version that has no new commits.
+    if: needs.resolve.outputs.environment == 'production' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # The whole history and every tag: the version is derived from the commits since the
+      # last release tag, and a shallow clone would silently make that the wrong set.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Decide the next version
+        id: version
+        run: node tools/release/next-release.mjs --notes "$RUNNER_TEMP/notes.md" >> "$GITHUB_OUTPUT"
+
+      # The tag is created after the deployment succeeds, so a version that exists is a
+      # version that reached production. An empty `version` means main was redeployed with
+      # no new commits — there is nothing to tag.
+      - name: Tag and publish the release
+        if: steps.version.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          git push origin "v$VERSION"
+          gh release create "v$VERSION" \
+            --title "v$VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            --target "$GITHUB_SHA"
+          {
+            echo "## Released v$VERSION"
+            echo
+            cat "$RUNNER_TEMP/notes.md"
+          } >> "$GITHUB_STEP_SUMMARY"

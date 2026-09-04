@@ -1,12 +1,12 @@
 name: CI
 
-# Runs on every pull request and on every push to main, and is called by deploy.yml as a
-# gate before any Cloudflare deploy. Needs no Cloudflare credentials: the integration
-# tests run against Miniflare (real local D1/Queues/Email bindings), not the live account.
+# Runs on every pull request, and is called by deploy.yml as the gate before any
+# Cloudflare deploy. There is deliberately no `push` trigger: a push to develop or main
+# runs deploy.yml, which calls this workflow, so a `push` trigger here would only duplicate
+# the same run. Needs no Cloudflare credentials — the integration tests run against
+# Miniflare (real local D1/Queues/Email bindings), not the live account.
 on:
   pull_request:
-  push:
-    branches: [main]
   workflow_call:
 
 concurrency:

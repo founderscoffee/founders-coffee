@@ -6,49 +6,56 @@ project decision, Playwright E2E remains a local/staging release gate and is not
 
 Implements **P0-020**. Two workflows, two Cloudflare environments, four Workers per environment.
 
-**Source configuration last checked: 2026-08-30.** The workflow files match the behavior below.
+**Source configuration last checked: 2026-09-04.** The workflow files match the behavior below.
 GitHub environment, secret, billing-plan, and recent-run state were not verified from the current
 engineering environment and must be checked in the repository settings before relying on deployment.
 
 ## Branch → environment mapping
 
-| Trigger                | Cloudflare environment | Gate                           |
-| ---------------------- | ---------------------- | ------------------------------ |
-| push to `develop`      | `staging`              | none — deploys automatically   |
-| manual run from `main` | `production`           | the manual run **is** the gate |
-| push to `main`         | none                   | runs `ci.yml` only             |
+| Trigger                | Cloudflare environment | Gate                           | Tags?         |
+| ---------------------- | ---------------------- | ------------------------------ | ------------- |
+| push to `develop`      | `staging`              | none — deploys automatically   | no            |
+| push to `main`         | `production`           | the merge **is** the gate      | yes, `vX.Y.Z` |
+| manual run from `main` | either                 | the manual run **is** the gate | no — redeploy |
 
-### Why production is manual rather than reviewer-approved
+A manual run against any other ref resolves to `staging`, and the `resolve` job refuses `production`
+from a ref other than `main`, so no feature branch can reach production by either route.
 
-The intended design was a push to `main` deploying production behind a required-reviewer rule on the
-`production` GitHub Environment. That protection rule needs **GitHub Pro/Team on a private
-repository**; on the current plan the API rejects it with:
+### Why merging to `main` is the gate
+
+The intended design was a required-reviewer rule on the `production` GitHub Environment. That
+protection rule needs **GitHub Pro/Team on a private repository**; on the current plan the API
+rejects it with:
 
 > Failed to create the environment protection rule. Please ensure the billing plan supports the
 > required reviewers protection rule.
 
-So production is deployed by explicitly running the **Deploy** workflow and selecting `production`,
-which is an equivalent human gate. The `resolve` job refuses to deploy production from any ref other
-than `main`, so a manual run against a feature branch cannot reach it.
-
-To switch to the original design after upgrading the plan: add `main` back to the `push.branches`
-list in `deploy.yml`, restore `production` to the branch-resolution logic, and add the reviewer rule:
+So the reviewable moment is the pull request into `main`. That is a deliberate human action with a
+diff attached, which is what the protection rule would have provided. It is weaker in one specific
+way, and the weakness is worth naming: nothing stops a direct push to `main` by someone with write
+access. If the plan is ever upgraded, add the rule and the gate becomes enforced rather than
+conventional:
 
 ```sh
 gh api -X PUT repos/<owner>/<repo>/environments/production \
   -f 'reviewers[][type]=User' -F "reviewers[][id]=$(gh api user --jq .id)"
 ```
 
-Both `staging` and `production` GitHub Environments are required so environment-scoped secrets work
-either way; verify their current existence and settings in GitHub.
+A branch protection rule on `main` requiring a pull request is the cheaper half of the same
+guarantee and does not need a paid plan.
+
+Both `staging` and `production` GitHub Environments are required so environment-scoped secrets work;
+verify their current existence and settings in GitHub.
 
 ## Workflows
 
 ### `.github/workflows/ci.yml`
 
-Runs on every pull request, and is called by `deploy.yml` as a gate. Needs **no** Cloudflare
-credentials — the integration tests run against Miniflare with real local D1/Queues/Email bindings
-(AGENTS.md §12), not the live account.
+Runs on every pull request, and is called by `deploy.yml` as a gate. It deliberately has no `push`
+trigger: a push to `develop` or `main` runs `deploy.yml`, which calls this workflow, so a `push`
+trigger here would only duplicate the same run. Needs **no** Cloudflare credentials — the
+integration tests run against Miniflare with real local D1/Queues/Email bindings (AGENTS.md §12),
+not the live account.
 
 1. `npm ci`
 2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
@@ -63,13 +70,46 @@ The Nx local cache (`.nx/cache`) is restored via `actions/cache`, keyed on `pack
 
 ### `.github/workflows/deploy.yml`
 
-1. **resolve** — picks the target environment and refuses production from a non-`main` ref.
+1. **resolve** — picks the target environment from the branch (or the manual input) and refuses
+   production from a non-`main` ref.
 2. **verify** — calls `ci.yml`.
 3. **deploy** — bound to the matching GitHub Environment (so its scoped secrets apply), applies D1
    migrations, then deploys the four Workers.
+4. **release** — only for a push to `main`. Tags the commit and publishes a GitHub release.
 
 `concurrency` is set with `cancel-in-progress: false`: cancelling between the migration step and the
 Worker deploy would leave the schema ahead of the deployed code.
+
+## Versioning and releases
+
+Versions are derived from the conventional commits (AGENTS.md §15) since the last release tag, by
+`tools/release/next-release.mjs`. There is no release dependency and no bot commit: the git tag and
+the GitHub release are the whole record.
+
+| Since the last tag                 | Bump while major is `0` | Bump once major ≥ 1 |
+| ---------------------------------- | ----------------------- | ------------------- |
+| a `!` marker or `BREAKING CHANGE:` | minor                   | major               |
+| any `feat`                         | minor                   | minor               |
+| anything else                      | patch                   | patch               |
+
+The first release is seeded at `v0.1.0`. A breaking change stays a minor bump while the major is `0`
+because promoting it to `1.0.0` would claim a stability this release does not have.
+
+Two properties are deliberate:
+
+- **The tag is created after the deploy succeeds**, so a version that exists is a version that
+  reached production. A failed deploy leaves no tag; re-running the workflow retries both.
+- **`package.json` is never rewritten.** Nothing here is published to a registry, so a version field
+  in a private workspace root would be a second source of truth that a bot commit to `main` would
+  have to keep in step — and that commit would re-trigger the workflow it came from.
+
+Preview the next release locally without tagging anything:
+
+```sh
+node tools/release/next-release.mjs --notes /tmp/notes.md && cat /tmp/notes.md
+```
+
+The version rules are unit-tested in `tools/release/version.test.mjs` (`nx run workspace-root:test`).
 
 ## Two ways to select an environment
 
