@@ -206,6 +206,32 @@ now returns no record for that name. Note that removing the route from `wrangler
 delete an existing custom domain — Cloudflare keeps it until it is deleted explicitly, so the config
 change and the account action are two separate steps.
 
+## v0.3.0 — the Round Table redesign (2026-09-04)
+
+GitHub Actions run `33875681639` from `main` at `5525e30`. Verify 6m39s, migrate and deploy 1m45s,
+tag and release 11s. `founders-coffee-ui-production` version
+`fbd85a4c-57bb-4bfc-8e7e-04c2ba114d92`.
+
+Eight commits: the Claude Design handoff in three stages, the `AppError.code` serialization fix, the
+host-wizard dead end, and the audit.
+
+**Verified on production, under the enforced CSP:**
+
+| Check                              | `ar` 390  | `en` 1280 | wizard 1280           |
+| ---------------------------------- | --------- | --------- | --------------------- |
+| `securitypolicyviolation` events   | 0         | 0         | 0                     |
+| Console / page errors              | 0         | 0         | 0                     |
+| Outfit + Tajawal loaded            | yes       | yes       | yes                   |
+| Body background                    | `#FFFCF7` | `#FFFCF7` | `#FFFCF7`             |
+| Mapbox canvas, tiles, venue search | —         | —         | drawn, `200`, enabled |
+
+The redesign adds no external resource, so the enforced policy needed no change: the fonts are
+self-hosted through `@fontsource`, the mark is inline SVG, and the only new outbound reference is an
+"Open in maps" **link**, which a policy does not govern.
+
+Route latency 1.6–2.3s. One 78s outlier on the first `/login` hit immediately after deploy — a cold
+start, not reproducible across three retries.
+
 **Still outstanding.** The one authorized smoke creation. It needs the same short Turnstile
 testing-key window sign-in required on staging, this time against the live login, and that is a
 deliberate decision rather than a step to take unasked.
