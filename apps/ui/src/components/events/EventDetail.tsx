@@ -1,17 +1,20 @@
 import { Link } from '@tanstack/react-router';
 
 import {
+  back_to_city,
   cat_coffee_meetup,
   cat_demo_day,
   cat_workshop,
-  event_capacity,
+  chairs_left,
   event_free,
-  event_host,
-  event_no_cap,
   event_when,
-  open_in_maps,
   event_where,
   formatDate,
+  open_in_maps,
+  profile_link,
+  role_host,
+  rsvp_event_full,
+  rsvp_no_limit,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
@@ -60,23 +63,33 @@ export const EventDetail = ({
   event,
   host,
 }: EventDetailProps) => {
-  const when = formatDate(event.startsAt, locale, {
-    timeZone: market.timezone,
+  const on = (value: Date, options: Intl.DateTimeFormatOptions) =>
+    formatDate(value, locale, {
+      timeZone: market.timezone,
+      hour12: false,
+      ...options,
+    });
+  const clock = { hour: '2-digit', minute: '2-digit' } as const;
+  const start = new Date(event.startsAt);
+  const end = event.endsAt == null ? null : new Date(event.endsAt);
+  const day = on(start, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
   });
-  const marketName =
-    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
+  const times =
+    end == null
+      ? on(start, clock)
+      : `${on(start, clock)}\u2013${on(end, clock)}`;
+  const when = `${day} · ${times}`;
   const cityName =
     locale === 'ar' ? (event.cityNameAr ?? event.cityName) : event.cityName;
-  const capacityText =
+  const seats =
     event.capacity === 0
-      ? event_no_cap({}, { locale })
-      : `${event_capacity({}, { locale })}: ${event.capacity}`;
+      ? rsvp_no_limit({}, { locale })
+      : event.remaining != null && event.remaining > 0
+        ? chairs_left({ n: event.remaining }, { locale })
+        : rsvp_event_full({}, { locale });
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -97,19 +110,13 @@ export const EventDetail = ({
 
   return (
     <article className="mx-auto max-w-content px-4 py-8 md:px-8 md:py-10">
-      <nav aria-label={market.name} className="mb-4 text-body-sm text-neutral">
-        <Link
-          to="/$market"
-          params={{ market: market.slug }}
-          className="transition-colors hover:text-base-content"
-        >
-          {marketName}
-        </Link>
-        <span className="mx-1.5" aria-hidden="true">
-          ›
-        </span>
-        <span className="text-base-content">{cityName}</span>
-      </nav>
+      <Link
+        to="/$market/$city"
+        params={{ market: market.slug, city: event.cityCode }}
+        className="mb-4 inline-block text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
+      >
+        {back_to_city({ city: cityName }, { locale })}
+      </Link>
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         <div>
@@ -161,17 +168,20 @@ export const EventDetail = ({
               {initials(host.name)}
             </span>
             <span className="min-w-0 flex-1">
-              <Link
-                to="/u/$userId"
-                params={{ userId: host.id }}
-                className="block font-display font-semibold underline decoration-secondary underline-offset-[3px]"
-              >
+              <span className="block font-display font-semibold">
                 {host.name}
-              </Link>
+              </span>
               <span className="block text-body-sm text-neutral">
-                {event_host({}, { locale })}
+                {role_host({}, { locale })} · {cityName}
               </span>
             </span>
+            <Link
+              to="/u/$userId"
+              params={{ userId: host.id }}
+              className="btn btn-outline btn-sm h-9 min-h-9 px-4"
+            >
+              {profile_link({}, { locale })}
+            </Link>
           </div>
         </div>
 
@@ -190,13 +200,22 @@ export const EventDetail = ({
           ) : null}
 
           <div className="rounded-box border border-base-300 bg-base-100 p-4">
-            <p className="mb-3 font-display text-h4 font-semibold">
-              {event.isFree ? event_free({}, { locale }) : capacityText}
-            </p>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              {event.isFree ? (
+                <p className="font-display text-h4 font-semibold">
+                  {event_free({}, { locale })}
+                </p>
+              ) : null}
+              <span className="ms-auto inline-flex h-[1.375rem] items-center gap-1.5 rounded-full bg-secondary-tint px-2.5 text-caption font-medium text-accent">
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full bg-secondary"
+                />
+                {seats}
+              </span>
+            </div>
             <RsvpSection event={event} hostName={host.name} locale={locale} />
           </div>
-
-          <p className="text-caption text-neutral">{capacityText}</p>
         </aside>
       </div>
 

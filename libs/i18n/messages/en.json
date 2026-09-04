@@ -208,7 +208,6 @@
   "rsvp_cta": "I'm coming",
   "rsvp_cancel": "Cancel RSVP",
   "rsvp_full": "Full - join waitlist",
-  "rsvp_remaining": "{count} seats left",
   "rsvp_no_limit": "Open",
   "rsvp_already": "You're going",
   "rsvp_login": "Sign in to RSVP",
@@ -305,5 +304,7 @@
   "filter_weekend": "Weekend",
   "filter_ar": "Arabic",
   "filter_fr": "French",
-  "filter_workshop": "Workshops"
+  "filter_workshop": "Workshops",
+  "back_to_city": "Back to {city}",
+  "profile_link": "Profile"
 }

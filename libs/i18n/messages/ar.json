@@ -208,7 +208,6 @@
   "rsvp_cta": "أحضر",
   "rsvp_cancel": "إلغاء الحضور",
   "rsvp_full": "مكتمل - الانضمام لقائمة الانتظار",
-  "rsvp_remaining": "{count} مقاعد متبقية",
   "rsvp_no_limit": "مفتوح",
   "rsvp_already": "أنت قادم",
   "rsvp_login": "سجّل الدخول للتأكيد",
@@ -305,5 +304,7 @@
   "filter_weekend": "نهاية الأسبوع",
   "filter_ar": "بالعربية",
   "filter_fr": "بالفرنسية",
-  "filter_workshop": "ورشات"
+  "filter_workshop": "ورشات",
+  "back_to_city": "العودة إلى {city}",
+  "profile_link": "الملف الشخصي"
 }

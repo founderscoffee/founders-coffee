@@ -208,7 +208,6 @@
   "rsvp_cta": "Je viens",
   "rsvp_cancel": "Annuler RSVP",
   "rsvp_full": "Complet - rejoindre la liste d'attente",
-  "rsvp_remaining": "{count} places restantes",
   "rsvp_no_limit": "Ouvert",
   "rsvp_already": "Vous venez",
   "rsvp_login": "Connectez-vous pour RSVP",
@@ -305,5 +304,7 @@
   "filter_weekend": "Week-end",
   "filter_ar": "Arabe",
   "filter_fr": "Français",
-  "filter_workshop": "Ateliers"
+  "filter_workshop": "Ateliers",
+  "back_to_city": "Retour à {city}",
+  "profile_link": "Profil"
 }

@@ -12,8 +12,6 @@ import {
   rsvp_error,
   rsvp_event_full,
   rsvp_help,
-  rsvp_no_limit,
-  rsvp_remaining,
   rsvp_saving,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -151,19 +149,6 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
           >
             {retry({}, { locale })}
           </button>
-        </p>
-      ) : null}
-
-      {event.capacity > 0 && event.remaining !== null ? (
-        <p className="text-body-sm text-neutral">
-          {event.remaining > 0
-            ? rsvp_remaining({ count: String(event.remaining) }, { locale })
-            : rsvp_event_full({}, { locale })}
-        </p>
-      ) : null}
-      {event.capacity === 0 ? (
-        <p className="text-body-sm text-neutral">
-          {rsvp_no_limit({}, { locale })}
         </p>
       ) : null}
 
