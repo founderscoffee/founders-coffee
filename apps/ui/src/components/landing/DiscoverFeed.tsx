@@ -83,7 +83,7 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
 
       {visible.length > 0 ? (
         <>
-          <ul className="grid gap-3 md:grid-cols-2">
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3.5">
             {visible.map((event) => (
               <li key={event.id}>
                 <EventCard

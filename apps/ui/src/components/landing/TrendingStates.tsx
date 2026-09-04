@@ -8,7 +8,6 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 import type { TrendingSection } from '@founders-coffee/server-fns';
-import { LogoSymbol } from '@founders-coffee/ui';
 
 type TrendingStatesProps = {
   locale: Locale;
@@ -31,32 +30,28 @@ export const TrendingStates = ({
         {cities_in({ market: marketName }, { locale })}
       </h2>
 
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-3">
         {cities.map(({ city, count }) => (
           <li key={city.code}>
             <Link
               to="/$market/$city"
               params={{ market: market.slug, city: city.slug }}
-              className={`flex h-full flex-col justify-between rounded-box p-4 transition-colors ${
-                count > 0
-                  ? 'border border-base-300 bg-base-100 hover:bg-base-200'
-                  : 'bg-base-200 hover:bg-base-300'
+              className={`flex h-full min-h-[5.25rem] flex-col gap-3 rounded-box px-4 py-3.5 transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none ${
+                count > 0 ? 'bg-base-100' : 'bg-base-200'
               }`}
             >
-              <span className="flex items-start justify-between gap-2">
-                <span className="font-display text-body font-semibold">
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-display text-body-lg font-semibold leading-none">
                   {locale === 'ar' ? city.nameAr : city.name}
                 </span>
                 {count > 0 ? (
-                  <span className="font-display text-body font-semibold text-accent">
+                  <span className="font-display text-body-lg font-semibold leading-none text-accent">
                     {count > 99 ? '+99' : count}
                   </span>
-                ) : (
-                  <LogoSymbol size={18} tone="sand" />
-                )}
+                ) : null}
               </span>
               <span
-                className={`mt-3 text-caption ${count > 0 ? 'text-neutral' : 'font-medium text-accent'}`}
+                className={`mt-auto text-caption font-medium ${count > 0 ? 'text-neutral' : 'text-accent'}`}
               >
                 {count > 0
                   ? this_week_n({ n: count }, { locale })

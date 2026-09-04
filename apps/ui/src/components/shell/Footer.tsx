@@ -31,8 +31,8 @@ const linkClass =
   'text-body-sm text-neutral transition-colors hover:text-base-content';
 
 export const Footer = ({ locale, markets }: FooterProps) => (
-  <footer className="mt-16 border-t border-base-300 bg-base-100">
-    <div className="mx-auto flex max-w-content flex-col gap-5 px-4 py-7 md:flex-row md:items-center md:justify-between md:px-8">
+  <footer className="mt-16 bg-base-200">
+    <div className="mx-auto flex max-w-content flex-col gap-5 px-4 py-6 md:flex-row md:items-center md:justify-between md:px-8">
       <div className="flex flex-wrap items-center gap-3">
         <Link
           to="/"
@@ -70,7 +70,7 @@ export const Footer = ({ locale, markets }: FooterProps) => (
       <LocaleToggle locale={locale} />
     </div>
 
-    <div className="mx-auto max-w-content px-4 pb-7 md:px-8">
+    <div className="mx-auto max-w-content px-4 pb-6 md:px-8">
       <nav
         aria-label={nav_communities({}, { locale })}
         className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-base-300 pt-5 text-caption text-neutral"

@@ -25,12 +25,17 @@ export const EventCard = ({
   marketSlug,
 }: EventCardProps) => {
   const start = new Date(event.startsAt);
-  const at = (options: Intl.DateTimeFormatOptions) =>
-    formatDate(start, locale, {
+  const end = event.endsAt == null ? null : new Date(event.endsAt);
+  const on = (date: Date, options: Intl.DateTimeFormatOptions) =>
+    formatDate(date, locale, {
       timeZone: timezone,
       hour12: false,
       ...options,
     });
+  const at = (options: Intl.DateTimeFormatOptions) => on(start, options);
+  const clock = { hour: '2-digit', minute: '2-digit' } as const;
+  const timeRange =
+    end == null ? at(clock) : `${at(clock)}\u2013${on(end, clock)}`;
   const cityName = locale === 'ar' ? event.cityNameAr : event.cityName;
   const remaining = event.remaining;
   const isGoing = event.viewerRsvp === 'going';
@@ -42,11 +47,11 @@ export const EventCard = ({
       className="flex h-full gap-3.5 rounded-box border border-base-300 bg-base-100 p-3.5 transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none"
     >
       <span className="flex w-14 shrink-0 flex-col items-center justify-center gap-px self-start rounded-field bg-base-200 py-2">
-        <span className="eyebrow">{at({ weekday: 'short' })}</span>
+        <span className="datechip-line">{at({ weekday: 'short' })}</span>
         <span className="font-display text-h4 font-semibold leading-none">
           {at({ day: 'numeric' })}
         </span>
-        <span className="eyebrow hidden sm:block">
+        <span className="datechip-line hidden text-neutral sm:block">
           {at({ month: 'short' })}
         </span>
       </span>
@@ -56,7 +61,7 @@ export const EventCard = ({
           {event.title}
         </span>
         <span className="text-body-sm text-neutral">
-          {at({ hour: '2-digit', minute: '2-digit' })} · {event.venue}
+          {timeRange} · {event.venue}
           <span className="hidden sm:inline">
             {locale === 'ar' ? '،' : ','} {cityName}
           </span>
