@@ -267,5 +267,9 @@
   "ntf_push_reminder_72h_title": "تذكير: {title}",
   "ntf_push_reminder_72h_body": "لقاؤك بعد 3 أيام. اضغط لعرض التفاصيل.",
   "ntf_push_reminder_24h_title": "غداً: {title}",
-  "ntf_push_reminder_24h_body": "لقاؤك غداً. اضغط لإدارة مقعدك."
+  "ntf_push_reminder_24h_body": "لقاؤك غداً. اضغط لإدارة مقعدك.",
+  "chairs_left": "{n} كراسٍ متبقية",
+  "full_waitlist": "مكتمل · قائمة انتظار",
+  "this_week_n": "{n} هذا الأسبوع",
+  "no_filter_match": "لا شيء يطابق هذه الفلاتر هذا الأسبوع."
 }

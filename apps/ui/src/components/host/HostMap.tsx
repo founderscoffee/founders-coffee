@@ -196,9 +196,7 @@ export const HostMap = ({
             }}
           >
             <div className="host-pin">
-              <div className="host-pin-pulse flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-primary text-base shadow-xl">
-                <span aria-hidden="true">☕</span>
-              </div>
+              <div className="host-pin-pulse flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-primary text-base shadow-xl"></div>
             </div>
           </Marker>
         )}

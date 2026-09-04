@@ -30,13 +30,13 @@ export const EmptyCityCard = ({
   const [showWaitlist, setShowWaitlist] = useState(false);
 
   return (
-    <div className="mx-auto mt-6 max-w-2xl rounded-3xl border border-[rgba(90,60,40,0.08)] bg-white/75 p-4 text-center shadow-[0_20px_60px_rgba(70,45,25,0.08)] backdrop-blur-md transition-shadow hover:shadow-[0_25px_70px_rgba(70,45,25,0.14)] md:p-5 md:text-start">
+    <div className="mx-auto mt-6 max-w-2xl rounded-box border border-base-300 bg-base-100 p-5 text-center md:text-start">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
-          <h2 className="text-base font-bold tracking-tight text-base-content">
+          <h2 className="font-display text-body font-semibold text-base-content">
             {hero_empty_city({ city: cityDisplayName }, { locale })}
           </h2>
-          <p className="text-base leading-7 text-base-content/60">
+          <p className="text-body-sm leading-relaxed text-neutral">
             {hero_empty_subtitle({ city: cityDisplayName }, { locale })}
           </p>
         </div>

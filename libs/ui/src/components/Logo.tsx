@@ -2,21 +2,26 @@ import type { SVGProps } from 'react';
 
 import { cn } from '../lib/cn.js';
 
+type LogoTone = 'default' | 'reversed' | 'mono' | 'muted';
+
+const TABLE_FILL: Record<LogoTone, string> = {
+  default: 'var(--color-base-content)',
+  reversed: 'var(--color-base-100)',
+  mono: 'var(--color-base-content)',
+  muted: 'var(--color-base-200)',
+};
+
 type LogoSymbolProps = Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> & {
   size?: number;
-  isMono?: boolean;
-  isReversed?: boolean;
+  tone?: LogoTone;
 };
 
 export const LogoSymbol = ({
   size = 28,
-  isMono = false,
-  isReversed = false,
+  tone = 'default',
   ...props
 }: LogoSymbolProps) => {
-  const table = isReversed
-    ? 'var(--color-base-100)'
-    : 'var(--color-base-content)';
+  const table = TABLE_FILL[tone];
   return (
     <svg
       viewBox="0 0 100 100"
@@ -31,7 +36,7 @@ export const LogoSymbol = ({
         cx="80"
         cy="80"
         r="12"
-        fill={isMono ? table : 'var(--color-secondary)'}
+        fill={tone === 'mono' ? table : 'var(--color-secondary)'}
       />
     </svg>
   );

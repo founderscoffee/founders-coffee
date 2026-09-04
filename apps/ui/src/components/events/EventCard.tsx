@@ -1,9 +1,13 @@
 import { Link } from '@tanstack/react-router';
 
-import { formatDate, going_count, type Locale } from '@founders-coffee/i18n';
+import {
+  chairs_left,
+  formatDate,
+  full_waitlist,
+  going_count,
+  type Locale,
+} from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
-
-import { Hover3D } from '../ui/Hover3D';
 
 type EventCardProps = {
   event: EventFeedItem;
@@ -34,39 +38,54 @@ export const EventCard = ({
     minute: '2-digit',
   });
   const cityName = locale === 'ar' ? event.cityNameAr : event.cityName;
+  const remaining = event.remaining;
 
   return (
-    <Hover3D>
-      <Link
-        to="/$market/e/$slug"
-        params={{ market: marketSlug, slug: event.slug }}
-        className="block"
-      >
-        <article className="card card-side max-w-[720px] border border-base-300 bg-base-200">
-          <div className="m-2 flex min-w-16 flex-col items-center justify-center gap-0.5 rounded-box bg-primary/10 px-3 py-2 text-primary">
-            <span className="text-xs font-bold uppercase tracking-wide">
-              {weekday}
-            </span>
-            <span className="text-2xl font-extrabold leading-none">{day}</span>
-            <span className="text-xs font-bold uppercase opacity-80">
-              {month}
-            </span>
-          </div>
+    <Link
+      to="/$market/e/$slug"
+      params={{ market: marketSlug, slug: event.slug }}
+      className="block max-w-[45rem] rounded-box"
+    >
+      <article className="flex gap-4 rounded-box border border-base-300 bg-base-100 p-4 transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none">
+        <div className="flex w-[3.75rem] shrink-0 flex-col items-center justify-center gap-px rounded-field bg-base-200 py-2.5">
+          <span className="eyebrow">{weekday}</span>
+          <span className="font-display text-h3 font-semibold leading-none">
+            {day}
+          </span>
+          <span className="eyebrow">{month}</span>
+        </div>
 
-          <div className="card-body gap-1 p-3 pe-4">
-            <h3 className="card-title text-base leading-snug">{event.title}</h3>
-            <p className="text-sm text-base-content/60">
-              {time} <span className="opacity-40">·</span> {event.venue}
-              {locale === 'ar' ? '،' : ','} {cityName}
-            </p>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <h3 className="font-display text-body font-semibold leading-snug">
+            {event.title}
+          </h3>
+          <p className="text-body-sm text-neutral">
+            {time} · {event.venue}
+            {locale === 'ar' ? '،' : ','} {cityName}
+          </p>
+          <div className="mt-0.5 flex items-center gap-2">
             {event.goingCount != null ? (
-              <p className="mt-1 text-xs text-base-content/60">
+              <span className="text-caption font-medium text-neutral">
                 {going_count({ count: event.goingCount }, { locale })}
-              </p>
+              </span>
+            ) : null}
+            {remaining != null && remaining > 0 ? (
+              <span className="ms-auto inline-flex h-[1.375rem] items-center gap-1.5 rounded-full bg-secondary-tint px-2.5 text-caption font-medium text-accent">
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full bg-secondary"
+                />
+                {chairs_left({ n: remaining }, { locale })}
+              </span>
+            ) : null}
+            {remaining != null && remaining <= 0 ? (
+              <span className="ms-auto inline-flex h-[1.375rem] items-center rounded-full bg-base-200 px-2.5 text-caption font-medium text-neutral">
+                {full_waitlist({}, { locale })}
+              </span>
             ) : null}
           </div>
-        </article>
-      </Link>
-    </Hover3D>
+        </div>
+      </article>
+    </Link>
   );
 };

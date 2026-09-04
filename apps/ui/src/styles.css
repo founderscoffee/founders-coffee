@@ -52,32 +52,22 @@ body {
 
 @keyframes host-pin-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(74, 56, 44, 0.4);
+    box-shadow: 0 0 0 0 rgba(180, 86, 46, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 16px rgba(74, 56, 44, 0);
+    box-shadow: 0 0 0 16px rgba(180, 86, 46, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(74, 56, 44, 0);
+    box-shadow: 0 0 0 0 rgba(180, 86, 46, 0);
   }
 }
-.host-pin-pulse {
-  animation: host-pin-pulse 2.2s ease-out infinite;
-}
-
-/* warm coffee backdrop for the wizard */
-.host-wizard-bg {
-  background:
-    radial-gradient(
-      1200px 480px at 15% -10%,
-      rgba(245, 158, 11, 0.1),
-      transparent 60%
-    ),
-    radial-gradient(
-      1000px 420px at 95% 0%,
-      rgba(217, 119, 87, 0.08),
-      transparent 55%
-    );
+/* The pin ring is an attention cue, not information: it earns its motion only where
+   motion is welcome. The `reduce` block later would flatten it to a single 0.01ms
+   iteration, which reads as a stuck ring rather than a still one. */
+@media (prefers-reduced-motion: no-preference) {
+  .host-pin-pulse {
+    animation: host-pin-pulse 2.2s ease-out infinite;
+  }
 }
 
 /* DayPicker fills the host wizard step-2 calendar card (time sits above the card). */
@@ -110,29 +100,29 @@ body {
   opacity: 0.65;
 }
 
-/* timepicker-ui → warm-cafe theme (single instance in the host wizard). Overrides the default
+/* timepicker-ui → round-table theme (single instance in the host wizard). Overrides the default
    Material-3 purple palette on both the input wrapper and the body-appended modal. */
 .tp-ui-wrapper,
 .tp-ui-modal {
-  --tp-primary: #4a382c;
-  --tp-primary-rgb: 74, 56, 44;
-  --tp-on-primary: #faf6f0;
-  --tp-primary-container: #eae3d5;
-  --tp-on-primary-container: #2a211a;
-  --tp-bg: #faf6f0;
-  --tp-surface: #fffdfb;
-  --tp-surface-container: #f3ece0;
-  --tp-surface-hover: #eae3d5;
-  --tp-input-bg: #fffdfb;
-  --tp-text: #2a211a;
-  --tp-text-secondary: #6b5d4f;
-  --tp-on-surface: #2a211a;
-  --tp-on-surface-variant: #6b5d4f;
-  --tp-outline: #4a382c;
-  --tp-outline-variant: #eae3d5;
-  --tp-am-pm-active: #eae3d5;
-  --tp-border: #eae3d5;
-  --tp-hover-bg: #eae3d5;
+  --tp-primary: #270f00;
+  --tp-primary-rgb: 39, 15, 0;
+  --tp-on-primary: #fffcf7;
+  --tp-primary-container: #f3ebdd;
+  --tp-on-primary-container: #270f00;
+  --tp-bg: #fffcf7;
+  --tp-surface: #ffffff;
+  --tp-surface-container: #f3ebdd;
+  --tp-surface-hover: #e6dccb;
+  --tp-input-bg: #ffffff;
+  --tp-text: #270f00;
+  --tp-text-secondary: #6b5b50;
+  --tp-on-surface: #270f00;
+  --tp-on-surface-variant: #6b5b50;
+  --tp-outline: #270f00;
+  --tp-outline-variant: #e6dccb;
+  --tp-am-pm-active: #f3ebdd;
+  --tp-border: #e6dccb;
+  --tp-hover-bg: #e6dccb;
 }
 
 .tp-ui-wrapper-time {

@@ -103,7 +103,7 @@ export const HostCreatePage = ({
   );
 
   return (
-    <div className="host-wizard-bg min-h-screen">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-6xl px-4 pt-8 pb-24 md:pt-12 md:pb-16">
         <HostWizardHeader locale={locale} />
 

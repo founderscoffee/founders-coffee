@@ -267,5 +267,9 @@
   "ntf_push_reminder_72h_title": "Rappel : {title}",
   "ntf_push_reminder_72h_body": "Votre rencontre est dans 3 jours. Touchez pour voir les détails.",
   "ntf_push_reminder_24h_title": "Demain : {title}",
-  "ntf_push_reminder_24h_body": "Votre rencontre est demain. Touchez pour gérer votre place."
+  "ntf_push_reminder_24h_body": "Votre rencontre est demain. Touchez pour gérer votre place.",
+  "chairs_left": "{n} chaises libres",
+  "full_waitlist": "Complet · liste d'attente",
+  "this_week_n": "{n} cette semaine",
+  "no_filter_match": "Rien ne correspond à ces filtres cette semaine."
 }

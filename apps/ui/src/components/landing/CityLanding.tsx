@@ -16,6 +16,7 @@ import type { EventFeedItem } from '@founders-coffee/server-fns';
 
 import { useUpcomingEvents } from '../../features/events/hooks';
 import { EventCard } from '../events/EventCard';
+import { EmptyState } from './EmptyState';
 import { Stepper } from '../host/Stepper';
 
 type CityLandingProps = {
@@ -60,34 +61,32 @@ export const CityLanding = ({
     ];
 
     return (
-      <section className="mx-auto max-w-lg px-4 py-16 text-center">
-        <div className="mb-4 text-6xl" aria-hidden="true">
-          ☕
-        </div>
-        <h1 className="text-3xl font-extrabold text-primary">
-          {city_empty_title({ city: cityDisplayName }, { locale })}
-        </h1>
+      <section className="mx-auto max-w-lg px-4 py-16">
+        <EmptyState
+          title={city_empty_title({ city: cityDisplayName }, { locale })}
+          action={
+            <Link
+              to="/$market/host/create"
+              params={{ market: market.slug }}
+              search={{ city: city.code, state: city.stateCode }}
+              className="btn btn-secondary h-12 px-5"
+            >
+              {city_empty_cta({}, { locale })}
+            </Link>
+          }
+          secondary={
+            <Link
+              to="/$market"
+              params={{ market: market.slug }}
+              className="mt-2 text-label font-medium text-neutral underline decoration-secondary underline-offset-[3px] hover:text-base-content"
+            >
+              {back_to_market({ market: marketName }, { locale })}
+            </Link>
+          }
+        />
 
         <div className="mx-auto mt-10 max-w-md">
           <Stepper current={1} total={3} labels={stepLabels} />
-        </div>
-
-        <Link
-          to="/$market/host/create"
-          params={{ market: market.slug }}
-          search={{ city: city.code, state: city.stateCode }}
-          className="btn btn-primary btn-lg mt-10 gap-1"
-        >
-          {city_empty_cta({}, { locale })}
-        </Link>
-        <div className="mt-4">
-          <Link
-            to="/$market"
-            params={{ market: market.slug }}
-            className="text-sm text-base-content/40 hover:text-primary"
-          >
-            {back_to_market({ market: marketName }, { locale })}
-          </Link>
         </div>
       </section>
     );

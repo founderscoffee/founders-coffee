@@ -267,5 +267,9 @@
   "ntf_push_reminder_72h_title": "Reminder: {title}",
   "ntf_push_reminder_72h_body": "Your meetup is in 3 days. Tap to view details.",
   "ntf_push_reminder_24h_title": "Tomorrow: {title}",
-  "ntf_push_reminder_24h_body": "Your meetup is tomorrow. Tap to manage your seat."
+  "ntf_push_reminder_24h_body": "Your meetup is tomorrow. Tap to manage your seat.",
+  "chairs_left": "{n} chairs left",
+  "full_waitlist": "Full · waitlist",
+  "this_week_n": "{n} this week",
+  "no_filter_match": "Nothing matches these filters this week."
 }

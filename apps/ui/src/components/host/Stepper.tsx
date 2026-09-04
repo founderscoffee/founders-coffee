@@ -12,12 +12,11 @@ type StepperProps = {
 
 const stepCircleClass = (done: boolean, active: boolean) =>
   [
-    'flex h-11 w-11 items-center justify-center rounded-full border-2 text-sm font-bold transition-all duration-300',
-    done &&
-      'border-primary bg-primary text-primary-content shadow-md shadow-primary/20',
+    'flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-label font-semibold transition-colors duration-200 motion-reduce:transition-none',
+    done && 'border-primary bg-primary text-primary-content',
     active &&
-      'scale-105 border-primary bg-base-100 text-primary shadow-lg shadow-primary/20 ring-4 ring-primary/15',
-    !done && !active && 'border-base-300 bg-base-100 text-base-content/40',
+      'border-primary bg-base-100 text-base-content ring-2 ring-secondary ring-offset-2 ring-offset-base-100',
+    !done && !active && 'border-base-300 bg-base-100 text-taupe',
   ]
     .filter(Boolean)
     .join(' ');
@@ -29,7 +28,7 @@ const stepLabelClass = (index: number, total: number) => {
       : index === total - 1
         ? 'end-0 text-end'
         : 'start-1/2 -translate-x-1/2 text-center rtl:translate-x-1/2';
-  return `absolute top-0 w-28 text-xs font-medium leading-snug text-base-content/55 ${position}`;
+  return `absolute top-0 w-28 text-caption font-medium leading-snug text-neutral ${position}`;
 };
 
 export const Stepper = ({
@@ -66,14 +65,14 @@ export const Stepper = ({
           return (
             <Fragment key={n}>
               <div className={stepCircleClass(done, active)}>
-                {done ? <Check className="h-5 w-5" /> : n}
+                {done ? <Check className="size-4" /> : n}
               </div>
 
               {n < total && (
-                <div className="relative mx-1 flex min-h-11 flex-1 items-center justify-center sm:mx-3">
-                  <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-base-300" />
+                <div className="relative mx-2 flex min-h-8 flex-1 items-center justify-center sm:mx-3">
+                  <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-base-300" />
                   <div
-                    className="absolute start-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-primary transition-all duration-500"
+                    className="absolute start-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-primary transition-[width] duration-[320ms] ease-out motion-reduce:transition-none"
                     style={{ width: done ? '100%' : '0%' }}
                   />
                   {segments[i] && (
@@ -92,11 +91,11 @@ export const Stepper = ({
         <div className="mt-3 flex min-h-10 w-full items-start">
           {Array.from({ length: total }, (_, i) => (
             <Fragment key={`label-${i + 1}`}>
-              <div className="relative flex w-11 shrink-0 justify-center">
+              <div className="relative flex w-8 shrink-0 justify-center">
                 <p className={stepLabelClass(i, total)}>{labels[i]}</p>
               </div>
               {i < total - 1 ? (
-                <div className="mx-1 flex-1 sm:mx-3" aria-hidden="true" />
+                <div className="mx-2 flex-1 sm:mx-3" aria-hidden="true" />
               ) : null}
             </Fragment>
           ))}

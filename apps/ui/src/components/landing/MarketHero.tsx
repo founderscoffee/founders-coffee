@@ -43,22 +43,15 @@ export const MarketHero = ({
     : '';
 
   return (
-    <section className="relative pb-12 pt-8 md:pt-12 mx-auto text-center">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 mx-auto h-[600px] max-w-5xl overflow-hidden"
-      >
-        <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-amber-200/40 blur-3xl" />
-        <div className="absolute left-1/2 top-12 h-[400px] w-[550px] -translate-x-1/2 rounded-full bg-orange-200/30 blur-3xl" />
-      </div>
-      <h1 className="text-5xl md:text-6xl font-black tracking-tight leading-tight text-stone-900">
+    <section className="mx-auto pb-12 pt-8 text-center md:pt-12">
+      <h1 className="font-display text-h1 font-semibold tracking-tight text-balance text-base-content md:text-display">
         {hero_tagline({}, { locale })}
       </h1>
-      <p className="mt-6 text-lg md:text-xl leading-8 text-stone-600 max-w-5xl mx-auto">
+      <p className="mx-auto mt-6 max-w-prose text-body-lg text-neutral">
         {hero_subtitle({}, { locale })}
       </p>
 
-      <div className="mx-auto mt-8 flex max-w-2xl items-stretch rounded-box border border-base-300 bg-base-100 shadow-lg shadow-base-300/30 focus-within:border-primary">
+      <div className="mx-auto mt-8 flex h-12 max-w-2xl items-center rounded-full border border-base-300 bg-base-100 ps-2 pe-1.5 focus-within:border-secondary md:h-14">
         <HeroCitySearch
           marketCode={market.code}
           selected={selectedCity}
@@ -69,28 +62,26 @@ export const MarketHero = ({
           locale={locale}
           className="flex-1"
         />
-        <div className="aura aura-silver rounded-e-box">
-          <Link
-            {...(selectedCity
-              ? isSelectedCityEmpty
-                ? {
-                    to: '/$market/host/create',
-                    params: { market: market.slug },
-                    search: {
-                      city: selectedCity.code,
-                      state: selectedCity.stateCode,
-                    },
-                  }
-                : {
-                    to: '/$market/$city',
-                    params: { market: market.slug, city: selectedCity.slug },
-                  }
-              : { to: '/login' })}
-            className="btn btn-primary h-12 rounded-e-box border-0 bg-primary px-6 text-primary-content shadow-none"
-          >
-            {hero_search_cta({}, { locale })}
-          </Link>
-        </div>
+        <Link
+          {...(selectedCity
+            ? isSelectedCityEmpty
+              ? {
+                  to: '/$market/host/create',
+                  params: { market: market.slug },
+                  search: {
+                    city: selectedCity.code,
+                    state: selectedCity.stateCode,
+                  },
+                }
+              : {
+                  to: '/$market/$city',
+                  params: { market: market.slug, city: selectedCity.slug },
+                }
+            : { to: '/login' })}
+          className="btn btn-primary h-9 min-h-9 shrink-0 rounded-full border-0 px-4 shadow-none"
+        >
+          {hero_search_cta({}, { locale })}
+        </Link>
       </div>
 
       {selectedCity && !isSelectedCityEmpty && (

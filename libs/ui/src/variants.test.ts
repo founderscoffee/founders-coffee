@@ -15,6 +15,10 @@ describe('libs/ui cva variants (literal class strings Tailwind can scan)', () =>
     ).toBe('btn btn-secondary btn-sm w-full');
   });
 
+  it('Button maps the cta variant to clay, so one call to action reads louder', () => {
+    expect(buttonVariants({ variant: 'cta' })).toBe('btn btn-secondary btn-md');
+  });
+
   it('Badge defaults to neutral md', () => {
     expect(badgeVariants()).toBe('badge badge-neutral badge-md');
   });

@@ -15,6 +15,8 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 import { logger, reportError } from '@founders-coffee/observability';
+
+import { EmptyState } from './components/landing/EmptyState';
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { routeTree } from './routeTree.gen';
@@ -35,20 +37,15 @@ const DefaultErrorComponent = ({ error }: { error: unknown }) => {
   const locale = useLocale();
 
   return (
-    <section className="mx-auto max-w-md px-4 py-16 text-center">
-      <div className="mb-4 text-6xl" aria-hidden="true">
-        ⚠️
-      </div>
-      <h1 className="text-2xl font-bold text-primary">
-        {error_title({}, { locale })}
-      </h1>
-      <p className="mt-2 text-sm text-base-content/70">
-        {error_body({}, { locale })}
-      </p>
-      <Link to="/" className="btn btn-primary mt-6">
-        {back_home({}, { locale })}
-      </Link>
-    </section>
+    <EmptyState
+      title={error_title({}, { locale })}
+      body={error_body({}, { locale })}
+      action={
+        <Link to="/" className="btn btn-primary h-12 px-5">
+          {back_home({}, { locale })}
+        </Link>
+      }
+    />
   );
 };
 
@@ -56,20 +53,15 @@ const DefaultNotFoundComponent = () => {
   const locale = useLocale();
 
   return (
-    <section className="mx-auto max-w-md px-4 py-16 text-center">
-      <div className="mb-4 text-6xl" aria-hidden="true">
-        ☕
-      </div>
-      <h1 className="text-2xl font-bold text-primary">
-        {not_found_title({}, { locale })}
-      </h1>
-      <p className="mt-2 text-sm text-base-content/70">
-        {not_found_body({}, { locale })}
-      </p>
-      <Link to="/" className="btn btn-ghost mt-6 border border-base-300">
-        {back_home({}, { locale })}
-      </Link>
-    </section>
+    <EmptyState
+      title={not_found_title({}, { locale })}
+      body={not_found_body({}, { locale })}
+      action={
+        <Link to="/" className="btn btn-outline h-12 px-5">
+          {back_home({}, { locale })}
+        </Link>
+      }
+    />
   );
 };
 

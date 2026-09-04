@@ -6,15 +6,22 @@ import {
   discover_events,
   discover_workshops,
   no_events_yet,
+  no_filter_match,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
 import { useUpcomingEvents } from '../../features/events/hooks';
 import { EventCard } from '../events/EventCard';
+import { EmptyState } from './EmptyState';
 
 const PAGE_SIZE = 20;
-const ITEM_HEIGHT = 120;
+
+const TABS = [
+  { key: 'events' as const, label: discover_events },
+  { key: 'workshops' as const, label: discover_workshops },
+];
+const ITEM_HEIGHT = 104;
 
 type DiscoverFeedProps = {
   locale: Locale;
@@ -68,23 +75,23 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
 
   return (
     <section className="mx-auto max-w-5xl px-4 pb-16">
-      <div role="tablist" className="tabs tabs-lift mb-6">
-        <button
-          type="button"
-          role="tab"
-          className={`tab ${tab === 'events' ? 'tab-active' : ''}`}
-          onClick={() => setTab('events')}
-        >
-          {discover_events({}, { locale })}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          className={`tab ${tab === 'workshops' ? 'tab-active' : ''}`}
-          onClick={() => setTab('workshops')}
-        >
-          {discover_workshops({}, { locale })}
-        </button>
+      <div role="tablist" className="mb-6 flex border-b border-base-300">
+        {TABS.map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={tab === key}
+            className={`-mb-px px-3.5 py-2.5 text-body-sm font-medium transition-colors ${
+              tab === key
+                ? 'border-b-2 border-primary text-base-content'
+                : 'text-neutral hover:text-base-content'
+            }`}
+            onClick={() => setTab(key)}
+          >
+            {label({}, { locale })}
+          </button>
+        ))}
       </div>
       {visible.length > 0 ? (
         <div ref={scrollRef} className="relative max-h-[800px] overflow-auto">
@@ -122,9 +129,13 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
           </div>
         </div>
       ) : (
-        <p className="py-12 text-center text-base-content/40">
-          {no_events_yet({}, { locale })}
-        </p>
+        <EmptyState
+          title={
+            tab === 'workshops'
+              ? no_filter_match({}, { locale })
+              : no_events_yet({}, { locale })
+          }
+        />
       )}
       {isFetchingNextPage && (
         <div className="flex justify-center py-4">

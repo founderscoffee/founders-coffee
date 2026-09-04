@@ -7,6 +7,7 @@ export const buttonVariants = cva('btn', {
   variants: {
     variant: {
       primary: 'btn-primary',
+      cta: 'btn-secondary',
       secondary: 'btn-secondary',
       accent: 'btn-accent',
       outline: 'btn-outline',

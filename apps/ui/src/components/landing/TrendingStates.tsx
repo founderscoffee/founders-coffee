@@ -28,42 +28,30 @@ export const TrendingStates = ({
 
   return (
     <section className="mx-auto max-w-5xl px-4 pb-12">
-      <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-base-content/40">
-        {title}
-      </h2>
+      <h2 className="eyebrow mb-4">{title}</h2>
       <div className="space-y-6">
         {trending.groups.map(({ state, cities }) => (
           <div key={state?.code ?? 'major'}>
             {state ? (
-              <h3 className="mb-2 text-sm font-bold text-base-content/70">
+              <h3 className="mb-2 text-body-sm font-semibold text-base-content">
                 {locale === 'ar' ? state.nameAr : state.name}
               </h3>
             ) : null}
             <div className="flex flex-wrap gap-2">
               {cities.map(({ city, count }) => (
-                <div
+                <Link
                   key={city.code}
-                  className={
-                    count > 0 ? 'aura aura-glow rounded-full' : 'rounded-full'
-                  }
+                  to="/$market/$city"
+                  params={{ market: market.slug, city: city.slug }}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-base-200 px-3 text-label font-medium text-base-content transition-colors hover:bg-base-300"
                 >
-                  <Link
-                    to="/$market/$city"
-                    params={{ market: market.slug, city: city.slug }}
-                    className={`btn btn-sm gap-1.5 rounded-full border bg-base-200 text-sm hover:bg-base-300 ${
-                      count > 0
-                        ? 'border-primary'
-                        : 'border-base-300 hover:border-primary'
-                    }`}
-                  >
-                    {locale === 'ar' ? city.nameAr : city.name}
-                    {count > 0 ? (
-                      <span className="badge badge-xs badge-primary">
-                        {count > 99 ? '+99' : count}
-                      </span>
-                    ) : null}
-                  </Link>
-                </div>
+                  {locale === 'ar' ? city.nameAr : city.name}
+                  {count > 0 ? (
+                    <span className="font-semibold text-accent">
+                      {count > 99 ? '+99' : count}
+                    </span>
+                  ) : null}
+                </Link>
               ))}
             </div>
           </div>
