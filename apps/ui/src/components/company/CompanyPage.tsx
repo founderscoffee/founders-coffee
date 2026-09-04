@@ -161,17 +161,26 @@ export const CompanyPage = ({
           className="mt-14 flex flex-wrap gap-x-5 gap-y-2 border-t border-base-300 pt-6 text-body-sm text-neutral"
         >
           {related.includes('privacy') ? (
-            <Link to="/privacy" className="hover:text-primary">
+            <Link
+              to="/privacy"
+              className="inline-flex min-h-6 items-center hover:text-primary"
+            >
               {footer_privacy({}, { locale })}
             </Link>
           ) : null}
           {related.includes('terms') ? (
-            <Link to="/terms" className="hover:text-primary">
+            <Link
+              to="/terms"
+              className="inline-flex min-h-6 items-center hover:text-primary"
+            >
               {footer_terms({}, { locale })}
             </Link>
           ) : null}
           {related.includes('cookies') ? (
-            <Link to="/cookies" className="hover:text-primary">
+            <Link
+              to="/cookies"
+              className="inline-flex min-h-6 items-center hover:text-primary"
+            >
               {footer_cookies({}, { locale })}
             </Link>
           ) : null}

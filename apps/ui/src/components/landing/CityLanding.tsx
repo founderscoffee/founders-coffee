@@ -91,7 +91,7 @@ export const CityLanding = ({
             <Link
               to="/$market"
               params={{ market: market.slug }}
-              className="mt-2 text-label font-medium text-neutral underline decoration-secondary underline-offset-[3px] hover:text-base-content"
+              className="mt-2 inline-flex min-h-6 items-center text-label font-medium text-neutral underline decoration-secondary underline-offset-[3px] hover:text-base-content"
             >
               {back_to_market({ market: marketName }, { locale })}
             </Link>
@@ -113,7 +113,7 @@ export const CityLanding = ({
         <Link
           to="/$market"
           params={{ market: market.slug }}
-          className="w-fit text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
+          className="inline-flex min-h-6 w-fit items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
         >
           {back_to_market({ market: marketName }, { locale })}
         </Link>

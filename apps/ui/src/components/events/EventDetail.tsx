@@ -113,7 +113,7 @@ export const EventDetail = ({
       <Link
         to="/$market/$city"
         params={{ market: market.slug, city: event.cityCode }}
-        className="mb-4 inline-block text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
+        className="mb-4 inline-flex min-h-6 items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
       >
         {back_to_city({ city: cityName }, { locale })}
       </Link>
