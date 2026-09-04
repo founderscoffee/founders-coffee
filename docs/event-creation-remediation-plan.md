@@ -776,12 +776,17 @@ stopped working.
 
 It surfaced as a Playwright failure at 1280 that looked like a redesign regression. It was not —
 `wrangler`'s own log carried `AppError: Too many map_context requests. Try again shortly.`, 11 times
-across 22 `map_context` calls, and a direct browser probe of the same page was healthy. The suite
-re-loads the wizard more than twenty times in ten minutes, so it exhausts the application's own
-limiter and then fails silently for a reason that has nothing to do with the code under test.
+across 22 `map_context` calls, and a direct browser probe of the same page was healthy.
 
-Who else hits it: anyone behind shared egress. A café's NAT, a campus, or Algerian mobile CGNAT can
-put many hosts on one `cf-connecting-ip`, and the twentieth of them gets a dead form.
+**Correction, 2026-09-04:** the first write-up of this said the e2e suite exhausts the limiter. It
+does not. Re-run afterwards, all three wizard projects pass 6/6 with zero rate-limit events in the
+log — 25/25 across the whole suite. What exhausted it was the debugging either side of the suite:
+probes that loaded the wizard twenty-odd times in a burst. The distinction matters, because "the
+suite is over the limit" would have argued for changing the limit, and nothing is wrong with it.
+
+Who hits it in production: anyone behind shared egress. A café's NAT, a campus, or Algerian mobile
+CGNAT can put many hosts on one `cf-connecting-ip`, and the twentieth of them got a dead form with
+no explanation. That is the defect, and it stands independently of how it was found.
 
 Fixed by passing the failure through to the step, which now renders the rate-limit copy the venue
 _search_ already used for the same condition. Covered by a unit test that fails when the reason is
