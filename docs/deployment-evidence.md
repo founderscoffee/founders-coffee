@@ -157,6 +157,55 @@ JWT, even though Access itself is not yet configured in front of it.
 the current release. Its custom domain was created as a side effect of deploying all four Workers
 together. Removing that route is a one-line change to `apps/dashboard/wrangler.jsonc`.
 
+## v0.2.0 — enforced CSP, queues bound, sponsor portal unpublished (2026-09-04)
+
+GitHub Actions run `33859453677` from `main` at `9ce6b1c`. Verify 6m43s, migrate and deploy 1m43s,
+tag and release 19s.
+
+**The CSP is enforced in both environments.** `https://founders.coffee` and
+`https://staging.founders.coffee` now answer with `content-security-policy` rather than
+`content-security-policy-report-only`. Staging was enforced and verified first, because report-only
+and enforced are not the same test.
+
+Measured on enforced production, in `ar`:
+
+| Check                                       | Result                                                                                                   |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Violations, 4 routes × 3 locales            | 0                                                                                                        |
+| `/algeria/host/create` Mapbox canvas        | 710×358, 1 map container, 0 console errors                                                               |
+| Self-hosted `mapbox-gl-csp-worker` requests | 2                                                                                                        |
+| `mapbox-gl-rtl-text` requests               | 3 (main thread + both workers)                                                                           |
+| `/login` Turnstile                          | widget iframe mounted, `cf-turnstile-response` input present, 13 requests to `challenges.cloudflare.com` |
+| Cloudflare Web Analytics beacon             | still loads (1 request per page) under enforcement                                                       |
+
+The last row is the one that settles AR-08's old blocker: the beacon loads while the policy is
+actively blocking, because Cloudflare's rewriter stamps our per-request nonce on it. Nothing had to
+be turned off account-side.
+
+`apps/admin` stays on report-only. It answers `403` without an Access JWT, so it cannot be loaded and
+measured.
+
+**Queues provisioned and bound.** Eight queues — notifications, embeddings-jobs and reconcile plus a
+dead-letter queue, in each environment. Consumers are attached to
+`founders-coffee-worker-jobs-{staging,production}` with `max_retries: 5` and the environment's DLQ.
+
+Proven end to end on staging rather than assumed: a message posted to
+`founders-coffee-reconcile-staging` through the Queues API produced this in `wrangler tail` —
+
+```json
+{ "outcome": "ok", "scriptName": "founders-coffee-worker-jobs-staging", "event": { "batchSize": 1, "queue": "founders-coffee-reconcile-staging" }, "logs": [{ "message": ["{\"count\":0,\"msg\":\"reconcile.pending_backlog\"}"] }] }
+```
+
+— the environment-suffixed name resolved to its catalogue name, the consumer ran, and the message
+was acked. Nothing produces into these queues yet; notification delivery is still the one-minute D1
+sweep.
+
+**The sponsor portal is unpublished.** `app.founders.coffee`'s custom domain
+(`1d629406ba19fc525a1c26448571667a83e5685b`) was deleted and its DNS record went with it; the zone
+now returns no record for that name. Note that removing the route from `wrangler.jsonc` does **not**
+delete an existing custom domain — Cloudflare keeps it until it is deleted explicitly, so the config
+change and the account action are two separate steps.
+
 **Still outstanding.** The one authorized smoke creation. It needs the same short Turnstile
 testing-key window sign-in required on staging, this time against the live login, and that is a
 deliberate decision rather than a step to take unasked.
