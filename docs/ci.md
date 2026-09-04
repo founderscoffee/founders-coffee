@@ -57,16 +57,38 @@ trigger here would only duplicate the same run. Needs **no** Cloudflare credenti
 integration tests run against Miniflare with real local D1/Queues/Email bindings (AGENTS.md §12),
 not the live account.
 
-1. `npm ci`
+1. `npm ci --no-audit --no-fund` — skipped entirely when the `node_modules` cache hits.
 2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
 3. `nx sync:check` — asserts the tsconfig project references are committed. `nx.json` sets
    `sync.applyChanges: true`, so local runs repair them silently; this catches the un-committed repair.
-4. `npm audit --audit-level=high` — fails on high or critical vulnerabilities in the committed
-   dependency graph.
-5. `nx run-many -t typecheck lint test build` — verifies every production build; `lint` includes the
+4. `nx run-many -t typecheck lint test build` — verifies every production build; `lint` includes the
    Nx module-boundary rules, so a violation of the one-directional data flow (AGENTS.md §4) fails here.
 
+### Two caches, and why `npm ci` is usually skipped
+
 The Nx local cache (`.nx/cache`) is restored via `actions/cache`, keyed on `package-lock.json`.
+
+`node_modules` is cached separately, across the root and every workspace package
+(`apps/*/node_modules`, `libs/*/node_modules` — this is an npm workspaces repo, so the tree is not
+just the root one). It is about a gigabyte, and `npm ci` spent **seven minutes** on it even with
+setup-node's warm ~/.npm cache: the cost is extraction and linking, not download. Restoring the tree
+directly is roughly a minute, and the install step is skipped on a hit.
+
+The key is the exact lockfile hash and the exact Node version, with **no `restore-keys`**. That is
+deliberate: `restore-keys` would let a near-miss restore a tree built from a different lockfile, and
+because a hit skips `npm ci`, the job would then run against dependencies that do not match the
+lockfile. A miss must reinstall.
+
+There are no `install`, `preinstall`, `postinstall` or `prepare` scripts anywhere in the workspace,
+which is what makes restoring the tree equivalent to installing it.
+
+### There is no dependency audit step
+
+`npm audit --audit-level=high` was removed on 2026-09-04. npm is retiring the
+`/-/npm/v1/security/audits/quick` endpoint this npm version calls; it began answering `400` and
+`503`, taking five minutes to fail, and it blocked every deploy. Nothing in the pipeline checks
+advisories now — GitHub's Dependabot alerts are the intended replacement and are configured in
+repository settings, not here.
 
 ### `.github/workflows/deploy.yml`
 

@@ -18,12 +18,13 @@ permissions:
 
 jobs:
   verify:
-    name: Format, sync, audit, typecheck, lint, test and build
+    name: Format, sync, typecheck, lint, test and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v5
+        id: node
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -37,7 +38,25 @@ jobs:
             nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             nx-${{ runner.os }}-
 
-      - run: npm ci
+      # `node_modules` is about a gigabyte across the root and every workspace, and `npm ci`
+      # spends seven minutes on it even with a warm npm cache, because the cost is extraction
+      # and linking rather than download. Restoring the tree itself is roughly a minute.
+      # Keyed on the exact lockfile and the exact Node version, deliberately without
+      # `restore-keys`: a near-miss must reinstall rather than half-populate a tree that
+      # `npm ci` would then be skipped for.
+      - name: Restore node_modules
+        id: modules
+        uses: actions/cache@v6
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            libs/*/node_modules
+          key: modules-${{ runner.os }}-node${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit --no-fund
 
       - name: Check formatting
         run: npm run format:check
@@ -46,9 +65,6 @@ jobs:
       # tsconfig project references. This asserts the repaired state was committed.
       - name: Check Nx tsconfig project references are in sync
         run: npx nx sync:check
-
-      - name: Audit dependencies
-        run: npm audit --audit-level=high
 
       # `lint` includes the Nx module-boundary rules that enforce the one-directional
       # data flow (AGENTS.md §4), so a boundary violation fails CI here.

@@ -68,11 +68,27 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v5
+        id: node
         with:
           node-version-file: .nvmrc
           cache: npm
 
-      - run: npm ci
+      # Same tree, same key as ci.yml, so the verify job has usually already populated it
+      # and this restores rather than reinstalls. See the note there for why there are no
+      # `restore-keys`.
+      - name: Restore node_modules
+        id: modules
+        uses: actions/cache@v6
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            libs/*/node_modules
+          key: modules-${{ runner.os }}-node${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit --no-fund
 
       # Migrations run before any build. The Cloudflare Vite plugin writes a flattened
       # `.wrangler/deploy/config.json` during `vite build`, which redirects later wrangler
