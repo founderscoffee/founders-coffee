@@ -81,7 +81,7 @@ export const EventDetail = ({
     end == null
       ? on(start, clock)
       : `${on(start, clock)}\u2013${on(end, clock)}`;
-  const when = `${day} · ${times}`;
+
   const cityName =
     locale === 'ar' ? (event.cityNameAr ?? event.cityName) : event.cityName;
   const seats =
@@ -141,7 +141,9 @@ export const EventDetail = ({
           <dl className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="rounded-box border border-base-300 bg-base-100 p-4">
               <dt className="eyebrow">{event_when({}, { locale })}</dt>
-              <dd className="mt-1.5 font-medium">{when}</dd>
+              <dd className="mt-1.5 font-medium">
+                {day} · <span dir="ltr">{times}</span>
+              </dd>
               <dd className="mt-0.5 text-body-sm text-neutral">
                 {market.timezone}
               </dd>

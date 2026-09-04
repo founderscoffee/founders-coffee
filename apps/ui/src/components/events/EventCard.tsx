@@ -63,7 +63,7 @@ export const EventCard = ({
           {event.title}
         </span>
         <span className="text-body-sm text-neutral">
-          {timeRange} · {event.venue}
+          <span dir="ltr">{timeRange}</span> · {event.venue}
           <span className="hidden sm:inline">
             {trailing === 'language'
               ? ` · ${event.language.toUpperCase()}`
