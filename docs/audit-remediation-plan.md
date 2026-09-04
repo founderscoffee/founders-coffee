@@ -2,8 +2,8 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-07 and AR-09 through AR-13 complete; AR-08 partial                                                                                                                          |
-| Last reviewed  | 2026-09-03                                                                                                                                                                                           |
+| Status         | Active; AR-01 through AR-07 and AR-09 through AR-13 complete; AR-08 partial — both environments now clean under report-only, enforcement not yet switched on                                         |
+| Last reviewed  | 2026-09-04                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
 | Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                       |
@@ -758,13 +758,18 @@ Resolved 2026-09-03:
 
 Boundary — what is deliberately not done, and why:
 
-- **The CSP still ships report-only, and enforcement is now blocked account-side, not in code.**
+- ~~**The CSP still ships report-only, and enforcement is now blocked account-side, not in code.**
   Two Cloudflare features inject un-nonced inline script into the response after the Worker has
   run: JavaScript Detections (bot management) and Web Analytics auto-install, which is enabled on
   two RUM sites for this account. A nonce and `'unsafe-inline'` cannot coexist — a browser that
   understands nonces ignores `'unsafe-inline'` entirely — so neither injection can be allowed
   alongside the nonce by widening the policy. Enforcing requires turning both off, which is an
-  account decision, not a code change.
+  account decision, not a code change.~~ **Not true, and it was never re-measured after the nonces
+  landed.** The three violations above were captured before per-request nonces were wired the same
+  day; the blocker was then carried forward on the strength of that stale measurement. Cloudflare's
+  HTML rewriter propagates the nonce to the scripts it injects. See the production capture below.
+  The CSP still ships report-only because nothing has flipped `CSP_ENFORCED` yet, not because
+  anything blocks it.
 - **`style-src` keeps `'unsafe-inline'`**, recorded rather than hidden: React writes inline `style`
   attributes and streaming SSR inserts a style element before hydration. The nonce now reaches
   style tags too, so removing it is a smaller change than it was, but it still needs its own
@@ -815,9 +820,10 @@ for two RUM sites, and the one that matters is registered for host `founders.cof
 most likely reason `staging.founders.coffee` is clean and production would not be. `email_obfuscation`
 is still `on` zone-wide; `rocket_loader` and `mirage` are both `off`.
 
-So the position is now split by environment: **staging is one fix — the `eval` above — away from
-`CSP_ENFORCED=true`. Production still needs the account decision**, and its own capture, which
-cannot be taken until the apex resolves.
+~~So the position is now split by environment: staging is one fix — the `eval` above — away from
+`CSP_ENFORCED=true`. Production still needs the account decision~~, and its own capture, which
+cannot be taken until the apex resolves. The `eval` was fixed on 2026-09-04 and the production
+capture below found no account-side blocker at all.
 
 ### The `eval` fix — 2026-09-04
 
@@ -858,6 +864,40 @@ first two with 2 constructions observed.
 
 Functionally unchanged: the full Playwright suite passes against the aliased production build —
 25 tests, including the three-locale event-creation run at 390×844, 768×1024 and 1280×800.
+
+### CSP report-only capture — production, 2026-09-04
+
+The capture this ticket could not take until the apex resolved. Same script, same four routes in
+each of `ar`, `fr` and `en` against `https://founders.coffee`, twelve loads.
+
+**Zero violations. Zero `Function` constructions. No distinct violation of any kind.**
+
+A zero is only worth as much as the proof that the page ran, so the page was probed separately: it
+hydrates (title, 32 links, `index-*.js` executed, no console or page errors), and both Cloudflare
+injections are present and _did_ run — `/cdn-cgi/rum?` was requested, so the beacon executed.
+
+**Why they do not violate: Cloudflare stamps our nonce on what it injects.** Reading the `nonce` IDL
+property of every script element on `/algeria` against that response's header nonce
+(`anqRaHV16LrAI+wE0dP+rw==`):
+
+| Script                                                          | Origin        | Nonce   |
+| --------------------------------------------------------------- | ------------- | ------- |
+| `application/ld+json` organization block                        | ours          | matches |
+| `/assets/index-*.js`                                            | ours          | matches |
+| `static.cloudflareinsights.com/beacon.min.js/v…`                | Web Analytics | matches |
+| inline `(function(){…contentDocument…createElement('script')})` | JS Detections | matches |
+
+The `nonce` **attribute** reads empty on all four because browsers scrub it after parsing; the IDL
+property holds the real value. Reading the attribute is what makes a nonced script look un-nonced,
+and is worth checking before concluding an injection is unprotected.
+
+The beacon's host is not in `script-src`, and it does not need to be: a nonce-matching element is
+allowed regardless of its origin. So enforcement does not require turning Web Analytics
+`auto_install` off, and no widening of the policy is needed either.
+
+**Both environments are now clean under report-only.** Staging since the `eval` fix, production on
+its first release. `CSP_ENFORCED=true` is a per-environment variable and nothing outside the
+repository has to change first.
 
 ### AR-09 — Repair the two enforcement mechanisms
 

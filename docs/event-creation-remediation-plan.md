@@ -2,8 +2,8 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | EC-01 through EC-10 complete for staging; production deployment and smoke outstanding                                                                                      |
-| Last reviewed  | 2026-09-03                                                                                                                                                                 |
+| Status         | EC-01 through EC-10 complete; production released as `v0.1.0` on 2026-09-04; only the authorized smoke creation outstanding                                                |
+| Last reviewed  | 2026-09-04                                                                                                                                                                 |
 | Scope          | Host event creation in `apps/ui`, including the anonymous wizard and authenticated submission through durable D1 persistence and discoverability                           |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
 | Requirements   | FR-G2, FR-G3, FR-G6, FR-E1, FR-E2, FR-E5, FR-E7, FR-E9; NFR-4, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11, NFR-12                                                                 |
@@ -807,9 +807,16 @@ Outstanding for sign-off:
 
 - ~~Remove `OTP_ECHO` from the staging vars~~ — removed 2026-09-03. The mechanism stays, fenced and
   off by default, because a staged run has to set it again for its window.
-- Production preflight, migration, deployment, the WAF behavioral probe, and one authorized smoke
-  creation. All blocked on the same thing: the apex `founders.coffee` has no DNS record, while
-  `www` resolves and answers `301` into it, and production is bound to the apex as a custom domain.
+- ~~Production preflight, migration, deployment, the WAF behavioral probe, and one authorized smoke
+  creation. All blocked on the same thing: the apex `founders.coffee` has no DNS record.~~ Done on
+  2026-09-04 except the smoke creation. The DNS record was never a blocker: the Workers custom
+  domain creates it on deploy. `v0.1.0` is live, migrations are current through
+  `0016_light_alex_wilder.sql`, and the shared WAF rule was proven live on production — 29 of 30
+  requests in a burst answered `429`. Full evidence in
+  [`deployment-evidence.md`](./deployment-evidence.md).
+- One authorized production smoke creation. It needs the same short Turnstile testing-key window
+  that staging sign-in required, this time against the live login, so it is a deliberate decision
+  rather than a step to take unasked.
 - The staging sign-in challenge remains unautomatable, so any future staged run needs the same
   short, deliberate testing-key window.
 

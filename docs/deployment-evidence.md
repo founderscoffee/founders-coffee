@@ -83,9 +83,80 @@ keys are set, staging sign-in and the waitlist have no bot protection; any futur
 the same deliberate, short window. `OTP_ECHO` was likewise set for the runs and has been removed from
 the committed staging vars.
 
-**Not yet done.** Production preflight, migration, deployment, the WAF behavioral probe, and the
+~~**Not yet done.** Production preflight, migration, deployment, the WAF behavioral probe, and the
 authorized smoke creation are all outstanding, and all of them are blocked on the same thing: the
-apex `founders.coffee` has no resolvable DNS record. `www.founders.coffee` resolves and answers
-`301` to the apex, so it redirects into a hostname that does not exist, and
-`apps/ui/wrangler.jsonc` binds production to the apex as a custom domain. The zone
-`267b77624c4953ba0040541ecc2930ae` is active; the record is missing.
+apex `founders.coffee` has no resolvable DNS record.~~ The DNS record was never a prerequisite —
+see the production section below.
+
+## First production release — v0.1.0, 2026-09-04
+
+Deployed by the pipeline, from `main`, at commit `134cc73`. `Verify` (7m06s) → `Migrate and deploy`
+(1m43s) → `Tag and release` (12s), GitHub Actions run `33852712763`.
+
+| Worker                                   | Version                                |
+| ---------------------------------------- | -------------------------------------- |
+| `founders-coffee-ui-production`          | `87132e77-9b88-4274-b4e2-a4dd510c514b` |
+| `founders-coffee-admin-production`       | `cddc1b0f-1023-4d39-a275-7a743ed82841` |
+| `founders-coffee-dashboard-production`   | `e7cb2bf9-f4b0-49ed-b778-c2923131877c` |
+| `founders-coffee-worker-jobs-production` | `6978aafa-f7d5-4176-85e7-27e1b7a27577` |
+
+Tag `v0.1.0`, release published from 218 conventional commits.
+
+### The DNS record was an output, not a prerequisite
+
+Every earlier note in this file treated the missing apex record as the blocker. It was not.
+`apps/ui/wrangler.jsonc` declares `routes: [{ pattern: "founders.coffee", custom_domain: true }]`,
+and a Workers custom domain **creates its own DNS record** on deploy. The apex held only `MX` and
+`TXT` records, which do not conflict with an `AAAA`, so the deploy provisioned it unattended. Three
+custom domains were created by this run:
+
+| Hostname                | Worker                                 |
+| ----------------------- | -------------------------------------- |
+| `founders.coffee`       | `founders-coffee-ui-production`        |
+| `admin.founders.coffee` | `founders-coffee-admin-production`     |
+| `app.founders.coffee`   | `founders-coffee-dashboard-production` |
+
+All three are the `AAAA … 100:: proxied` shape Cloudflare uses for Worker custom domains, matching
+the three staging hosts.
+
+### Verified after deploy
+
+**Migrations** current through `0016_light_alex_wilder.sql`, the same head as staging. Production D1
+`7685fda1-7bc0-4907-a37a-a77e8daa5ecb` holds `0` events, `0` users and the `3` seeded markets.
+
+**Routes.** `/` answers `307` to `/algeria` (geo-redirect); `/algeria`, `/algeria/host/create`,
+`/login`, `/about`, `/contact`, `/privacy`, `/terms` and `/cookies` all `200`; an unknown event slug
+`404`s. Response times 0.36–0.59s.
+
+**Headers.** `Strict-Transport-Security`, `X-Content-Type-Options`, `Referrer-Policy`,
+`X-Frame-Options`, `Permissions-Policy` all enforced. The CSP is still `report-only`
+(`CSP_ENFORCED` is unset).
+
+**WAF behavioral probe — the rule is live.** The shared zone rate-limit rule
+`d11c283bee39488293e86d519e9c546d` (20 requests / 10s per `ip.src` + `cf.colo.id` on `/_serverFn/`
+and `/api/auth/`) was probed against `/api/auth/get-session`, a read-only endpoint that sends
+nothing:
+
+| Burst                          | Result                    |
+| ------------------------------ | ------------------------- |
+| 26 sequential requests         | 26 × `200`                |
+| 40 parallel requests, 0.72s    | 39 × `200`, 1 × `429`     |
+| 30 parallel, immediately after | 1 × `200`, **29 × `429`** |
+| 30 parallel, after mitigation  | 30 × `200`                |
+
+Sequential requests never trip it — curl's own startup spreads them past the window, which is worth
+knowing before anyone concludes from a slow loop that the rule is off. Under a real burst the
+mitigation engages and then expires on schedule.
+
+**Admin is not exposed.** `admin.founders.coffee` answers `403`
+`{"error":"Missing Cf-Access-Jwt-Assertion"}` — the Worker fails closed without a Cloudflare Access
+JWT, even though Access itself is not yet configured in front of it.
+
+**`app.founders.coffee` is publicly reachable and serves the dashboard shell** (`200`, title
+"founders.coffee · Dashboard"). The dashboard is the future sponsor portal and is explicitly outside
+the current release. Its custom domain was created as a side effect of deploying all four Workers
+together. Removing that route is a one-line change to `apps/dashboard/wrangler.jsonc`.
+
+**Still outstanding.** The one authorized smoke creation. It needs the same short Turnstile
+testing-key window sign-in required on staging, this time against the live login, and that is a
+deliberate decision rather than a step to take unasked.
