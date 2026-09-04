@@ -89,9 +89,10 @@ jobs:
   release:
     name: Tag and release
     needs: [resolve, deploy]
-    # Only a push to main releases. A manual production run is a redeploy of something
-    # already tagged, and tagging it again would claim a version that has no new commits.
-    if: needs.resolve.outputs.environment == 'production' && github.event_name == 'push'
+    # Tags and releases are main-only, stated as the branch rather than inferred from the
+    # resolved environment. A manual production run is a redeploy of something already
+    # tagged, and tagging it again would claim a version that has no new commits.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.resolve.outputs.environment == 'production'
     runs-on: ubuntu-latest
     permissions:
       contents: write
