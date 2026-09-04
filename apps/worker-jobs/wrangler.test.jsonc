@@ -16,8 +16,10 @@
   "queues": {
     "consumers": [
       { "queue": "founders-coffee-notifications" },
+      { "queue": "founders-coffee-notifications-staging" },
       { "queue": "founders-coffee-embeddings-jobs" },
       { "queue": "founders-coffee-reconcile" },
+      { "queue": "not-one-of-ours" },
     ],
   },
 }

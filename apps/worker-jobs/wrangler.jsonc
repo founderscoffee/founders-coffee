@@ -36,6 +36,12 @@
   // instead of billing real Algerian SMS. It is a dynamic alphanumeric sender ID (supported for DZ
   // without pre-registration) and is not a secret — the two credentials are `wrangler secret`s.
   // `*/1 * * * *` drives the scheduled-notification sweep, `0 3 * * *` the payment-backlog reconcile.
+  // Queues are provisioned per environment and named accordingly, because one shared queue would let
+  // a staging message be delivered by production. `src/index.ts` resolves the environment-suffixed
+  // name back to the catalogue name, so the handler routes on one name in every environment. Each
+  // consumer gets the environment's dead-letter queue: a message this Worker cannot route is retried
+  // rather than acked, and after `max_retries` it lands somewhere it can be read instead of vanishing.
+  // The DLQ has no consumer on purpose — it is a place to look, not a place to process.
   "env": {
     "staging": {
       "name": "founders-coffee-worker-jobs-staging",
@@ -61,6 +67,25 @@
         },
       ],
       "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
+      "queues": {
+        "consumers": [
+          {
+            "queue": "founders-coffee-notifications-staging",
+            "max_retries": 5,
+            "dead_letter_queue": "founders-coffee-dlq-staging",
+          },
+          {
+            "queue": "founders-coffee-embeddings-jobs-staging",
+            "max_retries": 5,
+            "dead_letter_queue": "founders-coffee-dlq-staging",
+          },
+          {
+            "queue": "founders-coffee-reconcile-staging",
+            "max_retries": 5,
+            "dead_letter_queue": "founders-coffee-dlq-staging",
+          },
+        ],
+      },
     },
     "production": {
       "name": "founders-coffee-worker-jobs-production",
@@ -86,6 +111,25 @@
         },
       ],
       "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
+      "queues": {
+        "consumers": [
+          {
+            "queue": "founders-coffee-notifications-production",
+            "max_retries": 5,
+            "dead_letter_queue": "founders-coffee-dlq-production",
+          },
+          {
+            "queue": "founders-coffee-embeddings-jobs-production",
+            "max_retries": 5,
+            "dead_letter_queue": "founders-coffee-dlq-production",
+          },
+          {
+            "queue": "founders-coffee-reconcile-production",
+            "max_retries": 5,
+            "dead_letter_queue": "founders-coffee-dlq-production",
+          },
+        ],
+      },
     },
   },
 }

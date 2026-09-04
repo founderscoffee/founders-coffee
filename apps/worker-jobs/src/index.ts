@@ -1,9 +1,9 @@
 import '@founders-coffee/observability/server-init';
-import { ok, type Result } from '@founders-coffee/core';
+import { AppError, err, type Result } from '@founders-coffee/core';
 import type { AiRuntime, VectorizeRuntime } from '@founders-coffee/core/ai';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { createDb } from '@founders-coffee/db';
-import { RESOURCES } from '@founders-coffee/infra';
+import { resolveQueueKind } from '@founders-coffee/infra';
 import {
   DevNotificationSmsProvider,
   FcmPushProvider,
@@ -45,30 +45,43 @@ const createPushProvider = (env: Env): PushProvider | null => {
   return null;
 };
 
-/** Route one queue message to its consumer. Returns `Result` — the handler acks on ok, retries on err. */
+/**
+ * Route one queue message to its consumer. Returns `Result` — the handler acks on ok, retries on err.
+ *
+ * The queue name arrives with its environment appended, because each environment has its own queues,
+ * so it is resolved back to the catalogue name rather than compared to one. A name that resolves to
+ * nothing is a failure and not an acknowledgement: acking a message whose queue this Worker does not
+ * recognise destroys it silently, and the retries then carry it to the dead-letter queue where it can
+ * be looked at.
+ */
 const dispatch = async (
   queue: string,
   body: JobMessage,
   env: Env,
 ): Promise<Result<unknown>> => {
-  const db = createDb(env.DB);
-  const email = createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM);
-  const sms = createSmsProvider(env);
-
-  if (queue === RESOURCES.queues.notifications) {
-    return processNotification(body as NotificationMessage, { email, sms });
+  const kind = resolveQueueKind(queue);
+  if (kind === null) {
+    return err(
+      new AppError('queue_unroutable', `No consumer for queue "${queue}"`),
+    );
   }
-  if (queue === RESOURCES.queues.embeddings) {
+
+  const db = createDb(env.DB);
+
+  if (kind === 'notifications') {
+    return processNotification(body as NotificationMessage, {
+      email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
+      sms: createSmsProvider(env),
+    });
+  }
+  if (kind === 'embeddings') {
     return processEmbeddings(
       env.AI as AiRuntime,
       env.VECTOR as VectorizeRuntime,
       body as EmbeddingsMessage,
     );
   }
-  if (queue === RESOURCES.queues.reconcile) {
-    return runReconcile(db);
-  }
-  return ok(undefined);
+  return runReconcile(db);
 };
 
 export default {

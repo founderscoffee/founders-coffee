@@ -54,9 +54,14 @@ environments.
 | Turnstile       | real widget restricted to `staging.founders.coffee`         | real widget                             | dashboard                           |
 | WAF rate limit  | shared `/api/auth/` + `/_serverFn/` edge-volume rule        | same zone-wide rule                     | dashboard / Rulesets API            |
 
+The Notifications, embeddings and reconcile queues plus a dead-letter queue were created per
+environment on 2026-09-04 and their consumers bound in `apps/worker-jobs/wrangler.jsonc`; see
+[`worker-jobs.md`](./worker-jobs.md) for the names and the routing rule. Nothing produces into them
+yet, so notification delivery is unchanged.
+
 **Declared but not yet verified/provisioned:** R2 (`founders-coffee-images`), KV
-(`founders-coffee-flags`), Notifications Queue + DLQ, and Analytics Engine. Of these, the Queue/DLQ
-and Analytics Engine support the current community release. R2/KV and the existing AI/Vectorize
+(`founders-coffee-flags`), and Analytics Engine. Of these, Analytics Engine
+supports the current community release. R2/KV and the existing AI/Vectorize
 foundation are not launch blockers unless a current community workflow is explicitly enabled that
 requires them. Notifications currently flow through a non-compliant one-minute D1 scan. The
 highest-priority remediation is per-event Durable Object alarms → Notifications Queue, with only a

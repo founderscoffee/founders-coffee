@@ -8,12 +8,12 @@ and nonessential embedding jobs remain future work even where processor foundati
 
 ## Current implementation
 
-| Entry point                     | Current behavior                                                             | Status                                                                                     |
-| ------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `fetch`                         | Returns the worker health response                                           | Complete                                                                                   |
-| scheduled trigger, every minute | Queries D1 for due notifications and delivers them directly                  | Blocked: violates the per-entity scheduling decision                                       |
-| scheduled trigger, daily        | Reconciles pending-order counts and records the backlog metric               | Complete as a recovery/operational job                                                     |
-| `queue` handler                 | Contains processors for notification, embedding, and reconciliation messages | Partial: consumer code exists, but production queue bindings and delivery are not verified |
+| Entry point                     | Current behavior                                                             | Status                                                                                                                  |
+| ------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `fetch`                         | Returns the worker health response                                           | Complete                                                                                                                |
+| scheduled trigger, every minute | Queries D1 for due notifications and delivers them directly                  | Blocked: violates the per-entity scheduling decision                                                                    |
+| scheduled trigger, daily        | Reconciles pending-order counts and records the backlog metric               | Complete as a recovery/operational job                                                                                  |
+| `queue` handler                 | Contains processors for notification, embedding, and reconciliation messages | Partial: consumers are bound in both deployed environments with a dead-letter queue, but nothing produces into them yet |
 
 The minute-by-minute D1 notification scan is temporary operational debt. The persisted notification
 set also currently causes SMS/email work to coexist with push rather than invoking SMS strictly as
@@ -49,12 +49,43 @@ The worker currently recognizes these message families:
 
 Processor logic is kept separate from the thin Cloudflare handler so it can be tested directly. Cloudflare bindings themselves must be exercised through Miniflare or a real environment, never replaced by binding mocks.
 
+## Queue provisioning
+
+Provisioned 2026-09-04. Queues are created per environment rather than shared, because one queue
+across both would let a staging message be delivered by production:
+
+| Catalogue queue                   | Staging                                   | Production                                   |
+| --------------------------------- | ----------------------------------------- | -------------------------------------------- |
+| `founders-coffee-notifications`   | `founders-coffee-notifications-staging`   | `founders-coffee-notifications-production`   |
+| `founders-coffee-embeddings-jobs` | `founders-coffee-embeddings-jobs-staging` | `founders-coffee-embeddings-jobs-production` |
+| `founders-coffee-reconcile`       | `founders-coffee-reconcile-staging`       | `founders-coffee-reconcile-production`       |
+| dead-letter                       | `founders-coffee-dlq-staging`             | `founders-coffee-dlq-production`             |
+
+Each consumer sets `max_retries: 5` and the environment's dead-letter queue. One DLQ per
+environment rather than one per queue: with no DLQ consumer it is a place to look rather than a
+place to process, and three of them would be three places to forget to look.
+
+`batch.queue` therefore arrives with the environment appended, while the handler has to route on one
+name in every environment including Miniflare. `resolveQueueKind` in `libs/infra` resolves the
+deployed name back to the catalogue name, matching the three known forms exactly rather than by
+prefix — `startsWith` would route any queue whose name merely began with one of ours.
+
+A name that resolves to nothing is now a **failure rather than an acknowledgement**. It used to
+return `ok`, which acked and destroyed the message; it now retries and, after `max_retries`, lands in
+the dead-letter queue where it can be read.
+
+**Nothing produces into these queues yet.** The consumer is reachable but unfed, and notification
+delivery still runs on the one-minute D1 sweep. The producer is part of the Durable Object alarm
+migration above, not of this provisioning.
+
 ## Provisioning requirements
 
 Production operation requires:
 
-- producer and consumer bindings for `NOTIFICATIONS` and any other enabled queue;
-- retry limits and a dead-letter queue with an alert/replay runbook;
+- ~~consumer bindings for `NOTIFICATIONS` and any other enabled queue; retry limits and a
+  dead-letter queue~~ — done 2026-09-04, see "Queue provisioning" below. A **producer** binding is
+  still required, and is the substance of the migration above;
+- an alert/replay runbook for the dead-letter queue;
 - notification Durable Object bindings and migrations;
 - D1, email, Firebase, Twilio, and Analytics bindings or credentials for the current community
   channels; Workers AI and Vectorize only if a separately approved current use is enabled;
