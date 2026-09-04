@@ -115,13 +115,7 @@ export const HostCreatePage = ({
       <div className="mx-auto max-w-6xl px-4 pt-8 pb-24 md:pt-12 md:pb-16">
         <HostWizardHeader locale={locale} />
 
-        <div className="mb-8 flex items-center gap-4">
-          <p className="hidden shrink-0 text-body-sm text-neutral sm:block">
-            {host_step_progress(
-              { current: wizard.step, total: 4, label: wizard.stepTitle },
-              { locale },
-            )}
-          </p>
+        <div className="mb-8">
           <Stepper
             current={wizard.step}
             total={4}

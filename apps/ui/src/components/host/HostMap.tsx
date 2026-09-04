@@ -26,7 +26,7 @@ import type {
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 
-const MAP_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
+const MAP_STYLE = 'mapbox://styles/mapbox/standard';
 
 const mapLib = loadMapboxCsp();
 
