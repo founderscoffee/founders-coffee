@@ -1,6 +1,7 @@
 export {
   attachAttendance,
   type EventAttendance,
+  type EventDetailItem,
   type EventWithAttendance,
 } from './attendance.js';
 export {

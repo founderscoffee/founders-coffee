@@ -9,6 +9,11 @@ export interface EventAttendance {
 
 export type EventWithAttendance = Event & EventAttendance;
 
+export type EventDetailItem = EventWithAttendance & {
+  readonly cityName: string;
+  readonly cityNameAr: string;
+};
+
 /**
  * Attach attendance fields to a list of events. No N+1 — uses the denormalized
  * `events.rsvps` counter for `goingCount` and a single batched query for `viewerRsvp`.

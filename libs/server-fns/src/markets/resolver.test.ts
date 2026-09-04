@@ -2,12 +2,9 @@ import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 import {
   createDb,
-  createEvent,
   markets as marketsTable,
   seed,
-  user,
   type Db,
-  type NewUser,
 } from '@founders-coffee/db';
 import { geo } from '@founders-coffee/domain';
 

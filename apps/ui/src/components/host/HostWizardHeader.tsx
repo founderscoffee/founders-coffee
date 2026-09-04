@@ -5,12 +5,12 @@ import {
 } from '@founders-coffee/i18n';
 
 export const HostWizardHeader = ({ locale }: { locale: Locale }) => (
-  <header className="host-fade-up mb-8">
+  <header className="host-fade-up mb-6">
     <div className="min-w-0 max-w-2xl">
-      <h1 className="text-h1 font-bold tracking-tight text-base-content md:text-display">
+      <h1 className="font-display text-h3 font-semibold text-base-content">
         {host_page_title({}, { locale })}
       </h1>
-      <p className="mt-3 text-body-lg text-neutral">
+      <p className="mt-1 text-body-sm text-neutral">
         {host_page_sub({}, { locale })}
       </p>
     </div>

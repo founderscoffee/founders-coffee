@@ -5,7 +5,7 @@ import {
   getEvent,
   getMarket,
   getPublicProfile,
-  type EventWithAttendance,
+  type EventDetailItem,
 } from '@founders-coffee/server-fns';
 import type { Market } from '@founders-coffee/db';
 import type { PublicProfile } from '@founders-coffee/server-fns';
@@ -16,7 +16,7 @@ import { useAuth } from '../lib/app-providers';
 
 type EventDetailLoaderData = {
   market: Market;
-  event: EventWithAttendance;
+  event: EventDetailItem;
   host: PublicProfile;
 };
 
@@ -59,7 +59,7 @@ export const Route = createFileRoute('/$market/e/$slug')({
       });
     }
 
-    let event: EventWithAttendance;
+    let event: EventDetailItem;
     try {
       event = await getEvent({
         data: { marketCode: market.code, slug: params.slug },

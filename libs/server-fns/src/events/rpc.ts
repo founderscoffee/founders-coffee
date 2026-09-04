@@ -2,6 +2,8 @@ import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 import { z } from 'zod';
 
+import { geo } from '@founders-coffee/domain';
+
 import { appValidator, handleResult } from '@founders-coffee/core';
 
 import { requireAuth } from '../authz.js';
@@ -67,7 +69,12 @@ export const getEvent = createServerFn({ strict: false })
     const event = await handleResult(resolveEvent(db, data));
     const session = await resolveSession(getRequest().headers);
     const [enriched] = await attachAttendance(db, [event], session?.user?.id);
-    return enriched;
+    const city = geo.findCity(event.marketCode, event.cityCode);
+    return {
+      ...enriched,
+      cityName: city?.name ?? event.cityCode,
+      cityNameAr: city?.nameAr ?? city?.name ?? event.cityCode,
+    };
   });
 
 /**

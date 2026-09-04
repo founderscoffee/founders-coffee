@@ -100,7 +100,7 @@ export const HostCreatePage = ({
       <h2
         ref={headingRef}
         tabIndex={-1}
-        className="text-h3 font-bold tracking-tight text-base-content outline-none"
+        className="font-display text-h3 font-semibold text-base-content outline-none"
       >
         {wizard.stepTitle}
       </h2>
@@ -115,7 +115,13 @@ export const HostCreatePage = ({
       <div className="mx-auto max-w-6xl px-4 pt-8 pb-24 md:pt-12 md:pb-16">
         <HostWizardHeader locale={locale} />
 
-        <div className="mb-8">
+        <div className="mb-8 flex items-center gap-4">
+          <p className="hidden shrink-0 text-body-sm text-neutral sm:block">
+            {host_step_progress(
+              { current: wizard.step, total: 4, label: wizard.stepTitle },
+              { locale },
+            )}
+          </p>
           <Stepper
             current={wizard.step}
             total={4}
@@ -134,8 +140,8 @@ export const HostCreatePage = ({
         </div>
 
         {wizard.step === 1 ? (
-          <div className="grid items-start gap-6 lg:grid-cols-[1.85fr_1fr]">
-            <section className="host-fade-up rounded-box border border-base-300 bg-base-100 p-6 lg:order-2">
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,27rem)_1fr]">
+            <section className="host-fade-up rounded-box border border-base-300 bg-base-100 p-6">
               {stepHeading}
               <HostVenueStep
                 locale={locale}
@@ -158,7 +164,7 @@ export const HostCreatePage = ({
                 </p>
               )}
             </section>
-            <div className="lg:order-1">
+            <div>
               <HostMapPanel
                 locale={locale}
                 accessToken={mapboxToken}

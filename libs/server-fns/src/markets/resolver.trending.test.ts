@@ -6,7 +6,6 @@ import {
   markets as marketsTable,
   seed,
   user,
-  type Db,
   type NewUser,
 } from '@founders-coffee/db';
 import { geo } from '@founders-coffee/domain';
