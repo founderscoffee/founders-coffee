@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-07 and AR-09 through AR-13 complete; AR-08 partial — both environments now clean under report-only, enforcement not yet switched on                                         |
+| Status         | Active; AR-01 through AR-13 complete. AR-08's CSP is enforced in both environments as of 2026-09-04; `apps/admin` stays report-only until it can be measured                                         |
 | Last reviewed  | 2026-09-04                                                                                                                                                                                           |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
@@ -677,7 +677,7 @@ revisiting when AR-13 lands.
 
 **Parent:** P1-018
 **Requirements:** NFR-4
-**Status:** Partial — headers enforced and script nonces wired 2026-09-03; staging capture taken 2026-09-03 and its one violation (Zod `eval`) fixed 2026-09-04, so staging is clean and ready to enforce; production enforcement still blocked account-side
+**Status:** Complete for `apps/ui` — headers enforced and script nonces wired 2026-09-03, the Zod `eval` fixed 2026-09-04, and the CSP enforced in staging and production the same day. `apps/admin` keeps the report-only policy until it is reachable enough to measure.
 
 Closes F-09 for the header set. The CSP is shipped but not yet enforcing; see the boundary at the
 end of this ticket.
@@ -898,6 +898,30 @@ allowed regardless of its origin. So enforcement does not require turning Web An
 **Both environments are now clean under report-only.** Staging since the `eval` fix, production on
 its first release. `CSP_ENFORCED=true` is a per-environment variable and nothing outside the
 repository has to change first.
+
+### Enforced — 2026-09-04
+
+`CSP_ENFORCED=true` on staging first, verified against the deployed Worker, then production.
+Report-only and enforced are not the same test — report-only reports and still loads the resource,
+enforced actually blocks it — so the staging pass checked that the two things most likely to break
+still work, not merely that nothing was reported:
+
+| Check                                       | Enforced staging                                                                                   |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Violations, 4 routes × 3 locales            | 0                                                                                                  |
+| Mapbox canvas                               | 710×358, 1 map container, 0 console errors                                                         |
+| Self-hosted `mapbox-gl-csp-worker` requests | 2                                                                                                  |
+| `mapbox-gl-rtl-text` requests               | 3 (main thread + both workers)                                                                     |
+| Turnstile                                   | widget iframe mounted, `cf-turnstile-response` present, 13 requests to `challenges.cloudflare.com` |
+
+The map is the one that mattered: `worker-src`, `blob:` and the Mapbox `connect-src` hosts all have
+to hold at once, and a canvas of `0×0` is what a broken policy looks like. `mapbox-gl-rtl-text` is
+loaded _by the workers_, so three requests is also the proof that Arabic label shaping survives
+enforcement.
+
+`apps/admin` reads the same variable and is deliberately left on report-only. It returns `403`
+without an Access JWT, so there is no way to load it and measure it, and enforcing something
+unmeasured is the one thing this ticket keeps saying not to do.
 
 ### AR-09 — Repair the two enforcement mechanisms
 

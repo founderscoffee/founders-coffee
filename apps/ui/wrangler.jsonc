@@ -93,6 +93,7 @@
         "APP_URL": "https://founders.coffee",
         "APP_ENVIRONMENT": "production",
         "MAIL_FROM": "no-reply@founders.coffee",
+        "CSP_ENFORCED": "true",
       },
       "send_email": [{ "name": "EMAIL" }],
       "analytics_engine_datasets": [
