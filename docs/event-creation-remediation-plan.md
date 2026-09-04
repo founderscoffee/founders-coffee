@@ -787,12 +787,38 @@ Fixed by passing the failure through to the step, which now renders the rate-lim
 _search_ already used for the same condition. Covered by a unit test that fails when the reason is
 not passed.
 
-**Known limitation.** In the browser the generic "Venue search is unavailable right now" appears
-rather than the rate-limit wording, because `appErrorCode` finds no `code` on the error: this query
-resolves during SSR and the `AppError` appears to lose its `code` through dehydration. The unit test,
-where the error is a real `AppError`, selects the rate-limit message correctly — which is what
-isolates the loss to the SSR path. Worth confirming and fixing centrally rather than per component,
-since every SSR-resolved query that branches on an error code has the same problem.
+~~**Known limitation.** In the browser the generic "Venue search is unavailable right now" appears
+rather than the rate-limit wording, because `appErrorCode` finds no `code`: this query resolves
+during SSR and the `AppError` appears to lose its `code` through dehydration.~~ **The diagnosis was
+wrong and the defect was much larger** — see below. Fixed 2026-09-04; the wizard now shows the
+rate-limit copy.
+
+### `AppError.code` never reached the client — fixed 2026-09-04
+
+Not dehydration: there is no SSR query integration in this app at all, and the queries run on the
+client. The real cause is that TanStack Start encodes a thrown error with its own
+`ShallowErrorPlugin`, which serializes **only `message`** — deliberately, so an error carrying
+functions (a ZodError) cannot break the response.
+
+So every `AppError` arrived on the client as a bare `Error`. `appErrorCode()` returned `'unknown'`
+**everywhere**, and every branch on a code was dead: `event_full`, `already_rsvpd`, `rate_limited`,
+`validation_failed`. AGENTS.md §7 states the opposite — "the thrown `AppError` is serialized by
+TanStack Start … read the client-side `code` via `appErrorCode()`" — and it had not been true. It
+went unseen because each branch has a fallback, so the UI always showed _an_ error, just never the
+specific one.
+
+Observed on the wire before and after, on the same rate-limited call:
+
+```
+before  {"s":{"message":{"t":1,"s":"Too many map_context requests…"}},"c":"$TSR/Error"}
+after   {"s":{"v":{"k":["code","message"],"v":[{"t":1,"s":"rate_limited"}, …
+```
+
+Fixed with a `serializationAdapter` for `AppError` registered in `apps/ui/src/start.ts`. Start
+prepends user adapters to its defaults, so the `instanceof AppError` test runs before the shallow
+plugin claims the value. `details` is deliberately not carried: it is server-side diagnostic data,
+it is the part most likely to be unserializable, and it is the part most likely to describe
+internals the client has no business seeing.
 
 ### EC-10 release verification — passed 2026-09-03
 

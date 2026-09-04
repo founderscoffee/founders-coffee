@@ -2,6 +2,8 @@ import { createCsrfMiddleware, createStart } from '@tanstack/react-start';
 
 import { requestContextMiddleware } from '@founders-coffee/server-fns/request-context';
 
+import { appErrorSerializationAdapter } from './lib/app-error-adapter';
+
 /**
  * Global middleware for the UI app (P0-012 → P1-017 linchpin). This `src/start.ts` is
  * auto-discovered by the `tanstackStart()` vite plugin — the virtual server-entry `main`
@@ -15,11 +17,15 @@ import { requestContextMiddleware } from '@founders-coffee/server-fns/request-co
  * (`same-origin` only) blocks the very first page load, since browsers send `none` + no
  * `Origin` on those. State-changing server-fns remain protected (POST + Sec-Fetch-Mode).
  *
+ * `serializationAdapters` carries `AppError.code` to the client; without it TanStack's shallow
+ * error plugin keeps only `message` and every `appErrorCode()` branch is dead. See the adapter.
+ *
  * Both `default` and `startInstance` exports are required:
  * - `default` is the legacy TanStack Start export
  * - `startInstance` is the named export expected by `@tanstack/start-client-core`'s hydrateStart
  */
 const app = createStart(() => ({
+  serializationAdapters: [appErrorSerializationAdapter],
   requestMiddleware: [
     createCsrfMiddleware({ secFetchSite: ['none', 'same-origin'] }),
   ],
