@@ -159,4 +159,46 @@ describe('VenueSearch', () => {
     fireEvent.keyDown(searchbox, { key: 'Enter' });
     expect(onVenueSelect).toHaveBeenCalledWith(venue);
   });
+
+  it('drops the highlight in the same render that changes the result set', async () => {
+    const onChange = vi.fn();
+    const onVenueSelect = vi.fn();
+    const props = {
+      locale: 'en' as const,
+      cityName: 'Algiers',
+      cityCode: '1',
+      marketCode: 'DZ',
+      onChange,
+      onVenueSelect,
+    };
+    const view = render(<VenueSearch {...props} value="" />);
+    const searchbox = screen.getByRole('combobox', {
+      name: 'Search cafés and coworking venues',
+    });
+    fireEvent.focus(searchbox);
+    fireEvent.change(searchbox, { target: { value: 'cafe' } });
+    view.rerender(<VenueSearch {...props} value="cafe" />);
+    await screen.findByRole('option', { name: /Founders Café/ });
+    fireEvent.keyDown(searchbox, { key: 'ArrowDown' });
+    expect(searchbox.getAttribute('aria-activedescendant')).toBe(
+      'venue-search-option-0',
+    );
+
+    venueSearchMocks.useVenueSearch.mockReturnValue({
+      data: [
+        venue,
+        { ...venue, providerId: 'poi-second', name: 'Second Café' },
+      ],
+      error: null,
+      isError: false,
+      isFetching: false,
+      refetch: venueSearchMocks.refetch,
+    });
+    view.rerender(<VenueSearch {...props} value="cafe" />);
+
+    expect(
+      await screen.findByRole('option', { name: /Second Café/ }),
+    ).toBeTruthy();
+    expect(searchbox.getAttribute('aria-activedescendant')).toBeNull();
+  });
 });

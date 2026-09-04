@@ -68,9 +68,12 @@ export const VenueSearch = ({
         ? host_venue_rate_limited({}, { locale })
         : host_venue_search_error({}, { locale });
 
-  useEffect(() => {
+  const resultsKey = `${query}:${results.length}`;
+  const [highlightedFor, setHighlightedFor] = useState(resultsKey);
+  if (highlightedFor !== resultsKey) {
+    setHighlightedFor(resultsKey);
     setActiveIndex(-1);
-  }, [query, results.length]);
+  }
 
   const chooseVenue = (venue: VenueSelection) => {
     setIsOpen(false);
