@@ -21,7 +21,7 @@ export const LegalNotice = ({ locale, className = '' }: LegalNoticeProps) => {
 
   return (
     <p
-      className={`text-center text-xs leading-5 text-base-content/50 ${className}`.trim()}
+      className={`text-center text-caption leading-5 text-neutral ${className}`.trim()}
     >
       {parts.map((part, i) => {
         if (part === '<<PRIVACY>>') {
@@ -29,7 +29,7 @@ export const LegalNotice = ({ locale, className = '' }: LegalNoticeProps) => {
             <Link
               key={`privacy-${i}`}
               to="/privacy"
-              className="font-medium text-base-content/70 underline underline-offset-2 hover:text-primary"
+              className="font-medium text-neutral underline underline-offset-2 hover:text-primary"
             >
               {footer_privacy({}, { locale })}
             </Link>
@@ -40,7 +40,7 @@ export const LegalNotice = ({ locale, className = '' }: LegalNoticeProps) => {
             <Link
               key={`terms-${i}`}
               to="/terms"
-              className="font-medium text-base-content/70 underline underline-offset-2 hover:text-primary"
+              className="font-medium text-neutral underline underline-offset-2 hover:text-primary"
             >
               {footer_terms({}, { locale })}
             </Link>

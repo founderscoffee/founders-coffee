@@ -36,15 +36,13 @@ export const ScheduleSummary = ({
           aria-hidden="true"
         />
         <div className="min-w-0">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-base-content/50">
-            {label}
-          </h3>
-          <p className="mt-1 text-sm font-semibold text-base-content">
+          <h3 className="eyebrow">{label}</h3>
+          <p className="mt-1 text-body-sm font-semibold text-base-content">
             <time dateTime={new Date(startsAt).toISOString()}>{start}</time>
             <span aria-hidden="true"> – </span>
             <time dateTime={new Date(endsAt).toISOString()}>{end}</time>
           </p>
-          <p className="mt-1 text-xs text-base-content/50">{timeZone}</p>
+          <p className="mt-1 text-caption text-neutral">{timeZone}</p>
         </div>
       </div>
     </section>

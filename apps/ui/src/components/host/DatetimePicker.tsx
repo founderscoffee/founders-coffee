@@ -120,7 +120,7 @@ export const DatetimePicker = ({
 
   const timeControl = (
     <label className="form-control shrink-0">
-      <span className="mb-1 block text-sm text-base-content/70">
+      <span className="mb-1 block text-body-sm text-neutral">
         {host_time({}, { locale })}
       </span>
       <TimePicker
@@ -157,7 +157,7 @@ export const DatetimePicker = ({
     return (
       <div className="flex flex-col gap-3">
         {timeControl}
-        <div className="flex min-h-80 flex-col rounded-[1.25rem] border border-base-300/60 bg-base-100/70 p-5 md:p-6">
+        <div className="flex min-h-80 flex-col rounded-[1.25rem] border border-base-300 bg-base-100/70 p-5 md:p-6">
           {calendar}
         </div>
       </div>

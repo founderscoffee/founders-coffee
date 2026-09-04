@@ -167,10 +167,18 @@ Going state is a success chip carrying **both** an icon and text. Failures rende
 - **Copy** → `libs/i18n/messages/{en,fr,ar}.json`. Never hardcode a user-facing string.
 - **Design reference** → [`docs/psy.md`](./psy.md) (progressive disclosure, casual copy).
 
-## 7. Not yet migrated
+## 7. Migration status
 
-Stages 1–3 covered the handoff's change list. These surfaces still use the pre-token
-`text-base-content/NN` opacity ramp and pre-token type sizes, and read subtly off-theme:
-`HostDetailsStep`, `HostConfirmationStep`, `HostVenueStep`, `CompanyPage`, `ProfilePage`,
-`OnboardingPage`, `HeroCitySearch`, `CitySearchCombobox`. Migrate them to `text-neutral` /
-`text-taupe` and the type scale before treating the redesign as finished.
+Complete as of 2026-09-04. `apps/ui` carries **zero** uses of the `text-base-content/NN` opacity
+ramp, zero `font-extrabold`/`font-black`, zero physical-direction spacing classes, and one raw hex
+— the `theme-color` meta tag. Colours are `base-content` / `neutral` / `taupe` and type comes from
+the scale.
+
+The list that used to sit here named eight surfaces. It was wrong: it was built from a grep for the
+opacity ramp, so it missed every file that was off-theme through type sizes and weights alone
+(`PushPermissionPrompt`, `HostWizardHeader`, `ScheduleSummary`, `PublicProfilePage`). If you need
+this list again, grep for all three signals, not one.
+
+Two components were worse than off-theme: `PushPermissionPrompt` and `LiveDashboard` used **no
+i18n at all** and rendered hardcoded English to every reader, in an Arabic-first product. Some of
+the keys they needed already existed, already translated, and were referenced by nothing.

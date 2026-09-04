@@ -281,5 +281,20 @@
   "cancel_title": "تحرير كرسيك؟",
   "cancel_body": "{host} يعتمد على طاولة مكتملة. إذا تغيّرت خططك، فتحرير الكرسي يتيح لغيرك الجلوس.",
   "keep_chair": "أبقِ كرسيي",
-  "free_chair": "حرّر كرسيي"
+  "free_chair": "حرّر كرسيي",
+  "live_title": "مباشر",
+  "live_connected": "مباشر",
+  "live_host_here": "المضيف هنا",
+  "live_table_n": "طاولة {n}",
+  "live_in_the_room": "في المكان ({arrived}/{total})",
+  "live_host_actions": "إجراءات المضيف",
+  "live_your_status": "حالتك",
+  "live_arrived_cta": "لقد وصلت",
+  "live_table_ph": "رقم الطاولة (اختياري)",
+  "live_cue_ph": "علامة مميزة — مثلاً قبعة خضراء",
+  "live_new_table_ph": "رقم طاولة جديد",
+  "live_status_connected": "متصل",
+  "live_eta_ph": "الوصول خلال (دقائق)",
+  "live_confirm": "تأكيد",
+  "live_cancel": "إلغاء"
 }

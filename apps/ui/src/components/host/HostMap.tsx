@@ -58,7 +58,7 @@ const locateVisitor = (): Promise<Coordinates | null> =>
   });
 
 const CONTROL_CLASS =
-  'flex h-11 w-11 items-center justify-center rounded-xl border border-base-300/60 bg-base-100/85 text-base-content shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-primary/40';
+  'flex h-11 w-11 items-center justify-center rounded-xl border border-base-300 bg-base-100/85 text-base-content shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-primary/40';
 
 export const HostMap = ({
   accessToken,
@@ -129,7 +129,7 @@ export const HostMap = ({
   if (hasMapError) {
     return (
       <div className="flex min-h-80 w-full flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center md:min-h-96">
-        <p className="text-sm text-error" role="alert">
+        <p className="text-body-sm text-error" role="alert">
           {host_map_error({}, { locale })}
         </p>
         <button
@@ -149,7 +149,7 @@ export const HostMap = ({
 
   return (
     <div
-      className="relative h-[clamp(20rem,50vh,30rem)] w-full overflow-hidden rounded-2xl border border-base-300 shadow-xl shadow-base-content/5"
+      className="relative h-[clamp(20rem,50vh,30rem)] w-full overflow-hidden rounded-box border border-base-300 shadow-[var(--shadow-2)]"
       aria-label={host_map_label({}, { locale })}
     >
       <Map
@@ -196,7 +196,7 @@ export const HostMap = ({
             }}
           >
             <div className="host-pin">
-              <div className="host-pin-pulse flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-primary text-base shadow-xl"></div>
+              <div className="host-pin-pulse flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-primary text-body shadow-xl"></div>
             </div>
           </Marker>
         )}
@@ -240,7 +240,7 @@ export const HostMap = ({
 
       {reverseVenue.isPending && (
         <p
-          className="absolute inset-x-3 top-3 me-14 rounded-xl bg-base-100/90 p-3 text-sm shadow-lg backdrop-blur-md"
+          className="absolute inset-x-3 top-3 me-14 rounded-xl bg-base-100/90 p-3 text-body-sm shadow-lg backdrop-blur-md"
           role="status"
         >
           <span className="loading loading-spinner loading-xs me-2" />
@@ -253,7 +253,7 @@ export const HostMap = ({
           className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-error/30 bg-base-100/95 p-3 shadow-lg"
           role="alert"
         >
-          <span className="text-sm text-error">{locationError}</span>
+          <span className="text-body-sm text-error">{locationError}</span>
           {lastCoordinates && (
             <button
               type="button"
@@ -268,14 +268,14 @@ export const HostMap = ({
 
       {venue && !locationError && !reverseVenue.isPending && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 md:start-4 md:end-auto md:max-w-xs">
-          <div className="rounded-2xl border border-base-300/60 bg-base-100/85 p-3 shadow-xl backdrop-blur-md">
-            <p className="text-xs font-medium text-base-content/50">
+          <div className="rounded-2xl border border-base-300 bg-base-100/85 p-3 shadow-xl backdrop-blur-md">
+            <p className="text-caption font-medium text-neutral">
               {host_selected_location({}, { locale })}
             </p>
-            <p className="mt-0.5 line-clamp-1 text-sm font-bold text-base-content">
+            <p className="mt-0.5 line-clamp-1 text-body-sm font-bold text-base-content">
               {venue.name}
             </p>
-            <p className="line-clamp-1 text-xs text-base-content/60">
+            <p className="line-clamp-1 text-caption text-neutral">
               {venue.address}
             </p>
           </div>

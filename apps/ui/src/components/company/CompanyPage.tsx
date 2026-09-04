@@ -64,20 +64,20 @@ export const CompanyPage = ({
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 md:py-16">
       <header className="mb-10 border-b border-base-300/80 pb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-primary md:text-4xl">
+        <h1 className="font-display text-h2 font-semibold text-balance md:text-h1">
           {content.title}
         </h1>
-        <p className="mt-3 max-w-2xl text-lg leading-8 text-base-content/70">
+        <p className="mt-3 max-w-2xl text-body-lg leading-8 text-neutral">
           {content.description}
         </p>
-        <p className="mt-4 text-sm text-base-content/40">
+        <p className="mt-4 text-body-sm text-neutral">
           {page_last_updated({ date: content.updated }, { locale })}
         </p>
 
         {showLegalDraftNotice ? (
           <p
             role="note"
-            className="mt-4 rounded-xl border border-base-300/80 bg-base-200/60 px-4 py-3 text-sm leading-6 text-base-content/60"
+            className="mt-4 rounded-xl border border-base-300/80 bg-base-200/60 px-4 py-3 text-body-sm leading-6 text-neutral"
           >
             {page_legal_draft_notice(
               { date: content.updated, email: CONTACT_EMAIL },
@@ -118,19 +118,15 @@ export const CompanyPage = ({
           aria-label={page_on_this_page({}, { locale })}
           className="mb-10 rounded-2xl border border-base-300/80 bg-base-200/50 p-5"
         >
-          <p className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-base-content/45">
-            {page_on_this_page({}, { locale })}
-          </p>
+          <p className="eyebrow">{page_on_this_page({}, { locale })}</p>
           <ol className="mt-3 grid gap-2 sm:grid-cols-2">
             {sections.map((section, index) => (
               <li key={section.id}>
                 <a
                   href={`#${section.id}`}
-                  className="text-[0.9375rem] leading-6 text-base-content/70 transition-colors hover:text-primary"
+                  className="text-body-sm leading-6 text-neutral transition-colors hover:text-primary"
                 >
-                  <span className="me-2 text-base-content/35">
-                    {index + 1}.
-                  </span>
+                  <span className="me-2 text-taupe">{index + 1}.</span>
                   {section.heading}
                 </a>
               </li>
@@ -142,14 +138,14 @@ export const CompanyPage = ({
       <div className="space-y-12">
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="scroll-mt-24">
-            <h2 className="text-xl font-bold tracking-tight text-base-content md:text-2xl">
+            <h2 className="font-display text-h4 font-semibold text-base-content md:text-h3">
               {section.heading}
             </h2>
             <div className="mt-4 space-y-4">
               {section.paragraphs.map((paragraph) => (
                 <p
                   key={`${section.id}-${paragraph.slice(0, 40)}`}
-                  className="text-[1.0125rem] leading-8 text-base-content/75"
+                  className="text-body leading-8 text-neutral"
                 >
                   {paragraph}
                 </p>
@@ -162,7 +158,7 @@ export const CompanyPage = ({
       {related.length > 0 ? (
         <nav
           aria-label="Related"
-          className="mt-14 flex flex-wrap gap-x-5 gap-y-2 border-t border-base-300/80 pt-6 text-sm text-base-content/50"
+          className="mt-14 flex flex-wrap gap-x-5 gap-y-2 border-t border-base-300/80 pt-6 text-body-sm text-neutral"
         >
           {related.includes('privacy') ? (
             <Link to="/privacy" className="hover:text-primary">

@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 
+import {
+  push_prompt_accept,
+  push_prompt_body,
+  push_prompt_decline,
+  push_prompt_title,
+  type Locale,
+} from '@founders-coffee/i18n';
+
 export interface PushPermissionPromptProps {
+  locale: Locale;
   onAccept: () => void;
   onDecline: () => void;
 }
@@ -24,6 +33,7 @@ const markDismissed = (): void => {
 };
 
 export const PushPermissionPrompt = ({
+  locale,
   onAccept,
   onDecline,
 }: PushPermissionPromptProps) => {
@@ -55,24 +65,34 @@ export const PushPermissionPrompt = ({
 
   return (
     <dialog className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="text-lg font-bold">never miss a seat.</h3>
-        <p className="py-4 text-sm opacity-70">
-          We only use notifications to let you know when the host arrives, what
-          table they are at, or if an event changes location. No marketing spam,
-          ever.
+      <div className="modal-box max-w-sm rounded-box border border-base-300 bg-base-100">
+        <h2 className="font-display text-h4 font-semibold">
+          {push_prompt_title({}, { locale })}
+        </h2>
+        <p className="py-4 text-body-sm leading-relaxed text-neutral">
+          {push_prompt_body({}, { locale })}
         </p>
         <div className="modal-action">
-          <button className="btn btn-primary btn-sm" onClick={handleAccept}>
-            Keep me updated
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={handleDecline}
+          >
+            {push_prompt_decline({}, { locale })}
           </button>
-          <button className="btn btn-ghost btn-sm" onClick={handleDecline}>
-            Not now, stick to SMS
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={handleAccept}
+          >
+            {push_prompt_accept({}, { locale })}
           </button>
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button onClick={handleDecline}>close</button>
+        <button type="submit" onClick={handleDecline}>
+          {push_prompt_decline({}, { locale })}
+        </button>
       </form>
     </dialog>
   );

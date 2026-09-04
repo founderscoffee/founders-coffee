@@ -1,61 +1,46 @@
 import { useState } from 'react';
 
 import {
-  useEventLive,
-  type RosterUser,
-  type ConnectionState,
-} from '../useEventLive';
+  live_arrived_cta,
+  live_at_venue,
+  live_cancel,
+  live_confirm,
+  live_connected,
+  live_cue_ph,
+  live_eta_minutes,
+  live_eta_ph,
+  live_host_actions,
+  live_host_here,
+  live_in_the_room,
+  live_new_table_ph,
+  live_no_attendees,
+  live_not_arrived,
+  live_running_late,
+  live_table_n,
+  live_table_ph,
+  live_title,
+  live_update_table,
+  live_walking_in,
+  live_your_status,
+  role_host,
+  type Locale,
+} from '@founders-coffee/i18n';
+
+import { useEventLive } from '../useEventLive';
+import { connectionBadge, statusColor, statusLabel } from './live-badges';
 
 export interface LiveDashboardProps {
   eventId: string;
   currentUserId: string;
   isHost: boolean;
+  locale: Locale;
 }
-
-const statusLabel = (status: RosterUser['status']): string => {
-  switch (status) {
-    case 'arrived':
-      return 'At the venue';
-    case 'walking_in':
-      return 'Walking in';
-    case 'running_late':
-      return 'Running late';
-    case 'connected':
-      return 'Connected';
-  }
-};
-
-const statusColor = (status: RosterUser['status']): string => {
-  switch (status) {
-    case 'arrived':
-      return 'badge-success';
-    case 'walking_in':
-      return 'badge-warning';
-    case 'running_late':
-      return 'badge-error';
-    case 'connected':
-      return 'badge-ghost';
-  }
-};
-
-const connectionBadge = (state: ConnectionState): string => {
-  switch (state) {
-    case 'connected':
-      return 'badge-success';
-    case 'connecting':
-    case 'authenticating':
-      return 'badge-warning';
-    case 'disconnected':
-      return 'badge-ghost';
-    case 'error':
-      return 'badge-error';
-  }
-};
 
 export const LiveDashboard = ({
   eventId,
   currentUserId,
   isHost,
+  locale,
 }: LiveDashboardProps) => {
   const {
     roster,
@@ -97,15 +82,21 @@ export const LiveDashboard = ({
     <div className="card bg-base-100 shadow-md">
       <div className="card-body gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="card-title text-lg">Live Dashboard</h2>
+          <h2 className="card-title font-display text-body-lg font-semibold">
+            {live_title({}, { locale })}
+          </h2>
           <div className="flex items-center gap-2">
             <span
               className={`badge badge-sm ${connectionBadge(connectionState)}`}
             >
-              {connectionState === 'connected' ? 'LIVE' : connectionState}
+              {connectionState === 'connected'
+                ? live_connected({}, { locale })
+                : connectionState}
             </span>
             {host?.arrived && (
-              <span className="badge badge-success badge-sm">Host here</span>
+              <span className="badge badge-success badge-sm">
+                {live_host_here({}, { locale })}
+              </span>
             )}
           </div>
         </div>
@@ -118,25 +109,34 @@ export const LiveDashboard = ({
 
         {host && (
           <div className="rounded-box bg-base-200 p-3">
-            <p className="text-sm font-medium opacity-70">Host</p>
+            <p className="text-body-sm font-medium text-neutral">
+              {role_host({}, { locale })}
+            </p>
             {host.arrived ? (
               <div className="mt-1">
                 <p className="font-semibold">
-                  {host.visualCue ?? 'At the venue'}
+                  {host.visualCue ?? live_at_venue({}, { locale })}
                 </p>
                 {host.tableNumber && (
-                  <p className="text-sm opacity-70">Table {host.tableNumber}</p>
+                  <p className="text-body-sm text-neutral">
+                    {live_table_n({ n: host.tableNumber }, { locale })}
+                  </p>
                 )}
               </div>
             ) : (
-              <p className="mt-1 text-sm opacity-50">Not yet arrived</p>
+              <p className="mt-1 text-body-sm text-neutral">
+                {live_not_arrived({}, { locale })}
+              </p>
             )}
           </div>
         )}
 
         <div>
-          <p className="text-sm font-medium opacity-70">
-            In the Room ({arrivedCount}/{totalCount})
+          <p className="text-body-sm font-medium text-neutral">
+            {live_in_the_room(
+              { arrived: arrivedCount, total: totalCount },
+              { locale },
+            )}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {roster.map((user) => (
@@ -149,20 +149,24 @@ export const LiveDashboard = ({
                 {user.name}
                 {user.status !== 'connected' && (
                   <span className="ms-1 text-xs">
-                    {statusLabel(user.status)}
-                    {user.etaMinutes && ` (${user.etaMinutes}m)`}
+                    {statusLabel(user.status, locale)}
+                    {user.etaMinutes
+                      ? ` (${live_eta_minutes({ n: user.etaMinutes }, { locale })})`
+                      : null}
                   </span>
                 )}
               </div>
             ))}
             {roster.length === 0 && (
-              <p className="text-sm opacity-50">No attendees connected yet</p>
+              <p className="text-body-sm text-neutral">
+                {live_no_attendees({}, { locale })}
+              </p>
             )}
           </div>
         </div>
 
         {isHost && !host?.arrived && (
-          <div className="divider">Host Actions</div>
+          <div className="divider">{live_host_actions({}, { locale })}</div>
         )}
 
         {isHost && !host?.arrived && !showArrivedForm && (
@@ -170,7 +174,7 @@ export const LiveDashboard = ({
             className="btn btn-primary btn-block"
             onClick={() => setShowArrivedForm(true)}
           >
-            I've Arrived
+            {live_arrived_cta({}, { locale })}
           </button>
         )}
 
@@ -179,14 +183,14 @@ export const LiveDashboard = ({
             <input
               type="number"
               className="input input-bordered input-sm"
-              placeholder="Table number (optional)"
+              placeholder={live_table_ph({}, { locale })}
               value={tableNumber}
               onChange={(e) => setTableNumber(e.target.value)}
             />
             <input
               type="text"
               className="input input-bordered input-sm"
-              placeholder="Visual cue - e.g. wearing a green cap"
+              placeholder={live_cue_ph({}, { locale })}
               value={visualCue}
               onChange={(e) => setVisualCue(e.target.value)}
             />
@@ -195,13 +199,13 @@ export const LiveDashboard = ({
                 className="btn btn-primary btn-sm"
                 onClick={handleArrived}
               >
-                Confirm
+                {live_confirm({}, { locale })}
               </button>
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={() => setShowArrivedForm(false)}
               >
-                Cancel
+                {live_cancel({}, { locale })}
               </button>
             </div>
           </div>
@@ -212,7 +216,7 @@ export const LiveDashboard = ({
             <input
               type="number"
               className="input input-bordered input-sm flex-1"
-              placeholder="New table number"
+              placeholder={live_new_table_ph({}, { locale })}
               value={tableNumber}
               onChange={(e) => setTableNumber(e.target.value)}
             />
@@ -221,27 +225,27 @@ export const LiveDashboard = ({
               disabled={!tableNumber}
               onClick={() => sendTablePin(parseInt(tableNumber, 10))}
             >
-              Update Table
+              {live_update_table({}, { locale })}
             </button>
           </div>
         )}
 
         {!isHost && (
           <>
-            <div className="divider">Your Status</div>
+            <div className="divider">{live_your_status({}, { locale })}</div>
             <div className="flex gap-2">
               <button
                 className="btn btn-success btn-sm"
                 onClick={sendWalkingIn}
               >
-                Walking In
+                {live_walking_in({}, { locale })}
               </button>
               {!showRunningLate && (
                 <button
                   className="btn btn-error btn-outline btn-sm"
                   onClick={() => setShowRunningLate(true)}
                 >
-                  Running Late
+                  {live_running_late({}, { locale })}
                 </button>
               )}
             </div>
@@ -250,7 +254,7 @@ export const LiveDashboard = ({
                 <input
                   type="number"
                   className="input input-bordered input-sm flex-1"
-                  placeholder="ETA in minutes"
+                  placeholder={live_eta_ph({}, { locale })}
                   value={runningLateEta}
                   onChange={(e) => setRunningLateEta(e.target.value)}
                 />
@@ -258,13 +262,13 @@ export const LiveDashboard = ({
                   className="btn btn-error btn-sm"
                   onClick={handleRunningLate}
                 >
-                  Confirm
+                  {live_confirm({}, { locale })}
                 </button>
                 <button
                   className="btn btn-ghost btn-sm"
                   onClick={() => setShowRunningLate(false)}
                 >
-                  Cancel
+                  {live_cancel({}, { locale })}
                 </button>
               </div>
             )}

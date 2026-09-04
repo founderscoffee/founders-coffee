@@ -77,7 +77,7 @@ export const HostCreatePage = ({
     wizard.venue ? (
       <span key="location" className={pillClass}>
         <MapPin className="size-3.5 shrink-0 text-primary" />
-        <span className="truncate text-xs font-semibold text-base-content">
+        <span className="truncate text-caption font-semibold text-base-content">
           {wizard.venueName || wizard.venue.name}
         </span>
       </span>
@@ -85,7 +85,7 @@ export const HostCreatePage = ({
     wizard.hasValidTimeRange ? (
       <span key="time" className={pillClass}>
         <CalendarClock className="size-3.5 shrink-0 text-primary" />
-        <span className="truncate text-xs font-semibold text-base-content">
+        <span className="truncate text-caption font-semibold text-base-content">
           {wizard.whenLabel}
         </span>
         <span className="shrink-0 rounded-full bg-primary/10 px-1.5 text-[10px] font-bold text-primary">
@@ -100,12 +100,12 @@ export const HostCreatePage = ({
       <h2
         ref={headingRef}
         tabIndex={-1}
-        className="text-2xl font-bold tracking-tight text-base-content outline-none"
+        className="text-h3 font-bold tracking-tight text-base-content outline-none"
       >
         {wizard.stepTitle}
       </h2>
       {wizard.stepSub && (
-        <p className="mt-1 text-base text-base-content/60">{wizard.stepSub}</p>
+        <p className="mt-1 text-body text-neutral">{wizard.stepSub}</p>
       )}
     </div>
   );
@@ -135,7 +135,7 @@ export const HostCreatePage = ({
 
         {wizard.step === 1 ? (
           <div className="grid items-start gap-6 lg:grid-cols-[1.85fr_1fr]">
-            <section className="host-fade-up rounded-2xl border border-base-300/60 bg-base-100/80 p-6 shadow-xl shadow-base-content/5 backdrop-blur-md lg:order-2">
+            <section className="host-fade-up rounded-box border border-base-300 bg-base-100 p-6 lg:order-2">
               {stepHeading}
               <HostVenueStep
                 locale={locale}
@@ -153,7 +153,7 @@ export const HostCreatePage = ({
                 onVenueSelect={wizard.selectVenue}
               />
               {wizard.fieldErrors.venue && (
-                <p className="mt-3 text-sm text-error" role="alert">
+                <p className="mt-3 text-body-sm text-error" role="alert">
                   {wizard.fieldErrors.venue}
                 </p>
               )}
@@ -174,7 +174,7 @@ export const HostCreatePage = ({
             </div>
           </div>
         ) : (
-          <section className="host-fade-up mx-auto max-w-3xl rounded-2xl border border-base-300/60 bg-base-100/80 p-5 shadow-xl shadow-base-content/5 backdrop-blur-md md:p-7">
+          <section className="host-fade-up mx-auto max-w-3xl rounded-box border border-base-300 bg-base-100 p-5 md:p-7">
             {stepHeading}
             {wizard.step === 2 && (
               <div>
@@ -188,7 +188,7 @@ export const HostCreatePage = ({
                   timePlacement="top"
                 />
                 {wizard.fieldErrors.schedule && (
-                  <p className="mt-3 text-sm text-error" role="alert">
+                  <p className="mt-3 text-body-sm text-error" role="alert">
                     {wizard.fieldErrors.schedule}
                   </p>
                 )}

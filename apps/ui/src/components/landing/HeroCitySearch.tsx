@@ -85,7 +85,7 @@ export const HeroCitySearch = ({
   return (
     <div className={`relative flex items-center ${className ?? ''}`}>
       <span
-        className="pointer-events-none absolute start-4 text-base-content/40"
+        className="pointer-events-none absolute start-4 text-taupe"
         aria-hidden="true"
       >
         📍
@@ -122,7 +122,7 @@ export const HeroCitySearch = ({
       />
       {isFetching && query && (
         <span
-          className="loading loading-spinner loading-xs absolute end-3 top-1/2 -translate-y-1/2 text-base-content/40"
+          className="loading loading-spinner loading-xs absolute end-3 top-1/2 -translate-y-1/2 text-taupe"
           aria-hidden="true"
         />
       )}
@@ -131,7 +131,7 @@ export const HeroCitySearch = ({
           type="button"
           onClick={clear}
           aria-label="Clear selection"
-          className="absolute end-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-base-content/40 hover:bg-base-200 hover:text-base-content"
+          className="absolute end-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-taupe hover:bg-base-200 hover:text-base-content"
         >
           ✕
         </button>
@@ -148,7 +148,7 @@ export const HeroCitySearch = ({
         >
           {showNoMatch ? (
             <li
-              className="px-4 py-2.5 text-sm text-base-content/50"
+              className="px-4 py-2.5 text-body-sm text-neutral"
               role="status"
               aria-live="polite"
             >
@@ -171,7 +171,7 @@ export const HeroCitySearch = ({
                 >
                   <button
                     type="button"
-                    className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-sm ${
+                    className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-body-sm ${
                       i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
                     }`}
                     tabIndex={-1}
@@ -181,7 +181,7 @@ export const HeroCitySearch = ({
                     }}
                   >
                     <span>{locale === 'ar' ? r.city.nameAr : r.city.name}</span>
-                    <span className="text-xs text-base-content/40">
+                    <span className="text-caption text-neutral">
                       {locale === 'ar' ? r.state.nameAr : r.state.name}
                     </span>
                   </button>

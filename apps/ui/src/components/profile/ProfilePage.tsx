@@ -70,13 +70,13 @@ export const ProfilePage = ({
           <div className="flex items-center gap-4">
             <div className="avatar avatar-placeholder">
               <div className="w-16 rounded-full bg-neutral text-neutral-content">
-                <span className="text-xl font-bold">
+                <span className="text-h4 font-bold">
                   {initials(profile.name)}
                 </span>
               </div>
             </div>
             <div>
-              <h1 className="text-xl font-bold">{profile.name}</h1>
+              <h1 className="text-h4 font-bold">{profile.name}</h1>
               <span className="badge badge-sm badge-outline mt-1 gap-1">
                 {roleMsg({ locale }) === 'role_member'
                   ? role_member({}, { locale })
@@ -90,9 +90,7 @@ export const ProfilePage = ({
           <div className="divider" />
 
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-base-content/40">
-              {profile_home_location({}, { locale })}
-            </h2>
+            <h2 className="eyebrow">{profile_home_location({}, { locale })}</h2>
             {!editing && (
               <button
                 type="button"
@@ -105,15 +103,13 @@ export const ProfilePage = ({
           </div>
 
           {!editing ? (
-            <div className="space-y-1 text-sm">
-              <p className="text-base-content/70">
+            <div className="space-y-1 text-body-sm">
+              <p className="text-neutral">
                 {profile.homeCityNameAr && locale === 'ar'
                   ? profile.homeCityNameAr
                   : (profile.homeCityName ?? '-')}
               </p>
-              <p className="text-base-content/50">
-                {profile.homeStateName ?? '-'}
-              </p>
+              <p className="text-neutral">{profile.homeStateName ?? '-'}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -180,7 +176,7 @@ export const ProfilePage = ({
           )}
 
           <div className="divider" />
-          <div className="text-sm text-base-content/60">{profile.email}</div>
+          <div className="text-body-sm text-neutral">{profile.email}</div>
         </div>
       </div>
     </div>

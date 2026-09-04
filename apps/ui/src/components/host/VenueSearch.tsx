@@ -96,7 +96,7 @@ export const VenueSearch = ({
         id="venue-search"
         maxLength={VENUE_SEARCH_MAX_LENGTH}
         type="search"
-        className="input input-bordered h-14 w-full rounded-xl bg-base-100 text-base"
+        className="input input-bordered h-14 w-full rounded-xl bg-base-100 text-body"
         placeholder={host_venue_search_ph({ city: cityName }, { locale })}
         value={value}
         disabled={isDisabled}
@@ -146,7 +146,10 @@ export const VenueSearch = ({
           className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-xl"
         >
           {search.isFetching ? (
-            <p className="flex items-center gap-2 p-4 text-sm" role="status">
+            <p
+              className="flex items-center gap-2 p-4 text-body-sm"
+              role="status"
+            >
               <span className="loading loading-spinner loading-sm" />
               {host_venue_search_loading({}, { locale })}
             </p>
@@ -155,7 +158,7 @@ export const VenueSearch = ({
               className="flex items-center justify-between gap-3 p-4"
               role="alert"
             >
-              <span className="text-sm text-error">{errorMessage}</span>
+              <span className="text-body-sm text-error">{errorMessage}</span>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
@@ -166,7 +169,7 @@ export const VenueSearch = ({
               </button>
             </div>
           ) : results.length === 0 ? (
-            <p className="p-4 text-sm text-base-content/60" role="status">
+            <p className="p-4 text-body-sm text-neutral" role="status">
               {host_venue_no_results({}, { locale })}
             </p>
           ) : (
@@ -190,10 +193,10 @@ export const VenueSearch = ({
                       aria-hidden="true"
                     />
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold">
+                      <span className="block truncate text-body-sm font-semibold">
                         {venue.name}
                       </span>
-                      <span className="block truncate text-xs text-base-content/60">
+                      <span className="block truncate text-caption text-neutral">
                         {venue.address}
                       </span>
                     </span>

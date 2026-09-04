@@ -80,10 +80,10 @@ export const OnboardingPage = ({
       <div className="card border border-base-300 bg-base-200">
         <div className="card-body gap-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">
+            <h1 className="font-display text-h3 font-semibold">
               {onboarding_title({}, { locale })}
             </h1>
-            <p className="mt-1 text-sm text-base-content/60">
+            <p className="mt-1 text-body-sm text-neutral">
               {onboarding_subtitle({}, { locale })}
             </p>
           </div>
@@ -101,7 +101,7 @@ export const OnboardingPage = ({
           </ul>
 
           <label className="form-control">
-            <span className="mb-1 text-sm text-base-content/70">
+            <span className="mb-1 text-body-sm text-neutral">
               {onboarding_country({}, { locale })}
             </span>
             <select
@@ -118,7 +118,7 @@ export const OnboardingPage = ({
           </label>
 
           <label className="form-control">
-            <span className="mb-1 text-sm text-base-content/70">
+            <span className="mb-1 text-body-sm text-neutral">
               {onboarding_state({}, { locale })}
             </span>
             <select
@@ -137,7 +137,7 @@ export const OnboardingPage = ({
           </label>
 
           <div className="form-control">
-            <span className="mb-1 text-sm text-base-content/70">
+            <span className="mb-1 text-body-sm text-neutral">
               {onboarding_city({}, { locale })}
             </span>
             <CitySearchCombobox

@@ -43,35 +43,33 @@ export const PublicProfilePage = ({
         <div className="card-body items-center gap-4 text-center">
           <div className="avatar avatar-placeholder">
             <div className="w-20 rounded-full bg-neutral text-neutral-content">
-              <span className="text-2xl font-bold">
+              <span className="text-h3 font-bold">
                 {initials(profile.name)}
               </span>
             </div>
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{profile.name}</h1>
+            <h1 className="text-h3 font-bold">{profile.name}</h1>
             <span className="badge badge-outline badge-sm mt-1">
               {roleLabel}
             </span>
           </div>
 
-          {cityName && (
-            <p className="text-sm text-base-content/60">{cityName}</p>
-          )}
+          {cityName && <p className="text-body-sm text-neutral">{cityName}</p>}
 
           <div className="divider" />
 
           <div className="stats stats-horizontal bg-base-100 shadow-sm">
             <div className="stat">
-              <div className="stat-title text-xs">
+              <div className="stat-title text-caption">
                 {public_events_hosted({}, { locale })}
               </div>
-              <div className="stat-value text-2xl">{events.length}</div>
+              <div className="stat-value text-h3">{events.length}</div>
             </div>
           </div>
 
           {events.length === 0 ? (
-            <p className="text-sm text-base-content/40">
+            <p className="text-body-sm text-neutral">
               {public_no_events({}, { locale })}
             </p>
           ) : (

@@ -124,7 +124,7 @@ export const CityLanding = ({
         <Link
           to="/$market"
           params={{ market: market.slug }}
-          className="text-sm text-base-content/40 hover:text-primary"
+          className="text-body-sm text-neutral hover:text-base-content"
         >
           {back_to_market({ market: marketName }, { locale })}
         </Link>

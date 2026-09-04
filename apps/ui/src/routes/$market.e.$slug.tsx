@@ -38,6 +38,7 @@ export const Route = createFileRoute('/$market/e/$slug')({
             eventId={event.id}
             currentUserId={user.id}
             isHost={user.id === event.hostId}
+            locale={locale}
           />
         )}
       </>

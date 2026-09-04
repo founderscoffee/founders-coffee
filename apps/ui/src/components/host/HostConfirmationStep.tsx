@@ -49,9 +49,7 @@ export const HostConfirmationStep = ({
   publishError: string | null;
 }) => (
   <div className="grid gap-5">
-    <p className="text-base-content/65">
-      {host_confirmation_intro({}, { locale })}
-    </p>
+    <p className="text-neutral">{host_confirmation_intro({}, { locale })}</p>
 
     <section className="rounded-xl border border-base-300 p-4">
       <h3 className="flex items-center gap-2 font-semibold">
@@ -61,7 +59,7 @@ export const HostConfirmationStep = ({
       <p className="mt-2 font-semibold" dir="auto">
         {venueName || venue.name}
       </p>
-      <p className="mt-1 text-sm text-base-content/65" dir="auto">
+      <p className="mt-1 text-body-sm text-neutral" dir="auto">
         {venue.address}
       </p>
     </section>
@@ -80,7 +78,7 @@ export const HostConfirmationStep = ({
         locale={locale}
         timeZone={timeZone}
       />
-      <p className="mt-2 text-sm text-base-content/65">
+      <p className="mt-2 text-body-sm text-neutral">
         {host_duration_min(
           { n: Math.round((endsAt - startsAt) / 60_000) },
           { locale },
@@ -94,7 +92,7 @@ export const HostConfirmationStep = ({
       </h3>
       <dl className="mt-3 grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <dt className="text-xs font-semibold text-base-content/50">
+          <dt className="text-caption font-semibold text-neutral">
             {host_title_label({}, { locale })}
           </dt>
           <dd className="mt-1 font-semibold" dir="auto">
@@ -102,15 +100,15 @@ export const HostConfirmationStep = ({
           </dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="text-xs font-semibold text-base-content/50">
+          <dt className="text-caption font-semibold text-neutral">
             {host_desc_label({}, { locale })}
           </dt>
-          <dd className="mt-1 whitespace-pre-wrap text-sm" dir="auto">
+          <dd className="mt-1 whitespace-pre-wrap text-body-sm" dir="auto">
             {description}
           </dd>
         </div>
         <div>
-          <dt className="flex items-center gap-1 text-xs font-semibold text-base-content/50">
+          <dt className="flex items-center gap-1 text-caption font-semibold text-neutral">
             <Users className="size-3.5" aria-hidden="true" />
             {host_capacity({}, { locale })}
           </dt>
@@ -121,13 +119,13 @@ export const HostConfirmationStep = ({
           </dd>
         </div>
         <div>
-          <dt className="text-xs font-semibold text-base-content/50">
+          <dt className="text-caption font-semibold text-neutral">
             {host_language({}, { locale })}
           </dt>
           <dd className="mt-1">{languageLabel}</dd>
         </div>
         <div>
-          <dt className="text-xs font-semibold text-base-content/50">
+          <dt className="text-caption font-semibold text-neutral">
             {host_category({}, { locale })}
           </dt>
           <dd className="mt-1">{categoryLabel}</dd>
@@ -137,14 +135,14 @@ export const HostConfirmationStep = ({
 
     {!isAuthenticated && (
       <p
-        className="rounded-xl border border-info/30 bg-info/10 p-4 text-sm"
+        className="rounded-xl border border-info/30 bg-info/10 p-4 text-body-sm"
         role="status"
       >
         {host_login_required({}, { locale })}
       </p>
     )}
     {publishError && (
-      <p className="text-sm text-error" role="alert">
+      <p className="text-body-sm text-error" role="alert">
         {publishError}
       </p>
     )}

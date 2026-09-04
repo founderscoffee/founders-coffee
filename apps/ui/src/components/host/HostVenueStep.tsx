@@ -1,8 +1,6 @@
-import { MousePointerClick } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 
 import {
-  host_step1_helper,
   host_venue_name_helper,
   host_venue_name_label,
   host_venue_name_ph,
@@ -49,12 +47,6 @@ export const HostVenueStep = ({
   onVenueSelect: (venue: VenueSelection) => void;
 }) => (
   <div className="mt-auto flex flex-col gap-3">
-    <p className="flex items-start gap-2 text-sm text-base-content/50">
-      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <MousePointerClick className="size-4" aria-hidden="true" />
-      </span>
-      <span>{host_step1_helper({}, { locale })}</span>
-    </p>
     <ClientOnly fallback={<SearchSkeleton />}>
       <Suspense fallback={<SearchSkeleton />}>
         <VenueSearch
@@ -76,7 +68,7 @@ export const HostVenueStep = ({
     ) : null}
     {venue?.kind === 'address' && (
       <label className="form-control" htmlFor="host-venue-name">
-        <span className="mb-1 text-sm text-base-content/70">
+        <span className="mb-1 text-body-sm text-neutral">
           {host_venue_name_label({}, { locale })}
         </span>
         <Input
@@ -90,12 +82,15 @@ export const HostVenueStep = ({
         />
         <span
           id="host-venue-name-help"
-          className="mt-1 text-xs text-base-content/50"
+          className="mt-1 text-caption text-neutral"
         >
           {host_venue_name_helper({}, { locale })}
         </span>
         {nameError && (
-          <span id="host-venue-name-error" className="mt-1 text-sm text-error">
+          <span
+            id="host-venue-name-error"
+            className="mt-1 text-body-sm text-error"
+          >
             {nameError}
           </span>
         )}

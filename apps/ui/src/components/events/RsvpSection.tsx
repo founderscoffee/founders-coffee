@@ -184,6 +184,7 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
               await import('../../features/push/client');
             await requestPushPermission(event.marketCode);
           }}
+          locale={locale}
           onDecline={() => setIsPushPromptOpen(false)}
         />
       ) : null}

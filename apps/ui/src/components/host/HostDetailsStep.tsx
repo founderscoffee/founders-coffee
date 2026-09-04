@@ -68,9 +68,9 @@ export const HostDetailsStep = ({
 }) => (
   <div className="grid gap-5">
     <label className="form-control" htmlFor="host-title">
-      <span className="mb-1 flex items-center justify-between gap-3 text-sm text-base-content/70">
+      <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
         <span>{host_title_label({}, { locale })}</span>
-        <span className="text-xs text-base-content/50">
+        <span className="text-caption text-neutral">
           {host_required({}, { locale })}
         </span>
       </span>
@@ -87,7 +87,7 @@ export const HostDetailsStep = ({
       />
       <span
         id="host-title-count"
-        className="mt-1 text-end text-xs text-base-content/50"
+        className="mt-1 text-end text-caption text-neutral"
       >
         {host_character_count(
           { current: title.length, max: constraints.titleMax },
@@ -95,16 +95,16 @@ export const HostDetailsStep = ({
         )}
       </span>
       {errors.title && (
-        <span id="host-title-error" className="mt-1 text-sm text-error">
+        <span id="host-title-error" className="mt-1 text-body-sm text-error">
           {errors.title}
         </span>
       )}
     </label>
 
     <label className="form-control" htmlFor="host-description">
-      <span className="mb-1 flex items-center justify-between gap-3 text-sm text-base-content/70">
+      <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
         <span>{host_desc_label({}, { locale })}</span>
-        <span className="text-xs text-base-content/50">
+        <span className="text-caption text-neutral">
           {host_required({}, { locale })}
         </span>
       </span>
@@ -122,7 +122,7 @@ export const HostDetailsStep = ({
       />
       <span
         id="host-description-count"
-        className="mt-1 text-end text-xs text-base-content/50"
+        className="mt-1 text-end text-caption text-neutral"
       >
         {host_character_count(
           {
@@ -133,14 +133,17 @@ export const HostDetailsStep = ({
         )}
       </span>
       {errors.description && (
-        <span id="host-description-error" className="mt-1 text-sm text-error">
+        <span
+          id="host-description-error"
+          className="mt-1 text-body-sm text-error"
+        >
           {errors.description}
         </span>
       )}
     </label>
 
     <fieldset className="rounded-xl border border-base-300 p-4">
-      <legend className="px-1 text-sm font-semibold">
+      <legend className="px-1 text-body-sm font-semibold">
         {host_capacity({}, { locale })}
       </legend>
       <label className="flex min-h-11 items-center gap-3">
@@ -158,7 +161,7 @@ export const HostDetailsStep = ({
       </label>
       {capacity > 0 && (
         <label className="form-control mt-3" htmlFor="host-capacity">
-          <span className="mb-1 text-sm text-base-content/70">
+          <span className="mb-1 text-body-sm text-neutral">
             {host_capacity_value({}, { locale })}
           </span>
           <Input
@@ -175,7 +178,7 @@ export const HostDetailsStep = ({
           />
           <span
             id="host-capacity-help"
-            className="mt-1 text-xs text-base-content/50"
+            className="mt-1 text-caption text-neutral"
           >
             {host_capacity_constraints(
               { max: constraints.capacityMax },
@@ -183,7 +186,10 @@ export const HostDetailsStep = ({
             )}
           </span>
           {errors.capacity && (
-            <span id="host-capacity-error" className="mt-1 text-sm text-error">
+            <span
+              id="host-capacity-error"
+              className="mt-1 text-body-sm text-error"
+            >
               {errors.capacity}
             </span>
           )}
@@ -193,7 +199,7 @@ export const HostDetailsStep = ({
 
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="form-control" htmlFor="host-language">
-        <span className="mb-1 text-sm text-base-content/70">
+        <span className="mb-1 text-body-sm text-neutral">
           {host_language({}, { locale })}
         </span>
         <select
@@ -211,7 +217,7 @@ export const HostDetailsStep = ({
         </select>
       </label>
       <label className="form-control" htmlFor="host-category">
-        <span className="mb-1 text-sm text-base-content/70">
+        <span className="mb-1 text-body-sm text-neutral">
           {host_category({}, { locale })}
         </span>
         <select

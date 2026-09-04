@@ -281,5 +281,20 @@
   "cancel_title": "Libérer votre chaise ?",
   "cancel_body": "{host} compte sur une table complète. Si vos plans ont changé, libérer la chaise permet à quelqu’un d’autre de s’asseoir.",
   "keep_chair": "Garder ma chaise",
-  "free_chair": "Libérer ma chaise"
+  "free_chair": "Libérer ma chaise",
+  "live_title": "En direct",
+  "live_connected": "EN DIRECT",
+  "live_host_here": "Hôte présent",
+  "live_table_n": "Table {n}",
+  "live_in_the_room": "Sur place ({arrived}/{total})",
+  "live_host_actions": "Actions de l’hôte",
+  "live_your_status": "Votre statut",
+  "live_arrived_cta": "Je suis arrivé",
+  "live_table_ph": "Numéro de table (facultatif)",
+  "live_cue_ph": "Repère visuel — ex. casquette verte",
+  "live_new_table_ph": "Nouveau numéro de table",
+  "live_status_connected": "Connecté",
+  "live_eta_ph": "Arrivée dans (minutes)",
+  "live_confirm": "Confirmer",
+  "live_cancel": "Annuler"
 }
