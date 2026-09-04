@@ -141,7 +141,7 @@ export const CityLanding = ({
       {visible.length === 0 ? (
         <EmptyState title={no_filter_match({}, { locale })} />
       ) : (
-        <ul className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3.5">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))] gap-3.5">
           {visible.map((e) => (
             <li key={e.id}>
               <EventCard

@@ -30,7 +30,7 @@ export const TrendingStates = ({
         {cities_in({ market: marketName }, { locale })}
       </h2>
 
-      <ul className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-3">
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(10rem,100%),1fr))] gap-3">
         {cities.map(({ city, count }) => (
           <li key={city.code}>
             <Link
