@@ -47,10 +47,10 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
       <head>
         <HeadContent />
       </head>
-      <body className="bg-base-100 text-base-content">
+      <body className="flex min-h-screen flex-col bg-base-100 text-base-content">
         <AppProviders>
           <Navbar locale={locale} />
-          <main>{children}</main>
+          <main className="flex-1">{children}</main>
           <Footer locale={locale} markets={markets} />
         </AppProviders>
         <Scripts />
