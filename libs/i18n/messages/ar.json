@@ -299,5 +299,11 @@
   "live_cancel": "إلغاء",
   "nav_events": "الفعاليات",
   "nav_host": "استضِف",
-  "load_more": "تحميل المزيد"
+  "load_more": "تحميل المزيد",
+  "host_here": "استضف هنا",
+  "filter_today": "اليوم",
+  "filter_weekend": "نهاية الأسبوع",
+  "filter_ar": "بالعربية",
+  "filter_fr": "بالفرنسية",
+  "filter_workshop": "ورشات"
 }

@@ -16,6 +16,7 @@ type EventCardProps = {
   locale: Locale;
   timezone: string;
   marketSlug: string;
+  trailing?: 'city' | 'language';
 };
 
 export const EventCard = ({
@@ -23,6 +24,7 @@ export const EventCard = ({
   locale,
   timezone,
   marketSlug,
+  trailing = 'city',
 }: EventCardProps) => {
   const start = new Date(event.startsAt);
   const end = event.endsAt == null ? null : new Date(event.endsAt);
@@ -63,7 +65,9 @@ export const EventCard = ({
         <span className="text-body-sm text-neutral">
           {timeRange} · {event.venue}
           <span className="hidden sm:inline">
-            {locale === 'ar' ? '،' : ','} {cityName}
+            {trailing === 'language'
+              ? ` · ${event.language.toUpperCase()}`
+              : `${locale === 'ar' ? '،' : ','} ${cityName}`}
           </span>
         </span>
 

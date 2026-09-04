@@ -299,5 +299,11 @@
   "live_cancel": "Annuler",
   "nav_events": "Événements",
   "nav_host": "Organiser",
-  "load_more": "Afficher plus"
+  "load_more": "Afficher plus",
+  "host_here": "Organiser ici",
+  "filter_today": "Aujourd’hui",
+  "filter_weekend": "Week-end",
+  "filter_ar": "Arabe",
+  "filter_fr": "Français",
+  "filter_workshop": "Ateliers"
 }

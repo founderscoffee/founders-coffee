@@ -1,21 +1,26 @@
 import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
 
 import {
   back_to_market,
   city_empty_cta,
   city_empty_title,
   feed_load_more,
+  host_here,
   host_step1,
   host_step2,
   host_step3,
+  no_filter_match,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
+import { applyCityFilters, type CityFilterKey } from '../../lib/city-filters';
 import { useUpcomingEvents } from '../../features/events/hooks';
 import { EventCard } from '../events/EventCard';
+import { CityFilters } from './CityFilters';
 import { EmptyState } from './EmptyState';
 import { Stepper } from '../host/Stepper';
 
@@ -39,6 +44,14 @@ export const CityLanding = ({
 }: CityLandingProps) => {
   const cityDisplayName = locale === 'ar' ? city.nameAr : city.name;
   const marketName = marketDisplayName(market, locale);
+  const [filters, setFilters] = useState<readonly CityFilterKey[]>([]);
+
+  const toggleFilter = (key: CityFilterKey) =>
+    setFilters((current) =>
+      current.includes(key)
+        ? current.filter((entry) => entry !== key)
+        : [...current, key],
+    );
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useUpcomingEvents({
@@ -92,43 +105,69 @@ export const CityLanding = ({
     );
   }
 
+  const visible = applyCityFilters(items, filters, market.timezone, new Date());
+
   return (
-    <section className="mx-auto max-w-5xl px-4 py-12">
-      <h1 className="mb-6 font-display text-h2 font-semibold">
-        {cityDisplayName}
-      </h1>
-      <div className="space-y-4">
-        {items.map((e) => (
-          <EventCard
-            key={e.id}
-            event={e}
-            locale={locale}
-            timezone={market.timezone}
-            marketSlug={market.slug}
-          />
-        ))}
-        {hasNextPage ? (
-          <div className="pt-2">
-            <button
-              type="button"
-              className="btn btn-outline btn-sm"
-              onClick={loadMore}
-              disabled={isFetchingNextPage}
-            >
-              {feed_load_more({}, { locale })}
-            </button>
-          </div>
-        ) : null}
-      </div>
-      <div className="mt-10">
+    <section className="mx-auto flex max-w-content flex-col gap-5 px-4 py-8 md:px-8">
+      <div className="flex flex-col gap-1.5">
         <Link
           to="/$market"
           params={{ market: market.slug }}
-          className="text-body-sm text-neutral hover:text-base-content"
+          className="w-fit text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
         >
           {back_to_market({ market: marketName }, { locale })}
         </Link>
+        <span className="eyebrow">
+          {marketName} · {cityDisplayName}
+        </span>
       </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="font-display text-h2 font-semibold">
+          {cityDisplayName}
+        </h1>
+        <Link
+          to="/$market/host/create"
+          params={{ market: market.slug }}
+          search={{ city: city.code, state: city.stateCode }}
+          className="btn btn-outline h-10 min-h-10 px-4"
+        >
+          {host_here({}, { locale })}
+        </Link>
+      </div>
+
+      <CityFilters locale={locale} active={filters} onToggle={toggleFilter} />
+
+      {visible.length === 0 ? (
+        <EmptyState title={no_filter_match({}, { locale })} />
+      ) : (
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3.5">
+          {visible.map((e) => (
+            <li key={e.id}>
+              <EventCard
+                event={e}
+                locale={locale}
+                timezone={market.timezone}
+                marketSlug={market.slug}
+                trailing="language"
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {hasNextPage ? (
+        <div>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={loadMore}
+            disabled={isFetchingNextPage}
+          >
+            {feed_load_more({}, { locale })}
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 };
