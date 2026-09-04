@@ -9,6 +9,7 @@ import {
   event_host,
   event_no_cap,
   event_when,
+  open_in_maps,
   event_where,
   formatDate,
   type Locale,
@@ -96,53 +97,48 @@ export const EventDetail = ({
         ) : null}
       </div>
 
-      <h1 className="mt-4 text-3xl font-extrabold leading-tight">
+      <h1 className="mt-4 font-display text-h2 font-semibold text-balance">
         {event.title}
       </h1>
 
       <dl className="mt-6 space-y-3">
         <div className="flex flex-wrap gap-2">
-          <dt className="text-xs font-bold uppercase tracking-widest text-base-content/40">
-            {event_when({}, { locale })}
-          </dt>
+          <dt className="eyebrow">{event_when({}, { locale })}</dt>
           <dd>{when}</dd>
         </div>
         <div className="flex flex-wrap gap-2">
-          <dt className="text-xs font-bold uppercase tracking-widest text-base-content/40">
-            {event_where({}, { locale })}
-          </dt>
+          <dt className="eyebrow">{event_where({}, { locale })}</dt>
           <dd>
             {event.venue}
             {event.venueAddress ? (
-              <span className="text-base-content/60">
-                {' '}
-                - {event.venueAddress}
-              </span>
+              <span className="text-neutral"> — {event.venueAddress}</span>
             ) : null}
             {event.latitude != null && event.longitude != null ? (
-              <span className="text-base-content/40">
-                {' '}
-                📍 {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
-              </span>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${event.latitude},${event.longitude}`}
+                target="_blank"
+                rel="noreferrer"
+                className="ms-2 whitespace-nowrap text-label font-medium text-neutral underline decoration-secondary underline-offset-[3px] hover:text-base-content"
+              >
+                {open_in_maps({}, { locale })}
+              </a>
             ) : null}
           </dd>
         </div>
       </dl>
 
       <div className="mt-6">
-        <RsvpSection event={event} locale={locale} />
+        <RsvpSection event={event} hostName={host.name} locale={locale} />
       </div>
 
       {event.description ? (
-        <p className="mt-6 whitespace-pre-line leading-relaxed text-base-content/80">
+        <p className="mt-6 max-w-prose whitespace-pre-line leading-relaxed text-base-content">
           {event.description}
         </p>
       ) : null}
 
       <div className="mt-8 flex items-center gap-3 border-t border-base-300 pt-6">
-        <span className="text-xs font-bold uppercase tracking-widest text-base-content/40">
-          {event_host({}, { locale })}
-        </span>
+        <span className="eyebrow">{event_host({}, { locale })}</span>
         <Link
           to="/u/$userId"
           params={{ userId: host.id }}
@@ -152,7 +148,7 @@ export const EventDetail = ({
         </Link>
       </div>
 
-      <p className="mt-4 text-xs text-base-content/40">{capacityText}</p>
+      <p className="mt-4 text-caption text-neutral">{capacityText}</p>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

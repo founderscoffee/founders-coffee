@@ -7,6 +7,7 @@ import {
   login_code_sent,
   login_email_label,
   login_email_placeholder,
+  login_help,
   login_or,
   login_resend,
   login_send_code,
@@ -17,7 +18,7 @@ import {
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input } from '@founders-coffee/ui';
+import { Button, Input, Logo } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
@@ -120,21 +121,28 @@ export const LoginPage = ({
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
-      <div className="card border border-base-300 bg-base-200">
-        <div className="card-body gap-4">
-          <div className="text-center">
-            <Link to="/" className="text-xl font-extrabold text-primary">
-              {brand({}, { locale })}
+      <div className="rounded-box border border-base-300 bg-base-100 p-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <Link
+              to="/"
+              aria-label={brand({}, { locale })}
+              className="rounded-field"
+            >
+              <Logo symbolSize={24} textClassName="text-body" />
             </Link>
-            <h1 className="mt-2 text-2xl font-bold">
+            <h1 className="font-display text-h3 font-semibold">
               {login_title({}, { locale })}
             </h1>
+            <p className="text-body-sm text-neutral">
+              {login_help({}, { locale })}
+            </p>
           </div>
 
           {step === 'email' ? (
             <>
               <label className="form-control">
-                <span className="mb-1 block text-sm text-base-content/70">
+                <span className="mb-1 block text-label text-neutral">
                   {login_email_label({}, { locale })}
                 </span>
                 <Input
@@ -147,18 +155,28 @@ export const LoginPage = ({
               {turnstileSiteKey && (
                 <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
               )}
-              {error && <p className="text-sm text-error">{error}</p>}
+              {error && (
+                <p role="alert" className="text-body-sm text-error">
+                  {error}
+                </p>
+              )}
               <Button
                 onClick={sendCode}
                 disabled={!emailValid || !token || busy}
                 isFullWidth
               >
+                {busy ? (
+                  <span
+                    className="loading loading-spinner loading-xs"
+                    aria-hidden="true"
+                  />
+                ) : null}
                 {login_send_code({}, { locale })}
               </Button>
               <LegalNotice locale={locale} className="mt-1" />
               {hasSocial && (
                 <>
-                  <div className="divider text-xs text-base-content/40">
+                  <div className="divider text-caption text-neutral">
                     {login_or({}, { locale })}
                   </div>
                   <div className="space-y-2">
@@ -179,11 +197,11 @@ export const LoginPage = ({
             </>
           ) : (
             <>
-              <p className="text-center text-sm text-base-content/70">
+              <p className="text-center text-body-sm text-neutral">
                 {login_code_sent({ email }, { locale })}
               </p>
               <label className="form-control items-center">
-                <span className="mb-2 block text-sm text-base-content/70">
+                <span className="mb-2 block text-label text-neutral">
                   {login_code_label({}, { locale })}
                 </span>
                 <input
@@ -196,13 +214,21 @@ export const LoginPage = ({
                 />
               </label>
               {error && (
-                <p className="text-center text-sm text-error">{error}</p>
+                <p role="alert" className="text-center text-body-sm text-error">
+                  {error}
+                </p>
               )}
               <Button
                 onClick={verify}
                 disabled={otp.length !== 6 || busy}
                 isFullWidth
               >
+                {busy ? (
+                  <span
+                    className="loading loading-spinner loading-xs"
+                    aria-hidden="true"
+                  />
+                ) : null}
                 {login_verify({}, { locale })}
               </Button>
               <LegalNotice locale={locale} />

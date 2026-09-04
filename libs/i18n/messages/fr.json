@@ -271,5 +271,15 @@
   "chairs_left": "{n} chaises libres",
   "full_waitlist": "Complet · liste d'attente",
   "this_week_n": "{n} cette semaine",
-  "no_filter_match": "Rien ne correspond à ces filtres cette semaine."
+  "no_filter_match": "Rien ne correspond à ces filtres cette semaine.",
+  "login_help": "Nous enverrons un code à 6 chiffres. Sans mot de passe.",
+  "rsvp_help": "Vous recevrez une confirmation par SMS et un rappel la veille. Vous pouvez annuler à tout moment.",
+  "rsvp_confirmed_help": "Confirmation envoyée par SMS. Nous vous rappellerons la veille.",
+  "rsvp_saving": "Nous réservons votre chaise…",
+  "retry": "Réessayer",
+  "open_in_maps": "Ouvrir dans le plan",
+  "cancel_title": "Libérer votre chaise ?",
+  "cancel_body": "{host} compte sur une table complète. Si vos plans ont changé, libérer la chaise permet à quelqu’un d’autre de s’asseoir.",
+  "keep_chair": "Garder ma chaise",
+  "free_chair": "Libérer ma chaise"
 }

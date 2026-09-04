@@ -271,5 +271,15 @@
   "chairs_left": "{n} chairs left",
   "full_waitlist": "Full · waitlist",
   "this_week_n": "{n} this week",
-  "no_filter_match": "Nothing matches these filters this week."
+  "no_filter_match": "Nothing matches these filters this week.",
+  "login_help": "We’ll send a 6-digit code. No password.",
+  "rsvp_help": "You’ll get an SMS confirmation and a reminder the day before. You can cancel any time.",
+  "rsvp_confirmed_help": "SMS confirmation sent. We’ll remind you the day before.",
+  "rsvp_saving": "Saving your chair…",
+  "retry": "Retry",
+  "open_in_maps": "Open in maps",
+  "cancel_title": "Free up your chair?",
+  "cancel_body": "{host} is counting on a full table. If plans changed, freeing the chair lets someone else sit.",
+  "keep_chair": "Keep my chair",
+  "free_chair": "Free my chair"
 }

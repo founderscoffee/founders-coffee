@@ -216,6 +216,20 @@ The general rule: any target that bundles a library's _source_ needs that librar
 `dependsOn`. Depending on `^build` is not enough, because Vite compiles `libs/*/src` directly and
 never reads the `tsc` output.
 
+**The same trap, found again on 2026-09-04.** `libs/domain`, `libs/email` and `libs/server-fns` all
+import `@founders-coffee/i18n`, and none of their `test` targets declared the codegen. It surfaced
+as a task Nx labelled flaky: under `--parallel`, `domain:test` read
+`libs/i18n/src/paraglide/messages/*.js` while `generate-i18n` was rewriting that directory, and got
+`Cannot find module '../runtime.js'` — the messages were on disk, the runtime they import was not,
+yet. Serially it passed, because the gitignored directory lingers from an earlier run.
+
+`--parallel=8` reproduced it three times out of three and, with the `dependsOn` added, passed three
+times out of three. Reproduce either way with the cold-start form:
+
+```sh
+rm -rf libs/i18n/src/paraglide && npx nx run domain:test --skip-nx-cache
+```
+
 **Generated Cloudflare types.** `worker-configuration.d.ts` is produced by `wrangler types` and is
 gitignored, so it exists on a developer machine and never in CI. `apps/ui` originally relied on it for
 the Workers runtime globals (`SendEmail`, `DurableObjectNamespace`, `ExportedHandler`, the
