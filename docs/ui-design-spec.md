@@ -182,3 +182,59 @@ this list again, grep for all three signals, not one.
 Two components were worse than off-theme: `PushPermissionPrompt` and `LiveDashboard` used **no
 i18n at all** and rendered hardcoded English to every reader, in an Arabic-first product. Some of
 the keys they needed already existed, already translated, and were referenced by nothing.
+
+---
+
+## 8. Prototype conformance — 2026-09-04
+
+Everything before this section was written against `Product Redesign.dc.html`, whose eight frames
+cover market, event-card states, event detail and wizard step 1. The interactive
+`Prototype Vertical Slice.dc.html` covers more screens and, where the two overlap, is the sharper
+reference: it carries real measurements rather than a rendered picture of them.
+
+Read against the prototype's own markup — not against a screenshot — the app had drifted in these
+places. All are fixed and verified on staging with Playwright at 1200 and 390, in `en` and `ar`.
+
+| Surface            | Was                                                                                | Design                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| City tiles         | sand border on the active tiles, LogoSymbol dot on the empty ones, fixed 2/4 grid  | `border-color` = the tile's own background (so no visible border in either state), no dot, `auto-fill` from 160px  |
+| Feed grids         | `md:grid-cols-2`                                                                   | `auto-fill` from 320px — three columns at desktop                                                                  |
+| Card date block    | `.eyebrow` (uppercase, 0.08em tracking)                                            | `.datechip-line` — same 11px/600, no transform, no tracking                                                        |
+| Card + detail time | start only                                                                         | `starts_at–ends_at`, wrapped in `dir="ltr"` so RTL does not reverse it                                             |
+| Footer             | paper with a top border                                                            | linen band, no rule, pinned to the bottom of short pages                                                           |
+| Search field icon  | a literal 📍, which ignores `text-taupe` and renders in the platform's own colours | a 16px circle, 1.5px border in `currentColor`                                                                      |
+| City page          | bare title, single-column stack, back link at the foot of the page                 | back link first, `market · city` keyline, title beside a "Host here" button, five filter chips, the same card grid |
+| Detail header      | `market › city` breadcrumb                                                         | "Back to {city}"                                                                                                   |
+| Detail capacity    | said three times in three wordings, twice on a free event                          | one chip on the card's heading row, in the feed's words                                                            |
+| Detail host        | name as a link, "Hosted by"                                                        | name in bold, `Host · {city}`, Profile button                                                                      |
+| Login              | bordered card, full lockup, help text under the title                              | bare centred column, lettered symbol alone, help under the field                                                   |
+
+Two traps worth keeping:
+
+- **`min-h-*` on `html`, `body` or `#app` is silently ignored.** `apps/ui/src/styles.css` sets
+  `min-height` on those three outside any cascade layer, and unlayered declarations beat every
+  layered one whatever their specificity — Tailwind's utilities layer never gets a say. `html` now
+  carries a definite height so the percentage resolves; do not reach for `min-h-screen` there.
+- **DaisyUI 5 caps `.input`, `.select` and `.textarea` at `clamp(3rem, 20rem, 100%)`.** A field with
+  no width class stops at 320px however wide its container is. `Input` carries `w-full` in its base
+  string for that reason; a caller that wants a narrow field passes its own width and `cn`'s
+  tailwind-merge lets it win.
+
+### Still not built
+
+- **Static map on event detail.** The panel is an empty linen box. Rendering the design's pinned
+  preview means a Mapbox Static Images request per page view on the wizard's existing token — same
+  integration, new per-view cost, so AGENTS.md §1.8 says ask first.
+- **Sponsored chip** on feed cards and the "Coffee paid by" block on detail. Needs a schema column
+  and a scope decision.
+- **"All 48 wilayas"** beside the cities heading. Needs a route that lists a market's full city set;
+  there isn't one.
+- **Toasts with undo** after RSVP and cancel, and **copy-link** on the publish success screen.
+- **Location-permission explainer** in the wizard, and the **inline sign-in gate** (`gate_title` /
+  `gate_body`) instead of redirecting to `/login` mid-wizard.
+- The prototype shows a host's **meetup count** (`Host · 14 meetups · Algiers`); the detail payload
+  carries no such count, so the meta line is `Host · {city}`.
+
+Copy is the app's own throughout — the prototype's strings are placeholders and were not carried
+over. The exceptions are the six filter/host keys and two detail keys added for UI that did not
+exist before; their `en` and `ar` come from the design, and the French is unreviewed like the rest.
