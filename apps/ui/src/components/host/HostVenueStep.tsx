@@ -29,6 +29,7 @@ export const HostVenueStep = ({
   venueName,
   nameError,
   isDisabled,
+  unavailableReason,
   onSearchChange,
   onVenueNameChange,
   onVenueSelect,
@@ -42,6 +43,7 @@ export const HostVenueStep = ({
   venueName: string;
   nameError?: string;
   isDisabled: boolean;
+  unavailableReason?: string;
   onSearchChange: (value: string) => void;
   onVenueNameChange: (value: string) => void;
   onVenueSelect: (venue: VenueSelection) => void;
@@ -67,6 +69,11 @@ export const HostVenueStep = ({
         />
       </Suspense>
     </ClientOnly>
+    {isDisabled && unavailableReason ? (
+      <p className="text-body-sm text-error" role="alert">
+        {unavailableReason}
+      </p>
+    ) : null}
     {venue?.kind === 'address' && (
       <label className="form-control" htmlFor="host-venue-name">
         <span className="mb-1 text-sm text-base-content/70">

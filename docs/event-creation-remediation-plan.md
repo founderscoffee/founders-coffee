@@ -767,6 +767,33 @@ Both dev and the production preview are clean, local Playwright `desktop-en` is 
 silently again. `worker-src` no longer needs `blob:` for this path, which is an AR-08 simplification
 that can be taken separately.
 
+### Wizard dead end under the map rate limit — found and fixed 2026-09-04
+
+`getHostMapContext` is limited to 20 requests per 10 minutes per IP (`MAP_RATE_LIMITS`). When that
+limit is reached, `HostCreatePage` rendered `isDisabled={!mapContext.data}` and nothing else: the
+venue search sat permanently disabled with no message, no retry, and no reason. The wizard simply
+stopped working.
+
+It surfaced as a Playwright failure at 1280 that looked like a redesign regression. It was not —
+`wrangler`'s own log carried `AppError: Too many map_context requests. Try again shortly.`, 11 times
+across 22 `map_context` calls, and a direct browser probe of the same page was healthy. The suite
+re-loads the wizard more than twenty times in ten minutes, so it exhausts the application's own
+limiter and then fails silently for a reason that has nothing to do with the code under test.
+
+Who else hits it: anyone behind shared egress. A café's NAT, a campus, or Algerian mobile CGNAT can
+put many hosts on one `cf-connecting-ip`, and the twentieth of them gets a dead form.
+
+Fixed by passing the failure through to the step, which now renders the rate-limit copy the venue
+_search_ already used for the same condition. Covered by a unit test that fails when the reason is
+not passed.
+
+**Known limitation.** In the browser the generic "Venue search is unavailable right now" appears
+rather than the rate-limit wording, because `appErrorCode` finds no `code` on the error: this query
+resolves during SSR and the `AppError` appears to lose its `code` through dehydration. The unit test,
+where the error is a real `AppError`, selects the rate-limit message correctly — which is what
+isolates the loss to the SSR path. Worth confirming and fixing centrally rather than per component,
+since every SSR-resolved query that branches on an error code has the same problem.
+
 ### EC-10 release verification — passed 2026-09-03
 
 Three projects run one at a time against `https://staging.founders.coffee` with `E2E_D1_MODE=remote`

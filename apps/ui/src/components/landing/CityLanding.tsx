@@ -94,7 +94,9 @@ export const CityLanding = ({
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-12">
-      <h1 className="mb-6 text-3xl font-extrabold">{cityDisplayName}</h1>
+      <h1 className="mb-6 font-display text-h2 font-semibold">
+        {cityDisplayName}
+      </h1>
       <div className="space-y-4">
         {items.map((e) => (
           <EventCard

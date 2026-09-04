@@ -8,7 +8,7 @@ current landing-page information architecture.
 **Revised IA (UI/UX batch):** there is **no global market-picker**. `/` redirects to the visitor's
 market — detected via `CF-IPCountry`, defaulting to **Algeria**. The **market landing is the single
 main page** (hero + aura cities + market-scoped discover tabs). Arabic is the default language
-(`Accept-Language` dropped — SRS §8.6 amended). The Warm Café design system: Tajawal (Arabic),
+(`Accept-Language` dropped — SRS §8.6 amended). The Round Table design system: Tajawal (Arabic),
 paper-grain texture, daisyUI hover-3d + aura-glow, tabs-lift.
 
 ## Routing — geo-routing to default-Algeria, slug-canonical

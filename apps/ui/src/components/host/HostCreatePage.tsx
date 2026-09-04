@@ -1,12 +1,15 @@
 import { CalendarClock, MapPin } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
+import { appErrorCode } from '@founders-coffee/core';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import {
   host_duration_min,
   host_progress_label,
   host_step_progress,
+  host_venue_rate_limited,
+  host_venue_search_error,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -44,6 +47,11 @@ export const HostCreatePage = ({
     cityCode: city.code,
     locale,
   });
+  const mapContextError = mapContext.isError
+    ? appErrorCode(mapContext.error) === 'rate_limited'
+      ? host_venue_rate_limited({}, { locale })
+      : host_venue_search_error({}, { locale })
+    : undefined;
   const wizard = useHostCreateWizard({
     locale,
     market,
@@ -139,6 +147,7 @@ export const HostCreatePage = ({
                 venueName={wizard.venueName}
                 nameError={wizard.fieldErrors.venueName}
                 isDisabled={!mapContext.data}
+                unavailableReason={mapContextError}
                 onSearchChange={wizard.setSearchValue}
                 onVenueNameChange={wizard.setVenueName}
                 onVenueSelect={wizard.selectVenue}

@@ -19,7 +19,20 @@ const hostCreateMocks = vi.hoisted(() => ({
   invalidateCreatedEvent: vi.fn(),
   isAuthenticated: true,
   isLoading: false,
+  mapContext: {
+    data: undefined as
+      | { center: { latitude: number; longitude: number }; bounds: number[] }
+      | undefined,
+    isError: false,
+    error: null as unknown,
+    refetch: vi.fn(),
+  },
 }));
+
+const READY_MAP_CONTEXT = {
+  center: { latitude: 36.7538, longitude: 3.0588 },
+  bounds: [2.9, 36.6, 3.3, 36.9],
+};
 
 export const getHostCreateMocks = () => hostCreateMocks;
 
@@ -33,6 +46,9 @@ export const getHostCreateMocks = () => hostCreateMocks;
 const applyDefaultHostCreateMocks = () => {
   hostCreateMocks.mutateAsync.mockResolvedValue(CREATED_EVENT);
   hostCreateMocks.invalidateCreatedEvent.mockResolvedValue(undefined);
+  hostCreateMocks.mapContext.data = READY_MAP_CONTEXT;
+  hostCreateMocks.mapContext.isError = false;
+  hostCreateMocks.mapContext.error = null;
 };
 
 applyDefaultHostCreateMocks();
@@ -52,14 +68,7 @@ vi.mock('../../lib/app-providers', () => ({
 vi.mock('../../features/events/hooks', () => ({
   useCreateEvent: () => ({ mutateAsync: hostCreateMocks.mutateAsync }),
   useInvalidateCreatedEvent: () => hostCreateMocks.invalidateCreatedEvent,
-  useHostMapContext: () => ({
-    data: {
-      center: { latitude: 36.7538, longitude: 3.0588 },
-      bounds: [2.9, 36.6, 3.3, 36.9],
-    },
-    isError: false,
-    refetch: vi.fn(),
-  }),
+  useHostMapContext: () => hostCreateMocks.mapContext,
 }));
 
 vi.mock('./ClientOnly', () => ({
@@ -118,15 +127,18 @@ vi.mock('./HostMap', () => ({
 vi.mock('./VenueSearch', () => ({
   VenueSearch: ({
     value,
+    isDisabled,
     onChange,
   }: {
     value: string;
+    isDisabled?: boolean;
     onChange: (value: string) => void;
   }) =>
     createElement('input', {
       id: 'venue-search',
       'aria-label': 'Search cafés and coworking venues',
       value,
+      disabled: isDisabled ?? false,
       onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
         onChange(event.target.value),
     }),

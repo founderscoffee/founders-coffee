@@ -1,3 +1,5 @@
+import { AppError } from '@founders-coffee/core';
+
 import {
   fillHostDetails,
   getHostCreateMocks,
@@ -12,6 +14,26 @@ const hostCreateMocks = getHostCreateMocks();
 
 describe('HostCreatePage EC-07 flow', () => {
   afterEach(resetHostCreateFixtures);
+
+  it('explains why venue search is unavailable instead of leaving a dead input', async () => {
+    hostCreateMocks.mapContext.data = undefined;
+    hostCreateMocks.mapContext.isError = true;
+    hostCreateMocks.mapContext.error = new AppError(
+      'rate_limited',
+      'Too many map_context requests',
+    );
+    renderHostCreateWizard();
+
+    const search = (await screen.findByLabelText(
+      'Search cafés and coworking venues',
+    )) as HTMLInputElement;
+    expect(search.disabled).toBe(true);
+    expect(
+      await screen.findByText(
+        'Too many venue searches. Please wait a moment and try again.',
+      ),
+    ).toBeTruthy();
+  });
 
   it('submits the complete confirmed draft and stays retryable after failure', async () => {
     hostCreateMocks.mutateAsync.mockRejectedValueOnce(

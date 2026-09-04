@@ -4,6 +4,7 @@ import type { Market } from '@founders-coffee/db';
 import {
   hero_active_cities,
   hero_major_cities,
+  this_week_n,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { TrendingSection } from '@founders-coffee/server-fns';
@@ -47,9 +48,17 @@ export const TrendingStates = ({
                 >
                   {locale === 'ar' ? city.nameAr : city.name}
                   {count > 0 ? (
-                    <span className="font-semibold text-accent">
-                      {count > 99 ? '+99' : count}
-                    </span>
+                    <>
+                      <span
+                        aria-hidden="true"
+                        className="font-semibold text-accent"
+                      >
+                        {count > 99 ? '+99' : count}
+                      </span>
+                      <span className="sr-only">
+                        {this_week_n({ n: count }, { locale })}
+                      </span>
+                    </>
                   ) : null}
                 </Link>
               ))}

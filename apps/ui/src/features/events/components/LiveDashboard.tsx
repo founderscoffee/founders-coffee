@@ -148,7 +148,7 @@ export const LiveDashboard = ({
               >
                 {user.name}
                 {user.status !== 'connected' && (
-                  <span className="ml-1 text-xs">
+                  <span className="ms-1 text-xs">
                     {statusLabel(user.status)}
                     {user.etaMinutes && ` (${user.etaMinutes}m)`}
                   </span>
