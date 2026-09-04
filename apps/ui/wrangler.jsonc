@@ -64,6 +64,7 @@
         "APP_URL": "https://staging.founders.coffee",
         "APP_ENVIRONMENT": "staging",
         "MAIL_FROM": "no-reply@founders.coffee",
+        "CSP_ENFORCED": "true",
       },
       "send_email": [{ "name": "EMAIL" }],
       "analytics_engine_datasets": [

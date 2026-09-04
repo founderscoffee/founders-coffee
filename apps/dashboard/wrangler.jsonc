@@ -19,10 +19,15 @@
       ],
       "vars": { "APP_URL": "https://app-staging.founders.coffee" },
     },
+    // Deliberately routeless. The sponsor portal is future roadmap work, outside the
+    // community-building release, and the first production deploy published its shell on
+    // `app.founders.coffee` as a side effect of deploying all four Workers together — which is
+    // exactly the "presented as launched" the release strategy forbids. The Worker still deploys
+    // so the environment stays exercised; it just answers nothing. Restore the route in the same
+    // change that makes the portal real, and re-create the custom domain with it.
     "production": {
       "name": "founders-coffee-dashboard-production",
       "workers_dev": false,
-      "routes": [{ "pattern": "app.founders.coffee", "custom_domain": true }],
       "vars": { "APP_URL": "https://app.founders.coffee" },
     },
   },
