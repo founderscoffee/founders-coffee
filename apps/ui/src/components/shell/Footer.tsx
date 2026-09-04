@@ -28,7 +28,7 @@ const marketLabel = (market: Market, locale: Locale) =>
   locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
 
 const linkClass =
-  'text-body-sm text-neutral transition-colors hover:text-base-content';
+  'inline-flex min-h-6 items-center text-body-sm text-neutral transition-colors hover:text-base-content';
 
 export const Footer = ({ locale, markets }: FooterProps) => (
   <footer className="mt-16 bg-base-200">
@@ -82,7 +82,7 @@ export const Footer = ({ locale, markets }: FooterProps) => (
             key={mk.code}
             to="/$market"
             params={{ market: mk.slug }}
-            className="transition-colors hover:text-base-content"
+            className="inline-flex min-h-6 items-center transition-colors hover:text-base-content"
           >
             {marketLabel(mk, locale)}
           </Link>
