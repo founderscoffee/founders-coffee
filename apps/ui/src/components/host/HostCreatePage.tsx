@@ -33,7 +33,7 @@ type HostCreatePageProps = {
 };
 
 const pillClass =
-  'flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-base-300/70 bg-base-100 px-2.5 py-1 shadow-sm';
+  'flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-base-300 bg-base-100 px-2.5 py-1 shadow-sm';
 
 export const HostCreatePage = ({
   locale,
@@ -88,7 +88,7 @@ export const HostCreatePage = ({
         <span className="truncate text-caption font-semibold text-base-content">
           {wizard.whenLabel}
         </span>
-        <span className="shrink-0 rounded-full bg-primary/10 px-1.5 text-[10px] font-bold text-primary">
+        <span className="shrink-0 rounded-full bg-base-200 px-1.5 text-[10px] font-bold text-primary">
           {host_duration_min({ n: wizard.durationMinutes }, { locale })}
         </span>
       </span>

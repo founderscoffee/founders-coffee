@@ -56,7 +56,7 @@ export const HostMapPanel = ({
           onVenueInvalidate={onVenueInvalidate}
         />
       ) : isError ? (
-        <div className="flex min-h-80 flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center md:min-h-96">
+        <div className="flex min-h-80 flex-col items-center justify-center gap-4 rounded-2xl border border-error bg-error-tint p-6 text-center md:min-h-96">
           <p className="text-sm text-error" role="alert">
             {host_map_error({}, { locale })}
           </p>

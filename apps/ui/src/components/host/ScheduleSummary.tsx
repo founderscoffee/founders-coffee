@@ -26,7 +26,7 @@ export const ScheduleSummary = ({
 
   return (
     <section
-      className="rounded-xl border border-primary/20 bg-primary/5 p-3"
+      className="rounded-xl border border-base-300 bg-base-200 p-3"
       aria-label={label}
       dir={direction(locale)}
     >

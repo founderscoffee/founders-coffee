@@ -135,7 +135,7 @@ export const HostConfirmationStep = ({
 
     {!isAuthenticated && (
       <p
-        className="rounded-xl border border-info/30 bg-info/10 p-4 text-body-sm"
+        className="rounded-xl border border-base-300 bg-info-tint p-4 text-body-sm"
         role="status"
       >
         {host_login_required({}, { locale })}

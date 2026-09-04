@@ -58,7 +58,7 @@ const locateVisitor = (): Promise<Coordinates | null> =>
   });
 
 const CONTROL_CLASS =
-  'flex h-11 w-11 items-center justify-center rounded-xl border border-base-300 bg-base-100/85 text-base-content shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-primary/40';
+  'flex h-11 w-11 items-center justify-center rounded-xl border border-base-300 bg-base-100 text-base-content shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-secondary';
 
 export const HostMap = ({
   accessToken,
@@ -128,7 +128,7 @@ export const HostMap = ({
 
   if (hasMapError) {
     return (
-      <div className="flex min-h-80 w-full flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center md:min-h-96">
+      <div className="flex min-h-80 w-full flex-col items-center justify-center gap-4 rounded-2xl border border-error bg-error-tint p-6 text-center md:min-h-96">
         <p className="text-body-sm text-error" role="alert">
           {host_map_error({}, { locale })}
         </p>
@@ -240,7 +240,7 @@ export const HostMap = ({
 
       {reverseVenue.isPending && (
         <p
-          className="absolute inset-x-3 top-3 me-14 rounded-xl bg-base-100/90 p-3 text-body-sm shadow-lg backdrop-blur-md"
+          className="absolute inset-x-3 top-3 me-14 rounded-xl bg-base-100 p-3 text-body-sm shadow-lg backdrop-blur-md"
           role="status"
         >
           <span className="loading loading-spinner loading-xs me-2" />
@@ -250,7 +250,7 @@ export const HostMap = ({
 
       {locationError && (
         <div
-          className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-error/30 bg-base-100/95 p-3 shadow-lg"
+          className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-error bg-base-100 p-3 shadow-lg"
           role="alert"
         >
           <span className="text-body-sm text-error">{locationError}</span>
@@ -268,7 +268,7 @@ export const HostMap = ({
 
       {venue && !locationError && !reverseVenue.isPending && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 md:start-4 md:end-auto md:max-w-xs">
-          <div className="rounded-2xl border border-base-300 bg-base-100/85 p-3 shadow-xl backdrop-blur-md">
+          <div className="rounded-2xl border border-base-300 bg-base-100 p-3 shadow-xl backdrop-blur-md">
             <p className="text-caption font-medium text-neutral">
               {host_selected_location({}, { locale })}
             </p>

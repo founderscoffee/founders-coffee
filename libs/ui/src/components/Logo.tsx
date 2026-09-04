@@ -15,11 +15,13 @@ const TABLE_FILL: Record<LogoTone, string> = {
 type LogoSymbolProps = Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> & {
   size?: number;
   tone?: LogoTone;
+  hasLettering?: boolean;
 };
 
 export const LogoSymbol = ({
   size = 28,
   tone = 'default',
+  hasLettering = false,
   ...props
 }: LogoSymbolProps) => {
   const table = TABLE_FILL[tone];
@@ -33,6 +35,20 @@ export const LogoSymbol = ({
       {...props}
     >
       <circle cx="46" cy="46" r="34" fill={table} />
+      {hasLettering ? (
+        <text
+          x="46"
+          y="59"
+          textAnchor="middle"
+          fontFamily="var(--font-display)"
+          fontWeight="600"
+          fontSize="38"
+          letterSpacing="-2"
+          fill="var(--color-base-100)"
+        >
+          f.c
+        </text>
+      ) : null}
       <circle
         cx="80"
         cy="80"

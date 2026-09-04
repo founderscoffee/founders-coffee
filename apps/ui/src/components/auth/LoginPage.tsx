@@ -18,7 +18,7 @@ import {
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, Logo } from '@founders-coffee/ui';
+import { Button, Input, LogoSymbol } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
@@ -120,23 +120,20 @@ export const LoginPage = ({
   }, [step]);
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <div className="rounded-box border border-base-300 bg-base-100 p-6">
+    <div className="mx-auto flex max-w-sm flex-col px-4 py-12">
+      <div>
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex flex-col items-center gap-3 text-center">
             <Link
               to="/"
               aria-label={brand({}, { locale })}
-              className="rounded-field"
+              className="rounded-full"
             >
-              <Logo symbolSize={24} textClassName="text-body" />
+              <LogoSymbol size={40} hasLettering />
             </Link>
             <h1 className="font-display text-h3 font-semibold">
               {login_title({}, { locale })}
             </h1>
-            <p className="text-body-sm text-neutral">
-              {login_help({}, { locale })}
-            </p>
           </div>
 
           {step === 'email' ? (
@@ -151,6 +148,9 @@ export const LoginPage = ({
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={login_email_placeholder({}, { locale })}
                 />
+                <span className="mt-1.5 block text-body-sm text-neutral">
+                  {login_help({}, { locale })}
+                </span>
               </label>
               {turnstileSiteKey && (
                 <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
