@@ -8,7 +8,14 @@
   box-sizing: border-box;
 }
 
-html,
+/* This block sits outside every cascade layer, so it beats Tailwind's layered utilities
+   however specific they are: a min-h-* class on html, body or #app is silently ignored.
+   Give html a definite height instead, so the percentage below resolves against the
+   viewport and body fills it without a utility having to fight this rule. */
+html {
+  height: 100%;
+}
+
 body,
 #app {
   min-height: 100%;
