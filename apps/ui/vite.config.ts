@@ -43,6 +43,13 @@ export default defineConfig(({ command }) => ({
         ),
         environment: 'client',
       },
+      {
+        find: /^zod$/,
+        replacement: fileURLToPath(
+          new URL('./src/zod-jitless-shim.ts', import.meta.url),
+        ),
+        environment: 'client',
+      },
     ],
   },
   plugins: [

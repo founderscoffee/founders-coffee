@@ -677,7 +677,7 @@ revisiting when AR-13 lands.
 
 **Parent:** P1-018
 **Requirements:** NFR-4
-**Status:** Partial — headers enforced and script nonces wired 2026-09-03; staging capture taken and shows one remaining violation (Zod `eval`); production enforcement still blocked account-side
+**Status:** Partial — headers enforced and script nonces wired 2026-09-03; staging capture taken 2026-09-03 and its one violation (Zod `eval`) fixed 2026-09-04, so staging is clean and ready to enforce; production enforcement still blocked account-side
 
 Closes F-09 for the header set. The CSP is shipped but not yet enforcing; see the boundary at the
 end of this ticket.
@@ -751,9 +751,10 @@ Resolved 2026-09-03:
   `<meta property="csp-nonce">` so hydration reuses the same value. Verified against a local
   Miniflare build: one nonce in the header, 34 attributes in the document, all identical, and the
   meta tag present.
-- **Zod's JIT probe is disabled** by declaring `jitless` before the first parse, so no `eval` is
-  attempted. Nothing is lost — the JIT path was never available under this policy, and the Workers
-  runtime already disables it by user-agent.
+- ~~**Zod's JIT probe is disabled** by declaring `jitless` before the first parse.~~ Wrong on both
+  counts, and the staging capture caught it: the probe fires at schema _construction_, not at first
+  parse, and the call never ran in the built bundle at all. Superseded by the client alias described
+  under "The `eval` fix" below.
 
 Boundary — what is deliberately not done, and why:
 
@@ -817,6 +818,46 @@ is still `on` zone-wide; `rocket_loader` and `mirage` are both `off`.
 So the position is now split by environment: **staging is one fix — the `eval` above — away from
 `CSP_ENFORCED=true`. Production still needs the account decision**, and its own capture, which
 cannot be taken until the apex resolves.
+
+### The `eval` fix — 2026-09-04
+
+Taken: the second candidate, narrowed to the client. `apps/ui/vite.config.ts` aliases bare `zod` to
+`apps/ui/src/zod-jitless-shim.ts` for the `client` environment only; the shim calls
+`config({ jitless: true })` and re-exports zod's whole surface from `zod/v4`, which is the same
+module graph but a specifier the alias does not match, so it cannot resolve to itself.
+
+That makes the configuration a _dependency_ of every `zod` import rather than a statement racing
+them, which is the property the three reverted attempts all lacked. The built chunk shows it
+directly — `s({jitless:!0})` now sits immediately before `oa({amount_minor:K().int(),...})`, the
+`money.ts` schema that used to fire the probe first.
+
+Narrowing to the client removed the cost the candidate table charged this approach: SSR and the
+Workers bundle are untouched, so no core dependency is aliased outside the browser. The Workers
+runtime already disables the JIT by user-agent, and `libs/core/src/zod-runtime.ts` — the module
+whose call could never win — was deleted along with its `getRouter()` call site, leaving one
+mechanism rather than two.
+
+Measured, not assumed. The same capture script was run twice against a local production build on
+`vite preview`, rebuilding and restarting the preview server between runs, because a stale build is
+served silently and reads as a clean result:
+
+| Build               | Violations | `Function()` constructions | Distinct                                      |
+| ------------------- | ---------- | -------------------------- | --------------------------------------------- |
+| Alias removed (A/B) | 18         | 18                         | 1 — `script-src` / `eval`, at `$ZodObjectJIT` |
+| Alias in place      | **0**      | **0**                      | none                                          |
+
+The A/B baseline reproduces the staging count exactly, which is what makes the zero meaningful. The
+harness also proxies `window.Function` and records construction stacks, so the zero is measured at
+the call site as well as at the policy.
+
+Unit coverage lives in `apps/ui/src/zod-jitless-shim.test.ts`: it proxies the `Function`
+constructor, builds and parses an object schema through the shim, and asserts zero constructions;
+it asserts `util.allowsEval.value` is `false`; and it asserts the shim's export keys match bare
+`zod`'s exactly, so the alias stays transparent to importers. Removing the `config` call fails the
+first two with 2 constructions observed.
+
+Functionally unchanged: the full Playwright suite passes against the aliased production build —
+25 tests, including the three-locale event-creation run at 390×844, 768×1024 and 1280×800.
 
 ### AR-09 — Repair the two enforcement mechanisms
 
