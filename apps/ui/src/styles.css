@@ -57,25 +57,9 @@ body {
   animation: host-pin-drop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-@keyframes host-pin-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(180, 86, 46, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 16px rgba(180, 86, 46, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(180, 86, 46, 0);
-  }
-}
 /* The pin ring is an attention cue, not information: it earns its motion only where
    motion is welcome. The `reduce` block later would flatten it to a single 0.01ms
    iteration, which reads as a stuck ring rather than a still one. */
-@media (prefers-reduced-motion: no-preference) {
-  .host-pin-pulse {
-    animation: host-pin-pulse 2.2s ease-out infinite;
-  }
-}
 
 /* DayPicker fills the host wizard step-2 calendar card (time sits above the card). */
 .host-daypicker.rdp-root {

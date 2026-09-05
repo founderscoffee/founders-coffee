@@ -10,9 +10,7 @@ import {
   host_map_error,
   host_map_label,
   host_retry,
-  host_selected_location,
   host_venue_resolving,
-  host_pin_hint,
   host_venue_unsupported,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -23,6 +21,7 @@ import type {
   VenueSelection,
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
+import { HostVenueCallout } from './HostVenueCallout';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
 
@@ -180,20 +179,25 @@ export const HostMap = ({
           const { lng, lat } = event.lngLat;
           void resolveCoordinates({ longitude: lng, latitude: lat });
         }}
-        onError={(e) => {
-          console.error(
-            'MAPERR',
-            (e as never as { error?: Error }).error?.message,
-            (e as never as { error?: Error }).error?.stack,
-          );
-          setHasMapError(true);
-        }}
+        onError={() => setHasMapError(true)}
         mapLib={mapLib as never}
         workerUrl={MAPBOX_WORKER_URL}
         mapboxAccessToken={accessToken}
         mapStyle={MAP_STYLE}
         style={{ width: '100%', height: '100%' }}
       >
+        {venue && !locationError && !reverseVenue.isPending && (
+          <Marker
+            longitude={venue.longitude}
+            latitude={venue.latitude}
+            anchor="top"
+            offset={[0, 6]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <HostVenueCallout venue={venue} locale={locale} />
+          </Marker>
+        )}
+
         {pin && (
           <Marker
             longitude={pin.longitude}
@@ -207,9 +211,21 @@ export const HostMap = ({
               });
             }}
           >
-            <div className="host-pin">
-              <div className="host-pin-pulse flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-primary text-body shadow-xl"></div>
-            </div>
+            <svg
+              className="host-pin drop-shadow-[0_4px_10px_rgba(39,15,0,0.35)]"
+              width="40"
+              height="52"
+              viewBox="0 0 40 52"
+              aria-hidden="true"
+            >
+              <path
+                d="M20 2C10.6 2 3 9.5 3 18.8c0 12 14.2 27.6 16.1 29.6a1.2 1.2 0 0 0 1.8 0C22.8 46.4 37 30.8 37 18.8 37 9.5 29.4 2 20 2Z"
+                fill="var(--color-secondary)"
+                stroke="#ffffff"
+                strokeWidth="3.5"
+                strokeLinejoin="round"
+              />
+            </svg>
           </Marker>
         )}
       </Map>
@@ -258,27 +274,6 @@ export const HostMap = ({
               {host_retry({}, { locale })}
             </button>
           )}
-        </div>
-      )}
-
-      {venue && !locationError && !reverseVenue.isPending && (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 md:start-4 md:end-auto md:max-w-xs">
-          <div className="rounded-2xl border border-base-300 bg-base-100 p-3 shadow-xl backdrop-blur-md">
-            <p className="text-caption font-medium text-neutral">
-              {host_selected_location({}, { locale })}
-            </p>
-            <p className="mt-0.5 line-clamp-1 text-body-sm font-bold text-base-content">
-              {venue.name}
-            </p>
-            <p className="line-clamp-1 text-caption text-neutral">
-              {venue.address}
-            </p>
-            {venue.kind === 'address' && (
-              <p className="mt-1 text-caption text-taupe">
-                {host_pin_hint({}, { locale })}
-              </p>
-            )}
-          </div>
         </div>
       )}
     </div>

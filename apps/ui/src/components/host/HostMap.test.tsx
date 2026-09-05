@@ -47,7 +47,7 @@ vi.mock('react-map-gl/mapbox', () => ({
   ),
   Marker: ({ children, onDragEnd }: MockMarkerProps) => (
     <div
-      data-testid="map-marker"
+      data-testid={onDragEnd ? 'map-marker' : 'map-callout'}
       onClick={(event) => {
         event.stopPropagation();
         onDragEnd?.({ lngLat: { lat: 36.76, lng: 3.07 } });
@@ -183,6 +183,15 @@ describe('HostMap', () => {
     firstLookup.resolve(selectedVenue);
     await firstLookup.promise;
     await waitFor(() => expect(onVenueSelect).toHaveBeenCalledOnce());
+  });
+
+  it('anchors the venue callout to the pin instead of the map frame', () => {
+    renderMap(selectedVenue, vi.fn(), vi.fn());
+
+    const callout = screen.getByTestId('map-callout').textContent ?? '';
+    expect(callout).toContain(selectedVenue.name);
+    expect(callout).toContain(selectedVenue.address);
+    expect(callout).toContain('Drag the pin to the exact door.');
   });
 
   it('hands Mapbox a self-hosted worker and the object it can write globals onto', () => {
