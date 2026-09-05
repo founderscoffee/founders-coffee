@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import type { Market } from '@founders-coffee/db';
@@ -17,12 +17,14 @@ import {
 import { Button } from '@founders-coffee/ui';
 
 import { useHostMapContext } from '../../features/events/hooks';
+import { cityForPoint } from '../../features/events/venue-location';
 import {
   TOTAL_STEPS,
   useHostCreateWizard,
 } from '../../features/events/useHostCreateWizard';
 import { useAuth } from '../../lib/app-providers';
 import { DatetimePicker } from './DatetimePicker';
+import { HostCityMismatch } from './HostCityMismatch';
 import { HostConfirmationStep } from './HostConfirmationStep';
 import { HostDetailsStep } from './HostDetailsStep';
 import { HostMapPanel } from './HostMapPanel';
@@ -50,6 +52,9 @@ export const HostCreatePage = ({
   hasSocial,
 }: HostCreatePageProps) => {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const [locatedCity, setLocatedCity] = useState<
+    geo.GeoCity | null | undefined
+  >(undefined);
   const mapContext = useHostMapContext({
     marketCode: market.code,
     cityCode: city.code,
@@ -129,6 +134,15 @@ export const HostCreatePage = ({
             </div>
             {steps}
             {stepHeading}
+            {locatedCity !== undefined && (
+              <HostCityMismatch
+                locale={locale}
+                market={market}
+                cityName={cityName}
+                suggested={locatedCity}
+                onDismiss={() => setLocatedCity(undefined)}
+              />
+            )}
             <HostVenueStep
               locale={locale}
               cityName={cityName}
@@ -176,6 +190,9 @@ export const HostCreatePage = ({
             onRetry={() => void mapContext.refetch()}
             onVenueSelect={wizard.selectVenue}
             onVenueInvalidate={wizard.clearVenue}
+            onLocatedOutsideCity={(coordinates) =>
+              setLocatedCity(cityForPoint(market.code, coordinates))
+            }
           />
         </div>
       </div>

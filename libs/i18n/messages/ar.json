@@ -321,5 +321,9 @@
   "cat_venue_coworking": "مساحة عمل",
   "cat_venue_restaurant": "مطعم",
   "host_step_counter": "الخطوة {current} من {total}",
-  "host_search_results": "نتائج البحث"
+  "host_search_results": "نتائج البحث",
+  "host_outside_city": "يبدو أنك خارج {city}.",
+  "host_outside_market": "يبدو أنك خارج {market}. اختر المدينة التي تريد الاستضافة فيها.",
+  "host_switch_city": "استخدم {city} بدلاً منها",
+  "host_pick_city": "اختر مدينة"
 }

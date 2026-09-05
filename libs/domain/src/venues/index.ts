@@ -45,6 +45,47 @@ export const getCityViewportSnapshot = (
   return snapshot ? { center: snapshot.center, bounds: snapshot.bounds } : null;
 };
 
+/** Whether a point falls inside a `[west, south, east, north]` box. */
+export const containsPoint = (
+  bounds: readonly [number, number, number, number],
+  point: { latitude: number; longitude: number },
+): boolean =>
+  point.longitude >= bounds[0] &&
+  point.longitude <= bounds[2] &&
+  point.latitude >= bounds[1] &&
+  point.latitude <= bounds[3];
+
+const NEAREST_CITY_LIMIT_METRES = 40_000;
+
+/**
+ * The snapshotted city a point falls in, for a host whose selected city is not where they are.
+ *
+ * Stored bounds are administrative and overlap, so containment alone can match several cities;
+ * the nearest centre among them wins. A point in no city's bounds still resolves if a centre is
+ * within 40km, which covers a suburb the snapshot did not draw around — beyond that the honest
+ * answer is that we do not know, and the caller says so rather than guessing a city.
+ */
+export const findCityByPoint = (
+  marketCode: string,
+  point: { latitude: number; longitude: number },
+): { cityCode: string } | null => {
+  const cities = Object.values(SNAPSHOTS[marketCode] ?? {});
+  if (cities.length === 0) return null;
+  const ranked = cities
+    .map((city) => ({
+      city,
+      inside: containsPoint(city.bounds, point),
+      distance: metresBetween(city.center, point),
+    }))
+    .sort((a, b) =>
+      a.inside === b.inside ? a.distance - b.distance : a.inside ? -1 : 1,
+    );
+  const best = ranked[0];
+  return best.inside || best.distance <= NEAREST_CITY_LIMIT_METRES
+    ? { cityCode: best.city.cityCode }
+    : null;
+};
+
 export const isSnapshotProviderId = (providerId: string): boolean =>
   providerId.startsWith(SNAPSHOT_PROVIDER_PREFIX);
 

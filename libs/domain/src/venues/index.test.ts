@@ -4,6 +4,8 @@ import { DZ_CITY_VENUES } from './data/dz.js';
 import { EG_CITY_VENUES } from './data/eg.js';
 import { SA_CITY_VENUES } from './data/sa.js';
 import {
+  containsPoint,
+  findCityByPoint,
   findSnapshotVenue,
   getCityVenues,
   getCityViewportSnapshot,
@@ -124,5 +126,60 @@ describe('city viewport snapshot', () => {
       }
     }
     expect(checked).toBeGreaterThan(0);
+  });
+});
+
+describe('locating a host outside their selected city', () => {
+  const algiers = { latitude: 36.7538, longitude: 3.0588 };
+  const oran = { latitude: 35.6971, longitude: -0.6349 };
+  const paris = { latitude: 48.8566, longitude: 2.3522 };
+
+  it('says which snapshotted city a point falls in', () => {
+    const found = findCityByPoint('DZ', algiers);
+    expect(found).not.toBeNull();
+    const stored = found && getCityViewportSnapshot('DZ', found.cityCode);
+    expect(stored).not.toBeNull();
+    if (stored) expect(containsPoint(stored.bounds, algiers)).toBe(true);
+  });
+
+  it('resolves a different city for a point in a different city', () => {
+    const here = findCityByPoint('DZ', algiers);
+    const there = findCityByPoint('DZ', oran);
+    expect(here).not.toBeNull();
+    expect(there).not.toBeNull();
+    expect(there?.cityCode).not.toBe(here?.cityCode);
+  });
+
+  it('refuses to guess a city for a point far outside the market', () => {
+    expect(findCityByPoint('DZ', paris)).toBeNull();
+  });
+
+  it('still resolves a point just outside a city but close to its centre', () => {
+    const inCity = findCityByPoint('DZ', algiers);
+    expect(inCity).not.toBeNull();
+    if (!inCity) return;
+    const stored = getCityViewportSnapshot('DZ', inCity.cityCode);
+    expect(stored).not.toBeNull();
+    if (!stored) return;
+    const justOutside = {
+      latitude: stored.bounds[3] + 0.02,
+      longitude: stored.center.longitude,
+    };
+    expect(containsPoint(stored.bounds, justOutside)).toBe(false);
+    expect(findCityByPoint('DZ', justOutside)).not.toBeNull();
+  });
+
+  it('returns nothing for a market with no snapshot', () => {
+    expect(findCityByPoint('XX', algiers)).toBeNull();
+  });
+
+  it('reads bounds as west, south, east, north', () => {
+    const bounds = [2.9, 36.6, 3.3, 36.9] as const;
+    expect(containsPoint(bounds, { latitude: 36.75, longitude: 3.05 })).toBe(
+      true,
+    );
+    expect(containsPoint(bounds, { latitude: 3.05, longitude: 36.75 })).toBe(
+      false,
+    );
   });
 });

@@ -321,5 +321,9 @@
   "cat_venue_coworking": "Espace de coworking",
   "cat_venue_restaurant": "Restaurant",
   "host_step_counter": "Étape {current} sur {total}",
-  "host_search_results": "Résultats de recherche"
+  "host_search_results": "Résultats de recherche",
+  "host_outside_city": "Vous semblez être en dehors de {city}.",
+  "host_outside_market": "Vous semblez être en dehors de {market}. Choisissez la ville où organiser.",
+  "host_switch_city": "Utiliser {city} à la place",
+  "host_pick_city": "Choisir une ville"
 }

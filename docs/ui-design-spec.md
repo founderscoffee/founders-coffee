@@ -163,6 +163,16 @@ the city snapshot and, when the submitted point is still within 50m of the store
 provider entirely. `useHostCreateWizard` must keep sending `venueProviderId`; without it the whole
 mechanism silently reverts to the provider.
 
+**حدد موقعي cannot leave the city, so it must say so.** The map's `maxBounds` is the selected
+city's box, and mapbox-gl clamps any `flyTo` outside it to the nearest in-bounds point — a host in
+Oran with Algiers in the URL was flown to farmland on the Algiers boundary and told nothing. The
+control now checks containment first: inside the city it flies as before; outside it reports the
+point up to `HostCreatePage`, which resolves it against the snapshot's city bounds and offers a
+one-click switch ("You seem to be outside Algiers. Use Oran instead"), or, beyond 40km from any
+snapshotted centre, sends the host back to the city picker. Do not remove the bounds check to
+"make locate-me work" -- the wizard is city-scoped and `createEventResolver` rejects a venue
+outside the selected city, so flying there would only move the failure later.
+
 **Selecting a venue no longer writes into the search box.** Results are a list under the field
 rather than a dropdown over it, so writing the chosen address back would re-run the search and
 replace the list the host just picked from.

@@ -96,6 +96,10 @@ const renderMap = (
   venue: VenueSelection | null,
   onVenueSelect: (value: VenueSelection) => void,
   onVenueInvalidate: () => void,
+  onLocatedOutsideCity: (coordinates: {
+    latitude: number;
+    longitude: number;
+  }) => void = vi.fn(),
 ) =>
   render(
     <HostMap
@@ -107,6 +111,7 @@ const renderMap = (
       locale="en"
       onVenueSelect={onVenueSelect}
       onVenueInvalidate={onVenueInvalidate}
+      onLocatedOutsideCity={onLocatedOutsideCity}
     />,
   );
 
@@ -200,5 +205,47 @@ describe('HostMap', () => {
     expect(getCurrentPosition).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Locate me' }));
     expect(getCurrentPosition).toHaveBeenCalledOnce();
+  });
+
+  it('reports a location outside the city instead of clamping the camera to its edge', async () => {
+    vi.stubGlobal('navigator', {
+      geolocation: {
+        getCurrentPosition: (onSuccess: PositionCallback) =>
+          onSuccess({
+            coords: { latitude: 35.6971, longitude: -0.6349 },
+          } as GeolocationPosition),
+      },
+    });
+    const onLocatedOutsideCity = vi.fn();
+    renderMap(null, vi.fn(), vi.fn(), onLocatedOutsideCity);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Locate me' }));
+
+    await waitFor(() =>
+      expect(onLocatedOutsideCity).toHaveBeenCalledWith({
+        latitude: 35.6971,
+        longitude: -0.6349,
+      }),
+    );
+  });
+
+  it('reports no mismatch for a location inside the city', async () => {
+    vi.stubGlobal('navigator', {
+      geolocation: {
+        getCurrentPosition: (onSuccess: PositionCallback) =>
+          onSuccess({
+            coords: { latitude: 36.7538, longitude: 3.0588 },
+          } as GeolocationPosition),
+      },
+    });
+    const onLocatedOutsideCity = vi.fn();
+    renderMap(null, vi.fn(), vi.fn(), onLocatedOutsideCity);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Locate me' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Locate me' })).toBeTruthy(),
+    );
+    expect(onLocatedOutsideCity).not.toHaveBeenCalled();
   });
 });

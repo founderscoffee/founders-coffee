@@ -30,6 +30,7 @@ export const HostMapPanel = ({
   onRetry,
   onVenueSelect,
   onVenueInvalidate,
+  onLocatedOutsideCity,
 }: {
   locale: Locale;
   accessToken: string;
@@ -41,6 +42,10 @@ export const HostMapPanel = ({
   onRetry: () => void;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
+  onLocatedOutsideCity: (coordinates: {
+    latitude: number;
+    longitude: number;
+  }) => void;
 }) => (
   <ClientOnly fallback={<MapSkeleton />}>
     <Suspense fallback={<MapSkeleton />}>
@@ -54,6 +59,7 @@ export const HostMapPanel = ({
           locale={locale}
           onVenueSelect={onVenueSelect}
           onVenueInvalidate={onVenueInvalidate}
+          onLocatedOutsideCity={onLocatedOutsideCity}
         />
       ) : isError ? (
         <div className="flex h-full min-h-64 flex-col items-center justify-center gap-4 bg-error-tint p-6 text-center">

@@ -19,6 +19,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { useReverseEventVenue } from '../../features/events/hooks';
+import { isInsideCity } from '../../features/events/venue-location';
 import type {
   HostMapViewport,
   VenueSelection,
@@ -40,6 +41,7 @@ type HostMapProps = {
   locale: Locale;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
+  onLocatedOutsideCity: (coordinates: Coordinates) => void;
 };
 
 const locateVisitor = (): Promise<Coordinates | null> =>
@@ -68,6 +70,7 @@ export const HostMap = ({
   locale,
   onVenueSelect,
   onVenueInvalidate,
+  onLocatedOutsideCity,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
@@ -207,11 +210,15 @@ export const HostMap = ({
           onClick={async () => {
             setLocationError(null);
             const coordinates = await locateVisitor();
-            if (coordinates) {
-              flyTo(coordinates.longitude, coordinates.latitude, 14);
-            } else {
+            if (!coordinates) {
               setLocationError(host_geolocation_denied({}, { locale }));
+              return;
             }
+            if (isInsideCity(viewport.bounds, coordinates)) {
+              flyTo(coordinates.longitude, coordinates.latitude, 14);
+              return;
+            }
+            onLocatedOutsideCity(coordinates);
           }}
           className={CONTROL_CLASS}
         >
