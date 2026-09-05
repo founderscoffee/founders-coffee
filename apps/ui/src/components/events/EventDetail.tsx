@@ -110,13 +110,15 @@ export const EventDetail = ({
 
   return (
     <article className="mx-auto max-w-content px-4 py-8 md:px-8 md:py-10">
-      <Link
-        to="/$market/$city"
-        params={{ market: market.slug, city: event.cityCode }}
-        className="mb-4 inline-flex min-h-6 items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
-      >
-        {back_to_city({ city: cityName }, { locale })}
-      </Link>
+      {event.citySlug && (
+        <Link
+          to="/$market/$city"
+          params={{ market: market.slug, city: event.citySlug }}
+          className="mb-4 inline-flex min-h-6 items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
+        >
+          {back_to_city({ city: cityName }, { locale })}
+        </Link>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         <div>

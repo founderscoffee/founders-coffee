@@ -74,6 +74,7 @@ export const getEvent = createServerFn({ strict: false })
       ...enriched,
       cityName: city?.name ?? event.cityCode,
       cityNameAr: city?.nameAr ?? city?.name ?? event.cityCode,
+      citySlug: city?.slug ?? null,
     };
   });
 

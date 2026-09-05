@@ -203,11 +203,18 @@ export const resolveEvent = async (
 export type EventFeedItemBase = Event & {
   readonly cityName: string;
   readonly cityNameAr: string;
+  readonly citySlug: string | null;
 };
 
 export type EventFeedItem = EventFeedItemBase & Partial<EventAttendance>;
 
-/** Attach display city names (falls back to the city code if the geo record is missing). */
+/**
+ * Attach the display names and the slug the city route is keyed by.
+ *
+ * The slug is not the city code: `/{market}/{city}` resolves through `findCityBySlug`, so linking
+ * with a code produces a 404. Carrying it on the payload is what lets a component link back to a
+ * city without reaching into the domain itself.
+ */
 const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
   rows.map((e) => {
     const city = geo.findCity(e.marketCode, e.cityCode);
@@ -215,6 +222,7 @@ const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
       ...e,
       cityName: city?.name ?? e.cityCode,
       cityNameAr: city?.nameAr ?? city?.name ?? e.cityCode,
+      citySlug: city?.slug ?? null,
     };
   });
 
