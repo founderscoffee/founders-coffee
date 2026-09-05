@@ -1,19 +1,11 @@
 import { Link, useParams } from '@tanstack/react-router';
 
-import {
-  brand,
-  nav_events,
-  nav_host,
-  type Locale,
-} from '@founders-coffee/i18n';
+import { brand, nav_host, type Locale } from '@founders-coffee/i18n';
 import { Logo, LogoSymbol } from '@founders-coffee/ui';
 
 import { SessionNav } from './SessionNav';
 
 type NavbarProps = { locale: Locale };
-
-const linkClass =
-  'hidden h-8 items-center rounded-full px-3 text-body-sm font-medium transition-colors sm:inline-flex';
 
 const hostClass =
   'inline-flex h-9 items-center rounded-full bg-primary px-4 text-body-sm font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
@@ -38,24 +30,13 @@ export const Navbar = ({ locale }: NavbarProps) => {
 
         <div className="flex items-center gap-1.5">
           {market ? (
-            <>
-              <Link
-                to="/$market"
-                params={{ market }}
-                className={`${linkClass} text-base-content`}
-                activeProps={{ className: `${linkClass} bg-base-200` }}
-                activeOptions={{ exact: true }}
-              >
-                {nav_events({}, { locale })}
-              </Link>
-              <Link
-                to="/$market/host/create"
-                params={{ market }}
-                className={hostClass}
-              >
-                {nav_host({}, { locale })}
-              </Link>
-            </>
+            <Link
+              to="/$market/host/create"
+              params={{ market }}
+              className={hostClass}
+            >
+              {nav_host({}, { locale })}
+            </Link>
           ) : null}
           <SessionNav locale={locale} />
         </div>

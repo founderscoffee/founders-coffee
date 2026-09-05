@@ -21,7 +21,7 @@ const initials = (name: string, email: string) => {
 const LoginLink = ({ locale }: { locale: Locale }) => (
   <Link
     to="/login"
-    className="btn btn-ghost h-9 min-h-9 border-0 px-3 text-body-sm font-medium text-neutral shadow-none hover:bg-base-200 hover:text-base-content"
+    className="btn btn-secondary h-9 min-h-9 rounded-full border-0 px-4 text-body-sm font-semibold shadow-none"
   >
     {nav_login({}, { locale })}
   </Link>
