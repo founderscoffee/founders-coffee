@@ -7,9 +7,10 @@ import {
   city_empty_title,
   feed_load_more,
   host_here,
-  host_step1,
-  host_step2,
-  host_step3,
+  host_progress_label,
+  host_step1_short,
+  host_step2_short,
+  host_step3_short,
   no_filter_match,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -22,7 +23,7 @@ import { useUpcomingEvents } from '../../features/events/hooks';
 import { EventCard } from '../events/EventCard';
 import { CityFilters } from './CityFilters';
 import { EmptyState } from './EmptyState';
-import { Stepper } from '../host/Stepper';
+import { WizardSteps } from '../host/WizardSteps';
 
 type CityLandingProps = {
   locale: Locale;
@@ -68,9 +69,9 @@ export const CityLanding = ({
 
   if (items.length === 0) {
     const stepLabels = [
-      host_step1({}, { locale }),
-      host_step2({}, { locale }),
-      host_step3({}, { locale }),
+      host_step1_short({}, { locale }),
+      host_step2_short({}, { locale }),
+      host_step3_short({}, { locale }),
     ];
 
     return (
@@ -99,7 +100,11 @@ export const CityLanding = ({
         />
 
         <div className="mx-auto mt-10 max-w-md">
-          <Stepper current={1} total={3} labels={stepLabels} />
+          <WizardSteps
+            current={1}
+            labels={stepLabels}
+            ariaLabel={host_progress_label({}, { locale })}
+          />
         </div>
       </section>
     );

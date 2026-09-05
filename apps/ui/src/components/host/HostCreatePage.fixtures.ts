@@ -19,6 +19,8 @@ const hostCreateMocks = vi.hoisted(() => ({
   invalidateCreatedEvent: vi.fn(),
   isAuthenticated: true,
   isLoading: false,
+  nearbyVenues: [] as unknown[],
+  venueSearch: [] as unknown[],
   sendVerificationOtp: vi.fn(),
   signInEmailOtp: vi.fn(),
   signInSocial: vi.fn(),
@@ -52,6 +54,8 @@ const applyDefaultHostCreateMocks = () => {
   hostCreateMocks.signInEmailOtp.mockResolvedValue({ error: null });
   hostCreateMocks.invalidateCreatedEvent.mockResolvedValue(undefined);
   hostCreateMocks.mapContext.data = READY_MAP_CONTEXT;
+  hostCreateMocks.nearbyVenues = [];
+  hostCreateMocks.venueSearch = [];
   hostCreateMocks.mapContext.isError = false;
   hostCreateMocks.mapContext.error = null;
 };
@@ -95,6 +99,17 @@ vi.mock('../../features/events/hooks', () => ({
   useCreateEvent: () => ({ mutateAsync: hostCreateMocks.mutateAsync }),
   useInvalidateCreatedEvent: () => hostCreateMocks.invalidateCreatedEvent,
   useHostMapContext: () => hostCreateMocks.mapContext,
+  useNearbyVenues: () => ({
+    data: hostCreateMocks.nearbyVenues,
+    isPending: false,
+  }),
+  useVenueSearch: () => ({
+    data: hostCreateMocks.venueSearch,
+    error: null,
+    isError: false,
+    isFetching: false,
+    refetch: vi.fn(),
+  }),
 }));
 
 vi.mock('./ClientOnly', () => ({
@@ -247,6 +262,5 @@ export const resetHostCreateFixtures = () => {
 export const publishHostEvent = async () => {
   await goToHostDetails();
   fillHostDetails();
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
   fireEvent.click(screen.getByRole('button', { name: 'Confirm and publish' }));
 };

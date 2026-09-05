@@ -48,7 +48,7 @@ export const HostConfirmationStep = ({
   isAuthenticated: boolean;
   publishError: string | null;
 }) => (
-  <div className="grid gap-5">
+  <div className="grid gap-5" data-testid="host-summary">
     <p className="text-neutral">{host_confirmation_intro({}, { locale })}</p>
 
     <section className="rounded-xl border border-base-300 p-4">

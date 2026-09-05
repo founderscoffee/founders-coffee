@@ -66,7 +66,6 @@ describe('venue naming when only an address is verified', () => {
     fireEvent.change(screen.getByLabelText(/^Description/), {
       target: { value: 'A complete protected meetup for founders.' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     expect(screen.getAllByText('Café des Délices').length).toBeGreaterThan(0);
     expect(screen.getByText('15 Rue Yousfi Mohamed, Alger')).toBeTruthy();

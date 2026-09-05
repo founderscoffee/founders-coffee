@@ -108,6 +108,7 @@ export const eventCreateSchema = z
     description: eventDescriptionSchema,
     venueName: eventVenueNameSchema,
     venueAddress: eventVenueAddressSchema,
+    venueProviderId: z.string().trim().min(1).max(120).optional(),
     latitude: z.number().finite().min(-90).max(90),
     longitude: z.number().finite().min(-180).max(180),
     startsAt: z.number().int().positive(),

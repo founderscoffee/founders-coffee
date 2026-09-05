@@ -14,12 +14,14 @@ describe('host create copy', () => {
   it.each(['ar', 'fr', 'en'] as const)(
     'provides complete option and step copy in %s',
     (locale) => {
-      const stepCopy = hostCreateStepCopy(locale);
+      const stepCopy = hostCreateStepCopy(locale, 'Algiers');
       const view = hostCreateViewCopy(locale, 'ar', 'coffee-meetup');
 
-      expect(stepCopy.labels).toHaveLength(4);
-      expect(stepCopy.descriptions).toHaveLength(4);
+      expect(stepCopy.labels).toHaveLength(3);
+      expect(stepCopy.titles).toHaveLength(3);
+      expect(stepCopy.descriptions).toHaveLength(3);
       expect(stepCopy.labels.every(Boolean)).toBe(true);
+      expect(stepCopy.titles.every(Boolean)).toBe(true);
       expect(stepCopy.descriptions.every(Boolean)).toBe(true);
       expect(view.languageOptions.map(({ value }) => value)).toEqual(LOCALES);
       expect(view.categoryOptions.map(({ value }) => value)).toEqual(

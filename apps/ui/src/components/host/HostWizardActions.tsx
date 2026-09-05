@@ -8,6 +8,8 @@ import {
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
+import { TOTAL_STEPS } from '../../features/events/useHostCreateWizard';
+
 export const HostWizardActions = ({
   locale,
   step,
@@ -26,7 +28,7 @@ export const HostWizardActions = ({
   onNext: () => void;
 }) => {
   const primaryLabel =
-    step < 4
+    step < TOTAL_STEPS
       ? host_next({}, { locale })
       : isAuthenticated
         ? host_confirm_publish({}, { locale })

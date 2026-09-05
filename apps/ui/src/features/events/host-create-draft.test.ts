@@ -9,7 +9,7 @@ import {
 import { VENUE_SEARCH_MAX_LENGTH } from './types';
 
 const draft: HostCreateDraft = {
-  step: 4,
+  step: 3,
   venue: {
     providerId: 'poi-cafe',
     kind: 'poi' as const,

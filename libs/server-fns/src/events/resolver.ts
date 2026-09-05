@@ -3,6 +3,7 @@ import {
   events as eventsDomain,
   geo,
   markets,
+  venues as venuesDomain,
   type EventCreateInput,
 } from '@founders-coffee/domain';
 import {
@@ -36,6 +37,45 @@ const resolvedVenueName = (
   resolved: { readonly kind: VenueKind; readonly name: string },
   submitted: string,
 ): string => (resolved.kind === 'poi' ? resolved.name : submitted);
+
+/**
+ * The venue this event will be published at, verified once.
+ *
+ * A point the host dropped on the map is still re-checked through the map provider: nothing but
+ * the coordinates is trustworthy there. A venue that came from our own snapshot is not re-checked,
+ * because the provider indexes almost no cafés in Algiers or Cairo and would either reject it or
+ * replace its name and address with a bare street. Borrowing an id is not enough to skip the
+ * check — the submitted point has to still sit on top of the stored one.
+ */
+const verifiedVenue = async (
+  mapProvider: MapProvider,
+  input: EventCreateInput,
+): Promise<
+  Result<{
+    readonly kind: VenueKind;
+    readonly name: string;
+    readonly address: string;
+    readonly latitude: number;
+    readonly longitude: number;
+  }>
+> => {
+  const snapshot = input.venueProviderId
+    ? venuesDomain.findSnapshotVenue(
+        input.marketCode,
+        input.cityCode,
+        input.venueProviderId,
+        { latitude: input.latitude, longitude: input.longitude },
+      )
+    : null;
+  if (snapshot) return ok(snapshot);
+  return reverseEventVenueResolver(mapProvider, {
+    marketCode: input.marketCode,
+    cityCode: input.cityCode,
+    locale: input.language,
+    latitude: input.latitude,
+    longitude: input.longitude,
+  });
+};
 
 const slugify = (title: string): string =>
   title
@@ -109,14 +149,8 @@ export const createEventResolverWithId = async (
       );
     }
 
-    const venueValidation = await reverseEventVenueResolver(mapProvider, {
-      marketCode: input.marketCode,
-      cityCode: input.cityCode,
-      locale: input.language,
-      latitude: input.latitude,
-      longitude: input.longitude,
-    });
-    if (!venueValidation.ok) return venueValidation;
+    const venue = await verifiedVenue(mapProvider, input);
+    if (!venue.ok) return venue;
 
     const row: Omit<NewEvent, 'slug'> = {
       id: eventId,
@@ -126,10 +160,10 @@ export const createEventResolverWithId = async (
       cityCode: city.code,
       title: input.title,
       description: input.description,
-      venue: resolvedVenueName(venueValidation.data, input.venueName),
-      venueAddress: venueValidation.data.address,
-      latitude: venueValidation.data.latitude,
-      longitude: venueValidation.data.longitude,
+      venue: resolvedVenueName(venue.data, input.venueName),
+      venueAddress: venue.data.address,
+      latitude: venue.data.latitude,
+      longitude: venue.data.longitude,
       startsAt: new Date(input.startsAt),
       endsAt: new Date(input.endsAt),
       capacity: input.capacity,

@@ -7,9 +7,9 @@ import {
 export const HostWizardHeader = ({ locale }: { locale: Locale }) => (
   <header className="host-fade-up mb-6">
     <div className="min-w-0 max-w-2xl">
-      <h1 className="font-display text-h3 font-semibold text-base-content">
+      <p className="font-display text-h3 font-semibold text-base-content">
         {host_page_title({}, { locale })}
-      </h1>
+      </p>
       <p className="mt-1 text-body-sm text-neutral">
         {host_page_sub({}, { locale })}
       </p>

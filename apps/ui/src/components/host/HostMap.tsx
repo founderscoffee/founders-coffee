@@ -1,4 +1,4 @@
-import { Crosshair, Minus, Plus, RefreshCw } from 'lucide-react';
+import { Crosshair, RefreshCw } from 'lucide-react';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 import { Map, Marker } from 'react-map-gl/mapbox';
@@ -13,9 +13,8 @@ import {
   host_selected_location,
   host_venue_outside_city,
   host_venue_resolving,
+  host_pin_hint,
   host_venue_unsupported,
-  host_zoom_in,
-  host_zoom_out,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -26,7 +25,7 @@ import type {
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 
-const MAP_STYLE = 'mapbox://styles/mapbox/standard';
+const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
 
 const mapLib = loadMapboxCsp();
 
@@ -58,7 +57,7 @@ const locateVisitor = (): Promise<Coordinates | null> =>
   });
 
 const CONTROL_CLASS =
-  'flex h-11 w-11 items-center justify-center rounded-xl border border-base-300 bg-base-100 text-base-content shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-secondary';
+  'flex h-11 items-center gap-2 rounded-full border border-base-300 bg-base-100 px-4 text-body-sm font-medium text-base-content shadow-lg backdrop-blur-md transition hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-secondary motion-reduce:transition-none';
 
 export const HostMap = ({
   accessToken,
@@ -128,7 +127,7 @@ export const HostMap = ({
 
   if (hasMapError) {
     return (
-      <div className="flex min-h-80 w-full flex-col items-center justify-center gap-4 rounded-2xl border border-error bg-error-tint p-6 text-center md:min-h-96">
+      <div className="flex h-full min-h-64 w-full flex-col items-center justify-center gap-4 bg-error-tint p-6 text-center">
         <p className="text-body-sm text-error" role="alert">
           {host_map_error({}, { locale })}
         </p>
@@ -149,7 +148,7 @@ export const HostMap = ({
 
   return (
     <div
-      className="relative h-44 w-full overflow-hidden rounded-box border border-base-300 shadow-[var(--shadow-2)] md:h-[clamp(20rem,50vh,30rem)]"
+      className="relative h-full min-h-64 w-full overflow-hidden"
       aria-label={host_map_label({}, { locale })}
     >
       <Map
@@ -202,23 +201,7 @@ export const HostMap = ({
         )}
       </Map>
 
-      <div className="absolute end-3 top-3 flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={() => mapRef.current?.zoomIn()}
-          className={CONTROL_CLASS}
-          aria-label={host_zoom_in({}, { locale })}
-        >
-          <Plus className="h-5 w-5" aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          onClick={() => mapRef.current?.zoomOut()}
-          className={CONTROL_CLASS}
-          aria-label={host_zoom_out({}, { locale })}
-        >
-          <Minus className="h-5 w-5" aria-hidden="true" />
-        </button>
+      <div className="absolute start-3 top-3">
         <button
           type="button"
           onClick={async () => {
@@ -231,16 +214,15 @@ export const HostMap = ({
             }
           }}
           className={CONTROL_CLASS}
-          aria-label={host_locate_me({}, { locale })}
-          title={host_locate_me({}, { locale })}
         >
-          <Crosshair className="h-5 w-5" aria-hidden="true" />
+          <Crosshair className="size-4 shrink-0" aria-hidden="true" />
+          {host_locate_me({}, { locale })}
         </button>
       </div>
 
       {reverseVenue.isPending && (
         <p
-          className="absolute inset-x-3 top-3 me-14 rounded-xl bg-base-100 p-3 text-body-sm shadow-lg backdrop-blur-md"
+          className="absolute inset-x-3 top-16 rounded-xl bg-base-100 p-3 text-body-sm shadow-lg backdrop-blur-md"
           role="status"
         >
           <span className="loading loading-spinner loading-xs me-2" />
@@ -278,6 +260,11 @@ export const HostMap = ({
             <p className="line-clamp-1 text-caption text-neutral">
               {venue.address}
             </p>
+            {venue.kind === 'address' && (
+              <p className="mt-1 text-caption text-taupe">
+                {host_pin_hint({}, { locale })}
+              </p>
+            )}
           </div>
         </div>
       )}

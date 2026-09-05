@@ -7,7 +7,7 @@ import {
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 const hostCreateMocks = getHostCreateMocks();
@@ -52,14 +52,10 @@ describe('HostCreatePage EC-07 flow', () => {
     fireEvent.change(screen.getByLabelText('Category'), {
       target: { value: 'workshop' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-
-    expect(
-      screen.getByRole('heading', { name: 'Review and confirm' }),
-    ).toBeTruthy();
-    expect(screen.getByText('12 Startup Street, Algiers')).toBeTruthy();
-    expect(screen.getByText('English')).toBeTruthy();
-    expect(screen.getByText('Workshop')).toBeTruthy();
+    const summary = within(screen.getByTestId('host-summary'));
+    expect(summary.getByText('12 Startup Street, Algiers')).toBeTruthy();
+    expect(summary.getByText('English')).toBeTruthy();
+    expect(summary.getByText('Workshop')).toBeTruthy();
 
     const publish = screen.getByRole('button', {
       name: 'Confirm and publish',
@@ -76,6 +72,7 @@ describe('HostCreatePage EC-07 flow', () => {
           capacity: 24,
           language: 'en',
           category: 'workshop',
+          venueProviderId: 'poi-cafe',
         }),
       },
     });
@@ -91,7 +88,6 @@ describe('HostCreatePage EC-07 flow', () => {
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Continue to login' }));
 
     expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
@@ -118,12 +114,46 @@ describe('HostCreatePage EC-07 flow', () => {
     await waitFor(() => expect(hostCreateMocks.mutateAsync).toHaveBeenCalled());
   });
 
+  it('validates the final step instead of publishing an invalid draft', async () => {
+    renderHostCreateWizard();
+    await goToHostDetails();
+    fireEvent.change(screen.getByLabelText(/^Title/), {
+      target: { value: 'x' },
+    });
+    fireEvent.change(screen.getByLabelText(/^Description/), {
+      target: { value: 'A complete protected meetup for founders.' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Confirm and publish' }),
+    );
+
+    expect(hostCreateMocks.mutateAsync).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText('Enter between 3 and 120 characters.'),
+    ).toBeTruthy();
+  });
+
+  it('asks an anonymous host to sign in only once the draft is valid', async () => {
+    hostCreateMocks.isAuthenticated = false;
+    renderHostCreateWizard();
+    await goToHostDetails();
+    fireEvent.change(screen.getByLabelText(/^Title/), {
+      target: { value: 'x' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to login' }));
+
+    expect(
+      screen.queryByRole('heading', {
+        name: 'One last step — sign in to publish',
+      }),
+    ).toBeNull();
+  });
+
   it('restores the confirmation step after auth and a locale reload', async () => {
     hostCreateMocks.isAuthenticated = false;
     const firstRender = renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() =>
       expect(window.sessionStorage.getItem('fc:event-draft:DZ:1')).toContain(
         'Protected meetup',
@@ -134,7 +164,7 @@ describe('HostCreatePage EC-07 flow', () => {
     hostCreateMocks.isAuthenticated = true;
     renderHostCreateWizard('fr');
     expect(
-      await screen.findByRole('heading', { name: 'Vérifier et confirmer' }),
+      await screen.findByRole('heading', { name: 'De quoi parle-t-on ?' }),
     ).toBeTruthy();
     expect(screen.getByText('Protected meetup')).toBeTruthy();
     expect(

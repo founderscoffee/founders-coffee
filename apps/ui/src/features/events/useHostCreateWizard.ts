@@ -29,6 +29,8 @@ import {
 import type { VenueSelection } from './types';
 import { useHostPublish } from './useHostPublish';
 
+export const TOTAL_STEPS = 3;
+
 export const useHostCreateWizard = ({
   locale,
   market,
@@ -42,6 +44,7 @@ export const useHostCreateWizard = ({
   isAuthenticated: boolean;
   isAuthLoading: boolean;
 }) => {
+  const cityName = locale === 'ar' ? city.nameAr : city.name;
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
   const [venueName, setVenueName] = useState('');
@@ -140,11 +143,14 @@ export const useHostCreateWizard = ({
    * A point of interest names itself. Where the provider could only confirm a street address the
    * name is cleared rather than pre-filled with it, because "15 Rue Yousfi Mohamed" is an address
    * masquerading as a venue name — leaving it in place would let a host publish it by accident.
+   *
+   * The search box is left alone. Results are now a list under the field rather than a dropdown
+   * over it, so writing the chosen address back into the input would re-run the search and replace
+   * the very list the host just picked from.
    */
   const selectVenue = (selection: VenueSelection) => {
     setVenue(selection);
     setVenueName(selection.kind === 'poi' ? selection.name : '');
-    setSearchValue(selection.address || selection.name);
     setFieldErrors((current) => ({
       ...current,
       venue: undefined,
@@ -199,6 +205,7 @@ export const useHostCreateWizard = ({
       title,
       description,
       venueName,
+      venueProviderId: venue.providerId,
       venueAddress: venue.address,
       latitude: venue.latitude,
       longitude: venue.longitude,
@@ -210,9 +217,17 @@ export const useHostCreateWizard = ({
     });
   };
 
+  /**
+   * Advance, or publish from the last step.
+   *
+   * Every step validates, including the last one. When the details step was followed by a review
+   * screen its validation ran on the way out of it; now it is the final step, so skipping the check
+   * here would send an invalid title straight to the server — and, for an anonymous host, only
+   * after they had signed in for it.
+   */
   const next = () => {
-    if (step < 4) {
-      if (!validateCurrentStep()) return;
+    if (!validateCurrentStep()) return;
+    if (step < TOTAL_STEPS) {
       clearPublishError();
       setStep((current) => current + 1);
       return;
@@ -230,7 +245,7 @@ export const useHostCreateWizard = ({
     setFieldErrors({});
     setStep((current) => Math.max(1, current - 1));
   };
-  const stepCopy = hostCreateStepCopy(locale);
+  const stepCopy = hostCreateStepCopy(locale, cityName);
   const schedule = hostScheduleSummary(
     startsAt,
     endsAt,
@@ -245,7 +260,7 @@ export const useHostCreateWizard = ({
     publishing,
     publishError,
     stepLabels: stepCopy.labels,
-    stepTitle: stepCopy.labels[step - 1] ?? stepCopy.labels[0],
+    stepTitle: stepCopy.titles[step - 1] ?? stepCopy.titles[0],
     stepSub: stepCopy.descriptions[step - 1] ?? null,
     view: hostCreateViewCopy(locale, language, category),
     isAuthGateOpen,

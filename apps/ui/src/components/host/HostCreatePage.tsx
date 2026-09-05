@@ -1,20 +1,26 @@
-import { CalendarClock, MapPin } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import {
-  host_duration_min,
+  host_next,
+  host_or_click_map,
+  host_page_title,
   host_progress_label,
+  host_step_counter,
   host_step_progress,
   host_venue_rate_limited,
   host_venue_search_error,
   type Locale,
 } from '@founders-coffee/i18n';
+import { Button } from '@founders-coffee/ui';
 
 import { useHostMapContext } from '../../features/events/hooks';
-import { useHostCreateWizard } from '../../features/events/useHostCreateWizard';
+import {
+  TOTAL_STEPS,
+  useHostCreateWizard,
+} from '../../features/events/useHostCreateWizard';
 import { useAuth } from '../../lib/app-providers';
 import { DatetimePicker } from './DatetimePicker';
 import { HostConfirmationStep } from './HostConfirmationStep';
@@ -24,7 +30,7 @@ import { HostSignInGate } from './HostSignInGate';
 import { HostVenueStep } from './HostVenueStep';
 import { HostWizardActions } from './HostWizardActions';
 import { HostWizardHeader } from './HostWizardHeader';
-import { Stepper } from './Stepper';
+import { WizardSteps } from './WizardSteps';
 
 type HostCreatePageProps = {
   locale: Locale;
@@ -34,9 +40,6 @@ type HostCreatePageProps = {
   turnstileSiteKey: string | null;
   hasSocial: boolean;
 };
-
-const pillClass =
-  'flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-base-300 bg-base-100 px-2.5 py-1 shadow-sm';
 
 export const HostCreatePage = ({
   locale,
@@ -78,30 +81,9 @@ export const HostCreatePage = ({
   }, [wizard.step]);
 
   const cityName = locale === 'ar' ? city.nameAr : city.name;
-  const stepperSegments = [
-    wizard.venue ? (
-      <span key="location" className={pillClass}>
-        <MapPin className="size-3.5 shrink-0 text-primary" />
-        <span className="truncate text-caption font-semibold text-base-content">
-          {wizard.venueName || wizard.venue.name}
-        </span>
-      </span>
-    ) : null,
-    wizard.hasValidTimeRange ? (
-      <span key="time" className={pillClass}>
-        <CalendarClock className="size-3.5 shrink-0 text-primary" />
-        <span className="truncate text-caption font-semibold text-base-content">
-          {wizard.whenLabel}
-        </span>
-        <span className="shrink-0 rounded-full bg-base-200 px-1.5 text-[10px] font-bold text-primary">
-          {host_duration_min({ n: wizard.durationMinutes }, { locale })}
-        </span>
-      </span>
-    ) : null,
-    null,
-  ];
   const stepHeading = (
     <div className="mb-6">
+      <h1 className="sr-only">{host_page_title({}, { locale })}</h1>
       <h2
         ref={headingRef}
         tabIndex={-1}
@@ -115,91 +97,120 @@ export const HostCreatePage = ({
     </div>
   );
 
-  return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-6xl px-4 pt-8 pb-24 md:pt-12 md:pb-16">
-        <HostWizardHeader locale={locale} />
+  const marketName =
+    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
+  const steps = (
+    <WizardSteps
+      current={wizard.step}
+      labels={wizard.stepLabels}
+      ariaLabel={host_progress_label({}, { locale })}
+      statusText={host_step_progress(
+        { current: wizard.step, total: TOTAL_STEPS, label: wizard.stepTitle },
+        { locale },
+      )}
+    />
+  );
 
-        <div className="mb-8">
-          <Stepper
-            current={wizard.step}
-            total={4}
-            segments={stepperSegments}
-            labels={wizard.stepLabels}
-            ariaLabel={host_progress_label({}, { locale })}
-            statusText={host_step_progress(
-              {
-                current: wizard.step,
-                total: 4,
-                label: wizard.stepTitle,
-              },
-              { locale },
+  if (wizard.step === 1) {
+    return (
+      <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:min-h-[calc(100vh-4rem)] lg:flex-row">
+        <section className="host-fade-up flex w-full flex-col border-base-300 bg-base-100 lg:h-[calc(100vh-4rem)] lg:w-[26rem] lg:shrink-0 lg:border-e xl:w-[30rem]">
+          <div className="flex flex-col gap-4 overflow-y-auto p-5 md:p-7">
+            <div className="flex items-center justify-between gap-3 text-caption text-neutral">
+              <span className="truncate font-medium text-base-content">
+                {marketName}
+              </span>
+              <span className="shrink-0">
+                {host_step_counter(
+                  { current: wizard.step, total: TOTAL_STEPS },
+                  { locale },
+                )}
+              </span>
+            </div>
+            {steps}
+            {stepHeading}
+            <HostVenueStep
+              locale={locale}
+              cityName={cityName}
+              cityCode={city.code}
+              marketCode={market.code}
+              searchValue={wizard.searchValue}
+              venue={wizard.venue}
+              venueName={wizard.venueName}
+              nameError={wizard.fieldErrors.venueName}
+              isDisabled={!mapContext.data}
+              unavailableReason={mapContextError}
+              onSearchChange={wizard.setSearchValue}
+              onVenueNameChange={wizard.setVenueName}
+              onVenueSelect={wizard.selectVenue}
+            />
+            {wizard.fieldErrors.venue && (
+              <p className="text-body-sm text-error" role="alert">
+                {wizard.fieldErrors.venue}
+              </p>
             )}
+          </div>
+          <div className="sticky inset-x-0 bottom-0 z-30 mt-auto flex items-center justify-between gap-3 border-t border-base-300 bg-base-100 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur md:px-7 lg:static lg:shadow-none">
+            <Button
+              variant="primary"
+              onClick={wizard.next}
+              disabled={wizard.isActionDisabled}
+              className="h-12 min-w-28 px-6 text-base font-semibold"
+            >
+              {host_next({}, { locale })}
+            </Button>
+            <span className="text-caption text-neutral">
+              {host_or_click_map({}, { locale })}
+            </span>
+          </div>
+        </section>
+        <div className="min-h-72 flex-1 lg:min-h-0">
+          <HostMapPanel
+            locale={locale}
+            accessToken={mapboxToken}
+            marketCode={market.code}
+            cityCode={city.code}
+            venue={wizard.venue}
+            viewport={mapContext.data}
+            isError={mapContext.isError}
+            onRetry={() => void mapContext.refetch()}
+            onVenueSelect={wizard.selectVenue}
+            onVenueInvalidate={wizard.clearVenue}
           />
         </div>
+      </div>
+    );
+  }
 
-        {wizard.step === 1 ? (
-          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,27rem)_1fr]">
-            <section className="host-fade-up rounded-box border border-base-300 bg-base-100 p-6">
-              {stepHeading}
-              <HostVenueStep
+  return (
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-4xl px-4 pt-8 pb-24 md:pt-12 md:pb-16">
+        <HostWizardHeader locale={locale} />
+
+        <div className="mb-8">{steps}</div>
+
+        <section className="host-fade-up mx-auto max-w-3xl rounded-box border border-base-300 bg-base-100 p-5 md:p-7">
+          {stepHeading}
+          {wizard.step === 2 && (
+            <div>
+              <DatetimePicker
+                startsAt={wizard.startsAt}
+                endsAt={wizard.endsAt}
+                onChange={wizard.setSchedule}
+                onError={wizard.setScheduleError}
                 locale={locale}
-                cityName={cityName}
-                cityCode={city.code}
-                marketCode={market.code}
-                searchValue={wizard.searchValue}
-                venue={wizard.venue}
-                venueName={wizard.venueName}
-                nameError={wizard.fieldErrors.venueName}
-                isDisabled={!mapContext.data}
-                unavailableReason={mapContextError}
-                onSearchChange={wizard.setSearchValue}
-                onVenueNameChange={wizard.setVenueName}
-                onVenueSelect={wizard.selectVenue}
+                timeZone={market.timezone}
+                timePlacement="top"
               />
-              {wizard.fieldErrors.venue && (
+              {wizard.fieldErrors.schedule && (
                 <p className="mt-3 text-body-sm text-error" role="alert">
-                  {wizard.fieldErrors.venue}
+                  {wizard.fieldErrors.schedule}
                 </p>
               )}
-            </section>
-            <div>
-              <HostMapPanel
-                locale={locale}
-                accessToken={mapboxToken}
-                marketCode={market.code}
-                cityCode={city.code}
-                venue={wizard.venue}
-                viewport={mapContext.data}
-                isError={mapContext.isError}
-                onRetry={() => void mapContext.refetch()}
-                onVenueSelect={wizard.selectVenue}
-                onVenueInvalidate={wizard.clearVenue}
-              />
             </div>
-          </div>
-        ) : (
-          <section className="host-fade-up mx-auto max-w-3xl rounded-box border border-base-300 bg-base-100 p-5 md:p-7">
-            {stepHeading}
-            {wizard.step === 2 && (
-              <div>
-                <DatetimePicker
-                  startsAt={wizard.startsAt}
-                  endsAt={wizard.endsAt}
-                  onChange={wizard.setSchedule}
-                  onError={wizard.setScheduleError}
-                  locale={locale}
-                  timeZone={market.timezone}
-                  timePlacement="top"
-                />
-                {wizard.fieldErrors.schedule && (
-                  <p className="mt-3 text-body-sm text-error" role="alert">
-                    {wizard.fieldErrors.schedule}
-                  </p>
-                )}
-              </div>
-            )}
-            {wizard.step === 3 && (
+          )}
+          {wizard.step === 3 && (
+            <>
               <HostDetailsStep
                 locale={locale}
                 title={wizard.title}
@@ -218,38 +229,39 @@ export const HostCreatePage = ({
                 onLanguageChange={wizard.setLanguage}
                 onCategoryChange={wizard.setCategory}
               />
-            )}
-            {wizard.step === 4 &&
-              wizard.venue &&
-              wizard.startsAt !== null &&
-              wizard.endsAt !== null && (
-                <HostConfirmationStep
+              {wizard.venue &&
+                wizard.startsAt !== null &&
+                wizard.endsAt !== null && (
+                  <div className="mt-8 border-t border-base-300 pt-6">
+                    <HostConfirmationStep
+                      locale={locale}
+                      timeZone={market.timezone}
+                      venue={wizard.venue}
+                      venueName={wizard.venueName}
+                      startsAt={wizard.startsAt}
+                      endsAt={wizard.endsAt}
+                      title={wizard.title}
+                      description={wizard.description}
+                      capacity={wizard.capacity}
+                      languageLabel={wizard.view.languageLabel}
+                      categoryLabel={wizard.view.categoryLabel}
+                      isAuthenticated={isAuthenticated}
+                      publishError={wizard.publishError}
+                    />
+                  </div>
+                )}
+              {wizard.isAuthGateOpen && (
+                <HostSignInGate
                   locale={locale}
-                  timeZone={market.timezone}
-                  venue={wizard.venue}
-                  venueName={wizard.venueName}
-                  startsAt={wizard.startsAt}
-                  endsAt={wizard.endsAt}
-                  title={wizard.title}
-                  description={wizard.description}
-                  capacity={wizard.capacity}
-                  languageLabel={wizard.view.languageLabel}
-                  categoryLabel={wizard.view.categoryLabel}
-                  isAuthenticated={isAuthenticated}
-                  publishError={wizard.publishError}
+                  turnstileSiteKey={turnstileSiteKey}
+                  hasSocial={hasSocial}
+                  onCancel={wizard.closeAuthGate}
+                  onAuthenticated={wizard.onGateAuthenticated}
                 />
               )}
-            {wizard.step === 4 && wizard.isAuthGateOpen && (
-              <HostSignInGate
-                locale={locale}
-                turnstileSiteKey={turnstileSiteKey}
-                hasSocial={hasSocial}
-                onCancel={wizard.closeAuthGate}
-                onAuthenticated={wizard.onGateAuthenticated}
-              />
-            )}
-          </section>
-        )}
+            </>
+          )}
+        </section>
 
         <HostWizardActions
           locale={locale}

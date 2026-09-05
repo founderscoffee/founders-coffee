@@ -12,7 +12,7 @@ import type { HostCreateDraft } from './host-create-draft';
 
 const startsAt = new Date('2099-01-15T18:00:00Z').getTime();
 const validDraft: HostCreateDraft = {
-  step: 4,
+  step: 3,
   venue: {
     providerId: 'poi-cafe',
     kind: 'poi' as const,
@@ -59,12 +59,11 @@ describe('host create validation', () => {
   });
 
   it('restores to the first step whose saved projection is invalid', () => {
-    expect(restoredDraftStep(validDraft, 'en')).toBe(4);
+    expect(restoredDraftStep(validDraft, 'en')).toBe(3);
     expect(restoredDraftStep({ ...validDraft, venue: null }, 'en')).toBe(1);
     expect(
       restoredDraftStep({ ...validDraft, endsAt: startsAt + 1 }, 'en'),
     ).toBe(2);
-    expect(restoredDraftStep({ ...validDraft, title: '' }, 'en')).toBe(3);
   });
 
   it('focuses and scrolls the first invalid field', () => {

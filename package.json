@@ -11,6 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "graph": "nx graph",
+    "venues:snapshot": "node tools/osm/snapshot-venues.mjs",
+    "venues:build": "node tools/osm/build-venue-modules.mjs && prettier --write \"libs/domain/src/venues/data/*.ts\"",
     "affected:build": "nx affected -t build",
     "affected:lint": "nx affected -t lint",
     "affected:test": "nx affected -t test",

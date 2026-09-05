@@ -5,7 +5,7 @@ import {
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 const hostCreateMocks = getHostCreateMocks();
@@ -102,7 +102,6 @@ describe('HostCreatePage EC-08 outcomes', () => {
       ).disabled,
     ).toBe(false);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(
       (screen.getByLabelText(/^Title/) as unknown as HTMLInputElement).value,
     ).toBe('Protected meetup');
@@ -129,6 +128,6 @@ describe('HostCreatePage EC-08 outcomes', () => {
     );
     const draft = window.sessionStorage.getItem(draftKey);
     expect(draft).toContain('Protected meetup');
-    expect(draft).toContain('"step":4');
+    expect(draft).toContain('"step":3');
   });
 });

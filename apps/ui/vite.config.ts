@@ -32,6 +32,11 @@ const clientNodeBuiltinStubs: Plugin = {
 };
 
 export default defineConfig(({ command }) => ({
+  server: {
+    watch: {
+      ignored: ['**/.osm-snapshot/**', '**/.wrangler/**', '**/dist/**'],
+    },
+  },
   resolve: {
     tsconfigPaths: true,
     dedupe: ['react', 'react-dom'],

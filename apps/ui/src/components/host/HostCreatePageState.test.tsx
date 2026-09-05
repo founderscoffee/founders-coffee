@@ -6,7 +6,7 @@ import {
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 const hostCreateMocks = getHostCreateMocks();
@@ -43,8 +43,9 @@ describe('HostCreatePage EC-07 state', () => {
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByText('Unlimited')).toBeTruthy();
+    expect(
+      within(screen.getByTestId('host-summary')).getByText('Unlimited'),
+    ).toBeTruthy();
   });
 
   it('locks duplicate submission while the first request is pending', async () => {
@@ -58,7 +59,6 @@ describe('HostCreatePage EC-07 state', () => {
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     const publish = screen.getByRole('button', {
       name: 'Confirm and publish',
     }) as HTMLButtonElement;
@@ -72,8 +72,12 @@ describe('HostCreatePage EC-07 state', () => {
     await waitFor(() => expect(hostCreateMocks.navigate).toHaveBeenCalled());
   });
 
-  it('uses a sticky, safe-area action region on compact layouts', () => {
+  it('uses a sticky, safe-area action region on the steps that scroll', async () => {
     renderHostCreateWizard();
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Choose venue' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     const action = screen.getByRole('button', { name: 'Next' }).parentElement
       ?.parentElement;
     expect(action?.className).toContain('sticky');

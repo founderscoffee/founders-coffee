@@ -6,7 +6,7 @@ import type { Locale } from '@founders-coffee/i18n';
 
 import { VENUE_SEARCH_MAX_LENGTH, type VenueSelection } from './types';
 
-const DRAFT_VERSION = 1;
+const DRAFT_VERSION = 2;
 const DRAFT_MAX_AGE_MS = 24 * 60 * 60_000;
 
 const venueSelectionSchema = z.object({
@@ -23,7 +23,7 @@ const hostCreateDraftSchema = z.object({
   savedAt: z.number().int().positive(),
   marketCode: z.string().min(1),
   cityCode: z.string().min(1),
-  step: z.number().int().min(1).max(4),
+  step: z.number().int().min(1).max(3),
   venue: venueSelectionSchema.nullable(),
   venueName: z.string().max(events.EVENT_VENUE_NAME_MAX_LENGTH),
   searchValue: z.string().max(VENUE_SEARCH_MAX_LENGTH),

@@ -176,22 +176,5 @@ export const restoredDraftStep = (
   ) {
     return 2;
   }
-  if (
-    draft.step > 3 &&
-    firstInvalidField(
-      validateDetailsStep(
-        {
-          title: draft.title,
-          description: draft.description,
-          capacity: draft.capacity,
-          language: draft.language,
-          category: draft.category,
-        },
-        locale,
-      ),
-    )
-  ) {
-    return 3;
-  }
   return draft.step;
 };

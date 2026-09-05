@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 
 import { appValidator, handleResult } from '@founders-coffee/core';
+import { venues as venuesDomain } from '@founders-coffee/domain';
 
 import { rateLimit } from '../rate-limit.js';
 import type { HostMapContext, VenueCandidate } from './provider.js';
@@ -50,6 +51,20 @@ export const getHostMapContext = createServerFn({ strict: false })
   .validator(appValidator(hostMapContextSchema))
   .handler(async ({ data }): Promise<HostMapContext> =>
     handleResult(getHostMapContextResolver(getMapProvider(), data)),
+  );
+
+/**
+ * The snapshotted venues for a city.
+ *
+ * No provider call and no rate limit: this reads a dataset committed to the repo, because the map
+ * provider indexes almost no cafés in Algiers or Cairo and a category search there returns nothing
+ * at all. It stays a server function so the wizard keeps one way of asking for data and the
+ * dataset never has to be reachable as a public URL.
+ */
+export const listNearbyVenues = createServerFn({ strict: false })
+  .validator(appValidator(hostMapContextSchema))
+  .handler(async ({ data }): Promise<readonly venuesDomain.SnapshotVenue[]> =>
+    venuesDomain.getCityVenues(data.marketCode, data.cityCode),
   );
 
 export const searchEventVenues = createServerFn({ strict: false })

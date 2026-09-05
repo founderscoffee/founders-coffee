@@ -115,6 +115,58 @@ the ☕ and ⚠️ emoji, which were doing the work of an illustration at 60px.
 
 ### 3.4 Host create wizard (`HostCreatePage.tsx`)
 
+**Step 1 is its own screen.** A full-height two-pane layout under the navbar — satellite map
+(`mapbox://styles/mapbox/standard-satellite`) filling one side, a paper panel holding a DaisyUI
+`steps` stepper, the search field and a radio list of nearby venues on the other. The panel comes
+first in the DOM so it lands on the inline-start side in both directions. The map carries exactly
+one control, a labelled `حدد موقعي` pill that flies the camera on click; there are no zoom buttons
+and no explainer bar. Steps 2 and 3 keep the centred card.
+
+**Where the nearby venues come from.** Not the map provider. Mapbox Search Box category search
+returns **zero** cafés and zero coworking spaces in Algiers and Cairo — verified live across five
+points in the Algiers wilaya — while returning results in Oran, Riyadh, Tunis and London. Its text
+search is nearly as thin there (`cafe` → 1 result, `مقهى` → 0) and a reverse geocode on central
+Algiers returns a street with no POI. OpenStreetMap has 110 named cafés in Algiers, 120 in Cairo,
+113 in Riyadh. Google Places is excluded by its own terms: Places results must be shown on a Google
+map if a map is displayed, and Places content may not be cached beyond `place_id`.
+
+So venues are **snapshotted from OSM offline** by `tools/osm/snapshot-venues.mjs` and committed as
+`libs/domain/src/venues/data/*.ts`, the same shape `geo/data` already ships. Nothing calls Overpass
+at request time — its public endpoint rate-limits and its policy excludes production traffic. The
+snapshot also stores each city's centre and bounds, so `getHostMapContextResolver` serves a
+snapshotted city without a provider call at all.
+
+It covers 88 of the 98 featured cities — 54 Algerian, 21 Egyptian, 13 Saudi, 1,560 venues — after
+dropping four the geocoder could not resolve by name (`B. B. Arreridj`, `PorSaid`, `Bani Sweif`,
+`Arish`) and those with nothing tagged. Every other city falls back to search and tapping the map,
+as it did everywhere before.
+
+Refreshing it is two steps, and takes roughly ninety minutes because Overpass has to be throttled:
+`npm run venues:snapshot` writes raw Overpass output to the gitignored `.osm-snapshot/` (resumable
+— it skips cities already fetched, so an interrupted run continues where it stopped), then
+`npm run venues:build` regenerates the committed modules. Three things the script learned the hard
+way. Mirrors reject a default runtime `User-Agent` with a plain-text notice rather than JSON, and
+answer 200 with a `remark` when a query runs out of memory — either read as "no results" silently
+records a city as having no cafés. And **`overpass.osm.ch` is a Swiss regional extract**: it
+answers 200 with an empty result for anything outside its own bbox, which recorded Algiers, Cairo,
+Batna, Blida and thirty other cities as having no cafés at all. Any mirror added to the rotation
+must be checked against a non-European city first; the script now probes them at startup and drops
+whatever it cannot reach. Do not run it with the dev server up unless Vite is ignoring
+`.osm-snapshot/`; the write-per-city churn re-optimises deps until SSR fails.
+
+**Publishing must trust a snapshot venue.** `createEventResolver` re-verifies every venue by
+reverse-geocoding the submitted point and overwriting the address and coordinates with the
+provider's answer. For an OSM café in Algiers that either fails with `map_venue_unsupported` or
+silently replaces the café's address with a bare street — which is exactly what happened the first
+time this ran end to end. `verifiedVenue` now matches a `venueProviderId` beginning `osm:` against
+the city snapshot and, when the submitted point is still within 50m of the stored one, skips the
+provider entirely. `useHostCreateWizard` must keep sending `venueProviderId`; without it the whole
+mechanism silently reverts to the provider.
+
+**Selecting a venue no longer writes into the search box.** Results are a list under the field
+rather than a dropdown over it, so writing the chosen address back would re-run the search and
+replace the list the host just picked from.
+
 **Getting in.** `?city=` is optional. Without it the route renders `HostCityStep` -- the wizard
 chrome around one city combobox -- instead of redirecting to `/$market`, which is what made the
 navbar's Host link a dead end (it passed no city, so every click 307'd back to the page you were
@@ -122,7 +174,7 @@ already on). Picking a city replaces the URL with `?city=&state=`, the loader re
 wizard mounts with a real city. The route component switches between the two, so the two trees
 never share a hook order.
 
-**Getting out.** An anonymous host completes all four steps and is asked to sign in only at the
+**Getting out.** An anonymous host completes all three steps and is asked to sign in only at the
 confirmation step, in place: `HostSignInGate` renders inside the step with the summary still on
 screen, and publishes as soon as the code verifies. Nothing navigates to `/login` any more -- not
 the first sign-in, and not an expired session mid-publish. The draft is still written to session

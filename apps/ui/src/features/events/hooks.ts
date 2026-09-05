@@ -5,6 +5,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
+import type { venues } from '@founders-coffee/domain';
+
 import {
   createdEventQueryKeys,
   type CreatedEventKeys,
@@ -75,6 +77,17 @@ export const useHostMapContext = (input: HostMapLocationInput) =>
     queryKey: ['events', 'host-map', input],
     queryFn: () => eventsApi.getHostMapContext({ data: input }),
     staleTime: 30 * 60_000,
+    retry: false,
+  });
+
+/**
+ * The city's snapshotted venues. No provider call behind it, so it is cached for the session.
+ */
+export const useNearbyVenues = (input: HostMapLocationInput) =>
+  useQuery<readonly venues.SnapshotVenue[]>({
+    queryKey: ['events', 'nearby-venues', input.marketCode, input.cityCode],
+    queryFn: () => eventsApi.listNearbyVenues({ data: input }),
+    staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   });
 
