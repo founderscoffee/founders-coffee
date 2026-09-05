@@ -2,16 +2,20 @@ import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 import { z } from 'zod';
 
 import { appErrorCode } from '@founders-coffee/core';
+import { getPublicAuthConfig } from '@founders-coffee/server-fns';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 
+import { HostCityStep } from '../../components/host/HostCityStep';
 import { HostCreatePage } from '../../components/host/HostCreatePage';
 import { eventsApi } from '../../features/events/api';
 
 type HostCreateLoaderData = {
   market: Market;
-  city: geo.GeoCity;
+  city: geo.GeoCity | null;
   mapboxToken: string;
+  turnstileSiteKey: string | null;
+  hasSocial: boolean;
 };
 
 export const Route = createFileRoute('/$market/host/create')({
@@ -22,13 +26,17 @@ export const Route = createFileRoute('/$market/host/create')({
   loaderDeps: ({ search }) => ({ city: search.city }),
   component: () => {
     const { locale } = Route.useRouteContext();
-    const { market, city, mapboxToken } = Route.useLoaderData();
+    const { market, city, mapboxToken, turnstileSiteKey, hasSocial } =
+      Route.useLoaderData();
+    if (!city) return <HostCityStep locale={locale} market={market} />;
     return (
       <HostCreatePage
         locale={locale}
         market={market}
         city={city}
         mapboxToken={mapboxToken}
+        turnstileSiteKey={turnstileSiteKey}
+        hasSocial={hasSocial}
       />
     );
   },
@@ -47,16 +55,21 @@ export const Route = createFileRoute('/$market/host/create')({
         search: { city: deps.city },
       });
     }
-    if (!deps.city) {
-      throw redirect({ to: '/$market', params: { market: market.slug } });
-    }
-    const city = await eventsApi.getCity({
-      data: { country: market.code, cityCode: deps.city },
-    });
-    if (!city) {
-      throw redirect({ to: '/$market', params: { market: market.slug } });
-    }
-    const mapboxToken = await eventsApi.getMapboxToken();
-    return { market, city, mapboxToken };
+    const city = deps.city
+      ? await eventsApi.getCity({
+          data: { country: market.code, cityCode: deps.city },
+        })
+      : null;
+    const [mapboxToken, authConfig] = await Promise.all([
+      eventsApi.getMapboxToken(),
+      getPublicAuthConfig(),
+    ]);
+    return {
+      market,
+      city: city ?? null,
+      mapboxToken,
+      turnstileSiteKey: authConfig.turnstileSiteKey,
+      hasSocial: authConfig.hasSocial,
+    };
   },
 });

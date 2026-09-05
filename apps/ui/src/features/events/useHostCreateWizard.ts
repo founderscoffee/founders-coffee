@@ -56,6 +56,7 @@ export const useHostCreateWizard = ({
     useState<events.EventCategory>('coffee-meetup');
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
+  const [isAuthGateOpen, setIsAuthGateOpen] = useState(false);
 
   const draft: HostCreateDraft = {
     step,
@@ -74,13 +75,13 @@ export const useHostCreateWizard = ({
     publishing,
     publishError,
     clearPublishError,
-    goToLogin,
     publish: publishEvent,
   } = useHostPublish({
     locale,
     market,
     city,
     readDraft: () => draft,
+    onAuthRequired: () => setIsAuthGateOpen(true),
   });
 
   useEffect(() => {
@@ -208,6 +209,7 @@ export const useHostCreateWizard = ({
       category,
     });
   };
+
   const next = () => {
     if (step < 4) {
       if (!validateCurrentStep()) return;
@@ -218,7 +220,7 @@ export const useHostCreateWizard = ({
     if (isAuthLoading) return;
     if (!isAuthenticated) {
       writeHostCreateDraft(market.code, city.code, draft);
-      goToLogin();
+      setIsAuthGateOpen(true);
       return;
     }
     publish();
@@ -246,7 +248,13 @@ export const useHostCreateWizard = ({
     stepTitle: stepCopy.labels[step - 1] ?? stepCopy.labels[0],
     stepSub: stepCopy.descriptions[step - 1] ?? null,
     view: hostCreateViewCopy(locale, language, category),
-    isActionDisabled: publishing || isAuthLoading,
+    isAuthGateOpen,
+    closeAuthGate: () => setIsAuthGateOpen(false),
+    onGateAuthenticated: () => {
+      setIsAuthGateOpen(false);
+      publish();
+    },
+    isActionDisabled: publishing || isAuthLoading || isAuthGateOpen,
     setSearchValue,
     setVenueName: (value: string) => {
       setVenueName(value);

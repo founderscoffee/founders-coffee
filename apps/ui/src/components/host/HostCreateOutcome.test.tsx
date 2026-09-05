@@ -112,17 +112,17 @@ describe('HostCreatePage EC-08 outcomes', () => {
     ).toBe('A complete protected meetup for founders.');
   });
 
-  it('sends an expired session back through login with the draft preserved', async () => {
+  it('reopens the sign-in gate in place when the session expired, keeping the draft', async () => {
     failPublishWith('unauthenticated');
     window.history.replaceState({}, '', '/algeria/host/create?city=1');
     renderHostCreateWizard();
     await publishHostEvent();
 
-    await waitFor(() =>
-      expect(hostCreateMocks.navigate).toHaveBeenCalledWith({
-        to: '/login',
-        search: { redirect: '/algeria/host/create?city=1' },
-      }),
+    await screen.findByRole('heading', {
+      name: 'One last step — sign in to publish',
+    });
+    expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ to: '/login' }),
     );
     await screen.findByText(
       'Your session expired. Sign in again to publish - your draft is saved.',

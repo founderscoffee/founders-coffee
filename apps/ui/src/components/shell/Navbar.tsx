@@ -6,7 +6,7 @@ import {
   nav_host,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Logo } from '@founders-coffee/ui';
+import { Logo, LogoSymbol } from '@founders-coffee/ui';
 
 import { SessionNav } from './SessionNav';
 
@@ -14,6 +14,9 @@ type NavbarProps = { locale: Locale };
 
 const linkClass =
   'hidden h-8 items-center rounded-full px-3 text-body-sm font-medium transition-colors sm:inline-flex';
+
+const hostClass =
+  'inline-flex h-9 items-center rounded-full bg-primary px-4 text-body-sm font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
 
 export const Navbar = ({ locale }: NavbarProps) => {
   const params = useParams({ strict: false });
@@ -27,7 +30,10 @@ export const Navbar = ({ locale }: NavbarProps) => {
           aria-label={brand({}, { locale })}
           className="flex items-center rounded-field"
         >
-          <Logo />
+          <LogoSymbol size={28} className="sm:hidden" />
+          <span className="hidden sm:inline-flex">
+            <Logo />
+          </span>
         </Link>
 
         <div className="flex items-center gap-1.5">
@@ -45,8 +51,7 @@ export const Navbar = ({ locale }: NavbarProps) => {
               <Link
                 to="/$market/host/create"
                 params={{ market }}
-                className={`${linkClass} text-neutral hover:text-base-content`}
-                activeProps={{ className: `${linkClass} bg-base-200` }}
+                className={hostClass}
               >
                 {nav_host({}, { locale })}
               </Link>

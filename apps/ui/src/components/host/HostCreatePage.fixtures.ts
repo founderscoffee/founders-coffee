@@ -19,6 +19,9 @@ const hostCreateMocks = vi.hoisted(() => ({
   invalidateCreatedEvent: vi.fn(),
   isAuthenticated: true,
   isLoading: false,
+  sendVerificationOtp: vi.fn(),
+  signInEmailOtp: vi.fn(),
+  signInSocial: vi.fn(),
   mapContext: {
     data: undefined as
       | { center: { latitude: number; longitude: number }; bounds: number[] }
@@ -45,6 +48,8 @@ export const getHostCreateMocks = () => hostCreateMocks;
  */
 const applyDefaultHostCreateMocks = () => {
   hostCreateMocks.mutateAsync.mockResolvedValue(CREATED_EVENT);
+  hostCreateMocks.sendVerificationOtp.mockResolvedValue({ error: null });
+  hostCreateMocks.signInEmailOtp.mockResolvedValue({ error: null });
   hostCreateMocks.invalidateCreatedEvent.mockResolvedValue(undefined);
   hostCreateMocks.mapContext.data = READY_MAP_CONTEXT;
   hostCreateMocks.mapContext.isError = false;
@@ -56,6 +61,27 @@ applyDefaultHostCreateMocks();
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => hostCreateMocks.navigate,
   useRouter: () => ({ invalidate: hostCreateMocks.routerInvalidate }),
+  Link: ({ children }: { children: ReactNode }) =>
+    createElement('a', { href: '#' }, children),
+}));
+
+vi.mock('../../lib/auth', () => ({
+  authClient: {
+    emailOtp: { sendVerificationOtp: hostCreateMocks.sendVerificationOtp },
+    signIn: {
+      emailOtp: hostCreateMocks.signInEmailOtp,
+      social: hostCreateMocks.signInSocial,
+    },
+  },
+}));
+
+vi.mock('../auth/Turnstile', () => ({
+  Turnstile: ({ onToken }: { onToken: (token: string) => void }) =>
+    createElement(
+      'button',
+      { onClick: () => onToken('captcha-token') },
+      'Solve captcha',
+    ),
 }));
 
 vi.mock('../../lib/app-providers', () => ({
@@ -187,6 +213,8 @@ export const renderHostCreateWizard = (locale: 'ar' | 'fr' | 'en' = 'en') =>
       market,
       city,
       mapboxToken: 'map-token',
+      turnstileSiteKey: 'test-site-key',
+      hasSocial: false,
     }),
   );
 

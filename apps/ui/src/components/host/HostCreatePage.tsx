@@ -20,6 +20,7 @@ import { DatetimePicker } from './DatetimePicker';
 import { HostConfirmationStep } from './HostConfirmationStep';
 import { HostDetailsStep } from './HostDetailsStep';
 import { HostMapPanel } from './HostMapPanel';
+import { HostSignInGate } from './HostSignInGate';
 import { HostVenueStep } from './HostVenueStep';
 import { HostWizardActions } from './HostWizardActions';
 import { HostWizardHeader } from './HostWizardHeader';
@@ -30,6 +31,8 @@ type HostCreatePageProps = {
   market: Market;
   city: geo.GeoCity;
   mapboxToken: string;
+  turnstileSiteKey: string | null;
+  hasSocial: boolean;
 };
 
 const pillClass =
@@ -40,6 +43,8 @@ export const HostCreatePage = ({
   market,
   city,
   mapboxToken,
+  turnstileSiteKey,
+  hasSocial,
 }: HostCreatePageProps) => {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const mapContext = useHostMapContext({
@@ -234,6 +239,15 @@ export const HostCreatePage = ({
                   publishError={wizard.publishError}
                 />
               )}
+            {wizard.step === 4 && wizard.isAuthGateOpen && (
+              <HostSignInGate
+                locale={locale}
+                turnstileSiteKey={turnstileSiteKey}
+                hasSocial={hasSocial}
+                onCancel={wizard.closeAuthGate}
+                onAuthenticated={wizard.onGateAuthenticated}
+              />
+            )}
           </section>
         )}
 

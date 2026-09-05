@@ -115,6 +115,21 @@ the ☕ and ⚠️ emoji, which were doing the work of an illustration at 60px.
 
 ### 3.4 Host create wizard (`HostCreatePage.tsx`)
 
+**Getting in.** `?city=` is optional. Without it the route renders `HostCityStep` -- the wizard
+chrome around one city combobox -- instead of redirecting to `/$market`, which is what made the
+navbar's Host link a dead end (it passed no city, so every click 307'd back to the page you were
+already on). Picking a city replaces the URL with `?city=&state=`, the loader re-runs, and the
+wizard mounts with a real city. The route component switches between the two, so the two trees
+never share a hook order.
+
+**Getting out.** An anonymous host completes all four steps and is asked to sign in only at the
+confirmation step, in place: `HostSignInGate` renders inside the step with the summary still on
+screen, and publishes as soon as the code verifies. Nothing navigates to `/login` any more -- not
+the first sign-in, and not an expired session mid-publish. The draft is still written to session
+storage first, because an OAuth provider takes the page away and back; that path returns to the
+confirmation step authenticated and costs one click on Publish. Onboarding is skipped on this
+path (it is not enforced anywhere -- `/profile` sets a home market later).
+
 3-step wizard implementing **progressive disclosure** (see [`docs/psy.md`](./psy.md)):
 
 - Step 1 "Where?" — route-selected city, venue search, **Mapbox map picker**.
@@ -252,8 +267,7 @@ Two traps worth keeping:
 - **"All 48 wilayas"** beside the cities heading. Needs a route that lists a market's full city set;
   there isn't one.
 - **Toasts with undo** after RSVP and cancel, and **copy-link** on the publish success screen.
-- **Location-permission explainer** in the wizard, and the **inline sign-in gate** (`gate_title` /
-  `gate_body`) instead of redirecting to `/login` mid-wizard.
+- **Location-permission explainer** in the wizard.
 - The prototype shows a host's **meetup count** (`Host · 14 meetups · Algiers`); the detail payload
   carries no such count, so the meta line is `Host · {city}`.
 

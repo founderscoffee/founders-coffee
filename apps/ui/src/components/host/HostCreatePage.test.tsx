@@ -85,7 +85,7 @@ describe('HostCreatePage EC-07 flow', () => {
     expect(publish.disabled).toBe(false);
   });
 
-  it('preserves an anonymous draft and hands off through a validated return path', async () => {
+  it('asks an anonymous host to sign in without leaving the wizard, and publishes once they do', async () => {
     hostCreateMocks.isAuthenticated = false;
     window.history.replaceState({}, '', '/algeria/host/create?city=1&state=16');
     renderHostCreateWizard();
@@ -94,14 +94,28 @@ describe('HostCreatePage EC-07 flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Continue to login' }));
 
-    expect(hostCreateMocks.navigate).toHaveBeenCalledWith({
-      to: '/login',
-      search: {
-        redirect: '/algeria/host/create?city=1&state=16',
-      },
-    });
+    expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ to: '/login' }),
+    );
+    expect(
+      screen.getByRole('heading', {
+        name: 'One last step — sign in to publish',
+      }),
+    ).toBeTruthy();
     const stored = window.sessionStorage.getItem('fc:event-draft:DZ:1');
     expect(stored).toContain('Protected meetup');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Solve captcha' }));
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'host@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
+    fireEvent.change(await screen.findByLabelText('Enter the code'), {
+      target: { value: '123456' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify and sign in' }));
+
+    await waitFor(() => expect(hostCreateMocks.mutateAsync).toHaveBeenCalled());
   });
 
   it('restores the confirmation step after auth and a locale reload', async () => {

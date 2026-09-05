@@ -306,5 +306,10 @@
   "filter_fr": "French",
   "filter_workshop": "Workshops",
   "back_to_city": "Back to {city}",
-  "profile_link": "Profile"
+  "profile_link": "Profile",
+  "host_city_title": "Which city are you hosting in?",
+  "host_city_sub": "Pick a city and we'll help you find a café.",
+  "gate_title": "One last step — sign in to publish",
+  "gate_body": "Your meetup is saved. Sign in or create an account and we'll publish it straight away.",
+  "gate_back": "Back to review"
 }

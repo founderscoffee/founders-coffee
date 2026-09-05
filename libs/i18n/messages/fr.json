@@ -306,5 +306,10 @@
   "filter_fr": "Français",
   "filter_workshop": "Ateliers",
   "back_to_city": "Retour à {city}",
-  "profile_link": "Profil"
+  "profile_link": "Profil",
+  "host_city_title": "Dans quelle ville organisez-vous ?",
+  "host_city_sub": "Choisissez une ville et nous vous aiderons à trouver un café.",
+  "gate_title": "Dernière étape — connectez-vous pour publier",
+  "gate_body": "Votre rencontre est enregistrée. Connectez-vous ou créez un compte et nous la publierons aussitôt.",
+  "gate_back": "Retour au récapitulatif"
 }
