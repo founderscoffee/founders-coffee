@@ -72,6 +72,7 @@ export const HostMap = ({
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
+  const placedByHost = useRef(false);
   const reverseVenue = useReverseEventVenue();
   const [mapKey, setMapKey] = useState(0);
   const [hasMapError, setHasMapError] = useState(false);
@@ -88,6 +89,8 @@ export const HostMap = ({
     });
   };
 
+  const pin = venue ?? (reverseVenue.isPending ? lastCoordinates : null);
+
   const venueErrorMessage = (error: unknown): string =>
     appErrorCode(error) === 'map_venue_unsupported'
       ? host_venue_unsupported({}, { locale })
@@ -98,6 +101,7 @@ export const HostMap = ({
   ): Promise<void> => {
     const requestId = reverseRequestId.current + 1;
     reverseRequestId.current = requestId;
+    placedByHost.current = true;
     setLastCoordinates(coordinates);
     setLocationError(null);
     onVenueInvalidate();
@@ -109,7 +113,7 @@ export const HostMap = ({
         ...coordinates,
       });
       if (requestId !== reverseRequestId.current) return;
-      onVenueSelect(resolved);
+      onVenueSelect({ ...resolved, ...coordinates });
     } catch (error) {
       if (requestId !== reverseRequestId.current) return;
       setLocationError(venueErrorMessage(error));
@@ -118,6 +122,10 @@ export const HostMap = ({
 
   useEffect(() => {
     if (!venue) return;
+    if (placedByHost.current) {
+      placedByHost.current = false;
+      return;
+    }
     reverseRequestId.current += 1;
     flyTo(venue.longitude, venue.latitude, 15);
   }, [venue?.providerId, venue?.longitude, venue?.latitude]);
@@ -186,10 +194,10 @@ export const HostMap = ({
         mapStyle={MAP_STYLE}
         style={{ width: '100%', height: '100%' }}
       >
-        {venue && (
+        {pin && (
           <Marker
-            longitude={venue.longitude}
-            latitude={venue.latitude}
+            longitude={pin.longitude}
+            latitude={pin.latitude}
             draggable
             anchor="bottom"
             onDragEnd={(event) => {

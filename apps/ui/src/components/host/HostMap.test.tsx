@@ -137,7 +137,9 @@ describe('HostMap', () => {
       longitude: 3.0588,
     });
     await waitFor(() =>
-      expect(onVenueSelect).toHaveBeenCalledWith(selectedVenue),
+      expect(onVenueSelect).toHaveBeenCalledWith(
+        expect.objectContaining({ providerId: selectedVenue.providerId }),
+      ),
     );
   });
 
@@ -172,7 +174,11 @@ describe('HostMap', () => {
     fireEvent.click(screen.getByTestId('map-surface'));
     fireEvent.click(screen.getByTestId('map-surface'));
     secondLookup.resolve(movedVenue);
-    await waitFor(() => expect(onVenueSelect).toHaveBeenCalledWith(movedVenue));
+    await waitFor(() =>
+      expect(onVenueSelect).toHaveBeenCalledWith(
+        expect.objectContaining({ providerId: movedVenue.providerId }),
+      ),
+    );
 
     firstLookup.resolve(selectedVenue);
     await firstLookup.promise;

@@ -192,6 +192,13 @@ reverse with `permanent=true`**, whose `context.region.region_code_full` maps to
 cities. A host may override the city on the confirmation step; an override names a city, never a
 state, which is still derived from it.
 
+**The pin stays where the host put it.** The provider answers a reverse lookup with its own
+coordinates — the doorway it matched, up to `MAX_REVERSE_DISTANCE_METERS` away — so taking them slid
+the marker out from under the host's finger once the request returned, and the camera then flew to
+the new spot. Only the name and address are taken from the answer; the coordinates are the host's.
+A `placedByHost` ref suppresses the camera fly for a marker the host placed, and the marker renders
+at the clicked point while the request is still in flight rather than after it.
+
 Three traps worth keeping:
 
 - **Search Box results may not be stored.** Mapbox licenses them for temporary use and offers no
