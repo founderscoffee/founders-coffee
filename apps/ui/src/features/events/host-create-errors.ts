@@ -10,7 +10,6 @@ import {
   host_error_unavailable,
   host_map_error,
   host_publish_error,
-  host_venue_outside_city,
   host_venue_unsupported,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -28,7 +27,6 @@ const PUBLISH_ERROR_MESSAGES: Record<string, HostErrorMessage> = {
   validation_failed: host_error_invalid,
   event_market_unavailable: host_error_market_unavailable,
   event_creation_disabled: host_error_market_disabled,
-  map_venue_outside_city: host_venue_outside_city,
   map_venue_unsupported: host_venue_unsupported,
   map_city_not_found: host_map_error,
   map_provider_unavailable: host_map_error,

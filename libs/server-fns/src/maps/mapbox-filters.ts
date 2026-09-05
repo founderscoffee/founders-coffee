@@ -1,6 +1,8 @@
+import type { geo } from '@founders-coffee/domain';
 import type {
   HostMapContext,
   MapProviderLocation,
+  VenueAdmin,
   VenueCandidate,
   VenueKind,
 } from './provider.js';
@@ -20,7 +22,9 @@ const normalize = (value: string): string =>
 export const featureCountry = (feature: MapboxFeature): string | undefined =>
   feature.properties.context.country?.country_code?.toUpperCase();
 
-const cityNames = (input: MapProviderLocation): readonly string[] => [
+const cityNames = (
+  input: MapProviderLocation & { readonly city: geo.GeoCity },
+): readonly string[] => [
   input.city.name,
   input.city.nameAr,
   input.city.slug.replaceAll('-', ' '),
@@ -47,7 +51,7 @@ const featureCityNames = (feature: MapboxFeature): readonly string[] =>
  */
 export const matchesCity = (
   feature: MapboxFeature,
-  input: MapProviderLocation,
+  input: MapProviderLocation & { readonly city: geo.GeoCity },
 ): boolean => {
   const expected = cityNames(input).map(normalize).filter(Boolean);
   return featureCityNames(feature)
@@ -129,6 +133,19 @@ export const isAddressableLocation = (feature: MapboxFeature): boolean =>
 export const venueKind = (feature: MapboxFeature): VenueKind =>
   isSupportedVenue(feature) ? 'poi' : 'address';
 
+export const toAdmin = (feature: MapboxFeature): VenueAdmin | undefined => {
+  const context = feature.properties.context;
+  const region = context.region;
+  const admin: VenueAdmin = {
+    isoRegionCode: region?.region_code_full,
+    regionName: region?.name,
+    placeName: context.place?.name,
+  };
+  return (admin.isoRegionCode ?? admin.regionName ?? admin.placeName)
+    ? admin
+    : undefined;
+};
+
 export const toVenue = (feature: MapboxFeature): VenueCandidate => {
   const [longitude, latitude] = feature.geometry.coordinates;
   const formatted = feature.properties.place_formatted;
@@ -143,5 +160,6 @@ export const toVenue = (feature: MapboxFeature): VenueCandidate => {
         : feature.properties.name),
     latitude,
     longitude,
+    admin: toAdmin(feature),
   };
 };

@@ -11,7 +11,6 @@ import {
   host_map_label,
   host_retry,
   host_selected_location,
-  host_venue_outside_city,
   host_venue_resolving,
   host_pin_hint,
   host_venue_unsupported,
@@ -19,7 +18,6 @@ import {
 } from '@founders-coffee/i18n';
 
 import { useReverseEventVenue } from '../../features/events/hooks';
-import { isInsideCity } from '../../features/events/venue-location';
 import type {
   HostMapViewport,
   VenueSelection,
@@ -36,12 +34,12 @@ type HostMapProps = {
   accessToken: string;
   venue: VenueSelection | null;
   viewport: HostMapViewport;
-  cityCode: string;
+  cityCode?: string;
   marketCode: string;
   locale: Locale;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
-  onLocatedOutsideCity: (coordinates: Coordinates) => void;
+  onCenterChange?: (center: Coordinates) => void;
 };
 
 const locateVisitor = (): Promise<Coordinates | null> =>
@@ -70,7 +68,7 @@ export const HostMap = ({
   locale,
   onVenueSelect,
   onVenueInvalidate,
-  onLocatedOutsideCity,
+  onCenterChange,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
@@ -90,14 +88,10 @@ export const HostMap = ({
     });
   };
 
-  const venueErrorMessage = (error: unknown): string => {
-    const code = appErrorCode(error);
-    return code === 'map_venue_outside_city'
-      ? host_venue_outside_city({}, { locale })
-      : code === 'map_venue_unsupported'
-        ? host_venue_unsupported({}, { locale })
-        : host_map_error({}, { locale });
-  };
+  const venueErrorMessage = (error: unknown): string =>
+    appErrorCode(error) === 'map_venue_unsupported'
+      ? host_venue_unsupported({}, { locale })
+      : host_map_error({}, { locale });
 
   const resolveCoordinates = async (
     coordinates: Coordinates,
@@ -157,15 +151,23 @@ export const HostMap = ({
       <Map
         key={mapKey}
         ref={mapRef as never}
-        initialViewState={{
-          longitude: venue?.longitude ?? viewport.center.longitude,
-          latitude: venue?.latitude ?? viewport.center.latitude,
-          zoom: venue ? 15 : 11,
-        }}
-        maxBounds={[
-          [viewport.bounds[0], viewport.bounds[1]],
-          [viewport.bounds[2], viewport.bounds[3]],
-        ]}
+        initialViewState={
+          venue
+            ? { longitude: venue.longitude, latitude: venue.latitude, zoom: 15 }
+            : {
+                bounds: [
+                  [viewport.bounds[0], viewport.bounds[1]],
+                  [viewport.bounds[2], viewport.bounds[3]],
+                ],
+                fitBoundsOptions: { padding: 24 },
+              }
+        }
+        onMoveEnd={(event) =>
+          onCenterChange?.({
+            latitude: event.viewState.latitude,
+            longitude: event.viewState.longitude,
+          })
+        }
         onClick={(event) => {
           const { lng, lat } = event.lngLat;
           void resolveCoordinates({ longitude: lng, latitude: lat });
@@ -214,11 +216,7 @@ export const HostMap = ({
               setLocationError(host_geolocation_denied({}, { locale }));
               return;
             }
-            if (isInsideCity(viewport.bounds, coordinates)) {
-              flyTo(coordinates.longitude, coordinates.latitude, 14);
-              return;
-            }
-            onLocatedOutsideCity(coordinates);
+            flyTo(coordinates.longitude, coordinates.latitude, 14);
           }}
           className={CONTROL_CLASS}
         >

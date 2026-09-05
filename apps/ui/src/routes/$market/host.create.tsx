@@ -6,7 +6,6 @@ import { getPublicAuthConfig } from '@founders-coffee/server-fns';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 
-import { HostCityStep } from '../../components/host/HostCityStep';
 import { HostCreatePage } from '../../components/host/HostCreatePage';
 import { eventsApi } from '../../features/events/api';
 
@@ -28,7 +27,6 @@ export const Route = createFileRoute('/$market/host/create')({
     const { locale } = Route.useRouteContext();
     const { market, city, mapboxToken, turnstileSiteKey, hasSocial } =
       Route.useLoaderData();
-    if (!city) return <HostCityStep locale={locale} market={market} />;
     return (
       <HostCreatePage
         locale={locale}

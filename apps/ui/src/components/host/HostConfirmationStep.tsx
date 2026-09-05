@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { CalendarClock, MapPin, Users } from 'lucide-react';
 
 import {
@@ -32,6 +33,7 @@ export const HostConfirmationStep = ({
   languageLabel,
   categoryLabel,
   isAuthenticated,
+  locationLine,
   publishError,
 }: {
   locale: Locale;
@@ -46,6 +48,7 @@ export const HostConfirmationStep = ({
   languageLabel: string;
   categoryLabel: string;
   isAuthenticated: boolean;
+  locationLine?: ReactNode;
   publishError: string | null;
 }) => (
   <div className="grid gap-5" data-testid="host-summary">
@@ -132,6 +135,8 @@ export const HostConfirmationStep = ({
         </div>
       </dl>
     </section>
+
+    {locationLine}
 
     {!isAuthenticated && (
       <p

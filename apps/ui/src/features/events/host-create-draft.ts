@@ -6,7 +6,7 @@ import type { Locale } from '@founders-coffee/i18n';
 
 import { VENUE_SEARCH_MAX_LENGTH, type VenueSelection } from './types';
 
-const DRAFT_VERSION = 2;
+const DRAFT_VERSION = 3;
 const DRAFT_MAX_AGE_MS = 24 * 60 * 60_000;
 
 const venueSelectionSchema = z.object({
@@ -22,7 +22,6 @@ const hostCreateDraftSchema = z.object({
   version: z.literal(DRAFT_VERSION),
   savedAt: z.number().int().positive(),
   marketCode: z.string().min(1),
-  cityCode: z.string().min(1),
   step: z.number().int().min(1).max(3),
   venue: venueSelectionSchema.nullable(),
   venueName: z.string().max(events.EVENT_VENUE_NAME_MAX_LENGTH),
@@ -50,27 +49,22 @@ export type HostCreateDraft = {
   category: events.EventCategory;
 };
 
-const draftKey = (marketCode: string, cityCode: string): string =>
-  `fc:event-draft:${marketCode}:${cityCode}`;
+const draftKey = (marketCode: string): string => `fc:event-draft:${marketCode}`;
 
 export const readHostCreateDraft = (
   marketCode: string,
-  cityCode: string,
 ): HostCreateDraft | null => {
   if (typeof window === 'undefined') return null;
   try {
-    const stored = window.sessionStorage.getItem(
-      draftKey(marketCode, cityCode),
-    );
+    const stored = window.sessionStorage.getItem(draftKey(marketCode));
     if (!stored) return null;
     const parsed = hostCreateDraftSchema.safeParse(JSON.parse(stored));
     if (
       !parsed.success ||
       parsed.data.marketCode !== marketCode ||
-      parsed.data.cityCode !== cityCode ||
       Date.now() - parsed.data.savedAt > DRAFT_MAX_AGE_MS
     ) {
-      window.sessionStorage.removeItem(draftKey(marketCode, cityCode));
+      window.sessionStorage.removeItem(draftKey(marketCode));
       return null;
     }
     return {
@@ -101,18 +95,16 @@ export const readHostCreateDraft = (
  */
 export const writeHostCreateDraft = (
   marketCode: string,
-  cityCode: string,
   draft: HostCreateDraft,
 ): void => {
   if (typeof window === 'undefined') return;
   try {
     window.sessionStorage.setItem(
-      draftKey(marketCode, cityCode),
+      draftKey(marketCode),
       JSON.stringify({
         version: DRAFT_VERSION,
         savedAt: Date.now(),
         marketCode,
-        cityCode,
         ...draft,
         venueName: draft.venueName.slice(0, events.EVENT_VENUE_NAME_MAX_LENGTH),
         searchValue: draft.searchValue.slice(0, VENUE_SEARCH_MAX_LENGTH),
@@ -123,13 +115,10 @@ export const writeHostCreateDraft = (
   }
 };
 
-export const clearHostCreateDraft = (
-  marketCode: string,
-  cityCode: string,
-): void => {
+export const clearHostCreateDraft = (marketCode: string): void => {
   if (typeof window === 'undefined') return;
   try {
-    window.sessionStorage.removeItem(draftKey(marketCode, cityCode));
+    window.sessionStorage.removeItem(draftKey(marketCode));
   } catch {
     return;
   }

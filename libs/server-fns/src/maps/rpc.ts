@@ -14,6 +14,7 @@ import {
 import { getMapProvider } from './runtime.js';
 import {
   hostMapContextSchema,
+  nearbyVenuesSchema,
   venueReverseSchema,
   venueSearchSchema,
 } from './schemas.js';
@@ -53,18 +54,27 @@ export const getHostMapContext = createServerFn({ strict: false })
     handleResult(getHostMapContextResolver(getMapProvider(), data)),
   );
 
+const NEARBY_RADIUS_METRES = 60_000;
+const NEARBY_LIMIT = 40;
+
 /**
- * The snapshotted venues for a city.
+ * The snapshotted venues near a point.
  *
  * No provider call and no rate limit: this reads a dataset committed to the repo, because the map
  * provider indexes almost no cafés in Algiers or Cairo and a category search there returns nothing
  * at all. It stays a server function so the wizard keeps one way of asking for data and the
- * dataset never has to be reachable as a public URL.
+ * dataset never has to be reachable as a public URL. Keyed by point rather than by city, because
+ * the host chooses a place on the map before there is any city to key by.
  */
 export const listNearbyVenues = createServerFn({ strict: false })
-  .validator(appValidator(hostMapContextSchema))
+  .validator(appValidator(nearbyVenuesSchema))
   .handler(async ({ data }): Promise<readonly venuesDomain.SnapshotVenue[]> =>
-    venuesDomain.getCityVenues(data.marketCode, data.cityCode),
+    venuesDomain.findVenuesNearPoint(
+      data.marketCode,
+      { latitude: data.latitude, longitude: data.longitude },
+      NEARBY_RADIUS_METRES,
+      data.limit ?? NEARBY_LIMIT,
+    ),
   );
 
 export const searchEventVenues = createServerFn({ strict: false })

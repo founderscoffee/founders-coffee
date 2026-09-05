@@ -14,9 +14,17 @@ import type {
   VenueSearchInput,
 } from './schemas.js';
 
+/**
+ * Attach the canonical city to a provider call, when the caller named one.
+ *
+ * A city is now optional: the wizard opens on the market and the point decides where the event is.
+ * Naming one that does not exist is still an error rather than a silent widening — a bad code in a
+ * URL should not quietly become a market-wide search.
+ */
 const resolveLocation = (
   input: HostMapContextInput,
 ): Result<MapProviderLocation> => {
+  if (!input.cityCode) return { ok: true, data: { ...input, city: undefined } };
   const city = geo.findCity(input.marketCode, input.cityCode);
   return city
     ? { ok: true, data: { ...input, city } }
@@ -57,10 +65,9 @@ export const getHostMapContextResolver = async (
 ): Promise<Result<HostMapContext>> => {
   const location = resolveLocation(input);
   if (!location.ok) return location;
-  const stored = venuesDomain.getCityViewportSnapshot(
-    input.marketCode,
-    input.cityCode,
-  );
+  const stored = input.cityCode
+    ? venuesDomain.getCityViewportSnapshot(input.marketCode, input.cityCode)
+    : venuesDomain.getMarketViewport(input.marketCode);
   if (stored) {
     return {
       ok: true,

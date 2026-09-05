@@ -25,6 +25,15 @@ export const testMapProvider = {
       bounds: [2.9, 36.6, 3.3, 36.9] as const,
     }),
   searchVenues: async () => ok([]),
+  describePoint: async () =>
+    ok({
+      address: '12 Rue des Entrepreneurs, Alger',
+      admin: {
+        isoRegionCode: 'DZ-16',
+        regionName: 'Algiers',
+        placeName: 'Algiers',
+      },
+    }),
   reverseVenue: async (input) =>
     ok({
       providerId: 'test-venue',

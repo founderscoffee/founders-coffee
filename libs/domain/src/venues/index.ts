@@ -86,6 +86,67 @@ export const findCityByPoint = (
     : null;
 };
 
+/**
+ * The map viewport for a whole market, as the union of its snapshotted city bounds.
+ *
+ * Opening the wizard no longer requires a city, so the map needs somewhere to start. Deriving it
+ * from data we already ship avoids a geocode per page view, and it is tight around where events
+ * can plausibly happen rather than the country's full administrative extent — which for Algeria
+ * would be two thirds desert.
+ */
+export const getMarketViewport = (
+  marketCode: string,
+): {
+  center: { latitude: number; longitude: number };
+  bounds: readonly [number, number, number, number];
+} | null => {
+  const cities = Object.values(SNAPSHOTS[marketCode] ?? {});
+  if (cities.length === 0) return null;
+  const bounds = cities.reduce<[number, number, number, number]>(
+    (acc, city) => [
+      Math.min(acc[0], city.bounds[0]),
+      Math.min(acc[1], city.bounds[1]),
+      Math.max(acc[2], city.bounds[2]),
+      Math.max(acc[3], city.bounds[3]),
+    ],
+    [...cities[0].bounds] as [number, number, number, number],
+  );
+  return {
+    center: {
+      longitude: (bounds[0] + bounds[2]) / 2,
+      latitude: (bounds[1] + bounds[3]) / 2,
+    },
+    bounds,
+  };
+};
+
+/**
+ * Snapshotted venues nearest a point, across the whole market.
+ *
+ * Keyed by distance rather than by city because the host no longer picks a city first: the list
+ * follows wherever the map is looking, and a point near a boundary surfaces venues from both sides,
+ * which is the honest answer.
+ */
+export const findVenuesNearPoint = (
+  marketCode: string,
+  point: { latitude: number; longitude: number },
+  radiusMetres: number,
+  limit: number,
+): readonly SnapshotVenue[] =>
+  Object.values(SNAPSHOTS[marketCode] ?? {})
+    .flatMap((city) => city.venues)
+    .map((venue) => ({ venue, distance: metresBetween(venue, point) }))
+    .filter((entry) => entry.distance <= radiusMetres)
+    .sort((a, b) =>
+      a.venue.eligible === b.venue.eligible
+        ? a.distance - b.distance
+        : a.venue.eligible
+          ? -1
+          : 1,
+    )
+    .slice(0, limit)
+    .map((entry) => entry.venue);
+
 export const isSnapshotProviderId = (providerId: string): boolean =>
   providerId.startsWith(SNAPSHOT_PROVIDER_PREFIX);
 
@@ -110,6 +171,28 @@ export const matchSnapshotVenue = (
   return metresBetween(venue, coordinates) <= COORDINATE_TOLERANCE_METRES
     ? venue
     : null;
+};
+
+/**
+ * Find a snapshot venue anywhere in the market, and say which city it belongs to.
+ *
+ * The city-scoped lookup below assumes the host chose a city first. Once the map point is the
+ * truth there is no city to scope by, so the id is matched across the market and the city falls
+ * out of where the venue was found.
+ */
+export const findSnapshotVenueInMarket = (
+  marketCode: string,
+  providerId: string,
+  coordinates: { latitude: number; longitude: number },
+): { venue: SnapshotVenue; cityCode: string } | null => {
+  if (!isSnapshotProviderId(providerId)) return null;
+  for (const [cityCode, snapshot] of Object.entries(
+    SNAPSHOTS[marketCode] ?? {},
+  )) {
+    const venue = matchSnapshotVenue(snapshot.venues, providerId, coordinates);
+    if (venue) return { venue, cityCode };
+  }
+  return null;
 };
 
 export const findSnapshotVenue = (

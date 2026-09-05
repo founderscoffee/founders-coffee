@@ -25,8 +25,9 @@ const SEARCH_DELAY_MS = 350;
 type HostVenueStepProps = {
   locale: Locale;
   cityName: string;
-  cityCode: string;
+  cityCode?: string;
   marketCode: string;
+  center: { latitude: number; longitude: number };
   searchValue: string;
   venue: VenueSelection | null;
   venueName: string;
@@ -43,6 +44,7 @@ export const HostVenueStep = ({
   cityName,
   cityCode,
   marketCode,
+  center,
   searchValue,
   venue,
   venueName,
@@ -63,7 +65,11 @@ export const HostVenueStep = ({
     return () => clearTimeout(timer);
   }, [searchValue]);
 
-  const nearby = useNearbyVenues({ marketCode, cityCode, locale });
+  const nearby = useNearbyVenues({
+    marketCode,
+    latitude: center.latitude,
+    longitude: center.longitude,
+  });
   const search = useVenueSearch({
     marketCode,
     cityCode,

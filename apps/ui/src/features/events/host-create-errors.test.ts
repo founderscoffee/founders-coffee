@@ -17,7 +17,6 @@ const CREATE_PATH_ERROR_CODES = [
   'event_market_unavailable',
   'event_creation_disabled',
   'map_city_not_found',
-  'map_venue_outside_city',
   'map_venue_unsupported',
   'map_provider_unavailable',
   'event_route_conflict',

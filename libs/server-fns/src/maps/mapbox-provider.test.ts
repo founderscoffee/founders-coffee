@@ -20,7 +20,7 @@ describe('MapboxMapProvider', () => {
 
     const result = await provider.getCityViewport(location);
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       ok: true,
       data: {
         center: { latitude: 36.7538, longitude: 3.0588 },
@@ -46,7 +46,7 @@ describe('MapboxMapProvider', () => {
       query: 'café',
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       ok: true,
       data: [
         {

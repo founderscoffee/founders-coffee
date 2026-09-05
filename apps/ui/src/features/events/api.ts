@@ -50,8 +50,13 @@ export type CreatedEvent = Event;
 export type RsvpInput = { data: { eventId: string } };
 export type HostMapLocationInput = {
   marketCode: string;
-  cityCode: string;
+  cityCode?: string;
   locale: 'ar' | 'fr' | 'en';
+};
+export type NearbyVenuesInput = {
+  marketCode: string;
+  latitude: number;
+  longitude: number;
 };
 export type VenueSearchInput = HostMapLocationInput & { query: string };
 export type VenueReverseInput = HostMapLocationInput & {

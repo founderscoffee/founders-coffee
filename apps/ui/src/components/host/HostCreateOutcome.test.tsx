@@ -16,7 +16,7 @@ const failPublishWith = (code: string) =>
     message: `server said ${code}`,
   });
 
-const draftKey = 'fc:event-draft:DZ:1';
+const draftKey = 'fc:event-draft:DZ';
 
 describe('HostCreatePage EC-08 outcomes', () => {
   afterEach(resetHostCreateFixtures);

@@ -63,8 +63,8 @@ describe('createEventResolver persistence (real D1)', () => {
     const before = await countEventsByStatus(db, 'published');
     const rejectingMapProvider: MapProvider = {
       ...testMapProvider,
-      reverseVenue: async () =>
-        err(new AppError('map_venue_unsupported', 'Select a supported venue')),
+      describePoint: async () =>
+        err(new AppError('map_venue_unsupported', 'Nothing here to describe')),
     };
 
     const result = await createEventResolver(
@@ -79,29 +79,19 @@ describe('createEventResolver persistence (real D1)', () => {
     expect(await countEventsByStatus(db, 'published')).toBe(before);
   });
 
-  it('names an address fallback from the host while keeping the verified location', async () => {
+  it('keeps the host-authored venue name and the point the host chose', async () => {
     const db = await setupDb();
-    const addressOnlyProvider: MapProvider = {
-      ...testMapProvider,
-      reverseVenue: async () =>
-        ok({
-          providerId: 'address-yousfi',
-          kind: 'address' as const,
-          name: '15 Rue Yousfi Mohamed',
-          address: '15 Rue Yousfi Mohamed, Alger',
-          latitude: 36.7501,
-          longitude: 3.0601,
-        }),
-    };
 
     const result = await createEventResolver(
       db,
-      addressOnlyProvider,
+      testMapProvider,
       TEST_HOST_ID,
       createInput({
         title: 'Address fallback event',
         venueName: 'Café des Délices',
         venueAddress: 'Untrusted address',
+        latitude: 36.7501,
+        longitude: 3.0601,
       }),
     );
 
@@ -109,84 +99,40 @@ describe('createEventResolver persistence (real D1)', () => {
     if (result.ok) {
       expect(result.data).toMatchObject({
         venue: 'Café des Délices',
-        venueAddress: '15 Rue Yousfi Mohamed, Alger',
         latitude: 36.7501,
         longitude: 3.0601,
       });
     }
   });
 
-  it('persists the provider-verified venue instead of client-owned venue text', async () => {
+  it('derives the city and state from the point, not from the client', async () => {
     const db = await setupDb();
-    const verifiedMapProvider: MapProvider = {
+    const elsewhereProvider: MapProvider = {
       ...testMapProvider,
-      reverseVenue: async () =>
+      describePoint: async () =>
         ok({
-          providerId: 'verified-venue',
-          kind: 'poi' as const,
-          name: 'Verified Coworking Space',
-          address: '8 Verified Street, Algiers',
-          latitude: 36.754,
-          longitude: 3.059,
+          address: '5 Boulevard Emir Abdelkader, Oran',
+          admin: {
+            isoRegionCode: 'DZ-31',
+            regionName: 'Oran',
+            placeName: 'Oran',
+          },
         }),
     };
 
     const result = await createEventResolver(
       db,
-      verifiedMapProvider,
+      elsewhereProvider,
       TEST_HOST_ID,
-      createInput({
-        title: 'Canonical venue event',
-        venueName: 'Untrusted venue',
-        venueAddress: 'Untrusted address',
-      }),
+      createInput({ title: 'Derived location event', cityCode: undefined }),
     );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data).toMatchObject({
-        venue: 'Verified Coworking Space',
-        venueAddress: '8 Verified Street, Algiers',
-        latitude: 36.754,
-        longitude: 3.059,
-      });
+      expect(result.data.stateCode).toBe('31');
+      expect(result.data.venueAddress).toBe(
+        '5 Boulevard Emir Abdelkader, Oran',
+      );
     }
-  });
-
-  it('reserves distinct routes for concurrent same-title creation', async () => {
-    const db = await setupDb();
-    const input = createInput({ title: 'Concurrent route reservation' });
-
-    const results = await Promise.all([
-      createEventResolver(db, testMapProvider, TEST_HOST_ID, input),
-      createEventResolver(db, testMapProvider, TEST_HOST_ID, input),
-    ]);
-
-    expect(results.every((result) => result.ok)).toBe(true);
-    const slugs = results.flatMap((result) =>
-      result.ok ? [result.data.slug] : [],
-    );
-    expect(new Set(slugs).size).toBe(2);
-    expect(slugs).toContain('concurrent-route-reservation');
-  });
-
-  it('returns a typed error when every bounded route candidate conflicts', async () => {
-    const db = await setupDb();
-    const eventId = 'evt_000000000000000000000000collision';
-    const title = 'Exhausted route candidates';
-    const [baseSlug, suffixedSlug] = eventSlugCandidates(title, eventId);
-    await createEvent(db, baseEvent(nextId(), baseSlug));
-    await createEvent(db, baseEvent(nextId(), suffixedSlug));
-
-    const result = await createEventResolverWithId(
-      db,
-      testMapProvider,
-      TEST_HOST_ID,
-      createInput({ title }),
-      eventId,
-    );
-
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('event_route_conflict');
   });
 });

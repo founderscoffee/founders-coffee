@@ -221,7 +221,6 @@ describe('eventCreateSchema', () => {
 
   it.each([
     'marketCode',
-    'cityCode',
     'title',
     'description',
     'venueName',
@@ -237,5 +236,11 @@ describe('eventCreateSchema', () => {
     const input: Record<string, unknown> = validInput();
     delete input[field];
     expect(eventCreateSchema.safeParse(input).success).toBe(false);
+  });
+
+  it('accepts a command with no city, because the point decides it', () => {
+    const input: Record<string, unknown> = validInput();
+    delete input.cityCode;
+    expect(eventCreateSchema.safeParse(input).success).toBe(true);
   });
 });

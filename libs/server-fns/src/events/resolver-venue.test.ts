@@ -29,15 +29,18 @@ describe('createEventResolver venue verification', () => {
   it('publishes a snapshot venue without asking the map provider', async () => {
     const db = await setupDb();
     const venue = snapshotVenue();
-    const reverseVenue = vi.fn(testMapProvider.reverseVenue);
-    const provider = { ...testMapProvider, reverseVenue } satisfies MapProvider;
+    const describePoint = vi.fn(testMapProvider.describePoint);
+    const provider = {
+      ...testMapProvider,
+      describePoint,
+    } satisfies MapProvider;
 
     const result = await createEventResolver(
       db,
       provider,
       TEST_HOST_ID,
       createInput({
-        cityCode: ALGIERS.cityCode,
+        cityCode: undefined,
         venueProviderId: venue.providerId,
         venueName: venue.name,
         venueAddress: venue.address || 'Algiers',
@@ -48,7 +51,7 @@ describe('createEventResolver venue verification', () => {
     );
 
     expect(result.ok).toBe(true);
-    expect(reverseVenue).not.toHaveBeenCalled();
+    expect(describePoint).not.toHaveBeenCalled();
   });
 
   it('keeps the snapshot name and address instead of the provider reading', async () => {
@@ -89,27 +92,33 @@ describe('createEventResolver venue verification', () => {
     expect(result.data.latitude).toBeCloseTo(venue.latitude, 5);
   });
 
-  it('still verifies a point the host dropped on the map', async () => {
+  it('describes a point the host dropped on the map', async () => {
     const db = await setupDb();
-    const reverseVenue = vi.fn(testMapProvider.reverseVenue);
-    const provider = { ...testMapProvider, reverseVenue } satisfies MapProvider;
+    const describePoint = vi.fn(testMapProvider.describePoint);
+    const provider = {
+      ...testMapProvider,
+      describePoint,
+    } satisfies MapProvider;
 
     const result = await createEventResolver(
       db,
       provider,
       TEST_HOST_ID,
-      createInput({ title: 'Map click event' }),
+      createInput({ title: 'Map click event', cityCode: undefined }),
     );
 
     expect(result.ok).toBe(true);
-    expect(reverseVenue).toHaveBeenCalledOnce();
+    expect(describePoint).toHaveBeenCalledOnce();
   });
 
   it('falls back to the provider when a borrowed id points somewhere else', async () => {
     const db = await setupDb();
     const venue = snapshotVenue();
-    const reverseVenue = vi.fn(testMapProvider.reverseVenue);
-    const provider = { ...testMapProvider, reverseVenue } satisfies MapProvider;
+    const describePoint = vi.fn(testMapProvider.describePoint);
+    const provider = {
+      ...testMapProvider,
+      describePoint,
+    } satisfies MapProvider;
 
     const result = await createEventResolver(
       db,
@@ -125,6 +134,6 @@ describe('createEventResolver venue verification', () => {
     );
 
     expect(result.ok).toBe(true);
-    expect(reverseVenue).toHaveBeenCalledOnce();
+    expect(describePoint).toHaveBeenCalledOnce();
   });
 });

@@ -2,7 +2,6 @@ import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
-import type { geo } from '@founders-coffee/domain';
 import type { Locale } from '@founders-coffee/i18n';
 
 import type { EventCreateRequestInput } from './api';
@@ -26,13 +25,11 @@ export type EventCreateCommand = EventCreateRequestInput['event'];
 export const useHostPublish = ({
   locale,
   market,
-  city,
   readDraft,
   onAuthRequired,
 }: {
   locale: Locale;
   market: Market;
-  city: geo.GeoCity;
   readDraft: () => HostCreateDraft;
   onAuthRequired: () => void;
 }) => {
@@ -58,7 +55,7 @@ export const useHostPublish = ({
     const failure = hostPublishFailure(error, locale);
     setPublishError(failure.message);
     if (!failure.requiresReauthentication) return;
-    writeHostCreateDraft(market.code, city.code, readDraft());
+    writeHostCreateDraft(market.code, readDraft());
     onAuthRequired();
   };
 
@@ -75,7 +72,7 @@ export const useHostPublish = ({
     hostId: string;
     slug: string;
   }) => {
-    clearHostCreateDraft(market.code, city.code);
+    clearHostCreateDraft(market.code);
     void invalidateCreatedEvent({
       marketCode: created.marketCode,
       cityCode: created.cityCode,

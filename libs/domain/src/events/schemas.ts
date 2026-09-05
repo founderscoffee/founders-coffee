@@ -103,7 +103,7 @@ export const eventScheduleSchema = z
 export const eventCreateSchema = z
   .object({
     marketCode: marketCodeSchema,
-    cityCode: z.string().trim().min(1).max(32),
+    cityCode: z.string().trim().min(1).max(32).optional(),
     title: eventTitleSchema,
     description: eventDescriptionSchema,
     venueName: eventVenueNameSchema,

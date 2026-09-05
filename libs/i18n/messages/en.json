@@ -163,7 +163,6 @@
   "host_map_error": "The venue map is unavailable right now.",
   "host_geolocation_denied": "Your location is unavailable. You can still search or use the map.",
   "host_venue_resolving": "Checking this venue…",
-  "host_venue_outside_city": "Choose a venue inside the selected city.",
   "host_venue_unsupported": "Choose a café or coworking venue, not a city or general location.",
   "host_venue_name_label": "What is this place called?",
   "host_venue_name_ph": "Café des Délices",
@@ -302,8 +301,6 @@
   "filter_workshop": "Workshops",
   "back_to_city": "Back to {city}",
   "profile_link": "Profile",
-  "host_city_title": "Which city are you hosting in?",
-  "host_city_sub": "Pick a city and we'll help you find a café.",
   "gate_title": "One last step — sign in to publish",
   "gate_body": "Your meetup is saved. Sign in or create an account and we'll publish it straight away.",
   "gate_back": "Back to the form",
@@ -322,8 +319,8 @@
   "cat_venue_restaurant": "Restaurant",
   "host_step_counter": "Step {current} of {total}",
   "host_search_results": "Search results",
-  "host_outside_city": "You seem to be outside {city}.",
-  "host_outside_market": "You seem to be outside {market}. Pick the city you want to host in.",
-  "host_switch_city": "Use {city} instead",
-  "host_pick_city": "Choose a city"
+  "host_location_label": "Counted in",
+  "host_location_derived": "Taken from the pin",
+  "host_location_change": "Change",
+  "host_location_unknown": "Not set yet"
 }

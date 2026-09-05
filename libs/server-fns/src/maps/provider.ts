@@ -5,15 +5,30 @@ import type { MapLocale } from './types.js';
 
 export interface MapProviderLocation {
   readonly marketCode: string;
-  readonly city: geo.GeoCity;
+  readonly city?: geo.GeoCity;
   readonly locale: MapLocale;
+  readonly proximity?: {
+    readonly latitude: number;
+    readonly longitude: number;
+  };
 }
 
 export interface MapProvider extends MapProviderLocationOperations {
   readonly name: string;
 }
 
+export interface StoredPlace {
+  readonly address: string;
+  readonly admin?: VenueAdmin;
+}
+
 export interface MapProviderLocationOperations {
+  describePoint: (input: {
+    readonly marketCode: string;
+    readonly locale: MapLocale;
+    readonly latitude: number;
+    readonly longitude: number;
+  }) => Promise<Result<StoredPlace>>;
   getCityViewport: (
     input: MapProviderLocation,
   ) => Promise<Result<HostMapContext>>;
@@ -38,6 +53,12 @@ export interface HostMapContext {
 
 export type VenueKind = 'poi' | 'address';
 
+export interface VenueAdmin {
+  readonly isoRegionCode?: string;
+  readonly regionName?: string;
+  readonly placeName?: string;
+}
+
 export interface VenueCandidate {
   readonly providerId: string;
   readonly kind: VenueKind;
@@ -45,4 +66,5 @@ export interface VenueCandidate {
   readonly address: string;
   readonly latitude: number;
   readonly longitude: number;
+  readonly admin?: VenueAdmin;
 }

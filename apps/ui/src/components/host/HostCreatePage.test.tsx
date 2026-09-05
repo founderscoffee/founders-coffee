@@ -98,7 +98,7 @@ describe('HostCreatePage EC-07 flow', () => {
         name: 'One last step — sign in to publish',
       }),
     ).toBeTruthy();
-    const stored = window.sessionStorage.getItem('fc:event-draft:DZ:1');
+    const stored = window.sessionStorage.getItem('fc:event-draft:DZ');
     expect(stored).toContain('Protected meetup');
 
     fireEvent.click(screen.getByRole('button', { name: 'Solve captcha' }));
@@ -155,7 +155,7 @@ describe('HostCreatePage EC-07 flow', () => {
     await goToHostDetails();
     fillHostDetails();
     await waitFor(() =>
-      expect(window.sessionStorage.getItem('fc:event-draft:DZ:1')).toContain(
+      expect(window.sessionStorage.getItem('fc:event-draft:DZ')).toContain(
         'Protected meetup',
       ),
     );

@@ -30,22 +30,19 @@ export const HostMapPanel = ({
   onRetry,
   onVenueSelect,
   onVenueInvalidate,
-  onLocatedOutsideCity,
+  onCenterChange,
 }: {
   locale: Locale;
   accessToken: string;
   marketCode: string;
-  cityCode: string;
+  cityCode?: string;
   venue: VenueSelection | null;
   viewport: React.ComponentProps<typeof HostMap>['viewport'] | undefined;
   isError: boolean;
   onRetry: () => void;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
-  onLocatedOutsideCity: (coordinates: {
-    latitude: number;
-    longitude: number;
-  }) => void;
+  onCenterChange?: (center: { latitude: number; longitude: number }) => void;
 }) => (
   <ClientOnly fallback={<MapSkeleton />}>
     <Suspense fallback={<MapSkeleton />}>
@@ -59,7 +56,7 @@ export const HostMapPanel = ({
           locale={locale}
           onVenueSelect={onVenueSelect}
           onVenueInvalidate={onVenueInvalidate}
-          onLocatedOutsideCity={onLocatedOutsideCity}
+          onCenterChange={onCenterChange}
         />
       ) : isError ? (
         <div className="flex h-full min-h-64 flex-col items-center justify-center gap-4 bg-error-tint p-6 text-center">

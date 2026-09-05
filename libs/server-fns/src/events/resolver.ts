@@ -3,7 +3,6 @@ import {
   events as eventsDomain,
   geo,
   markets,
-  venues as venuesDomain,
   type EventCreateInput,
 } from '@founders-coffee/domain';
 import {
@@ -18,62 +17,49 @@ import {
 } from '@founders-coffee/db';
 import { reportError } from '@founders-coffee/observability';
 
-import type { MapProvider, VenueKind } from '../maps/provider.js';
-import { reverseEventVenueResolver } from '../maps/resolver.js';
+import { locatePoint, type LocatedPoint } from '../maps/locate.js';
+import type { MapProvider } from '../maps/provider.js';
 import { type EventAttendance } from './attendance.js';
 
 /**
- * The name an event is published under, given what the map provider could verify.
+ * Where this event is, and the address to publish with it.
  *
- * A point of interest names itself, and taking the provider's name is what stops a host publishing
- * "Café des Délices" at a location that is really somewhere else. Where the provider can only
- * confirm a street address — which is every location in the Maghreb, since Mapbox indexes no points
- * of interest there — the label has to come from the host, because "15 Rue Yousfi Mohamed" tells an
- * attendee nothing about which door to walk through. The guarantee splits rather than disappears:
- * the address and coordinates stay provider-verified and inside the selected city, while the name
- * becomes host-authored content held to the same schema bounds as the title and description.
- */
-const resolvedVenueName = (
-  resolved: { readonly kind: VenueKind; readonly name: string },
-  submitted: string,
-): string => (resolved.kind === 'poi' ? resolved.name : submitted);
-
-/**
- * The venue this event will be published at, verified once.
+ * The point the host chose is the location; the city and state are labels derived from it so the
+ * per-state counts describe where events actually are rather than where a host said they were. A
+ * host may override the city on the confirmation step, and an override is trusted only far enough
+ * to name a city inside this market — the state still comes from the city, never from the client.
  *
- * A point the host dropped on the map is still re-checked through the map provider: nothing but
- * the coordinates is trustworthy there. A venue that came from our own snapshot is not re-checked,
- * because the provider indexes almost no cafés in Algiers or Cairo and would either reject it or
- * replace its name and address with a bare street. Borrowing an id is not enough to skip the
- * check — the submitted point has to still sit on top of the stored one.
+ * The venue *name* stays host-authored. Mapbox indexes almost no points of interest in the Maghreb,
+ * so a provider name is unavailable exactly where it would be most useful, and "15 Rue Yousfi
+ * Mohamed" tells an attendee nothing about which door to walk through.
  */
-const verifiedVenue = async (
+const eventLocation = async (
   mapProvider: MapProvider,
   input: EventCreateInput,
-): Promise<
-  Result<{
-    readonly kind: VenueKind;
-    readonly name: string;
-    readonly address: string;
-    readonly latitude: number;
-    readonly longitude: number;
-  }>
-> => {
-  const snapshot = input.venueProviderId
-    ? venuesDomain.findSnapshotVenue(
-        input.marketCode,
-        input.cityCode,
-        input.venueProviderId,
-        { latitude: input.latitude, longitude: input.longitude },
-      )
-    : null;
-  if (snapshot) return ok(snapshot);
-  return reverseEventVenueResolver(mapProvider, {
+): Promise<Result<LocatedPoint>> => {
+  const located = await locatePoint(mapProvider, {
     marketCode: input.marketCode,
-    cityCode: input.cityCode,
     locale: input.language,
     latitude: input.latitude,
     longitude: input.longitude,
+    snapshotProviderId: input.venueProviderId,
+    fallbackAddress: input.venueAddress,
+  });
+  if (!located.ok || !input.cityCode) return located;
+
+  const chosen = geo.findCity(input.marketCode, input.cityCode);
+  if (!chosen) {
+    return err(
+      new AppError(
+        'validation_failed',
+        `Unknown city ${input.cityCode} for ${input.marketCode}`,
+      ),
+    );
+  }
+  return ok({
+    ...located.data,
+    stateCode: chosen.stateCode,
+    cityCode: chosen.code,
   });
 };
 
@@ -130,40 +116,21 @@ export const createEventResolverWithId = async (
       );
     }
 
-    const city = geo.findCity(input.marketCode, input.cityCode);
-    if (!city) {
-      return err(
-        new AppError(
-          'validation_failed',
-          `Unknown city ${input.cityCode} for ${input.marketCode}`,
-        ),
-      );
-    }
-    const state = geo.findState(input.marketCode, city.stateCode);
-    if (!state) {
-      return err(
-        new AppError(
-          'validation_failed',
-          `Unknown state ${city.stateCode} for ${input.marketCode}`,
-        ),
-      );
-    }
-
-    const venue = await verifiedVenue(mapProvider, input);
-    if (!venue.ok) return venue;
+    const located = await eventLocation(mapProvider, input);
+    if (!located.ok) return located;
 
     const row: Omit<NewEvent, 'slug'> = {
       id: eventId,
       hostId,
       marketCode: market.code,
-      stateCode: state.code,
-      cityCode: city.code,
+      stateCode: located.data.stateCode,
+      cityCode: located.data.cityCode,
       title: input.title,
       description: input.description,
-      venue: resolvedVenueName(venue.data, input.venueName),
-      venueAddress: venue.data.address,
-      latitude: venue.data.latitude,
-      longitude: venue.data.longitude,
+      venue: input.venueName,
+      venueAddress: located.data.address,
+      latitude: input.latitude,
+      longitude: input.longitude,
       startsAt: new Date(input.startsAt),
       endsAt: new Date(input.endsAt),
       capacity: input.capacity,

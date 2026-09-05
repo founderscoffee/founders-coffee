@@ -24,6 +24,14 @@ const contextNameSchema = z
   })
   .passthrough();
 
+const contextRegionSchema = z
+  .object({
+    name: z.string().optional(),
+    region_code: z.string().optional(),
+    region_code_full: z.string().optional(),
+  })
+  .passthrough();
+
 export const mapboxFeatureSchema = z
   .object({
     bbox: boundsSchema.optional(),
@@ -42,7 +50,7 @@ export const mapboxFeatureSchema = z
         context: z
           .object({
             country: contextNameSchema.optional(),
-            region: contextNameSchema.optional(),
+            region: contextRegionSchema.optional(),
             district: contextNameSchema.optional(),
             place: contextNameSchema.optional(),
             locality: contextNameSchema.optional(),

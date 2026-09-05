@@ -17,16 +17,16 @@ import {
 import { Button } from '@founders-coffee/ui';
 
 import { useHostMapContext } from '../../features/events/hooks';
-import { cityForPoint } from '../../features/events/venue-location';
+import { stateForCity } from '../../features/events/venue-location';
 import {
   TOTAL_STEPS,
   useHostCreateWizard,
 } from '../../features/events/useHostCreateWizard';
 import { useAuth } from '../../lib/app-providers';
 import { DatetimePicker } from './DatetimePicker';
-import { HostCityMismatch } from './HostCityMismatch';
 import { HostConfirmationStep } from './HostConfirmationStep';
 import { HostDetailsStep } from './HostDetailsStep';
+import { HostLocationLine } from './HostLocationLine';
 import { HostMapPanel } from './HostMapPanel';
 import { HostSignInGate } from './HostSignInGate';
 import { HostVenueStep } from './HostVenueStep';
@@ -37,7 +37,7 @@ import { WizardSteps } from './WizardSteps';
 type HostCreatePageProps = {
   locale: Locale;
   market: Market;
-  city: geo.GeoCity;
+  city: geo.GeoCity | null;
   mapboxToken: string;
   turnstileSiteKey: string | null;
   hasSocial: boolean;
@@ -52,12 +52,13 @@ export const HostCreatePage = ({
   hasSocial,
 }: HostCreatePageProps) => {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const [locatedCity, setLocatedCity] = useState<
-    geo.GeoCity | null | undefined
-  >(undefined);
+  const [mapCenter, setMapCenter] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const mapContext = useHostMapContext({
     marketCode: market.code,
-    cityCode: city.code,
+    cityCode: city?.code,
     locale,
   });
   const mapContextError = mapContext.isError
@@ -85,7 +86,12 @@ export const HostCreatePage = ({
     });
   }, [wizard.step]);
 
-  const cityName = locale === 'ar' ? city.nameAr : city.name;
+  const listCenter = mapCenter ??
+    wizard.venue ??
+    mapContext.data?.center ?? { latitude: 0, longitude: 0 };
+  const marketName =
+    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
+  const cityName = city ? (locale === 'ar' ? city.nameAr : city.name) : '';
   const stepHeading = (
     <div className="mb-6">
       <h1 className="sr-only">{host_page_title({}, { locale })}</h1>
@@ -102,8 +108,6 @@ export const HostCreatePage = ({
     </div>
   );
 
-  const marketName =
-    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
   const steps = (
     <WizardSteps
       current={wizard.step}
@@ -134,19 +138,11 @@ export const HostCreatePage = ({
             </div>
             {steps}
             {stepHeading}
-            {locatedCity !== undefined && (
-              <HostCityMismatch
-                locale={locale}
-                market={market}
-                cityName={cityName}
-                suggested={locatedCity}
-                onDismiss={() => setLocatedCity(undefined)}
-              />
-            )}
             <HostVenueStep
               locale={locale}
-              cityName={cityName}
-              cityCode={city.code}
+              cityName={cityName || marketName}
+              cityCode={city?.code}
+              center={listCenter}
               marketCode={market.code}
               searchValue={wizard.searchValue}
               venue={wizard.venue}
@@ -183,16 +179,14 @@ export const HostCreatePage = ({
             locale={locale}
             accessToken={mapboxToken}
             marketCode={market.code}
-            cityCode={city.code}
+            cityCode={city?.code}
             venue={wizard.venue}
             viewport={mapContext.data}
             isError={mapContext.isError}
             onRetry={() => void mapContext.refetch()}
             onVenueSelect={wizard.selectVenue}
             onVenueInvalidate={wizard.clearVenue}
-            onLocatedOutsideCity={(coordinates) =>
-              setLocatedCity(cityForPoint(market.code, coordinates))
-            }
+            onCenterChange={setMapCenter}
           />
         </div>
       </div>
@@ -264,6 +258,14 @@ export const HostCreatePage = ({
                       categoryLabel={wizard.view.categoryLabel}
                       isAuthenticated={isAuthenticated}
                       publishError={wizard.publishError}
+                      locationLine={
+                        <HostLocationLine
+                          locale={locale}
+                          city={city}
+                          state={city ? stateForCity(market.code, city) : null}
+                          onChange={() => wizard.goToStep(1)}
+                        />
+                      }
                     />
                   </div>
                 )}

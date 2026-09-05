@@ -40,11 +40,12 @@ export const useHostCreateWizard = ({
 }: {
   locale: Locale;
   market: Market;
-  city: geo.GeoCity;
+  city: geo.GeoCity | null;
   isAuthenticated: boolean;
   isAuthLoading: boolean;
 }) => {
-  const cityName = locale === 'ar' ? city.nameAr : city.name;
+  const named = city ?? { name: market.name, nameAr: market.nameAr };
+  const cityName = (locale === 'ar' ? named.nameAr : named.name) ?? market.name;
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
   const [venueName, setVenueName] = useState('');
@@ -82,13 +83,11 @@ export const useHostCreateWizard = ({
   } = useHostPublish({
     locale,
     market,
-    city,
     readDraft: () => draft,
     onAuthRequired: () => setIsAuthGateOpen(true),
   });
-
   useEffect(() => {
-    const restored = readHostCreateDraft(market.code, city.code);
+    const restored = readHostCreateDraft(market.code);
     if (restored) {
       setStep(restoredDraftStep(restored, locale));
       setVenue(restored.venue);
@@ -103,11 +102,11 @@ export const useHostCreateWizard = ({
       setCategory(restored.category);
     }
     setHasRestoredDraft(true);
-  }, [market.code, city.code, locale]);
+  }, [market.code, locale]);
 
   useEffect(() => {
     if (!hasRestoredDraft) return;
-    writeHostCreateDraft(market.code, city.code, {
+    writeHostCreateDraft(market.code, {
       step,
       venue,
       venueName,
@@ -123,7 +122,6 @@ export const useHostCreateWizard = ({
   }, [
     hasRestoredDraft,
     market.code,
-    city.code,
     step,
     venue,
     venueName,
@@ -201,7 +199,7 @@ export const useHostCreateWizard = ({
     if (!venue || startsAt === null || endsAt === null) return;
     void publishEvent({
       marketCode: market.code,
-      cityCode: city.code,
+      cityCode: city?.code,
       title,
       description,
       venueName,
@@ -234,17 +232,18 @@ export const useHostCreateWizard = ({
     }
     if (isAuthLoading) return;
     if (!isAuthenticated) {
-      writeHostCreateDraft(market.code, city.code, draft);
+      writeHostCreateDraft(market.code, draft);
       setIsAuthGateOpen(true);
       return;
     }
     publish();
   };
-  const prev = () => {
+  const goToStep = (target: number) => {
     clearPublishError();
     setFieldErrors({});
-    setStep((current) => Math.max(1, current - 1));
+    setStep(target);
   };
+  const prev = () => goToStep(Math.max(1, step - 1));
   const stepCopy = hostCreateStepCopy(locale, cityName);
   const schedule = hostScheduleSummary(
     startsAt,
@@ -259,6 +258,7 @@ export const useHostCreateWizard = ({
     fieldErrors,
     publishing,
     publishError,
+    goToStep,
     stepLabels: stepCopy.labels,
     stepTitle: stepCopy.titles[step - 1] ?? stepCopy.titles[0],
     stepSub: stepCopy.descriptions[step - 1] ?? null,

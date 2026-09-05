@@ -17,6 +17,7 @@ import {
   type CreateEventInput,
   type HostMapContext,
   type HostMapLocationInput,
+  type NearbyVenuesInput,
   type RsvpInput,
   type VenueCandidate,
   type VenueReverseInput,
@@ -80,16 +81,26 @@ export const useHostMapContext = (input: HostMapLocationInput) =>
     retry: false,
   });
 
+const GRID = 1_000;
+
 /**
- * The city's snapshotted venues. No provider call behind it, so it is cached for the session.
+ * Venues near a point, cached per grid cell rather than per coordinate.
+ *
+ * The map reports a new centre on every pan, and a raw float would miss the cache every time. Three
+ * decimals is roughly a hundred metres, which is far finer than the list's own radius.
  */
-export const useNearbyVenues = (input: HostMapLocationInput) =>
-  useQuery<readonly venues.SnapshotVenue[]>({
-    queryKey: ['events', 'nearby-venues', input.marketCode, input.cityCode],
+export const useNearbyVenues = (input: NearbyVenuesInput) => {
+  const cell = [
+    Math.round(input.latitude * GRID),
+    Math.round(input.longitude * GRID),
+  ];
+  return useQuery<readonly venues.SnapshotVenue[]>({
+    queryKey: ['events', 'nearby-venues', input.marketCode, ...cell],
     queryFn: () => eventsApi.listNearbyVenues({ data: input }),
     staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   });
+};
 
 export const useVenueSearch = (input: VenueSearchInput) =>
   useQuery<readonly VenueCandidate[]>({

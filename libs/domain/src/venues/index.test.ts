@@ -7,7 +7,10 @@ import {
   containsPoint,
   findCityByPoint,
   findSnapshotVenue,
+  findSnapshotVenueInMarket,
+  findVenuesNearPoint,
   getCityVenues,
+  getMarketViewport,
   getCityViewportSnapshot,
   isSnapshotProviderId,
   matchSnapshotVenue,
@@ -181,5 +184,74 @@ describe('locating a host outside their selected city', () => {
     expect(containsPoint(bounds, { latitude: 3.05, longitude: 36.75 })).toBe(
       false,
     );
+  });
+});
+
+describe('venues near a point', () => {
+  const algiers = { latitude: 36.7538, longitude: 3.0588 };
+
+  it('returns the closest venues first and honours the limit', () => {
+    const rows = findVenuesNearPoint('DZ', algiers, 60_000, 5);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.length).toBeLessThanOrEqual(5);
+  });
+
+  it('ranks eligible venues above ineligible ones', () => {
+    const rows = findVenuesNearPoint('DZ', algiers, 60_000, 40);
+    const firstIneligible = rows.findIndex((row) => !row.eligible);
+    const lastEligible = rows.map((row) => row.eligible).lastIndexOf(true);
+    if (firstIneligible >= 0)
+      expect(firstIneligible).toBeGreaterThan(lastEligible - 1);
+  });
+
+  it('returns nothing outside the radius or for an unknown market', () => {
+    expect(findVenuesNearPoint('DZ', algiers, 1, 10)).toEqual([]);
+    expect(findVenuesNearPoint('XX', algiers, 60_000, 10)).toEqual([]);
+  });
+});
+
+describe('market viewport', () => {
+  it('spans every snapshotted city and centres inside itself', () => {
+    for (const market of ['DZ', 'EG', 'SA']) {
+      const viewport = getMarketViewport(market);
+      expect(viewport).not.toBeNull();
+      if (!viewport) continue;
+      const [west, south, east, north] = viewport.bounds;
+      expect(west).toBeLessThan(east);
+      expect(south).toBeLessThan(north);
+      expect(containsPoint(viewport.bounds, viewport.center)).toBe(true);
+    }
+  });
+
+  it('returns nothing for a market with no snapshot', () => {
+    expect(getMarketViewport('XX')).toBeNull();
+  });
+});
+
+describe('finding a snapshot venue without knowing its city', () => {
+  const algiers = { latitude: 36.7538, longitude: 3.0588 };
+
+  it('finds a venue and reports the city it belongs to', () => {
+    const venue = getCityVenues('DZ', '556').find((row) => row.eligible);
+    expect(venue).toBeDefined();
+    if (!venue) return;
+
+    const found = findSnapshotVenueInMarket('DZ', venue.providerId, {
+      latitude: venue.latitude,
+      longitude: venue.longitude,
+    });
+    expect(found?.cityCode).toBe('556');
+    expect(found?.venue.providerId).toBe(venue.providerId);
+  });
+
+  it('refuses an id the map provider issued', () => {
+    expect(findSnapshotVenueInMarket('DZ', 'mapbox-poi-1', algiers)).toBeNull();
+  });
+
+  it('returns nothing when the id is not in the market', () => {
+    expect(
+      findSnapshotVenueInMarket('DZ', 'osm:node/999999999', algiers),
+    ).toBeNull();
+    expect(findSnapshotVenueInMarket('XX', 'osm:node/1', algiers)).toBeNull();
   });
 });

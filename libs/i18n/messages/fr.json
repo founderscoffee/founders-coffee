@@ -163,7 +163,6 @@
   "host_map_error": "La carte des lieux est momentanément indisponible.",
   "host_geolocation_denied": "Votre position est indisponible. Vous pouvez toujours utiliser la recherche ou la carte.",
   "host_venue_resolving": "Vérification de ce lieu…",
-  "host_venue_outside_city": "Choisissez un lieu dans la ville sélectionnée.",
   "host_venue_unsupported": "Choisissez un café ou un espace de coworking, pas une ville ni un emplacement général.",
   "host_venue_name_label": "Comment s'appelle ce lieu ?",
   "host_venue_name_ph": "Café des Délices",
@@ -302,8 +301,6 @@
   "filter_workshop": "Ateliers",
   "back_to_city": "Retour à {city}",
   "profile_link": "Profil",
-  "host_city_title": "Dans quelle ville organisez-vous ?",
-  "host_city_sub": "Choisissez une ville et nous vous aiderons à trouver un café.",
   "gate_title": "Dernière étape — connectez-vous pour publier",
   "gate_body": "Votre rencontre est enregistrée. Connectez-vous ou créez un compte et nous la publierons aussitôt.",
   "gate_back": "Retour au formulaire",
@@ -322,8 +319,8 @@
   "cat_venue_restaurant": "Restaurant",
   "host_step_counter": "Étape {current} sur {total}",
   "host_search_results": "Résultats de recherche",
-  "host_outside_city": "Vous semblez être en dehors de {city}.",
-  "host_outside_market": "Vous semblez être en dehors de {market}. Choisissez la ville où organiser.",
-  "host_switch_city": "Utiliser {city} à la place",
-  "host_pick_city": "Choisir une ville"
+  "host_location_label": "Comptabilisé à",
+  "host_location_derived": "Déduit du repère",
+  "host_location_change": "Modifier",
+  "host_location_unknown": "Pas encore défini"
 }
