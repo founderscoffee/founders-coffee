@@ -75,6 +75,28 @@ Display-size title in Outfit 600, subtitle in mocha, and a **pill search** — `
 `rounded-full`, 1px sand, clay border on focus-within — with the CTA as a `rounded-full` roast
 button **inside** it at inline-end. No radial glow, no drop shadow.
 
+**Landmark artwork.** Each market gets one hand-drawn skyline illustration behind the hero, keyed
+by market code in `HERO_ART` and imported from `src/assets/` so Vite fingerprints it. The art is
+**3:1** (2172x724, ~2.99:1 for Saudi) and the band it sits in would otherwise be 4.3:1 at 1440 and
+5.7:1 at 1920 -- an `object-cover` crop there removes 30-48% of the image height, and the measured
+ink margins leave no room for it: Algeria's ink runs rows 18.3%-81.7%, Egypt's 32.5%-82.5%, Saudi's
+11.7%-94.2%. Saudi's 5.8% bottom clearance is the binding constraint, and no `object-position`
+saves it. So the band adopts the art's aspect instead of cropping it: the section takes
+`min-h-[calc(min(100vw,2172px)/2.99)]` and the image is bottom-anchored at its natural ratio, its
+own linen ground blending into `bg-base-200` with no seam. `/2.99` rather than `/3` because Saudi
+is 725px tall and at `/3` overshot the band by 1px, painting a linen hairline over the navbar.
+
+Two things not to change without re-measuring:
+
+- **No `overflow-hidden` on the section.** `HeroCitySearch`'s listbox is `absolute top-full` inside
+  it; clipping the section swallows the city dropdown.
+- Below `md` the inner column carries `pb-[calc(33.4vw+1rem)]`, which keeps a 16px gap between the
+  search pill and the top of the illustration. At `md`+ the art fills the band and the text floats
+  over its empty centre -- the centre 45% of every frame holds only 4-11% of the ink.
+
+Replacement art wants the same 3:1 ratio, a background within a few steps of linen `#F3EBDD`, and
+subjects in the outer thirds. Art at ~5:1 would let the band go back to a fixed height.
+
 ### 3.2 Event card (`EventCard.tsx`)
 
 Bordered card on paper, `rounded-box`, hover raises `--shadow-2` and nothing else. Linen date tile

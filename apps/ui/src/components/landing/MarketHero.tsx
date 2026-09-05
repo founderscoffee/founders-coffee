@@ -16,6 +16,16 @@ import { CitySelectionFeedback } from './CitySelectionFeedback';
 import { EmptyCityCard } from './EmptyCityCard';
 import { HeroCitySearch } from './HeroCitySearch';
 
+import heroAlgeria from '../../assets/hero-algeria.webp';
+import heroEgypt from '../../assets/hero-egypt.webp';
+import heroSaudi from '../../assets/hero-saudi.webp';
+
+const HERO_ART: Record<string, string> = {
+  DZ: heroAlgeria,
+  EG: heroEgypt,
+  SA: heroSaudi,
+};
+
 type MarketHeroProps = {
   locale: Locale;
   market: Market;
@@ -36,6 +46,7 @@ export const MarketHero = ({
     : 0;
   const isSelectedCityEmpty =
     selectedCity !== undefined && selectedCityCount === 0;
+  const heroArt = HERO_ART[market.code];
   const marketName =
     locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
   const cityDisplayName = selectedCity
@@ -45,8 +56,17 @@ export const MarketHero = ({
     : '';
 
   return (
-    <section className="bg-base-200">
-      <div className="mx-auto flex max-w-content flex-col items-center px-4 py-10 text-center md:px-8 md:py-14">
+    <section className="relative isolate flex min-h-[calc(min(100vw,2172px)/2.99)] items-center bg-base-200">
+      {heroArt && (
+        <img
+          src={heroArt}
+          alt=""
+          fetchPriority="high"
+          decoding="async"
+          className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 mx-auto h-auto w-full max-w-[2172px] select-none"
+        />
+      )}
+      <div className="mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-[calc(33.4vw+1rem)] text-center md:px-8 md:pt-14 md:pb-14">
         <span className="inline-flex h-[26px] items-center rounded-full bg-base-100 px-2.5 text-caption font-medium">
           {marketName}
         </span>
