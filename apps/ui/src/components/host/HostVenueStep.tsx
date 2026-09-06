@@ -110,7 +110,7 @@ export const HostVenueStep = ({
       ? undefined
       : nearby.isError
         ? host_venue_search_error({}, { locale })
-        : host_venue_empty({ city: cityName }, { locale });
+        : host_venue_empty({}, { locale });
 
   return (
     <div className="flex flex-col gap-3">

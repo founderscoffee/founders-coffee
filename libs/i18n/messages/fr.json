@@ -313,7 +313,7 @@
   "host_or_click_map": "Ou cliquez sur un lieu de la carte.",
   "host_pin_hint": "Faites glisser le repère jusqu’à la porte exacte.",
   "host_osm_attribution": "© les contributeurs OpenStreetMap",
-  "host_venue_empty": "Aucun lieu répertorié à {city} pour l’instant. Cherchez ci-dessus ou cliquez sur la carte.",
+  "host_venue_empty": "Choisissez l’emplacement approprié sur la carte pour commencer.",
   "cat_venue_cafe": "Café",
   "cat_venue_coworking": "Espace de coworking",
   "cat_venue_restaurant": "Restaurant",

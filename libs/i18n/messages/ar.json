@@ -313,7 +313,7 @@
   "host_or_click_map": "أو انقر على مكان في الخريطة.",
   "host_pin_hint": "اسحب الدبوس إلى الباب بالضبط.",
   "host_osm_attribution": "© مساهمو OpenStreetMap",
-  "host_venue_empty": "لا توجد أماكن مسجّلة في {city} بعد. ابحث أعلاه أو انقر على الخريطة.",
+  "host_venue_empty": "اختر الموقع المناسب على الخريطة للبدء.",
   "cat_venue_cafe": "مقهى",
   "cat_venue_coworking": "مساحة عمل",
   "cat_venue_restaurant": "مطعم",
