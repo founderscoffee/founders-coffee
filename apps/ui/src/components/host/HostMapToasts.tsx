@@ -1,18 +1,13 @@
-import { useEffect } from 'react';
-
 import {
   host_retry,
   host_venue_resolving,
   type Locale,
 } from '@founders-coffee/i18n';
 
-const TOAST_DURATION_MS = 5_000;
-
 type HostMapToastsProps = {
   locale: Locale;
   isResolving: boolean;
   error: string | null;
-  onErrorExpire: () => void;
   onRetry?: () => void;
 };
 
@@ -20,15 +15,8 @@ export const HostMapToasts = ({
   locale,
   isResolving,
   error,
-  onErrorExpire,
   onRetry,
 }: HostMapToastsProps): React.ReactElement | null => {
-  useEffect(() => {
-    if (!error) return;
-    const timer = setTimeout(onErrorExpire, TOAST_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, [error]);
-
   if (!isResolving && !error) return null;
 
   return (
@@ -53,7 +41,7 @@ export const HostMapToasts = ({
           {onRetry && (
             <button
               type="button"
-              className="btn btn-ghost btn-sm"
+              className="btn btn-primary btn-sm"
               onClick={onRetry}
             >
               {host_retry({}, { locale })}

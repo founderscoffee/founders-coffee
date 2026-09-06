@@ -9,42 +9,33 @@ describe('HostMapToasts', () => {
     vi.useRealTimers();
   });
 
-  it('retires an error toast after five seconds', () => {
+  it('keeps an error up, with its retry, until the host acts on it', () => {
     vi.useFakeTimers();
-    const onErrorExpire = vi.fn();
+    const onRetry = vi.fn();
     render(
       <HostMapToasts
         locale="en"
         isResolving={false}
         error="The venue map is unavailable right now."
-        onErrorExpire={onErrorExpire}
-        onRetry={vi.fn()}
+        onRetry={onRetry}
       />,
     );
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
 
     expect(screen.getByRole('alert').textContent).toContain(
       'The venue map is unavailable right now.',
     );
-    act(() => {
-      vi.advanceTimersByTime(4_999);
-    });
-    expect(onErrorExpire).not.toHaveBeenCalled();
-
-    act(() => {
-      vi.advanceTimersByTime(1);
-    });
-    expect(onErrorExpire).toHaveBeenCalledOnce();
+    screen.getByRole('button', { name: 'Retry' }).click();
+    expect(onRetry).toHaveBeenCalledOnce();
   });
 
   it('holds the resolving toast for as long as the lookup runs', () => {
     vi.useFakeTimers();
     const { rerender } = render(
-      <HostMapToasts
-        locale="en"
-        isResolving
-        error={null}
-        onErrorExpire={vi.fn()}
-      />,
+      <HostMapToasts locale="en" isResolving error={null} />,
     );
 
     act(() => {
@@ -54,14 +45,7 @@ describe('HostMapToasts', () => {
       'Checking this venue…',
     );
 
-    rerender(
-      <HostMapToasts
-        locale="en"
-        isResolving={false}
-        error={null}
-        onErrorExpire={vi.fn()}
-      />,
-    );
+    rerender(<HostMapToasts locale="en" isResolving={false} error={null} />);
     expect(screen.queryByRole('status')).toBeNull();
   });
 });
