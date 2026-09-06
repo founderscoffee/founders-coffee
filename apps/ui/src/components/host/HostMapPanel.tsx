@@ -1,22 +1,14 @@
 import { lazy, Suspense } from 'react';
 
-import {
-  host_map_error,
-  host_map_loading,
-  host_retry,
-  type Locale,
-} from '@founders-coffee/i18n';
+import { host_map_error, host_retry, type Locale } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
 import type { VenueSelection } from '../../features/events/types';
 import { ClientOnly } from './ClientOnly';
+import { HostMapSkeleton } from './HostMapSkeleton';
 
 const HostMap = lazy(() =>
   import('./HostMap').then((m) => ({ default: m.HostMap })),
-);
-
-const MapSkeleton = () => (
-  <div className="h-full min-h-64 w-full bg-base-200" />
 );
 
 export const HostMapPanel = ({
@@ -44,8 +36,8 @@ export const HostMapPanel = ({
   onVenueInvalidate: () => void;
   onCenterChange?: (center: { latitude: number; longitude: number }) => void;
 }) => (
-  <ClientOnly fallback={<MapSkeleton />}>
-    <Suspense fallback={<MapSkeleton />}>
+  <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
+    <Suspense fallback={<HostMapSkeleton locale={locale} />}>
       {viewport ? (
         <HostMap
           accessToken={accessToken}
@@ -68,13 +60,7 @@ export const HostMapPanel = ({
           </Button>
         </div>
       ) : (
-        <div
-          className="flex h-full min-h-64 items-center justify-center bg-base-200"
-          role="status"
-        >
-          <span className="loading loading-spinner me-2" />
-          {host_map_loading({}, { locale })}
-        </div>
+        <HostMapSkeleton locale={locale} />
       )}
     </Suspense>
   </ClientOnly>

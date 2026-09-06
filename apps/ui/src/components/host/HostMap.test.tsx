@@ -14,6 +14,7 @@ import { HostMap } from './HostMap';
 type MockMapProps = {
   children?: ReactNode;
   onClick?: (event: { lngLat: { lat: number; lng: number } }) => void;
+  onLoad?: () => void;
   mapLib?: unknown;
   workerUrl?: string;
 };
@@ -35,13 +36,21 @@ vi.mock('../../features/events/hooks', () => ({
 }));
 
 vi.mock('react-map-gl/mapbox', () => ({
-  Map: ({ children, onClick, mapLib, workerUrl }: MockMapProps) => (
+  Map: ({ children, onClick, onLoad, mapLib, workerUrl }: MockMapProps) => (
     <div
       data-testid="map-surface"
       data-worker-url={workerUrl}
       data-has-map-lib={String(mapLib !== undefined)}
       onClick={() => onClick?.({ lngLat: { lat: 36.7538, lng: 3.0588 } })}
     >
+      <button
+        type="button"
+        data-testid="map-loaded"
+        onClick={(event) => {
+          event.stopPropagation();
+          onLoad?.();
+        }}
+      />
       {children}
     </div>
   ),
@@ -192,6 +201,20 @@ describe('HostMap', () => {
     expect(callout).toContain(selectedVenue.name);
     expect(callout).toContain(selectedVenue.address);
     expect(callout).toContain('Drag the pin to the exact door.');
+  });
+
+  it('covers the map with a skeleton until Mapbox reports it is loaded', () => {
+    renderMap(null, vi.fn(), vi.fn());
+
+    expect(
+      screen.getByRole('status', { name: 'Loading the venue map…' }),
+    ).toBeDefined();
+
+    fireEvent.click(screen.getByTestId('map-loaded'));
+
+    expect(
+      screen.queryByRole('status', { name: 'Loading the venue map…' }),
+    ).toBeNull();
   });
 
   it('hands Mapbox a self-hosted worker and the object it can write globals onto', () => {

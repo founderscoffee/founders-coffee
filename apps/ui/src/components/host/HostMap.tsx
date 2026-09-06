@@ -22,6 +22,7 @@ import type {
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 import { CALLOUT_GAP } from './callout-placement';
+import { HostMapSkeleton } from './HostMapSkeleton';
 import { HostVenueCallout } from './HostVenueCallout';
 import { HostVenuePin } from './HostVenuePin';
 import { useCalloutPlacement } from './useCalloutPlacement';
@@ -77,6 +78,7 @@ export const HostMap = ({
   const placedByHost = useRef(false);
   const reverseVenue = useReverseEventVenue();
   const [mapKey, setMapKey] = useState(0);
+  const [isMapReady, setIsMapReady] = useState(false);
   const [hasMapError, setHasMapError] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [lastCoordinates, setLastCoordinates] = useState<Coordinates | null>(
@@ -143,6 +145,7 @@ export const HostMap = ({
           className="btn btn-outline btn-sm"
           onClick={() => {
             setHasMapError(false);
+            setIsMapReady(false);
             setMapKey((value) => value + 1);
           }}
         >
@@ -172,6 +175,7 @@ export const HostMap = ({
                 fitBoundsOptions: { padding: 24 },
               }
         }
+        onLoad={() => setIsMapReady(true)}
         onMove={callout.sync}
         onMoveEnd={(event) =>
           onCenterChange?.({
@@ -224,6 +228,12 @@ export const HostMap = ({
           </Marker>
         )}
       </Map>
+
+      {!isMapReady && (
+        <div className="absolute inset-0 z-20">
+          <HostMapSkeleton locale={locale} />
+        </div>
+      )}
 
       <div className="absolute start-3 top-3">
         <button
