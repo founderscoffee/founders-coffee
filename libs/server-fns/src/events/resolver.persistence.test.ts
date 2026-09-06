@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { AppError, err, ok } from '@founders-coffee/core';
-import { countEventsByStatus, createEvent } from '@founders-coffee/db';
+import {
+  countEventsByStatus,
+  createEvent,
+  getEvent,
+  getRsvpForUser,
+} from '@founders-coffee/db';
 
 import type { MapProvider } from '../maps/provider.js';
 import {
@@ -19,6 +24,28 @@ import {
 } from './resolver.fixtures.js';
 
 describe('createEventResolver persistence (real D1)', () => {
+  it('counts the host as an attendee of their own event', async () => {
+    const db = await setupDb();
+
+    const result = await createEventResolver(
+      db,
+      testMapProvider,
+      TEST_HOST_ID,
+      createInput({ title: 'Host attends their own table' }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const stored = await getEvent(db, result.data.id);
+    const rsvp = await getRsvpForUser(db, {
+      eventId: result.data.id,
+      userId: TEST_HOST_ID,
+    });
+
+    expect(rsvp?.status).toBe('going');
+    expect(stored?.rsvps).toBe(1);
+  });
+
   it('derives state ownership and persists the complete shared command', async () => {
     const db = await setupDb();
 

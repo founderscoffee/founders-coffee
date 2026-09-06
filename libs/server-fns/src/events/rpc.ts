@@ -15,9 +15,13 @@ import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
 import { requireEventCreateWafRule } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
+import { cancelEventResolver } from './cancel.js';
 import { createEventWithTelemetry } from './create.js';
 import { listEvents, resolveEvent } from './resolver.js';
-import { eventCreateRequestSchema } from './schemas.js';
+import {
+  eventCancelRequestSchema,
+  eventCreateRequestSchema,
+} from './schemas.js';
 
 /**
  * Create a new free event (FR-E1). Requires the `event:create` permission (host/moderator/admin).
@@ -103,4 +107,27 @@ export const getUpcomingEvents = createServerFn({ strict: false })
     const session = await resolveSession(getRequest().headers);
     const enriched = await attachAttendance(db, page.items, session?.user?.id);
     return { ...page, items: enriched };
+  });
+
+/**
+ * Cancel an event the caller hosts (FR-E1 counterpart). Requires a session; the resolver refuses
+ * any caller who is not the event's host, so ownership is checked against the row rather than
+ * trusted from the client. Rate-limited on the same Durable Object bucket family as creation: a
+ * cancellation fans out a notice to every attendee, which is the expensive part.
+ */
+export const cancelEvent = createServerFn({ method: 'POST', strict: false })
+  .middleware([
+    requirePermission('event', 'create'),
+    rateLimit('cancel_event', 5, 600_000),
+  ])
+  .validator(appValidator(eventCancelRequestSchema))
+  .handler(async ({ context, data }) => {
+    const session = requireAuth(context.session);
+    return handleResult(
+      cancelEventResolver(getDb(), {
+        eventId: data.eventId,
+        actorId: session.user.id,
+        reason: data.reason,
+      }),
+    );
   });

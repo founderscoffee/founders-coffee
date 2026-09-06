@@ -177,6 +177,7 @@ export const events = sqliteTable(
       .notNull()
       .default(sql`(unixepoch())`),
     cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+    cancellationReason: text('cancellation_reason'),
   },
   (table) => [
     uniqueIndex('events_market_code_slug_unique').on(
@@ -309,6 +310,7 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'rsvp_confirmation',
   'reminder_72h',
   'reminder_24h',
+  'event_cancelled',
 ] as const;
 
 /**

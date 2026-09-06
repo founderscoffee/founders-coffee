@@ -59,7 +59,7 @@ const dateFor = (
  * schema or one written by something else. Throwing is right here — the caller is inside the RSVP
  * transaction path, and a malformed notification is a bug in this file, not a user error.
  */
-const validPayload = (
+export const validPayload = (
   channel: 'sms' | 'email' | 'push',
   payload: Record<string, unknown>,
 ): Record<string, unknown> => {
@@ -72,10 +72,11 @@ const validPayload = (
   return payload;
 };
 
-const valuesFor = (
+export const valuesFor = (
   payload: NotificationPayload,
   context: NotificationContext,
   withTime: boolean,
+  reason?: string,
 ): TemplateValues => ({
   title: payload.eventTitle,
   venue: payload.venue,
@@ -84,6 +85,7 @@ const valuesFor = (
     marketCode: payload.marketCode,
     eventSlug: payload.eventSlug,
   }),
+  reason,
 });
 
 /**

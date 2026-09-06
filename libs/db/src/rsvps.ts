@@ -2,7 +2,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 
 import { batch } from './atomic.js';
 import type { Db } from './db.js';
-import { eventRsvps, events, type EventRsvp } from './schema.js';
+import { eventRsvps, events, user, type EventRsvp } from './schema.js';
 
 export type CreateRsvpOutcome = 'created' | 'event_missing' | 'already_rsvpd';
 
@@ -181,3 +181,35 @@ export const getRsvpsForEvents = async (
   for (const row of rows) map.set(row.eventId, row.status);
   return map;
 };
+
+/**
+ * Every attendee still going to an event, with the contact details a notification needs.
+ *
+ * Used when a host cancels: the notice has to reach the people who said yes, and each of them is
+ * reached on their own channel and in their own language, so phone, email and locale preference
+ * come back with the row rather than in a second query per attendee. Cancelled RSVPs are excluded
+ * — someone who already withdrew should not be told the meetup they left is off.
+ */
+export const listGoingAttendees = async (
+  db: Db,
+  eventId: string,
+): Promise<
+  ReadonlyArray<{
+    userId: string;
+    email: string;
+    phoneNumber: string | null;
+    localePref: string | null;
+  }>
+> =>
+  db
+    .select({
+      userId: eventRsvps.userId,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      localePref: user.localePref,
+    })
+    .from(eventRsvps)
+    .innerJoin(user, eq(user.id, eventRsvps.userId))
+    .where(
+      and(eq(eventRsvps.eventId, eventId), eq(eventRsvps.status, 'going')),
+    );

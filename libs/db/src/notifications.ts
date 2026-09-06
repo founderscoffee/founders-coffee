@@ -3,6 +3,7 @@ import { and, asc, eq, lte } from 'drizzle-orm';
 import type { Db } from './db.js';
 import {
   NOTIFICATION_CHANNELS,
+  NOTIFICATION_TEMPLATE_KEYS,
   scheduledNotifications,
   type NewScheduledNotification,
   type ScheduledNotification,
@@ -22,7 +23,7 @@ export const enqueueNotification = async (
     eventId: string;
     userId: string;
     channel: (typeof NOTIFICATION_CHANNELS)[number];
-    templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
+    templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
     payload: Record<string, unknown>;
     sendAt: Date;
     fallbackChannel?: 'email';
@@ -136,7 +137,7 @@ export const hasPendingNotification = async (
   opts: {
     eventId: string;
     userId: string;
-    templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
+    templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
   },
 ): Promise<boolean> => {
   const rows = await db

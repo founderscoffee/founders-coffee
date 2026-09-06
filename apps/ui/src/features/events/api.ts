@@ -1,4 +1,5 @@
 import {
+  cancelEvent,
   cancelRsvp,
   createEvent,
   createRsvp,
@@ -12,6 +13,7 @@ import {
   listNearbyVenues,
   reverseEventVenue,
   searchEventVenues,
+  type EventCancelRequestInput,
   type EventCreateRequestInput,
   type EventFeedItem,
   type EventFeedPage,
@@ -27,6 +29,7 @@ export const eventsApi = {
   getEvent,
   createRsvp,
   cancelRsvp,
+  cancelEvent,
   getHostMapContext,
   listNearbyVenues,
   searchEventVenues,
@@ -38,6 +41,7 @@ export const eventsApi = {
 };
 
 export type {
+  EventCancelRequestInput,
   EventCreateRequestInput,
   EventFeedItem,
   EventFeedPage,
@@ -48,6 +52,7 @@ export type {
 export type CreateEventInput = { data: EventCreateRequestInput };
 export type CreatedEvent = Event;
 export type RsvpInput = { data: { eventId: string } };
+export type CancelEventInput = { data: EventCancelRequestInput };
 export type HostMapLocationInput = {
   marketCode: string;
   cityCode?: string;

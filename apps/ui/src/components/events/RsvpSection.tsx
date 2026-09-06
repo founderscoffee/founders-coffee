@@ -17,17 +17,29 @@ import {
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
+import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
 import { useAuth } from '../../lib/app-providers';
+import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
 
 export type RsvpSectionProps = {
   event: EventWithAttendance;
   hostName: string;
   locale: Locale;
+  isHost: boolean;
+  live: UseEventLiveResult | null;
+  isWindowOpen: boolean;
 };
 
-export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
+export const RsvpSection = ({
+  event,
+  hostName,
+  locale,
+  isHost,
+  live,
+  isWindowOpen,
+}: RsvpSectionProps) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
@@ -38,6 +50,7 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const isGoing = event.viewerRsvp === 'going';
+  const isCancelled = event.status === 'cancelled';
 
   const messageFor = (cause: unknown) => {
     const code = appErrorCode(cause);
@@ -83,9 +96,20 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
     );
   };
 
+  if (isHost) {
+    return (
+      <HostEventPanel
+        event={event}
+        locale={locale}
+        live={live}
+        isWindowOpen={isWindowOpen}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      {isGoing ? (
+      {isCancelled ? null : isGoing ? (
         <>
           <p className="inline-flex w-fit items-center gap-2 rounded-full bg-success-tint px-3 py-1.5 text-body-sm font-medium text-success">
             <Check className="size-4" aria-hidden="true" />

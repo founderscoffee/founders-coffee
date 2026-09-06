@@ -1,43 +1,43 @@
 import { useState } from 'react';
 
 import {
-  live_arrived_cta,
   live_at_venue,
   live_cancel,
   live_confirm,
   live_connected,
-  live_cue_ph,
   live_eta_minutes,
   live_eta_ph,
-  live_host_actions,
   live_host_here,
   live_in_the_room,
-  live_new_table_ph,
   live_no_attendees,
   live_not_arrived,
   live_running_late,
   live_table_n,
-  live_table_ph,
   live_title,
-  live_update_table,
   live_walking_in,
   live_your_status,
   role_host,
   type Locale,
 } from '@founders-coffee/i18n';
 
-import { useEventLive } from '../useEventLive';
-import { connectionBadge, statusColor, statusLabel } from './live-badges';
+import type { UseEventLiveResult } from '../useEventLive';
+import {
+  connectionBadge,
+  connectionLabel,
+  liveErrorMessage,
+  statusColor,
+  statusLabel,
+} from './live-badges';
 
 export interface LiveDashboardProps {
-  eventId: string;
+  live: UseEventLiveResult;
   currentUserId: string;
   isHost: boolean;
   locale: Locale;
 }
 
 export const LiveDashboard = ({
-  eventId,
+  live,
   currentUserId,
   isHost,
   locale,
@@ -47,29 +47,15 @@ export const LiveDashboard = ({
     host,
     connectionState,
     error,
-    sendArrived,
     sendWalkingIn,
     sendRunningLate,
-    sendTablePin,
-  } = useEventLive(eventId);
+  } = live;
 
-  const [tableNumber, setTableNumber] = useState<string>('');
-  const [visualCue, setVisualCue] = useState('');
-  const [showArrivedForm, setShowArrivedForm] = useState(false);
   const [runningLateEta, setRunningLateEta] = useState<string>('');
   const [showRunningLate, setShowRunningLate] = useState(false);
 
   const arrivedCount = roster.filter((r) => r.status === 'arrived').length;
   const totalCount = roster.length;
-
-  const handleArrived = () => {
-    if (tableNumber) {
-      sendArrived(parseInt(tableNumber, 10), visualCue || undefined);
-    } else {
-      sendArrived(undefined, visualCue || undefined);
-    }
-    setShowArrivedForm(false);
-  };
 
   const handleRunningLate = () => {
     const eta = runningLateEta ? parseInt(runningLateEta, 10) : undefined;
@@ -91,7 +77,7 @@ export const LiveDashboard = ({
             >
               {connectionState === 'connected'
                 ? live_connected({}, { locale })
-                : connectionState}
+                : connectionLabel(connectionState, locale)}
             </span>
             {host?.arrived && (
               <span className="badge badge-success badge-sm">
@@ -102,8 +88,8 @@ export const LiveDashboard = ({
         </div>
 
         {error && (
-          <div className="alert alert-error alert-sm">
-            <span>{error}</span>
+          <div className="alert alert-error alert-sm" role="alert">
+            <span>{liveErrorMessage(error, locale)}</span>
           </div>
         )}
 
@@ -164,71 +150,6 @@ export const LiveDashboard = ({
             )}
           </div>
         </div>
-
-        {isHost && !host?.arrived && (
-          <div className="divider">{live_host_actions({}, { locale })}</div>
-        )}
-
-        {isHost && !host?.arrived && !showArrivedForm && (
-          <button
-            className="btn btn-primary btn-block"
-            onClick={() => setShowArrivedForm(true)}
-          >
-            {live_arrived_cta({}, { locale })}
-          </button>
-        )}
-
-        {isHost && showArrivedForm && (
-          <div className="flex flex-col gap-2">
-            <input
-              type="number"
-              className="input input-bordered input-sm w-full"
-              placeholder={live_table_ph({}, { locale })}
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-            />
-            <input
-              type="text"
-              className="input input-bordered input-sm w-full"
-              placeholder={live_cue_ph({}, { locale })}
-              value={visualCue}
-              onChange={(e) => setVisualCue(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={handleArrived}
-              >
-                {live_confirm({}, { locale })}
-              </button>
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={() => setShowArrivedForm(false)}
-              >
-                {live_cancel({}, { locale })}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {isHost && host?.arrived && host.tableNumber && (
-          <div className="flex gap-2">
-            <input
-              type="number"
-              className="input input-bordered input-sm flex-1"
-              placeholder={live_new_table_ph({}, { locale })}
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-            />
-            <button
-              className="btn btn-sm"
-              disabled={!tableNumber}
-              onClick={() => sendTablePin(parseInt(tableNumber, 10))}
-            >
-              {live_update_table({}, { locale })}
-            </button>
-          </div>
-        )}
 
         {!isHost && (
           <>

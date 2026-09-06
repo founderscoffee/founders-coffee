@@ -17,11 +17,14 @@ export interface HostState {
 export type ConnectionState =
   'disconnected' | 'connecting' | 'authenticating' | 'connected' | 'error';
 
+export type LiveErrorCode =
+  'session_expired' | 'cancelled' | 'connection' | 'unknown';
+
 export interface UseEventLiveResult {
   roster: RosterUser[];
   host: HostState | null;
   connectionState: ConnectionState;
-  error: string | null;
+  error: LiveErrorCode | null;
   sendArrived: (tableNumber?: number, visualCue?: string) => void;
   sendWalkingIn: () => void;
   sendRunningLate: (etaMinutes?: number) => void;
@@ -40,12 +43,29 @@ interface OutboundMsg {
 const MAX_RECONNECT_DELAY = 30_000;
 const INITIAL_RECONNECT_DELAY = 1_000;
 
-export const useEventLive = (eventId: string): UseEventLiveResult => {
+/**
+ * Join the live room for an event over a WebSocket, and expose what is happening in it.
+ *
+ * `enabled` decides whether a socket is opened at all: outside the meetup's window there is
+ * nothing to join, and connecting anyway would hold a Durable Object open for every visitor
+ * reading a page about next week. Flipping it false closes the socket and reports `disconnected`.
+ *
+ * Failures surface as `LiveErrorCode` rather than sentences. The room is reached from an
+ * Arabic-first page, so the words a reader sees have to come from the message catalogue; a string
+ * built here would arrive in English whatever their locale. Server `error` frames collapse to
+ * `unknown` on purpose — their text is written by the Durable Object, not translated, and is
+ * diagnostic rather than something to show.
+ */
+export const useEventLive = (
+  eventId: string,
+  options: { enabled?: boolean } = {},
+): UseEventLiveResult => {
+  const isEnabled = options.enabled ?? true;
   const [roster, setRoster] = useState<RosterUser[]>([]);
   const [host, setHost] = useState<HostState | null>(null);
   const [connectionState, setConnectionState] =
     useState<ConnectionState>('disconnected');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LiveErrorCode | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
@@ -61,7 +81,7 @@ export const useEventLive = (eventId: string): UseEventLiveResult => {
   }, []);
 
   const connect = useCallback(() => {
-    if (!eventId) return;
+    if (!eventId || !isEnabled) return;
 
     if (wsRef.current) {
       wsRef.current.close();
@@ -98,7 +118,7 @@ export const useEventLive = (eventId: string): UseEventLiveResult => {
             break;
           case 'auth_expired':
             setConnectionState('error');
-            setError('Session expired. Please refresh.');
+            setError('session_expired');
             intentionalCloseRef.current = true;
             ws.close(4001, 'auth_expired');
             break;
@@ -109,11 +129,11 @@ export const useEventLive = (eventId: string): UseEventLiveResult => {
             if (msg.host) setHost(msg.host);
             break;
           case 'error':
-            setError(msg.message ?? 'Unknown error');
+            setError('unknown');
             break;
           case 'event_cancelled':
             setConnectionState('error');
-            setError('This event has been cancelled.');
+            setError('cancelled');
             intentionalCloseRef.current = true;
             ws.close(1000, 'event_cancelled');
             break;
@@ -145,12 +165,16 @@ export const useEventLive = (eventId: string): UseEventLiveResult => {
     ws.onerror = () => {
       if (!mountedRef.current) return;
       setConnectionState('error');
-      setError('WebSocket connection failed');
+      setError('connection');
     };
-  }, [eventId, send]);
+  }, [eventId, isEnabled, send]);
 
   useEffect(() => {
     mountedRef.current = true;
+    if (!isEnabled) {
+      setConnectionState('disconnected');
+      return;
+    }
     connect();
 
     return () => {
@@ -158,7 +182,7 @@ export const useEventLive = (eventId: string): UseEventLiveResult => {
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       wsRef.current?.close();
     };
-  }, [connect]);
+  }, [connect, isEnabled]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);

@@ -2,11 +2,13 @@ import { Link } from '@tanstack/react-router';
 
 import {
   back_to_city,
-  event_free,
+  event_cancelled_body,
+  event_cancelled_title,
   event_when,
   event_where,
   formatDate,
   going_count,
+  ntf_cancel_reason,
   open_in_maps,
   profile_link,
   role_host,
@@ -18,6 +20,7 @@ import type {
   PublicProfile,
 } from '@founders-coffee/server-fns';
 
+import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { RsvpSection } from './RsvpSection';
 
 type EventDetailProps = {
@@ -25,6 +28,9 @@ type EventDetailProps = {
   market: Market;
   event: EventDetailItem;
   host: PublicProfile;
+  isHost: boolean;
+  live: UseEventLiveResult | null;
+  isWindowOpen: boolean;
 };
 
 const LANGUAGE_LABEL: Record<EventDetailItem['language'], string> = {
@@ -47,6 +53,9 @@ export const EventDetail = ({
   market,
   event,
   host,
+  isHost,
+  live,
+  isWindowOpen,
 }: EventDetailProps) => {
   const on = (value: Date, options: Intl.DateTimeFormatOptions) =>
     formatDate(value, locale, {
@@ -98,17 +107,34 @@ export const EventDetail = ({
         </Link>
       )}
 
+      {event.status === 'cancelled' && (
+        <div
+          role="status"
+          className="mb-4 rounded-box border border-error bg-error-tint p-4"
+        >
+          <p className="font-display text-h4 font-semibold text-error">
+            {event_cancelled_title({}, { locale })}
+          </p>
+          <p className="mt-1 text-body-sm text-neutral">
+            {event_cancelled_body({}, { locale })}
+          </p>
+          {event.cancellationReason ? (
+            <p className="mt-2 text-body-sm text-base-content">
+              {ntf_cancel_reason(
+                { reason: event.cancellationReason },
+                { locale },
+              )}
+            </p>
+          ) : null}
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         <div>
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex h-7 items-center rounded-full bg-base-200 px-3 text-caption font-medium">
               {LANGUAGE_LABEL[event.language]}
             </span>
-            {event.isFree ? (
-              <span className="inline-flex h-7 items-center rounded-full bg-base-200 px-3 text-caption font-medium">
-                {event_free({}, { locale })}
-              </span>
-            ) : null}
           </div>
 
           <h1 className="mt-4 font-display text-h2 font-semibold text-balance">
@@ -180,11 +206,6 @@ export const EventDetail = ({
 
           <div className="rounded-box border border-base-300 bg-base-100 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              {event.isFree ? (
-                <p className="font-display text-h4 font-semibold">
-                  {event_free({}, { locale })}
-                </p>
-              ) : null}
               {event.goingCount > 0 && (
                 <span className="ms-auto inline-flex h-[1.375rem] items-center gap-1.5 rounded-full bg-secondary-tint px-2.5 text-caption font-medium text-accent">
                   <span
@@ -195,7 +216,14 @@ export const EventDetail = ({
                 </span>
               )}
             </div>
-            <RsvpSection event={event} hostName={host.name} locale={locale} />
+            <RsvpSection
+              event={event}
+              hostName={host.name}
+              locale={locale}
+              isHost={isHost}
+              live={live}
+              isWindowOpen={isWindowOpen}
+            />
           </div>
         </aside>
       </div>

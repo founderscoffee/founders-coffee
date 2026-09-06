@@ -17,6 +17,7 @@ import {
 } from '@founders-coffee/db';
 import { reportError } from '@founders-coffee/observability';
 
+import { attendHostOwnEvent } from './host-attendance.js';
 import { locatePoint, type LocatedPoint } from '../maps/locate.js';
 import type { MapProvider } from '../maps/provider.js';
 import { type EventAttendance } from './attendance.js';
@@ -140,7 +141,10 @@ export const createEventResolverWithId = async (
 
     for (const slug of eventSlugCandidates(input.title, eventId)) {
       const created = await createEventIfRouteAvailable(db, { ...row, slug });
-      if (created) return ok(created);
+      if (created) {
+        await attendHostOwnEvent(db, created.id, hostId);
+        return ok(created);
+      }
     }
 
     return err(

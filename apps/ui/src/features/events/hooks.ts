@@ -13,6 +13,7 @@ import {
 } from './created-event-cache';
 import {
   eventsApi,
+  type CancelEventInput,
   type CreatedEvent,
   type CreateEventInput,
   type HostMapContext,
@@ -125,4 +126,9 @@ export const useCreateRsvp = () =>
 export const useCancelRsvp = () =>
   useMutation({
     mutationFn: (input: RsvpInput) => eventsApi.cancelRsvp(input),
+  });
+
+export const useCancelEvent = () =>
+  useMutation({
+    mutationFn: (input: CancelEventInput) => eventsApi.cancelEvent(input),
   });

@@ -12,6 +12,8 @@ import type { PublicProfile } from '@founders-coffee/server-fns';
 
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
+import { isLiveWindowOpen } from '../features/events/live-window';
+import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
 
 type EventDetailLoaderData = {
@@ -25,6 +27,14 @@ export const Route = createFileRoute('/$market/e/$slug')({
     const { locale } = Route.useRouteContext();
     const { market, event, host } = Route.useLoaderData();
     const { user } = useAuth();
+    const isHost = user?.id === event.hostId;
+    const isWindowOpen =
+      event.status !== 'cancelled' &&
+      isLiveWindowOpen(event.startsAt, event.endsAt);
+    const live = useEventLive(event.id, {
+      enabled: Boolean(user) && isWindowOpen,
+    });
+
     return (
       <>
         <EventDetail
@@ -32,12 +42,15 @@ export const Route = createFileRoute('/$market/e/$slug')({
           market={market}
           event={event}
           host={host}
+          isHost={isHost}
+          live={user ? live : null}
+          isWindowOpen={isWindowOpen}
         />
-        {user && (
+        {user && isWindowOpen && (
           <LiveDashboard
-            eventId={event.id}
+            live={live}
             currentUserId={user.id}
-            isHost={user.id === event.hostId}
+            isHost={isHost}
             locale={locale}
           />
         )}
