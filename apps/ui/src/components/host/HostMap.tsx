@@ -10,7 +10,6 @@ import {
   host_map_error,
   host_map_label,
   host_retry,
-  host_venue_resolving,
   host_venue_unsupported,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -23,6 +22,7 @@ import type {
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 import { CALLOUT_GAP } from './callout-placement';
 import { HostMapSkeleton } from './HostMapSkeleton';
+import { HostMapToasts } from './HostMapToasts';
 import { HostVenueCallout } from './HostVenueCallout';
 import { HostVenuePin } from './HostVenuePin';
 import { useCalloutPlacement } from './useCalloutPlacement';
@@ -254,33 +254,17 @@ export const HostMap = ({
         </button>
       </div>
 
-      {reverseVenue.isPending && (
-        <p
-          className="absolute inset-x-3 top-16 rounded-xl bg-base-100 p-3 text-body-sm shadow-lg backdrop-blur-md"
-          role="status"
-        >
-          <span className="loading loading-spinner loading-xs me-2" />
-          {host_venue_resolving({}, { locale })}
-        </p>
-      )}
-
-      {locationError && (
-        <div
-          className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-error bg-base-100 p-3 shadow-lg"
-          role="alert"
-        >
-          <span className="text-body-sm text-error">{locationError}</span>
-          {lastCoordinates && (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => void resolveCoordinates(lastCoordinates)}
-            >
-              {host_retry({}, { locale })}
-            </button>
-          )}
-        </div>
-      )}
+      <HostMapToasts
+        locale={locale}
+        isResolving={reverseVenue.isPending}
+        error={locationError}
+        onErrorExpire={() => setLocationError(null)}
+        onRetry={
+          lastCoordinates
+            ? () => void resolveCoordinates(lastCoordinates)
+            : undefined
+        }
+      />
     </div>
   );
 };
