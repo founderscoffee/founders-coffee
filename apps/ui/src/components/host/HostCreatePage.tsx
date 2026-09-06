@@ -252,7 +252,7 @@ export const HostCreatePage = ({
       </section>
 
       <div
-        className={`min-h-72 flex-1 lg:min-h-0 ${
+        className={`h-72 shrink-0 lg:h-auto lg:min-h-0 lg:flex-1 ${
           wizard.step === 1 ? '' : 'hidden lg:block'
         }`}
       >
