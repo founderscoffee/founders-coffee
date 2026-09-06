@@ -4,7 +4,6 @@ import {
   gate_back,
   gate_body,
   gate_title,
-  login_code_label,
   login_code_sent,
   login_email_label,
   login_email_placeholder,
@@ -22,9 +21,15 @@ import { Button, Input } from '@founders-coffee/ui';
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
 import { Turnstile } from '../auth/Turnstile';
+import { OtpField, OTP_LENGTH } from '../auth/OtpField';
 import { useRevealOnMount } from './useRevealOnMount';
 
-const OAUTH_PROVIDERS = ['google', 'github', 'linkedin'] as const;
+const OAUTH_PROVIDERS = ['google', 'github'] as const;
+
+const PROVIDER_LABEL: Record<(typeof OAUTH_PROVIDERS)[number], string> = {
+  google: 'Google',
+  github: 'GitHub',
+};
 
 type HostSignInGateProps = {
   locale: Locale;
@@ -155,7 +160,10 @@ export const HostSignInGate = ({
                       disabled={busy}
                       isFullWidth
                     >
-                      {oauth_continue({ provider: p }, { locale })}
+                      {oauth_continue(
+                        { provider: PROVIDER_LABEL[p] },
+                        { locale },
+                      )}
                     </Button>
                   ))}
                 </div>
@@ -167,19 +175,13 @@ export const HostSignInGate = ({
             <p className="text-body-sm text-neutral">
               {login_code_sent({ email }, { locale })}
             </p>
-            <label className="form-control">
-              <span className="mb-2 block text-label text-neutral">
-                {login_code_label({}, { locale })}
-              </span>
-              <input
-                className={`otp ${error ? 'otp-error' : 'otp-primary'}`}
-                inputMode="numeric"
-                maxLength={6}
-                autoComplete="one-time-code"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-              />
-            </label>
+            <OtpField
+              locale={locale}
+              value={otp}
+              hasError={!!error}
+              isDisabled={busy}
+              onChange={setOtp}
+            />
             {error && (
               <p role="alert" className="text-body-sm text-error">
                 {error}
@@ -187,7 +189,7 @@ export const HostSignInGate = ({
             )}
             <Button
               onClick={() => void verify()}
-              disabled={otp.length !== 6 || busy}
+              disabled={otp.length !== OTP_LENGTH || busy}
               isFullWidth
             >
               {busy ? (

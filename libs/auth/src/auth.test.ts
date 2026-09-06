@@ -89,4 +89,15 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
   it('requires a session for role-gated actions', () => {
     expect(() => requireRole(null, 'member')).toThrow();
   });
+
+  it('declares account linking where Better Auth reads it', () => {
+    const { auth } = createAuth(authEnv, {
+      emailProvider: new DevEmailProvider(),
+    });
+    const linking = auth.options.account?.accountLinking;
+
+    expect(linking?.enabled).toBe(true);
+    expect(linking?.trustedProviders).toEqual(['google', 'github']);
+    expect(linking?.allowDifferentEmails).toBe(false);
+  });
 });

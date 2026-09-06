@@ -33,8 +33,6 @@ export interface AuthEnv {
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
   GITHUB_CLIENT_SECRET?: string;
-  LINKEDIN_CLIENT_ID?: string;
-  LINKEDIN_CLIENT_SECRET?: string;
   TWILIO_SID?: string;
   TWILIO_AID?: string;
   TWILIO_SEC?: string;
@@ -97,10 +95,12 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     baseURL: env.APP_URL,
     trustedOrigins: [env.APP_URL],
     emailAndPassword: { enabled: false },
-    accountLinking: {
-      enabled: true,
-      trustedProviders: ['google', 'github', 'linkedin'],
-      allowDifferentEmails: false,
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ['google', 'github'],
+        allowDifferentEmails: false,
+      },
     },
     socialProviders: {
       ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -116,14 +116,6 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
             github: {
               clientId: env.GITHUB_CLIENT_ID,
               clientSecret: env.GITHUB_CLIENT_SECRET,
-            },
-          }
-        : {}),
-      ...(env.LINKEDIN_CLIENT_ID && env.LINKEDIN_CLIENT_SECRET
-        ? {
-            linkedin: {
-              clientId: env.LINKEDIN_CLIENT_ID,
-              clientSecret: env.LINKEDIN_CLIENT_SECRET,
             },
           }
         : {}),
@@ -205,7 +197,7 @@ export type AuthInstance = ReturnType<typeof createAuth>['auth'];
 /** True if at least one OAuth provider is configured (drives UI: show social buttons). */
 export const hasSocialProviders = (env: AuthEnv): boolean => {
   const envVars = env as unknown as Record<string, string | undefined>;
-  return (['GOOGLE', 'GITHUB', 'LINKEDIN'] as const).some(
+  return (['GOOGLE', 'GITHUB'] as const).some(
     (p) =>
       optionalEnv(envVars, `${p}_CLIENT_ID`) &&
       optionalEnv(envVars, `${p}_CLIENT_SECRET`),
