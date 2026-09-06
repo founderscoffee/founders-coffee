@@ -59,9 +59,7 @@ export const setupDb = async (): Promise<Db> => {
     description: 'Notification sweep fixture event.',
     venue: 'Café des Délices, Hydra',
     startsAt: new Date('2099-01-15T18:00:00Z'),
-    capacity: 50,
     language: 'fr',
-    category: 'coffee-meetup',
     status: 'published',
   }).catch(() => undefined);
   await db.delete(scheduledNotifications).run();

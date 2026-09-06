@@ -12,7 +12,6 @@ const notificationBase = z.object({
   phoneNumber: z.string().min(1).max(32).optional(),
   email: z.string().email().max(254).optional(),
   rsvpCount: z.number().int().nonnegative().optional(),
-  capacity: z.number().int().nonnegative().optional(),
 });
 
 const emailContent = {

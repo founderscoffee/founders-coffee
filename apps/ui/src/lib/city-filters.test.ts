@@ -15,7 +15,6 @@ const event = (
     id,
     startsAt: new Date(startsAt),
     language: 'en',
-    category: 'coffee-meetup',
     ...extra,
   }) as EventFeedItem;
 
@@ -63,17 +62,11 @@ describe('applyCityFilters', () => {
 
   it('combines active chips with AND', () => {
     const feed = [
-      event('ar-workshop', '2026-09-11T10:00:00Z', {
-        language: 'ar',
-        category: 'workshop',
-      }),
-      event('ar-coffee', '2026-09-11T10:00:00Z', { language: 'ar' }),
-      event('fr-workshop', '2026-09-11T10:00:00Z', {
-        language: 'fr',
-        category: 'workshop',
-      }),
+      event('ar-today', '2026-09-09T10:00:00Z', { language: 'ar' }),
+      event('ar-later', '2026-09-11T10:00:00Z', { language: 'ar' }),
+      event('fr-today', '2026-09-09T10:00:00Z', { language: 'fr' }),
     ];
-    expect(ids(feed, ['ar', 'workshop'], now)).toEqual(['ar-workshop']);
+    expect(ids(feed, ['ar', 'today'], now)).toEqual(['ar-today']);
     expect(ids(feed, ['ar', 'fr'], now)).toEqual([]);
   });
 });

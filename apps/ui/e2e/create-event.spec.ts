@@ -123,9 +123,6 @@ test.describe('create event', () => {
     const details = {
       title,
       description: `A complete end-to-end event created by the ${locale} regression run ${RUN_ID}.`,
-      capacity: 24,
-      language: locale,
-      category: 'workshop',
     } as const;
     const venueName = await completeWizardToConfirmation(
       page,
@@ -167,9 +164,7 @@ test.describe('create event', () => {
     expect(persisted).toMatchObject({
       market_code: 'DZ',
       city_code: '556',
-      capacity: details.capacity,
-      language: details.language,
-      category: details.category,
+      language: locale,
       status: 'published',
       is_free: 1,
       description: details.description,

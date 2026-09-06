@@ -89,7 +89,6 @@ describe('createEventWithTelemetry (real D1)', () => {
       marketCode: 'DZ',
       cityCode: '556',
       stateCode: '16',
-      category: 'coffee-meetup',
       language: 'fr',
       durationMinutes: 60,
     });

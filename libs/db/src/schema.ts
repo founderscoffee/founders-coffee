@@ -140,11 +140,6 @@ export const verification = sqliteTable('verification', {
 export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
 
-export const EVENT_CATEGORIES = [
-  'coffee-meetup',
-  'workshop',
-  'demo-day',
-] as const;
 export const EVENT_STATUSES = ['published', 'cancelled'] as const;
 
 /** Event — a free local meetup created by a host (FR-E1). Always `is_free` (FR-E2). */
@@ -166,9 +161,7 @@ export const events = sqliteTable(
     startsAt: integer('starts_at', { mode: 'timestamp' }).notNull(),
     endsAt: integer('ends_at', { mode: 'timestamp' }),
     rsvps: integer('rsvps').notNull().default(0),
-    capacity: integer('capacity').notNull().default(0),
     language: text('language', { enum: [...LOCALES] }).notNull(),
-    category: text('category', { enum: [...EVENT_CATEGORIES] }).notNull(),
     isFree: integer('is_free', { mode: 'boolean' }).notNull().default(true),
     latitude: real('latitude'),
     longitude: real('longitude'),
@@ -199,7 +192,7 @@ export type NewEvent = typeof events.$inferInsert;
 
 export const RSVP_STATUSES = ['going', 'waitlist', 'cancelled'] as const;
 
-/** Event RSVP — one per user per event (UNIQUE constraint). Drives the atomic capacity check. */
+/** Event RSVP — one per user per event (UNIQUE constraint). */
 export const eventRsvps = sqliteTable(
   'event_rsvps',
   {

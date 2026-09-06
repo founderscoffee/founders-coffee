@@ -24,9 +24,6 @@ const draft: HostCreateDraft = {
   endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
   title: 'Founder meetup',
   description: 'A complete founder meetup description.',
-  capacity: 24,
-  language: 'fr',
-  category: 'workshop',
 };
 
 describe('host create draft', () => {
@@ -45,7 +42,7 @@ describe('host create draft', () => {
         ...draft,
         version: 1,
         savedAt: Date.now(),
-        capacity: -1,
+        title: 42,
       }),
     );
     expect(readHostCreateDraft('DZ')).toBeNull();
@@ -75,9 +72,6 @@ describe('AR: a draft this module wrote is always readable', () => {
     endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
     title: 'Protected meetup',
     description: 'A complete protected meetup for founders.',
-    capacity: 0,
-    language: 'en' as const,
-    category: 'coffee-meetup' as const,
   };
 
   it('survives a venue search value longer than the schema allows', () => {

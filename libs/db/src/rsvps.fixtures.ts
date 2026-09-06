@@ -38,7 +38,7 @@ export const setupDb = async (): Promise<Db> => {
   return db;
 };
 
-export const seedEvent = async (db: Db, capacity: number): Promise<string> => {
+export const seedEvent = async (db: Db): Promise<string> => {
   const n = ++counter;
   const id = `evt_rsvp${String(n).padStart(3, '0')}`;
   await createEvent(db, {
@@ -49,12 +49,10 @@ export const seedEvent = async (db: Db, capacity: number): Promise<string> => {
     stateCode: '16',
     cityCode: '1',
     title: `RSVP fixture ${n}`,
-    description: 'Capacity behaviour fixture.',
+    description: 'RSVP behaviour fixture.',
     venue: 'Café des Délices, Hydra',
     startsAt: new Date('2099-01-15T18:00:00Z'),
-    capacity,
     language: 'fr',
-    category: 'coffee-meetup',
     status: 'published',
   });
   return id;

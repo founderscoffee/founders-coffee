@@ -87,9 +87,7 @@ export const baseEvent = (id: string, slug: string) => ({
   description: 'Casual meetup for the resolver test.',
   venue: 'Café des Délices, Hydra',
   startsAt: new Date('2099-01-15T18:00:00Z'),
-  capacity: 30,
   language: 'fr' as const,
-  category: 'coffee-meetup' as const,
   id,
   slug,
 });
@@ -114,9 +112,7 @@ export const rawCreateInput = (overrides: Record<string, unknown> = {}) => ({
   longitude: 3.0588,
   startsAt: new Date('2099-01-15T18:00:00Z').getTime(),
   endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
-  capacity: 24,
   language: 'fr',
-  category: 'coffee-meetup',
   ...overrides,
 });
 

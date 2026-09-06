@@ -50,9 +50,7 @@ export interface PersistedEvent {
   readonly longitude: number | null;
   readonly starts_at: number;
   readonly ends_at: number | null;
-  readonly capacity: number;
   readonly language: string;
-  readonly category: string;
   readonly market_code: string;
   readonly state_code: string;
   readonly city_code: string;

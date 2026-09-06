@@ -16,9 +16,7 @@ interface EventCreateTelemetry {
   readonly hostId: string;
   readonly marketCode: string;
   readonly cityCode: string | null;
-  readonly category: string;
   readonly language: string;
-  readonly capacity: number;
   readonly durationMinutes: number;
 }
 
@@ -42,9 +40,7 @@ const telemetryFor = (
   hostId,
   marketCode: input.marketCode,
   cityCode: input.cityCode ?? null,
-  category: input.category,
   language: input.language,
-  capacity: input.capacity,
   durationMinutes: Math.round((input.endsAt - input.startsAt) / 60_000),
 });
 

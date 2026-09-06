@@ -1,11 +1,8 @@
-import { localeSchema } from '@founders-coffee/core';
 import { events } from '@founders-coffee/domain';
 import {
-  host_capacity_constraints,
   host_desc_constraints,
   host_duration_range,
   host_schedule_required,
-  host_selection_required,
   host_time_past,
   host_title_constraints,
   host_venue_name_required,
@@ -17,17 +14,7 @@ import type { VenueSelection } from './types';
 import type { HostCreateDraft } from './host-create-draft';
 
 export type HostCreateFieldErrors = Partial<
-  Record<
-    | 'venue'
-    | 'venueName'
-    | 'schedule'
-    | 'title'
-    | 'description'
-    | 'capacity'
-    | 'language'
-    | 'category',
-    string
-  >
+  Record<'venue' | 'venueName' | 'schedule' | 'title' | 'description', string>
 >;
 
 export const validateVenueStep = (
@@ -86,9 +73,6 @@ export const validateDetailsStep = (
   input: {
     title: string;
     description: string;
-    capacity: number;
-    language: Locale;
-    category: events.EventCategory;
   },
   locale: Locale,
 ): HostCreateFieldErrors => {
@@ -111,36 +95,15 @@ export const validateDetailsStep = (
       { locale },
     );
   }
-  if (!events.eventCapacitySchema.safeParse(input.capacity).success) {
-    errors.capacity = host_capacity_constraints(
-      { max: events.EVENT_CAPACITY_MAX },
-      { locale },
-    );
-  }
-  if (!localeSchema.safeParse(input.language).success) {
-    errors.language = host_selection_required({}, { locale });
-  }
-  if (!events.eventCategorySchema.safeParse(input.category).success) {
-    errors.category = host_selection_required({}, { locale });
-  }
   return errors;
 };
 
 export const firstInvalidField = (
   errors: HostCreateFieldErrors,
 ): keyof HostCreateFieldErrors | null =>
-  (
-    [
-      'venue',
-      'venueName',
-      'schedule',
-      'title',
-      'description',
-      'capacity',
-      'language',
-      'category',
-    ] as const
-  ).find((field) => errors[field]) ?? null;
+  (['venue', 'venueName', 'schedule', 'title', 'description'] as const).find(
+    (field) => errors[field],
+  ) ?? null;
 
 export const focusInvalidField = (field: keyof HostCreateFieldErrors): void => {
   const fieldIds: Record<keyof HostCreateFieldErrors, string> = {
@@ -149,9 +112,6 @@ export const focusInvalidField = (field: keyof HostCreateFieldErrors): void => {
     schedule: 'host-schedule',
     title: 'host-title',
     description: 'host-description',
-    capacity: 'host-capacity',
-    language: 'host-language',
-    category: 'host-category',
   };
   window.requestAnimationFrame(() => {
     const element = document.getElementById(fieldIds[field]);

@@ -1,17 +1,13 @@
 import type { ReactNode } from 'react';
-import { CalendarClock, MapPin, Users } from 'lucide-react';
+import { CalendarClock, MapPin } from 'lucide-react';
 
 import {
-  host_capacity,
-  host_capacity_unlimited,
-  host_category,
   host_confirmation_details,
   host_confirmation_intro,
   host_confirmation_schedule,
   host_confirmation_venue,
   host_desc_label,
   host_duration_min,
-  host_language,
   host_login_required,
   host_title_label,
   type Locale,
@@ -29,9 +25,6 @@ export const HostConfirmationStep = ({
   endsAt,
   title,
   description,
-  capacity,
-  languageLabel,
-  categoryLabel,
   isAuthenticated,
   locationLine,
   publishError,
@@ -44,9 +37,6 @@ export const HostConfirmationStep = ({
   endsAt: number;
   title: string;
   description: string;
-  capacity: number;
-  languageLabel: string;
-  categoryLabel: string;
   isAuthenticated: boolean;
   locationLine?: ReactNode;
   publishError: string | null;
@@ -109,29 +99,6 @@ export const HostConfirmationStep = ({
           <dd className="mt-1 whitespace-pre-wrap text-body-sm" dir="auto">
             {description}
           </dd>
-        </div>
-        <div>
-          <dt className="flex items-center gap-1 text-caption font-semibold text-neutral">
-            <Users className="size-3.5" aria-hidden="true" />
-            {host_capacity({}, { locale })}
-          </dt>
-          <dd className="mt-1">
-            {capacity === 0
-              ? host_capacity_unlimited({}, { locale })
-              : capacity}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-caption font-semibold text-neutral">
-            {host_language({}, { locale })}
-          </dt>
-          <dd className="mt-1">{languageLabel}</dd>
-        </div>
-        <div>
-          <dt className="text-caption font-semibold text-neutral">
-            {host_category({}, { locale })}
-          </dt>
-          <dd className="mt-1">{categoryLabel}</dd>
         </div>
       </dl>
     </section>

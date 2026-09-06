@@ -15,6 +15,7 @@ type HostVenueCalloutProps = {
   venue: VenueSelection;
   locale: Locale;
   above: boolean;
+  showHint: boolean;
   ref?: Ref<HTMLDivElement>;
 };
 
@@ -22,6 +23,7 @@ export const HostVenueCallout = ({
   venue,
   locale,
   above,
+  showHint,
   ref,
 }: HostVenueCalloutProps): React.ReactElement => (
   <div
@@ -39,8 +41,10 @@ export const HostVenueCallout = ({
     >
       {venue.address}
     </p>
-    <p className="mt-1.5 text-body-sm text-taupe">
-      {host_pin_hint({}, { locale })}
-    </p>
+    {showHint && (
+      <p className="mt-1.5 text-body-sm text-taupe">
+        {host_pin_hint({}, { locale })}
+      </p>
+    )}
   </div>
 );

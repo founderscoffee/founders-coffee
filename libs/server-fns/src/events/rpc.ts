@@ -54,7 +54,7 @@ export const createEvent = createServerFn({ method: 'POST', strict: false })
 
 /**
  * Get a single event by id or (marketCode + slug). Public — no auth required.
- * Attaches attendance fields (goingCount, remaining, viewerRsvp).
+ * Attaches attendance fields (goingCount, viewerRsvp).
  */
 export const getEvent = createServerFn({ strict: false })
   .validator(

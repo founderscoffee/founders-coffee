@@ -10,7 +10,6 @@ import {
   rsvp_confirmed_help,
   rsvp_cta,
   rsvp_error,
-  rsvp_event_full,
   rsvp_help,
   rsvp_saving,
   type Locale,
@@ -39,12 +38,9 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const isGoing = event.viewerRsvp === 'going';
-  const isFull =
-    event.capacity > 0 && event.remaining !== null && event.remaining <= 0;
 
   const messageFor = (cause: unknown) => {
     const code = appErrorCode(cause);
-    if (code === 'event_full') return rsvp_event_full({}, { locale });
     if (code === 'already_rsvpd') return rsvp_already({}, { locale });
     return rsvp_error({}, { locale });
   };
@@ -106,10 +102,6 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
             {rsvp_cancel({}, { locale })}
           </button>
         </>
-      ) : isFull ? (
-        <button type="button" className="btn btn-lg" disabled>
-          {rsvp_event_full({}, { locale })}
-        </button>
       ) : (
         <>
           <button

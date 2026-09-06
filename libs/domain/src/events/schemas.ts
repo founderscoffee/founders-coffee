@@ -2,12 +2,6 @@ import { z } from 'zod';
 
 import { localeSchema, marketCodeSchema } from '@founders-coffee/core';
 
-export const EVENT_CATEGORIES = [
-  'coffee-meetup',
-  'workshop',
-  'demo-day',
-] as const;
-
 export const EVENT_TITLE_MIN_LENGTH = 3;
 export const EVENT_TITLE_MAX_LENGTH = 120;
 export const EVENT_DESCRIPTION_MIN_LENGTH = 10;
@@ -16,7 +10,6 @@ export const EVENT_VENUE_NAME_MIN_LENGTH = 2;
 export const EVENT_VENUE_NAME_MAX_LENGTH = 200;
 export const EVENT_VENUE_ADDRESS_MIN_LENGTH = 2;
 export const EVENT_VENUE_ADDRESS_MAX_LENGTH = 500;
-export const EVENT_CAPACITY_MAX = 10_000;
 export const EVENT_DURATION_MINUTES_MIN = 30;
 export const EVENT_DURATION_MINUTES_MAX = 8 * 60;
 
@@ -47,14 +40,6 @@ export const eventVenueAddressSchema = z
   .trim()
   .min(EVENT_VENUE_ADDRESS_MIN_LENGTH)
   .max(EVENT_VENUE_ADDRESS_MAX_LENGTH);
-
-export const eventCapacitySchema = z
-  .number()
-  .int()
-  .min(0)
-  .max(EVENT_CAPACITY_MAX);
-
-export const eventCategorySchema = z.enum(EVENT_CATEGORIES);
 
 const addScheduleIssues = (
   input: { startsAt: number; endsAt: number },
@@ -113,12 +98,9 @@ export const eventCreateSchema = z
     longitude: z.number().finite().min(-180).max(180),
     startsAt: z.number().int().positive(),
     endsAt: z.number().int().positive(),
-    capacity: eventCapacitySchema,
     language: localeSchema,
-    category: eventCategorySchema,
   })
   .strict()
   .superRefine(addScheduleIssues);
 
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;
-export type EventCategory = z.infer<typeof eventCategorySchema>;

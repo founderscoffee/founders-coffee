@@ -1,12 +1,9 @@
 import { Link } from '@tanstack/react-router';
 
 import {
-  chairs_left,
   formatDate,
-  full_waitlist,
   going_count,
   rsvp_already,
-  rsvp_no_limit,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
@@ -39,7 +36,6 @@ export const EventCard = ({
   const timeRange =
     end == null ? at(clock) : `${at(clock)}\u2013${on(end, clock)}`;
   const cityName = locale === 'ar' ? event.cityNameAr : event.cityName;
-  const remaining = event.remaining;
   const isGoing = event.viewerRsvp === 'going';
 
   return (
@@ -86,23 +82,7 @@ export const EventCard = ({
               />
               {rsvp_already({}, { locale })}
             </span>
-          ) : remaining != null && remaining > 0 ? (
-            <span className="ms-auto inline-flex h-[1.375rem] items-center gap-1.5 rounded-full bg-secondary-tint px-2.5 text-caption font-medium text-accent">
-              <span
-                aria-hidden="true"
-                className="size-1.5 rounded-full bg-secondary"
-              />
-              {chairs_left({ n: remaining }, { locale })}
-            </span>
-          ) : remaining != null ? (
-            <span className="ms-auto inline-flex h-[1.375rem] items-center rounded-full bg-base-200 px-2.5 text-caption font-medium text-neutral">
-              {full_waitlist({}, { locale })}
-            </span>
-          ) : (
-            <span className="ms-auto inline-flex h-[1.375rem] items-center rounded-full bg-base-200 px-2.5 text-caption font-medium text-neutral">
-              {rsvp_no_limit({}, { locale })}
-            </span>
-          )}
+          ) : null}
         </span>
       </span>
     </Link>

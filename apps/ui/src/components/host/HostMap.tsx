@@ -40,6 +40,7 @@ type HostMapProps = {
   cityCode?: string;
   marketCode: string;
   locale: Locale;
+  isInteractive?: boolean;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
   onCenterChange?: (center: Coordinates) => void;
@@ -69,6 +70,7 @@ export const HostMap = ({
   cityCode,
   marketCode,
   locale,
+  isInteractive = true,
   onVenueSelect,
   onVenueInvalidate,
   onCenterChange,
@@ -183,10 +185,14 @@ export const HostMap = ({
             longitude: event.viewState.longitude,
           })
         }
-        onClick={(event) => {
-          const { lng, lat } = event.lngLat;
-          void resolveCoordinates({ longitude: lng, latitude: lat });
-        }}
+        onClick={
+          isInteractive
+            ? (event) => {
+                const { lng, lat } = event.lngLat;
+                void resolveCoordinates({ longitude: lng, latitude: lat });
+              }
+            : undefined
+        }
         onError={() => setHasMapError(true)}
         mapLib={mapLib as never}
         workerUrl={MAPBOX_WORKER_URL}
@@ -206,6 +212,7 @@ export const HostMap = ({
               venue={venue}
               locale={locale}
               above={callout.above}
+              showHint={isInteractive}
               ref={callout.measure}
             />
           </Marker>
@@ -215,9 +222,10 @@ export const HostMap = ({
           <Marker
             longitude={pin.longitude}
             latitude={pin.latitude}
-            draggable
+            draggable={isInteractive}
             anchor="bottom"
             onDragEnd={(event) => {
+              if (!isInteractive) return;
               void resolveCoordinates({
                 longitude: event.lngLat.lng,
                 latitude: event.lngLat.lat,
@@ -235,24 +243,26 @@ export const HostMap = ({
         </div>
       )}
 
-      <div className="absolute start-3 top-3">
-        <button
-          type="button"
-          onClick={async () => {
-            setLocationError(null);
-            const coordinates = await locateVisitor();
-            if (!coordinates) {
-              setLocationError(host_geolocation_denied({}, { locale }));
-              return;
-            }
-            flyTo(coordinates.longitude, coordinates.latitude, 14);
-          }}
-          className={CONTROL_CLASS}
-        >
-          <Crosshair className="size-4 shrink-0" aria-hidden="true" />
-          {host_locate_me({}, { locale })}
-        </button>
-      </div>
+      {isInteractive && (
+        <div className="absolute start-3 top-3">
+          <button
+            type="button"
+            onClick={async () => {
+              setLocationError(null);
+              const coordinates = await locateVisitor();
+              if (!coordinates) {
+                setLocationError(host_geolocation_denied({}, { locale }));
+                return;
+              }
+              flyTo(coordinates.longitude, coordinates.latitude, 14);
+            }}
+            className={CONTROL_CLASS}
+          >
+            <Crosshair className="size-4 shrink-0" aria-hidden="true" />
+            {host_locate_me({}, { locale })}
+          </button>
+        </div>
+      )}
 
       <HostMapToasts
         locale={locale}

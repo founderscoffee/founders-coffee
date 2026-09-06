@@ -1,13 +1,12 @@
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
-export type CityFilterKey = 'today' | 'weekend' | 'ar' | 'fr' | 'workshop';
+export type CityFilterKey = 'today' | 'weekend' | 'ar' | 'fr';
 
 export const CITY_FILTER_KEYS: readonly CityFilterKey[] = [
   'today',
   'weekend',
   'ar',
   'fr',
-  'workshop',
 ];
 
 /**
@@ -44,7 +43,6 @@ const PREDICATES: Record<
   },
   ar: (event) => event.language === 'ar',
   fr: (event) => event.language === 'fr',
-  workshop: (event) => event.category === 'workshop',
 };
 
 /**

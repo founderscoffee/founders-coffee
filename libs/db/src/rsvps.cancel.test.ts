@@ -21,7 +21,7 @@ describe('cancelRsvp (real D1)', () => {
   });
 
   it('removes the attendee and decrements the counter together', async () => {
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
     await fill(db, eventId, 2);
 
     const result = await cancelRsvp(db, { eventId, userId: members[0].id });
@@ -31,7 +31,7 @@ describe('cancelRsvp (real D1)', () => {
   });
 
   it('decrements nothing when there was no RSVP', async () => {
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
     await fill(db, eventId, 1);
 
     const result = await cancelRsvp(db, { eventId, userId: members[4].id });
@@ -41,7 +41,7 @@ describe('cancelRsvp (real D1)', () => {
   });
 
   it('decrements once for two concurrent cancels of the same RSVP', async () => {
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
     await fill(db, eventId, 2);
 
     const results = await Promise.all([
@@ -54,7 +54,7 @@ describe('cancelRsvp (real D1)', () => {
   });
 
   it('never drives the counter below zero', async () => {
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
     await fill(db, eventId, 1);
     await db
       .update(events)
@@ -69,17 +69,12 @@ describe('cancelRsvp (real D1)', () => {
   });
 
   it('round-trips: rsvp, cancel, rsvp again', async () => {
-    const eventId = await seedEvent(db, 1);
+    const eventId = await seedEvent(db);
 
     expect(
       (await createRsvp(db, { id: 'rt_1', eventId, userId: members[0].id }))
         .outcome,
     ).toBe('created');
-    expect(
-      (await createRsvp(db, { id: 'rt_2', eventId, userId: members[1].id }))
-        .outcome,
-    ).toBe('event_full');
-
     await cancelRsvp(db, { eventId, userId: members[0].id });
     expect(await counters(db, eventId)).toEqual({ counter: 0, attendees: 0 });
 
@@ -105,7 +100,7 @@ describe('duplicate-RSVP error detection', () => {
 
   it('classifies the error the batch path actually throws', async () => {
     const db = await setupDb();
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
     await createRsvp(db, { id: 'dup_b_a', eventId, userId: members[0].id });
 
     const error = await captureError(() =>
@@ -125,7 +120,7 @@ describe('duplicate-RSVP error detection', () => {
 
   it('classifies a Drizzle-wrapped error through its cause chain', async () => {
     const db = await setupDb();
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
     await createRsvp(db, { id: 'dup_w_a', eventId, userId: members[0].id });
 
     const error = await captureError(() =>
@@ -168,8 +163,7 @@ describe('counter/attendee invariant under mixed traffic', () => {
    */
   it('never diverges across a randomized rsvp/cancel sequence', async () => {
     const db = await setupDb();
-    const capacity = 3;
-    const eventId = await seedEvent(db, capacity);
+    const eventId = await seedEvent(db);
 
     let seq = 0;
     const rand = () => {
@@ -192,13 +186,13 @@ describe('counter/attendee invariant under mixed traffic', () => {
       const { counter, attendees } = await counters(db, eventId);
       expect(counter).toBe(attendees);
       expect(counter).toBeGreaterThanOrEqual(0);
-      expect(counter).toBeLessThanOrEqual(capacity);
+      expect(counter).toBeLessThanOrEqual(members.length);
     }
   }, 30_000);
 
   it('holds when the same batch of operations is issued concurrently', async () => {
     const db = await setupDb();
-    const eventId = await seedEvent(db, 2);
+    const eventId = await seedEvent(db);
 
     for (let round = 0; round < 10; round++) {
       await Promise.all([

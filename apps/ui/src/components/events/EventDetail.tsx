@@ -2,19 +2,14 @@ import { Link } from '@tanstack/react-router';
 
 import {
   back_to_city,
-  cat_coffee_meetup,
-  cat_demo_day,
-  cat_workshop,
-  chairs_left,
   event_free,
   event_when,
   event_where,
   formatDate,
+  going_count,
   open_in_maps,
   profile_link,
   role_host,
-  rsvp_event_full,
-  rsvp_no_limit,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
@@ -47,16 +42,6 @@ const initials = (name: string) =>
     .join('')
     .toUpperCase() || '?';
 
-const categoryLabel = (
-  category: EventDetailItem['category'],
-  locale: Locale,
-): string =>
-  category === 'coffee-meetup'
-    ? cat_coffee_meetup({}, { locale })
-    : category === 'workshop'
-      ? cat_workshop({}, { locale })
-      : cat_demo_day({}, { locale });
-
 export const EventDetail = ({
   locale,
   market,
@@ -84,13 +69,6 @@ export const EventDetail = ({
 
   const cityName =
     locale === 'ar' ? (event.cityNameAr ?? event.cityName) : event.cityName;
-  const seats =
-    event.capacity === 0
-      ? rsvp_no_limit({}, { locale })
-      : event.remaining != null && event.remaining > 0
-        ? chairs_left({ n: event.remaining }, { locale })
-        : rsvp_event_full({}, { locale });
-
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Event',
@@ -123,9 +101,6 @@ export const EventDetail = ({
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         <div>
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex h-7 items-center rounded-full bg-base-200 px-3 text-caption font-medium">
-              {categoryLabel(event.category, locale)}
-            </span>
             <span className="inline-flex h-7 items-center rounded-full bg-base-200 px-3 text-caption font-medium">
               {LANGUAGE_LABEL[event.language]}
             </span>
@@ -210,13 +185,15 @@ export const EventDetail = ({
                   {event_free({}, { locale })}
                 </p>
               ) : null}
-              <span className="ms-auto inline-flex h-[1.375rem] items-center gap-1.5 rounded-full bg-secondary-tint px-2.5 text-caption font-medium text-accent">
-                <span
-                  aria-hidden="true"
-                  className="size-1.5 rounded-full bg-secondary"
-                />
-                {seats}
-              </span>
+              {event.goingCount > 0 && (
+                <span className="ms-auto inline-flex h-[1.375rem] items-center gap-1.5 rounded-full bg-secondary-tint px-2.5 text-caption font-medium text-accent">
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 rounded-full bg-secondary"
+                  />
+                  {going_count({ count: event.goingCount }, { locale })}
+                </span>
+              )}
             </div>
             <RsvpSection event={event} hostName={host.name} locale={locale} />
           </div>

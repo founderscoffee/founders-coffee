@@ -42,20 +42,8 @@ describe('HostCreatePage EC-07 flow', () => {
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
-    fireEvent.click(screen.getByLabelText('Unlimited'));
-    fireEvent.change(screen.getByLabelText(/^Maximum attendees/), {
-      target: { value: '24' },
-    });
-    fireEvent.change(screen.getByLabelText('Language'), {
-      target: { value: 'en' },
-    });
-    fireEvent.change(screen.getByLabelText('Category'), {
-      target: { value: 'workshop' },
-    });
     const summary = within(screen.getByTestId('host-summary'));
     expect(summary.getByText('12 Startup Street, Algiers')).toBeTruthy();
-    expect(summary.getByText('English')).toBeTruthy();
-    expect(summary.getByText('Workshop')).toBeTruthy();
 
     const publish = screen.getByRole('button', {
       name: 'Confirm and publish',
@@ -69,9 +57,7 @@ describe('HostCreatePage EC-07 flow', () => {
     expect(hostCreateMocks.mutateAsync).toHaveBeenCalledWith({
       data: {
         event: expect.objectContaining({
-          capacity: 24,
           language: 'en',
-          category: 'workshop',
           venueProviderId: 'poi-cafe',
         }),
       },

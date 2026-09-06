@@ -6,7 +6,7 @@ import {
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 const hostCreateMocks = getHostCreateMocks();
@@ -18,12 +18,6 @@ describe('HostCreatePage EC-07 state', () => {
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
-    fireEvent.change(screen.getByLabelText('Language'), {
-      target: { value: 'fr' },
-    });
-    fireEvent.change(screen.getByLabelText('Category'), {
-      target: { value: 'demo-day' },
-    });
 
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.getByRole('button', { name: 'Set schedule' })).toBeTruthy();
@@ -32,20 +26,26 @@ describe('HostCreatePage EC-07 state', () => {
       (screen.getByLabelText(/^Title/) as unknown as HTMLInputElement).value,
     ).toBe('Protected meetup');
     expect(
-      (screen.getByLabelText('Language') as unknown as HTMLSelectElement).value,
-    ).toBe('fr');
-    expect(
-      (screen.getByLabelText('Category') as unknown as HTMLSelectElement).value,
-    ).toBe('demo-day');
+      (screen.getByLabelText(/^Description/) as unknown as HTMLTextAreaElement)
+        .value,
+    ).toBe('A complete protected meetup for founders.');
   });
 
-  it('shows the unlimited capacity default in confirmation', async () => {
+  it('keeps the stepper and the map in place, and stops the map selecting after step 1', async () => {
     renderHostCreateWizard();
-    await goToHostDetails();
-    fillHostDetails();
-    expect(
-      within(screen.getByTestId('host-summary')).getByText('Unlimited'),
-    ).toBeTruthy();
+    const progress = () => screen.getByLabelText('Event creation progress');
+    const map = () => screen.getByTestId('host-map');
+
+    expect(progress()).toBeTruthy();
+    expect(map().getAttribute('data-interactive')).toBe('true');
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Choose venue' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(progress()).toBeTruthy();
+    expect(map().getAttribute('data-interactive')).toBe('false');
   });
 
   it('locks duplicate submission while the first request is pending', async () => {
@@ -82,6 +82,6 @@ describe('HostCreatePage EC-07 state', () => {
       ?.parentElement;
     expect(action?.className).toContain('sticky');
     expect(action?.className).toContain('safe-area-inset-bottom');
-    expect(action?.className).toContain('md:static');
+    expect(action?.className).toContain('lg:static');
   });
 });

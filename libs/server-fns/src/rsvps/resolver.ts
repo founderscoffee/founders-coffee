@@ -20,11 +20,11 @@ export interface RsvpResult {
 /**
  * Create an RSVP for an event.
  *
- * Rejects with `event_not_found` for a missing event, `event_not_available` for one that is not
- * published, `already_rsvpd` when the member already holds a seat, and `event_full` at capacity.
- * Capacity and duplication are both decided by `createRsvp`'s atomic batch, not by the reads above
- * it: the `getRsvpForUser` lookup is a fast path that keeps the common case off the write path, and
- * a member who slips past it is still rejected by `UNIQUE(event_id, user_id)`.
+ * Rejects with `event_not_found` for a missing event and `event_not_available` for one that is not
+ * published, both re-checked by `createRsvp`'s atomic batch rather than trusted from the reads
+ * above it. Duplication is decided there too: the `getRsvpForUser` lookup is a fast path that keeps
+ * the common case off the write path, and a member who slips past it is still rejected by
+ * `UNIQUE(event_id, user_id)`.
  *
  * Notifications (confirmation + reminders) are enqueued only when a seat was actually taken.
  */
@@ -61,8 +61,8 @@ export const createRsvpResolver = async (
     userId: opts.userId,
   });
 
-  if (outcome === 'event_full') {
-    return err(new AppError('event_full', 'This event is full'));
+  if (outcome === 'event_missing') {
+    return err(new AppError('event_not_found', 'Event not found'));
   }
   if (outcome === 'already_rsvpd') {
     return err(

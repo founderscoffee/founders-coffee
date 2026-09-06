@@ -27,9 +27,6 @@ const validDraft: HostCreateDraft = {
   endsAt: startsAt + 60 * 60_000,
   title: 'Founder meetup',
   description: 'A complete founder meetup description.',
-  capacity: 0,
-  language: 'ar',
-  category: 'coffee-meetup',
 };
 
 describe('host create validation', () => {
@@ -46,13 +43,7 @@ describe('host create validation', () => {
     ).toEqual({});
     expect(
       validateDetailsStep(
-        {
-          title: validDraft.title,
-          description: validDraft.description,
-          capacity: validDraft.capacity,
-          language: validDraft.language,
-          category: validDraft.category,
-        },
+        { title: validDraft.title, description: validDraft.description },
         'en',
       ),
     ).toEqual({});
@@ -76,16 +67,7 @@ describe('host create validation', () => {
       return 1;
     });
 
-    const errors = validateDetailsStep(
-      {
-        title: '',
-        description: '',
-        capacity: 0,
-        language: 'ar',
-        category: 'coffee-meetup',
-      },
-      'en',
-    );
+    const errors = validateDetailsStep({ title: '', description: '' }, 'en');
     expect(firstInvalidField(errors)).toBe('title');
     focusInvalidField('title');
     expect(document.activeElement).toBe(input);

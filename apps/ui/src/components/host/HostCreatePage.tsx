@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import {
-  host_next,
   host_or_click_map,
   host_page_title,
   host_progress_label,
@@ -14,7 +13,6 @@ import {
   host_venue_search_error,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
 
 import { useHostMapContext } from '../../features/events/hooks';
 import { stateForCity } from '../../features/events/venue-location';
@@ -29,9 +27,10 @@ import { HostDetailsStep } from './HostDetailsStep';
 import { HostLocationLine } from './HostLocationLine';
 import { HostMapPanel } from './HostMapPanel';
 import { HostSignInGate } from './HostSignInGate';
+import { HostVenueLine } from './HostVenueLine';
 import { HostVenueStep } from './HostVenueStep';
 import { HostWizardActions } from './HostWizardActions';
-import { HostWizardHeader } from './HostWizardHeader';
+import { useStepFocus } from './useStepFocus';
 import { WizardSteps } from './WizardSteps';
 
 type HostCreatePageProps = {
@@ -74,17 +73,8 @@ export const HostCreatePage = ({
     isAuthLoading,
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const previousStepRef = useRef(wizard.step);
-
-  useEffect(() => {
-    if (previousStepRef.current === wizard.step) return;
-    previousStepRef.current = wizard.step;
-    headingRef.current?.focus({ preventScroll: true });
-    headingRef.current?.scrollIntoView?.({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }, [wizard.step]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useStepFocus(wizard.step, headingRef, scrollRef);
 
   const listCenter = mapCenter ??
     wizard.venue ??
@@ -120,88 +110,63 @@ export const HostCreatePage = ({
     />
   );
 
-  if (wizard.step === 1) {
-    return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:min-h-[calc(100vh-4rem)] lg:flex-row">
-        <section className="host-fade-up flex w-full flex-col border-base-300 bg-base-100 lg:h-[calc(100vh-4rem)] lg:w-[26rem] lg:shrink-0 lg:border-e xl:w-[30rem]">
-          <div className="flex flex-col gap-4 overflow-y-auto p-5 md:p-7">
-            <div className="flex items-center justify-between gap-3 text-caption text-neutral">
-              <span className="truncate font-medium text-base-content">
-                {marketName}
-              </span>
-              <span className="shrink-0">
-                {host_step_counter(
-                  { current: wizard.step, total: TOTAL_STEPS },
-                  { locale },
-                )}
-              </span>
-            </div>
-            {steps}
-            {stepHeading}
-            <HostVenueStep
-              locale={locale}
-              cityName={cityName || marketName}
-              cityCode={city?.code}
-              center={listCenter}
-              marketCode={market.code}
-              searchValue={wizard.searchValue}
-              venue={wizard.venue}
-              venueName={wizard.venueName}
-              nameError={wizard.fieldErrors.venueName}
-              isDisabled={!mapContext.data}
-              unavailableReason={mapContextError}
-              onSearchChange={wizard.setSearchValue}
-              onVenueNameChange={wizard.setVenueName}
-              onVenueSelect={wizard.selectVenue}
-            />
-            {wizard.fieldErrors.venue && (
-              <p className="text-body-sm text-error" role="alert">
-                {wizard.fieldErrors.venue}
-              </p>
-            )}
-          </div>
-          <div className="sticky inset-x-0 bottom-0 z-30 mt-auto flex items-center justify-between gap-3 border-t border-base-300 bg-base-100 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur md:px-7 lg:static lg:shadow-none">
-            <Button
-              variant="primary"
-              onClick={wizard.next}
-              disabled={wizard.isActionDisabled}
-              className="h-12 min-w-28 px-6 text-base font-semibold"
-            >
-              {host_next({}, { locale })}
-            </Button>
-            <span className="text-caption text-neutral">
-              {host_or_click_map({}, { locale })}
-            </span>
-          </div>
-        </section>
-        <div className="min-h-72 flex-1 lg:min-h-0">
-          <HostMapPanel
-            locale={locale}
-            accessToken={mapboxToken}
-            marketCode={market.code}
-            cityCode={city?.code}
-            venue={wizard.venue}
-            viewport={mapContext.data}
-            isError={mapContext.isError}
-            onRetry={() => void mapContext.refetch()}
-            onVenueSelect={wizard.selectVenue}
-            onVenueInvalidate={wizard.clearVenue}
-            onCenterChange={setMapCenter}
-          />
-        </div>
-      </div>
-    );
-  }
+  const venuePanel = wizard.venue ? (
+    <HostVenueLine
+      locale={locale}
+      venue={wizard.venue}
+      venueName={wizard.venueName}
+    />
+  ) : null;
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-4xl px-4 pt-8 pb-24 md:pt-12 md:pb-16">
-        <HostWizardHeader locale={locale} />
-
-        <div className="mb-8">{steps}</div>
-
-        <section className="host-fade-up mx-auto max-w-3xl rounded-box border border-base-300 bg-base-100 p-5 md:p-7">
+    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col md:min-h-[calc(100vh-4rem)] lg:flex-row">
+      <section className="host-fade-up flex w-full flex-col border-base-300 bg-base-100 lg:h-[calc(100vh-4rem)] lg:w-[26rem] lg:shrink-0 lg:border-e xl:w-[30rem]">
+        <div
+          ref={scrollRef}
+          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-5 md:p-7"
+        >
+          <div className="flex items-center justify-between gap-3 text-caption text-neutral">
+            <span className="truncate font-medium text-base-content">
+              {marketName}
+            </span>
+            <span className="shrink-0">
+              {host_step_counter(
+                { current: wizard.step, total: TOTAL_STEPS },
+                { locale },
+              )}
+            </span>
+          </div>
+          {steps}
           {stepHeading}
+
+          {wizard.step > 1 && venuePanel}
+
+          {wizard.step === 1 && (
+            <>
+              <HostVenueStep
+                locale={locale}
+                cityName={cityName || marketName}
+                cityCode={city?.code}
+                center={listCenter}
+                marketCode={market.code}
+                searchValue={wizard.searchValue}
+                venue={wizard.venue}
+                venueName={wizard.venueName}
+                nameError={wizard.fieldErrors.venueName}
+                isDisabled={!mapContext.data}
+                unavailableReason={mapContextError}
+                onSearchChange={wizard.setSearchValue}
+                onVenueNameChange={wizard.setVenueName}
+                onVenueSelect={wizard.selectVenue}
+              />
+              {wizard.fieldErrors.venue && (
+                <p className="text-body-sm text-error" role="alert">
+                  {wizard.fieldErrors.venue}
+                </p>
+              )}
+            </>
+          )}
+
           {wizard.step === 2 && (
             <div>
               <DatetimePicker
@@ -220,30 +185,22 @@ export const HostCreatePage = ({
               )}
             </div>
           )}
+
           {wizard.step === 3 && (
             <>
               <HostDetailsStep
                 locale={locale}
                 title={wizard.title}
                 description={wizard.description}
-                capacity={wizard.capacity}
-                language={wizard.language}
-                category={wizard.category}
                 constraints={wizard.view.constraints}
-                languageOptions={wizard.view.languageOptions}
-                categoryOptions={wizard.view.categoryOptions}
                 errors={wizard.fieldErrors}
                 onTitleChange={wizard.setTitle}
                 onDescriptionChange={wizard.setDescription}
-                onCapacityChange={wizard.setCapacity}
-                onCapacityLimitChange={wizard.enableCapacityLimit}
-                onLanguageChange={wizard.setLanguage}
-                onCategoryChange={wizard.setCategory}
               />
               {wizard.venue &&
                 wizard.startsAt !== null &&
                 wizard.endsAt !== null && (
-                  <div className="mt-8 border-t border-base-300 pt-6">
+                  <div className="border-t border-base-300 pt-6">
                     <HostConfirmationStep
                       locale={locale}
                       timeZone={market.timezone}
@@ -253,9 +210,6 @@ export const HostCreatePage = ({
                       endsAt={wizard.endsAt}
                       title={wizard.title}
                       description={wizard.description}
-                      capacity={wizard.capacity}
-                      languageLabel={wizard.view.languageLabel}
-                      categoryLabel={wizard.view.categoryLabel}
                       isAuthenticated={isAuthenticated}
                       publishError={wizard.publishError}
                       locationLine={
@@ -269,18 +223,19 @@ export const HostCreatePage = ({
                     />
                   </div>
                 )}
-              {wizard.isAuthGateOpen && (
-                <HostSignInGate
-                  locale={locale}
-                  turnstileSiteKey={turnstileSiteKey}
-                  hasSocial={hasSocial}
-                  onCancel={wizard.closeAuthGate}
-                  onAuthenticated={wizard.onGateAuthenticated}
-                />
-              )}
             </>
           )}
-        </section>
+
+          {wizard.isAuthGateOpen && (
+            <HostSignInGate
+              locale={locale}
+              turnstileSiteKey={turnstileSiteKey}
+              hasSocial={hasSocial}
+              onCancel={wizard.closeAuthGate}
+              onAuthenticated={wizard.onGateAuthenticated}
+            />
+          )}
+        </div>
 
         <HostWizardActions
           locale={locale}
@@ -290,6 +245,30 @@ export const HostCreatePage = ({
           isPublishing={wizard.publishing}
           onBack={wizard.prev}
           onNext={wizard.next}
+          hint={
+            wizard.step === 1 ? host_or_click_map({}, { locale }) : undefined
+          }
+        />
+      </section>
+
+      <div
+        className={`min-h-72 flex-1 lg:min-h-0 ${
+          wizard.step === 1 ? '' : 'hidden lg:block'
+        }`}
+      >
+        <HostMapPanel
+          locale={locale}
+          accessToken={mapboxToken}
+          marketCode={market.code}
+          cityCode={city?.code}
+          venue={wizard.venue}
+          viewport={mapContext.data}
+          isError={mapContext.isError}
+          isInteractive={wizard.step === 1}
+          onRetry={() => void mapContext.refetch()}
+          onVenueSelect={wizard.selectVenue}
+          onVenueInvalidate={wizard.clearVenue}
+          onCenterChange={setMapCenter}
         />
       </div>
     </div>

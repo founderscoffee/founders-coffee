@@ -133,9 +133,7 @@ export const createEventResolverWithId = async (
       longitude: input.longitude,
       startsAt: new Date(input.startsAt),
       endsAt: new Date(input.endsAt),
-      capacity: input.capacity,
       language: input.language,
-      category: input.category,
       isFree: true,
       status: 'published',
     };

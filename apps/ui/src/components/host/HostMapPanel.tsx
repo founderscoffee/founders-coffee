@@ -19,6 +19,7 @@ export const HostMapPanel = ({
   venue,
   viewport,
   isError,
+  isInteractive,
   onRetry,
   onVenueSelect,
   onVenueInvalidate,
@@ -31,6 +32,7 @@ export const HostMapPanel = ({
   venue: VenueSelection | null;
   viewport: React.ComponentProps<typeof HostMap>['viewport'] | undefined;
   isError: boolean;
+  isInteractive: boolean;
   onRetry: () => void;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
@@ -46,6 +48,7 @@ export const HostMapPanel = ({
           cityCode={cityCode}
           marketCode={marketCode}
           locale={locale}
+          isInteractive={isInteractive}
           onVenueSelect={onVenueSelect}
           onVenueInvalidate={onVenueInvalidate}
           onCenterChange={onCenterChange}

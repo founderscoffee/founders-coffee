@@ -94,9 +94,6 @@ export const selectSchedule = async (page: Page): Promise<void> => {
 export interface EventDetails {
   readonly title: string;
   readonly description: string;
-  readonly capacity: number;
-  readonly language: E2eLocale;
-  readonly category: string;
 }
 
 export const fillDetails = async (
@@ -105,10 +102,6 @@ export const fillDetails = async (
 ): Promise<void> => {
   await page.locator('#host-title').fill(details.title);
   await page.locator('#host-description').fill(details.description);
-  await page.getByRole('checkbox').first().check();
-  await page.locator('#host-capacity').fill(String(details.capacity));
-  await page.locator('#host-language').selectOption(details.language);
-  await page.locator('#host-category').selectOption(details.category);
 };
 
 /** Walk venue → schedule → details → confirmation, leaving the wizard on its final step. */

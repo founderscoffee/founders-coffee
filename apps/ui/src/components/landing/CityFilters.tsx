@@ -3,7 +3,6 @@ import {
   filter_fr,
   filter_today,
   filter_weekend,
-  filter_workshop,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -14,7 +13,6 @@ const LABELS = {
   weekend: filter_weekend,
   ar: filter_ar,
   fr: filter_fr,
-  workshop: filter_workshop,
 } as const;
 
 type CityFiltersProps = {

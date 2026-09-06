@@ -1,70 +1,14 @@
-import { applyD1Migrations } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 import { createDb } from './db.js';
-import { createEvent, getEvent } from './events.js';
-import { seed } from './seed.js';
-import { user, type NewUser } from './schema.js';
-
-const priorHost: NewUser = {
-  id: 'usr_prior_schema_host',
-  name: 'Prior Schema Host',
-  email: 'prior-schema@test.coffee',
-  emailVerified: false,
-  role: 'host',
-};
-
-let tag = 0;
-
-const priorEvent = (suffix: string) => ({
-  id: `evt_prior_${suffix}`,
-  hostId: priorHost.id,
-  marketCode: 'DZ' as const,
-  stateCode: '01',
-  cityCode: '1',
-  title: 'Prior schema event',
-  description: 'An event that must survive the migration.',
-  venue: 'Migration Café',
-  startsAt: new Date('2099-08-01T18:00:00Z'),
-  capacity: 20,
-  language: 'fr' as const,
-  category: 'coffee-meetup' as const,
-  slug: `prior-schema-event-${suffix}`,
-});
-
-/**
- * Apply every migration before `name` and seed the prior schema with real rows, returning the
- * fixture ids and a callback that applies the migration under test.
- *
- * Migrations are located by name, never by position, so a later migration cannot silently retarget
- * an existing test — which is exactly what a `TEST_MIGRATIONS.at(-1)` assertion did before.
- */
-const atMigration = async (name: string) => {
-  const index = env.TEST_MIGRATIONS.findIndex((m) => m.name === name);
-  expect(index, `migration ${name} not found`).toBeGreaterThanOrEqual(0);
-  const suffix = `m${++tag}`;
-
-  await applyD1Migrations(env.PRIOR_DB, env.TEST_MIGRATIONS.slice(0, index));
-  const db = createDb(env.PRIOR_DB);
-  await seed(db);
-  await db.insert(user).values(priorHost).onConflictDoNothing().run();
-  const event = priorEvent(suffix);
-  await createEvent(db, event);
-
-  return {
-    suffix,
-    event,
-    apply: () => applyD1Migrations(env.PRIOR_DB, [env.TEST_MIGRATIONS[index]]),
-  };
-};
-
-const indexNames = async (table: string): Promise<string[]> => {
-  const indexes = await env.PRIOR_DB.prepare(
-    `PRAGMA index_list('${table}')`,
-  ).all<{ name: string }>();
-  return indexes.results.map((i) => i.name);
-};
+import { getEvent } from './events.js';
+import {
+  atMigration,
+  columnNames,
+  indexNames,
+  priorHost,
+} from './migrations.fixtures.js';
 
 describe('0012 — events route key (real D1)', () => {
   it('upgrades the prior schema without losing data', async () => {
@@ -233,5 +177,33 @@ describe('0016 — host event index (real D1)', () => {
     expect(await indexNames('events')).toContain('events_host_id_index');
     const kept = await getEvent(createDb(env.PRIOR_DB), event.id);
     expect(kept?.hostId).toBe(event.hostId);
+  });
+});
+
+describe('0017 — capacity and category retire (real D1)', () => {
+  it('drops both columns and keeps everything else about the event', async () => {
+    const { event, apply } = await atMigration('0017_calm_red_wolf.sql');
+    expect(await columnNames('events')).toEqual(
+      expect.arrayContaining(['capacity', 'category']),
+    );
+
+    await apply();
+
+    const columns = await columnNames('events');
+    expect(columns).not.toContain('capacity');
+    expect(columns).not.toContain('category');
+
+    const kept = await getEvent(createDb(env.PRIOR_DB), event.id);
+    expect(kept).toMatchObject({
+      id: event.id,
+      title: event.title,
+      venue: event.venue,
+      slug: event.slug,
+      language: event.language,
+      rsvps: 0,
+    });
+    expect(await indexNames('events')).toContain(
+      'events_market_code_slug_unique',
+    );
   });
 });

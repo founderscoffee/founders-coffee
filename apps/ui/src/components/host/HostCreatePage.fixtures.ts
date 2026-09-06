@@ -118,8 +118,10 @@ vi.mock('./ClientOnly', () => ({
 
 vi.mock('./HostMap', () => ({
   HostMap: ({
+    isInteractive = true,
     onVenueSelect,
   }: {
+    isInteractive?: boolean;
     onVenueSelect: (venue: {
       providerId: string;
       kind: 'poi' | 'address';
@@ -129,40 +131,44 @@ vi.mock('./HostMap', () => ({
       longitude: number;
     }) => void;
   }) =>
-    createElement('div', null, [
-      createElement(
-        'button',
-        {
-          key: 'poi',
-          onClick: () =>
-            onVenueSelect({
-              providerId: 'poi-cafe',
-              kind: 'poi' as const,
-              name: 'Founders Café',
-              address: '12 Startup Street, Algiers',
-              latitude: 36.7538,
-              longitude: 3.0588,
-            }),
-        },
-        'Choose venue',
-      ),
-      createElement(
-        'button',
-        {
-          key: 'address',
-          onClick: () =>
-            onVenueSelect({
-              providerId: 'address-yousfi',
-              kind: 'address' as const,
-              name: '15 Rue Yousfi Mohamed',
-              address: '15 Rue Yousfi Mohamed, Alger',
-              latitude: 36.7501,
-              longitude: 3.0601,
-            }),
-        },
-        'Choose address',
-      ),
-    ]),
+    createElement(
+      'div',
+      { 'data-testid': 'host-map', 'data-interactive': String(isInteractive) },
+      [
+        createElement(
+          'button',
+          {
+            key: 'poi',
+            onClick: () =>
+              onVenueSelect({
+                providerId: 'poi-cafe',
+                kind: 'poi' as const,
+                name: 'Founders Café',
+                address: '12 Startup Street, Algiers',
+                latitude: 36.7538,
+                longitude: 3.0588,
+              }),
+          },
+          'Choose venue',
+        ),
+        createElement(
+          'button',
+          {
+            key: 'address',
+            onClick: () =>
+              onVenueSelect({
+                providerId: 'address-yousfi',
+                kind: 'address' as const,
+                name: '15 Rue Yousfi Mohamed',
+                address: '15 Rue Yousfi Mohamed, Alger',
+                latitude: 36.7501,
+                longitude: 3.0601,
+              }),
+          },
+          'Choose address',
+        ),
+      ],
+    ),
 }));
 
 vi.mock('./VenueSearch', () => ({

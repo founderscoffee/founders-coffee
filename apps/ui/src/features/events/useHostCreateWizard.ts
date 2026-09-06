@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
-import { events, type geo } from '@founders-coffee/domain';
+import type { geo } from '@founders-coffee/domain';
 import {
   host_time_invalid,
   host_time_nonexistent,
@@ -54,10 +54,6 @@ export const useHostCreateWizard = ({
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [capacity, setCapacity] = useState(0);
-  const [language, setLanguage] = useState<Locale>(locale);
-  const [category, setCategory] =
-    useState<events.EventCategory>('coffee-meetup');
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
   const [isAuthGateOpen, setIsAuthGateOpen] = useState(false);
@@ -71,9 +67,6 @@ export const useHostCreateWizard = ({
     endsAt,
     title,
     description,
-    capacity,
-    language,
-    category,
   };
   const {
     publishing,
@@ -97,9 +90,6 @@ export const useHostCreateWizard = ({
       setEndsAt(restored.endsAt);
       setTitle(restored.title);
       setDescription(restored.description);
-      setCapacity(restored.capacity);
-      setLanguage(restored.language);
-      setCategory(restored.category);
     }
     setHasRestoredDraft(true);
   }, [market.code, locale]);
@@ -115,9 +105,6 @@ export const useHostCreateWizard = ({
       endsAt,
       title,
       description,
-      capacity,
-      language,
-      category,
     });
   }, [
     hasRestoredDraft,
@@ -130,9 +117,6 @@ export const useHostCreateWizard = ({
     endsAt,
     title,
     description,
-    capacity,
-    language,
-    category,
   ]);
 
   /**
@@ -186,10 +170,7 @@ export const useHostCreateWizard = ({
         ? validateVenueStep(venue, venueName, locale)
         : step === 2
           ? validateScheduleStep(startsAt, endsAt, locale)
-          : validateDetailsStep(
-              { title, description, capacity, language, category },
-              locale,
-            );
+          : validateDetailsStep({ title, description }, locale);
     setFieldErrors(errors);
     const first = firstInvalidField(errors);
     if (first) focusInvalidField(first);
@@ -202,6 +183,7 @@ export const useHostCreateWizard = ({
       cityCode: city?.code,
       title,
       description,
+      language: locale,
       venueName,
       venueProviderId: venue.providerId,
       venueAddress: venue.address,
@@ -209,9 +191,6 @@ export const useHostCreateWizard = ({
       longitude: venue.longitude,
       startsAt,
       endsAt,
-      capacity,
-      language,
-      category,
     });
   };
 
@@ -262,7 +241,7 @@ export const useHostCreateWizard = ({
     stepLabels: stepCopy.labels,
     stepTitle: stepCopy.titles[step - 1] ?? stepCopy.titles[0],
     stepSub: stepCopy.descriptions[step - 1] ?? null,
-    view: hostCreateViewCopy(locale, language, category),
+    view: hostCreateViewCopy(),
     isAuthGateOpen,
     closeAuthGate: () => setIsAuthGateOpen(false),
     onGateAuthenticated: () => {
@@ -283,13 +262,6 @@ export const useHostCreateWizard = ({
       setDescription(value);
       setFieldErrors((current) => ({ ...current, description: undefined }));
     },
-    setCapacity: (value: number) => {
-      setCapacity(value);
-      setFieldErrors((current) => ({ ...current, capacity: undefined }));
-    },
-    enableCapacityLimit: (enabled: boolean) => setCapacity(enabled ? 12 : 0),
-    setLanguage,
-    setCategory,
     setSchedule,
     setScheduleError,
     selectVenue,
