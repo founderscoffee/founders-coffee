@@ -33,10 +33,8 @@ const hostedEvent = {
   venue: 'Café des Délices',
   startsAt: new Date('2099-04-01T18:00:00Z'),
   endsAt: new Date('2099-04-01T19:00:00Z'),
-  capacity: 20,
   rsvps: 3,
   language: 'fr',
-  category: 'coffee-meetup',
 } as never;
 
 const renderProfile = (events: readonly unknown[]) =>

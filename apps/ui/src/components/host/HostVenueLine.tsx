@@ -16,8 +16,9 @@ export const HostVenueLine = ({
   venueName,
 }: HostVenueLineProps): React.ReactElement => (
   <div
-    className="flex items-start gap-2 rounded-box border border-base-300 bg-base-200 p-3 lg:hidden"
+    role="group"
     aria-label={host_selected_location({}, { locale })}
+    className="flex items-start gap-2 rounded-box border border-base-300 bg-base-200 p-3 lg:hidden"
   >
     <MapPin
       className="mt-0.5 size-4 shrink-0 text-secondary"

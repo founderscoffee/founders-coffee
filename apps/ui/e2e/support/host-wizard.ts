@@ -67,7 +67,7 @@ export const selectVenue = async (
   const search = page.locator('#venue-search');
   await expect(search).toBeEnabled({ timeout: 30_000 });
   await search.fill(query);
-  const firstResult = page.locator('#venue-search-option-0');
+  const firstResult = page.locator('[role="radio"]').first();
   await expect(firstResult).toBeVisible({ timeout: 30_000 });
   const providerName = (await firstResult.innerText()).split('\n')[0].trim();
   await firstResult.click();

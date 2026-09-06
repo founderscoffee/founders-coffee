@@ -101,11 +101,11 @@ subjects in the outer thirds. Art at ~5:1 would let the band go back to a fixed 
 
 Bordered card on paper, `rounded-box`, hover raises `--shadow-2` and nothing else. Linen date tile
 (weekday / day / month, the weekday and month as eyebrows). Body: title, `time · venue, city`, and
-a footer row with `+N going` and the capacity chip.
+a footer row with `+N going` and, for the viewer's own events, the going chip.
 
-The capacity chip reads `event.remaining`, which `EventAttendance` computes as `capacity - rsvps`
-and leaves `null` when uncapped: `> 0` renders `chairs_left` on a clay tint with a clay dot,
-`<= 0` renders `full_waitlist` on linen. Never recompute it from `capacity` in the component.
+Attendance is `event.goingCount` — `EventAttendance` reads it straight off the denormalized
+`events.rsvps` counter. There is no seat count and no full state: capacity left the schema, so a
+café with twelve chairs says so in the host's own description.
 
 ### 3.3 Empty states (`EmptyState.tsx`)
 
@@ -337,9 +337,9 @@ places. All are fixed and verified on staging with Playwright at 1200 and 390, i
 | Card + detail time | start only                                                                         | `starts_at–ends_at`, wrapped in `dir="ltr"` so RTL does not reverse it                                             |
 | Footer             | paper with a top border                                                            | linen band, no rule, pinned to the bottom of short pages                                                           |
 | Search field icon  | a literal 📍, which ignores `text-taupe` and renders in the platform's own colours | a 16px circle, 1.5px border in `currentColor`                                                                      |
-| City page          | bare title, single-column stack, back link at the foot of the page                 | back link first, `market · city` keyline, title beside a "Host here" button, five filter chips, the same card grid |
+| City page          | bare title, single-column stack, back link at the foot of the page                 | back link first, `market · city` keyline, title beside a "Host here" button, four filter chips, the same card grid |
 | Detail header      | `market › city` breadcrumb                                                         | "Back to {city}"                                                                                                   |
-| Detail capacity    | said three times in three wordings, twice on a free event                          | one chip on the card's heading row, in the feed's words                                                            |
+| Detail attendance  | capacity said three times in three wordings, twice on a free event                 | one going chip on the card's heading row, and only once anyone is going                                            |
 | Detail host        | name as a link, "Hosted by"                                                        | name in bold, `Host · {city}`, Profile button                                                                      |
 | Login              | bordered card, full lockup, help text under the title                              | bare centred column, lettered symbol alone, help under the field                                                   |
 
