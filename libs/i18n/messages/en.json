@@ -168,6 +168,7 @@
   "host_venue_name_ph": "Café des Délices",
   "host_venue_name_helper": "We could only confirm the street address here. Name the café or space so attendees know where to walk in.",
   "host_venue_name_required": "Name the venue so attendees can find the door.",
+  "host_venue_browse_nearby": "Browse nearby venues",
   "host_retry": "Retry",
   "host_venue_adjust": "Adjust",
   "host_venue_save": "Save",

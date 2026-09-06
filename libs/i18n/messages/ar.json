@@ -168,6 +168,7 @@
   "host_venue_name_ph": "مقهى الدلائل",
   "host_venue_name_helper": "لم نتمكن من تأكيد سوى عنوان الشارع هنا. سمِّ المقهى أو المساحة ليعرف الحاضرون من أين يدخلون.",
   "host_venue_name_required": "سمِّ المكان ليتمكن الحاضرون من العثور على الباب.",
+  "host_venue_browse_nearby": "تصفّح الأماكن القريبة",
   "host_retry": "إعادة المحاولة",
   "host_venue_adjust": "اضبط",
   "host_venue_save": "حفظ",

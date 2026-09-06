@@ -4,6 +4,8 @@ import { appErrorCode } from '@founders-coffee/core';
 import {
   host_nearby_venues,
   host_search_results,
+  host_selected_location,
+  host_venue_browse_nearby,
   host_venue_empty,
   host_venue_name_helper,
   host_venue_name_label,
@@ -77,6 +79,10 @@ export const HostVenueStep = ({
     query: isDisabled ? '' : query,
   });
 
+  const [isBrowsingNearby, setIsBrowsingNearby] = useState(false);
+
+  useEffect(() => setIsBrowsingNearby(false), [venue?.providerId]);
+
   const isSearching = query.length >= 2;
   const searchResults = isSearching ? (search.data ?? []) : [];
   const listed: readonly VenueRow[] = isSearching
@@ -85,8 +91,11 @@ export const HostVenueStep = ({
   const isSelectionListed =
     venue != null &&
     listed.some((candidate) => candidate.providerId === venue.providerId);
-  const rows: readonly VenueRow[] =
-    venue && !isSelectionListed
+  const isPinned =
+    venue?.kind === 'address' && !isSearching && !isBrowsingNearby;
+  const rows: readonly VenueRow[] = isPinned
+    ? [{ ...venue, eligible: true }]
+    : venue && !isSelectionListed
       ? [{ ...venue, eligible: true }, ...listed]
       : listed;
 
@@ -100,7 +109,9 @@ export const HostVenueStep = ({
 
   const listLabel = isSearching
     ? host_search_results({}, { locale })
-    : host_nearby_venues({}, { locale });
+    : isPinned
+      ? host_selected_location({}, { locale })
+      : host_nearby_venues({}, { locale });
 
   const emptyMessage = isSearching
     ? search.isFetching || search.isError
@@ -137,7 +148,7 @@ export const HostVenueStep = ({
             label={listLabel}
             venues={rows}
             selectedProviderId={venue?.providerId}
-            showAttribution={!isSearching}
+            showAttribution={!isSearching && !isPinned}
             onSelect={onVenueSelect}
           />
         ) : (
@@ -177,6 +188,15 @@ export const HostVenueStep = ({
             </span>
           )}
         </label>
+      )}
+      {isPinned && (
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm self-start"
+          onClick={() => setIsBrowsingNearby(true)}
+        >
+          {host_venue_browse_nearby({}, { locale })}
+        </button>
       )}
     </div>
   );

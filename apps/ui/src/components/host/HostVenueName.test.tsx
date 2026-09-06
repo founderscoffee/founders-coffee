@@ -40,6 +40,31 @@ describe('venue naming when only an address is verified', () => {
     expect(screen.queryByLabelText(/^What is this place called\?/)).toBeNull();
   });
 
+  it('collapses the nearby list so the name field follows the pin, and offers a way back', async () => {
+    hostCreateMocks.nearbyVenues = [
+      {
+        providerId: 'osm-hamou',
+        kind: 'poi' as const,
+        name: 'Hamou',
+        address: 'Medea',
+        latitude: 36.26,
+        longitude: 2.75,
+        eligible: true,
+      },
+    ];
+    renderHostCreateWizard();
+    await chooseAddress();
+
+    expect(screen.queryByText('Hamou')).toBeNull();
+    expect(screen.getByLabelText(/^What is this place called\?/)).toBeTruthy();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Browse nearby venues' }),
+    );
+
+    expect(screen.getByText('Hamou')).toBeTruthy();
+  });
+
   it('refuses to advance until the place is named, and says so', async () => {
     renderHostCreateWizard();
     await chooseAddress();

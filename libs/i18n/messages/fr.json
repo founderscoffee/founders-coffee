@@ -168,6 +168,7 @@
   "host_venue_name_ph": "Café des Délices",
   "host_venue_name_helper": "Nous n'avons pu confirmer que l'adresse ici. Nommez le café ou l'espace pour que les participants sachent où entrer.",
   "host_venue_name_required": "Nommez le lieu pour que les participants trouvent la porte.",
+  "host_venue_browse_nearby": "Parcourir les lieux à proximité",
   "host_retry": "Réessayer",
   "host_venue_adjust": "Ajuster",
   "host_venue_save": "Enregistrer",
