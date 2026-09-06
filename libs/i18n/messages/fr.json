@@ -49,6 +49,7 @@
   "login_wrong_code": "Code invalide ou expiré.",
   "login_resend": "Renvoyer le code",
   "login_resend_in": "Renvoyer dans",
+  "login_change_email": "Utiliser une autre adresse",
   "oauth_continue": "Continuer avec {provider}",
   "footer_tagline": "Rencontres pro autour d’une table de café.",
   "footer_company": "Entreprise",

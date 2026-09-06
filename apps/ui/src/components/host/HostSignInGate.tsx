@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import {
   gate_back,
   gate_title,
+  login_change_email,
   login_code_sent,
   login_email_label,
   login_email_placeholder,
@@ -114,6 +115,14 @@ export const HostSignInGate = ({
       return;
     }
     onAuthenticated();
+  };
+
+  const changeEmail = () => {
+    setOtp('');
+    setError(null);
+    setResendToken(null);
+    stepHeight.release();
+    setStep('email');
   };
 
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) => {
@@ -246,6 +255,14 @@ export const HostSignInGate = ({
               isBusy={busy || !resendToken}
               onResend={() => void resend()}
             />
+            <Button
+              variant="link"
+              onClick={changeEmail}
+              disabled={busy}
+              isFullWidth
+            >
+              {login_change_email({}, { locale })}
+            </Button>
           </>
         )}
         <Button variant="ghost" onClick={onCancel} disabled={busy} isFullWidth>

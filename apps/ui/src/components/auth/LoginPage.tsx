@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import {
   brand,
+  login_change_email,
   login_code_sent,
   login_email_label,
   login_email_placeholder,
@@ -26,6 +27,7 @@ import { OtpField, OTP_LENGTH } from './OtpField';
 import { PROVIDER_MARK } from './ProviderIcon';
 import { ResendButton } from './ResendButton';
 import { useResendCooldown } from './useResendCooldown';
+import { useOtpAutofill } from './useOtpAutofill';
 import { useStepHeightLock } from './useStepHeightLock';
 
 const OAUTH_PROVIDERS = ['google', 'github'] as const;
@@ -118,6 +120,14 @@ export const LoginPage = ({
       : redirect;
   };
 
+  const changeEmail = () => {
+    setOtp('');
+    setError(null);
+    setResendToken(null);
+    stepHeight.release();
+    setStep('email');
+  };
+
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
     authClient.signIn.social({
       provider,
@@ -125,32 +135,7 @@ export const LoginPage = ({
       newUserCallbackURL: onboardingRedirectPath(redirect),
     });
 
-  const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (step !== 'otp') return;
-    if (!('credentials' in navigator)) return;
-
-    const ac = new AbortController();
-    abortRef.current = ac;
-
-    navigator.credentials
-      .get({
-        otp: { transport: ['sms'] },
-        signal: ac.signal,
-      } as CredentialRequestOptions)
-      .then((otpCred) => {
-        if (otpCred && 'code' in otpCred) {
-          setOtp(otpCred.code as string);
-        }
-      })
-      .catch(() => undefined);
-
-    return () => {
-      ac.abort();
-      abortRef.current = null;
-    };
-  }, [step]);
+  useOtpAutofill(step === 'otp', setOtp);
 
   return (
     <div className="mx-auto flex max-w-sm flex-col px-4 py-12">
@@ -284,6 +269,14 @@ export const LoginPage = ({
                 isBusy={busy || !resendToken}
                 onResend={() => void resend()}
               />
+              <Button
+                variant="link"
+                onClick={changeEmail}
+                disabled={busy}
+                isFullWidth
+              >
+                {login_change_email({}, { locale })}
+              </Button>
             </>
           )}
         </div>

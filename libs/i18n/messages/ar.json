@@ -49,6 +49,7 @@
   "login_wrong_code": "رمز غير صالح أو منتهي الصلاحية.",
   "login_resend": "إعادة إرسال الرمز",
   "login_resend_in": "إعادة الإرسال خلال",
+  "login_change_email": "استخدام بريد آخر",
   "oauth_continue": "المتابعة عبر {provider}",
   "footer_tagline": "لقاءات عمل على طاولة مقهى.",
   "footer_company": "الشركة",

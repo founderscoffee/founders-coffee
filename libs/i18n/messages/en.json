@@ -49,6 +49,7 @@
   "login_wrong_code": "Invalid or expired code.",
   "login_resend": "Resend code",
   "login_resend_in": "Resend in",
+  "login_change_email": "Use a different email",
   "oauth_continue": "Continue with {provider}",
   "footer_tagline": "Business meetups at a café table.",
   "footer_company": "Company",
