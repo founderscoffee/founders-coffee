@@ -147,3 +147,20 @@ body {
 .tp-ui-wrapper-time {
   direction: initial !important;
 }
+
+/*
+ * daisyUI's `.otp` places each digit by letter-spacing measured in `ch`, which only lands on the
+ * box centres when the input renders in the same font as the label that sizes the boxes. The
+ * `:lang(ar)` base rule matches the input element directly, so it beat the inherited mono stack
+ * and the digits drifted left by a growing amount across the six boxes. Naming the font on the
+ * input restores the arithmetic. The outline reset removes the app's global focus ring from an
+ * input whose box is a narrow strip behind the boxes — daisyUI already outlines the active box.
+ */
+.otp,
+.otp * {
+  font-family: var(--font-mono);
+}
+
+.otp > input:focus-visible {
+  outline: none;
+}

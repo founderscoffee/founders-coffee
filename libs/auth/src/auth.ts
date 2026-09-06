@@ -151,7 +151,7 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
         },
         storeOTP: 'hashed',
         otpLength: 6,
-        expiresIn: 300,
+        expiresIn: 1800,
         allowedAttempts: 3,
       }),
       phoneNumber({

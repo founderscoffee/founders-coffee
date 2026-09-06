@@ -7,7 +7,6 @@ import {
   login_email_label,
   login_email_placeholder,
   login_or,
-  login_resend,
   login_send_code,
   login_send_error,
   login_verify,
@@ -22,6 +21,9 @@ import { authClient } from '../../lib/auth';
 import { Turnstile } from '../auth/Turnstile';
 import { OtpField, OTP_LENGTH } from '../auth/OtpField';
 import { BackArrow, PROVIDER_MARK } from '../auth/ProviderIcon';
+import { ResendButton } from '../auth/ResendButton';
+import { useResendCooldown } from '../auth/useResendCooldown';
+import { useStepHeightLock } from '../auth/useStepHeightLock';
 import { useRevealOnMount } from './useRevealOnMount';
 
 const OAUTH_PROVIDERS = ['google', 'github'] as const;
@@ -52,7 +54,11 @@ export const HostSignInGate = ({
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [resendToken, setResendToken] = useState<string | null>(null);
+  const [resendNonce, setResendNonce] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
+  const cooldown = useResendCooldown();
+  const stepHeight = useStepHeightLock();
 
   useRevealOnMount(rootRef);
 
@@ -71,7 +77,28 @@ export const HostSignInGate = ({
       setError(login_send_error({}, { locale }));
       return;
     }
+    stepHeight.lock();
     setStep('otp');
+    cooldown.start();
+  };
+
+  const resend = async () => {
+    if (!cooldown.isReady || !resendToken) return;
+    setBusy(true);
+    setError(null);
+    const { error: sendError } = await authClient.emailOtp.sendVerificationOtp(
+      { email, type: 'sign-in' },
+      { headers: { 'x-captcha-response': resendToken } },
+    );
+    setBusy(false);
+    if (sendError) {
+      setError(login_send_error({}, { locale }));
+      return;
+    }
+    setOtp('');
+    setResendToken(null);
+    setResendNonce((nonce) => nonce + 1);
+    cooldown.start();
   };
 
   const verify = async () => {
@@ -107,7 +134,11 @@ export const HostSignInGate = ({
         {gate_title({}, { locale })}
       </h3>
 
-      <div className="mt-5 flex max-w-sm flex-col gap-4">
+      <div
+        ref={stepHeight.ref}
+        style={{ minHeight: stepHeight.minHeight }}
+        className="mt-5 flex max-w-sm flex-col gap-4"
+      >
         {step === 'email' ? (
           <>
             <label className="form-control">
@@ -201,14 +232,20 @@ export const HostSignInGate = ({
               ) : null}
               {login_verify({}, { locale })}
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setStep('email')}
-              disabled={busy}
-              isFullWidth
-            >
-              {login_resend({}, { locale })}
-            </Button>
+            {turnstileSiteKey && (
+              <Turnstile
+                sitekey={turnstileSiteKey}
+                appearance="interaction-only"
+                resetKey={resendNonce}
+                onToken={setResendToken}
+              />
+            )}
+            <ResendButton
+              locale={locale}
+              secondsLeft={cooldown.secondsLeft}
+              isBusy={busy || !resendToken}
+              onResend={() => void resend()}
+            />
           </>
         )}
         <Button variant="ghost" onClick={onCancel} disabled={busy} isFullWidth>
