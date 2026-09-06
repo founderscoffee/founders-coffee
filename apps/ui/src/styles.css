@@ -164,3 +164,16 @@ body {
 .otp > input:focus-visible {
   outline: none;
 }
+
+/*
+ * daisyUI's `.countdown` rolls digits by offsetting a stacked list of numbers by whole `em`
+ * steps inside a box one `em` tall, and it measures its width in `ch`. Both only work while the
+ * element and its children share one font and a line-height of exactly 1. The `:lang(ar)` base
+ * rule matches the children directly — Tajawal at line-height 1.65 — so the offsets landed
+ * between two numbers and showed a slice of each.
+ */
+.countdown,
+.countdown * {
+  font-family: var(--font-mono);
+  line-height: 1em;
+}
