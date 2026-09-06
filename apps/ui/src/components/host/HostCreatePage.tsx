@@ -123,91 +123,100 @@ export const HostCreatePage = ({
           ref={scrollRef}
           className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-5 md:p-7"
         >
-          <div className="flex items-center justify-between gap-3 text-caption text-neutral">
-            <span className="truncate font-medium text-base-content">
-              {marketName}
-            </span>
-            <span className="shrink-0">
-              {host_step_counter(
-                { current: wizard.step, total: TOTAL_STEPS },
-                { locale },
-              )}
-            </span>
-          </div>
-          {steps}
-          {stepHeading}
-
-          {wizard.step > 1 && venuePanel}
-
-          {wizard.step === 1 && (
+          {wizard.isAuthGateOpen ? (
             <>
-              <HostVenueStep
-                locale={locale}
-                cityName={cityName || marketName}
-                cityCode={city?.code}
-                center={listCenter}
-                marketCode={market.code}
-                searchValue={wizard.searchValue}
-                venue={wizard.venue}
-                venueName={wizard.venueName}
-                nameError={wizard.fieldErrors.venueName}
-                isDisabled={!mapContext.data}
-                unavailableReason={mapContextError}
-                onSearchChange={wizard.setSearchValue}
-                onVenueNameChange={wizard.setVenueName}
-                onVenueSelect={wizard.selectVenue}
-              />
-              {wizard.fieldErrors.venue && (
+              {wizard.publishError && (
                 <p className="text-body-sm text-error" role="alert">
-                  {wizard.fieldErrors.venue}
+                  {wizard.publishError}
                 </p>
+              )}
+              <HostSignInGate
+                locale={locale}
+                turnstileSiteKey={turnstileSiteKey}
+                hasSocial={hasSocial}
+                onCancel={wizard.closeAuthGate}
+                onAuthenticated={wizard.onGateAuthenticated}
+              />
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-between gap-3 text-caption text-neutral">
+                <span className="truncate font-medium text-base-content">
+                  {marketName}
+                </span>
+                <span className="shrink-0">
+                  {host_step_counter(
+                    { current: wizard.step, total: TOTAL_STEPS },
+                    { locale },
+                  )}
+                </span>
+              </div>
+              {steps}
+              {stepHeading}
+
+              {wizard.step > 1 && venuePanel}
+
+              {wizard.step === 1 && (
+                <>
+                  <HostVenueStep
+                    locale={locale}
+                    cityName={cityName || marketName}
+                    cityCode={city?.code}
+                    center={listCenter}
+                    marketCode={market.code}
+                    searchValue={wizard.searchValue}
+                    venue={wizard.venue}
+                    venueName={wizard.venueName}
+                    nameError={wizard.fieldErrors.venueName}
+                    isDisabled={!mapContext.data}
+                    unavailableReason={mapContextError}
+                    onSearchChange={wizard.setSearchValue}
+                    onVenueNameChange={wizard.setVenueName}
+                    onVenueSelect={wizard.selectVenue}
+                  />
+                  {wizard.fieldErrors.venue && (
+                    <p className="text-body-sm text-error" role="alert">
+                      {wizard.fieldErrors.venue}
+                    </p>
+                  )}
+                </>
+              )}
+
+              {wizard.step === 2 && (
+                <div>
+                  <DatetimePicker
+                    startsAt={wizard.startsAt}
+                    endsAt={wizard.endsAt}
+                    onChange={wizard.setSchedule}
+                    onError={wizard.setScheduleError}
+                    locale={locale}
+                    timeZone={market.timezone}
+                    timePlacement="top"
+                  />
+                  {wizard.fieldErrors.schedule && (
+                    <p className="mt-3 text-body-sm text-error" role="alert">
+                      {wizard.fieldErrors.schedule}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {wizard.step === 3 && (
+                <HostDetailsStep
+                  locale={locale}
+                  title={wizard.title}
+                  description={wizard.description}
+                  constraints={wizard.view.constraints}
+                  errors={wizard.fieldErrors}
+                  onTitleChange={wizard.setTitle}
+                  onDescriptionChange={wizard.setDescription}
+                />
               )}
             </>
           )}
-
-          {wizard.step === 2 && (
-            <div>
-              <DatetimePicker
-                startsAt={wizard.startsAt}
-                endsAt={wizard.endsAt}
-                onChange={wizard.setSchedule}
-                onError={wizard.setScheduleError}
-                locale={locale}
-                timeZone={market.timezone}
-                timePlacement="top"
-              />
-              {wizard.fieldErrors.schedule && (
-                <p className="mt-3 text-body-sm text-error" role="alert">
-                  {wizard.fieldErrors.schedule}
-                </p>
-              )}
-            </div>
-          )}
-
-          {wizard.step === 3 && (
-            <HostDetailsStep
-              locale={locale}
-              title={wizard.title}
-              description={wizard.description}
-              constraints={wizard.view.constraints}
-              errors={wizard.fieldErrors}
-              onTitleChange={wizard.setTitle}
-              onDescriptionChange={wizard.setDescription}
-            />
-          )}
-
-          {wizard.isAuthGateOpen && (
-            <HostSignInGate
-              locale={locale}
-              turnstileSiteKey={turnstileSiteKey}
-              hasSocial={hasSocial}
-              onCancel={wizard.closeAuthGate}
-              onAuthenticated={wizard.onGateAuthenticated}
-            />
-          )}
         </div>
 
-        {wizard.step === TOTAL_STEPS && (
+        {!wizard.isAuthGateOpen && wizard.step === TOTAL_STEPS && (
           <div className="flex flex-col gap-2 border-t border-base-300 px-5 pt-4 md:px-7">
             {!isAuthenticated && (
               <p className="text-body-sm text-neutral" role="status">
@@ -222,18 +231,20 @@ export const HostCreatePage = ({
           </div>
         )}
 
-        <HostWizardActions
-          locale={locale}
-          step={wizard.step}
-          isAuthenticated={isAuthenticated}
-          isDisabled={wizard.isActionDisabled}
-          isPublishing={wizard.publishing}
-          onBack={wizard.prev}
-          onNext={wizard.next}
-          hint={
-            wizard.step === 1 ? host_or_click_map({}, { locale }) : undefined
-          }
-        />
+        {!wizard.isAuthGateOpen && (
+          <HostWizardActions
+            locale={locale}
+            step={wizard.step}
+            isAuthenticated={isAuthenticated}
+            isDisabled={wizard.isActionDisabled}
+            isPublishing={wizard.publishing}
+            onBack={wizard.prev}
+            onNext={wizard.next}
+            hint={
+              wizard.step === 1 ? host_or_click_map({}, { locale }) : undefined
+            }
+          />
+        )}
       </section>
 
       <div
