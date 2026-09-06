@@ -24,6 +24,7 @@ import { authClient } from '../../lib/auth';
 import { onboardingRedirectPath } from '../../lib/redirect';
 import { Turnstile } from './Turnstile';
 import { OtpField, OTP_LENGTH } from './OtpField';
+import { PROVIDER_MARK } from './ProviderIcon';
 
 const OAUTH_PROVIDERS = ['google', 'github'] as const;
 
@@ -185,20 +186,24 @@ export const LoginPage = ({
                     {login_or({}, { locale })}
                   </div>
                   <div className="space-y-2">
-                    {OAUTH_PROVIDERS.map((p) => (
-                      <Button
-                        key={p}
-                        variant="outline"
-                        onClick={() => social(p)}
-                        disabled={busy}
-                        isFullWidth
-                      >
-                        {oauth_continue(
-                          { provider: PROVIDER_LABEL[p] },
-                          { locale },
-                        )}
-                      </Button>
-                    ))}
+                    {OAUTH_PROVIDERS.map((p) => {
+                      const Mark = PROVIDER_MARK[p];
+                      return (
+                        <Button
+                          key={p}
+                          variant="outline"
+                          onClick={() => social(p)}
+                          disabled={busy}
+                          isFullWidth
+                        >
+                          <Mark />
+                          {oauth_continue(
+                            { provider: PROVIDER_LABEL[p] },
+                            { locale },
+                          )}
+                        </Button>
+                      );
+                    })}
                   </div>
                 </>
               )}

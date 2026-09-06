@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 
 import {
   gate_back,
-  gate_body,
   gate_title,
   login_code_sent,
   login_email_label,
@@ -22,6 +21,7 @@ import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
 import { Turnstile } from '../auth/Turnstile';
 import { OtpField, OTP_LENGTH } from '../auth/OtpField';
+import { BackArrow, PROVIDER_MARK } from '../auth/ProviderIcon';
 import { useRevealOnMount } from './useRevealOnMount';
 
 const OAUTH_PROVIDERS = ['google', 'github'] as const;
@@ -106,9 +106,6 @@ export const HostSignInGate = ({
       <h3 className="font-display text-h4 font-semibold text-base-content">
         {gate_title({}, { locale })}
       </h3>
-      <p className="mt-1 text-body-sm text-neutral">
-        {gate_body({}, { locale })}
-      </p>
 
       <div className="mt-5 flex max-w-sm flex-col gap-4">
         {step === 'email' ? (
@@ -152,20 +149,24 @@ export const HostSignInGate = ({
                   {login_or({}, { locale })}
                 </div>
                 <div className="space-y-2">
-                  {OAUTH_PROVIDERS.map((p) => (
-                    <Button
-                      key={p}
-                      variant="outline"
-                      onClick={() => void social(p)}
-                      disabled={busy}
-                      isFullWidth
-                    >
-                      {oauth_continue(
-                        { provider: PROVIDER_LABEL[p] },
-                        { locale },
-                      )}
-                    </Button>
-                  ))}
+                  {OAUTH_PROVIDERS.map((p) => {
+                    const Mark = PROVIDER_MARK[p];
+                    return (
+                      <Button
+                        key={p}
+                        variant="outline"
+                        onClick={() => void social(p)}
+                        disabled={busy}
+                        isFullWidth
+                      >
+                        <Mark />
+                        {oauth_continue(
+                          { provider: PROVIDER_LABEL[p] },
+                          { locale },
+                        )}
+                      </Button>
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -211,6 +212,7 @@ export const HostSignInGate = ({
           </>
         )}
         <Button variant="ghost" onClick={onCancel} disabled={busy} isFullWidth>
+          <BackArrow locale={locale} />
           {gate_back({}, { locale })}
         </Button>
       </div>

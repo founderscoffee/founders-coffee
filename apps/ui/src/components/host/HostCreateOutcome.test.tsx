@@ -118,7 +118,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     await publishHostEvent();
 
     await screen.findByRole('heading', {
-      name: 'One last step — sign in to publish',
+      name: 'One last step, sign in to publish',
     });
     expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
       expect.objectContaining({ to: '/login' }),

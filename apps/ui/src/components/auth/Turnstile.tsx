@@ -7,6 +7,7 @@ interface TurnstileApi {
       sitekey: string;
       action?: string;
       appearance?: 'always' | 'execute' | 'interaction-only';
+      size?: 'normal' | 'flexible' | 'compact';
       callback: (token: string) => void;
       'error-callback': () => void;
       'expired-callback': () => void;
@@ -77,6 +78,7 @@ export const Turnstile = ({
         sitekey,
         action,
         appearance,
+        size: 'flexible',
         callback: (token) => onTokenRef.current(token),
         'error-callback': resetWidget,
         'expired-callback': resetWidget,

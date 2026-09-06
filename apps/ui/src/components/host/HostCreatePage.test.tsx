@@ -79,7 +79,7 @@ describe('HostCreatePage EC-07 flow', () => {
     );
     expect(
       screen.getByRole('heading', {
-        name: 'One last step — sign in to publish',
+        name: 'One last step, sign in to publish',
       }),
     ).toBeTruthy();
     const stored = window.sessionStorage.getItem('fc:event-draft:DZ');
@@ -128,7 +128,7 @@ describe('HostCreatePage EC-07 flow', () => {
 
     expect(
       screen.queryByRole('heading', {
-        name: 'One last step — sign in to publish',
+        name: 'One last step, sign in to publish',
       }),
     ).toBeNull();
   });
