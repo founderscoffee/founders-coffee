@@ -183,7 +183,6 @@ describe('eventCreateSchema', () => {
     'id',
     'stateCode',
     'hostId',
-    'isFree',
     'slug',
     'status',
     'rsvps',

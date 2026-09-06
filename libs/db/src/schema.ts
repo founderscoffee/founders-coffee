@@ -142,7 +142,7 @@ export type NewVerification = typeof verification.$inferInsert;
 
 export const EVENT_STATUSES = ['published', 'cancelled'] as const;
 
-/** Event — a free local meetup created by a host (FR-E1). Always `is_free` (FR-E2). */
+/** Event — a free local meetup created by a host (FR-E1). Every event is free (FR-E2). */
 export const events = sqliteTable(
   'events',
   {
@@ -162,7 +162,6 @@ export const events = sqliteTable(
     endsAt: integer('ends_at', { mode: 'timestamp' }),
     rsvps: integer('rsvps').notNull().default(0),
     language: text('language', { enum: [...LOCALES] }).notNull(),
-    isFree: integer('is_free', { mode: 'boolean' }).notNull().default(true),
     latitude: real('latitude'),
     longitude: real('longitude'),
     venueAddress: text('venue_address'),

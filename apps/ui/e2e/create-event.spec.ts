@@ -166,7 +166,6 @@ test.describe('create event', () => {
       city_code: '556',
       language: locale,
       status: 'published',
-      is_free: 1,
       description: details.description,
     });
     expect(persisted.venue).toBe(venueName);

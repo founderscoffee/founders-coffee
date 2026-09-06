@@ -207,3 +207,26 @@ describe('0017 — capacity and category retire (real D1)', () => {
     );
   });
 });
+
+describe('0019 — the free flag retires (real D1)', () => {
+  it('drops the column and leaves the event otherwise untouched', async () => {
+    const { event, apply } = await atMigration('0019_material_jigsaw.sql');
+    expect(await columnNames('events')).toContain('is_free');
+
+    await apply();
+
+    expect(await columnNames('events')).not.toContain('is_free');
+
+    const kept = await getEvent(createDb(env.PRIOR_DB), event.id);
+    expect(kept).toMatchObject({
+      id: event.id,
+      title: event.title,
+      venue: event.venue,
+      slug: event.slug,
+      status: 'published',
+    });
+    expect(await indexNames('events')).toContain(
+      'events_market_code_slug_unique',
+    );
+  });
+});

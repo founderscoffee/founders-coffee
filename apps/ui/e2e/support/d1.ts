@@ -55,7 +55,6 @@ export interface PersistedEvent {
   readonly state_code: string;
   readonly city_code: string;
   readonly status: string;
-  readonly is_free: number;
   readonly host_id: string;
 }
 

@@ -69,7 +69,6 @@ describe('createEventResolver persistence (real D1)', () => {
         latitude: 36.7538,
         longitude: 3.0588,
         language: 'fr',
-        isFree: true,
         status: 'published',
         rsvps: 0,
       });
