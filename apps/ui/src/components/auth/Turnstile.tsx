@@ -90,5 +90,5 @@ export const Turnstile = ({
     };
   }, [action, appearance, resetKey, sitekey]);
 
-  return <div ref={containerRef} />;
+  return <div ref={containerRef} className="min-h-[65px]" />;
 };

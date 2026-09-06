@@ -3,6 +3,7 @@ import { createCsrfMiddleware, createStart } from '@tanstack/react-start';
 import { requestContextMiddleware } from '@founders-coffee/server-fns/request-context';
 
 import { appErrorSerializationAdapter } from './lib/app-error-adapter';
+import { isStateChangingRequest } from './lib/csrf';
 
 /**
  * Global middleware for the UI app (P0-012 → P1-017 linchpin). This `src/start.ts` is
@@ -13,9 +14,9 @@ import { appErrorSerializationAdapter } from './lib/app-error-adapter';
  * server-fn a per-request id in the ALS context the structured logger reads (AGENTS §13).
  *
  * CSRF allows `Sec-Fetch-Site: none` alongside `same-origin` so direct browser navigations
- * (typed URLs, bookmarks, inbound links) are not rejected with `403 Forbidden`. The default
- * (`same-origin` only) blocks the very first page load, since browsers send `none` + no
- * `Origin` on those. State-changing server-fns remain protected (POST + Sec-Fetch-Mode).
+ * (typed URLs, bookmarks, inbound links) are not rejected with `403 Forbidden` — browsers send
+ * `none` + no `Origin` on those. `filter` narrows the check to state-changing methods, which is
+ * what lets an OAuth provider's cross-site redirect land; see `./lib/csrf`.
  *
  * `serializationAdapters` carries `AppError.code` to the client; without it TanStack's shallow
  * error plugin keeps only `message` and every `appErrorCode()` branch is dead. See the adapter.
@@ -27,7 +28,10 @@ import { appErrorSerializationAdapter } from './lib/app-error-adapter';
 const app = createStart(() => ({
   serializationAdapters: [appErrorSerializationAdapter],
   requestMiddleware: [
-    createCsrfMiddleware({ secFetchSite: ['none', 'same-origin'] }),
+    createCsrfMiddleware({
+      secFetchSite: ['none', 'same-origin'],
+      filter: ({ request }) => isStateChangingRequest(request),
+    }),
   ],
   functionMiddleware: [requestContextMiddleware],
 }));

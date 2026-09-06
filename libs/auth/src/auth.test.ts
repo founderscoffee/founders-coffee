@@ -99,5 +99,6 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     expect(linking?.enabled).toBe(true);
     expect(linking?.trustedProviders).toEqual(['google', 'github']);
     expect(linking?.allowDifferentEmails).toBe(false);
+    expect(linking?.updateUserInfoOnLink).toBe(true);
   });
 });

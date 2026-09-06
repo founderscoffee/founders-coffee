@@ -100,6 +100,7 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
         enabled: true,
         trustedProviders: ['google', 'github'],
         allowDifferentEmails: false,
+        updateUserInfoOnLink: true,
       },
     },
     socialProviders: {
