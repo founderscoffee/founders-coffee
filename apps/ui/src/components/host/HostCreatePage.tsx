@@ -4,6 +4,7 @@ import { appErrorCode } from '@founders-coffee/core';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import {
+  host_login_required,
   host_or_click_map,
   host_page_title,
   host_progress_label,
@@ -15,16 +16,13 @@ import {
 } from '@founders-coffee/i18n';
 
 import { useHostMapContext } from '../../features/events/hooks';
-import { stateForCity } from '../../features/events/venue-location';
 import {
   TOTAL_STEPS,
   useHostCreateWizard,
 } from '../../features/events/useHostCreateWizard';
 import { useAuth } from '../../lib/app-providers';
 import { DatetimePicker } from './DatetimePicker';
-import { HostConfirmationStep } from './HostConfirmationStep';
 import { HostDetailsStep } from './HostDetailsStep';
-import { HostLocationLine } from './HostLocationLine';
 import { HostMapPanel } from './HostMapPanel';
 import { HostSignInGate } from './HostSignInGate';
 import { HostVenueLine } from './HostVenueLine';
@@ -187,43 +185,15 @@ export const HostCreatePage = ({
           )}
 
           {wizard.step === 3 && (
-            <>
-              <HostDetailsStep
-                locale={locale}
-                title={wizard.title}
-                description={wizard.description}
-                constraints={wizard.view.constraints}
-                errors={wizard.fieldErrors}
-                onTitleChange={wizard.setTitle}
-                onDescriptionChange={wizard.setDescription}
-              />
-              {wizard.venue &&
-                wizard.startsAt !== null &&
-                wizard.endsAt !== null && (
-                  <div className="border-t border-base-300 pt-6">
-                    <HostConfirmationStep
-                      locale={locale}
-                      timeZone={market.timezone}
-                      venue={wizard.venue}
-                      venueName={wizard.venueName}
-                      startsAt={wizard.startsAt}
-                      endsAt={wizard.endsAt}
-                      title={wizard.title}
-                      description={wizard.description}
-                      isAuthenticated={isAuthenticated}
-                      publishError={wizard.publishError}
-                      locationLine={
-                        <HostLocationLine
-                          locale={locale}
-                          city={city}
-                          state={city ? stateForCity(market.code, city) : null}
-                          onChange={() => wizard.goToStep(1)}
-                        />
-                      }
-                    />
-                  </div>
-                )}
-            </>
+            <HostDetailsStep
+              locale={locale}
+              title={wizard.title}
+              description={wizard.description}
+              constraints={wizard.view.constraints}
+              errors={wizard.fieldErrors}
+              onTitleChange={wizard.setTitle}
+              onDescriptionChange={wizard.setDescription}
+            />
           )}
 
           {wizard.isAuthGateOpen && (
@@ -236,6 +206,21 @@ export const HostCreatePage = ({
             />
           )}
         </div>
+
+        {wizard.step === TOTAL_STEPS && (
+          <div className="flex flex-col gap-2 border-t border-base-300 px-5 pt-4 md:px-7">
+            {!isAuthenticated && (
+              <p className="text-body-sm text-neutral" role="status">
+                {host_login_required({}, { locale })}
+              </p>
+            )}
+            {wizard.publishError && (
+              <p className="text-body-sm text-error" role="alert">
+                {wizard.publishError}
+              </p>
+            )}
+          </div>
+        )}
 
         <HostWizardActions
           locale={locale}

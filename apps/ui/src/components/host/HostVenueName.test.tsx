@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -92,9 +92,6 @@ describe('venue naming when only an address is verified', () => {
       target: { value: 'A complete protected meetup for founders.' },
     });
 
-    const summary = within(screen.getByTestId('host-summary'));
-    expect(summary.getAllByText('Café des Délices').length).toBeGreaterThan(0);
-    expect(summary.getByText('15 Rue Yousfi Mohamed, Alger')).toBeTruthy();
     fireEvent.click(
       screen.getByRole('button', { name: 'Confirm and publish' }),
     );

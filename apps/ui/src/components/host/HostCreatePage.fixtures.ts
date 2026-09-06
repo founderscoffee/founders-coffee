@@ -211,10 +211,6 @@ vi.mock('./DatetimePicker', () => ({
     ),
 }));
 
-vi.mock('./ScheduleSummary', () => ({
-  ScheduleSummary: () => createElement('div', null, 'Schedule summary'),
-}));
-
 const market = {
   code: 'DZ',
   slug: 'algeria',

@@ -7,7 +7,7 @@ import {
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 const hostCreateMocks = getHostCreateMocks();
@@ -42,8 +42,6 @@ describe('HostCreatePage EC-07 flow', () => {
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
-    const summary = within(screen.getByTestId('host-summary'));
-    expect(summary.getByText('12 Startup Street, Algiers')).toBeTruthy();
 
     const publish = screen.getByRole('button', {
       name: 'Confirm and publish',
@@ -152,7 +150,9 @@ describe('HostCreatePage EC-07 flow', () => {
     expect(
       await screen.findByRole('heading', { name: 'De quoi parle-t-on ?' }),
     ).toBeTruthy();
-    expect(screen.getByText('Protected meetup')).toBeTruthy();
+    expect(
+      (screen.getByLabelText(/^Titre/) as unknown as HTMLInputElement).value,
+    ).toBe('Protected meetup');
     expect(
       screen.getByRole('button', { name: 'Confirmer et publier' }),
     ).toBeTruthy();

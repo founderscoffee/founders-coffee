@@ -61,15 +61,17 @@ body {
    motion is welcome. The `reduce` block later would flatten it to a single 0.01ms
    iteration, which reads as a stuck ring rather than a still one. */
 
-/* DayPicker fills the host wizard step-2 calendar card (time sits above the card). */
+/* DayPicker spans the host wizard's step-2 column: the calendar is the step, not a card inside it.
+   The grid takes the full width and the seven columns share it, while each day button keeps its
+   round hit area centred in its column rather than stretching into an oval. */
 .host-daypicker.rdp-root {
-  --rdp-day-height: 40px;
-  --rdp-day-width: 40px;
-  --rdp-day_button-height: 38px;
-  --rdp-day_button-width: 38px;
-  --rdp-nav_button-height: 2rem;
-  --rdp-nav_button-width: 2rem;
-  --rdp-nav-height: 2.25rem;
+  --rdp-day-height: 46px;
+  --rdp-day-width: 46px;
+  --rdp-day_button-height: 42px;
+  --rdp-day_button-width: 42px;
+  --rdp-nav_button-height: 2.25rem;
+  --rdp-nav_button-width: 2.25rem;
+  --rdp-nav-height: 2.5rem;
   --rdp-accent-color: var(--color-primary);
   --rdp-accent-background-color: color-mix(
     in oklab,
@@ -77,17 +79,43 @@ body {
     transparent
   );
   --rdp-today-color: var(--color-primary);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   margin: 0;
+  width: 100%;
+}
+
+.host-daypicker .rdp-months,
+.host-daypicker .rdp-month,
+.host-daypicker .rdp-month_grid {
+  width: 100%;
+  max-width: none;
+}
+
+.host-daypicker .rdp-day,
+.host-daypicker .rdp-weekday {
+  width: auto;
+}
+
+.host-daypicker .rdp-day_button {
+  margin-inline: auto;
+}
+
+@media (width <= 24rem) {
+  .host-daypicker.rdp-root {
+    --rdp-day-height: 40px;
+    --rdp-day-width: 40px;
+    --rdp-day_button-height: 36px;
+    --rdp-day_button-width: 36px;
+  }
 }
 
 .host-daypicker .rdp-month_caption {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .host-daypicker .rdp-weekday {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   opacity: 0.65;
 }
 

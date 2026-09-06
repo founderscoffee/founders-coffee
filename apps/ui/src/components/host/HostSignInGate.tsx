@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import {
   gate_back,
@@ -22,6 +22,7 @@ import { Button, Input } from '@founders-coffee/ui';
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
 import { Turnstile } from '../auth/Turnstile';
+import { useRevealOnMount } from './useRevealOnMount';
 
 const OAUTH_PROVIDERS = ['google', 'github', 'linkedin'] as const;
 
@@ -46,6 +47,9 @@ export const HostSignInGate = ({
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useRevealOnMount(rootRef);
 
   const emailValid = /.+@.+\..+/.test(email);
 
@@ -90,7 +94,10 @@ export const HostSignInGate = ({
   };
 
   return (
-    <div className="mt-6 rounded-box border border-base-300 bg-base-200 p-5 md:p-6">
+    <div
+      ref={rootRef}
+      className="mt-6 rounded-box border border-base-300 bg-base-200 p-5 md:p-6"
+    >
       <h3 className="font-display text-h4 font-semibold text-base-content">
         {gate_title({}, { locale })}
       </h3>
