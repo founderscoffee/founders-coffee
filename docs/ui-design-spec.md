@@ -69,6 +69,11 @@ The **market landing is the main page**.
 
 ## 3. Components
 
+The profile/account redesign is specified in the
+[Profile UI/UX Design Specification](./profile-ui-design-spec.md), with an isolated interactive
+study and responsive Arabic/French/English layouts. It extends Round Table under PF-04 through
+PF-11, preserves private-by-default optional fields and removes residence from the member profile.
+
 ### 3.1 Hero (`MarketHero.tsx`)
 
 Display-size title in Outfit 600, subtitle in mocha, and a **pill search** — `h-12 md:h-14`,
@@ -225,7 +230,9 @@ screen, and publishes as soon as the code verifies. Nothing navigates to `/login
 the first sign-in, and not an expired session mid-publish. The draft is still written to session
 storage first, because an OAuth provider takes the page away and back; that path returns to the
 confirmation step authenticated and costs one click on Publish. Onboarding is skipped on this
-path (it is not enforced anywhere -- `/profile` sets a home market later).
+path (the legacy `/profile` page still sets a home market). The approved
+[profile/account plan](./profile-account-implementation-plan.md), PF-03, removes that residence
+collection and handles a missing display name inside the gate while preserving the pending publish.
 
 3-step wizard implementing **progressive disclosure** (see [`docs/psy.md`](./psy.md)):
 
