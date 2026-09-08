@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   index,
+  foreignKey,
   integer,
   real,
   sqliteTable,
@@ -52,6 +53,7 @@ export const user = sqliteTable('user', {
     .default(false),
   image: text('image'),
   role: text('role').notNull().default('member'),
+  accountState: text('account_state').notNull().default('active'),
   banned: integer('banned', { mode: 'boolean' }).default(false),
   banReason: text('ban_reason'),
   banExpires: integer('ban_expires', { mode: 'timestamp' }),
@@ -74,23 +76,27 @@ export const user = sqliteTable('user', {
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
 
-export const session = sqliteTable('session', {
-  id: text('id').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  token: text('token').notNull().unique(),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  impersonatedBy: text('impersonated_by'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
+export const session = sqliteTable(
+  'session',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    impersonatedBy: text('impersonated_by'),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [uniqueIndex('session_id_user_unique').on(table.id, table.userId)],
+);
 
 export type Session = typeof session.$inferSelect;
 export type NewSession = typeof session.$inferInsert;
@@ -401,24 +407,30 @@ export type NewScheduledNotification =
 export const PUSH_PLATFORMS = ['ios', 'android', 'web'] as const;
 export const PUSH_SURFACES = ['pwa', 'rn'] as const;
 
-export const pushSubscriptions = sqliteTable('push_subscriptions', {
-  id: text('id').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  token: text('token').notNull().unique(),
-  platform: text('platform', { enum: [...PUSH_PLATFORMS] }).notNull(),
-  surface: text('surface', { enum: [...PUSH_SURFACES] }).notNull(),
-  marketCode: text('market_code')
-    .notNull()
-    .references(() => markets.code),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
+export const pushSubscriptions = sqliteTable(
+  'push_subscriptions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    platform: text('platform', { enum: [...PUSH_PLATFORMS] }).notNull(),
+    surface: text('surface', { enum: [...PUSH_SURFACES] }).notNull(),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('push_subscription_id_user_unique').on(table.id, table.userId),
+  ],
+);
 
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
@@ -457,3 +469,149 @@ export const cityWaitlist = sqliteTable(
 
 export type CityWaitlistRow = typeof cityWaitlist.$inferSelect;
 export type NewCityWaitlist = typeof cityWaitlist.$inferInsert;
+
+export const profileAssets = sqliteTable(
+  'profile_assets',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    objectKey: text('object_key').notNull().unique(),
+    status: text('status').notNull().default('pending'),
+    mimeType: text('mime_type'),
+    byteSize: integer('byte_size'),
+    width: integer('width'),
+    height: integer('height'),
+    revision: integer('revision').notNull().default(0),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('profile_asset_id_user_unique').on(table.id, table.userId),
+    index('profile_assets_expiry_index').on(table.status, table.expiresAt),
+  ],
+);
+
+export const memberProfiles = sqliteTable(
+  'member_profiles',
+  {
+    userId: text('user_id')
+      .primaryKey()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    introduction: text('introduction'),
+    introductionLocale: text('introduction_locale', { enum: [...LOCALES] }),
+    communityRole: text('community_role'),
+    interests: text('interests', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    spokenLanguages: text('spoken_languages', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    professionalLink: text('professional_link'),
+    photoAssetId: text('photo_asset_id'),
+    publishPhoto: integer('publish_photo', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    publishIntroduction: integer('publish_introduction', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    publishCommunityRole: integer('publish_community_role', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    publishInterests: integer('publish_interests', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    publishSpokenLanguages: integer('publish_spoken_languages', {
+      mode: 'boolean',
+    })
+      .notNull()
+      .default(false),
+    publishProfessionalLink: integer('publish_professional_link', {
+      mode: 'boolean',
+    })
+      .notNull()
+      .default(false),
+    revision: integer('revision').notNull().default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.photoAssetId, table.userId],
+      foreignColumns: [profileAssets.id, profileAssets.userId],
+    }),
+  ],
+);
+
+export const accountPreferences = sqliteTable('account_preferences', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  eventUpdates: integer('event_updates', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  eventReminders: integer('event_reminders', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  hostUpdates: integer('host_updates', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  followUpPrompts: integer('follow_up_prompts', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  pushEnabled: integer('push_enabled', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  smsFallbackEnabled: integer('sms_fallback_enabled', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  smsConsentAt: integer('sms_consent_at', { mode: 'timestamp' }),
+  revision: integer('revision').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const pushSessionLinks = sqliteTable(
+  'push_session_links',
+  {
+    subscriptionId: text('subscription_id').primaryKey(),
+    sessionId: text('session_id').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.subscriptionId, table.userId],
+      foreignColumns: [pushSubscriptions.id, pushSubscriptions.userId],
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.sessionId, table.userId],
+      foreignColumns: [session.id, session.userId],
+    }).onDelete('cascade'),
+    index('push_session_links_session_index').on(table.sessionId),
+  ],
+);
+
+export type MemberProfileRow = typeof memberProfiles.$inferSelect;
+export type ProfileAssetRow = typeof profileAssets.$inferSelect;
+export type AccountPreferencesRow = typeof accountPreferences.$inferSelect;

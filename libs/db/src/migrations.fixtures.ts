@@ -4,7 +4,7 @@ import { expect } from 'vitest';
 
 import { createDb } from './db.js';
 import { seed } from './seed.js';
-import { user, type NewUser } from './schema.js';
+import type { NewUser } from './schema.js';
 
 export const priorHost: NewUser = {
   id: 'usr_prior_schema_host',
@@ -108,7 +108,11 @@ export const atMigration = async (name: string) => {
   await applyD1Migrations(env.PRIOR_DB, env.TEST_MIGRATIONS.slice(0, index));
   const db = createDb(env.PRIOR_DB);
   await seed(db);
-  await db.insert(user).values(priorHost).onConflictDoNothing().run();
+  await env.PRIOR_DB.prepare(
+    'INSERT INTO user (id, name, email, email_verified, role) VALUES (?, ?, ?, 0, ?) ON CONFLICT (id) DO NOTHING',
+  )
+    .bind(priorHost.id, priorHost.name, priorHost.email, priorHost.role)
+    .run();
   const event = priorEvent(suffix);
   await insertPriorEvent(event);
 
