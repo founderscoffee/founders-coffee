@@ -131,7 +131,9 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 ### 5.1 Multi-market & geography (P0)
 
 - **FR-G1** The system shall model geography as **Market → State → City**. Markets are D1 configuration rows; states and cities are versioned server-side reference datasets.
-- **FR-G2** Every user-facing record shall carry `market_code` and, where geographic, `state_code` and `city_code` from creation.
+- **FR-G2** Market-facing records shall carry `market_code` and, where geographic, `state_code`
+  and `city_code` from creation. The global identity and its profile/account preferences (FR-A1,
+  FR-A3) are not residence records; activity, events and host trust retain their market/geographic scope.
 - **FR-G3** A Market shall have a **state**: `dark`, `open`, or `active` (see §10.1). State is admin-configurable.
 - **FR-G4** Market state and feature activation shall be data/configuration changes. Adding or correcting state/city reference data requires a reviewed dataset change and deployment until admin-managed geography is implemented.
 - **FR-G5** The system shall pre-seed major cities for each configured market.
@@ -213,12 +215,40 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
 
 - **FR-A1** The system shall maintain **one global user identity** per person (a user may relocate/travel).
 - **FR-A2** Activity and reputation shall be **scoped per market/city** (e.g., a host's Algiers history vs. a Cairo attendance history).
-- **FR-A3** Each user shall have changeable `home_market_code`, `home_state_code`, and `home_city_code` values.
+- **FR-A3** Profiles and onboarding shall not require, expose or retain a home market, state or city.
+  Event geography remains required; an optional device-local browsing preference shall not be
+  treated as residence or copied into the member profile. Existing home-location columns shall
+  be retired through the reviewed migration in the [profile/account plan](./profile-account-implementation-plan.md).
 - **FR-A4** Authentication shall be **passwordless**. The current community release exposes
   **email OTP** plus configured OAuth providers. Phone OTP via Twilio Verify is a backend capability
   but is not an active user flow until a separately reviewed phone-login UI is enabled. OAuth
   accounts link to a single identity by verified email (trusted providers only). No passwords.
 - **FR-A5** Roles: `member`, `host` (a member who has hosted), `sponsor_contact`, `admin`, `moderator`.
+- **FR-A6** A minimal public profile shall show a display name and public hosted-event evidence.
+  Photo, introduction, community role, interests, spoken languages and one professional link shall
+  be optional and published only by explicit per-field opt-in. Community role shall not grant
+  authorization; private contact details, system permissions and individual attendance stay private.
+- **FR-A7** Members shall edit and clear their own profile fields, control optional publication,
+  preview the public result and manage their own activity from `apps/ui`. Optional completion shall
+  not block event creation or RSVP. Visibility shall be enforced in API, SSR, metadata and caches.
+- **FR-A8** Members shall manage verified email/phone, configured login providers and active sessions
+  through Better Auth. Sensitive changes require recent authentication, prevent loss of the last
+  usable login method and shall not enable a separate phone-login flow implicitly.
+- **FR-A9** Members shall manage interface locale and notification preferences, with PWA push primary
+  and SMS fallback only to a verified, consented number. Current preferences and destinations shall
+  be enforced at dispatch as well as scheduling; browser permission and delivery state stay distinct.
+- **FR-A10** Members shall request private data export and confirmed account deletion from account
+  settings. Deletion shall revoke access, remove public identity and personal delivery, safely handle
+  future events/RSVPs, and remove or pseudonymize retained records under NFR-5 without silently
+  destroying community evidence or violating frozen attendance eligibility.
+- **FR-A11** Members shall upload, replace and remove optional profile photos through protected
+  Worker-mediated R2 storage and Cloudflare Images processing, with bounded validation, metadata
+  removal, private originals and publication-aware delivery. Service entitlement and cost checks
+  precede provisioning; removed or hidden photos shall no longer be served publicly.
+
+FR-A3 and FR-A6 through FR-A11 describe the approved target, not completed implementation. Delivery
+and legacy migration are tracked by PF-01 through PF-12 in the
+[Profile and Account Management Implementation Plan](./profile-account-implementation-plan.md).
 
 ### 5.7 Internationalization & localization (P0)
 
@@ -314,8 +344,14 @@ GeoState / GeoCity (versioned server-side reference data)
   market_code, state_code, city_code, names, slug, featured
 
 User
-  global identity; email/phone; role; home_market_code; home_state_code; home_city_code; locale_pref
+  global identity; email/phone; role; locale_pref; account lifecycle
+  // no residence fields; legacy home columns removed through PF-03
   // talent opt-in flag (FR-P4)
+
+MemberProfile / AccountPreferences (planned, PF-02)
+  user_id; optional introduction and authored locale; community role; interests; spoken languages
+  professional link; photo asset reference; per-field publication; revision
+  private notification preferences and consent; no home market/state/city
 
 Event
   id, market_code, state_code, city_code, host_user_id

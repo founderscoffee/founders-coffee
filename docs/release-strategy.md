@@ -80,11 +80,11 @@ the current sequence.
 
 ## Active execution plans
 
-1. Complete the [Event Creation Remediation Plan](./event-creation-remediation-plan.md) through
-   EC-10. EC-06 is complete with the active shared Free-plan WAF rule, and EC-07 completes the
-   authenticated localized wizard. EC-08 and EC-09 may continue now; EC-10 remains gated on its
-   deployment, production DNS/WAF behavior, and smoke evidence.
-2. Immediately after EC-10, begin the
+1. Complete final handoff for the [Event Creation Remediation Plan](./event-creation-remediation-plan.md).
+   EC-01 through EC-10 have recorded completion, including 18/18 staging browser cases on
+   2026-09-03 and production release/DNS/WAF evidence on 2026-09-04. The authorized production
+   creation smoke remains outstanding; the dated release records are not a fresh live verification.
+2. Immediately after verified EC-10 handoff, begin the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
    at CO-01.
 
@@ -92,3 +92,11 @@ The second plan closes the real-world community loop through frozen RSVP eligibi
 feedback, repeat hosting, essential admin operations, trust/moderation, weekly decisions, and
 truthful community-health evidence. It complements event creation and does not authorize any
 post-community commercial phase.
+
+The [Profile and Account Management Plan](./profile-account-implementation-plan.md) is a supporting
+P1-004 lane approved on 2026-09-08. It removes profile residence, gives members control of optional
+public details and photos, and adds full account/privacy controls. It does not replace the EC → CO
+execution priority. Its delivery, retention and moderation integrations reuse the named CO owners;
+writing the plan does not mean those capabilities have shipped. The user's 2026-09-08 implementation
+request starts PF-01/02 locally as a supporting foundation; it does not certify the outstanding
+production smoke, begin CO implementation, or deploy profile/account screens.

@@ -50,3 +50,14 @@ The UI app adapts the auth-specific OTP interface to the general Cloudflare Emai
   Better Auth/RBAC session wiring remains planned under CO-04.
 
 Onboarding for market, state, and city is implemented in `apps/ui`. The geographic values use canonical market/state/city codes and the current versioned TypeScript reference datasets.
+
+## Approved replacement — planned, 2026-09-08
+
+The [Profile and Account Management Plan](./profile-account-implementation-plan.md), PF-01 through
+PF-12, replaces this location-based onboarding with display-name completion only. OTP and OAuth
+shall return members to their original action without collecting a home location or requiring
+optional profile details. The existing inline host sign-in gate must follow the same name-completion
+rule while preserving its pending publish and OAuth draft-return behavior. It also adds opt-in public fields, managed photos, verified contact and
+session controls, notification preferences, export and deletion. Existing home columns are removed
+through a reviewed migration; event geography remains unchanged. The current-flow description above
+is an implementation audit, not a requirement to preserve geographic onboarding.

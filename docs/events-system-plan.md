@@ -34,6 +34,11 @@ React Native/Expo is not committed scope.
 
 ## 2. Implemented member flow
 
+The location-onboarding step below records the legacy standalone login path. The approved
+[profile/account plan](./profile-account-implementation-plan.md), PF-03, removes it and collects only
+a missing display name, including inside the existing inline host sign-in gate. Event market/city
+selection remains independent of a member's residence.
+
 ```text
 discover market/city
   → authenticate when an action requires identity

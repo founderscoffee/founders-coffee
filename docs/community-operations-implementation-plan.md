@@ -1,15 +1,15 @@
 # Community Operations and Admin Implementation Plan
 
-| Field          | Value                                                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Sequenced next; implementation begins immediately after EC-10 is complete                                                 |
-| Last reviewed  | 2026-09-01                                                                                                                |
-| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries               |
-| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                              |
-| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                            |
-| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12 |
-| Strategy       | [Community-first release](./release-strategy.md)                                                                          |
-| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                            |
+| Field          | Value                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Sequenced next after verified EC-10 handoff; EC staging/release evidence exists, authorized production creation smoke still outstanding |
+| Last reviewed  | 2026-09-01                                                                                                                              |
+| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                             |
+| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                            |
+| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                          |
+| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12               |
+| Strategy       | [Community-first release](./release-strategy.md)                                                                                        |
+| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                          |
 
 ## 1. Objective
 
@@ -57,7 +57,23 @@ staging Playwright results. CO-01 records that trace as event-creation baseline 
 event is not reused as a post-event attendance fixture because its real participants and elapsed
 schedule cannot be assumed. CO-11 creates its own explicitly identified operational staging run.
 
+PF-01 reconciliation on 2026-09-08: the EC plan and `deployment-evidence.md` record 18/18 staging
+cases, persisted events and cleanup on 2026-09-03, then production release and DNS/WAF verification
+on 2026-09-04. The authorized production creation smoke is still explicitly outstanding for final
+handoff. Do not treat the older EC-08–10 pending baseline as current, or infer authorization to
+weaken production authentication or create test events from this documentation update. Turnstile
+handoff evidence follows the actual login protection; event creation's recorded exception is not
+a requirement to add a new event challenge as part of CO or PF.
+
 ## 3. Ownership boundaries
+
+The [Profile and Account Management Plan](./profile-account-implementation-plan.md), approved
+2026-09-08, owns location-free member onboarding, editable/public profile projection, contact/session
+controls and export/deletion orchestration. CO-02 continues to own delivery, CO-03 the operations
+schema/retained references, CO-05/06 closeout/feedback and CO-09 trust/moderation. Those integrations
+must never depend on a member's home location. PF deletion must preserve frozen eligibility and
+the retention rules below; it must not cascade-delete events or introduce a second retention model.
+This supporting lane does not change the EC → CO sequencing contract.
 
 | Concern                                      | Owner                                                                                     |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -87,19 +103,19 @@ Drizzle, domain internals, or server functions from a component.
 
 ## 4. Current baseline and gaps
 
-| Area                      | Current evidence                                                                                                          | Required result                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Event creation            | EC-01 through EC-07 complete with the shared Free-plan WAF and localized auth handoff active; EC-08 through EC-10 pending | EC-10 complete, including production DNS/WAF and smoke evidence, before this plan starts                |
-| RSVP                      | Immediate flow exists; full-capacity atomicity remains blocked                                                            | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
-| Notifications             | Providers exist; one-minute D1 polling and parallel channel scheduling violate the locked design                          | DO alarms -> Queue -> push-first/SMS-fallback before post-event prompts                                 |
-| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                  | Explicit held/did-not-happen closeout separate from publication status                                  |
-| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                               | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
-| Feedback                  | No post-event participant or host pulse                                                                                   | One small, optional, localized pulse per eligible person                                                |
-| Repeat hosting            | Hosts must recreate every event from scratch                                                                              | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
-| Admin app                 | Access JWT guard and empty TanStack shell only                                                                            | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
-| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                             | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
-| Metrics                   | Analytics API foundation exists; account binding/dashboard unverified                                                     | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
-| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                     | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
+| Area                      | Current evidence                                                                                                                                      | Required result                                                                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Event creation            | EC-01 through EC-10 recorded complete; staging 18/18 and production release/DNS/WAF evidence exist; authorized production creation smoke remains open | Close the outstanding authorized production smoke/handoff before CO production implementation; preserve the dated trace without rerunning it implicitly |
+| RSVP                      | Immediate flow exists; full-capacity atomicity remains blocked                                                                                        | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                                                                      |
+| Notifications             | Providers exist; one-minute D1 polling and parallel channel scheduling violate the locked design                                                      | DO alarms -> Queue -> push-first/SMS-fallback before post-event prompts                                                                                 |
+| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                              | Explicit held/did-not-happen closeout separate from publication status                                                                                  |
+| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                           | Attendance outcome remains separate from RSVP intent and is recorded safely                                                                             |
+| Feedback                  | No post-event participant or host pulse                                                                                                               | One small, optional, localized pulse per eligible person                                                                                                |
+| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                          | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract                                                   |
+| Admin app                 | Access JWT guard and empty TanStack shell only                                                                                                        | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states                                                          |
+| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                         | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence                                                        |
+| Metrics                   | Analytics API foundation exists; account binding/dashboard unverified                                                                                 | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard                                                 |
+| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                 | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning                                                            |
 
 ## 5. Locked product and data decisions
 

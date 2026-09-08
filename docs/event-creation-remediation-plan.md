@@ -118,6 +118,13 @@ The authenticated persistence/success path remains unverified until an approved 
 
 ## 4. Work breakdown and sequence
 
+Profile integration follow-up (2026-09-08): PF-03 in the
+[Profile and Account Management Plan](./profile-account-implementation-plan.md) removes residence
+collection from authentication/onboarding. It must preserve this plan's safe auth return, event
+draft and explicit confirmation behavior, and rerun the event-create regression gate. Event
+geography remains authoritative and independent of the member profile. This follow-up does not
+reopen completed EC tickets or change their recorded security decisions.
+
 The `EC-*` identifiers below are local work packages under the existing parent tickets. They do not replace the repository's P1 ticket IDs.
 
 ### EC-01 — Freeze the event-create contract
