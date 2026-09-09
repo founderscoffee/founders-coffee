@@ -1134,3 +1134,79 @@ navigation a fuller settings area would need.
 
 Next ticket: **PF-07c** — verified contact changes, which attaches the first real actions to these
 rows and needs PF-07a's guard, now in place.
+
+### PF-07c and PF-07d implementation and audit — 2026-09-09
+
+The account screen's rows now do things. Both tickets are recorded together because they share one
+finding: the guards this product needs live _above_ Better Auth, and leaving its own endpoints open
+would have made them optional.
+
+**Nothing writes a contact column.** The adapters drive the OTP endpoints, which is where the
+guarantees come from: `/phone-number/verify` refuses a number that belongs to another account rather
+than moving it, and `/email-otp/change-email` refuses an address that does. Changing an email costs
+a code sent to the address _currently on file_ before a new one can be named — an email on an
+account is the first thing an attacker at an unlocked session would move, because the account's own
+recovery flow then locks the member out. A phone that does not exist yet has nothing to protect, so
+proving the new number is the whole of it.
+
+**The address collision is invisible by design.** Better Auth answers a request to move to a taken
+address as though a code had been sent, and sends none. That is its enumeration defence, and the
+test now documents it rather than asserting a refusal that never comes. A member who mistypes
+somebody else's address simply never receives a code.
+
+**Adapters go through the HTTP handler, not the typed API.** The handler is the composed pipeline,
+captcha gating included, and its `Response` has to be opened and discarded deliberately — which is
+exactly the projection this needs, because `/phone-number/verify` answers with the session token and
+the whole user row.
+
+**Raw endpoints are closed.** `/unlink-account`, `/revoke-session`, `/revoke-sessions` and
+`/revoke-other-sessions` now answer 403 with `ACCOUNT_ENDPOINT_REQUIRED`, the same mechanism
+`/update-user` already used. Each carries a rule Better Auth cannot express: unlinking must leave a
+way back in, and signing a device out must take that device's push registration with it.
+
+**That second rule is the subtle one.** `push_session_links` cascades off the session row, so
+deleting a session removes the association — and PF-07a treats an _unassociated_ subscription as a
+legacy registration and therefore deliverable. Revoking a session would have turned into permission
+to keep notifying the device it revoked. The subscriptions are deleted first, while the link still
+names them.
+
+**Sessions are named by an id, never by a token.** The token is the credential; a list of a member's
+devices carrying one is a list of ways to become them. Every action takes an id and checks ownership
+in the same statement that acts on it, so the id is inert if it leaks. The current device is found
+by matching the caller's own cookie to a row, not by anything the client claims.
+
+**Three defects found auditing this, all fixed before commit.**
+
+| Defect                                                                                | Why it mattered                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The refusal codes were mapped but `last_sign_in_method` was not in the client's table | A refusal to remove the only way in read as "that change could not be completed", which tells a member nothing about what to do                                                                                  |
+| The session-cookie parser sat inline in a server function                             | Getting it wrong is invisible: the list still renders, with no current device marked and revoke-others quietly ending the caller's own session. Extracted and tested against signed, unsigned and absent cookies |
+| Missing Twilio credentials answered success                                           | The dev provider prints the code to a console, which is right on a laptop and silently wrong anywhere else. Outside development this now refuses                                                                 |
+
+The repo's own rules caught three more: hooks may not import server-fns, and two files passed 300
+lines. All fixed by moving code rather than by raising a limit.
+
+**Verified against real Better Auth and real D1** — 9 contact tests and 16 device tests. The email
+change moves the address only after both codes; a wrong or absent proof leaves it untouched; a taken
+address changes nothing on either account; a taken number is refused; the session token never
+appears in a response. Sessions list without tokens, mark only the caller, never show another
+member's, and revoking one deletes its push subscription while a revoked id belonging to somebody
+else deletes nothing. Two concurrent unlinks of the last two providers leave exactly one.
+
+**Known limits, accepted.**
+
+- **Lockout cannot currently happen.** Every account carries an email, and an email code needs no
+  stored credential, so unlinking a provider always leaves a way in. The guard is written against
+  "ways in" rather than "providers" and tested at the repository, where `otherMethods: 0` proves the
+  atomic behaviour the ticket asks for. It becomes reachable the day an identity without an email
+  does.
+- **Provider _linking_ is not implemented.** Unlinking is; adding a provider is an OAuth round trip
+  that returns to a callback, and shipping the button without the return path would be the inert
+  control §7 forbids.
+- **"Real provider staging checks pass" is outstanding**, and cannot be met locally — it needs a
+  deploy with real Google, GitHub and Twilio credentials.
+- `dangerouslyIgnoreUnhandledErrors` is set for `libs/server-fns` alone, because Better Auth's router
+  orphans the `APIError` its endpoints throw. Recorded in `docs/ci.md` with how to check whether it
+  is still needed.
+
+Next ticket: **PF-08** — preferences connected to real delivery, which waits on CO-02.

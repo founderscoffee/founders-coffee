@@ -438,5 +438,16 @@
   "error_contact_code_required": "أدخل الرمز المكوّن من ستة أرقام.",
   "error_contact_unchanged": "هذه بياناتك بالفعل.",
   "error_sms_unavailable": "رموز الهاتف غير متاحة حاليًا.",
-  "error_contact_change_failed": "تعذّر إتمام هذا التغيير."
+  "error_contact_change_failed": "تعذّر إتمام هذا التغيير.",
+  "devices_manage": "إدارة",
+  "devices_title": "الأجهزة المسجّلة",
+  "devices_this_one": "هذا الجهاز",
+  "devices_unknown": "جهاز غير معروف",
+  "devices_sign_out": "تسجيل الخروج",
+  "devices_sign_out_others": "تسجيل الخروج من كل الأجهزة الأخرى",
+  "devices_note": "تسجيل الخروج من جهاز يوقف إشعاراته أيضًا.",
+  "devices_empty": "لا يوجد جهاز آخر مسجّل.",
+  "providers_disconnect": "فصل",
+  "providers_keep_one": "احتفظ بطريقة واحدة على الأقل لتسجيل الدخول.",
+  "error_last_sign_in_method": "هذه طريقتك الوحيدة لتسجيل الدخول. أضف طريقة أخرى أولًا."
 }

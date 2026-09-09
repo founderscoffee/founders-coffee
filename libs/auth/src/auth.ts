@@ -62,6 +62,13 @@ const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
   return new DevSmsProvider();
 };
 
+const GUARDED_ACCOUNT_PATHS = [
+  '/unlink-account',
+  '/revoke-session',
+  '/revoke-sessions',
+  '/revoke-other-sessions',
+];
+
 /**
  * Build a Better Auth instance bound to the request's D1.
  *
@@ -81,6 +88,12 @@ const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
  * The captcha plugin is registered unconditionally (see `captchaEndpointsFor` for why) and an absent
  * secret key is not a bypass: the plugin errors on the gated endpoints, and `createAuthHandler`
  * refuses them outright with a clearer 503 before it gets that far.
+ *
+ * `GUARDED_ACCOUNT_PATHS` closes the raw endpoints this product answers for itself. Each has a rule
+ * that lives above Better Auth and cannot be expressed inside it: unlinking must leave a member a
+ * way back in, and signing a device out must take that device's push registration with it, or the
+ * revocation silently becomes permission to keep notifying it. A caller reaching the raw endpoint
+ * gets neither, so the raw endpoint is closed and the guarded server function is the only door.
  *
  * `emailOTP.changeEmail.verifyCurrentEmail` is what makes a change of address an act by the person
  * who already holds it. Without it, anyone sitting at an unlocked session could move the account to
@@ -108,6 +121,12 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
           throw new APIError('FORBIDDEN', {
             code: 'PROFILE_ENDPOINT_REQUIRED',
             message: 'Use the protected profile endpoint to edit your profile',
+          });
+        }
+        if (GUARDED_ACCOUNT_PATHS.includes(context.path)) {
+          throw new APIError('FORBIDDEN', {
+            code: 'ACCOUNT_ENDPOINT_REQUIRED',
+            message: 'Use the protected account endpoint for this action',
           });
         }
       }),

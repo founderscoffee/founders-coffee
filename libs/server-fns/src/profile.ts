@@ -7,22 +7,31 @@ import { requirePermission } from './auth-middleware.js';
 import { rateLimit } from './rate-limit.js';
 
 export {
-  confirmMyEmailChange,
-  confirmMyPhoneNumber,
   getMyAccount,
   getMyProfile,
   getPhotoUploadAvailability,
   getPublicProfile,
   removeMyPhoto,
-  requestMyEmailChange,
   reserveMyPhotoUpload,
-  sendMyEmailChangeCode,
-  sendMyPhoneCode,
   updateMyProfile,
   updateMyDisplayName,
 } from './profile/rpc.js';
+export {
+  confirmMyEmailChange,
+  confirmMyPhoneNumber,
+  requestMyEmailChange,
+  sendMyEmailChangeCode,
+  sendMyPhoneCode,
+} from './profile/contact-rpc.js';
+export {
+  getMyDevices,
+  revokeMyDevice,
+  unlinkMyProvider,
+} from './profile/device-rpc.js';
 export type {
   AccountSummary,
+  DeviceList,
+  SessionSummary,
   UserProfile,
   PublicProfile,
   UpdateProfileRequest,

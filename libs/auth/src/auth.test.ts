@@ -112,6 +112,24 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     ).rejects.toMatchObject({ status: 'FORBIDDEN' });
   });
 
+  it.each([
+    '/unlink-account',
+    '/revoke-session',
+    '/revoke-sessions',
+    '/revoke-other-sessions',
+  ])('refuses %s on the raw path, whatever the caller sends', async (path) => {
+    const { auth } = createAuth(authEnv, {
+      emailProvider: new DevEmailProvider(),
+    });
+
+    const response = await auth.handler(post(path, { providerId: 'google' }));
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({
+      code: 'ACCOUNT_ENDPOINT_REQUIRED',
+    });
+  });
+
   it('requires a session for role-gated actions', () => {
     expect(() => requireRole(null, 'member')).toThrow();
   });

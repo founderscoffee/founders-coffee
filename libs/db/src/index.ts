@@ -18,5 +18,6 @@ export * from './seed.js';
 export * from './member-profiles.js';
 export * from './account-preferences.js';
 export * from './account-summary.js';
+export * from './account-sessions.js';
 export * from './profile-assets.js';
 export * from './profile-device-links.js';

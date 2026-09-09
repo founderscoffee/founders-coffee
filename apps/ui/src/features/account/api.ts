@@ -1,12 +1,15 @@
 import {
   confirmMyEmailChange,
+  getMyDevices,
+  revokeMyDevice,
+  unlinkMyProvider,
   confirmMyPhoneNumber,
   getMyAccount,
   requestMyEmailChange,
   sendMyEmailChangeCode,
   sendMyPhoneCode,
 } from '@founders-coffee/server-fns';
-import type { AccountSummary } from '@founders-coffee/server-fns';
+import type { AccountSummary, DeviceList } from '@founders-coffee/server-fns';
 
 export type ContactAccepted = { accepted: true };
 export type EmailChangeInput = {
@@ -18,6 +21,13 @@ export type PhoneCodeInput = { phoneNumber: string; turnstileToken?: string };
 export type PhoneConfirmInput = PhoneCodeInput & { otp: string };
 
 export const accountApi = {
+  getMyDevices: (): Promise<DeviceList> => getMyDevices({ data: {} }),
+  revokeDevice: (data: {
+    sessionId?: string;
+    othersOnly?: boolean;
+  }): Promise<{ revoked: number }> => revokeMyDevice({ data }),
+  unlinkProvider: (data: { providerId: string }): Promise<{ unlinked: true }> =>
+    unlinkMyProvider({ data: data as { providerId: 'google' } }),
   getMyAccount: (): Promise<AccountSummary> => getMyAccount({ data: {} }),
   sendEmailChangeCode: (data: {
     turnstileToken?: string;
@@ -32,4 +42,4 @@ export const accountApi = {
     confirmMyPhoneNumber({ data }),
 };
 
-export type { AccountSummary };
+export type { AccountSummary, DeviceList };

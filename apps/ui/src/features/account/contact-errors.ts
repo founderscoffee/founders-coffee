@@ -6,6 +6,7 @@ import {
   error_contact_code_required,
   error_contact_taken,
   error_contact_unchanged,
+  error_last_sign_in_method,
   error_sms_unavailable,
   profile_security_error,
   type Locale,
@@ -18,10 +19,11 @@ const MESSAGES = {
   contact_code_required: error_contact_code_required,
   contact_unchanged: error_contact_unchanged,
   sms_unavailable: error_sms_unavailable,
+  last_sign_in_method: error_last_sign_in_method,
 } as const;
 
 /**
- * Say why a contact change was refused, in the member's language.
+ * Say why an account action was refused, in the member's language.
  *
  * The server answers with a code from a fixed set precisely so this can exist: the upstream refusal
  * is an English sentence written for a developer, and some of them describe another account. A code

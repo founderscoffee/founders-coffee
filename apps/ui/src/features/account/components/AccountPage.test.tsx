@@ -9,7 +9,12 @@ const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
 }));
 
-vi.mock('../hooks', () => ({ useMyAccount: () => state.query }));
+vi.mock('../hooks', () => ({
+  useMyAccount: () => state.query,
+  useMyDevices: () => ({ data: undefined }),
+  useRevokeDevice: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUnlinkProvider: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
@@ -83,7 +88,8 @@ describe('the account and security screen', () => {
 
     expect(screen.getByRole('button', { name: 'Change' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Add' })).toBeTruthy();
-    expect(screen.getAllByText('Changes not available yet')).toHaveLength(4);
+    expect(screen.getByText('Download your information')).toBeTruthy();
+    expect(screen.getAllByText('Changes not available yet')).toHaveLength(2);
   });
 
   it('opens the change dialog on the row that was pressed', () => {

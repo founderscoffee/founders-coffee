@@ -36,6 +36,7 @@ import type { AccountSummary } from '../api';
 import type { ContactKind } from '../contact-flow';
 import { AccountRow } from './AccountRow';
 import { ContactDialog } from './ContactDialog';
+import { DevicePanel } from './DevicePanel';
 import { ProfileSectionNav } from './ProfileSectionNav';
 
 const Group = ({
@@ -140,7 +141,6 @@ const AccountSections = ({
                 .join(' · ')
             : account_providers_empty({}, { locale })
         }
-        isPending
       />
       <AccountRow
         locale={locale}
@@ -149,8 +149,8 @@ const AccountSections = ({
           { count: account.sessionCount },
           { locale },
         )}
-        isPending
       />
+      <DevicePanel locale={locale} />
     </Group>
 
     <Group title={account_data_title({}, { locale })}>

@@ -30,6 +30,13 @@ export const phoneCodeRequestSchema = z.strictObject({
   phoneNumber: phoneField,
   turnstileToken: token,
 });
+export const revokeDeviceRequestSchema = z.strictObject({
+  sessionId: z.string().trim().min(1).max(128).optional(),
+  othersOnly: z.boolean().optional(),
+});
+export const unlinkProviderRequestSchema = z.strictObject({
+  providerId: z.enum(profile.ACCOUNT_PROVIDERS),
+});
 export const phoneConfirmRequestSchema = z.strictObject({
   phoneNumber: phoneField,
   otp: otpField,
@@ -56,3 +63,4 @@ export type UpdateDisplayNameRequest = z.infer<
 export type UserProfile = profile.OwnerProfile;
 export type PublicProfile = profile.PublicMemberProfile;
 export type AccountSummary = profile.AccountSummary;
+export type { DeviceList, SessionSummary } from './sessions.js';

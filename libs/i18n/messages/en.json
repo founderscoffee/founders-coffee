@@ -438,5 +438,16 @@
   "error_contact_code_required": "Enter the six-digit code.",
   "error_contact_unchanged": "That is already your contact.",
   "error_sms_unavailable": "Phone codes are unavailable right now.",
-  "error_contact_change_failed": "That change could not be completed."
+  "error_contact_change_failed": "That change could not be completed.",
+  "devices_manage": "Manage",
+  "devices_title": "Signed-in devices",
+  "devices_this_one": "This device",
+  "devices_unknown": "Unrecognised device",
+  "devices_sign_out": "Sign out",
+  "devices_sign_out_others": "Sign out every other device",
+  "devices_note": "Signing a device out also stops its notifications.",
+  "devices_empty": "No other device is signed in.",
+  "providers_disconnect": "Disconnect",
+  "providers_keep_one": "Keep at least one way to sign in.",
+  "error_last_sign_in_method": "That is your only way to sign in. Add another first."
 }

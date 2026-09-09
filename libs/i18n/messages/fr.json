@@ -438,5 +438,16 @@
   "error_contact_code_required": "Saisissez le code à six chiffres.",
   "error_contact_unchanged": "C'est déjà votre contact.",
   "error_sms_unavailable": "Les codes par SMS sont indisponibles.",
-  "error_contact_change_failed": "Cette modification n'a pas pu aboutir."
+  "error_contact_change_failed": "Cette modification n'a pas pu aboutir.",
+  "devices_manage": "Gérer",
+  "devices_title": "Appareils connectés",
+  "devices_this_one": "Cet appareil",
+  "devices_unknown": "Appareil non identifié",
+  "devices_sign_out": "Déconnecter",
+  "devices_sign_out_others": "Déconnecter tous les autres appareils",
+  "devices_note": "Déconnecter un appareil arrête aussi ses notifications.",
+  "devices_empty": "Aucun autre appareil n'est connecté.",
+  "providers_disconnect": "Déconnecter",
+  "providers_keep_one": "Gardez au moins un moyen de vous connecter.",
+  "error_last_sign_in_method": "C'est votre seul moyen de connexion. Ajoutez-en un autre d'abord."
 }
