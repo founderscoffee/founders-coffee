@@ -14,7 +14,10 @@ export const LIVE_WINDOW_LEAD_MS = HOUR_MS;
  * to when this turns true.
  *
  * An event with no recorded end is treated as running two hours, which is roughly what a coffee
- * meetup runs and is only used to decide when to close the room.
+ * meetup runs. `upcomingScope` in `libs/db/src/events.ts` assumes the same two hours when it
+ * decides an event has stopped being discoverable; the two constants have to agree, or a meetup
+ * disappears from the feed while its room is still open, or keeps a room open after the feed has
+ * moved on.
  */
 export const isLiveWindowOpen = (
   startsAt: Date | number,

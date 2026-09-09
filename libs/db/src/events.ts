@@ -8,6 +8,24 @@ import {
   type NewEvent,
 } from './schema.js';
 
+const ASSUMED_DURATION_SECONDS = 2 * 60 * 60;
+
+/**
+ * The published events a visitor can still turn up to.
+ *
+ * The boundary is the event's *end*, not its start. Dropping an event at `starts_at` would remove a
+ * meetup from discovery while people are still walking into the café — the live room stays open
+ * until the end for exactly that reason, and a feed that has already forgotten the gathering the
+ * live room is hosting contradicts itself. `ends_at` is nullable, so an event without one is
+ * assumed to run two hours, the same assumption `isLiveWindowOpen` makes when it decides to close
+ * the room. Change one and change the other.
+ *
+ * The list and the city/state counts share this, so a badge promising four gatherings and a page
+ * listing three cannot drift apart.
+ */
+const upcomingScope = (now: Date) =>
+  sql`coalesce(${events.endsAt}, ${events.startsAt} + ${ASSUMED_DURATION_SECONDS}) > ${Math.floor(now.getTime() / 1000)}`;
+
 const hostedEventScope = (hostId: string, marketCode?: string) =>
   and(
     eq(events.hostId, hostId),
@@ -73,6 +91,7 @@ export const listUpcomingEvents = async (
     afterStartsAt?: Date;
     afterId?: string;
     limit?: number;
+    now?: Date;
   } = {},
 ): Promise<Event[]> => {
   const cursor = opts.afterStartsAt
@@ -85,13 +104,14 @@ export const listUpcomingEvents = async (
           ),
         )
       : gt(events.startsAt, opts.afterStartsAt)
-    : gt(events.startsAt, new Date(0));
+    : undefined;
 
   return db
     .select()
     .from(events)
     .where(
       and(
+        upcomingScope(opts.now ?? new Date()),
         cursor,
         eq(events.status, 'published'),
         opts.marketCode ? eq(events.marketCode, opts.marketCode) : undefined,
@@ -170,6 +190,7 @@ export const countHostedEvents = async (
 export const countUpcomingByCity = async (
   db: Db,
   marketCode: string,
+  now?: Date,
 ): Promise<Record<string, number>> => {
   const rows = await db
     .select({ cityCode: events.cityCode, count: sql<number>`count(*)` })
@@ -178,7 +199,7 @@ export const countUpcomingByCity = async (
       and(
         eq(events.marketCode, marketCode),
         eq(events.status, 'published'),
-        gt(events.startsAt, new Date()),
+        upcomingScope(now ?? new Date()),
       ),
     )
     .groupBy(events.cityCode);
@@ -190,6 +211,7 @@ export const countUpcomingByCity = async (
 export const countUpcomingByState = async (
   db: Db,
   marketCode: string,
+  now?: Date,
 ): Promise<Record<string, number>> => {
   const rows = await db
     .select({ stateCode: events.stateCode, count: sql<number>`count(*)` })
@@ -198,7 +220,7 @@ export const countUpcomingByState = async (
       and(
         eq(events.marketCode, marketCode),
         eq(events.status, 'published'),
-        gt(events.startsAt, new Date()),
+        upcomingScope(now ?? new Date()),
       ),
     )
     .groupBy(events.stateCode);
