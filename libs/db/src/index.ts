@@ -11,6 +11,7 @@ export * from './waitlist.js';
 export * from './notification-claim.js';
 export * from './notification-failure.js';
 export * from './notifications.js';
+export * from './notification-destinations.js';
 export * from './push.js';
 export * from './users.js';
 export * from './seed.js';

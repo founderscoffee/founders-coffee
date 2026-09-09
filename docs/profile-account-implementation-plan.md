@@ -2,9 +2,9 @@
 
 | Field          | Value                                                                                                                                                                   |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | PF-01 through PF-05 complete locally and audited; PF-03b prepared and deliberately unexecuted; PF-06 onward planned; no remote migration or deployment                  |
+| Status         | PF-01 through PF-07a complete locally and audited; four contractions quarantined and deliberately unexecuted; PF-07b onward planned; no remote migration or deployment  |
 | Decision date  | 2026-09-08                                                                                                                                                              |
-| Last reviewed  | 2026-09-09 — PF-06 implemented and audited against the real R2 and Images bindings                                                                                      |
+| Last reviewed  | 2026-09-09 — PF-07a implemented and audited against real D1                                                                                                             |
 | Owner          | Founder / Product                                                                                                                                                       |
 | Scope          | Location-free onboarding, editable profiles, privacy, photos, notifications, account security, export and deletion                                                      |
 | Parent tickets | P1-003, P1-004, P1-009, P1-013, P1-018, P1-021                                                                                                                          |
@@ -1020,3 +1020,67 @@ remain in place; this amendment does not change unrelated application screens or
 Verification covers localized success/dismissal, expiry, repeated successes, persistent errors,
 editor isolation, save retry, reload failure, security failure and photo action feedback. No new
 service, database migration, commit or push is included in this follow-up.
+
+### PF-07a implementation and audit — 2026-09-09
+
+A scheduled notification carries the address that was true when it was written, which for a 72-hour
+reminder is three days earlier. Nothing rewrites a queued payload, so the dispatcher was sending to
+whoever holds that address today — which for a recycled phone number is a stranger reading
+somebody's plans.
+
+`resolveDestination` reads the answer at send time and every dispatcher is built through the same
+wrapper, so a channel added later cannot quietly opt out: a dispatcher is produced by the guard or
+it is not produced. The resolved address is _returned_ rather than compared, so a member who
+changed their number still gets the reminder they were expecting; only the absence of an address is
+a refusal, and a refusal is permanent, because a removed number is not a condition that a retry in
+five minutes improves.
+
+**What each channel now asks.** SMS requires a verified number, because an unverified one is a
+string somebody typed and the message reaches whoever actually holds it. Email is not held to the
+same test — it is the account identity itself, so there is no unverified alternative address for a
+message to leak to. Push asks the association PF-02 added: a subscription tied to a session is
+deliverable only while that session lives, which is what makes signing a device out stop the
+notifications reaching it.
+
+**A subscription with no association is still deliverable**, and that is the plan's own rule rather
+than an oversight — §5 requires fresh registration or safe withdrawal for legacy unassociated
+subscriptions _before_ the delivery policy is enforced against them. Enforcing it now would
+silently end push for every device registered before the link table existed. The absence of a link
+is missing information, not a revoked one, and PF-07/PF-08 own closing that gap.
+
+**Ban is deliberately not a delivery decision.** The guard reads `account_state` and not `banned`.
+Whether a suppressed member still receives their own reminders is a moderation question belonging
+to CO-09, and reading the ban columns here would have settled it silently, as a side effect of a
+guard nobody reviewed for that.
+
+**Fallback eligibility is decided twice, for two different reasons.** A refusal about the _address_
+— a removed phone — still writes the email fallback, which is exactly what a fallback is for. A
+refusal about the _person_ — a closed account, a recipient that no longer exists — suppresses it,
+because writing one would only queue the same refusal on a second channel and record a delivery
+attempt that was never possible. The fallback is then re-checked when it is dispatched, so an
+account closed between the primary failure and the fallback's turn is refused again rather than
+delivered.
+
+**Three defects found auditing the implementation, all fixed before commit.**
+
+| Defect                                                      | Why it mattered                                                                                                                                                                                           |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getPushTokensByUser` was left exported with zero callers   | An unguarded "every token for this member" reader sitting next to a guard whose entire purpose is filtering that list; renamed `listAllPushTokensByUser` and documented as the wrong one to dispatch from |
+| The `unreachable` tally counted only account-level refusals | It read as "rows the guard refused" and silently under-reported every removed-contact refusal                                                                                                             |
+| Refactoring the refusal flags dropped them at the call site | Fallback suppression stopped working; caught by the test that asserts a closed account writes no fallback, not by the typechecker, which had not been re-run at that point                                |
+
+**Verified against real D1**, in the same Miniflare worker the sweep runs in: a message re-targeted
+to a changed number, dropped for a removed one, dropped for an unverified one, refused for a closing
+and a deleted account, delivered to a live device, withheld from a signed-out one, still delivered
+to a legacy unassociated device, and sent to only the live half of a two-device pair. Plus the
+fallback written when only the phone is gone, withheld when the account is closed, and refused again
+when the account closes between the two.
+
+**Known limit, accepted.** The guard runs inside the dispatcher, which is after
+`beginNotificationDispatch` sets the marker meaning "a provider call may have been made". A sweep
+that dies exactly between the marker and a refusal therefore records the row as unconfirmed rather
+than unreachable. The outcome is the same — the row is retired — and moving the guard earlier would
+mean resolving destinations in the sweep, which is the coupling this ticket exists to avoid.
+
+Next ticket: **PF-07b** — the account and security section and its read model, which PF-07c, PF-07d
+and PF-09 all attach their rows to.

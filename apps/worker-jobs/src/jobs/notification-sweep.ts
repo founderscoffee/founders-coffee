@@ -31,6 +31,7 @@ export interface SweepReport {
   readonly contended: number;
   readonly unconfirmed: number;
   readonly invalidPayload: number;
+  readonly unreachable: number;
 }
 
 const errorMessage = (error: unknown): string =>
@@ -121,12 +122,14 @@ export const sweepNotifications = async (
     contended: 0,
     unconfirmed: 0,
     invalidPayload: 0,
+    unreachable: 0,
   };
 
   const recordFailure = async (
     notification: ScheduledNotification,
     error: string,
     permanent: boolean,
+    suppressFallback = false,
   ): Promise<void> => {
     try {
       const failure = await markNotificationFailed(db, {
@@ -135,6 +138,7 @@ export const sweepNotifications = async (
         permanent,
         fallbackId: id('ntf'),
         now,
+        suppressFallback,
       });
       if (failure.fallbackCreated) tally.fallbacksCreated++;
       if (failure.status === 'failed') tally.failed++;
@@ -206,7 +210,13 @@ export const sweepNotifications = async (
     await beginNotificationDispatch(db, { id: notification.id, now });
     const outcome = await dispatch(dispatcher, notification, parsed.value);
     if (outcome.kind === 'failed') {
-      await recordFailure(notification, outcome.error, outcome.permanent);
+      if (outcome.unreachable) tally.unreachable++;
+      await recordFailure(
+        notification,
+        outcome.error,
+        outcome.permanent,
+        outcome.suppressFallback,
+      );
       continue;
     }
 

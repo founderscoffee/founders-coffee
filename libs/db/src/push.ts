@@ -130,10 +130,14 @@ export const getPushTokensForEvent = async (
 };
 
 /**
- * Get push tokens for a specific user. Used to send push to
- * all of a user's devices (multi-device support).
+ * Every registered token for a member, entitled to delivery or not.
+ *
+ * Kept for administration and for the export PF-09 owes a member about their own devices. It is not
+ * the reader a dispatcher wants: it includes subscriptions whose session has been signed out, which
+ * is precisely what {@link listDeliverablePushTokens} exists to exclude. Sending from this list is
+ * how a signed-out device keeps buzzing.
  */
-export const getPushTokensByUser = async (
+export const listAllPushTokensByUser = async (
   db: Db,
   opts: { userId: string },
 ): Promise<PushSubscriptionRow[]> => {

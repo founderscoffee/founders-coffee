@@ -88,7 +88,7 @@ describe('sweep resolves every selected row', () => {
 
     const row = await rowById(db, rowId);
     expect(row?.status).toBe('failed');
-    expect(row?.lastError).toContain('no_push_tokens');
+    expect(row?.lastError).toContain('no_live_device');
   });
 
   it('delivers push when a device token exists', async () => {

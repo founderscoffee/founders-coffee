@@ -6,6 +6,7 @@ import {
   createEvent,
   enqueueNotification,
   eq,
+  pushSessionLinks,
   pushSubscriptions,
   scheduledNotifications,
   seed,
@@ -24,6 +25,7 @@ import type { DispatchProviders } from './notification-dispatch.js';
 export const HOST_ID = 'usr_sweephost';
 export const MEMBER_ID = 'usr_sweepmember';
 export const EVENT_ID = 'evt_sweep001';
+export const MEMBER_PHONE = '+213600000000';
 
 export const setupDb = async (): Promise<Db> => {
   const db = createDb(env.DB);
@@ -43,6 +45,8 @@ export const setupDb = async (): Promise<Db> => {
         name: 'Sweep Member',
         email: 'member@sweep.test',
         emailVerified: false,
+        phoneNumber: MEMBER_PHONE,
+        phoneNumberVerified: true,
         role: 'member',
       },
     ])
@@ -62,6 +66,17 @@ export const setupDb = async (): Promise<Db> => {
     language: 'fr',
     status: 'published',
   }).catch(() => undefined);
+  await db
+    .update(user)
+    .set({
+      accountState: 'active',
+      phoneNumber: MEMBER_PHONE,
+      phoneNumberVerified: true,
+      email: 'member@sweep.test',
+    })
+    .where(eq(user.id, MEMBER_ID))
+    .run();
+  await db.delete(pushSessionLinks).run();
   await db.delete(scheduledNotifications).run();
   await db.delete(pushSubscriptions).run();
   return db;
@@ -93,7 +108,7 @@ export const enqueue = async (
       startsAt: '2099-01-15T18:00:00.000Z',
       venue: 'Café des Délices, Hydra',
       locale: 'en',
-      phoneNumber: '+213600000000',
+      phoneNumber: MEMBER_PHONE,
       smsBody: 'body',
       email: 'member@sweep.test',
       subject: 'subject',

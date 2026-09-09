@@ -77,6 +77,11 @@ export interface NotificationFailure {
  * can resolve the row; anything else is left alone and reported as `unknown`. A retry releases the
  * claim by clearing `claimed_at` and returning the row to `pending`.
  *
+ * `suppressFallback` withholds the fallback insert for a failure that no channel could survive — a
+ * closed account, a recipient that no longer exists. The fallback exists to reach someone another
+ * way; when the refusal is about the person rather than the address, writing one only queues the
+ * same refusal on a second channel and reports a delivery attempt that was never possible.
+ *
  * `NOTIFICATION_RETRY_BACKOFF_SECONDS` is deliberately short — reminders are time-bound, and a
  * 72-hour reminder delivered a day late is noise. `NOTIFICATION_INSERT_COLUMNS` pins the column
  * list Drizzle generates from the schema for the fallback insert below; a new column on the table
@@ -90,6 +95,7 @@ export const markNotificationFailed = async (
     permanent: boolean;
     fallbackId: string;
     now: Date;
+    suppressFallback?: boolean;
   },
 ): Promise<NotificationFailure> => {
   const nowSeconds = Math.floor(opts.now.getTime() / 1000);
@@ -122,6 +128,7 @@ export const markNotificationFailed = async (
             FROM scheduled_notifications
             WHERE id = ${opts.id}
               AND status = 'failed'
+              AND ${opts.suppressFallback ? 0 : 1} = 1
               AND fallback_channel IS NOT NULL`,
       )
       .onConflictDoNothing(),
