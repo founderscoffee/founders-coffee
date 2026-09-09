@@ -52,11 +52,7 @@ export const readOwnerProfile = (
       getMemberProfile(db, userId),
     ]);
     if (!identity) return err(new AppError('not_found', 'Profile not found'));
-    const name = profile.safeProfileDisplayName(
-      identity.name,
-      identity.email,
-      identity.phoneNumber,
-    );
+    const name = profile.safeProfileDisplayName(identity.name, identity.email);
     return ok(ownerProfileProjection(userId, name, stored?.profile));
   });
 
@@ -118,13 +114,7 @@ export const saveOwnerProfile = (
   profileOperation('update', userId, async () => {
     const identity = await getProfileIdentity(db, userId);
     if (!identity) return err(new AppError('not_found', 'Profile not found'));
-    if (
-      !profile.safeProfileDisplayName(
-        input.displayName,
-        identity.email,
-        identity.phoneNumber,
-      )
-    ) {
+    if (!profile.safeProfileDisplayName(input.displayName, identity.email)) {
       return err(
         new AppError(
           'validation_failed',

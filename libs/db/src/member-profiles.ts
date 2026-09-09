@@ -32,7 +32,6 @@ export const getProfileIdentity = async (db: Db, userId: string) => {
     .select({
       name: user.name,
       email: user.email,
-      phoneNumber: user.phoneNumber,
     })
     .from(user)
     .where(activeProfileIdentity(userId))

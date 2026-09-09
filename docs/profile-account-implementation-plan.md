@@ -688,6 +688,16 @@ Repository sweep green: `npx nx run-many -t typecheck lint test build`, plus `fo
 | Eight residence copy keys survived in all three locales, including `profile_home_location`                | Removed; the plan's "replace the old claim that home location is collected" is done for these  |
 | The 2026-09-09 review claimed `account_state` had no reader                                               | Wrong: `activeProfileIdentity` already enforces it. The claim above is corrected               |
 
+`safeProfileDisplayName` no longer compares a name to the member's phone number. That comparison
+defended against Better Auth's phone-number plugin writing the number straight into `name`, which it
+does when `signUpOnVerification` is configured without a `getTempName` — an option this application
+does not set, on a login surface §5 says will not be built. Meanwhile the session carries no phone,
+so the client could not apply the same rule and the two sides disagreed about whether a member had a
+usable name. **Enabling `signUpOnVerification` later requires supplying `getTempName`**, or the
+plugin will put a phone number where a public display name goes. The §3 contract is unchanged: the
+system still never _falls back_ to a contact address, and a name equal to the email is still refused.
+`getProfileIdentity` also stopped selecting the phone column, since nothing reads it any more.
+
 Not defects, and deliberately not built in an audit: **PF-04b** (optional-field editing, per-field
 publish switches, public preview) and **PF-04c** (paginated hosted events, aggregate counts) have no
 implementation to audit. The public profile still renders name and introduction only and still reads
