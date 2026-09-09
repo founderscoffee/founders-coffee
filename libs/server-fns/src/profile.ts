@@ -7,6 +7,7 @@ import { requirePermission } from './auth-middleware.js';
 import { rateLimit } from './rate-limit.js';
 
 export {
+  getMyAccount,
   getMyProfile,
   getPhotoUploadAvailability,
   getPublicProfile,
@@ -16,6 +17,7 @@ export {
   updateMyDisplayName,
 } from './profile/rpc.js';
 export type {
+  AccountSummary,
   UserProfile,
   PublicProfile,
   UpdateProfileRequest,

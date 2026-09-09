@@ -30,3 +30,4 @@ export type UpdateDisplayNameRequest = z.infer<
 >;
 export type UserProfile = profile.OwnerProfile;
 export type PublicProfile = profile.PublicMemberProfile;
+export type AccountSummary = profile.AccountSummary;

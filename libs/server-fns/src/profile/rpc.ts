@@ -8,6 +8,7 @@ import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import { requireProfileTurnstile } from '../turnstile/middleware.js';
+import { readAccountSummary } from './account.js';
 import { removeCurrentPhoto, reservePhotoUpload } from './photo.js';
 import { photoServices } from './photo-runtime.js';
 import {
@@ -130,5 +131,15 @@ export const removeMyPhoto = createServerFn({ method: 'POST', strict: false })
     privateNoStore();
     return handleResult(
       removeCurrentPhoto(getDb(), requireAuth(context.session).user.id),
+    );
+  });
+
+export const getMyAccount = createServerFn({ strict: false })
+  .middleware([requirePermission('profile', 'read')])
+  .validator(appValidator(emptyProfileRequestSchema))
+  .handler(({ context }) => {
+    privateNoStore();
+    return handleResult(
+      readAccountSummary(getDb(), requireAuth(context.session).user.id),
     );
   });

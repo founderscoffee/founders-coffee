@@ -1,10 +1,13 @@
+import { env } from 'cloudflare:workers';
 import { getTableColumns } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 
-import { events, markets, user } from '@founders-coffee/db';
+import { id } from '@founders-coffee/core';
+import { createDb, events, markets, user } from '@founders-coffee/db';
 import type { Event } from '@founders-coffee/db';
 import { profile } from '@founders-coffee/domain';
 
+import { readAccountSummary } from './profile/account.js';
 import { attachAttendance } from './events/attendance.js';
 import { attachCityNames } from './events/resolver.js';
 import { ownerProfileProjection } from './profile/projection.js';
@@ -144,6 +147,28 @@ describe('public response contract', () => {
     expect(sorted(Object.keys(getTableColumns(markets)))).toEqual(
       sorted(PUBLIC_MARKET_FIELDS),
     );
+  });
+
+  it('keeps the account summary to masked facts, never a contact or a token', async () => {
+    const db = createDb(env.DB);
+    const userId = id('usr');
+    await db
+      .insert(user)
+      .values({ id: userId, name: 'Gate', email: `${userId}@test.coffee` });
+
+    const result = await readAccountSummary(db, userId);
+    if (!result.ok) throw result.error;
+
+    expect(sorted(Object.keys(result.data))).toEqual(
+      sorted(['email', 'phone', 'providers', 'sessionCount', 'userId']),
+    );
+    expect(sorted(Object.keys(result.data.email))).toEqual(
+      sorted(['masked', 'verified']),
+    );
+    expect(sorted(Object.keys(result.data.phone))).toEqual(
+      sorted(['masked', 'verified']),
+    );
+    expect(result.data.email.masked).not.toBe(`${userId}@test.coffee`);
   });
 
   it('treats every non-generic identity column as unpublishable', () => {

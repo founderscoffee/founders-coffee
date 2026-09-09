@@ -15,6 +15,7 @@ export * from './waitlist/index.js';
 export * from './push/index.js';
 export type { EventFeedPage } from './events/resolver.js';
 export {
+  getMyAccount,
   getMyProfile,
   getPhotoUploadAvailability,
   getPublicProfile,
@@ -25,6 +26,7 @@ export {
   updateMyDisplayName,
 } from './profile.js';
 export type {
+  AccountSummary,
   UserProfile,
   PublicProfile,
   UpdateProfileRequest,

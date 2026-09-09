@@ -1084,3 +1084,53 @@ mean resolving destinations in the sweep, which is the coupling this ticket exis
 
 Next ticket: **PF-07b** — the account and security section and its read model, which PF-07c, PF-07d
 and PF-09 all attach their rows to.
+
+### PF-07b implementation and audit — 2026-09-09
+
+`getMyAccount` existed in the §4 interface table and in no ticket's deliverables, which is how a
+declared interface becomes something everyone assumes someone else is building. It exists now, and
+the screen behind it ships **read-only**: six rows that each state what is true, and not one control.
+A button that opens an explanation instead of doing the thing is the inert settings control §7
+forbids, so the rows carry a "changes not available yet" note and nothing to press. PF-07c and
+PF-07d attach the actions to these rows when they land.
+
+**Masked at the server, not on the screen.** The response carries `am•••@example.dz`, never the
+address. That is the difference between a private value displayed carefully and one that is simply
+not sent — and the screen has no use for the raw value while every row is informational. The number
+of dots is fixed rather than proportional, so the mask does not quietly disclose how long the
+address is; the domain is kept whole, because it is not the secret and hiding it would leave the row
+unable to say which of two accounts a member is looking at. A phone shows its country code and last
+two digits, and `null` means no number rather than a hidden one, so the row can say "not added" in
+words instead of dots.
+
+**The column list is the guard.** `account.access_token`, `refresh_token`, `id_token` and `password`
+sit on the same row as the provider id, so a `select()` in the repository would put a live OAuth
+token one projection mistake away from a response. `getAccountSummary` names its columns, and a test
+seeds all four secrets and asserts the serialized response contains none of them.
+
+**Three defects found auditing the implementation, all fixed before commit.**
+
+| Defect                                                                              | Why it mattered                                                                                                                          |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| The client called `getMyAccount()` with no payload where the validator expects `{}` | Every other profile call passes `{ data: {} }`; the UI tests mock the hook, so nothing would have caught it before the screen was opened |
+| The "not available yet" badge sat beside a value                                    | On the email row it read as "your email is not available" rather than "you cannot change it yet"; reworded to name the action            |
+| Masking revealed the local part's length                                            | Proportional dots let an onlooker measure an address they could not read; fixed to a constant                                            |
+
+**Verified against real D1**: masked email and phone, verified flags, providers de-duplicated with
+an unknown identifier dropped, live sessions counted while expired ones are not, two accounts fully
+isolated, a banned or closing identity answering `not_found` the way the rest of the owner surface
+does, and a store failure reported as unavailable rather than as an empty account. The screen's
+states are covered in all three locales — loaded, loading with a stable heading, unavailable,
+signed out — along with the group order the spec asks for, the absence of any control, and keyboard
+reachability of the section nav.
+
+The PF-05 contract gate now covers this projection too, so a field added to the account response
+without a matching change here is a red build.
+
+**Known limits, accepted.** The session count includes the browser reading it, which is accurate but
+does not yet identify the current device — that is PF-07d's row. The section nav is two links,
+because two sections exist; it is the shell entry the ticket asks for, not a design for the
+navigation a fuller settings area would need.
+
+Next ticket: **PF-07c** — verified contact changes, which attaches the first real actions to these
+rows and needs PF-07a's guard, now in place.

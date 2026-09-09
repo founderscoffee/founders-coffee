@@ -9,6 +9,7 @@ import {
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
+import { ProfileSectionNav } from '../../account/components/ProfileSectionNav';
 import { useMyProfile } from '../hooks';
 import { useUnsavedGuard } from '../useUnsavedGuard';
 import { ProfileAccess } from './ProfileAccess';
@@ -23,6 +24,7 @@ export const ProfilePage = ({ locale }: { locale: Locale }) => {
       <h1 className="mb-6 font-display text-h3">
         {profile_title({}, { locale })}
       </h1>
+      <ProfileSectionNav locale={locale} />
       {query.data && query.userId ? (
         <ProfileForm
           key={query.userId}

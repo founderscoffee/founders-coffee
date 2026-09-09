@@ -1,6 +1,6 @@
 /** Profile visibility and session responses must never survive in the service-worker cache. */
 export const isPrivateProfilePath = (pathname: string): boolean =>
-  /^\/(?:profile|onboarding|login|u)(?:\/|$)/.test(pathname) ||
+  /^\/(?:profile|account|onboarding|login|u)(?:\/|$)/.test(pathname) ||
   /^\/(?:_serverFn|api\/auth)(?:\/|$)/.test(pathname);
 
 /** A cached page carries whatever the server rendered for whoever asked for it. */
