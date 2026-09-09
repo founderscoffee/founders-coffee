@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Locale } from '@founders-coffee/i18n';
@@ -18,6 +18,16 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('../../profile/components/ProfileAccess', () => ({
   ProfileAccess: () => <div data-testid="access-recovery" />,
 }));
+vi.mock('../contact-hooks', () => {
+  const idle = () => ({ mutateAsync: vi.fn(), isPending: false });
+  return {
+    useSendEmailChangeCode: idle,
+    useRequestEmailChange: idle,
+    useConfirmEmailChange: idle,
+    useSendPhoneCode: idle,
+    useConfirmPhoneNumber: idle,
+  };
+});
 
 const { AccountPage } = await import('./AccountPage');
 
@@ -68,11 +78,44 @@ describe('the account and security screen', () => {
     expect(screen.getByText('Email code only')).toBeTruthy();
   });
 
-  it('offers no action on a row whose capability has not shipped', () => {
-    const { container } = show({ data: summary() });
+  it('offers an action only where the capability has shipped', () => {
+    show({ data: summary() });
 
-    expect(container.querySelectorAll('button')).toHaveLength(0);
-    expect(screen.getAllByText('Changes not available yet')).toHaveLength(6);
+    expect(screen.getByRole('button', { name: 'Change' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add' })).toBeTruthy();
+    expect(screen.getAllByText('Changes not available yet')).toHaveLength(4);
+  });
+
+  it('opens the change dialog on the row that was pressed', () => {
+    show({ data: summary() });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(
+      screen.getByRole('dialog', { name: 'Add a phone number' }),
+    ).toBeTruthy();
+  });
+
+  it('asks an email change to prove the address already on file', () => {
+    show({ data: summary() });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change' }));
+    const dialog = screen.getByRole('dialog', {
+      name: 'Change your email address',
+    });
+
+    expect(dialog.textContent).toContain('confirm the address we already have');
+    expect(dialog.textContent).toContain('keeps working until the new one');
+  });
+
+  it('offers a way out when the address on file is unreachable', () => {
+    show({ data: summary() });
+    fireEvent.click(screen.getByRole('button', { name: 'Change' }));
+
+    expect(
+      screen.getByRole('dialog', { name: 'Change your email address' })
+        .textContent,
+    ).toContain('contact us and we will verify you another way');
   });
 
   it('groups the rows the way the specification asks for', () => {

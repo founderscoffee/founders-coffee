@@ -81,6 +81,12 @@ const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
  * The captcha plugin is registered unconditionally (see `captchaEndpointsFor` for why) and an absent
  * secret key is not a bypass: the plugin errors on the gated endpoints, and `createAuthHandler`
  * refuses them outright with a clearer 503 before it gets that far.
+ *
+ * `emailOTP.changeEmail.verifyCurrentEmail` is what makes a change of address an act by the person
+ * who already holds it. Without it, anyone sitting at an unlocked session could move the account to
+ * their own address and lock the member out with the account's own recovery flow; with it, the
+ * change costs a code sent to the address currently on file, and the old one stays authoritative
+ * until a second code proves the new one is real.
  */
 export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
@@ -161,6 +167,7 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
         otpLength: 6,
         expiresIn: 1800,
         allowedAttempts: 3,
+        changeEmail: { enabled: true, verifyCurrentEmail: true },
       }),
       phoneNumber({
         sendOTP: async ({ phoneNumber: phone, code }) => {

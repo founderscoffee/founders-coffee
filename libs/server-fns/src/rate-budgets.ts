@@ -21,7 +21,18 @@ export const RATE_BUDGETS = {
       windowMs: 10 * MINUTE_MS,
     },
   },
-  otp: {},
+  otp: {
+    contactCode: {
+      action: 'send_contact_code',
+      limit: 5,
+      windowMs: 10 * MINUTE_MS,
+    },
+    contactChange: {
+      action: 'change_contact',
+      limit: 10,
+      windowMs: 10 * MINUTE_MS,
+    },
+  },
   expensive: {
     photoReservation: {
       action: 'reserve_profile_photo',
@@ -49,9 +60,11 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * it permits.
  *
  * `edit` covers cheap owner writes. `read` covers unauthenticated reads that are cheap per call but
- * enumerable in bulk. `otp` is still declared with no members: OTP sends are governed by Better
- * Auth's own configuration, and an empty category is an honest statement that nothing has claimed
- * it yet rather than a budget invented for an endpoint that does not exist.
+ * enumerable in bulk. `otp` now holds the two halves of a contact change: sending a code costs an
+ * SMS or an email and is bounded tightly, while submitting one is cheap but must not become an
+ * oracle, so it is bounded loosely. Better Auth applies its own per-endpoint limits underneath;
+ * these are the per-identity budgets this product owns, and the two together are the reason a
+ * stolen session cannot walk a member's contact details out of the account.
  *
  * `expensive` holds the two halves of a photo upload, deliberately as separate buckets: a
  * reservation is cheap and a transferred body is not, so spending the reservation allowance must

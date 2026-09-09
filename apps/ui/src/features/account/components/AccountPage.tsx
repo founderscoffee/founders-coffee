@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import {
   account_contacts_note,
   account_contacts_title,
@@ -21,14 +23,19 @@ import {
   account_unavailable,
   account_unverified,
   account_verified,
+  contact_add_phone,
+  contact_change_email,
   type Locale,
 } from '@founders-coffee/i18n';
+import { Button } from '@founders-coffee/ui';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { useMyAccount } from '../hooks';
 import { providerLabel } from '../account-labels';
 import type { AccountSummary } from '../api';
+import type { ContactKind } from '../contact-flow';
 import { AccountRow } from './AccountRow';
+import { ContactDialog } from './ContactDialog';
 import { ProfileSectionNav } from './ProfileSectionNav';
 
 const Group = ({
@@ -66,9 +73,11 @@ const VerifiedChip = ({
 const AccountSections = ({
   locale,
   account,
+  onChange,
 }: {
   locale: Locale;
   account: AccountSummary;
+  onChange: (kind: ContactKind) => void;
 }) => (
   <div className="space-y-6">
     <Group
@@ -80,20 +89,43 @@ const AccountSections = ({
         label={account_email({}, { locale })}
         value={account.email.masked}
         status={
-          <VerifiedChip locale={locale} isVerified={account.email.verified} />
+          <>
+            <VerifiedChip locale={locale} isVerified={account.email.verified} />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onChange('email')}
+            >
+              {contact_change_email({}, { locale })}
+            </Button>
+          </>
         }
-        isPending
       />
       <AccountRow
         locale={locale}
         label={account_phone({}, { locale })}
         value={account.phone.masked ?? account_phone_empty({}, { locale })}
         status={
-          account.phone.masked ? (
-            <VerifiedChip locale={locale} isVerified={account.phone.verified} />
-          ) : undefined
+          <>
+            {account.phone.masked && (
+              <VerifiedChip
+                locale={locale}
+                isVerified={account.phone.verified}
+              />
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onChange('phone')}
+            >
+              {account.phone.masked
+                ? contact_change_email({}, { locale })
+                : contact_add_phone({}, { locale })}
+            </Button>
+          </>
         }
-        isPending
       />
     </Group>
 
@@ -140,6 +172,7 @@ const AccountSections = ({
 
 export const AccountPage = ({ locale }: { locale: Locale }) => {
   const query = useMyAccount();
+  const [changing, setChanging] = useState<ContactKind | null>(null);
   const isLoading =
     query.isAuthLoading ||
     (!!query.userId && query.isPending && !query.isError);
@@ -155,7 +188,11 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
       <ProfileSectionNav locale={locale} />
 
       {query.data ? (
-        <AccountSections locale={locale} account={query.data} />
+        <AccountSections
+          locale={locale}
+          account={query.data}
+          onChange={setChanging}
+        />
       ) : query.isError && query.userId ? (
         <p role="alert" className="text-body-sm text-error">
           {account_unavailable({}, { locale })}
@@ -171,6 +208,13 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
           isAnonymous
           returnPath="/account"
           onRetry={() => void query.refetch()}
+        />
+      )}
+      {changing && (
+        <ContactDialog
+          locale={locale}
+          kind={changing}
+          onClose={() => setChanging(null)}
         />
       )}
     </section>

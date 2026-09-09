@@ -15,12 +15,17 @@ export * from './waitlist/index.js';
 export * from './push/index.js';
 export type { EventFeedPage } from './events/resolver.js';
 export {
+  confirmMyEmailChange,
+  confirmMyPhoneNumber,
   getMyAccount,
   getMyProfile,
   getPhotoUploadAvailability,
   getPublicProfile,
   removeMyPhoto,
+  requestMyEmailChange,
   reserveMyPhotoUpload,
+  sendMyEmailChangeCode,
+  sendMyPhoneCode,
   setHomeLocation,
   updateMyProfile,
   updateMyDisplayName,
