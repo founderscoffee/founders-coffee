@@ -94,7 +94,8 @@ Turnstile gating on the brute-force endpoints). The server-fn primitives live in
   boundary, not just a route guard).
 
 `getAuthEnv` narrows `cloudflare:workers` env to `AuthEnv` (DB + `BETTER_AUTH_SECRET` + `APP_URL`).
-Dev needs `apps/ui/.dev.vars` (`BETTER_AUTH_SECRET`) plus local D1 migrations. Deployed D1 IDs are
+Dev needs `apps/ui/.dev.vars` (`BETTER_AUTH_SECRET`) plus local D1 migrations, applied to the single
+shared state at `.wrangler/state` (see [CI and deployment](./ci.md)). Deployed D1 IDs are
 declared, while account-side database state and real secret presence must be verified through the
 provisioning runbook.
 
