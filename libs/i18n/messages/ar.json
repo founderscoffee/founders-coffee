@@ -388,5 +388,6 @@
   "photo_unsupported": "استخدم صورة بصيغة JPEG أو PNG أو WebP.",
   "photo_reservation_expired": "استغرق ذلك وقتًا طويلاً. اختر الصورة مرة أخرى.",
   "photo_storage_unavailable": "الصور غير متاحة حاليًا. حاول مرة أخرى لاحقًا.",
-  "photo_failed": "تعذّر حفظ هذه الصورة. حاول مرة أخرى."
+  "photo_failed": "تعذّر حفظ هذه الصورة. حاول مرة أخرى.",
+  "nav_signed_in_as": "مسجّل الدخول باسم"
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import {
   nav_login,
   nav_logout,
+  nav_signed_in_as,
   profile_title,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -45,16 +46,25 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
       >
         {initials(user.name, user.email)}
       </summary>
-      <ul className="dropdown-content menu z-50 mt-2 w-44 rounded-box border border-base-300 bg-base-100 p-1 shadow-[var(--shadow-2)]">
-        <li>
-          <Link to="/profile">{profile_title({}, { locale })}</Link>
-        </li>
-        <li>
-          <button type="button" onClick={() => authClient.signOut()}>
-            {nav_logout({}, { locale })}
-          </button>
-        </li>
-      </ul>
+      <div className="dropdown-content z-50 mt-2 flex w-60 flex-col rounded-box border border-base-300 bg-base-100 p-1 shadow-[var(--shadow-2)]">
+        <p className="px-3 pt-2 text-caption text-neutral">
+          {nav_signed_in_as({}, { locale })}
+        </p>
+        <p className="truncate px-3 text-body-sm" title={user.email}>
+          <bdi>{user.email}</bdi>
+        </p>
+        <div className="divider my-1" role="presentation" />
+        <ul className="menu w-full p-0">
+          <li>
+            <Link to="/profile">{profile_title({}, { locale })}</Link>
+          </li>
+          <li>
+            <button type="button" onClick={() => authClient.signOut()}>
+              {nav_logout({}, { locale })}
+            </button>
+          </li>
+        </ul>
+      </div>
     </details>
   );
 };

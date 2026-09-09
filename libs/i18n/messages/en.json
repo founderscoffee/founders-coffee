@@ -388,5 +388,6 @@
   "photo_unsupported": "Use a JPEG, PNG or WebP photo.",
   "photo_reservation_expired": "That took too long. Choose the photo again.",
   "photo_storage_unavailable": "Photos are unavailable right now. Try again later.",
-  "photo_failed": "That photo could not be saved. Try again."
+  "photo_failed": "That photo could not be saved. Try again.",
+  "nav_signed_in_as": "Signed in as"
 }
