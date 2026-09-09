@@ -4,7 +4,7 @@
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status         | PF-01 through PF-05 complete locally and audited; PF-03b prepared and deliberately unexecuted; PF-06 onward planned; no remote migration or deployment                  |
 | Decision date  | 2026-09-08                                                                                                                                                              |
-| Last reviewed  | 2026-09-09 — PF-05 implemented and audited; findings folded in below                                                                                                    |
+| Last reviewed  | 2026-09-09 — PF-05 implemented and audited; PF-06 costed and scoped to R2 plus free transformations                                                                     |
 | Owner          | Founder / Product                                                                                                                                                       |
 | Scope          | Location-free onboarding, editable profiles, privacy, photos, notifications, account security, export and deletion                                                      |
 | Parent tickets | P1-003, P1-004, P1-009, P1-013, P1-018, P1-021                                                                                                                          |
@@ -250,10 +250,38 @@ login, profile editing and account reauthentication never create an event or RSV
 
 ### Photos and Cloudflare provisioning
 
-PF-06 must verify current official R2/Images documentation, account entitlements, pricing, billing caps
-and staging/production resource isolation before provisioning. A Free Workers/WAF setup does not by
-itself establish that image processing/storage is free. No cost figure or entitlement was verified in
-this source audit. The provider interface does not prove a deployed Images pipeline exists.
+**Decided 2026-09-09: R2 for storage, the Images binding for resizing, and no Cloudflare Images
+subscription.** Cloudflare bills Images storage and Images transformations separately, and only the
+first is a cost we would be adding for avatars:
+
+| Product                     | Rate (verified 2026-09-09)                                                                                                  | Decision                                                      |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Images storage and delivery | $5 / 100k images stored / month, $1 / 100k delivered                                                                        | **Not used.** This is the cost the owner declined for avatars |
+| Images transformations      | 5,000 unique transformations / month free, then $0.50 / 1,000; images stored in R2 are explicitly included in the free tier | **Used.** Free at this scale                                  |
+| R2 Standard                 | 10 GB-month, 1M Class A, 10M Class B, zero egress free; then $0.015/GB-month, $4.50/M Class A, $0.36/M Class B              | **Used.** Free at this scale                                  |
+
+At roughly 30 KB per stored variant and two variants per member, the R2 free tier holds on the order
+of 150,000 members before storage is billable, and egress is free at any volume.
+
+Entitlement verified on 2026-09-09 against account `01e05c68…0561f7`: R2 is enabled and holds zero
+buckets, and the API token now carries R2 edit. Every account begins on the Images Free plan, so the
+transformation tier needs no subscription; the token's Images API permission is **not** required for
+the binding, which is a Workers runtime feature declared in Wrangler config rather than a resource
+provisioned through the API.
+
+**Resize once at upload, never per read.** A transformation is counted once per unique combination of
+source image and parameters _per calendar month_. Transforming on read resets that counter every
+month and scales it with cache misses; transforming at upload makes the monthly count equal the
+number of avatar uploads, which is bounded by what members actually do and far below the free
+ceiling. Use the Images **binding** (`env.IMAGES.input(bytes).transform(...).output(...)`), which
+accepts raw bytes: the URL-based `fetch(cf.image)` form needs a publicly fetchable source and would
+force the bucket public, which this plan forbids.
+
+**Known limit, accepted:** exceeding 5,000 transformations in a month on the Free plan _errors_
+rather than billing. That is the preferred failure — no surprise invoice — but it means an upload can
+fail for a reason the member did not cause, so the upload path needs an honest error state and the
+transformation count needs somewhere to be seen. Reading transformation usage needs a Cloudflare
+Images read permission the token does not currently have.
 
 Use Worker-mediated bounded uploads to an owned private R2 key, validate MIME plus actual decoded
 format/dimensions, and reject SVG, animated content, malformed/polyglot files and excessive dimensions.
@@ -417,9 +445,11 @@ inside a feature PR. It is a release, not a code change: the SQL is already writ
 
 **Requirements:** FR-A11, FR-A6; NFR-4, NFR-5, NFR-8, NFR-12. **Depends on:** PF-02, PF-03a, PF-05.
 
-- Verify R2/Images entitlements and cost, implement the provider, provision isolated approved resources, and declare local/staging/production bindings and types using existing Wrangler conventions.
+- Provision one **private** R2 bucket per environment — never one bucket shared across them — and declare the `r2_buckets` and `images` bindings plus their types in `apps/ui/wrangler.jsonc` and `apps/worker-jobs/wrangler.jsonc` under the existing per-environment convention. No Cloudflare Images storage subscription; see §5 for the cost decision and the figures behind it.
+- Implement the provider on the existing `R2ImageProvider` seam in `libs/infra/src/images/provider.ts`, which today is a read-only `fetch(key)` and has no upload, validation, normalization or cleanup.
+- Resize at upload through the Images binding: originals stay private in R2, two bounded avatar variants are written back beside them, and delivery is a Worker route enforcing the current publication state. The re-encode is also what strips EXIF and GPS, so metadata removal is not a separate step.
 - Build accessible upload/preview/replace/remove with bounded server validation, normalization, metadata removal, private originals, publication-aware delivery and orphan cleanup.
-- Acceptance: malformed/oversized uploads fail safely; user B cannot read/manage user A's private assets; old URLs fail after withdrawal; replacement failure retains the old image; real local R2 and staged Images behavior verified. No upload control ships before the real provider works.
+- Acceptance: malformed/oversized uploads fail safely; user B cannot read/manage user A's private assets; old URLs fail after withdrawal; replacement failure retains the old image; a transformation refused at the free-tier ceiling surfaces as an honest upload failure rather than a broken avatar; real local R2 and staged Images behavior verified. No upload control ships before the real provider works.
 
 ### PF-07a — Dispatcher current-destination and lifecycle guard
 
