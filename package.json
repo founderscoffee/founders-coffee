@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "build": "nx run-many -t build",
+    "postinstall": "node tools/local-state/link-state.mjs",
+    "setup:local": "node tools/local-state/link-state.mjs",
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
     "typecheck": "nx run-many -t typecheck",

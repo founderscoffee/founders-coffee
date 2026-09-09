@@ -166,16 +166,22 @@ by every app. Wrangler resolves `.wrangler/state` against the working directory,
 app had its own D1 file under the same database name: `migrate:local` migrated the `apps/worker-jobs`
 copy while `npm run ui:dev` served the `apps/ui` copy, and a migration could report success against a
 database nothing reads. `apps/ui` sets `persistState` on the Cloudflare Vite plugin and
-`apps/worker-jobs` passes `--persist-to ../../.wrangler/state`; a one-off CLI command needs the same
-flag, run from an app directory so Wrangler can find the binding:
+`apps/worker-jobs` passes `--persist-to ../../.wrangler/state`.
+
+A one-off CLI command needs neither flag. Without `--persist-to`, Wrangler resolves `.wrangler/state`
+relative to the app's Wrangler configuration file — there is no persist key and no environment
+variable to change that, only the flag. `npm run setup:local` (also run on `postinstall`) therefore
+symlinks each `apps/*/.wrangler/state` at the shared directory, so the default path lands on the
+shared database whether or not anyone remembers:
 
 ```sh
 cd apps/ui && npx wrangler d1 execute founders-coffee-db-staging \
-  --local --persist-to ../../.wrangler/state --command "SELECT COUNT(*) FROM user"
+  --local --command "SELECT COUNT(*) FROM user"
 ```
 
-Omitting `--persist-to` silently creates a second, empty database in that app's directory. If a query
-returns nothing you expected, check for a stray `apps/*/.wrangler/state` before suspecting the data.
+The linker never deletes an app-local state directory that holds data; it reports it and leaves it,
+because that directory is somebody's database. Move what you need into `.wrangler/state`, delete the
+rest, and run `npm run setup:local` again.
 
 ## Required GitHub configuration
 
