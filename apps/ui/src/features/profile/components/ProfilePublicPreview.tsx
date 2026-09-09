@@ -1,4 +1,5 @@
 import {
+  profile_photo_of,
   profile_preview_draft,
   profile_preview_empty,
   profile_preview_hint,
@@ -7,6 +8,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { initials } from '../../../lib/utils';
+import { profilePhotoUrl } from '../photo-url';
 import { localeLabel, roleLabel, topicLabel } from '../profile-labels';
 import type { PublicProfile } from '../api';
 
@@ -39,9 +41,25 @@ export const ProfilePublicPreview = ({
       )}
 
       <div className="mt-4 rounded-box border border-base-300 bg-base-100 p-5">
-        <div className="avatar avatar-placeholder" aria-hidden="true">
+        <div
+          className="avatar avatar-placeholder"
+          aria-hidden={preview.photoAssetId ? undefined : true}
+        >
           <div className="w-14 rounded-full bg-base-200 text-base-content">
-            <span className="text-h4">{initials(preview.displayName)}</span>
+            {preview.photoAssetId ? (
+              <img
+                src={profilePhotoUrl(preview.photoAssetId, 'md')}
+                alt={profile_photo_of(
+                  { name: preview.displayName },
+                  { locale },
+                )}
+                width={56}
+                height={56}
+                className="rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-h4">{initials(preview.displayName)}</span>
+            )}
           </div>
         </div>
         <p className="mt-3 font-display text-h4 break-words">

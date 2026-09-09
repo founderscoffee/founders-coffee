@@ -8,6 +8,8 @@ import {
   profile_intro_card_title,
   profile_link_invalid,
   profile_name_invalid,
+  profile_photo_card_subtitle,
+  profile_photo_card_title,
   profile_reload,
   profile_retry,
   profile_save,
@@ -21,7 +23,7 @@ import { Turnstile } from '../../../components/auth/Turnstile';
 import { usePublicAuthConfig } from '../../auth/hooks';
 import type { PublicProfile, UserProfile } from '../api';
 import { profileErrorMessage } from '../errors';
-import { useUpdateProfile } from '../hooks';
+import { usePhotoUploadAvailability, useUpdateProfile } from '../hooks';
 import {
   commandFrom,
   draftFrom,
@@ -31,6 +33,7 @@ import {
 } from '../profile-draft';
 import { ProfileDetailFields } from './ProfileDetailFields';
 import { ProfileIntroFields } from './ProfileIntroFields';
+import { ProfilePhotoField } from './ProfilePhotoField';
 import { ProfilePublicPreview } from './ProfilePublicPreview';
 
 const Card = ({
@@ -71,6 +74,7 @@ export const ProfileForm = ({
   const nameRef = useRef<HTMLInputElement>(null);
   const mutation = useUpdateProfile();
   const config = usePublicAuthConfig();
+  const photos = usePhotoUploadAvailability();
 
   const isDirty = isDraftDirty(draft, base);
   const canVerify = !!token || config.data?.isTurnstileBypassed === true;
@@ -90,6 +94,19 @@ export const ProfileForm = ({
   const adopt = (next: UserProfile) => {
     setBase(next);
     setDraft(draftFrom(next));
+  };
+
+  const applyPhoto = (photoAssetId: string | null) => {
+    const patch = <T extends ProfileDraft>(current: T): T => ({
+      ...current,
+      photoAssetId,
+      visibility: {
+        ...current.visibility,
+        photo: photoAssetId === null ? false : current.visibility.photo,
+      },
+    });
+    setBase(patch);
+    setDraft(patch);
   };
 
   const submit = async (event: FormEvent) => {
@@ -140,6 +157,26 @@ export const ProfileForm = ({
       className="grid gap-6 lg:grid-cols-[1fr_17rem] lg:items-start"
     >
       <div className="space-y-6">
+        {photos.data?.enabled === true && (
+          <Card
+            title={profile_photo_card_title({}, { locale })}
+            subtitle={profile_photo_card_subtitle({}, { locale })}
+          >
+            <ProfilePhotoField
+              locale={locale}
+              displayName={draft.displayName}
+              photoAssetId={draft.photoAssetId}
+              isPublic={draft.visibility.photo}
+              isDisabled={mutation.isPending}
+              turnstileToken={token ?? undefined}
+              onPhotoChange={applyPhoto}
+              onPublishChange={(photo) =>
+                change({ visibility: { ...draft.visibility, photo } })
+              }
+            />
+          </Card>
+        )}
+
         <Card
           title={profile_intro_card_title({}, { locale })}
           subtitle={profile_intro_card_subtitle({}, { locale })}

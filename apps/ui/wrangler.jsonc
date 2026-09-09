@@ -36,6 +36,10 @@
       "migrations_dir": "../../libs/db/migrations",
     },
   ],
+  "r2_buckets": [
+    { "binding": "PROFILE_ASSETS", "bucket_name": "founders-coffee-assets-dev" },
+  ],
+  "images": { "binding": "IMAGES" },
   "durable_objects": {
     "bindings": [
       { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
@@ -78,6 +82,13 @@
           "migrations_dir": "../../libs/db/migrations",
         },
       ],
+      "r2_buckets": [
+        {
+          "binding": "PROFILE_ASSETS",
+          "bucket_name": "founders-coffee-assets-staging",
+        },
+      ],
+      "images": { "binding": "IMAGES" },
       "durable_objects": {
         "bindings": [
           { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
@@ -107,6 +118,13 @@
           "migrations_dir": "../../libs/db/migrations",
         },
       ],
+      "r2_buckets": [
+        {
+          "binding": "PROFILE_ASSETS",
+          "bucket_name": "founders-coffee-assets-production",
+        },
+      ],
+      "images": { "binding": "IMAGES" },
       "durable_objects": {
         "bindings": [
           { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },

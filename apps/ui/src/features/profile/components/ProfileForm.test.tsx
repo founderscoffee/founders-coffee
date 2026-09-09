@@ -8,6 +8,9 @@ const state = vi.hoisted(() => ({
   save: vi.fn(),
   reset: vi.fn(),
   refetch: vi.fn(),
+  upload: vi.fn(),
+  removePhoto: vi.fn(),
+  photos: { enabled: false } as { enabled: boolean } | undefined,
   config: {
     data: {
       isTurnstileBypassed: true,
@@ -24,6 +27,9 @@ vi.mock('../hooks', () => ({
     isPending: false,
     isSuccess: false,
   }),
+  usePhotoUploadAvailability: () => ({ data: state.photos }),
+  usePhotoUpload: () => ({ mutateAsync: state.upload, isPending: false }),
+  useRemovePhoto: () => ({ mutateAsync: state.removePhoto, isPending: false }),
 }));
 vi.mock('../../auth/hooks', () => ({
   usePublicAuthConfig: () => ({ ...state.config, refetch: state.refetch }),

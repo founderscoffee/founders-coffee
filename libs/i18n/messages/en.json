@@ -373,5 +373,20 @@
   "locale_en": "English",
   "showing_count": "Showing {shown} of {total}",
   "hosted_events": "Gatherings hosted",
-  "event_past": "Past"
+  "event_past": "Past",
+  "profile_photo_card_title": "Your photo",
+  "profile_photo_card_subtitle": "A face makes a first coffee easier. JPEG, PNG or WebP, up to 5 MB.",
+  "profile_photo_choose": "Choose a photo",
+  "profile_photo_replace": "Replace photo",
+  "profile_photo_remove": "Remove photo",
+  "profile_photo_uploading": "Uploading…",
+  "profile_photo_saved": "Photo saved",
+  "profile_photo_alt": "Your profile photo",
+  "profile_photo_of": "Photo of {name}",
+  "photo_too_large": "That photo is too large. Choose one under 5 MB.",
+  "photo_too_small": "That photo is too small. Use one at least 64 pixels wide.",
+  "photo_unsupported": "Use a JPEG, PNG or WebP photo.",
+  "photo_reservation_expired": "That took too long. Choose the photo again.",
+  "photo_storage_unavailable": "Photos are unavailable right now. Try again later.",
+  "photo_failed": "That photo could not be saved. Try again."
 }

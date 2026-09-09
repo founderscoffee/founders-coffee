@@ -22,7 +22,18 @@ export const RATE_BUDGETS = {
     },
   },
   otp: {},
-  expensive: {},
+  expensive: {
+    photoReservation: {
+      action: 'reserve_profile_photo',
+      limit: 5,
+      windowMs: 10 * MINUTE_MS,
+    },
+    photoUpload: {
+      action: 'upload_profile_photo',
+      limit: 5,
+      windowMs: 10 * MINUTE_MS,
+    },
+  },
 } as const satisfies Record<string, Record<string, RateBudget>>;
 
 export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
@@ -38,10 +49,16 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * it permits.
  *
  * `edit` covers cheap owner writes. `read` covers unauthenticated reads that are cheap per call but
- * enumerable in bulk. `otp` and `expensive` are declared with no members on purpose: OTP sends are
- * still governed by Better Auth's own configuration, and upload/export budgets arrive with PF-06
- * and PF-09. An empty category is an honest statement that nothing has claimed it yet; inventing a
- * budget for an endpoint that does not exist would be a claim that it is protected.
+ * enumerable in bulk. `otp` is still declared with no members: OTP sends are governed by Better
+ * Auth's own configuration, and an empty category is an honest statement that nothing has claimed
+ * it yet rather than a budget invented for an endpoint that does not exist.
+ *
+ * `expensive` holds the two halves of a photo upload, deliberately as separate buckets: a
+ * reservation is cheap and a transferred body is not, so spending the reservation allowance must
+ * not also buy the right to send five more megabytes. Five each per ten minutes bounds a member to
+ * roughly twenty-five megabytes of transfer and five transformations in that window — the
+ * transformation count is what the free tier meters — and the sweeper reclaims whatever those
+ * uploads abandoned. The export budget still arrives with PF-09.
  */
 export const allRateBudgets = (): ReadonlyArray<
   RateBudget & { category: RateBudgetCategory }

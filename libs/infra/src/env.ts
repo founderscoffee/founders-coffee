@@ -5,6 +5,8 @@ export interface WorkerEnv {
   readonly EVENT_LIVE?: DurableObjectNamespace;
   readonly EMAIL?: unknown;
   readonly ANALYTICS?: AnalyticsEngineDataset;
+  readonly PROFILE_ASSETS?: R2Bucket;
+  readonly IMAGES?: ImagesBinding;
 
   readonly APP_URL?: string;
   readonly APP_ENVIRONMENT?: string;

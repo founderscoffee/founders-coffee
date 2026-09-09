@@ -20,6 +20,12 @@
       "migrations_dir": "../../libs/db/migrations",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "PROFILE_ASSETS",
+      "bucket_name": "founders-coffee-assets-dev",
+    },
+  ],
   "send_email": [{ "name": "EMAIL" }],
   "ai": { "binding": "AI" },
   "vectorize": [
@@ -56,6 +62,12 @@
           "database_name": "founders-coffee-db-staging",
           "database_id": "cbbba018-a4e3-491a-9a02-7995aa45315b",
           "migrations_dir": "../../libs/db/migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "PROFILE_ASSETS",
+          "bucket_name": "founders-coffee-assets-staging",
         },
       ],
       "send_email": [{ "name": "EMAIL" }],
@@ -100,6 +112,12 @@
           "database_name": "founders-coffee-db-production",
           "database_id": "7685fda1-7bc0-4907-a37a-a77e8daa5ecb",
           "migrations_dir": "../../libs/db/migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "PROFILE_ASSETS",
+          "bucket_name": "founders-coffee-assets-production",
         },
       ],
       "send_email": [{ "name": "EMAIL" }],

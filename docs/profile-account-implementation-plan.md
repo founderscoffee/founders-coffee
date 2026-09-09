@@ -4,7 +4,7 @@
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status         | PF-01 through PF-05 complete locally and audited; PF-03b prepared and deliberately unexecuted; PF-06 onward planned; no remote migration or deployment                  |
 | Decision date  | 2026-09-08                                                                                                                                                              |
-| Last reviewed  | 2026-09-09 — PF-05 implemented and audited; PF-06 costed and scoped to R2 plus free transformations                                                                     |
+| Last reviewed  | 2026-09-09 — PF-06 implemented and audited against the real R2 and Images bindings                                                                                      |
 | Owner          | Founder / Product                                                                                                                                                       |
 | Scope          | Location-free onboarding, editable profiles, privacy, photos, notifications, account security, export and deletion                                                      |
 | Parent tickets | P1-003, P1-004, P1-009, P1-013, P1-018, P1-021                                                                                                                          |
@@ -525,7 +525,7 @@ a provisioning decision that may not survive its own cost review.
 
 **Requirements:** FR-A10, FR-E12; NFR-4, NFR-5, NFR-7. **Depends on:** PF-07d, PF-08, PF-09 and the applicable CO-03/05/06/09 persistence/cancellation/retention adapters.
 
-- Migrate unsafe cascade relationships — ten tables currently cascade off `user.id` — and implement lifecycle state, immediate access withdrawal, upcoming event/RSVP handling, retained pseudonymous history and idempotent asset/notification cleanup. The asset-cleanup step is a verified no-op until PF-06 exists; deletion does not wait for photo storage.
+- Migrate unsafe cascade relationships — ten tables currently cascade off `user.id` — and implement lifecycle state, immediate access withdrawal, upcoming event/RSVP handling, retained pseudonymous history and idempotent asset/notification cleanup. **`profile_assets` cascades off `user.id`, and PF-06 made that a leak rather than a no-op:** the nightly sweeper finds objects to delete by reading the row that names their key, so a cascade-deleted row strands its bytes in R2 permanently. Deletion must remove the object prefix, or retire the assets, _before_ the row goes.
 - Add crash recovery, admin attention for unresolved event/retention cases, private progress and expiry/purge routines. Block raw Better Auth deletion from bypassing the lifecycle.
 - Attach the **delete account** row on the PF-07b screen, last in its group and in readable error colour. Its confirmation states what happens to upcoming events the member hosts or attends, that access ends immediately, which records are retained under the existing policy and that completion is asynchronous. Reauthentication is required. No emotionally manipulative retention copy, and no success screen before the backend confirms.
 - Acceptance: deletion retries converge; active sessions fail immediately; future RSVP counters stay correct; start-time eligibility remains frozen; attendee notices survive host removal; event/CO aggregates remain truthful; no deleted-account notification or public asset is delivered.
@@ -856,3 +856,63 @@ and lifecycle transitions that set `account_state` (PF-10).
 
 Next ticket: **PF-06** — managed profile photos, which needs verified R2/Images entitlements on the
 account before any upload control ships.
+
+### PF-06 implementation and audit — 2026-09-09
+
+Built as §5 decided: private R2 for the bytes, the Images binding for the resize, no Cloudflare
+Images subscription. `founders-coffee-assets-{dev,staging,production}` are declared per environment
+in both `apps/ui/wrangler.jsonc` and `apps/worker-jobs/wrangler.jsonc`; **no bucket has been created
+on the account** — the token now carries R2 edit and R2 reports zero buckets, and provisioning waits
+for the owner.
+
+**Reserve, then transfer.** `reserveMyPhotoUpload` is a cheap JSON server function carrying the
+Turnstile challenge and its own rate budget; the bytes then go to `PUT /api/profile/photo/:assetId`
+as a raw body. The split is what lets each half be protected properly: a challenge cannot ride along
+on an image stream, and a multi-megabyte request should not be the first thing an unproven caller
+gets to send. The reservation was already in the schema from PF-02 and had no caller until now.
+
+**The order of writes is the contract.** Nothing is stored until the bytes decode; variants are
+written before the row is told they exist; the profile points at the asset only once both are true.
+A failure at any step leaves the member with the photo they already had. The original is kept
+because a future size cannot be derived from a 96-pixel square, and it has no delivery path —
+`/media/profile/:id/original` is a 404 by construction, since the route parses the variant against
+the declared enum.
+
+**Delivery asks the publication question on every request.** `private, no-cache` stores the response
+and revalidates before each use, so a withdrawal takes effect on the next request rather than
+whenever a max-age lapses, while the common case still costs a 304. `Vary: Cookie` is required
+because the answer depends on the asker: an owner sees their own unpublished photo, nobody else
+does. A suppressed identity's photo is withheld from everyone including the owner, through the same
+`visibleIdentity` predicate PF-05 introduced.
+
+**Three defects found by auditing the implementation, all fixed before commit.**
+
+| Defect                                                                                             | Why it mattered                                                                                                                                                                                          |
+| -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Both statements of the attach batch ran unconditionally                                            | Promoting an already-retired asset failed to promote it and still pointed the profile at it — a member's photo replaced by one being deleted                                                             |
+| Guarding both statements then broke the happy path                                                 | A D1 batch runs in order inside one transaction, so the second statement's guard read state the first had already changed; the profile update is now first, and both read the state the batch began with |
+| `attachReadyProfilePhoto` returned `string \| null`, conflating "no previous photo" with "refused" | A refused promotion read as a successful first upload, and the caller returned `ok` having attached nothing                                                                                              |
+
+The upload endpoint also refuses a request whose `Sec-Fetch-Site` says another site started it.
+That is belt-and-braces — the session cookie is `SameSite=Lax` and would not be sent — but it states
+the rule where it can be read rather than inferred from a cookie attribute three files away.
+
+**Verified against the real bindings, not doubles.** Miniflare provides both `PROFILE_ASSETS` and
+`IMAGES` in the test worker, so the pipeline is exercised end to end: a 320×240 PNG becomes two
+square WebPs, an SVG and a 32-pixel image are refused, a reservation is spent once, another member's
+reservation is refused, and a replacement retires its predecessor. Then driven in the browser in
+Arabic: upload, the stored object read back from local R2 as a genuine `256x256` WebP, anonymous
+delivery 404 while unpublished and 200 after publishing, replacement minting a new id while the old
+one 404s immediately, and removal restoring the initials with the bytes withheld from the owner too.
+
+**Known limits, accepted.** The nightly sweeper runs at 03:00, so a reservation abandoned at 09:00
+is invisible but not collected for a day — it is a row and, at most, one unreferenced object.
+Delivery is not rate-limited: a page shows many avatars from one viewer, and a per-identity bucket
+would refuse a legitimate feed before it refused anything else. Past 5,000 transformations in a
+month the free tier errors rather than bills, which surfaces as an honest upload failure; reading
+that usage needs a Cloudflare Images read permission the token does not have.
+
+**Before this can be deployed:** create the three buckets. Nothing else is outstanding.
+
+Next ticket: **PF-07a** — the dispatcher current-destination and lifecycle guard, which PF-07c/d,
+PF-08 and CO-02 all consume.

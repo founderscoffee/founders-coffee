@@ -373,5 +373,20 @@
   "locale_en": "Anglais",
   "showing_count": "{shown} sur {total}",
   "hosted_events": "Rencontres organisées",
-  "event_past": "Passée"
+  "event_past": "Passée",
+  "profile_photo_card_title": "Votre photo",
+  "profile_photo_card_subtitle": "Un visage facilite le premier café. JPEG, PNG ou WebP, jusqu'à 5 Mo.",
+  "profile_photo_choose": "Choisir une photo",
+  "profile_photo_replace": "Remplacer la photo",
+  "profile_photo_remove": "Retirer la photo",
+  "profile_photo_uploading": "Envoi…",
+  "profile_photo_saved": "Photo enregistrée",
+  "profile_photo_alt": "Votre photo de profil",
+  "profile_photo_of": "Photo de {name}",
+  "photo_too_large": "Cette photo est trop lourde. Choisissez-en une de moins de 5 Mo.",
+  "photo_too_small": "Cette photo est trop petite. Utilisez-en une d'au moins 64 pixels de large.",
+  "photo_unsupported": "Utilisez une photo JPEG, PNG ou WebP.",
+  "photo_reservation_expired": "Cela a pris trop de temps. Choisissez à nouveau la photo.",
+  "photo_storage_unavailable": "Les photos sont indisponibles pour le moment. Réessayez plus tard.",
+  "photo_failed": "Cette photo n'a pas pu être enregistrée. Réessayez."
 }

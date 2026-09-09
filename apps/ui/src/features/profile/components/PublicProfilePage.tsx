@@ -1,6 +1,7 @@
 import {
   event_past,
   hosted_events,
+  profile_photo_of,
   public_no_events,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -10,6 +11,7 @@ import { LoadMoreEvents } from '../../../components/events/LoadMoreEvents';
 import { useHostedEvents } from '../../events/hooks';
 import { useEventPages } from '../../events/useEventPages';
 import { initials } from '../../../lib/utils';
+import { profilePhotoUrl } from '../photo-url';
 import { localeLabel, roleLabel, topicLabel } from '../profile-labels';
 import type { EventFeedItem } from '../../events/api';
 import type { Market } from '../../markets/api';
@@ -39,9 +41,27 @@ export const PublicProfilePage = ({
       <div className="card border border-base-300 bg-base-200">
         <div className="card-body gap-6">
           <div className="flex items-center gap-4">
-            <div className="avatar avatar-placeholder" aria-hidden="true">
+            <div
+              className="avatar avatar-placeholder"
+              aria-hidden={profile.photoAssetId ? undefined : true}
+            >
               <div className="w-16 rounded-full bg-neutral text-neutral-content">
-                <span className="text-h3">{initials(profile.displayName)}</span>
+                {profile.photoAssetId ? (
+                  <img
+                    src={profilePhotoUrl(profile.photoAssetId, 'md')}
+                    alt={profile_photo_of(
+                      { name: profile.displayName },
+                      { locale },
+                    )}
+                    width={64}
+                    height={64}
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-h3">
+                    {initials(profile.displayName)}
+                  </span>
+                )}
               </div>
             </div>
             <h1 className="font-display text-h2 break-words">

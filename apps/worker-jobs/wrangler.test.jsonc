@@ -10,6 +10,9 @@
   "d1_databases": [
     { "binding": "DB", "database_name": "db", "database_id": "test" },
   ],
+  "r2_buckets": [
+    { "binding": "PROFILE_ASSETS", "bucket_name": "profile-assets-test" },
+  ],
   "send_email": [
     { "name": "EMAIL", "allowed_destination_addresses": ["ok@example.com"] },
   ],

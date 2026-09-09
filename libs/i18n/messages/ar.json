@@ -373,5 +373,20 @@
   "locale_en": "الإنجليزية",
   "showing_count": "{shown} من {total}",
   "hosted_events": "اللقاءات التي استضافها",
-  "event_past": "انتهى"
+  "event_past": "انتهى",
+  "profile_photo_card_title": "صورتك",
+  "profile_photo_card_subtitle": "الوجه يسهّل أول لقاء. JPEG أو PNG أو WebP، حتى 5 ميغابايت.",
+  "profile_photo_choose": "اختر صورة",
+  "profile_photo_replace": "استبدال الصورة",
+  "profile_photo_remove": "إزالة الصورة",
+  "profile_photo_uploading": "جارٍ الرفع…",
+  "profile_photo_saved": "تم حفظ الصورة",
+  "profile_photo_alt": "صورة ملفك الشخصي",
+  "profile_photo_of": "صورة {name}",
+  "photo_too_large": "هذه الصورة كبيرة جدًا. اختر واحدة أقل من 5 ميغابايت.",
+  "photo_too_small": "هذه الصورة صغيرة جدًا. استخدم واحدة بعرض 64 بكسل على الأقل.",
+  "photo_unsupported": "استخدم صورة بصيغة JPEG أو PNG أو WebP.",
+  "photo_reservation_expired": "استغرق ذلك وقتًا طويلاً. اختر الصورة مرة أخرى.",
+  "photo_storage_unavailable": "الصور غير متاحة حاليًا. حاول مرة أخرى لاحقًا.",
+  "photo_failed": "تعذّر حفظ هذه الصورة. حاول مرة أخرى."
 }

@@ -14,6 +14,11 @@
       "types": "./src/request-context.ts",
       "default": "./src/request-context.ts"
     },
+    "./profile-photo-http": {
+      "@founders-coffee/source": "./src/profile/photo-http.ts",
+      "types": "./src/profile/photo-http.ts",
+      "default": "./src/profile/photo-http.ts"
+    },
     "./rate-limiter-do": {
       "@founders-coffee/source": "./src/rate-limiter-do.ts",
       "types": "./src/rate-limiter-do.ts",

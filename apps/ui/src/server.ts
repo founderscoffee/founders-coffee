@@ -10,6 +10,7 @@ import {
   type LogEntry,
 } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
+import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
@@ -99,6 +100,9 @@ export default {
         ingestClientLogs(body.entries as LogEntry[]);
       return secure(new Response(null, { status: 204 }));
     }
+    const photo = handleProfilePhotoRequest(request, url);
+    if (photo) return secure(await photo);
+
     if (url.pathname.startsWith('/api/auth/'))
       return secure(await authHandler(env)(request));
     return runWithContext({ cspNonce: nonce }, async () =>

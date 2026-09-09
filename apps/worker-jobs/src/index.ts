@@ -3,7 +3,7 @@ import { AppError, err, type Result } from '@founders-coffee/core';
 import type { AiRuntime, VectorizeRuntime } from '@founders-coffee/core/ai';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { createDb } from '@founders-coffee/db';
-import { resolveQueueKind } from '@founders-coffee/infra';
+import { R2PhotoStore, resolveQueueKind } from '@founders-coffee/infra';
 import {
   DevNotificationSmsProvider,
   FcmPushProvider,
@@ -19,6 +19,7 @@ import type {
   NotificationMessage,
 } from './jobs/messages.js';
 import { processNotification } from './jobs/notifications.js';
+import { sweepProfileAssets } from './jobs/profile-asset-sweep.js';
 import { runReconcile } from './jobs/reconcile.js';
 import { sweepNotifications } from './jobs/notification-sweep.js';
 
@@ -100,6 +101,8 @@ export default {
 
     if (controller.cron === '0 3 * * *') {
       await runReconcile(db);
+      if (env.PROFILE_ASSETS)
+        await sweepProfileAssets(db, new R2PhotoStore(env.PROFILE_ASSETS));
     }
   },
 

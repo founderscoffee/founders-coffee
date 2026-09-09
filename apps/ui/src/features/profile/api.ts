@@ -1,6 +1,9 @@
 import {
   getMyProfile,
+  getPhotoUploadAvailability,
   getPublicProfile,
+  removeMyPhoto,
+  reserveMyPhotoUpload,
   updateMyDisplayName,
   updateMyProfile,
 } from '@founders-coffee/server-fns';
@@ -19,6 +22,14 @@ export const profileApi = {
     updateMyDisplayName({ data }),
   updateProfile: (data: UpdateProfileRequest): Promise<UserProfile> =>
     updateMyProfile({ data }),
+  photoAvailability: (): Promise<{ enabled: boolean }> =>
+    getPhotoUploadAvailability(),
+  reservePhoto: (turnstileToken?: string): Promise<{ assetId: string }> =>
+    reserveMyPhotoUpload({ data: { turnstileToken } }),
+  removePhoto: (
+    turnstileToken?: string,
+  ): Promise<{ removedAssetId: string | null }> =>
+    removeMyPhoto({ data: { turnstileToken } }),
 };
 export type {
   PublicProfile,

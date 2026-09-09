@@ -16,7 +16,10 @@ export * from './push/index.js';
 export type { EventFeedPage } from './events/resolver.js';
 export {
   getMyProfile,
+  getPhotoUploadAvailability,
   getPublicProfile,
+  removeMyPhoto,
+  reserveMyPhotoUpload,
   setHomeLocation,
   updateMyProfile,
   updateMyDisplayName,

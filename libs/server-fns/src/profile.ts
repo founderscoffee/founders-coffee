@@ -8,7 +8,10 @@ import { rateLimit } from './rate-limit.js';
 
 export {
   getMyProfile,
+  getPhotoUploadAvailability,
   getPublicProfile,
+  removeMyPhoto,
+  reserveMyPhotoUpload,
   updateMyProfile,
   updateMyDisplayName,
 } from './profile/rpc.js';
