@@ -74,6 +74,13 @@ review of current Apple/Google design guidance, they use the existing theme and 
 dependency. PF-04 through PF-11 implement the design through the architecture below; the prototype
 is an isolated study with sample data, not shipped profile/account functionality.
 
+Conformance is an acceptance criterion, not an aspiration. PF-04b, PF-04c, PF-07b and PF-08 each
+name the spec section they implement, and the spec's **required production state designs** table is
+the state checklist those tickets are reviewed against. Two known divergences are settled in favour
+of this plan rather than the study: the community role is the six-value enum frozen in §3, not the
+free-text field the prototype draws, and the prototype's local JSON copy is design material that
+becomes `libs/i18n` keys — it is never read by the app.
+
 The limits below are frozen PF-01 contracts, implemented once in PF-02 shared Zod schemas.
 Optional fields are nullable/clearable; empty values are normalized consistently. User-authored
 text is plain text, bounded, rendered as authored and never automatically translated.
@@ -318,7 +325,7 @@ carries no profile data and is bounded by the retention policy above, then purge
 ## 6. Tickets and acceptance gates
 
 Each ticket is one reviewable mission/PR with its own tests. Four stages were too large to review as
-a single PR and are split into lettered tickets: PF-03a/b, PF-04a/b/c, PF-07a/b/c and PF-11a/b. The
+a single PR and are split into lettered tickets: PF-03a/b, PF-04a/b/c, PF-07a/b/c/d and PF-11a/b. The
 stage numbers keep their meaning — nine other documents cite `PF-04` and `PF-11`, and a dependency on
 `PF-04` means the whole stage — so nothing is renumbered. PF-01 and PF-02 are complete locally and
 audited; PF-03a is in progress on the working tree; PF-03b onward remain planned. Parent P1-004 owns the
@@ -419,25 +426,46 @@ inside a feature PR. It is a release, not a code change: the SQL is already writ
 **Requirements:** FR-A8, FR-E8; NFR-4, NFR-5. **Depends on:** PF-02.
 
 This is delivery-path work, not account settings. It was previously a bullet inside the contact and
-session ticket, where it would have been reviewed by whoever reviews settings UI. PF-07b, PF-07c,
+session ticket, where it would have been reviewed by whoever reviews settings UI. PF-07c, PF-07d,
 PF-08 and CO-02 all consume it, so it stands alone and lands first.
 
 - Add a shared guard in the existing dispatcher that resolves the current eligible destination immediately before sending, so a queued payload cannot reach a removed contact, a revoked device or a closed account.
 - Acceptance: real local Queue/DO/D1 tests show a payload queued against a since-removed phone, a since-revoked session and a since-closed account is dropped rather than delivered, and that fallback eligibility is rechecked after a primary failure.
 
-### PF-07b — Verified contact changes
+### PF-07b — Account and security section and account read model
 
-**Requirements:** FR-A4; NFR-4, NFR-5, NFR-7. **Depends on:** PF-03a, PF-05, PF-07a.
+**Requirements:** FR-A4, FR-A8; NFR-4, NFR-5, NFR-7, NFR-8. **Depends on:** PF-04a, PF-05.
+
+The design study's fourth screen had no ticket of its own. Its six capabilities were each owned —
+contact changes, login methods, sessions, export, deletion — but the page that shows them, and the
+read model behind the masked summaries, belonged to nobody. `getMyAccount` appears in the §4
+interface table and in no ticket's deliverables, which is how a declared interface becomes something
+everyone assumes someone else is building.
+
+This ticket ships the screen **read-only**. Every row states what is true about the account; no row
+gets an action until the ticket that implements that action lands, because a control that opens an
+explanatory dialog instead of doing the thing is the inert settings control §7 forbids.
+
+- Implement `getMyAccount`: a masked owner projection carrying email with its verified state, whether a phone is on file, the connected provider list and a session count. Never a token, never a raw contact, never a moderation reason. Private, no-store, excluded from the Serwist cache like the rest of the owner surface.
+- Add the section route and its navigation entry to the PF-04a shell, with the three groups the spec specifies — private contacts, connected devices, your data — and the rule that an account action never renders as a profile-field save.
+- Cover the loading, unavailable, provider-error and empty states from the design spec's required-state table, in all three locales, and mask identifiers until disclosure is relevant.
+- Acceptance: two accounts cannot read each other's summary; no response carries a token, an unmasked contact or a provider secret; every row without a shipped capability reads as informational rather than actionable; keyboard and RTL/LTR component tests pass; the rendered section matches `profile-ui-design-spec.md` §4 _Account and security_ and its state table.
+
+### PF-07c — Verified contact changes
+
+**Requirements:** FR-A4; NFR-4, NFR-5, NFR-7. **Depends on:** PF-03a, PF-05, PF-07a, PF-07b.
+
+- Attach the email **change** and phone **add/change** actions to the PF-07b rows.
 
 - Configure the installed Better Auth email and phone update flows with recent-action verification through shared protected adapters. Never edit verified contact columns directly.
 - Keep the old contact usable until the new one is verified; a collision, failed OTP, expiry or provider error leaves the original identity intact and never merges two users. Give an explicit recovery path when the old contact is inaccessible.
 - Acceptance: success, failure, collision, stale-proof and expiry tests pass; missing Twilio credentials fail closed; no OTP or token appears in any response or log.
 
-### PF-07c — Login methods and session controls
+### PF-07d — Login methods and session controls
 
-**Requirements:** FR-A8; NFR-4, NFR-5, NFR-7. **Depends on:** PF-07b.
+**Requirements:** FR-A8; NFR-4, NFR-5, NFR-7. **Depends on:** PF-07b, PF-07c.
 
-- Implement provider linking/unlinking and masked session summaries with owner-bound opaque session IDs, a current-session indicator and revoke-one/revoke-others.
+- Attach the **manage** actions to the login-methods and connected-devices rows: provider linking/unlinking, and session summaries with owner-bound opaque session IDs, a current-session indicator and revoke-one/revoke-others.
 - Prevent lockout, privilege escalation, bypass through direct auth endpoints and OAuth overwrites of member-edited names, photos or publication choices.
 - Acceptance: concurrent last-usable-method removal is rejected atomically; own- and other-session revocation removes matching device delivery through the PF-07a guard; no DTO carries a token; real provider staging checks pass.
 
@@ -451,7 +479,7 @@ PF-08 and CO-02 all consume it, so it stands alone and lands first.
 
 ### PF-09 — Implement private data export
 
-**Requirements:** FR-A10; NFR-4, NFR-5, NFR-7. **Depends on:** PF-05, PF-07b.
+**Requirements:** FR-A10; NFR-4, NFR-5, NFR-7. **Depends on:** PF-05, PF-07b, PF-07c.
 
 Export deliberately does **not** depend on PF-06. Photo storage is gated on R2/Images entitlement and
 cost that §5 says were never verified, and a member's ability to take their data out should not inherit
@@ -460,14 +488,16 @@ a provisioning decision that may not survive its own cost review.
 - Implement an owner-authorized, bounded snapshot/export with durable progress if required, explicit field allowlists, short-lived download access, expiry and cleanup.
 - Until PF-06 lands, the archive lists photo asset metadata and states plainly that no binary is included; the export's stated omissions are part of its contract. Photo bytes join the archive with PF-06 and bump the snapshot schema version.
 - Include CO-owned data through its repositories when those schemas exist; require corresponding adapters before releasing an export that claims completeness for that schema version.
-- Acceptance: two users cannot access each other's exports; secrets/other members' data stay absent; pagination covers all permitted rows; expired/deleted-account downloads fail; retries and cleanup work.
+- Attach the **your data** row on the PF-07b screen: what the archive contains, a request action, a named job state while it builds, a download that expires, and an honest failure. A finished-looking control over an unfinished job is the thing this plan refuses everywhere else.
+- Acceptance: two users cannot access each other's exports; secrets/other members' data stay absent; pagination covers all permitted rows; expired/deleted-account downloads fail; retries and cleanup work; the request, pending, ready, expired and failed states each render in all three locales.
 
 ### PF-10 — Implement safe account deletion and retention
 
-**Requirements:** FR-A10, FR-E12; NFR-4, NFR-5, NFR-7. **Depends on:** PF-07c, PF-08, PF-09 and the applicable CO-03/05/06/09 persistence/cancellation/retention adapters.
+**Requirements:** FR-A10, FR-E12; NFR-4, NFR-5, NFR-7. **Depends on:** PF-07d, PF-08, PF-09 and the applicable CO-03/05/06/09 persistence/cancellation/retention adapters.
 
 - Migrate unsafe cascade relationships — ten tables currently cascade off `user.id` — and implement lifecycle state, immediate access withdrawal, upcoming event/RSVP handling, retained pseudonymous history and idempotent asset/notification cleanup. The asset-cleanup step is a verified no-op until PF-06 exists; deletion does not wait for photo storage.
 - Add crash recovery, admin attention for unresolved event/retention cases, private progress and expiry/purge routines. Block raw Better Auth deletion from bypassing the lifecycle.
+- Attach the **delete account** row on the PF-07b screen, last in its group and in readable error colour. Its confirmation states what happens to upcoming events the member hosts or attends, that access ends immediately, which records are retained under the existing policy and that completion is asynchronous. Reauthentication is required. No emotionally manipulative retention copy, and no success screen before the backend confirms.
 - Acceptance: deletion retries converge; active sessions fail immediately; future RSVP counters stay correct; start-time eligibility remains frozen; attendee notices survive host removal; event/CO aggregates remain truthful; no deleted-account notification or public asset is delivered.
 
 ### PF-11a — Integrate CO outcomes
@@ -496,13 +526,13 @@ a provisioning decision that may not survive its own cost review.
 
 - EC owns event creation, venue/schedule persistence and submission. PF-03a changes only identity completion/return wiring; it must rerun EC regressions, including the current inline OTP continuation, and must not reintroduce location onboarding or silently alter the current event security decision.
 - CO retains its existing immediate-after-EC priority. This plan adds a P1-004 lane and does not authorize silently replacing CO-01 as the next mission. Selecting a PF ticket for execution is a separate task from writing this plan.
-- PF-01 through PF-07c can progress independently of CO delivery once their own dependencies are satisfied. PF-08 waits for CO-02; PF-09/10 require adapters for every deployed operational schema; PF-11a completes the CO-facing integration. None of these dependencies makes CO depend on the full profile redesign.
+- PF-01 through PF-07d can progress independently of CO delivery once their own dependencies are satisfied. PF-08 waits for CO-02; PF-09/10 require adapters for every deployed operational schema; PF-11a completes the CO-facing integration. None of these dependencies makes CO depend on the full profile redesign.
 - PF-03b is a release, not development work. It can wait indefinitely behind PF-03a without blocking any other ticket: everything downstream reads the contracted Drizzle schema, and the residual columns are inert. Do not treat a long quarantine as a problem to rush.
 - CO-03 designs retained references and deletion-compatible FKs; CO-05 owns closeout evidence, CO-06 feedback, CO-09 moderation/trust. PF owns member controls, public projection and account lifecycle orchestration; no duplicate retention or authorization implementation.
 - PF-01 reconciles event/CO status from dated repository release evidence, not a new live verification. EC-10 has recorded staging completion and production release evidence; its authorized production creation smoke remains outstanding before final handoff. The user's 2026-09-08 request explicitly starts the supporting PF foundation without claiming CO implementation or that smoke occurred.
 
 Recommended execution order inside this lane is PF-01 → PF-02 → PF-03a → PF-04a → PF-04b → PF-04c →
-PF-05, then PF-06 and PF-07a → PF-07b → PF-07c in parallel, then PF-08 → PF-09 → PF-10 → PF-11a →
+PF-05, then PF-06 and PF-07a → PF-07b → PF-07c → PF-07d in parallel, then PF-08 → PF-09 → PF-10 → PF-11a →
 PF-11b → PF-12 when CO dependencies permit. PF-03b is scheduled by the operator once PF-03a has been
 live on every environment long enough to record the version. Ship each vertical slice only when its
 behavior is real; unfinished services do not get inert settings controls.
@@ -662,5 +692,26 @@ Not defects, and deliberately not built in an audit: **PF-04b** (optional-field 
 publish switches, public preview) and **PF-04c** (paginated hosted events, aggregate counts) have no
 implementation to audit. The public profile still renders name and introduction only and still reads
 at most twenty upcoming events, exactly as §2 recorded before the lane began.
+
+### Design coverage audit of 2026-09-09 — the account screen
+
+The design study's fourth screen was audited row by row against the tickets. Every capability had an
+owner; the page did not.
+
+| Row in the study                             | Capability owner       | Gap found                                                          |
+| -------------------------------------------- | ---------------------- | ------------------------------------------------------------------ |
+| Email — masked, verified, **change**         | PF-07c contact changes | No ticket rendered the row or produced the masked value            |
+| Phone — not added, optional, **add**         | PF-07c contact changes | Same                                                               |
+| Login methods — **manage**                   | PF-07d providers       | Same                                                               |
+| Connected devices — this browser, **manage** | PF-07d sessions        | Same                                                               |
+| Your data — **download your information**    | PF-09 export           | Backend only; no request, pending, ready, expired or failed UI     |
+| Your data — **delete account**               | PF-10 deletion         | Backend only; no confirmation content or progress UI               |
+| The section itself, and `getMyAccount`       | nobody                 | Declared in the §4 interface table and in no ticket's deliverables |
+
+`getMyAccount` is the instructive one: an interface named in a contract table and absent from every
+ticket is the shape a gap takes in a plan this detailed — nothing looks missing, because the row
+exists. **PF-07b** now owns the section and that read model, shipping it read-only so no control
+appears before the thing it controls; PF-07c and PF-07d attach their actions to rows that already
+exist; PF-09 and PF-10 gained the UI bullets their backends implied.
 
 Next ticket: **PF-04b**.
