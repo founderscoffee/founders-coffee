@@ -18,7 +18,7 @@
     "affected:build": "nx affected -t build",
     "affected:lint": "nx affected -t lint",
     "affected:test": "nx affected -t test",
-    "ui:dev": "npm -w apps/ui run dev",
+    "ui:dev": "node tools/dev/free-port.mjs 3000 && npm -w apps/ui run dev",
     "ui:build": "npm -w apps/ui run build",
     "ui:preview": "npm -w apps/ui run preview",
     "dashboard:dev": "npm -w apps/dashboard run dev",
