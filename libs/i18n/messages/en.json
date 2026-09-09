@@ -370,5 +370,8 @@
   "topic_community": "Community",
   "locale_ar": "Arabic",
   "locale_fr": "French",
-  "locale_en": "English"
+  "locale_en": "English",
+  "showing_count": "Showing {shown} of {total}",
+  "hosted_events": "Gatherings hosted",
+  "event_past": "Past"
 }

@@ -2,6 +2,14 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('../../events/hooks', () => ({
+  useHostedEvents: () => ({
+    data: undefined,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: vi.fn(),
+  }),
+}));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, ...props }: { children: ReactNode }) =>
     createElement('a', props, children),
@@ -66,10 +74,10 @@ describe('PublicProfilePage', () => {
     expect(screen.getByText(/No events hosted yet/i)).toBeTruthy();
   });
 
-  it('lists upcoming events without claiming they are a lifetime aggregate', () => {
+  it('lists hosted events under a heading that does not promise they are upcoming', () => {
     renderProfile([hostedEvent]);
 
-    expect(screen.getByText('Upcoming hosted meetups')).toBeTruthy();
+    expect(screen.getByText('Gatherings hosted')).toBeTruthy();
     expect(screen.getByText('Coffee and Code')).toBeTruthy();
     expect(screen.queryByText(/No events hosted yet/i)).toBeNull();
   });

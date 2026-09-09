@@ -1,4 +1,4 @@
-import { and, eq, gt, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, lt, or, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
@@ -7,6 +7,13 @@ import {
   type Event as EventRow,
   type NewEvent,
 } from './schema.js';
+
+const hostedEventScope = (hostId: string, marketCode?: string) =>
+  and(
+    eq(events.hostId, hostId),
+    eq(events.status, 'published'),
+    marketCode ? eq(events.marketCode, marketCode) : undefined,
+  );
 
 /** Create a new event row (the caller builds the full object including id + slug). */
 export const createEvent = async (db: Db, row: NewEvent): Promise<Event> => {
@@ -94,6 +101,66 @@ export const listUpcomingEvents = async (
     )
     .orderBy(events.startsAt, events.id)
     .limit(opts.limit ?? 20);
+};
+
+/**
+ * One host's event history, newest first, with a composite `(startsAt, id)` cursor.
+ *
+ * Ordered descending, unlike the discovery feed: a profile answers "what has this person run?",
+ * where the most recent gathering is the most informative, while a feed answers "what can I go to
+ * next?". The cursor comparison flips with the ordering — `<` rather than `>` — which is why this
+ * is its own query rather than a flag on the feed. Both halves of the pair are compared, so events
+ * sharing a `startsAt` are never skipped or repeated across a page boundary.
+ *
+ * Cancelled events are excluded. A cancelled meetup is not evidence that someone hosts, and the
+ * count beside the list has to describe the same rows the list shows.
+ */
+export const listHostedEvents = async (
+  db: Db,
+  opts: {
+    hostId: string;
+    marketCode?: string;
+    beforeStartsAt?: Date;
+    beforeId?: string;
+    limit?: number;
+  },
+): Promise<Event[]> => {
+  const cursor = opts.beforeStartsAt
+    ? opts.beforeId
+      ? or(
+          lt(events.startsAt, opts.beforeStartsAt),
+          and(
+            eq(events.startsAt, opts.beforeStartsAt),
+            lt(events.id, opts.beforeId),
+          ),
+        )
+      : lt(events.startsAt, opts.beforeStartsAt)
+    : undefined;
+
+  return db
+    .select()
+    .from(events)
+    .where(and(hostedEventScope(opts.hostId, opts.marketCode), cursor))
+    .orderBy(desc(events.startsAt), desc(events.id))
+    .limit(opts.limit ?? 20);
+};
+
+/**
+ * How many events that host has run, over the predicate {@link listHostedEvents} pages through.
+ *
+ * The count and the list share `hostedEventScope` rather than each writing their own `WHERE`, so
+ * the number beside a list can never describe a different set of rows than the list itself — which
+ * is what happened while the count was the length of the first page.
+ */
+export const countHostedEvents = async (
+  db: Db,
+  opts: { hostId: string; marketCode?: string },
+): Promise<number> => {
+  const rows = await db
+    .select({ total: sql<number>`count(*)` })
+    .from(events)
+    .where(hostedEventScope(opts.hostId, opts.marketCode));
+  return Number(rows[0]?.total ?? 0);
 };
 
 /**

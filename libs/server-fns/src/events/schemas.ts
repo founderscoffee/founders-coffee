@@ -18,3 +18,17 @@ export const eventCancelRequestSchema = z
   .strict();
 
 export type EventCancelRequestInput = z.infer<typeof eventCancelRequestSchema>;
+
+export const hostedEventsRequestSchema = z
+  .object({
+    hostId: z.string().min(1).max(128),
+    marketCode: z.string().min(2).max(8).optional(),
+    beforeStartsAt: z.number().int().positive().optional(),
+    beforeId: z.string().min(1).max(64).optional(),
+    limit: z.number().int().min(1).max(50).optional(),
+  })
+  .strict();
+
+export type HostedEventsRequestInput = z.infer<
+  typeof hostedEventsRequestSchema
+>;

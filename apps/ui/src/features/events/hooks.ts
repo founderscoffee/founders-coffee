@@ -44,6 +44,27 @@ export const useUpcomingEvents = (params: UpcomingEventsParams) =>
     initialPageParam: undefined as { startsAt: number; id: string } | undefined,
   });
 
+export const useHostedEvents = (params: {
+  hostId: string;
+  marketCode?: string;
+  limit?: number;
+}) =>
+  useInfiniteQuery({
+    queryKey: ['events', 'hosted', params],
+    queryFn: ({ pageParam }) => {
+      const cursor = pageParam as { startsAt: number; id: string } | undefined;
+      return eventsApi.getHostedEvents({
+        data: {
+          ...params,
+          beforeStartsAt: cursor?.startsAt,
+          beforeId: cursor?.id,
+        },
+      });
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: undefined as { startsAt: number; id: string } | undefined,
+  });
+
 export const useEvent = (slug: string) =>
   useQuery({
     queryKey: ['event', slug],

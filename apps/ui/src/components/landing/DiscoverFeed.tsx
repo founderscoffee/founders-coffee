@@ -1,10 +1,8 @@
 import { Link } from '@tanstack/react-router';
-import { useMemo } from 'react';
 
 import type { Market } from '@founders-coffee/db';
 import {
   host_in_market,
-  load_more,
   no_events_yet,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -12,6 +10,8 @@ import type { EventFeedItem } from '@founders-coffee/server-fns';
 import { LogoSymbol } from '@founders-coffee/ui';
 
 import { useUpcomingEvents } from '../../features/events/hooks';
+import { useEventPages } from '../../features/events/useEventPages';
+import { LoadMoreEvents } from '../events/LoadMoreEvents';
 import { EventCard } from '../events/EventCard';
 import { EmptyState } from './EmptyState';
 
@@ -24,13 +24,11 @@ type DiscoverFeedProps = {
 };
 
 export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useUpcomingEvents({ marketCode: market.code, limit: PAGE_SIZE });
-
-  const items = useMemo(
-    () => data?.pages.flatMap((p) => p.items) ?? events,
-    [data, events],
+  const pagination = useEventPages(
+    useUpcomingEvents({ marketCode: market.code, limit: PAGE_SIZE }),
+    events,
   );
+  const items = pagination.items;
   const marketName =
     locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
 
@@ -61,24 +59,7 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
             </li>
           </ul>
 
-          {hasNextPage ? (
-            <div className="mt-6 flex justify-center">
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={() => void fetchNextPage()}
-                disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage ? (
-                  <span
-                    className="loading loading-spinner loading-xs"
-                    aria-hidden="true"
-                  />
-                ) : null}
-                {load_more({}, { locale })}
-              </button>
-            </div>
-          ) : null}
+          <LoadMoreEvents locale={locale} pagination={pagination} />
         </>
       ) : (
         <EmptyState title={no_events_yet({}, { locale })} />

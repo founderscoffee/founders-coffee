@@ -16,11 +16,13 @@ import { rateLimit } from '../rate-limit.js';
 import { requireEventCreateWafRule } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
 import { cancelEventResolver } from './cancel.js';
+import { listHostedEventPage } from './hosted.js';
 import { createEventWithTelemetry } from './create.js';
 import { listEvents, resolveEvent } from './resolver.js';
 import {
   eventCancelRequestSchema,
   eventCreateRequestSchema,
+  hostedEventsRequestSchema,
 } from './schemas.js';
 
 /**
@@ -131,3 +133,11 @@ export const cancelEvent = createServerFn({ method: 'POST', strict: false })
       }),
     );
   });
+
+/**
+ * One page of a host's event history with the true total. Public — a host's gatherings are the
+ * evidence a stranger uses to decide whether to come, and nothing here is owner-only.
+ */
+export const getHostedEvents = createServerFn({ strict: false })
+  .validator(appValidator(hostedEventsRequestSchema))
+  .handler(({ data }) => listHostedEventPage(getDb(), data));

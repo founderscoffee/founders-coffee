@@ -21,5 +21,7 @@ export {
   cancelEvent,
   createEvent,
   getEvent,
+  getHostedEvents,
   getUpcomingEvents,
 } from './rpc.js';
+export type { HostedEventPage } from './hosted.js';

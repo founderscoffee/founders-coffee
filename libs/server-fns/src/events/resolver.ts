@@ -216,7 +216,7 @@ export type EventFeedItem = EventFeedItemBase & Partial<EventAttendance>;
  * with a code produces a 404. Carrying it on the payload is what lets a component link back to a
  * city without reaching into the domain itself.
  */
-const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
+export const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
   rows.map((e) => {
     const city = geo.findCity(e.marketCode, e.cityCode);
     return {

@@ -370,5 +370,8 @@
   "topic_community": "Communauté",
   "locale_ar": "Arabe",
   "locale_fr": "Français",
-  "locale_en": "Anglais"
+  "locale_en": "Anglais",
+  "showing_count": "{shown} sur {total}",
+  "hosted_events": "Rencontres organisées",
+  "event_past": "Passée"
 }

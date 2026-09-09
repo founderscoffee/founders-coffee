@@ -370,5 +370,8 @@
   "topic_community": "المجتمع",
   "locale_ar": "العربية",
   "locale_fr": "الفرنسية",
-  "locale_en": "الإنجليزية"
+  "locale_en": "الإنجليزية",
+  "showing_count": "{shown} من {total}",
+  "hosted_events": "اللقاءات التي استضافها",
+  "event_past": "انتهى"
 }

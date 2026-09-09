@@ -33,8 +33,8 @@ export const Route = createFileRoute('/u/$userId')({
       if (appErrorCode(error) === 'not_found') throw notFound();
       throw error;
     }
-    const page = await eventsApi.getUpcomingEvents({
-      data: { hostId: params.userId, limit: 20 },
+    const page = await eventsApi.getHostedEvents({
+      data: { hostId: params.userId, limit: 12 },
     });
     return { profile, events: page.items };
   },

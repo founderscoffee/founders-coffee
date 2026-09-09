@@ -5,7 +5,6 @@ import {
   back_to_market,
   city_empty_cta,
   city_empty_title,
-  feed_load_more,
   host_here,
   host_progress_label,
   host_step1_short,
@@ -20,6 +19,8 @@ import type { EventFeedItem } from '@founders-coffee/server-fns';
 
 import { applyCityFilters, type CityFilterKey } from '../../lib/city-filters';
 import { useUpcomingEvents } from '../../features/events/hooks';
+import { useEventPages } from '../../features/events/useEventPages';
+import { LoadMoreEvents } from '../events/LoadMoreEvents';
 import { EventCard } from '../events/EventCard';
 import { CityFilters } from './CityFilters';
 import { EmptyState } from './EmptyState';
@@ -54,18 +55,15 @@ export const CityLanding = ({
         : [...current, key],
     );
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const pagination = useEventPages(
     useUpcomingEvents({
       marketCode: market.code,
       cityCode: city.code,
       limit: PAGE_SIZE,
-    });
-
-  const items = data?.pages.flatMap((p) => p.items) ?? events;
-
-  const loadMore = () => {
-    void fetchNextPage();
-  };
+    }),
+    events,
+  );
+  const items = pagination.items;
 
   if (items.length === 0) {
     const stepLabels = [
@@ -161,18 +159,7 @@ export const CityLanding = ({
         </ul>
       )}
 
-      {hasNextPage ? (
-        <div>
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={loadMore}
-            disabled={isFetchingNextPage}
-          >
-            {feed_load_more({}, { locale })}
-          </button>
-        </div>
-      ) : null}
+      <LoadMoreEvents locale={locale} pagination={pagination} />
     </section>
   );
 };
