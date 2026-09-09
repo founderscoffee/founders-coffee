@@ -20,7 +20,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Data we collect',
         paragraphs: [
-          'Account data: email address or verified phone number, public display name, account role, and profile details you choose to provide. Optional profile details are private unless you choose to publish them. We no longer ask for or use your place of residence; legacy residence fields are awaiting scheduled removal. Meetup locations remain part of meetup records.',
+          'Account data: email address or verified phone number, public display name, account role, and profile details you choose to provide. Uploaded avatars and introductions are public. Other optional profile details are private unless you choose to publish them. We no longer ask for or use your place of residence; legacy residence fields are awaiting scheduled removal. Meetup locations remain part of meetup records.',
           'Usage data: meetups you host or join, waitlist entries, and basic technical logs needed to run and secure the service.',
           'Device data: session cookies, locale preference, and security signals from bot protection.',
         ],
@@ -83,7 +83,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'البيانات التي نجمعها',
         paragraphs: [
-          'بيانات الحساب: البريد الإلكتروني أو رقم الهاتف الموثّق، الاسم العلني، دور الحساب، وتفاصيل الملف التي تختار إضافتها. تبقى التفاصيل الاختيارية خاصة ما لم تختر نشرها. لم نعد نطلب مكان إقامتك أو نستخدمه؛ الحقول القديمة تنتظر الحذف المجدول. تبقى مواقع اللقاءات ضمن سجلاتها.',
+          'بيانات الحساب: البريد الإلكتروني أو رقم الهاتف الموثّق، الاسم العلني، دور الحساب، وتفاصيل الملف التي تختار إضافتها. صور الملف التي ترفعها والنبذة التي تكتبها علنية. تبقى التفاصيل الاختيارية الأخرى خاصة ما لم تختر نشرها. لم نعد نطلب مكان إقامتك أو نستخدمه؛ الحقول القديمة تنتظر الحذف المجدول. تبقى مواقع اللقاءات ضمن سجلاتها.',
           'بيانات الاستخدام: اللقاءات التي تستضيفها أو تنضم إليها، قائمة الانتظار، وسجلات تقنية أساسية لتشغيل الخدمة وحمايتها.',
           'بيانات الجهاز: ملفات تعريف جلسة، تفضيل اللغة، وإشارات أمان من حماية البوتات.',
         ],
@@ -147,7 +147,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Données collectées',
         paragraphs: [
-          'Données de compte : e-mail ou téléphone vérifié, nom public, rôle du compte et détails de profil fournis volontairement. Les détails facultatifs restent privés sauf si vous choisissez de les publier. Nous ne demandons ni n’utilisons plus votre lieu de résidence ; les anciens champs attendent leur suppression planifiée. Les lieux des rencontres restent dans leurs dossiers.',
+          'Données de compte : e-mail ou téléphone vérifié, nom public, rôle du compte et détails de profil fournis volontairement. Les avatars importés et les présentations sont publics. Les autres détails facultatifs restent privés sauf si vous choisissez de les publier. Nous ne demandons ni n’utilisons plus votre lieu de résidence ; les anciens champs attendent leur suppression planifiée. Les lieux des rencontres restent dans leurs dossiers.',
           'Données d’usage : meetups que vous organisez ou rejoignez, listes d’attente, et journaux techniques nécessaires au service.',
           'Données appareil : cookies de session, préférence de langue, et signaux de sécurité anti-bots.',
         ],

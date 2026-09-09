@@ -34,9 +34,6 @@ describe('PF-02 additive migration', () => {
       profile: {
         revision: 0,
         photoAssetId: null,
-        publishPhoto: false,
-        publishIntroduction: false,
-        publishCommunityRole: false,
         publishInterests: false,
         publishSpokenLanguages: false,
         publishProfessionalLink: false,

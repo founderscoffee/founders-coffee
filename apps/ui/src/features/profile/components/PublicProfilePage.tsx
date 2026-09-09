@@ -12,7 +12,7 @@ import { useHostedEvents } from '../../events/hooks';
 import { useEventPages } from '../../events/useEventPages';
 import { initials } from '../../../lib/utils';
 import { profilePhotoUrl } from '../photo-url';
-import { localeLabel, roleLabel, topicLabel } from '../profile-labels';
+import { localeLabel, topicLabel } from '../profile-labels';
 import type { EventFeedItem } from '../../events/api';
 import type { Market } from '../../markets/api';
 import type { PublicProfile } from '../api';
@@ -69,17 +69,8 @@ export const PublicProfilePage = ({
             </h1>
           </div>
           {profile.introduction && (
-            <p
-              lang={profile.introductionLocale ?? undefined}
-              dir="auto"
-              className="whitespace-pre-wrap break-words"
-            >
+            <p dir="auto" className="whitespace-pre-wrap break-words">
               {profile.introduction}
-            </p>
-          )}
-          {profile.communityRole && (
-            <p className="text-body-sm text-accent">
-              {roleLabel(profile.communityRole, locale)}
             </p>
           )}
           {profile.interests.length > 0 && (

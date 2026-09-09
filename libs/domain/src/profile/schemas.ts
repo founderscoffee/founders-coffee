@@ -1,15 +1,9 @@
 import { z } from 'zod';
 
-import { idSchema, localeSchema } from '@founders-coffee/core';
+import { idSchema } from '@founders-coffee/core';
 
-export const COMMUNITY_ROLES = [
-  'founder',
-  'aspiring_founder',
-  'developer',
-  'designer',
-  'community_builder',
-  'other',
-] as const;
+export const SPOKEN_LANGUAGES = ['ar', 'fr', 'en', 'es', 'de', 'ber'] as const;
+export const spokenLanguageSchema = z.enum(SPOKEN_LANGUAGES);
 export const PROFILE_INTERESTS = [
   'bootstrapping',
   'product',
@@ -17,6 +11,14 @@ export const PROFILE_INTERESTS = [
   'engineering',
   'finding_customers',
   'community',
+  'investing',
+  'software_development',
+  'building_products',
+  'idea_validation',
+  'cofounders',
+  'partnerships',
+  'experience_sharing',
+  'learning_new_skills',
 ] as const;
 
 export const profileIdentitySchema = z.string().trim().min(1).max(128);
@@ -58,9 +60,6 @@ export const professionalLinkSchema = z
   }, 'A credential-free HTTPS URL is required');
 
 export const profileVisibilitySchema = z.strictObject({
-  photo: z.boolean().default(false),
-  introduction: z.boolean().default(false),
-  communityRole: z.boolean().default(false),
   interests: z.boolean().default(false),
   spokenLanguages: z.boolean().default(false),
   professionalLink: z.boolean().default(false),
@@ -68,8 +67,6 @@ export const profileVisibilitySchema = z.strictObject({
 
 export const profileDetailsSchema = z.strictObject({
   introduction: introductionSchema.default(null),
-  introductionLocale: localeSchema.nullable().default(null),
-  communityRole: z.enum(COMMUNITY_ROLES).nullable().default(null),
   interests: z
     .array(z.enum(PROFILE_INTERESTS))
     .max(5)
@@ -79,8 +76,8 @@ export const profileDetailsSchema = z.strictObject({
     )
     .default([]),
   spokenLanguages: z
-    .array(localeSchema)
-    .max(3)
+    .array(spokenLanguageSchema)
+    .max(6)
     .refine(
       (values) => new Set(values).size === values.length,
       'Languages must be unique',
@@ -92,31 +89,12 @@ export const profileDetailsSchema = z.strictObject({
   ),
 });
 
-const validateAuthoredLanguage = (
-  details: z.infer<typeof profileDetailsSchema>,
-  context: z.RefinementCtx,
-) => {
-  if (details.introduction !== null && details.introductionLocale === null) {
-    context.addIssue({
-      code: 'custom',
-      path: ['introductionLocale'],
-      message: 'Authored language is required',
-    });
-  }
-};
-
 const normalizeProfile = <T extends z.infer<typeof profileDetailsSchema>>(
   details: T,
 ): T => ({
   ...details,
-  introductionLocale:
-    details.introduction === null ? null : details.introductionLocale,
   visibility: {
     ...details.visibility,
-    introduction:
-      details.visibility.introduction && details.introduction !== null,
-    communityRole:
-      details.visibility.communityRole && details.communityRole !== null,
     interests: details.visibility.interests && details.interests.length > 0,
     spokenLanguages:
       details.visibility.spokenLanguages && details.spokenLanguages.length > 0,
@@ -130,7 +108,6 @@ export const updateProfileSchema = profileDetailsSchema
     displayName: displayNameSchema,
     expectedRevision: profileRevisionSchema,
   })
-  .superRefine(validateAuthoredLanguage)
   .transform(normalizeProfile);
 
 export const ownerProfileSchema = profileDetailsSchema
@@ -140,7 +117,6 @@ export const ownerProfileSchema = profileDetailsSchema
     photoAssetId: idSchema.nullable(),
     revision: profileRevisionSchema,
   })
-  .superRefine(validateAuthoredLanguage)
   .transform(normalizeProfile);
 
 export type ProfileDetails = z.infer<typeof profileDetailsSchema>;

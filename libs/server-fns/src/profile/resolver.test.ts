@@ -69,7 +69,7 @@ describe('PF-03 profile resolvers against real D1', () => {
         displayName: 'أمينة',
         revision: 1,
         interests: [],
-        visibility: { introduction: false },
+        visibility: { professionalLink: false },
       },
     });
     const result = await readPublicProfile(db, userId);
@@ -80,20 +80,16 @@ describe('PF-03 profile resolvers against real D1', () => {
         displayName: 'أمينة',
         photoAssetId: null,
         introduction: null,
-        introductionLocale: null,
-        communityRole: null,
         interests: [],
         spokenLanguages: [],
         professionalLink: null,
       },
     });
   });
-  it('publishes only individually opted-in details and immediately withdraws them', async () => {
+  it('publishes introductions immediately while keeping other details opt-in', async () => {
     const { db, userId } = await setup();
     const details = {
-      introduction: 'Private introduction',
-      introductionLocale: 'fr',
-      communityRole: 'founder',
+      introduction: 'Public introduction',
       interests: ['community'],
       spokenLanguages: ['ar'],
       professionalLink: 'https://example.com',
@@ -102,7 +98,10 @@ describe('PF-03 profile resolvers against real D1', () => {
       true,
     );
     expect(await readPublicProfile(db, userId)).toMatchObject({
-      data: { introduction: null, communityRole: null, interests: [] },
+      data: {
+        introduction: 'Public introduction',
+        interests: [],
+      },
     });
     expect(
       (
@@ -112,32 +111,27 @@ describe('PF-03 profile resolvers against real D1', () => {
           command({
             ...details,
             expectedRevision: 1,
-            visibility: { introduction: true },
+            visibility: { professionalLink: true },
           }),
         )
       ).ok,
     ).toBe(true);
     expect(await readPublicProfile(db, userId)).toMatchObject({
       data: {
-        introduction: 'Private introduction',
-        introductionLocale: 'fr',
-        professionalLink: null,
+        introduction: 'Public introduction',
+        professionalLink: 'https://example.com',
       },
     });
     expect(
       (await saveOwnerProfile(db, userId, command({ expectedRevision: 2 }))).ok,
     ).toBe(true);
     expect(await readPublicProfile(db, userId)).toMatchObject({
-      data: { introduction: null, introductionLocale: null },
+      data: { introduction: null },
     });
   });
   it('rejects stale saves and preserves optional data on name-only updates', async () => {
     const { db, userId } = await setup();
-    await saveOwnerProfile(
-      db,
-      userId,
-      command({ introduction: 'Keep me', introductionLocale: 'en' }),
-    );
+    await saveOwnerProfile(db, userId, command({ introduction: 'Keep me' }));
     expect(
       await saveDisplayName(db, userId, {
         displayName: 'Stale',

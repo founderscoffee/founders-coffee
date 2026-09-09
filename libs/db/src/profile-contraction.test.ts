@@ -81,9 +81,7 @@ describe('PF-03 residence contraction on populated D1', () => {
       .update(memberProfiles)
       .set({
         introduction: 'Private introduction',
-        introductionLocale: 'en',
         photoAssetId: 'asset_contract',
-        publishPhoto: true,
         revision: 7,
       })
       .where(eq(memberProfiles.userId, userId));

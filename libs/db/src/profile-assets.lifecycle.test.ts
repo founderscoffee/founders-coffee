@@ -41,16 +41,6 @@ const db_photoAssetId = async (
   return rows[0]?.photoAssetId ?? null;
 };
 
-const publish = (
-  db: Awaited<ReturnType<typeof profileFixture>>['db'],
-  userId: string,
-) =>
-  db
-    .update(memberProfiles)
-    .set({ publishPhoto: true })
-    .where(eq(memberProfiles.userId, userId))
-    .run();
-
 describe('profile asset lifecycle on real D1', () => {
   it('marks the asset ready and points the profile at it in one step', async () => {
     const { db, userId, assetId } = await readyPhoto();
@@ -141,28 +131,16 @@ describe('profile asset lifecycle on real D1', () => {
     ).toEqual({ attached: false, replacedAssetId: null });
   });
 
-  it('shows an unpublished photo to its owner and to nobody else', async () => {
+  it('delivers an uploaded ready avatar publicly without a publication flag', async () => {
     const { db, userId, assetId } = await readyPhoto();
-    const stranger = await profileFixture();
-
-    expect(await getDeliverableProfilePhoto(db, assetId, userId)).toMatchObject(
-      { userId, published: false },
-    );
-    expect(
-      await getDeliverableProfilePhoto(db, assetId, stranger.userId),
-    ).toBeNull();
-    expect(await getDeliverableProfilePhoto(db, assetId, null)).toBeNull();
-
-    await publish(db, userId);
-    expect(await getDeliverableProfilePhoto(db, assetId, null)).toMatchObject({
-      published: true,
+    expect(await getDeliverableProfilePhoto(db, assetId)).toMatchObject({
+      userId,
     });
   });
 
   it('withdraws a suppressed member’s photo even after they published it', async () => {
     const { db, userId, assetId } = await readyPhoto();
-    await publish(db, userId);
-    expect(await getDeliverableProfilePhoto(db, assetId, null)).not.toBeNull();
+    expect(await getDeliverableProfilePhoto(db, assetId)).not.toBeNull();
 
     await db
       .update(user)
@@ -170,26 +148,23 @@ describe('profile asset lifecycle on real D1', () => {
       .where(eq(user.id, userId))
       .run();
 
-    expect(await getDeliverableProfilePhoto(db, assetId, null)).toBeNull();
-    expect(await getDeliverableProfilePhoto(db, assetId, userId)).toBeNull();
+    expect(await getDeliverableProfilePhoto(db, assetId)).toBeNull();
+    expect(await getDeliverableProfilePhoto(db, assetId)).toBeNull();
   });
 
   it('retires a photo, unpublishes it and stops delivering it', async () => {
     const { db, userId, assetId } = await readyPhoto();
-    await publish(db, userId);
 
     expect(await retireProfilePhoto(db, userId, assetId)).toBe(true);
-    expect(await getDeliverableProfilePhoto(db, assetId, userId)).toBeNull();
+    expect(await getDeliverableProfilePhoto(db, assetId)).toBeNull();
     const profiles = await db
       .select({
         photoAssetId: memberProfiles.photoAssetId,
-        publishPhoto: memberProfiles.publishPhoto,
       })
       .from(memberProfiles)
       .where(eq(memberProfiles.userId, userId));
     expect(profiles[0]).toMatchObject({
       photoAssetId: null,
-      publishPhoto: false,
     });
   });
 

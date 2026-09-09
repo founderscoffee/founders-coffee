@@ -73,18 +73,25 @@ export const usePhotoUploadAvailability = () =>
     retry: false,
   });
 
-/**
- * Reserve a key, send the bytes, then re-read the profile the server now owns.
- *
- * Every step is the server's answer rather than an optimistic guess: the asset id comes from the
- * reservation, the acceptance comes from the upload, and the profile is refetched instead of
- * patched locally, because normalization means the stored photo is not the file that was chosen.
- * A failure leaves the previous photo exactly where it was.
- */
-export const usePhotoUpload = () => {
+/** Refresh owner/header observers, public profile queries and route data after a photo change. */
+const useInvalidatePhoto = () => {
   const cache = useQueryClient();
+  const router = useRouter();
   const auth = authClient.useSession();
   const userId = auth.data?.user.id;
+  return async () => {
+    if (!userId) return;
+    await Promise.all([
+      cache.invalidateQueries({ queryKey: ['profile', 'owner', userId] }),
+      cache.invalidateQueries({ queryKey: ['profile', 'public', userId] }),
+      router.invalidate(),
+    ]);
+  };
+};
+
+/** Reserve a key, send the bytes, then refetch the accepted photo without optimistic replacement. */
+export const usePhotoUpload = () => {
+  const invalidatePhoto = useInvalidatePhoto();
   return useMutation({
     mutationFn: async (input: { file: Blob; turnstileToken?: string }) => {
       const { assetId } = await profileApi.reservePhoto(input.turnstileToken);
@@ -92,27 +99,15 @@ export const usePhotoUpload = () => {
       if (!sent.ok) throw new AppError(sent.error.code, 'Photo upload failed');
       return assetId;
     },
-    onSuccess: () => {
-      if (userId)
-        void cache.invalidateQueries({
-          queryKey: ['profile', 'owner', userId],
-        });
-    },
+    onSuccess: invalidatePhoto,
   });
 };
 
 export const useRemovePhoto = () => {
-  const cache = useQueryClient();
-  const auth = authClient.useSession();
-  const userId = auth.data?.user.id;
+  const invalidatePhoto = useInvalidatePhoto();
   return useMutation({
     mutationFn: (turnstileToken?: string) =>
       profileApi.removePhoto(turnstileToken),
-    onSuccess: () => {
-      if (userId)
-        void cache.invalidateQueries({
-          queryKey: ['profile', 'owner', userId],
-        });
-    },
+    onSuccess: invalidatePhoto,
   });
 };

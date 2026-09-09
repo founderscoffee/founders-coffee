@@ -8,8 +8,10 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AppError } from '@founders-coffee/core';
+import { useToast } from '@founders-coffee/ui';
 
 import { ProfilePhotoField } from './ProfilePhotoField';
+import { ProfileFeedback } from './ProfileFeedback';
 
 const state = vi.hoisted(() => ({
   upload: vi.fn(),
@@ -26,19 +28,28 @@ vi.mock('../hooks', () => ({
 }));
 
 const onPhotoChange = vi.fn();
-const onPublishChange = vi.fn();
 
-const show = (photoAssetId: string | null, isPublic = false) =>
-  render(
-    <ProfilePhotoField
-      locale="en"
-      displayName="Amina Yagoub"
-      photoAssetId={photoAssetId}
-      isPublic={isPublic}
-      onPhotoChange={onPhotoChange}
-      onPublishChange={onPublishChange}
-    />,
+const PhotoEditor = ({ photoAssetId }: { photoAssetId: string | null }) => {
+  const feedback = useToast();
+  return (
+    <>
+      <ProfilePhotoField
+        locale="en"
+        displayName="Amina Yagoub"
+        photoAssetId={photoAssetId}
+        onPhotoChange={onPhotoChange}
+        onFeedback={feedback.show}
+      />
+      <ProfileFeedback
+        locale="en"
+        notification={feedback.notification}
+        onDismiss={feedback.clear}
+      />
+    </>
   );
+};
+const show = (photoAssetId: string | null) =>
+  render(<PhotoEditor photoAssetId={photoAssetId} />);
 
 const chooseFile = () => {
   const input = screen.getByLabelText('Choose a photo') as HTMLInputElement;
@@ -64,7 +75,7 @@ describe('profile photo control', () => {
     expect(screen.queryByRole('checkbox')).toBeNull();
   });
 
-  it('renders the stored photo through the publication-checked endpoint', () => {
+  it('renders the stored photo through the eligibility-checked endpoint', () => {
     show('pha_abc');
 
     const image = screen.getByRole('img') as HTMLImageElement;
@@ -80,7 +91,8 @@ describe('profile photo control', () => {
     chooseFile();
 
     await waitFor(() => expect(onPhotoChange).toHaveBeenCalledWith('pha_new'));
-    expect(screen.getByRole('status').textContent).toBe('Photo saved');
+    expect(screen.getByRole('status').textContent).toContain('Photo saved');
+    expect(screen.getByRole('status').className).toContain('alert-success');
   });
 
   it('says what was wrong in the member’s language and keeps the old photo', async () => {
@@ -115,19 +127,18 @@ describe('profile photo control', () => {
 
   it('withdraws the photo and reports the removal upward', async () => {
     state.remove.mockResolvedValue({ removedAssetId: 'pha_old' });
-    show('pha_old', true);
+    show('pha_old');
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove photo' }));
 
     await waitFor(() => expect(onPhotoChange).toHaveBeenCalledWith(null));
+    expect(screen.getByRole('status').textContent).toContain('Photo removed');
   });
 
-  it('offers publication only once a photo exists, and reports the switch', () => {
+  it('has no publication switch even when a photo exists', () => {
     show('pha_abc');
-
-    fireEvent.click(screen.getByRole('checkbox'));
-
-    expect(onPublishChange).toHaveBeenCalledWith(true);
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.queryByText('Show publicly')).toBeNull();
   });
 
   it('blocks both actions while an upload is in flight', () => {

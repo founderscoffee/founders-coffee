@@ -77,7 +77,7 @@ is an isolated study with sample data, not shipped profile/account functionality
 Conformance is an acceptance criterion, not an aspiration. PF-04b, PF-04c, PF-07b and PF-08 each
 name the spec section they implement, and the spec's **required production state designs** table is
 the state checklist those tickets are reviewed against. Two known divergences are settled in favour
-of this plan rather than the study: the community role is the six-value enum frozen in §3, not the
+of this plan rather than the study: the removed community-role field is no longer part of the profile; ignore the
 free-text field the prototype draws, and the prototype's local JSON copy is design material that
 becomes `libs/i18n` keys — it is never read by the app.
 
@@ -85,18 +85,17 @@ The limits below are frozen PF-01 contracts, implemented once in PF-02 shared Zo
 Optional fields are nullable/clearable; empty values are normalized consistently. User-authored
 text is plain text, bounded, rendered as authored and never automatically translated.
 
-| Field                  | Contract                                                                                        | Public behavior                                                                                          |
-| ---------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Display name           | Required, trimmed, 1–80 Unicode code points; no legal-name or company requirement               | Always public; never fall back to email or phone in public UI                                            |
-| Photo                  | Optional JPEG/PNG/WebP upload; maximum 5 MiB and 16 megapixels; server validates and normalizes | Private until photo publication is enabled; initials otherwise                                           |
-| Introduction           | Optional, maximum 300 characters; authored locale `ar`, `fr` or `en` required when populated    | Separate publication toggle, off by default                                                              |
-| Community role         | Optional: founder, aspiring founder, developer, designer, community builder or other            | Separate publication toggle; never grants a system permission                                            |
-| Conversation interests | Up to five unique selections from a small shared, localized community-topic enum                | Separate publication toggle; no arbitrary taxonomy creation                                              |
-| Languages spoken       | Zero to three unique values from `ar`, `fr`, `en`                                               | Separate publication toggle; distinct from UI language                                                   |
-| Professional link      | One optional absolute HTTPS URL, maximum 2,048 characters; no credentials or unsafe schemes     | Separate publication toggle; external link with safe rel/referrer behavior; no server-side link previews |
-| Hosted events          | Server-derived history, paginated and grouped by event market/city                              | Public event identity and evidence; no private RSVP or attendance history                                |
-| Interface language     | `ar`, `fr`, `en`; reuse locale resolution                                                       | Private setting, propagated to server notifications                                                      |
-| Contact and security   | Better Auth identity, verified contacts, linked providers, sessions                             | Owner-only; never included in public DTOs                                                                |
+| Field                  | Contract                                                                                                | Public behavior                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Display name           | Required, trimmed, 1–80 Unicode code points; no legal-name or company requirement                       | Always public; never fall back to email or phone in public UI                                            |
+| Photo                  | Optional JPEG/PNG/WebP upload; maximum 5 MiB and 16 megapixels; server validates and normalizes         | Public when uploaded; no publication flag; initials when absent                                          |
+| Introduction           | Optional, maximum 300 Unicode code points; no language field; render unchanged with automatic direction | Public when provided; clear the field to remove it                                                       |
+| Conversation interests | Up to five unique selections from a small shared, localized community-topic enum                        | Separate publication toggle; no arbitrary taxonomy creation                                              |
+| Languages spoken       | Zero to six unique values from `ar`, `fr`, `en`, `es`, `de`, `ber`                                      | Separate publication toggle; distinct from UI language                                                   |
+| Personal website       | One optional absolute HTTPS URL, maximum 2,048 characters; no credentials or unsafe schemes             | Separate publication toggle; external link with safe rel/referrer behavior; no server-side link previews |
+| Hosted events          | Server-derived history, paginated and grouped by event market/city                                      | Public event identity and evidence; no private RSVP or attendance history                                |
+| Interface language     | `ar`, `fr`, `en`; reuse locale resolution                                                               | Private setting, propagated to server notifications                                                      |
+| Contact and security   | Better Auth identity, verified contacts, linked providers, sessions                                     | Owner-only; never included in public DTOs                                                                |
 
 Optional details have individual publish switches. Switching one off immediately removes it from
 public API responses, SSR output, metadata, previews and cached views. Clearing a field clears its
@@ -109,8 +108,8 @@ PF-02 uses the role keys `founder`, `aspiring_founder`, `developer`, `designer`,
 also count Unicode code points; counter behavior must match the schema, not HTML's UTF-16 length.
 Existing opaque Better Auth user IDs remain valid; new asset IDs use the shared factory. Profile
 and account preferences have independent nonnegative revisions and reject stale updates. Empty
-optional fields normalize to null/empty arrays, clear their publication flags and, for introduction,
-clear the authored language. Photo publication additionally requires an owned ready asset.
+optional fields normalize to null/empty arrays and clear their publication flags where applicable.
+Introductions have no language metadata or publication flag. Only owned, processed, attached photo assets can be delivered as public avatars; no photo publication flag exists.
 
 Event updates, reminders and host updates default enabled as category preferences; follow-up prompts,
 push and SMS fallback default disabled. Category defaults are not channel consent. SMS consent time
@@ -162,7 +161,7 @@ global account requests log their global scope, with market context only when re
 ### Persistence boundaries
 
 - Keep Better Auth's `user`, `account`, `session`, `verification` as the identity source. Do not duplicate email, phone or authorization role in profile tables.
-- Add a one-to-one profile record keyed by user ID for optional fields, authored locale, publication flags and revision. Treat it as a global identity extension, not geographic activity.
+- Add a one-to-one profile record keyed by user ID for optional fields, applicable publication flags and revision. Treat it as a global identity extension, not geographic activity.
 - Add owner notification preferences with explicit defaults and consent timestamps, plus an asset record for each owned photo with upload/processing/active/deletion state. Add session/device association for push subscriptions so account revocation can revoke delivery. Use shared ID factory and timestamp conventions.
 - Add lifecycle/job records only for export/deletion work that needs durable progress. Use the existing operations processing infrastructure once available; no in-memory jobs and no new service without authorization.
 - Define owner and public Zod response schemas. Explicitly select/project permitted fields; never spread a DB row into an RPC response or rely on TypeScript to remove fields at runtime.
@@ -184,7 +183,7 @@ Until then, do not describe budgets as centrally governed.
 | `getMyProfile` / `updateMyProfile`            | Owner DTO; allowlisted editable fields plus expected revision; return saved projection/revision; never accept owner/role/contact verification flags |
 | `getPublicProfile` / `listHostedEvents`       | Validated user ID; explicit market filter and bounded cursor for event history; public projection only                                              |
 | `getMyPreferences` / `updateMyPreferences`    | Validated locale/category/channel settings, SMS consent and revision; return actual saved policy                                                    |
-| `uploadMyPhoto` / `removeMyPhoto`             | Bounded multipart body through protected Worker, owned asset ID and revision; return processing/active state; visibility stays explicit             |
+| `uploadMyPhoto` / `removeMyPhoto`             | Bounded multipart body through protected Worker, owned asset ID and revision; return processing/active state; uploaded avatar is public             |
 | `getMyAccount` / contact verification actions | Masked contact/provider status; Better Auth verified change flow; recent action-bound proof and no secret-bearing responses                         |
 | `listMySessions` / revoke actions             | Opaque owner-bound session IDs, current-session indicator; protect matching device delivery and invalidate auth/cache state                         |
 | Provider link/unlink actions                  | Configured provider enum and validated return path; Better Auth linking and atomic last-usable-method guard                                         |
@@ -218,7 +217,7 @@ default to `noindex`; public event discovery remains unchanged.
 3. After the deployed fleet no longer depends on the columns, apply a reviewed Drizzle migration to remove `home_market_code`, `home_state`, `home_city_id` and the relevant FK. Do not copy their values into a renamed preference/profile table. "No longer depends" is a **recorded Worker version on every environment**, not elapsed time; PF-03b names that version in its release evidence.
 4. Test populated migration histories on local D1 and staging; verify users, sessions, events, RSVPs, market codes and FK integrity are preserved. Invalidate auth snapshots and cached responses containing the removed values.
 5. **Test the intermediate state, not only the endpoints.** Between the PF-03a release and the PF-03b promotion, production runs code that never mentions residence against a schema that still has the columns and their FK — and that window is as long as the operator's confidence takes. `libs/db/src/setup.ts` applies `TEST_MIGRATIONS`, which includes the pending contraction, so every repository and RPC test currently proves only the _contracted_ schema. PF-03a adds a suite that builds the database from the migrations **minus** the contraction and runs the profile repositories, a user insert and an auth sign-in against it. The columns are nullable today, so the state is expected to be safe; the test is what keeps a later `NOT NULL` from breaking signup for the length of that window.
-6. **Guard the quarantine mechanically.** `migrations/meta/_journal.json` and the 0021 snapshot are committed while `0021_remove_profile_residence.sql` sits in `libs/db/pending-migrations/`, so the next `db:generate-migrations` diffs against the contracted schema and emits an 0022 that assumes 0021 applied. A README is not a guard. PF-03a adds a test that fails when the journal names a tag whose `.sql` is absent from `libs/db/migrations/` and a later tag exists.
+6. **Guard the quarantine mechanically.** `migrations/meta/_journal.json` and the 0021 snapshot are committed while `0021_remove_profile_residence.sql` sits in `libs/db/pending-migrations/`, so the next `db:generate-migrations` diffs against the contracted schema and emits an 0022 that assumes 0021 applied. A README is not a guard. The quarantine test fails when a shipped migration follows a pending journal entry. A fully pending suffix is allowed for user-requested schema changes, but must be promoted in journal order.
 7. Historical SQL/snapshots remain immutable. Document existing backup retention and expiry; dropping active columns does not erase older backups. Restore procedures must rerun the privacy migration before serving traffic.
 8. Roll back application behavior only to a location-independent compatible version. After data removal, never restore home data as an ordinary rollback. No remote migration runs as part of writing this plan.
 
@@ -414,13 +413,14 @@ inside a feature PR. It is a release, not a code change: the SQL is already writ
 
 - Move profile components to `features/profile/components`; add section navigation and shared query options with owner-keyed cache keys and centralized invalidation.
 - Implement display-name editing with save/cancel per section, revision conflict handling with reload/reapply, preserved values after failure, rejected duplicate saves while pending, and `aria-live` save status.
+- Session-derived header identity uses an avatar-sized DaisyUI skeleton during SSR/hydration and session loading, with localized accessible status and reduced-motion support. Show login only after the session resolves as signed out; test loading-to-avatar and loading-to-login transitions in `ar`, `fr`, and `en`.
 - Acceptance: save, cancel, conflict, failure and pending states each have a test; invalidation refreshes the owner view and session-derived navigation identity; keyboard and RTL/LTR component tests pass.
 
 ### PF-04b — Optional fields and per-field publication
 
 **Requirements:** FR-A6, FR-A7, FR-L1 through FR-L5; NFR-5, NFR-8. **Depends on:** PF-04a.
 
-- Implement introduction, community role, conversation interests, spoken languages and professional link against the frozen PF-01 contracts, including code-point counters that match the schema rather than UTF-16 length.
+- Implement introduction, interests, spoken languages and personal website against the frozen PF-01 contracts, including code-point counters that match the schema rather than UTF-16 length.
 - Implement the individual publish switches, the rule that clearing a field clears its flag, and a read-only preview of the exact public projection.
 - Acceptance: every field can be saved and cleared; switching publication off removes the field from the public projection in the same test that asserts the owner still sees it; the preview and the public API agree field for field.
 
@@ -447,9 +447,9 @@ inside a feature PR. It is a release, not a code change: the SQL is already writ
 
 - Provision one **private** R2 bucket per environment — never one bucket shared across them — and declare the `r2_buckets` and `images` bindings plus their types in `apps/ui/wrangler.jsonc` and `apps/worker-jobs/wrangler.jsonc` under the existing per-environment convention. No Cloudflare Images storage subscription; see §5 for the cost decision and the figures behind it.
 - Implement the provider on the existing `R2ImageProvider` seam in `libs/infra/src/images/provider.ts`, which today is a read-only `fetch(key)` and has no upload, validation, normalization or cleanup.
-- Resize at upload through the Images binding: originals stay private in R2, two bounded avatar variants are written back beside them, and delivery is a Worker route enforcing the current publication state. The re-encode is also what strips EXIF and GPS, so metadata removal is not a separate step.
+- Resize at upload through the Images binding: originals stay private in R2, two bounded avatar variants are written back beside them, and delivery is a Worker route enforcing attachment, ready state and identity visibility. The re-encode is also what strips EXIF and GPS, so metadata removal is not a separate step.
 - Build accessible upload/preview/replace/remove with bounded server validation, normalization, metadata removal, private originals, publication-aware delivery and orphan cleanup.
-- Acceptance: malformed/oversized uploads fail safely; user B cannot read/manage user A's private assets; old URLs fail after withdrawal; replacement failure retains the old image; a transformation refused at the free-tier ceiling surfaces as an honest upload failure rather than a broken avatar; real local R2 and staged Images behavior verified. No upload control ships before the real provider works.
+- Acceptance: malformed/oversized uploads fail safely; user B can read user A's current avatar variants, but cannot manage their assets or read originals; old URLs fail after withdrawal; replacement failure retains the old image; a transformation refused at the free-tier ceiling surfaces as an honest upload failure rather than a broken avatar; real local R2 and staged Images behavior verified. No upload control ships before the real provider works.
 
 ### PF-07a — Dispatcher current-destination and lifecycle guard
 
@@ -574,7 +574,7 @@ behavior is real; unfinished services do not get inert settings controls.
 | Domain                | Unicode limits, clearing, visibility projection, allowed links/enums/locales, ownership and notification/deletion policy                                |
 | D1/Miniflare          | Populated migrations, FK integrity, conditional saves, concurrency, session/device ownership, deletion/counter/retention invariants                     |
 | Pre-contraction state | Repositories, user insert and auth sign-in against the schema **without** the pending contraction — the state production runs between PF-03a and PF-03b |
-| Migration quarantine  | A journal tag with no `.sql` in `migrations/` fails the build when a later tag exists, so a pending contraction cannot be silently built on             |
+| Migration quarantine  | A shipped migration cannot follow a pending journal entry; pending suffixes are promoted strictly in order                                              |
 | Server/auth           | Every mutation's permission/rate-limit/Turnstile failures; raw auth endpoint bypass; fresh proof; no mass assignment; no public PII                     |
 | R2/Images             | Owned private originals, real local bucket, staged transforms, metadata stripping, quota limits, failure recovery, withdrawn URL denial                 |
 | Delivery              | Current preferences/contact at production and dispatch, eligible fallback, revoked-device/deleted-user suppression, durable retries                     |
@@ -706,17 +706,17 @@ PF-03b, a release ticket that nobody executes without being asked.
 PF-01, PF-02, PF-03a and PF-04a were audited against this plan and the gaps closed in the same pass.
 Repository sweep green: `npx nx run-many -t typecheck lint test build`, plus `format:check`.
 
-| Finding                                                                                                   | Resolution                                                                                     |
-| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `public:typecheck` failed on `exact: true` inside `ByRoleOptions`, which has no such key                  | Removed at all three call sites; a string `name` already matches exactly                       |
-| Publishing a photo with no ready asset failed the write predicate and was reported as a revision conflict | `readProfileWriteState` names the reason; new `profile_photo_unavailable` code, copy and tests |
-| Rate budgets were three inline literals per call site, as §4 said they should not be                      | `libs/server-fns/src/rate-budgets.ts` declares them by category, with uniqueness tests         |
-| `getPublicProfile` was unauthenticated with no bucket, so enumeration was unbounded                       | Draws from the new `read` category budget                                                      |
-| Every repository test ran on the contracted schema; the deployed intermediate state had no coverage       | `profile-precontraction.test.ts` builds from the shipped migrations only                       |
-| The pending-migration quarantine was guarded by a README                                                  | `migration-quarantine.test.ts` fails the build if a later tag is generated over a pending one  |
-| PF-04a required save/cancel per section and an unsaved-changes warning; neither existed                   | Cancel restores the saved name; `useUnsavedGuard` blocks navigation and `beforeunload`         |
-| Eight residence copy keys survived in all three locales, including `profile_home_location`                | Removed; the plan's "replace the old claim that home location is collected" is done for these  |
-| The 2026-09-09 review claimed `account_state` had no reader                                               | Wrong: `activeProfileIdentity` already enforces it. The claim above is corrected               |
+| Finding                                                                                                   | Resolution                                                                                                               |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `public:typecheck` failed on `exact: true` inside `ByRoleOptions`, which has no such key                  | Removed at all three call sites; a string `name` already matches exactly                                                 |
+| Publishing a photo with no ready asset failed the write predicate and was reported as a revision conflict | Historical fix, superseded by the PF-06 simplification: photo publication controls and this failure mode are now removed |
+| Rate budgets were three inline literals per call site, as §4 said they should not be                      | `libs/server-fns/src/rate-budgets.ts` declares them by category, with uniqueness tests                                   |
+| `getPublicProfile` was unauthenticated with no bucket, so enumeration was unbounded                       | Draws from the new `read` category budget                                                                                |
+| Every repository test ran on the contracted schema; the deployed intermediate state had no coverage       | `profile-precontraction.test.ts` builds from the shipped migrations only                                                 |
+| The pending-migration quarantine was guarded by a README                                                  | `migration-quarantine.test.ts` now permits pending suffixes but rejects shipping past a pending dependency               |
+| PF-04a required save/cancel per section and an unsaved-changes warning; neither existed                   | Cancel restores the saved name; `useUnsavedGuard` blocks navigation and `beforeunload`                                   |
+| Eight residence copy keys survived in all three locales, including `profile_home_location`                | Removed; the plan's "replace the old claim that home location is collected" is done for these                            |
+| The 2026-09-09 review claimed `account_state` had no reader                                               | Wrong: `activeProfileIdentity` already enforces it. The claim above is corrected                                         |
 
 `safeProfileDisplayName` no longer compares a name to the member's phone number. That comparison
 defended against Better Auth's phone-number plugin writing the number straight into `name`, which it
@@ -878,11 +878,10 @@ because a future size cannot be derived from a 96-pixel square, and it has no de
 `/media/profile/:id/original` is a 404 by construction, since the route parses the variant against
 the declared enum.
 
-**Delivery asks the publication question on every request.** `private, no-cache` stores the response
+**Delivery checks avatar eligibility on every request.** `private, no-cache` stores the response
 and revalidates before each use, so a withdrawal takes effect on the next request rather than
-whenever a max-age lapses, while the common case still costs a 304. `Vary: Cookie` is required
-because the answer depends on the asker: an owner sees their own unpublished photo, nobody else
-does. A suppressed identity's photo is withheld from everyone including the owner, through the same
+whenever a max-age lapses, while the common case still costs a 304. Uploaded avatars are public without a separate toggle. `private, no-cache` and
+`Vary: Cookie` remain conservative cache controls; delivery no longer needs a viewer session. A suppressed identity's photo is withheld from everyone including the owner, through the same
 `visibleIdentity` predicate PF-05 introduced.
 
 **Three defects found by auditing the implementation, all fixed before commit.**
@@ -916,3 +915,108 @@ that usage needs a Cloudflare Images read permission the token does not have.
 
 Next ticket: **PF-07a** — the dispatcher current-destination and lifecycle guard, which PF-07c/d,
 PF-08 and CO-02 all consume.
+
+### PF-06 follow-up — public avatars and responsive header (2026-09-09)
+
+Owner-requested change under FR-A6/FR-A11 and NFR-8: uploading an avatar makes its processed
+variants public, without a separate “Show publicly” switch. The later PF-04 follow-up also makes introductions public; remaining optional details keep
+their per-field opt-ins. The UI, Zod contracts, repositories and current Drizzle schema no longer
+carry photo visibility. Immutable historical migrations retain the old field; generated migration
+`0022_remove_photo_visibility.sql` removes it after compatible code is deployed. It remains in
+`libs/db/pending-migrations/`, behind 0021, with a populated local D1 preservation test. No remote
+migration or deployment is authorized by this implementation request.
+
+The header reads the owner-keyed profile query, renders the current avatar variant and falls back
+to initials on removal or delivery failure. Upload/replacement/removal invalidate owner/public
+profile queries and route data. Session/profile loading uses the DaisyUI skeleton. The photo
+card has no title; its localized subtitle contains only JPEG/PNG/WebP and the 5 MB limit.
+
+Verification covers immediate header upload/replacement/removal, account isolation, loading and
+image failure, removal of the photo switch, strict rejection of obsolete API input, anonymous
+avatar delivery, moderation/removal withdrawal, and preserving all other columns/privacy flags
+when dropping the database column. Live deployment remains a separate operator action.
+
+### PF-04 follow-up — one identity card and simpler introductions (2026-09-09)
+
+Owner-requested amendment under FR-A6/FR-A7/FR-L5 and NFR-8: photo controls, display name and
+introduction share one card, without the introductory title/description. The photo format/size
+hint remains when uploads are available. Name and introduction editing remain available when
+photo storage is unavailable.
+
+The introduction is optional, public when provided, clearable, bounded to 300 Unicode code points,
+and rendered unchanged with `dir="auto"`. There is no writing-language selector, inferred language,
+`introductionLocale`, `visibility.introduction` or corresponding active database fields. Other
+optional details retain their independent publication controls. Strict contracts reject obsolete
+language/publication input. Existing introductions remain intact and are now public; rollout must
+communicate that change to members who previously kept an introduction private.
+
+Generated migration `0023_simplify_profile_introduction.sql` drops `introduction_locale` and
+`publish_introduction` only. It is quarantined behind 0021/0022 pending compatible Worker deployment
+and operator-authorized promotion; no remote migration is performed. Historical migrations and
+snapshots remain immutable. A populated D1 test verifies that introduction text, other privacy
+settings, all remaining profile columns and foreign keys survive the drop.
+
+Regression coverage includes a single card in `ar`, `fr`, `en`, absent heading/selector/toggle,
+public introduction preview/save/clear, retained optional-field controls, and strict DTO boundaries.
+
+### PF-04 follow-up — unified editor, interests and six spoken languages (2026-09-09)
+
+All profile-editing controls now share one card. Remove the details heading/description and
+self-description select, including its i18n keys, public/owner DTO fields, publication flag and
+current Drizzle fields. This is not a change to Better Auth account roles or permissions.
+
+Rename the interests label to “اهتماماتي” / “My interests” / “Mes centres d’intérêt”. Keep the
+existing six choices and add investing, software development, building products and validating
+ideas; retain the maximum of five selected interests. Spoken languages are separate from interface
+locales and allow six selections from Arabic, French, English, Spanish, German and Tamazight
+(`ar`, `fr`, `en`, `es`, `de`, `ber`). The UI stays limited to `ar`, `fr`, `en`.
+Rename the website label to “موقعك الشخصي” / “Your personal website” / “Votre site personnel”; retain
+the existing HTTPS validation and storage key. Interests, spoken languages and website retain
+their independent visibility controls.
+
+Generated `0024_remove_profile_community_role.sql` drops only `community_role` and
+`publish_community_role`. It remains in pending-migrations behind 0021–0023 until compatible code
+is deployed and an operator authorizes promotion. Local populated-D1 verification preserves all
+remaining profile values, authentication rows and foreign keys. Historical migration files remain
+immutable. No remote migration, commit or push is part of this follow-up.
+
+### PF-04 follow-up — remove embedded preview and editor border (2026-09-09)
+
+Owner-requested amendment under FR-A7 and NFR-8: the profile editor is single-column, with no
+embedded public-preview panel and no outer editor border. Input borders and public profile pages
+are unchanged. Remove the preview component, draft-only projection helper and unused preview i18n
+keys from `ar`, `fr`, `en`. Retain the actual public-profile projection and all visibility enforcement.
+Earlier preview requirements and audit entries above describe superseded behavior. Saving,
+discarding, privacy toggles and editing controls remain intact; regression tests verify no preview,
+no outer border and no reserved sidebar column in all three interface languages. No database
+change is needed for this presentation-only follow-up.
+
+### PF-04 follow-up — collaboration and learning interests (2026-09-09)
+
+Add co-founders, partnerships, experience sharing and learning new skills to the shared interest
+contract and localized options in `ar`, `fr`, `en`. Retain the five-interest selection limit and
+existing publication rules. Remove the spoken-language helper text and its translation key; the
+six spoken-language options and limit remain unchanged. Existing JSON storage needs no migration.
+
+### PF-04 / PF-06 follow-up — profile action toasts (2026-09-09)
+
+Owner-requested feedback amendment under FR-A6/FR-A7, FR-L1 through FR-L5 and NFR-8:
+replace inline save confirmation and action-error paragraphs with DaisyUI toasts at the top
+center of the viewport. Apply to full-profile saves, the name-completion editor and photo
+upload/replacement/removal. Use DaisyUI soft success alerts (light green background with dark green
+text) and red error alerts. The close icon inherits the alert's text color in both variants; success copy describes
+the whole profile, not only the name. Translate messages and notification dismissal in `ar`,
+`fr`, `en`.
+
+Shared presentation and per-mounted-editor TanStack Store state live in `libs/ui`. Success
+notifications expire after five seconds; action errors remain until dismissed or replaced.
+Repeated actions restart feedback without replaying an earlier mutation's success on rerender.
+Photo feedback shares the full editor's notification slot. Security configuration errors use the
+same toast stack with an accessible verification retry; save remains disabled. Keep revision
+conflict reload controls and unsaved edits independent from dismissal. Catch rejected and empty
+reload results and report a load-error toast. Loading states and the profile-access recovery screen
+remain in place; this amendment does not change unrelated application screens or server contracts.
+
+Verification covers localized success/dismissal, expiry, repeated successes, persistent errors,
+editor isolation, save retry, reload failure, security failure and photo action feedback. No new
+service, database migration, commit or push is included in this follow-up.

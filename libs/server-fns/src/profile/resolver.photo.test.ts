@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 import { id } from '@founders-coffee/core';
-import { createDb, getMemberProfile, user } from '@founders-coffee/db';
+import { createDb, user } from '@founders-coffee/db';
 import { profile } from '@founders-coffee/domain';
 
 import { saveOwnerProfile } from './resolver.js';
@@ -23,33 +23,24 @@ const command = (changes: Record<string, unknown> = {}) =>
   });
 
 describe('rejected profile saves name their reason', () => {
-  it('says a photo is missing instead of blaming a revision conflict', async () => {
-    const { db, userId } = await setup();
-    await saveOwnerProfile(db, userId, command());
-
-    const rejected = await saveOwnerProfile(
-      db,
-      userId,
-      command({ expectedRevision: 1, visibility: { photo: true } }),
-    );
-
-    expect(rejected).toMatchObject({
-      ok: false,
-      error: { code: 'profile_photo_unavailable' },
-    });
-    const stored = await getMemberProfile(db, userId);
-    expect(stored?.profile.publishPhoto).toBe(false);
-    expect(stored?.profile.revision).toBe(1);
+  it('rejects the removed visibility flag at the input boundary', () => {
+    expect(
+      profile.updateProfileSchema.safeParse({
+        displayName: 'Amina',
+        expectedRevision: 0,
+        visibility: { photo: true },
+      }).success,
+    ).toBe(false);
   });
 
-  it('still calls a moved revision a conflict when a photo is also requested', async () => {
+  it('still calls a moved revision a conflict', async () => {
     const { db, userId } = await setup();
     await saveOwnerProfile(db, userId, command());
 
     const rejected = await saveOwnerProfile(
       db,
       userId,
-      command({ expectedRevision: 0, visibility: { photo: true } }),
+      command({ expectedRevision: 0 }),
     );
 
     expect(rejected).toMatchObject({

@@ -7,7 +7,6 @@ import {
   getMemberProfile,
   getProfileIdentity,
   initializeMemberProfile,
-  readProfileWriteState,
   updateMemberProfile,
 } from './member-profiles.js';
 import { user } from './schema.js';
@@ -79,14 +78,9 @@ describe('profile repositories against the pre-contraction schema', () => {
       expectedRevision: 0,
       changes: {
         introduction: 'A short hello.',
-        introductionLocale: 'en',
-        communityRole: 'founder',
         interests: ['product'],
         spokenLanguages: ['en'],
         professionalLink: null,
-        publishPhoto: false,
-        publishIntroduction: true,
-        publishCommunityRole: false,
         publishInterests: false,
         publishSpokenLanguages: false,
         publishProfessionalLink: false,
@@ -95,7 +89,7 @@ describe('profile repositories against the pre-contraction schema', () => {
 
     expect(saved?.revision).toBe(1);
     expect(saved?.introduction).toBe('A short hello.');
-    expect((await readProfileWriteState(db, MEMBER.id))?.revision).toBe(1);
+    expect((await getMemberProfile(db, MEMBER.id))?.profile.revision).toBe(1);
   });
 
   it('rejects a stale revision here exactly as it does after contraction', async () => {
@@ -105,14 +99,9 @@ describe('profile repositories against the pre-contraction schema', () => {
       expectedRevision: 0,
       changes: {
         introduction: null,
-        introductionLocale: null,
-        communityRole: null,
         interests: [],
         spokenLanguages: [],
         professionalLink: null,
-        publishPhoto: false,
-        publishIntroduction: false,
-        publishCommunityRole: false,
         publishInterests: false,
         publishSpokenLanguages: false,
         publishProfessionalLink: false,

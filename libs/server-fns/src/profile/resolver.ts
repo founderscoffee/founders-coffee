@@ -3,7 +3,6 @@ import {
   getMemberProfile,
   getProfileIdentity,
   initializeMemberProfile,
-  readProfileWriteState,
   updateMemberProfile,
   type Db,
 } from '@founders-coffee/db';
@@ -73,38 +72,6 @@ export const readPublicProfile = (
     );
   });
 
-/**
- * Name the reason a conditional save was refused.
- *
- * The write is one SQL predicate, so a refusal arrives without a reason attached. Reporting all of
- * them as a revision conflict tells a member to reload, and reloading does not add the photo they
- * never uploaded — they would be sent round that loop indefinitely. Reading the state afterwards
- * costs one query on the failure path and turns three different problems into three answers.
- */
-const explainRejection = async (
-  db: Db,
-  userId: string,
-  input: profile.UpdateProfileInput,
-): Promise<AppError> => {
-  const state = await readProfileWriteState(db, userId);
-  if (!state)
-    return new AppError('not_found', 'Profile is no longer available');
-  if (state.revision !== input.expectedRevision)
-    return new AppError(
-      'profile_conflict',
-      'Profile changed; reload before saving',
-    );
-  if (input.visibility.photo && !state.hasReadyPhoto)
-    return new AppError(
-      'profile_photo_unavailable',
-      'Add a photo before publishing one',
-    );
-  return new AppError(
-    'profile_conflict',
-    'Profile changed; reload before saving',
-  );
-};
-
 /** Save the validated owner command under a revision without allowing identity field assignment. */
 export const saveOwnerProfile = (
   db: Db,
@@ -129,7 +96,16 @@ export const saveOwnerProfile = (
       expectedRevision: input.expectedRevision,
       changes: profileChanges(input),
     });
-    if (!row) return err(await explainRejection(db, userId, input));
+    if (!row) {
+      if (!(await getProfileIdentity(db, userId)))
+        return err(new AppError('not_found', 'Profile is no longer available'));
+      return err(
+        new AppError(
+          'profile_conflict',
+          'Profile changed; reload before saving',
+        ),
+      );
+    }
     return ok(ownerProfileProjection(userId, input.displayName, row));
   });
 
@@ -146,8 +122,6 @@ export const saveDisplayName = async (
     displayName: input.displayName,
     expectedRevision: input.expectedRevision,
     introduction: value.introduction,
-    introductionLocale: value.introductionLocale,
-    communityRole: value.communityRole,
     interests: value.interests,
     spokenLanguages: value.spokenLanguages,
     professionalLink: value.professionalLink,

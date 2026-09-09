@@ -1,7 +1,6 @@
 import {
   profile_intro_counter,
   profile_intro_label,
-  profile_intro_locale_label,
   profile_intro_placeholder,
   profile_name_hint,
   profile_name_label,
@@ -9,11 +8,9 @@ import {
   profile_public_chip,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Input, Select } from '@founders-coffee/ui';
+import { Input } from '@founders-coffee/ui';
 
 import type { ProfileDraft } from '../profile-draft';
-import { localeLabel, SPOKEN_LOCALE_OPTIONS } from '../profile-labels';
-import { PublishToggle } from './PublishToggle';
 
 export const ProfileIntroFields = ({
   locale,
@@ -86,40 +83,7 @@ export const ProfileIntroFields = ({
             { locale },
           )}
         </span>
-        <label className="flex items-center gap-2 text-body-sm text-neutral">
-          {profile_intro_locale_label({}, { locale })}
-          <Select
-            selectSize="sm"
-            className="w-auto"
-            aria-label={profile_intro_locale_label({}, { locale })}
-            value={draft.introductionLocale ?? locale}
-            disabled={isDisabled || draft.introduction === null}
-            onChange={(event) =>
-              onChange({
-                introductionLocale: event.target
-                  .value as ProfileDraft['introductionLocale'],
-              })
-            }
-          >
-            {SPOKEN_LOCALE_OPTIONS.map((authored) => (
-              <option key={authored} value={authored}>
-                {localeLabel(authored, locale)}
-              </option>
-            ))}
-          </Select>
-        </label>
       </div>
-      <PublishToggle
-        locale={locale}
-        isPublic={draft.visibility.introduction}
-        isDisabled={isDisabled || draft.introduction === null}
-        fieldLabel={profile_intro_label({}, { locale })}
-        onChange={(isPublic) =>
-          onChange({
-            visibility: { ...draft.visibility, introduction: isPublic },
-          })
-        }
-      />
     </div>
   </div>
 );

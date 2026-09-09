@@ -225,11 +225,17 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
   accounts link to a single identity by verified email (trusted providers only). No passwords.
 - **FR-A5** Roles: `member`, `host` (a member who has hosted), `sponsor_contact`, `admin`, `moderator`.
 - **FR-A6** A minimal public profile shall show a display name and public hosted-event evidence.
-  Photo, introduction, community role, interests, spoken languages and one professional link shall
-  be optional and published only by explicit per-field opt-in. Community role shall not grant
-  authorization; private contact details, system permissions and individual attendance stay private.
+  Uploaded profile avatars and introductions are optional and public without separate visibility switches.
+  Interests, spoken languages and one personal website shall
+  be optional and published only by explicit per-field opt-in. The profile has no self-described
+  community-role field; account permission roles remain separate. Private contact details, system
+  permissions and individual attendance stay private. Members may select up to five interests,
+  including investing, software development, building products and validating ideas, and up to six
+  spoken languages: Arabic, French, English, Spanish, German and Tamazight. Spoken-language choices
+  do not add interface locales.
 - **FR-A7** Members shall edit and clear their own profile fields, control optional publication,
-  preview the public result and manage their own activity from `apps/ui`. Optional completion shall
+  manage their own activity from `apps/ui`. The profile editor has no embedded public preview; the
+  public profile remains a separate page. Optional completion shall
   not block event creation or RSVP. Visibility shall be enforced in API, SSR, metadata and caches.
 - **FR-A8** Members shall manage verified email/phone, configured login providers and active sessions
   through Better Auth. Sensitive changes require recent authentication, prevent loss of the last
@@ -243,8 +249,8 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
   destroying community evidence or violating frozen attendance eligibility.
 - **FR-A11** Members shall upload, replace and remove optional profile photos through protected
   Worker-mediated R2 storage and Cloudflare Images processing, with bounded validation, metadata
-  removal, private originals and publication-aware delivery. Service entitlement and cost checks
-  precede provisioning; removed or hidden photos shall no longer be served publicly.
+  removal, private originals and eligibility-checked public avatar delivery. Service entitlement and cost checks
+  precede provisioning; removed, replaced or moderation-suppressed photos shall no longer be served publicly.
 
 FR-A3 and FR-A6 through FR-A11 describe the approved target, not completed implementation. Delivery
 and legacy migration are tracked by PF-01 through PF-12 in the
@@ -257,6 +263,8 @@ and legacy migration are tracked by PF-01 through PF-12 in the
 - **FR-L3** The system shall use a **locale fallback chain** ending at the base locale `ar` (e.g., `fr → ar`, `en → ar`) so partial translations degrade gracefully.
 - **FR-L4** Dates, times, numbers, and currencies shall be formatted per the active locale and the relevant timezone.
 - **FR-L5** User-generated content shall be tagged with a language code and **not auto-translated**.
+  Profile introductions are an explicit exception: no writing-language field is collected or inferred;
+  render their text unchanged with automatic direction. Event and feedback language tags remain required.
 - **FR-L6** The default locale for a market is determined by `Market.default_locale`.
 
 ### 5.8 Admin & moderation (P0/P1) — served by `apps/admin`
@@ -349,8 +357,8 @@ User
   // talent opt-in flag (FR-P4)
 
 MemberProfile / AccountPreferences (planned, PF-02)
-  user_id; optional introduction and authored locale; community role; interests; spoken languages
-  professional link; photo asset reference; per-field publication; revision
+  user_id; optional public introduction; interests; spoken languages
+  personal website (stored as professional_link); photo asset reference; per-field publication; revision
   private notification preferences and consent; no home market/state/city
 
 Event

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import {
@@ -7,16 +7,16 @@ import {
   profile_photo_remove,
   profile_photo_replace,
   profile_photo_saved,
+  profile_photo_removed,
   profile_photo_uploading,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, type ToastMessage } from '@founders-coffee/ui';
 
 import { initials } from '../../../lib/utils';
 import { photoErrorMessage } from '../errors';
 import { usePhotoUpload, useRemovePhoto } from '../hooks';
 import { profilePhotoUrl } from '../photo-url';
-import { PublishToggle } from './PublishToggle';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp';
 
@@ -24,48 +24,41 @@ export const ProfilePhotoField = ({
   locale,
   displayName,
   photoAssetId,
-  isPublic,
   isDisabled,
   turnstileToken,
   onPhotoChange,
-  onPublishChange,
+  onFeedback,
 }: {
   locale: Locale;
   displayName: string;
   photoAssetId: string | null;
-  isPublic: boolean;
   isDisabled?: boolean;
   turnstileToken?: string;
   onPhotoChange: (assetId: string | null) => void;
-  onPublishChange: (isPublic: boolean) => void;
+  onFeedback: (message: string, variant: ToastMessage['variant']) => void;
 }) => {
   const input = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const upload = usePhotoUpload();
   const remove = useRemovePhoto();
   const busy = upload.isPending || remove.isPending || isDisabled === true;
 
   const choose = async (file: File | undefined) => {
     if (!file) return;
-    setError(null);
-    setSaved(false);
     try {
       onPhotoChange(await upload.mutateAsync({ file, turnstileToken }));
-      setSaved(true);
+      onFeedback(profile_photo_saved({}, { locale }), 'success');
     } catch (failure) {
-      setError(photoErrorMessage(appErrorCode(failure), locale));
+      onFeedback(photoErrorMessage(appErrorCode(failure), locale), 'error');
     }
   };
 
   const discard = async () => {
-    setError(null);
-    setSaved(false);
     try {
       await remove.mutateAsync(turnstileToken);
       onPhotoChange(null);
+      onFeedback(profile_photo_removed({}, { locale }), 'success');
     } catch (failure) {
-      setError(photoErrorMessage(appErrorCode(failure), locale));
+      onFeedback(photoErrorMessage(appErrorCode(failure), locale), 'error');
     }
   };
 
@@ -129,26 +122,6 @@ export const ProfilePhotoField = ({
         <p role="status" className="mt-2 text-body-sm text-neutral">
           {profile_photo_uploading({}, { locale })}
         </p>
-      )}
-      {saved && !error && (
-        <p role="status" className="mt-2 text-body-sm text-neutral">
-          {profile_photo_saved({}, { locale })}
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="mt-2 text-body-sm text-error">
-          {error}
-        </p>
-      )}
-
-      {photoAssetId && (
-        <PublishToggle
-          locale={locale}
-          isPublic={isPublic}
-          isDisabled={busy}
-          fieldLabel={profile_photo_alt({}, { locale })}
-          onChange={onPublishChange}
-        />
       )}
     </div>
   );

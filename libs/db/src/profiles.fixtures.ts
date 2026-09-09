@@ -12,14 +12,9 @@ import { user, type NewUser } from './schema.js';
 
 export const profileChanges: MemberProfileChanges = {
   introduction: 'Community first',
-  introductionLocale: 'en',
-  communityRole: 'founder',
   interests: ['community'],
   spokenLanguages: ['ar', 'en'],
   professionalLink: 'https://example.com',
-  publishPhoto: false,
-  publishIntroduction: true,
-  publishCommunityRole: false,
   publishInterests: false,
   publishSpokenLanguages: false,
   publishProfessionalLink: false,

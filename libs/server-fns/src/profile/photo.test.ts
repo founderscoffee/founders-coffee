@@ -1,9 +1,4 @@
-import {
-  eq,
-  getMemberProfile,
-  memberProfiles,
-  profileAssets,
-} from '@founders-coffee/db';
+import { eq, getMemberProfile, profileAssets } from '@founders-coffee/db';
 import { profile } from '@founders-coffee/domain';
 import { describe, expect, it } from 'vitest';
 
@@ -173,10 +168,6 @@ describe('profile photos (real R2 and Images bindings)', () => {
   it('withdraws a photo and its publication in one step, and repeats safely', async () => {
     const ctx = await reserved();
     await upload(ctx);
-    await ctx.db
-      .update(memberProfiles)
-      .set({ publishPhoto: true })
-      .where(eq(memberProfiles.userId, ctx.userId));
 
     expect(await removeCurrentPhoto(ctx.db, ctx.userId)).toMatchObject({
       ok: true,
@@ -184,7 +175,6 @@ describe('profile photos (real R2 and Images bindings)', () => {
     });
     const stored = await getMemberProfile(ctx.db, ctx.userId);
     expect(stored?.profile.photoAssetId).toBeNull();
-    expect(stored?.profile.publishPhoto).toBe(false);
 
     expect(await removeCurrentPhoto(ctx.db, ctx.userId)).toMatchObject({
       ok: true,

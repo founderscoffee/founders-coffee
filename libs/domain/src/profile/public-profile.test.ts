@@ -12,15 +12,13 @@ const owner = ownerProfileSchema.parse({
   revision: 2,
   photoAssetId: `pha_${'1'.repeat(32)}`,
   introduction: 'Building a community',
-  introductionLocale: 'en',
-  communityRole: 'founder',
   interests: ['community'],
   spokenLanguages: ['ar', 'fr'],
   professionalLink: 'https://example.com/amina',
 });
 
 describe('public profile projection', () => {
-  it('never exposes optional data, auth fields or ownership controls by default', () => {
+  it('publishes the uploaded avatar and introduction but never exposes private optional details, auth fields or ownership controls by default', () => {
     const projected = projectPublicProfile({
       ...owner,
       email: 'private@example.com',
@@ -29,10 +27,8 @@ describe('public profile projection', () => {
     expect(projected).toEqual({
       userId: owner.userId,
       displayName: 'Amina',
-      photoAssetId: null,
-      introduction: null,
-      introductionLocale: null,
-      communityRole: null,
+      photoAssetId: owner.photoAssetId,
+      introduction: owner.introduction,
       interests: [],
       spokenLanguages: [],
       professionalLink: null,
@@ -44,9 +40,6 @@ describe('public profile projection', () => {
     const projected = projectPublicProfile({
       ...owner,
       visibility: {
-        photo: true,
-        introduction: true,
-        communityRole: true,
         interests: true,
         spokenLanguages: true,
         professionalLink: true,
@@ -57,8 +50,6 @@ describe('public profile projection', () => {
       displayName: owner.displayName,
       photoAssetId: owner.photoAssetId,
       introduction: owner.introduction,
-      introductionLocale: 'en',
-      communityRole: 'founder',
       interests: ['community'],
       spokenLanguages: ['ar', 'fr'],
       professionalLink: owner.professionalLink,
@@ -70,11 +61,11 @@ describe('public profile projection', () => {
   it('does not couple independent visibility choices', () => {
     const projected = projectPublicProfile({
       ...owner,
-      visibility: { ...owner.visibility, introduction: true },
+      visibility: { ...owner.visibility, interests: true },
     });
     expect(projected.introduction).toBe(owner.introduction);
-    expect(projected.communityRole).toBeNull();
-    expect(projected.photoAssetId).toBeNull();
+    expect(projected.interests).toEqual(owner.interests);
+    expect(projected.photoAssetId).toBe(owner.photoAssetId);
     expect(
       publicMemberProfileSchema.safeParse({
         ...projected,

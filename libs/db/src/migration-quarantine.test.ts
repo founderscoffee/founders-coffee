@@ -21,7 +21,7 @@ describe('migration quarantine', () => {
     expect(shipped.length + pending.length).toBe(journal.length);
   });
 
-  it('refuses to build a later migration on top of a quarantined one', () => {
+  it('never ships a later migration ahead of a quarantined dependency', () => {
     const { journal, shipped } = manifest();
     const shippedFiles = new Set(shipped);
     const firstQuarantined = journal.findIndex(
@@ -32,8 +32,8 @@ describe('migration quarantine', () => {
     const laterTags = journal.slice(firstQuarantined + 1);
 
     expect(
-      laterTags,
-      `${journal[firstQuarantined]} is still in pending-migrations, so ${laterTags.join(', ')} would be generated against a schema that has not shipped. Promote it first (PF-03b).`,
+      laterTags.filter((tag) => shippedFiles.has(fileFor(tag))),
+      `${journal[firstQuarantined]} is still pending; dependent migrations must remain pending and be promoted in order.`,
     ).toEqual([]);
   });
 

@@ -8,25 +8,54 @@ import {
   profileIdentitySchema,
   profileRevisionSchema,
   updateProfileSchema,
+  SPOKEN_LANGUAGES,
 } from './schemas.js';
 
 const minimal = { displayName: '  أمينة  ', expectedRevision: 0 };
 
 describe('profile contracts', () => {
+  it('accepts collaboration and learning interests while preserving selection limits', () => {
+    const interests = [
+      'cofounders',
+      'partnerships',
+      'experience_sharing',
+      'learning_new_skills',
+    ];
+    expect(
+      updateProfileSchema.parse({ ...minimal, interests }).interests,
+    ).toEqual(interests);
+    expect(
+      updateProfileSchema.safeParse({
+        ...minimal,
+        interests: [...interests, 'design', 'investing'],
+      }).success,
+    ).toBe(false);
+  });
+  it('accepts new interests and six spoken languages independently of interface locales', () => {
+    const value = updateProfileSchema.parse({
+      ...minimal,
+      interests: [
+        'investing',
+        'software_development',
+        'building_products',
+        'idea_validation',
+      ],
+      spokenLanguages: [...SPOKEN_LANGUAGES],
+    });
+    expect(value.interests).toHaveLength(4);
+    expect(value.spokenLanguages).toHaveLength(6);
+    expect(value).not.toHaveProperty('communityRole');
+    expect(value.visibility).not.toHaveProperty('communityRole');
+  });
   it('defaults optional data to absent and private, without collecting location', () => {
     expect(updateProfileSchema.parse(minimal)).toEqual({
       displayName: 'أمينة',
       expectedRevision: 0,
       introduction: null,
-      introductionLocale: null,
-      communityRole: null,
       interests: [],
       spokenLanguages: [],
       professionalLink: null,
       visibility: {
-        photo: false,
-        introduction: false,
-        communityRole: false,
         interests: false,
         spokenLanguages: false,
         professionalLink: false,
@@ -55,7 +84,8 @@ describe('profile contracts', () => {
   it('rejects unknown nested visibility fields and invalid field values', () => {
     for (const changes of [
       { visibility: { email: true } },
-      { communityRole: 'admin' },
+      { communityRole: 'founder' },
+      { visibility: { communityRole: true } },
       { interests: ['product', 'product'] },
       { interests: ['unknown'] },
       {
@@ -69,43 +99,28 @@ describe('profile contracts', () => {
         ],
       },
       { spokenLanguages: ['en', 'en'] },
-      { spokenLanguages: ['es'] },
-      { introductionLocale: 'es' },
+      { spokenLanguages: ['unknown'] },
+      { spokenLanguages: ['ar', 'fr', 'en', 'es', 'de', 'ber', 'it'] },
+      { introductionLocale: 'fr' },
+      { visibility: { introduction: true } },
     ])
       expect(
         updateProfileSchema.safeParse({ ...minimal, ...changes }).success,
       ).toBe(false);
   });
 
-  it('requires the authored language only for a nonempty introduction', () => {
-    const invalid = updateProfileSchema.safeParse({
+  it('accepts an introduction without collecting an authored language', () => {
+    const value = updateProfileSchema.parse({
       ...minimal,
       introduction: 'Bonjour',
     });
-    expect(invalid.success).toBe(false);
-    if (!invalid.success)
-      expect(invalid.error.issues[0]?.path).toEqual(['introductionLocale']);
-    expect(
-      updateProfileSchema.parse({
-        ...minimal,
-        introduction: ' ',
-        introductionLocale: 'fr',
-      }).introductionLocale,
-    ).toBeNull();
-    expect(
-      updateProfileSchema.parse({
-        ...minimal,
-        introduction: 'Bonjour',
-        introductionLocale: 'fr',
-      }).introductionLocale,
-    ).toBe('fr');
+    expect(value.introduction).toBe('Bonjour');
+    expect(value).not.toHaveProperty('introductionLocale');
+    expect(value.visibility).not.toHaveProperty('introduction');
   });
 
   it('clears publication flags for emptied fields but retains populated opt-ins', () => {
     const visibility = {
-      photo: true,
-      introduction: true,
-      communityRole: true,
       interests: true,
       spokenLanguages: true,
       professionalLink: true,
@@ -114,8 +129,6 @@ describe('profile contracts', () => {
       updateProfileSchema.parse({ ...minimal, visibility }).visibility,
     ).toEqual({
       ...visibility,
-      introduction: false,
-      communityRole: false,
       interests: false,
       spokenLanguages: false,
       professionalLink: false,
@@ -124,8 +137,6 @@ describe('profile contracts', () => {
       ...minimal,
       visibility,
       introduction: 'Hello',
-      introductionLocale: 'en',
-      communityRole: 'founder',
       interests: ['product'],
       spokenLanguages: ['ar', 'fr', 'en'],
       professionalLink: 'https://example.com/member',
@@ -162,7 +173,7 @@ describe('profile contracts', () => {
       revision: 0,
       photoAssetId: null,
     });
-    expect(value.visibility.photo).toBe(false);
+    expect(value.visibility).not.toHaveProperty('photo');
     expect(
       ownerProfileSchema.safeParse({
         ...value,

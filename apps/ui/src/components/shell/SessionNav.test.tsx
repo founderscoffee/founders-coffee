@@ -1,5 +1,14 @@
-import { act, cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { afterEach, assert, describe, expect, it, vi } from 'vitest';
+
+import { profile_loading, type Locale } from '@founders-coffee/i18n';
 
 import { SessionNav } from './SessionNav';
 
@@ -12,10 +21,18 @@ const state = vi.hoisted(() => ({
       role: string;
     } | null,
     isAuthenticated: false,
+    isLoading: false,
   },
   signOut: vi.fn(),
+  profile: {
+    data: null as { userId: string; photoAssetId: string | null } | null,
+    isPending: false,
+  },
 }));
 
+vi.mock('../../features/profile/hooks', () => ({
+  useMyProfile: () => state.profile,
+}));
 vi.mock('../../lib/app-providers', () => ({ useAuth: () => state.auth }));
 vi.mock('../../lib/auth', () => ({
   authClient: { signOut: state.signOut },
@@ -30,12 +47,113 @@ const signedIn = (email = 'amina@example.dz') => {
   state.auth = {
     user: { id: 'usr_1', name: 'Amina Yagoub', email, role: 'member' },
     isAuthenticated: true,
+    isLoading: false,
   };
 };
 
 afterEach(() => {
   cleanup();
-  state.auth = { user: null, isAuthenticated: false };
+  state.auth = { user: null, isAuthenticated: false, isLoading: false };
+  state.profile = { data: null, isPending: false };
+});
+
+describe('session avatar', () => {
+  it('updates after upload, replacement and removal without refreshing', () => {
+    signedIn();
+    const { container, rerender } = render(<SessionNav locale="en" />);
+    expect(container.querySelector('summary')?.textContent).toBe('AY');
+    for (const photoAssetId of ['pha_first', 'pha_replaced']) {
+      state.profile.data = { userId: 'usr_1', photoAssetId };
+      rerender(<SessionNav locale="en" />);
+      expect(container.querySelector('summary img')?.getAttribute('src')).toBe(
+        `/media/profile/${photoAssetId}/sm`,
+      );
+    }
+    state.profile.data = { userId: 'usr_1', photoAssetId: null };
+    rerender(<SessionNav locale="en" />);
+    expect(container.querySelector('summary img')).toBeNull();
+    expect(container.querySelector('summary')?.textContent).toBe('AY');
+  });
+
+  it('keeps a skeleton while the signed-in profile loads', () => {
+    signedIn();
+    state.profile.isPending = true;
+    const { container } = render(<SessionNav locale="en" />);
+    expect(screen.getByRole('status')).toBeTruthy();
+    expect(container.querySelector('summary')).toBeNull();
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+
+  it('never renders an avatar belonging to the previous account', () => {
+    signedIn();
+    state.profile.data = { userId: 'usr_other', photoAssetId: 'pha_other' };
+    const { container } = render(<SessionNav locale="en" />);
+    expect(container.querySelector('summary img')).toBeNull();
+  });
+
+  it('falls back on delivery failure and tries a newly uploaded asset', () => {
+    signedIn();
+    state.profile.data = { userId: 'usr_1', photoAssetId: 'pha_failed' };
+    const { container, rerender } = render(<SessionNav locale="en" />);
+    const image = container.querySelector('img');
+    assert(image);
+    fireEvent.error(image);
+    expect(container.querySelector('summary')?.textContent).toBe('AY');
+    state.profile.data.photoAssetId = 'pha_new';
+    rerender(<SessionNav locale="en" />);
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(
+      '/media/profile/pha_new/sm',
+    );
+  });
+});
+
+describe('session loading', () => {
+  it('renders a skeleton rather than a login link before hydration', () => {
+    const html = renderToString(<SessionNav locale="en" />);
+
+    expect(html).toContain('skeleton');
+    expect(html).not.toContain('href="/login"');
+    expect(html).not.toContain('<details');
+  });
+
+  it.each<Locale>(['ar', 'fr', 'en'])(
+    'keeps the skeleton until the session resolves in %s',
+    (locale) => {
+      state.auth.isLoading = true;
+      const { container, rerender } = render(<SessionNav locale={locale} />);
+
+      expect(screen.getByRole('status').textContent).toBe(
+        profile_loading({}, { locale }),
+      );
+      expect(container.querySelector('.skeleton')?.className).toContain(
+        'motion-reduce:animate-none',
+      );
+      expect(screen.queryByRole('link')).toBeNull();
+      expect(container.querySelector('details')).toBeNull();
+
+      signedIn();
+      rerender(<SessionNav locale={locale} />);
+
+      expect(screen.queryByRole('status')).toBeNull();
+      expect(container.querySelector('summary')?.textContent).toBe('AY');
+      expect(container.querySelector('a[href="/login"]')).toBeNull();
+    },
+  );
+
+  it.each<Locale>(['ar', 'fr', 'en'])(
+    'shows login only after the session resolves as signed out in %s',
+    (locale) => {
+      state.auth.isLoading = true;
+      const { rerender } = render(<SessionNav locale={locale} />);
+      expect(screen.queryByRole('link')).toBeNull();
+
+      state.auth.isLoading = false;
+      rerender(<SessionNav locale={locale} />);
+
+      expect(screen.queryByRole('status')).toBeNull();
+      expect(screen.getByRole('link').getAttribute('href')).toBe('/login');
+    },
+  );
 });
 
 describe('session dropdown', () => {

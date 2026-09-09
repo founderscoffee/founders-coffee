@@ -27,8 +27,6 @@ describe('member profiles on real D1', () => {
         spokenLanguages: [],
         introduction: null,
         photoAssetId: null,
-        publishPhoto: false,
-        publishIntroduction: false,
       },
     });
     expect(Object.keys(result ?? {})).toEqual([
@@ -189,23 +187,17 @@ describe('member profiles on real D1', () => {
         changes: {
           ...profileChanges,
           introduction: null,
-          introductionLocale: null,
-          communityRole: null,
           interests: [],
           spokenLanguages: [],
           professionalLink: null,
-          publishIntroduction: false,
         },
       }),
     ).toMatchObject({
       revision: 2,
       introduction: null,
-      introductionLocale: null,
-      communityRole: null,
       interests: [],
       spokenLanguages: [],
       professionalLink: null,
-      publishIntroduction: false,
     });
   });
 });

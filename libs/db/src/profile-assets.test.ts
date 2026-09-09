@@ -27,39 +27,18 @@ describe('owned profile assets on real D1', () => {
     expect(await reserveProfileAsset(db, 'missing', expiry)).toBeNull();
   });
 
-  it('rejects publishing an absent or unprocessed photo without changing the name', async () => {
+  it('allows profile editing independently of whether a photo exists', async () => {
     const { db, userId } = await profileFixture();
-    const input = {
-      userId,
-      displayName: 'Published',
-      expectedRevision: 0,
-      changes: { ...profileChanges, publishPhoto: true },
-    };
-    expect(await updateMemberProfile(db, input)).toBeNull();
-    const asset = await reserveProfileAsset(db, userId, new Date('2099-01-01'));
-    assert(asset);
-    await db
-      .update(memberProfiles)
-      .set({ photoAssetId: asset.id })
-      .where(eq(memberProfiles.userId, userId));
-    expect(await updateMemberProfile(db, input)).toBeNull();
+    expect(
+      await updateMemberProfile(db, {
+        userId,
+        displayName: 'Edited',
+        expectedRevision: 0,
+        changes: profileChanges,
+      }),
+    ).toMatchObject({ revision: 1, photoAssetId: null });
     expect(await getMemberProfile(db, userId)).toMatchObject({
-      displayName: 'Original',
-      profile: { revision: 0 },
-    });
-    await db
-      .update(profileAssets)
-      .set({
-        status: 'ready',
-        mimeType: 'image/jpeg',
-        byteSize: 100,
-        width: 10,
-        height: 10,
-      })
-      .where(eq(profileAssets.id, asset.id));
-    expect(await updateMemberProfile(db, input)).toMatchObject({
-      publishPhoto: true,
-      revision: 1,
+      displayName: 'Edited',
     });
   });
 

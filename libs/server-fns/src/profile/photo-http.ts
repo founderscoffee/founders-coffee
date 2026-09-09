@@ -124,15 +124,7 @@ const handleUpload = async (
   });
 };
 
-/**
- * Serve one variant, asking the publication question on every single request.
- *
- * `private, no-cache` is not a refusal to cache — it stores the response and revalidates before
- * every use, so a member who unpublishes their photo has it withdrawn on the next request rather
- * than whenever a max-age happens to lapse, and the common case still costs a 304 rather than the
- * bytes. `private` keeps it out of any shared cache, because whether this asset is visible depends
- * on who is asking: the owner can always see their own.
- */
+/** Revalidate avatar eligibility before delivery or a 304, including after removal or moderation. */
 const handleDelivery = async (
   request: Request,
   assetId: string,
@@ -143,12 +135,7 @@ const handleDelivery = async (
   const variant = profile.profilePhotoVariantSchema.safeParse(variantName);
   if (!variant.success) return json(404, 'not_found');
 
-  const session = await resolveSession(request.headers);
-  const row = await getDeliverableProfilePhoto(
-    getDb(),
-    assetId,
-    session?.user?.id ?? null,
-  );
+  const row = await getDeliverableProfilePhoto(getDb(), assetId);
   if (!row) return json(404, 'not_found');
 
   const etag = `"${assetId}-${row.revision}-${variant.data}"`;

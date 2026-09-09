@@ -27,8 +27,6 @@ const profile = {
 
 const publicProfile: PublicProfile = {
   ...profile,
-  introductionLocale: null,
-  communityRole: null,
   interests: [],
   spokenLanguages: [],
   professionalLink: null,
@@ -96,7 +94,6 @@ describe('PublicProfilePage', () => {
         events={[]}
         profile={{
           ...publicProfile,
-          communityRole: 'founder',
           interests: ['product', 'community'],
           spokenLanguages: ['ar', 'fr'],
           professionalLink: 'https://example.com/work',
@@ -104,7 +101,7 @@ describe('PublicProfilePage', () => {
       />,
     );
 
-    expect(screen.getByText('Founder')).toBeTruthy();
+    expect(screen.queryByText('Founder')).toBeNull();
     expect(screen.getByText('Product')).toBeTruthy();
     expect(screen.getByText('Community')).toBeTruthy();
     expect(screen.getByText('Arabic · French')).toBeTruthy();

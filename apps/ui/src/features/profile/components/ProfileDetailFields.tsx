@@ -1,21 +1,16 @@
 import {
   profile_interests_hint,
   profile_interests_label,
-  profile_languages_hint,
   profile_languages_label,
   profile_link_label,
   profile_link_placeholder,
   profile_optional_chip,
-  profile_role_label,
-  profile_role_none,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Input, Select } from '@founders-coffee/ui';
+import { Input } from '@founders-coffee/ui';
 
 import {
-  COMMUNITY_ROLE_OPTIONS,
   localeLabel,
-  roleLabel,
   SPOKEN_LOCALE_OPTIONS,
   topicLabel,
   TOPIC_OPTIONS,
@@ -54,44 +49,6 @@ export const ProfileDetailFields = ({
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <label htmlFor="profile-role" className="text-label">
-            {profile_role_label({}, { locale })}
-          </label>
-          <OptionalChip locale={locale} />
-        </div>
-        <Select
-          id="profile-role"
-          value={draft.communityRole ?? ''}
-          disabled={isDisabled}
-          onChange={(event) =>
-            onChange({
-              communityRole:
-                (event.target.value as ProfileDraft['communityRole']) || null,
-            })
-          }
-        >
-          <option value="">{profile_role_none({}, { locale })}</option>
-          {COMMUNITY_ROLE_OPTIONS.map((role) => (
-            <option key={role} value={role}>
-              {roleLabel(role, locale)}
-            </option>
-          ))}
-        </Select>
-        <PublishToggle
-          locale={locale}
-          isPublic={draft.visibility.communityRole}
-          isDisabled={isDisabled || draft.communityRole === null}
-          fieldLabel={profile_role_label({}, { locale })}
-          onChange={(isPublic) =>
-            onChange({
-              visibility: { ...draft.visibility, communityRole: isPublic },
-            })
-          }
-        />
-      </div>
-
       <div>
         <div className="mb-2 flex items-center justify-between gap-2">
           <span className="text-label">
@@ -135,18 +92,15 @@ export const ProfileDetailFields = ({
         <ChipGroup
           options={SPOKEN_LOCALE_OPTIONS}
           selected={draft.spokenLanguages}
-          max={3}
+          max={6}
           groupLabel={profile_languages_label({}, { locale })}
           labelFor={(spoken) => localeLabel(spoken, locale)}
           onToggle={(spoken) =>
             onChange({
-              spokenLanguages: toggle(draft.spokenLanguages, spoken, 3),
+              spokenLanguages: toggle(draft.spokenLanguages, spoken, 6),
             })
           }
         />
-        <p className="mt-2 text-body-sm text-neutral">
-          {profile_languages_hint({}, { locale })}
-        </p>
         <PublishToggle
           locale={locale}
           isPublic={draft.visibility.spokenLanguages}

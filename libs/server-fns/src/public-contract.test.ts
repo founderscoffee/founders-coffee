@@ -10,11 +10,9 @@ import { attachCityNames } from './events/resolver.js';
 import { ownerProfileProjection } from './profile/projection.js';
 
 const PUBLIC_PROFILE_FIELDS = [
-  'communityRole',
   'displayName',
   'interests',
   'introduction',
-  'introductionLocale',
   'photoAssetId',
   'professionalLink',
   'spokenLanguages',
@@ -100,22 +98,13 @@ describe('public response contract', () => {
 
     expect(sorted(Object.keys(owner))).toEqual(sorted(OWNER_PROFILE_FIELDS));
     expect(sorted(Object.keys(owner.visibility))).toEqual(
-      sorted([
-        'communityRole',
-        'interests',
-        'introduction',
-        'photo',
-        'professionalLink',
-        'spokenLanguages',
-      ]),
+      sorted(['interests', 'professionalLink', 'spokenLanguages']),
     );
   });
 
-  it('withholds every unpublished field from the public profile', () => {
+  it('publishes the introduction while withholding opt-in fields', () => {
     const owner = ownerProfileProjection('usr_contract', 'Contract', {
       introduction: 'Secret',
-      introductionLocale: 'en',
-      communityRole: 'founder',
       interests: ['bootstrapping'],
       spokenLanguages: ['ar'],
       professionalLink: 'https://example.dz',
@@ -127,11 +116,9 @@ describe('public response contract', () => {
       sorted(PUBLIC_PROFILE_FIELDS),
     );
     expect(published).toMatchObject({
-      introduction: null,
-      introductionLocale: null,
-      communityRole: null,
+      introduction: 'Secret',
       professionalLink: null,
-      photoAssetId: null,
+      photoAssetId: owner.photoAssetId,
       interests: [],
       spokenLanguages: [],
     });

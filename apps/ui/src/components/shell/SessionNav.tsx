@@ -5,9 +5,13 @@ import {
   nav_login,
   nav_logout,
   nav_signed_in_as,
+  profile_loading,
   profile_title,
   type Locale,
 } from '@founders-coffee/i18n';
+
+import { useMyProfile } from '../../features/profile/hooks';
+import { profilePhotoUrl } from '../../features/profile/photo-url';
 
 import { useAuth } from '../../lib/app-providers';
 import { authClient } from '../../lib/auth';
@@ -33,13 +37,28 @@ const LoginLink = ({ locale }: { locale: Locale }) => (
 type SessionNavProps = { locale: Locale };
 
 export const SessionNav = ({ locale }: SessionNavProps) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const { data: profile, isPending: isProfilePending } = useMyProfile();
+  const [failedPhoto, setFailedPhoto] = useState<string | null>(null);
   const { ref, close } = useDismissableDetails();
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
 
-  if (!isMounted || !isAuthenticated || !user)
-    return <LoginLink locale={locale} />;
+  if (!isMounted || isLoading || (isAuthenticated && isProfilePending))
+    return (
+      <div role="status">
+        <span
+          aria-hidden="true"
+          className="skeleton block size-8 shrink-0 rounded-full motion-reduce:animate-none"
+        />
+        <span className="sr-only">{profile_loading({}, { locale })}</span>
+      </div>
+    );
+
+  if (!isAuthenticated || !user) return <LoginLink locale={locale} />;
+
+  const photoAssetId =
+    profile?.userId === user.id ? profile.photoAssetId : null;
 
   return (
     <details ref={ref} className="dropdown dropdown-end">
@@ -47,7 +66,19 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
         aria-label={profile_title({}, { locale })}
         className="flex size-8 cursor-pointer list-none items-center justify-center rounded-full bg-base-200 text-xs font-semibold text-base-content"
       >
-        {initials(user.name, user.email)}
+        {photoAssetId && photoAssetId !== failedPhoto ? (
+          <img
+            key={photoAssetId}
+            src={profilePhotoUrl(photoAssetId, 'sm')}
+            alt=""
+            width={32}
+            height={32}
+            className="size-8 rounded-full object-cover"
+            onError={() => setFailedPhoto(photoAssetId)}
+          />
+        ) : (
+          initials(user.name, user.email)
+        )}
       </summary>
       <div className="dropdown-content z-50 mt-2 flex w-60 flex-col rounded-box border border-base-300 bg-base-100 p-1 shadow-[var(--shadow-2)]">
         <p className="px-3 pt-2 text-caption text-neutral">

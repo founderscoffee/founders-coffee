@@ -49,7 +49,7 @@ export const getOwnedProfileAsset = async (
  *
  * The asset row and `member_profiles.photo_asset_id` have to move together: an asset marked ready
  * that no profile points at is an orphan the sweeper will collect, and a profile pointing at an
- * asset that is not ready renders a broken image behind a publication check that says it is fine.
+ * asset that is not ready renders a broken image even though its attachment looks valid.
  * The composite foreign key on `(photo_asset_id, user_id)` means the second statement cannot
  * attach another member's asset even if a caller asked it to.
  *
@@ -152,7 +152,7 @@ export const retireProfilePhoto = async (
       .returning({ id: profileAssets.id }),
     db
       .update(memberProfiles)
-      .set({ photoAssetId: null, publishPhoto: false, updatedAt: now })
+      .set({ photoAssetId: null, updatedAt: now })
       .where(
         and(
           eq(memberProfiles.userId, userId),
@@ -163,18 +163,13 @@ export const retireProfilePhoto = async (
   return retired.length > 0;
 };
 
-/** Read a photo for delivery: the owner's own, or anyone's once they have published it. */
-export const getDeliverableProfilePhoto = async (
-  db: Db,
-  assetId: string,
-  viewerId: string | null,
-) => {
+/** Read an attached ready avatar for public delivery, excluding suppressed identities. */
+export const getDeliverableProfilePhoto = async (db: Db, assetId: string) => {
   const rows = await db
     .select({
       objectKey: profileAssets.objectKey,
       revision: profileAssets.revision,
       userId: profileAssets.userId,
-      published: memberProfiles.publishPhoto,
     })
     .from(profileAssets)
     .innerJoin(
@@ -194,7 +189,6 @@ export const getDeliverableProfilePhoto = async (
     .limit(1);
   const row = rows[0];
   if (!row) return null;
-  if (!row.published && row.userId !== viewerId) return null;
   return row;
 };
 

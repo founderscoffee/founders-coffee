@@ -502,8 +502,6 @@ export const memberProfiles = sqliteTable(
       .primaryKey()
       .references(() => user.id, { onDelete: 'cascade' }),
     introduction: text('introduction'),
-    introductionLocale: text('introduction_locale', { enum: [...LOCALES] }),
-    communityRole: text('community_role'),
     interests: text('interests', { mode: 'json' })
       .$type<string[]>()
       .notNull()
@@ -514,15 +512,6 @@ export const memberProfiles = sqliteTable(
       .default(sql`'[]'`),
     professionalLink: text('professional_link'),
     photoAssetId: text('photo_asset_id'),
-    publishPhoto: integer('publish_photo', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-    publishIntroduction: integer('publish_introduction', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-    publishCommunityRole: integer('publish_community_role', { mode: 'boolean' })
-      .notNull()
-      .default(false),
     publishInterests: integer('publish_interests', { mode: 'boolean' })
       .notNull()
       .default(false),

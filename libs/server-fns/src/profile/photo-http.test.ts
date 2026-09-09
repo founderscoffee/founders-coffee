@@ -16,7 +16,7 @@ const get = (path: string) => {
   return handleProfilePhotoRequest(new Request(url), url);
 };
 
-const publishedPhoto = async (published: boolean) => {
+const uploadedPhoto = async () => {
   const { db, userId } = await setupPhotoOwner();
   const reservation = await reservePhotoUpload(db, userId);
   if (!reservation.ok) throw reservation.error;
@@ -27,11 +27,6 @@ const publishedPhoto = async (published: boolean) => {
     bytes: landscapePng(),
   });
   if (!stored.ok) throw stored.error;
-  if (published)
-    await db
-      .update(memberProfiles)
-      .set({ publishPhoto: true })
-      .where(eq(memberProfiles.userId, userId));
   return { db, userId, assetId };
 };
 
@@ -44,7 +39,7 @@ describe('profile photo delivery', () => {
   });
 
   it('serves a published variant with a revalidating private cache policy', async () => {
-    const { assetId } = await publishedPhoto(true);
+    const { assetId } = await uploadedPhoto();
 
     const response = await get(`/media/profile/${assetId}/md`);
     expect(response?.status).toBe(200);
@@ -55,7 +50,7 @@ describe('profile photo delivery', () => {
   });
 
   it('answers a matching ETag with 304 and no body', async () => {
-    const { assetId } = await publishedPhoto(true);
+    const { assetId } = await uploadedPhoto();
     const first = await get(`/media/profile/${assetId}/sm`);
     const etag = first?.headers.get('etag') ?? '';
     expect(etag).not.toBe('');
@@ -69,26 +64,26 @@ describe('profile photo delivery', () => {
     expect(second?.headers.get('cache-control')).toBe('private, no-cache');
   });
 
-  it('withholds an unpublished photo from a stranger', async () => {
-    const { assetId } = await publishedPhoto(false);
+  it('serves an uploaded avatar to anonymous visitors without a visibility toggle', async () => {
+    const { assetId } = await uploadedPhoto();
 
-    expect((await get(`/media/profile/${assetId}/md`))?.status).toBe(404);
+    expect((await get(`/media/profile/${assetId}/md`))?.status).toBe(200);
   });
 
-  it('stops serving the moment publication is withdrawn', async () => {
-    const { db, userId, assetId } = await publishedPhoto(true);
+  it('stops serving the moment the photo is detached', async () => {
+    const { db, userId, assetId } = await uploadedPhoto();
     expect((await get(`/media/profile/${assetId}/md`))?.status).toBe(200);
 
     await db
       .update(memberProfiles)
-      .set({ publishPhoto: false })
+      .set({ photoAssetId: null })
       .where(eq(memberProfiles.userId, userId));
 
     expect((await get(`/media/profile/${assetId}/md`))?.status).toBe(404);
   });
 
   it('refuses an unknown asset, an unknown variant and a nested path alike', async () => {
-    const { assetId } = await publishedPhoto(true);
+    const { assetId } = await uploadedPhoto();
 
     expect((await get('/media/profile/pha_missing/md'))?.status).toBe(404);
     expect((await get(`/media/profile/${assetId}/original`))?.status).toBe(404);
