@@ -724,4 +724,35 @@ exists. **PF-07b** now owns the section and that read model, shipping it read-on
 appears before the thing it controls; PF-07c and PF-07d attach their actions to rows that already
 exist; PF-09 and PF-10 gained the UI bullets their backends implied.
 
-Next ticket: **PF-04b**.
+### PF-04b implementation and audit — 2026-09-09
+
+Complete locally. The five optional fields, their independent publication switches and the public
+preview are implemented and audited against the design spec's §4 _Your profile_ and its state table.
+
+- `Select` joins `libs/ui` beside `Input`, same cva + forwardRef shape and the same `selectSize`
+  rename that avoids the native `size` collision. The community role is that select over the frozen
+  six-value enum, not the prototype's free-text field.
+- `profile-labels.ts` re-exports the domain enums and maps each value to a message with
+  `satisfies Record<(typeof ENUM)[number], …>`, so adding a role or topic without its translation is
+  a type error rather than `community_builder` appearing verbatim in an Arabic profile. Components
+  may not import the domain at runtime (AGENTS.md §16), which is why the lists route through here.
+- The preview calls `projectPublicProfile` — the same function the server projects with — so the
+  screen cannot promise a field the API withholds. It holds its last valid projection while a draft
+  is mid-edit rather than blanking over a half-typed URL.
+- One save, one revision, one Discard: `updateMyProfile` takes every field at once, so per-section
+  saves against a single revision would have conflicted with each other.
+
+Two defects were found by building it and fixed in the same pass. Both are recorded because each
+would have shipped as a silent wrong answer rather than a crash:
+
+| Defect                                                                                          | Why it mattered                                                                                    |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `previewFrom` spread `expectedRevision` into the strict `ownerProfileSchema`, which rejected it | The preview panel would have been permanently blank in production; unit tests caught it            |
+| The public profile page rendered only name and introduction                                     | Publishing a role, topics, languages or a link changed the API and nothing on the page members see |
+
+The second was found by driving the real page: a topic published through the new editor appeared in
+the owner's preview and in the public DTO, and not on `/u/:userId`. Verified after the fix against
+local D1 — `publish_community_role = 0` with `community_role = 'founder'` stored, and the role absent
+from the rendered public profile while the published introduction and topic both appear.
+
+Next ticket: **PF-04c**.

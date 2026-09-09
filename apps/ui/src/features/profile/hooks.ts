@@ -2,7 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 
 import { authClient } from '../../lib/auth';
-import { profileApi, type UpdateDisplayNameRequest } from './api';
+import {
+  profileApi,
+  type UpdateDisplayNameRequest,
+  type UpdateProfileRequest,
+} from './api';
 
 export const useMyProfile = () => {
   const auth = authClient.useSession();
@@ -27,13 +31,14 @@ export const usePublicProfile = (userId: string) =>
     retry: false,
   });
 
-export const useUpdateDisplayName = () => {
+const useProfileMutation = <TInput>(
+  mutationFn: (input: TInput) => ReturnType<typeof profileApi.updateProfile>,
+) => {
   const cache = useQueryClient();
   const router = useRouter();
   const auth = authClient.useSession();
   return useMutation({
-    mutationFn: (input: UpdateDisplayNameRequest) =>
-      profileApi.updateDisplayName(input),
+    mutationFn,
     onSuccess: (saved) => {
       cache.setQueryData(['profile', 'owner', saved.userId], saved);
       void cache.invalidateQueries({
@@ -46,3 +51,13 @@ export const useUpdateDisplayName = () => {
     },
   });
 };
+
+export const useUpdateDisplayName = () =>
+  useProfileMutation((input: UpdateDisplayNameRequest) =>
+    profileApi.updateDisplayName(input),
+  );
+
+export const useUpdateProfile = () =>
+  useProfileMutation((input: UpdateProfileRequest) =>
+    profileApi.updateProfile(input),
+  );

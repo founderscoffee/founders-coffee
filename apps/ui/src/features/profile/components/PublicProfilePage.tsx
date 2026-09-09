@@ -6,6 +6,7 @@ import {
 
 import { EventCard } from '../../../components/events/EventCard';
 import { initials } from '../../../lib/utils';
+import { localeLabel, roleLabel, topicLabel } from '../profile-labels';
 import type { EventFeedItem } from '../../events/api';
 import type { Market } from '../../markets/api';
 import type { PublicProfile } from '../api';
@@ -42,6 +43,41 @@ export const PublicProfilePage = ({
           >
             {profile.introduction}
           </p>
+        )}
+        {profile.communityRole && (
+          <p className="text-body-sm text-accent">
+            {roleLabel(profile.communityRole, locale)}
+          </p>
+        )}
+        {profile.interests.length > 0 && (
+          <ul className="flex flex-wrap gap-2">
+            {profile.interests.map((topic) => (
+              <li
+                key={topic}
+                className="rounded-full bg-base-100 px-3 py-1 text-body-sm"
+              >
+                {topicLabel(topic, locale)}
+              </li>
+            ))}
+          </ul>
+        )}
+        {profile.spokenLanguages.length > 0 && (
+          <p className="text-body-sm text-neutral">
+            {profile.spokenLanguages
+              .map((spoken) => localeLabel(spoken, locale))
+              .join(' · ')}
+          </p>
+        )}
+        {profile.professionalLink && (
+          <a
+            href={profile.professionalLink}
+            target="_blank"
+            rel="noreferrer nofollow ugc"
+            dir="ltr"
+            className="text-body-sm break-all underline"
+          >
+            {profile.professionalLink}
+          </a>
         )}
         <h2 className="font-display text-h3">
           {public_upcoming_events({}, { locale })}

@@ -12,19 +12,19 @@ import { Button } from '@founders-coffee/ui';
 import { useMyProfile } from '../hooks';
 import { useUnsavedGuard } from '../useUnsavedGuard';
 import { ProfileAccess } from './ProfileAccess';
-import { ProfileNameEditor } from './ProfileNameEditor';
+import { ProfileForm } from './ProfileForm';
 
 export const ProfilePage = ({ locale }: { locale: Locale }) => {
   const query = useMyProfile();
   const [isDirty, setIsDirty] = useState(false);
   const guard = useUnsavedGuard(isDirty);
   return (
-    <section className="mx-auto max-w-lg px-5 py-12">
+    <section className="mx-auto max-w-4xl px-5 py-12">
       <h1 className="mb-6 font-display text-h3">
         {profile_title({}, { locale })}
       </h1>
       {query.data && query.userId ? (
-        <ProfileNameEditor
+        <ProfileForm
           key={query.userId}
           profile={query.data}
           locale={locale}

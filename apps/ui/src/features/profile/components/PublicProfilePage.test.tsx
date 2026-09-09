@@ -7,6 +7,7 @@ vi.mock('@tanstack/react-router', () => ({
     createElement('a', props, children),
 }));
 
+import type { PublicProfile } from '../api';
 import { PublicProfilePage } from './PublicProfilePage';
 
 const profile = {
@@ -14,6 +15,15 @@ const profile = {
   displayName: 'Amina Host',
   photoAssetId: null,
   introduction: null,
+};
+
+const publicProfile: PublicProfile = {
+  ...profile,
+  introductionLocale: null,
+  communityRole: null,
+  interests: [],
+  spokenLanguages: [],
+  professionalLink: null,
 };
 
 const markets = [
@@ -39,7 +49,7 @@ const renderProfile = (events: readonly unknown[]) =>
   render(
     <PublicProfilePage
       locale="en"
-      profile={profile as never}
+      profile={publicProfile}
       events={events as never}
       markets={markets}
     />,
@@ -68,5 +78,45 @@ describe('PublicProfilePage', () => {
     renderProfile([{ ...(hostedEvent as object), marketCode: 'ZZ' }]);
 
     expect(screen.queryByText('Coffee and Code')).toBeNull();
+  });
+
+  it('renders every published detail and nothing the projection withheld', () => {
+    render(
+      <PublicProfilePage
+        locale="en"
+        markets={markets}
+        events={[]}
+        profile={{
+          ...publicProfile,
+          communityRole: 'founder',
+          interests: ['product', 'community'],
+          spokenLanguages: ['ar', 'fr'],
+          professionalLink: 'https://example.com/work',
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Founder')).toBeTruthy();
+    expect(screen.getByText('Product')).toBeTruthy();
+    expect(screen.getByText('Community')).toBeTruthy();
+    expect(screen.getByText('Arabic · French')).toBeTruthy();
+    const link = screen.getByRole('link', {
+      name: 'https://example.com/work',
+    });
+    expect(link.getAttribute('rel')).toContain('nofollow');
+  });
+
+  it('shows no detail row for a projection that published nothing', () => {
+    render(
+      <PublicProfilePage
+        locale="en"
+        markets={markets}
+        events={[]}
+        profile={publicProfile}
+      />,
+    );
+
+    expect(screen.queryByText('Founder')).toBeNull();
+    expect(screen.queryByRole('link', { name: /example\.com/ })).toBeNull();
   });
 });

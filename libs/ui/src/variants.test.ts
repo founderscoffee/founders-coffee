@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { badgeVariants } from './components/Badge.js';
 import { buttonVariants } from './components/Button.js';
 import { inputVariants } from './components/Input.js';
+import { selectVariants } from './components/Select.js';
 
 describe('libs/ui cva variants (literal class strings Tailwind can scan)', () => {
   it('Button defaults to primary md', () => {
@@ -25,5 +26,12 @@ describe('libs/ui cva variants (literal class strings Tailwind can scan)', () =>
 
   it('Input defaults to md (inputSize, avoiding the native size collision)', () => {
     expect(inputVariants()).toBe('input input-bordered w-full input-md');
+  });
+
+  it('Select mirrors Input, renaming size for the same native collision', () => {
+    expect(selectVariants()).toBe('select select-bordered w-full select-md');
+    expect(selectVariants({ selectSize: 'sm' })).toBe(
+      'select select-bordered w-full select-sm',
+    );
   });
 });
