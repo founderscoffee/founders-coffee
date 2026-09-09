@@ -39,6 +39,25 @@ export const getProfileIdentity = async (db: Db, userId: string) => {
   return rows[0] ?? null;
 };
 
+/**
+ * Whether a public read may attribute a row to this member.
+ *
+ * The feed and the hosted history answer this in SQL, correlated to the row they are already
+ * reading. A single event fetched by slug has no such join to hang it on, so it asks the same
+ * question here rather than growing a second definition of who is visible.
+ */
+export const isVisibleIdentity = async (
+  db: Db,
+  userId: string,
+): Promise<boolean> => {
+  const rows = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(activeProfileIdentity(userId))
+    .limit(1);
+  return rows.length > 0;
+};
+
 /** Initialize location-free defaults once, including under simultaneous first writes. */
 export const initializeMemberProfile = async (
   db: Db,

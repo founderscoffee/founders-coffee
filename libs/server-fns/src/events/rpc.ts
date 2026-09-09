@@ -13,6 +13,7 @@ import { getDb } from '../db.js';
 import { workerMetrics } from '../env.js';
 import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
+import { privateNoStore } from '../response-cache.js';
 import { requireEventCreateWafRule } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
 import { cancelEventResolver } from './cancel.js';
@@ -71,6 +72,7 @@ export const getEvent = createServerFn({ strict: false })
     }),
   )
   .handler(async ({ data }) => {
+    privateNoStore();
     const db = getDb();
     const event = await handleResult(resolveEvent(db, data));
     const session = await resolveSession(getRequest().headers);
@@ -104,6 +106,7 @@ export const getUpcomingEvents = createServerFn({ strict: false })
     }),
   )
   .handler(async ({ data }) => {
+    privateNoStore();
     const db = getDb();
     const page = await listEvents(db, data);
     const session = await resolveSession(getRequest().headers);

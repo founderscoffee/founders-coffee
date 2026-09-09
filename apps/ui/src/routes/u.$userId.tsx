@@ -38,7 +38,10 @@ export const Route = createFileRoute('/u/$userId')({
     });
     return { profile, events: page.items };
   },
-  headers: () => ({ 'Cache-Control': 'private, no-store' }),
+  headers: () => ({
+    'Cache-Control': 'private, no-store',
+    'X-Robots-Tag': 'noindex, nofollow',
+  }),
   staleTime: 0,
   gcTime: 0,
   head: ({ loaderData, match }) => ({

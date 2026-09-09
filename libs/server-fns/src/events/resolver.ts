@@ -10,6 +10,7 @@ import {
   getEvent,
   getEventBySlug,
   getMarketByCode,
+  isVisibleIdentity,
   listUpcomingEvents,
   type Db,
   type Event,
@@ -172,7 +173,13 @@ export const createEventResolver = async (
 ): Promise<Result<Event>> =>
   createEventResolverWithId(db, mapProvider, hostId, input, id('evt'));
 
-/** Resolve a single event by id or by (marketCode + slug). Returns `event_not_found` on miss. */
+/**
+ * Resolve a single event by id or by (marketCode + slug). Returns `event_not_found` on miss.
+ *
+ * A suppressed host's event answers the same way as one that never existed. The feed already drops
+ * those rows in SQL; without the same rule here the link would simply have to be typed rather than
+ * clicked, which is not a restriction.
+ */
 export const resolveEvent = async (
   db: Db,
   input: { id?: string; marketCode?: string; slug?: string },
@@ -194,6 +201,11 @@ export const resolveEvent = async (
     event.status !== 'published' &&
     !eventsDomain.canTransition(event.status, 'published')
   ) {
+    return err(
+      new AppError('event_not_found', `Event ${event.id} is not available`),
+    );
+  }
+  if (!(await isVisibleIdentity(db, event.hostId))) {
     return err(
       new AppError('event_not_found', `Event ${event.id} is not available`),
     );

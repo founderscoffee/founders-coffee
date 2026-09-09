@@ -1,6 +1,7 @@
 import { and, desc, eq, gt, lt, or, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
+import { visibleIdentity } from './profile-access.js';
 import {
   events,
   type Event,
@@ -22,14 +23,21 @@ const ASSUMED_DURATION_SECONDS = 2 * 60 * 60;
  *
  * The list and the city/state counts share this, so a badge promising four gatherings and a page
  * listing three cannot drift apart.
+ *
+ * A suppressed host takes their gatherings with them: {@link visibleIdentity} is part of the scope
+ * rather than a filter applied afterwards, so the counts cannot describe rows the list refuses.
  */
 const upcomingScope = (now: Date) =>
-  sql`coalesce(${events.endsAt}, ${events.startsAt} + ${ASSUMED_DURATION_SECONDS}) > ${Math.floor(now.getTime() / 1000)}`;
+  and(
+    sql`coalesce(${events.endsAt}, ${events.startsAt} + ${ASSUMED_DURATION_SECONDS}) > ${Math.floor(now.getTime() / 1000)}`,
+    visibleIdentity(events.hostId),
+  );
 
 const hostedEventScope = (hostId: string, marketCode?: string) =>
   and(
     eq(events.hostId, hostId),
     eq(events.status, 'published'),
+    visibleIdentity(events.hostId),
     marketCode ? eq(events.marketCode, marketCode) : undefined,
   );
 

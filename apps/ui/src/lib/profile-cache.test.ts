@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { isPrivateProfilePath } from './profile-cache';
+import {
+  isPrivateProfilePath,
+  purgePrivateCacheEntries,
+} from './profile-cache';
 import { safeAuthReturnPath, onboardingRedirectPath } from './redirect';
 
 describe('profile navigation privacy', () => {
@@ -33,6 +36,31 @@ describe('profile navigation privacy', () => {
     expect(safeAuthReturnPath(path)).toBe('/');
     expect(onboardingRedirectPath(path)).toBe('/onboarding?redirect=%2F');
   });
+  it('sweeps only the private paths when the service worker activates', async () => {
+    const deleted: string[] = [];
+    const cache = {
+      keys: () =>
+        Promise.resolve(
+          ['/profile', '/algeria/e/coffee-code'].map(
+            (path) => new Request(`https://founders.coffee${path}`),
+          ),
+        ),
+      match: () => Promise.resolve(undefined),
+      delete: (request: Request) => {
+        deleted.push(new URL(request.url).pathname);
+        return Promise.resolve(true);
+      },
+    };
+    const storage = {
+      keys: () => Promise.resolve(['pages']),
+      open: () => Promise.resolve(cache),
+    } as unknown as CacheStorage;
+
+    await purgePrivateCacheEntries(storage);
+
+    expect(deleted).toEqual(['/profile']);
+  });
+
   it('preserves event and wizard return paths without submitting them', () => {
     const path = '/algeria/host/create?city=556#review';
     expect(safeAuthReturnPath(path)).toBe(path);

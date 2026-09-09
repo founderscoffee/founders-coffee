@@ -4,7 +4,10 @@ import { defaultCache } from '@serwist/vite/worker';
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
 import { NetworkOnly, Serwist } from 'serwist';
 
-import { isPrivateProfilePath } from './lib/profile-cache';
+import {
+  isPrivateProfilePath,
+  purgePrivateCacheEntries,
+} from './lib/profile-cache';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -31,23 +34,7 @@ const serwist = new Serwist({
 serwist.addEventListeners();
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((names) =>
-      Promise.all(
-        names.map(async (name) => {
-          const cache = await caches.open(name);
-          const requests = await cache.keys();
-          await Promise.all(
-            requests
-              .filter((request) =>
-                isPrivateProfilePath(new URL(request.url).pathname),
-              )
-              .map((request) => cache.delete(request)),
-          );
-        }),
-      ),
-    ),
-  );
+  event.waitUntil(purgePrivateCacheEntries(caches));
 });
 
 /**

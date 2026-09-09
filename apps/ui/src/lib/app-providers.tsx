@@ -1,8 +1,17 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 
 import { authClient } from './auth';
-import { queryClient } from './query-client';
+import { createQueryClient } from './query-client';
+import { memberChanged, withdrawMemberCaches } from './session-cache';
 
 type AuthContextValue = {
   user: { id: string; name: string; email: string; role: string } | null;
@@ -20,8 +29,33 @@ const AuthContext = createContext<AuthContextValue>({
   isLoading: true,
 });
 
-const AuthProvider = ({ children }: { children: ReactNode }) => {
+const useMemberCacheIsolation = (
+  userId: string | null,
+  isPending: boolean,
+  client: ReturnType<typeof createQueryClient>,
+) => {
+  const seen = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (isPending) return;
+    const previous = seen.current;
+    seen.current = userId;
+    if (!memberChanged(previous, userId)) return;
+    void withdrawMemberCaches(
+      client,
+      typeof caches === 'undefined' ? undefined : caches,
+    );
+  }, [userId, isPending, client]);
+};
+
+const AuthProvider = ({
+  children,
+  client,
+}: {
+  children: ReactNode;
+  client: ReturnType<typeof createQueryClient>;
+}) => {
   const { data, isPending } = authClient.useSession();
+  useMemberCacheIsolation(data?.user?.id ?? null, isPending, client);
 
   const value = useMemo(() => {
     const session = data?.session ?? null;
@@ -48,10 +82,14 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const AppProviders = ({ children }: { children: ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>{children}</AuthProvider>
-  </QueryClientProvider>
-);
+export const AppProviders = ({ children }: { children: ReactNode }) => {
+  const [client] = useState(createQueryClient);
+
+  return (
+    <QueryClientProvider client={client}>
+      <AuthProvider client={client}>{children}</AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export const useAuth = () => useContext(AuthContext);

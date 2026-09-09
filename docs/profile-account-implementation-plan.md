@@ -2,9 +2,9 @@
 
 | Field          | Value                                                                                                                                                                   |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | PF-01/PF-02 complete locally and audited; PF-03a in progress on the working tree; PF-03b onward planned; no remote migration or deployment                              |
+| Status         | PF-01 through PF-05 complete locally and audited; PF-03b prepared and deliberately unexecuted; PF-06 onward planned; no remote migration or deployment                  |
 | Decision date  | 2026-09-08                                                                                                                                                              |
-| Last reviewed  | 2026-09-09 — plan reviewed against the tree; findings folded in below                                                                                                   |
+| Last reviewed  | 2026-09-09 — PF-05 implemented and audited; findings folded in below                                                                                                    |
 | Owner          | Founder / Product                                                                                                                                                       |
 | Scope          | Location-free onboarding, editable profiles, privacy, photos, notifications, account security, export and deletion                                                      |
 | Parent tickets | P1-003, P1-004, P1-009, P1-013, P1-018, P1-021                                                                                                                          |
@@ -756,3 +756,73 @@ local D1 — `publish_community_role = 0` with `community_role = 'founder'` stor
 from the rendered public profile while the published introduction and topic both appear.
 
 Next ticket: **PF-04c**.
+
+### PF-05 implementation and audit — 2026-09-09
+
+Three of the four strands were already closed by earlier tickets and are recorded here so the
+ticket is not reopened for them: `/update-user` is refused by a Better Auth `before` hook with
+`PROFILE_ENDPOINT_REQUIRED` and covered by a test that also proves `auth.api.updateUser` cannot
+route around it; `updateUserInfoOnLink` and `allowDifferentEmails` are both `false` and asserted
+where Better Auth reads them, which is what preserves a member's own edits across an OAuth
+re-link; and suppressed identities were already hidden from every profile read by
+`activeProfileIdentity`. What PF-05 adds:
+
+**The public DTO contract gate.** `libs/server-fns/src/public-contract.test.ts` asserts the exact
+key set of every public projection — the public profile schema, the owner projection and its
+visibility block, the projected event feed item, and the `markets` row — and separately asserts the
+full column list of the `events` table. The feed spreads the whole row, so a new column reaches
+every visitor the moment it is added; the test turns that into a red build in CI
+(`nx run-many -t typecheck lint test build`). It also derives the unpublishable identity columns
+from the `user` table rather than listing them, so a new sensitive column is caught by the same
+assertion. Verified as a real gate, not a decorative one: adding a hypothetical
+`internal_moderation_note` column to `events` failed two of its cases.
+
+**One moderation decision, asked in one place.** `visibleIdentity` in `libs/db/src/profile-access.ts`
+is the correlated form of `activeProfileIdentity`, folded into `upcomingScope` and
+`hostedEventScope` so the feed, the city and state counts, the hosted history and its total all
+share it; `isVisibleIdentity` answers the same question for a single event fetched by slug, which
+has no join to hang the predicate on. Before this, banning someone hid their profile and left
+their gatherings on the discovery feed, each linking to a host page that answered 404. This is the
+seam CO-09 replaces — one function, not a second moderation system.
+
+**Withdrawal on sign-out and account switch.** The `QueryClient` was a module singleton, which on
+Workers is one object shared by every request an isolate handles; it is now created per render and
+per tab. `memberChanged` and `withdrawMemberCaches` clear the query cache and the stored responses
+whenever the member behind the tab changes, in either direction. The exposure was never the owner
+profile — that is keyed by user id with `gcTime: 0` — it was `viewerRsvp`, cached under
+`['events', 'upcoming', params]` with no identity in the key at all, and the cached event pages,
+which render the viewer's own attendance and the host controls. Hashed assets are kept: an account
+switch is a poor reason to make the next member download the application again.
+
+**One defect found by driving the running app, not by a test.**
+
+| Defect                                                        | Why it mattered                                                                                 |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Every event page was served `X-Robots-Tag: noindex, nofollow` | The main SEO surface of the product was excluded from search, silently, with no visible symptom |
+
+A server function called from a route loader runs inside the _document_ request, so
+`setResponseHeader` there lands on the page rather than on the function's own payload. The profile
+endpoint set an indexing directive; the event page loads the host's public profile; the directive
+travelled down that lookup and took every event page out of the index. Indexing is now declared on
+the routes that own it (`/profile`, `/u/$userId`) and server functions can only set
+`Cache-Control: private, no-store`. Verified against the running app: `/algeria/e/kahwa` returns
+`private, no-store` with no robots header, `/profile` and `/u/:userId` return both, and `/algeria`
+returns neither.
+
+Suppression was also verified end to end rather than only in tests: banning the local host made
+their profile, their event page and their entry in the market feed all disappear, and unbanning
+restored all three.
+
+Two things reviewed and deliberately left alone. The live-room roster carries attendee names, but
+only to people the Durable Object has verified as the host or an RSVP'd attendee of that same
+event, and `toRoster` maps its fields explicitly rather than spreading a row — it is not a public
+response and needs no gate. Playwright covers the response directives in
+`e2e/response-privacy.spec.ts`, which stays outside CI as the plan requires; the route modules
+cannot be imported into the unit suite because they pull in `cloudflare:workers`.
+
+Deferred to their own tickets, unchanged: the CO-09 visibility adapter (PF-05 provides the seam,
+CO-09 provides the decision), export disclosure (PF-09 — nothing to audit until an archive exists)
+and lifecycle transitions that set `account_state` (PF-10).
+
+Next ticket: **PF-06** — managed profile photos, which needs verified R2/Images entitlements on the
+account before any upload control ships.

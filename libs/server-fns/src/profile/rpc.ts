@@ -1,5 +1,4 @@
 import { createServerFn } from '@tanstack/react-start';
-import { setResponseHeader } from '@tanstack/react-start/server';
 
 import { appValidator, handleResult } from '@founders-coffee/core';
 
@@ -7,6 +6,7 @@ import { requirePermission } from '../auth-middleware.js';
 import { requireAuth } from '../authz.js';
 import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
+import { privateNoStore } from '../response-cache.js';
 import { requireProfileTurnstile } from '../turnstile/middleware.js';
 import {
   readOwnerProfile,
@@ -23,10 +23,6 @@ import {
   updateProfileRequestSchema,
 } from './schemas.js';
 
-const noProfileCache = () => {
-  setResponseHeader('Cache-Control', 'private, no-store');
-  setResponseHeader('X-Robots-Tag', 'noindex, nofollow');
-};
 const profileWriteProtection = [
   requirePermission('profile', 'update'),
   rateLimit(
@@ -41,7 +37,7 @@ export const getMyProfile = createServerFn({ strict: false })
   .middleware([requirePermission('profile', 'read')])
   .validator(appValidator(emptyProfileRequestSchema))
   .handler(({ context }) => {
-    noProfileCache();
+    privateNoStore();
     return handleResult(
       readOwnerProfile(getDb(), requireAuth(context.session).user.id),
     );
@@ -57,7 +53,7 @@ export const getPublicProfile = createServerFn({ strict: false })
   ])
   .validator(appValidator(publicProfileRequestSchema))
   .handler(({ data }) => {
-    noProfileCache();
+    privateNoStore();
     return handleResult(readPublicProfile(getDb(), data.userId));
   });
 
@@ -65,7 +61,7 @@ export const updateMyProfile = createServerFn({ method: 'POST', strict: false })
   .middleware(profileWriteProtection)
   .validator(appValidator(updateProfileRequestSchema))
   .handler(({ context, data }) => {
-    noProfileCache();
+    privateNoStore();
     return handleResult(
       saveOwnerProfile(
         getDb(),
@@ -82,7 +78,7 @@ export const updateMyDisplayName = createServerFn({
   .middleware(profileWriteProtection)
   .validator(appValidator(updateDisplayNameRequestSchema))
   .handler(({ context, data }) => {
-    noProfileCache();
+    privateNoStore();
     return handleResult(
       saveDisplayName(getDb(), requireAuth(context.session).user.id, data),
     );
