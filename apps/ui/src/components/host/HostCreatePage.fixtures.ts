@@ -92,6 +92,26 @@ vi.mock('../../lib/app-providers', () => ({
   useAuth: () => ({
     isAuthenticated: hostCreateMocks.isAuthenticated,
     isLoading: hostCreateMocks.isLoading,
+    user: hostCreateMocks.isAuthenticated
+      ? { id: 'usr_host01', name: 'Amina Host', email: 'host@example.com' }
+      : null,
+  }),
+}));
+
+vi.mock('../../features/profile/hooks', () => ({
+  useMyProfile: () => ({
+    data: { userId: 'usr_host01', displayName: 'Amina Host', revision: 0 },
+    userId: 'usr_host01',
+    isAuthLoading: false,
+    refetch: vi.fn(),
+  }),
+  useUpdateDisplayName: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
+vi.mock('../../features/auth/hooks', () => ({
+  usePublicAuthConfig: () => ({
+    data: { isTurnstileBypassed: true },
+    isError: false,
   }),
 }));
 

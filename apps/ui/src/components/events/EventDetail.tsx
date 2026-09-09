@@ -27,7 +27,7 @@ type EventDetailProps = {
   locale: Locale;
   market: Market;
   event: EventDetailItem;
-  host: PublicProfile;
+  host: PublicProfile | null;
   isHost: boolean;
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
@@ -57,6 +57,7 @@ export const EventDetail = ({
   live,
   isWindowOpen,
 }: EventDetailProps) => {
+  const hostName = host?.displayName ?? role_host({}, { locale });
   const on = (value: Date, options: Intl.DateTimeFormatOptions) =>
     formatDate(value, locale, {
       timeZone: market.timezone,
@@ -92,7 +93,7 @@ export const EventDetail = ({
       name: event.venue,
       address: event.venueAddress ?? undefined,
     },
-    organizer: { '@type': 'Person', name: host.name },
+    organizer: host ? { '@type': 'Person', name: host.displayName } : undefined,
   };
 
   return (
@@ -170,23 +171,25 @@ export const EventDetail = ({
 
           <div className="mt-6 flex items-center gap-3.5 rounded-box border border-base-300 bg-base-100 p-4">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold">
-              {initials(host.name)}
+              {initials(hostName)}
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-display font-semibold">
-                {host.name}
+                {hostName}
               </span>
               <span className="block text-body-sm text-neutral">
                 {role_host({}, { locale })} · {cityName}
               </span>
             </span>
-            <Link
-              to="/u/$userId"
-              params={{ userId: host.id }}
-              className="btn btn-outline btn-sm h-9 min-h-9 px-4"
-            >
-              {profile_link({}, { locale })}
-            </Link>
+            {host && (
+              <Link
+                to="/u/$userId"
+                params={{ userId: host.userId }}
+                className="btn btn-outline btn-sm h-9 min-h-9 px-4"
+              >
+                {profile_link({}, { locale })}
+              </Link>
+            )}
           </div>
         </div>
 
@@ -218,7 +221,7 @@ export const EventDetail = ({
             </div>
             <RsvpSection
               event={event}
-              hostName={host.name}
+              hostName={hostName}
               locale={locale}
               isHost={isHost}
               live={live}

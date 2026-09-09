@@ -23,6 +23,7 @@ const base = `${env.APP_URL}/api/auth`;
 const post = (path: string, body: unknown, cookie?: string): Request => {
   const headers: Record<string, string> = {
     'content-type': 'application/json',
+    origin: env.APP_URL,
   };
   if (cookie) headers.cookie = cookie;
   return new Request(`${base}${path}`, {
@@ -82,8 +83,33 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     );
     expect(session?.user.email).toBe(email);
     expect(session?.user.role).toBe('member');
+    expect(session?.user.name).toBe('');
+    for (const key of ['homeMarketCode', 'homeState', 'homeCityId']) {
+      expect(session?.user).not.toHaveProperty(key);
+    }
     expect(() => requireRole(session, 'member')).not.toThrow();
     expect(() => requireRole(session, 'admin')).toThrow();
+    const updateResponse = await auth.handler(
+      post(
+        '/update-user',
+        { name: 'Bypassed', image: 'https://example.com/photo' },
+        sessionCookie,
+      ),
+    );
+    expect(updateResponse.status).toBe(403);
+    expect(await updateResponse.json()).toMatchObject({
+      code: 'PROFILE_ENDPOINT_REQUIRED',
+    });
+    expect(
+      (await getSession(auth, new Headers({ cookie: sessionCookie })))?.user
+        .name,
+    ).toBe('');
+    await expect(
+      auth.api.updateUser({
+        body: { name: 'Bypassed' },
+        headers: new Headers({ cookie: sessionCookie }),
+      }),
+    ).rejects.toMatchObject({ status: 'FORBIDDEN' });
   });
 
   it('requires a session for role-gated actions', () => {
@@ -99,6 +125,6 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     expect(linking?.enabled).toBe(true);
     expect(linking?.trustedProviders).toEqual(['google', 'github']);
     expect(linking?.allowDifferentEmails).toBe(false);
-    expect(linking?.updateUserInfoOnLink).toBe(true);
+    expect(linking?.updateUserInfoOnLink).toBe(false);
   });
 });

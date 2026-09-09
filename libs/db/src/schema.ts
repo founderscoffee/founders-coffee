@@ -57,10 +57,7 @@ export const user = sqliteTable('user', {
   banned: integer('banned', { mode: 'boolean' }).default(false),
   banReason: text('ban_reason'),
   banExpires: integer('ban_expires', { mode: 'timestamp' }),
-  homeMarketCode: text('home_market_code').references(() => markets.code),
-  homeState: text('home_state'),
-  homeCityId: text('home_city_id'),
-  phoneNumber: text('phone_number'),
+  phoneNumber: text('phone_number').unique(),
   phoneNumberVerified: integer('phone_number_verified', { mode: 'boolean' })
     .notNull()
     .default(false),

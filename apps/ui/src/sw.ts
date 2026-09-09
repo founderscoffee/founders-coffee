@@ -2,7 +2,9 @@
 
 import { defaultCache } from '@serwist/vite/worker';
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
-import { Serwist } from 'serwist';
+import { NetworkOnly, Serwist } from 'serwist';
+
+import { isPrivateProfilePath } from './lib/profile-cache';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -17,10 +19,36 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: [
+    {
+      matcher: ({ url }) => isPrivateProfilePath(url.pathname),
+      handler: new NetworkOnly(),
+    },
+    ...defaultCache,
+  ],
 });
 
 serwist.addEventListeners();
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((names) =>
+      Promise.all(
+        names.map(async (name) => {
+          const cache = await caches.open(name);
+          const requests = await cache.keys();
+          await Promise.all(
+            requests
+              .filter((request) =>
+                isPrivateProfilePath(new URL(request.url).pathname),
+              )
+              .map((request) => cache.delete(request)),
+          );
+        }),
+      ),
+    ),
+  );
+});
 
 /**
  * Push notification handler.

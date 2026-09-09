@@ -103,7 +103,7 @@ export const LoginPage = ({
   const verify = async () => {
     setBusy(true);
     setError(null);
-    const { data, error: verifyError } = await authClient.signIn.emailOtp({
+    const { error: verifyError } = await authClient.signIn.emailOtp({
       email,
       otp,
     });
@@ -112,12 +112,7 @@ export const LoginPage = ({
       setError(login_wrong_code({}, { locale }));
       return;
     }
-    const needsOnboarding = !(
-      data?.user as { homeMarketCode?: string } | null | undefined
-    )?.homeMarketCode;
-    window.location.href = needsOnboarding
-      ? onboardingRedirectPath(redirect)
-      : redirect;
+    window.location.href = onboardingRedirectPath(redirect);
   };
 
   const changeEmail = () => {
@@ -131,7 +126,7 @@ export const LoginPage = ({
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
     authClient.signIn.social({
       provider,
-      callbackURL: redirect,
+      callbackURL: onboardingRedirectPath(redirect),
       newUserCallbackURL: onboardingRedirectPath(redirect),
     });
 

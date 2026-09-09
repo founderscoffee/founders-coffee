@@ -34,7 +34,6 @@ describe('libs/db (real D1 via Miniflare)', () => {
         id: 'usr_m1',
         name: 'Founder One',
         email: 'founder@example.dz',
-        homeMarketCode: 'DZ',
       })
       .run();
 

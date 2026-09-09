@@ -148,6 +148,13 @@
       "when": 1788890290980,
       "tag": "0020_profile_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1788940152456,
+      "tag": "0021_remove_profile_residence",
+      "breakpoints": true
     }
   ]
 }

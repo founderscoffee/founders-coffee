@@ -6,7 +6,7 @@ const statements = {
   event: ['create', 'read'],
   rsvp: ['create', 'read', 'update'],
   sponsorship: ['read'],
-  profile: ['update'],
+  profile: ['read', 'update'],
   push: ['manage'],
 } as const;
 
@@ -17,28 +17,28 @@ export const roles = {
     event: ['create', 'read'],
     rsvp: ['create', 'read', 'update'],
     sponsorship: ['read'],
-    profile: ['update'],
+    profile: ['read', 'update'],
     push: ['manage'],
   }),
   host: ac.newRole({
     event: ['create', 'read'],
     rsvp: ['create', 'read', 'update'],
     sponsorship: ['read'],
-    profile: ['update'],
+    profile: ['read', 'update'],
     push: ['manage'],
   }),
   sponsor_contact: ac.newRole({
     event: ['read'],
     rsvp: ['read'],
     sponsorship: ['read'],
-    profile: ['update'],
+    profile: ['read', 'update'],
     push: ['manage'],
   }),
   moderator: ac.newRole({
     event: ['create', 'read'],
     rsvp: ['create', 'read', 'update'],
     sponsorship: ['read'],
-    profile: ['update'],
+    profile: ['read', 'update'],
     push: ['manage'],
   }),
   admin: ac.newRole({
@@ -46,7 +46,7 @@ export const roles = {
     event: ['create', 'read'],
     rsvp: ['create', 'read', 'update'],
     sponsorship: ['read'],
-    profile: ['update'],
+    profile: ['read', 'update'],
     push: ['manage'],
   }),
 } as const;

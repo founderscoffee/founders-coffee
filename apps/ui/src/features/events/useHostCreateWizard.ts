@@ -28,6 +28,8 @@ import {
 } from './host-create-validation';
 import type { VenueSelection } from './types';
 import { useHostPublish } from './useHostPublish';
+import { useAuth } from '../../lib/app-providers';
+import { hasProfileName } from '../profile/name-validation';
 
 export const TOTAL_STEPS = 3;
 
@@ -45,6 +47,7 @@ export const useHostCreateWizard = ({
   isAuthLoading: boolean;
 }) => {
   const named = city ?? { name: market.name, nameAr: market.nameAr };
+  const { user } = useAuth();
   const cityName = (locale === 'ar' ? named.nameAr : named.name) ?? market.name;
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
@@ -57,6 +60,7 @@ export const useHostCreateWizard = ({
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
   const [isAuthGateOpen, setIsAuthGateOpen] = useState(false);
+  const [needsReauthentication, setNeedsReauthentication] = useState(false);
 
   const draft: HostCreateDraft = {
     step,
@@ -77,7 +81,10 @@ export const useHostCreateWizard = ({
     locale,
     market,
     readDraft: () => draft,
-    onAuthRequired: () => setIsAuthGateOpen(true),
+    onAuthRequired: () => {
+      setNeedsReauthentication(true);
+      setIsAuthGateOpen(true);
+    },
   });
   useEffect(() => {
     const restored = readHostCreateDraft(market.code);
@@ -210,7 +217,7 @@ export const useHostCreateWizard = ({
       return;
     }
     if (isAuthLoading) return;
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !hasProfileName(user)) {
       writeHostCreateDraft(market.code, draft);
       setIsAuthGateOpen(true);
       return;
@@ -243,8 +250,10 @@ export const useHostCreateWizard = ({
     stepSub: stepCopy.descriptions[step - 1] ?? null,
     view: hostCreateViewCopy(),
     isAuthGateOpen,
+    needsReauthentication,
     closeAuthGate: () => setIsAuthGateOpen(false),
     onGateAuthenticated: () => {
+      setNeedsReauthentication(false);
       setIsAuthGateOpen(false);
       publish();
     },

@@ -19,7 +19,7 @@ import { useAuth } from '../lib/app-providers';
 type EventDetailLoaderData = {
   market: Market;
   event: EventDetailItem;
-  host: PublicProfile;
+  host: PublicProfile | null;
 };
 
 export const Route = createFileRoute('/$market/e/$slug')({
@@ -82,7 +82,12 @@ export const Route = createFileRoute('/$market/e/$slug')({
       throw error;
     }
 
-    const host = await getPublicProfile({ data: { userId: event.hostId } });
+    const host = await getPublicProfile({
+      data: { userId: event.hostId },
+    }).catch((error: unknown) => {
+      if (appErrorCode(error) === 'not_found') return null;
+      throw error;
+    });
     return { market, event, host };
   },
   head: ({ loaderData }) => {

@@ -38,4 +38,20 @@ export const safeRedirectPath = (value: unknown): string => {
 };
 
 export const onboardingRedirectPath = (redirect: unknown): string =>
-  `/onboarding?redirect=${encodeURIComponent(safeRedirectPath(redirect))}`;
+  `/onboarding?redirect=${encodeURIComponent(safeAuthReturnPath(redirect))}`;
+
+export const authReturnPathSchema = sameOriginPathSchema.refine((path) => {
+  try {
+    const pathname = decodeURIComponent(
+      new URL(path, REDIRECT_ORIGIN).pathname,
+    ).replace(/\/+$/, '');
+    return !['/login', '/onboarding'].includes(pathname);
+  } catch {
+    return false;
+  }
+});
+
+export const safeAuthReturnPath = (value: unknown): string => {
+  const parsed = authReturnPathSchema.safeParse(value);
+  return parsed.success ? parsed.data : '/';
+};

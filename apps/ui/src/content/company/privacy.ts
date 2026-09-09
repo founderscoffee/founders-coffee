@@ -8,7 +8,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
     title: 'Privacy',
     description:
       'How founders.coffee collects, uses, and protects your personal data.',
-    updated: '8 August 2026',
+    updated: '9 September 2026',
     sections: [
       {
         heading: 'Who we are',
@@ -20,7 +20,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Data we collect',
         paragraphs: [
-          'Account data: email address, name (if provided), home market/state/city, and role (member/host).',
+          'Account data: email address or verified phone number, public display name, account role, and profile details you choose to provide. Optional profile details are private unless you choose to publish them. We no longer ask for or use your place of residence; legacy residence fields are awaiting scheduled removal. Meetup locations remain part of meetup records.',
           'Usage data: meetups you host or join, waitlist entries, and basic technical logs needed to run and secure the service.',
           'Device data: session cookies, locale preference, and security signals from bot protection.',
         ],
@@ -71,7 +71,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
   ar: {
     title: 'الخصوصية',
     description: 'كيف يجمع founders.coffee بياناتك الشخصية ويستخدمها ويحميها.',
-    updated: '8 أغسطس 2026',
+    updated: '9 سبتمبر 2026',
     sections: [
       {
         heading: 'من نحن',
@@ -83,7 +83,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'البيانات التي نجمعها',
         paragraphs: [
-          'بيانات الحساب: البريد الإلكتروني، الاسم (إن وُجد)، السوق/الولاية/المدينة، والدور (عضو/مضيف).',
+          'بيانات الحساب: البريد الإلكتروني أو رقم الهاتف الموثّق، الاسم العلني، دور الحساب، وتفاصيل الملف التي تختار إضافتها. تبقى التفاصيل الاختيارية خاصة ما لم تختر نشرها. لم نعد نطلب مكان إقامتك أو نستخدمه؛ الحقول القديمة تنتظر الحذف المجدول. تبقى مواقع اللقاءات ضمن سجلاتها.',
           'بيانات الاستخدام: اللقاءات التي تستضيفها أو تنضم إليها، قائمة الانتظار، وسجلات تقنية أساسية لتشغيل الخدمة وحمايتها.',
           'بيانات الجهاز: ملفات تعريف جلسة، تفضيل اللغة، وإشارات أمان من حماية البوتات.',
         ],
@@ -135,7 +135,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
     title: 'Confidentialité',
     description:
       'Comment founders.coffee collecte, utilise et protège vos données personnelles.',
-    updated: '8 août 2026',
+    updated: '9 septembre 2026',
     sections: [
       {
         heading: 'Qui nous sommes',
@@ -147,7 +147,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Données collectées',
         paragraphs: [
-          'Données de compte : e-mail, nom (si fourni), marché/région/ville, et rôle (membre/hôte).',
+          'Données de compte : e-mail ou téléphone vérifié, nom public, rôle du compte et détails de profil fournis volontairement. Les détails facultatifs restent privés sauf si vous choisissez de les publier. Nous ne demandons ni n’utilisons plus votre lieu de résidence ; les anciens champs attendent leur suppression planifiée. Les lieux des rencontres restent dans leurs dossiers.',
           'Données d’usage : meetups que vous organisez ou rejoignez, listes d’attente, et journaux techniques nécessaires au service.',
           'Données appareil : cookies de session, préférence de langue, et signaux de sécurité anti-bots.',
         ],

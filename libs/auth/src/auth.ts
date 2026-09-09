@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
 import {
   admin,
   bearer,
@@ -95,12 +96,22 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     baseURL: env.APP_URL,
     trustedOrigins: [env.APP_URL],
     emailAndPassword: { enabled: false },
+    hooks: {
+      before: createAuthMiddleware(async (context) => {
+        if (context.path === '/update-user') {
+          throw new APIError('FORBIDDEN', {
+            code: 'PROFILE_ENDPOINT_REQUIRED',
+            message: 'Use the protected profile endpoint to edit your profile',
+          });
+        }
+      }),
+    },
     account: {
       accountLinking: {
         enabled: true,
         trustedProviders: ['google', 'github'],
         allowDifferentEmails: false,
-        updateUserInfoOnLink: true,
+        updateUserInfoOnLink: false,
       },
     },
     socialProviders: {
@@ -123,9 +134,6 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     },
     user: {
       additionalFields: {
-        homeMarketCode: { type: 'string', required: false, input: false },
-        homeState: { type: 'string', required: false, input: false },
-        homeCityId: { type: 'string', required: false, input: false },
         localePref: { type: 'string', required: false, input: false },
       },
     },

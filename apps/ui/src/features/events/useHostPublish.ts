@@ -1,5 +1,5 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
 import type { Locale } from '@founders-coffee/i18n';
@@ -38,6 +38,7 @@ export const useHostPublish = ({
   const createEventMutation = useCreateEvent();
   const invalidateCreatedEvent = useInvalidateCreatedEvent();
   const [publishing, setPublishing] = useState(false);
+  const publishInFlight = useRef(false);
   const [publishError, setPublishError] = useState<string | null>(null);
 
   /**
@@ -87,7 +88,8 @@ export const useHostPublish = ({
   };
 
   const publish = async (event: EventCreateCommand) => {
-    if (publishing) return;
+    if (publishInFlight.current) return;
+    publishInFlight.current = true;
     setPublishing(true);
     setPublishError(null);
     try {
@@ -95,6 +97,7 @@ export const useHostPublish = ({
     } catch (error) {
       handleFailure(error);
     } finally {
+      publishInFlight.current = false;
       setPublishing(false);
     }
   };

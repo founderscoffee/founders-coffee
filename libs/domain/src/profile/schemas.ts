@@ -136,7 +136,7 @@ export const updateProfileSchema = profileDetailsSchema
 export const ownerProfileSchema = profileDetailsSchema
   .extend({
     userId: profileIdentitySchema,
-    displayName: displayNameSchema,
+    displayName: z.union([displayNameSchema, z.literal('')]),
     photoAssetId: idSchema.nullable(),
     revision: profileRevisionSchema,
   })

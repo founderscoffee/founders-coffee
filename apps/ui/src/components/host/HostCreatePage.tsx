@@ -24,7 +24,7 @@ import { useAuth } from '../../lib/app-providers';
 import { DatetimePicker } from './DatetimePicker';
 import { HostDetailsStep } from './HostDetailsStep';
 import { HostMapPanel } from './HostMapPanel';
-import { HostSignInGate } from './HostSignInGate';
+import { HostIdentityGate } from './HostIdentityGate';
 import { HostVenueLine } from './HostVenueLine';
 import { HostVenueStep } from './HostVenueStep';
 import { HostWizardActions } from './HostWizardActions';
@@ -130,7 +130,8 @@ export const HostCreatePage = ({
                   {wizard.publishError}
                 </p>
               )}
-              <HostSignInGate
+              <HostIdentityGate
+                needsReauthentication={wizard.needsReauthentication}
                 locale={locale}
                 turnstileSiteKey={turnstileSiteKey}
                 hasSocial={hasSocial}

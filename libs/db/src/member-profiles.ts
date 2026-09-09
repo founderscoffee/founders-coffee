@@ -26,7 +26,21 @@ export type MemberProfileChanges = Pick<
   | 'publishProfessionalLink'
 >;
 
-/** Initialize location-free defaults once, including under simultaneous first reads. */
+/** Read only the identity fields needed to suppress contact fallbacks; never expose this row over RPC. */
+export const getProfileIdentity = async (db: Db, userId: string) => {
+  const rows = await db
+    .select({
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+    })
+    .from(user)
+    .where(activeProfileIdentity(userId))
+    .limit(1);
+  return rows[0] ?? null;
+};
+
+/** Initialize location-free defaults once, including under simultaneous first writes. */
 export const initializeMemberProfile = async (
   db: Db,
   userId: string,
@@ -54,6 +68,42 @@ export const getMemberProfile = async (db: Db, userId: string) => {
     .where(activeProfileIdentity(userId))
     .limit(1);
   return rows[0] ?? null;
+};
+
+/**
+ * Report why a conditional profile write can have failed, without re-running it.
+ *
+ * `updateMemberProfile` answers a failure with `null` because its predicate is a single SQL
+ * expression, and three different situations produce that one answer: the revision moved under the
+ * caller, the account stopped being active, or publication of a photo was asked for with no ready
+ * asset behind it. Telling a member "reload before saving" when the real problem is that they have
+ * no photo yet sends them round a loop that reloading cannot break, so the caller reads this
+ * afterwards to say which one it was. Only the failure path pays for it.
+ */
+export const readProfileWriteState = async (
+  db: Db,
+  userId: string,
+): Promise<{ revision: number; hasReadyPhoto: boolean } | null> => {
+  const rows = await db
+    .select({
+      revision: memberProfiles.revision,
+      photoStatus: profileAssets.status,
+    })
+    .from(memberProfiles)
+    .innerJoin(user, eq(user.id, memberProfiles.userId))
+    .leftJoin(
+      profileAssets,
+      and(
+        eq(profileAssets.id, memberProfiles.photoAssetId),
+        eq(profileAssets.userId, memberProfiles.userId),
+      ),
+    )
+    .where(activeProfileIdentity(userId))
+    .limit(1);
+  const row = rows[0];
+  return row
+    ? { revision: row.revision, hasReadyPhoto: row.photoStatus === 'ready' }
+    : null;
 };
 
 /** Atomically change the auth display name and profile under one optimistic revision. */

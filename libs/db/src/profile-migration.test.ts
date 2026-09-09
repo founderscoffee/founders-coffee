@@ -6,7 +6,7 @@ import { createDb } from './db.js';
 import { atMigration, priorHost } from './migrations.fixtures.js';
 import { getMemberProfile } from './member-profiles.js';
 import { getAccountPreferences } from './account-preferences.js';
-import { eventRsvps, events, session, user } from './schema.js';
+import { eventRsvps, events, session } from './schema.js';
 
 describe('PF-02 additive migration', () => {
   it('backfills private defaults without copying residence or exposing OAuth photos', async () => {
@@ -53,12 +53,16 @@ describe('PF-02 additive migration', () => {
       },
     });
     expect(
-      (await db.select().from(user).where(eq(user.id, priorHost.id)))[0],
+      await env.PRIOR_DB.prepare(
+        'SELECT home_market_code, home_state, home_city_id, account_state FROM user WHERE id = ?',
+      )
+        .bind(priorHost.id)
+        .first(),
     ).toMatchObject({
-      homeMarketCode: 'DZ',
-      homeState: '16',
-      homeCityId: '1',
-      accountState: 'active',
+      home_market_code: 'DZ',
+      home_state: '16',
+      home_city_id: '1',
+      account_state: 'active',
     });
     expect(
       (

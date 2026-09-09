@@ -10,12 +10,10 @@ vi.mock('@tanstack/react-router', () => ({
 import { PublicProfilePage } from './PublicProfilePage';
 
 const profile = {
-  id: 'usr_host01',
-  name: 'Amina Host',
-  image: null,
-  role: 'host',
-  homeCityName: 'Algiers',
-  homeCityNameAr: 'الجزائر',
+  userId: 'usr_host01',
+  displayName: 'Amina Host',
+  photoAssetId: null,
+  introduction: null,
 };
 
 const markets = [
@@ -53,14 +51,15 @@ describe('PublicProfilePage', () => {
   it('says so plainly when a host has no upcoming events', () => {
     renderProfile([]);
 
-    expect(document.querySelector('.stat-value')?.textContent).toBe('0');
+    expect(screen.getByRole('heading', { name: 'Amina Host' })).toBeTruthy();
+    expect(document.querySelector('.stat-value')).toBeNull();
     expect(screen.getByText(/No events hosted yet/i)).toBeTruthy();
   });
 
-  it('counts and lists the events the host is running', () => {
+  it('lists upcoming events without claiming they are a lifetime aggregate', () => {
     renderProfile([hostedEvent]);
 
-    expect(document.querySelector('.stat-value')?.textContent).toBe('1');
+    expect(screen.getByText('Upcoming hosted meetups')).toBeTruthy();
     expect(screen.getByText('Coffee and Code')).toBeTruthy();
     expect(screen.queryByText(/No events hosted yet/i)).toBeNull();
   });

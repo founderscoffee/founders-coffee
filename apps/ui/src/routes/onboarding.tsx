@@ -1,55 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 
-import { getCities, getStates } from '@founders-coffee/server-fns';
-import type { geo } from '@founders-coffee/domain';
-
-import { OnboardingPage } from '../components/profile/OnboardingPage';
-import { readCookies } from '../lib/cookies';
-import { sameOriginPathSchema } from '../lib/redirect';
+import { OnboardingPage } from '../features/profile/components/OnboardingPage';
+import { authReturnPathSchema } from '../lib/redirect';
 
 export const Route = createFileRoute('/onboarding')({
+  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   validateSearch: z.object({
-    redirect: sameOriginPathSchema.catch('/').optional().default('/'),
-    state: z.string().max(8).optional(),
+    redirect: authReturnPathSchema.catch('/').optional().default('/'),
   }),
-  loaderDeps: ({ search }) => ({ state: search.state }),
   component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    const { states, cities, initialCountry } = Route.useLoaderData();
-    const { redirect, state } = Route.useSearch();
-    return (
-      <OnboardingPage
-        locale={locale}
-        markets={markets}
-        states={states}
-        cities={cities}
-        initialCountry={initialCountry}
-        redirect={redirect}
-        selectedState={state ?? ''}
-      />
-    );
+    const { locale } = Route.useRouteContext();
+    const { redirect } = Route.useSearch();
+    return <OnboardingPage locale={locale} redirect={redirect} />;
   },
-  loader: async ({
-    context,
-    deps,
-  }): Promise<{
-    states: readonly geo.GeoState[];
-    cities: readonly geo.GeoCity[];
-    initialCountry: string;
-  }> => {
-    const geoCookie = readCookies()['fc_geo'] ?? 'algeria';
-    const initialCountry =
-      context.markets.find(
-        (m: { code: string }) => m.code === geoCookie.toUpperCase(),
-      )?.code ?? 'DZ';
-    const states = await getStates({ data: { country: initialCountry } });
-    const stateParam = deps.state ?? '';
-    const cities = stateParam
-      ? await getCities({
-          data: { country: initialCountry, state: stateParam },
-        })
-      : [];
-    return { states, cities, initialCountry };
-  },
+  head: () => ({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] }),
 });

@@ -159,7 +159,7 @@ global account requests log their global scope, with market context only when re
 - Add owner notification preferences with explicit defaults and consent timestamps, plus an asset record for each owned photo with upload/processing/active/deletion state. Add session/device association for push subscriptions so account revocation can revoke delivery. Use shared ID factory and timestamp conventions.
 - Add lifecycle/job records only for export/deletion work that needs durable progress. Use the existing operations processing infrastructure once available; no in-memory jobs and no new service without authorization.
 - Define owner and public Zod response schemas. Explicitly select/project permitted fields; never spread a DB row into an RPC response or rely on TypeScript to remove fields at runtime.
-- Profile mutations never accept a client-selected owner ID or system role. Public reads cannot expose banned/deleted identities or suppressed content; moderation visibility integrates with CO-09. Mutations atomically reject closing/deleted accounts so an in-flight save cannot repopulate data after deletion starts. PF-02 added the `user.account_state` column; **PF-03a makes every profile/preference mutation check it** as part of its eligibility predicate, and PF-10 owns the transitions that set it. Until PF-03a lands, the column is storage with no reader — do not assume a mutation written before then honours it.
+- Profile mutations never accept a client-selected owner ID or system role. Public reads cannot expose banned/deleted identities or suppressed content; moderation visibility integrates with CO-09. Mutations atomically reject closing/deleted accounts so an in-flight save cannot repopulate data after deletion starts. PF-03a enforces this through `activeProfileIdentity`, a single predicate requiring `account_state = 'active'` and an unbanned user, applied to identity reads, profile reads, default initialization and both statements of the conditional write. PF-10 owns the transitions that set the column. A new profile mutation is only guarded if it reuses that predicate — writing its own `WHERE user_id = ?` silently opts out.
 - Use Drizzle repositories and atomic SQL/`db.batch`. Optimistic revision checks and last-login-method checks must remain correct under concurrent requests; no read/decide/write transactions across awaits.
 
 ### Planned feature interfaces
@@ -358,8 +358,8 @@ is additive and has not been applied to staging or production. Endpoint/UI wirin
 - Split the legacy profile server module into small RPC/resolver/repository responsibilities; add owner/public projections and complete mutation protection. Retire the location mutation to a typed `client_refresh_required` tombstone rather than deleting the route.
 - Remove geographic loaders, auth completion checks and redirects from standalone OTP/OAuth/onboarding and the inline host gate; ask only for a missing display name. Preserve normalized safe return paths, drafts and the already-requested inline publish intent.
 - Stop every active home read/write and drop the fields from the auth payload. **No column is dropped in this ticket** — the schema contraction ships separately as PF-03b under the staged procedure in §4. No residence is backfilled from browsing or event attendance.
-- Add the shared rate-budget table §4 describes and route every profile/account mutation through it; add the `user.account_state` eligibility check to every profile/preference mutation.
-- Add the two safety tests §4 steps 5 and 6 require: repositories and auth exercised against the pre-contraction schema, and the journal/pending-migration quarantine guard.
+- Add the shared rate-budget table §4 describes and route every profile/account mutation through it; apply the `activeProfileIdentity` eligibility predicate to every profile/preference read and write.
+- Add the two safety tests §4 steps 5 and 6 require: repositories exercised against the pre-contraction schema, and the journal/pending-migration quarantine guard.
 - Acceptance: all supported auth paths return correctly; users with no location can edit, create and RSVP; no home value appears in any public, private or auth response; valid event geography and history unchanged; the pre-contraction suite and the quarantine guard both run in CI; `npx nx run-many -t typecheck lint test build` is green before review.
 
 ### PF-03b — Promote the residence contraction
@@ -641,4 +641,26 @@ PF-07a instead of a bullet inside a settings ticket; export and deletion no long
 provisioning; the public DTO contract test became a CI gate; and the irreversible contraction became
 PF-03b, a release ticket that nobody executes without being asked.
 
-Next ticket: **PF-03a** — starting with the typecheck failure recorded above.
+### Audit of 2026-09-09 — PF-01 through PF-04
+
+PF-01, PF-02, PF-03a and PF-04a were audited against this plan and the gaps closed in the same pass.
+Repository sweep green: `npx nx run-many -t typecheck lint test build`, plus `format:check`.
+
+| Finding                                                                                                   | Resolution                                                                                     |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `public:typecheck` failed on `exact: true` inside `ByRoleOptions`, which has no such key                  | Removed at all three call sites; a string `name` already matches exactly                       |
+| Publishing a photo with no ready asset failed the write predicate and was reported as a revision conflict | `readProfileWriteState` names the reason; new `profile_photo_unavailable` code, copy and tests |
+| Rate budgets were three inline literals per call site, as §4 said they should not be                      | `libs/server-fns/src/rate-budgets.ts` declares them by category, with uniqueness tests         |
+| `getPublicProfile` was unauthenticated with no bucket, so enumeration was unbounded                       | Draws from the new `read` category budget                                                      |
+| Every repository test ran on the contracted schema; the deployed intermediate state had no coverage       | `profile-precontraction.test.ts` builds from the shipped migrations only                       |
+| The pending-migration quarantine was guarded by a README                                                  | `migration-quarantine.test.ts` fails the build if a later tag is generated over a pending one  |
+| PF-04a required save/cancel per section and an unsaved-changes warning; neither existed                   | Cancel restores the saved name; `useUnsavedGuard` blocks navigation and `beforeunload`         |
+| Eight residence copy keys survived in all three locales, including `profile_home_location`                | Removed; the plan's "replace the old claim that home location is collected" is done for these  |
+| The 2026-09-09 review claimed `account_state` had no reader                                               | Wrong: `activeProfileIdentity` already enforces it. The claim above is corrected               |
+
+Not defects, and deliberately not built in an audit: **PF-04b** (optional-field editing, per-field
+publish switches, public preview) and **PF-04c** (paginated hosted events, aggregate counts) have no
+implementation to audit. The public profile still renders name and introduction only and still reads
+at most twenty upcoming events, exactly as §2 recorded before the lane began.
+
+Next ticket: **PF-04b**.
