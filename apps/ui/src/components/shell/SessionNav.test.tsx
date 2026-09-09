@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SessionNav } from './SessionNav';
@@ -73,6 +73,31 @@ describe('session dropdown', () => {
     expect(email.className).toContain('truncate');
   });
 
+  it('gives each action an icon that the label already names', () => {
+    signedIn();
+    render(<SessionNav locale="en" />);
+
+    for (const name of ['Your profile', 'Sign out']) {
+      const icon = screen
+        .getByText(name, { exact: false })
+        .querySelector('svg');
+      expect(icon).toBeTruthy();
+      expect(icon?.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
+
+  it('mirrors the leaving arrow in a right-to-left reading order', () => {
+    signedIn();
+    const { container, rerender } = render(<SessionNav locale="en" />);
+    const transformOf = () =>
+      container.querySelector('button svg g')?.getAttribute('transform');
+
+    expect(transformOf()).toBeNull();
+
+    rerender(<SessionNav locale="ar" />);
+    expect(transformOf()).toContain('scale(-1 1)');
+  });
+
   it('still reaches the profile and the sign-out action', () => {
     signedIn();
     render(<SessionNav locale="en" />);
@@ -82,5 +107,74 @@ describe('session dropdown', () => {
     ).toBe('/profile');
     screen.getByRole('button', { name: 'Sign out' }).click();
     expect(state.signOut).toHaveBeenCalledOnce();
+  });
+});
+
+const openDropdown = (container: HTMLElement) => {
+  const details = container.querySelector('details') as HTMLDetailsElement;
+  act(() => {
+    details.open = true;
+  });
+  return details;
+};
+
+const pointerDownOn = (target: Node) =>
+  act(() => {
+    target.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+  });
+
+describe('dismissing the session dropdown', () => {
+  it('closes when an action inside it is chosen', () => {
+    signedIn();
+    const { container } = render(<SessionNav locale="en" />);
+    const details = openDropdown(container);
+
+    act(() => screen.getByRole('link', { name: 'Your profile' }).click());
+
+    expect(details.open).toBe(false);
+  });
+
+  it('closes when the page behind it is touched', () => {
+    signedIn();
+    const { container } = render(<SessionNav locale="en" />);
+    const details = openDropdown(container);
+
+    pointerDownOn(document.body);
+
+    expect(details.open).toBe(false);
+  });
+
+  it('stays open while the pointer lands inside it', () => {
+    signedIn();
+    const { container } = render(<SessionNav locale="en" />);
+    const details = openDropdown(container);
+
+    pointerDownOn(screen.getByTitle('amina@example.dz'));
+
+    expect(details.open).toBe(true);
+  });
+
+  it('closes on Escape and hands focus back to the avatar', () => {
+    signedIn();
+    const { container } = render(<SessionNav locale="en" />);
+    const details = openDropdown(container);
+
+    act(() => {
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+      );
+    });
+
+    expect(details.open).toBe(false);
+    expect(document.activeElement).toBe(details.querySelector('summary'));
+  });
+
+  it('stops listening once it is gone from the page', () => {
+    signedIn();
+    const { container, unmount } = render(<SessionNav locale="en" />);
+    openDropdown(container);
+    unmount();
+
+    expect(() => pointerDownOn(document.body)).not.toThrow();
   });
 });

@@ -11,6 +11,8 @@ import {
 
 import { useAuth } from '../../lib/app-providers';
 import { authClient } from '../../lib/auth';
+import { ProfileIcon, SignOutIcon } from './SessionIcon';
+import { useDismissableDetails } from './useDismissableDetails';
 
 const initials = (name: string, email: string) => {
   const source = name.trim() === '' ? email : name;
@@ -32,6 +34,7 @@ type SessionNavProps = { locale: Locale };
 
 export const SessionNav = ({ locale }: SessionNavProps) => {
   const { isAuthenticated, user } = useAuth();
+  const { ref, close } = useDismissableDetails();
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
 
@@ -39,7 +42,7 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
     return <LoginLink locale={locale} />;
 
   return (
-    <details className="dropdown dropdown-end">
+    <details ref={ref} className="dropdown dropdown-end">
       <summary
         aria-label={profile_title({}, { locale })}
         className="flex size-8 cursor-pointer list-none items-center justify-center rounded-full bg-base-200 text-xs font-semibold text-base-content"
@@ -54,12 +57,16 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
           <bdi>{user.email}</bdi>
         </p>
         <div className="divider my-1" role="presentation" />
-        <ul className="menu w-full p-0">
+        <ul className="menu w-full p-0" onClick={close}>
           <li>
-            <Link to="/profile">{profile_title({}, { locale })}</Link>
+            <Link to="/profile">
+              <ProfileIcon />
+              {profile_title({}, { locale })}
+            </Link>
           </li>
           <li>
             <button type="button" onClick={() => authClient.signOut()}>
+              <SignOutIcon locale={locale} />
               {nav_logout({}, { locale })}
             </button>
           </li>
