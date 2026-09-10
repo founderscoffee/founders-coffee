@@ -115,7 +115,7 @@ credentials return `20008` on every call and look like a delivery.
   ticket, not dead code left to rot — if ND-06 is abandoned, delete them.
 - Push permission can still be granted: `RsvpSection.tsx:181` offers it at RSVP time.
 
-### ND-01 — Make the service worker ship, register, and receive — partly done 2026-09-10
+### ND-01 — Make the service worker ship, register, and receive — done 2026-09-10
 
 **Depends on:** the `ui` Firebase secrets for the last two items only. **Blocks:** everything else.
 
@@ -151,17 +151,24 @@ push event. The two items that need no credentials are done; the rest waits on �
   message, and 401 is not in the permanent-failure list, so each would have been retried to the end of
   its budget before the SMS fallback was considered. It now exchanges the assertion at
   `oauth2.googleapis.com/token` and caches the access token.
-- **Stop swallowing failures.** `enablePushOnThisDevice` returning `null` for ten different reasons is
-  why four separate breaks survived a whole feature and a production deploy. Return a discriminated
-  reason, log it, and let `pushStateFrom` render it. Add `sw_unavailable` to `PushState`.
+- ⬜ **Stop swallowing failures.** `enablePushOnThisDevice` returning `null` for ten different reasons
+  is why six separate breaks survived a whole feature and a production deploy. Return a discriminated
+  reason, log it, and let `pushStateFrom` render it. Add `sw_unavailable` to `PushState`. **Still
+  open** — the path works now, so nothing is hidden today, but the next break will hide the same way.
 - Acceptance: `/sw.js` returns 200 on staging; a Chrome desktop tab and an installed iOS PWA both mint
   a token and land a row in `push_subscriptions`; a real FCM message renders with its own title and
   opens the event on click. With the secrets unset, the state reads `unavailable` and no control
   offers to enable anything. Every failure names itself on screen and in the log.
 
-### ND-02 — Prove delivery end to end on staging
+### ND-02 — Prove delivery end to end on staging — done 2026-09-10
 
 **Depends on:** ND-01, all four secret lists.
+
+Done. A push was delivered on staging 7 seconds after the RSVP, rendered with its own Arabic title
+and a click target of `/algeria/e/react-workshop-algiers`. Evidence in
+[deployment evidence](./deployment-evidence.md). The fallback half of the acceptance — a deliberate
+push failure landing on SMS — is **not** done: it needs a verified consented number, which no member
+can give until ND-06 restores the SMS control.
 
 - RSVP on staging from a real device, confirm the DO alarm fires, the queue message routes, and the
   notification arrives as a push rather than a fallback. Compare against the CO-02 smoke, which

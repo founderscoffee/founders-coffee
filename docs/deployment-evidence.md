@@ -326,3 +326,30 @@ fixes it directly — the current `EventDetail` renders a cancellation notice fo
 The URL that was 404 for the life of the feature now serves the worker. **Nothing beyond that is
 proven**: registration, token minting and delivery all need a browser, and the Chrome extension was
 not connected for this session. ND-02 remains open.
+
+### ND-02 — push delivered end to end on staging, 2026-09-10
+
+The first push notification this product has ever delivered. Driven through the real UI on
+`staging.founders.coffee`, signed in, against real FCM.
+
+| Step                                     | Evidence                                                                                                                                                                                 |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Service worker                           | `scriptURL https://staging.founders.coffee/sw.js`, `state activated`, scope `/`, controlling the page                                                                                    |
+| Firebase config from the deployed Worker | `getFirebaseConfig` returned `apiKey`, `authDomain`, `projectId`, `messagingSenderId`, `appId`, `vapidKey`                                                                               |
+| Permission and subscription              | `Notification.permission granted`; `pushManager` subscription endpoint on `fcm.googleapis.com`                                                                                           |
+| Device registration                      | one row in `push_subscriptions`; `account_preferences.push_enabled = 1`                                                                                                                  |
+| Enqueue                                  | `rsvp_confirmation`, `reminder_72h`, `reminder_24h`, all `channel = push`                                                                                                                |
+| Delivery                                 | `ntf_51d072be08d64f48b1769193123e73e2` → `status sent`, `attempts 0`, **7 seconds** from RSVP                                                                                            |
+| Rendered notification                    | title `أنت ذاهب إلى React patterns workshop`, body `سنذكّرك قبل البداية.`, icon `/android-chrome-192x192.png`, tag = the notification id, `data.url = /algeria/e/react-workshop-algiers` |
+
+Each of the four payload defects is disproved by that last row: FCM accepted the message (the token
+exchange), the title rendered rather than `undefined` (data-only envelope read by `readPushPayload`),
+the click target is the event and not `/` (`pushUrl` now travels), and the icon path resolves.
+
+The refusal before a device existed was also correct: an earlier confirmation failed with
+`unreachable: push_not_enabled` and wrote no fallback, because the member had neither a live device
+nor a consented number.
+
+**Open:** the notification rendered in Arabic while the browser was in English. `locale_pref` is null,
+so `resolveNotificationContext` falls back to the market default rather than the device cookie. By
+design — the server cannot see a device cookie — but a member reading English gets notified in Arabic.
