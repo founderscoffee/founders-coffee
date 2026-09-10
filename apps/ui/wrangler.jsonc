@@ -52,8 +52,10 @@
 
   // ── Deploy environments ──────────────────────────────────────────────────────────────────────
   // `NOTIFICATION_SCHEDULE` is a cross-script binding: the class lives in `apps/worker-jobs`, which
-  // owns timed delivery, and this app only arms it after writing notification rows. Deploy
-  // worker-jobs first — a binding naming a script that does not yet define the class is rejected.
+  // owns timed delivery, and this app only arms it after writing notification rows. worker-jobs
+  // must deploy first — a binding naming a script that does not yet define the class is rejected —
+  // which `deploy:staging`/`deploy:production` in `project.json` now declare through `dependsOn`
+  // rather than leaving to whatever order Nx's graph traversal happens to produce.
   // It is deliberately absent from local dev above: `armNotificationSchedule` no-ops without the
   // binding and the recovery sweep still delivers, which is the right local behaviour.
   // Bindings (`vars`, `durable_objects`, `d1_databases`, `send_email`) are non-inheritable and are
