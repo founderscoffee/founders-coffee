@@ -863,3 +863,121 @@ stubs/placeholders.
       smoke evidence, and rollback points are recorded.
 - [ ] No sponsorship, challenge, talent, payment, expansion, speculative CRM, native app, or
       nonessential AI scope was introduced.
+
+## CO-01 operating contract — proposed 2026-09-10, **not yet approved**
+
+Everything below is a proposal for the Founder to accept, amend or reject. Nothing here is in force,
+and no code depends on it. CO-01 completes when the Founder approves it and the date is recorded.
+
+### A. What needs approving rather than writing
+
+§5, §6 and §7 are already written. CO-01 does not re-author them; it dates and approves them so
+CO-03 onward can build against something that stops moving. One decision inside them is not the
+author's to make:
+
+**§5.21 retention.** Closeout, attendance, structured feedback, weekly reviews and audit for 24
+months; feedback comments for 12; current host trust for the account lifetime plus 24 months after
+closure; non-PII monthly aggregates indefinitely. These periods have not been checked against
+Algerian data-protection law by anyone qualified to do so. Approving them is a legal decision, and
+PF-09 and PF-10 both build directly on the answer — an export has to state what it contains, and a
+deletion has to state what survives it. If the numbers are provisional, say so and PF-09/PF-10 will
+carry that in their copy rather than implying certainty.
+
+Everything else in §5 is an engineering decision already reasoned through, and the recommendation is
+to approve as written.
+
+### B. Who may act as `moderator` and `admin`
+
+**Proposed:** one `admin`, the Founder, named by account. **No `moderator` at launch.**
+
+The reason for no moderator is not caution, it is honesty about the code: `moderator` in
+`libs/auth/src/rbac.ts` currently grants exactly the permissions `member` has. Assigning it today
+would hand somebody a title and no capability, and would create a person who believes they can act.
+The role gains meaning when CO-03/CO-04 add the §5.12 actions — operations read, metrics read, event
+moderation, closeout override, host-trust update, user moderation, audit read — and the first
+moderator should be named then, against a role that does something.
+
+**Granting.** A role change is three things done together, or it is not done: the Better Auth role
+set through the admin plugin, the Cloudflare Access policy updated to include that person, and a
+dated row added to the account matrix in §D. §5.18 already requires the verified Access email to
+equal the verified Better Auth email; a mismatch must fail closed rather than be reconciled by hand.
+
+**Revoking.** The same three, reversed, plus revoking that person's live sessions. That last step is
+available now — PF-07d added owner-bound session revocation, and revoking a session also removes
+that device's push registration.
+
+**Emergency action.** Any moderation or correction taken outside the weekly cadence is legitimate,
+and is reviewed at the next weekly review and recorded in the `operations_reviews` entry for that
+week with its reason. The review is not permission to act; it is the record that acting was
+noticed. Until CO-08 persists reviews, the record is the markdown log in §C.
+
+### C. The weekly Founder / community-operator cadence
+
+**Owner:** the Founder, until a second operator exists. **When:** weekly, same slot, whatever slot
+survives four consecutive weeks — a cadence nobody keeps is worse than none.
+
+**Agenda**, fixed, in this order:
+
+1. The next four weeks of events, against the operating target of roughly eight completed events per
+   month (§6, _Four-week schedule cover_)
+2. Host availability and venue readiness
+3. Overdue closeouts (§6: ended more than 24 hours ago, not cancelled, no closeout)
+4. Attendance and no-shows
+5. Repeat participants and recurring hosts
+6. Host friction, from the locked §5.22 enum
+7. Moderation actions taken since the last review, including any emergency action
+8. **One** named intervention, with an owner and a due date
+
+**The record.** §5.25 fixes the fields: scope, evidence window, bottleneck (from the locked §5.22
+list), intervention, owner, due date, follow-up result. Until CO-08 ships `operations_reviews` and
+CO-11 accepts it, the review is written to a dated markdown log in this repository using exactly
+those field names — so the first persisted review is a transcription rather than a redesign. The
+plan's verification bar already says the first persisted review is a CO-08/CO-11 outcome, not a
+CO-01 one.
+
+### D. Staging identity matrix
+
+Three dedicated identities, none of which may be a production community account (§CO-01). Proposed
+shape, for the Founder to fill in with real addresses:
+
+| Identity         | Role     | Access policy                                                             | Environment  | Owner   | Expiry / revocation       | Permitted test data                                       |
+| ---------------- | -------- | ------------------------------------------------------------------------- | ------------ | ------- | ------------------------- | --------------------------------------------------------- |
+| `staging-host`   | `host`   | none (product app is not Access-gated)                                    | staging only | Founder | revoked at CO-11 sign-off | events it creates, cleaned up in the same session         |
+| `staging-member` | `member` | none                                                                      | staging only | Founder | revoked at CO-11 sign-off | RSVPs and feedback on `staging-host` events only          |
+| `staging-admin`  | `admin`  | admin app policy, Access email **equal to** its Better Auth email (§5.18) | staging only | Founder | revoked at CO-11 sign-off | closeout overrides and corrections on staging events only |
+
+Roles are seeded explicitly and revoked explicitly; none is left standing after CO-11.
+
+### E. Configuration baseline, read from the account 2026-09-10
+
+| Surface             | State                                                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1                  | `founders-coffee-db-production`, `founders-coffee-db-staging`, and `verified-prof`                                                                     |
+| Workers             | 8 scripts — `ui`, `admin`, `dashboard`, `worker-jobs`, each in staging and production; production last modified 2026-09-04, staging 2026-09-05         |
+| Queues              | 8 — `notifications`, `embeddings-jobs`, `reconcile` and `dlq`, each per environment. All have one consumer except both DLQs, which correctly have none |
+| R2                  | `founders-coffee-assets-{dev,staging,production}`, created 2026-09-09 for PF-06, all empty, all WEUR                                                   |
+| Access applications | the API returns **zero**                                                                                                                               |
+| Analytics Engine    | not readable with the current token                                                                                                                    |
+| Secrets             | not readable by design; recorded from the EC-10 preflight rather than re-read                                                                          |
+
+### F. Two things the baseline turned up
+
+**The admin app is unreachable by anyone, including the Founder.** `admin.founders.coffee` answers
+`403 {"error":"Missing Cf-Access-Jwt-Assertion"}`, which is the Worker's own guard failing closed and
+therefore correct. But with zero Access applications configured, no one can obtain an assertion to
+present. The double gate in §5.11 has its inner half built and its outer half absent. Nothing is
+exposed — this is a "cannot be used" rather than a "can be bypassed" — but _"define who may act as
+`admin`"_ has no working path until an Access application exists, and creating one is a Founder
+action on the dashboard.
+
+**`verified-prof` is a D1 database this repository does not reference.** It appears in no
+`wrangler.jsonc`, no migration, and no binding. It may predate this project or belong to something
+else. It should be identified before CO-03 adds operational tables, if only so nobody later assumes
+it is ours.
+
+### G. What CO-01 does not do
+
+It writes no schema, no code and no migration — CO-03 owns those. It does not capture attendance,
+feedback or outcomes for the EC-10 smoke event: that event proves the creation slice and nothing
+else, and §2 is explicit that it is never reused as a post-event fixture. It admits no commercial
+metric to the baseline. And it does not start CO-02.
