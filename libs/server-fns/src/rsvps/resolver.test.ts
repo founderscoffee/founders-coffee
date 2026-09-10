@@ -56,7 +56,7 @@ const setupDb = async (): Promise<Db> => {
 
 const seedEvent = async (
   db: Db,
-  overrides: { capacity?: number; status?: 'published' | 'draft' } = {},
+  overrides: { status?: 'published' | 'draft' } = {},
 ): Promise<string> => {
   const n = ++counter;
   const id = `evt_rr${String(n).padStart(3, '0')}`;
@@ -71,9 +71,7 @@ const seedEvent = async (
     description: 'RSVP resolver fixture.',
     venue: 'Café des Délices, Hydra',
     startsAt: new Date('2099-01-15T18:00:00Z'),
-    capacity: overrides.capacity ?? 5,
     language: 'fr',
-    category: 'coffee-meetup',
     status: overrides.status ?? 'published',
   });
   return id;
@@ -138,19 +136,14 @@ describe('createRsvpResolver (real D1)', () => {
     expect(after.notifications).toBeGreaterThan(0);
   });
 
-  it('returns typed event_full and writes nothing at capacity', async () => {
-    const eventId = await seedEvent(db, { capacity: 1 });
-    await createRsvpResolver(db, { eventId, userId: members[0].id });
-    const before = await state(db, eventId);
-
+  it('returns typed event_not_found and writes nothing for a missing event', async () => {
     const result = await createRsvpResolver(db, {
-      eventId,
-      userId: members[1].id,
+      eventId: 'evt_never_existed',
+      userId: members[0].id,
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('event_full');
-    expect(await state(db, eventId)).toEqual(before);
+    if (!result.ok) expect(result.error.code).toBe('event_not_found');
   });
 
   it('returns typed already_rsvpd for a repeat attempt', async () => {
@@ -187,11 +180,10 @@ describe('createRsvpResolver (real D1)', () => {
   });
 
   it('does not enqueue notifications for a rejected attempt', async () => {
-    const eventId = await seedEvent(db, { capacity: 1 });
+    const eventId = await seedEvent(db);
     await createRsvpResolver(db, { eventId, userId: members[0].id });
     const before = await state(db, eventId);
 
-    await createRsvpResolver(db, { eventId, userId: members[1].id });
     await createRsvpResolver(db, { eventId, userId: members[0].id });
 
     expect((await state(db, eventId)).notifications).toBe(before.notifications);
@@ -215,15 +207,9 @@ describe('cancelRsvpResolver (real D1)', () => {
     if (!result.ok) expect(result.error.code).toBe('rsvp_not_found');
   });
 
-  it('frees the seat so another member can take it', async () => {
-    const eventId = await seedEvent(db, { capacity: 1 });
+  it('gives up the seat and lets the same member take it again', async () => {
+    const eventId = await seedEvent(db);
     await createRsvpResolver(db, { eventId, userId: members[0].id });
-
-    const full = await createRsvpResolver(db, {
-      eventId,
-      userId: members[1].id,
-    });
-    expect(full.ok).toBe(false);
 
     await cancelRsvpResolver(db, { eventId, userId: members[0].id });
     expect(await state(db, eventId)).toMatchObject({
@@ -233,7 +219,7 @@ describe('cancelRsvpResolver (real D1)', () => {
 
     const retry = await createRsvpResolver(db, {
       eventId,
-      userId: members[1].id,
+      userId: members[0].id,
     });
     expect(retry.ok).toBe(true);
     expect(await state(db, eventId)).toMatchObject({

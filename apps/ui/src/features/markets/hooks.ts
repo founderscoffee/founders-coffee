@@ -14,9 +14,8 @@ export const useMarketLanding = (marketCode: string) =>
     queryFn: () => marketsApi.getMarketLanding({ data: { marketCode } }),
   });
 
-export const useCityLanding = (marketCode: string, cityCode: string) =>
+export const useCityLanding = (marketKey: string, citySlug: string) =>
   useQuery({
-    queryKey: ['markets', 'city', marketCode, cityCode],
-    queryFn: () =>
-      marketsApi.getCityLanding({ data: { marketCode, cityCode } }),
+    queryKey: ['markets', 'city', marketKey, citySlug],
+    queryFn: () => marketsApi.getCityLanding({ data: { marketKey, citySlug } }),
   });

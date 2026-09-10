@@ -1,4 +1,5 @@
 import {
+  ntf_cancel_reason,
   ntf_email_confirmation_html,
   ntf_email_confirmation_subject,
   ntf_email_confirmation_text,
@@ -8,24 +9,33 @@ import {
   ntf_email_reminder_72h_html,
   ntf_email_reminder_72h_subject,
   ntf_email_reminder_72h_text,
+  ntf_email_event_cancelled_html,
+  ntf_email_event_cancelled_subject,
+  ntf_email_event_cancelled_text,
+  ntf_push_confirmation_body,
+  ntf_push_confirmation_title,
+  ntf_push_event_cancelled_body,
+  ntf_push_event_cancelled_title,
   ntf_push_reminder_24h_body,
   ntf_push_reminder_24h_title,
   ntf_push_reminder_72h_body,
   ntf_push_reminder_72h_title,
   ntf_sms_confirmation,
+  ntf_sms_event_cancelled,
   ntf_sms_reminder_24h,
   ntf_sms_reminder_72h,
   type Locale,
 } from '@founders-coffee/i18n';
 
 export type NotificationTemplateKey =
-  'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
+  'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h' | 'event_cancelled';
 
 export interface TemplateValues {
   readonly title: string;
   readonly venue: string;
   readonly date: string;
   readonly url: string;
+  readonly reason?: string;
 }
 
 const escapeHtml = (value: string): string =>
@@ -49,7 +59,23 @@ const escapeValues = (values: TemplateValues): TemplateValues => ({
   venue: escapeHtml(values.venue),
   date: escapeHtml(values.date),
   url: escapeHtml(values.url),
+  reason: values.reason ? escapeHtml(values.reason) : undefined,
 });
+
+/**
+ * Append the host's reason to a cancellation body when they wrote one. `TemplateValues.reason`
+ * carries it and only `event_cancelled` renders it; every other template ignores the field.
+ *
+ * The reason is free text a host typed, so it is added as its own sentence rather than
+ * interpolated into the message — a locale whose word order puts it elsewhere can move
+ * `ntf_cancel_reason` without the caller changing.
+ */
+const withReason = (
+  body: string,
+  reason: string | undefined,
+  locale: Locale,
+): string =>
+  reason ? `${body} ${ntf_cancel_reason({ reason }, { locale })}` : body;
 
 export const smsBodyFor = (
   templateKey: NotificationTemplateKey,
@@ -64,6 +90,12 @@ export const smsBodyFor = (
       return ntf_sms_reminder_72h(values, options);
     case 'reminder_24h':
       return ntf_sms_reminder_24h(values, options);
+    case 'event_cancelled':
+      return withReason(
+        ntf_sms_event_cancelled(values, options),
+        values.reason,
+        locale,
+      );
   }
 };
 
@@ -93,15 +125,41 @@ export const emailPayloadFor = (
         html: ntf_email_reminder_24h_html(safe, options),
         text: ntf_email_reminder_24h_text(values, options),
       };
+    case 'event_cancelled':
+      return {
+        subject: ntf_email_event_cancelled_subject(values, options),
+        html: withReason(
+          ntf_email_event_cancelled_html(safe, options),
+          safe.reason,
+          locale,
+        ),
+        text: withReason(
+          ntf_email_event_cancelled_text(values, options),
+          values.reason,
+          locale,
+        ),
+      };
   }
 };
 
 export const pushPayloadFor = (
-  templateKey: 'reminder_72h' | 'reminder_24h',
+  templateKey: NotificationTemplateKey,
   values: TemplateValues,
   locale: Locale,
 ): { pushTitle: string; pushBody: string } => {
   const options = { locale };
+  if (templateKey === 'event_cancelled') {
+    return {
+      pushTitle: ntf_push_event_cancelled_title(values, options),
+      pushBody: ntf_push_event_cancelled_body(values, options),
+    };
+  }
+  if (templateKey === 'rsvp_confirmation') {
+    return {
+      pushTitle: ntf_push_confirmation_title(values, options),
+      pushBody: ntf_push_confirmation_body({}, options),
+    };
+  }
   return templateKey === 'reminder_72h'
     ? {
         pushTitle: ntf_push_reminder_72h_title(values, options),

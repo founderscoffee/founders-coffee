@@ -3,8 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { LOCALES } from '@founders-coffee/core';
 
 import {
-  EVENT_CAPACITY_MAX,
-  EVENT_CATEGORIES,
   EVENT_DESCRIPTION_MAX_LENGTH,
   EVENT_DESCRIPTION_MIN_LENGTH,
   EVENT_DURATION_MS_MAX,
@@ -31,9 +29,7 @@ const validInput = (overrides: Record<string, unknown> = {}) => {
     longitude: 3.0588,
     startsAt,
     endsAt: startsAt + 60 * 60_000,
-    capacity: 20,
     language: 'fr',
-    category: 'coffee-meetup',
     ...overrides,
   };
 };
@@ -77,21 +73,6 @@ describe('eventCreateSchema', () => {
       true,
     );
   });
-
-  it.each(EVENT_CATEGORIES)('accepts the %s category', (category) => {
-    expect(eventCreateSchema.safeParse(validInput({ category })).success).toBe(
-      true,
-    );
-  });
-
-  it.each([0, 1, EVENT_CAPACITY_MAX])(
-    'accepts the %s capacity boundary',
-    (capacity) => {
-      expect(
-        eventCreateSchema.safeParse(validInput({ capacity })).success,
-      ).toBe(true);
-    },
-  );
 
   it.each([
     ['title', 'title', 'a'.repeat(EVENT_TITLE_MIN_LENGTH)],
@@ -152,9 +133,6 @@ describe('eventCreateSchema', () => {
       { venueAddress: 'a'.repeat(EVENT_VENUE_ADDRESS_MAX_LENGTH + 1) },
       'venueAddress',
     ],
-    ['negative capacity', { capacity: -1 }, 'capacity'],
-    ['capacity maximum', { capacity: EVENT_CAPACITY_MAX + 1 }, 'capacity'],
-    ['fractional capacity', { capacity: 1.5 }, 'capacity'],
     ['latitude minimum', { latitude: -90.1 }, 'latitude'],
     ['latitude maximum', { latitude: 90.1 }, 'latitude'],
     ['longitude minimum', { longitude: -180.1 }, 'longitude'],
@@ -164,7 +142,6 @@ describe('eventCreateSchema', () => {
     ['market code', { marketCode: 'dz' }, 'marketCode'],
     ['empty city code', { cityCode: '  ' }, 'cityCode'],
     ['invalid language', { language: 'de' }, 'language'],
-    ['invalid category', { category: 'conference' }, 'category'],
   ] as const)('rejects an invalid %s', (_name, overrides, path) =>
     expectInvalidPath(overrides, path),
   );
@@ -206,7 +183,6 @@ describe('eventCreateSchema', () => {
     'id',
     'stateCode',
     'hostId',
-    'isFree',
     'slug',
     'status',
     'rsvps',
@@ -221,7 +197,6 @@ describe('eventCreateSchema', () => {
 
   it.each([
     'marketCode',
-    'cityCode',
     'title',
     'description',
     'venueName',
@@ -230,12 +205,16 @@ describe('eventCreateSchema', () => {
     'longitude',
     'startsAt',
     'endsAt',
-    'capacity',
     'language',
-    'category',
   ])('requires the %s field', (field) => {
     const input: Record<string, unknown> = validInput();
     delete input[field];
     expect(eventCreateSchema.safeParse(input).success).toBe(false);
+  });
+
+  it('accepts a command with no city, because the point decides it', () => {
+    const input: Record<string, unknown> = validInput();
+    delete input.cityCode;
+    expect(eventCreateSchema.safeParse(input).success).toBe(true);
   });
 });

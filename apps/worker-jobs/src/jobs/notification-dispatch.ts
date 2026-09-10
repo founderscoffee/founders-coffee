@@ -1,5 +1,4 @@
-import { getPushTokensByUser, type Db } from '@founders-coffee/db';
-import type { ScheduledNotification } from '@founders-coffee/db';
+import type { Db, ScheduledNotification } from '@founders-coffee/db';
 import type { notifications } from '@founders-coffee/domain';
 import type { EmailProvider } from '@founders-coffee/email';
 import type {
@@ -7,12 +6,19 @@ import type {
   PushProvider,
 } from '@founders-coffee/notifications';
 
+import {
+  resolveDestination,
+  type Destination,
+} from './notification-destination.js';
+
 export type DispatchOutcome =
   | { readonly kind: 'sent' }
   | {
       readonly kind: 'failed';
       readonly permanent: boolean;
       readonly error: string;
+      readonly unreachable?: boolean;
+      readonly suppressFallback?: boolean;
     };
 
 export type Dispatcher = (
@@ -28,20 +34,59 @@ export interface DispatchProviders {
 
 const sent: DispatchOutcome = { kind: 'sent' };
 
-const failed = (error: string, permanent: boolean): DispatchOutcome => ({
+const failed = (
+  error: string,
+  permanent: boolean,
+  refusal: { unreachable?: boolean; suppressFallback?: boolean } = {},
+): DispatchOutcome => ({
   kind: 'failed',
   permanent,
   error,
+  ...refusal,
 });
 
-const smsDispatcher =
-  (sms: NotificationSmsProvider): Dispatcher =>
+/**
+ * Every dispatcher resolves its destination first, or does not send at all.
+ *
+ * The guard is applied here rather than in each channel so that adding a channel cannot
+ * accidentally opt out of it: a dispatcher is built by this wrapper or it is not built. An
+ * unreachable recipient is permanent — a removed number and a closed account are not conditions a
+ * retry in five minutes improves — and an account-level refusal also suppresses the fallback,
+ * because writing one would only queue the same refusal on another channel.
+ */
+const guarded =
+  (
+    db: Db,
+    channel: ScheduledNotification['channel'],
+    send: (
+      destination: Destination,
+      notification: ScheduledNotification,
+      parsed: notifications.ParsedNotificationPayload,
+    ) => Promise<DispatchOutcome>,
+  ): Dispatcher =>
   async (notification, parsed) => {
-    if (parsed.channel !== 'sms') {
+    if (parsed.channel !== channel)
       return failed(`channel_mismatch: ${parsed.channel}`, true);
-    }
+    const resolved = await resolveDestination(
+      db,
+      channel,
+      notification.userId,
+      notification.templateKey,
+    );
+    if (!resolved.ok)
+      return failed(`unreachable: ${resolved.reason}`, true, {
+        unreachable: true,
+        suppressFallback: resolved.account,
+      });
+    return send(resolved.destination, notification, parsed);
+  };
+
+const smsDispatcher = (db: Db, sms: NotificationSmsProvider): Dispatcher =>
+  guarded(db, 'sms', async (destination, notification, parsed) => {
+    if (destination.channel !== 'sms' || parsed.channel !== 'sms')
+      return failed('channel_mismatch', true);
     const result = await sms.send({
-      to: parsed.payload.phoneNumber,
+      to: destination.phoneNumber,
       body: parsed.payload.smsBody,
       dedupeKey: notification.id,
     });
@@ -50,47 +95,39 @@ const smsDispatcher =
       result.error.message,
       result.error.code === 'sms_permanent_failure',
     );
-  };
+  });
 
-const emailDispatcher =
-  (email: EmailProvider): Dispatcher =>
-  async (notification, parsed) => {
-    if (parsed.channel !== 'email') {
-      return failed(`channel_mismatch: ${parsed.channel}`, true);
-    }
+const emailDispatcher = (db: Db, email: EmailProvider): Dispatcher =>
+  guarded(db, 'email', async (destination, notification, parsed) => {
+    if (destination.channel !== 'email' || parsed.channel !== 'email')
+      return failed('channel_mismatch', true);
     const result = await email.send({
-      to: parsed.payload.email,
+      to: destination.email,
       subject: parsed.payload.subject,
       html: parsed.payload.html,
       text: parsed.payload.text,
       headers: { 'Message-ID': `<${notification.id}@founders.coffee>` },
     });
     return result.ok ? sent : failed(result.error.message, false);
-  };
+  });
 
 /**
- * A push notification is delivered per registered device token.
+ * A push notification is delivered per device still entitled to receive one.
  *
- * A user with no registered token is a permanent failure, not a success: nothing was delivered, and
- * recording it as `sent` would both misreport delivery and skip the fallback the row may carry.
+ * The guard has already excluded devices whose session was signed out, so a member with tokens but
+ * no live session is reported unreachable rather than sent to. Having no deliverable device at all
+ * is a permanent failure and not a success: nothing was delivered, and recording it as `sent` would
+ * both misreport delivery and skip the fallback the row may carry.
  */
-const pushDispatcher =
-  (db: Db, push: PushProvider): Dispatcher =>
-  async (notification, parsed) => {
-    if (parsed.channel !== 'push') {
-      return failed(`channel_mismatch: ${parsed.channel}`, true);
-    }
-    const tokens = await getPushTokensByUser(db, {
-      userId: notification.userId,
-    });
-    if (tokens.length === 0) {
-      return failed('no_push_tokens: user has no registered device', true);
-    }
+const pushDispatcher = (db: Db, push: PushProvider): Dispatcher =>
+  guarded(db, 'push', async (destination, notification, parsed) => {
+    if (destination.channel !== 'push' || parsed.channel !== 'push')
+      return failed('channel_mismatch', true);
 
     let lastError = 'push delivery failed';
-    for (const token of tokens) {
+    for (const token of destination.tokens) {
       const result = await push.send({
-        token: token.token,
+        token,
         title: parsed.payload.pushTitle,
         body: parsed.payload.pushBody,
         dedupeKey: notification.id,
@@ -99,7 +136,7 @@ const pushDispatcher =
       lastError = result.error.message;
     }
     return failed(lastError, false);
-  };
+  });
 
 export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
   ScheduledNotification['channel'],
@@ -131,7 +168,7 @@ export const buildDispatchers = (
   db: Db,
   providers: DispatchProviders,
 ): Partial<Record<ScheduledNotification['channel'], Dispatcher>> => ({
-  sms: smsDispatcher(providers.sms),
-  email: emailDispatcher(providers.email),
+  sms: smsDispatcher(db, providers.sms),
+  email: emailDispatcher(db, providers.email),
   ...(providers.push ? { push: pushDispatcher(db, providers.push) } : {}),
 });

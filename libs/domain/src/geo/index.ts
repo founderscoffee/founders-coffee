@@ -1,3 +1,4 @@
+import { ISO_STATE_CODES } from './admin-codes.js';
 import { DZ_CITIES, DZ_STATES } from './data/dz.js';
 import { EG_CITIES, EG_STATES } from './data/eg.js';
 import { SA_CITIES, SA_STATES } from './data/sa.js';
@@ -14,6 +15,18 @@ const CITIES: Readonly<Record<string, readonly GeoCity[]>> = {
   EG: EG_CITIES,
   SA: SA_CITIES,
 };
+
+/**
+ * Our state code for an ISO 3166-2 region code, e.g. `DZ-16` to `16`.
+ *
+ * The table is generated and hand-reviewed rather than computed, because our codes are not ISO and
+ * do not merely differ in format: Algeria's post-2019 wilayas are numbered differently on each side
+ * (we call In Salah 53, ISO calls it DZ-57), and Egypt and Saudi use a different alphabet entirely.
+ */
+export const stateCodeForIso = (
+  country: string,
+  isoRegionCode: string,
+): string | undefined => ISO_STATE_CODES[country]?.[isoRegionCode];
 
 /** All states for a country (DZ/EG/SA). */
 export const getStates = (country: string): readonly GeoState[] =>

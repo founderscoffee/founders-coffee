@@ -1,0 +1,109 @@
+import { useRouter } from '@tanstack/react-router';
+import { Check } from 'lucide-react';
+import { useState } from 'react';
+
+import {
+  host_cancel_error,
+  host_cancel_event,
+  host_hosting_help,
+  host_you_are_hosting,
+  live_window_closed,
+  type Locale,
+} from '@founders-coffee/i18n';
+import type { EventWithAttendance } from '@founders-coffee/server-fns';
+
+import type { UseEventLiveResult } from '../../features/events/useEventLive';
+import { useCancelEvent } from '../../features/events/hooks';
+import { CancelEventDialog } from './CancelEventDialog';
+import { HostLiveActions } from './HostLiveActions';
+
+type HostEventPanelProps = {
+  event: EventWithAttendance;
+  locale: Locale;
+  live: UseEventLiveResult | null;
+  isWindowOpen: boolean;
+};
+
+export const HostEventPanel = ({
+  event,
+  locale,
+  live,
+  isWindowOpen,
+}: HostEventPanelProps) => {
+  const router = useRouter();
+  const cancelEvent = useCancelEvent();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const isCancelled = event.status === 'cancelled';
+
+  const confirmCancel = () => {
+    setError(null);
+    cancelEvent.mutate(
+      { data: { eventId: event.id, reason: reason.trim() || undefined } },
+      {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          void router.invalidate();
+        },
+        onError: () => {
+          setIsDialogOpen(false);
+          setError(host_cancel_error({}, { locale }));
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="inline-flex w-fit items-center gap-2 rounded-full bg-success-tint px-3 py-1.5 text-body-sm font-medium text-success">
+        <Check className="size-4" aria-hidden="true" />
+        {host_you_are_hosting({}, { locale })}
+      </p>
+      <p className="text-body-sm text-neutral">
+        {host_hosting_help({}, { locale })}
+      </p>
+
+      {!isCancelled &&
+        (isWindowOpen && live ? (
+          <HostLiveActions
+            locale={locale}
+            host={live.host}
+            onArrived={live.sendArrived}
+            onTablePin={live.sendTablePin}
+          />
+        ) : (
+          <p className="text-body-sm text-neutral">
+            {live_window_closed({}, { locale })}
+          </p>
+        ))}
+
+      {!isCancelled && (
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm w-fit text-error"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          {host_cancel_event({}, { locale })}
+        </button>
+      )}
+
+      {error ? (
+        <p role="alert" className="text-body-sm text-error">
+          {error}
+        </p>
+      ) : null}
+
+      <CancelEventDialog
+        isOpen={isDialogOpen}
+        locale={locale}
+        reason={reason}
+        isPending={cancelEvent.isPending}
+        onReasonChange={setReason}
+        onKeep={() => setIsDialogOpen(false)}
+        onConfirm={confirmCancel}
+      />
+    </div>
+  );
+};

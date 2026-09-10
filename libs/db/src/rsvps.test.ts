@@ -28,7 +28,7 @@ describe('rsvp insert-select column contract', () => {
   });
 });
 
-describe('createRsvp capacity (real D1)', () => {
+describe('createRsvp (real D1)', () => {
   let db: Db;
 
   beforeEach(async () => {
@@ -36,7 +36,7 @@ describe('createRsvp capacity (real D1)', () => {
   });
 
   it('records an attendee and increments the counter together', async () => {
-    const eventId = await seedEvent(db, 3);
+    const eventId = await seedEvent(db);
 
     const result = await createRsvp(db, {
       id: 'rsvp_ok_1',
@@ -48,47 +48,24 @@ describe('createRsvp capacity (real D1)', () => {
     expect(await counters(db, eventId)).toEqual({ counter: 1, attendees: 1 });
   });
 
-  it('writes nothing when the event is already at capacity', async () => {
-    const eventId = await seedEvent(db, 2);
-    await fill(db, eventId, 2);
-    expect(await counters(db, eventId)).toEqual({ counter: 2, attendees: 2 });
-
+  it('writes nothing when the event has gone', async () => {
     const result = await createRsvp(db, {
-      id: 'rsvp_full_1',
-      eventId,
+      id: 'rsvp_missing_1',
+      eventId: 'evt_never_existed',
       userId: members[5].id,
     });
 
-    expect(result.outcome).toBe('event_full');
-    expect(await counters(db, eventId)).toEqual({ counter: 2, attendees: 2 });
+    expect(result.outcome).toBe('event_missing');
     expect(
-      await getRsvpForUser(db, { eventId, userId: members[5].id }),
+      await getRsvpForUser(db, {
+        eventId: 'evt_never_existed',
+        userId: members[5].id,
+      }),
     ).toBeUndefined();
   });
 
-  it('accepts the final seat, then rejects the next attempt', async () => {
-    const eventId = await seedEvent(db, 3);
-    await fill(db, eventId, 2);
-
-    const last = await createRsvp(db, {
-      id: 'rsvp_last',
-      eventId,
-      userId: members[2].id,
-    });
-    expect(last.outcome).toBe('created');
-    expect(await counters(db, eventId)).toEqual({ counter: 3, attendees: 3 });
-
-    const overflow = await createRsvp(db, {
-      id: 'rsvp_overflow',
-      eventId,
-      userId: members[3].id,
-    });
-    expect(overflow.outcome).toBe('event_full');
-    expect(await counters(db, eventId)).toEqual({ counter: 3, attendees: 3 });
-  });
-
-  it('treats capacity 0 as unlimited', async () => {
-    const eventId = await seedEvent(db, 0);
+  it('takes every attendee, however many turn up', async () => {
+    const eventId = await seedEvent(db);
     await fill(db, eventId, 5);
 
     const result = await createRsvp(db, {
@@ -102,7 +79,7 @@ describe('createRsvp capacity (real D1)', () => {
   });
 
   it('returns already_rsvpd for a duplicate instead of throwing', async () => {
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
     await createRsvp(db, {
       id: 'rsvp_dupe_a',
       eventId,
@@ -119,9 +96,8 @@ describe('createRsvp capacity (real D1)', () => {
     expect(await counters(db, eventId)).toEqual({ counter: 1, attendees: 1 });
   });
 
-  it('lets exactly one concurrent attempt take the final seat', async () => {
-    const eventId = await seedEvent(db, 3);
-    await fill(db, eventId, 2);
+  it('keeps the counter level with the attendee rows under concurrency', async () => {
+    const eventId = await seedEvent(db);
 
     const outcomes = await Promise.all([
       createRsvp(db, { id: 'rsvp_race_a', eventId, userId: members[2].id }),
@@ -129,13 +105,12 @@ describe('createRsvp capacity (real D1)', () => {
       createRsvp(db, { id: 'rsvp_race_c', eventId, userId: members[4].id }),
     ]);
 
-    const created = outcomes.filter((o) => o.outcome === 'created');
-    expect(created).toHaveLength(1);
+    expect(outcomes.filter((o) => o.outcome === 'created')).toHaveLength(3);
     expect(await counters(db, eventId)).toEqual({ counter: 3, attendees: 3 });
   });
 
   it('keeps counter and attendee rows in step for concurrent duplicates', async () => {
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
 
     const outcomes = await Promise.all([
       createRsvp(db, { id: 'rsvp_cd_a', eventId, userId: members[0].id }),
@@ -150,7 +125,7 @@ describe('createRsvp capacity (real D1)', () => {
   });
 
   it('rethrows an error that is not a duplicate RSVP', async () => {
-    const eventId = await seedEvent(db, 5);
+    const eventId = await seedEvent(db);
 
     await expect(
       createRsvp(db, {

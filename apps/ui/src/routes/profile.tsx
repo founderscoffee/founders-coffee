@@ -1,47 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import {
-  getCities,
-  getMyProfile,
-  getStates,
-  type UserProfile,
-} from '@founders-coffee/server-fns';
-import type { geo } from '@founders-coffee/domain';
-
-import { ProfilePage } from '../components/profile/ProfilePage';
+import { ProfilePage } from '../features/profile/components/ProfilePage';
 
 export const Route = createFileRoute('/profile')({
-  component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    const { profile, states, cities } = Route.useLoaderData();
-    return (
-      <ProfilePage
-        locale={locale}
-        profile={profile}
-        markets={markets}
-        states={states}
-        cities={cities}
-      />
-    );
-  },
-  loaderDeps: ({ search }) => ({
-    country: (search as { country?: string }).country,
-    state: (search as { state?: string }).state,
+  headers: () => ({
+    'Cache-Control': 'private, no-store',
+    'X-Robots-Tag': 'noindex, nofollow',
   }),
-  loader: async ({
-    deps,
-  }): Promise<{
-    profile: UserProfile;
-    states: readonly geo.GeoState[];
-    cities: readonly geo.GeoCity[];
-  }> => {
-    const profile = await getMyProfile();
-    const country = deps.country ?? profile.homeMarketCode ?? 'DZ';
-    const states = await getStates({ data: { country } });
-    const stateParam = deps.state ?? profile.homeState ?? '';
-    const cities = stateParam
-      ? await getCities({ data: { country, state: stateParam } })
-      : [];
-    return { profile, states, cities };
+  component: () => {
+    const { locale } = Route.useRouteContext();
+    return <ProfilePage locale={locale} />;
   },
+  head: () => ({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] }),
 });

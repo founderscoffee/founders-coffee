@@ -12,7 +12,6 @@ const notificationBase = z.object({
   phoneNumber: z.string().min(1).max(32).optional(),
   email: z.string().email().max(254).optional(),
   rsvpCount: z.number().int().nonnegative().optional(),
-  capacity: z.number().int().nonnegative().optional(),
 });
 
 const emailContent = {
@@ -27,7 +26,6 @@ export const smsNotificationPayloadSchema = notificationBase
     phoneNumber: z.string().min(1).max(32),
     smsBody: z.string().min(1).max(1600),
   })
-  .extend(emailContent)
   .passthrough();
 
 export const emailNotificationPayloadSchema = notificationBase
@@ -77,10 +75,11 @@ const schemaFor = {
  * grown fields before and will again; the schemas assert what each channel needs, not what nothing
  * else may carry.
  *
- * `smsNotificationPayloadSchema` also requires the email content, which looks redundant and is not:
- * a row with `fallback_channel = 'email'` hands its payload to the fallback row unchanged, so an
- * SMS payload without a subject and body produced a fallback email with neither. Requiring them on
- * the SMS schema is what makes that fallback deliverable.
+ * A fallback row inherits its primary's payload unchanged, so a payload has to satisfy both its own
+ * channel and the channel named in `fallback_channel`. That is the producer's obligation, asserted
+ * where the row is written, not something a channel schema can express — an SMS schema that also
+ * demanded email content forced every SMS payload to carry a subject and body for a fallback most
+ * of them do not have.
  */
 export const parseNotificationPayload = (
   channel: string,

@@ -48,7 +48,7 @@ const trackedMetrics = () => {
 
 const failingProvider: MapProvider = {
   ...testMapProvider,
-  reverseVenue: async () =>
+  describePoint: async () =>
     err(new AppError('map_venue_unsupported', 'Unsupported venue')),
 };
 
@@ -71,7 +71,7 @@ describe('createEventWithTelemetry (real D1)', () => {
         testMapProvider,
         metrics,
         TEST_HOST_ID,
-        createInput(FREE_TEXT),
+        createInput({ ...FREE_TEXT, cityCode: undefined }),
       ),
     );
 
@@ -82,13 +82,13 @@ describe('createEventWithTelemetry (real D1)', () => {
     expect(succeeded).toBeDefined();
     expect(requested?.requestId).toEqual(succeeded?.requestId);
     expect(requested?.requestId).toBeTruthy();
+    expect(requested?.cityCode).toBeNull();
     expect(succeeded).toMatchObject({
       level: 'info',
       hostId: TEST_HOST_ID,
       marketCode: 'DZ',
-      cityCode: '1',
-      stateCode: '01',
-      category: 'coffee-meetup',
+      cityCode: '556',
+      stateCode: '16',
       language: 'fr',
       durationMinutes: 60,
     });
@@ -98,7 +98,7 @@ describe('createEventWithTelemetry (real D1)', () => {
     expect(trackEvent).toHaveBeenCalledOnce();
     expect(trackEvent).toHaveBeenCalledWith(EVENTS_CREATED_METRIC, {
       market: 'DZ',
-      city: '1',
+      city: '556',
       locale: 'fr',
     });
   });
@@ -113,7 +113,7 @@ describe('createEventWithTelemetry (real D1)', () => {
         testMapProvider,
         metrics,
         TEST_HOST_ID,
-        createInput(FREE_TEXT),
+        createInput({ ...FREE_TEXT, cityCode: undefined }),
       ),
     );
 
@@ -137,7 +137,7 @@ describe('createEventWithTelemetry (real D1)', () => {
         failingProvider,
         metrics,
         TEST_HOST_ID,
-        createInput(FREE_TEXT),
+        createInput({ ...FREE_TEXT, cityCode: undefined }),
       ),
     );
 
@@ -147,7 +147,7 @@ describe('createEventWithTelemetry (real D1)', () => {
       errorCode: 'map_venue_unsupported',
       hostId: TEST_HOST_ID,
       marketCode: 'DZ',
-      cityCode: '1',
+      cityCode: null,
     });
     expect(entryFor('event_create_succeeded')).toBeUndefined();
     expect(trackEvent).not.toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe('createEventWithTelemetry (real D1)', () => {
         testMapProvider,
         null,
         TEST_HOST_ID,
-        createInput(FREE_TEXT),
+        createInput({ ...FREE_TEXT, cityCode: undefined }),
       ),
     );
 
@@ -206,7 +206,7 @@ describe('createEventWithTelemetry (real D1)', () => {
         testMapProvider,
         metrics,
         TEST_HOST_ID,
-        createInput(FREE_TEXT),
+        createInput({ ...FREE_TEXT, cityCode: undefined }),
       ),
     );
 

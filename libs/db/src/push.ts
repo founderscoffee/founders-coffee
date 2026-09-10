@@ -1,7 +1,34 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
-import { pushSubscriptions, type PushSubscriptionRow } from './schema.js';
+import { listDeliverablePushTokens } from './notification-destinations.js';
+import {
+  accountPreferences,
+  pushSubscriptions,
+  type PushSubscriptionRow,
+} from './schema.js';
+
+/**
+ * Record that this member has push on, because a device just registered for it.
+ *
+ * `push_enabled` defaults to false and is read at send time, so without this a member who granted
+ * the browser permission and registered a device would still be refused every push: the switch
+ * describing their state would say off while their device said on. Registration is the affirmative
+ * gesture, so it is what writes the switch.
+ *
+ * Upserted rather than updated because the preferences row is created lazily, on the first profile
+ * save — a member who has never opened that screen has no row, and an UPDATE would silently write
+ * nothing and leave push refused.
+ */
+const recordPushEnabled = async (db: Db, userId: string): Promise<void> => {
+  await db
+    .insert(accountPreferences)
+    .values({ userId, pushEnabled: true })
+    .onConflictDoUpdate({
+      target: accountPreferences.userId,
+      set: { pushEnabled: true, updatedAt: sql`(unixepoch())` },
+    });
+};
 
 /**
  * Register a push subscription. Upserts on token (unique) — if the token
@@ -24,6 +51,8 @@ export const registerPushToken = async (
     .from(pushSubscriptions)
     .where(eq(pushSubscriptions.token, opts.token))
     .limit(1);
+
+  await recordPushEnabled(db, opts.userId);
 
   if (existing.length > 0) {
     if (existing[0].userId === opts.userId) {
@@ -60,6 +89,36 @@ export const registerPushToken = async (
 
   await db.insert(pushSubscriptions).values(row);
   return row as PushSubscriptionRow;
+};
+
+/**
+ * What this one device's push registration is actually worth right now.
+ *
+ * The preferences screen has to tell three states apart that look identical from the browser:
+ * permission granted but never registered, registered, and registered but no longer deliverable
+ * because the session it belongs to was signed out. Only the last two can be answered here, and
+ * `deliverable` deliberately reuses {@link listDeliverablePushTokens} rather than re-deriving the
+ * rule — a screen that reported its own idea of eligibility would eventually disagree with the
+ * dispatcher, and the member would be told they are reachable while nothing arrives.
+ */
+export const pushTokenState = async (
+  db: Db,
+  opts: { userId: string; token: string },
+): Promise<{ registered: boolean; deliverable: boolean }> => {
+  const rows = await db
+    .select({ id: pushSubscriptions.id })
+    .from(pushSubscriptions)
+    .where(
+      and(
+        eq(pushSubscriptions.userId, opts.userId),
+        eq(pushSubscriptions.token, opts.token),
+      ),
+    )
+    .limit(1);
+  if (rows.length === 0) return { registered: false, deliverable: false };
+
+  const deliverable = await listDeliverablePushTokens(db, opts.userId);
+  return { registered: true, deliverable: deliverable.includes(opts.token) };
 };
 
 /**
@@ -130,10 +189,14 @@ export const getPushTokensForEvent = async (
 };
 
 /**
- * Get push tokens for a specific user. Used to send push to
- * all of a user's devices (multi-device support).
+ * Every registered token for a member, entitled to delivery or not.
+ *
+ * Kept for administration and for the export PF-09 owes a member about their own devices. It is not
+ * the reader a dispatcher wants: it includes subscriptions whose session has been signed out, which
+ * is precisely what {@link listDeliverablePushTokens} exists to exclude. Sending from this list is
+ * how a signed-out device keeps buzzing.
  */
-export const getPushTokensByUser = async (
+export const listAllPushTokensByUser = async (
   db: Db,
   opts: { userId: string },
 ): Promise<PushSubscriptionRow[]> => {

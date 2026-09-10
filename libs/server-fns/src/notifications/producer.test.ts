@@ -127,7 +127,7 @@ describe('enqueued notification content is localized (AR-07)', () => {
     const base = (env as unknown as { APP_URL: string }).APP_URL;
     const sms = payloads.find((p) => typeof p.smsBody === 'string');
 
-    expect(sms?.smsBody as string).toContain(`${base}/DZ/e/`);
+    expect(sms?.smsBody as string).toContain(`${base}/algeria/e/`);
     expect(sms?.smsBody as string).not.toContain('https://founders.coffee');
   });
 

@@ -10,6 +10,10 @@ import { serwist } from '@serwist/vite';
 
 import { mapboxCspWorker } from './vite-mapbox-worker';
 
+const LOCAL_STATE_PATH = fileURLToPath(
+  new URL('../../.wrangler/state', import.meta.url),
+);
+
 const clientNodeBuiltinStubs: Plugin = {
   name: 'client-node-builtin-stubs',
   enforce: 'pre',
@@ -32,6 +36,11 @@ const clientNodeBuiltinStubs: Plugin = {
 };
 
 export default defineConfig(({ command }) => ({
+  server: {
+    watch: {
+      ignored: ['**/.osm-snapshot/**', '**/.wrangler/**', '**/dist/**'],
+    },
+  },
   resolve: {
     tsconfigPaths: true,
     dedupe: ['react', 'react-dom'],
@@ -53,7 +62,10 @@ export default defineConfig(({ command }) => ({
     ],
   },
   plugins: [
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
+    cloudflare({
+      viteEnvironment: { name: 'ssr' },
+      persistState: { path: LOCAL_STATE_PATH },
+    }),
     tailwindcss(),
     tanstackStart({
       importProtection: {

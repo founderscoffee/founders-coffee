@@ -4,8 +4,6 @@ export {
   type EventStatus,
 } from './status-machine.js';
 export {
-  EVENT_CAPACITY_MAX,
-  EVENT_CATEGORIES,
   EVENT_DESCRIPTION_MAX_LENGTH,
   EVENT_DESCRIPTION_MIN_LENGTH,
   EVENT_DURATION_MINUTES_MAX,
@@ -18,14 +16,11 @@ export {
   EVENT_VENUE_ADDRESS_MIN_LENGTH,
   EVENT_VENUE_NAME_MAX_LENGTH,
   EVENT_VENUE_NAME_MIN_LENGTH,
-  eventCapacitySchema,
-  eventCategorySchema,
   eventCreateSchema,
   eventDescriptionSchema,
   eventScheduleSchema,
   eventTitleSchema,
   eventVenueAddressSchema,
   eventVenueNameSchema,
-  type EventCategory,
   type EventCreateInput,
 } from './schemas.js';

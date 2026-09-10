@@ -13,7 +13,7 @@ const VALUES = {
   title: 'Coffee + Code',
   venue: 'Café des Délices',
   date: 'Friday, Jan 15',
-  url: 'https://staging.founders.coffee/DZ/e/coffee-code',
+  url: 'https://staging.founders.coffee/algeria/e/coffee-code',
 };
 
 const KEYS: NotificationTemplateKey[] = [

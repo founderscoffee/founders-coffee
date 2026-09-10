@@ -35,10 +35,37 @@ describe('notification base url follows the deployment', () => {
   });
 
   it('builds an event url on that origin', () => {
-    const url = eventUrlFor({ marketCode: 'DZ', eventSlug: 'coffee-code' });
+    const url = eventUrlFor({
+      marketSlug: 'algeria',
+      eventSlug: 'coffee-code',
+    });
     expect(url.startsWith(notificationBaseUrl())).toBe(true);
-    expect(url.endsWith('/DZ/e/coffee-code')).toBe(true);
-    expect(url).not.toContain('//DZ');
+    expect(url.endsWith('/algeria/e/coffee-code')).toBe(true);
+  });
+
+  it('addresses the market by slug, because the route resolves nothing else', async () => {
+    const db = await setupDb();
+    const context = await resolveNotificationContext(db, { marketCode: 'DZ' });
+
+    const url = eventUrlFor({
+      marketSlug: context.marketSlug,
+      eventSlug: 'coffee-code',
+    });
+
+    expect(context.marketSlug).toBe('algeria');
+    expect(url).toContain('/algeria/e/');
+    expect(url).not.toContain('/DZ/e/');
+  });
+
+  it('keeps the old shape for a market that does not exist, rather than an empty segment', async () => {
+    const db = await setupDb();
+
+    const context = await resolveNotificationContext(db, { marketCode: 'ZZ' });
+
+    expect(context.marketSlug).toBe('ZZ');
+    expect(
+      eventUrlFor({ marketSlug: context.marketSlug, eventSlug: 'x' }),
+    ).toContain('/ZZ/e/x');
   });
 });
 

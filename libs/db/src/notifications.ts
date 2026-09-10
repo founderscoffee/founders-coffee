@@ -3,6 +3,7 @@ import { and, asc, eq, lte } from 'drizzle-orm';
 import type { Db } from './db.js';
 import {
   NOTIFICATION_CHANNELS,
+  NOTIFICATION_TEMPLATE_KEYS,
   scheduledNotifications,
   type NewScheduledNotification,
   type ScheduledNotification,
@@ -22,10 +23,10 @@ export const enqueueNotification = async (
     eventId: string;
     userId: string;
     channel: (typeof NOTIFICATION_CHANNELS)[number];
-    templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
+    templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
     payload: Record<string, unknown>;
     sendAt: Date;
-    fallbackChannel?: 'email';
+    fallbackChannel?: 'email' | 'sms';
   },
 ): Promise<ScheduledNotification> => {
   const row: NewScheduledNotification = {
@@ -72,6 +73,38 @@ export const listPendingNotifications = async (
     )
     .orderBy(asc(scheduledNotifications.sendAt), asc(scheduledNotifications.id))
     .limit(opts.limit);
+};
+
+/**
+ * When this event's next undelivered notification is due, or `null` when it has none.
+ *
+ * This is what an event's Durable Object rearms against after it fires. Asking D1 rather than
+ * tracking the schedule in the object's own storage is deliberate: rows arrive from more than one
+ * writer — a second member RSVPs, a failed row is deferred to a later attempt, a fallback row is
+ * created behind a permanent failure — and an object holding a private copy of the schedule would
+ * be wrong every time one of those happened without it. The table is the schedule; the alarm is
+ * only a pointer into it.
+ *
+ * `pending` and not `processing`: a claimed row belongs to a run that is dispatching it, and waking
+ * for it would either contend or double-send. If that run dies, the claim timeout and the recovery
+ * sweep are what bring the row back, not an alarm.
+ */
+export const nextPendingSendAt = async (
+  db: Db,
+  eventId: string,
+): Promise<Date | null> => {
+  const rows = await db
+    .select({ sendAt: scheduledNotifications.sendAt })
+    .from(scheduledNotifications)
+    .where(
+      and(
+        eq(scheduledNotifications.eventId, eventId),
+        eq(scheduledNotifications.status, 'pending'),
+      ),
+    )
+    .orderBy(asc(scheduledNotifications.sendAt))
+    .limit(1);
+  return rows[0]?.sendAt ?? null;
 };
 
 export const getNotification = async (
@@ -136,7 +169,7 @@ export const hasPendingNotification = async (
   opts: {
     eventId: string;
     userId: string;
-    templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
+    templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
   },
 ): Promise<boolean> => {
   const rows = await db

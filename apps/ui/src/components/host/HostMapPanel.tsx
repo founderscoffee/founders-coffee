@@ -1,22 +1,14 @@
 import { lazy, Suspense } from 'react';
 
-import {
-  host_map_error,
-  host_map_loading,
-  host_retry,
-  type Locale,
-} from '@founders-coffee/i18n';
+import { host_map_error, host_retry, type Locale } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
 import type { VenueSelection } from '../../features/events/types';
 import { ClientOnly } from './ClientOnly';
+import { HostMapSkeleton } from './HostMapSkeleton';
 
 const HostMap = lazy(() =>
   import('./HostMap').then((m) => ({ default: m.HostMap })),
-);
-
-const MapSkeleton = () => (
-  <div className="min-h-80 w-full rounded-2xl bg-base-200 md:min-h-96" />
 );
 
 export const HostMapPanel = ({
@@ -27,23 +19,27 @@ export const HostMapPanel = ({
   venue,
   viewport,
   isError,
+  isInteractive,
   onRetry,
   onVenueSelect,
   onVenueInvalidate,
+  onCenterChange,
 }: {
   locale: Locale;
   accessToken: string;
   marketCode: string;
-  cityCode: string;
+  cityCode?: string;
   venue: VenueSelection | null;
   viewport: React.ComponentProps<typeof HostMap>['viewport'] | undefined;
   isError: boolean;
+  isInteractive: boolean;
   onRetry: () => void;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
+  onCenterChange?: (center: { latitude: number; longitude: number }) => void;
 }) => (
-  <ClientOnly fallback={<MapSkeleton />}>
-    <Suspense fallback={<MapSkeleton />}>
+  <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
+    <Suspense fallback={<HostMapSkeleton locale={locale} />}>
       {viewport ? (
         <HostMap
           accessToken={accessToken}
@@ -52,11 +48,13 @@ export const HostMapPanel = ({
           cityCode={cityCode}
           marketCode={marketCode}
           locale={locale}
+          isInteractive={isInteractive}
           onVenueSelect={onVenueSelect}
           onVenueInvalidate={onVenueInvalidate}
+          onCenterChange={onCenterChange}
         />
       ) : isError ? (
-        <div className="flex min-h-80 flex-col items-center justify-center gap-4 rounded-2xl border border-error/30 bg-error/5 p-6 text-center md:min-h-96">
+        <div className="flex h-full min-h-64 flex-col items-center justify-center gap-4 bg-error-tint p-6 text-center">
           <p className="text-sm text-error" role="alert">
             {host_map_error({}, { locale })}
           </p>
@@ -65,13 +63,7 @@ export const HostMapPanel = ({
           </Button>
         </div>
       ) : (
-        <div
-          className="flex min-h-80 items-center justify-center rounded-2xl bg-base-200 md:min-h-96"
-          role="status"
-        >
-          <span className="loading loading-spinner me-2" />
-          {host_map_loading({}, { locale })}
-        </div>
+        <HostMapSkeleton locale={locale} />
       )}
     </Suspense>
   </ClientOnly>

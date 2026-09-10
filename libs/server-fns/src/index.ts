@@ -14,8 +14,38 @@ export * from './rsvps/index.js';
 export * from './waitlist/index.js';
 export * from './push/index.js';
 export type { EventFeedPage } from './events/resolver.js';
-export { getMyProfile, getPublicProfile, setHomeLocation } from './profile.js';
-export type { UserProfile, PublicProfile } from './profile.js';
+export {
+  confirmMyEmailChange,
+  confirmMyPhoneNumber,
+  getMyAccount,
+  getMyPreferences,
+  getMyDevices,
+  getMyProfile,
+  getPhotoUploadAvailability,
+  getPublicProfile,
+  removeMyPhoto,
+  requestMyEmailChange,
+  reserveMyPhotoUpload,
+  revokeMyDevice,
+  sendMyEmailChangeCode,
+  sendMyPhoneCode,
+  unlinkMyProvider,
+  setHomeLocation,
+  updateMyPreferences,
+  updateMyProfile,
+  updateMyDisplayName,
+} from './profile.js';
+export type {
+  AccountPreferencesView,
+  AccountSummary,
+  DeviceList,
+  SessionSummary,
+  UserProfile,
+  PublicProfile,
+  UpdateProfileRequest,
+  UpdateDisplayNameRequest,
+  UpdatePreferencesRequest,
+} from './profile.js';
 export {
   checkPermission,
   requireAuth,

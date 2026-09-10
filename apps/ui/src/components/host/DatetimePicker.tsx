@@ -133,7 +133,7 @@ export const DatetimePicker = ({
   );
 
   const calendar = (
-    <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+    <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden">
       <DayPicker
         className="react-day-picker host-daypicker"
         mode="single"
@@ -155,11 +155,9 @@ export const DatetimePicker = ({
 
   if (timePlacement === 'top') {
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {timeControl}
-        <div className="flex min-h-80 flex-col rounded-[1.25rem] border border-base-300 bg-base-100/70 p-5 md:p-6">
-          {calendar}
-        </div>
+        {calendar}
       </div>
     );
   }

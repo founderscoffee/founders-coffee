@@ -5,19 +5,21 @@ import {
   getEvent,
   getMarket,
   getPublicProfile,
-  type EventWithAttendance,
+  type EventDetailItem,
 } from '@founders-coffee/server-fns';
 import type { Market } from '@founders-coffee/db';
 import type { PublicProfile } from '@founders-coffee/server-fns';
 
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
+import { isLiveWindowOpen } from '../features/events/live-window';
+import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
 
 type EventDetailLoaderData = {
   market: Market;
-  event: EventWithAttendance;
-  host: PublicProfile;
+  event: EventDetailItem;
+  host: PublicProfile | null;
 };
 
 export const Route = createFileRoute('/$market/e/$slug')({
@@ -25,6 +27,14 @@ export const Route = createFileRoute('/$market/e/$slug')({
     const { locale } = Route.useRouteContext();
     const { market, event, host } = Route.useLoaderData();
     const { user } = useAuth();
+    const isHost = user?.id === event.hostId;
+    const isWindowOpen =
+      event.status !== 'cancelled' &&
+      isLiveWindowOpen(event.startsAt, event.endsAt);
+    const live = useEventLive(event.id, {
+      enabled: Boolean(user) && isWindowOpen,
+    });
+
     return (
       <>
         <EventDetail
@@ -32,12 +42,15 @@ export const Route = createFileRoute('/$market/e/$slug')({
           market={market}
           event={event}
           host={host}
+          isHost={isHost}
+          live={user ? live : null}
+          isWindowOpen={isWindowOpen}
         />
-        {user && (
+        {user && isWindowOpen && (
           <LiveDashboard
-            eventId={event.id}
+            live={live}
             currentUserId={user.id}
-            isHost={user.id === event.hostId}
+            isHost={isHost}
             locale={locale}
           />
         )}
@@ -49,8 +62,13 @@ export const Route = createFileRoute('/$market/e/$slug')({
     try {
       market = await getMarket({ data: { slug: params.market } });
     } catch (error) {
-      if (appErrorCode(error) === 'market_not_found') throw notFound();
-      throw error;
+      if (appErrorCode(error) !== 'market_not_found') throw error;
+      try {
+        market = await getMarket({ data: { code: params.market } });
+      } catch (byCode) {
+        if (appErrorCode(byCode) === 'market_not_found') throw notFound();
+        throw byCode;
+      }
     }
     if (params.market !== market.slug) {
       throw redirect({
@@ -59,7 +77,7 @@ export const Route = createFileRoute('/$market/e/$slug')({
       });
     }
 
-    let event: EventWithAttendance;
+    let event: EventDetailItem;
     try {
       event = await getEvent({
         data: { marketCode: market.code, slug: params.slug },
@@ -69,7 +87,12 @@ export const Route = createFileRoute('/$market/e/$slug')({
       throw error;
     }
 
-    const host = await getPublicProfile({ data: { userId: event.hostId } });
+    const host = await getPublicProfile({
+      data: { userId: event.hostId },
+    }).catch((error: unknown) => {
+      if (appErrorCode(error) === 'not_found') return null;
+      throw error;
+    });
     return { market, event, host };
   },
   head: ({ loaderData }) => {

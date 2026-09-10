@@ -1,11 +1,9 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
-import type { geo } from '@founders-coffee/domain';
 import type { Locale } from '@founders-coffee/i18n';
 
-import { safeRedirectPath } from '../../lib/redirect';
 import type { EventCreateRequestInput } from './api';
 import {
   clearHostCreateDraft,
@@ -27,27 +25,21 @@ export type EventCreateCommand = EventCreateRequestInput['event'];
 export const useHostPublish = ({
   locale,
   market,
-  city,
   readDraft,
+  onAuthRequired,
 }: {
   locale: Locale;
   market: Market;
-  city: geo.GeoCity;
   readDraft: () => HostCreateDraft;
+  onAuthRequired: () => void;
 }) => {
   const navigate = useNavigate();
   const router = useRouter();
   const createEventMutation = useCreateEvent();
   const invalidateCreatedEvent = useInvalidateCreatedEvent();
   const [publishing, setPublishing] = useState(false);
+  const publishInFlight = useRef(false);
   const [publishError, setPublishError] = useState<string | null>(null);
-
-  const goToLogin = () => {
-    const redirect = safeRedirectPath(
-      `${window.location.pathname}${window.location.search}`,
-    );
-    void navigate({ to: '/login', search: { redirect } });
-  };
 
   /**
    * Recover from a failed publish without costing the host their work (EC-08).
@@ -55,15 +47,17 @@ export const useHostPublish = ({
    * Nothing entered is cleared: the wizard state and the session draft both survive, so a paused
    * market or an exhausted rate limit costs one button press rather than four steps of re-entry.
    *
-   * An expired session is the one failure the wizard cannot resolve in place. It writes the draft
-   * before leaving so the round trip through login restores the confirmation step.
+   * An expired session used to be the one failure the wizard could not resolve in place. It now
+   * opens the sign-in gate on the confirmation step instead of navigating to `/login`, so the host
+   * signs back in without losing sight of the summary they were about to publish. The draft is
+   * still written first, because an OAuth provider takes the page away and back.
    */
   const handleFailure = (error: unknown) => {
     const failure = hostPublishFailure(error, locale);
     setPublishError(failure.message);
     if (!failure.requiresReauthentication) return;
-    writeHostCreateDraft(market.code, city.code, readDraft());
-    goToLogin();
+    writeHostCreateDraft(market.code, readDraft());
+    onAuthRequired();
   };
 
   /**
@@ -79,7 +73,7 @@ export const useHostPublish = ({
     hostId: string;
     slug: string;
   }) => {
-    clearHostCreateDraft(market.code, city.code);
+    clearHostCreateDraft(market.code);
     void invalidateCreatedEvent({
       marketCode: created.marketCode,
       cityCode: created.cityCode,
@@ -94,7 +88,8 @@ export const useHostPublish = ({
   };
 
   const publish = async (event: EventCreateCommand) => {
-    if (publishing) return;
+    if (publishInFlight.current) return;
+    publishInFlight.current = true;
     setPublishing(true);
     setPublishError(null);
     try {
@@ -102,6 +97,7 @@ export const useHostPublish = ({
     } catch (error) {
       handleFailure(error);
     } finally {
+      publishInFlight.current = false;
       setPublishing(false);
     }
   };
@@ -110,7 +106,6 @@ export const useHostPublish = ({
     publishing,
     publishError,
     clearPublishError: () => setPublishError(null),
-    goToLogin,
     publish,
   };
 };

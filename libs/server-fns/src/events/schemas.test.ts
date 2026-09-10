@@ -13,9 +13,7 @@ const event = {
   longitude: 3.0588,
   startsAt: new Date('2099-01-15T18:00:00Z').getTime(),
   endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
-  capacity: 20,
   language: 'en',
-  category: 'coffee-meetup',
 };
 
 describe('eventCreateRequestSchema', () => {

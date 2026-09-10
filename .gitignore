@@ -89,3 +89,7 @@ test-results/
 playwright-report/
 
 .e2e/
+.scratch/
+
+# Raw Overpass output; the committed artefact is libs/domain/src/venues/data
+.osm-snapshot/

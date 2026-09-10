@@ -1,5 +1,6 @@
 export {
   getHostMapContext,
+  listNearbyVenues,
   reverseEventVenue,
   searchEventVenues,
 } from './rpc.js';

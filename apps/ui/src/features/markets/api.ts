@@ -13,3 +13,4 @@ export const marketsApi = {
 };
 
 export type { MarketCity, MarketWithCities };
+export type { Market } from '@founders-coffee/db';

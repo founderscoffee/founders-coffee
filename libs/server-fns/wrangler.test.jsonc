@@ -14,6 +14,10 @@
   "d1_databases": [
     { "binding": "DB", "database_name": "db", "database_id": "test" },
   ],
+  "r2_buckets": [
+    { "binding": "PROFILE_ASSETS", "bucket_name": "profile-assets-test" },
+  ],
+  "images": { "binding": "IMAGES" },
   "vars": {
     "BETTER_AUTH_SECRET": "test-secret-at-least-32-characters-long-aaaaaaaa",
     "APP_URL": "http://localhost",

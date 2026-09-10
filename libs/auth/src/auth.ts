@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
 import {
   admin,
   bearer,
@@ -33,8 +34,6 @@ export interface AuthEnv {
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
   GITHUB_CLIENT_SECRET?: string;
-  LINKEDIN_CLIENT_ID?: string;
-  LINKEDIN_CLIENT_SECRET?: string;
   TWILIO_SID?: string;
   TWILIO_AID?: string;
   TWILIO_SEC?: string;
@@ -63,6 +62,13 @@ const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
   return new DevSmsProvider();
 };
 
+const GUARDED_ACCOUNT_PATHS = [
+  '/unlink-account',
+  '/revoke-session',
+  '/revoke-sessions',
+  '/revoke-other-sessions',
+];
+
 /**
  * Build a Better Auth instance bound to the request's D1.
  *
@@ -82,6 +88,18 @@ const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
  * The captcha plugin is registered unconditionally (see `captchaEndpointsFor` for why) and an absent
  * secret key is not a bypass: the plugin errors on the gated endpoints, and `createAuthHandler`
  * refuses them outright with a clearer 503 before it gets that far.
+ *
+ * `GUARDED_ACCOUNT_PATHS` closes the raw endpoints this product answers for itself. Each has a rule
+ * that lives above Better Auth and cannot be expressed inside it: unlinking must leave a member a
+ * way back in, and signing a device out must take that device's push registration with it, or the
+ * revocation silently becomes permission to keep notifying it. A caller reaching the raw endpoint
+ * gets neither, so the raw endpoint is closed and the guarded server function is the only door.
+ *
+ * `emailOTP.changeEmail.verifyCurrentEmail` is what makes a change of address an act by the person
+ * who already holds it. Without it, anyone sitting at an unlocked session could move the account to
+ * their own address and lock the member out with the account's own recovery flow; with it, the
+ * change costs a code sent to the address currently on file, and the old one stays authoritative
+ * until a second code proves the new one is real.
  */
 export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
@@ -97,10 +115,29 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     baseURL: env.APP_URL,
     trustedOrigins: [env.APP_URL],
     emailAndPassword: { enabled: false },
-    accountLinking: {
-      enabled: true,
-      trustedProviders: ['google', 'github', 'linkedin'],
-      allowDifferentEmails: false,
+    hooks: {
+      before: createAuthMiddleware(async (context) => {
+        if (context.path === '/update-user') {
+          throw new APIError('FORBIDDEN', {
+            code: 'PROFILE_ENDPOINT_REQUIRED',
+            message: 'Use the protected profile endpoint to edit your profile',
+          });
+        }
+        if (GUARDED_ACCOUNT_PATHS.includes(context.path)) {
+          throw new APIError('FORBIDDEN', {
+            code: 'ACCOUNT_ENDPOINT_REQUIRED',
+            message: 'Use the protected account endpoint for this action',
+          });
+        }
+      }),
+    },
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ['google', 'github'],
+        allowDifferentEmails: false,
+        updateUserInfoOnLink: false,
+      },
     },
     socialProviders: {
       ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -119,20 +156,9 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
             },
           }
         : {}),
-      ...(env.LINKEDIN_CLIENT_ID && env.LINKEDIN_CLIENT_SECRET
-        ? {
-            linkedin: {
-              clientId: env.LINKEDIN_CLIENT_ID,
-              clientSecret: env.LINKEDIN_CLIENT_SECRET,
-            },
-          }
-        : {}),
     },
     user: {
       additionalFields: {
-        homeMarketCode: { type: 'string', required: false, input: false },
-        homeState: { type: 'string', required: false, input: false },
-        homeCityId: { type: 'string', required: false, input: false },
         localePref: { type: 'string', required: false, input: false },
       },
     },
@@ -158,8 +184,9 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
         },
         storeOTP: 'hashed',
         otpLength: 6,
-        expiresIn: 300,
+        expiresIn: 1800,
         allowedAttempts: 3,
+        changeEmail: { enabled: true, verifyCurrentEmail: true },
       }),
       phoneNumber({
         sendOTP: async ({ phoneNumber: phone, code }) => {
@@ -205,7 +232,7 @@ export type AuthInstance = ReturnType<typeof createAuth>['auth'];
 /** True if at least one OAuth provider is configured (drives UI: show social buttons). */
 export const hasSocialProviders = (env: AuthEnv): boolean => {
   const envVars = env as unknown as Record<string, string | undefined>;
-  return (['GOOGLE', 'GITHUB', 'LINKEDIN'] as const).some(
+  return (['GOOGLE', 'GITHUB'] as const).some(
     (p) =>
       optionalEnv(envVars, `${p}_CLIENT_ID`) &&
       optionalEnv(envVars, `${p}_CLIENT_SECRET`),

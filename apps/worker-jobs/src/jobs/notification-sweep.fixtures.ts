@@ -2,13 +2,16 @@ import { env } from 'cloudflare:workers';
 
 import { AppError, err, ok } from '@founders-coffee/core';
 import {
+  accountPreferences,
   createDb,
   createEvent,
   enqueueNotification,
   eq,
+  pushSessionLinks,
   pushSubscriptions,
   scheduledNotifications,
   seed,
+  sql,
   user,
   type Db,
   type ScheduledNotification,
@@ -24,6 +27,8 @@ import type { DispatchProviders } from './notification-dispatch.js';
 export const HOST_ID = 'usr_sweephost';
 export const MEMBER_ID = 'usr_sweepmember';
 export const EVENT_ID = 'evt_sweep001';
+export const OTHER_EVENT_ID = 'evt_sweep002';
+export const MEMBER_PHONE = '+213600000000';
 
 export const setupDb = async (): Promise<Db> => {
   const db = createDb(env.DB);
@@ -43,6 +48,8 @@ export const setupDb = async (): Promise<Db> => {
         name: 'Sweep Member',
         email: 'member@sweep.test',
         emailVerified: false,
+        phoneNumber: MEMBER_PHONE,
+        phoneNumberVerified: true,
         role: 'member',
       },
     ])
@@ -59,14 +66,68 @@ export const setupDb = async (): Promise<Db> => {
     description: 'Notification sweep fixture event.',
     venue: 'Café des Délices, Hydra',
     startsAt: new Date('2099-01-15T18:00:00Z'),
-    capacity: 50,
     language: 'fr',
-    category: 'coffee-meetup',
     status: 'published',
   }).catch(() => undefined);
+  await createEvent(db, {
+    id: OTHER_EVENT_ID,
+    slug: 'sweep-fixture-other',
+    hostId: HOST_ID,
+    marketCode: 'DZ',
+    stateCode: '16',
+    cityCode: '1',
+    title: 'Sweep fixture (other)',
+    description: 'A second event, so scoping can be told from luck.',
+    venue: 'Café des Délices, Hydra',
+    startsAt: new Date('2099-01-16T18:00:00Z'),
+    language: 'fr',
+    status: 'published',
+  }).catch(() => undefined);
+  await db
+    .update(user)
+    .set({
+      accountState: 'active',
+      phoneNumber: MEMBER_PHONE,
+      phoneNumberVerified: true,
+      email: 'member@sweep.test',
+    })
+    .where(eq(user.id, MEMBER_ID))
+    .run();
+  await db.delete(pushSessionLinks).run();
   await db.delete(scheduledNotifications).run();
   await db.delete(pushSubscriptions).run();
+  await setPreferences(db, {
+    eventUpdates: true,
+    eventReminders: true,
+    pushEnabled: true,
+    smsFallbackEnabled: true,
+  });
   return db;
+};
+
+/**
+ * Put the member's notification preferences in a known state.
+ *
+ * The fixture member starts fully reachable — both channels enabled, both categories on — because
+ * that is the state a test about delivery wants to start from. A test about a preference says so by
+ * calling this with the switch it is testing; nothing is implicit.
+ */
+export const setPreferences = async (
+  db: Db,
+  changes: {
+    eventUpdates?: boolean;
+    eventReminders?: boolean;
+    pushEnabled?: boolean;
+    smsFallbackEnabled?: boolean;
+  },
+): Promise<void> => {
+  await db
+    .insert(accountPreferences)
+    .values({ userId: MEMBER_ID, ...changes })
+    .onConflictDoUpdate({
+      target: accountPreferences.userId,
+      set: { ...changes, updatedAt: sql`(unixepoch())` },
+    });
 };
 
 let counter = 0;
@@ -75,8 +136,9 @@ export const enqueue = async (
   db: Db,
   overrides: {
     channel?: 'sms' | 'email' | 'push';
+    eventId?: string;
     sendAt?: Date;
-    fallbackChannel?: 'email';
+    fallbackChannel?: 'email' | 'sms';
     templateKey?: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
     payload?: Record<string, unknown>;
   } = {},
@@ -84,7 +146,7 @@ export const enqueue = async (
   const rowId = `ntf_sweep${String(++counter).padStart(3, '0')}`;
   await enqueueNotification(db, {
     id: rowId,
-    eventId: EVENT_ID,
+    eventId: overrides.eventId ?? EVENT_ID,
     userId: MEMBER_ID,
     channel: overrides.channel ?? 'sms',
     templateKey: overrides.templateKey ?? 'rsvp_confirmation',
@@ -95,7 +157,7 @@ export const enqueue = async (
       startsAt: '2099-01-15T18:00:00.000Z',
       venue: 'Café des Délices, Hydra',
       locale: 'en',
-      phoneNumber: '+213600000000',
+      phoneNumber: MEMBER_PHONE,
       smsBody: 'body',
       email: 'member@sweep.test',
       subject: 'subject',

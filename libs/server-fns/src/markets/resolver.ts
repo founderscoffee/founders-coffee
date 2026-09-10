@@ -38,6 +38,7 @@ export interface TrendingSection {
 const COLD_MAJOR_CITY_CAP = 18;
 const WARM_STATE_CAP = 3;
 const WARM_CITY_CAP = 8;
+const WARM_CITY_TOTAL_CAP = 4;
 
 const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
   DZ: [
@@ -215,9 +216,29 @@ const warmActiveCities = (
     return { state, cities };
   });
 
+  const active = groups.filter((g) => g.cities.length > 0);
+  const taken = new Set(
+    active.flatMap((g) => g.cities.map(({ city }) => city.code)),
+  );
+  const priority = new Map(
+    (COLD_PRIORITY_SLUGS[marketCode] ?? []).map((slug, i) => [slug, i]),
+  );
+  const pioneer = [...geo.getFeaturedCities(marketCode)]
+    .filter((city) => !taken.has(city.code))
+    .sort(
+      (a, b) =>
+        (priority.get(a.slug) ?? 1_000) - (priority.get(b.slug) ?? 1_000) ||
+        a.name.localeCompare(b.name),
+    )
+    .slice(0, Math.max(0, WARM_CITY_TOTAL_CAP - taken.size))
+    .map((city) => ({ city, count: 0 }));
+
   return {
     variant: 'active',
-    groups: groups.filter((g) => g.cities.length > 0),
+    groups:
+      pioneer.length === 0
+        ? active
+        : [...active, { state: null, cities: pioneer }],
   };
 };
 
@@ -225,7 +246,14 @@ const warmActiveCities = (
  * Browse section for a market landing.
  *
  * - **Cold** (no upcoming events): flat list of featured/major cities — never pads empty communes.
- * - **Warm**: top states by upcoming events; only cities with `count > 0` (no zero-badge padding).
+ * - **Warm**: top states by upcoming events, cities with `count > 0`, then up to
+ *   `WARM_CITY_TOTAL_CAP` featured cities that have none.
+ *
+ * The warm list used to stop at `count > 0` on the reasoning that a zero badge is noise. The
+ * redesign asks for those cities anyway, and it is right to: a city with no meetups is not padding,
+ * it is the pioneer recruitment surface (FR-E6), and it renders as "be the first host" rather than
+ * as a zero. The original guard against padding is kept where it mattered — the candidates come
+ * from `getFeaturedCities`, so an empty commune still never appears.
  */
 export const resolveTrendingStates = async (
   db: Db,

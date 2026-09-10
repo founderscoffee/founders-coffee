@@ -2,8 +2,8 @@ import { Link } from '@tanstack/react-router';
 
 import type { Market } from '@founders-coffee/db';
 import {
-  hero_active_cities,
-  hero_major_cities,
+  cities_in,
+  city_empty_cta,
   this_week_n,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -20,52 +20,47 @@ export const TrendingStates = ({
   market,
   trending,
 }: TrendingStatesProps) => {
-  if (trending.groups.length === 0) return null;
-
-  const title =
-    trending.variant === 'active'
-      ? hero_active_cities({}, { locale })
-      : hero_major_cities({}, { locale });
+  const marketName =
+    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
+  const cities = trending.groups.flatMap((group) => group.cities);
 
   return (
-    <section className="mx-auto max-w-5xl px-4 pb-12">
-      <h2 className="eyebrow mb-4">{title}</h2>
-      <div className="space-y-6">
-        {trending.groups.map(({ state, cities }) => (
-          <div key={state?.code ?? 'major'}>
-            {state ? (
-              <h3 className="mb-2 text-body-sm font-semibold text-base-content">
-                {locale === 'ar' ? state.nameAr : state.name}
-              </h3>
-            ) : null}
-            <div className="flex flex-wrap gap-2">
-              {cities.map(({ city, count }) => (
-                <Link
-                  key={city.code}
-                  to="/$market/$city"
-                  params={{ market: market.slug, city: city.slug }}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-base-200 px-3 text-label font-medium text-base-content transition-colors hover:bg-base-300"
-                >
+    <section className="mx-auto max-w-content px-4 pt-8 md:px-8">
+      <h2 className="mb-4 font-display text-h4 font-semibold">
+        {cities_in({ market: marketName }, { locale })}
+      </h2>
+
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(10rem,100%),1fr))] gap-3">
+        {cities.map(({ city, count }) => (
+          <li key={city.code}>
+            <Link
+              to="/$market/$city"
+              params={{ market: market.slug, city: city.slug }}
+              className={`flex h-full min-h-[5.25rem] flex-col gap-3 rounded-box px-4 py-3.5 transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none ${
+                count > 0 ? 'bg-base-100' : 'bg-base-200'
+              }`}
+            >
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-display text-body-lg font-semibold leading-none">
                   {locale === 'ar' ? city.nameAr : city.name}
-                  {count > 0 ? (
-                    <>
-                      <span
-                        aria-hidden="true"
-                        className="font-semibold text-accent"
-                      >
-                        {count > 99 ? '+99' : count}
-                      </span>
-                      <span className="sr-only">
-                        {this_week_n({ n: count }, { locale })}
-                      </span>
-                    </>
-                  ) : null}
-                </Link>
-              ))}
-            </div>
-          </div>
+                </span>
+                {count > 0 ? (
+                  <span className="font-display text-body-lg font-semibold leading-none text-accent">
+                    {count > 99 ? '+99' : count}
+                  </span>
+                ) : null}
+              </span>
+              <span
+                className={`mt-auto text-caption font-medium ${count > 0 ? 'text-neutral' : 'text-accent'}`}
+              >
+                {count > 0
+                  ? this_week_n({ n: count }, { locale })
+                  : city_empty_cta({}, { locale })}
+              </span>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   );
 };

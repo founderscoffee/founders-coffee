@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   index,
+  foreignKey,
   integer,
   real,
   sqliteTable,
@@ -15,6 +16,7 @@ type MarketFeatureFlags = {
   hackathons: boolean;
   payments: boolean;
   recruiting: boolean;
+  communityOperations?: boolean;
 };
 
 export const markets = sqliteTable('markets', {
@@ -52,13 +54,11 @@ export const user = sqliteTable('user', {
     .default(false),
   image: text('image'),
   role: text('role').notNull().default('member'),
+  accountState: text('account_state').notNull().default('active'),
   banned: integer('banned', { mode: 'boolean' }).default(false),
   banReason: text('ban_reason'),
   banExpires: integer('ban_expires', { mode: 'timestamp' }),
-  homeMarketCode: text('home_market_code').references(() => markets.code),
-  homeState: text('home_state'),
-  homeCityId: text('home_city_id'),
-  phoneNumber: text('phone_number'),
+  phoneNumber: text('phone_number').unique(),
   phoneNumberVerified: integer('phone_number_verified', { mode: 'boolean' })
     .notNull()
     .default(false),
@@ -74,23 +74,27 @@ export const user = sqliteTable('user', {
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
 
-export const session = sqliteTable('session', {
-  id: text('id').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  token: text('token').notNull().unique(),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  impersonatedBy: text('impersonated_by'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
+export const session = sqliteTable(
+  'session',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    impersonatedBy: text('impersonated_by'),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [uniqueIndex('session_id_user_unique').on(table.id, table.userId)],
+);
 
 export type Session = typeof session.$inferSelect;
 export type NewSession = typeof session.$inferInsert;
@@ -140,14 +144,9 @@ export const verification = sqliteTable('verification', {
 export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
 
-export const EVENT_CATEGORIES = [
-  'coffee-meetup',
-  'workshop',
-  'demo-day',
-] as const;
 export const EVENT_STATUSES = ['published', 'cancelled'] as const;
 
-/** Event — a free local meetup created by a host (FR-E1). Always `is_free` (FR-E2). */
+/** Event — a free local meetup created by a host (FR-E1). Every event is free (FR-E2). */
 export const events = sqliteTable(
   'events',
   {
@@ -166,10 +165,7 @@ export const events = sqliteTable(
     startsAt: integer('starts_at', { mode: 'timestamp' }).notNull(),
     endsAt: integer('ends_at', { mode: 'timestamp' }),
     rsvps: integer('rsvps').notNull().default(0),
-    capacity: integer('capacity').notNull().default(0),
     language: text('language', { enum: [...LOCALES] }).notNull(),
-    category: text('category', { enum: [...EVENT_CATEGORIES] }).notNull(),
-    isFree: integer('is_free', { mode: 'boolean' }).notNull().default(true),
     latitude: real('latitude'),
     longitude: real('longitude'),
     venueAddress: text('venue_address'),
@@ -184,6 +180,7 @@ export const events = sqliteTable(
       .notNull()
       .default(sql`(unixepoch())`),
     cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+    cancellationReason: text('cancellation_reason'),
   },
   (table) => [
     uniqueIndex('events_market_code_slug_unique').on(
@@ -199,7 +196,7 @@ export type NewEvent = typeof events.$inferInsert;
 
 export const RSVP_STATUSES = ['going', 'waitlist', 'cancelled'] as const;
 
-/** Event RSVP — one per user per event (UNIQUE constraint). Drives the atomic capacity check. */
+/** Event RSVP — one per user per event (UNIQUE constraint). */
 export const eventRsvps = sqliteTable(
   'event_rsvps',
   {
@@ -316,6 +313,7 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'rsvp_confirmation',
   'reminder_72h',
   'reminder_24h',
+  'event_cancelled',
 ] as const;
 
 /**
@@ -373,7 +371,7 @@ export const scheduledNotifications = sqliteTable(
     attempts: integer('attempts').notNull().default(0),
     lastError: text('last_error'),
     fallbackChannel: text('fallback_channel', {
-      enum: ['email'],
+      enum: ['email', 'sms'],
     }),
     fallbackOf: text('fallback_of'),
     claimedAt: integer('claimed_at', { mode: 'timestamp' }),
@@ -407,24 +405,30 @@ export type NewScheduledNotification =
 export const PUSH_PLATFORMS = ['ios', 'android', 'web'] as const;
 export const PUSH_SURFACES = ['pwa', 'rn'] as const;
 
-export const pushSubscriptions = sqliteTable('push_subscriptions', {
-  id: text('id').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  token: text('token').notNull().unique(),
-  platform: text('platform', { enum: [...PUSH_PLATFORMS] }).notNull(),
-  surface: text('surface', { enum: [...PUSH_SURFACES] }).notNull(),
-  marketCode: text('market_code')
-    .notNull()
-    .references(() => markets.code),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
+export const pushSubscriptions = sqliteTable(
+  'push_subscriptions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    platform: text('platform', { enum: [...PUSH_PLATFORMS] }).notNull(),
+    surface: text('surface', { enum: [...PUSH_SURFACES] }).notNull(),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('push_subscription_id_user_unique').on(table.id, table.userId),
+  ],
+);
 
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
@@ -463,3 +467,452 @@ export const cityWaitlist = sqliteTable(
 
 export type CityWaitlistRow = typeof cityWaitlist.$inferSelect;
 export type NewCityWaitlist = typeof cityWaitlist.$inferInsert;
+
+export const profileAssets = sqliteTable(
+  'profile_assets',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    objectKey: text('object_key').notNull().unique(),
+    status: text('status').notNull().default('pending'),
+    mimeType: text('mime_type'),
+    byteSize: integer('byte_size'),
+    width: integer('width'),
+    height: integer('height'),
+    revision: integer('revision').notNull().default(0),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('profile_asset_id_user_unique').on(table.id, table.userId),
+    index('profile_assets_expiry_index').on(table.status, table.expiresAt),
+  ],
+);
+
+export const memberProfiles = sqliteTable(
+  'member_profiles',
+  {
+    userId: text('user_id')
+      .primaryKey()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    introduction: text('introduction'),
+    interests: text('interests', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    spokenLanguages: text('spoken_languages', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    professionalLink: text('professional_link'),
+    photoAssetId: text('photo_asset_id'),
+    publishInterests: integer('publish_interests', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    publishSpokenLanguages: integer('publish_spoken_languages', {
+      mode: 'boolean',
+    })
+      .notNull()
+      .default(false),
+    publishProfessionalLink: integer('publish_professional_link', {
+      mode: 'boolean',
+    })
+      .notNull()
+      .default(false),
+    revision: integer('revision').notNull().default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.photoAssetId, table.userId],
+      foreignColumns: [profileAssets.id, profileAssets.userId],
+    }),
+  ],
+);
+
+export const accountPreferences = sqliteTable('account_preferences', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  eventUpdates: integer('event_updates', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  eventReminders: integer('event_reminders', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  hostUpdates: integer('host_updates', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  followUpPrompts: integer('follow_up_prompts', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  pushEnabled: integer('push_enabled', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  smsFallbackEnabled: integer('sms_fallback_enabled', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  smsConsentAt: integer('sms_consent_at', { mode: 'timestamp' }),
+  revision: integer('revision').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const pushSessionLinks = sqliteTable(
+  'push_session_links',
+  {
+    subscriptionId: text('subscription_id').primaryKey(),
+    sessionId: text('session_id').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.subscriptionId, table.userId],
+      foreignColumns: [pushSubscriptions.id, pushSubscriptions.userId],
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.sessionId, table.userId],
+      foreignColumns: [session.id, session.userId],
+    }).onDelete('cascade'),
+    index('push_session_links_session_index').on(table.sessionId),
+  ],
+);
+
+export type MemberProfileRow = typeof memberProfiles.$inferSelect;
+export type ProfileAssetRow = typeof profileAssets.$inferSelect;
+export type AccountPreferencesRow = typeof accountPreferences.$inferSelect;
+
+export const CLOSEOUT_OUTCOMES = ['held', 'did_not_happen'] as const;
+export const ATTENDANCE_OUTCOMES = ['attended', 'no_show'] as const;
+export const FEEDBACK_RATINGS = ['valuable', 'okay', 'not_valuable'] as const;
+export const HOST_TRUST_STATUSES = [
+  'unreviewed',
+  'verified',
+  'restricted',
+] as const;
+export const OPERATIONS_SCOPES = ['market', 'state', 'city'] as const;
+
+/**
+ * One row per event, written after it is over, saying whether it happened.
+ *
+ * Keyed by `event_id` rather than a generated id: an event has exactly one outcome, and a surrogate
+ * key would permit two rows that disagree. Publication status stays where it is and keeps deciding
+ * visibility — §5.2 separates the two deliberately, so a cancelled event and one that quietly did
+ * not happen remain distinguishable.
+ *
+ * `version` is what makes a correction conditional. Two admins correcting the same closeout without
+ * it is a last-write-wins race over evidence, which is the one kind of data this plan cannot let
+ * drift.
+ */
+export const eventCloseouts = sqliteTable(
+  'event_closeouts',
+  {
+    eventId: text('event_id')
+      .primaryKey()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    stateCode: text('state_code').notNull(),
+    cityCode: text('city_code').notNull(),
+    outcome: text('outcome', { enum: [...CLOSEOUT_OUTCOMES] }).notNull(),
+    walkInCount: integer('walk_in_count').notNull().default(0),
+    wouldHostAgain: integer('would_host_again', { mode: 'boolean' }),
+    hostFriction: text('host_friction', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    privateNote: text('private_note'),
+    submittedByUserId: text('submitted_by_user_id')
+      .notNull()
+      .references(() => user.id),
+    submittedAt: integer('submitted_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedByUserId: text('updated_by_user_id').references(() => user.id),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    version: integer('version').notNull().default(0),
+  },
+  (table) => [
+    index('event_closeouts_market_outcome_index').on(
+      table.marketCode,
+      table.outcome,
+      table.submittedAt,
+    ),
+  ],
+);
+
+/**
+ * One member's outcome for one event: they came, or they did not.
+ *
+ * `UNIQUE(event_id, user_id)` is the idempotency: a host marking the same person twice updates one
+ * row rather than inflating a count. §5.3 keeps this separate from the RSVP so cancellation and
+ * waitlist semantics stay intact — an attendance row is evidence about the past and an RSVP is
+ * intent about the future, and overloading one with the other loses both.
+ */
+export const eventAttendance = sqliteTable(
+  'event_attendance',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    stateCode: text('state_code').notNull(),
+    cityCode: text('city_code').notNull(),
+    outcome: text('outcome', { enum: [...ATTENDANCE_OUTCOMES] }).notNull(),
+    recordedByUserId: text('recorded_by_user_id')
+      .notNull()
+      .references(() => user.id),
+    recordedAt: integer('recorded_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('event_attendance_event_user_unique').on(
+      table.eventId,
+      table.userId,
+    ),
+    index('event_attendance_user_index').on(table.userId, table.recordedAt),
+  ],
+);
+
+/**
+ * The attendee pulse: one per member per event, updateable inside its window.
+ *
+ * `comment_language` is required alongside a comment and null without one — §5.23 renders member
+ * text as authored and never translates it, which is only possible if the language travelled with
+ * it. The column is not a preference; it describes this string and nothing else.
+ */
+export const eventFeedback = sqliteTable(
+  'event_feedback',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    stateCode: text('state_code').notNull(),
+    cityCode: text('city_code').notNull(),
+    valueRating: text('value_rating', {
+      enum: [...FEEDBACK_RATINGS],
+    }).notNull(),
+    wouldReturn: integer('would_return', { mode: 'boolean' }).notNull(),
+    comment: text('comment'),
+    commentLanguage: text('comment_language', { enum: [...LOCALES] }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('event_feedback_event_user_unique').on(
+      table.eventId,
+      table.userId,
+    ),
+    index('event_feedback_event_index').on(table.eventId, table.createdAt),
+  ],
+);
+
+/**
+ * What a market has decided about one host.
+ *
+ * Unique per `(market_code, user_id)` and never global. §5.19 is explicit: a host restricted in one
+ * market has not been restricted everywhere, and a global row would make that decision by accident
+ * the first time the product opened a second market.
+ */
+export const hostTrust = sqliteTable(
+  'host_trust',
+  {
+    id: text('id').primaryKey(),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id),
+    status: text('status', { enum: [...HOST_TRUST_STATUSES] })
+      .notNull()
+      .default('unreviewed'),
+    reasonCode: text('reason_code'),
+    reviewedByUserId: text('reviewed_by_user_id').references(() => user.id),
+    reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('host_trust_market_user_unique').on(
+      table.marketCode,
+      table.userId,
+    ),
+    index('host_trust_status_index').on(table.marketCode, table.status),
+  ],
+);
+
+/**
+ * Append-only. What was changed, by whom, and under which verified identity.
+ *
+ * Nothing updates or deletes a row here; the mutable tables serve reads and this stream explains
+ * how they got that way. `access_subject` carries the verified Cloudflare Access subject and is
+ * required for admin actions (§5.18), so an operator's product session and their Access identity
+ * are recorded together rather than either standing alone.
+ *
+ * `metadata` holds stable before/after values and no member PII — §5.14 keeps names, contacts and
+ * free text out of anything that is read for analysis.
+ */
+export const operationsAudit = sqliteTable(
+  'operations_audit',
+  {
+    id: text('id').primaryKey(),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    actorUserId: text('actor_user_id')
+      .notNull()
+      .references(() => user.id),
+    accessSubject: text('access_subject'),
+    action: text('action').notNull(),
+    targetType: text('target_type').notNull(),
+    targetId: text('target_id').notNull(),
+    reasonCode: text('reason_code'),
+    metadata: text('metadata', { mode: 'json' })
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'`),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    index('operations_audit_market_time_index').on(
+      table.marketCode,
+      table.createdAt,
+    ),
+    index('operations_audit_target_index').on(table.targetType, table.targetId),
+  ],
+);
+
+/** One weekly decision, with the evidence window it was taken from (§5.25). */
+export const operationsReviews = sqliteTable(
+  'operations_reviews',
+  {
+    id: text('id').primaryKey(),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    stateCode: text('state_code'),
+    cityCode: text('city_code'),
+    evidenceWindowStart: integer('evidence_window_start', {
+      mode: 'timestamp',
+    }).notNull(),
+    evidenceWindowEnd: integer('evidence_window_end', {
+      mode: 'timestamp',
+    }).notNull(),
+    bottleneck: text('bottleneck').notNull(),
+    intervention: text('intervention').notNull(),
+    ownerUserId: text('owner_user_id')
+      .notNull()
+      .references(() => user.id),
+    dueAt: integer('due_at', { mode: 'timestamp' }).notNull(),
+    followUpResult: text('follow_up_result'),
+    createdByUserId: text('created_by_user_id')
+      .notNull()
+      .references(() => user.id),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    index('operations_reviews_market_window_index').on(
+      table.marketCode,
+      table.evidenceWindowStart,
+    ),
+  ],
+);
+
+/**
+ * Monthly non-PII aggregates, which outlive the rows they were computed from.
+ *
+ * §5.21 retires closeouts, attendance and feedback after twenty-four months and keeps these
+ * indefinitely, so the community's history survives its own retention policy. The unique key is the
+ * whole identity of a measurement — market, scope, month, metric — so recomputing one overwrites
+ * rather than accumulating a second answer for the same question.
+ */
+export const communityMetricSnapshots = sqliteTable(
+  'community_metric_snapshots',
+  {
+    id: text('id').primaryKey(),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    scopeType: text('scope_type', { enum: [...OPERATIONS_SCOPES] }).notNull(),
+    scopeCode: text('scope_code').notNull(),
+    periodMonth: text('period_month').notNull(),
+    metricKey: text('metric_key').notNull(),
+    numerator: integer('numerator').notNull(),
+    denominator: integer('denominator'),
+    computedAt: integer('computed_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('community_metric_snapshots_identity_unique').on(
+      table.marketCode,
+      table.scopeType,
+      table.scopeCode,
+      table.periodMonth,
+      table.metricKey,
+    ),
+  ],
+);
+
+export type EventCloseoutRow = typeof eventCloseouts.$inferSelect;
+export type EventAttendanceRow = typeof eventAttendance.$inferSelect;
+export type EventFeedbackRow = typeof eventFeedback.$inferSelect;
+export type HostTrustRow = typeof hostTrust.$inferSelect;
+export type OperationsAuditRow = typeof operationsAudit.$inferSelect;
+export type OperationsReviewRow = typeof operationsReviews.$inferSelect;
+export type CommunityMetricSnapshotRow =
+  typeof communityMetricSnapshots.$inferSelect;

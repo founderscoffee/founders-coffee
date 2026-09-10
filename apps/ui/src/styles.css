@@ -8,7 +8,14 @@
   box-sizing: border-box;
 }
 
-html,
+/* This block sits outside every cascade layer, so it beats Tailwind's layered utilities
+   however specific they are: a min-h-* class on html, body or #app is silently ignored.
+   Give html a definite height instead, so the percentage below resolves against the
+   viewport and body fills it without a utility having to fight this rule. */
+html {
+  height: 100%;
+}
+
 body,
 #app {
   min-height: 100%;
@@ -50,35 +57,21 @@ body {
   animation: host-pin-drop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-@keyframes host-pin-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(180, 86, 46, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 16px rgba(180, 86, 46, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(180, 86, 46, 0);
-  }
-}
 /* The pin ring is an attention cue, not information: it earns its motion only where
    motion is welcome. The `reduce` block later would flatten it to a single 0.01ms
    iteration, which reads as a stuck ring rather than a still one. */
-@media (prefers-reduced-motion: no-preference) {
-  .host-pin-pulse {
-    animation: host-pin-pulse 2.2s ease-out infinite;
-  }
-}
 
-/* DayPicker fills the host wizard step-2 calendar card (time sits above the card). */
+/* DayPicker spans the host wizard's step-2 column: the calendar is the step, not a card inside it.
+   The grid takes the full width and the seven columns share it, while each day button keeps its
+   round hit area centred in its column rather than stretching into an oval. */
 .host-daypicker.rdp-root {
-  --rdp-day-height: 40px;
-  --rdp-day-width: 40px;
-  --rdp-day_button-height: 38px;
-  --rdp-day_button-width: 38px;
-  --rdp-nav_button-height: 2rem;
-  --rdp-nav_button-width: 2rem;
-  --rdp-nav-height: 2.25rem;
+  --rdp-day-height: 46px;
+  --rdp-day-width: 46px;
+  --rdp-day_button-height: 42px;
+  --rdp-day_button-width: 42px;
+  --rdp-nav_button-height: 2.25rem;
+  --rdp-nav_button-width: 2.25rem;
+  --rdp-nav-height: 2.5rem;
   --rdp-accent-color: var(--color-primary);
   --rdp-accent-background-color: color-mix(
     in oklab,
@@ -86,17 +79,43 @@ body {
     transparent
   );
   --rdp-today-color: var(--color-primary);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   margin: 0;
+  width: 100%;
+}
+
+.host-daypicker .rdp-months,
+.host-daypicker .rdp-month,
+.host-daypicker .rdp-month_grid {
+  width: 100%;
+  max-width: none;
+}
+
+.host-daypicker .rdp-day,
+.host-daypicker .rdp-weekday {
+  width: auto;
+}
+
+.host-daypicker .rdp-day_button {
+  margin-inline: auto;
+}
+
+@media (width <= 24rem) {
+  .host-daypicker.rdp-root {
+    --rdp-day-height: 40px;
+    --rdp-day-width: 40px;
+    --rdp-day_button-height: 36px;
+    --rdp-day_button-width: 36px;
+  }
 }
 
 .host-daypicker .rdp-month_caption {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .host-daypicker .rdp-weekday {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   opacity: 0.65;
 }
 
@@ -127,4 +146,34 @@ body {
 
 .tp-ui-wrapper-time {
   direction: initial !important;
+}
+
+/*
+ * daisyUI's `.otp` places each digit by letter-spacing measured in `ch`, which only lands on the
+ * box centres when the input renders in the same font as the label that sizes the boxes. The
+ * `:lang(ar)` base rule matches the input element directly, so it beat the inherited mono stack
+ * and the digits drifted left by a growing amount across the six boxes. Naming the font on the
+ * input restores the arithmetic. The outline reset removes the app's global focus ring from an
+ * input whose box is a narrow strip behind the boxes — daisyUI already outlines the active box.
+ */
+.otp,
+.otp * {
+  font-family: var(--font-mono);
+}
+
+.otp > input:focus-visible {
+  outline: none;
+}
+
+/*
+ * daisyUI's `.countdown` rolls digits by offsetting a stacked list of numbers by whole `em`
+ * steps inside a box one `em` tall, and it measures its width in `ch`. Both only work while the
+ * element and its children share one font and a line-height of exactly 1. The `:lang(ar)` base
+ * rule matches the children directly — Tajawal at line-height 1.65 — so the offsets landed
+ * between two numbers and showed a slice of each.
+ */
+.countdown,
+.countdown * {
+  font-family: var(--font-mono);
+  line-height: 1em;
 }

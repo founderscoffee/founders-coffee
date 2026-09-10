@@ -3,7 +3,7 @@ import { forwardRef, type InputHTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn.js';
 
-export const inputVariants = cva('input input-bordered', {
+export const inputVariants = cva('input input-bordered w-full', {
   variants: {
     inputSize: { sm: 'input-sm', md: 'input-md', lg: 'input-lg' },
   },

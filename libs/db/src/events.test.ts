@@ -17,7 +17,6 @@ describe('events queries (real D1)', () => {
     const slug = nextSlug();
     const created = await createEvent(db, { ...baseEvent, id, slug });
     expect(created.id).toBe(id);
-    expect(created.isFree).toBe(true);
     expect(created.status).toBe('published');
 
     const fetched = await getEvent(db, id);

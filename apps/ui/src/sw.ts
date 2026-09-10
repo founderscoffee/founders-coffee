@@ -2,7 +2,12 @@
 
 import { defaultCache } from '@serwist/vite/worker';
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
-import { Serwist } from 'serwist';
+import { NetworkOnly, Serwist } from 'serwist';
+
+import {
+  isPrivateProfilePath,
+  purgePrivateCacheEntries,
+} from './lib/profile-cache';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -17,10 +22,20 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: [
+    {
+      matcher: ({ url }) => isPrivateProfilePath(url.pathname),
+      handler: new NetworkOnly(),
+    },
+    ...defaultCache,
+  ],
 });
 
 serwist.addEventListeners();
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(purgePrivateCacheEntries(caches));
+});
 
 /**
  * Push notification handler.

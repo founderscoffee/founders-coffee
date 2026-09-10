@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
-import { events, type geo } from '@founders-coffee/domain';
+import type { geo } from '@founders-coffee/domain';
 import {
   host_time_invalid,
   host_time_nonexistent,
@@ -28,6 +28,10 @@ import {
 } from './host-create-validation';
 import type { VenueSelection } from './types';
 import { useHostPublish } from './useHostPublish';
+import { useAuth } from '../../lib/app-providers';
+import { hasProfileName } from '../profile/name-validation';
+
+export const TOTAL_STEPS = 3;
 
 export const useHostCreateWizard = ({
   locale,
@@ -38,10 +42,13 @@ export const useHostCreateWizard = ({
 }: {
   locale: Locale;
   market: Market;
-  city: geo.GeoCity;
+  city: geo.GeoCity | null;
   isAuthenticated: boolean;
   isAuthLoading: boolean;
 }) => {
+  const named = city ?? { name: market.name, nameAr: market.nameAr };
+  const { user } = useAuth();
+  const cityName = (locale === 'ar' ? named.nameAr : named.name) ?? market.name;
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
   const [venueName, setVenueName] = useState('');
@@ -50,12 +57,10 @@ export const useHostCreateWizard = ({
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [capacity, setCapacity] = useState(0);
-  const [language, setLanguage] = useState<Locale>(locale);
-  const [category, setCategory] =
-    useState<events.EventCategory>('coffee-meetup');
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
+  const [isAuthGateOpen, setIsAuthGateOpen] = useState(false);
+  const [needsReauthentication, setNeedsReauthentication] = useState(false);
 
   const draft: HostCreateDraft = {
     step,
@@ -66,25 +71,23 @@ export const useHostCreateWizard = ({
     endsAt,
     title,
     description,
-    capacity,
-    language,
-    category,
   };
   const {
     publishing,
     publishError,
     clearPublishError,
-    goToLogin,
     publish: publishEvent,
   } = useHostPublish({
     locale,
     market,
-    city,
     readDraft: () => draft,
+    onAuthRequired: () => {
+      setNeedsReauthentication(true);
+      setIsAuthGateOpen(true);
+    },
   });
-
   useEffect(() => {
-    const restored = readHostCreateDraft(market.code, city.code);
+    const restored = readHostCreateDraft(market.code);
     if (restored) {
       setStep(restoredDraftStep(restored, locale));
       setVenue(restored.venue);
@@ -94,16 +97,13 @@ export const useHostCreateWizard = ({
       setEndsAt(restored.endsAt);
       setTitle(restored.title);
       setDescription(restored.description);
-      setCapacity(restored.capacity);
-      setLanguage(restored.language);
-      setCategory(restored.category);
     }
     setHasRestoredDraft(true);
-  }, [market.code, city.code, locale]);
+  }, [market.code, locale]);
 
   useEffect(() => {
     if (!hasRestoredDraft) return;
-    writeHostCreateDraft(market.code, city.code, {
+    writeHostCreateDraft(market.code, {
       step,
       venue,
       venueName,
@@ -112,14 +112,10 @@ export const useHostCreateWizard = ({
       endsAt,
       title,
       description,
-      capacity,
-      language,
-      category,
     });
   }, [
     hasRestoredDraft,
     market.code,
-    city.code,
     step,
     venue,
     venueName,
@@ -128,9 +124,6 @@ export const useHostCreateWizard = ({
     endsAt,
     title,
     description,
-    capacity,
-    language,
-    category,
   ]);
 
   /**
@@ -139,11 +132,14 @@ export const useHostCreateWizard = ({
    * A point of interest names itself. Where the provider could only confirm a street address the
    * name is cleared rather than pre-filled with it, because "15 Rue Yousfi Mohamed" is an address
    * masquerading as a venue name — leaving it in place would let a host publish it by accident.
+   *
+   * The search box is left alone. Results are now a list under the field rather than a dropdown
+   * over it, so writing the chosen address back into the input would re-run the search and replace
+   * the very list the host just picked from.
    */
   const selectVenue = (selection: VenueSelection) => {
     setVenue(selection);
     setVenueName(selection.kind === 'poi' ? selection.name : '');
-    setSearchValue(selection.address || selection.name);
     setFieldErrors((current) => ({
       ...current,
       venue: undefined,
@@ -181,10 +177,7 @@ export const useHostCreateWizard = ({
         ? validateVenueStep(venue, venueName, locale)
         : step === 2
           ? validateScheduleStep(startsAt, endsAt, locale)
-          : validateDetailsStep(
-              { title, description, capacity, language, category },
-              locale,
-            );
+          : validateDetailsStep({ title, description }, locale);
     setFieldErrors(errors);
     const first = firstInvalidField(errors);
     if (first) focusInvalidField(first);
@@ -194,41 +187,50 @@ export const useHostCreateWizard = ({
     if (!venue || startsAt === null || endsAt === null) return;
     void publishEvent({
       marketCode: market.code,
-      cityCode: city.code,
+      cityCode: city?.code,
       title,
       description,
+      language: locale,
       venueName,
+      venueProviderId: venue.providerId,
       venueAddress: venue.address,
       latitude: venue.latitude,
       longitude: venue.longitude,
       startsAt,
       endsAt,
-      capacity,
-      language,
-      category,
     });
   };
+
+  /**
+   * Advance, or publish from the last step.
+   *
+   * Every step validates, including the last one. When the details step was followed by a review
+   * screen its validation ran on the way out of it; now it is the final step, so skipping the check
+   * here would send an invalid title straight to the server — and, for an anonymous host, only
+   * after they had signed in for it.
+   */
   const next = () => {
-    if (step < 4) {
-      if (!validateCurrentStep()) return;
+    if (!validateCurrentStep()) return;
+    if (step < TOTAL_STEPS) {
       clearPublishError();
       setStep((current) => current + 1);
       return;
     }
     if (isAuthLoading) return;
-    if (!isAuthenticated) {
-      writeHostCreateDraft(market.code, city.code, draft);
-      goToLogin();
+    if (!isAuthenticated || !hasProfileName(user)) {
+      writeHostCreateDraft(market.code, draft);
+      setIsAuthGateOpen(true);
       return;
     }
     publish();
   };
-  const prev = () => {
+  const goToStep = (target: number) => {
     clearPublishError();
     setFieldErrors({});
-    setStep((current) => Math.max(1, current - 1));
+    setStep(target);
   };
-  const stepCopy = hostCreateStepCopy(locale);
+  const prev = () => goToStep(Math.max(1, step - 1));
+  const stepCopy = hostCreateStepCopy(locale, cityName);
   const schedule = hostScheduleSummary(
     startsAt,
     endsAt,
@@ -242,11 +244,20 @@ export const useHostCreateWizard = ({
     fieldErrors,
     publishing,
     publishError,
+    goToStep,
     stepLabels: stepCopy.labels,
-    stepTitle: stepCopy.labels[step - 1] ?? stepCopy.labels[0],
+    stepTitle: stepCopy.titles[step - 1] ?? stepCopy.titles[0],
     stepSub: stepCopy.descriptions[step - 1] ?? null,
-    view: hostCreateViewCopy(locale, language, category),
-    isActionDisabled: publishing || isAuthLoading,
+    view: hostCreateViewCopy(),
+    isAuthGateOpen,
+    needsReauthentication,
+    closeAuthGate: () => setIsAuthGateOpen(false),
+    onGateAuthenticated: () => {
+      setNeedsReauthentication(false);
+      setIsAuthGateOpen(false);
+      publish();
+    },
+    isActionDisabled: publishing || isAuthLoading || isAuthGateOpen,
     setSearchValue,
     setVenueName: (value: string) => {
       setVenueName(value);
@@ -260,13 +271,6 @@ export const useHostCreateWizard = ({
       setDescription(value);
       setFieldErrors((current) => ({ ...current, description: undefined }));
     },
-    setCapacity: (value: number) => {
-      setCapacity(value);
-      setFieldErrors((current) => ({ ...current, capacity: undefined }));
-    },
-    enableCapacityLimit: (enabled: boolean) => setCapacity(enabled ? 12 : 0),
-    setLanguage,
-    setCategory,
     setSchedule,
     setScheduleError,
     selectVenue,

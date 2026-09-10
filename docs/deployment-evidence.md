@@ -197,8 +197,10 @@ Proven end to end on staging rather than assumed: a message posted to
 ```
 
 — the environment-suffixed name resolved to its catalogue name, the consumer ran, and the message
-was acked. Nothing produces into these queues yet; notification delivery is still the one-minute D1
-sweep.
+was acked. Nothing produced into these queues at the time; CO-02 (2026-09-10) added the producer —
+a per-event `NotificationScheduleDO` alarm — but it is not deployed, so the account still shows zero
+producers on both notifications queues. Re-read 2026-09-10: all eight queues present in both
+environments, one consumer each, both DLQs correctly with none.
 
 **The sponsor portal is unpublished.** `app.founders.coffee`'s custom domain
 (`1d629406ba19fc525a1c26448571667a83e5685b`) was deleted and its DNS record went with it; the zone
@@ -206,6 +208,104 @@ now returns no record for that name. Note that removing the route from `wrangler
 delete an existing custom domain — Cloudflare keeps it until it is deleted explicitly, so the config
 change and the account action are two separate steps.
 
-**Still outstanding.** The one authorized smoke creation. It needs the same short Turnstile
-testing-key window sign-in required on staging, this time against the live login, and that is a
-deliberate decision rather than a step to take unasked.
+## v0.3.0 — the Round Table redesign (2026-09-04)
+
+GitHub Actions run `33875681639` from `main` at `5525e30`. Verify 6m39s, migrate and deploy 1m45s,
+tag and release 11s. `founders-coffee-ui-production` version
+`fbd85a4c-57bb-4bfc-8e7e-04c2ba114d92`.
+
+Eight commits: the Claude Design handoff in three stages, the `AppError.code` serialization fix, the
+host-wizard dead end, and the audit.
+
+**Verified on production, under the enforced CSP:**
+
+| Check                              | `ar` 390  | `en` 1280 | wizard 1280           |
+| ---------------------------------- | --------- | --------- | --------------------- |
+| `securitypolicyviolation` events   | 0         | 0         | 0                     |
+| Console / page errors              | 0         | 0         | 0                     |
+| Outfit + Tajawal loaded            | yes       | yes       | yes                   |
+| Body background                    | `#FFFCF7` | `#FFFCF7` | `#FFFCF7`             |
+| Mapbox canvas, tiles, venue search | —         | —         | drawn, `200`, enabled |
+
+The redesign adds no external resource, so the enforced policy needed no change: the fonts are
+self-hosted through `@fontsource`, the mark is inline SVG, and the only new outbound reference is an
+"Open in maps" **link**, which a policy does not govern.
+
+Route latency 1.6–2.3s. One 78s outlier on the first `/login` hit immediately after deploy — a cold
+start, not reproducible across three retries.
+
+## EC-10 authorized production smoke creation — 2026-09-10
+
+The last outstanding EC-10 item. Performed by the owner by hand against the live site, with **no
+change to production configuration**: no Turnstile testing-key window, no `OTP_ECHO`, no bypass of
+any kind. Turnstile stayed enforced and a person cleared it, which is the only way that challenge is
+meant to be cleared. The sign-in code went to the owner's own address, because the `@e2e.invalid`
+echo used on staging is fenced off when `APP_ENVIRONMENT` is `production`.
+
+| Fact               | Value                                       |
+| ------------------ | ------------------------------------------- |
+| Event              | `dsrwrtwerwer` at `/algeria/e/dsrwrtwerwer` |
+| Market / city      | `DZ` / Chlef                                |
+| Schedule           | Wednesday 16 September 2026, 18:00          |
+| Venue as persisted | `fgtfrtryr — Site 5، 02 الشلف، الجزائر`     |
+| Language           | `ar`                                        |
+| Host               | `19hkEveIHJogeBQ4fZLSlJqYByifH2pM`          |
+| Worker             | `v0.1.0`, released 2026-09-04               |
+| D1 schema          | `0016_light_alex_wilder`                    |
+| Shared WAF rule    | `d11c283bee39488293e86d519e9c546d`          |
+
+**Route behaviour, read back from the live site rather than asserted:**
+
+| Surface                         | Result                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| Event detail                    | `200`, correct title, JSON-LD `@type: Event` with the persisted schedule |
+| City feed `/algeria/chlef`      | `200`, event listed                                                      |
+| Market page `/algeria`          | `200`, event listed, Chlef badge showing one this week                   |
+| Public host profile `/u/<host>` | `200`, "فعاليات نظمها 1"                                                 |
+| Host auto-RSVP                  | `+1 ذاهب` — the host is a real attendee on creation                      |
+| RSVP release                    | seats 11 → 12 and `+1` → `+0` after the host freed their chair           |
+
+The live page also rendered `السعة: 12`, `مقاعد متبقية` and the `مجاني` chip — capacity, seats and
+the free label — which independently confirms production is at `0016` and predates the `0017`
+contraction, without needing a schema query.
+
+**Verification method note.** Plain `curl` receives `403 Forbidden` on every production route,
+including `/`. That is the CSRF middleware refusing a request with no `Sec-Fetch-Site` header, not an
+outage: `none` and `same-origin` both pass and browsers always send one. Any future automated
+production probe must set that header.
+
+**Cleanup — done 2026-09-10.** The event was retired rather than deleted, so the row survives as
+this evidence. Retiring it through the product is not possible on `v0.1.0`: the host cancel action,
+the optional reason and `0018_graceful_maria_hill.sql` are all in unreleased work, and the live
+event page offers only the RSVP controls. The owner released their seat first, which is why the
+counts above return to `12` and `+0`.
+
+The status was therefore set with one statement guarded on slug, market and current status, so it
+could affect exactly one row and is a no-op if repeated:
+
+```sql
+UPDATE events SET status='cancelled', cancelled_at=unixepoch(), updated_at=unixepoch()
+WHERE slug='dsrwrtwerwer' AND market_code='DZ' AND status='published';
+```
+
+`changes: 1`. Read back from production:
+
+| Column                      | Value               |
+| --------------------------- | ------------------- |
+| `status`                    | `cancelled`         |
+| `cancelled_at`              | 2026-09-10 07:25:01 |
+| `market_code` / `city_code` | `DZ` / `39`         |
+| `language`                  | `ar`                |
+| `rsvps`                     | `0`                 |
+| `starts_at`                 | 2026-09-16 17:00:00 |
+
+The row confirms what the pages showed: the persisted city is Chlef (`39`), the language is the one
+chosen in the wizard, and the RSVP counter returned to zero when the seat was released.
+
+**The feeds dropped it; the direct URL did not.** `/algeria`, `/algeria/chlef` and the public host
+profile no longer carry the event, because each filters on `status = 'published'`. The event's own
+URL still renders it as though it were live, RSVP call to action included, since `v0.1.0` has no
+cancelled state in `EventDetail`. Nobody can reach it without the link, and the unreleased work
+fixes it directly — the current `EventDetail` renders a cancellation notice for exactly this status.
+
+**Outstanding on this item:** none.

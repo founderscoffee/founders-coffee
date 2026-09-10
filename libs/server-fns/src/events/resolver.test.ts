@@ -103,7 +103,7 @@ describe('createEventResolver market and geography (real D1)', () => {
     const db = await setupDb();
     const throwingProvider: MapProvider = {
       ...testMapProvider,
-      reverseVenue: async () => {
+      describePoint: async () => {
         throw new Error('provider-internal-sensitive-detail');
       },
     };
@@ -112,7 +112,7 @@ describe('createEventResolver market and geography (real D1)', () => {
       db,
       throwingProvider,
       TEST_HOST_ID,
-      createInput({ title: 'Throwing provider event' }),
+      createInput({ title: 'Throwing provider event', cityCode: undefined }),
     );
 
     expect(result.ok).toBe(false);

@@ -10,6 +10,7 @@ import {
   getEvent,
   getEventBySlug,
   getMarketByCode,
+  isVisibleIdentity,
   listUpcomingEvents,
   type Db,
   type Event,
@@ -17,25 +18,52 @@ import {
 } from '@founders-coffee/db';
 import { reportError } from '@founders-coffee/observability';
 
-import type { MapProvider, VenueKind } from '../maps/provider.js';
-import { reverseEventVenueResolver } from '../maps/resolver.js';
+import { attendHostOwnEvent } from './host-attendance.js';
+import { locatePoint, type LocatedPoint } from '../maps/locate.js';
+import type { MapProvider } from '../maps/provider.js';
 import { type EventAttendance } from './attendance.js';
 
 /**
- * The name an event is published under, given what the map provider could verify.
+ * Where this event is, and the address to publish with it.
  *
- * A point of interest names itself, and taking the provider's name is what stops a host publishing
- * "Café des Délices" at a location that is really somewhere else. Where the provider can only
- * confirm a street address — which is every location in the Maghreb, since Mapbox indexes no points
- * of interest there — the label has to come from the host, because "15 Rue Yousfi Mohamed" tells an
- * attendee nothing about which door to walk through. The guarantee splits rather than disappears:
- * the address and coordinates stay provider-verified and inside the selected city, while the name
- * becomes host-authored content held to the same schema bounds as the title and description.
+ * The point the host chose is the location; the city and state are labels derived from it so the
+ * per-state counts describe where events actually are rather than where a host said they were. A
+ * host may override the city on the confirmation step, and an override is trusted only far enough
+ * to name a city inside this market — the state still comes from the city, never from the client.
+ *
+ * The venue *name* stays host-authored. Mapbox indexes almost no points of interest in the Maghreb,
+ * so a provider name is unavailable exactly where it would be most useful, and "15 Rue Yousfi
+ * Mohamed" tells an attendee nothing about which door to walk through.
  */
-const resolvedVenueName = (
-  resolved: { readonly kind: VenueKind; readonly name: string },
-  submitted: string,
-): string => (resolved.kind === 'poi' ? resolved.name : submitted);
+const eventLocation = async (
+  mapProvider: MapProvider,
+  input: EventCreateInput,
+): Promise<Result<LocatedPoint>> => {
+  const located = await locatePoint(mapProvider, {
+    marketCode: input.marketCode,
+    locale: input.language,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    snapshotProviderId: input.venueProviderId,
+    fallbackAddress: input.venueAddress,
+  });
+  if (!located.ok || !input.cityCode) return located;
+
+  const chosen = geo.findCity(input.marketCode, input.cityCode);
+  if (!chosen) {
+    return err(
+      new AppError(
+        'validation_failed',
+        `Unknown city ${input.cityCode} for ${input.marketCode}`,
+      ),
+    );
+  }
+  return ok({
+    ...located.data,
+    stateCode: chosen.stateCode,
+    cityCode: chosen.code,
+  });
+};
 
 const slugify = (title: string): string =>
   title
@@ -90,58 +118,33 @@ export const createEventResolverWithId = async (
       );
     }
 
-    const city = geo.findCity(input.marketCode, input.cityCode);
-    if (!city) {
-      return err(
-        new AppError(
-          'validation_failed',
-          `Unknown city ${input.cityCode} for ${input.marketCode}`,
-        ),
-      );
-    }
-    const state = geo.findState(input.marketCode, city.stateCode);
-    if (!state) {
-      return err(
-        new AppError(
-          'validation_failed',
-          `Unknown state ${city.stateCode} for ${input.marketCode}`,
-        ),
-      );
-    }
-
-    const venueValidation = await reverseEventVenueResolver(mapProvider, {
-      marketCode: input.marketCode,
-      cityCode: input.cityCode,
-      locale: input.language,
-      latitude: input.latitude,
-      longitude: input.longitude,
-    });
-    if (!venueValidation.ok) return venueValidation;
+    const located = await eventLocation(mapProvider, input);
+    if (!located.ok) return located;
 
     const row: Omit<NewEvent, 'slug'> = {
       id: eventId,
       hostId,
       marketCode: market.code,
-      stateCode: state.code,
-      cityCode: city.code,
+      stateCode: located.data.stateCode,
+      cityCode: located.data.cityCode,
       title: input.title,
       description: input.description,
-      venue: resolvedVenueName(venueValidation.data, input.venueName),
-      venueAddress: venueValidation.data.address,
-      latitude: venueValidation.data.latitude,
-      longitude: venueValidation.data.longitude,
+      venue: input.venueName,
+      venueAddress: located.data.address,
+      latitude: input.latitude,
+      longitude: input.longitude,
       startsAt: new Date(input.startsAt),
       endsAt: new Date(input.endsAt),
-      capacity: input.capacity,
       language: input.language,
-      category: input.category,
-      isFree: true,
       status: 'published',
     };
 
     for (const slug of eventSlugCandidates(input.title, eventId)) {
       const created = await createEventIfRouteAvailable(db, { ...row, slug });
-      if (created) return ok(created);
+      if (created) {
+        await attendHostOwnEvent(db, created.id, hostId);
+        return ok(created);
+      }
     }
 
     return err(
@@ -170,7 +173,13 @@ export const createEventResolver = async (
 ): Promise<Result<Event>> =>
   createEventResolverWithId(db, mapProvider, hostId, input, id('evt'));
 
-/** Resolve a single event by id or by (marketCode + slug). Returns `event_not_found` on miss. */
+/**
+ * Resolve a single event by id or by (marketCode + slug). Returns `event_not_found` on miss.
+ *
+ * A suppressed host's event answers the same way as one that never existed. The feed already drops
+ * those rows in SQL; without the same rule here the link would simply have to be typed rather than
+ * clicked, which is not a restriction.
+ */
 export const resolveEvent = async (
   db: Db,
   input: { id?: string; marketCode?: string; slug?: string },
@@ -196,24 +205,37 @@ export const resolveEvent = async (
       new AppError('event_not_found', `Event ${event.id} is not available`),
     );
   }
+  if (!(await isVisibleIdentity(db, event.hostId))) {
+    return err(
+      new AppError('event_not_found', `Event ${event.id} is not available`),
+    );
+  }
   return ok(event);
 };
 
 export type EventFeedItemBase = Event & {
   readonly cityName: string;
   readonly cityNameAr: string;
+  readonly citySlug: string | null;
 };
 
 export type EventFeedItem = EventFeedItemBase & Partial<EventAttendance>;
 
-/** Attach display city names (falls back to the city code if the geo record is missing). */
-const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
+/**
+ * Attach the display names and the slug the city route is keyed by.
+ *
+ * The slug is not the city code: `/{market}/{city}` resolves through `findCityBySlug`, so linking
+ * with a code produces a 404. Carrying it on the payload is what lets a component link back to a
+ * city without reaching into the domain itself.
+ */
+export const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
   rows.map((e) => {
     const city = geo.findCity(e.marketCode, e.cityCode);
     return {
       ...e,
       cityName: city?.name ?? e.cityCode,
       cityNameAr: city?.nameAr ?? city?.name ?? e.cityCode,
+      citySlug: city?.slug ?? null,
     };
   });
 

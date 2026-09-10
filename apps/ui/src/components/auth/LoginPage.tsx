@@ -1,15 +1,14 @@
 import { Link } from '@tanstack/react-router';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import {
   brand,
-  login_code_label,
+  login_change_email,
   login_code_sent,
   login_email_label,
   login_email_placeholder,
   login_help,
   login_or,
-  login_resend,
   login_send_code,
   login_send_error,
   login_title,
@@ -18,14 +17,25 @@ import {
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, Logo } from '@founders-coffee/ui';
+import { Button, Input, LogoSymbol } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
 import { onboardingRedirectPath } from '../../lib/redirect';
 import { Turnstile } from './Turnstile';
+import { OtpField, OTP_LENGTH } from './OtpField';
+import { PROVIDER_MARK } from './ProviderIcon';
+import { ResendButton } from './ResendButton';
+import { useResendCooldown } from './useResendCooldown';
+import { useOtpAutofill } from './useOtpAutofill';
+import { useStepHeightLock } from './useStepHeightLock';
 
-const OAUTH_PROVIDERS = ['google', 'github', 'linkedin'] as const;
+const OAUTH_PROVIDERS = ['google', 'github'] as const;
+
+const PROVIDER_LABEL: Record<(typeof OAUTH_PROVIDERS)[number], string> = {
+  google: 'Google',
+  github: 'GitHub',
+};
 
 type LoginPageProps = {
   locale: Locale;
@@ -46,6 +56,10 @@ export const LoginPage = ({
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [resendToken, setResendToken] = useState<string | null>(null);
+  const [resendNonce, setResendNonce] = useState(0);
+  const cooldown = useResendCooldown();
+  const stepHeight = useStepHeightLock();
 
   const emailValid = /.+@.+\..+/.test(email);
 
@@ -62,13 +76,34 @@ export const LoginPage = ({
       setError(login_send_error({}, { locale }));
       return;
     }
+    stepHeight.lock();
     setStep('otp');
+    cooldown.start();
+  };
+
+  const resend = async () => {
+    if (!cooldown.isReady || !resendToken) return;
+    setBusy(true);
+    setError(null);
+    const { error: sendError } = await authClient.emailOtp.sendVerificationOtp(
+      { email, type: 'sign-in' },
+      { headers: { 'x-captcha-response': resendToken } },
+    );
+    setBusy(false);
+    if (sendError) {
+      setError(login_send_error({}, { locale }));
+      return;
+    }
+    setOtp('');
+    setResendToken(null);
+    setResendNonce((nonce) => nonce + 1);
+    cooldown.start();
   };
 
   const verify = async () => {
     setBusy(true);
     setError(null);
-    const { data, error: verifyError } = await authClient.signIn.emailOtp({
+    const { error: verifyError } = await authClient.signIn.emailOtp({
       email,
       otp,
     });
@@ -77,66 +112,45 @@ export const LoginPage = ({
       setError(login_wrong_code({}, { locale }));
       return;
     }
-    const needsOnboarding = !(
-      data?.user as { homeMarketCode?: string } | null | undefined
-    )?.homeMarketCode;
-    window.location.href = needsOnboarding
-      ? onboardingRedirectPath(redirect)
-      : redirect;
+    window.location.href = onboardingRedirectPath(redirect);
+  };
+
+  const changeEmail = () => {
+    setOtp('');
+    setError(null);
+    setResendToken(null);
+    stepHeight.release();
+    setStep('email');
   };
 
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
     authClient.signIn.social({
       provider,
-      callbackURL: redirect,
+      callbackURL: onboardingRedirectPath(redirect),
       newUserCallbackURL: onboardingRedirectPath(redirect),
     });
 
-  const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (step !== 'otp') return;
-    if (!('credentials' in navigator)) return;
-
-    const ac = new AbortController();
-    abortRef.current = ac;
-
-    navigator.credentials
-      .get({
-        otp: { transport: ['sms'] },
-        signal: ac.signal,
-      } as CredentialRequestOptions)
-      .then((otpCred) => {
-        if (otpCred && 'code' in otpCred) {
-          setOtp(otpCred.code as string);
-        }
-      })
-      .catch(() => undefined);
-
-    return () => {
-      ac.abort();
-      abortRef.current = null;
-    };
-  }, [step]);
+  useOtpAutofill(step === 'otp', setOtp);
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <div className="rounded-box border border-base-300 bg-base-100 p-6">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col items-center gap-2 text-center">
+    <div className="mx-auto flex max-w-sm flex-col px-4 py-12">
+      <div>
+        <div
+          ref={stepHeight.ref}
+          style={{ minHeight: stepHeight.minHeight }}
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-col items-center gap-3 text-center">
             <Link
               to="/"
               aria-label={brand({}, { locale })}
-              className="rounded-field"
+              className="rounded-full"
             >
-              <Logo symbolSize={24} textClassName="text-body" />
+              <LogoSymbol size={40} hasLettering />
             </Link>
             <h1 className="font-display text-h3 font-semibold">
               {login_title({}, { locale })}
             </h1>
-            <p className="text-body-sm text-neutral">
-              {login_help({}, { locale })}
-            </p>
           </div>
 
           {step === 'email' ? (
@@ -151,6 +165,9 @@ export const LoginPage = ({
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={login_email_placeholder({}, { locale })}
                 />
+                <span className="mt-1.5 block text-body-sm text-neutral">
+                  {login_help({}, { locale })}
+                </span>
               </label>
               {turnstileSiteKey && (
                 <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
@@ -180,17 +197,24 @@ export const LoginPage = ({
                     {login_or({}, { locale })}
                   </div>
                   <div className="space-y-2">
-                    {OAUTH_PROVIDERS.map((p) => (
-                      <Button
-                        key={p}
-                        variant="outline"
-                        onClick={() => social(p)}
-                        disabled={busy}
-                        isFullWidth
-                      >
-                        {oauth_continue({ provider: p }, { locale })}
-                      </Button>
-                    ))}
+                    {OAUTH_PROVIDERS.map((p) => {
+                      const Mark = PROVIDER_MARK[p];
+                      return (
+                        <Button
+                          key={p}
+                          variant="outline"
+                          onClick={() => social(p)}
+                          disabled={busy}
+                          isFullWidth
+                        >
+                          <Mark />
+                          {oauth_continue(
+                            { provider: PROVIDER_LABEL[p] },
+                            { locale },
+                          )}
+                        </Button>
+                      );
+                    })}
                   </div>
                 </>
               )}
@@ -200,19 +224,13 @@ export const LoginPage = ({
               <p className="text-center text-body-sm text-neutral">
                 {login_code_sent({ email }, { locale })}
               </p>
-              <label className="form-control items-center">
-                <span className="mb-2 block text-label text-neutral">
-                  {login_code_label({}, { locale })}
-                </span>
-                <input
-                  className={`otp ${error ? 'otp-error' : 'otp-primary'}`}
-                  inputMode="numeric"
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                />
-              </label>
+              <OtpField
+                locale={locale}
+                value={otp}
+                hasError={!!error}
+                isDisabled={busy}
+                onChange={setOtp}
+              />
               {error && (
                 <p role="alert" className="text-center text-body-sm text-error">
                   {error}
@@ -220,7 +238,7 @@ export const LoginPage = ({
               )}
               <Button
                 onClick={verify}
-                disabled={otp.length !== 6 || busy}
+                disabled={otp.length !== OTP_LENGTH || busy}
                 isFullWidth
               >
                 {busy ? (
@@ -232,13 +250,27 @@ export const LoginPage = ({
                 {login_verify({}, { locale })}
               </Button>
               <LegalNotice locale={locale} />
+              {turnstileSiteKey && (
+                <Turnstile
+                  sitekey={turnstileSiteKey}
+                  appearance="interaction-only"
+                  resetKey={resendNonce}
+                  onToken={setResendToken}
+                />
+              )}
+              <ResendButton
+                locale={locale}
+                secondsLeft={cooldown.secondsLeft}
+                isBusy={busy || !resendToken}
+                onResend={() => void resend()}
+              />
               <Button
-                variant="ghost"
-                onClick={() => setStep('email')}
+                variant="link"
+                onClick={changeEmail}
                 disabled={busy}
                 isFullWidth
               >
-                {login_resend({}, { locale })}
+                {login_change_email({}, { locale })}
               </Button>
             </>
           )}

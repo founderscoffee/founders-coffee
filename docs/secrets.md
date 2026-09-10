@@ -36,14 +36,13 @@ in the repository; both are read server-side and handed to the client by a serve
 
 ### Auth (`libs/auth`) — apps/ui
 
-| Var                                             | Required | Description                                                                                 |
-| ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `BETTER_AUTH_SECRET`                            | yes      | Better Auth session secret (≥32 chars). `wrangler secret put BETTER_AUTH_SECRET`.           |
-| `APP_URL`                                       | yes      | Public URL of the app (e.g. `http://localhost:3000` in dev). Wrangler `var` (not a secret). |
-| `MAIL_FROM`                                     | yes      | Sender email for OTP (wrangler `var`). Prod: verified Cloudflare sender.                    |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`     | optional | Google OAuth. Omit → provider disabled.                                                     |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`     | optional | GitHub OAuth.                                                                               |
-| `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | optional | LinkedIn OAuth.                                                                             |
+| Var                                         | Required | Description                                                                                 |
+| ------------------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `BETTER_AUTH_SECRET`                        | yes      | Better Auth session secret (≥32 chars). `wrangler secret put BETTER_AUTH_SECRET`.           |
+| `APP_URL`                                   | yes      | Public URL of the app (e.g. `http://localhost:3000` in dev). Wrangler `var` (not a secret). |
+| `MAIL_FROM`                                 | yes      | Sender email for OTP (wrangler `var`). Prod: verified Cloudflare sender.                    |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | optional | Google OAuth. Omit → provider disabled.                                                     |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | optional | GitHub OAuth.                                                                               |
 
 ### Turnstile and event-create WAF evidence — apps/ui
 

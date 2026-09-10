@@ -19,6 +19,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
       hackathons: false,
       payments: false,
       recruiting: false,
+      communityOperations: false,
     },
   },
   {
@@ -36,6 +37,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
       hackathons: false,
       payments: false,
       recruiting: false,
+      communityOperations: false,
     },
   },
   {
@@ -53,6 +55,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
       hackathons: false,
       payments: false,
       recruiting: false,
+      communityOperations: false,
     },
   },
 ];

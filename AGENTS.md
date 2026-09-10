@@ -143,7 +143,7 @@ If you need data in a component that the current hook doesn't provide → add/ex
 
 - **Money:** ALWAYS the `Money` value object from `libs/core` — `{ amount_minor: number (integer), currency: string (ISO 4217) }`. **Never** a bare number. **Never** floating-point math on money. All arithmetic in integer minor units.
 - **Schemas first:** define a Zod schema for every entity/command; infer TS types (`z.infer`). Shared primitives (Money, id, pagination, market code) live in [`libs/core/src/validation.ts`](libs/core/src/validation.ts); per-domain schemas live in `libs/domain/src/<domain>/schemas.ts`. The schema is the single contract shared by `api.ts`, server functions, and forms (DRY). Server functions validate input via `createServerFn().validator(appValidator(schema))` — invalid input throws `AppError('validation_failed')` (the §7 throw boundary). See [`docs/validation.md`](docs/validation.md).
-- **Geo/market scoping:** every user-facing record carries `market_code` and, where geographic, `state_code`/`city_code` from creation. `market_code` references D1; state/city codes reference the versioned server-side geography datasets. No global queries that silently cross markets.
+- **Geo/market scoping:** market-facing records carry `market_code` and, where geographic, `state_code`/`city_code` from creation. The global user identity and its profile/account preferences are location-free under FR-A1/FR-A3; never infer or require residence. Events, activity, notifications and host trust retain their actual market/geographic scope. `market_code` references D1; state/city codes reference the versioned server-side geography datasets. No global activity queries that silently cross markets.
 - **Time:** store UTC; render in the city/market timezone via `libs/i18n`. Never store localized times.
 - **IDs:** from the `libs/core` id factory — consistent format, no ad-hoc UUIDs in different styles.
 - **Enums/status:** as string union types backed by Zod enums; status transitions live in `libs/domain` (e.g., Order: `pending → paid → refunded`).
@@ -185,7 +185,7 @@ their phases are approved) are additionally **rate-limited (Durable Object + WAF
 - **Zero hardcoded user-facing strings.** All copy in `libs/i18n` locale resources.
 - **Every screen must work in both RTL and LTR.** Direction is driven by the active locale/market. Test both.
 - **Supported locales:** `ar`, `fr`, and `en`, with `ar` as the final fallback. Locale resolution is user preference/cookie → market default → `ar`; do not override it with browser `Accept-Language`.
-- **User-generated content is not auto-translated.** Tag it with a language code; render as authored.
+- **User-generated content is not auto-translated.** Tag it with a language code; render as authored. Profile introductions are the explicit exception: do not collect or infer a language code; render unchanged with automatic text direction.
 - **Format** dates, times, numbers, and currency per active locale + market timezone.
 
 ---
@@ -230,7 +230,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
   DO alarm when the event is created or changed; the DO wakes precisely and pushes to the
   `NOTIFICATIONS` queue. Any future timed entity follows the same model if approved. **No global cron
   that scans D1.** A low-frequency cron may exist _only_ as a backstop sweeper for missed alarms.
-- **Durable Object location:** set a **location hint** near the user base (Maghreb/EU) at creation; persist state in `state.storage` and write-through to D1. Reserve DOs for genuine real-time/coordination — prefer atomic D1 SQL for simple counters (e.g., RSVP capacity: `UPDATE events SET rsvps = rsvps + 1 WHERE id = ? AND rsvps < capacity`).
+- **Durable Object location:** set a **location hint** near the user base (Maghreb/EU) at creation; persist state in `state.storage` and write-through to D1. Reserve DOs for genuine real-time/coordination — prefer atomic D1 SQL for simple counters (e.g., releasing an RSVP: `UPDATE events SET rsvps = rsvps - 1 WHERE id = ? AND rsvps > 0`).
 - **External services go behind provider interfaces.** SMS, email, images, payments: each gets an interface (`SmsProvider`, `EmailProvider`, `ImageProvider`, `PaymentProvider`) with a **dev variant** (`DevSmsProvider` logs the OTP to console; dev image adapter serves raw R2 bytes) and a real variant. Mocking an _external service_ via its interface is allowed; **mocking a Cloudflare binding is not** (use Miniflare).
 - **TanStack Query × throw boundary:** server functions unwrap the domain `Result` _inside the handler_ via `handleResult()` — they **throw** the typed `AppError` on failure, so `useQuery`/`useMutation` enter `error` automatically. The thrown `AppError.code` crosses the wire at runtime (TanStack serializes it; TS types the client error generically — the [#6428] gap — read it via the shared `appErrorCode()` accessor). Do **not** call `handleResult` at the component/hook layer.
 - **Turnstile verification** must forward `CF-Connecting-IP` as `remoteip` (helper in `libs/core`/`libs/server-fns`).

@@ -6,28 +6,14 @@ import {
   cafeFeature,
   cityFeature,
   localityFeature,
+  outsideCafeFeature,
   location,
   queuedFetcher,
 } from './mapbox-provider.fixtures.js';
 
 describe('MapboxMapProvider venue resolution', () => {
-  it('rejects reverse lookup outside the selected city before venue lookup', async () => {
-    const { fetcher, requests } = queuedFetcher([[cityFeature]]);
-    const provider = createMapboxProvider('test-token', fetcher);
-
-    const result = await provider.reverseVenue({
-      ...location,
-      latitude: 35.69,
-      longitude: -0.63,
-    });
-
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('map_venue_outside_city');
-    expect(requests).toHaveLength(1);
-  });
-
   it('normalizes a supported reverse result and rejects a locality', async () => {
-    const successful = queuedFetcher([[cityFeature], [cafeFeature]]);
+    const successful = queuedFetcher([[cafeFeature]]);
     const supportedProvider = createMapboxProvider(
       'test-token',
       successful.fetcher,
@@ -40,7 +26,7 @@ describe('MapboxMapProvider venue resolution', () => {
     expect(supported.ok).toBe(true);
     if (supported.ok) expect(supported.data.providerId).toBe('poi-cafe');
 
-    const rejected = queuedFetcher([[cityFeature], [localityFeature]]);
+    const rejected = queuedFetcher([[localityFeature]]);
     const rejectedProvider = createMapboxProvider(
       'test-token',
       rejected.fetcher,
@@ -60,7 +46,7 @@ describe('MapboxMapProvider venue resolution', () => {
       ...cafeFeature,
       geometry: { type: 'Point', coordinates: [3.1, 36.78] },
     };
-    const { fetcher } = queuedFetcher([[cityFeature], [distantCafe]]);
+    const { fetcher } = queuedFetcher([[distantCafe]]);
     const provider = createMapboxProvider('test-token', fetcher);
 
     const result = await provider.reverseVenue({
@@ -102,10 +88,7 @@ describe('MapboxMapProvider venue resolution', () => {
   });
 
   it('prefers a nearby venue over an address at the same point', async () => {
-    const { fetcher } = queuedFetcher([
-      [cityFeature],
-      [addressFeature, cafeFeature],
-    ]);
+    const { fetcher } = queuedFetcher([[addressFeature, cafeFeature]]);
     const provider = createMapboxProvider('test-token', fetcher);
 
     const result = await provider.reverseVenue({
@@ -122,7 +105,7 @@ describe('MapboxMapProvider venue resolution', () => {
   });
 
   it('falls back to a verified address where the provider indexes no venue', async () => {
-    const { fetcher } = queuedFetcher([[cityFeature], [addressFeature]]);
+    const { fetcher } = queuedFetcher([[addressFeature]]);
     const provider = createMapboxProvider('test-token', fetcher);
 
     const result = await provider.reverseVenue({
@@ -144,7 +127,7 @@ describe('MapboxMapProvider venue resolution', () => {
   });
 
   it('never accepts a city or locality as a venue, even as a fallback', async () => {
-    const { fetcher } = queuedFetcher([[cityFeature], [localityFeature]]);
+    const { fetcher } = queuedFetcher([[localityFeature]]);
     const provider = createMapboxProvider('test-token', fetcher);
 
     const result = await provider.reverseVenue({
@@ -157,12 +140,26 @@ describe('MapboxMapProvider venue resolution', () => {
     if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
   });
 
-  it('rejects an address outside the selected city bounds', async () => {
+  it('offers a distant address as a bare address for the host to name', async () => {
     const farAddress = {
       ...addressFeature,
       geometry: { type: 'Point', coordinates: [-0.63, 35.69] },
     };
-    const { fetcher } = queuedFetcher([[cityFeature], [farAddress]]);
+    const { fetcher } = queuedFetcher([[farAddress]]);
+    const provider = createMapboxProvider('test-token', fetcher);
+
+    const result = await provider.reverseVenue({
+      ...location,
+      latitude: 36.75,
+      longitude: 3.06,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.kind).toBe('address');
+  });
+
+  it('rejects a pin with nothing addressable anywhere in the response', async () => {
+    const { fetcher } = queuedFetcher([[localityFeature]]);
     const provider = createMapboxProvider('test-token', fetcher);
 
     const result = await provider.reverseVenue({
@@ -195,7 +192,7 @@ describe('MapboxMapProvider venue resolution', () => {
         },
       },
     };
-    const { fetcher } = queuedFetcher([[cityFeature], [frenchAddress]]);
+    const { fetcher } = queuedFetcher([[frenchAddress]]);
     const provider = createMapboxProvider('test-token', fetcher);
 
     const result = await provider.reverseVenue({
@@ -207,5 +204,59 @@ describe('MapboxMapProvider venue resolution', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.providerId).toBe('address-yousfi');
+  });
+});
+
+describe('MapboxMapProvider describePoint', () => {
+  it('returns a storable address and the administrative hierarchy', async () => {
+    const { fetcher, requests } = queuedFetcher([[addressFeature]]);
+    const provider = createMapboxProvider('test-token', fetcher);
+
+    const result = await provider.describePoint({
+      marketCode: 'DZ',
+      locale: 'ar',
+      latitude: 36.75,
+      longitude: 3.06,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.address).toBeTruthy();
+      expect(result.data.admin?.placeName).toBe('Algiers');
+    }
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toContain('permanent=true');
+    expect(requests[0]).toContain('geocode/v6/reverse');
+  });
+
+  it('refuses to describe a point in another country', async () => {
+    const { fetcher } = queuedFetcher([[outsideCafeFeature]]);
+    const provider = createMapboxProvider('test-token', fetcher);
+
+    const result = await provider.describePoint({
+      marketCode: 'EG',
+      locale: 'en',
+      latitude: 36.75,
+      longitude: 3.06,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+  });
+
+  it('maps a provider outage to a stable error', async () => {
+    const provider = createMapboxProvider('test-token', async () => {
+      throw new Error('socket hang up');
+    });
+
+    const result = await provider.describePoint({
+      marketCode: 'DZ',
+      locale: 'en',
+      latitude: 36.75,
+      longitude: 3.06,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('map_provider_unavailable');
   });
 });

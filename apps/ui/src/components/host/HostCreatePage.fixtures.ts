@@ -19,6 +19,11 @@ const hostCreateMocks = vi.hoisted(() => ({
   invalidateCreatedEvent: vi.fn(),
   isAuthenticated: true,
   isLoading: false,
+  nearbyVenues: [] as unknown[],
+  venueSearch: [] as unknown[],
+  sendVerificationOtp: vi.fn(),
+  signInEmailOtp: vi.fn(),
+  signInSocial: vi.fn(),
   mapContext: {
     data: undefined as
       | { center: { latitude: number; longitude: number }; bounds: number[] }
@@ -45,8 +50,12 @@ export const getHostCreateMocks = () => hostCreateMocks;
  */
 const applyDefaultHostCreateMocks = () => {
   hostCreateMocks.mutateAsync.mockResolvedValue(CREATED_EVENT);
+  hostCreateMocks.sendVerificationOtp.mockResolvedValue({ error: null });
+  hostCreateMocks.signInEmailOtp.mockResolvedValue({ error: null });
   hostCreateMocks.invalidateCreatedEvent.mockResolvedValue(undefined);
   hostCreateMocks.mapContext.data = READY_MAP_CONTEXT;
+  hostCreateMocks.nearbyVenues = [];
+  hostCreateMocks.venueSearch = [];
   hostCreateMocks.mapContext.isError = false;
   hostCreateMocks.mapContext.error = null;
 };
@@ -56,12 +65,53 @@ applyDefaultHostCreateMocks();
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => hostCreateMocks.navigate,
   useRouter: () => ({ invalidate: hostCreateMocks.routerInvalidate }),
+  Link: ({ children }: { children: ReactNode }) =>
+    createElement('a', { href: '#' }, children),
+}));
+
+vi.mock('../../lib/auth', () => ({
+  authClient: {
+    emailOtp: { sendVerificationOtp: hostCreateMocks.sendVerificationOtp },
+    signIn: {
+      emailOtp: hostCreateMocks.signInEmailOtp,
+      social: hostCreateMocks.signInSocial,
+    },
+  },
+}));
+
+vi.mock('../auth/Turnstile', () => ({
+  Turnstile: ({ onToken }: { onToken: (token: string) => void }) =>
+    createElement(
+      'button',
+      { onClick: () => onToken('captcha-token') },
+      'Solve captcha',
+    ),
 }));
 
 vi.mock('../../lib/app-providers', () => ({
   useAuth: () => ({
     isAuthenticated: hostCreateMocks.isAuthenticated,
     isLoading: hostCreateMocks.isLoading,
+    user: hostCreateMocks.isAuthenticated
+      ? { id: 'usr_host01', name: 'Amina Host', email: 'host@example.com' }
+      : null,
+  }),
+}));
+
+vi.mock('../../features/profile/hooks', () => ({
+  useMyProfile: () => ({
+    data: { userId: 'usr_host01', displayName: 'Amina Host', revision: 0 },
+    userId: 'usr_host01',
+    isAuthLoading: false,
+    refetch: vi.fn(),
+  }),
+  useUpdateDisplayName: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
+vi.mock('../../features/auth/hooks', () => ({
+  usePublicAuthConfig: () => ({
+    data: { isTurnstileBypassed: true },
+    isError: false,
   }),
 }));
 
@@ -69,6 +119,17 @@ vi.mock('../../features/events/hooks', () => ({
   useCreateEvent: () => ({ mutateAsync: hostCreateMocks.mutateAsync }),
   useInvalidateCreatedEvent: () => hostCreateMocks.invalidateCreatedEvent,
   useHostMapContext: () => hostCreateMocks.mapContext,
+  useNearbyVenues: () => ({
+    data: hostCreateMocks.nearbyVenues,
+    isPending: false,
+  }),
+  useVenueSearch: () => ({
+    data: hostCreateMocks.venueSearch,
+    error: null,
+    isError: false,
+    isFetching: false,
+    refetch: vi.fn(),
+  }),
 }));
 
 vi.mock('./ClientOnly', () => ({
@@ -77,8 +138,10 @@ vi.mock('./ClientOnly', () => ({
 
 vi.mock('./HostMap', () => ({
   HostMap: ({
+    isInteractive = true,
     onVenueSelect,
   }: {
+    isInteractive?: boolean;
     onVenueSelect: (venue: {
       providerId: string;
       kind: 'poi' | 'address';
@@ -88,40 +151,44 @@ vi.mock('./HostMap', () => ({
       longitude: number;
     }) => void;
   }) =>
-    createElement('div', null, [
-      createElement(
-        'button',
-        {
-          key: 'poi',
-          onClick: () =>
-            onVenueSelect({
-              providerId: 'poi-cafe',
-              kind: 'poi' as const,
-              name: 'Founders Café',
-              address: '12 Startup Street, Algiers',
-              latitude: 36.7538,
-              longitude: 3.0588,
-            }),
-        },
-        'Choose venue',
-      ),
-      createElement(
-        'button',
-        {
-          key: 'address',
-          onClick: () =>
-            onVenueSelect({
-              providerId: 'address-yousfi',
-              kind: 'address' as const,
-              name: '15 Rue Yousfi Mohamed',
-              address: '15 Rue Yousfi Mohamed, Alger',
-              latitude: 36.7501,
-              longitude: 3.0601,
-            }),
-        },
-        'Choose address',
-      ),
-    ]),
+    createElement(
+      'div',
+      { 'data-testid': 'host-map', 'data-interactive': String(isInteractive) },
+      [
+        createElement(
+          'button',
+          {
+            key: 'poi',
+            onClick: () =>
+              onVenueSelect({
+                providerId: 'poi-cafe',
+                kind: 'poi' as const,
+                name: 'Founders Café',
+                address: '12 Startup Street, Algiers',
+                latitude: 36.7538,
+                longitude: 3.0588,
+              }),
+          },
+          'Choose venue',
+        ),
+        createElement(
+          'button',
+          {
+            key: 'address',
+            onClick: () =>
+              onVenueSelect({
+                providerId: 'address-yousfi',
+                kind: 'address' as const,
+                name: '15 Rue Yousfi Mohamed',
+                address: '15 Rue Yousfi Mohamed, Alger',
+                latitude: 36.7501,
+                longitude: 3.0601,
+              }),
+          },
+          'Choose address',
+        ),
+      ],
+    ),
 }));
 
 vi.mock('./VenueSearch', () => ({
@@ -164,10 +231,6 @@ vi.mock('./DatetimePicker', () => ({
     ),
 }));
 
-vi.mock('./ScheduleSummary', () => ({
-  ScheduleSummary: () => createElement('div', null, 'Schedule summary'),
-}));
-
 const market = {
   code: 'DZ',
   slug: 'algeria',
@@ -187,6 +250,8 @@ export const renderHostCreateWizard = (locale: 'ar' | 'fr' | 'en' = 'en') =>
       market,
       city,
       mapboxToken: 'map-token',
+      turnstileSiteKey: 'test-site-key',
+      hasSocial: false,
     }),
   );
 
@@ -219,6 +284,5 @@ export const resetHostCreateFixtures = () => {
 export const publishHostEvent = async () => {
   await goToHostDetails();
   fillHostDetails();
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
   fireEvent.click(screen.getByRole('button', { name: 'Confirm and publish' }));
 };

@@ -1,14 +1,11 @@
 import { createFileRoute, notFound } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import {
-  getPublicProfile,
-  getUpcomingEvents,
-  type EventFeedItem,
-  type PublicProfile,
-} from '@founders-coffee/server-fns';
+import { profile_title } from '@founders-coffee/i18n';
 
-import { PublicProfilePage } from '../components/profile/PublicProfilePage';
+import { eventsApi, type EventFeedItem } from '../features/events/api';
+import { profileApi, type PublicProfile } from '../features/profile/api';
+import { PublicProfilePage } from '../features/profile/components/PublicProfilePage';
 
 export const Route = createFileRoute('/u/$userId')({
   component: () => {
@@ -31,19 +28,28 @@ export const Route = createFileRoute('/u/$userId')({
   }> => {
     let profile: PublicProfile;
     try {
-      profile = await getPublicProfile({ data: { userId: params.userId } });
+      profile = await profileApi.getPublicProfile(params.userId);
     } catch (error) {
       if (appErrorCode(error) === 'not_found') throw notFound();
       throw error;
     }
-    const page = await getUpcomingEvents({
-      data: { hostId: params.userId, limit: 20 },
+    const page = await eventsApi.getHostedEvents({
+      data: { hostId: params.userId, limit: 12 },
     });
     return { profile, events: page.items };
   },
-  head: ({ loaderData }) => ({
+  headers: () => ({
+    'Cache-Control': 'private, no-store',
+    'X-Robots-Tag': 'noindex, nofollow',
+  }),
+  staleTime: 0,
+  gcTime: 0,
+  head: ({ loaderData, match }) => ({
     meta: [
-      { title: `${loaderData?.profile.name ?? 'Profile'} - founders.coffee` },
+      {
+        title: `${loaderData?.profile.displayName ?? profile_title({}, { locale: match.context.locale })} - founders.coffee`,
+      },
+      { name: 'robots', content: 'noindex, nofollow' },
     ],
   }),
 });

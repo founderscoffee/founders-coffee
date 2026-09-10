@@ -80,15 +80,38 @@ the current sequence.
 
 ## Active execution plans
 
-1. Complete the [Event Creation Remediation Plan](./event-creation-remediation-plan.md) through
-   EC-10. EC-06 is complete with the active shared Free-plan WAF rule, and EC-07 completes the
-   authenticated localized wizard. EC-08 and EC-09 may continue now; EC-10 remains gated on its
-   deployment, production DNS/WAF behavior, and smoke evidence.
-2. Immediately after EC-10, begin the
+1. Complete final handoff for the [Event Creation Remediation Plan](./event-creation-remediation-plan.md).
+   EC-01 through EC-10 are complete and signed off: 18/18 staging browser cases on 2026-09-03,
+   production release/DNS/WAF evidence on 2026-09-04, and the authorized production creation smoke
+   performed and verified on 2026-09-10.
+2. EC-10 was signed off on 2026-09-10 and CO-01 approved the same day, so the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
-   at CO-01.
+   is open. CO-02 was implemented locally on 2026-09-10 and is not deployed.
+
+**PF-03b is now on the critical path.** CO-03's migration (`0025`, seven additive tables) is
+quarantined behind `0021`-`0024`, because the quarantine test rejects a shipped migration that
+follows a pending journal entry. Nothing from CO-03 onwards can reach staging or production until
+those four contractions are promoted, which is PF-03b — a release ticket needing a recorded
+deployed Worker version, a D1 recovery point and a compatible rollback version. It was previously
+described as able to wait indefinitely; that was true only while nobody needed a new migration.
+
+**Deploy order changed by CO-02.** `apps/ui` now binds `NOTIFICATION_SCHEDULE` across scripts to a
+Durable Object class defined in `apps/worker-jobs`, so worker-jobs deploys first in each
+environment; a binding naming a script that does not yet define the class is rejected. There is no
+data migration and nothing to roll back in D1 — the change is bindings, a cron interval and code —
+but a ui deployed against a worker-jobs that lacks the class will fail to deploy rather than degrade,
+which is why the order is written here rather than left to be discovered.
 
 The second plan closes the real-world community loop through frozen RSVP eligibility, attendance,
 feedback, repeat hosting, essential admin operations, trust/moderation, weekly decisions, and
 truthful community-health evidence. It complements event creation and does not authorize any
 post-community commercial phase.
+
+The [Profile and Account Management Plan](./profile-account-implementation-plan.md) is a supporting
+P1-004 lane approved on 2026-09-08. It removes profile residence, gives members control of optional
+public details and photos, and adds full account/privacy controls. It does not replace the EC → CO
+execution priority. Its delivery, retention and moderation integrations reuse the named CO owners;
+writing the plan does not mean those capabilities have shipped. The 2026-09-08 implementation
+request started the PF lane locally as a supporting foundation. The production smoke has since been
+certified separately on 2026-09-10; nothing in the PF lane is deployed, and CO implementation begins
+at CO-01.

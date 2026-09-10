@@ -20,6 +20,7 @@ export const CONFIG_FILES = [
  */
 export const MAX_LINES_EXEMPT = [
   'libs/domain/src/geo/data/*.ts',
+  'libs/domain/src/venues/data/*.ts',
   'libs/db/src/schema.ts',
 ];
 

@@ -20,12 +20,34 @@
       "migrations_dir": "../../libs/db/migrations",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "PROFILE_ASSETS",
+      "bucket_name": "founders-coffee-assets-dev",
+    },
+  ],
   "send_email": [{ "name": "EMAIL" }],
   "ai": { "binding": "AI" },
   "vectorize": [
     { "binding": "VECTOR", "index_name": "founders-coffee-embeddings-staging" },
   ],
-  "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NOTIFICATION_SCHEDULE",
+        "class_name": "NotificationScheduleDO",
+      },
+    ],
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["NotificationScheduleDO"] },
+  ],
+  "queues": {
+    "producers": [
+      { "binding": "NOTIFICATIONS", "queue": "founders-coffee-notifications" },
+    ],
+  },
+  "triggers": { "crons": ["*/15 * * * *", "0 3 * * *"] },
 
   // ── Deploy environments ──────────────────────────────────────────────────────────────────────
   // This app has no Vite build, so it deploys with `wrangler deploy --env <name>` (unlike the three
@@ -35,7 +57,13 @@
   // Twilio vars, so leaving it unset locally keeps `wrangler dev` on the console-logging variant
   // instead of billing real Algerian SMS. It is a dynamic alphanumeric sender ID (supported for DZ
   // without pre-registration) and is not a secret — the two credentials are `wrangler secret`s.
-  // `*/1 * * * *` drives the scheduled-notification sweep, `0 3 * * *` the payment-backlog reconcile.
+  // `0 3 * * *` drives the payment-backlog reconcile. `*/15 * * * *` is the notification RECOVERY
+  // sweep and not the delivery path: a `NotificationScheduleDO` per event holds an alarm at that
+  // event's next `send_at`, fires a `notification_due` message onto the notifications queue, and the
+  // consumer below delivers it. The cron exists for the rows an alarm never announces — see
+  // `RECOVERY_SWEEP_CRON` in `src/index.ts`, whose value must equal the string written here.
+  // The Worker is therefore both producer and consumer of the notifications queue, which is why the
+  // producer binding is declared alongside the consumer in every environment.
   // Queues are provisioned per environment and named accordingly, because one shared queue would let
   // a staging message be delivered by production. `src/index.ts` resolves the environment-suffixed
   // name back to the catalogue name, so the handler routes on one name in every environment. Each
@@ -58,6 +86,12 @@
           "migrations_dir": "../../libs/db/migrations",
         },
       ],
+      "r2_buckets": [
+        {
+          "binding": "PROFILE_ASSETS",
+          "bucket_name": "founders-coffee-assets-staging",
+        },
+      ],
       "send_email": [{ "name": "EMAIL" }],
       "ai": { "binding": "AI" },
       "vectorize": [
@@ -66,8 +100,22 @@
           "index_name": "founders-coffee-embeddings-staging",
         },
       ],
-      "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
+      "triggers": { "crons": ["*/15 * * * *", "0 3 * * *"] },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "NOTIFICATION_SCHEDULE",
+            "class_name": "NotificationScheduleDO",
+          },
+        ],
+      },
       "queues": {
+        "producers": [
+          {
+            "binding": "NOTIFICATIONS",
+            "queue": "founders-coffee-notifications-staging",
+          },
+        ],
         "consumers": [
           {
             "queue": "founders-coffee-notifications-staging",
@@ -102,6 +150,12 @@
           "migrations_dir": "../../libs/db/migrations",
         },
       ],
+      "r2_buckets": [
+        {
+          "binding": "PROFILE_ASSETS",
+          "bucket_name": "founders-coffee-assets-production",
+        },
+      ],
       "send_email": [{ "name": "EMAIL" }],
       "ai": { "binding": "AI" },
       "vectorize": [
@@ -110,8 +164,22 @@
           "index_name": "founders-coffee-embeddings-production",
         },
       ],
-      "triggers": { "crons": ["*/1 * * * *", "0 3 * * *"] },
+      "triggers": { "crons": ["*/15 * * * *", "0 3 * * *"] },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "NOTIFICATION_SCHEDULE",
+            "class_name": "NotificationScheduleDO",
+          },
+        ],
+      },
       "queues": {
+        "producers": [
+          {
+            "binding": "NOTIFICATIONS",
+            "queue": "founders-coffee-notifications-production",
+          },
+        ],
         "consumers": [
           {
             "queue": "founders-coffee-notifications-production",

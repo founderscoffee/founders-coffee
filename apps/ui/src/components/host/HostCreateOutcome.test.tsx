@@ -5,7 +5,7 @@ import {
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 const hostCreateMocks = getHostCreateMocks();
@@ -16,7 +16,7 @@ const failPublishWith = (code: string) =>
     message: `server said ${code}`,
   });
 
-const draftKey = 'fc:event-draft:DZ:1';
+const draftKey = 'fc:event-draft:DZ';
 
 describe('HostCreatePage EC-08 outcomes', () => {
   afterEach(resetHostCreateFixtures);
@@ -102,7 +102,6 @@ describe('HostCreatePage EC-08 outcomes', () => {
       ).disabled,
     ).toBe(false);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(
       (screen.getByLabelText(/^Title/) as unknown as HTMLInputElement).value,
     ).toBe('Protected meetup');
@@ -112,23 +111,23 @@ describe('HostCreatePage EC-08 outcomes', () => {
     ).toBe('A complete protected meetup for founders.');
   });
 
-  it('sends an expired session back through login with the draft preserved', async () => {
+  it('reopens the sign-in gate in place when the session expired, keeping the draft', async () => {
     failPublishWith('unauthenticated');
     window.history.replaceState({}, '', '/algeria/host/create?city=1');
     renderHostCreateWizard();
     await publishHostEvent();
 
-    await waitFor(() =>
-      expect(hostCreateMocks.navigate).toHaveBeenCalledWith({
-        to: '/login',
-        search: { redirect: '/algeria/host/create?city=1' },
-      }),
+    await screen.findByRole('heading', {
+      name: 'One last step, sign in to publish',
+    });
+    expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ to: '/login' }),
     );
     await screen.findByText(
       'Your session expired. Sign in again to publish - your draft is saved.',
     );
     const draft = window.sessionStorage.getItem(draftKey);
     expect(draft).toContain('Protected meetup');
-    expect(draft).toContain('"step":4');
+    expect(draft).toContain('"step":3');
   });
 });

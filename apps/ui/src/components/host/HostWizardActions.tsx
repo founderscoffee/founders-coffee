@@ -8,12 +8,15 @@ import {
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
+import { TOTAL_STEPS } from '../../features/events/useHostCreateWizard';
+
 export const HostWizardActions = ({
   locale,
   step,
   isAuthenticated,
   isDisabled,
   isPublishing,
+  hint,
   onBack,
   onNext,
 }: {
@@ -22,19 +25,20 @@ export const HostWizardActions = ({
   isAuthenticated: boolean;
   isDisabled: boolean;
   isPublishing: boolean;
+  hint?: string;
   onBack: () => void;
   onNext: () => void;
 }) => {
   const primaryLabel =
-    step < 4
+    step < TOTAL_STEPS
       ? host_next({}, { locale })
       : isAuthenticated
         ? host_confirm_publish({}, { locale })
         : host_continue_login({}, { locale });
 
   return (
-    <div className="sticky inset-x-0 bottom-0 z-30 -mx-4 mt-6 border-t border-base-300/70 bg-base-100/95 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur md:static md:mx-0 md:rounded-2xl md:border md:p-3 md:shadow-sm">
-      <div className="mx-auto flex max-w-3xl items-center justify-end gap-2">
+    <div className="sticky inset-x-0 bottom-0 z-30 mt-auto flex items-center justify-between gap-3 border-t border-base-300 bg-base-100 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur md:px-7 lg:static lg:shadow-none">
+      <div className="flex items-center gap-2">
         {step > 1 && (
           <Button
             variant="ghost"
@@ -49,7 +53,7 @@ export const HostWizardActions = ({
           variant="primary"
           onClick={onNext}
           disabled={isDisabled}
-          className="h-12 min-w-36 px-6 text-base font-semibold"
+          className="h-12 min-w-28 px-6 text-base font-semibold"
         >
           {isPublishing ? (
             <span className="flex items-center gap-2">
@@ -61,6 +65,7 @@ export const HostWizardActions = ({
           )}
         </Button>
       </div>
+      {hint && <span className="text-caption text-neutral">{hint}</span>}
     </div>
   );
 };

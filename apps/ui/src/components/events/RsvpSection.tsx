@@ -10,27 +10,36 @@ import {
   rsvp_confirmed_help,
   rsvp_cta,
   rsvp_error,
-  rsvp_event_full,
   rsvp_help,
-  rsvp_no_limit,
-  rsvp_remaining,
   rsvp_saving,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
+import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
 import { useAuth } from '../../lib/app-providers';
+import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
 
 export type RsvpSectionProps = {
   event: EventWithAttendance;
   hostName: string;
   locale: Locale;
+  isHost: boolean;
+  live: UseEventLiveResult | null;
+  isWindowOpen: boolean;
 };
 
-export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
+export const RsvpSection = ({
+  event,
+  hostName,
+  locale,
+  isHost,
+  live,
+  isWindowOpen,
+}: RsvpSectionProps) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
@@ -41,12 +50,10 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const isGoing = event.viewerRsvp === 'going';
-  const isFull =
-    event.capacity > 0 && event.remaining !== null && event.remaining <= 0;
+  const isCancelled = event.status === 'cancelled';
 
   const messageFor = (cause: unknown) => {
     const code = appErrorCode(cause);
-    if (code === 'event_full') return rsvp_event_full({}, { locale });
     if (code === 'already_rsvpd') return rsvp_already({}, { locale });
     return rsvp_error({}, { locale });
   };
@@ -89,9 +96,20 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
     );
   };
 
+  if (isHost) {
+    return (
+      <HostEventPanel
+        event={event}
+        locale={locale}
+        live={live}
+        isWindowOpen={isWindowOpen}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      {isGoing ? (
+      {isCancelled ? null : isGoing ? (
         <>
           <p className="inline-flex w-fit items-center gap-2 rounded-full bg-success-tint px-3 py-1.5 text-body-sm font-medium text-success">
             <Check className="size-4" aria-hidden="true" />
@@ -108,10 +126,6 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
             {rsvp_cancel({}, { locale })}
           </button>
         </>
-      ) : isFull ? (
-        <button type="button" className="btn btn-lg" disabled>
-          {rsvp_event_full({}, { locale })}
-        </button>
       ) : (
         <>
           <button
@@ -151,19 +165,6 @@ export const RsvpSection = ({ event, hostName, locale }: RsvpSectionProps) => {
           >
             {retry({}, { locale })}
           </button>
-        </p>
-      ) : null}
-
-      {event.capacity > 0 && event.remaining !== null ? (
-        <p className="text-body-sm text-neutral">
-          {event.remaining > 0
-            ? rsvp_remaining({ count: String(event.remaining) }, { locale })
-            : rsvp_event_full({}, { locale })}
-        </p>
-      ) : null}
-      {event.capacity === 0 ? (
-        <p className="text-body-sm text-neutral">
-          {rsvp_no_limit({}, { locale })}
         </p>
       ) : null}
 

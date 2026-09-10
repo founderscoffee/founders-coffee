@@ -19,7 +19,7 @@ const rsvpCancelSchema = z.object({
 
 /**
  * Create an RSVP for an event. Requires `rsvp:create` permission (member/host/moderator/admin).
- * Returns `{ status: 'going' }` on success, or throws `event_full` / `already_rsvpd`.
+ * Returns `{ status: 'going' }` on success, or throws `already_rsvpd`.
  */
 export const createRsvp = createServerFn({ method: 'POST', strict: false })
   .middleware([

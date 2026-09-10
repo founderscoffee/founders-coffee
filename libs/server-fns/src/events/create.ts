@@ -15,10 +15,8 @@ export const EVENTS_CREATED_METRIC = 'events_created';
 interface EventCreateTelemetry {
   readonly hostId: string;
   readonly marketCode: string;
-  readonly cityCode: string;
-  readonly category: string;
+  readonly cityCode: string | null;
   readonly language: string;
-  readonly capacity: number;
   readonly durationMinutes: number;
 }
 
@@ -30,6 +28,10 @@ interface EventCreateTelemetry {
  * the context from an explicit allow-list rather than spreading the input is what keeps that true
  * when the schema gains a field: a new free-text column is absent here until someone adds it
  * deliberately. Coordinates are omitted for the same reason — they locate a specific venue.
+ *
+ * `cityCode` is null on the request line and filled in on success, because the city is now derived
+ * from the point rather than chosen: reading it off the input would report whatever the host
+ * happened to override, or nothing at all, instead of where the event actually landed.
  */
 const telemetryFor = (
   hostId: string,
@@ -37,10 +39,8 @@ const telemetryFor = (
 ): EventCreateTelemetry => ({
   hostId,
   marketCode: input.marketCode,
-  cityCode: input.cityCode,
-  category: input.category,
+  cityCode: input.cityCode ?? null,
   language: input.language,
-  capacity: input.capacity,
   durationMinutes: Math.round((input.endsAt - input.startsAt) / 60_000),
 });
 
@@ -68,7 +68,7 @@ const recordEventCreated = (
   try {
     metrics.trackEvent(EVENTS_CREATED_METRIC, {
       market: telemetry.marketCode,
-      city: telemetry.cityCode,
+      city: telemetry.cityCode ?? undefined,
       locale: telemetry.language,
     });
   } catch (error) {
@@ -106,11 +106,15 @@ export const createEventWithTelemetry = async (
     return result;
   }
 
-  logger.info('event_create_succeeded', {
+  const resolved: EventCreateTelemetry = {
     ...telemetry,
+    cityCode: result.data.cityCode,
+  };
+  logger.info('event_create_succeeded', {
+    ...resolved,
     eventId: result.data.id,
     stateCode: result.data.stateCode,
   });
-  recordEventCreated(metrics, telemetry);
+  recordEventCreated(metrics, resolved);
   return result;
 };

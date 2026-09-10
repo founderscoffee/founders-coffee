@@ -161,6 +161,28 @@ npm run migrate:production
 npm run migrate:local        # local Miniflare D1
 ```
 
+Local Cloudflare state lives in **one** directory at the repository root, `.wrangler/state`, shared
+by every app. Wrangler resolves `.wrangler/state` against the working directory, so before this each
+app had its own D1 file under the same database name: `migrate:local` migrated the `apps/worker-jobs`
+copy while `npm run ui:dev` served the `apps/ui` copy, and a migration could report success against a
+database nothing reads. `apps/ui` sets `persistState` on the Cloudflare Vite plugin and
+`apps/worker-jobs` passes `--persist-to ../../.wrangler/state`.
+
+A one-off CLI command needs neither flag. Without `--persist-to`, Wrangler resolves `.wrangler/state`
+relative to the app's Wrangler configuration file — there is no persist key and no environment
+variable to change that, only the flag. `npm run setup:local` (also run on `postinstall`) therefore
+symlinks each `apps/*/.wrangler/state` at the shared directory, so the default path lands on the
+shared database whether or not anyone remembers:
+
+```sh
+cd apps/ui && npx wrangler d1 execute founders-coffee-db-staging \
+  --local --command "SELECT COUNT(*) FROM user"
+```
+
+The linker never deletes an app-local state directory that holds data; it reports it and leaves it,
+because that directory is somebody's database. Move what you need into `.wrangler/state`, delete the
+rest, and run `npm run setup:local` again.
+
 ## Required GitHub configuration
 
 Repository secrets (**Settings → Secrets and variables → Actions**):
@@ -249,3 +271,16 @@ match the exported component in PascalCase; that rule is what keeps CI honest.
 ## Not yet wired
 
 - **Playwright e2e smoke** (P0-021) — no post-deploy health check runs today.
+
+## `dangerouslyIgnoreUnhandledErrors` in `libs/server-fns`
+
+Better Auth's router settles the `Response` a caller awaits and separately drops the `APIError` its
+endpoint threw, so every test that deliberately submits a wrong or expired code — most of the
+PF-07c contact-change suite — ends the run with an unhandled rejection that no caller could have
+caught. The flag is set on that project alone, and only because the rejection originates inside a
+dependency: an `unhandledrejection` listener in `setup.ts` was tried first and never fires under the
+Workers pool.
+
+What it costs: a genuine unhandled rejection in `libs/server-fns`' own code no longer fails that
+project's run. Every other project keeps the default. Remove the flag when the upstream router stops
+orphaning the promise, and check by deleting it and running the contact suites.

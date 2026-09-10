@@ -69,21 +69,48 @@ The **market landing is the main page**.
 
 ## 3. Components
 
+The profile/account redesign is specified in the
+[Profile UI/UX Design Specification](./profile-ui-design-spec.md), with an isolated interactive
+study and responsive Arabic/French/English layouts. It extends Round Table under PF-04 through
+PF-11, preserves private-by-default optional fields and removes residence from the member profile.
+
 ### 3.1 Hero (`MarketHero.tsx`)
 
 Display-size title in Outfit 600, subtitle in mocha, and a **pill search** — `h-12 md:h-14`,
 `rounded-full`, 1px sand, clay border on focus-within — with the CTA as a `rounded-full` roast
 button **inside** it at inline-end. No radial glow, no drop shadow.
 
+**Landmark artwork.** Each market gets one hand-drawn skyline illustration behind the hero, keyed
+by market code in `HERO_ART` and imported from `src/assets/` so Vite fingerprints it. The art is
+**3:1** (2172x724, ~2.99:1 for Saudi) and the band it sits in would otherwise be 4.3:1 at 1440 and
+5.7:1 at 1920 -- an `object-cover` crop there removes 30-48% of the image height, and the measured
+ink margins leave no room for it: Algeria's ink runs rows 18.3%-81.7%, Egypt's 32.5%-82.5%, Saudi's
+11.7%-94.2%. Saudi's 5.8% bottom clearance is the binding constraint, and no `object-position`
+saves it. So the band adopts the art's aspect instead of cropping it: the section takes
+`min-h-[calc(min(100vw,2172px)/2.99)]` and the image is bottom-anchored at its natural ratio, its
+own linen ground blending into `bg-base-200` with no seam. `/2.99` rather than `/3` because Saudi
+is 725px tall and at `/3` overshot the band by 1px, painting a linen hairline over the navbar.
+
+Two things not to change without re-measuring:
+
+- **No `overflow-hidden` on the section.** `HeroCitySearch`'s listbox is `absolute top-full` inside
+  it; clipping the section swallows the city dropdown.
+- Below `md` the inner column carries `pb-[calc(33.4vw+1rem)]`, which keeps a 16px gap between the
+  search pill and the top of the illustration. At `md`+ the art fills the band and the text floats
+  over its empty centre -- the centre 45% of every frame holds only 4-11% of the ink.
+
+Replacement art wants the same 3:1 ratio, a background within a few steps of linen `#F3EBDD`, and
+subjects in the outer thirds. Art at ~5:1 would let the band go back to a fixed height.
+
 ### 3.2 Event card (`EventCard.tsx`)
 
 Bordered card on paper, `rounded-box`, hover raises `--shadow-2` and nothing else. Linen date tile
 (weekday / day / month, the weekday and month as eyebrows). Body: title, `time · venue, city`, and
-a footer row with `+N going` and the capacity chip.
+a footer row with `+N going` and, for the viewer's own events, the going chip.
 
-The capacity chip reads `event.remaining`, which `EventAttendance` computes as `capacity - rsvps`
-and leaves `null` when uncapped: `> 0` renders `chairs_left` on a clay tint with a clay dot,
-`<= 0` renders `full_waitlist` on linen. Never recompute it from `capacity` in the component.
+Attendance is `event.goingCount` — `EventAttendance` reads it straight off the denormalized
+`events.rsvps` counter. There is no seat count and no full state: capacity left the schema, so a
+café with twelve chairs says so in the host's own description.
 
 ### 3.3 Empty states (`EmptyState.tsx`)
 
@@ -92,6 +119,120 @@ error route. Muted mark (linen table, clay chair) + title + optional body + one 
 the ☕ and ⚠️ emoji, which were doing the work of an illustration at 60px.
 
 ### 3.4 Host create wizard (`HostCreatePage.tsx`)
+
+**Step 1 is its own screen.** A full-height two-pane layout under the navbar — satellite map
+(`mapbox://styles/mapbox/standard-satellite`) filling one side, a paper panel holding a DaisyUI
+`steps` stepper, the search field and a radio list of nearby venues on the other. The panel comes
+first in the DOM so it lands on the inline-start side in both directions. The map carries exactly
+one control, a labelled `حدد موقعي` pill that flies the camera on click; there are no zoom buttons
+and no explainer bar. Steps 2 and 3 keep the centred card.
+
+**Where the nearby venues come from.** Not the map provider. Mapbox Search Box category search
+returns **zero** cafés and zero coworking spaces in Algiers and Cairo — verified live across five
+points in the Algiers wilaya — while returning results in Oran, Riyadh, Tunis and London. Its text
+search is nearly as thin there (`cafe` → 1 result, `مقهى` → 0) and a reverse geocode on central
+Algiers returns a street with no POI. OpenStreetMap has 110 named cafés in Algiers, 120 in Cairo,
+113 in Riyadh. Google Places is excluded by its own terms: Places results must be shown on a Google
+map if a map is displayed, and Places content may not be cached beyond `place_id`.
+
+So venues are **snapshotted from OSM offline** by `tools/osm/snapshot-venues.mjs` and committed as
+`libs/domain/src/venues/data/*.ts`, the same shape `geo/data` already ships. Nothing calls Overpass
+at request time — its public endpoint rate-limits and its policy excludes production traffic. The
+snapshot also stores each city's centre and bounds, so `getHostMapContextResolver` serves a
+snapshotted city without a provider call at all.
+
+It covers 88 of the 98 featured cities — 54 Algerian, 21 Egyptian, 13 Saudi, 1,560 venues — after
+dropping four the geocoder could not resolve by name (`B. B. Arreridj`, `PorSaid`, `Bani Sweif`,
+`Arish`) and those with nothing tagged. Every other city falls back to search and tapping the map,
+as it did everywhere before.
+
+Refreshing it is two steps, and takes roughly ninety minutes because Overpass has to be throttled:
+`npm run venues:snapshot` writes raw Overpass output to the gitignored `.osm-snapshot/` (resumable
+— it skips cities already fetched, so an interrupted run continues where it stopped), then
+`npm run venues:build` regenerates the committed modules. Three things the script learned the hard
+way. Mirrors reject a default runtime `User-Agent` with a plain-text notice rather than JSON, and
+answer 200 with a `remark` when a query runs out of memory — either read as "no results" silently
+records a city as having no cafés. And **`overpass.osm.ch` is a Swiss regional extract**: it
+answers 200 with an empty result for anything outside its own bbox, which recorded Algiers, Cairo,
+Batna, Blida and thirty other cities as having no cafés at all. Any mirror added to the rotation
+must be checked against a non-European city first; the script now probes them at startup and drops
+whatever it cannot reach. Do not run it with the dev server up unless Vite is ignoring
+`.osm-snapshot/`; the write-per-city churn re-optimises deps until SSR fails.
+
+**Publishing must trust a snapshot venue.** `createEventResolver` re-verifies every venue by
+reverse-geocoding the submitted point and overwriting the address and coordinates with the
+provider's answer. For an OSM café in Algiers that either fails with `map_venue_unsupported` or
+silently replaces the café's address with a bare street — which is exactly what happened the first
+time this ran end to end. `verifiedVenue` now matches a `venueProviderId` beginning `osm:` against
+the city snapshot and, when the submitted point is still within 50m of the stored one, skips the
+provider entirely. `useHostCreateWizard` must keep sending `venueProviderId`; without it the whole
+mechanism silently reverts to the provider.
+
+**حدد موقعي cannot leave the city, so it must say so.** The map's `maxBounds` is the selected
+city's box, and mapbox-gl clamps any `flyTo` outside it to the nearest in-bounds point — a host in
+Oran with Algiers in the URL was flown to farmland on the Algiers boundary and told nothing. The
+control now checks containment first: inside the city it flies as before; outside it reports the
+point up to `HostCreatePage`, which resolves it against the snapshot's city bounds and offers a
+one-click switch ("You seem to be outside Algiers. Use Oran instead"), or, beyond 40km from any
+snapshotted centre, sends the host back to the city picker. Do not remove the bounds check to
+"make locate-me work" -- the wizard is city-scoped and `createEventResolver` rejects a venue
+outside the selected city, so flying there would only move the failure later.
+
+**Selecting a venue no longer writes into the search box.** Results are a list under the field
+rather than a dropdown over it, so writing the chosen address back would re-run the search and
+replace the list the host just picked from.
+
+**The pin is the location; city and state are derived from it.** The wizard no longer asks for a
+city before showing the map, and `events.city_code` / `state_code` are labels computed from where
+the host actually pointed rather than what they picked. That is what makes the per-state counts
+describe reality. Five separate gates enforced the old model and all five are gone: the `maxBounds`
+camera clamp, the geolocation containment check, the client error mapping, the Mapbox bbox filters,
+and the publish-time re-check. Leaving any one would reintroduce the failure a step later.
+
+`locatePoint` (`libs/server-fns/src/maps/locate.ts`) resolves the pair, split by who owns the data.
+A venue from our own OSM snapshot answers with no provider call at all — the snapshot is keyed by
+city and its name and address are ODbL data we may store. Anything else goes through **Geocoding v6
+reverse with `permanent=true`**, whose `context.region.region_code_full` maps to our state through
+`libs/domain/src/geo/admin-codes.ts` and whose `context.place.name` is matched against that state's
+cities. A host may override the city on the confirmation step; an override names a city, never a
+state, which is still derived from it.
+
+**The pin stays where the host put it.** The provider answers a reverse lookup with its own
+coordinates — the doorway it matched, up to `MAX_REVERSE_DISTANCE_METERS` away — so taking them slid
+the marker out from under the host's finger once the request returned, and the camera then flew to
+the new spot. Only the name and address are taken from the answer; the coordinates are the host's.
+A `placedByHost` ref suppresses the camera fly for a marker the host placed, and the marker renders
+at the clicked point while the request is still in flight rather than after it.
+
+Three traps worth keeping:
+
+- **Search Box results may not be stored.** Mapbox licenses them for temporary use and offers no
+  `permanent=true`. Everything written to an event row now comes from OSM, the host's own pin, or a
+  v6 permanent call — never from Search Box, which stays for interactive browsing only.
+- **Our state codes are not ISO, and for Algeria's post-2019 wilayas they disagree outright.** We
+  call In Salah `53`; ISO calls it `DZ-57`. `admin-codes.ts` is generated by
+  `tools/geo/probe-admin-codes.mjs` and hand-reviewed; a completeness test proves it is bijective
+  but only the probe run proves a pairing is right.
+- **Geocoding v6 rejects `limit > 1` when several `types` are requested** — a 422, which surfaces
+  as `map_provider_unavailable` at publish. `describePoint` asks for one feature and reads its
+  context.
+
+**Getting in.** `?city=` is optional. Without it the route renders `HostCityStep` -- the wizard
+chrome around one city combobox -- instead of redirecting to `/$market`, which is what made the
+navbar's Host link a dead end (it passed no city, so every click 307'd back to the page you were
+already on). Picking a city replaces the URL with `?city=&state=`, the loader re-runs, and the
+wizard mounts with a real city. The route component switches between the two, so the two trees
+never share a hook order.
+
+**Getting out.** An anonymous host completes all three steps and is asked to sign in only at the
+confirmation step, in place: `HostSignInGate` renders inside the step with the summary still on
+screen, and publishes as soon as the code verifies. Nothing navigates to `/login` any more -- not
+the first sign-in, and not an expired session mid-publish. The draft is still written to session
+storage first, because an OAuth provider takes the page away and back; that path returns to the
+confirmation step authenticated and costs one click on Publish. Onboarding is skipped on this
+path (the legacy `/profile` page still sets a home market). The approved
+[profile/account plan](./profile-account-implementation-plan.md), PF-03, removes that residence
+collection and handles a missing display name inside the gate while preserving the pending publish.
 
 3-step wizard implementing **progressive disclosure** (see [`docs/psy.md`](./psy.md)):
 
@@ -182,3 +323,58 @@ this list again, grep for all three signals, not one.
 Two components were worse than off-theme: `PushPermissionPrompt` and `LiveDashboard` used **no
 i18n at all** and rendered hardcoded English to every reader, in an Arabic-first product. Some of
 the keys they needed already existed, already translated, and were referenced by nothing.
+
+---
+
+## 8. Prototype conformance — 2026-09-04
+
+Everything before this section was written against `Product Redesign.dc.html`, whose eight frames
+cover market, event-card states, event detail and wizard step 1. The interactive
+`Prototype Vertical Slice.dc.html` covers more screens and, where the two overlap, is the sharper
+reference: it carries real measurements rather than a rendered picture of them.
+
+Read against the prototype's own markup — not against a screenshot — the app had drifted in these
+places. All are fixed and verified on staging with Playwright at 1200 and 390, in `en` and `ar`.
+
+| Surface            | Was                                                                                | Design                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| City tiles         | sand border on the active tiles, LogoSymbol dot on the empty ones, fixed 2/4 grid  | `border-color` = the tile's own background (so no visible border in either state), no dot, `auto-fill` from 160px  |
+| Feed grids         | `md:grid-cols-2`                                                                   | `auto-fill` from 320px — three columns at desktop                                                                  |
+| Card date block    | `.eyebrow` (uppercase, 0.08em tracking)                                            | `.datechip-line` — same 11px/600, no transform, no tracking                                                        |
+| Card + detail time | start only                                                                         | `starts_at–ends_at`, wrapped in `dir="ltr"` so RTL does not reverse it                                             |
+| Footer             | paper with a top border                                                            | linen band, no rule, pinned to the bottom of short pages                                                           |
+| Search field icon  | a literal 📍, which ignores `text-taupe` and renders in the platform's own colours | a 16px circle, 1.5px border in `currentColor`                                                                      |
+| City page          | bare title, single-column stack, back link at the foot of the page                 | back link first, `market · city` keyline, title beside a "Host here" button, four filter chips, the same card grid |
+| Detail header      | `market › city` breadcrumb                                                         | "Back to {city}"                                                                                                   |
+| Detail attendance  | capacity said three times in three wordings, twice on a free event                 | one going chip on the card's heading row, and only once anyone is going                                            |
+| Detail host        | name as a link, "Hosted by"                                                        | name in bold, `Host · {city}`, Profile button                                                                      |
+| Login              | bordered card, full lockup, help text under the title                              | bare centred column, lettered symbol alone, help under the field                                                   |
+
+Two traps worth keeping:
+
+- **`min-h-*` on `html`, `body` or `#app` is silently ignored.** `apps/ui/src/styles.css` sets
+  `min-height` on those three outside any cascade layer, and unlayered declarations beat every
+  layered one whatever their specificity — Tailwind's utilities layer never gets a say. `html` now
+  carries a definite height so the percentage resolves; do not reach for `min-h-screen` there.
+- **DaisyUI 5 caps `.input`, `.select` and `.textarea` at `clamp(3rem, 20rem, 100%)`.** A field with
+  no width class stops at 320px however wide its container is. `Input` carries `w-full` in its base
+  string for that reason; a caller that wants a narrow field passes its own width and `cn`'s
+  tailwind-merge lets it win.
+
+### Still not built
+
+- **Static map on event detail.** The panel is an empty linen box. Rendering the design's pinned
+  preview means a Mapbox Static Images request per page view on the wizard's existing token — same
+  integration, new per-view cost, so AGENTS.md §1.8 says ask first.
+- **Sponsored chip** on feed cards and the "Coffee paid by" block on detail. Needs a schema column
+  and a scope decision.
+- **"All 48 wilayas"** beside the cities heading. Needs a route that lists a market's full city set;
+  there isn't one.
+- **Toasts with undo** after RSVP and cancel, and **copy-link** on the publish success screen.
+- **Location-permission explainer** in the wizard.
+- The prototype shows a host's **meetup count** (`Host · 14 meetups · Algiers`); the detail payload
+  carries no such count, so the meta line is `Host · {city}`.
+
+Copy is the app's own throughout — the prototype's strings are placeholders and were not carried
+over. The exceptions are the six filter/host keys and two detail keys added for UI that did not
+exist before; their `en` and `ar` come from the design, and the French is unreviewed like the rest.

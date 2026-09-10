@@ -48,18 +48,20 @@ describe('parseNotificationPayload', () => {
     if (!result.ok) expect(result.reason).toContain(field);
   });
 
-  it('requires an sms payload to carry the email content its fallback inherits', () => {
-    const withoutEmail = { ...sms, subject: undefined, html: undefined };
-    const result = parseNotificationPayload('sms', withoutEmail);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.reason).toContain('subject');
-      expect(result.reason).toContain('html');
-    }
+  it('accepts an sms payload carrying no email content, which most now do not', () => {
+    const { subject: _subject, html: _html, ...withoutEmail } = sms;
+    expect(parseNotificationPayload('sms', withoutEmail).ok).toBe(true);
   });
 
-  it('accepts an sms payload as an email payload, which is what the fallback does', () => {
-    expect(parseNotificationPayload('email', sms).ok).toBe(true);
+  it('accepts a push payload with sms content as sms, which is what the fallback does', () => {
+    const primary = { ...push, phoneNumber: '+213600000000', smsBody: 'hi' };
+    expect(parseNotificationPayload('sms', primary).ok).toBe(true);
+  });
+
+  it('accepts a push payload with email content as email, the fallback with no phone', () => {
+    expect(parseNotificationPayload('email', { ...push, ...email }).ok).toBe(
+      true,
+    );
   });
 
   it('rejects a push payload missing its body', () => {

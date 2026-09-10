@@ -1,0 +1,253 @@
+.panel {
+  padding: 28px;
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--radius-box);
+}
+.photo-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-base-300);
+  margin-bottom: 24px;
+}
+.avatar-disc {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: var(--color-base-200);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 29px;
+  flex: none;
+  overflow: hidden;
+}
+.avatar-disc img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-copy {
+  flex: 1;
+  min-width: 0;
+}
+.photo-copy p {
+  font-size: 12px;
+  color: var(--color-neutral);
+  margin: 4px 0 12px;
+  line-height: 1.6;
+}
+.photo-copy .btn {
+  padding-inline: 10px;
+  font-size: 11px;
+}
+.photo-copy small {
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--color-neutral);
+}
+.field {
+  margin-bottom: 24px;
+}
+.field:last-child {
+  margin-bottom: 0;
+}
+.label-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+.label-line label,
+.label-line legend {
+  font-size: 12px;
+  font-weight: 600;
+}
+.tag {
+  font-size: 10px;
+  color: var(--color-neutral);
+  padding: 3px 7px;
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--radius-selector);
+  white-space: nowrap;
+}
+.hint {
+  font-size: 11px;
+  color: var(--color-neutral);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+.editor .input,
+.editor .select,
+.editor .textarea {
+  width: 100%;
+  background: var(--color-base-100);
+  border-color: var(--color-base-300);
+  font-size: 13px;
+  box-shadow: none;
+}
+.editor .input,
+.editor .select {
+  min-height: 46px;
+}
+.editor .textarea {
+  min-height: 125px;
+  padding: 13px;
+  resize: vertical;
+  line-height: 1.8;
+}
+.publication {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--color-neutral);
+}
+.publication label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-height: 44px;
+}
+.publication .toggle {
+  min-height: 0;
+}
+.publication select {
+  font-size: 11px;
+  max-width: 100px;
+  border: 0;
+  background: transparent;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.chip {
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid var(--color-base-300);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-neutral);
+  font-size: 11px;
+}
+.chip[aria-pressed='true'] {
+  color: var(--color-accent);
+  background: var(--color-secondary-tint);
+  border-color: var(--color-secondary);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 21px 0;
+  border-top: 1px solid var(--color-base-300);
+}
+.settings-row h3 {
+  font-size: 14px;
+  font-weight: 500;
+}
+.settings-row p {
+  max-width: 420px;
+  font-size: 12px;
+  color: var(--color-neutral);
+  line-height: 1.7;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.settings-row .btn {
+  font-size: 12px;
+  flex: none;
+}
+.settings-row .toggle {
+  min-height: 0;
+  flex: none;
+}
+.danger-row {
+  margin-top: 16px;
+}
+.danger-row h3 {
+  color: var(--color-error);
+}
+.empty-panel {
+  text-align: center;
+  padding: 60px 30px;
+}
+.empty-mark {
+  width: 95px;
+  height: 95px;
+  margin: 0 auto 28px;
+}
+.empty-panel h2 {
+  font-size: 27px;
+  font-weight: 500;
+}
+.empty-panel p {
+  max-width: 380px;
+  margin: 16px auto 24px;
+  font-size: 13px;
+  color: var(--color-neutral);
+  line-height: 1.8;
+}
+.modal-box {
+  background: var(--color-base-100);
+  padding: 28px;
+  max-width: 470px;
+}
+.modal-box h2 {
+  font-size: 26px;
+  margin-bottom: 14px;
+}
+.modal-box > p {
+  font-size: 14px;
+  color: var(--color-neutral);
+  line-height: 1.8;
+}
+.modal-action .btn {
+  min-width: 95px;
+}
+.error {
+  color: var(--color-error);
+  font-size: 12px;
+  margin-top: 8px;
+}
+:lang(ar) .label-line label,
+:lang(ar) .photo-copy p,
+:lang(ar) .preview-bio,
+:lang(ar) .hint,
+:lang(ar) .chip,
+:lang(ar) .publication {
+  font-size: 13px;
+}
+@media (max-width: 700px) {
+  .panel {
+    padding: 22px 18px;
+  }
+  .photo-row {
+    gap: 13px;
+    align-items: start;
+  }
+  .avatar-disc {
+    width: 60px;
+    height: 60px;
+  }
+  .photo-copy .btn {
+    font-size: 11px;
+  }
+  .chip {
+    min-height: 44px;
+  }
+  .settings-row {
+    gap: 12px;
+  }
+}

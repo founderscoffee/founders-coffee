@@ -1,4 +1,5 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
+import type { geo } from '@founders-coffee/domain';
 
 import {
   distanceMeters,
@@ -7,6 +8,7 @@ import {
   isSupportedVenue,
   isWithinBounds,
   matchesCity,
+  toAdmin,
   toVenue,
   MAX_REVERSE_DISTANCE_METERS,
 } from './mapbox-filters.js';
@@ -18,9 +20,11 @@ import type {
   HostMapContext,
   MapProvider,
   MapProviderLocation,
+  StoredPlace,
 } from './provider.js';
 
 const MAPBOX_SEARCH_URL = 'https://api.mapbox.com/search/searchbox/v1';
+const MAPBOX_GEOCODE_URL = 'https://api.mapbox.com/search/geocode/v6';
 const MAPBOX_TIMEOUT_MS = 6_000;
 const MAPBOX_RESULT_LIMIT = 10;
 const VENUE_TYPES = 'poi,address,street';
@@ -63,7 +67,7 @@ export const createMapboxProvider = (
   };
 
   const resolveCity = async (
-    input: MapProviderLocation,
+    input: MapProviderLocation & { readonly city: geo.GeoCity },
   ): Promise<Result<{ feature: MapboxFeature; context: HostMapContext }>> => {
     const result = await fetchCollection('forward', {
       q: `${input.city.name}, ${input.marketCode}`,
@@ -97,28 +101,107 @@ export const createMapboxProvider = (
     });
   };
 
+  /**
+   * The place at a point, in a form we are allowed to keep.
+   *
+   * Search Box data is licensed for temporary use only and has no permanent option, so nothing it
+   * returns may be written to the database. Geocoding v6 does support `permanent=true`, and one
+   * request carries everything a published event needs: an address to show, and the administrative
+   * hierarchy that turns the pin into a state and a city for counting. It also answers where Search
+   * Box does not — open desert included — which is why it is the publish-time lookup rather than a
+   * fallback.
+   */
+  const describePoint: MapProvider['describePoint'] = async (input) => {
+    const url = new URL(`${MAPBOX_GEOCODE_URL}/reverse`);
+    const params: Record<string, string> = {
+      longitude: String(input.longitude),
+      latitude: String(input.latitude),
+      types: 'address,street,place,region',
+      language: input.locale,
+      limit: '1',
+      permanent: 'true',
+      access_token: accessToken,
+    };
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.set(key, value);
+    }
+    try {
+      const response = await fetcher(url.toString(), {
+        headers: { accept: 'application/json' },
+        signal: AbortSignal.timeout(MAPBOX_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        return mapboxFailure(`Map provider responded with ${response.status}`);
+      }
+      const parsed = mapboxCollectionSchema.safeParse(await response.json());
+      if (!parsed.success) {
+        return mapboxFailure('Map provider returned an invalid response');
+      }
+      const features = parsed.data.features.filter(
+        (feature) => featureCountry(feature) === input.marketCode,
+      );
+      const addressable = features.find(isAddressableLocation);
+      const anyFeature = addressable ?? features[0];
+      if (!anyFeature) {
+        return err(
+          new AppError(
+            'map_venue_unsupported',
+            'No place could be resolved for this point',
+          ),
+        );
+      }
+      const place: StoredPlace = {
+        address:
+          anyFeature.properties.full_address ?? anyFeature.properties.name,
+        admin: toAdmin(anyFeature),
+      };
+      return ok(place);
+    } catch {
+      return mapboxFailure('Map provider request failed');
+    }
+  };
+
   const getCityViewport: MapProvider['getCityViewport'] = async (input) => {
-    const result = await resolveCity(input);
+    if (!input.city) {
+      return err(
+        new AppError('map_city_not_found', 'No city to resolve a viewport for'),
+      );
+    }
+    const result = await resolveCity({ ...input, city: input.city });
     return result.ok ? ok(result.data.context) : result;
   };
 
   /**
    * Candidate venues inside the selected city.
    *
-   * City membership is decided by the city's own bounding box, never by comparing the provider's
+   * Without a city the search runs against the whole market, biased toward where the host is
+   * looking. With one, membership is decided by the city's own bounding box, never by comparing the
+   * provider's
    * place names: those are localized — `Algiers`, `Alger`, `الجزائر العاصمة` — and no string
    * comparison relates them, so a name filter silently emptied every result for a host reading
    * anything but English. Supported venues are ranked above bare addresses so a real café still
    * wins where the provider indexes one.
    */
   const searchVenues: MapProvider['searchVenues'] = async (input) => {
-    const cityResult = await resolveCity(input);
-    if (!cityResult.ok) return cityResult;
-    const { bounds, center } = cityResult.data.context;
+    const cityResult = input.city
+      ? await resolveCity({ ...input, city: input.city })
+      : null;
+    if (cityResult && !cityResult.ok) return cityResult;
+    const bounds = cityResult?.data.context.bounds;
+    const proximity =
+      input.proximity ??
+      (cityResult
+        ? {
+            latitude: cityResult.data.context.center.latitude,
+            longitude: cityResult.data.context.center.longitude,
+          }
+        : undefined);
     const result = await fetchCollection('forward', {
       q: input.query,
-      bbox: bounds.join(','),
-      proximity: `${center.longitude},${center.latitude}`,
+      ...(bounds ? { bbox: bounds.join(',') } : {}),
+      ...(proximity
+        ? { proximity: `${proximity.longitude},${proximity.latitude}` }
+        : {}),
       country: input.marketCode,
       language: input.locale,
       limit: String(MAPBOX_RESULT_LIMIT),
@@ -129,7 +212,7 @@ export const createMapboxProvider = (
       const [longitude, latitude] = feature.geometry.coordinates;
       return (
         featureCountry(feature) === input.marketCode &&
-        isWithinBounds(longitude, latitude, bounds) &&
+        (bounds ? isWithinBounds(longitude, latitude, bounds) : true) &&
         (isSupportedVenue(feature) || isAddressableLocation(feature))
       );
     });
@@ -143,22 +226,13 @@ export const createMapboxProvider = (
   /**
    * The venue at a point the host chose.
    *
-   * The point must already be inside the city, and the answer must be within
-   * `MAX_REVERSE_DISTANCE_METERS` of it and inside the same bounding box — distance and containment
-   * hold in every language, unlike the place names the provider returns.
+   * The point is the location, so nothing constrains where it may be beyond the market itself.
+   * A café or address within `MAX_REVERSE_DISTANCE_METERS` names the pin; failing that the nearest
+   * addressable feature in the same country is offered as a bare address for the host to name
+   * themselves. Rejecting the pin outright would be wrong now — the published address comes from
+   * `describePoint`, not from this, so there is nothing left for a rejection to protect.
    */
   const reverseVenue: MapProvider['reverseVenue'] = async (input) => {
-    const cityResult = await resolveCity(input);
-    if (!cityResult.ok) return cityResult;
-    const { bounds } = cityResult.data.context;
-    if (!isWithinBounds(input.longitude, input.latitude, bounds)) {
-      return err(
-        new AppError(
-          'map_venue_outside_city',
-          `Coordinates are outside city ${input.city.code}`,
-        ),
-      );
-    }
     const result = await fetchCollection('reverse', {
       longitude: String(input.longitude),
       latitude: String(input.latitude),
@@ -172,19 +246,25 @@ export const createMapboxProvider = (
       const [longitude, latitude] = candidate.geometry.coordinates;
       return (
         featureCountry(candidate) === input.marketCode &&
-        isWithinBounds(longitude, latitude, bounds) &&
         distanceMeters(input, { latitude, longitude }) <=
           MAX_REVERSE_DISTANCE_METERS
       );
     });
     const feature =
       nearby.find(isSupportedVenue) ?? nearby.find(isAddressableLocation);
-    return feature
-      ? ok(toVenue(feature))
+    if (feature) return ok(toVenue(feature));
+
+    const furtherAway = result.data.find(
+      (candidate) =>
+        featureCountry(candidate) === input.marketCode &&
+        isAddressableLocation(candidate),
+    );
+    return furtherAway
+      ? ok({ ...toVenue(furtherAway), kind: 'address' as const })
       : err(
           new AppError(
             'map_venue_unsupported',
-            'Select a café, coworking space, or a street address in this city',
+            'No address could be resolved near this point',
           ),
         );
   };
@@ -194,5 +274,6 @@ export const createMapboxProvider = (
     getCityViewport,
     searchVenues,
     reverseVenue,
+    describePoint,
   };
 };

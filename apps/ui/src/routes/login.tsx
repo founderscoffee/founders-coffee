@@ -1,14 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 
-import { getPublicAuthConfig } from '@founders-coffee/server-fns';
-
 import { LoginPage } from '../components/auth/LoginPage';
-import { sameOriginPathSchema } from '../lib/redirect';
+import { authApi } from '../features/auth/api';
+import { authReturnPathSchema } from '../lib/redirect';
 
 export const Route = createFileRoute('/login')({
   validateSearch: z.object({
-    redirect: sameOriginPathSchema.catch('/').optional().default('/'),
+    redirect: authReturnPathSchema.catch('/').optional().default('/'),
   }),
   component: () => {
     const { locale } = Route.useRouteContext();
@@ -23,5 +22,5 @@ export const Route = createFileRoute('/login')({
       />
     );
   },
-  loader: () => getPublicAuthConfig(),
+  loader: () => authApi.getPublicAuthConfig(),
 });

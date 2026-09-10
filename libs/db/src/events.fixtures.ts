@@ -30,9 +30,7 @@ const baseEvent = {
   description: 'Casual meetup for founders + builders in Algiers.',
   venue: 'Café des Délices, Hydra',
   startsAt: new Date('2099-01-15T18:00:00Z'),
-  capacity: 30,
   language: 'fr' as const,
-  category: 'coffee-meetup' as const,
   status: 'published' as const,
 };
 

@@ -3,18 +3,22 @@ import { getRsvpsForEvents } from '@founders-coffee/db';
 
 export interface EventAttendance {
   readonly goingCount: number;
-  readonly remaining: number | null;
   readonly viewerRsvp: 'going' | null;
 }
 
 export type EventWithAttendance = Event & EventAttendance;
+
+export type EventDetailItem = EventWithAttendance & {
+  readonly cityName: string;
+  readonly cityNameAr: string;
+  readonly citySlug: string | null;
+};
 
 /**
  * Attach attendance fields to a list of events. No N+1 — uses the denormalized
  * `events.rsvps` counter for `goingCount` and a single batched query for `viewerRsvp`.
  *
  * `goingCount` = `event.rsvps` (free — already on the row).
- * `remaining` = `capacity === 0 ? null : capacity - event.rsvps`.
  * `viewerRsvp` = one grouped query for all events, mapped back.
  */
 export const attachAttendance = async <T extends Event>(
@@ -31,7 +35,6 @@ export const attachAttendance = async <T extends Event>(
   return events.map((event) => ({
     ...event,
     goingCount: event.rsvps,
-    remaining: event.capacity === 0 ? null : event.capacity - event.rsvps,
     viewerRsvp: viewerRsvps.get(event.id) === 'going' ? 'going' : null,
   }));
 };

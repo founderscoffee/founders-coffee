@@ -23,6 +23,7 @@ const base = `${env.APP_URL}/api/auth`;
 const post = (path: string, body: unknown, cookie?: string): Request => {
   const headers: Record<string, string> = {
     'content-type': 'application/json',
+    origin: env.APP_URL,
   };
   if (cookie) headers.cookie = cookie;
   return new Request(`${base}${path}`, {
@@ -82,11 +83,66 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     );
     expect(session?.user.email).toBe(email);
     expect(session?.user.role).toBe('member');
+    expect(session?.user.name).toBe('');
+    for (const key of ['homeMarketCode', 'homeState', 'homeCityId']) {
+      expect(session?.user).not.toHaveProperty(key);
+    }
     expect(() => requireRole(session, 'member')).not.toThrow();
     expect(() => requireRole(session, 'admin')).toThrow();
+    const updateResponse = await auth.handler(
+      post(
+        '/update-user',
+        { name: 'Bypassed', image: 'https://example.com/photo' },
+        sessionCookie,
+      ),
+    );
+    expect(updateResponse.status).toBe(403);
+    expect(await updateResponse.json()).toMatchObject({
+      code: 'PROFILE_ENDPOINT_REQUIRED',
+    });
+    expect(
+      (await getSession(auth, new Headers({ cookie: sessionCookie })))?.user
+        .name,
+    ).toBe('');
+    await expect(
+      auth.api.updateUser({
+        body: { name: 'Bypassed' },
+        headers: new Headers({ cookie: sessionCookie }),
+      }),
+    ).rejects.toMatchObject({ status: 'FORBIDDEN' });
+  });
+
+  it.each([
+    '/unlink-account',
+    '/revoke-session',
+    '/revoke-sessions',
+    '/revoke-other-sessions',
+  ])('refuses %s on the raw path, whatever the caller sends', async (path) => {
+    const { auth } = createAuth(authEnv, {
+      emailProvider: new DevEmailProvider(),
+    });
+
+    const response = await auth.handler(post(path, { providerId: 'google' }));
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({
+      code: 'ACCOUNT_ENDPOINT_REQUIRED',
+    });
   });
 
   it('requires a session for role-gated actions', () => {
     expect(() => requireRole(null, 'member')).toThrow();
+  });
+
+  it('declares account linking where Better Auth reads it', () => {
+    const { auth } = createAuth(authEnv, {
+      emailProvider: new DevEmailProvider(),
+    });
+    const linking = auth.options.account?.accountLinking;
+
+    expect(linking?.enabled).toBe(true);
+    expect(linking?.trustedProviders).toEqual(['google', 'github']);
+    expect(linking?.allowDifferentEmails).toBe(false);
+    expect(linking?.updateUserInfoOnLink).toBe(false);
   });
 });

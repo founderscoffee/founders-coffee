@@ -120,6 +120,69 @@
       "when": 1788430239665,
       "tag": "0016_light_alex_wilder",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1788681259767,
+      "tag": "0017_calm_red_wolf",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1788723834355,
+      "tag": "0018_graceful_maria_hill",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1788726057120,
+      "tag": "0019_material_jigsaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1788890290980,
+      "tag": "0020_profile_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1788940152456,
+      "tag": "0021_remove_profile_residence",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1788973670012,
+      "tag": "0022_remove_photo_visibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1788974431877,
+      "tag": "0023_simplify_profile_introduction",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1788975210888,
+      "tag": "0024_remove_profile_community_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1789034922150,
+      "tag": "0025_woozy_apocalypse",
+      "breakpoints": true
     }
   ]
 }

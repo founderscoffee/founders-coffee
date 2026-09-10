@@ -5,16 +5,20 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
+import type { venues } from '@founders-coffee/domain';
+
 import {
   createdEventQueryKeys,
   type CreatedEventKeys,
 } from './created-event-cache';
 import {
   eventsApi,
+  type CancelEventInput,
   type CreatedEvent,
   type CreateEventInput,
   type HostMapContext,
   type HostMapLocationInput,
+  type NearbyVenuesInput,
   type RsvpInput,
   type VenueCandidate,
   type VenueReverseInput,
@@ -33,6 +37,27 @@ export const useUpcomingEvents = (params: UpcomingEventsParams) =>
           ...params,
           afterStartsAt: cursor?.startsAt,
           afterId: cursor?.id,
+        },
+      });
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: undefined as { startsAt: number; id: string } | undefined,
+  });
+
+export const useHostedEvents = (params: {
+  hostId: string;
+  marketCode?: string;
+  limit?: number;
+}) =>
+  useInfiniteQuery({
+    queryKey: ['events', 'hosted', params],
+    queryFn: ({ pageParam }) => {
+      const cursor = pageParam as { startsAt: number; id: string } | undefined;
+      return eventsApi.getHostedEvents({
+        data: {
+          ...params,
+          beforeStartsAt: cursor?.startsAt,
+          beforeId: cursor?.id,
         },
       });
     },
@@ -78,6 +103,27 @@ export const useHostMapContext = (input: HostMapLocationInput) =>
     retry: false,
   });
 
+const GRID = 1_000;
+
+/**
+ * Venues near a point, cached per grid cell rather than per coordinate.
+ *
+ * The map reports a new centre on every pan, and a raw float would miss the cache every time. Three
+ * decimals is roughly a hundred metres, which is far finer than the list's own radius.
+ */
+export const useNearbyVenues = (input: NearbyVenuesInput) => {
+  const cell = [
+    Math.round(input.latitude * GRID),
+    Math.round(input.longitude * GRID),
+  ];
+  return useQuery<readonly venues.SnapshotVenue[]>({
+    queryKey: ['events', 'nearby-venues', input.marketCode, ...cell],
+    queryFn: () => eventsApi.listNearbyVenues({ data: input }),
+    staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
+  });
+};
+
 export const useVenueSearch = (input: VenueSearchInput) =>
   useQuery<readonly VenueCandidate[]>({
     queryKey: ['events', 'venue-search', input],
@@ -101,4 +147,9 @@ export const useCreateRsvp = () =>
 export const useCancelRsvp = () =>
   useMutation({
     mutationFn: (input: RsvpInput) => eventsApi.cancelRsvp(input),
+  });
+
+export const useCancelEvent = () =>
+  useMutation({
+    mutationFn: (input: CancelEventInput) => eventsApi.cancelEvent(input),
   });
