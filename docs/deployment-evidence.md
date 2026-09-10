@@ -309,3 +309,20 @@ cancelled state in `EventDetail`. Nobody can reach it without the link, and the 
 fixes it directly — the current `EventDetail` renders a cancellation notice for exactly this status.
 
 **Outstanding on this item:** none.
+
+## ND-01 — service worker and FCM credentials on staging, 2026-09-10
+
+| Item                                                 | Value                                                                                                                                           |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `founders-coffee-ui-staging` version                 | `8d7d99f8-254b-41c4-986f-21f0489f5b78`                                                                                                          |
+| `founders-coffee-worker-jobs-staging` version        | `94464116-fa8c-4584-966b-bf0785146b44`                                                                                                          |
+| `https://staging.founders.coffee/sw.js`              | 200, `text/javascript`, `max-age=0, must-revalidate`, 40977 bytes                                                                               |
+| Served worker vs local build                         | byte-identical (`cmp`)                                                                                                                          |
+| Precache                                             | 52 entries, 1290.25 KiB (was 5.5 MB before Mapbox was excluded)                                                                                 |
+| Firebase secrets, `ui` staging + production          | `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID`, `FIREBASE_VAPID_KEY`                              |
+| Firebase secrets, `worker-jobs` staging + production | `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT`                                                                                               |
+| Project coherence                                    | the sender id inside `FIREBASE_APP_ID` matches `FIREBASE_MESSAGING_SENDER_ID`; `FIREBASE_PROJECT_ID` matches the service account's `project_id` |
+
+The URL that was 404 for the life of the feature now serves the worker. **Nothing beyond that is
+proven**: registration, token minting and delivery all need a browser, and the Chrome extension was
+not connected for this session. ND-02 remains open.
