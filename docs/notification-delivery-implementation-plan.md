@@ -164,11 +164,12 @@ push event. The two items that need no credentials are done; the rest waits on �
 
 **Depends on:** ND-01, all four secret lists.
 
-Done. A push was delivered on staging 7 seconds after the RSVP, rendered with its own Arabic title
-and a click target of `/algeria/e/react-workshop-algiers`. Evidence in
-[deployment evidence](./deployment-evidence.md). The fallback half of the acceptance — a deliberate
-push failure landing on SMS — is **not** done: it needs a verified consented number, which no member
-can give until ND-06 restores the SMS control.
+Done, both halves. A push was delivered on staging 7 seconds after the RSVP, rendered with its own
+Arabic title and a click target of `/algeria/e/react-workshop-algiers`. The fallback half was
+unblocked by ND-07 — it no longer needs an SMS consent nobody can give — and a deliberate push
+failure now lands on email in 302 seconds, the `REARM_FLOOR_MS` window. Evidence, including the
+`E_VALIDATION_ERROR` that showed email had never delivered a notification in this product's life, is
+in [deployment evidence](./deployment-evidence.md).
 
 - RSVP on staging from a real device, confirm the DO alarm fires, the queue message routes, and the
   notification arrives as a push rather than a fallback. Compare against the CO-02 smoke, which

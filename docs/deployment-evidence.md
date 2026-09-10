@@ -353,3 +353,27 @@ nor a consented number.
 **Open:** the notification rendered in Arabic while the browser was in English. `locale_pref` is null,
 so `resolveNotificationContext` falls back to the market default rather than the device cookie. By
 design — the server cannot see a device cookie — but a member reading English gets notified in Arabic.
+
+### ND-02 fallback half — push failure lands on email, 2026-09-10
+
+Run on staging after ND-07, by deleting the member's `push_subscriptions` row so push fails the way
+a signed-out device does, then re-RSVPing.
+
+| Step               | Evidence                                                                                  |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| Primary refused    | `ntf_60337068…` push, `fallback_channel = email`, `failed`, `unreachable: no_live_device` |
+| Fallback written   | `ntf_cdc72db7…` on `channel = email`, by the dispatcher, not the producer                 |
+| Fallback delivered | `status sent`, `attempts 0`, **302 seconds** after the push row was written               |
+
+**The first attempt did not send.** `ntf_e76cda03…` failed three times with
+`Email send failed (E_VALIDATION_ERROR)` before the cause was found: the email dispatcher set its own
+`Message-ID` header, which Cloudflare's Email Sending refuses. The OTP path sets no headers, which is
+why authentication mail has always worked while notification mail had never once been delivered — the
+branch only runs behind a push failure, and push had no provider until today. Header removed; the
+retry above is the same code path succeeding.
+
+**Latency is the re-arm floor, not a fault.** A push delivered in 7 seconds; the email fallback took 302. `NotificationScheduleDO` re-arms at `max(nextPendingSendAt, now + REARM_FLOOR_MS)` and
+`REARM_FLOOR_MS` is five minutes, so a row written _by_ an alarm waits for the next one. Fine for a
+reminder. For a confirmation the member is waiting on, five minutes is worth revisiting.
+
+Cloudflare reports `sent`; that is acceptance by the provider, not receipt in an inbox.
