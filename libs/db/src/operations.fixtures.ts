@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { sql } from 'drizzle-orm';
+import { inArray, sql } from 'drizzle-orm';
 
 import { id } from '@founders-coffee/core';
 
@@ -31,6 +31,9 @@ const HOUR = 60 * 60 * 1000;
  *
  * The tables are emptied rather than the database recreated, because these suites share one
  * Miniflare D1 and a leftover closeout would make an idempotency test pass for the wrong reason.
+ * The accounts are reset with them: the users are upserted `ON CONFLICT DO NOTHING`, so a test that
+ * suppresses the host to prove a visibility rule would otherwise leave it suppressed for every test
+ * that ran after it — which reads as a broken query rather than a dirty fixture.
  * The fixture's own events go too: an attention query that lists every event needing attention will
  * otherwise accumulate one per test and pass on the wrong row.
  */
@@ -50,6 +53,11 @@ export const setupDb = async (): Promise<Db> => {
       { id: OTHER_ID, name: 'Ops Other', email: 'ops-other@test.coffee' },
     ])
     .onConflictDoNothing()
+    .run();
+  await db
+    .update(user)
+    .set({ accountState: 'active' })
+    .where(inArray(user.id, [HOST_ID, MEMBER_ID, OTHER_ID]))
     .run();
   await db.delete(eventFeedback).run();
   await db.delete(eventAttendance).run();

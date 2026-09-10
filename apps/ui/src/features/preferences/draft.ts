@@ -1,4 +1,4 @@
-import type { Locale } from '@founders-coffee/i18n';
+import { baseLocale, type Locale } from '@founders-coffee/i18n';
 
 import type { AccountPreferencesView, PreferencesInput } from './api';
 
@@ -12,12 +12,21 @@ export interface NotificationDraft {
 }
 
 export interface PreferencesDraft extends NotificationDraft {
-  readonly locale: Locale | null;
+  readonly locale: Locale;
 }
 
+/**
+ * The saved preferences as an editable form.
+ *
+ * An account that has never chosen a language stores `null`, and the form shows the base locale
+ * rather than a fourth "no choice" option: the server render already falls back to it, so `null`
+ * and `ar` look identical on screen and offering both would be a distinction without a difference.
+ * Every comparison here goes through this function, so a member who has chosen nothing still opens
+ * a clean form instead of one claiming an unsaved change they did not make.
+ */
 export const draftFrom = (view: AccountPreferencesView): PreferencesDraft => ({
   ...view.preferences,
-  locale: view.locale,
+  locale: view.locale ?? baseLocale,
 });
 
 /**
@@ -72,4 +81,4 @@ export const toInput = (
 export const localeChanged = (
   draft: PreferencesDraft,
   view: AccountPreferencesView,
-): boolean => draft.locale !== view.locale;
+): boolean => draft.locale !== draftFrom(view).locale;

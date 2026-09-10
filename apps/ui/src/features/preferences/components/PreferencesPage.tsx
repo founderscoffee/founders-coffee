@@ -6,9 +6,7 @@ import {
   prefs_delivery_note,
   prefs_delivery_title,
   prefs_discard,
-  prefs_heading,
   prefs_loading,
-  prefs_note,
   prefs_save,
   prefs_save_error,
   prefs_saved,
@@ -86,9 +84,7 @@ const PreferencesForm = ({
     save.mutate(toInput(draft, view.revision), {
       onSuccess: () => {
         if (!willReload) return;
-        document.cookie = `${cookieName}=${draft.locale ?? ''}; path=/; max-age=${
-          draft.locale ? 31536000 : 0
-        }; samesite=lax`;
+        document.cookie = `${cookieName}=${draft.locale}; path=/; max-age=31536000; samesite=lax`;
         window.location.reload();
       },
     });
@@ -183,36 +179,33 @@ export const PreferencesPage = ({
     (!!query.userId && query.isPending && !query.isError);
 
   return (
-    <section className="mx-auto max-w-3xl px-5 py-12">
-      <h1 className="mb-1 font-display text-h3">
-        {prefs_title({}, { locale })}
-      </h1>
-      <p className="mb-6 text-body-sm text-neutral">
-        {prefs_heading({}, { locale })} {prefs_note({}, { locale })}
-      </p>
+    <section className="mx-auto max-w-5xl px-5 py-12 lg:grid lg:grid-cols-[184px_minmax(0,1fr)] lg:gap-12">
       <ProfileSectionNav locale={locale} />
+      <div className="min-w-0">
+        <h1 className="sr-only">{prefs_title({}, { locale })}</h1>
 
-      {query.data ? (
-        <PreferencesForm
-          locale={locale}
-          marketCode={marketCodeFor(markets)}
-          view={query.data}
-        />
-      ) : query.isError && query.userId ? (
-        <p role="alert" className="text-body-sm text-error">
-          {prefs_unavailable({}, { locale })}
-        </p>
-      ) : isLoading ? (
-        <p role="status">{prefs_loading({}, { locale })}</p>
-      ) : (
-        <ProfileAccess
-          locale={locale}
-          isLoading={false}
-          isAnonymous={!query.userId}
-          returnPath="/preferences"
-          onRetry={() => void query.refetch()}
-        />
-      )}
+        {query.data ? (
+          <PreferencesForm
+            locale={locale}
+            marketCode={marketCodeFor(markets)}
+            view={query.data}
+          />
+        ) : query.isError && query.userId ? (
+          <p role="alert" className="text-body-sm text-error">
+            {prefs_unavailable({}, { locale })}
+          </p>
+        ) : isLoading ? (
+          <p role="status">{prefs_loading({}, { locale })}</p>
+        ) : (
+          <ProfileAccess
+            locale={locale}
+            isLoading={false}
+            isAnonymous={!query.userId}
+            returnPath="/preferences"
+            onRetry={() => void query.refetch()}
+          />
+        )}
+      </div>
     </section>
   );
 };

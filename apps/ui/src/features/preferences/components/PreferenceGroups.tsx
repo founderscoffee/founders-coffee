@@ -14,9 +14,6 @@ import {
   prefs_follow_up_note,
   prefs_host_updates,
   prefs_host_updates_note,
-  prefs_language_device,
-  prefs_language_note,
-  prefs_language_saved,
   prefs_language_title,
   prefs_location,
   prefs_location_forget,
@@ -64,36 +61,25 @@ export const LanguageGroup = ({
   onChange,
 }: {
   locale: Locale;
-  value: Locale | null;
-  onChange: (next: Locale | null) => void;
+  value: Locale;
+  onChange: (next: Locale) => void;
 }) => (
-  <Group
-    title={prefs_language_title({}, { locale })}
-    note={prefs_language_note({}, { locale })}
-  >
-    <label className="sr-only" htmlFor="prefs-language">
+  <section>
+    <label className="mb-2 block font-display text-h4" htmlFor="prefs-language">
       {prefs_language_title({}, { locale })}
     </label>
     <Select
       id="prefs-language"
-      value={value ?? ''}
-      onChange={(event) =>
-        onChange(
-          event.target.value === '' ? null : (event.target.value as Locale),
-        )
-      }
+      value={value}
+      onChange={(event) => onChange(event.target.value as Locale)}
     >
-      <option value="">{prefs_language_device({}, { locale })}</option>
       {LOCALES.map((option) => (
         <option key={option} value={option}>
           {LOCALE_LABELS[option]}
         </option>
       ))}
     </Select>
-    <p className="mt-2 text-caption text-neutral">
-      {prefs_language_saved({}, { locale })}
-    </p>
-  </Group>
+  </section>
 );
 
 export const CategoryGroup = ({

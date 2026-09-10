@@ -172,6 +172,7 @@ describe('the account and security screen', () => {
     }
     expect(links.map((link) => link.textContent)).toEqual([
       'Profile',
+      'Your gatherings',
       'Preferences',
       'Account & security',
     ]);
@@ -184,6 +185,11 @@ describe('the account and security screen', () => {
     const links = Array.from(nav.querySelectorAll('a')).map((link) =>
       link.getAttribute('href'),
     );
-    expect(links).toEqual(['/profile', '/preferences', '/account']);
+    expect(links).toEqual([
+      '/profile',
+      '/activity',
+      '/preferences',
+      '/account',
+    ]);
   });
 });

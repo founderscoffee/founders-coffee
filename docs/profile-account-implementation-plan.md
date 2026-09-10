@@ -428,6 +428,22 @@ inside a feature PR. It is a release, not a code change: the SQL is already writ
 
 **Requirements:** FR-E7, FR-A6; NFR-5, NFR-9. **Depends on:** PF-04a.
 
+**Status:** Reopened 2026-09-10. It was recorded complete on 2026-09-09, and half of its first
+bullet had shipped. The hosted-count defect was fixed and paginated hosted history landed on one
+reusable path — that work is real and stands. **The private activity section did not.** There is no
+route, no owner-facing page, and no reader at all for the member's own RSVPs: `listHostedEventPage`
+exists, and nothing anywhere lists the gatherings a member has _joined_.
+
+The bug fix and the new surface were one bullet, so closing the ticket on the fix closed it on the
+surface too. The section is the fourth item in the design's sidebar and currently has nowhere to
+point. Reopened rather than renumbered, because a new ticket would make the plan read as though the
+original had been satisfied.
+
+Remaining: the `event_rsvps`-side repository query and its server function, the route, and the two
+lists with the empty states §4 requires. Elapsed events stay labelled **past** rather than completed
+until a closeout exists — CO-03 shipped the schema on 2026-09-10, but CO-05 owns the surface that
+writes one, so no held evidence exists yet.
+
 - Implement private activity links and paginated hosted events with explicit market filters. Replace the current upcoming-list length used as a hosted count; counts come from an aggregate over the same documented predicate.
 - Until CO-03/05 provide held evidence, label elapsed events as past, not completed. Add held/did-not-happen labels from the CO contract when available; never expose member attendance.
 - Acceptance: pagination covers every hosted event, the count and the list agree under the same predicate, and no RSVP or attendance of any member appears in a public response.

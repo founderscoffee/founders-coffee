@@ -18,12 +18,14 @@ import { requireEventCreateWafRule } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
 import { cancelEventResolver } from './cancel.js';
 import { listHostedEventPage } from './hosted.js';
+import { listJoinedEventPage } from './joined.js';
 import { createEventWithTelemetry } from './create.js';
 import { listEvents, resolveEvent } from './resolver.js';
 import {
   eventCancelRequestSchema,
   eventCreateRequestSchema,
   hostedEventsRequestSchema,
+  joinedEventsRequestSchema,
 } from './schemas.js';
 
 /**
@@ -144,3 +146,22 @@ export const cancelEvent = createServerFn({ method: 'POST', strict: false })
 export const getHostedEvents = createServerFn({ strict: false })
   .validator(appValidator(hostedEventsRequestSchema))
   .handler(({ data }) => listHostedEventPage(getDb(), data));
+
+/**
+ * One page of the gatherings the caller has joined. Owner-only, and owner-only by construction.
+ *
+ * The request schema carries no user id. A public `getHostedEvents` answers what somebody has run,
+ * which is what a stranger reads before deciding to come; this answers where somebody has *been*,
+ * which is nobody else's to ask. Reading the id from the session rather than validating one from
+ * the body means there is no parameter an authorization check could be forgotten on.
+ */
+export const getMyJoinedEvents = createServerFn({ strict: false })
+  .middleware([requirePermission('rsvp', 'read')])
+  .validator(appValidator(joinedEventsRequestSchema))
+  .handler(({ context, data }) => {
+    privateNoStore();
+    return listJoinedEventPage(getDb(), {
+      ...data,
+      userId: requireAuth(context.session).user.id,
+    });
+  });

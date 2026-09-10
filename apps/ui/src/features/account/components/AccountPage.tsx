@@ -178,45 +178,47 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
     (!!query.userId && query.isPending && !query.isError);
 
   return (
-    <section className="mx-auto max-w-3xl px-5 py-12">
-      <h1 className="mb-1 font-display text-h3">
-        {account_title({}, { locale })}
-      </h1>
-      <p className="mb-6 text-body-sm text-neutral">
-        {account_heading({}, { locale })} {account_note({}, { locale })}
-      </p>
+    <section className="mx-auto max-w-5xl px-5 py-12 lg:grid lg:grid-cols-[184px_minmax(0,1fr)] lg:gap-12">
       <ProfileSectionNav locale={locale} />
+      <div className="min-w-0">
+        <h1 className="mb-1 font-display text-h3">
+          {account_title({}, { locale })}
+        </h1>
+        <p className="mb-6 text-body-sm text-neutral">
+          {account_heading({}, { locale })} {account_note({}, { locale })}
+        </p>
 
-      {query.data ? (
-        <AccountSections
-          locale={locale}
-          account={query.data}
-          onChange={setChanging}
-        />
-      ) : query.isError && query.userId ? (
-        <p role="alert" className="text-body-sm text-error">
-          {account_unavailable({}, { locale })}
-        </p>
-      ) : isLoading ? (
-        <p role="status" className="text-body-sm text-neutral">
-          {account_loading({}, { locale })}
-        </p>
-      ) : (
-        <ProfileAccess
-          locale={locale}
-          isLoading={false}
-          isAnonymous
-          returnPath="/account"
-          onRetry={() => void query.refetch()}
-        />
-      )}
-      {changing && (
-        <ContactDialog
-          locale={locale}
-          kind={changing}
-          onClose={() => setChanging(null)}
-        />
-      )}
+        {query.data ? (
+          <AccountSections
+            locale={locale}
+            account={query.data}
+            onChange={setChanging}
+          />
+        ) : query.isError && query.userId ? (
+          <p role="alert" className="text-body-sm text-error">
+            {account_unavailable({}, { locale })}
+          </p>
+        ) : isLoading ? (
+          <p role="status" className="text-body-sm text-neutral">
+            {account_loading({}, { locale })}
+          </p>
+        ) : (
+          <ProfileAccess
+            locale={locale}
+            isLoading={false}
+            isAnonymous
+            returnPath="/account"
+            onRetry={() => void query.refetch()}
+          />
+        )}
+        {changing && (
+          <ContactDialog
+            locale={locale}
+            kind={changing}
+            onClose={() => setChanging(null)}
+          />
+        )}
+      </div>
     </section>
   );
 };

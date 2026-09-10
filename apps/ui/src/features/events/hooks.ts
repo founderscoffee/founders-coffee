@@ -25,6 +25,8 @@ import {
   type VenueSearchInput,
 } from './api';
 
+import { authClient } from '../../lib/auth';
+
 type UpcomingEventsParams = Parameters<typeof eventsApi.getUpcomingEvents>[0];
 
 export const useUpcomingEvents = (params: UpcomingEventsParams) =>
@@ -43,6 +45,41 @@ export const useUpcomingEvents = (params: UpcomingEventsParams) =>
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as { startsAt: number; id: string } | undefined,
   });
+
+/**
+ * The gatherings the signed-in member has joined.
+ *
+ * No id in the params, unlike `useHostedEvents`. A host's history is public and takes whose history
+ * to fetch; this one is the caller's own by construction — the server function reads the session,
+ * so there is nothing here that could be pointed at somebody else.
+ */
+export const useMyJoinedEvents = (
+  params: {
+    marketCode?: string;
+    limit?: number;
+  } = {},
+) => {
+  const auth = authClient.useSession();
+  const userId = auth.data?.user.id;
+  return useInfiniteQuery({
+    queryKey: ['events', 'joined', userId, params],
+    queryFn: ({ pageParam }) => {
+      const cursor = pageParam as { startsAt: number; id: string } | undefined;
+      return eventsApi.getMyJoinedEvents({
+        data: {
+          ...params,
+          beforeStartsAt: cursor?.startsAt,
+          beforeId: cursor?.id,
+        },
+      });
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: undefined as { startsAt: number; id: string } | undefined,
+    enabled: !!userId,
+    staleTime: 0,
+    gcTime: 0,
+  });
+};
 
 export const useHostedEvents = (params: {
   hostId: string;
@@ -63,6 +100,7 @@ export const useHostedEvents = (params: {
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as { startsAt: number; id: string } | undefined,
+    enabled: !!params.hostId,
   });
 
 export const useEvent = (slug: string) =>

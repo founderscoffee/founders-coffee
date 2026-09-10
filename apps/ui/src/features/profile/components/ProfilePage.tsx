@@ -20,48 +20,52 @@ export const ProfilePage = ({ locale }: { locale: Locale }) => {
   const [isDirty, setIsDirty] = useState(false);
   const guard = useUnsavedGuard(isDirty);
   return (
-    <section className="mx-auto max-w-4xl px-5 py-12">
-      <h1 className="mb-6 font-display text-h3">
-        {profile_title({}, { locale })}
-      </h1>
+    <section className="mx-auto max-w-5xl px-5 py-12 lg:grid lg:grid-cols-[184px_minmax(0,1fr)] lg:gap-12">
       <ProfileSectionNav locale={locale} />
-      {query.data && query.userId ? (
-        <ProfileForm
-          key={query.userId}
-          profile={query.data}
-          locale={locale}
-          onDirtyChange={setIsDirty}
-          onReload={async () => {
-            const result = await query.refetch();
-            return result.isError ? undefined : result.data;
-          }}
-        />
-      ) : (
-        <ProfileAccess
-          locale={locale}
-          isLoading={query.isAuthLoading || (!!query.userId && query.isPending)}
-          isAnonymous={!query.userId}
-          returnPath="/profile"
-          onRetry={() => void query.refetch()}
-        />
-      )}
-      {guard.isBlocked && (
-        <div
-          role="alertdialog"
-          aria-label={profile_unsaved_title({}, { locale })}
-          className="mt-6 rounded-box border border-base-300 bg-base-200 p-4"
-        >
-          <p>{profile_unsaved_title({}, { locale })}</p>
-          <div className="mt-3 flex flex-wrap gap-3">
-            <Button type="button" variant="outline" onClick={guard.stay}>
-              {profile_unsaved_stay({}, { locale })}
-            </Button>
-            <Button type="button" variant="ghost" onClick={guard.leave}>
-              {profile_unsaved_leave({}, { locale })}
-            </Button>
+      <div className="min-w-0">
+        <h1 className="mb-6 font-display text-h3">
+          {profile_title({}, { locale })}
+        </h1>
+        {query.data && query.userId ? (
+          <ProfileForm
+            key={query.userId}
+            profile={query.data}
+            locale={locale}
+            onDirtyChange={setIsDirty}
+            onReload={async () => {
+              const result = await query.refetch();
+              return result.isError ? undefined : result.data;
+            }}
+          />
+        ) : (
+          <ProfileAccess
+            locale={locale}
+            isLoading={
+              query.isAuthLoading || (!!query.userId && query.isPending)
+            }
+            isAnonymous={!query.userId}
+            returnPath="/profile"
+            onRetry={() => void query.refetch()}
+          />
+        )}
+        {guard.isBlocked && (
+          <div
+            role="alertdialog"
+            aria-label={profile_unsaved_title({}, { locale })}
+            className="mt-6 rounded-box border border-base-300 bg-base-200 p-4"
+          >
+            <p>{profile_unsaved_title({}, { locale })}</p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Button type="button" variant="outline" onClick={guard.stay}>
+                {profile_unsaved_stay({}, { locale })}
+              </Button>
+              <Button type="button" variant="ghost" onClick={guard.leave}>
+                {profile_unsaved_leave({}, { locale })}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 };

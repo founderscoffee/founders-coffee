@@ -33,6 +33,10 @@ describe('draftFrom', () => {
       locale: 'fr',
     });
   });
+
+  it('shows Arabic for an account that has never chosen a language', () => {
+    expect(draftFrom(view({ locale: null })).locale).toBe('ar');
+  });
 });
 
 describe('hasChanges', () => {
@@ -48,7 +52,7 @@ describe('hasChanges', () => {
   });
 
   it('notices a changed language', () => {
-    const saved = view();
+    const saved = view({ locale: 'fr' });
     const draft = { ...draftFrom(saved), locale: 'ar' as const };
     expect(hasChanges(draft, saved)).toBe(true);
   });
@@ -81,8 +85,8 @@ describe('toInput', () => {
     expect(toInput(draftFrom(view()), 4).expectedRevision).toBe(4);
   });
 
-  it('sends a null locale rather than omitting the field', () => {
-    expect(toInput(draftFrom(view()), 4)).toHaveProperty('locale', null);
+  it('sends the base locale for an account that never chose one', () => {
+    expect(toInput(draftFrom(view()), 4)).toHaveProperty('locale', 'ar');
   });
 
   it('carries no field the update schema would reject', () => {
@@ -111,10 +115,8 @@ describe('localeChanged', () => {
     expect(localeChanged(draftFrom(saved), saved)).toBe(false);
   });
 
-  it('counts a move back to following the device', () => {
-    const saved = view({ locale: 'ar' });
-    expect(localeChanged({ ...draftFrom(saved), locale: null }, saved)).toBe(
-      true,
-    );
+  it('is false for an account that never chose, which already reads as Arabic', () => {
+    const saved = view({ locale: null });
+    expect(localeChanged(draftFrom(saved), saved)).toBe(false);
   });
 });

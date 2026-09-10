@@ -101,6 +101,29 @@ describe('the preferences screen', () => {
     ).toBe(false);
   });
 
+  it('offers the three languages and no fourth way to opt out', () => {
+    const { container } = show({ data: view() });
+
+    expect(
+      [...container.querySelectorAll('#prefs-language option')].map((option) =>
+        option.getAttribute('value'),
+      ),
+    ).toEqual(['ar', 'en', 'fr']);
+  });
+
+  it('starts on Arabic for an account that has never chosen a language', () => {
+    show({ data: view() });
+
+    expect(screen.getByDisplayValue('عربية')).toBeTruthy();
+    expect(
+      (
+        screen.getByRole('button', {
+          name: /Save preferences/i,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+  });
+
   it('says event details stay in the app whatever is switched off', () => {
     show({ data: view() });
 
@@ -212,8 +235,6 @@ describe('in Arabic', () => {
   it('renders the screen in the member locale', () => {
     show({ data: view() }, { locale: 'ar' });
 
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
-      'التفضيلات',
-    );
+    expect(screen.getByRole('combobox', { name: 'لغة الواجهة' })).toBeTruthy();
   });
 });
