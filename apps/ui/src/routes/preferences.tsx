@@ -8,8 +8,8 @@ export const Route = createFileRoute('/preferences')({
     'X-Robots-Tag': 'noindex, nofollow',
   }),
   component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    return <PreferencesPage locale={locale} markets={markets} />;
+    const { locale } = Route.useRouteContext();
+    return <PreferencesPage locale={locale} />;
   },
   head: () => ({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] }),
 });

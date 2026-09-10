@@ -4,19 +4,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Locale } from '@founders-coffee/i18n';
 
 import type { AccountPreferencesView } from '../api';
-import type { PushState } from '../push-state';
 
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
   save: {} as Record<string, unknown>,
-  push: {} as Record<string, unknown>,
   saved: [] as unknown[],
 }));
 
 vi.mock('../hooks', () => ({
   useMyPreferences: () => state.query,
   useSavePreferences: () => state.save,
-  useDevicePushState: () => state.push,
 }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
@@ -31,8 +28,6 @@ vi.mock('../../account/components/ProfileSectionNav', () => ({
 }));
 
 const { PreferencesPage } = await import('./PreferencesPage');
-
-const MARKETS = [{ code: 'DZ', slug: 'algeria' }];
 
 const view = (
   overrides: Partial<AccountPreferencesView> = {},
@@ -54,18 +49,10 @@ const view = (
 
 const show = (
   query: Record<string, unknown>,
-  options: { locale?: Locale; push?: PushState } = {},
+  options: { locale?: Locale } = {},
 ) => {
   state.query = { userId: 'usr_1', isAuthLoading: false, ...query };
-  state.push = {
-    state: options.push ?? 'not_requested',
-    enable: vi.fn(),
-    isEnabling: false,
-    refresh: vi.fn(),
-  };
-  return render(
-    <PreferencesPage locale={options.locale ?? 'en'} markets={MARKETS} />,
-  );
+  return render(<PreferencesPage locale={options.locale ?? 'en'} />);
 };
 
 beforeEach(() => {
@@ -192,8 +179,7 @@ describe('states the design spec requires', () => {
 
   it('offers sign-in to an anonymous visitor', () => {
     state.query = { userId: undefined, isAuthLoading: false };
-    state.push = { state: 'not_requested', enable: vi.fn(), isEnabling: false };
-    render(<PreferencesPage locale="en" markets={MARKETS} />);
+    render(<PreferencesPage locale="en" />);
 
     expect(screen.getByTestId('access-recovery')).toBeTruthy();
   });
