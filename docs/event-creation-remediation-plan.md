@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | EC-01 through EC-10 complete; production released as `v0.1.0` on 2026-09-04; only the authorized smoke creation outstanding                                                |
+| Status         | EC-01 through EC-10 complete and signed off. Production released as `v0.1.0` on 2026-09-04; the authorized smoke creation was performed and verified on 2026-09-10         |
 | Last reviewed  | 2026-09-04                                                                                                                                                                 |
 | Scope          | Host event creation in `apps/ui`, including the anonymous wizard and authenticated submission through durable D1 persistence and discoverability                           |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
@@ -453,7 +453,9 @@ Outstanding for EC-10:
 - The third verification line — "staging logs correlate one create request across the server path
   without exposing secrets or user-authored content" — requires a real staging creation and cannot
   be observed from the repository. Staging currently has no `FIREBASE_*`, `CF_ACCESS_*` or
-  `TWILIO_SMS_FROM` secret and no events, so this stays EC-10 release evidence.
+  `TWILIO_SMS_FROM` secret and no events, so this stays EC-10 release evidence. The 2026-09-10
+  production smoke covered persistence and route behaviour rather than log correlation, which
+  remains observed on staging alone.
 
 ### EC-09 — Build the real-platform regression suite
 
@@ -570,7 +572,7 @@ npx playwright test --project=desktop-en
 
 **Parent:** P1-006, P1-018, P1-019, P1-021
 **Requirements:** NFR-4, NFR-7, NFR-12
-**Status:** Complete — 2026-09-03. Staged run 18/18 across all three locales against the deployed Worker; three events created, verified and cleaned up. Evidence below.
+**Status:** Signed off — 2026-09-10. Staged run 18/18 across all three locales against the deployed Worker on 2026-09-03; three events created, verified and cleaned up. Production released 2026-09-04. The authorized production smoke creation was performed by hand on 2026-09-10 with no change to production configuration, and verified across the event page, city feed, market page and public host profile. Evidence below and in [`deployment-evidence.md`](./deployment-evidence.md).
 
 Configuration preflight (2026-09-03, read back from the account):
 
@@ -879,9 +881,11 @@ Outstanding for sign-off:
   `0016_light_alex_wilder.sql`, and the shared WAF rule was proven live on production — 29 of 30
   requests in a burst answered `429`. Full evidence in
   [`deployment-evidence.md`](./deployment-evidence.md).
-- One authorized production smoke creation. It needs the same short Turnstile testing-key window
-  that staging sign-in required, this time against the live login, so it is a deliberate decision
-  rather than a step to take unasked.
+- ~~One authorized production smoke creation.~~ Done on 2026-09-10, and it needed no Turnstile
+  testing-key window after all: a person cleared the challenge, which is the only way that control is
+  meant to be cleared. Production configuration was not touched. The one piece of housekeeping still
+  open is retiring the smoke event, which `v0.1.0` cannot do through the product because the host
+  cancel action ships in unreleased work.
 - The staging sign-in challenge remains unautomatable, so any future staged run needs the same
   short, deliberate testing-key window.
 

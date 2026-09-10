@@ -232,6 +232,62 @@ self-hosted through `@fontsource`, the mark is inline SVG, and the only new outb
 Route latency 1.6–2.3s. One 78s outlier on the first `/login` hit immediately after deploy — a cold
 start, not reproducible across three retries.
 
-**Still outstanding.** The one authorized smoke creation. It needs the same short Turnstile
-testing-key window sign-in required on staging, this time against the live login, and that is a
-deliberate decision rather than a step to take unasked.
+## EC-10 authorized production smoke creation — 2026-09-10
+
+The last outstanding EC-10 item. Performed by the owner by hand against the live site, with **no
+change to production configuration**: no Turnstile testing-key window, no `OTP_ECHO`, no bypass of
+any kind. Turnstile stayed enforced and a person cleared it, which is the only way that challenge is
+meant to be cleared. The sign-in code went to the owner's own address, because the `@e2e.invalid`
+echo used on staging is fenced off when `APP_ENVIRONMENT` is `production`.
+
+| Fact               | Value                                       |
+| ------------------ | ------------------------------------------- |
+| Event              | `dsrwrtwerwer` at `/algeria/e/dsrwrtwerwer` |
+| Market / city      | `DZ` / Chlef                                |
+| Schedule           | Wednesday 16 September 2026, 18:00          |
+| Venue as persisted | `fgtfrtryr — Site 5، 02 الشلف، الجزائر`     |
+| Language           | `ar`                                        |
+| Host               | `19hkEveIHJogeBQ4fZLSlJqYByifH2pM`          |
+| Worker             | `v0.1.0`, released 2026-09-04               |
+| D1 schema          | `0016_light_alex_wilder`                    |
+| Shared WAF rule    | `d11c283bee39488293e86d519e9c546d`          |
+
+**Route behaviour, read back from the live site rather than asserted:**
+
+| Surface                         | Result                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| Event detail                    | `200`, correct title, JSON-LD `@type: Event` with the persisted schedule |
+| City feed `/algeria/chlef`      | `200`, event listed                                                      |
+| Market page `/algeria`          | `200`, event listed, Chlef badge showing one this week                   |
+| Public host profile `/u/<host>` | `200`, "فعاليات نظمها 1"                                                 |
+| Host auto-RSVP                  | `+1 ذاهب` — the host is a real attendee on creation                      |
+| RSVP release                    | seats 11 → 12 and `+1` → `+0` after the host freed their chair           |
+
+The live page also rendered `السعة: 12`, `مقاعد متبقية` and the `مجاني` chip — capacity, seats and
+the free label — which independently confirms production is at `0016` and predates the `0017`
+contraction, without needing a schema query.
+
+**Verification method note.** Plain `curl` receives `403 Forbidden` on every production route,
+including `/`. That is the CSRF middleware refusing a request with no `Sec-Fetch-Site` header, not an
+outage: `none` and `same-origin` both pass and browsers always send one. Any future automated
+production probe must set that header.
+
+**Cleanup — pending as of this entry.** The plan was to retire the event through the product rather
+than delete it, so the row survives as this evidence. That is not possible on `v0.1.0`: the host
+cancel action, the optional reason and `0018_graceful_maria_hill.sql` are all in unreleased work, and
+the live event page offers only the RSVP controls. The owner released their seat, which is why the
+counts above return to `12` and `+0`, but the event is still `published`.
+
+Retiring it therefore needs one direct statement, guarded on slug, market and current status so it
+can affect exactly one row and is a no-op if repeated:
+
+```sql
+UPDATE events SET status='cancelled', cancelled_at=unixepoch(), updated_at=unixepoch()
+WHERE slug='dsrwrtwerwer' AND market_code='DZ' AND status='published';
+```
+
+`cancelled_at` has existed since `0003`, so this writes no column production lacks. Record the
+result here when it runs.
+
+**Outstanding on this item:** the statement above. The smoke creation itself is complete and
+verified.

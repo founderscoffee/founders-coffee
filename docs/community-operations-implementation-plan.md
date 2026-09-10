@@ -59,8 +59,9 @@ schedule cannot be assumed. CO-11 creates its own explicitly identified operatio
 
 PF-01 reconciliation on 2026-09-08: the EC plan and `deployment-evidence.md` record 18/18 staging
 cases, persisted events and cleanup on 2026-09-03, then production release and DNS/WAF verification
-on 2026-09-04. The authorized production creation smoke is still explicitly outstanding for final
-handoff. Do not treat the older EC-08–10 pending baseline as current, or infer authorization to
+on 2026-09-04. The authorized production creation smoke was performed by hand on 2026-09-10 with
+no change to production configuration, and EC-10 is signed off; CO-01 is therefore the immediate
+next work package. Do not treat the older EC-08–10 pending baseline as current, or infer authorization to
 weaken production authentication or create test events from this documentation update. Turnstile
 handoff evidence follows the actual login protection; event creation's recorded exception is not
 a requirement to add a new event challenge as part of CO or PF.

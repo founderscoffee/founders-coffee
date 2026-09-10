@@ -81,9 +81,9 @@ the current sequence.
 ## Active execution plans
 
 1. Complete final handoff for the [Event Creation Remediation Plan](./event-creation-remediation-plan.md).
-   EC-01 through EC-10 have recorded completion, including 18/18 staging browser cases on
-   2026-09-03 and production release/DNS/WAF evidence on 2026-09-04. The authorized production
-   creation smoke remains outstanding; the dated release records are not a fresh live verification.
+   EC-01 through EC-10 are complete and signed off: 18/18 staging browser cases on 2026-09-03,
+   production release/DNS/WAF evidence on 2026-09-04, and the authorized production creation smoke
+   performed and verified on 2026-09-10.
 2. Immediately after verified EC-10 handoff, begin the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
    at CO-01.
@@ -97,6 +97,7 @@ The [Profile and Account Management Plan](./profile-account-implementation-plan.
 P1-004 lane approved on 2026-09-08. It removes profile residence, gives members control of optional
 public details and photos, and adds full account/privacy controls. It does not replace the EC → CO
 execution priority. Its delivery, retention and moderation integrations reuse the named CO owners;
-writing the plan does not mean those capabilities have shipped. The user's 2026-09-08 implementation
-request starts PF-01/02 locally as a supporting foundation; it does not certify the outstanding
-production smoke, begin CO implementation, or deploy profile/account screens.
+writing the plan does not mean those capabilities have shipped. The 2026-09-08 implementation
+request started the PF lane locally as a supporting foundation. The production smoke has since been
+certified separately on 2026-09-10; nothing in the PF lane is deployed, and CO implementation begins
+at CO-01.
