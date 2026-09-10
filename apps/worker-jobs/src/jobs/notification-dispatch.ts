@@ -100,7 +100,7 @@ const smsDispatcher = (db: Db, sms: NotificationSmsProvider): Dispatcher =>
   });
 
 const emailDispatcher = (db: Db, email: EmailProvider): Dispatcher =>
-  guarded(db, 'email', async (destination, notification, parsed) => {
+  guarded(db, 'email', async (destination, _notification, parsed) => {
     if (destination.channel !== 'email' || parsed.channel !== 'email')
       return failed('channel_mismatch', true);
     const result = await email.send({
@@ -108,7 +108,6 @@ const emailDispatcher = (db: Db, email: EmailProvider): Dispatcher =>
       subject: parsed.payload.subject,
       html: parsed.payload.html,
       text: parsed.payload.text,
-      headers: { 'Message-ID': `<${notification.id}@founders.coffee>` },
     });
     return result.ok ? sent : failed(result.error.message, false);
   });
@@ -163,10 +162,12 @@ export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
  * the recipient, which is the whole basis for the sweep's resend decision after an unconfirmed
  * attempt. It is a capability, not a preference. Push qualifies twice over: the Web Push `Topic`
  * header replaces an undelivered copy in transit, and the service worker tags the notification with
- * the same key so a copy that does arrive replaces the one on screen. Email carries a stable
- * `Message-ID`, which receiving systems commonly but not reliably use to collapse a repeat — best
- * effort is not suppression, so it is recorded as `false`. Twilio's Messages resource has no
- * idempotency key at all: a second send is a second billed SMS on someone's phone.
+ * the same key so a copy that does arrive replaces the one on screen. Email is `false` and now has
+ * nothing to argue about: it used to set its own `Message-ID`, which Cloudflare's Email Sending
+ * rejects outright — `E_VALIDATION_ERROR` on every notification, while the OTP path that sets no
+ * headers has always worked. The header is gone, Cloudflare assigns its own, and a repeat is a
+ * second message in the inbox. Twilio's Messages resource has no idempotency key at all: a second
+ * send is a second billed SMS on someone's phone.
  */
 export const buildDispatchers = (
   db: Db,
