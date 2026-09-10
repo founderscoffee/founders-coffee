@@ -15,6 +15,19 @@ import {
 import { armNotificationSchedule } from './schedule.js';
 import { emailPayloadFor, pushPayloadFor, smsBodyFor } from './templates.js';
 
+const SAME_DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether this cancellation is close enough to the start to be worth a text message.
+ *
+ * ND-07 keeps SMS for exactly one thing: telling somebody not to set off. A cancellation a week out
+ * is news, and email carries news; a cancellation two hours out is the difference between reading it
+ * and crossing Algiers for a gathering that is not happening. The window is what separates the two,
+ * and it is the only place left in the product that bills per message.
+ */
+export const isSameDay = (startsAt: Date, now = Date.now()): boolean =>
+  startsAt.getTime() - now <= SAME_DAY_MS;
+
 /**
  * Tell everyone still going that the host called the meetup off.
  *
@@ -36,6 +49,7 @@ import { emailPayloadFor, pushPayloadFor, smsBodyFor } from './templates.js';
  * — they are an attendee of their own event since creation, and do not need to be told what they
  * just did.
  */
+
 export const enqueueEventCancellationNotices = async (
   db: Db,
   opts: {
@@ -68,7 +82,8 @@ export const enqueueEventCancellationNotices = async (
       contact.smsFallbackEnabled,
     );
     const channel = 'push' as const;
-    const fallback: 'sms' | 'email' = hasPhone ? 'sms' : 'email';
+    const fallback: 'sms' | 'email' =
+      hasPhone && isSameDay(opts.startsAt) ? 'sms' : 'email';
     const basePayload: NotificationPayload = {
       phoneNumber: attendee.phoneNumber ?? undefined,
       email: attendee.email,
@@ -89,17 +104,18 @@ export const enqueueEventCancellationNotices = async (
       valuesFor(basePayload, context, true, reason),
       context.locale,
     );
-    const payload = hasPhone
-      ? { ...basePayload, ...pushPayload, smsBody }
-      : {
-          ...basePayload,
-          ...pushPayload,
-          ...emailPayloadFor(
-            templateKey,
-            valuesFor(basePayload, context, true, reason),
-            context.locale,
-          ),
-        };
+    const payload =
+      fallback === 'sms'
+        ? { ...basePayload, ...pushPayload, smsBody }
+        : {
+            ...basePayload,
+            ...pushPayload,
+            ...emailPayloadFor(
+              templateKey,
+              valuesFor(basePayload, context, true, reason),
+              context.locale,
+            ),
+          };
 
     await enqueueNotification(db, {
       id: id('ntf'),

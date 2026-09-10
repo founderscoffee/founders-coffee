@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { sql } from 'drizzle-orm';
+
 import {
   accountPreferences,
   createRsvp,
@@ -149,10 +151,13 @@ describe('cancelEventResolver', () => {
     expect(second.ok && second.data.notified).toBe(0);
   });
 
-  it('notices go out on push, with SMS behind them when the member consented', async () => {
+  it('texts a consented member when the gathering is today, which is the whole point of keeping SMS', async () => {
     const db = await setupDb();
     const event = await hostAnEvent(db);
     await inviteGuest(db, event.id, '+213600000042');
+    await db.run(
+      sql`UPDATE events SET starts_at = unixepoch() + 3600 WHERE id = ${event.id}`,
+    );
 
     await cancelEventResolver(db, {
       eventId: event.id,
@@ -165,7 +170,22 @@ describe('cancelEventResolver', () => {
     const payload = notice?.payload as Record<string, unknown>;
     expect(payload.pushTitle).toBeTruthy();
     expect(payload.smsBody).toBeTruthy();
-    expect(payload.subject).toBeUndefined();
+  });
+
+  it('emails the same member when the gathering is weeks away, rather than billing for news', async () => {
+    const db = await setupDb();
+    const event = await hostAnEvent(db);
+    await inviteGuest(db, event.id, '+213600000042');
+
+    await cancelEventResolver(db, {
+      eventId: event.id,
+      actorId: TEST_HOST_ID,
+    });
+
+    const notice = await cancellationFor(db, event.id);
+    expect(notice?.channel).toBe('push');
+    expect(notice?.fallbackChannel).toBe('email');
+    expect((notice?.payload as Record<string, unknown>).subject).toBeTruthy();
   });
 
   it('falls back to email for an attendee with no consented number, not to nothing', async () => {

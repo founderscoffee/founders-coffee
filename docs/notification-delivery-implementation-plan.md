@@ -249,21 +249,47 @@ send something or they leave the screen.
 - Acceptance: 390/768/1280 in `ar`, `fr`, `en`; every push state renders its own sentence; an
   all-off category reads as off without a second control saying the same thing.
 
-### ND-07 — Decide about email
+### ND-07 — Decide about email — decided and applied 2026-09-10
 
-**Depends on:** ND-05. **Independent of the rest — this is a product decision with a cost.**
+**Decision: push and email are the default pair. SMS survives only for same-day disruption.**
 
-`producer.ts:105` states the position: email is for authentication and for a workflow the member
-chose. Adding an email column reverses it. That is allowed, but it is a decision, and it has a
-constraint the other channels do not: the `EMAIL` binding is Cloudflare Email Routing, not a
-transactional provider. `libs/email/src/error-codes.ts` already maps `E_DAILY_LIMIT_EXCEEDED` and
-`E_RATE_LIMIT_EXCEEDED`, which is the shape of the ceiling.
+The old position (`producer.ts`) was that email is for authentication and for a workflow the member
+chose, and that a reminder is neither. Both halves of that were wrong for this product.
 
-- If email becomes a per-category channel, size the daily volume against that ceiling first, and
-  plan for a real ESP if reminders at scale exceed it.
-- If it does not, remove the email column from ND-06 and leave email as the cancellation fallback it
-  is today.
-- Acceptance: whichever way it goes, the decision is written in this file with its reason.
+- **Email costs nothing and reaches everyone.** Authentication here is an email OTP, so a member
+  without a working, verified address cannot exist. That is an unusually strong guarantee and it is
+  specific to this app.
+- **Push has a floor it cannot cross.** iOS needs the app on the Home Screen — and the audience is
+  founders, who skew iPhone well above Algeria's 10-12% share. A denied permission is permanent. A
+  subscription dies quietly when a device is signed out, which is why `delivery_unavailable` exists.
+  Realistically push reaches a minority; something has to sit underneath it.
+- **SMS was billing per message to reach people the free channel already reaches** — a confirmation
+  and two reminders per RSVP.
+- **The templates already existed.** `emailPayloadFor` covers all four template keys with localised
+  subject, HTML and text. This was a policy change, not a feature.
+
+What SMS keeps is the one case email cannot cover: a cancellation close enough to the start that an
+unread email means somebody crosses the city for nothing. `isSameDay` in `cancellation.ts` is that
+line, and it is now the only place in the product that bills per message.
+
+Applied:
+
+- `enqueueRsvpNotifications` writes `fallback_channel = 'email'`, never `'sms'`, and carries the
+  email body instead of `smsBody`. No fallback at all when there is no address.
+- `enqueueEventCancellationNotices` falls back to SMS only for a consented number **and** an event
+  within 24 hours; otherwise email. The payload now follows the resolved fallback rather than
+  whether a phone exists — keying it off the phone was a live bug that wrote an SMS body into a row
+  the dispatcher would send by email.
+- RSVP copy no longer promises SMS. `rsvp_help`, `rsvp_confirmed_help` and `push_prompt_decline`
+  said "SMS" in all three locales while the product had not sent one in months.
+
+**Still open:** Cloudflare Email Routing is not a transactional ESP, and `error-codes.ts` already
+maps `E_DAILY_LIMIT_EXCEEDED` and `E_RATE_LIMIT_EXCEEDED`. It carries OTPs today; reminders for every
+RSVP are a different volume, and deliverability to Gmail matters more for a message nobody is waiting
+for. Size it before the first busy month, and budget for Resend or SES.
+
+**Consequence for the §5 gap:** restoring an SMS consent control is no longer urgent. Email reaches
+every member, so the production deploy is now purely additive rather than a trade.
 
 ### ND-08 — Release with evidence
 
