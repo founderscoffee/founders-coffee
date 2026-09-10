@@ -49,3 +49,10 @@ its visibility flag. It does not touch `user.role`, permissions, or other profil
 in journal order after 0021–0023 and compatible Worker deployment; the populated local test verifies
 remaining profile values, auth rows and foreign keys. New interests and spoken languages use the
 existing JSON columns and do not need a separate schema change.
+
+`0025_woozy_apocalypse.sql` is CO-03's operations schema: seven new tables and their indexes, with
+no rebuild and no column drop. It is quarantined only because it follows 0021-0024 in the journal,
+not because it is risky in itself — the quarantine test permits a fully pending suffix and rejects a
+shipped migration after a pending entry, so a later additive migration has nowhere else to go.
+Promoting it means promoting 0021-0024 first, in order, which is PF-03b. Until then CO-03's tables
+exist in tests and in no deployed environment, and no CO server function may be enabled anywhere.

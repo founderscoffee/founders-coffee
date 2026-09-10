@@ -441,6 +441,37 @@ Verification:
 
 **Parent:** P1-013, P1-019, P1-023
 **Requirements:** FR-E11 through FR-E13, FR-M4, FR-M7 through FR-M10; NFR-4, NFR-5, NFR-7, NFR-10, NFR-11
+**Status:** Implemented 2026-09-10, not deployable until PF-03b. What exists and what it costs:
+
+- **The seven §7 tables** and their indexes, in `libs/db/src/schema.ts`, with migration `0025`.
+- **Every write is conditional and audited in the same batch.** A closeout, an attendance outcome
+  and a trust decision each pair with an `operations_audit` insert selected from the same table
+  under the same predicate, so a refused write produces no audit row and an audited change that did
+  not happen is unreachable. Corrections are guarded on `version`; the audit statement is ordered
+  _before_ the update, because D1 applies a batch in order and one placed after would test a
+  version the update had already bumped.
+- **Geography is copied from the event, never accepted from the caller** (§5.19). A market code
+  supplied next to an event id is one typo from filing a Chlef meetup under Algiers.
+- **The §6 definitions are pure functions with golden vectors** in `libs/domain/src/operations`. A
+  zero denominator reports `null` rather than `0`: "nobody was asked" and "everybody said no" are
+  opposite facts and a dashboard rendering both as 0% invites the wrong intervention.
+- **The feedback window is anchored to `ends_at`, never to the closeout**, which is the only way
+  §5.20's "late closeouts do not reopen the window" is actually true.
+- **`communityOperations` is seeded disabled in every market** and resolves an absent or non-boolean
+  value to disabled. It gates closeout, feedback, repeat-host, operations and metrics; moderation
+  and host trust stay available, because the reason to switch the feature off may be the reason
+  they are needed.
+- **Legacy `ends_at IS NULL` events are excluded from every path and listed for attention** (§5.24).
+  No duration is inferred anywhere.
+- **Retention runs in bounded market-scoped batches**: comments cleared at twelve months with the
+  structured pulse kept, rows retired at twenty-four, aggregates never. Member withdrawal removes
+  the person and keeps the meetup.
+- **The blocker to accept:** migration `0025` is quarantined in `libs/db/pending-migrations/`
+  because it follows `0021`-`0024` in the journal, and the quarantine test rejects a shipped
+  migration after a pending entry. CO-03's tables therefore exist in tests and in no deployed
+  environment. **PF-03b — promoting `0021`-`0024` — is now on the critical path**, and it is a
+  release ticket needing a recorded deployed version, a D1 recovery point and a rollback version.
+  Nothing in CO-04 onwards can reach an environment before it runs.
 
 Work:
 

@@ -176,6 +176,13 @@
       "when": 1788975210888,
       "tag": "0024_remove_profile_community_role",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1789034922150,
+      "tag": "0025_woozy_apocalypse",
+      "breakpoints": true
     }
   ]
 }

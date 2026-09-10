@@ -88,6 +88,13 @@ the current sequence.
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
    is open. CO-02 was implemented locally on 2026-09-10 and is not deployed.
 
+**PF-03b is now on the critical path.** CO-03's migration (`0025`, seven additive tables) is
+quarantined behind `0021`-`0024`, because the quarantine test rejects a shipped migration that
+follows a pending journal entry. Nothing from CO-03 onwards can reach staging or production until
+those four contractions are promoted, which is PF-03b — a release ticket needing a recorded
+deployed Worker version, a D1 recovery point and a compatible rollback version. It was previously
+described as able to wait indefinitely; that was true only while nobody needed a new migration.
+
 **Deploy order changed by CO-02.** `apps/ui` now binds `NOTIFICATION_SCHEDULE` across scripts to a
 Durable Object class defined in `apps/worker-jobs`, so worker-jobs deploys first in each
 environment; a binding naming a script that does not yet define the class is rejected. There is no
