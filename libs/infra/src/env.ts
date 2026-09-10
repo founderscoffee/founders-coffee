@@ -3,6 +3,7 @@ export interface WorkerEnv {
 
   readonly RATE_LIMITER?: DurableObjectNamespace;
   readonly EVENT_LIVE?: DurableObjectNamespace;
+  readonly NOTIFICATION_SCHEDULE?: DurableObjectNamespace;
   readonly EMAIL?: unknown;
   readonly ANALYTICS?: AnalyticsEngineDataset;
   readonly PROFILE_ASSETS?: R2Bucket;

@@ -49,13 +49,11 @@ export const setupPhotoOwner = async (): Promise<{
 }> => {
   const db = createDb(env.DB);
   const userId = id('usr');
-  await db
-    .insert(user)
-    .values({
-      id: userId,
-      name: 'Photo Owner',
-      email: `${userId}@test.coffee`,
-    });
+  await db.insert(user).values({
+    id: userId,
+    name: 'Photo Owner',
+    email: `${userId}@test.coffee`,
+  });
   await initializeMemberProfile(db, userId);
   return { db, userId };
 };

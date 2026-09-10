@@ -2,6 +2,7 @@ import { and, eq, gt, notExists, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
+  accountPreferences,
   pushSessionLinks,
   pushSubscriptions,
   session,
@@ -13,6 +14,10 @@ export interface NotificationContact {
   readonly email: string;
   readonly phoneNumber: string | null;
   readonly phoneNumberVerified: boolean;
+  readonly eventUpdates: boolean;
+  readonly eventReminders: boolean;
+  readonly pushEnabled: boolean;
+  readonly smsFallbackEnabled: boolean;
 }
 
 /**
@@ -22,6 +27,13 @@ export interface NotificationContact {
  * written, which for an event reminder can be days earlier. Everything a delivery decision needs
  * is read here in one query, at send time, so the dispatcher never has to decide whether the row
  * it is holding still describes anybody.
+ *
+ * The member's own notification preferences are read here too, for the same reason the address is:
+ * a category switched off or a consent withdrawn after the row was written must take effect on that
+ * row, not only on rows queued afterwards. The join is a LEFT one and every column is coalesced to
+ * the value the table declares as its default, so a member with no preferences row behaves exactly
+ * like one holding a freshly created row — the two must not differ, because whether a row exists
+ * depends only on when the account was created relative to migration 0020.
  *
  * The ban columns are deliberately absent. Whether a suppressed member still receives their own
  * reminders is a moderation decision that belongs to CO-09, and reading `banned` here would settle
@@ -37,11 +49,27 @@ export const getNotificationContact = async (
       email: user.email,
       phoneNumber: user.phoneNumber,
       phoneNumberVerified: user.phoneNumberVerified,
+      eventUpdates: sql<number>`coalesce(${accountPreferences.eventUpdates}, 1)`,
+      eventReminders: sql<number>`coalesce(${accountPreferences.eventReminders}, 1)`,
+      pushEnabled: sql<number>`coalesce(${accountPreferences.pushEnabled}, 0)`,
+      smsFallbackEnabled: sql<number>`coalesce(${accountPreferences.smsFallbackEnabled}, 0)`,
     })
     .from(user)
+    .leftJoin(accountPreferences, eq(accountPreferences.userId, user.id))
     .where(eq(user.id, userId))
     .limit(1);
-  return rows[0] ?? null;
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    accountState: row.accountState,
+    email: row.email,
+    phoneNumber: row.phoneNumber,
+    phoneNumberVerified: row.phoneNumberVerified,
+    eventUpdates: row.eventUpdates === 1,
+    eventReminders: row.eventReminders === 1,
+    pushEnabled: row.pushEnabled === 1,
+    smsFallbackEnabled: row.smsFallbackEnabled === 1,
+  };
 };
 
 /**

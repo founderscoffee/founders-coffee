@@ -12,6 +12,8 @@ import {
   ntf_email_event_cancelled_html,
   ntf_email_event_cancelled_subject,
   ntf_email_event_cancelled_text,
+  ntf_push_confirmation_body,
+  ntf_push_confirmation_title,
   ntf_push_event_cancelled_body,
   ntf_push_event_cancelled_title,
   ntf_push_reminder_24h_body,
@@ -141,7 +143,7 @@ export const emailPayloadFor = (
 };
 
 export const pushPayloadFor = (
-  templateKey: 'reminder_72h' | 'reminder_24h' | 'event_cancelled',
+  templateKey: NotificationTemplateKey,
   values: TemplateValues,
   locale: Locale,
 ): { pushTitle: string; pushBody: string } => {
@@ -150,6 +152,12 @@ export const pushPayloadFor = (
     return {
       pushTitle: ntf_push_event_cancelled_title(values, options),
       pushBody: ntf_push_event_cancelled_body(values, options),
+    };
+  }
+  if (templateKey === 'rsvp_confirmation') {
+    return {
+      pushTitle: ntf_push_confirmation_title(values, options),
+      pushBody: ntf_push_confirmation_body({}, options),
     };
   }
   return templateKey === 'reminder_72h'

@@ -67,7 +67,12 @@ const guarded =
   async (notification, parsed) => {
     if (parsed.channel !== channel)
       return failed(`channel_mismatch: ${parsed.channel}`, true);
-    const resolved = await resolveDestination(db, channel, notification.userId);
+    const resolved = await resolveDestination(
+      db,
+      channel,
+      notification.userId,
+      notification.templateKey,
+    );
     if (!resolved.ok)
       return failed(`unreachable: ${resolved.reason}`, true, {
         unreachable: true,

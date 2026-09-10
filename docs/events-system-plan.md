@@ -115,10 +115,11 @@ When an RSVP or event change creates reminder work:
 5. retry transient failures through Queue policy and send exhausted work to a DLQ;
 6. run a low-frequency Cron recovery sweep only for missed/stuck intents.
 
-The current one-minute D1 scan and direct delivery are temporary non-compliant implementation. The
-current producer also persists SMS/email work alongside push instead of selecting SMS only as the
-push fallback. Scheduler migration and channel-policy correction are the highest-priority
-notification remediation.
+CO-02 implemented exactly this on 2026-09-10, and it is not yet deployed. `NotificationScheduleDO`
+holds the per-event alarm, the queue message names the event rather than carrying content, the
+consumer claims only that event's due rows, and the cron drops to a fifteen-minute recovery sweep.
+The producer now writes one row per notification on push with `fallback_channel = 'sms'`, so SMS is
+reached only by push failing permanently.
 
 ## 7. Live event dashboard
 

@@ -20,12 +20,18 @@ export const NOTIFICATION_CLAIM_TIMEOUT_SECONDS = 900;
  * Claiming is not the same as delivering. A row is released back to `pending` by the retry path or
  * retired by the terminal path, and an invocation that dies mid-run leaves its rows `processing`
  * with a `claimed_at` — {@link listStaleClaims} is how they come back.
+ *
+ * `eventId` narrows the window to one event, which is what an alarm-driven run wants: the Durable
+ * Object woke for that event and has no business claiming a hundred rows belonging to others, whose
+ * own alarms are about to fire and would then find their work already taken. Omitted, the window is
+ * the whole table, which is what the recovery sweep wants.
  */
 export const claimDueNotifications = async (
   db: Db,
-  opts: { limit: number; now: Date },
+  opts: { limit: number; now: Date; eventId?: string },
 ): Promise<ScheduledNotification[]> => {
   const nowSeconds = Math.floor(opts.now.getTime() / 1000);
+  const scope = opts.eventId ? sql`AND event_id = ${opts.eventId}` : sql``;
   return db
     .update(scheduledNotifications)
     .set({
@@ -36,7 +42,7 @@ export const claimDueNotifications = async (
     .where(
       sql`id IN (
             SELECT id FROM scheduled_notifications
-            WHERE status = 'pending' AND send_at <= ${nowSeconds}
+            WHERE status = 'pending' AND send_at <= ${nowSeconds} ${scope}
             ORDER BY send_at, id
             LIMIT ${opts.limit}
           )`,
@@ -58,10 +64,14 @@ export const claimDueNotifications = async (
  * is unknown. The caller routes each through the ordinary failure path, which spends one attempt
  * from the budget and either defers the row for another try or retires it — so a run that keeps
  * dying cannot reclaim the same row forever.
+ *
+ * `eventId` narrows it the same way {@link claimDueNotifications} is narrowed, and for the same
+ * reason: an alarm-driven run woke for one event and reclaiming another event's abandoned rows
+ * would spend their attempts on a run that was never asked to carry them.
  */
 export const listStaleClaims = async (
   db: Db,
-  opts: { limit: number; now: Date },
+  opts: { limit: number; now: Date; eventId?: string },
 ): Promise<ScheduledNotification[]> => {
   const cutoff = new Date(
     opts.now.getTime() - NOTIFICATION_CLAIM_TIMEOUT_SECONDS * 1000,
@@ -73,6 +83,9 @@ export const listStaleClaims = async (
       and(
         eq(scheduledNotifications.status, 'processing'),
         lte(scheduledNotifications.claimedAt, cutoff),
+        ...(opts.eventId
+          ? [eq(scheduledNotifications.eventId, opts.eventId)]
+          : []),
       ),
     )
     .orderBy(

@@ -64,6 +64,11 @@ export const createRsvpResolver = async (
   if (outcome === 'event_missing') {
     return err(new AppError('event_not_found', 'Event not found'));
   }
+  if (outcome === 'rsvp_closed') {
+    return err(
+      new AppError('rsvp_closed', 'This gathering has already started'),
+    );
+  }
   if (outcome === 'already_rsvpd') {
     return err(
       new AppError('already_rsvpd', 'You are already attending this event'),
@@ -93,6 +98,14 @@ export const createRsvpResolver = async (
  * Cancel an RSVP. Validates ownership (only the RSVP owner can cancel).
  * Returns `rsvp_not_found` if no active RSVP exists.
  */
+/**
+ * Withdraw an RSVP, while withdrawing is still something a member may do.
+ *
+ * The row existed a moment ago — the lookup above says so — and the conditional delete still wrote
+ * nothing, which leaves exactly one explanation: the gathering started in between, and §5.17 freezes
+ * intent there. Reporting that as `rsvp_closed` rather than as a missing RSVP matters, because the
+ * member is looking at a seat they can see and being told it is not theirs would be a lie.
+ */
 export const cancelRsvpResolver = async (
   db: Db,
   opts: {
@@ -120,12 +133,16 @@ export const cancelRsvpResolver = async (
     userId: opts.userId,
   });
 
-  if (result.deleted) {
-    await cancelRsvpNotifications(db, {
-      eventId: opts.eventId,
-      userId: opts.userId,
-    });
+  if (!result.deleted) {
+    return err(
+      new AppError('rsvp_closed', 'This gathering has already started'),
+    );
   }
 
-  return ok({ deleted: result.deleted });
+  await cancelRsvpNotifications(db, {
+    eventId: opts.eventId,
+    userId: opts.userId,
+  });
+
+  return ok({ deleted: true });
 };

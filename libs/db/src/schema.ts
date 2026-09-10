@@ -370,7 +370,7 @@ export const scheduledNotifications = sqliteTable(
     attempts: integer('attempts').notNull().default(0),
     lastError: text('last_error'),
     fallbackChannel: text('fallback_channel', {
-      enum: ['email'],
+      enum: ['email', 'sms'],
     }),
     fallbackOf: text('fallback_of'),
     claimedAt: integer('claimed_at', { mode: 'timestamp' }),

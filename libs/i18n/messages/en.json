@@ -449,5 +449,7 @@
   "devices_empty": "No other device is signed in.",
   "providers_disconnect": "Disconnect",
   "providers_keep_one": "Keep at least one way to sign in.",
-  "error_last_sign_in_method": "That is your only way to sign in. Add another first."
+  "error_last_sign_in_method": "That is your only way to sign in. Add another first.",
+  "ntf_push_confirmation_title": "You're going to {title}",
+  "ntf_push_confirmation_body": "We'll remind you before it starts."
 }

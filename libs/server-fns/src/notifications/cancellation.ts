@@ -1,6 +1,7 @@
 import { id } from '@founders-coffee/core';
 import {
   enqueueNotification,
+  getNotificationContact,
   listGoingAttendees,
   type Db,
 } from '@founders-coffee/db';
@@ -11,16 +12,25 @@ import {
   validPayload,
   type NotificationPayload,
 } from './producer.js';
-import { emailPayloadFor, smsBodyFor } from './templates.js';
+import { armNotificationSchedule } from './schedule.js';
+import { emailPayloadFor, pushPayloadFor, smsBodyFor } from './templates.js';
 
 /**
  * Tell everyone still going that the host called the meetup off.
  *
  * Ordering matters and is the caller's job: the pending reminders are dropped *first* so that a
  * reminder for a meetup that is not happening can never outlive this call, and the notices are
- * enqueued after. Each attendee is reached the way they signed up to be reached — SMS with an
- * email fallback when a number is on file, email otherwise — and in their own language, which is
- * why the roster carries `localePref` rather than being resolved once for the whole event.
+ * enqueued after. Each attendee is told in their own language, which is why the roster carries
+ * `localePref` rather than resolving one locale for the whole event.
+ *
+ * One row per attendee, on push, exactly like the RSVP path (CO-02). The fallback behind it is SMS
+ * for an attendee who has consented to it on a verified number, and email for everyone else. Email survives here and nowhere
+ * else in the event lane: a reminder that never arrives costs someone a calendar entry, while an
+ * unheard cancellation sends them to a café for a meetup that is not happening, so this is the one
+ * event notice worth reaching a member who has neither a live device nor a phone on file.
+ *
+ * A fallback row inherits this payload unchanged, so it carries whichever content its own fallback
+ * channel requires and is validated against both channels before it is written.
  *
  * Sent immediately (`sendAt` now); a cancellation has no useful later moment. The host is skipped
  * — they are an attendee of their own event since creation, and do not need to be told what they
@@ -51,8 +61,14 @@ export const enqueueEventCancellationNotices = async (
       preferred: attendee.localePref,
       marketCode: opts.marketCode,
     });
-    const hasPhone = Boolean(attendee.phoneNumber);
-    const channel: 'sms' | 'email' = hasPhone ? 'sms' : 'email';
+    const contact = await getNotificationContact(db, attendee.userId);
+    const hasPhone = Boolean(
+      attendee.phoneNumber &&
+      contact?.phoneNumberVerified &&
+      contact.smsFallbackEnabled,
+    );
+    const channel = 'push' as const;
+    const fallback: 'sms' | 'email' = hasPhone ? 'sms' : 'email';
     const basePayload: NotificationPayload = {
       phoneNumber: attendee.phoneNumber ?? undefined,
       email: attendee.email,
@@ -68,11 +84,22 @@ export const enqueueEventCancellationNotices = async (
       valuesFor(basePayload, context, false, reason),
       context.locale,
     );
-    const emailPayload = emailPayloadFor(
+    const pushPayload = pushPayloadFor(
       templateKey,
       valuesFor(basePayload, context, true, reason),
       context.locale,
     );
+    const payload = hasPhone
+      ? { ...basePayload, ...pushPayload, smsBody }
+      : {
+          ...basePayload,
+          ...pushPayload,
+          ...emailPayloadFor(
+            templateKey,
+            valuesFor(basePayload, context, true, reason),
+            context.locale,
+          ),
+        };
 
     await enqueueNotification(db, {
       id: id('ntf'),
@@ -80,17 +107,14 @@ export const enqueueEventCancellationNotices = async (
       userId: attendee.userId,
       channel,
       templateKey,
-      payload: validPayload(
-        channel,
-        channel === 'sms'
-          ? { ...basePayload, smsBody, ...emailPayload }
-          : { ...basePayload, ...emailPayload },
-      ),
+      payload: validPayload(fallback, validPayload(channel, payload)),
       sendAt: new Date(),
-      fallbackChannel: hasPhone ? 'email' : undefined,
+      fallbackChannel: fallback,
     });
     sent += 1;
   }
+
+  if (sent > 0) await armNotificationSchedule(opts.eventId, new Date());
 
   return sent;
 };

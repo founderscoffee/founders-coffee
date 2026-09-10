@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  accountPreferences,
   createRsvp,
+  eq,
   getEvent,
   listPendingNotifications,
   user,
@@ -19,7 +21,11 @@ import {
 
 const GUEST_ID = 'usr_cancel_guest01';
 
-const inviteGuest = async (db: Db, eventId: string) => {
+const inviteGuest = async (
+  db: Db,
+  eventId: string,
+  phoneNumber: string | null = null,
+) => {
   await db
     .insert(user)
     .values({
@@ -31,7 +37,29 @@ const inviteGuest = async (db: Db, eventId: string) => {
     })
     .onConflictDoNothing()
     .run();
+  await db
+    .update(user)
+    .set({ phoneNumber, phoneNumberVerified: phoneNumber !== null })
+    .where(eq(user.id, GUEST_ID))
+    .run();
+  await db
+    .insert(accountPreferences)
+    .values({ userId: GUEST_ID, smsFallbackEnabled: phoneNumber !== null })
+    .onConflictDoUpdate({
+      target: accountPreferences.userId,
+      set: { smsFallbackEnabled: phoneNumber !== null },
+    });
   await createRsvp(db, { id: `rsv_${eventId}`, eventId, userId: GUEST_ID });
+};
+
+const cancellationFor = async (db: Db, eventId: string) => {
+  const pending = await listPendingNotifications(db, {
+    now: new Date('2099-01-14T18:00:00Z'),
+    limit: 50,
+  });
+  return pending.find(
+    (row) => row.eventId === eventId && row.templateKey === 'event_cancelled',
+  );
 };
 
 const hostAnEvent = async (db: Db) => {
@@ -119,6 +147,45 @@ describe('cancelEventResolver', () => {
     expect(first.ok && first.data.event.status).toBe('cancelled');
     expect(first.ok && first.data.notified).toBe(1);
     expect(second.ok && second.data.notified).toBe(0);
+  });
+
+  it('notices go out on push, with SMS behind them when the member consented', async () => {
+    const db = await setupDb();
+    const event = await hostAnEvent(db);
+    await inviteGuest(db, event.id, '+213600000042');
+
+    await cancelEventResolver(db, {
+      eventId: event.id,
+      actorId: TEST_HOST_ID,
+    });
+
+    const notice = await cancellationFor(db, event.id);
+    expect(notice?.channel).toBe('push');
+    expect(notice?.fallbackChannel).toBe('sms');
+    const payload = notice?.payload as Record<string, unknown>;
+    expect(payload.pushTitle).toBeTruthy();
+    expect(payload.smsBody).toBeTruthy();
+    expect(payload.subject).toBeUndefined();
+  });
+
+  it('falls back to email for an attendee with no consented number, not to nothing', async () => {
+    const db = await setupDb();
+    const event = await hostAnEvent(db);
+    await inviteGuest(db, event.id);
+
+    await cancelEventResolver(db, {
+      eventId: event.id,
+      actorId: TEST_HOST_ID,
+      reason: 'the café closed',
+    });
+
+    const notice = await cancellationFor(db, event.id);
+    expect(notice?.channel).toBe('push');
+    expect(notice?.fallbackChannel).toBe('email');
+    const payload = notice?.payload as Record<string, unknown>;
+    expect(payload.pushTitle).toBeTruthy();
+    expect(payload.subject).toBeTruthy();
+    expect(payload.html).toContain('the café closed');
   });
 
   it('drops the pending reminders instead of leaving them to fire', async () => {

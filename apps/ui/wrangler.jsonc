@@ -37,7 +37,10 @@
     },
   ],
   "r2_buckets": [
-    { "binding": "PROFILE_ASSETS", "bucket_name": "founders-coffee-assets-dev" },
+    {
+      "binding": "PROFILE_ASSETS",
+      "bucket_name": "founders-coffee-assets-dev",
+    },
   ],
   "images": { "binding": "IMAGES" },
   "durable_objects": {
@@ -48,6 +51,11 @@
   },
 
   // ── Deploy environments ──────────────────────────────────────────────────────────────────────
+  // `NOTIFICATION_SCHEDULE` is a cross-script binding: the class lives in `apps/worker-jobs`, which
+  // owns timed delivery, and this app only arms it after writing notification rows. Deploy
+  // worker-jobs first — a binding naming a script that does not yet define the class is rejected.
+  // It is deliberately absent from local dev above: `armNotificationSchedule` no-ops without the
+  // binding and the recovery sweep still delivers, which is the right local behaviour.
   // Bindings (`vars`, `durable_objects`, `d1_databases`, `send_email`) are non-inheritable and are
   // restated per environment on purpose. Selected at BUILD time via `CLOUDFLARE_ENV` — the
   // Cloudflare Vite plugin flattens the chosen environment into the deploy config, so
@@ -93,6 +101,11 @@
         "bindings": [
           { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
           { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" },
+          {
+            "name": "NOTIFICATION_SCHEDULE",
+            "class_name": "NotificationScheduleDO",
+            "script_name": "founders-coffee-worker-jobs-staging",
+          },
         ],
       },
     },
@@ -129,6 +142,11 @@
         "bindings": [
           { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
           { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" },
+          {
+            "name": "NOTIFICATION_SCHEDULE",
+            "class_name": "NotificationScheduleDO",
+            "script_name": "founders-coffee-worker-jobs-production",
+          },
         ],
       },
     },

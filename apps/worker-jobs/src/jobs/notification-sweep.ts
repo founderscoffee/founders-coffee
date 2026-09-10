@@ -60,8 +60,14 @@ const dispatch = async (
 };
 
 /**
- * Cron-driven sweep: takes the oldest due notifications, dispatches each on its channel, and
- * resolves every one of them.
+ * Take the oldest due notifications, dispatch each on its channel, and resolve every one of them.
+ *
+ * Two callers, one body. `scope.eventId` is the alarm-driven path: an event's Durable Object fired,
+ * its message reached the queue, and only that event's rows are claimed. Unscoped is the recovery
+ * sweep, which runs on a slow cron and exists for the rows no alarm will ever announce — an event
+ * whose object never armed, a queue message that died in the dead-letter queue, a row deferred to a
+ * later attempt after its alarm had already moved on. Neither path is allowed to be the only one:
+ * alarms make delivery prompt, the sweep makes it certain.
  *
  * "Resolves every one" is the invariant this function exists to hold. `claimDueNotifications`
  * returns a bounded window of the oldest due rows, so any row that can be selected without being
@@ -82,10 +88,11 @@ const dispatch = async (
  * is never dispatched and never selected again.
  *
  * Rows are claimed before anything is dispatched. Each sweep makes an outbound provider call per
- * row, so a run can outlast the one-minute cron tick; without the claim the next tick re-selected
- * the same `pending` rows and sent them all again. `claimDueNotifications` moves the window to
- * `processing` in one guarded statement and returns exactly the rows this caller won, so
- * overlapping sweeps operate on disjoint sets.
+ * row, so a run can outlast the tick or alarm that started it; without the claim the next one
+ * re-selected the same `pending` rows and sent them all again. `claimDueNotifications` moves the
+ * window to `processing` in one guarded statement and returns exactly the rows this caller won, so
+ * an alarm-driven run and a recovery sweep that overlap operate on disjoint sets — which is what
+ * lets both paths exist without either duplicating the other's deliveries.
  *
  * Stale claims are released first, before new work is taken. An invocation that dies between
  * claiming and resolving leaves rows `processing` with nothing to advance them, so each sweep
@@ -102,6 +109,13 @@ const dispatch = async (
  * have most likely already received, so the row is retired instead and its fallback, if it has one,
  * carries the delivery.
  *
+ * Every run that touched anything logs its whole report, tagged with the event when it was
+ * alarm-driven. The counters are the only externally visible account of delivery: nothing else
+ * distinguishes a quiet hour from a sweep that refused a hundred rows for a missing provider, and
+ * `sent + retrying + failed + contended = selected + reclaimed` is checkable from the log line
+ * alone. A run that selected and reclaimed nothing logs nothing, so the recovery cron's ninety-six
+ * daily wake-ups do not bury the runs that did something.
+ *
  * That leaves no path that silently duplicates. It does not make delivery exactly-once, which is
  * not reachable against providers that offer no idempotency key: the guarantee is exactly-once on
  * push, at-most-once on SMS and email after an unconfirmed attempt, and at-least-once everywhere
@@ -112,6 +126,7 @@ export const sweepNotifications = async (
   db: Db,
   providers: DispatchProviders,
   now: Date = new Date(),
+  scope: { eventId?: string } = {},
 ): Promise<SweepReport> => {
   const dispatchers = buildDispatchers(db, providers);
   const tally = {
@@ -149,7 +164,11 @@ export const sweepNotifications = async (
     }
   };
 
-  const stale = await listStaleClaims(db, { limit: SWEEP_LIMIT, now });
+  const stale = await listStaleClaims(db, {
+    limit: SWEEP_LIMIT,
+    now,
+    ...scope,
+  });
   for (const abandoned of stale) {
     if (abandoned.dispatchStartedAt === null) {
       await recordFailure(
@@ -173,7 +192,11 @@ export const sweepNotifications = async (
     );
   }
 
-  const claimed = await claimDueNotifications(db, { limit: SWEEP_LIMIT, now });
+  const claimed = await claimDueNotifications(db, {
+    limit: SWEEP_LIMIT,
+    now,
+    ...scope,
+  });
   let unroutable = 0;
 
   for (const notification of claimed) {
@@ -228,10 +251,15 @@ export const sweepNotifications = async (
     }
   }
 
-  return {
+  const report: SweepReport = {
     selected: claimed.length,
     reclaimed: stale.length,
     unroutable,
     ...tally,
   };
+
+  if (report.selected > 0 || report.reclaimed > 0)
+    logger.info('notification.sweep', { ...report, eventId: scope.eventId });
+
+  return report;
 };

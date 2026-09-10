@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import { createEvent, getEvent } from './events.js';
 import { createDb, seed, user, type Db, type NewUser } from './index.js';
@@ -38,7 +38,10 @@ export const setupDb = async (): Promise<Db> => {
   return db;
 };
 
-export const seedEvent = async (db: Db): Promise<string> => {
+export const seedEvent = async (
+  db: Db,
+  startsAt: Date = new Date('2099-01-15T18:00:00Z'),
+): Promise<string> => {
   const n = ++counter;
   const id = `evt_rsvp${String(n).padStart(3, '0')}`;
   await createEvent(db, {
@@ -51,11 +54,28 @@ export const seedEvent = async (db: Db): Promise<string> => {
     title: `RSVP fixture ${n}`,
     description: 'RSVP behaviour fixture.',
     venue: 'Café des Délices, Hydra',
-    startsAt: new Date('2099-01-15T18:00:00Z'),
+    startsAt,
     language: 'fr',
     status: 'published',
   });
   return id;
+};
+
+/**
+ * Move an event's start relative to the database's own clock.
+ *
+ * The freeze compares against `unixepoch()` inside the statement, so a test cannot reach it by
+ * choosing a JavaScript date — it has to move the row. Seconds rather than a fixed timestamp keeps
+ * the boundary meaningful however long the suite takes to reach this line.
+ */
+export const setStartOffset = async (
+  db: Db,
+  eventId: string,
+  seconds: number,
+): Promise<void> => {
+  await db.run(
+    sql`UPDATE events SET starts_at = unixepoch() + ${seconds} WHERE id = ${eventId}`,
+  );
 };
 
 /** The denormalized counter and the real attendee rows, which must always agree. */

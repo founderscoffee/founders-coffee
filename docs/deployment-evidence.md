@@ -197,8 +197,10 @@ Proven end to end on staging rather than assumed: a message posted to
 ```
 
 — the environment-suffixed name resolved to its catalogue name, the consumer ran, and the message
-was acked. Nothing produces into these queues yet; notification delivery is still the one-minute D1
-sweep.
+was acked. Nothing produced into these queues at the time; CO-02 (2026-09-10) added the producer —
+a per-event `NotificationScheduleDO` alarm — but it is not deployed, so the account still shows zero
+producers on both notifications queues. Re-read 2026-09-10: all eight queues present in both
+environments, one consumer each, both DLQs correctly with none.
 
 **The sponsor portal is unpublished.** `app.founders.coffee`'s custom domain
 (`1d629406ba19fc525a1c26448571667a83e5685b`) was deleted and its DNS record went with it; the zone

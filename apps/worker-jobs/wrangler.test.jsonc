@@ -16,7 +16,21 @@
   "send_email": [
     { "name": "EMAIL", "allowed_destination_addresses": ["ok@example.com"] },
   ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NOTIFICATION_SCHEDULE",
+        "class_name": "NotificationScheduleDO",
+      },
+    ],
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["NotificationScheduleDO"] },
+  ],
   "queues": {
+    "producers": [
+      { "binding": "NOTIFICATIONS", "queue": "founders-coffee-notifications" },
+    ],
     "consumers": [
       { "queue": "founders-coffee-notifications" },
       { "queue": "founders-coffee-notifications-staging" },

@@ -63,9 +63,10 @@ yet, so notification delivery is unchanged.
 (`founders-coffee-flags`), and Analytics Engine. Of these, Analytics Engine
 supports the current community release. R2/KV and the existing AI/Vectorize
 foundation are not launch blockers unless a current community workflow is explicitly enabled that
-requires them. Notifications currently flow through a non-compliant one-minute D1 scan. The
-highest-priority remediation is per-event Durable Object alarms → Notifications Queue, with only a
-low-frequency recovery sweep.
+requires them. Notifications flow through per-event Durable Object alarms into the Notifications
+Queue, with a fifteen-minute recovery sweep behind them, as of CO-02 on 2026-09-10. That code is not
+deployed: the Durable Object namespace and the worker-jobs producer binding are created by its next
+deploy, and worker-jobs must be deployed before `apps/ui`, which binds the class across scripts.
 
 Current launch provisioning requires D1, event/rate-limit Durable Objects, custom domains, Email
 Sending for email OTP, Turnstile, Mapbox, FCM web push, Twilio Programmable SMS fallback, the

@@ -8,36 +8,48 @@ and nonessential embedding jobs remain future work even where processor foundati
 
 ## Current implementation
 
-| Entry point                     | Current behavior                                                             | Status                                                                                                                  |
-| ------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `fetch`                         | Returns the worker health response                                           | Complete                                                                                                                |
-| scheduled trigger, every minute | Queries D1 for due notifications and delivers them directly                  | Blocked: violates the per-entity scheduling decision                                                                    |
-| scheduled trigger, daily        | Reconciles pending-order counts and records the backlog metric               | Complete as a recovery/operational job                                                                                  |
-| `queue` handler                 | Contains processors for notification, embedding, and reconciliation messages | Partial: consumers are bound in both deployed environments with a dead-letter queue, but nothing produces into them yet |
+| Entry point                                | Current behavior                                                                            | Status                                                                                                |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `fetch`                                    | Returns the worker health response                                                          | Complete                                                                                              |
+| `NotificationScheduleDO` alarm, per event  | Publishes `notification_due` for that event onto the notifications queue, then rearms       | Complete (CO-02); not deployed                                                                        |
+| `queue` handler, notifications             | Delivers everything the named event has due, push first with SMS behind it                  | Complete (CO-02); not deployed                                                                        |
+| scheduled trigger, every fifteen minutes   | Sweeps D1 for due rows no alarm announced, and releases abandoned claims                    | Complete as a recovery job — explicitly not the primary scheduler                                     |
+| scheduled trigger, daily                   | Reconciles pending-order counts, records the backlog metric, sweeps orphaned profile assets | Complete as a recovery/operational job                                                                |
+| `queue` handler, embeddings/reconciliation | Processors exist for both message families                                                  | Partial: consumers are bound in both deployed environments with a dead-letter queue, nothing produces |
 
-The minute-by-minute D1 notification scan is temporary operational debt. The persisted notification
-set also currently causes SMS/email work to coexist with push rather than invoking SMS strictly as
-the fallback. Neither behavior is the intended design or a basis for additional timed features.
+CO-02 replaced the minute-by-minute D1 scan. Timing is now per event, held by a Durable Object
+alarm, and the cron is a recovery sweep behind it. The same change made push the only primary
+channel for event notifications, with SMS strictly as its fallback and email present only as the
+cancellation fallback for a member with no consented number.
 
-## Required notification architecture
+## Notification architecture
 
 ```text
-Event mutation
-  -> schedule a Durable Object alarm for the entity
-  -> alarm publishes a delivery command to NOTIFICATIONS
-  -> worker-jobs consumes the message
+Event mutation (apps/ui)
+  -> write the scheduled_notifications rows
+  -> arm NOTIFICATION_SCHEDULE for the event at the earliest send_at
+  -> the alarm fires and publishes { kind: 'notification_due', eventId } to NOTIFICATIONS
+  -> worker-jobs consumes it and claims only that event's due rows
   -> PWA web push is attempted first
-  -> SMS is used as the fallback when push is unavailable or fails
+  -> SMS is written as a fallback row when push fails permanently
 ```
 
-- Durable Object alarms own per-entity timing.
-- The queue provides retry isolation and dead-letter handling.
-- A low-frequency D1 sweep may recover missed alarms; it is not the primary scheduler.
-- Email remains appropriate for authentication and explicitly email-based workflows. Future billing
-  may use email if that phase is opened. Email is not the default event-reminder channel.
-- Notification preferences and idempotency must be enforced before delivery.
-
-This migration is the highest-priority platform blocker in the active implementation plan.
+- Durable Object alarms own per-entity timing. One object per event, named from the event id.
+- The alarm rearms from `scheduled_notifications`, never from its own memory: rows arrive from more
+  than one writer, and an object holding a private copy of the schedule would be wrong every time
+  one of them wrote without it. It rearms no sooner than five minutes out, because the consumer has
+  not run yet when it rearms and the rows it just announced are still due.
+- The queue provides retry isolation and dead-letter handling. The message carries an event id and
+  no content — a copy of a notification can be retried after the row it came from was cancelled or
+  already delivered, so D1 holds the state and the message is only a wake-up.
+- The fifteen-minute D1 sweep recovers missed alarms and abandoned claims; it is not the primary
+  scheduler. Both paths share one `sweepNotifications` body, differing only in whether the claim is
+  scoped to an event.
+- The class lives here and `apps/ui` binds it across scripts, so **worker-jobs deploys first**.
+- Email remains appropriate for authentication and explicitly email-based workflows, and is the
+  cancellation fallback for a member with no consented number. It is not an event-reminder channel.
+- Notification preferences are enforced in `resolveDestination`, at send time rather than at enqueue
+  time, so a switch turned off after a row was written still applies to that row.
 
 ## Queue processors
 

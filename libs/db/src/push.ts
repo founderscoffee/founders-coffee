@@ -1,7 +1,33 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
-import { pushSubscriptions, type PushSubscriptionRow } from './schema.js';
+import {
+  accountPreferences,
+  pushSubscriptions,
+  type PushSubscriptionRow,
+} from './schema.js';
+
+/**
+ * Record that this member has push on, because a device just registered for it.
+ *
+ * `push_enabled` defaults to false and is read at send time, so without this a member who granted
+ * the browser permission and registered a device would still be refused every push: the switch
+ * describing their state would say off while their device said on. Registration is the affirmative
+ * gesture, so it is what writes the switch.
+ *
+ * Upserted rather than updated because the preferences row is created lazily, on the first profile
+ * save — a member who has never opened that screen has no row, and an UPDATE would silently write
+ * nothing and leave push refused.
+ */
+const recordPushEnabled = async (db: Db, userId: string): Promise<void> => {
+  await db
+    .insert(accountPreferences)
+    .values({ userId, pushEnabled: true })
+    .onConflictDoUpdate({
+      target: accountPreferences.userId,
+      set: { pushEnabled: true, updatedAt: sql`(unixepoch())` },
+    });
+};
 
 /**
  * Register a push subscription. Upserts on token (unique) — if the token
@@ -24,6 +50,8 @@ export const registerPushToken = async (
     .from(pushSubscriptions)
     .where(eq(pushSubscriptions.token, opts.token))
     .limit(1);
+
+  await recordPushEnabled(db, opts.userId);
 
   if (existing.length > 0) {
     if (existing[0].userId === opts.userId) {

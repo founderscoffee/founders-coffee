@@ -7,20 +7,29 @@ import {
 import { describe, expect, it } from 'vitest';
 import { queueName, RESOURCES } from '@founders-coffee/infra';
 
-import type { NotificationMessage } from './jobs/messages.js';
+import type { NotificationDueMessage } from './jobs/messages.js';
 import worker from './index.js';
+import { eq, user, type Db } from '@founders-coffee/db';
+
+import {
+  EVENT_ID,
+  MEMBER_ID,
+  enqueue,
+  rowById,
+  setupDb,
+} from './jobs/notification-sweep.fixtures.js';
+
+const memberEmail = async (db: Db, email: string): Promise<void> => {
+  await db.update(user).set({ email }).where(eq(user.id, MEMBER_ID)).run();
+};
 
 const runHandler = async (
-  to: string,
+  eventId: string,
   queue = RESOURCES.queues.notifications,
 ) => {
-  const batch = createMessageBatch<NotificationMessage>(queue, [
+  const batch = createMessageBatch<NotificationDueMessage>(queue, [
     {
-      body: {
-        to,
-        subject: 'RSVP confirmed',
-        html: '<p>See you Saturday.</p>',
-      },
+      body: { kind: 'notification_due', eventId },
       timestamp: new Date(),
       attempts: 1,
     },
@@ -30,33 +39,49 @@ const runHandler = async (
   return getQueueResult(batch, ctx);
 };
 
-describe('queue handler — NOTIFICATIONS (real Miniflare EMAIL binding)', () => {
-  it('acks a notification that dispatches to an allowed recipient', async () => {
-    const result = await runHandler('ok@example.com');
+describe('queue handler — NOTIFICATIONS (real Miniflare bindings)', () => {
+  it('acks a due message and marks the row it delivered', async () => {
+    const db = await setupDb();
+    await memberEmail(db, 'ok@example.com');
+    const rowId = await enqueue(db, { channel: 'email' });
+
+    const result = await runHandler(EVENT_ID);
 
     expect(result.explicitAcks).toHaveLength(1);
     expect(result.retryMessages).toHaveLength(0);
+    expect((await rowById(db, rowId))?.status).toBe('sent');
   });
 
-  it('retries a notification to a disallowed recipient (provider returns err)', async () => {
-    const result = await runHandler('blocked@example.com');
+  it('acks a message whose delivery failed, because the row carries that outcome', async () => {
+    const db = await setupDb();
+    await memberEmail(db, 'blocked@example.com');
+    const rowId = await enqueue(db, { channel: 'email' });
 
-    expect(result.retryMessages).toHaveLength(1);
-    expect(result.explicitAcks).toHaveLength(0);
+    const result = await runHandler(EVENT_ID);
+
+    expect(result.explicitAcks).toHaveLength(1);
+    expect(result.retryMessages).toHaveLength(0);
+    expect((await rowById(db, rowId))?.status).not.toBe('sent');
   });
 
   it('really processes a message arriving on the environment-suffixed queue name', async () => {
+    const db = await setupDb();
+    await memberEmail(db, 'ok@example.com');
+    const rowId = await enqueue(db, { channel: 'email' });
+
     const result = await runHandler(
-      'blocked@example.com',
+      EVENT_ID,
       queueName('notifications', 'staging'),
     );
 
-    expect(result.retryMessages).toHaveLength(1);
-    expect(result.explicitAcks).toHaveLength(0);
+    expect(result.explicitAcks).toHaveLength(1);
+    expect((await rowById(db, rowId))?.status).toBe('sent');
   });
 
   it('retries rather than acks a message from a queue it cannot route', async () => {
-    const result = await runHandler('ok@example.com', 'not-one-of-ours');
+    await setupDb();
+
+    const result = await runHandler(EVENT_ID, 'not-one-of-ours');
 
     expect(result.retryMessages).toHaveLength(1);
     expect(result.explicitAcks).toHaveLength(0);

@@ -16,14 +16,18 @@ import type { Env } from './env.js';
 import { processEmbeddings } from './jobs/embeddings.js';
 import type {
   EmbeddingsMessage,
-  NotificationMessage,
+  NotificationDueMessage,
 } from './jobs/messages.js';
-import { processNotification } from './jobs/notifications.js';
+import { processNotificationDue } from './jobs/notifications.js';
 import { sweepProfileAssets } from './jobs/profile-asset-sweep.js';
 import { runReconcile } from './jobs/reconcile.js';
 import { sweepNotifications } from './jobs/notification-sweep.js';
 
-type JobMessage = EmbeddingsMessage | NotificationMessage;
+export { NotificationScheduleDO } from './jobs/notification-schedule-do.js';
+
+const RECOVERY_SWEEP_CRON = '*/15 * * * *';
+
+type JobMessage = EmbeddingsMessage | NotificationDueMessage;
 
 const createSmsProvider = (env: Env): NotificationSmsProvider => {
   if (env.TWILIO_AID && env.TWILIO_SEC && env.TWILIO_SMS_FROM) {
@@ -70,9 +74,10 @@ const dispatch = async (
   const db = createDb(env.DB);
 
   if (kind === 'notifications') {
-    return processNotification(body as NotificationMessage, {
+    return processNotificationDue(db, body as NotificationDueMessage, {
       email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
       sms: createSmsProvider(env),
+      push: createPushProvider(env),
     });
   }
   if (kind === 'embeddings') {
@@ -88,10 +93,23 @@ const dispatch = async (
 export default {
   fetch: () => new Response('ok'),
 
+  /**
+   * Run the two timed jobs, neither of which is the notification delivery path any more.
+   *
+   * `RECOVERY_SWEEP_CRON` is a recovery sweep. Delivery is announced by an event's
+   * `NotificationScheduleDO` alarm onto the notifications queue, so this exists for the rows no
+   * alarm will announce: an event whose object never armed because the binding was absent, a
+   * message that exhausted its retries into the dead-letter queue, a row deferred to a later
+   * attempt after its alarm had moved on, a claim abandoned by an invocation that died. Fifteen
+   * minutes is chosen against what those rows are — reminders scheduled hours ahead — not against
+   * the latency of the normal path, which is now seconds rather than the up-to-a-minute the old
+   * one-minute cron gave. The constant is only a name for the schedule; `triggers.crons` in
+   * `wrangler.jsonc` is what Cloudflare actually runs, and the two must agree.
+   */
   scheduled: async (controller: ScheduledController, env: Env) => {
     const db = createDb(env.DB);
 
-    if (controller.cron === '*/1 * * * *') {
+    if (controller.cron === RECOVERY_SWEEP_CRON) {
       await sweepNotifications(db, {
         sms: createSmsProvider(env),
         email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),

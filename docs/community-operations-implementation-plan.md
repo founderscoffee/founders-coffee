@@ -347,7 +347,8 @@ mission and should remain one reviewable PR unless its security/data migration m
 **Parent:** P1-019, P1-023
 **Requirements:** FR-E10, FR-M1, FR-M7 through FR-M10; NFR-5, NFR-7, NFR-10
 **Status:** Complete — approved 2026-09-10. The operating contract is recorded at the end of this
-document; §5, §6 and §7 are frozen from that date. CO-02 is the next work package.
+document; §5, §6 and §7 are frozen from that date. CO-02 followed and is implemented; see its own
+status below.
 
 Work:
 
@@ -380,6 +381,36 @@ Verification:
 
 **Parent:** P1-008, P1-009, P0-018, P1-018
 **Requirements:** FR-E3, FR-E4, FR-E8, FR-E10; NFR-4, NFR-7, NFR-11
+**Status:** Implemented 2026-09-10, not deployed. What changed, and what it costs:
+
+- **RSVP freeze.** `libs/db/src/rsvps.ts` gates create, cancel and restore on
+  `starts_at > unixepoch()` inside the conditional write itself, so server time decides and no
+  read-then-write window exists. At or after the start instant the operation returns `rsvp_closed`
+  and the going set is frozen for attendance eligibility.
+- **Alarms replace the poll.** `NotificationScheduleDO` (one object per event, in
+  `apps/worker-jobs`) holds an alarm at that event's next `send_at`, fires a `notification_due`
+  message onto the notifications queue, and rearms from the table. The cron drops from `*/1` to
+  `*/15` and is now a recovery sweep for the rows no alarm announces. `apps/ui` reaches the object
+  through a cross-script binding, so **worker-jobs must be deployed before ui**.
+- **Push first, SMS only behind it, no email in the event lane.** One row per notification on
+  `push` with `fallback_channel = 'sms'`; the duplicate SMS/email-plus-push pair is gone. Email
+  survives only as the cancellation fallback for a member with no consented number — a missed
+  reminder costs a calendar entry, an unheard cancellation sends someone to a café for nothing.
+- **Preferences are enforced at send time**, in `resolveDestination`, against the values current
+  when the row is sent rather than when it was written. Categories (`event_reminders`,
+  `event_updates`) are account-level refusals and write no fallback; channels (`push_enabled`,
+  `sms_fallback_enabled`) are not, so the other channel is still tried. `rsvp_confirmation` passes
+  every category gate, being a receipt rather than an update.
+- **The consequence to accept:** `push_enabled` and `sms_fallback_enabled` default disabled by §5 of
+  the profile plan, and no surface sets `sms_fallback_enabled` yet. Registering a device now records
+  `push_enabled`, so push is reachable; **SMS fallback reaches nobody until PF-08 ships the
+  preferences screen.** That is the documented consent design being enforced rather than a
+  regression, but it means the SMS path is dark in the interim and should not be read as a delivery
+  fault.
+- **Account-side evidence, read 2026-09-10:** all eight queues exist in both environments; both
+  notifications queues have one consumer and, correctly, zero producers until worker-jobs is
+  deployed with its new producer binding; both DLQs have zero consumers by design. The Durable
+  Object namespace does not exist yet — it is created by the first worker-jobs deploy.
 
 Work:
 
@@ -956,7 +987,7 @@ Roles are seeded explicitly and revoked explicitly; none is left standing after 
 
 | Surface             | State                                                                                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| D1                  | `founders-coffee-db-production`, `founders-coffee-db-staging`, and `verified-prof`                                                                     |
+| D1                  | `founders-coffee-db-production` and `founders-coffee-db-staging`; `verified-prof` deleted 2026-09-10 (see F)                                           |
 | Workers             | 8 scripts — `ui`, `admin`, `dashboard`, `worker-jobs`, each in staging and production; production last modified 2026-09-04, staging 2026-09-05         |
 | Queues              | 8 — `notifications`, `embeddings-jobs`, `reconcile` and `dlq`, each per environment. All have one consumer except both DLQs, which correctly have none |
 | R2                  | `founders-coffee-assets-{dev,staging,production}`, created 2026-09-09 for PF-06, all empty, all WEUR                                                   |
@@ -974,12 +1005,14 @@ exposed — this is a "cannot be used" rather than a "can be bypassed" — but _
 `admin`"_ has no working path until an Access application exists, and creating one is a Founder
 action on the dashboard.
 
-**`verified-prof` is a D1 database belonging to a different product.** Identified 2026-09-10: created
-2026-01-20, holding a PascalCase schema — `User`, `Account`, `Session`, `Skill`, `Badge`,
-`Achievement`, `AnalysisJob`, `Verification` — under its own migrations `0001_init.sql` and
-`0002_add_verification.sql`. Every table is empty. It is not founders-coffee's, which uses snake_case
-throughout, and it is referenced by no `wrangler.jsonc`, migration or binding here. Recorded so that
-nobody adding operational tables in CO-03 mistakes it for ours.
+**`verified-prof` was a D1 database belonging to a different product, and has been deleted.**
+Identified 2026-09-10: created 2026-01-20, holding a PascalCase schema — `User`, `Account`,
+`Session`, `Skill`, `Badge`, `Achievement`, `AnalysisJob`, `Verification` — under its own migrations
+`0001_init.sql` and `0002_add_verification.sql`. Every table was empty. It was not founders-coffee's,
+which uses snake_case throughout, and it was referenced by no `wrangler.jsonc`, migration or binding
+here. The Founder confirmed it belonged to a retired product and it was deleted the same day.
+Recorded so the account inventory reads as two databases rather than three, and so nobody adding
+operational tables in CO-03 goes looking for a third.
 
 ### G. What CO-01 does not do
 

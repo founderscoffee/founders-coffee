@@ -86,7 +86,14 @@ the current sequence.
    performed and verified on 2026-09-10.
 2. EC-10 was signed off on 2026-09-10 and CO-01 approved the same day, so the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
-   is open at CO-02.
+   is open. CO-02 was implemented locally on 2026-09-10 and is not deployed.
+
+**Deploy order changed by CO-02.** `apps/ui` now binds `NOTIFICATION_SCHEDULE` across scripts to a
+Durable Object class defined in `apps/worker-jobs`, so worker-jobs deploys first in each
+environment; a binding naming a script that does not yet define the class is rejected. There is no
+data migration and nothing to roll back in D1 — the change is bindings, a cron interval and code —
+but a ui deployed against a worker-jobs that lacks the class will fail to deploy rather than degrade,
+which is why the order is written here rather than left to be discovered.
 
 The second plan closes the real-world community loop through frozen RSVP eligibility, attendance,
 feedback, repeat hosting, essential admin operations, trust/moderation, weekly decisions, and

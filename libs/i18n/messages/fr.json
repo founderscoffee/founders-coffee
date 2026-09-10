@@ -449,5 +449,7 @@
   "devices_empty": "Aucun autre appareil n'est connecté.",
   "providers_disconnect": "Déconnecter",
   "providers_keep_one": "Gardez au moins un moyen de vous connecter.",
-  "error_last_sign_in_method": "C'est votre seul moyen de connexion. Ajoutez-en un autre d'abord."
+  "error_last_sign_in_method": "C'est votre seul moyen de connexion. Ajoutez-en un autre d'abord.",
+  "ntf_push_confirmation_title": "Vous participez à {title}",
+  "ntf_push_confirmation_body": "Nous vous rappellerons avant le début."
 }

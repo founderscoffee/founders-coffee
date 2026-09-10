@@ -4,7 +4,8 @@ import { batch } from './atomic.js';
 import type { Db } from './db.js';
 import { eventRsvps, events, user, type EventRsvp } from './schema.js';
 
-export type CreateRsvpOutcome = 'created' | 'event_missing' | 'already_rsvpd';
+export type CreateRsvpOutcome =
+  'created' | 'event_missing' | 'already_rsvpd' | 'rsvp_closed';
 
 export const RSVP_INSERT_COLUMNS = [
   'id',
@@ -45,6 +46,19 @@ export const isDuplicateRsvpError = (error: unknown): boolean => {
 const eventExists = (eventId: string) => sql`id = ${eventId}`;
 
 /**
+ * The event exists and has not started, decided by the database's own clock.
+ *
+ * §5.17 freezes RSVP intent at `startsAt` so that the going set used for attendance eligibility
+ * cannot be edited after the fact — someone who did not turn up must not be able to erase having
+ * said they would. The comparison is `unixepoch()` inside the statement rather than a timestamp
+ * passed in, because a caller's clock is an input and this is the boundary the whole eligibility
+ * model rests on. Evaluating it in the same conditional write as the mutation is also what makes
+ * the boundary exact: there is no window between checking and acting.
+ */
+const eventOpenForRsvp = (eventId: string) =>
+  sql`id = ${eventId} AND starts_at > unixepoch()`;
+
+/**
  * Create an RSVP, writing nothing at all when the event has vanished (AGENTS.md §11 — atomic
  * single-statement SQL, never read-then-write).
  *
@@ -73,17 +87,23 @@ export const createRsvp = async (
     const results = await batch(db, [
       db.insert(eventRsvps).select(
         sql`SELECT ${opts.id}, ${opts.eventId}, ${opts.userId}, 'going', unixepoch(), unixepoch()
-            FROM events WHERE ${eventExists(opts.eventId)}`,
+            FROM events WHERE ${eventOpenForRsvp(opts.eventId)}`,
       ),
       db
         .update(events)
         .set({ rsvps: sql`rsvps + 1` })
-        .where(eventExists(opts.eventId)),
+        .where(eventOpenForRsvp(opts.eventId)),
     ]);
 
     const insertResult = results[0] as { meta?: { changes?: number } };
     const inserted = insertResult.meta?.changes ?? 0;
-    return { outcome: inserted === 1 ? 'created' : 'event_missing' };
+    if (inserted === 1) return { outcome: 'created' };
+    const live = await db
+      .select({ id: events.id })
+      .from(events)
+      .where(eventExists(opts.eventId))
+      .limit(1);
+    return { outcome: live.length > 0 ? 'rsvp_closed' : 'event_missing' };
   } catch (error) {
     if (isDuplicateRsvpError(error)) return { outcome: 'already_rsvpd' };
     throw error;
@@ -98,6 +118,12 @@ export const createRsvp = async (
  * before the delete removes the row. Cancelling something that was never there decrements nothing,
  * and two concurrent cancels decrement once: the loser's `EXISTS` finds no row. The `rsvps > 0`
  * guard is belt-and-braces against pre-existing drift.
+ *
+ * Both statements also require the event not to have started. Withdrawing after the fact is the
+ * side of the freeze that matters most: without it, a member who said yes and did not come could
+ * delete the evidence, and the attendance a host records would be of a set that no longer exists.
+ * `deleted: false` for a started event is the same answer as for an RSVP that was never there, so
+ * the caller distinguishes them rather than the statement.
  */
 export const cancelRsvp = async (
   db: Db,
@@ -111,19 +137,17 @@ export const cancelRsvp = async (
       .update(events)
       .set({ rsvps: sql`rsvps - 1` })
       .where(
-        sql`id = ${opts.eventId} AND rsvps > 0 AND EXISTS (
+        sql`id = ${opts.eventId} AND rsvps > 0 AND starts_at > unixepoch() AND EXISTS (
               SELECT 1 FROM event_rsvps
               WHERE event_id = ${opts.eventId} AND user_id = ${opts.userId}
             )`,
       ),
-    db
-      .delete(eventRsvps)
-      .where(
-        and(
-          eq(eventRsvps.eventId, opts.eventId),
-          eq(eventRsvps.userId, opts.userId),
-        ),
-      ),
+    db.delete(eventRsvps).where(
+      sql`event_id = ${opts.eventId} AND user_id = ${opts.userId}
+          AND EXISTS (
+            SELECT 1 FROM events WHERE id = ${opts.eventId} AND starts_at > unixepoch()
+          )`,
+    ),
   ]);
 
   const deleteResult = results[1] as { meta?: { changes?: number } };

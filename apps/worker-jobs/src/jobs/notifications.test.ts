@@ -1,117 +1,76 @@
 import { describe, expect, it } from 'vitest';
-import { AppError, err, ok } from '@founders-coffee/core';
-import type { EmailProvider, SendEmailInput } from '@founders-coffee/email';
-import type { NotificationSmsProvider } from '@founders-coffee/notifications';
 
-import { processNotification } from './notifications.js';
+import { processNotificationDue } from './notifications.js';
+import {
+  EVENT_ID,
+  OTHER_EVENT_ID,
+  countingSms,
+  enqueue,
+  providers,
+  rowById,
+  setupDb,
+} from './notification-sweep.fixtures.js';
 
-const recordingEmailProvider = (
-  outcome: 'ok' | 'err',
-): { provider: EmailProvider; sent: SendEmailInput[] } => {
-  const sent: SendEmailInput[] = [];
-  const provider: EmailProvider = {
-    name: 'fake',
-    send: async (input) => {
-      sent.push(input);
-      return outcome === 'err'
-        ? err(new AppError('email_send_failed', 'boom'))
-        : ok({ messageId: 'mid' });
-    },
-  };
-  return { provider, sent };
-};
+const due = { kind: 'notification_due' as const, eventId: EVENT_ID };
 
-const recordingSmsProvider = (
-  outcome: 'ok' | 'err',
-): {
-  provider: NotificationSmsProvider;
-  sent: { to: string; body: string }[];
-} => {
-  const sent: { to: string; body: string }[] = [];
-  const provider: NotificationSmsProvider = {
-    name: 'fake-sms',
-    send: async (input) => {
-      sent.push(input);
-      return outcome === 'err'
-        ? err(new AppError('sms_transient_failure', 'boom'))
-        : ok({ sid: 'sm123', segments: 1 });
-    },
-  };
-  return { provider, sent };
-};
+describe('processNotificationDue', () => {
+  it('delivers what the named event has due', async () => {
+    const db = await setupDb();
+    const rowId = await enqueue(db);
+    const { provider, sends } = countingSms();
 
-describe('processNotification', () => {
-  it('dispatches email via the email provider', async () => {
-    const { provider: email, sent } = recordingEmailProvider('ok');
-    const { provider: sms } = recordingSmsProvider('ok');
-
-    const result = await processNotification(
-      {
-        channel: 'email',
-        to: 'a@b.co',
-        subject: 'RSVP confirmed',
-        html: '<p>See you Saturday.</p>',
-      },
-      { email, sms },
+    const result = await processNotificationDue(
+      db,
+      due,
+      providers({
+        sms: provider,
+      }),
     );
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data.messageId).toBe('mid');
-    expect(sent).toHaveLength(1);
-    expect(sent[0]?.to).toBe('a@b.co');
+    expect(sends).toHaveLength(1);
+    expect((await rowById(db, rowId))?.status).toBe('sent');
   });
 
-  it('dispatches SMS via the SMS provider', async () => {
-    const { provider: email } = recordingEmailProvider('ok');
-    const { provider: sms, sent } = recordingSmsProvider('ok');
+  it('leaves another event alone, so one alarm cannot take another event work', async () => {
+    const db = await setupDb();
+    const mine = await enqueue(db);
+    const theirs = await enqueue(db, { eventId: OTHER_EVENT_ID });
 
-    const result = await processNotification(
-      {
-        channel: 'sms',
-        to: '+213555123456',
-        body: "You're in! Coffee Meetup — Sat at Café.",
-      },
-      { email, sms },
-    );
+    await processNotificationDue(db, due, providers());
+
+    expect((await rowById(db, mine))?.status).toBe('sent');
+    expect((await rowById(db, theirs))?.status).toBe('pending');
+  });
+
+  it('delivers once when the same message arrives twice', async () => {
+    const db = await setupDb();
+    await enqueue(db);
+    const { provider, sends } = countingSms();
+    const deps = providers({ sms: provider });
+
+    await processNotificationDue(db, due, deps);
+    await processNotificationDue(db, due, deps);
+
+    expect(sends).toHaveLength(1);
+  });
+
+  it('acks an event with nothing due rather than retrying an empty run', async () => {
+    const db = await setupDb();
+
+    const result = await processNotificationDue(db, due, providers());
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data.sid).toBe('sm123');
-    expect(sent).toHaveLength(1);
-    expect(sent[0]?.to).toBe('+213555123456');
+    if (result.ok) expect(result.data.selected).toBe(0);
   });
 
-  it('propagates email send failure', async () => {
-    const { provider: email, sent } = recordingEmailProvider('err');
-    const { provider: sms } = recordingSmsProvider('ok');
+  it('acks a delivery failure, because the row already records it', async () => {
+    const db = await setupDb();
+    const rowId = await enqueue(db, { channel: 'push' });
 
-    const result = await processNotification(
-      {
-        channel: 'email',
-        to: 'a@b.co',
-        subject: 'RSVP confirmed',
-        html: '<p>See you Saturday.</p>',
-      },
-      { email, sms },
-    );
+    const result = await processNotificationDue(db, due, providers());
 
-    expect(result.ok).toBe(false);
-    expect(sent).toHaveLength(1);
-  });
-
-  it('propagates SMS send failure', async () => {
-    const { provider: email } = recordingEmailProvider('ok');
-    const { provider: sms, sent } = recordingSmsProvider('err');
-
-    const result = await processNotification(
-      {
-        channel: 'sms',
-        to: '+213555123456',
-        body: "You're in!",
-      },
-      { email, sms },
-    );
-
-    expect(result.ok).toBe(false);
-    expect(sent).toHaveLength(1);
+    expect(result.ok).toBe(true);
+    expect((await rowById(db, rowId))?.status).not.toBe('sent');
   });
 });
