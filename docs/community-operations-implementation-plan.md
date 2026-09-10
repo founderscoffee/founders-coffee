@@ -346,7 +346,8 @@ mission and should remain one reviewable PR unless its security/data migration m
 
 **Parent:** P1-019, P1-023
 **Requirements:** FR-E10, FR-M1, FR-M7 through FR-M10; NFR-5, NFR-7, NFR-10
-**Starts:** immediately after EC-10 completion
+**Status:** Complete — approved 2026-09-10. The operating contract is recorded at the end of this
+document; §5, §6 and §7 are frozen from that date. CO-02 is the next work package.
 
 Work:
 
@@ -864,10 +865,11 @@ stubs/placeholders.
 - [ ] No sponsorship, challenge, talent, payment, expansion, speculative CRM, native app, or
       nonessential AI scope was introduced.
 
-## CO-01 operating contract — proposed 2026-09-10, **not yet approved**
+## CO-01 operating contract — **approved 2026-09-10**
 
-Everything below is a proposal for the Founder to accept, amend or reject. Nothing here is in force,
-and no code depends on it. CO-01 completes when the Founder approves it and the date is recorded.
+Approved by the Founder on 2026-09-10. §5, §6 and §7 are frozen as written from this date; CO-03
+onward builds against them. The role assignment, cadence, staging identity matrix and configuration
+baseline below are in force.
 
 ### A. What needs approving rather than writing
 
@@ -875,20 +877,20 @@ and no code depends on it. CO-01 completes when the Founder approves it and the 
 CO-03 onward can build against something that stops moving. One decision inside them is not the
 author's to make:
 
-**§5.21 retention.** Closeout, attendance, structured feedback, weekly reviews and audit for 24
-months; feedback comments for 12; current host trust for the account lifetime plus 24 months after
-closure; non-PII monthly aggregates indefinitely. These periods have not been checked against
-Algerian data-protection law by anyone qualified to do so. Approving them is a legal decision, and
-PF-09 and PF-10 both build directly on the answer — an export has to state what it contains, and a
-deletion has to state what survives it. If the numbers are provisional, say so and PF-09/PF-10 will
-carry that in their copy rather than implying certainty.
+**§5.21 retention — approved 2026-09-10.** Closeout, attendance, structured feedback, weekly reviews
+and audit for 24 months; feedback comments for 12; current host trust for the account lifetime plus
+24 months after closure; non-PII monthly aggregates indefinitely. PF-09 and PF-10 build directly on
+these periods — an export states what it contains, a deletion states what survives — and may now
+name them as the contract rather than as a proposal.
 
-Everything else in §5 is an engineering decision already reasoned through, and the recommendation is
-to approve as written.
+One standing caveat, recorded rather than resolved: these periods were not reviewed against Algerian
+data-protection law by anyone qualified to do so. They are the product's stated retention policy, not
+a legal opinion. A later legal review that shortens them is a change to this contract and to the copy
+in PF-09 and PF-10, not a defect in either.
 
 ### B. Who may act as `moderator` and `admin`
 
-**Proposed:** one `admin`, the Founder, named by account. **No `moderator` at launch.**
+**Approved 2026-09-10:** one `admin`, the Founder, named by account. **No `moderator` at launch.**
 
 The reason for no moderator is not caution, it is honesty about the code: `moderator` in
 `libs/auth/src/rbac.ts` currently grants exactly the permissions `member` has. Assigning it today
@@ -914,7 +916,8 @@ noticed. Until CO-08 persists reviews, the record is the markdown log in §C.
 ### C. The weekly Founder / community-operator cadence
 
 **Owner:** the Founder, until a second operator exists. **When:** weekly, same slot, whatever slot
-survives four consecutive weeks — a cadence nobody keeps is worse than none.
+survives four consecutive weeks — a cadence nobody keeps is worse than none. Approved 2026-09-10;
+the first review is due within seven days of that date.
 
 **Agenda**, fixed, in this order:
 
@@ -937,8 +940,9 @@ CO-01 one.
 
 ### D. Staging identity matrix
 
-Three dedicated identities, none of which may be a production community account (§CO-01). Proposed
-shape, for the Founder to fill in with real addresses:
+Three dedicated identities, none of which may be a production community account (§CO-01). Approved
+2026-09-10; the addresses are filled in when the identities are first seeded, which is a CO-02
+prerequisite rather than a CO-01 deliverable:
 
 | Identity         | Role     | Access policy                                                             | Environment  | Owner   | Expiry / revocation       | Permitted test data                                       |
 | ---------------- | -------- | ------------------------------------------------------------------------- | ------------ | ------- | ------------------------- | --------------------------------------------------------- |
@@ -970,10 +974,12 @@ exposed — this is a "cannot be used" rather than a "can be bypassed" — but _
 `admin`"_ has no working path until an Access application exists, and creating one is a Founder
 action on the dashboard.
 
-**`verified-prof` is a D1 database this repository does not reference.** It appears in no
-`wrangler.jsonc`, no migration, and no binding. It may predate this project or belong to something
-else. It should be identified before CO-03 adds operational tables, if only so nobody later assumes
-it is ours.
+**`verified-prof` is a D1 database belonging to a different product.** Identified 2026-09-10: created
+2026-01-20, holding a PascalCase schema — `User`, `Account`, `Session`, `Skill`, `Badge`,
+`Achievement`, `AnalysisJob`, `Verification` — under its own migrations `0001_init.sql` and
+`0002_add_verification.sql`. Every table is empty. It is not founders-coffee's, which uses snake_case
+throughout, and it is referenced by no `wrangler.jsonc`, migration or binding here. Recorded so that
+nobody adding operational tables in CO-03 mistakes it for ours.
 
 ### G. What CO-01 does not do
 

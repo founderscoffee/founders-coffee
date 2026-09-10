@@ -84,9 +84,9 @@ the current sequence.
    EC-01 through EC-10 are complete and signed off: 18/18 staging browser cases on 2026-09-03,
    production release/DNS/WAF evidence on 2026-09-04, and the authorized production creation smoke
    performed and verified on 2026-09-10.
-2. Immediately after verified EC-10 handoff, begin the
+2. EC-10 was signed off on 2026-09-10 and CO-01 approved the same day, so the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
-   at CO-01.
+   is open at CO-02.
 
 The second plan closes the real-world community loop through frozen RSVP eligibility, attendance,
 feedback, repeat hosting, essential admin operations, trust/moderation, weekly decisions, and
