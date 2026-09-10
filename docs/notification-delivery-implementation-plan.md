@@ -18,7 +18,7 @@ environments. This section is evidence, not recollection.
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Push is the primary channel                | Every producer writes `channel: 'push'` (`producer.ts:149`, `cancellation.ts:70`). No environment can deliver one. Every notification ever sent has been a fallback                   |
 | Push is configured                         | `wrangler secret list` on `ui` and `worker-jobs`, staging and production: no `FIREBASE_*` in any of the four. `getFirebaseConfig` returns `null`, `createPushProvider` returns `null` |
-| The site is a PWA that can receive push    | `apps/ui/public/` contains no service worker and nothing in the app registers one. `getToken()` cannot mint a token without one                                                       |
+| The site is a PWA that can receive push    | It is not. `sw.ts` exists and handles `push`, but Serwist emits no `sw.js`, nothing registers one, and `/sw.js` is 404 in production. See §2                                          |
 | SMS is a fallback behind push              | True and working. `TWILIO_AID`/`TWILIO_SEC` secrets and `TWILIO_SMS_FROM` var are set in staging and production                                                                       |
 | Email is not an event channel              | Mostly true. `producer.ts:105` excludes it by decision; `cancellation.ts:71` uses it as the fallback when a member has no phone                                                       |
 | Four notification categories can be chosen | Two of them gate nothing. `resolveDestination` reads `eventReminders` and `eventUpdates` only (`notification-destination.ts:70-76`)                                                   |
@@ -30,37 +30,61 @@ provider, and SMS requires `sms_fallback_enabled`, which now has no control that
 
 ## 2. The blocker that credentials do not fix
 
-Setting the five `FIREBASE_*` values will not make push work on its own.
+Setting the five `FIREBASE_*` values will not make push work on its own. The service-worker half of
+the chain is broken in four separate places, and each one is silent.
 
-`firebase/messaging`'s `getToken()` registers `/firebase-messaging-sw.js` from the origin root and
-fails without it. There is no such file and no `navigator.serviceWorker.register` call anywhere in
-`apps/ui`. `isSupported()` returns true in any browser that _supports_ service workers, so
-`readPushEnvironment` will report `configured: true` and the UI will offer to enable push; then
-`enablePushOnThisDevice` swallows the registration failure in its `catch { return null }`
-(`push/client.ts:105`) and the member sees a control that does nothing.
+**A service worker is required on every platform.** A PWA install is required only on iOS — see §2.1.
+Nothing here is about being installable; it is about the worker existing, shipping, registering, and
+being the one FCM talks to.
 
-On iOS this is doubly load-bearing: web push requires both a Home-Screen install and a service
-worker. `installRequiredFor` already tells iOS members to install the app, which is currently a
-promise the deployment cannot keep.
+1. **The worker is written and never built.** `apps/ui/src/sw.ts` is a complete Serwist worker with a
+   `push` handler, a `notificationclick` handler that opens the event URL, and dedupe by tag. The
+   `@serwist/vite` plugin is configured (`vite.config.ts:78`) with `swSrc: 'src/sw.ts'`,
+   `swDest: 'sw.js'` and `globDirectory: 'dist'` — but TanStack Start emits the client bundle to
+   `dist/client`, and `nx build public` produces no `sw.js` anywhere. `https://founders.coffee/sw.js`
+   returns **404** in production today, while `manifest.json` returns 200. The build fails without
+   failing.
+2. **Nothing registers it.** `@serwist/window` is a declared dependency and is imported nowhere. There
+   is no `navigator.serviceWorker.register` call in `apps/ui`. Even a correctly built `sw.js` would
+   sit unused.
+3. **FCM is not told to use it.** `push/client.ts:25` calls `getToken(messaging, { vapidKey })` with no
+   `serviceWorkerRegistration`, so the SDK looks for `/firebase-messaging-sw.js` at the origin root —
+   a file this repo does not have and, given `sw.ts` already exists, should not add. Pass the existing
+   registration instead.
+4. **The payload contracts disagree.** `FcmPushProvider` sends an FCM `webpush.notification` envelope
+   (`push-provider.ts:126-135`); `sw.ts` reads a flat `{ title, body, url, icon, dedupeKey }` off
+   `event.data.json()`. One of the two has to move. Sending a **data-only** message and letting `sw.ts`
+   render it is the better direction: it keeps one code path for display, and `showNotification` stays
+   ours rather than the SDK's.
 
-**The service worker cannot be a static file**, because the Firebase config is server-owned —
-`getFirebaseConfig` reads it from Worker env so it is never committed. Three options, in order of
-preference:
+`isSupported()` returns true in any browser that _supports_ service workers, so none of this surfaces
+as an error. `readPushEnvironment` reports `configured: true`, the UI offers to enable push, and
+`enablePushOnThisDevice` swallows the failure in its `catch { return null }` (`push/client.ts:105`).
+The member clicks a control that does nothing, and no log records why.
 
-1. **Serve it from a route.** A `/firebase-messaging-sw.js` server route renders the SW from env,
-   with `Content-Type: application/javascript` and `Service-Worker-Allowed: /`. Config stays server
-   -owned, no build step, one place to change. Register it explicitly and hand the registration to
-   `getToken({ serviceWorkerRegistration })` rather than letting the SDK guess.
-2. Generate the file at build time from env. Adds a build step and puts the API key in a built
-   asset — acceptable (web API keys are public) but it splits config across two mechanisms.
-3. Pass config on the query string of the SW URL. Works, but the config then appears in the SW's own
-   URL and in every registration record.
+### 2.1 Where a PWA install is actually required
 
-Bundle the SDK into the SW rather than `importScripts` from `gstatic.com`: the CSP
-(`libs/core/src/security-headers.ts`) allows `firebaseinstallations.googleapis.com` and
-`fcmregistrations.googleapis.com` for `connect-src` and deliberately allows no external script
-source, because the SDK is bundled. Reaching for `gstatic.com` in the SW would need a CSP change
-that this plan does not want to make.
+| Platform                           | Service worker | Home-Screen install |
+| ---------------------------------- | -------------- | ------------------- |
+| Chrome / Edge / Firefox, desktop   | required       | no                  |
+| Chrome / Firefox on Android        | required       | no                  |
+| Safari / any browser on iOS ≥ 16.4 | required       | **yes**             |
+| Safari on macOS                    | required       | no                  |
+
+iOS is the only case, and `installRequiredFor` (`push-state.ts:73`) already encodes it: iOS user agent
+and not `display-mode: standalone` ⇒ `install_required`, ranked above every other state because the
+permission prompt does not exist until the app is installed. `manifest.json` is already correct for
+that install — `display: standalone`, 192/512 icons, a maskable icon, theme colours.
+
+Per `docs/mobile-research.md`, iOS is **~10-12%** of the Algerian market against 85%+ Android
+(StatCounter, Jan 2026). So roughly nine in ten members can receive push in an ordinary browser tab
+with no install at all, and the install requirement is a minority path that must be explained rather
+than a prerequisite for the feature.
+
+The CSP already allows what FCM needs — `firebaseinstallations.googleapis.com` and
+`fcmregistrations.googleapis.com` for `connect-src` (`libs/core/src/security-headers.ts:17-32`) — and
+deliberately allows no external script source, because the SDK is bundled. Keep it that way: no
+`importScripts` from `gstatic.com` in the worker.
 
 ## 3. Credentials to set
 
@@ -91,20 +115,30 @@ credentials return `20008` on every call and look like a delivery.
   ticket, not dead code left to rot — if ND-06 is abandoned, delete them.
 - Push permission can still be granted: `RsvpSection.tsx:181` offers it at RSVP time.
 
-### ND-01 — Give the app a service worker
+### ND-01 — Make the service worker ship, register, and receive
 
 **Depends on:** the `ui` Firebase secrets. **Blocks:** everything else in this plan.
 
-- Add the `/firebase-messaging-sw.js` route per §2 option 1, with the SDK bundled and the config
-  read from env. Register it from the push client and pass the registration to `getToken`.
-- Handle `onBackgroundMessage`: title, body, icon from `public/android-chrome-192x192.png`, and a
-  click that opens the event URL the payload carries. `eventUrlFor` already builds market-slug URLs.
-- Stop swallowing failures. `enablePushOnThisDevice` returning `null` for ten different reasons is
-  why this blocker survived a whole feature. Return a discriminated reason, log it, and let
-  `pushStateFrom` render it. Add `sw_registration_failed` to `PushState`.
-- Acceptance: with the secrets set, a Chrome desktop and an installed iOS PWA both mint a token and
-  a row lands in `push_subscriptions`. With the secrets unset, the state reads `unavailable` and no
-  control offers to enable anything. A registration failure names itself on screen.
+The worker is already written. This ticket is the four breaks in §2, in order — none of them needs a
+new `firebase-messaging-sw.js`, and adding one would give the app two workers competing for the same
+push event.
+
+- **Build it.** Fix the `@serwist/vite` configuration so `sw.js` lands in the client output that
+  Cloudflare actually serves. Add a build assertion — the emitted client bundle contains `sw.js` — so
+  a silently absent worker fails CI instead of production.
+- **Register it.** Use `@serwist/window`, already a dependency, from the root layout. Keep the
+  registration promise: `getToken` needs it.
+- **Point FCM at it.** `getToken(messaging, { vapidKey, serviceWorkerRegistration })`.
+- **Agree on the payload.** Move `FcmPushProvider` to a data-only FCM message whose fields match what
+  `sw.ts` reads, and cover the contract with a test on both sides. A shape mismatch here shows the
+  member a notification titled `undefined`, which is worse than no notification.
+- **Stop swallowing failures.** `enablePushOnThisDevice` returning `null` for ten different reasons is
+  why four separate breaks survived a whole feature and a production deploy. Return a discriminated
+  reason, log it, and let `pushStateFrom` render it. Add `sw_unavailable` to `PushState`.
+- Acceptance: `/sw.js` returns 200 on staging; a Chrome desktop tab and an installed iOS PWA both mint
+  a token and land a row in `push_subscriptions`; a real FCM message renders with its own title and
+  opens the event on click. With the secrets unset, the state reads `unavailable` and no control
+  offers to enable anything. Every failure names itself on screen and in the log.
 
 ### ND-02 — Prove delivery end to end on staging
 
@@ -223,6 +257,9 @@ transactional provider. `libs/email/src/error-codes.ts` already maps `E_DAILY_LI
   not an oversight — revisit it if the gap outlasts the plan.**
 - **`docs/secrets.md` says the Firebase values are required and they have never been set.** A
   documented requirement is not a configured one; this plan exists because nothing checked.
+- **`docs/mobile-research.md` calls `apps/ui` "the installable Serwist PWA".** Serwist is installed
+  and configured, `sw.ts` is written, and no `sw.js` has ever been served. A doc describing intent
+  in the present tense is how this went unnoticed; that line should be corrected when ND-01 lands.
 - **The four preference switches have shipped to production gating almost nothing.** Two gate
   nothing at all. Members may have set them believing otherwise.
 - **A per-category grid multiplies the promise.** Twelve controls over a system with four template
@@ -230,6 +267,8 @@ transactional provider. `libs/email/src/error-codes.ts` already maps `E_DAILY_LI
   before ND-06; it is what makes the grid honest.
 - **iOS web push needs the Home-Screen install.** Even after ND-01, an iOS member who has not
   installed the app cannot receive push, and the grid must say so rather than showing a dead switch.
+  Everywhere else a plain browser tab is enough; see §2.1. On the Algerian traffic mix that is a
+  ~10-12% minority path, so it is a sentence to write well, not a reason to build an app.
 - **The push column must hide itself when unconfigured.** The failure this plan starts from is a
   control rendered for a channel with no provider. ND-06 must read the real provider state, not a
   build-time flag.
