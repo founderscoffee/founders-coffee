@@ -20,15 +20,28 @@ export type AccountPreferenceChanges = Pick<
   | 'smsFallbackEnabled'
 >;
 
-/** Read preferences with the existing identity locale as its sole persisted source. */
+/**
+ * Read preferences with the existing identity locale as its sole persisted source.
+ *
+ * The phone's verified state travels with them because the SMS fallback switch is not the member's
+ * to set alone: {@link updateAccountPreferences} refuses consent without a currently verified
+ * number, and a screen that cannot see that would render a switch whose save silently fails. What
+ * the writer requires, the reader has to be able to explain.
+ */
 export const getAccountPreferences = async (db: Db, userId: string) => {
   const rows = await db
-    .select({ locale: user.localePref, preferences: accountPreferences })
+    .select({
+      locale: user.localePref,
+      phoneVerified: sql<number>`(${user.phoneNumberVerified} = 1
+        and ${user.phoneNumber} is not null and ${user.phoneNumber} != '')`,
+      preferences: accountPreferences,
+    })
     .from(accountPreferences)
     .innerJoin(user, eq(user.id, accountPreferences.userId))
     .where(activeProfileIdentity(userId))
     .limit(1);
-  return rows[0] ?? null;
+  const row = rows[0];
+  return row ? { ...row, phoneVerified: row.phoneVerified === 1 } : null;
 };
 
 /** Atomically persist preferences, locale and server-owned SMS consent evidence. */

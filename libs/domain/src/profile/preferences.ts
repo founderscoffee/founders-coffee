@@ -16,14 +16,26 @@ export const notificationPreferencesSchema = z.strictObject({
   smsFallbackEnabled: z.boolean().default(false),
 });
 
-export const updateAccountPreferencesSchema =
-  notificationPreferencesSchema.extend({
+export const updateAccountPreferencesSchema = notificationPreferencesSchema
+  .omit({ pushEnabled: true })
+  .extend({
     locale: localeSchema.nullable(),
     expectedRevision: profileRevisionSchema,
   });
 
+export const accountPreferencesViewSchema = z.strictObject({
+  locale: localeSchema.nullable(),
+  revision: profileRevisionSchema,
+  preferences: notificationPreferencesSchema,
+  smsAvailable: z.boolean(),
+  smsConsentAt: z.string().nullable(),
+});
+
 export type NotificationPreferences = z.infer<
   typeof notificationPreferencesSchema
+>;
+export type AccountPreferencesView = z.infer<
+  typeof accountPreferencesViewSchema
 >;
 export type UpdateAccountPreferencesInput = z.infer<
   typeof updateAccountPreferencesSchema

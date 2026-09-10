@@ -160,7 +160,7 @@ describe('the account and security screen', () => {
     expect(screen.getByTestId('access-recovery')).toBeTruthy();
   });
 
-  it('reaches both sections by keyboard, in reading order', () => {
+  it('reaches every section by keyboard, in reading order', () => {
     show({ data: summary() });
     const nav = screen.getByRole('navigation');
     const links = Array.from(nav.querySelectorAll('a'));
@@ -172,6 +172,7 @@ describe('the account and security screen', () => {
     }
     expect(links.map((link) => link.textContent)).toEqual([
       'Profile',
+      'Preferences',
       'Account & security',
     ]);
   });
@@ -183,6 +184,6 @@ describe('the account and security screen', () => {
     const links = Array.from(nav.querySelectorAll('a')).map((link) =>
       link.getAttribute('href'),
     );
-    expect(links).toEqual(['/profile', '/account']);
+    expect(links).toEqual(['/profile', '/preferences', '/account']);
   });
 });

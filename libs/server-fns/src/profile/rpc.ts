@@ -9,6 +9,7 @@ import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import { requireProfileTurnstile } from '../turnstile/middleware.js';
 import { readAccountSummary } from './account.js';
+import { readMyPreferences, saveMyPreferences } from './preferences.js';
 import { removeCurrentPhoto, reservePhotoUpload } from './photo.js';
 import { photoServices } from './photo-runtime.js';
 import {
@@ -25,6 +26,7 @@ import {
   publicProfileRequestSchema,
   reservePhotoRequestSchema,
   updateDisplayNameRequestSchema,
+  updatePreferencesRequestSchema,
   updateProfileRequestSchema,
 } from './schemas.js';
 
@@ -72,6 +74,33 @@ export const updateMyProfile = createServerFn({ method: 'POST', strict: false })
         getDb(),
         requireAuth(context.session).user.id,
         data.profile,
+      ),
+    );
+  });
+
+export const getMyPreferences = createServerFn({ strict: false })
+  .middleware([requirePermission('profile', 'read')])
+  .validator(appValidator(emptyProfileRequestSchema))
+  .handler(({ context }) => {
+    privateNoStore();
+    return handleResult(
+      readMyPreferences(getDb(), requireAuth(context.session).user.id),
+    );
+  });
+
+export const updateMyPreferences = createServerFn({
+  method: 'POST',
+  strict: false,
+})
+  .middleware(profileWriteProtection)
+  .validator(appValidator(updatePreferencesRequestSchema))
+  .handler(({ context, data }) => {
+    privateNoStore();
+    return handleResult(
+      saveMyPreferences(
+        getDb(),
+        requireAuth(context.session).user.id,
+        data.preferences,
       ),
     );
   });

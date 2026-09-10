@@ -4,6 +4,7 @@ import {
   account_nav_account,
   account_nav_profile,
   account_sections,
+  prefs_nav,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -13,6 +14,11 @@ export const ProfileSectionNav = ({ locale }: { locale: Locale }) => (
       <li>
         <Link to="/profile" activeProps={{ className: 'menu-active' }}>
           {account_nav_profile({}, { locale })}
+        </Link>
+      </li>
+      <li>
+        <Link to="/preferences" activeProps={{ className: 'menu-active' }}>
+          {prefs_nav({}, { locale })}
         </Link>
       </li>
       <li>

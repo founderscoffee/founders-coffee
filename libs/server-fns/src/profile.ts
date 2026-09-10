@@ -8,11 +8,13 @@ import { rateLimit } from './rate-limit.js';
 
 export {
   getMyAccount,
+  getMyPreferences,
   getMyProfile,
   getPhotoUploadAvailability,
   getPublicProfile,
   removeMyPhoto,
   reserveMyPhotoUpload,
+  updateMyPreferences,
   updateMyProfile,
   updateMyDisplayName,
 } from './profile/rpc.js';
@@ -29,6 +31,7 @@ export {
   unlinkMyProvider,
 } from './profile/device-rpc.js';
 export type {
+  AccountPreferencesView,
   AccountSummary,
   DeviceList,
   SessionSummary,
@@ -36,6 +39,7 @@ export type {
   PublicProfile,
   UpdateProfileRequest,
   UpdateDisplayNameRequest,
+  UpdatePreferencesRequest,
 } from './profile/schemas.js';
 
 /** Retired compatibility endpoint: never persist residence, including for old clients. */

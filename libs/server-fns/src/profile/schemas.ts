@@ -46,6 +46,10 @@ export const updateProfileRequestSchema = z.strictObject({
   profile: profile.updateProfileSchema,
   turnstileToken: token,
 });
+export const updatePreferencesRequestSchema = z.strictObject({
+  preferences: profile.updateAccountPreferencesSchema,
+  turnstileToken: token,
+});
 export const updateDisplayNameRequestSchema = z.strictObject({
   displayName: profile.displayNameSchema,
   expectedRevision: profile.profileRevisionSchema,
@@ -57,6 +61,10 @@ export const PHOTO_RESERVE_LIMIT = RATE_BUDGETS.expensive.photoReservation;
 export const CONTACT_CODE_LIMIT = RATE_BUDGETS.otp.contactCode;
 export const CONTACT_CHANGE_LIMIT = RATE_BUDGETS.otp.contactChange;
 export type UpdateProfileRequest = z.infer<typeof updateProfileRequestSchema>;
+export type UpdatePreferencesRequest = z.infer<
+  typeof updatePreferencesRequestSchema
+>;
+export type AccountPreferencesView = profile.AccountPreferencesView;
 export type UpdateDisplayNameRequest = z.infer<
   typeof updateDisplayNameRequestSchema
 >;

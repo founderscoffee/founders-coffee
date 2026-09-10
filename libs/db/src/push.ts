@@ -1,6 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
+import { listDeliverablePushTokens } from './notification-destinations.js';
 import {
   accountPreferences,
   pushSubscriptions,
@@ -88,6 +89,36 @@ export const registerPushToken = async (
 
   await db.insert(pushSubscriptions).values(row);
   return row as PushSubscriptionRow;
+};
+
+/**
+ * What this one device's push registration is actually worth right now.
+ *
+ * The preferences screen has to tell three states apart that look identical from the browser:
+ * permission granted but never registered, registered, and registered but no longer deliverable
+ * because the session it belongs to was signed out. Only the last two can be answered here, and
+ * `deliverable` deliberately reuses {@link listDeliverablePushTokens} rather than re-deriving the
+ * rule — a screen that reported its own idea of eligibility would eventually disagree with the
+ * dispatcher, and the member would be told they are reachable while nothing arrives.
+ */
+export const pushTokenState = async (
+  db: Db,
+  opts: { userId: string; token: string },
+): Promise<{ registered: boolean; deliverable: boolean }> => {
+  const rows = await db
+    .select({ id: pushSubscriptions.id })
+    .from(pushSubscriptions)
+    .where(
+      and(
+        eq(pushSubscriptions.userId, opts.userId),
+        eq(pushSubscriptions.token, opts.token),
+      ),
+    )
+    .limit(1);
+  if (rows.length === 0) return { registered: false, deliverable: false };
+
+  const deliverable = await listDeliverablePushTokens(db, opts.userId);
+  return { registered: true, deliverable: deliverable.includes(opts.token) };
 };
 
 /**

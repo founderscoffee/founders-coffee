@@ -1,1 +1,5 @@
-export { registerPushTokenFn, removePushTokenFn } from './rpc.js';
+export {
+  getPushDeliveryState,
+  registerPushTokenFn,
+  removePushTokenFn,
+} from './rpc.js';

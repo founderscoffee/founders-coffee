@@ -17,6 +17,97 @@ const ensureMessaging = async () => {
   return getMessaging(app);
 };
 
+const tokenFor = async (): Promise<string | null> => {
+  const messaging = await ensureMessaging();
+  if (!messaging) return null;
+  const config = await readPushConfig();
+  if (!config) return null;
+  return (await getToken(messaging, { vapidKey: config.vapidKey })) || null;
+};
+
+/**
+ * What this browser can and cannot do about push, asked rather than assumed.
+ *
+ * Each field is a separate question because the preferences screen has to explain a different
+ * obstacle for each answer, and because they fail independently: a browser can support messaging
+ * while the site has no configuration, and permission can be granted on a device the deployment
+ * cannot reach. Returning one boolean would force the screen to guess which.
+ *
+ * Nothing here prompts. Reading the state must never be the thing that asks a member for
+ * permission — the spec requires a user gesture, and a settings page that prompts on load is
+ * exactly the pattern browsers now punish with a permanent block.
+ */
+export const readPushEnvironment = async (): Promise<{
+  hasNotificationApi: boolean;
+  messagingSupported: boolean;
+  configured: boolean;
+  permission: 'default' | 'granted' | 'denied';
+}> => {
+  const hasNotificationApi =
+    typeof window !== 'undefined' && 'Notification' in window;
+  if (!hasNotificationApi)
+    return {
+      hasNotificationApi: false,
+      messagingSupported: false,
+      configured: false,
+      permission: 'default',
+    };
+
+  const messagingSupported = await isSupported().catch(() => false);
+  const configured = messagingSupported ? !!(await readPushConfig()) : false;
+  return {
+    hasNotificationApi,
+    messagingSupported,
+    configured,
+    permission: Notification.permission,
+  };
+};
+
+/**
+ * The token for this device, when there is one to have.
+ *
+ * Only called with permission already granted: `getToken` prompts otherwise, and a settings screen
+ * that prompts while merely reporting its own state is the thing `readPushEnvironment` exists to
+ * avoid.
+ */
+export const currentDeviceToken = async (): Promise<string | null> => {
+  try {
+    if (typeof window === 'undefined' || !('Notification' in window))
+      return null;
+    if (Notification.permission !== 'granted') return null;
+    return await tokenFor();
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Ask for permission and register the device, returning the token if both succeeded.
+ *
+ * Called from a user gesture — the RSVP prompt's accept, or the preferences row's own control.
+ * Returns `null` for every reason it did not happen, because the caller's next move is the same in
+ * all of them: re-read the state and say what is now true.
+ */
+export const enablePushOnThisDevice = async (
+  marketCode: string,
+): Promise<string | null> => {
+  try {
+    const messaging = await ensureMessaging();
+    if (!messaging) return null;
+
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return null;
+
+    const token = await tokenFor();
+    if (!token) return null;
+
+    await registerPushToken({ token, marketCode });
+    return token;
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Request push permission + register the FCM token. Called from the PushPermissionPrompt onAccept
  * callback. No-ops silently if push isn't available/configured.
@@ -24,21 +115,5 @@ const ensureMessaging = async () => {
 export const requestPushPermission = async (
   marketCode: string,
 ): Promise<void> => {
-  try {
-    const messaging = await ensureMessaging();
-    if (!messaging) return;
-
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return;
-
-    const config = await readPushConfig();
-    if (!config) return;
-
-    const token = await getToken(messaging, { vapidKey: config.vapidKey });
-    if (!token) return;
-
-    await registerPushToken({ token, marketCode });
-  } catch {
-    return;
-  }
+  await enablePushOnThisDevice(marketCode);
 };

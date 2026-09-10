@@ -9,6 +9,7 @@ import {
 } from '@founders-coffee/observability';
 import { getVisibleMarkets } from '@founders-coffee/server-fns';
 
+import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
 import { AppProviders } from '../lib/app-providers';
@@ -41,6 +42,7 @@ const useClientObservability = () => {
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { locale, dir, markets } = Route.useRouteContext();
   useClientObservability();
+  useStoredLocale(locale);
 
   return (
     <html lang={locale} dir={dir}>

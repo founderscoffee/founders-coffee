@@ -18,6 +18,7 @@ export {
   confirmMyEmailChange,
   confirmMyPhoneNumber,
   getMyAccount,
+  getMyPreferences,
   getMyDevices,
   getMyProfile,
   getPhotoUploadAvailability,
@@ -30,10 +31,12 @@ export {
   sendMyPhoneCode,
   unlinkMyProvider,
   setHomeLocation,
+  updateMyPreferences,
   updateMyProfile,
   updateMyDisplayName,
 } from './profile.js';
 export type {
+  AccountPreferencesView,
   AccountSummary,
   DeviceList,
   SessionSummary,
@@ -41,6 +44,7 @@ export type {
   PublicProfile,
   UpdateProfileRequest,
   UpdateDisplayNameRequest,
+  UpdatePreferencesRequest,
 } from './profile.js';
 export {
   checkPermission,
