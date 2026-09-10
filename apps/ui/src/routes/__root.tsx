@@ -9,6 +9,7 @@ import {
 } from '@founders-coffee/observability';
 import { getVisibleMarkets } from '@founders-coffee/server-fns';
 
+import { registerServiceWorker } from '../features/push/service-worker';
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
@@ -39,9 +40,16 @@ const useClientObservability = () => {
   }, []);
 };
 
+const useServiceWorker = () => {
+  useEffect(() => {
+    void registerServiceWorker();
+  }, []);
+};
+
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { locale, dir, markets } = Route.useRouteContext();
   useClientObservability();
+  useServiceWorker();
   useStoredLocale(locale);
 
   return (

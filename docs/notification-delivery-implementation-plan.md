@@ -115,20 +115,29 @@ credentials return `20008` on every call and look like a delivery.
   ticket, not dead code left to rot — if ND-06 is abandoned, delete them.
 - Push permission can still be granted: `RsvpSection.tsx:181` offers it at RSVP time.
 
-### ND-01 — Make the service worker ship, register, and receive
+### ND-01 — Make the service worker ship, register, and receive — partly done 2026-09-10
 
-**Depends on:** the `ui` Firebase secrets. **Blocks:** everything else in this plan.
+**Depends on:** the `ui` Firebase secrets for the last two items only. **Blocks:** everything else.
 
 The worker is already written. This ticket is the four breaks in §2, in order — none of them needs a
 new `firebase-messaging-sw.js`, and adding one would give the app two workers competing for the same
-push event.
+push event. The two items that need no credentials are done; the rest waits on §3.
 
-- **Build it.** Fix the `@serwist/vite` configuration so `sw.js` lands in the client output that
-  Cloudflare actually serves. Add a build assertion — the emitted client bundle contains `sw.js` — so
-  a silently absent worker fails CI instead of production.
-- **Register it.** Use `@serwist/window`, already a dependency, from the root layout. Keep the
-  registration promise: `getToken` needs it.
-- **Point FCM at it.** `getToken(messaging, { vapidKey, serviceWorkerRegistration })`.
+- ✅ **Build it.** `clientOnlyServwist` in `apps/ui/vite-service-worker.ts` drops the SSR
+  `configResolved` so the plugin keeps the client config, and drops the SSR `closeBundle` so it
+  generates once rather than twice. `assertServiceWorkerEmitted` fails the build when `sw.js` is not
+  in the client output — proven by disabling Serwist and watching the build fail.
+- ✅ **Bound the precache.** The worker precached 5.5 MB, 4 MB of it Mapbox, on first visit. Excluded
+  via `precacheIgnores()`; now 1.29 MB.
+- ✅ **Register it.** `registerServiceWorker` (`features/push/service-worker.ts`) via `@serwist/window`,
+  called from the root layout, memoised on the promise, `null` rather than throwing, and retryable
+  after a refusal.
+- ✅ **Close the cache-privacy gap the registration opens.** Serwist's default runtime caching ends in
+  a catch-all `NetworkFirst` storing any navigation for 24 hours, and `isPrivateProfilePath` listed
+  neither `/preferences` nor `/activity`. Both added. `Cache-Control: private, no-store` on the route
+  does not help — the strategy caches any 200 regardless.
+- ✅ **Point FCM at it.** `getToken(messaging, { vapidKey, serviceWorkerRegistration })`, refusing to
+  mint a token when there is no worker. **Wired, not yet proven** — needs the credentials.
 - **Agree on the payload.** Move `FcmPushProvider` to a data-only FCM message whose fields match what
   `sw.ts` reads, and cover the contract with a test on both sides. A shape mismatch here shows the
   member a notification titled `undefined`, which is worse than no notification.

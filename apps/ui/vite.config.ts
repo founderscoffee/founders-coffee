@@ -6,9 +6,15 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { cloudflare } from '@cloudflare/vite-plugin';
-import { serwist } from '@serwist/vite';
 
 import { mapboxCspWorker } from './vite-mapbox-worker';
+import {
+  CLIENT_OUT_DIR,
+  precacheIgnores,
+  SW_DEST,
+  assertServiceWorkerEmitted,
+  clientOnlyServwist,
+} from './vite-service-worker';
 
 const LOCAL_STATE_PATH = fileURLToPath(
   new URL('../../.wrangler/state', import.meta.url),
@@ -75,13 +81,15 @@ export default defineConfig(({ command }) => ({
     clientNodeBuiltinStubs,
     mapboxCspWorker(),
     viteReact(),
-    serwist({
+    ...clientOnlyServwist({
       swSrc: 'src/sw.ts',
-      swDest: 'sw.js',
-      globDirectory: 'dist',
+      swDest: SW_DEST,
+      globDirectory: CLIENT_OUT_DIR,
+      globIgnores: precacheIgnores(),
       injectionPoint: 'self.__SW_MANIFEST',
       rollupFormat: 'iife',
       disable: command === 'serve',
     }),
+    ...(command === 'serve' ? [] : [assertServiceWorkerEmitted()]),
   ],
 }));

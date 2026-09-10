@@ -2,6 +2,7 @@ import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 
 import { readPushConfig, registerPushToken } from './api';
+import { registerServiceWorker } from './service-worker';
 
 let app: FirebaseApp | null = null;
 
@@ -17,12 +18,31 @@ const ensureMessaging = async () => {
   return getMessaging(app);
 };
 
+/**
+ * Mint this device's FCM token against the app's own service worker.
+ *
+ * `getToken` registers `/firebase-messaging-sw.js` when it is not handed a registration, and this
+ * app has no such file on purpose: `src/sw.ts` already owns `push` and `notificationclick`, and a
+ * second worker competing for the same event is how a notification arrives twice or not at all.
+ * Passing the registration is therefore not an optimisation — without it the SDK looks for a file
+ * that returns the SPA's HTML, and registration fails with an opaque error.
+ *
+ * No worker, no token. Returning `null` here keeps the refusal in one place rather than letting the
+ * SDK fail somewhere less legible.
+ */
 const tokenFor = async (): Promise<string | null> => {
   const messaging = await ensureMessaging();
   if (!messaging) return null;
   const config = await readPushConfig();
   if (!config) return null;
-  return (await getToken(messaging, { vapidKey: config.vapidKey })) || null;
+  const serviceWorkerRegistration = await registerServiceWorker();
+  if (!serviceWorkerRegistration) return null;
+  return (
+    (await getToken(messaging, {
+      vapidKey: config.vapidKey,
+      serviceWorkerRegistration,
+    })) || null
+  );
 };
 
 /**
