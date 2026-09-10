@@ -142,31 +142,45 @@ export const emailPayloadFor = (
   }
 };
 
+/**
+ * The title, body and destination one push carries.
+ *
+ * `pushUrl` is what a tap resolves to. It was absent for the life of the feature: the payload schema
+ * held only a title and a body, the dispatcher passed only those two, and the service worker's click
+ * handler fell back to `/` — so a reminder about a specific gathering would have opened the home
+ * page. `values.url` has been carrying the right link the whole time for the email and SMS bodies;
+ * this only stops throwing it away.
+ */
 export const pushPayloadFor = (
   templateKey: NotificationTemplateKey,
   values: TemplateValues,
   locale: Locale,
-): { pushTitle: string; pushBody: string } => {
+): { pushTitle: string; pushBody: string; pushUrl: string } => {
   const options = { locale };
+  const pushUrl = values.url;
   if (templateKey === 'event_cancelled') {
     return {
       pushTitle: ntf_push_event_cancelled_title(values, options),
       pushBody: ntf_push_event_cancelled_body(values, options),
+      pushUrl,
     };
   }
   if (templateKey === 'rsvp_confirmation') {
     return {
       pushTitle: ntf_push_confirmation_title(values, options),
       pushBody: ntf_push_confirmation_body({}, options),
+      pushUrl,
     };
   }
   return templateKey === 'reminder_72h'
     ? {
         pushTitle: ntf_push_reminder_72h_title(values, options),
         pushBody: ntf_push_reminder_72h_body({}, options),
+        pushUrl,
       }
     : {
         pushTitle: ntf_push_reminder_24h_title(values, options),
         pushBody: ntf_push_reminder_24h_body({}, options),
+        pushUrl,
       };
 };

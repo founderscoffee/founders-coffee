@@ -32,6 +32,8 @@ export interface DispatchProviders {
   readonly push?: PushProvider | null;
 }
 
+const PUSH_ICON = '/android-chrome-192x192.png';
+
 const sent: DispatchOutcome = { kind: 'sent' };
 
 const failed = (
@@ -130,6 +132,8 @@ const pushDispatcher = (db: Db, push: PushProvider): Dispatcher =>
         token,
         title: parsed.payload.pushTitle,
         body: parsed.payload.pushBody,
+        url: parsed.payload.pushUrl,
+        icon: PUSH_ICON,
         dedupeKey: notification.id,
       });
       if (result.ok) return sent;

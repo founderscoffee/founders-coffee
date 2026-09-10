@@ -138,9 +138,19 @@ push event. The two items that need no credentials are done; the rest waits on �
   does not help — the strategy caches any 200 regardless.
 - ✅ **Point FCM at it.** `getToken(messaging, { vapidKey, serviceWorkerRegistration })`, refusing to
   mint a token when there is no worker. **Wired, not yet proven** — needs the credentials.
-- **Agree on the payload.** Move `FcmPushProvider` to a data-only FCM message whose fields match what
-  `sw.ts` reads, and cover the contract with a test on both sides. A shape mismatch here shows the
-  member a notification titled `undefined`, which is worse than no notification.
+- ✅ **Agree on the payload.** `FcmPushProvider` sends `webpush.data`, never `webpush.notification`,
+  so display stays with `sw.ts`. `readPushPayload` normalises all three envelopes FCM can produce,
+  because the real one cannot be observed until a push is delivered, and confines the click target
+  to this origin.
+- ✅ **Carry the URL.** `pushUrl` was never in the payload schema, never passed by the dispatcher and
+  defaulted to `/` in the worker — a reminder about a gathering would have opened the home page.
+  Added as an optional field, so rows queued by the deployed version still dispatch during a rollout.
+- ✅ **Fix the icon.** The provider defaulted to `/icons/icon-192.png`, which this app does not have.
+- ✅ **Fix the FCM authentication.** The provider signed an OAuth _assertion_ (`aud` = Google's token
+  endpoint, with a `scope`) and sent it to `fcm.googleapis.com` as the bearer. That is a 401 on every
+  message, and 401 is not in the permanent-failure list, so each would have been retried to the end of
+  its budget before the SMS fallback was considered. It now exchanges the assertion at
+  `oauth2.googleapis.com/token` and caches the access token.
 - **Stop swallowing failures.** `enablePushOnThisDevice` returning `null` for ten different reasons is
   why four separate breaks survived a whole feature and a production deploy. Return a discriminated
   reason, log it, and let `pushStateFrom` render it. Add `sw_unavailable` to `PushState`.

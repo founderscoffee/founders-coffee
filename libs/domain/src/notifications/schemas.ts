@@ -36,6 +36,7 @@ export const pushNotificationPayloadSchema = notificationBase
   .extend({
     pushTitle: z.string().min(1).max(200),
     pushBody: z.string().min(1).max(500),
+    pushUrl: z.url().max(2048).optional(),
   })
   .passthrough();
 
