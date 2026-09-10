@@ -62,8 +62,13 @@ export const Route = createFileRoute('/$market/e/$slug')({
     try {
       market = await getMarket({ data: { slug: params.market } });
     } catch (error) {
-      if (appErrorCode(error) === 'market_not_found') throw notFound();
-      throw error;
+      if (appErrorCode(error) !== 'market_not_found') throw error;
+      try {
+        market = await getMarket({ data: { code: params.market } });
+      } catch (byCode) {
+        if (appErrorCode(byCode) === 'market_not_found') throw notFound();
+        throw byCode;
+      }
     }
     if (params.market !== market.slug) {
       throw redirect({
