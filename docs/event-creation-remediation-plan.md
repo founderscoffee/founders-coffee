@@ -883,9 +883,9 @@ Outstanding for sign-off:
   [`deployment-evidence.md`](./deployment-evidence.md).
 - ~~One authorized production smoke creation.~~ Done on 2026-09-10, and it needed no Turnstile
   testing-key window after all: a person cleared the challenge, which is the only way that control is
-  meant to be cleared. Production configuration was not touched. The one piece of housekeeping still
-  open is retiring the smoke event, which `v0.1.0` cannot do through the product because the host
-  cancel action ships in unreleased work.
+  meant to be cleared. Production configuration was not touched. The smoke event was retired the
+  same day with a guarded status update, because `v0.1.0` cannot cancel an event through the product
+  — the host cancel action ships in unreleased work.
 - The staging sign-in challenge remains unautomatable, so any future staged run needs the same
   short, deliberate testing-key window.
 

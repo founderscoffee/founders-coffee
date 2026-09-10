@@ -272,22 +272,38 @@ including `/`. That is the CSRF middleware refusing a request with no `Sec-Fetch
 outage: `none` and `same-origin` both pass and browsers always send one. Any future automated
 production probe must set that header.
 
-**Cleanup — pending as of this entry.** The plan was to retire the event through the product rather
-than delete it, so the row survives as this evidence. That is not possible on `v0.1.0`: the host
-cancel action, the optional reason and `0018_graceful_maria_hill.sql` are all in unreleased work, and
-the live event page offers only the RSVP controls. The owner released their seat, which is why the
-counts above return to `12` and `+0`, but the event is still `published`.
+**Cleanup — done 2026-09-10.** The event was retired rather than deleted, so the row survives as
+this evidence. Retiring it through the product is not possible on `v0.1.0`: the host cancel action,
+the optional reason and `0018_graceful_maria_hill.sql` are all in unreleased work, and the live
+event page offers only the RSVP controls. The owner released their seat first, which is why the
+counts above return to `12` and `+0`.
 
-Retiring it therefore needs one direct statement, guarded on slug, market and current status so it
-can affect exactly one row and is a no-op if repeated:
+The status was therefore set with one statement guarded on slug, market and current status, so it
+could affect exactly one row and is a no-op if repeated:
 
 ```sql
 UPDATE events SET status='cancelled', cancelled_at=unixepoch(), updated_at=unixepoch()
 WHERE slug='dsrwrtwerwer' AND market_code='DZ' AND status='published';
 ```
 
-`cancelled_at` has existed since `0003`, so this writes no column production lacks. Record the
-result here when it runs.
+`changes: 1`. Read back from production:
 
-**Outstanding on this item:** the statement above. The smoke creation itself is complete and
-verified.
+| Column                      | Value               |
+| --------------------------- | ------------------- |
+| `status`                    | `cancelled`         |
+| `cancelled_at`              | 2026-09-10 07:25:01 |
+| `market_code` / `city_code` | `DZ` / `39`         |
+| `language`                  | `ar`                |
+| `rsvps`                     | `0`                 |
+| `starts_at`                 | 2026-09-16 17:00:00 |
+
+The row confirms what the pages showed: the persisted city is Chlef (`39`), the language is the one
+chosen in the wizard, and the RSVP counter returned to zero when the seat was released.
+
+**The feeds dropped it; the direct URL did not.** `/algeria`, `/algeria/chlef` and the public host
+profile no longer carry the event, because each filters on `status = 'published'`. The event's own
+URL still renders it as though it were live, RSVP call to action included, since `v0.1.0` has no
+cancelled state in `EventDetail`. Nobody can reach it without the link, and the unreleased work
+fixes it directly — the current `EventDetail` renders a cancellation notice for exactly this status.
+
+**Outstanding on this item:** none.
