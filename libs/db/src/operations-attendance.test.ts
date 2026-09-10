@@ -193,3 +193,39 @@ describe('attendanceTally', () => {
     });
   });
 });
+
+describe('the audit says only what actually happened', () => {
+  let db: Db;
+
+  beforeEach(async () => {
+    db = await setupDb();
+  });
+
+  it('writes nothing when a non-host tries to mark an eligible member', async () => {
+    const eventId = await pastEvent(db, { attendees: [MEMBER_ID] });
+
+    await mark(db, eventId, { hostId: OTHER_ID });
+
+    expect(await auditRows(db)).toEqual([]);
+  });
+
+  it('writes nothing when the event has not ended', async () => {
+    const eventId = await futureEvent(db, { attendees: [MEMBER_ID] });
+
+    await mark(db, eventId);
+
+    expect(await auditRows(db)).toEqual([]);
+  });
+
+  it('writes nothing for a cancelled event, and says so', async () => {
+    const eventId = await pastEvent(db, {
+      attendees: [MEMBER_ID],
+      status: 'cancelled',
+    });
+
+    const result = await mark(db, eventId);
+
+    expect(result.outcome).toBe('event_cancelled');
+    expect(await auditRows(db)).toEqual([]);
+  });
+});

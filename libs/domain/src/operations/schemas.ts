@@ -14,7 +14,7 @@ import {
   hostTrustStatusSchema,
   operationReasonSchema,
   reviewBottleneckSchema,
-} from './enums.js';
+} from './enum-schemas.js';
 
 export const FEEDBACK_COMMENT_MAX_LENGTH = 600;
 export const REVIEW_TEXT_MAX_LENGTH = 1000;
@@ -72,15 +72,33 @@ export const submitCloseoutSchema = z
     }
   });
 
-export const correctCloseoutSchema = z.strictObject({
-  eventId: idSchema,
-  expectedVersion: operationsVersionSchema,
-  outcome: closeoutOutcomeSchema,
-  walkInCount: walkInCountSchema,
-  wouldHostAgain: z.boolean().nullable(),
-  hostFriction: hostFrictionListSchema,
-  reason: operationReasonSchema,
-});
+export const correctCloseoutSchema = z
+  .strictObject({
+    eventId: idSchema,
+    expectedVersion: operationsVersionSchema,
+    outcome: closeoutOutcomeSchema,
+    walkInCount: walkInCountSchema,
+    wouldHostAgain: z.boolean().nullable(),
+    hostFriction: hostFrictionListSchema,
+    privateNote: z.string().trim().max(PRIVATE_NOTE_MAX_LENGTH).optional(),
+    reason: operationReasonSchema,
+  })
+  .superRefine((input, context) => {
+    if (input.outcome === 'did_not_happen' && input.walkInCount > 0) {
+      context.addIssue({
+        code: 'custom',
+        message: 'An event that did not happen cannot have walk-ins',
+        path: ['walkInCount'],
+      });
+    }
+    if (input.hostFriction.includes('other_structured') && !input.privateNote) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Describe the other friction in the private note',
+        path: ['privateNote'],
+      });
+    }
+  });
 
 export const recordAttendanceSchema = z.strictObject({
   eventId: idSchema,

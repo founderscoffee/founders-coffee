@@ -10,7 +10,7 @@ import {
   updateHostTrustSchema,
   WALK_IN_MAX,
 } from './schemas.js';
-import { hostFrictionListSchema } from './enums.js';
+import { hostFrictionListSchema } from './enum-schemas.js';
 
 const EVENT = id('evt');
 const MEMBER = id('usr');

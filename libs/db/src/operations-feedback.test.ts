@@ -6,15 +6,10 @@ import { id } from '@founders-coffee/core';
 import type { Db } from './db.js';
 import { recordAttendance } from './operations-attendance.js';
 import { submitCloseout } from './operations-closeout.js';
-import {
-  feedbackTally,
-  getFeedback,
-  saveFeedback,
-} from './operations-feedback.js';
+import { getFeedback, saveFeedback } from './operations-feedback.js';
 import {
   HOST_ID,
   MEMBER_ID,
-  OTHER_ID,
   pastEvent,
   setupDb,
 } from './operations.fixtures.js';

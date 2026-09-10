@@ -82,17 +82,19 @@ export const feedbackWindowOpen = (
  * month is counted in the following month by a UTC reading and in the correct one by this. The
  * difference is small and it is the difference between a density gate that is met and one that is
  * not.
+ *
+ * The parts are destructured rather than searched with a fallback. `formatToParts` returns the
+ * fields that were asked for, so a `?? '0000'` here would be a claim that it might not — an
+ * unreachable branch that reads like a handled failure. An invalid time zone throws, which is the
+ * right outcome for a market row carrying one.
  */
 export const marketMonthOf = (
   endsAt: number,
   timeZone: string,
 ): `${number}-${string}` => {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-  }).formatToParts(new Date(endsAt));
-  const year = parts.find((part) => part.type === 'year')?.value ?? '0000';
-  const month = parts.find((part) => part.type === 'month')?.value ?? '01';
+  const [{ value: year }, , { value: month }] = new Intl.DateTimeFormat(
+    'en-CA',
+    { timeZone, year: 'numeric', month: '2-digit' },
+  ).formatToParts(new Date(endsAt));
   return `${Number(year)}-${month}` as `${number}-${string}`;
 };

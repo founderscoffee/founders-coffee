@@ -3,42 +3,52 @@ import { and, eq, sql } from 'drizzle-orm';
 import { batch } from './atomic.js';
 import type { Db } from './db.js';
 import { auditStatement } from './operations-audit.js';
-import {
-  eventAttendance,
-  eventRsvps,
-  events,
-  type EventAttendanceRow,
-} from './schema.js';
+import { eventAttendance, events, type EventAttendanceRow } from './schema.js';
 
 export type AttendanceOutcome =
-  'recorded' | 'not_host' | 'not_eligible' | 'not_ended';
+  'recorded' | 'not_host' | 'not_eligible' | 'not_ended' | 'event_cancelled';
 
 /**
  * The member held a going RSVP for this event, and the caller hosts it.
  *
  * §5.4 scopes registered attendance to members who said they were coming: a host may record an
- * outcome for someone on their own going list and for nobody else. Enforced by selecting the row
- * *from* `event_rsvps` joined to `events`, so an ineligible member produces no row rather than a
- * row the caller has to remember to reject.
+ * outcome for someone on their own going list and for nobody else. Enforced inside the write, so an
+ * ineligible member produces no row rather than a row the caller has to remember to reject.
  *
  * The RSVP is checked as it stands now, which is safe precisely because §5.17 froze it at
  * `startsAt`. Without that freeze this predicate would be a race — someone could cancel their RSVP
  * after the meetup and erase their own no-show — and the two rules only work as a pair.
+ *
+ * Everything reads from `events` with the RSVP as an `EXISTS`, so this one predicate can guard both
+ * statements in the batch. It used to be a join for the write and a looser predicate for the audit,
+ * and the two drifted: a refused write still produced an audit entry saying a non-host had changed
+ * an attendance outcome. A guard that has to be written twice is a guard that will differ.
  */
 const eligibleAttendee = (eventId: string, userId: string, hostId: string) =>
-  sql`event_rsvps.event_id = ${eventId}
-      AND event_rsvps.user_id = ${userId}
-      AND event_rsvps.status = 'going'
-      AND events.id = ${eventId}
+  sql`events.id = ${eventId}
       AND events.host_id = ${hostId}
       AND events.status != 'cancelled'
       AND events.ends_at IS NOT NULL
-      AND events.ends_at <= unixepoch()`;
+      AND events.ends_at <= unixepoch()
+      AND EXISTS (
+        SELECT 1 FROM event_rsvps
+        WHERE event_id = ${eventId}
+          AND user_id = ${userId}
+          AND status = 'going')`;
 
+/**
+ * Which of four reasons the guard refused, asked only after it has already refused.
+ *
+ * A read taken after the decision can only mislabel an error message; the same read taken before
+ * the write would have authorized one. The order is the point, not an optimisation.
+ *
+ * The clauses are tried in the order the guard evaluates them, so the answer names the first
+ * obstacle rather than an arbitrary one: a stranger marking an attendee of a cancelled event is
+ * told they do not host it, which is the thing they would have to fix first.
+ */
 const refusalFor = async (
   db: Db,
   eventId: string,
-  userId: string,
   hostId: string,
 ): Promise<AttendanceOutcome> => {
   const rows = await db
@@ -52,14 +62,10 @@ const refusalFor = async (
     .limit(1);
   const event = rows[0];
   if (!event || event.hostId !== hostId) return 'not_host';
+  if (event.status === 'cancelled') return 'event_cancelled';
   if (event.endsAt === null || event.endsAt.getTime() > Date.now())
     return 'not_ended';
-  const rsvp = await db
-    .select({ status: eventRsvps.status })
-    .from(eventRsvps)
-    .where(and(eq(eventRsvps.eventId, eventId), eq(eventRsvps.userId, userId)))
-    .limit(1);
-  return rsvp[0]?.status === 'going' ? 'not_eligible' : 'not_eligible';
+  return 'not_eligible';
 };
 
 /**
@@ -109,8 +115,7 @@ export const recordAttendance = async (
             recordedAt: sql<number>`unixepoch()`.as('recorded_at'),
             updatedAt: sql<number>`unixepoch()`.as('updated_at'),
           })
-          .from(eventRsvps)
-          .innerJoin(events, sql`events.id = event_rsvps.event_id`)
+          .from(events)
           .where(guard),
       )
       .onConflictDoUpdate({
@@ -133,17 +138,13 @@ export const recordAttendance = async (
       },
       events,
       events.marketCode,
-      sql`events.id = ${input.eventId} AND EXISTS (
-            SELECT 1 FROM event_rsvps
-            WHERE event_id = ${input.eventId}
-              AND user_id = ${input.userId}
-              AND status = 'going')`,
+      guard,
     ),
   ]);
 
   if (!(written as { meta?: { changes?: number } })?.meta?.changes)
     return {
-      outcome: await refusalFor(db, input.eventId, input.userId, input.hostId),
+      outcome: await refusalFor(db, input.eventId, input.hostId),
     };
 
   const rows = await db
