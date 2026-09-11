@@ -317,6 +317,13 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'rsvp_received',
 ] as const;
 
+export const RSVP_LIFECYCLE_TEMPLATE_KEYS = [
+  'rsvp_confirmation',
+  'reminder_72h',
+  'reminder_24h',
+  'event_cancelled',
+] as const;
+
 /**
  * Scheduled notification — one row per notification to send.
  * The Cron sweep (worker-jobs) reads the oldest `pending` rows where `send_at <= now`, dispatches

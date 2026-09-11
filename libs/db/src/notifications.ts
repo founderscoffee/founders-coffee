@@ -1,9 +1,10 @@
-import { and, asc, eq, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, lte, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
   NOTIFICATION_CHANNELS,
   NOTIFICATION_TEMPLATE_KEYS,
+  RSVP_LIFECYCLE_TEMPLATE_KEYS,
   scheduledNotifications,
   type NewScheduledNotification,
   type ScheduledNotification,
@@ -142,6 +143,18 @@ export const cancelNotificationsByEvent = async (
 };
 
 /** Cancel one user's pending notifications for an event (EC-1). See {@link cancelNotificationsByEvent}. */
+/**
+ * Withdraw the messages that existed because this member said they were coming.
+ *
+ * Scoped to `RSVP_LIFECYCLE_TEMPLATE_KEYS` rather than to every pending row for the pair, and the
+ * distinction is not cosmetic. A host holds a `going` RSVP on their own event — `attendHostOwnEvent`
+ * creates one at creation — so an unscoped cancel let a host who merely changed their mind about
+ * attending silently withdraw every pending row addressed to them, including host-directed notices
+ * that have nothing to do with their own attendance.
+ *
+ * Adding a key to that list is a statement that the message is about the recipient's own attendance.
+ * A host-directed message must never be listed, however convenient it looks.
+ */
 export const cancelNotificationsByUserEvent = async (
   db: Db,
   opts: { eventId: string; userId: string },
@@ -154,6 +167,9 @@ export const cancelNotificationsByUserEvent = async (
         eq(scheduledNotifications.eventId, opts.eventId),
         eq(scheduledNotifications.userId, opts.userId),
         eq(scheduledNotifications.status, 'pending'),
+        inArray(scheduledNotifications.templateKey, [
+          ...RSVP_LIFECYCLE_TEMPLATE_KEYS,
+        ]),
       ),
     );
 
