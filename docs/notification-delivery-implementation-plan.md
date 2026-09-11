@@ -216,20 +216,39 @@ The other needs a page nobody has built.
   guest can join a minute beforehand, and a notice fifteen minutes later would reach a host already
   in the room.
 
-#### ND-03b — Follow-up prompts
+#### ND-03b — Follow-up prompts — **not a ticket in this plan.** It is CO-06
 
-**Depends on:** ND-03a, and on CO-03 growing a surface above its persistence layer.
+Attempted 2026-09-11 and stopped. This plan mis-scoped it as "a producer plus a feedback page", and
+the database says otherwise.
 
-This is not a notification ticket. `libs/db/src/operations-feedback.ts` — `saveFeedback`,
-`getFeedback`, `feedbackTally` — is the whole of the feedback feature, and nothing above the database
-imports any of it: no server function, no route, no screen. A prompt after the gathering would link
-to a page that does not exist.
+`feedbackAllowed` in `libs/db/src/operations-feedback.ts` refuses a pulse unless **all three** hold:
 
-- Build the feedback surface first, then a producer at `ends_at + delay` under an
-  `event_feedback_request` key, gated on `followUpPrompts`. Scheduling needs nothing new — the same
-  `NotificationScheduleDO` alarm that carries a 72-hour reminder carries this.
-- **If the feedback surface is not coming soon, take the switch off the preferences screen instead.**
-  A control that does nothing is the defect this whole plan started from.
+- an `event_closeouts` row for the event says `outcome = 'held'`, submitted within seven days of the
+  end;
+- the member has an `event_attendance` row with `outcome = 'attended'`;
+- now is within fourteen days of `ends_at`.
+
+So feedback is invited by a closeout, not by an event ending. A prompt at `ends_at + delay` would
+reach members whose event has no closeout, no attendance record, and therefore no page that will
+accept them — every single one, today.
+
+And the surfaces that would produce those rows do not exist either. CO-03 built the whole operations
+persistence layer — `submitCloseout`, `correctCloseout`, `getCloseout`, `recordAttendance`,
+`listAttendance`, `attendanceTally`, `saveFeedback`, `getFeedback`, `feedbackTally` — and **nothing
+above the database imports any of it**, in `libs/server-fns` or in any of the three apps.
+
+The real chain is CO-04 (a secure `apps/admin`) → CO-05 (host closeout and attendance in `apps/ui`)
+→ **CO-06**, which already specifies this work in full: invitations only for attended members, the
+seven- and fourteen-day windows, the authenticated feedback surface, one idempotent updateable
+submission, the `communityOperations` flag. Re-specifying it here would fork it.
+
+**Conflict to resolve when CO-06 runs:** it says "do not add email as a default event channel," which
+ND-07 has since overridden with evidence. CO-06's delivery bullet should be rewritten to push-first
+with email behind it, not push-first with SMS.
+
+**The decision this plan still owns:** `follow_up_prompts` is on the preferences screen now, gating
+nothing, and CO-06 is several tickets away. Either it comes off the screen until CO-06 lands, or it
+stays as a control that does nothing — which is the defect this plan was written to remove.
 
 #### ND-03c — Telling a host somebody dropped out
 
