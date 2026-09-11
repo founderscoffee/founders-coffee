@@ -10,9 +10,9 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 import { useState } from 'react';
+import { Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../../../components/company/LegalNotice';
-import { Turnstile } from '../../../components/auth/Turnstile';
 import { usePublicAuthConfig } from '../../auth/hooks';
 import { useJoinWaitlist } from '../hooks';
 

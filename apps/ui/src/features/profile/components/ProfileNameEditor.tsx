@@ -11,9 +11,8 @@ import {
   profile_load_error,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, useToast } from '@founders-coffee/ui';
+import { Button, Input, useToast, Turnstile } from '@founders-coffee/ui';
 
-import { Turnstile } from '../../../components/auth/Turnstile';
 import { usePublicAuthConfig } from '../../auth/hooks';
 import type { UserProfile } from '../api';
 import { profileErrorMessage } from '../errors';

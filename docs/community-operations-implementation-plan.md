@@ -565,9 +565,30 @@ prototype chain, so the string `constructor` reached a value that is not a role;
 have refused an admin a moderator's action the first time CO-08 reached for it; `requirePermission`
 now sits beside it and the doc comment says which to use.
 
-**Still open in this ticket:** Turnstile and DO/WAF on sign-in — reduced in urgency now that an
-operator can only request a code for themselves, from behind the Access policy, but still required;
-shell, navigation and states; `ar`/`fr`/`en` with RTL — the login page is English-only. The correlated context is consumed by an audit log line and
+**Slice 4 landed 2026-09-11 — the application.** The placeholder is gone. `/` is an authenticated
+operator-status screen: the account, the role, and the permissions **derived from the same
+`roleAllows` the server asks when an action is attempted**, so the screen cannot drift from what the
+product permits. Sign-out, a not-found boundary, Query, and a locale toggle sit around it. Copy is in
+`ar`, `fr` and `en`, the document carries `lang`/`dir`, and the Turnstile widget moved to `libs/ui`
+so the admin login uses the same widget the public one does rather than a second copy.
+
+Audit of that slice found two blockers and one fixed defect:
+
+1. **Sign-in cannot work on staging as configured.** `createAuthHandler` answers `503
+captcha_unconfigured` on `send-verification-otp` when `TURNSTILE_SECRET_KEY` is absent and
+   `TURNSTILE_DISABLED` is not `true`. Admin has neither. Turnstile is not an enhancement here; it is
+   the thing that makes the login respond at all.
+2. **`TURNSTILE_SITE_KEY` is equally required** — without it the page renders no widget, sends no
+   token, and the server refuses anyway.
+3. **Fixed: the admin app would have rendered Arabic RTL for everyone, permanently.** `detectLocale`
+   reads the Paraglide cookie and falls back to `ar`, cookies are host-scoped, and nothing on the
+   admin origin could ever set one. A locale toggle now can.
+
+**Still open in this ticket:** DO/WAF rate limiting on sign-in. The `RATE_LIMITER` Durable Object
+lives in the `ui` script and reaching it needs a per-environment cross-script binding. Its marginal
+value is now small — a caller is behind the Access policy, can only request a code for their own
+address, and must pass Turnstile — so it is recorded rather than built, and CO-08/09 should add it
+with the mutations that genuinely need it. The correlated context is consumed by an audit log line and
 nothing else; CO-08 and CO-09 will need it threaded to their server functions, which is the point to
 add a request-scoped carrier rather than now, unused.
 

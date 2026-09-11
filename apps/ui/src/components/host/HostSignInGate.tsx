@@ -15,11 +15,10 @@ import {
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input } from '@founders-coffee/ui';
+import { Button, Input, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
-import { Turnstile } from '../auth/Turnstile';
 import { OtpField, OTP_LENGTH } from '../auth/OtpField';
 import { BackArrow, PROVIDER_MARK } from '../auth/ProviderIcon';
 import { ResendButton } from '../auth/ResendButton';

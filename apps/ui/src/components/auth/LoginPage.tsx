@@ -17,12 +17,11 @@ import {
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, LogoSymbol } from '@founders-coffee/ui';
+import { Button, Input, LogoSymbol, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
 import { onboardingRedirectPath } from '../../lib/redirect';
-import { Turnstile } from './Turnstile';
 import { OtpField, OTP_LENGTH } from './OtpField';
 import { PROVIDER_MARK } from './ProviderIcon';
 import { ResendButton } from './ResendButton';

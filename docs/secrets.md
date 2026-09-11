@@ -182,3 +182,17 @@ prove account-side provisioning. The last verified state is recorded in
 | `apps/dashboard`   | Sponsor-only shell today; its future authenticated sponsor flows require Better Auth and the applicable protection secrets                               |
 | `apps/admin`       | Cloudflare Access guard today; CO-04 must add an admin-origin Better Auth session and require its verified email to match the Access identity            |
 | `apps/worker-jobs` | Firebase service account for primary push, Twilio Programmable SMS for fallback, and email only for explicitly email-based jobs                          |
+
+## `apps/admin` — Cloudflare Access and sign-in
+
+| Secret                  | Required | Notes                                                                                                                                                                                                                           |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CF_ACCESS_TEAM_DOMAIN` | yes      | `<team>.cloudflareaccess.com`, no scheme. Same in both environments.                                                                                                                                                            |
+| `CF_ACCESS_AUD`         | yes      | The Application Audience tag of the Access application **for that hostname**. Staging and production have different applications and therefore different tags; sharing one would let a staging token verify against production. |
+| `TURNSTILE_SECRET_KEY`  | **yes**  | Without it `createAuthHandler` answers `503 captcha_unconfigured` on the sign-in endpoint and no operator can log in. `TURNSTILE_DISABLED=true` is a local-development bypass only.                                             |
+| `TURNSTILE_SITE_KEY`    | **yes**  | Read by the login route to render the widget. Absent, the page sends no token and the server refuses. The Turnstile widget must list the admin hostnames.                                                                       |
+| `BETTER_AUTH_SECRET`    | yes      | Already set.                                                                                                                                                                                                                    |
+
+The admin Worker also needs its `DB` and `send_email` bindings, both declared in
+`apps/admin/wrangler.jsonc`. Email OTP is the only sign-in method; without the mail binding a code is
+requested and never delivered, and Better Auth answers 200 either way.

@@ -21,7 +21,8 @@ vi.mock('../../auth/hooks', () => ({
   usePublicAuthConfig: () => ({ data: mocks.config }),
 }));
 
-vi.mock('../../../components/auth/Turnstile', () => ({
+vi.mock('@founders-coffee/ui', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
   Turnstile: ({ onToken }: { onToken: (token: string) => void }) => (
     <button data-testid="waitlist-turnstile" onClick={() => onToken('tok')}>
       verify
