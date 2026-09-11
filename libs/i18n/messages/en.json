@@ -1,4 +1,9 @@
 {
+  "ntf_push_closeout_prompt_title": "How did {title} go?",
+  "ntf_push_closeout_prompt_body": "Tell us whether it happened and who came.",
+  "ntf_email_closeout_prompt_subject": "How did {title} go?",
+  "ntf_email_closeout_prompt_html": "<p><strong>{title}</strong> at {venue} has finished.</p><p>Tell us whether it happened and who came — it takes a minute and only you see it.</p><p><a href=\"{url}\">Close it out</a></p>",
+  "ntf_email_closeout_prompt_text": "{title} at {venue} has finished. Tell us whether it happened and who came: {url}",
   "closeout_link": "Close it out",
   "closeout_title": "How did it go?",
   "closeout_note": "Only you can see this. It decides what the gathering counts as.",

@@ -51,6 +51,52 @@ export const enqueueNotification = async (
 };
 
 /**
+ * Enqueue this notification unless its id is already taken.
+ *
+ * For intents whose id is a pure function of what they are about, so that writing one twice is a
+ * question the database answers rather than one the caller has to ask first. `ON CONFLICT DO
+ * NOTHING` makes the second write a no-op inside the statement; a read-then-write would leave a
+ * window in which two callers both read absent and both insert, which is exactly the race a
+ * creation hook and a nightly backfill would run into.
+ *
+ * Returns whether a row was written, so a caller can tell "I scheduled it" from "it was already
+ * scheduled" without another query.
+ */
+export const enqueueNotificationIfAbsent = async (
+  db: Db,
+  opts: {
+    id: string;
+    eventId: string;
+    userId: string;
+    channel: (typeof NOTIFICATION_CHANNELS)[number];
+    templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
+    payload: Record<string, unknown>;
+    sendAt: Date;
+    fallbackChannel?: 'email' | 'sms';
+  },
+): Promise<{ written: boolean }> => {
+  const result = await db
+    .insert(scheduledNotifications)
+    .values({
+      id: opts.id,
+      eventId: opts.eventId,
+      userId: opts.userId,
+      channel: opts.channel,
+      status: 'pending',
+      templateKey: opts.templateKey,
+      payload: opts.payload,
+      sendAt: opts.sendAt,
+      attempts: 0,
+      fallbackChannel: opts.fallbackChannel ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .onConflictDoNothing({ target: scheduledNotifications.id });
+
+  return { written: ((result.meta?.changes ?? 0) as number) > 0 };
+};
+
+/**
  * List pending notifications due for delivery (`send_at <= now`), oldest first.
  *
  * The order is explicit so selection is deterministic and the partial index on `send_at` is used

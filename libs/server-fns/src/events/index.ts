@@ -4,13 +4,10 @@ export {
   type EventDetailItem,
   type EventWithAttendance,
 } from './attendance.js';
-export {
-  createEventResolver,
-  listEvents,
-  resolveEvent,
-  type EventFeedItem,
-  type EventFeedItemBase,
-  type EventFeedPage,
+export type {
+  EventFeedItem,
+  EventFeedItemBase,
+  EventFeedPage,
 } from './resolver.js';
 export type { EventCreateInput } from '@founders-coffee/domain';
 export type {

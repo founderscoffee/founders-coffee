@@ -21,10 +21,10 @@
       "path": "../../libs/domain"
     },
     {
-      "path": "../../libs/notifications"
+      "path": "../../libs/server-fns"
     },
     {
-      "path": "../../libs/db"
+      "path": "../../libs/notifications"
     },
     {
       "path": "../../libs/email"
@@ -34,6 +34,9 @@
     },
     {
       "path": "../../libs/observability"
+    },
+    {
+      "path": "../../libs/db"
     },
     {
       "path": "../../libs/infra"

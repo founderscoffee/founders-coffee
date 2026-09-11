@@ -74,6 +74,7 @@ const guarded =
       channel,
       notification.userId,
       notification.templateKey,
+      parsed.payload.marketCode,
     );
     if (!resolved.ok)
       return failed(`unreachable: ${resolved.reason}`, true, {

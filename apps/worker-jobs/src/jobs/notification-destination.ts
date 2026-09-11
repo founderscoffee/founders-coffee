@@ -1,4 +1,5 @@
 import {
+  communityOperationsEnabled,
   getNotificationContact,
   isDeliverableAccountState,
   listDeliverablePushTokens,
@@ -47,9 +48,22 @@ const unreachable = (reason: string, account = false): DestinationResult => ({
  *
  * `rsvp_confirmation` passes every category gate. It is the receipt for something the member did a
  * second ago, not an update the product decided to send them, and a product that swallows its own
- * confirmations leaves people wondering whether the RSVP worked. The categories exist to control
+ * confirmations leaves people wondering whether the RSVP worked.
+ *
+ * `closeout_prompt` passes them for the same reason, and deliberately does not hang off
+ * `host_updates`. That switch reads "who is coming to what you host", and asking a host what
+ * happened at their own gathering is not that — honouring it here would mean a control that does
+ * something other than what it says, which is the defect this product keeps finding. If hosts want
+ * to silence the prompt it earns its own switch; until then the market flag below is its only gate. The categories exist to control
  * what arrives unprompted: reminders under `event_reminders`, cancellation notices under
  * `event_updates`.
+ *
+ * The market flag is enforced here rather than in the producer, and rather than in the sweep loop.
+ * §5 gates prompt delivery, and this is the one place every channel already passes through before a
+ * send — a market that switches operations off between the intent being written and the prompt
+ * coming due refuses here, and one that switches them on later delivers without needing the intent
+ * to have been rewritten. The sweep already wraps this call against exceptions, which a gate bolted
+ * into its claimed-row loop would not have been.
  *
  * `account` marks the refusals that are true of every channel. A missing phone says nothing about
  * email, and falling back is exactly right; a closed account says the same thing about all of them,
@@ -60,6 +74,7 @@ export const resolveDestination = async (
   channel: ScheduledNotification['channel'],
   userId: string,
   templateKey?: ScheduledNotification['templateKey'],
+  marketCode?: string,
 ): Promise<DestinationResult> => {
   const contact = await getNotificationContact(db, userId);
   if (!contact) return unreachable('recipient_no_longer_exists', true);
@@ -75,6 +90,12 @@ export const resolveDestination = async (
     return unreachable('event_updates_off', true);
   if (templateKey === 'rsvp_received' && !contact.hostUpdates)
     return unreachable('host_updates_off', true);
+
+  if (
+    templateKey === 'closeout_prompt' &&
+    !(await communityOperationsEnabled(db, marketCode ?? ''))
+  )
+    return unreachable('operations_disabled', true);
 
   if (channel === 'sms') {
     if (!contact.phoneNumber) return unreachable('phone_number_removed');

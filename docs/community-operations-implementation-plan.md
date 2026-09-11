@@ -672,10 +672,34 @@ ended and were not cancelled. And the walk-in count had no client-side bound, so
 number the server would refuse with a generic error; `WALK_IN_MAX` is now imported from the domain
 rather than retyped.
 
-**Still open in CO-05:** the post-event intent and
-`endsAt + 30 minutes` alarm with its recovery sweep; the localized closeout prompt; the
-`did_not_happen` notification to each frozen going member; and `correctCloseout` behind an admin
-override.
+**Slice 3 landed 2026-09-11 — the prompt, its alarm, and its recovery.** Chosen from three designs
+judged adversarially; the cheapest one won and the judges then broke it in five places, all fixed
+before a line was written. No new table, no new cron, no migration: one `closeout_prompt` template
+key and one row in `scheduled_notifications` whose id is derived from the event, so the creation hook
+and the nightly backfill write the same row rather than racing. It sends at `endsAt + 30 minutes`,
+push first with email behind it, linking to `/closeout/$eventId` rather than the public event page.
+
+The market flag is enforced at **send** time in `resolveDestination`, not at enqueue. Enqueue-time
+gating would mean a market that switches operations on has no intents for anything created while it
+was off — the opposite of "recoverable while disabled" — and `resolveDestination` is the one place
+every channel already passes and is already wrapped against exceptions, unlike the sweep's
+claimed-row loop.
+
+The creation hook cannot touch the event: it swallows everything, and the nightly backfill re-derives
+whatever it lost, so a failure is a delay rather than an absence. Failure injection proves it at the
+`Db` seam — an insert that throws still leaves exactly one event and no half-written prompt.
+
+Audit of that slice found three things. The hook had to move from `createEventResolver` to
+`createEventWithTelemetry`: `markets/index.ts` value-exports a resolver that imports `listEvents`
+from `events/resolver.ts`, so that file is on the **browser's** import graph and one edge to
+`cloudflare:workers` broke the client bundle outright. The prompt was gated on `host_updates`, a
+switch that reads "who is coming to what you host" — asking a host what happened is not that, so it
+now passes the category gates like `rsvp_confirmation` does and the market flag is its only gate. And
+the date reached the template as a raw ISO string; it is formatted in the market's timezone now, so a
+later `{date}` in the copy cannot render `2099-01-15T19:00:00.000Z` in Arabic.
+
+**Still open in CO-05:** the `did_not_happen` notification to each frozen going member, and
+`correctCloseout` behind an admin override.
 
 **Parent:** P1-009, P1-018, P1-023
 **Requirements:** FR-E11, FR-E12, FR-E14, FR-M9; NFR-4, NFR-5, NFR-7 through NFR-11

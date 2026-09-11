@@ -20,6 +20,11 @@ import {
   ntf_push_reminder_24h_title,
   ntf_push_reminder_72h_body,
   ntf_push_reminder_72h_title,
+  ntf_push_closeout_prompt_body,
+  ntf_push_closeout_prompt_title,
+  ntf_email_closeout_prompt_html,
+  ntf_email_closeout_prompt_subject,
+  ntf_email_closeout_prompt_text,
   ntf_push_rsvp_received_body,
   ntf_push_rsvp_received_title,
   ntf_email_rsvp_received_html,
@@ -37,7 +42,8 @@ export type NotificationTemplateKey =
   | 'reminder_72h'
   | 'reminder_24h'
   | 'event_cancelled'
-  | 'rsvp_received';
+  | 'rsvp_received'
+  | 'closeout_prompt';
 
 export interface TemplateValues {
   readonly title: string;
@@ -89,13 +95,17 @@ const withReason = (
 /**
  * The SMS form of a message, for the keys that have one.
  *
- * `rsvp_received` is excluded in the type rather than handled and refused at runtime. ND-07 left
- * exactly one thing on SMS — a cancellation close enough to the start that an unread email means
- * somebody sets off anyway — and a host learning that a guest is coming is not that. Asking for an
- * SMS body this product has decided not to write should not compile.
+ * `rsvp_received` and `closeout_prompt` are excluded in the type rather than handled and refused at
+ * runtime. ND-07 left exactly one thing on SMS — a cancellation close enough to the start that an
+ * unread email means somebody sets off anyway — and neither a host learning that a guest is coming
+ * nor a host being asked how it went is that. Asking for an SMS body this product has decided not to
+ * write should not compile.
  */
 export const smsBodyFor = (
-  templateKey: Exclude<NotificationTemplateKey, 'rsvp_received'>,
+  templateKey: Exclude<
+    NotificationTemplateKey,
+    'rsvp_received' | 'closeout_prompt'
+  >,
   values: TemplateValues,
   locale: Locale,
 ): string => {
@@ -124,6 +134,12 @@ export const emailPayloadFor = (
   const options = { locale };
   const safe = escapeValues(values);
   switch (templateKey) {
+    case 'closeout_prompt':
+      return {
+        subject: ntf_email_closeout_prompt_subject(values, options),
+        html: ntf_email_closeout_prompt_html(safe, options),
+        text: ntf_email_closeout_prompt_text(values, options),
+      };
     case 'rsvp_received':
       return {
         subject: ntf_email_rsvp_received_subject(values, options),
@@ -181,6 +197,13 @@ export const pushPayloadFor = (
 ): { pushTitle: string; pushBody: string; pushUrl: string } => {
   const options = { locale };
   const pushUrl = values.url;
+  if (templateKey === 'closeout_prompt') {
+    return {
+      pushTitle: ntf_push_closeout_prompt_title(values, options),
+      pushBody: ntf_push_closeout_prompt_body({}, options),
+      pushUrl,
+    };
+  }
   if (templateKey === 'rsvp_received') {
     return {
       pushTitle: ntf_push_rsvp_received_title(values, options),

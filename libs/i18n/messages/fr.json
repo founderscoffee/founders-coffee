@@ -1,4 +1,9 @@
 {
+  "ntf_push_closeout_prompt_title": "Comment s’est passé {title} ?",
+  "ntf_push_closeout_prompt_body": "Dites-nous si la rencontre a eu lieu et qui est venu.",
+  "ntf_email_closeout_prompt_subject": "Comment s’est passé {title} ?",
+  "ntf_email_closeout_prompt_html": "<p><strong>{title}</strong> à {venue} est terminée.</p><p>Dites-nous si elle a eu lieu et qui est venu — cela prend une minute et vous seul le voyez.</p><p><a href=\"{url}\">Clôturer</a></p>",
+  "ntf_email_closeout_prompt_text": "{title} à {venue} est terminée. Dites-nous si elle a eu lieu et qui est venu : {url}",
   "closeout_link": "Clôturer",
   "closeout_title": "Comment ça s’est passé ?",
   "closeout_note": "Vous seul voyez ceci. Cela détermine ce que compte la rencontre.",

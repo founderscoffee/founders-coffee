@@ -1,4 +1,4 @@
-import { and, eq, isNull, lt, sql } from 'drizzle-orm';
+import { and, eq, gte, isNull, lt, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import { eventCloseouts, events } from './schema.js';
@@ -57,4 +57,51 @@ export const listEventsMissingEndTime = (
     .from(events)
     .where(and(eq(events.marketCode, opts.marketCode), isNull(events.endsAt)))
     .orderBy(events.startsAt)
+    .limit(opts.limit);
+
+/**
+ * Events that have ended and have no closeout prompt scheduled.
+ *
+ * The recovery half of CO-05: whatever the creation hook failed to write, or was never asked to
+ * write because the event predates it, is derived here from state that already exists.
+ *
+ * The anti-join is on `scheduled_notifications` rather than on a separate intent table, because the
+ * prompt row *is* the intent — a row of any status counts as scheduled, including one cancelled when
+ * the event was called off, which is precisely when no prompt should be re-derived.
+ *
+ * Bounded both ways. `endedAfter` stops the query walking the whole history of the product every
+ * night for gatherings nobody will close out now; `limit` stops one night's backlog becoming one
+ * night's write storm.
+ */
+export const listEventsMissingCloseoutPrompt = (
+  db: Db,
+  opts: { endedAfter: Date; endsBefore: Date; limit: number },
+) =>
+  db
+    .select({
+      id: events.id,
+      hostId: events.hostId,
+      marketCode: events.marketCode,
+      title: events.title,
+      venue: events.venue,
+      slug: events.slug,
+      startsAt: events.startsAt,
+      endsAt: events.endsAt,
+    })
+    .from(events)
+    .leftJoin(eventCloseouts, eq(eventCloseouts.eventId, events.id))
+    .where(
+      and(
+        sql`${events.status} != 'cancelled'`,
+        sql`${events.endsAt} IS NOT NULL`,
+        gte(events.endsAt, opts.endedAfter),
+        lt(events.endsAt, opts.endsBefore),
+        isNull(eventCloseouts.eventId),
+        sql`NOT EXISTS (
+          SELECT 1 FROM scheduled_notifications
+          WHERE event_id = ${events.id}
+            AND template_key = 'closeout_prompt')`,
+      ),
+    )
+    .orderBy(events.endsAt)
     .limit(opts.limit);

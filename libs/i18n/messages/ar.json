@@ -1,4 +1,9 @@
 {
+  "ntf_push_closeout_prompt_title": "كيف سار {title}؟",
+  "ntf_push_closeout_prompt_body": "أخبرنا إن كان قد انعقد ومن حضر.",
+  "ntf_email_closeout_prompt_subject": "كيف سار {title}؟",
+  "ntf_email_closeout_prompt_html": "<p>انتهى <strong>{title}</strong> في {venue}.</p><p>أخبرنا إن كان قد انعقد ومن حضر — لا يستغرق الأمر سوى دقيقة، ولا يراه سواك.</p><p><a href=\"{url}\">أغلق اللقاء</a></p>",
+  "ntf_email_closeout_prompt_text": "انتهى {title} في {venue}. أخبرنا إن كان قد انعقد ومن حضر: {url}",
   "closeout_link": "أغلق اللقاء",
   "closeout_title": "كيف سار اللقاء؟",
   "closeout_note": "هذا يظهر لك وحدك. وهو يحدّد كيف يُحتسب اللقاء.",
