@@ -1,4 +1,9 @@
 {
+  "ntf_push_did_not_happen_title": "{title} n’a pas eu lieu",
+  "ntf_push_did_not_happen_body": "L’hôte nous a indiqué que la rencontre ne s’est pas tenue.",
+  "ntf_email_did_not_happen_subject": "{title} n’a pas eu lieu",
+  "ntf_email_did_not_happen_html": "<p><strong>{title}</strong> à {venue} le {date} ne s’est pas tenue. L’hôte nous l’a indiqué.</p><p>Rien n’est attendu de votre part. Elle ne figurera pas parmi les rencontres auxquelles vous avez assisté.</p>",
+  "ntf_email_did_not_happen_text": "{title} à {venue} le {date} ne s’est pas tenue. L’hôte nous l’a indiqué. Rien n’est attendu de votre part, et elle ne figurera pas parmi les rencontres auxquelles vous avez assisté.",
   "ntf_push_closeout_prompt_title": "Comment s’est passé {title} ?",
   "ntf_push_closeout_prompt_body": "Dites-nous si la rencontre a eu lieu et qui est venu.",
   "ntf_email_closeout_prompt_subject": "Comment s’est passé {title} ?",

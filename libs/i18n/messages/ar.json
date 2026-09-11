@@ -1,4 +1,9 @@
 {
+  "ntf_push_did_not_happen_title": "لم ينعقد {title}",
+  "ntf_push_did_not_happen_body": "أبلغنا المضيف أن اللقاء لم يُعقد.",
+  "ntf_email_did_not_happen_subject": "لم ينعقد {title}",
+  "ntf_email_did_not_happen_html": "<p>لم يُعقد <strong>{title}</strong> في {venue} يوم {date}. أبلغنا المضيف بذلك.</p><p>لا يُطلب منك شيء. ولن يظهر ضمن اللقاءات التي حضرتها.</p>",
+  "ntf_email_did_not_happen_text": "لم يُعقد {title} في {venue} يوم {date}. أبلغنا المضيف بذلك. لا يُطلب منك شيء، ولن يظهر ضمن اللقاءات التي حضرتها.",
   "ntf_push_closeout_prompt_title": "كيف سار {title}؟",
   "ntf_push_closeout_prompt_body": "أخبرنا إن كان قد انعقد ومن حضر.",
   "ntf_email_closeout_prompt_subject": "كيف سار {title}؟",

@@ -20,6 +20,11 @@ import {
   ntf_push_reminder_24h_title,
   ntf_push_reminder_72h_body,
   ntf_push_reminder_72h_title,
+  ntf_push_did_not_happen_body,
+  ntf_push_did_not_happen_title,
+  ntf_email_did_not_happen_html,
+  ntf_email_did_not_happen_subject,
+  ntf_email_did_not_happen_text,
   ntf_push_closeout_prompt_body,
   ntf_push_closeout_prompt_title,
   ntf_email_closeout_prompt_html,
@@ -43,7 +48,8 @@ export type NotificationTemplateKey =
   | 'reminder_24h'
   | 'event_cancelled'
   | 'rsvp_received'
-  | 'closeout_prompt';
+  | 'closeout_prompt'
+  | 'event_did_not_happen';
 
 export interface TemplateValues {
   readonly title: string;
@@ -104,7 +110,7 @@ const withReason = (
 export const smsBodyFor = (
   templateKey: Exclude<
     NotificationTemplateKey,
-    'rsvp_received' | 'closeout_prompt'
+    'rsvp_received' | 'closeout_prompt' | 'event_did_not_happen'
   >,
   values: TemplateValues,
   locale: Locale,
@@ -134,6 +140,12 @@ export const emailPayloadFor = (
   const options = { locale };
   const safe = escapeValues(values);
   switch (templateKey) {
+    case 'event_did_not_happen':
+      return {
+        subject: ntf_email_did_not_happen_subject(values, options),
+        html: ntf_email_did_not_happen_html(safe, options),
+        text: ntf_email_did_not_happen_text(values, options),
+      };
     case 'closeout_prompt':
       return {
         subject: ntf_email_closeout_prompt_subject(values, options),
@@ -197,6 +209,13 @@ export const pushPayloadFor = (
 ): { pushTitle: string; pushBody: string; pushUrl: string } => {
   const options = { locale };
   const pushUrl = values.url;
+  if (templateKey === 'event_did_not_happen') {
+    return {
+      pushTitle: ntf_push_did_not_happen_title(values, options),
+      pushBody: ntf_push_did_not_happen_body({}, options),
+      pushUrl,
+    };
+  }
   if (templateKey === 'closeout_prompt') {
     return {
       pushTitle: ntf_push_closeout_prompt_title(values, options),

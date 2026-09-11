@@ -56,7 +56,7 @@ export const setupDb = async (): Promise<Db> => {
     .run();
   await db
     .update(user)
-    .set({ accountState: 'active' })
+    .set({ accountState: 'active', localePref: null })
     .where(inArray(user.id, [HOST_ID, MEMBER_ID, OTHER_ID]))
     .run();
   await db.delete(eventFeedback).run();

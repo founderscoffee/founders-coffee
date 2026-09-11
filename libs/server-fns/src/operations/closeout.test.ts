@@ -5,12 +5,23 @@ import {
   HOST_ID,
   MEMBER_ID,
   OTHER_ID,
+  auditRows,
   pastEvent,
   setupDb,
 } from '@founders-coffee/db/operations-fixtures';
-import { getCloseout, listAttendance, type Db } from '@founders-coffee/db';
+import {
+  eq,
+  getCloseout,
+  listAttendance,
+  scheduledNotifications,
+  type Db,
+} from '@founders-coffee/db';
 
-import { readCloseout, submitCloseoutResolver } from './closeout.js';
+import {
+  correctCloseoutResolver,
+  readCloseout,
+  submitCloseoutResolver,
+} from './closeout.js';
 
 /**
  * Turn the market flag on the way the product would.
