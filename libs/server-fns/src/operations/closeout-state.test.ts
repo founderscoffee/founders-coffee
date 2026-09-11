@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { sql } from 'drizzle-orm';
 
 import {
   HOST_ID,
   OTHER_ID,
+  enableOperations,
   futureEvent,
   pastEvent,
   setupDb,
@@ -11,17 +11,6 @@ import {
 import { submitCloseout, type Db } from '@founders-coffee/db';
 
 import { readCloseoutStates } from './closeout-state.js';
-
-const enableOperations = (db: Db, on = true) =>
-  db.run(
-    sql`UPDATE markets
-        SET feature_flags = json_set(
-          coalesce(feature_flags, '{}'),
-          '$.communityOperations',
-          json(${on ? 'true' : 'false'})
-        )
-        WHERE code = 'DZ'`,
-  );
 
 const close = (db: Db, eventId: string) =>
   submitCloseout(db, {

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { sql } from 'drizzle-orm';
 
 import {
   HOST_ID,
   MEMBER_ID,
   OTHER_ID,
   auditRows,
+  enableOperations,
   pastEvent,
   setupDb,
 } from '@founders-coffee/db/operations-fixtures';
@@ -17,29 +17,8 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
-import {
-  correctCloseoutResolver,
-  readCloseout,
-  submitCloseoutResolver,
-} from './closeout.js';
-
-/**
- * Turn the market flag on the way the product would.
- *
- * `json_set(..., 1)` writes the JSON number one, and `communityOperationsEnabled` compares against
- * `true` — deliberately, so a stray number or an absent key resolves to off. The helper therefore
- * has to write a JSON boolean, which is what `json('true')` produces.
- */
-const enableOperations = (db: Db, on = true) =>
-  db.run(
-    sql`UPDATE markets
-        SET feature_flags = json_set(
-          coalesce(feature_flags, '{}'),
-          '$.communityOperations',
-          json(${on ? 'true' : 'false'})
-        )
-        WHERE code = 'DZ'`,
-  );
+import { readCloseout, submitCloseoutResolver } from './closeout.js';
+import { correctCloseoutResolver } from './correction.js';
 
 const held = {
   outcome: 'held' as const,
@@ -169,7 +148,26 @@ describe('submitting a closeout', () => {
     if (!result.ok) expect(result.error.code).toBe('closeout_not_ended');
   });
 
-  it('refuses a second submission rather than overwriting the first', async () => {
+  it('never overwrites the first submission with a second', async () => {
+    const eventId = await pastEvent(db);
+    await submitCloseoutResolver(db, {
+      actorId: HOST_ID,
+      input: { ...held, eventId, walkInCount: 3 },
+      attendance: [],
+    });
+
+    await submitCloseoutResolver(db, {
+      actorId: HOST_ID,
+      input: { ...held, eventId, walkInCount: 99 },
+      attendance: [],
+    });
+
+    const stored = await getCloseout(db, eventId);
+    expect(stored?.walkInCount).toBe(3);
+    expect(stored?.version).toBe(0);
+  });
+
+  it('refuses a second submission that disagrees about what happened', async () => {
     const eventId = await pastEvent(db);
     await submitCloseoutResolver(db, {
       actorId: HOST_ID,
@@ -179,7 +177,7 @@ describe('submitting a closeout', () => {
 
     const again = await submitCloseoutResolver(db, {
       actorId: HOST_ID,
-      input: { ...held, eventId },
+      input: { ...held, eventId, outcome: 'did_not_happen' },
       attendance: [],
     });
 

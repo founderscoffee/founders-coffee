@@ -21,6 +21,7 @@ import type {
 import { processNotificationDue } from './jobs/notifications.js';
 import { sweepProfileAssets } from './jobs/profile-asset-sweep.js';
 import { backfillCloseoutPrompts } from './jobs/closeout-prompt-backfill.js';
+import { backfillDidNotHappenNotices } from './jobs/did-not-happen-backfill.js';
 import { runReconcile } from './jobs/reconcile.js';
 import { sweepNotifications } from './jobs/notification-sweep.js';
 
@@ -121,6 +122,7 @@ export default {
     if (controller.cron === '0 3 * * *') {
       await runReconcile(db);
       await backfillCloseoutPrompts(db);
+      await backfillDidNotHappenNotices(db);
       if (env.PROFILE_ASSETS)
         await sweepProfileAssets(db, new R2PhotoStore(env.PROFILE_ASSETS));
     }

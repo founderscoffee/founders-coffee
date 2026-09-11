@@ -6,6 +6,7 @@ import {
   MEMBER_ID,
   OTHER_ID,
   auditRows,
+  enableOperations,
   pastEvent,
   setupDb,
 } from '@founders-coffee/db/operations-fixtures';
@@ -19,29 +20,8 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
-import {
-  correctCloseoutResolver,
-  readCloseout,
-  submitCloseoutResolver,
-} from './closeout.js';
-
-/**
- * Turn the market flag on the way the product would.
- *
- * `json_set(..., 1)` writes the JSON number one, and `communityOperationsEnabled` compares against
- * `true` — deliberately, so a stray number or an absent key resolves to off. The helper therefore
- * has to write a JSON boolean, which is what `json('true')` produces.
- */
-const enableOperations = (db: Db, on = true) =>
-  db.run(
-    sql`UPDATE markets
-        SET feature_flags = json_set(
-          coalesce(feature_flags, '{}'),
-          '$.communityOperations',
-          json(${on ? 'true' : 'false'})
-        )
-        WHERE code = 'DZ'`,
-  );
+import { readCloseout, submitCloseoutResolver } from './closeout.js';
+import { correctCloseoutResolver } from './correction.js';
 
 const held = {
   outcome: 'held' as const,

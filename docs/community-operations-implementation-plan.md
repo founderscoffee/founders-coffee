@@ -754,6 +754,39 @@ now fixed, with a test that fails without the fix:
    focus to the reason, which otherwise sits above a roster the host cannot see past, and the retry
    keeps every answer. Thirteen new component tests cover the window, the threshold, focus and retry.
 
+**Slice 6 landed 2026-09-11 — the submission is resumable.** A review found the half of CO-05 that
+the gap audit had missed: the closeout commits in one atomic batch and everything after it — the
+roster, the did-not-happen fan-out — runs one row at a time afterwards. D1 has no interactive
+transaction that could make those one write, and two hundred marks is not a batch, so the work after
+the closeout is made **resumable** instead of atomic.
+
+Every write past the closeout was already idempotent — attendance on `ON CONFLICT DO UPDATE`, notices
+on an id derived from the (event, member) pair — so the only thing preventing repair was the guard:
+`already_closed` was a terminal error, and the retry that would have completed a half-written
+submission was refused as a duplicate. It now resumes when the stored outcome agrees with the one
+submitted, and still refuses when it does not, because changing the record of whether a gathering
+happened is `correctCloseout`'s job and carries an operator permission and a reason.
+
+That makes replay a normal path rather than an impossible one, so the attendance audit had to become
+idempotent too — the same defect as the closeout's own audit, and the same fix: guard the audit entry
+on "this outcome is not the one already recorded", and put it **first** in the batch, because D1 runs
+a batch in declaration order and a `NOT EXISTS` evaluated after the upsert would see the row the
+upsert had just written.
+
+`backfillDidNotHappenNotices` covers the host who never retries. It anti-joins **per member** rather
+than per event — nine notices out of ten is exactly the case it exists for — over a three-day window
+rather than the prompt's fortnight, because telling somebody a gathering did not take place is only
+worth saying while they might still be wondering.
+
+The comment justifying the one-at-a-time loop was also wrong and is corrected: it claimed a failed
+batch would leave a partial roster, but a D1 batch is atomic and a failed one leaves nothing. The
+real reasons are per-mark refusal reporting and the two-hundred cap.
+
+**Known limit.** The in-session retry is the recovery: the page keeps the draft and the stale read, so
+pressing submit again after a failure completes the work. A host who reloads instead sees "Already
+closed out" and cannot reach the form, and their roster stays partial until CO-08 gives an operator a
+surface to record attendance. The notices half has no such limit — the nightly backfill covers it.
+
 **Parent:** P1-009, P1-018, P1-023
 **Requirements:** FR-E11, FR-E12, FR-E14, FR-M9; NFR-4, NFR-5, NFR-7 through NFR-11
 

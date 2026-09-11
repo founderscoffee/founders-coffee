@@ -105,3 +105,55 @@ export const listEventsMissingCloseoutPrompt = (
     )
     .orderBy(events.endsAt)
     .limit(opts.limit);
+
+/**
+ * Events called off whose frozen going set has not all been told.
+ *
+ * `submitCloseoutResolver` fans the notice out one member at a time after the closeout is already
+ * durable, so a fan-out that dies partway leaves some members told and the rest not. The host's
+ * retry resumes it — but only if they retry. This is what covers the host who closed the tab.
+ *
+ * The anti-join is per **member**, not per event: an event with nine notices out of ten is exactly
+ * the case this exists for, and an `EXISTS` on the event as a whole would call it done. The host is
+ * excluded from the audience for the same reason the fan-out excludes them — they are the one who
+ * said it did not happen.
+ *
+ * Bounded both ways, like {@link listEventsMissingCloseoutPrompt}. The window is deliberately days
+ * rather than the prompt's fortnight: telling somebody a gathering did not take place is only worth
+ * saying while they might still be wondering.
+ */
+export const listEventsMissingDidNotHappenNotices = (
+  db: Db,
+  opts: { endedAfter: Date; limit: number },
+) =>
+  db
+    .select({
+      id: events.id,
+      hostId: events.hostId,
+      marketCode: events.marketCode,
+      title: events.title,
+      venue: events.venue,
+      slug: events.slug,
+      startsAt: events.startsAt,
+      endsAt: events.endsAt,
+    })
+    .from(events)
+    .innerJoin(eventCloseouts, eq(eventCloseouts.eventId, events.id))
+    .where(
+      and(
+        eq(eventCloseouts.outcome, 'did_not_happen'),
+        gte(events.endsAt, opts.endedAfter),
+        sql`EXISTS (
+          SELECT 1 FROM event_rsvps
+          WHERE event_rsvps.event_id = ${events.id}
+            AND event_rsvps.status = 'going'
+            AND event_rsvps.user_id != ${events.hostId}
+            AND NOT EXISTS (
+              SELECT 1 FROM scheduled_notifications
+              WHERE scheduled_notifications.event_id = ${events.id}
+                AND scheduled_notifications.user_id = event_rsvps.user_id
+                AND scheduled_notifications.template_key = 'event_did_not_happen'))`,
+      ),
+    )
+    .orderBy(events.endsAt)
+    .limit(opts.limit);

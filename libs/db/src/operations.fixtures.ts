@@ -152,6 +152,26 @@ export const futureEvent = async (
   return eventId;
 };
 
+/**
+ * Turn the market flag on the way the product would.
+ *
+ * `json_set(..., 1)` writes the JSON number one, and `communityOperationsEnabled` compares against
+ * `true` — deliberately, so a stray number or an absent key resolves to off. The helper therefore
+ * has to write a JSON boolean, which is what `json('true')` produces. Shared rather than retyped:
+ * four suites needed it, and a copy that drifts back to the number would make them all pass while
+ * testing the disabled path.
+ */
+export const enableOperations = (db: Db, on = true) =>
+  db.run(
+    sql`UPDATE markets
+        SET feature_flags = json_set(
+          coalesce(feature_flags, '{}'),
+          '$.communityOperations',
+          json(${on ? 'true' : 'false'})
+        )
+        WHERE code = 'DZ'`,
+  );
+
 export const auditRows = (db: Db) =>
   db.select().from(operationsAudit).orderBy(operationsAudit.createdAt);
 

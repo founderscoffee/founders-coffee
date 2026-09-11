@@ -37,6 +37,32 @@ const eligibleAttendee = (eventId: string, userId: string, hostId: string) =>
           AND status = 'going')`;
 
 /**
+ * Eligible, and this outcome is not the one already recorded.
+ *
+ * Guards the audit entry alone, never the write. Re-submitting a closeout replays the whole roster —
+ * that replay is what repairs a submission that died partway through, and the write must stay
+ * idempotent for it — but an audit trail that gains a `attendance_recorded` row every time somebody
+ * presses the button again asserts a change that did not happen. The same rule the closeout's own
+ * audit follows: record the act, not the attempt.
+ *
+ * The audit statement therefore runs **first** in the batch. D1 executes a batch in declaration
+ * order inside one transaction, so a `NOT EXISTS` guard evaluated after the upsert would see the row
+ * the upsert had just written and never fire at all.
+ */
+const changesTheOutcome = (
+  eventId: string,
+  userId: string,
+  hostId: string,
+  outcome: string,
+) =>
+  sql`${eligibleAttendee(eventId, userId, hostId)}
+      AND NOT EXISTS (
+        SELECT 1 FROM event_attendance
+        WHERE event_id = ${eventId}
+          AND user_id = ${userId}
+          AND outcome = ${outcome})`;
+
+/**
  * Which of four reasons the guard refused, asked only after it has already refused.
  *
  * A read taken after the decision can only mislabel an error message; the same read taken before
@@ -96,7 +122,30 @@ export const recordAttendance = async (
 ): Promise<{ outcome: AttendanceOutcome; row?: EventAttendanceRow }> => {
   const guard = eligibleAttendee(input.eventId, input.userId, input.hostId);
 
-  const [written] = await batch(db, [
+  const [, written] = await batch(db, [
+    auditStatement(
+      db,
+      {
+        id: input.auditId,
+        actorUserId: input.hostId,
+        accessSubject: input.accessSubject ?? null,
+        action: input.isCorrection
+          ? 'attendance_corrected'
+          : 'attendance_recorded',
+        targetType: 'attendance',
+        targetId: `${input.eventId}:${input.userId}`,
+        reasonCode: input.reason ?? null,
+        metadata: { after: input.outcome },
+      },
+      events,
+      events.marketCode,
+      changesTheOutcome(
+        input.eventId,
+        input.userId,
+        input.hostId,
+        input.outcome,
+      ),
+    ),
     db
       .insert(eventAttendance)
       .select(
@@ -122,24 +171,6 @@ export const recordAttendance = async (
         target: [eventAttendance.eventId, eventAttendance.userId],
         set: { outcome: input.outcome, updatedAt: new Date() },
       }),
-    auditStatement(
-      db,
-      {
-        id: input.auditId,
-        actorUserId: input.hostId,
-        accessSubject: input.accessSubject ?? null,
-        action: input.isCorrection
-          ? 'attendance_corrected'
-          : 'attendance_recorded',
-        targetType: 'attendance',
-        targetId: `${input.eventId}:${input.userId}`,
-        reasonCode: input.reason ?? null,
-        metadata: { after: input.outcome },
-      },
-      events,
-      events.marketCode,
-      guard,
-    ),
   ]);
 
   if (!(written as { meta?: { changes?: number } })?.meta?.changes)
