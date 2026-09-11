@@ -77,7 +77,7 @@ const guarded =
       parsed.payload.marketCode,
     );
     if (!resolved.ok)
-      return failed(`unreachable: ${resolved.reason}`, true, {
+      return failed(`unreachable: ${resolved.reason}`, !resolved.transient, {
         unreachable: true,
         suppressFallback: resolved.account,
       });

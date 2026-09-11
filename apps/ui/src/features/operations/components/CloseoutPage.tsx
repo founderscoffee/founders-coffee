@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import {
@@ -8,7 +8,10 @@ import {
   closeout_error_cancelled,
   closeout_error_disabled,
   closeout_error_generic,
+  closeout_error_no_end_time,
   closeout_error_not_ended,
+  closeout_error_not_found,
+  closeout_error_rate_limited,
   closeout_error_not_host,
   closeout_loading,
   closeout_note,
@@ -37,6 +40,12 @@ const messageFor = (error: unknown, locale: Locale): string => {
     return closeout_error_cancelled({}, { locale });
   if (code === 'operations_disabled')
     return closeout_error_disabled({}, { locale });
+  if (code === 'closeout_no_end_time')
+    return closeout_error_no_end_time({}, { locale });
+  if (code === 'event_not_found')
+    return closeout_error_not_found({}, { locale });
+  if (code === 'rate_limited')
+    return closeout_error_rate_limited({}, { locale });
   return closeout_error_generic({}, { locale });
 };
 
@@ -50,10 +59,15 @@ export const CloseoutPage = ({
   const query = useCloseout(eventId);
   const save = useSubmitCloseout(eventId);
   const [draft, setDraft] = useState<CloseoutDraft | null>(null);
+  const refusal = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     if (query.data) setDraft(draftFrom(query.data));
   }, [query.data]);
+
+  useEffect(() => {
+    if (save.isError) refusal.current?.focus();
+  }, [save.isError]);
 
   if (!query.userId && !query.isAuthLoading)
     return (
@@ -68,6 +82,15 @@ export const CloseoutPage = ({
       </section>
     );
 
+  if (query.isError)
+    return (
+      <section className="mx-auto max-w-2xl px-5 py-12">
+        <p className="text-body-sm text-error" role="alert">
+          {messageFor(query.error, locale)}
+        </p>
+      </section>
+    );
+
   return (
     <section className="mx-auto max-w-2xl px-5 py-12">
       <h1 className="mb-1 font-display text-h3">
@@ -77,11 +100,7 @@ export const CloseoutPage = ({
         {closeout_note({}, { locale })}
       </p>
 
-      {query.isError ? (
-        <p className="text-body-sm text-error" role="alert">
-          {messageFor(query.error, locale)}
-        </p>
-      ) : !query.data || !draft ? (
+      {!query.data || !draft ? (
         <p role="status">{closeout_loading({}, { locale })}</p>
       ) : query.data.outcome !== null ? (
         <p role="status">{closeout_already_done({}, { locale })}</p>
@@ -108,7 +127,12 @@ export const CloseoutPage = ({
           />
 
           {save.isError && (
-            <p className="text-body-sm text-error" role="alert">
+            <p
+              className="text-body-sm text-error"
+              ref={refusal}
+              role="alert"
+              tabIndex={-1}
+            >
               {messageFor(save.error, locale)}
             </p>
           )}

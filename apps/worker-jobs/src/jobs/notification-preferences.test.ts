@@ -104,7 +104,7 @@ describe('categories are enforced at send time, not at enqueue time', () => {
     expect((await rowById(db, rowId))?.status).toBe('failed');
   });
 
-  it('refuses a closeout prompt while the market has operations switched off', async () => {
+  it('holds a closeout prompt while the market has operations switched off', async () => {
     const off = await resolveDestination(
       db,
       'email',
@@ -117,7 +117,23 @@ describe('categories are enforced at send time, not at enqueue time', () => {
     if (!off.ok) {
       expect(off.reason).toBe('operations_disabled');
       expect(off.account).toBe(true);
+      expect(off.transient).toBe(true);
     }
+  });
+
+  it('marks every other refusal permanent, so only the flag is waited on', async () => {
+    await setPreferences(db, { eventReminders: false });
+
+    const off = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'reminder_24h',
+      'DZ',
+    );
+
+    expect(off.ok).toBe(false);
+    if (!off.ok) expect(off.transient).toBeUndefined();
   });
 
   it('does not hang a closeout prompt off the who-is-coming switch', async () => {

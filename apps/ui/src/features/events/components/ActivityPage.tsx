@@ -10,6 +10,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
+import { useMyCloseoutStates } from '../../operations/hooks';
 import { ProfileSectionNav } from '../../account/components/ProfileSectionNav';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { authClient } from '../../../lib/auth';
@@ -20,6 +21,11 @@ const flatten = (
   pages: readonly { items: readonly unknown[] }[] | undefined,
 ): ActivityItem[] =>
   (pages ?? []).flatMap((page) => page.items as ActivityItem[]);
+
+const closeoutCandidates = (items: readonly ActivityItem[]): string[] =>
+  items
+    .filter((item) => new Date(item.startsAt).getTime() < Date.now())
+    .map((item) => item.id);
 
 export const ActivityPage = ({
   locale,
@@ -32,6 +38,11 @@ export const ActivityPage = ({
   const userId = auth.data?.user.id;
   const joined = useMyJoinedEvents();
   const hosted = useHostedEvents({ hostId: userId ?? '' });
+  const hostedItems = flatten(hosted.data?.pages);
+  const closeoutStates = useMyCloseoutStates(closeoutCandidates(hostedItems));
+  const closeoutByEvent = new Map(
+    (closeoutStates.data ?? []).map((state) => [state.eventId, state.closed]),
+  );
 
   const marketSlugFor = (code: string) =>
     markets.find((market) => market.code === code)?.slug ?? code;
@@ -80,13 +91,13 @@ export const ActivityPage = ({
               locale={locale}
               title={activity_hosted({}, { locale })}
               emptyNote={activity_hosted_empty({}, { locale })}
-              items={flatten(hosted.data?.pages)}
+              items={hostedItems}
               total={hosted.data?.pages[0]?.total ?? 0}
               marketSlugFor={marketSlugFor}
               hasMore={!!hosted.hasNextPage}
               isLoadingMore={hosted.isFetchingNextPage}
               onLoadMore={() => void hosted.fetchNextPage()}
-              offerCloseout
+              closeoutStates={closeoutByEvent}
             />
           </div>
         )}

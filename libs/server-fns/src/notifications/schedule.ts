@@ -1,6 +1,7 @@
 import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
 import { logger } from '@founders-coffee/observability';
 
+import { alertFailure, SCHEDULE_ARM_FAILED_METRIC } from '../alerts.js';
 import { workerEnv } from '../env.js';
 
 interface ScheduleStub {
@@ -18,6 +19,10 @@ interface ScheduleStub {
  * already durable, and a scheduler that is unreachable must not turn a successful RSVP into a
  * failed one — the member is going to the meetup either way, and the recovery sweep still carries
  * the confirmation.
+ *
+ * It is also counted, because a log nobody watches is not an alert. Every arm failing is invisible
+ * from the outside — the sweep keeps delivering, fifteen minutes late — so the counter is the only
+ * thing that would distinguish a healthy deployment from one running entirely on its safety net.
  */
 export const armOn = async (
   namespace: DurableObjectNamespace,
@@ -34,6 +39,7 @@ export const armOn = async (
       eventId,
       reason: error instanceof Error ? error.message : String(error),
     });
+    alertFailure(SCHEDULE_ARM_FAILED_METRIC);
   }
 };
 

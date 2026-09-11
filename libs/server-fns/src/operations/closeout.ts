@@ -62,8 +62,13 @@ const requireOperationsEnabled = async (
 /**
  * What the host needs to close a gathering out, and what they already recorded.
  *
- * Reads rather than decides: the refusals that matter are enforced by the write, which evaluates
- * them in the same statement. This exists so the form can be built from the real roster and show
+ * One refusal is made here as well as in the write, and deliberately: an event with no recorded
+ * `ends_at` can never be closed out, and letting the form render for it means a host fills in a
+ * roster, walk-ins and friction, submits, and is told to try again — advice that can never succeed.
+ * A permanent no belongs before the work, not after it.
+ *
+ * Otherwise this reads rather than decides: the refusals that matter are enforced by the write, which
+ * evaluates them in the same statement. This exists so the form can be built from the real roster and show
  * existing marks, not so it can pre-authorise anything.
  *
  * The two totals are derived here and never accepted from a client. §5.5 makes every closeout count
@@ -87,6 +92,14 @@ export const readCloseout = async (
 
   const disabled = await requireOperationsEnabled(db, event.marketCode);
   if (disabled) return err(disabled);
+
+  if (!event.endsAt)
+    return err(
+      new AppError(
+        'closeout_no_end_time',
+        'This gathering has no recorded end time',
+      ),
+    );
 
   const closeout = await getCloseout(db, opts.eventId);
   const roster = await listCloseoutRoster(db, { eventId: opts.eventId });

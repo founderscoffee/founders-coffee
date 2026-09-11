@@ -719,28 +719,40 @@ fixed immediately:
 - **A closed-out gathering still offered the form.** `/closeout/$eventId` rendered the full form for
   an event with a closeout and refused on submit; it says so up front now.
 
-**Known gaps, recorded rather than fixed:**
+**Slice 5 landed 2026-09-11 — the seven gaps closed.** Every item the full-ticket audit recorded is
+now fixed, with a test that fails without the fix:
 
-1. **The audit trail is not idempotent on resubmission.** `submitCloseout`'s audit statement is
-   guarded on `closeable(...)` and not on the `ON CONFLICT DO NOTHING` that decides whether the
-   closeout landed, so each repeat submit appends a `closeout_submitted` row asserting a submission
-   that did not occur. `correctCloseout` gets this right by guarding its audit on the same `EXISTS`
-   its update uses. Nothing reads the trail today; CO-09's moderation reader will.
-2. **Four stable error codes fall through to "Try again."** `closeout_no_end_time` is the worst:
-   `readCloseout` never checks `ends_at`, so a host with a legacy event fills the whole form, submits,
-   and is told to retry something that can never succeed. `rate_limited`, `event_not_found` and the
-   generic catch-all are the others.
-3. **The `apps/ui` surface is not flag-gated.** The mutation and the prompt are; the route and page
-   are not, so a market with operations off still renders the form before the server refuses.
-4. **Flag-off does not stay recoverable.** `operations_disabled` refuses with `account: true`, which
-   `guarded` turns into a permanent failure, so the prompt is retired rather than held. Fixing it
-   needs a transient class in the refusal taxonomy, which is a change to shared machinery.
-5. **"Logged and alerted" is logged only.** There is no alerting facility in the repo;
-   `docs/observability.md` says the alerts half is unprovisioned.
-6. **No completed state on `/activity`** — the "Close it out" link renders whether or not it is done,
-   because the hosted feed item carries no closeout state.
-7. **Component tests do not cover TanStack Virtual, retry, or focus**, and there is no long-roster
-   virtualisation. The domain caps a batch at 200; a café table is a dozen.
+1. **The audit trail is idempotent.** `submitCloseout`'s audit statement is guarded on a
+   `notYetClosed` predicate — `closeable(...)` plus `NOT EXISTS (SELECT 1 FROM event_closeouts ...)` —
+   and the batch was reordered so the audit runs **before** the insert. D1 runs a batch in declaration
+   order inside one transaction, so an audit guarded on "not yet closed" that ran after the insert
+   would never fire at all; the first version of this fix was silently dead. Three submits now leave
+   one `closeout_submitted` row, and no audit row records an outcome the stored closeout lacks.
+2. **Every stable error has its own sentence.** `closeout_no_end_time`, `event_not_found` and
+   `rate_limited` joined the localized set in `ar`/`fr`/`en`, and `readCloseout` refuses an event with
+   no `ends_at` **before** the form renders rather than after the host has filled it in — a permanent
+   no belongs before the work, not after it.
+3. **The surface is flag-gated.** `CloseoutPage` returns the refusal before the heading and the note,
+   so a market with operations off renders an explanation rather than a form with an error under it.
+4. **Flag-off stays recoverable.** `DestinationResult` gained a `transient` class and
+   `operations_disabled` now uses it, so `guarded` holds the prompt instead of retiring it. A market
+   that switches operations on still has its prompts.
+5. **Logged _and_ alerted.** `libs/server-fns/src/alerts.ts` counts a swallowed failure into Analytics
+   Engine — `closeout_intent_failed` indexed by market, `notification_schedule_arm_failed` global — so
+   a threshold can be set on the thing that was previously only a log line nothing watched. The
+   counter is itself wrapped: the paths that call it exist because nothing there may throw.
+6. **`/activity` shows completion.** A new `getMyCloseoutStates` answers, for the caller's **own**
+   hosted events only, which are closed and which are still open; the list shows "Closed out" or the
+   link, and nothing at all for an event the server did not answer for. It is deliberately not folded
+   into the hosted feed — that query is the public profile's too, and which of a host's gatherings did
+   not happen is not a public fact. Cancelled events, events with no recorded end, and markets with
+   operations off are absent from the answer, so the link is offered only where it could succeed.
+7. **Long rosters are virtualised and the gaps in the component tests are closed.**
+   `CloseoutRoster` renders plain list items up to forty people and switches to TanStack Virtual
+   above that — a café table must not pay for the two-hundred-person cap. The marks live in the draft
+   rather than in the DOM, which is what makes unmounting a row safe. A refused submission now moves
+   focus to the reason, which otherwise sits above a roster the host cannot see past, and the retry
+   keeps every answer. Thirteen new component tests cover the window, the threshold, focus and retry.
 
 **Parent:** P1-009, P1-018, P1-023
 **Requirements:** FR-E11, FR-E12, FR-E14, FR-M9; NFR-4, NFR-5, NFR-7 through NFR-11

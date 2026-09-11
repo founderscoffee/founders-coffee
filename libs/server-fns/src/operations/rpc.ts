@@ -7,8 +7,10 @@ import { authMiddleware } from '../auth-middleware.js';
 import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
+import { readCloseoutStates } from './closeout-state.js';
 import { readCloseout, submitCloseoutResolver } from './closeout.js';
 import {
+  closeoutStatesRequestSchema,
   closeoutViewRequestSchema,
   submitCloseoutRequestSchema,
 } from './schemas.js';
@@ -30,6 +32,30 @@ export const getCloseoutView = createServerFn({ method: 'GET', strict: false })
       readCloseout(getDb(), {
         eventId: data.eventId,
         actorId: session.user.id,
+      }),
+    );
+  });
+
+/**
+ * Which of the caller's own past gatherings still want closing out.
+ *
+ * Answers about the session's own events only — the ids are a filter, never an authorisation — so
+ * this cannot be pointed at another host to learn which of their gatherings did not happen.
+ * `privateNoStore` for the same reason: the answer is one person's and belongs in no shared cache.
+ */
+export const getMyCloseoutStates = createServerFn({
+  method: 'GET',
+  strict: false,
+})
+  .middleware([authMiddleware])
+  .validator(appValidator(closeoutStatesRequestSchema))
+  .handler(async ({ context, data }) => {
+    const session = requireAuth(context.session);
+    privateNoStore();
+    return handleResult(
+      readCloseoutStates(getDb(), {
+        hostId: session.user.id,
+        eventIds: data.eventIds,
       }),
     );
   });

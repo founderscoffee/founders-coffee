@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { env } from 'cloudflare:workers';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { armNotificationSchedule, armOn } from './schedule.js';
 
@@ -43,6 +44,32 @@ describe('armOn', () => {
       armOn(namespace, 'evt_abc', new Date()),
     ).resolves.toBeUndefined();
   });
+
+  it('counts the failure, because a deployment running entirely on its sweep looks healthy', async () => {
+    const written = vi.spyOn(env.ANALYTICS, 'writeDataPoint');
+    const { namespace } = fakeNamespace('throws');
+
+    await armOn(namespace, 'evt_abc', new Date());
+
+    expect(
+      written.mock.calls.map(
+        ([point]) => (point as AnalyticsEngineDataPoint).blobs?.[0],
+      ),
+    ).toContain('notification_schedule_arm_failed');
+  });
+
+  it('counts nothing when the arm succeeds', async () => {
+    const written = vi.spyOn(env.ANALYTICS, 'writeDataPoint');
+    const { namespace } = fakeNamespace();
+
+    await armOn(namespace, 'evt_abc', new Date());
+
+    expect(written).not.toHaveBeenCalled();
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe('armNotificationSchedule', () => {

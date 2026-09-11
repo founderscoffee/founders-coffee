@@ -1,4 +1,7 @@
 {
+  "closeout_error_no_end_time": "Cette rencontre n’a pas d’heure de fin enregistrée et ne peut donc pas être clôturée. Rien de ce que vous ferez ici n’y changera quoi que ce soit.",
+  "closeout_error_not_found": "Cette rencontre n’existe plus.",
+  "closeout_error_rate_limited": "Beaucoup de tentatives. Attendez quelques minutes avant de réessayer.",
   "closeout_already_done": "Déjà clôturée. Merci.",
   "ntf_push_did_not_happen_title": "{title} n’a pas eu lieu",
   "ntf_push_did_not_happen_body": "L’hôte nous a indiqué que la rencontre ne s’est pas tenue.",
@@ -10,6 +13,7 @@
   "ntf_email_closeout_prompt_subject": "Comment s’est passé {title} ?",
   "ntf_email_closeout_prompt_html": "<p><strong>{title}</strong> à {venue} est terminée.</p><p>Dites-nous si elle a eu lieu et qui est venu — cela prend une minute et vous seul le voyez.</p><p><a href=\"{url}\">Clôturer</a></p>",
   "ntf_email_closeout_prompt_text": "{title} à {venue} est terminée. Dites-nous si elle a eu lieu et qui est venu : {url}",
+  "activity_closed_out": "Clôturé",
   "closeout_link": "Clôturer",
   "closeout_title": "Comment ça s’est passé ?",
   "closeout_note": "Vous seul voyez ceci. Cela détermine ce que compte la rencontre.",

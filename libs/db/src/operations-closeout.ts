@@ -36,6 +36,25 @@ export interface SubmitCloseoutRow {
  * reporting. `ends_at IS NOT NULL` is the §5.24 rule in the same predicate — a legacy event with no
  * recorded end is excluded from closeout rather than given an inferred one.
  */
+/**
+ * Closeable, and not already closed.
+ *
+ * The audit entry must be guarded on the same condition that decides whether the closeout landed,
+ * which is the `ON CONFLICT DO NOTHING` and not `closeable` alone. `closeable` reads only the events
+ * table — host, not cancelled, ended — and a second submission satisfies it just as well as the
+ * first, so an audit guarded on it records a submission on every retry while the insert quietly does
+ * nothing. An append-only trail asserting things that did not happen is worse than no trail.
+ *
+ * `correctCloseout` already guards its audit on the same `EXISTS` its update uses; this is the same
+ * discipline, stated for the insert — and like that one, the audit statement must come **first** in
+ * the batch. D1 applies a batch in declaration order inside one transaction, so an audit placed after
+ * the insert would find the closeout it is about to describe already present and never fire.
+ */
+const notYetClosed = (eventId: string, hostId: string) =>
+  sql`${closeable(eventId, hostId)}
+      AND NOT EXISTS (
+        SELECT 1 FROM event_closeouts WHERE event_id = ${eventId})`;
+
 const closeable = (eventId: string, hostId: string) =>
   sql`id = ${eventId}
       AND host_id = ${hostId}
@@ -101,7 +120,14 @@ export const submitCloseout = async (
     metadata: { outcome: input.outcome, walkInCount: input.walkInCount },
   };
 
-  const [inserted] = await batch(db, [
+  const [, inserted] = await batch(db, [
+    auditStatement(
+      db,
+      audit,
+      events,
+      events.marketCode,
+      notYetClosed(input.eventId, input.actorId),
+    ),
     db
       .insert(eventCloseouts)
       .select(
@@ -135,13 +161,6 @@ export const submitCloseout = async (
           .where(closeable(input.eventId, input.actorId)),
       )
       .onConflictDoNothing(),
-    auditStatement(
-      db,
-      audit,
-      events,
-      events.marketCode,
-      closeable(input.eventId, input.actorId),
-    ),
   ]);
 
   const changes = (inserted as { meta?: { changes?: number } })?.meta?.changes;

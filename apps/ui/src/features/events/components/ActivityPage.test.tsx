@@ -7,11 +7,19 @@ const state = vi.hoisted(() => ({
   session: {} as Record<string, unknown>,
   joined: {} as Record<string, unknown>,
   hosted: {} as Record<string, unknown>,
+  closeoutStates: [] as { eventId: string; closed: boolean }[],
+  askedAbout: [] as string[][],
 }));
 
 vi.mock('../hooks', () => ({
   useMyJoinedEvents: () => state.joined,
   useHostedEvents: () => state.hosted,
+}));
+vi.mock('../../operations/hooks', () => ({
+  useMyCloseoutStates: (eventIds: readonly string[]) => {
+    state.askedAbout.push([...eventIds]);
+    return { data: state.closeoutStates };
+  },
 }));
 vi.mock('../../../lib/auth', () => ({
   authClient: { useSession: () => state.session },
@@ -76,6 +84,8 @@ beforeEach(() => {
   state.session = { data: { user: { id: 'usr_1' } }, isPending: false };
   state.joined = page([]);
   state.hosted = page([]);
+  state.closeoutStates = [];
+  state.askedAbout = [];
 });
 
 afterEach(() => cleanup());
@@ -149,10 +159,11 @@ describe('the gatherings screen', () => {
     expect(screen.getByText('Coffee + code')).toBeTruthy();
   });
 
-  it('offers to close out a hosted gathering that has already happened', () => {
+  it('offers to close out a hosted gathering the server says is open', () => {
     state.hosted = page([
       event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
     ]);
+    state.closeoutStates = [{ eventId: 'evt_1', closed: false }];
 
     show();
 
@@ -161,31 +172,56 @@ describe('the gatherings screen', () => {
     ).toBe('/closeout/evt_1');
   });
 
-  it('offers no closeout for a gathering still ahead', () => {
+  it('says a gathering is closed out rather than asking again', () => {
+    state.hosted = page([
+      event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
+    ]);
+    state.closeoutStates = [{ eventId: 'evt_1', closed: true }];
+
+    show();
+
+    expect(screen.getByText('Closed out')).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
+  });
+
+  it('offers nothing for a past gathering the server did not answer for', () => {
+    state.hosted = page([
+      event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
+    ]);
+
+    show();
+
+    expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
+    expect(screen.queryByText('Closed out')).toBeNull();
+  });
+
+  it('asks about nothing for a gathering still ahead', () => {
     state.hosted = page([event()]);
 
     show();
 
+    expect(state.askedAbout).toEqual([[]]);
     expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
   });
 
-  it('offers no closeout for a cancelled gathering', () => {
+  it('asks only about the gatherings the member hosted', () => {
+    state.joined = page([
+      event({ id: 'evt_joined', startsAt: new Date('2020-01-01T18:00:00Z') }),
+    ]);
     state.hosted = page([
-      event({
-        startsAt: new Date('2020-01-01T18:00:00Z'),
-        status: 'cancelled',
-      }),
+      event({ id: 'evt_hosted', startsAt: new Date('2020-01-02T18:00:00Z') }),
     ]);
 
     show();
 
-    expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
+    expect(state.askedAbout).toEqual([['evt_hosted']]);
   });
 
-  it('offers no closeout for a gathering somebody else hosted', () => {
+  it('offers no closeout in the joined list, whatever the server said', () => {
     state.joined = page([
       event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
     ]);
+    state.closeoutStates = [{ eventId: 'evt_1', closed: false }];
 
     show();
 

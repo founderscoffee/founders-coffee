@@ -1,7 +1,8 @@
+import type { Db, Event } from '@founders-coffee/db';
 import { logger } from '@founders-coffee/observability';
 
+import { alertFailure, CLOSEOUT_INTENT_FAILED_METRIC } from '../alerts.js';
 import { enqueueCloseoutPrompt } from '../notifications/closeout-prompt.js';
-import type { Db, Event } from '@founders-coffee/db';
 
 /**
  * Schedule the post-event closeout prompt, without ever being able to undo the event.
@@ -15,8 +16,10 @@ import type { Db, Event } from '@founders-coffee/db';
  * `events` left-joined against its own rows, so the cost of a throw here is a delay, not an absence
  * — which is what makes swallowing it the right trade rather than a shrug.
  *
- * It is logged at `info` when it merely skips and `error` when it throws, so an environment where
- * this fails routinely is visible rather than quietly leaning on the backfill every night.
+ * It is logged at `info` when it merely skips and `error` when it throws, and a throw also increments
+ * an Analytics Engine counter — CO-05 asks for logged *and* alerted, and a log nothing watches is not
+ * an alert. An environment where this fails routinely is then a number with a threshold rather than a
+ * string somebody would have to go looking for.
  *
  * Called from `createEventWithTelemetry` rather than from `createEventResolver`, and the placement is
  * load-bearing. This module reaches `notifications/context.ts` and therefore `cloudflare:workers`;
@@ -45,7 +48,9 @@ export const scheduleEventCloseoutPrompt = async (
   } catch (error) {
     logger.error('closeout_prompt_failed', {
       eventId: event.id,
+      marketCode: event.marketCode,
       message: error instanceof Error ? error.message : 'unknown',
     });
+    alertFailure(CLOSEOUT_INTENT_FAILED_METRIC, event.marketCode);
   }
 };

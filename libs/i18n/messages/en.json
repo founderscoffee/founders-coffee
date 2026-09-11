@@ -1,4 +1,7 @@
 {
+  "closeout_error_no_end_time": "This gathering has no recorded end time, so it cannot be closed out. Nothing you do here will change that.",
+  "closeout_error_not_found": "That gathering no longer exists.",
+  "closeout_error_rate_limited": "That was a lot of attempts. Wait a few minutes and try once more.",
   "closeout_already_done": "Already closed out. Thank you.",
   "ntf_push_did_not_happen_title": "{title} did not happen",
   "ntf_push_did_not_happen_body": "The host has told us it did not take place.",
@@ -10,6 +13,7 @@
   "ntf_email_closeout_prompt_subject": "How did {title} go?",
   "ntf_email_closeout_prompt_html": "<p><strong>{title}</strong> at {venue} has finished.</p><p>Tell us whether it happened and who came — it takes a minute and only you see it.</p><p><a href=\"{url}\">Close it out</a></p>",
   "ntf_email_closeout_prompt_text": "{title} at {venue} has finished. Tell us whether it happened and who came: {url}",
+  "activity_closed_out": "Closed out",
   "closeout_link": "Close it out",
   "closeout_title": "How did it go?",
   "closeout_note": "Only you can see this. It decides what the gathering counts as.",

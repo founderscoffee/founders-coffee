@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 
 import {
   activity_cancelled,
+  activity_closed_out,
   activity_count,
   activity_more,
   activity_past,
@@ -22,6 +23,33 @@ export interface ActivityItem {
   readonly startsAt: Date | string | number;
   readonly cityName?: string | null;
 }
+
+const CloseoutLine = ({
+  eventId,
+  closed,
+  locale,
+}: {
+  eventId: string;
+  closed: boolean | undefined;
+  locale: Locale;
+}) => {
+  if (closed === undefined) return null;
+  if (closed)
+    return (
+      <span className="mt-1 inline-block text-caption text-neutral">
+        {activity_closed_out({}, { locale })}
+      </span>
+    );
+  return (
+    <Link
+      className="mt-1 inline-block text-caption underline"
+      params={{ eventId }}
+      to="/closeout/$eventId"
+    >
+      {closeout_link({}, { locale })}
+    </Link>
+  );
+};
 
 const Badge = ({ item, locale }: { item: ActivityItem; locale: Locale }) => {
   if (item.status === 'cancelled')
@@ -50,7 +78,7 @@ export const ActivityList = ({
   hasMore,
   isLoadingMore,
   onLoadMore,
-  offerCloseout = false,
+  closeoutStates,
 }: {
   locale: Locale;
   title: string;
@@ -61,7 +89,7 @@ export const ActivityList = ({
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
-  offerCloseout?: boolean;
+  closeoutStates?: ReadonlyMap<string, boolean>;
 }) => (
   <section className="rounded-box border border-base-300 bg-base-100 p-5 md:p-6">
     <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -106,17 +134,11 @@ export const ActivityList = ({
               </span>
               <Badge item={item} locale={locale} />
             </Link>
-            {offerCloseout &&
-              item.status !== 'cancelled' &&
-              new Date(item.startsAt).getTime() < Date.now() && (
-                <Link
-                  className="mt-1 inline-block text-caption underline"
-                  params={{ eventId: item.id }}
-                  to="/closeout/$eventId"
-                >
-                  {closeout_link({}, { locale })}
-                </Link>
-              )}
+            <CloseoutLine
+              eventId={item.id}
+              closed={closeoutStates?.get(item.id)}
+              locale={locale}
+            />
           </li>
         ))}
       </ul>

@@ -1,10 +1,8 @@
 import {
-  closeout_attended,
   closeout_did_not_happen,
   closeout_friction,
   closeout_held,
   closeout_no,
-  closeout_no_show,
   closeout_outcome,
   closeout_private_note,
   closeout_review,
@@ -25,6 +23,7 @@ import {
   type CloseoutDraft,
   type Mark,
 } from '../draft';
+import { CloseoutRoster } from './CloseoutRoster';
 import type { CloseoutView } from '../api';
 
 export const CloseoutForm = ({
@@ -73,36 +72,12 @@ export const CloseoutForm = ({
             <legend className="px-1 font-display text-h4">
               {closeout_roster({}, { locale })}
             </legend>
-            <ul className="mt-2 divide-y divide-base-200">
-              {view.roster.map((member) => (
-                <li
-                  className="flex flex-wrap items-center justify-between gap-3 py-3"
-                  key={member.userId}
-                >
-                  <span dir="auto">{member.name}</span>
-                  <span className="flex gap-2">
-                    {(['attended', 'no_show'] as const).map((outcome) => (
-                      <label
-                        className="flex items-center gap-1.5"
-                        key={outcome}
-                      >
-                        <input
-                          checked={draft.marks[member.userId] === outcome}
-                          name={`mark-${member.userId}`}
-                          onChange={() => mark(member.userId, outcome)}
-                          type="radio"
-                        />
-                        <span className="text-body-sm">
-                          {outcome === 'attended'
-                            ? closeout_attended({}, { locale })
-                            : closeout_no_show({}, { locale })}
-                        </span>
-                      </label>
-                    ))}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <CloseoutRoster
+              locale={locale}
+              marks={draft.marks}
+              onMark={mark}
+              roster={view.roster}
+            />
 
             <label className="mt-4 block" htmlFor="walk-ins">
               {closeout_walk_ins({}, { locale })}

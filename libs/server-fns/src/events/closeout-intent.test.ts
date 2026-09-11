@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { env } from 'cloudflare:workers';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { sql } from 'drizzle-orm';
 
 import {
@@ -42,6 +43,10 @@ const promptRows = (db: Db, eventId: string) =>
     .select()
     .from(scheduledNotifications)
     .where(eq(scheduledNotifications.eventId, eventId));
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('an intent failure cannot reach the event', () => {
   let db: Db;
@@ -87,6 +92,25 @@ describe('an intent failure cannot reach the event', () => {
     );
 
     expect(await eventRows(db)).toHaveLength(1);
+  });
+
+  it('counts the failure, so a market that stops scheduling is alertable', async () => {
+    const written = vi.spyOn(env.ANALYTICS, 'writeDataPoint');
+
+    await createEventWithTelemetry(
+      failingInsertsInto(db, scheduledNotifications),
+      testMapProvider,
+      null,
+      TEST_HOST_ID,
+      createInput(),
+    );
+
+    expect(
+      written.mock.calls
+        .map(([point]) => point as AnalyticsEngineDataPoint)
+        .filter((point) => point.blobs?.[0] === 'closeout_intent_failed')
+        .map((point) => point.indexes),
+    ).toEqual([['DZ']]);
   });
 
   it('schedules the prompt when nothing is injected', async () => {

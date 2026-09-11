@@ -1,4 +1,7 @@
 {
+  "closeout_error_no_end_time": "لا يوجد وقت انتهاء مسجّل لهذا اللقاء، لذا لا يمكن إغلاقه. لن يغيّر ذلك أي إجراء هنا.",
+  "closeout_error_not_found": "لم يعد هذا اللقاء موجودًا.",
+  "closeout_error_rate_limited": "محاولات كثيرة. انتظر بضع دقائق ثم حاول مرة أخرى.",
   "closeout_already_done": "أُغلق بالفعل. شكرًا لك.",
   "ntf_push_did_not_happen_title": "لم ينعقد {title}",
   "ntf_push_did_not_happen_body": "أبلغنا المضيف أن اللقاء لم يُعقد.",
@@ -10,6 +13,7 @@
   "ntf_email_closeout_prompt_subject": "كيف سار {title}؟",
   "ntf_email_closeout_prompt_html": "<p>انتهى <strong>{title}</strong> في {venue}.</p><p>أخبرنا إن كان قد انعقد ومن حضر — لا يستغرق الأمر سوى دقيقة، ولا يراه سواك.</p><p><a href=\"{url}\">أغلق اللقاء</a></p>",
   "ntf_email_closeout_prompt_text": "انتهى {title} في {venue}. أخبرنا إن كان قد انعقد ومن حضر: {url}",
+  "activity_closed_out": "تم الإغلاق",
   "closeout_link": "أغلق اللقاء",
   "closeout_title": "كيف سار اللقاء؟",
   "closeout_note": "هذا يظهر لك وحدك. وهو يحدّد كيف يُحتسب اللقاء.",

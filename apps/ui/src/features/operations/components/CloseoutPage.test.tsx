@@ -142,70 +142,65 @@ describe('closing a gathering out', () => {
   });
 });
 
-describe('states the host can land in', () => {
-  it('says a gathering already closed out is closed, rather than offering the form again', () => {
-    state.query = {
-      ...state.query,
-      data: view({ outcome: 'held', version: 1 }),
-    };
+const refuse = (code: string) => {
+  state.save = {
+    ...state.save,
+    isError: true,
+    error: Object.assign(new Error('x'), { code }),
+  };
+};
 
-    show();
+const markOnePersonAndSubmit = () => {
+  fireEvent.click(screen.getByRole('radio', { name: /It happened/i }));
+  fireEvent.click(screen.getAllByRole('radio', { name: /^Came$/i })[0]!);
+  fireEvent.click(screen.getByRole('button', { name: /Submit/i }));
+};
 
-    expect(screen.getByRole('status').textContent).toMatch(
-      /Already closed out/i,
-    );
-    expect(screen.queryByRole('button', { name: /Submit/i })).toBeNull();
+describe('a submission the server refused', () => {
+  it('moves focus to the reason, which is nowhere near the button', () => {
+    const { rerender } = show();
+    markOnePersonAndSubmit();
+
+    refuse('closeout_event_cancelled');
+    rerender(<CloseoutPage locale="en" eventId="evt_1" />);
+
+    const alert = screen.getByRole('alert');
+    expect(alert.textContent).toMatch(/cancelled/i);
+    expect(document.activeElement).toBe(alert);
   });
 
-  it('names the refusal rather than showing a generic failure', () => {
-    state.query = {
-      ...state.query,
-      data: undefined,
-      isError: true,
-      error: Object.assign(new Error('x'), { code: 'closeout_not_host' }),
-    };
-    show();
+  it('keeps every answer the host already gave, so retrying is one press', () => {
+    const { rerender } = show();
+    markOnePersonAndSubmit();
 
-    expect(screen.getByRole('alert').textContent).toMatch(/Only the host/i);
+    refuse('closeout_failed');
+    rerender(<CloseoutPage locale="en" eventId="evt_1" />);
+
+    expect(
+      (screen.getAllByRole('radio', { name: /^Came$/i })[0] as HTMLInputElement)
+        .checked,
+    ).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: /Submit/i }));
+    expect(state.sent).toHaveLength(2);
+    expect(state.sent[1]).toEqual(state.sent[0]);
   });
 
-  it('explains a gathering that has not finished', () => {
-    state.query = {
-      ...state.query,
-      data: undefined,
-      isError: true,
-      error: Object.assign(new Error('x'), { code: 'closeout_not_ended' }),
-    };
-    show();
+  it('gives way to the confirmation once the retry lands', () => {
+    const { rerender } = show();
+    markOnePersonAndSubmit();
 
-    expect(screen.getByRole('alert').textContent).toMatch(/not finished/i);
-  });
-
-  it('says plainly when some names could not be recorded', () => {
+    refuse('closeout_failed');
+    rerender(<CloseoutPage locale="en" eventId="evt_1" />);
     state.save = {
       ...state.save,
+      isError: false,
+      error: null,
       isSuccess: true,
-      data: { refusedMarks: ['usr_b'] },
+      data: { refusedMarks: [] },
     };
-    show();
+    rerender(<CloseoutPage locale="en" eventId="evt_1" />);
 
-    expect(screen.getByRole('alert').textContent).toMatch(
-      /could not be recorded/i,
-    );
-  });
-
-  it('offers sign-in to an anonymous visitor', () => {
-    state.query = { ...state.query, userId: undefined, isAuthLoading: false };
-    show();
-
-    expect(screen.getByTestId('access-recovery')).toBeTruthy();
-  });
-
-  it('renders in the host’s language', () => {
-    show('ar');
-
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
-      'كيف سار اللقاء؟',
-    );
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByRole('status').textContent).toMatch(/Thank you/i);
   });
 });

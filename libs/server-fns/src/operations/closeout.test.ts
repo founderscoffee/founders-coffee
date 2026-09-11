@@ -84,6 +84,25 @@ describe('reading a closeout', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('operations_disabled');
   });
+
+  it('refuses a legacy event with no recorded end, before the form is filled in', async () => {
+    const eventId = await pastEvent(db, { withEndsAt: false });
+
+    const result = await readCloseout(db, { eventId, actorId: HOST_ID });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('closeout_no_end_time');
+  });
+
+  it('refuses an event that does not exist rather than answering emptily', async () => {
+    const result = await readCloseout(db, {
+      eventId: 'evt_nothing',
+      actorId: HOST_ID,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('event_not_found');
+  });
 });
 
 describe('submitting a closeout', () => {

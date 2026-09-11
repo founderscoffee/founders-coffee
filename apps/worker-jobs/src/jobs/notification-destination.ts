@@ -14,7 +14,28 @@ export type Destination =
 
 export type DestinationResult =
   | { readonly ok: true; readonly destination: Destination }
-  | { readonly ok: false; readonly reason: string; readonly account: boolean };
+  | {
+      readonly ok: false;
+      readonly reason: string;
+      readonly account: boolean;
+      readonly transient?: boolean;
+    };
+
+/**
+ * A refusal that will stop being true on its own.
+ *
+ * Every other refusal here is a statement about the recipient — no address, no device, a category
+ * switched off — and none of those resolve by waiting, so the row is failed permanently and the
+ * budget is not spent retrying. A market flag is different in kind: it is a statement about the
+ * deployment, it is expected to change, and §5 asks that an intent stay recoverable while it is off.
+ * Retiring the row would make "recoverable" mean "recoverable until it comes due".
+ */
+const held = (reason: string): DestinationResult => ({
+  ok: false,
+  reason,
+  account: true,
+  transient: true,
+});
 
 const unreachable = (reason: string, account = false): DestinationResult => ({
   ok: false,
@@ -95,7 +116,7 @@ export const resolveDestination = async (
     templateKey === 'closeout_prompt' &&
     !(await communityOperationsEnabled(db, marketCode ?? ''))
   )
-    return unreachable('operations_disabled', true);
+    return held('operations_disabled');
 
   if (channel === 'sms') {
     if (!contact.phoneNumber) return unreachable('phone_number_removed');
