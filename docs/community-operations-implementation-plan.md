@@ -525,6 +525,32 @@ Verification:
 
 ### CO-04 — Make `apps/admin` a secure operational application
 
+**Slice 1 landed 2026-09-11 — the identity spine.** Two Cloudflare Access applications now sit over
+`admin-staging` and `admin.founders.coffee`; both hostnames answer 302 to the Access login where they
+previously answered the Worker's own 403, which proved requests had been reaching the Worker
+unprotected. `CF_ACCESS_TEAM_DOMAIN` and the per-application `CF_ACCESS_AUD` are set in both
+environments, each verified against the AUD Cloudflare binds to that hostname rather than assumed
+from the variable name.
+
+In code: `verifyAccessJwt` returns the verified identity instead of pass-or-null;
+`resolveAdminContext` requires an Access identity **and** a Better Auth session **and** the two to
+name the same person **and** an `admin`/`moderator` role, refusing at each step with a distinct
+reason; the worker entry resolves it before the app sees any request, so a route added later is
+protected by existing rather than by remembering. The admin app gained the D1 binding it had never
+had — without it there was nothing to correlate against, and the app was safe and useless. Ten tests
+cover every refusal and the admissions.
+
+**Still open in this ticket:** the admin-origin passwordless login/logout and callback endpoints, so
+the success path is reachable in a browser rather than only under test; Turnstile and DO/WAF on
+sign-in; the RBAC extension with operations permissions; shell, navigation and states; `ar`/`fr`/`en`
+with RTL. The correlated context is currently consumed by an audit log line and nothing else —
+CO-08 and CO-09 will need it threaded to their server functions, which is the point to add a
+request-scoped carrier rather than now, unused.
+
+#### Original ticket
+
+##### CO-04 — Make `apps/admin` a secure operational application
+
 **Parent:** P0-004, P1-013, P1-017, P1-018, P1-023
 **Requirements:** FR-A4, FR-A5, FR-M1 through FR-M4, FR-M6, FR-M9; NFR-4, NFR-8 through NFR-12
 

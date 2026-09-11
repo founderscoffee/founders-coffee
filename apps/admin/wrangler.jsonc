@@ -15,6 +15,19 @@
   // `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are secrets in the deployed environments.
   "vars": { "APP_URL": "http://localhost:3002" },
 
+  // The admin app reads the same D1 the public app does. It has to: an operator's Better Auth
+  // session lives in that database, and CO-04 refuses a request whose Access identity does not match
+  // it. Without the binding there is nothing to correlate against and every request fails closed —
+  // which is how the app shipped, safe and useless. `migrations_dir` is deliberately absent; admin
+  // never migrates, `apps/ui` owns that.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "founders-coffee-db-staging",
+      "database_id": "LOCAL_DEV_ONLY",
+    },
+  ],
+
   "env": {
     "staging": {
       "name": "founders-coffee-admin-staging",
@@ -23,12 +36,26 @@
         { "pattern": "admin-staging.founders.coffee", "custom_domain": true },
       ],
       "vars": { "APP_URL": "https://admin-staging.founders.coffee" },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "founders-coffee-db-staging",
+          "database_id": "cbbba018-a4e3-491a-9a02-7995aa45315b",
+        },
+      ],
     },
     "production": {
       "name": "founders-coffee-admin-production",
       "workers_dev": false,
       "routes": [{ "pattern": "admin.founders.coffee", "custom_domain": true }],
       "vars": { "APP_URL": "https://admin.founders.coffee" },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "founders-coffee-db-production",
+          "database_id": "7685fda1-7bc0-4907-a37a-a77e8daa5ecb",
+        },
+      ],
     },
   },
 }

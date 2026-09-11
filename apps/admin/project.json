@@ -51,6 +51,13 @@
         "command": "wrangler types",
         "cwd": "apps/admin"
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "apps/admin"
+      }
     }
   }
 }
