@@ -73,7 +73,7 @@ export const MarketHero = ({
         <h1 className="mt-4 font-display text-h2 font-semibold tracking-tight text-balance text-base-content md:text-h1">
           {hero_tagline({}, { locale })}
         </h1>
-        <p className="mx-auto mt-3 max-w-prose text-body-sm text-neutral md:text-body">
+        <p className="mx-auto mt-3 max-w-prose text-body text-neutral md:text-body-lg">
           {hero_subtitle({}, { locale })}
         </p>
 
@@ -86,7 +86,7 @@ export const MarketHero = ({
             placeholder={hero_search_placeholder({}, { locale })}
             noMatchText={hero_search_no_match({ query: '{query}' }, { locale })}
             locale={locale}
-            className="flex-1"
+            className="min-w-0 flex-1"
           />
           <Link
             {...(selectedCity
@@ -104,7 +104,7 @@ export const MarketHero = ({
                     params: { market: market.slug, city: selectedCity.slug },
                   }
               : { to: '/login' })}
-            className="btn btn-primary hidden h-9 min-h-9 shrink-0 rounded-full border-0 px-4 shadow-none sm:inline-flex"
+            className="btn btn-primary hidden h-9 min-h-9 shrink-0 rounded-full border-0 px-4 text-body shadow-none sm:inline-flex"
           >
             {hero_search_cta({}, { locale })}
           </Link>

@@ -91,7 +91,7 @@ export const HeroCitySearch = ({
       <input
         ref={inputRef}
         type="text"
-        className="input h-12 w-full border-0 bg-transparent ps-11 pe-10 shadow-none focus:outline-none"
+        className="input h-12 w-full border-0 bg-transparent ps-11 pe-10 text-body shadow-none focus:outline-none"
         placeholder={placeholder}
         value={inputValue}
         role="combobox"

@@ -165,7 +165,7 @@
    Tajawal at 11px with tracking is unreadable — so the Arabic branch drops the
    transform and tracking and steps the size up instead.
 
-   .datechip-line is the same 11px/600 without either, for the date block on an event
+   .datechip-line uses the 12px caption scale with comfortable line-height, for the date block on an event
    card: the design sets those three lines in sentence case ("Sun", "Sep") so the
    weekday and month read as words next to the numeral, not as a keyline label. */
 @layer components {
@@ -185,8 +185,8 @@
     text-transform: none;
   }
   .datechip-line {
-    font-size: var(--text-overline);
-    line-height: var(--text-overline--line-height);
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
     font-weight: 600;
   }
 }

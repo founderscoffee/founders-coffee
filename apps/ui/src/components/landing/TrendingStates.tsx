@@ -41,17 +41,17 @@ export const TrendingStates = ({
               }`}
             >
               <span className="flex items-center justify-between gap-2">
-                <span className="font-display text-body-lg font-semibold leading-none">
+                <span className="font-display text-body-lg font-semibold leading-snug">
                   {locale === 'ar' ? city.nameAr : city.name}
                 </span>
                 {count > 0 ? (
-                  <span className="font-display text-body-lg font-semibold leading-none text-accent">
+                  <span className="font-display text-body-lg font-semibold leading-snug text-accent">
                     {count > 99 ? '+99' : count}
                   </span>
                 ) : null}
               </span>
               <span
-                className={`mt-auto text-caption font-medium ${count > 0 ? 'text-neutral' : 'text-accent'}`}
+                className={`mt-auto text-body-sm font-medium ${count > 0 ? 'text-neutral' : 'text-accent'}`}
               >
                 {count > 0
                   ? this_week_n({ n: count }, { locale })

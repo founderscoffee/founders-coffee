@@ -8,7 +8,7 @@ import { SessionNav } from './SessionNav';
 type NavbarProps = { locale: Locale };
 
 const hostClass =
-  'inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 text-body-sm font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
+  'inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 text-body font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
 
 export const Navbar = ({ locale }: NavbarProps) => {
   const params = useParams({ strict: false });
