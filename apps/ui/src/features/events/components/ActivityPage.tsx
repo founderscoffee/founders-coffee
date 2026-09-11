@@ -86,6 +86,7 @@ export const ActivityPage = ({
               hasMore={!!hosted.hasNextPage}
               isLoadingMore={hosted.isFetchingNextPage}
               onLoadMore={() => void hosted.fetchNextPage()}
+              offerCloseout
             />
           </div>
         )}

@@ -5,6 +5,7 @@ import {
   activity_count,
   activity_more,
   activity_past,
+  closeout_link,
   activity_upcoming,
   formatDate,
   type Locale,
@@ -49,6 +50,7 @@ export const ActivityList = ({
   hasMore,
   isLoadingMore,
   onLoadMore,
+  offerCloseout = false,
 }: {
   locale: Locale;
   title: string;
@@ -59,6 +61,7 @@ export const ActivityList = ({
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
+  offerCloseout?: boolean;
 }) => (
   <section className="rounded-box border border-base-300 bg-base-100 p-5 md:p-6">
     <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -103,6 +106,17 @@ export const ActivityList = ({
               </span>
               <Badge item={item} locale={locale} />
             </Link>
+            {offerCloseout &&
+              item.status !== 'cancelled' &&
+              new Date(item.startsAt).getTime() < Date.now() && (
+                <Link
+                  className="mt-1 inline-block text-caption underline"
+                  params={{ eventId: item.id }}
+                  to="/closeout/$eventId"
+                >
+                  {closeout_link({}, { locale })}
+                </Link>
+              )}
           </li>
         ))}
       </ul>

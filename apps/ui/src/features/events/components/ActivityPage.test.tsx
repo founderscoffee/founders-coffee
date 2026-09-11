@@ -149,6 +149,49 @@ describe('the gatherings screen', () => {
     expect(screen.getByText('Coffee + code')).toBeTruthy();
   });
 
+  it('offers to close out a hosted gathering that has already happened', () => {
+    state.hosted = page([
+      event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
+    ]);
+
+    show();
+
+    expect(
+      screen.getByRole('link', { name: /Close it out/i }).getAttribute('href'),
+    ).toBe('/closeout/evt_1');
+  });
+
+  it('offers no closeout for a gathering still ahead', () => {
+    state.hosted = page([event()]);
+
+    show();
+
+    expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
+  });
+
+  it('offers no closeout for a cancelled gathering', () => {
+    state.hosted = page([
+      event({
+        startsAt: new Date('2020-01-01T18:00:00Z'),
+        status: 'cancelled',
+      }),
+    ]);
+
+    show();
+
+    expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
+  });
+
+  it('offers no closeout for a gathering somebody else hosted', () => {
+    state.joined = page([
+      event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
+    ]);
+
+    show();
+
+    expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
+  });
+
   it('offers more only when there is another page', () => {
     state.joined = { ...page([event()]), hasNextPage: true };
 

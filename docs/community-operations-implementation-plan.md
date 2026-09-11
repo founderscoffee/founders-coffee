@@ -657,7 +657,22 @@ losing the closeout over it, and records nobody at all when the outcome is `did_
 gated on `communityOperationsEnabled`, CO-03's reader, on the read **and** the write. Twelve tests
 against real D1.
 
-**Still open in CO-05:** the host-facing surface in `apps/ui`; the post-event intent and
+**Slice 2 landed 2026-09-11 — the host's surface.** `/closeout/$eventId`, private and `noindex`, in
+`ar`/`fr`/`en`. The roster appears only once the host says the gathering happened; the two derived
+totals are shown **before** submission, because a host who cannot see the number they are producing
+cannot notice it is wrong, and the first sight of it should not be a report weeks later. An unmarked
+person counts as nobody — a blank is a host who has not said yet, not an assertion that somebody was
+absent. Switching to "it did not happen" keeps the marks in the form and strips them at the edge, so
+changing your mind twice does not lose the roster. Every server refusal has its own localized
+message. Twenty-seven unit tests and thirteen component tests.
+
+Audit of that slice found two things. The page existed and **nothing linked to it** — a host would
+have had to know the URL — so `/activity` now offers "close it out" on hosted gatherings that have
+ended and were not cancelled. And the walk-in count had no client-side bound, so a host could type a
+number the server would refuse with a generic error; `WALK_IN_MAX` is now imported from the domain
+rather than retyped.
+
+**Still open in CO-05:** the post-event intent and
 `endsAt + 30 minutes` alarm with its recovery sweep; the localized closeout prompt; the
 `did_not_happen` notification to each frozen going member; and `correctCloseout` behind an admin
 override.
