@@ -1,16 +1,18 @@
-import { createAuth, getSession, type AuthEnv } from '@founders-coffee/auth';
+import {
+  ADMIN_APP_PERMISSION,
+  createAuth,
+  getSession,
+  roleAllows,
+  type AuthEnv,
+} from '@founders-coffee/auth';
 
 import { forbidden, verifyAccessJwt, type AdminEnv } from './access-guard.js';
-
-export const ADMIN_ROLES = ['admin', 'moderator'] as const;
-
-export type AdminRole = (typeof ADMIN_ROLES)[number];
 
 export interface AdminContext {
   readonly accessSubject: string;
   readonly accessEmail: string;
   readonly userId: string;
-  readonly role: AdminRole;
+  readonly role: string;
 }
 
 export type AdminContextResult =
@@ -51,9 +53,6 @@ const defaultResolveSession = async (
 const sameEmail = (a: string, b: string): boolean =>
   a.trim().toLowerCase() === b.trim().toLowerCase();
 
-const isAdminRole = (role: unknown): role is AdminRole =>
-  typeof role === 'string' && ADMIN_ROLES.includes(role as AdminRole);
-
 /**
  * Who is making this request, proved twice and the two proofs agreeing.
  *
@@ -69,7 +68,9 @@ const isAdminRole = (role: unknown): role is AdminRole =>
  * strings tells an attacker anything they could not learn by trying.
  *
  * The role is read from the session rather than from Access, because Access has no notion of one and
- * a claim it does not make cannot be trusted from the token.
+ * a claim it does not make cannot be trusted from the token. What that role may do is asked of the
+ * central table, never compared here: §5.12 forbids ad hoc role comparisons, and this function used
+ * to contain one.
  */
 export const resolveAdminContext = async (
   request: Request,
@@ -101,7 +102,7 @@ export const resolveAdminContext = async (
       ),
     };
 
-  if (!isAdminRole(role))
+  if (typeof role !== 'string' || !roleAllows(role, ADMIN_APP_PERMISSION))
     return { ok: false, response: forbidden('Account is not an operator') };
 
   return {

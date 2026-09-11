@@ -111,6 +111,16 @@ describe('every way in that must fail closed', () => {
       expect(await reasonOf(result.response)).toMatch(/does not match/);
   });
 
+  it('refuses a role this build does not define rather than defaulting', async () => {
+    const result = await resolveAdminContext(
+      request(),
+      env,
+      withSession({ ...operator, role: 'superuser' }),
+    );
+
+    expect(result.ok).toBe(false);
+  });
+
   it('refuses a member who is signed in but is not an operator', async () => {
     const result = await resolveAdminContext(
       request(),

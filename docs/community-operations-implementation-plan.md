@@ -551,10 +551,23 @@ Audit of that slice found the sign-in endpoint would mail a code to any address 
 `authRequestIsForSelf` pins it to the Access-verified identity, which removes the vector rather than
 rate-limiting it and makes the correlation true one request earlier.
 
+**Slice 3 landed 2026-09-11 — the permission table.** §5.12's seven actions exist as central
+statements: `operations:read`, `metrics:read`, `moderation:event`, `moderation:user`,
+`closeout:override`, `host_trust:update`, `audit:read`. A moderator holds all but the closeout
+override, which is admin-only — that action rewrites the record of whether a gathering happened, and
+every other number is derived from it. `roleAllows` and `requirePermission` are the only way to ask,
+and `resolveAdminContext`'s own `ADMIN_ROLES.includes(role)` — an ad hoc comparison of exactly the
+kind §5.12 forbids — is gone.
+
+Audit of that slice found two things. `roleAllows` tested membership with `in`, which walks the
+prototype chain, so the string `constructor` reached a value that is not a role; it uses
+`Object.hasOwn` now. And `requireRole`, exported and called by nothing, is an exact match that would
+have refused an admin a moderator's action the first time CO-08 reached for it; `requirePermission`
+now sits beside it and the doc comment says which to use.
+
 **Still open in this ticket:** Turnstile and DO/WAF on sign-in — reduced in urgency now that an
 operator can only request a code for themselves, from behind the Access policy, but still required;
-the RBAC extension with operations permissions; shell, navigation and states; `ar`/`fr`/`en` with
-RTL — the login page is English-only. The correlated context is consumed by an audit log line and
+shell, navigation and states; `ar`/`fr`/`en` with RTL — the login page is English-only. The correlated context is consumed by an audit log line and
 nothing else; CO-08 and CO-09 will need it threaded to their server functions, which is the point to
 add a request-scoped carrier rather than now, unused.
 
