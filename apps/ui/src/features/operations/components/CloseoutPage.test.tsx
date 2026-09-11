@@ -143,6 +143,20 @@ describe('closing a gathering out', () => {
 });
 
 describe('states the host can land in', () => {
+  it('says a gathering already closed out is closed, rather than offering the form again', () => {
+    state.query = {
+      ...state.query,
+      data: view({ outcome: 'held', version: 1 }),
+    };
+
+    show();
+
+    expect(screen.getByRole('status').textContent).toMatch(
+      /Already closed out/i,
+    );
+    expect(screen.queryByRole('button', { name: /Submit/i })).toBeNull();
+  });
+
   it('names the refusal rather than showing a generic failure', () => {
     state.query = {
       ...state.query,

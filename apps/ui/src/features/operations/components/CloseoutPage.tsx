@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import {
+  closeout_already_done,
   closeout_done,
   closeout_error_already_closed,
   closeout_error_cancelled,
@@ -82,6 +83,8 @@ export const CloseoutPage = ({
         </p>
       ) : !query.data || !draft ? (
         <p role="status">{closeout_loading({}, { locale })}</p>
+      ) : query.data.outcome !== null ? (
+        <p role="status">{closeout_already_done({}, { locale })}</p>
       ) : save.isSuccess ? (
         <div className="space-y-3">
           <p role="status">{closeout_done({}, { locale })}</p>

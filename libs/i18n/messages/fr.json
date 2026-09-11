@@ -1,4 +1,5 @@
 {
+  "closeout_already_done": "Déjà clôturée. Merci.",
   "ntf_push_did_not_happen_title": "{title} n’a pas eu lieu",
   "ntf_push_did_not_happen_body": "L’hôte nous a indiqué que la rencontre ne s’est pas tenue.",
   "ntf_email_did_not_happen_subject": "{title} n’a pas eu lieu",

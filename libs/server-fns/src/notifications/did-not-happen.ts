@@ -42,6 +42,12 @@ export const didNotHappenNoticeId = (eventId: string, userId: string): string =>
  * The copy carries no link for the same reason: every other destination would imply there is
  * something to do.
  *
+ * `pushUrl` is therefore **omitted**, not emptied. The payload schema validates it with `z.url()`,
+ * which refuses an empty string, and the sweep parses every payload before dispatching — so a blank
+ * one failed validation for every recipient, logged an error apiece, and reached people only through
+ * the email fallback that a guaranteed push failure happened to create. Absent is a state the schema
+ * has; empty is not.
+ *
  * The host is skipped. They are the one who just said it did not happen.
  *
  * Push first with email behind it, per ND-07, and no SMS: a gathering that already failed to occur
@@ -74,6 +80,12 @@ export const enqueueDidNotHappenNotices = async (
       url: '',
     };
 
+    const { pushUrl: _discarded, ...push } = pushPayloadFor(
+      'event_did_not_happen',
+      values,
+      context.locale,
+    );
+
     const payload = {
       email: attendee.email,
       eventTitle: event.title,
@@ -82,7 +94,7 @@ export const enqueueDidNotHappenNotices = async (
       startsAt: event.startsAt.toISOString(),
       venue: event.venue,
       locale: context.locale,
-      ...pushPayloadFor('event_did_not_happen', values, context.locale),
+      ...push,
       ...emailPayloadFor('event_did_not_happen', values, context.locale),
     };
 

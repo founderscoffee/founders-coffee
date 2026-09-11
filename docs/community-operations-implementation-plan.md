@@ -698,8 +698,49 @@ now passes the category gates like `rsvp_confirmation` does and the market flag 
 the date reached the template as a raw ISO string; it is formatted in the market's timezone now, so a
 later `{date}` in the copy cannot render `2099-01-15T19:00:00.000Z` in Arabic.
 
-**Still open in CO-05:** the `did_not_happen` notification to each frozen going member, and
-`correctCloseout` behind an admin override.
+**Slice 4 landed 2026-09-11 — the gathering that did not happen, and the override.** A called-off
+gathering notifies every member of the frozen going set once, with an id derived from the (event,
+member) pair, carrying no link at all: every destination would imply there is something to do, and
+the copy must neither invite feedback nor read as a completion. `correctCloseoutResolver` is the one
+path that bypasses "only the host may submit"; its permission is not checked inside it but enforced
+by keeping it out of the public barrel, so no member-facing server function can reach it.
+
+**Full-ticket audit, 2026-09-11.** Four auditors read every clause against the code and each claimed
+gap went to an independent agent told to refute it. Five claims were refuted — server-side derivation,
+the friction/free-text rule, the mutation flag gate, the host-only submission rule, and the
+failure-injection coverage all hold. Ten gaps survived, all `should-fix`, none a blocker. Two were
+fixed immediately:
+
+- **`event_did_not_happen` never pushed to anybody.** Its payload carried `pushUrl: ''` to mean "no
+  link", the schema validates that field with `z.url()`, and the sweep parses every payload before
+  dispatching — so each row failed as `invalid_payload`, logged an error per recipient, and reached
+  people only through the email fallback a guaranteed push failure happened to create. The field is
+  **omitted** now, not emptied: absent is a state the schema has, empty is not.
+- **A closed-out gathering still offered the form.** `/closeout/$eventId` rendered the full form for
+  an event with a closeout and refused on submit; it says so up front now.
+
+**Known gaps, recorded rather than fixed:**
+
+1. **The audit trail is not idempotent on resubmission.** `submitCloseout`'s audit statement is
+   guarded on `closeable(...)` and not on the `ON CONFLICT DO NOTHING` that decides whether the
+   closeout landed, so each repeat submit appends a `closeout_submitted` row asserting a submission
+   that did not occur. `correctCloseout` gets this right by guarding its audit on the same `EXISTS`
+   its update uses. Nothing reads the trail today; CO-09's moderation reader will.
+2. **Four stable error codes fall through to "Try again."** `closeout_no_end_time` is the worst:
+   `readCloseout` never checks `ends_at`, so a host with a legacy event fills the whole form, submits,
+   and is told to retry something that can never succeed. `rate_limited`, `event_not_found` and the
+   generic catch-all are the others.
+3. **The `apps/ui` surface is not flag-gated.** The mutation and the prompt are; the route and page
+   are not, so a market with operations off still renders the form before the server refuses.
+4. **Flag-off does not stay recoverable.** `operations_disabled` refuses with `account: true`, which
+   `guarded` turns into a permanent failure, so the prompt is retired rather than held. Fixing it
+   needs a transient class in the refusal taxonomy, which is a change to shared machinery.
+5. **"Logged and alerted" is logged only.** There is no alerting facility in the repo;
+   `docs/observability.md` says the alerts half is unprovisioned.
+6. **No completed state on `/activity`** — the "Close it out" link renders whether or not it is done,
+   because the hosted feed item carries no closeout state.
+7. **Component tests do not cover TanStack Virtual, retry, or focus**, and there is no long-roster
+   virtualisation. The domain caps a batch at 200; a café table is a dozen.
 
 **Parent:** P1-009, P1-018, P1-023
 **Requirements:** FR-E11, FR-E12, FR-E14, FR-M9; NFR-4, NFR-5, NFR-7 through NFR-11

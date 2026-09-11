@@ -1,4 +1,5 @@
 {
+  "closeout_already_done": "أُغلق بالفعل. شكرًا لك.",
   "ntf_push_did_not_happen_title": "لم ينعقد {title}",
   "ntf_push_did_not_happen_body": "أبلغنا المضيف أن اللقاء لم يُعقد.",
   "ntf_email_did_not_happen_subject": "لم ينعقد {title}",

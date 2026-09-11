@@ -9,6 +9,8 @@ import {
   pastEvent,
   setupDb,
 } from '@founders-coffee/db/operations-fixtures';
+import { notifications } from '@founders-coffee/domain';
+
 import {
   eq,
   getCloseout,
@@ -109,6 +111,21 @@ describe('telling everyone a gathering did not happen', () => {
     ).toEqual([]);
   });
 
+  it('survives the payload schema the dispatcher parses before sending', async () => {
+    const eventId = await pastEvent(db, { attendees: [MEMBER_ID] });
+
+    await callOff(eventId);
+
+    const notice = (await noticesFor(eventId)).find(
+      (row) => row.templateKey === 'event_did_not_happen',
+    );
+    const parsed = notifications.parseNotificationPayload(
+      'push',
+      notice?.payload as Record<string, unknown>,
+    );
+    expect(parsed.ok).toBe(true);
+  });
+
   it('carries no link, because there is nothing to do', async () => {
     const eventId = await pastEvent(db, { attendees: [MEMBER_ID] });
 
@@ -118,7 +135,7 @@ describe('telling everyone a gathering did not happen', () => {
       (row) => row.templateKey === 'event_did_not_happen',
     );
     const payload = notice?.payload as Record<string, unknown>;
-    expect(payload.pushUrl).toBe('');
+    expect(payload).not.toHaveProperty('pushUrl');
     expect(String(payload.text)).not.toContain('http');
   });
 
