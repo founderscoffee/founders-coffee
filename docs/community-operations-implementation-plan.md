@@ -523,7 +523,11 @@ Verification:
 - Repository integration tests prove market scoping, eligibility, authorization inputs, query-plan
   index use, and no interactive D1 transactions.
 
-### CO-04 — Make `apps/admin` a secure operational application
+### CO-04 — Make `apps/admin` a secure operational application — verified on staging 2026-09-11
+
+Every bullet but one is done and proven in a browser; evidence in
+[deployment evidence](./deployment-evidence.md). The exception is DO/WAF rate limiting on sign-in,
+recorded below rather than built.
 
 **Slice 1 landed 2026-09-11 — the identity spine.** Two Cloudflare Access applications now sit over
 `admin-staging` and `admin.founders.coffee`; both hostnames answer 302 to the Access login where they

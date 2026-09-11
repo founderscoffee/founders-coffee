@@ -377,3 +377,25 @@ retry above is the same code path succeeding.
 reminder. For a confirmation the member is waiting on, five minutes is worth revisiting.
 
 Cloudflare reports `sent`; that is acceptance by the provider, not receipt in an inbox.
+
+### CO-04 — the admin app, verified on staging 2026-09-11
+
+Driven through a real browser on `admin-staging.founders.coffee`, signed in end to end.
+
+| Step                          | Evidence                                                                                                                                                                                                                                       |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Access in front of the origin | unauthenticated request answers **302** to the Access login; before the applications existed it answered the Worker's own 403, which meant requests were reaching the Worker unprotected                                                       |
+| Access identity verified      | reaching `No admin session` rather than `Invalid Access token` proves the JWKS, issuer and audience all matched a real Cloudflare token                                                                                                        |
+| Turnstile                     | the OTP sent at all, which it cannot when `TURNSTILE_SECRET_KEY` is absent — the handler answers `503 captcha_unconfigured`                                                                                                                    |
+| Admin `send_email` binding    | delivered a sign-in code. First email this Worker has ever sent                                                                                                                                                                                |
+| Session on the admin origin   | host-scoped, issued by the admin app's own Better Auth mount; the public app's cookie never reaches this host                                                                                                                                  |
+| Correlation                   | Access email matched the session email — a mismatch answers `does not match`, and it did not                                                                                                                                                   |
+| Role gate                     | `member` answered `Account is not an operator`; after `ensureAdmin`'s update to `admin`, the screen rendered                                                                                                                                   |
+| Status screen                 | account, role `admin`, and all seven §5.12 permissions, each derived from the same `roleAllows` the server asks at action time                                                                                                                 |
+| Locale                        | rendered in Arabic RTL with the toggle present. Without that toggle every operator would have seen Arabic forever: `detectLocale` falls back to the base locale and cookies are host-scoped, so nothing on this origin could ever have set one |
+| Bidi                          | the address and the permission strings carry `dir="ltr"` inside the RTL document and read correctly                                                                                                                                            |
+
+Operator accounts: **staging one (`admin`), production zero** — confirmed by query. The production
+admin app is not deployed and gets no operator until it is.
+
+**Not covered:** DO/WAF rate limiting on sign-in, the one CO-04 bullet deliberately not built.
