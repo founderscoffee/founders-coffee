@@ -1,4 +1,4 @@
-export { eq, sql } from 'drizzle-orm';
+export { and, eq, sql } from 'drizzle-orm';
 
 export * from './schema.js';
 export * from './db.js';

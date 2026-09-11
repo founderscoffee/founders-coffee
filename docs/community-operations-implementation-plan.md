@@ -648,6 +648,20 @@ Verification:
 
 ### CO-05 — Add host closeout and attendance in `apps/ui`
 
+**Slice 1 landed 2026-09-11 — the server layer.** `libs/server-fns/src/operations/` is the first
+thing above CO-03's database code to import it. `readCloseout` builds the host's roster from the
+going RSVPs — the same set the write guard accepts, so a host is never offered a name the database
+will refuse — and derives `registeredAttended` and `totalAttended` rather than accepting either.
+`submitCloseoutResolver` writes the closeout and then the marks, reporting a refused mark instead of
+losing the closeout over it, and records nobody at all when the outcome is `did_not_happen`. Both are
+gated on `communityOperationsEnabled`, CO-03's reader, on the read **and** the write. Twelve tests
+against real D1.
+
+**Still open in CO-05:** the host-facing surface in `apps/ui`; the post-event intent and
+`endsAt + 30 minutes` alarm with its recovery sweep; the localized closeout prompt; the
+`did_not_happen` notification to each frozen going member; and `correctCloseout` behind an admin
+override.
+
 **Parent:** P1-009, P1-018, P1-023
 **Requirements:** FR-E11, FR-E12, FR-E14, FR-M9; NFR-4, NFR-5, NFR-7 through NFR-11
 
