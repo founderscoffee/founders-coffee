@@ -131,6 +131,37 @@ describe('createRsvpResolver (real D1)', () => {
     ).toEqual([]);
   });
 
+  it('withdraws the host notice when the only guest changes their mind', async () => {
+    const eventId = await seedEvent(db);
+    await createRsvpResolver(db, { eventId, userId: members[0].id });
+
+    await cancelRsvpResolver(db, { eventId, userId: members[0].id });
+
+    const notice = (
+      await db
+        .select()
+        .from(scheduledNotifications)
+        .where(eq(scheduledNotifications.eventId, eventId))
+    ).find((row) => row.templateKey === 'rsvp_received');
+    expect(notice?.status).toBe('cancelled');
+  });
+
+  it('keeps the host notice when somebody else is still coming', async () => {
+    const eventId = await seedEvent(db);
+    await createRsvpResolver(db, { eventId, userId: members[0].id });
+    await createRsvpResolver(db, { eventId, userId: members[1].id });
+
+    await cancelRsvpResolver(db, { eventId, userId: members[0].id });
+
+    const notice = (
+      await db
+        .select()
+        .from(scheduledNotifications)
+        .where(eq(scheduledNotifications.eventId, eventId))
+    ).find((row) => row.templateKey === 'rsvp_received');
+    expect(notice?.status).toBe('pending');
+  });
+
   it('returns event_not_found for an unknown event', async () => {
     const result = await createRsvpResolver(db, {
       eventId: 'evt_missing',

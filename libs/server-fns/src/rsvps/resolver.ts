@@ -5,6 +5,7 @@ import {
   getEvent,
   getRsvpForUser,
   getUser,
+  withdrawStaleHostNotice,
   type Db,
 } from '@founders-coffee/db';
 
@@ -159,6 +160,10 @@ export const cancelRsvpResolver = async (
   await cancelRsvpNotifications(db, {
     eventId: opts.eventId,
     userId: opts.userId,
+  });
+  await withdrawStaleHostNotice(db, {
+    eventId: opts.eventId,
+    hostId: event.hostId,
   });
 
   return ok({ deleted: true });

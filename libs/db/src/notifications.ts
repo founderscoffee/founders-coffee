@@ -1,4 +1,4 @@
-import { and, asc, eq, lte } from 'drizzle-orm';
+import { and, asc, eq, lte, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
@@ -186,4 +186,49 @@ export const hasPendingNotification = async (
     .limit(1);
 
   return rows.length > 0;
+};
+
+const JUSTIFICATION_SLACK_SECONDS = 5;
+
+/**
+ * Drop a host's pending "somebody is coming" notice once nobody is.
+ *
+ * The notice is coalesced: one pending row stands for every RSVP that arrived while it was waiting.
+ * Cancelling an RSVP therefore cannot simply cancel the notice, because a second guest may be
+ * relying on the same row — and it cannot be left alone either, or a host is told to expect somebody
+ * who has withdrawn, opens the event and finds the list unchanged.
+ *
+ * The test is whether anyone is still going who joined after the notice was written. `cancelRsvp`
+ * deletes the attendee row rather than marking it, and `createRsvp` inserts a fresh one, so "still
+ * going" and "joined recently" are both readable from `event_rsvps` alone with no extra state.
+ *
+ * One statement, so the count and the withdrawal see the same snapshot; a read followed by a write
+ * would let a concurrent RSVP land in between and lose its notice.
+ *
+ * The slack covers the gap between inserting the RSVP and enqueueing the notice, which happen in one
+ * request but can straddle a second boundary. Without it a guest who joined a fraction of a second
+ * before the notice was written would not count as justifying it, and a burst of two could be
+ * withdrawn by one of them cancelling.
+ */
+export const withdrawStaleHostNotice = async (
+  db: Db,
+  opts: { eventId: string; hostId: string },
+): Promise<number> => {
+  const result = await db.run(
+    sql`UPDATE scheduled_notifications
+        SET status = 'cancelled', updated_at = unixepoch()
+        WHERE event_id = ${opts.eventId}
+          AND user_id = ${opts.hostId}
+          AND template_key = 'rsvp_received'
+          AND status = 'pending'
+          AND NOT EXISTS (
+            SELECT 1 FROM event_rsvps
+            WHERE event_id = ${opts.eventId}
+              AND status = 'going'
+              AND created_at >= scheduled_notifications.created_at - ${JUSTIFICATION_SLACK_SECONDS}
+          )`,
+  );
+  return (
+    (result as unknown as { meta?: { changes?: number } }).meta?.changes ?? 0
+  );
 };
