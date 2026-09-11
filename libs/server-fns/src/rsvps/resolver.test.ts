@@ -101,6 +101,36 @@ describe('createRsvpResolver (real D1)', () => {
     db = await setupDb();
   });
 
+  it('tells the host somebody is coming, addressed to the host', async () => {
+    const eventId = await seedEvent(db);
+
+    await createRsvpResolver(db, { eventId, userId: members[0].id });
+
+    const notices = await db
+      .select()
+      .from(scheduledNotifications)
+      .where(eq(scheduledNotifications.eventId, eventId));
+    const hostNotice = notices.find(
+      (row) => row.templateKey === 'rsvp_received',
+    );
+    expect(hostNotice).toBeTruthy();
+    expect(hostNotice?.userId).toBe(HOST_ID);
+  });
+
+  it('tells nobody when the host RSVPs to their own gathering', async () => {
+    const eventId = await seedEvent(db);
+
+    await createRsvpResolver(db, { eventId, userId: HOST_ID });
+
+    const notices = await db
+      .select()
+      .from(scheduledNotifications)
+      .where(eq(scheduledNotifications.eventId, eventId));
+    expect(
+      notices.filter((row) => row.templateKey === 'rsvp_received'),
+    ).toEqual([]);
+  });
+
   it('returns event_not_found for an unknown event', async () => {
     const result = await createRsvpResolver(db, {
       eventId: 'evt_missing',

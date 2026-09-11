@@ -182,23 +182,60 @@ in [deployment evidence](./deployment-evidence.md).
 
 ### ND-03 — Make the two dead categories real
 
-**Depends on:** ND-02. **Related:** CO-03, which persists feedback but exposes none of it.
+`host_updates` and `follow_up_prompts` are stored, saved, rendered and read by nothing:
+`resolveDestination` gates on `eventReminders` and `eventUpdates` and no others. Either they send
+something or they leave the screen.
 
-`host_updates` and `follow_up_prompts` are stored, saved, rendered and read by nothing. Either they
-send something or they leave the screen.
+Split on 2026-09-11, because the two halves are not the same size. One is a producer and some copy.
+The other needs a page nobody has built.
 
-- **Host updates** — a producer on RSVP created and cancelled that notifies the event's host, gated
-  on `hostUpdates`, with a new `rsvp_received` template. Batch it: a popular event should not text a
-  host twenty times. A digest at a fixed delay, or a per-event cap, is a product decision to make
-  here rather than discover in production.
-- **Follow-up prompts** — a producer after `ends_at` with an `event_feedback_request` template,
-  gated on `follow_up_prompts`, linking to a feedback surface. That surface does not exist:
-  `libs/db/src/operations-feedback.ts` is the whole of it, with no server function and no route. The
-  message cannot ship before the page it links to.
-- Add both gates to `resolveDestination` alongside the two that are already there, and extend its
-  test to cover all four rather than the two that happen to be wired.
-- Acceptance: each of the four switches demonstrably stops a message that is otherwise sent. A test
-  per category, driven through the real queue, not through the resolver in isolation.
+#### ND-03a — Host updates
+
+**Depends on:** ND-02.
+
+- A producer on RSVP that tells the host somebody is coming, gated on `hostUpdates`, under a new
+  `rsvp_received` template key. `template_key` is plain `text NOT NULL` in
+  `0007_scheduled_notifications.sql` with no CHECK constraint, so the key costs no migration.
+- **Coalesced, not batched into a digest.** A pending notice for the same event suppresses the next,
+  so a burst of RSVPs produces one message and the window reopens once it sends. The alternative —
+  accumulating names and counting them at send time — needs state the payload cannot carry, since a
+  payload is frozen at enqueue and would report a count that was already stale.
+- The message therefore carries no count. It says somebody joined and links to the event, where the
+  real number lives. A notification that claims "3 going" while 5 are is worse than one that does
+  not claim.
+- The host never hears about their own RSVP.
+- Acceptance: the switch demonstrably stops it; a burst produces one message; the host's own RSVP
+  produces none.
+- **Known limit, accepted.** A guest who cancels inside the coalescing window does not withdraw the
+  notice. `cancelNotificationsByUserEvent` is keyed on the _guest's_ user id and the notice belongs to
+  the host, so the host can be told somebody is coming, open the event, and find the list unchanged.
+  Withdrawing it would mean tracking which guest triggered which pending notice — state this design
+  deliberately does not keep — and the message is count-free and links to the event precisely so the
+  truth is one tap away. Revisit with ND-03c, where cancellations get their own message.
+- The delay is clamped to `startsAt`: §5.17 freezes RSVP intent at the start and not before, so a
+  guest can join a minute beforehand, and a notice fifteen minutes later would reach a host already
+  in the room.
+
+#### ND-03b — Follow-up prompts
+
+**Depends on:** ND-03a, and on CO-03 growing a surface above its persistence layer.
+
+This is not a notification ticket. `libs/db/src/operations-feedback.ts` — `saveFeedback`,
+`getFeedback`, `feedbackTally` — is the whole of the feedback feature, and nothing above the database
+imports any of it: no server function, no route, no screen. A prompt after the gathering would link
+to a page that does not exist.
+
+- Build the feedback surface first, then a producer at `ends_at + delay` under an
+  `event_feedback_request` key, gated on `followUpPrompts`. Scheduling needs nothing new — the same
+  `NotificationScheduleDO` alarm that carries a 72-hour reminder carries this.
+- **If the feedback surface is not coming soon, take the switch off the preferences screen instead.**
+  A control that does nothing is the defect this whole plan started from.
+
+#### ND-03c — Telling a host somebody dropped out
+
+Deliberately not in ND-03a. A freed chair is worth knowing about, but a join and a cancellation
+inside one coalescing window net out to nothing worth sending, and deciding what that message says is
+a separate question from getting the first one working.
 
 ### ND-04 — Per-category channel model
 

@@ -102,6 +102,49 @@ describe('categories are enforced at send time, not at enqueue time', () => {
     expect((await rowById(db, rowId))?.status).toBe('failed');
   });
 
+  it('refuses a host notice when host updates are off, and not otherwise', async () => {
+    const on = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'rsvp_received',
+    );
+    await setPreferences(db, { hostUpdates: false });
+    const off = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'rsvp_received',
+    );
+
+    expect(on.ok).toBe(true);
+    expect(off.ok).toBe(false);
+    if (!off.ok) {
+      expect(off.reason).toBe('host_updates_off');
+      expect(off.account).toBe(true);
+    }
+  });
+
+  it('leaves the other categories alone when host updates are off', async () => {
+    await setPreferences(db, { hostUpdates: false });
+
+    const reminder = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'reminder_24h',
+    );
+    const cancellation = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'event_cancelled',
+    );
+
+    expect(reminder.ok).toBe(true);
+    expect(cancellation.ok).toBe(true);
+  });
+
   it('refuses a cancellation notice only when event updates are off', async () => {
     const on = await resolveDestination(
       db,

@@ -8,6 +8,7 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
+import { enqueueHostRsvpNotice } from '../notifications/host-notice.js';
 import {
   cancelRsvpNotifications,
   enqueueRsvpNotifications,
@@ -88,6 +89,22 @@ export const createRsvpResolver = async (
       phoneNumber: user.phoneNumber,
       email: user.email,
       locale: user.localePref,
+    });
+  }
+
+  if (event.hostId !== opts.userId) {
+    const host = await getUser(db, event.hostId);
+    await enqueueHostRsvpNotice(db, {
+      eventId: opts.eventId,
+      hostId: event.hostId,
+      guestId: opts.userId,
+      eventTitle: event.title,
+      eventSlug: event.slug,
+      marketCode: event.marketCode,
+      startsAt: event.startsAt,
+      venue: event.venue,
+      hostEmail: host?.email,
+      hostLocale: host?.localePref,
     });
   }
 

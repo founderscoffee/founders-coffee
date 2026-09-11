@@ -20,6 +20,11 @@ import {
   ntf_push_reminder_24h_title,
   ntf_push_reminder_72h_body,
   ntf_push_reminder_72h_title,
+  ntf_push_rsvp_received_body,
+  ntf_push_rsvp_received_title,
+  ntf_email_rsvp_received_html,
+  ntf_email_rsvp_received_subject,
+  ntf_email_rsvp_received_text,
   ntf_sms_confirmation,
   ntf_sms_event_cancelled,
   ntf_sms_reminder_24h,
@@ -28,7 +33,11 @@ import {
 } from '@founders-coffee/i18n';
 
 export type NotificationTemplateKey =
-  'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h' | 'event_cancelled';
+  | 'rsvp_confirmation'
+  | 'reminder_72h'
+  | 'reminder_24h'
+  | 'event_cancelled'
+  | 'rsvp_received';
 
 export interface TemplateValues {
   readonly title: string;
@@ -77,8 +86,16 @@ const withReason = (
 ): string =>
   reason ? `${body} ${ntf_cancel_reason({ reason }, { locale })}` : body;
 
+/**
+ * The SMS form of a message, for the keys that have one.
+ *
+ * `rsvp_received` is excluded in the type rather than handled and refused at runtime. ND-07 left
+ * exactly one thing on SMS — a cancellation close enough to the start that an unread email means
+ * somebody sets off anyway — and a host learning that a guest is coming is not that. Asking for an
+ * SMS body this product has decided not to write should not compile.
+ */
 export const smsBodyFor = (
-  templateKey: NotificationTemplateKey,
+  templateKey: Exclude<NotificationTemplateKey, 'rsvp_received'>,
   values: TemplateValues,
   locale: Locale,
 ): string => {
@@ -107,6 +124,12 @@ export const emailPayloadFor = (
   const options = { locale };
   const safe = escapeValues(values);
   switch (templateKey) {
+    case 'rsvp_received':
+      return {
+        subject: ntf_email_rsvp_received_subject(values, options),
+        html: ntf_email_rsvp_received_html(safe, options),
+        text: ntf_email_rsvp_received_text(values, options),
+      };
     case 'rsvp_confirmation':
       return {
         subject: ntf_email_confirmation_subject(values, options),
@@ -158,6 +181,13 @@ export const pushPayloadFor = (
 ): { pushTitle: string; pushBody: string; pushUrl: string } => {
   const options = { locale };
   const pushUrl = values.url;
+  if (templateKey === 'rsvp_received') {
+    return {
+      pushTitle: ntf_push_rsvp_received_title(values, options),
+      pushBody: ntf_push_rsvp_received_body({}, options),
+      pushUrl,
+    };
+  }
   if (templateKey === 'event_cancelled') {
     return {
       pushTitle: ntf_push_event_cancelled_title(values, options),

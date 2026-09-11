@@ -73,6 +73,8 @@ export const resolveDestination = async (
     return unreachable('event_reminders_off', true);
   if (templateKey === 'event_cancelled' && !contact.eventUpdates)
     return unreachable('event_updates_off', true);
+  if (templateKey === 'rsvp_received' && !contact.hostUpdates)
+    return unreachable('host_updates_off', true);
 
   if (channel === 'sms') {
     if (!contact.phoneNumber) return unreachable('phone_number_removed');

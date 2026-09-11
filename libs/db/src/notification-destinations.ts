@@ -16,6 +16,7 @@ export interface NotificationContact {
   readonly phoneNumberVerified: boolean;
   readonly eventUpdates: boolean;
   readonly eventReminders: boolean;
+  readonly hostUpdates: boolean;
   readonly pushEnabled: boolean;
   readonly smsFallbackEnabled: boolean;
 }
@@ -51,6 +52,7 @@ export const getNotificationContact = async (
       phoneNumberVerified: user.phoneNumberVerified,
       eventUpdates: sql<number>`coalesce(${accountPreferences.eventUpdates}, 1)`,
       eventReminders: sql<number>`coalesce(${accountPreferences.eventReminders}, 1)`,
+      hostUpdates: sql<number>`coalesce(${accountPreferences.hostUpdates}, 1)`,
       pushEnabled: sql<number>`coalesce(${accountPreferences.pushEnabled}, 0)`,
       smsFallbackEnabled: sql<number>`coalesce(${accountPreferences.smsFallbackEnabled}, 0)`,
     })
@@ -67,6 +69,7 @@ export const getNotificationContact = async (
     phoneNumberVerified: row.phoneNumberVerified,
     eventUpdates: row.eventUpdates === 1,
     eventReminders: row.eventReminders === 1,
+    hostUpdates: row.hostUpdates === 1,
     pushEnabled: row.pushEnabled === 1,
     smsFallbackEnabled: row.smsFallbackEnabled === 1,
   };

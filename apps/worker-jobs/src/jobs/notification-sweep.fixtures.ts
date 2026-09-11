@@ -99,6 +99,7 @@ export const setupDb = async (): Promise<Db> => {
   await setPreferences(db, {
     eventUpdates: true,
     eventReminders: true,
+    hostUpdates: true,
     pushEnabled: true,
     smsFallbackEnabled: true,
   });
@@ -117,6 +118,7 @@ export const setPreferences = async (
   changes: {
     eventUpdates?: boolean;
     eventReminders?: boolean;
+    hostUpdates?: boolean;
     pushEnabled?: boolean;
     smsFallbackEnabled?: boolean;
   },
