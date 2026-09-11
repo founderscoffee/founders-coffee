@@ -540,12 +540,27 @@ protected by existing rather than by remembering. The admin app gained the D1 bi
 had — without it there was nothing to correlate against, and the app was safe and useless. Ten tests
 cover every refusal and the admissions.
 
-**Still open in this ticket:** the admin-origin passwordless login/logout and callback endpoints, so
-the success path is reachable in a browser rather than only under test; Turnstile and DO/WAF on
-sign-in; the RBAC extension with operations permissions; shell, navigation and states; `ar`/`fr`/`en`
-with RTL. The correlated context is currently consumed by an audit log line and nothing else —
-CO-08 and CO-09 will need it threaded to their server functions, which is the point to add a
-request-scoped carrier rather than now, unused.
+**Slice 2 landed 2026-09-11 — sign-in on the admin origin.** The shared `createAuthHandler` is
+mounted at `/api/auth/*` on admin with its own echo-free OTP mailer and a `send_email` binding the
+app did not have; `APP_URL` is the admin host, so Better Auth issues a host-scoped cookie without
+being asked and no cross-subdomain widening is needed. `needsAdminSession` exempts `/login` and
+`/api/auth/*` from the session requirement by allowlist — a route added later is guarded by default
+— while Access still gates both.
+
+Audit of that slice found the sign-in endpoint would mail a code to any address a caller named.
+`authRequestIsForSelf` pins it to the Access-verified identity, which removes the vector rather than
+rate-limiting it and makes the correlation true one request earlier.
+
+**Still open in this ticket:** Turnstile and DO/WAF on sign-in — reduced in urgency now that an
+operator can only request a code for themselves, from behind the Access policy, but still required;
+the RBAC extension with operations permissions; shell, navigation and states; `ar`/`fr`/`en` with
+RTL — the login page is English-only. The correlated context is consumed by an audit log line and
+nothing else; CO-08 and CO-09 will need it threaded to their server functions, which is the point to
+add a request-scoped carrier rather than now, unused.
+
+**Known and accepted:** any member Access lets in can create a session on the admin origin, because
+the auth handler does not check roles. Every path that matters refuses them — `resolveAdminContext`
+requires `admin` or `moderator` — so they hold a session that opens nothing.
 
 #### Original ticket
 

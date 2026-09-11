@@ -34,6 +34,9 @@
       "path": "../../libs/observability"
     },
     {
+      "path": "../../libs/email"
+    },
+    {
       "path": "../../libs/auth"
     }
   ]

@@ -114,3 +114,58 @@ export const resolveAdminContext = async (
     },
   };
 };
+
+export const ADMIN_LOGIN_PATH = '/login';
+
+const SESSION_FREE_PREFIXES = ['/api/auth/'] as const;
+
+/**
+ * Whether this path may be served to somebody Access let in but who is not yet signed in.
+ *
+ * Sign-in is the one thing an operator cannot already be signed in to do, so requiring a correlated
+ * session everywhere would lock the door with the key inside. The exemption is deliberately two
+ * paths and an allowlist, never a denylist: a route added later is guarded by default, and making it
+ * public is a visible edit here rather than an omission somewhere else.
+ *
+ * Access still gates both. Nothing in this app is reachable without passing the policy first — the
+ * exemption is from the session, not from Cloudflare.
+ *
+ * Server functions are not exempt. `/_serverFn/*` carries the operations mutations CO-08 and CO-09
+ * will add, and none of those has a reason to run for an unauthenticated caller.
+ */
+export const needsAdminSession = (pathname: string): boolean => {
+  if (pathname === ADMIN_LOGIN_PATH) return false;
+  return !SESSION_FREE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+};
+
+/**
+ * Refuse an auth request that names somebody other than the person Access vouched for.
+ *
+ * Without this, every endpoint under `/api/auth/` will happily send a sign-in code to whatever
+ * address the body carries. The caller is already behind the Access policy, so the blast radius is
+ * one allowlisted operator — but that operator can point the admin origin at any mailbox in the
+ * world, and "our admin panel emailed me a code" is a convincing thing to receive.
+ *
+ * Pinning the address to the Access identity removes the vector rather than rate-limiting it, and it
+ * makes the correlation true earlier: an operator can only ever begin signing in as themselves, so
+ * the mismatch that `resolveAdminContext` would catch on the next request cannot be created here.
+ *
+ * A body with no email is left alone — sign-out and session reads carry none, and inventing a
+ * requirement for them would break the handler. Unparseable bodies are left alone too: they are the
+ * handler's to reject, and guessing at them here would be a second parser disagreeing with the first.
+ */
+export const authRequestIsForSelf = async (
+  request: Request,
+  accessEmail: string,
+): Promise<boolean> => {
+  if (request.method !== 'POST') return true;
+  let body: unknown;
+  try {
+    body = await request.clone().json();
+  } catch {
+    return true;
+  }
+  const email = (body as { email?: unknown } | null)?.email;
+  if (typeof email !== 'string' || email.length === 0) return true;
+  return sameEmail(email, accessEmail);
+};
