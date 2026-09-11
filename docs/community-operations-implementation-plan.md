@@ -20,7 +20,7 @@ Turn the event product into an observable, repeatable community operating loop w
 recruit and support a host                    human community operation
   -> create and publish a trustworthy event  apps/ui + EC-01..EC-10
   -> RSVP and cancel                         apps/ui + P1-008
-  -> remind and deliver                      DO alarms -> Queue -> push-first/SMS-fallback
+  -> remind and deliver                      DO alarms -> Queue -> push-first/email-fallback
   -> hold the meetup                         real-world community operation
   -> close out attendance                    host in apps/ui; admin oversight/correction
   -> collect a small feedback pulse          attended member in apps/ui
@@ -108,7 +108,7 @@ Drizzle, domain internals, or server functions from a component.
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Event creation            | EC-01 through EC-10 recorded complete; staging 18/18 and production release/DNS/WAF evidence exist; authorized production creation smoke remains open | Close the outstanding authorized production smoke/handoff before CO production implementation; preserve the dated trace without rerunning it implicitly |
 | RSVP                      | Immediate flow exists; full-capacity atomicity remains blocked                                                                                        | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                                                                      |
-| Notifications             | Providers exist; one-minute D1 polling and parallel channel scheduling violate the locked design                                                      | DO alarms -> Queue -> push-first/SMS-fallback before post-event prompts                                                                                 |
+| Notifications             | Providers exist; one-minute D1 polling and parallel channel scheduling violate the locked design                                                      | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                                                                       |
 | Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                              | Explicit held/did-not-happen closeout separate from publication status                                                                                  |
 | Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                           | Attendance outcome remains separate from RSVP intent and is recorded safely                                                                             |
 | Feedback                  | No post-event participant or host pulse                                                                                                               | One small, optional, localized pulse per eligible person                                                                                                |
@@ -396,17 +396,31 @@ Verification:
   `push` with `fallback_channel = 'sms'`; the duplicate SMS/email-plus-push pair is gone. Email
   survives only as the cancellation fallback for a member with no consented number — a missed
   reminder costs a calendar entry, an unheard cancellation sends someone to a café for nothing.
+- **Superseded 2026-09-10 by ND-07 — push first, _email_ behind it, SMS for same-day disruption
+  only.** The rule above is kept as the record of what CO-02 built; it is no longer the policy, and
+  every unimplemented CO ticket below reads under this amendment. See
+  [notification delivery](./notification-delivery-implementation-plan.md) §ND-07 for the evidence.
+  In short: authentication here is an email OTP, so a member without a working verified address
+  cannot exist, which makes email the one channel that reaches everyone at no cost per message. Push
+  does not — iOS needs the app installed, a denied permission is permanent, and a subscription dies
+  quietly when a device signs out — so something has to sit under it. SMS was billing per message to
+  reach people the free channel already reaches. It now survives only where an unread email means
+  somebody sets off anyway: a cancellation inside `isSameDay` of the start.
+  **Two facts found while proving this, both of which this plan asserted otherwise:** push had never
+  delivered a notification in any environment, because no `FIREBASE_*` secret existed and the service
+  worker was never built; and email had never delivered one either, because the dispatcher set its own
+  `Message-ID`, which Cloudflare rejects. Both are fixed and both are now proven on staging.
 - **Preferences are enforced at send time**, in `resolveDestination`, against the values current
   when the row is sent rather than when it was written. Categories (`event_reminders`,
   `event_updates`) are account-level refusals and write no fallback; channels (`push_enabled`,
   `sms_fallback_enabled`) are not, so the other channel is still tried. `rsvp_confirmation` passes
   every category gate, being a receipt rather than an update.
-- **The consequence to accept:** `push_enabled` and `sms_fallback_enabled` default disabled by §5 of
-  the profile plan, and no surface sets `sms_fallback_enabled` yet. Registering a device now records
-  `push_enabled`, so push is reachable; **SMS fallback reaches nobody until PF-08 ships the
-  preferences screen.** That is the documented consent design being enforced rather than a
-  regression, but it means the SMS path is dark in the interim and should not be read as a delivery
-  fault.
+- **The consequence, as it actually resolved:** this section predicted the SMS path would stay dark
+  until PF-08 shipped a consent control. PF-08 shipped it, ND-00 deleted it again, and ND-07 then
+  removed the reason to want it — email needs no consent and reaches everyone. `sms_fallback_enabled`
+  still defaults disabled and still has no surface, which now costs nothing outside the same-day
+  cancellation path. `push_enabled` is recorded by device registration, and push is reachable and
+  proven as of 2026-09-10.
 - **Account-side evidence, read 2026-09-10:** all eight queues exist in both environments; both
   notifications queues have one consumer and, correctly, zero producers until worker-jobs is
   deployed with its new producer binding; both DLQs have zero consumers by design. The Durable
@@ -421,7 +435,8 @@ Work:
   typed error and preserve the frozen going set used for attendance eligibility.
 - Replace one-minute D1 reminder polling with per-event Durable Object alarms feeding the
   Notifications Queue and a low-frequency recovery sweep.
-- Enforce PWA push first and Programmable SMS only as fallback; remove parallel default SMS/email
+- Enforce PWA push first and Programmable SMS only as fallback (**as built; superseded by the ND-07
+  amendment above, which puts email in the fallback slot**); remove parallel default SMS/email
   event reminders.
 - Verify notification preferences, idempotency, retry, DLQ, delivery observability, and the
   production/staging bindings already required by P1-009/P0-018.
@@ -433,7 +448,8 @@ Verification:
 - Full/duplicate/concurrent RSVP and cancellation cases cannot corrupt capacity.
 - Boundary tests prove mutations just before start behave correctly and every mutation at or after
   the exact start instant is rejected, including concurrent cancel/closeout races.
-- Delivery tests prove push success suppresses SMS, permanent/unavailable push selects SMS, and
+- Delivery tests prove push success suppresses the fallback, permanent/unavailable push selects it
+  (SMS as CO-02 built it, email since ND-07), and
   retries never double-deliver.
 - Account-side Queue/DLQ and WAF evidence is recorded for staging and production.
 
@@ -563,7 +579,7 @@ Work:
   post-event prompt intent and sets a Durable Object alarm for `endsAt + 30 minutes`. Intent/alarm
   failure is logged and alerted but never rolls back or duplicates the already-created event; the
   low-frequency recovery sweep derives and schedules missing intents for pre-existing or failed
-  events. The alarm enqueues one localized closeout prompt through PWA push first and SMS only as
+  events. The alarm enqueues one localized closeout prompt through PWA push first and email as
   fallback.
 - After `endsAt`, let the host select `held` or `did_not_happen`. For held events, present the valid
   going-RSVP list for attended/no-show marking and a non-negative anonymous walk-in count.
@@ -585,7 +601,7 @@ Verification:
 - Component tests cover held/did-not-happen, zero attendees, walk-ins, long RSVP lists with TanStack
   Virtual, review, errors, retry, focus, and `ar`/`fr`/`en` RTL/LTR.
 - D1 integration proves all closeout/attendance/audit writes are atomic and totals are derived.
-- Alarm/Queue tests prove one host prompt, correct push/SMS fallback, recovery idempotency, and one
+- Alarm/Queue tests prove one host prompt, correct push/email fallback, recovery idempotency, and one
   participant notification for `did_not_happen` without feedback invitations.
 - Failure-injection tests prove intent/alarm failure cannot roll back or duplicate event creation and
   is recovered without duplicating the intent or delivery.
@@ -600,8 +616,8 @@ Work:
 - After a held closeout, enqueue one feedback invitation for each member marked attended.
 - Create invitations only when the held closeout is submitted by `endsAt + 7 days`; the invitation
   expires at `endsAt + 14 days`, and a late closeout never reopens or extends it.
-- Deliver through the existing push-first/SMS-fallback policy; do not add email as a default event
-  channel.
+- Deliver push first with email behind it, per the ND-07 amendment above. A feedback invitation is
+  not same-day disruption, so it never reaches SMS.
 - Add an authenticated `apps/ui` feedback surface with the bounded value rating,
   `wouldReturn`, optional bounded comment plus required authored language when present, and clear
   privacy/retention explanation.
@@ -614,7 +630,7 @@ Work:
 
 Verification:
 
-- Queue tests prove only attended members are invited, retries are idempotent, and push/SMS fallback
+- Queue tests prove only attended members are invited, retries are idempotent, and push/email fallback
   remains correct.
 - Server tests cover eligibility, feedback window, duplicate/update behavior, market scope,
   late-closeout behavior, authored language, Turnstile, rate limiting, and typed errors.
@@ -832,7 +848,7 @@ good events, returning participants, and recurring hosts with decreasing founder
 | Server functions         | Correlated Access/Auth identity; authz; feature flag; Turnstile; DO limit; WAF evidence; host/admin ownership; typed errors; no leakage                               |
 | `apps/ui` components     | Closeout, long attendance list, feedback, return action, repeat hosting, loading/error/empty, all locales/directions/widths                                           |
 | `apps/admin` components  | Secure shell, operations table/detail, trust/moderation, metrics, audit, permissions, filters, large lists, all locales/directions                                    |
-| Worker/Queues            | Post-event alarms, host/member prompts, closeout/feedback windows, push success, SMS fallback, retry, DLQ, idempotency, recovery sweep                                |
+| Worker/Queues            | Post-event alarms, host/member prompts, closeout/feedback windows, push success, email fallback, retry, DLQ, idempotency, recovery sweep                              |
 | Playwright local/staging | Three-checkpoint create/reminder -> RSVP freeze -> real end -> closeout -> feedback -> repeat host -> admin correction/review -> metrics; auth rejection; no errors   |
 | Operations               | Weekly D1 review record, real evidence interpretation, manual intervention, access revocation, alert response, feature-flag rollback                                  |
 
@@ -870,20 +886,20 @@ stubs/placeholders.
 
 ## 12. Risks and execution-time approvals
 
-| Risk or dependency                                | Response                                                                                                        |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Admin scope becomes a speculative CRM             | Enforce §3/§5 ownership; build only safety, measurement, exceptions, and demonstrated repetitive operations     |
-| Hosts do not submit closeouts                     | Timely push/SMS prompt, visible overdue state, admin override with reason; do not infer held from elapsed time  |
-| Attendance marking feels bureaucratic             | Short mobile-first list, sensible eligible set, one review, aggregate walk-ins; measure completion friction     |
-| Hosts misreport attendance                        | Audit actor/time, admin correction, anomaly review; do not publicly shame hosts or attendees                    |
-| Feedback creates privacy or moderation burden     | Eligible attendees only, bounded optional comment, retention policy, restricted access, no public/raw analytics |
-| Small samples produce misleading percentages      | Always show numerator/denominator, window, and insufficient-sample state                                        |
-| D1 closeout writes race or partially apply        | Conditional statements + `db.batch()`, unique constraints, optimistic version, real concurrent Miniflare tests  |
-| Admin is reachable without both security gates    | Access JWT + `workers.dev: false` + Better Auth/RBAC; verify each gate independently in staging                 |
-| Queue or provider failures suppress follow-up     | Durable alarms, Queue retry/DLQ, push-first/SMS fallback, delivery alerts, low-frequency recovery only          |
-| A new dependency/service appears necessary        | Stop and ask before adding it; no approval is implied by this plan                                              |
-| E2E remains outside CI                            | Require local/staging Playwright evidence; changing CI policy is a separate decision                            |
-| Durable staging tests create user-visible records | Use authorized disposable identities/data and explicit safe cleanup; never delete broad or unresolved targets   |
+| Risk or dependency                                | Response                                                                                                         |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Admin scope becomes a speculative CRM             | Enforce §3/§5 ownership; build only safety, measurement, exceptions, and demonstrated repetitive operations      |
+| Hosts do not submit closeouts                     | Timely push/email prompt, visible overdue state, admin override with reason; do not infer held from elapsed time |
+| Attendance marking feels bureaucratic             | Short mobile-first list, sensible eligible set, one review, aggregate walk-ins; measure completion friction      |
+| Hosts misreport attendance                        | Audit actor/time, admin correction, anomaly review; do not publicly shame hosts or attendees                     |
+| Feedback creates privacy or moderation burden     | Eligible attendees only, bounded optional comment, retention policy, restricted access, no public/raw analytics  |
+| Small samples produce misleading percentages      | Always show numerator/denominator, window, and insufficient-sample state                                         |
+| D1 closeout writes race or partially apply        | Conditional statements + `db.batch()`, unique constraints, optimistic version, real concurrent Miniflare tests   |
+| Admin is reachable without both security gates    | Access JWT + `workers.dev: false` + Better Auth/RBAC; verify each gate independently in staging                  |
+| Queue or provider failures suppress follow-up     | Durable alarms, Queue retry/DLQ, push-first/email fallback, delivery alerts, low-frequency recovery only         |
+| A new dependency/service appears necessary        | Stop and ask before adding it; no approval is implied by this plan                                               |
+| E2E remains outside CI                            | Require local/staging Playwright evidence; changing CI policy is a separate decision                             |
+| Durable staging tests create user-visible records | Use authorized disposable identities/data and explicit safe cleanup; never delete broad or unresolved targets    |
 
 ## 13. Definition of done
 
@@ -911,7 +927,7 @@ stubs/placeholders.
       deletion/export behavior are implemented and verified.
 - [ ] Community metrics exactly implement §6, show evidence bases, use market timezones, and exclude
       anonymous walk-ins from person-level retention.
-- [ ] Post-event prompts use Durable Object alarms -> Queue -> PWA push first -> SMS fallback, with
+- [ ] Post-event prompts use Durable Object alarms -> Queue -> PWA push first -> email fallback, with
       retry, DLQ, idempotency, alerts, a host closeout prompt, and transparent did-not-happen member
       communication.
 - [ ] `communityOperations` defaults off until acceptance, gates every intended UI/server entry
