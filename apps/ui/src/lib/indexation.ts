@@ -5,6 +5,8 @@ export type IndexationEnvironment = {
 
 export const PRODUCTION_ORIGIN = 'https://founders.coffee';
 export const NO_INDEX_VALUE = 'noindex, nofollow';
+export const PUBLIC_DOCUMENT_CACHE_CONTROL =
+  'public, max-age=0, s-maxage=60, stale-while-revalidate=300';
 
 const parseOrigin = (value: string | undefined): string | null => {
   if (!value) return null;

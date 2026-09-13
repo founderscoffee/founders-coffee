@@ -8,13 +8,13 @@ import { readCookieHeader } from '../lib/cookies';
 import { companyPageHead } from '../lib/seo-company';
 
 export const Route = createFileRoute('/terms')({
+  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   beforeLoad: () => {
     throw redirect({
       to: '/$market/$city',
       params: { market: detectLocale(readCookieHeader()), city: 'terms' },
     });
   },
-  staticData: { prerender: true },
   component: () => {
     const { locale } = Route.useRouteContext();
     return (

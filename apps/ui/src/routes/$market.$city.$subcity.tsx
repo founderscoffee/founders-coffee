@@ -14,7 +14,6 @@ import {
 import { canonicalUrl, cityPageHead } from '../lib/seo';
 
 export const Route = createFileRoute('/$market/$city/$subcity')({
-  staticData: { prerender: true },
   validateSearch: publicPaginationSearchSchema,
   loaderDeps: ({ search }) => ({
     afterStartsAt: search.afterStartsAt,

@@ -11,6 +11,7 @@ import {
 } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
+import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
@@ -19,6 +20,11 @@ import {
   siteOriginFromEnv,
   withIndexationHeaders,
 } from './lib/indexation.js';
+import {
+  isCacheSafeEarlyHint,
+  removeEarlyHintsFromResponse,
+  shouldEmitEarlyHints,
+} from './lib/early-hints.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
 
@@ -132,7 +138,18 @@ export default {
         requestPath: url.pathname,
         siteOrigin: siteOriginFromEnv(env, url.origin),
       },
-      async () => secure(await handler.fetch(request)),
+      async () => {
+        const requestOptions = shouldEmitEarlyHints(request, url.pathname)
+          ? {
+              responseLinkHeader: {
+                filter: (entry: ResponseLinkHeaderEntry) =>
+                  isCacheSafeEarlyHint(entry, url.origin),
+              },
+            }
+          : undefined;
+        const response = await handler.fetch(request, requestOptions);
+        return secure(removeEarlyHintsFromResponse(response));
+      },
     );
   },
 } satisfies ExportedHandler<UiEnv>;

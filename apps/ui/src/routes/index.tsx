@@ -20,6 +20,7 @@ const tryMarketSlug = async (key: string): Promise<string | null> => {
 };
 
 export const Route = createFileRoute('/')({
+  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   beforeLoad: async ({ params }) => {
     const routeParams = params as { readonly market?: string };
     const remembered = readCookies()[GEO_COOKIE];

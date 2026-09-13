@@ -8,7 +8,6 @@ import { getMarket } from '@founders-coffee/server-fns';
 import { readCookieHeader } from '../../lib/cookies';
 
 export const Route = createFileRoute('/$market/')({
-  staticData: { prerender: true },
   pendingComponent: () => (
     <div className="flex min-h-[60vh] items-center justify-center">
       <span className="loading loading-dots loading-lg text-primary" />

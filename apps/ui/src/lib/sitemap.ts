@@ -7,19 +7,12 @@ import type {
 } from '@founders-coffee/server-fns';
 
 import { canonicalPath, type CanonicalRoute } from './seo';
+import { sitemapCompanyItems } from './sitemap-contract';
 
 export type SitemapItem = {
   readonly path: string;
   readonly lastmod?: string;
 };
-
-const COMPANY_PATHS = [
-  'about',
-  'contact',
-  'cookies',
-  'privacy',
-  'terms',
-] as const;
 
 const localizedPath = (route: CanonicalRoute, locale: Locale): string =>
   canonicalPath({ ...route, locale });
@@ -52,12 +45,7 @@ const eventItems = (events: readonly SitemapEvent[]): SitemapItem[] =>
     })),
   );
 
-const companyItems = (): SitemapItem[] =>
-  COMPANY_PATHS.flatMap((path) =>
-    LOCALES.map((locale) => ({
-      path: localizedPath({ type: 'company', path }, locale),
-    })),
-  );
+const companyItems = (): SitemapItem[] => sitemapCompanyItems();
 
 export const sitemapItems = (data: SitemapData): SitemapItem[] => {
   const items = [

@@ -20,7 +20,10 @@ import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
 import { AppProviders } from '../lib/app-providers';
 import { readCookieHeader } from '../lib/cookies';
-import { NO_INDEX_VALUE } from '../lib/indexation';
+import {
+  NO_INDEX_VALUE,
+  PUBLIC_DOCUMENT_CACHE_CONTROL,
+} from '../lib/indexation';
 import { organizationJsonLd } from '../lib/seo-company';
 import { errorPageHead } from '../lib/seo-error';
 
@@ -92,12 +95,13 @@ export const Route = createRootRoute({
         match.status === 'notFound' ||
         match.globalNotFound,
     );
-    return hasNoIndexableState
+    const headers: Record<string, string> = hasNoIndexableState
       ? {
           'Cache-Control': 'private, no-store',
           'X-Robots-Tag': NO_INDEX_VALUE,
         }
-      : undefined;
+      : { 'Cache-Control': PUBLIC_DOCUMENT_CACHE_CONTROL };
+    return headers;
   },
   head: ({ matches }) => {
     const rootMatch = matches.find((match) => match.routeId === '__root__');

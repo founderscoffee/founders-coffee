@@ -93,7 +93,6 @@ const localizedMarket = async (
 };
 
 export const Route = createFileRoute('/$market/$city')({
-  staticData: { prerender: true },
   validateSearch: landingSearchSchema,
   loaderDeps: ({ search }) => ({
     afterStartsAt: search.afterStartsAt,

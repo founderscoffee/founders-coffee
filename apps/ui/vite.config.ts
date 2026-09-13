@@ -8,6 +8,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { cloudflare } from '@cloudflare/vite-plugin';
 
 import { mapboxCspWorker } from './vite-mapbox-worker';
+import { isSeoPrerenderPath, seoPrerenderPages } from './src/lib/seo-prerender';
 import {
   CLIENT_OUT_DIR,
   precacheIgnores,
@@ -19,6 +20,18 @@ import {
 const LOCAL_STATE_PATH = fileURLToPath(
   new URL('../../.wrangler/state', import.meta.url),
 );
+const MAPBOX_CSP_PATH = fileURLToPath(
+  new URL('../../node_modules/mapbox-gl/dist/mapbox-gl-csp.js', import.meta.url),
+);
+
+const mapboxCspAlias: Plugin = {
+  name: 'mapbox-csp-alias',
+  enforce: 'pre',
+  resolveId: (source, importer) =>
+    source === 'mapbox-gl' && importer?.includes('@vis.gl/react-mapbox')
+      ? MAPBOX_CSP_PATH
+      : null,
+};
 
 const clientNodeBuiltinStubs: Plugin = {
   name: 'client-node-builtin-stubs',
@@ -73,7 +86,16 @@ export default defineConfig(({ command }) => ({
       persistState: { path: LOCAL_STATE_PATH },
     }),
     tailwindcss(),
+    mapboxCspAlias,
     tanstackStart({
+      pages: seoPrerenderPages,
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+        autoStaticPathsDiscovery: false,
+        filter: isSeoPrerenderPath,
+      },
+      sitemap: { enabled: false },
       importProtection: {
         exclude: [/\/routes\//],
       },

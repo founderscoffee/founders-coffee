@@ -18,7 +18,7 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-09 are implemented and locally verified; SEO-10 through SEO-12 remain planned.
+Current progress: SEO-01 through SEO-10 are implemented and locally verified; SEO-11 through SEO-12 remain planned.
 
 ## 1. Audit baseline
 
@@ -224,10 +224,17 @@ do not inherit profile response headers; privacy regression tests remain green.
   is not evidence that dynamic D1 pages were generated.
 - Add safe cache headers for public documents and short revalidation where freshness permits. Keep
   profile/account/private responses `private, no-store`.
+- Enable TanStack Start's `responseLinkHeader` fallback from `apps/ui/src/server.ts` for
+  locale-prefixed public HTML routes only. Forward only same-origin, immutable `/assets/` preload
+  and modulepreload links, and remove `Link` hints from redirects, errors, and non-HTML responses.
+  Do not preload the lazy Mapbox bundle or emit hints for private, utility, profile, or redirect
+  routes. The Cloudflare zone Early Hints setting must be enabled so Cloudflare can turn the final
+  `Link` headers into cached HTTP 103 responses; no Worker-specific 103 adapter is required.
 - Run Lighthouse and Web Vitals for Arabic RTL and French/English LTR pages, including mobile.
 
 **Acceptance:** p95 public response budget is met; primary content exists without JavaScript; prerender
-inventory matches sitemap policy; no private page is publicly cached.
+inventory matches sitemap policy; only public HTML responses carry cache-safe `Link` hints; no private
+page is publicly cached.
 
 ### SEO-11 — Automated regression suite and release gate
 

@@ -24,6 +24,7 @@ type EventDetailLoaderData = {
 };
 
 export const Route = createFileRoute('/$market/e/$slug')({
+  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   component: () => {
     const { locale } = Route.useRouteContext();
     const { market, event, host } = Route.useLoaderData();
