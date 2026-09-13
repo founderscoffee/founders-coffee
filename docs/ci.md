@@ -61,10 +61,13 @@ not the live account.
 2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
 3. `nx sync:check` — asserts the tsconfig project references are committed. `nx.json` sets
    `sync.applyChanges: true`, so local runs repair them silently; this catches the un-committed repair.
-4. `nx run-many -t typecheck lint test build --parallel=1` — verifies every production build; the
+4. `nx run worker-jobs:migrate:local` — applies the committed D1 migrations to the local state used
+   by Cloudflare's Vite prerender server. This keeps the production build deterministic without
+   requiring Cloudflare credentials or staging data.
+5. `nx run-many -t typecheck lint test build --parallel=1` — verifies every production build; the
    serial graph keeps Istanbul coverage output isolated between Miniflare projects. `lint` includes
    the Nx module-boundary rules, so a violation of the one-directional data flow (AGENTS.md §4) fails here.
-5. `nx run public:integration-test` — exercises the Worker, SSR documents, redirects, robots, sitemap,
+6. `nx run public:integration-test` — exercises the Worker, SSR documents, redirects, robots, sitemap,
    indexation headers, and Early Hint filtering against Miniflare's real D1/R2/Queues bindings.
 
 ### Two caches, and why `npm ci` is usually skipped

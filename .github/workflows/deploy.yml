@@ -96,6 +96,9 @@ jobs:
       - name: Apply D1 migrations
         run: npx nx run worker-jobs:migrate:${{ env.TARGET_ENV }}
 
+      - name: Initialize local D1 for prerender build
+        run: npx nx run worker-jobs:migrate:local
+
       # `--parallel=1` keeps the four Workers' logs readable and makes a partial failure
       # unambiguous. apps/ui, apps/dashboard and apps/admin select their environment via
       # CLOUDFLARE_ENV at build time; apps/worker-jobs uses `wrangler deploy --env`.

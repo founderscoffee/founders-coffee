@@ -66,6 +66,9 @@ jobs:
       - name: Check Nx tsconfig project references are in sync
         run: npx nx sync:check
 
+      - name: Initialize local D1 for SSR prerender builds
+        run: npx nx run worker-jobs:migrate:local
+
       # `lint` includes the Nx module-boundary rules that enforce the one-directional
       # data flow (AGENTS.md §4), so a boundary violation fails CI here.
       - name: Typecheck, lint, test and build
