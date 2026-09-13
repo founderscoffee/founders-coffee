@@ -3,6 +3,7 @@ import type { geo } from '@founders-coffee/domain';
 import { type Locale } from '@founders-coffee/i18n';
 import type {
   EventFeedItem,
+  EventFeedPage,
   TrendingSection,
 } from '@founders-coffee/server-fns';
 
@@ -19,6 +20,7 @@ type MarketLandingProps = {
   afterStartsAt?: number;
   afterId?: string;
   nextPageHref?: string;
+  nextCursor?: EventFeedPage['nextCursor'];
   trending: TrendingSection;
 };
 
@@ -30,6 +32,7 @@ export const MarketLanding = ({
   afterStartsAt,
   afterId,
   nextPageHref,
+  nextCursor,
   trending,
 }: MarketLandingProps) => (
   <>
@@ -46,6 +49,7 @@ export const MarketLanding = ({
       afterStartsAt={afterStartsAt}
       afterId={afterId}
       nextPageHref={nextPageHref}
+      nextCursor={nextCursor}
     />
   </>
 );

@@ -110,6 +110,7 @@ export const Route = createFileRoute('/$market/$city')({
           events={data.events}
           afterStartsAt={data.pagination.afterStartsAt}
           afterId={data.pagination.afterId}
+          nextCursor={data.eventsNextCursor}
           nextPageHref={
             data.eventsNextCursor
               ? canonicalUrl({
@@ -141,6 +142,7 @@ export const Route = createFileRoute('/$market/$city')({
         market={data.market}
         city={data.city}
         events={data.events}
+        nextCursor={data.eventsNextCursor}
       />
     );
   },

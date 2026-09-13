@@ -2,6 +2,7 @@ import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 
 import { readPushConfig, registerPushToken } from './api';
+import { logServiceWorkerFailure } from './service-worker-error';
 import { registerServiceWorker } from './service-worker';
 
 let app: FirebaseApp | null = null;
@@ -35,7 +36,9 @@ const tokenFor = async (): Promise<string | null> => {
   if (!messaging) return null;
   const config = await readPushConfig();
   if (!config) return null;
-  const serviceWorkerRegistration = await registerServiceWorker();
+  const serviceWorkerRegistration = await registerServiceWorker({
+    onRegistrationError: logServiceWorkerFailure,
+  });
   if (!serviceWorkerRegistration) return null;
   return (
     (await getToken(messaging, {

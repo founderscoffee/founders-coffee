@@ -14,8 +14,8 @@ import {
 } from '@founders-coffee/observability';
 import { getVisibleMarkets } from '@founders-coffee/server-fns';
 
-import { registerServiceWorker } from '../features/push/service-worker';
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
+import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
 import { AppProviders } from '../lib/app-providers';
@@ -54,7 +54,11 @@ const useClientObservability = () => {
 
 const useServiceWorker = () => {
   useEffect(() => {
-    void registerServiceWorker();
+    void import('../features/push/service-worker')
+      .then(({ registerServiceWorker }) =>
+        registerServiceWorker({ onRegistrationError: logServiceWorkerFailure }),
+      )
+      .catch(logServiceWorkerFailure);
   }, []);
 };
 

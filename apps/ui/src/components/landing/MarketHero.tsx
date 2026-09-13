@@ -17,13 +17,31 @@ import { EmptyCityCard } from './EmptyCityCard';
 import { HeroCitySearch } from './HeroCitySearch';
 
 import heroAlgeria from '../../assets/hero-algeria.webp';
+import heroAlgeriaDesktop from '../../assets/hero-algeria-desktop.webp';
+import heroAlgeriaMobile from '../../assets/hero-algeria-mobile.webp';
 import heroEgypt from '../../assets/hero-egypt.webp';
+import heroEgyptDesktop from '../../assets/hero-egypt-desktop.webp';
+import heroEgyptMobile from '../../assets/hero-egypt-mobile.webp';
 import heroSaudi from '../../assets/hero-saudi.webp';
+import heroSaudiDesktop from '../../assets/hero-saudi-desktop.webp';
+import heroSaudiMobile from '../../assets/hero-saudi-mobile.webp';
 
 const HERO_ART: Record<string, string> = {
   DZ: heroAlgeria,
   EG: heroEgypt,
   SA: heroSaudi,
+};
+
+const HERO_ART_MOBILE: Record<string, string> = {
+  DZ: heroAlgeriaMobile,
+  EG: heroEgyptMobile,
+  SA: heroSaudiMobile,
+};
+
+const HERO_ART_DESKTOP: Record<string, string> = {
+  DZ: heroAlgeriaDesktop,
+  EG: heroEgyptDesktop,
+  SA: heroSaudiDesktop,
 };
 
 type MarketHeroProps = {
@@ -47,6 +65,8 @@ export const MarketHero = ({
   const isSelectedCityEmpty =
     selectedCity !== undefined && selectedCityCount === 0;
   const heroArt = HERO_ART[market.code];
+  const heroArtDesktop = HERO_ART_DESKTOP[market.code];
+  const heroArtMobile = HERO_ART_MOBILE[market.code];
   const marketName =
     locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
   const cityDisplayName = selectedCity
@@ -58,13 +78,25 @@ export const MarketHero = ({
   return (
     <section className="relative isolate flex min-h-[calc(min(100vw,2172px)/2.99)] items-center bg-base-200">
       {heroArt && (
-        <img
-          src={heroArt}
-          alt=""
-          fetchPriority="high"
-          decoding="async"
-          className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 mx-auto h-auto w-full max-w-[2172px] select-none"
-        />
+        <picture className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 mx-auto block w-full max-w-[2172px] select-none">
+          <source
+            media="(max-width: 767px)"
+            srcSet={heroArtMobile ?? heroArt}
+            sizes="100vw"
+          />
+          <source
+            media="(min-width: 768px)"
+            srcSet={`${heroArtDesktop ?? heroArt} 1440w, ${heroArt} 2172w`}
+            sizes="(max-width: 2172px) 100vw, 2172px"
+          />
+          <img
+            src={heroArt}
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+            className="block h-auto w-full"
+          />
+        </picture>
       )}
       <div className="mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-[calc(33.4vw+1rem)] text-center md:px-8 md:pt-14 md:pb-14">
         <span className="inline-flex h-[26px] items-center rounded-full bg-base-100 px-2.5 text-caption font-medium">

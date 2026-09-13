@@ -101,6 +101,17 @@ describe('P1-002 landing typography', () => {
     },
   );
 
+  it('serves a responsive mobile hero asset', () => {
+    const view = render(
+      <MarketHero locale="ar" market={market} cityEventCounts={{}} />,
+    );
+    const sources = view.container.querySelectorAll('picture source');
+    expect(sources[0]?.getAttribute('media')).toBe('(max-width: 767px)');
+    expect(sources[0]?.getAttribute('srcset')).toMatch(/hero-algeria-mobile/);
+    expect(sources[1]?.getAttribute('media')).toBe('(min-width: 768px)');
+    expect(sources[1]?.getAttribute('srcset')).toMatch(/hero-algeria-desktop/);
+  });
+
   it.each<Locale>(['ar', 'fr', 'en'])(
     'keeps event titles and metadata while enlarging attendance in %s',
     (locale) => {

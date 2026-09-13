@@ -37,6 +37,7 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
         events={events}
         afterStartsAt={afterStartsAt}
         afterId={afterId}
+        nextCursor={eventsNextCursor}
         nextPageHref={
           eventsNextCursor
             ? canonicalUrl({

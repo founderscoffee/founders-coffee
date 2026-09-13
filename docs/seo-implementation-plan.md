@@ -232,6 +232,17 @@ do not inherit profile response headers; privacy regression tests remain green.
   `Link` headers into cached HTTP 103 responses; no Worker-specific 103 adapter is required.
 - Run Lighthouse and Web Vitals for Arabic RTL and French/English LTR pages, including mobile.
 
+Implementation evidence: cache-busted 2026-09-13 PageSpeed Insights runs against staging
+`/ar/algeria` measured 95 mobile performance (FCP 1.9s, LCP 2.7s, TBT 0ms, CLS 0.03) and 100
+desktop performance (FCP 0.4s, LCP 0.6s, TBT 20ms, CLS 0.001). The market hero serves dedicated
+mobile and 1440px desktop WebP variants, the hydrated event feed seeds its query from SSR data,
+and the non-critical service-worker registration is loaded after the initial route bundle. SEO
+scores remain intentionally reduced on staging because `X-Robots-Tag: noindex, nofollow` is active.
+The remaining Lighthouse advisories are non-blocking: the shared 38 KiB-gzip stylesheet is
+render-blocking and the route bundle has about 44 KiB of unused JavaScript. The stylesheet remains
+blocking until a separately tested critical-CSS split is available, avoiding a flash of unstyled
+content.
+
 **Acceptance:** p95 public response budget is met; primary content exists without JavaScript; prerender
 inventory matches sitemap policy; only public HTML responses carry cache-safe `Link` hints; no private
 page is publicly cached.

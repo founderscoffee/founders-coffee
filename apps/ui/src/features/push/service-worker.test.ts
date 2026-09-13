@@ -13,10 +13,6 @@ vi.mock('@serwist/window', () => ({
     register = state.register;
   },
 }));
-vi.mock('@founders-coffee/observability', () => ({
-  logger: { warn: vi.fn(), info: vi.fn(), error: vi.fn() },
-}));
-
 const load = async () => {
   vi.resetModules();
   return import('./service-worker');
@@ -76,10 +72,13 @@ describe('registerServiceWorker', () => {
   });
 
   it('answers null rather than throwing when the browser refuses', async () => {
-    state.register.mockRejectedValue(new Error('storage blocked'));
+    const error = new Error('storage blocked');
+    const onRegistrationError = vi.fn();
+    state.register.mockRejectedValue(error);
     const { registerServiceWorker } = await load();
 
-    expect(await registerServiceWorker()).toBeNull();
+    expect(await registerServiceWorker({ onRegistrationError })).toBeNull();
+    expect(onRegistrationError).toHaveBeenCalledWith(error);
   });
 
   it('retries after a refusal instead of caching the failure forever', async () => {

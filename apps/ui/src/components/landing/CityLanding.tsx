@@ -15,7 +15,7 @@ import {
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
-import type { EventFeedItem } from '@founders-coffee/server-fns';
+import type { EventFeedItem, EventFeedPage } from '@founders-coffee/server-fns';
 
 import { applyCityFilters, type CityFilterKey } from '../../lib/city-filters';
 import { useUpcomingEvents } from '../../features/events/hooks';
@@ -34,6 +34,7 @@ type CityLandingProps = {
   afterStartsAt?: number;
   afterId?: string;
   nextPageHref?: string;
+  nextCursor?: EventFeedPage['nextCursor'];
 };
 
 const PAGE_SIZE = 20;
@@ -49,6 +50,7 @@ export const CityLanding = ({
   afterStartsAt,
   afterId,
   nextPageHref,
+  nextCursor,
 }: CityLandingProps) => {
   const cityDisplayName = locale === 'ar' ? city.nameAr : city.name;
   const marketName = marketDisplayName(market, locale);
@@ -62,13 +64,18 @@ export const CityLanding = ({
     );
 
   const pagination = useEventPages(
-    useUpcomingEvents({
-      marketCode: market.code,
-      cityCode: city.code,
-      limit: PAGE_SIZE,
-      afterStartsAt,
-      afterId,
-    }),
+    useUpcomingEvents(
+      {
+        marketCode: market.code,
+        cityCode: city.code,
+        limit: PAGE_SIZE,
+        afterStartsAt,
+        afterId,
+      },
+      {
+        initialPage: { items: events, nextCursor: nextCursor ?? null },
+      },
+    ),
     events,
   );
   const items = pagination.items;

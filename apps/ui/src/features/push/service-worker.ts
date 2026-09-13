@@ -1,8 +1,10 @@
 import { Serwist } from '@serwist/window';
 
-import { logger } from '@founders-coffee/observability';
-
 let pending: Promise<ServiceWorkerRegistration | null> | null = null;
+
+type RegisterServiceWorkerOptions = {
+  onRegistrationError?: (error: unknown) => void;
+};
 
 /**
  * Whether this build has a service worker to register at all.
@@ -28,24 +30,23 @@ const isAvailable = (): boolean =>
  *
  * Resolves to `null` rather than throwing. A browser that refuses the registration — private mode,
  * storage blocked, an unsupported context — is a state the caller has to render, not an exception
- * to propagate through a layout effect. The reason is logged, because the failure this replaces
- * produced no signal at all.
+ * to propagate through a layout effect. Callers can provide an error callback when the failure
+ * needs to be reported.
  */
-export const registerServiceWorker =
-  (): Promise<ServiceWorkerRegistration | null> => {
-    if (!isAvailable()) return Promise.resolve(null);
-    if (pending) return pending;
+export const registerServiceWorker = (
+  options: RegisterServiceWorkerOptions = {},
+): Promise<ServiceWorkerRegistration | null> => {
+  if (!isAvailable()) return Promise.resolve(null);
+  if (pending) return pending;
 
-    pending = new Serwist('/sw.js', { scope: '/', type: 'classic' })
-      .register()
-      .then((registration) => registration ?? null)
-      .catch((error: unknown) => {
-        logger.warn('push.service_worker_registration_failed', {
-          message: error instanceof Error ? error.message : String(error),
-        });
-        pending = null;
-        return null;
-      });
+  pending = new Serwist('/sw.js', { scope: '/', type: 'classic' })
+    .register()
+    .then((registration) => registration ?? null)
+    .catch((error: unknown) => {
+      options.onRegistrationError?.(error);
+      pending = null;
+      return null;
+    });
 
-    return pending;
-  };
+  return pending;
+};
