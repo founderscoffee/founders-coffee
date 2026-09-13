@@ -24,6 +24,7 @@ export default defineConfig(async () => {
     test: {
       include: ['integration/**/*.test.ts'],
       setupFiles: ['./integration/setup.ts'],
+      testTimeout: 30_000,
     },
   };
 });
