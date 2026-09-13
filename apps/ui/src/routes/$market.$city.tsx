@@ -20,7 +20,12 @@ import {
   termsContent,
 } from '../content/company';
 import { readCookieHeader } from '../lib/cookies';
-import { cityPageHead, getRequestPath, marketPageHead } from '../lib/seo';
+import {
+  canonicalUrl,
+  cityPageHead,
+  getRequestPath,
+  marketPageHead,
+} from '../lib/seo';
 import { companyPageHead } from '../lib/seo-company';
 
 const companyPages = {
@@ -143,7 +148,19 @@ export const Route = createFileRoute('/$market/$city')({
     if (loaderData.kind === 'market') {
       return marketPageHead({
         locale: loaderData.locale,
-        marketName: loaderData.market.name,
+        marketName:
+          loaderData.locale === 'ar'
+            ? (loaderData.market.nameAr ?? loaderData.market.name)
+            : loaderData.market.name,
+        events: loaderData.events.map((event) => ({
+          name: event.title,
+          url: canonicalUrl({
+            type: 'event',
+            market: loaderData.market.slug,
+            slug: event.slug,
+            locale: loaderData.locale,
+          }),
+        })),
         route: {
           type: 'market',
           market: loaderData.market.slug,
@@ -173,6 +190,15 @@ export const Route = createFileRoute('/$market/$city')({
           : loaderData.market.name,
       cityName,
       isEmpty: loaderData.events.length === 0,
+      events: loaderData.events.map((event) => ({
+        name: event.title,
+        url: canonicalUrl({
+          type: 'event',
+          market: loaderData.market.slug,
+          slug: event.slug,
+          locale: loaderData.locale,
+        }),
+      })),
       route: {
         type: 'city',
         market: loaderData.market.slug,

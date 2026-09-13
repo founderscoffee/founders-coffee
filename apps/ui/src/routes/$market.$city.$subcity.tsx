@@ -5,7 +5,7 @@ import { isLocale, type Locale } from '@founders-coffee/i18n';
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
-import { cityPageHead } from '../lib/seo';
+import { canonicalUrl, cityPageHead } from '../lib/seo';
 
 export const Route = createFileRoute('/$market/$city/$subcity')({
   staticData: { prerender: true },
@@ -58,6 +58,15 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
           : loaderData.market.name,
       cityName,
       isEmpty: loaderData.events.length === 0,
+      events: loaderData.events.map((event) => ({
+        name: event.title,
+        url: canonicalUrl({
+          type: 'event',
+          market: loaderData.market.slug,
+          slug: event.slug,
+          locale: loaderData.locale,
+        }),
+      })),
       route: {
         type: 'city',
         market: loaderData.market.slug,

@@ -7,10 +7,10 @@ import {
   canonicalPath,
   canonicalUrl,
   cityPageHead,
-  eventPageHead,
   localeAlternates,
   marketPageHead,
 } from './seo';
+import { eventPageHead } from './seo-event';
 
 describe('canonical URLs', () => {
   it('builds query-free paths for every public route class', () => {
@@ -108,6 +108,12 @@ describe('public page metadata', () => {
       marketPageHead({
         locale: 'en',
         marketName: 'Algeria',
+        events: [
+          {
+            name: 'Founders breakfast',
+            url: 'https://founders.coffee/en/algeria/e/founders-breakfast',
+          },
+        ],
         route: { type: 'market', market: 'algeria', locale: 'en' },
       }),
     );
@@ -125,6 +131,12 @@ describe('public page metadata', () => {
     expect(head.links).toContainEqual({
       rel: 'canonical',
       href: 'https://founders.coffee/en/algeria',
+    });
+    expect(JSON.parse(head.scripts[0]?.children ?? '{}')).toMatchObject({
+      '@type': 'CollectionPage',
+      mainEntity: {
+        itemListElement: [{ name: 'Founders breakfast', position: 1 }],
+      },
     });
   });
 
@@ -157,6 +169,12 @@ describe('public page metadata', () => {
     ).not.toBe(
       active.meta.find((item) => item.name === 'description')?.content,
     );
+    expect(JSON.parse(active.scripts[0]?.children ?? '{}')).toMatchObject({
+      '@type': 'CollectionPage',
+    });
+    expect(JSON.parse(active.scripts[1]?.children ?? '{}')).toMatchObject({
+      '@type': 'BreadcrumbList',
+    });
   });
 
   it('falls back to localized event copy and truncates authored descriptions by code points', () => {
@@ -166,6 +184,24 @@ describe('public page metadata', () => {
       cityName: 'Alger',
       description: '😀'.repeat(200),
       route: { type: 'event', market: 'algeria', slug: 'cafe', locale: 'fr' },
+      structuredEvent: {
+        title: 'Café fondateurs',
+        description: '😀'.repeat(200),
+        startsAt: new Date('2026-09-20T10:00:00Z'),
+        endsAt: new Date('2026-09-20T12:00:00Z'),
+        status: 'published',
+        venue: 'Café',
+        cityName: 'Alger',
+        venueAddress: null,
+        latitude: null,
+        longitude: null,
+        marketCode: 'DZ',
+        language: 'fr',
+        url: 'https://founders.coffee/fr/algeria/e/cafe',
+        currency: 'DZD',
+        organizer: null,
+      },
+      breadcrumbs: [],
     });
     const fallback = eventPageHead({
       locale: 'fr',
@@ -173,6 +209,24 @@ describe('public page metadata', () => {
       cityName: 'Alger',
       description: '',
       route: { type: 'event', market: 'algeria', slug: 'cafe', locale: 'fr' },
+      structuredEvent: {
+        title: 'Café fondateurs',
+        description: '',
+        startsAt: new Date('2026-09-20T10:00:00Z'),
+        endsAt: null,
+        status: 'published',
+        venue: 'Café',
+        cityName: 'Alger',
+        venueAddress: null,
+        latitude: null,
+        longitude: null,
+        marketCode: 'DZ',
+        language: 'fr',
+        url: 'https://founders.coffee/fr/algeria/e/cafe',
+        currency: 'DZD',
+        organizer: null,
+      },
+      breadcrumbs: [],
     });
     const description = head.meta.find(
       (item) => item.name === 'description',
@@ -184,6 +238,10 @@ describe('public page metadata', () => {
       fallback.meta.find((item) => item.name === 'description')?.content,
     ).toContain('Rejoignez');
     expect(head.meta).toContainEqual({ property: 'og:type', content: 'event' });
+    expect(JSON.parse(head.scripts[0]?.children ?? '{}')).toMatchObject({
+      '@type': 'Event',
+      description,
+    });
   });
 
   it('uses the same builder for company pages', () => {

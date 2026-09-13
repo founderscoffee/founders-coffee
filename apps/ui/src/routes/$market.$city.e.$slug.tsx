@@ -16,7 +16,8 @@ import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
-import { eventPageHead } from '../lib/seo';
+import { canonicalUrl, getSiteOrigin } from '../lib/seo';
+import { eventPageHead } from '../lib/seo-event';
 
 type EventRouteData = {
   readonly locale: Locale;
@@ -108,6 +109,17 @@ export const Route = createFileRoute('/$market/$city/e/$slug')({
       loaderData.locale === 'ar'
         ? loaderData.event.cityNameAr
         : loaderData.event.cityName;
+    const eventUrl = canonicalUrl({
+      type: 'event',
+      market: loaderData.market.slug,
+      slug: loaderData.event.slug,
+      locale: loaderData.locale,
+    });
+    const citySlug = loaderData.event.citySlug ?? loaderData.event.cityCode;
+    const marketName =
+      loaderData.locale === 'ar'
+        ? (loaderData.market.nameAr ?? loaderData.market.name)
+        : loaderData.market.name;
     return eventPageHead({
       locale: loaderData.locale,
       title: loaderData.event.title,
@@ -119,6 +131,52 @@ export const Route = createFileRoute('/$market/$city/e/$slug')({
         slug: loaderData.event.slug,
         locale: loaderData.locale,
       },
+      structuredEvent: {
+        title: loaderData.event.title,
+        description: loaderData.event.description,
+        startsAt: loaderData.event.startsAt,
+        endsAt: loaderData.event.endsAt,
+        status: loaderData.event.status,
+        venue: loaderData.event.venue,
+        cityName,
+        venueAddress: loaderData.event.venueAddress,
+        latitude: loaderData.event.latitude,
+        longitude: loaderData.event.longitude,
+        marketCode: loaderData.event.marketCode,
+        language: loaderData.event.language,
+        url: eventUrl,
+        currency: loaderData.market.defaultCurrency,
+        organizer: loaderData.host
+          ? {
+              name: loaderData.host.displayName,
+              url: `${getSiteOrigin()}/u/${encodeURIComponent(loaderData.host.userId)}`,
+            }
+          : null,
+      },
+      breadcrumbs: [
+        {
+          name: 'founders.coffee',
+          url: canonicalUrl({ type: 'root', locale: loaderData.locale }),
+        },
+        {
+          name: marketName,
+          url: canonicalUrl({
+            type: 'market',
+            market: loaderData.market.slug,
+            locale: loaderData.locale,
+          }),
+        },
+        {
+          name: cityName,
+          url: canonicalUrl({
+            type: 'city',
+            market: loaderData.market.slug,
+            city: citySlug,
+            locale: loaderData.locale,
+          }),
+        },
+        { name: loaderData.event.title, url: eventUrl },
+      ],
     });
   },
 });

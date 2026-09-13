@@ -1,7 +1,6 @@
 import {
   city_events_description,
   city_empty_body,
-  event_meta_description,
   LOCALES,
   market_hero_desc,
   market_hero_title,
@@ -10,6 +9,11 @@ import {
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { PRODUCTION_ORIGIN } from './indexation';
+import {
+  breadcrumbJsonLd,
+  collectionPageJsonLd,
+  type StructuredListItem,
+} from './seo-structured-data';
 
 export const SITE_ORIGIN = PRODUCTION_ORIGIN;
 
@@ -166,20 +170,39 @@ export const buildPageMetadata = ({
 type MarketHeadInput = {
   readonly locale: Locale;
   readonly marketName: string;
-  readonly route: CanonicalRoute;
+  readonly route: Extract<CanonicalRoute, { readonly type: 'market' }>;
+  readonly events?: readonly StructuredListItem[];
 };
 
 export const marketPageHead = ({
   locale,
   marketName,
   route,
+  events = [],
 }: MarketHeadInput) => {
-  return buildPageMetadata({
+  const metadata = buildPageMetadata({
     locale,
     title: market_hero_title({ market: marketName }, { locale }),
     description: market_hero_desc({}, { locale }),
     route,
   });
+  return {
+    ...metadata,
+    scripts: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify(
+          collectionPageJsonLd({
+            name: marketName,
+            description: market_hero_desc({}, { locale }),
+            url: canonicalUrl(route),
+            locale,
+            items: events,
+          }),
+        ),
+      },
+    ],
+  };
 };
 
 type CityHeadInput = {
@@ -187,7 +210,8 @@ type CityHeadInput = {
   readonly marketName: string;
   readonly cityName: string;
   readonly isEmpty: boolean;
-  readonly route: CanonicalRoute;
+  readonly route: Extract<CanonicalRoute, { readonly type: 'city' }>;
+  readonly events?: readonly StructuredListItem[];
 };
 
 export const cityPageHead = ({
@@ -196,6 +220,7 @@ export const cityPageHead = ({
   cityName,
   isEmpty,
   route,
+  events = [],
 }: CityHeadInput) => {
   const description = isEmpty
     ? city_empty_body({ city: cityName }, { locale })
@@ -207,45 +232,37 @@ export const cityPageHead = ({
     route,
     robots: isEmpty ? 'noindex,follow' : 'index,follow',
   });
+  const breadcrumbs: StructuredListItem[] = [
+    { name: 'founders.coffee', url: canonicalUrl({ type: 'root', locale }) },
+    {
+      name: marketName,
+      url: canonicalUrl({
+        type: 'market',
+        market: route.market,
+        locale,
+      }),
+    },
+    { name: cityName, url: canonicalUrl(route) },
+  ];
   return {
     ...metadata,
     scripts: [
       {
         type: 'application/ld+json',
-        children: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'Place',
-          name: `${cityName} - founders.coffee community`,
-          description,
-          url: canonicalUrl(route),
-        }),
+        children: JSON.stringify(
+          collectionPageJsonLd({
+            name: `${cityName} · ${marketName}`,
+            description,
+            url: canonicalUrl(route),
+            locale,
+            items: events,
+          }),
+        ),
+      },
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify(breadcrumbJsonLd(breadcrumbs)),
       },
     ],
   };
-};
-
-type EventHeadInput = {
-  readonly locale: Locale;
-  readonly title: string;
-  readonly cityName: string;
-  readonly description?: string;
-  readonly route: CanonicalRoute;
-};
-
-export const eventPageHead = ({
-  locale,
-  title,
-  cityName,
-  description,
-  route,
-}: EventHeadInput) => {
-  return buildPageMetadata({
-    locale,
-    title: `${title} · ${cityName}`,
-    description:
-      description ||
-      event_meta_description({ title, city: cityName }, { locale }),
-    route,
-    openGraphType: 'event',
-  });
 };

@@ -18,7 +18,7 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-05 are implemented and locally verified; SEO-06 through SEO-12 remain planned.
+Current progress: SEO-01 through SEO-06 are implemented and locally verified; SEO-07 through SEO-12 remain planned.
 
 ## 1. Audit baseline
 
@@ -157,6 +157,8 @@ titles, mismatched language, or inherited homepage OG/canonical values remain.
 ### SEO-06 — Structured data for discovery pages
 
 **Requirements:** FR-E5, FR-E6, FR-E7, NFR-12. **Depends on:** SEO-05.
+
+**Status:** Implemented and locally verified.
 
 - Keep the Organization entity with authoritative fields only; remove empty optional properties.
 - Add `WebSite`/`WebPage` or `CollectionPage` data where it describes the actual page.
