@@ -103,6 +103,9 @@ repository settings, not here.
 2. **verify** — calls `ci.yml`.
 3. **deploy** — bound to the matching GitHub Environment (so its scoped secrets apply), applies D1
    migrations, deploys the four Workers, then runs the SEO route smoke against the deployed origin.
+   Staging probes use the environment's `workers.dev` hostname and assert canonical URLs against
+   `staging.founders.coffee`, so the gate tests the deployed Worker without depending on a
+   custom-domain WAF challenge from GitHub-hosted runners. Production probes use `founders.coffee`.
    The smoke writes a JSON route report and the fetched sitemap, uploaded as a `seo-<environment>-<sha>`
    artifact. It covers all locales, company and market routes, discovered city/event routes, utility
    noindex/cache headers, robots, canonical URLs, and same-origin Early Hint links. Dynamic city/event

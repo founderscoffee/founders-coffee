@@ -253,7 +253,9 @@ as empty when the staging D1 has no public rows; no test fixtures are written to
 Implementation evidence: `apps/ui/integration/seo.integration.test.ts` runs against Miniflare with the
 real Worker entrypoint and migrated D1; `tools/seo/smoke.mjs` probes the deployed origin and writes both
 artifacts; `.github/workflows/ci.yml` runs the integration gate and `.github/workflows/deploy.yml`
-uploads the staging/production smoke artifacts. The 2026-09-13 staging run passed all 18 discovered
+uploads the staging/production smoke artifacts. Staging CI probes the deployed `workers.dev` hostname
+while asserting `staging.founders.coffee` canonicals, avoiding a custom-domain WAF challenge on hosted
+runners. The 2026-09-13 staging run passed all 18 discovered
 static routes and utility checks (3 market routes, 15 company routes, zero dynamic rows). Playwright
 remains outside CI as decided.
 

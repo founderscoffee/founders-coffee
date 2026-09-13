@@ -24,6 +24,10 @@ const origin = argument(
   '--origin',
   process.env.SEO_ORIGIN ?? DEFAULT_ORIGIN,
 ).replace(/\/$/u, '');
+const canonicalOrigin = argument('--canonical-origin', origin).replace(
+  /\/$/u,
+  '',
+);
 const reportPath = argument('--output', 'seo-route-report.json');
 const sitemapPath = argument('--sitemap-output', 'sitemap.xml');
 const requireDynamic = process.argv.includes('--require-dynamic');
@@ -72,7 +76,7 @@ const routeEntry = (path, type, response, body, failures) => {
   const canonical = canonicalTags[0]
     ? readAttribute(canonicalTags[0][0], 'href')
     : null;
-  const expectedCanonical = absoluteUrl(path);
+  const expectedCanonical = new URL(path, `${canonicalOrigin}/`).toString();
   if (response.status !== 200)
     failures.push(`${path}: expected 200, got ${response.status}`);
   if (!contentType.toLowerCase().includes(HTML_CONTENT_TYPE))
@@ -87,7 +91,7 @@ const routeEntry = (path, type, response, body, failures) => {
     failures.push(
       `${path}: canonical ${canonical ?? 'missing'} != ${expectedCanonical}`,
     );
-  if (origin === 'https://founders.coffee') {
+  if (canonicalOrigin === 'https://founders.coffee') {
     if (robots?.toLowerCase().includes('noindex'))
       failures.push(`${path}: production response is noindex`);
   } else if (robots !== NO_INDEX) {
@@ -146,7 +150,7 @@ const run = async () => {
   const robots = await robotsResponse.text();
   if (robotsResponse.status !== 200)
     failures.push(`robots.txt: expected 200, got ${robotsResponse.status}`);
-  if (origin === 'https://founders.coffee') {
+  if (canonicalOrigin === 'https://founders.coffee') {
     if (!robots.includes('Sitemap: https://founders.coffee/sitemap.xml'))
       failures.push('robots.txt: production sitemap reference is missing');
   } else if (!robots.includes('Disallow: /') || robots.includes('Sitemap:')) {
@@ -169,7 +173,7 @@ const run = async () => {
     failures.push('sitemap.xml: expected application/xml content type');
   if (!sitemap.includes('<urlset'))
     failures.push('sitemap.xml: urlset is missing');
-  if (origin !== 'https://founders.coffee' && /<url>/u.test(sitemap))
+  if (canonicalOrigin !== 'https://founders.coffee' && /<url>/u.test(sitemap))
     failures.push('sitemap.xml: staging sitemap must be empty');
   const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/giu)].map(
     (match) => match[1],
@@ -256,7 +260,8 @@ const run = async () => {
   const report = {
     generatedAt: new Date().toISOString(),
     origin,
-    indexableExpected: origin === 'https://founders.coffee',
+    indexableExpected: canonicalOrigin === 'https://founders.coffee',
+    canonicalOrigin,
     robots: { status: robotsResponse.status, body: robots },
     sitemap: { status: sitemapResponse.status, urlCount: sitemapUrls.length },
     coverage: { locales: LOCALES, classes: coverage },

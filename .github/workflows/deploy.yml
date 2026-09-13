@@ -105,14 +105,36 @@ jobs:
       - name: Deploy Workers
         run: npx nx run-many -t deploy:${{ env.TARGET_ENV }} --parallel=1 --output-style=stream
 
+      - name: Resolve SEO smoke origin
+        id: seo-origin
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ "$TARGET_ENV" = "production" ]; then
+            echo "origin=https://founders.coffee" >> "$GITHUB_OUTPUT"
+            echo "canonical_origin=https://founders.coffee" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          response=$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain")
+          subdomain=$(printf '%s' "$response" | jq -r '.result.subdomain // empty')
+          if [ -z "$subdomain" ]; then
+            echo "Cloudflare Workers subdomain is missing" >&2
+            exit 1
+          fi
+          echo "origin=https://founders-coffee-ui-staging.$subdomain.workers.dev" >> "$GITHUB_OUTPUT"
+          echo "canonical_origin=https://staging.founders.coffee" >> "$GITHUB_OUTPUT"
+
       - name: Run SEO route smoke
         env:
           REPORT_DIR: ${{ runner.temp }}/seo
         run: |
-          if [ "$TARGET_ENV" = "production" ]; then ORIGIN=https://founders.coffee; else ORIGIN=https://staging.founders.coffee; fi
           mkdir -p "$REPORT_DIR"
           node tools/seo/smoke.mjs \
-            --origin "$ORIGIN" \
+            --origin "${{ steps.seo-origin.outputs.origin }}" \
+            --canonical-origin "${{ steps.seo-origin.outputs.canonical_origin }}" \
             --output "$REPORT_DIR/seo-route-report.json" \
             --sitemap-output "$REPORT_DIR/sitemap.xml"
 
