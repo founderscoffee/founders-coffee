@@ -79,6 +79,7 @@
   "llms_event_inventory": "تتوفر تفاصيل اللقاءات العامة في خريطة الموقع الأساسية.",
   "llms_sitemap": "خريطة الموقع الأساسية",
   "llms_robots": "تعليمات الزحف",
+  "llms_event_feed": "خلاصة اللقاءات القابلة للقراءة آلياً",
   "llms_staging": "هذه بيئة تجريبية وليست مخصصة للاكتشاف العام.",
   "nav_communities": "المجتمعات",
   "market_hero_title": "founders.coffee في {market}",

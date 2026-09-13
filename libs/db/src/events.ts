@@ -27,7 +27,7 @@ const ASSUMED_DURATION_SECONDS = 2 * 60 * 60;
  * A suppressed host takes their gatherings with them: {@link visibleIdentity} is part of the scope
  * rather than a filter applied afterwards, so the counts cannot describe rows the list refuses.
  */
-const upcomingScope = (now: Date) =>
+export const upcomingScope = (now: Date) =>
   and(
     sql`coalesce(${events.endsAt}, ${events.startsAt} + ${ASSUMED_DURATION_SECONDS}) > ${Math.floor(now.getTime() / 1000)}`,
     visibleIdentity(events.hostId),

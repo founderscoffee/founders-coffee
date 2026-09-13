@@ -1,4 +1,4 @@
-import { createDb, seed } from '@founders-coffee/db';
+import { createDb, events, seed, user } from '@founders-coffee/db';
 import {
   createExecutionContext,
   env,
@@ -25,7 +25,36 @@ const fetchDocument = async (pathname: string): Promise<Response> => {
 
 describe('public Worker SEO contract', () => {
   beforeAll(async () => {
-    await seed(createDb(env.DB));
+    const db = createDb(env.DB);
+    await seed(db);
+    await db
+      .insert(user)
+      .values({
+        id: 'usr_geo_feed',
+        name: 'GEO Feed Host',
+        email: 'geo-feed@test.coffee',
+        role: 'host',
+      })
+      .onConflictDoNothing()
+      .run();
+    await db
+      .insert(events)
+      .values({
+        id: 'evt_geo_feed',
+        hostId: 'usr_geo_feed',
+        marketCode: 'DZ',
+        stateCode: '16',
+        cityCode: '556',
+        title: 'GEO feed meetup',
+        description: 'A public meetup used by the GEO feed integration test.',
+        venue: 'Café des Délices',
+        startsAt: new Date('2099-01-15T18:00:00Z'),
+        language: 'fr',
+        slug: 'geo-feed-meetup',
+        status: 'published',
+      })
+      .onConflictDoNothing()
+      .run();
   });
 
   it('serves staging robots and an empty staging sitemap', async () => {
@@ -84,6 +113,70 @@ describe('public Worker SEO contract', () => {
     expect(productionBody).toContain('https://founders.coffee/sitemap.xml');
     expect(productionBody).toContain('https://founders.coffee/robots.txt');
     expect(productionBody).not.toContain('staging.founders.coffee');
+  });
+
+  it('serves a bounded public event feed and keeps staging empty', async () => {
+    const staging = await worker.fetch(
+      new Request(`${ORIGIN}/events.json?market=algeria`),
+      env,
+      createExecutionContext(),
+    );
+    const stagingBody = (await staging.json()) as {
+      readonly items: readonly unknown[];
+      readonly nextCursor: string | null;
+    };
+    expect(staging.status).toBe(200);
+    expect(staging.headers.get('content-type')).toContain('application/json');
+    expect(staging.headers.get('x-robots-tag')).toBe('noindex, nofollow');
+    expect(stagingBody).toEqual({ items: [], nextCursor: null });
+
+    const production = await worker.fetch(
+      new Request('https://founders.coffee/events.json?market=algeria&limit=1'),
+      env,
+      createExecutionContext(),
+    );
+    const productionBody = (await production.json()) as {
+      readonly items: readonly Record<string, unknown>[];
+      readonly nextCursor: string | null;
+    };
+    expect(production.status).toBe(200);
+    expect(production.headers.get('x-robots-tag')).toBeNull();
+    expect(production.headers.get('cache-control')).toContain('s-maxage=300');
+    expect(productionBody.items).toHaveLength(1);
+    expect(productionBody.items[0]).toMatchObject({
+      slug: 'geo-feed-meetup',
+      market: 'algeria',
+      city: 'algiers',
+      language: 'fr',
+      url: 'https://founders.coffee/fr/algeria/e/geo-feed-meetup',
+      organizer: { name: 'GEO Feed Host' },
+    });
+    expect(productionBody.items[0]).not.toHaveProperty('id');
+    expect(productionBody.items[0]).not.toHaveProperty('hostId');
+    expect(productionBody.items[0]).not.toHaveProperty('rsvps');
+
+    const invalid = await worker.fetch(
+      new Request('https://founders.coffee/events.json?limit=0'),
+      env,
+      createExecutionContext(),
+    );
+    expect(invalid.status).toBe(400);
+    expect(invalid.headers.get('content-type')).toContain('application/json');
+    expect(invalid.headers.get('cache-control')).toBe('no-store');
+    await expect(invalid.json()).resolves.toEqual({
+      error: 'invalid_request',
+    });
+
+    const invalidCursor = await worker.fetch(
+      new Request('https://founders.coffee/events.json?cursor=not-a-cursor'),
+      env,
+      createExecutionContext(),
+    );
+    expect(invalidCursor.status).toBe(400);
+    expect(invalidCursor.headers.get('cache-control')).toBe('no-store');
+    await expect(invalidCursor.json()).resolves.toEqual({
+      error: 'invalid_request',
+    });
   });
 
   it('renders a public locale page with staging-safe metadata and hints', async () => {

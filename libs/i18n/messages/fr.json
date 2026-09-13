@@ -79,6 +79,7 @@
   "llms_event_inventory": "Les détails des rencontres publiques sont listés dans le sitemap canonique.",
   "llms_sitemap": "Sitemap canonique",
   "llms_robots": "Consignes pour les robots",
+  "llms_event_feed": "Flux d'événements lisible par machine",
   "llms_staging": "Cet environnement de staging n'est pas destiné à la découverte publique.",
   "nav_communities": "Communautés",
   "market_hero_title": "founders.coffee à {market}",

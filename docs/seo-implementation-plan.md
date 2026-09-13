@@ -4,7 +4,7 @@
 
 | Field         | Value                                                                                                                                                                                  |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Version       | 1.2                                                                                                                                                                                    |
+| Version       | 1.3                                                                                                                                                                                    |
 | Status        | In progress                                                                                                                                                                            |
 | Owner         | Engineering                                                                                                                                                                            |
 | Created       | 2026-09-13                                                                                                                                                                             |
@@ -19,7 +19,7 @@ free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
 Current progress: SEO-01 through SEO-10 are implemented and locally verified; SEO-11 through SEO-12 remain planned.
-GEO-01 through GEO-03 are implemented and locally verified; GEO-04 through GEO-05 remain planned
+GEO-01 through GEO-04 are implemented and locally verified; GEO-05 remains planned
 follow-up tickets based on a review of TanStack Start's Generative Engine Optimization guidance. They
 do not change the current release boundary or the noindex policy for public member profiles.
 
@@ -364,19 +364,23 @@ staging output contains no production discovery inventory, and the route has int
 
 **Requirements:** FR-E5, FR-E7, NFR-1, NFR-4, NFR-12. **Depends on:** GEO-01, SEO-04, SEO-08.
 
-- Decide whether the existing sitemap plus SSR/JSON-LD is sufficient or whether a bounded public JSON
-  or feed endpoint is justified for AI systems and developers.
-- If approved, expose only canonical, public, market-scoped event fields already safe for event pages:
-  title, description, URL, language, start/end time, timezone, venue/city, organizer projection, and
-  status. Do not expose RSVP rosters, contact data, hidden profile fields, or internal IDs unless they
-  are already part of a public URL contract.
-- Reuse the existing repository/server-function path and cache policy; do not add a vendor, service, or
-  client-side fetch path just for GEO.
-- Keep the endpoint bounded, paginated where needed, rate-safe, and excluded from staging discovery.
+**Status:** Implemented and locally audited.
 
-**Acceptance:** the endpoint decision is recorded; if shipped, its schema is documented, canonical URLs
-match the sitemap and JSON-LD, pagination is deterministic, and privacy/market-scope integration tests
-pass.
+- The existing sitemap, SSR, and JSON-LD remain authoritative for crawl/index coverage. A separate
+  bounded `GET /events.json` feed is justified as a developer and AI discovery aid, not as a second
+  source of event truth.
+- Expose only canonical, public, market-scoped event fields already safe for event pages: title,
+  description, URL, language, start/end time, timezone, venue/city, organizer name projection, update
+  time, and published status. Do not expose RSVP rosters, contact data, hidden profile fields, or
+  internal IDs.
+- Reuse the existing D1 repository and server-function path. The feed accepts a visible market slug,
+  a bounded page size (1–50), and an opaque cursor based on public route values; ordering is stable by
+  start time, market slug, and event slug.
+- Keep the response cacheable in production, bounded to 50 events per page, and return an empty,
+  no-indexed response on staging and other non-production origins.
+
+**Acceptance:** the endpoint decision and response schema are documented, canonical URLs match the
+sitemap and JSON-LD, pagination is deterministic, and privacy/market-scope integration tests pass.
 
 ### GEO-05 — GEO content parity and monitoring gate
 
@@ -410,8 +414,7 @@ exposed, all three locales pass, and a dated review owner is recorded in the dep
 13. GEO-01 removes duplicate and conflicting Event structured data.
 14. GEO-02 completes safe public entity signals.
 15. GEO-03 adds the optional `llms.txt` surface only after its content contract is approved.
-16. GEO-04 adds a public event feed only if the endpoint decision is approved; otherwise record the
-    existing sitemap/SSR/JSON-LD stack as sufficient.
+16. GEO-04 adds the bounded public event feed after recording the endpoint decision.
 17. GEO-05 closes content parity, privacy, and monitoring verification.
 
 SEO-01 through SEO-04 are the first implementation slice. SEO-03 is the only ticket that changes the

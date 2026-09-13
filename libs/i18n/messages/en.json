@@ -79,6 +79,7 @@
   "llms_event_inventory": "Public event details are listed in the canonical sitemap.",
   "llms_sitemap": "Canonical sitemap",
   "llms_robots": "Crawler guidance",
+  "llms_event_feed": "Machine-readable event feed",
   "llms_staging": "This staging environment is not for public discovery.",
   "nav_communities": "Communities",
   "market_hero_title": "founders.coffee in {market}",

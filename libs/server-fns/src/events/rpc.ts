@@ -19,6 +19,7 @@ import { attachAttendance } from './attendance.js';
 import { cancelEventResolver } from './cancel.js';
 import { listHostedEventPage } from './hosted.js';
 import { listJoinedEventPage } from './joined.js';
+import { readPublicEventFeed } from './public-feed.js';
 import { createEventWithTelemetry } from './create.js';
 import { listEvents, resolveEvent } from './resolver.js';
 import {
@@ -26,6 +27,7 @@ import {
   eventCreateRequestSchema,
   hostedEventsRequestSchema,
   joinedEventsRequestSchema,
+  publicEventFeedRequestSchema,
 } from './schemas.js';
 
 /**
@@ -115,6 +117,10 @@ export const getUpcomingEvents = createServerFn({ strict: false })
     const enriched = await attachAttendance(db, page.items, session?.user?.id);
     return { ...page, items: enriched };
   });
+
+export const getPublicEventFeed = createServerFn({ strict: false })
+  .validator(appValidator(publicEventFeedRequestSchema))
+  .handler(({ data }) => handleResult(readPublicEventFeed(getDb(), data)));
 
 /**
  * Cancel an event the caller hosts (FR-E1 counterpart). Requires a session; the resolver refuses

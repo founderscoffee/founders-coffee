@@ -8,6 +8,7 @@ import {
   llms_sitemap,
   llms_staging,
   llms_description,
+  llms_event_feed,
   LOCALES,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -48,6 +49,7 @@ const productionLines = (
     `## ${llms_public_surfaces({}, { locale })}`,
     inventoryLink,
     `- ${llms_robots({}, { locale })}: ${absolute(origin, '/robots.txt')}`,
+    `- ${llms_event_feed({}, { locale })}: ${absolute(origin, '/events.json')}`,
     ...discoveryItems.map((item) => `- ${absolute(origin, item.path)}`),
     '',
     `## ${llms_event_inventory({}, { locale })}`,

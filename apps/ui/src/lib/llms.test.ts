@@ -31,6 +31,7 @@ describe('llms discovery guide', () => {
     expect(text).toContain('https://founders.coffee/en/about');
     expect(text).toContain('https://founders.coffee/sitemap.xml');
     expect(text).toContain('https://founders.coffee/robots.txt');
+    expect(text).toContain('https://founders.coffee/events.json');
     expect(text).not.toContain('/u/');
     expect(text).not.toContain('staging.founders.coffee');
   });
