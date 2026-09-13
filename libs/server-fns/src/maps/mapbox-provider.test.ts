@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { createMapboxProvider } from './mapbox-provider.js';
 import {
-  addressFeature,
   cafeFeature,
   cityFeature,
   coffeeRetailerFeature,

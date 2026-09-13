@@ -85,6 +85,7 @@ export const enqueueDidNotHappenNotices = async (
       values,
       context.locale,
     );
+    void _discarded;
 
     const payload = {
       email: attendee.email,

@@ -20,7 +20,7 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
-import { readCloseout, submitCloseoutResolver } from './closeout.js';
+import { submitCloseoutResolver } from './closeout.js';
 import { correctCloseoutResolver } from './correction.js';
 
 const held = {

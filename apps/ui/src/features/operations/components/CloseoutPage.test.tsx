@@ -36,6 +36,12 @@ const view = (overrides: Record<string, unknown> = {}) => ({
 const show = (locale: Locale = 'en') =>
   render(<CloseoutPage locale={locale} eventId="evt_1" />);
 
+const first = <T,>(items: readonly T[]): T => {
+  const item = items[0];
+  if (item === undefined) throw new Error('Expected a rendered radio');
+  return item;
+};
+
 beforeEach(() => {
   state.sent = [];
   state.query = {
@@ -82,7 +88,7 @@ describe('closing a gathering out', () => {
     show();
     fireEvent.click(screen.getByRole('radio', { name: /It happened/i }));
 
-    fireEvent.click(screen.getAllByRole('radio', { name: /^Came$/i })[0]!);
+    fireEvent.click(first(screen.getAllByRole('radio', { name: /^Came$/i })));
 
     expect(screen.getByText(/1 of the people who said/i)).toBeTruthy();
     expect(screen.getByText(/1 in the room altogether/i)).toBeTruthy();
@@ -91,7 +97,7 @@ describe('closing a gathering out', () => {
   it('adds walk-ins to the room but not to the registered count', () => {
     show();
     fireEvent.click(screen.getByRole('radio', { name: /It happened/i }));
-    fireEvent.click(screen.getAllByRole('radio', { name: /^Came$/i })[0]!);
+    fireEvent.click(first(screen.getAllByRole('radio', { name: /^Came$/i })));
     fireEvent.change(screen.getByLabelText(/without saying so/i), {
       target: { value: '2' },
     });
@@ -103,7 +109,7 @@ describe('closing a gathering out', () => {
   it('sends the marks alongside the outcome', () => {
     show();
     fireEvent.click(screen.getByRole('radio', { name: /It happened/i }));
-    fireEvent.click(screen.getAllByRole('radio', { name: /^Came$/i })[0]!);
+    fireEvent.click(first(screen.getAllByRole('radio', { name: /^Came$/i })));
     fireEvent.click(screen.getByRole('button', { name: /Submit/i }));
 
     expect(state.sent).toEqual([
@@ -152,7 +158,7 @@ const refuse = (code: string) => {
 
 const markOnePersonAndSubmit = () => {
   fireEvent.click(screen.getByRole('radio', { name: /It happened/i }));
-  fireEvent.click(screen.getAllByRole('radio', { name: /^Came$/i })[0]!);
+  fireEvent.click(first(screen.getAllByRole('radio', { name: /^Came$/i })));
   fireEvent.click(screen.getByRole('button', { name: /Submit/i }));
 };
 

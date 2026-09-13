@@ -1,19 +1,13 @@
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
-import {
-  DevEmailProvider,
-  DevSmsProvider,
-  createAuth,
-} from '@founders-coffee/auth';
+import { DevEmailProvider, createAuth } from '@founders-coffee/auth';
 import { createDb, eq, user } from '@founders-coffee/db';
 
 import {
   confirmEmailChange,
-  confirmPhoneNumber,
   requestEmailChange,
   sendCurrentEmailCode,
-  sendPhoneCode,
 } from './contact.js';
 
 const authEnv = {

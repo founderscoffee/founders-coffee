@@ -38,6 +38,12 @@ const show = (
 
 const rows = () => screen.getAllByRole('listitem');
 
+const first = <T,>(items: readonly T[]): T => {
+  const item = items[0];
+  if (item === undefined) throw new Error('Expected a rendered radio');
+  return item;
+};
+
 const givePageALayout = (height: number) => {
   const original = Object.getOwnPropertyDescriptor(
     HTMLElement.prototype,
@@ -71,7 +77,9 @@ describe('a roster a café table could hold', () => {
   it('marks the person whose row was clicked', () => {
     const onMark = show(12);
 
-    fireEvent.click(screen.getAllByRole('radio', { name: /^Came$/i })[3]!);
+    fireEvent.click(
+      first(screen.getAllByRole('radio', { name: /^Came$/i }).slice(3, 4)),
+    );
 
     expect(onMark).toHaveBeenCalledWith('usr_3', 'attended');
   });
@@ -121,7 +129,7 @@ describe('a roster the domain still allows but a page cannot hold', () => {
   it('still marks the right person from inside the window', () => {
     const onMark = show(200);
 
-    fireEvent.click(screen.getAllByRole('radio', { name: /^Came$/i })[0]!);
+    fireEvent.click(first(screen.getAllByRole('radio', { name: /^Came$/i })));
 
     expect(onMark).toHaveBeenCalledWith('usr_0', 'attended');
   });

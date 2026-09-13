@@ -4,21 +4,13 @@ import {
   HOST_ID,
   MEMBER_ID,
   OTHER_ID,
-  auditRows,
   enableOperations,
   pastEvent,
   setupDb,
 } from '@founders-coffee/db/operations-fixtures';
-import {
-  eq,
-  getCloseout,
-  listAttendance,
-  scheduledNotifications,
-  type Db,
-} from '@founders-coffee/db';
+import { getCloseout, listAttendance, type Db } from '@founders-coffee/db';
 
 import { readCloseout, submitCloseoutResolver } from './closeout.js';
-import { correctCloseoutResolver } from './correction.js';
 
 const held = {
   outcome: 'held' as const,
