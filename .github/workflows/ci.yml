@@ -69,4 +69,7 @@ jobs:
       # `lint` includes the Nx module-boundary rules that enforce the one-directional
       # data flow (AGENTS.md §4), so a boundary violation fails CI here.
       - name: Typecheck, lint, test and build
-        run: npx nx run-many -t typecheck lint test build
+        run: npx nx run-many -t typecheck lint test build --parallel=1
+
+      - name: Run Miniflare SEO integration gate
+        run: npx nx run public:integration-test

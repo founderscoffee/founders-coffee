@@ -240,12 +240,22 @@ page is publicly cached.
 
 **Requirements:** NFR-1, NFR-4, NFR-7, NFR-12. **Depends on:** all implementation tickets.
 
+**Status:** Implemented and staging-verified on 2026-09-13. Dynamic city/event coverage is reported
+as empty when the staging D1 has no public rows; no test fixtures are written to staging.
+
 - Add unit tests for URL building, locale alternates, description normalization, sitemap inclusion,
   and JSON-LD mapping.
 - Add Miniflare integration tests for headers, robots, sitemap, redirects, and SSR documents.
 - Add a local/staging SEO smoke for all public route classes and locales. Keep E2E outside CI per the
   existing project decision.
 - Publish the generated sitemap and a machine-readable SEO route report as CI artifacts.
+
+Implementation evidence: `apps/ui/integration/seo.integration.test.ts` runs against Miniflare with the
+real Worker entrypoint and migrated D1; `tools/seo/smoke.mjs` probes the deployed origin and writes both
+artifacts; `.github/workflows/ci.yml` runs the integration gate and `.github/workflows/deploy.yml`
+uploads the staging/production smoke artifacts. The 2026-09-13 staging run passed all 18 discovered
+static routes and utility checks (3 market routes, 15 company routes, zero dynamic rows). Playwright
+remains outside CI as decided.
 
 **Acceptance:** sync, typecheck, lint/boundaries, tests, and build pass; staging smoke passes; E2E
 remains excluded from CI.
@@ -318,5 +328,5 @@ branded image; dynamic Browser Rendering cards remain future work.
 - [ ] Long event lists remain crawlable without JavaScript.
 - [ ] Utility, error, and private profile pages are excluded from indexing and public caches.
 - [ ] SSR, prerender inventory, response time, and Core Web Vitals are verified.
-- [ ] Unit/integration/build gates pass; E2E remains outside CI as decided.
+- [x] Unit/integration/build gates pass; E2E remains outside CI as decided.
 - [ ] Search Console/Bing submission and monitoring ownership are documented.

@@ -102,6 +102,26 @@ jobs:
       - name: Deploy Workers
         run: npx nx run-many -t deploy:${{ env.TARGET_ENV }} --parallel=1 --output-style=stream
 
+      - name: Run SEO route smoke
+        env:
+          REPORT_DIR: ${{ runner.temp }}/seo
+        run: |
+          if [ "$TARGET_ENV" = "production" ]; then ORIGIN=https://founders.coffee; else ORIGIN=https://staging.founders.coffee; fi
+          mkdir -p "$REPORT_DIR"
+          node tools/seo/smoke.mjs \
+            --origin "$ORIGIN" \
+            --output "$REPORT_DIR/seo-route-report.json" \
+            --sitemap-output "$REPORT_DIR/sitemap.xml"
+
+      - name: Upload SEO smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-${{ env.TARGET_ENV }}-${{ github.sha }}
+          path: ${{ runner.temp }}/seo
+          if-no-files-found: error
+          retention-days: 14
+
   release:
     name: Tag and release
     needs: [resolve, deploy]

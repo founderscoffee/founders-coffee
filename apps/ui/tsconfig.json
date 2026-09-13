@@ -1,5 +1,6 @@
 {
   "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["integration/**/*.ts"],
 
   "compilerOptions": {
     "target": "ES2022",

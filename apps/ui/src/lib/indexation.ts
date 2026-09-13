@@ -7,6 +7,7 @@ export const PRODUCTION_ORIGIN = 'https://founders.coffee';
 export const NO_INDEX_VALUE = 'noindex, nofollow';
 export const PUBLIC_DOCUMENT_CACHE_CONTROL =
   'public, max-age=0, s-maxage=60, stale-while-revalidate=300';
+export const PRIVATE_DOCUMENT_CACHE_CONTROL = 'private, no-store';
 
 const parseOrigin = (value: string | undefined): string | null => {
   if (!value) return null;
@@ -46,6 +47,28 @@ export const withIndexationHeaders = (
     return response;
 
   const headers = new Headers(response.headers);
+  headers.set('X-Robots-Tag', NO_INDEX_VALUE);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
+
+const isPrivatePath = (pathname: string): boolean =>
+  /^\/(?:login|account|profile|preferences|activity|onboarding)(?:\/|$)/u.test(
+    pathname,
+  ) ||
+  /^\/u\/[^/]+(?:\/|$)/u.test(pathname) ||
+  /\/(?:host\/create|closeout)(?:\/|$)/u.test(pathname);
+
+export const withPrivateRouteHeaders = (
+  response: Response,
+  pathname: string,
+): Response => {
+  if (!isPrivatePath(pathname)) return response;
+  const headers = new Headers(response.headers);
+  headers.set('Cache-Control', PRIVATE_DOCUMENT_CACHE_CONTROL);
   headers.set('X-Robots-Tag', NO_INDEX_VALUE);
   return new Response(response.body, {
     status: response.status,

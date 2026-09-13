@@ -21,7 +21,10 @@ const LOCAL_STATE_PATH = fileURLToPath(
   new URL('../../.wrangler/state', import.meta.url),
 );
 const MAPBOX_CSP_PATH = fileURLToPath(
-  new URL('../../node_modules/mapbox-gl/dist/mapbox-gl-csp.js', import.meta.url),
+  new URL(
+    '../../node_modules/mapbox-gl/dist/mapbox-gl-csp.js',
+    import.meta.url,
+  ),
 );
 
 const mapboxCspAlias: Plugin = {
@@ -53,6 +56,8 @@ const clientNodeBuiltinStubs: Plugin = {
     return stubs[source] ?? null;
   },
 };
+
+const isStagingEnvironment = process.env.CLOUDFLARE_ENV === 'staging';
 
 export default defineConfig(({ command }) => ({
   server: {
@@ -90,7 +95,7 @@ export default defineConfig(({ command }) => ({
     tanstackStart({
       pages: seoPrerenderPages,
       prerender: {
-        enabled: true,
+        enabled: !isStagingEnvironment,
         crawlLinks: true,
         autoStaticPathsDiscovery: false,
         filter: isSeoPrerenderPath,

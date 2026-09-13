@@ -18,6 +18,7 @@ import { createOtpEmailProvider } from './lib/auth-email.js';
 import {
   robotsBody,
   siteOriginFromEnv,
+  withPrivateRouteHeaders,
   withIndexationHeaders,
 } from './lib/indexation.js';
 import {
@@ -148,7 +149,12 @@ export default {
             }
           : undefined;
         const response = await handler.fetch(request, requestOptions);
-        return secure(removeEarlyHintsFromResponse(response));
+        return secure(
+          withPrivateRouteHeaders(
+            removeEarlyHintsFromResponse(response),
+            url.pathname,
+          ),
+        );
       },
     );
   },

@@ -6,7 +6,7 @@ project decision, Playwright E2E remains a local/staging release gate and is not
 
 Implements **P0-020**. Two workflows, two Cloudflare environments, four Workers per environment.
 
-**Source configuration last checked: 2026-09-04.** The workflow files match the behavior below.
+**Source configuration last checked: 2026-09-13.** The workflow files match the behavior below.
 GitHub environment, secret, billing-plan, and recent-run state were not verified from the current
 engineering environment and must be checked in the repository settings before relying on deployment.
 
@@ -61,8 +61,11 @@ not the live account.
 2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
 3. `nx sync:check` — asserts the tsconfig project references are committed. `nx.json` sets
    `sync.applyChanges: true`, so local runs repair them silently; this catches the un-committed repair.
-4. `nx run-many -t typecheck lint test build` — verifies every production build; `lint` includes the
-   Nx module-boundary rules, so a violation of the one-directional data flow (AGENTS.md §4) fails here.
+4. `nx run-many -t typecheck lint test build --parallel=1` — verifies every production build; the
+   serial graph keeps Istanbul coverage output isolated between Miniflare projects. `lint` includes
+   the Nx module-boundary rules, so a violation of the one-directional data flow (AGENTS.md §4) fails here.
+5. `nx run public:integration-test` — exercises the Worker, SSR documents, redirects, robots, sitemap,
+   indexation headers, and Early Hint filtering against Miniflare's real D1/R2/Queues bindings.
 
 ### Two caches, and why `npm ci` is usually skipped
 
@@ -96,7 +99,12 @@ repository settings, not here.
    production from a non-`main` ref.
 2. **verify** — calls `ci.yml`.
 3. **deploy** — bound to the matching GitHub Environment (so its scoped secrets apply), applies D1
-   migrations, then deploys the four Workers.
+   migrations, deploys the four Workers, then runs the SEO route smoke against the deployed origin.
+   The smoke writes a JSON route report and the fetched sitemap, uploaded as a `seo-<environment>-<sha>`
+   artifact. It covers all locales, company and market routes, discovered city/event routes, utility
+   noindex/cache headers, robots, canonical URLs, and same-origin Early Hint links. Dynamic city/event
+   coverage is reported when staging has public rows; an empty staging database is a valid state and
+   does not fabricate fixtures. Playwright E2E remains excluded from CI by the current project decision.
 4. **release** — only for a push to `main`. Tags the commit and publishes a GitHub release.
 
 `concurrency` is set with `cancel-in-progress: false`: cancelling between the migration step and the
@@ -205,6 +213,14 @@ npm run deploy:production
 
 Requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the shell. Prefer the pipeline —
 a manual production deploy bypasses the approval gate.
+
+Run the same post-deploy SEO contract locally (the command writes the JSON report and sitemap paths
+passed to it):
+
+```sh
+npm run seo:smoke -- --origin https://staging.founders.coffee \
+  --output /tmp/seo-route-report.json --sitemap-output /tmp/sitemap.xml
+```
 
 ## Validating config without deploying
 

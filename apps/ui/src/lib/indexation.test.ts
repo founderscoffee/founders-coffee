@@ -8,6 +8,7 @@ import {
   siteOriginFromEnv,
   shouldNoIndexEnvironment,
   withIndexationHeaders,
+  withPrivateRouteHeaders,
 } from './indexation';
 
 describe('indexation policy', () => {
@@ -81,5 +82,22 @@ describe('indexation policy', () => {
       { APP_ENVIRONMENT: 'staging' },
     );
     expect(stagingJson.headers.get('x-robots-tag')).toBeNull();
+  });
+
+  it('keeps private route redirects private and noindex', () => {
+    const response = withPrivateRouteHeaders(
+      new Response(null, { status: 307, headers: { location: '/login' } }),
+      '/login',
+    );
+    expect(response.headers.get('cache-control')).toBe('private, no-store');
+    expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow');
+    expect(response.headers.get('location')).toBe('/login');
+
+    const publicResponse = withPrivateRouteHeaders(
+      new Response('<html />'),
+      '/ar/algeria',
+    );
+    expect(publicResponse.headers.get('cache-control')).toBeNull();
+    expect(publicResponse.headers.get('x-robots-tag')).toBeNull();
   });
 });

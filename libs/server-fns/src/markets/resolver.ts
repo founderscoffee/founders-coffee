@@ -14,10 +14,7 @@ import {
   type EventFeedCursor,
   type EventFeedItem,
 } from '../events/resolver.js';
-import {
-  resolveTrendingStates,
-  type TrendingSection,
-} from './trending.js';
+import { resolveTrendingStates, type TrendingSection } from './trending.js';
 
 export { resolveTrendingStates } from './trending.js';
 export type {
