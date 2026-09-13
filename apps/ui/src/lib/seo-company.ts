@@ -18,7 +18,6 @@ export const organizationJsonLd = () =>
     logo: `${getSiteOrigin()}/logo-fc.svg`,
     email: CONTACT_EMAIL,
     description: 'Local founder communities that meet over coffee.',
-    sameAs: [],
     contactPoint: [
       {
         '@type': 'ContactPoint',

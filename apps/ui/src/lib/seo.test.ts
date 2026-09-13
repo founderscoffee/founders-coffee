@@ -194,31 +194,38 @@ describe('public page metadata', () => {
   });
 
   it('falls back to localized event copy and truncates authored descriptions by code points', () => {
-    const head = eventPageHead({
-      locale: 'fr',
-      title: 'Café fondateurs',
-      cityName: 'Alger',
-      description: '😀'.repeat(200),
-      route: { type: 'event', market: 'algeria', slug: 'cafe', locale: 'fr' },
-      structuredEvent: {
+    const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
+      eventPageHead({
+        locale: 'fr',
         title: 'Café fondateurs',
-        description: '😀'.repeat(200),
-        startsAt: new Date('2026-09-20T10:00:00Z'),
-        endsAt: new Date('2026-09-20T12:00:00Z'),
-        status: 'published',
-        venue: 'Café',
         cityName: 'Alger',
-        venueAddress: null,
-        latitude: null,
-        longitude: null,
-        marketCode: 'DZ',
-        language: 'fr',
-        url: 'https://founders.coffee/fr/algeria/e/cafe',
-        currency: 'DZD',
-        organizer: null,
-      },
-      breadcrumbs: [],
-    });
+        description: '😀'.repeat(200),
+        route: {
+          type: 'event',
+          market: 'algeria',
+          slug: 'cafe',
+          locale: 'fr',
+        },
+        structuredEvent: {
+          title: 'Café fondateurs',
+          description: '😀'.repeat(200),
+          startsAt: new Date('2026-09-20T10:00:00Z'),
+          endsAt: new Date('2026-09-20T12:00:00Z'),
+          status: 'published',
+          venue: 'Café',
+          cityName: 'Alger',
+          venueAddress: null,
+          latitude: null,
+          longitude: null,
+          marketCode: 'DZ',
+          language: 'fr',
+          url: 'https://founders.coffee/fr/algeria/e/cafe',
+          currency: 'DZD',
+          organizer: null,
+        },
+        breadcrumbs: [],
+      }),
+    );
     const fallback = eventPageHead({
       locale: 'fr',
       title: 'Café fondateurs',
@@ -257,9 +264,13 @@ describe('public page metadata', () => {
     expect(JSON.parse(head.scripts[0]?.children ?? '{}')).toMatchObject({
       '@type': 'Event',
       description,
+      image: 'https://founders.coffee/social/founders-coffee-default.webp',
+    });
+    expect(head.scripts).toHaveLength(2);
+    expect(JSON.parse(head.scripts[1]?.children ?? '{}')).toMatchObject({
+      '@type': 'BreadcrumbList',
     });
   });
-
   it('uses the same builder for company pages', () => {
     const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
       companyPageHead({
@@ -269,7 +280,6 @@ describe('public page metadata', () => {
         description: '  A company page\nwith stable copy.  ',
       }),
     );
-
     expect(head.meta).toContainEqual({
       name: 'description',
       content: 'A company page with stable copy.',

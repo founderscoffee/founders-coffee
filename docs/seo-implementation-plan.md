@@ -4,11 +4,11 @@
 
 | Field         | Value                                                                                                                                                                                  |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Version       | 1.0                                                                                                                                                                                    |
+| Version       | 1.2                                                                                                                                                                                    |
 | Status        | In progress                                                                                                                                                                            |
 | Owner         | Engineering                                                                                                                                                                            |
 | Created       | 2026-09-13                                                                                                                                                                             |
-| Scope         | Public discovery surfaces in `apps/ui`: markets, cities, events, company pages, and the intentional public-profile policy                                                              |
+| Scope         | Public discovery surfaces in `apps/ui`: markets, cities, events, company pages, GEO/AI-readable content, and the intentional public-profile policy                                     |
 | Requirements  | FR-E5, FR-E6, FR-E7, FR-A6, FR-A7, FR-L1 through FR-L6; NFR-1, NFR-4, NFR-7, NFR-9, NFR-10, NFR-12                                                                                     |
 | Related plans | [SRS](./srs.md), [main implementation plan](./implementation-plan.md), [profile and account plan](./profile-account-implementation-plan.md), [release strategy](./release-strategy.md) |
 
@@ -19,6 +19,9 @@ free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
 Current progress: SEO-01 through SEO-10 are implemented and locally verified; SEO-11 through SEO-12 remain planned.
+GEO-01 through GEO-03 are implemented and locally verified; GEO-04 through GEO-05 remain planned
+follow-up tickets based on a review of TanStack Start's Generative Engine Optimization guidance. They
+do not change the current release boundary or the noindex policy for public member profiles.
 
 ## 1. Audit baseline
 
@@ -38,6 +41,22 @@ Current progress: SEO-01 through SEO-10 are implemented and locally verified; SE
 | Utility pages    | Login and host creation have no robots directive. Generic 404 pages inherit the homepage metadata.                                               | Thin or error pages can enter the index.                                                                                                     |
 | Profiles         | `/u/$userId` is public by URL but sends `noindex, nofollow` and `private, no-store`, matching the current profile plan.                          | This is an intentional privacy/product decision, but it limits host-profile discovery and must not be accidentally changed by SEO work.      |
 | Roadmap status   | P1-007 is marked complete even though metadata and prerender acceptance are not complete.                                                        | Roadmap status does not reflect operational reality.                                                                                         |
+
+### GEO review findings
+
+The [TanStack Start GEO guide](https://tanstack.com/start/latest/docs/framework/react/guide/geo) is
+guidance for Generative Engine Optimization, not a Cloudflare request-geolocation API. The
+repository's `CF-IPCountry` market redirect remains a separate routing concern and must never become
+a profile residence field or a canonical-URL input.
+
+| Area                      | Current state                                                                                                  | Planned response                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Event JSON-LD cardinality | The event route emits one schema from the route head and a second, older schema from `EventDetail`.            | GEO-01 makes the route-head builder the only Event schema source.                                                   |
+| Event entity completeness | The authoritative builder has URL, dates, location, offers, status, and organizer, but no stable public image. | GEO-02 adds safe image and entity-signal rules without exposing private data.                                       |
+| Organization authority    | Organization JSON-LD currently contains an empty `sameAs` array.                                               | GEO-02 omits empty optional properties and adds only verified public profiles.                                      |
+| AI-readable endpoint      | `robots.txt` and `sitemap.xml` exist, but there is no `llms.txt` or public discovery feed.                     | GEO-03 and GEO-04 evaluate and implement bounded, canonical, public-only surfaces.                                  |
+| Extractable content       | Public pages have SSR, headings, event facts, and visible host attribution.                                    | GEO-05 validates factual copy, attribution, and structured-data parity without inventing FAQ or AI-targeted filler. |
+| Monitoring                | SEO smoke covers HTML/head/robots/sitemap, but no GEO-specific cardinality or citation checks exist.           | GEO-05 adds regression and operational checks; AI citation monitoring remains advisory.                             |
 
 ## 2. Decisions and constraints
 
@@ -286,6 +305,94 @@ remains excluded from CI.
 **Acceptance:** ownership is verified, sitemap processing succeeds, representative URLs are discovered
 without canonical conflicts, and a 30-day monitoring review is scheduled.
 
+### GEO-01 — Single-source Event structured data
+
+**Requirements:** FR-E5, FR-E6, FR-E7, NFR-12. **Depends on:** SEO-06.
+
+**Priority:** P0. This is a correctness fix before adding new AI-readable surfaces.
+
+**Status:** Implemented and locally audited.
+
+- Remove the duplicate body-level Event JSON-LD from `EventDetail`; the route head's shared builder is
+  the sole source of Event structured data.
+- Preserve one canonical Event entity with the rendered title, description, URL, dates, timezone-aware
+  location, organizer projection, free-event offer, language, and cancellation status.
+- Ensure canceled events cannot also emit `EventScheduled` through a stale secondary payload.
+- Keep JSON-LD serialization server-rendered and free of private profile fields or RSVP state.
+
+**Acceptance:** representative SSR event pages contain exactly one Event node and one breadcrumb node;
+the Event node agrees with visible content and the canonical URL for upcoming, canceled, missing-address,
+and missing-description cases; Miniflare and unit regression tests pass.
+
+### GEO-02 — Complete public entity and trust signals
+
+**Requirements:** FR-E5, FR-E6, FR-A6, FR-A7, NFR-4, NFR-12. **Depends on:** GEO-01, SEO-07.
+
+**Status:** Implemented and locally audited.
+
+- Add a stable public image to Event JSON-LD when the image is public and processed; use the approved
+  branded fallback only when a route-safe event image is unavailable.
+- Keep organizer attribution sourced from the public profile projection and keep the profile itself
+  `noindex, nofollow, private, no-store` unless a separate privacy decision changes that policy.
+- Omit empty `sameAs` and other optional organization properties; add only verified public accounts.
+- Never copy the TanStack guide's illustrative schema type blindly: each JSON-LD type must match the
+  actual page and visible content.
+
+**Acceptance:** Event and Organization JSON-LD validate with no empty optional arrays, all image URLs
+are production-safe and cacheable, and privacy tests prove that hidden profile fields never enter
+metadata, JSON-LD, OG/Twitter tags, or discovery files.
+
+### GEO-03 — Bounded `llms.txt` discovery guide
+
+**Requirements:** FR-E5, FR-E7, FR-A6, NFR-4, NFR-12. **Depends on:** GEO-01, GEO-02, SEO-04.
+
+**Status:** Implemented and locally audited.
+
+- Add a server route for `/llms.txt` only if the content can be maintained as a truthful public
+  summary of founders.coffee and its canonical market, city, company, and event surfaces.
+- Include supported locales, the community-building purpose, canonical entry points, and links to
+  existing public documentation or discovery pages; do not include private profiles, member contact
+  data, staging URLs, or unpublished roadmap claims.
+- Return plain text with environment-aware production/staging behavior; staging remains noindex and
+  must not advertise production as its own canonical host.
+- Treat `llms.txt` as an optional discovery aid, not an access-control or privacy mechanism.
+
+**Acceptance:** production output is deterministic, localized links are canonical and public-only,
+staging output contains no production discovery inventory, and the route has integration coverage.
+
+### GEO-04 — Public machine-readable event discovery surface
+
+**Requirements:** FR-E5, FR-E7, NFR-1, NFR-4, NFR-12. **Depends on:** GEO-01, SEO-04, SEO-08.
+
+- Decide whether the existing sitemap plus SSR/JSON-LD is sufficient or whether a bounded public JSON
+  or feed endpoint is justified for AI systems and developers.
+- If approved, expose only canonical, public, market-scoped event fields already safe for event pages:
+  title, description, URL, language, start/end time, timezone, venue/city, organizer projection, and
+  status. Do not expose RSVP rosters, contact data, hidden profile fields, or internal IDs unless they
+  are already part of a public URL contract.
+- Reuse the existing repository/server-function path and cache policy; do not add a vendor, service, or
+  client-side fetch path just for GEO.
+- Keep the endpoint bounded, paginated where needed, rate-safe, and excluded from staging discovery.
+
+**Acceptance:** the endpoint decision is recorded; if shipped, its schema is documented, canonical URLs
+match the sitemap and JSON-LD, pagination is deterministic, and privacy/market-scope integration tests
+pass.
+
+### GEO-05 — GEO content parity and monitoring gate
+
+**Requirements:** FR-E5, FR-E6, FR-E7, FR-L1 through FR-L6, NFR-1, NFR-12. **Depends on:** GEO-01 through GEO-04 and SEO-11.
+
+- Extend the existing SEO regression suite to assert one authoritative JSON-LD entity per type,
+  visible-content parity, localized `inLanguage`, organizer attribution, and canonical URLs.
+- Verify SSR output has a clear `h1` and ordered `h2` sections for market, city, event, and company
+  pages; keep factual statements explicit and authored text unchanged.
+- Add staging smoke checks for any `llms.txt` or public feed route, including noindex and origin safety.
+- Document that AI citation/recommendation monitoring is advisory and requires periodic manual checks;
+  do not claim a ranking or citation guarantee.
+
+**Acceptance:** CI and staging smoke cover the GEO contract, no private or fabricated content is
+exposed, all three locales pass, and a dated review owner is recorded in the deployment runbook.
+
 ## 5. Sequence and dependencies
 
 1. SEO-01 establishes environment-aware indexation and origin safety.
@@ -300,6 +407,12 @@ without canonical conflicts, and a 30-day monitoring review is scheduled.
 10. SEO-10 verifies SSR, prerender, cache, and performance behavior.
 11. SEO-11 adds the automated release gate.
 12. SEO-12 completes search-engine submission and monitoring.
+13. GEO-01 removes duplicate and conflicting Event structured data.
+14. GEO-02 completes safe public entity signals.
+15. GEO-03 adds the optional `llms.txt` surface only after its content contract is approved.
+16. GEO-04 adds a public event feed only if the endpoint decision is approved; otherwise record the
+    existing sitemap/SSR/JSON-LD stack as sufficient.
+17. GEO-05 closes content parity, privacy, and monitoring verification.
 
 SEO-01 through SEO-04 are the first implementation slice. SEO-03 is the only ticket that changes the
 public URL shape and requires a redirect map and staging rehearsal. SEO-07 can ship with a static
@@ -307,16 +420,18 @@ branded image; dynamic Browser Rendering cards remain future work.
 
 ## 6. Test matrix
 
-| Dimension      | Required coverage                                                                        |
-| -------------- | ---------------------------------------------------------------------------------------- |
-| Environment    | local, staging, production configuration validation                                      |
-| Locale         | `ar`/RTL, `fr`/LTR, `en`/LTR; no-cookie and locale-cookie requests                       |
-| URL class      | market, city with events, empty city, event, company, profile, login, host creation, 404 |
-| Content state  | upcoming, past, canceled, no description, long Unicode description, missing address      |
-| Crawl behavior | robots, sitemap XML, redirects, one canonical, noindex response headers                  |
-| Rendering      | SSR before hydration, JavaScript-disabled crawl, hydrated load-more behavior             |
-| Privacy        | hidden fields absent from head, JSON-LD, OG/Twitter, sitemap, and cache                  |
-| Quality gates  | format, typecheck, lint/boundaries, Miniflare integration, build, staging smoke          |
+| Dimension           | Required coverage                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Environment         | local, staging, production configuration validation                                      |
+| Locale              | `ar`/RTL, `fr`/LTR, `en`/LTR; no-cookie and locale-cookie requests                       |
+| URL class           | market, city with events, empty city, event, company, profile, login, host creation, 404 |
+| Content state       | upcoming, past, canceled, no description, long Unicode description, missing address      |
+| Crawl behavior      | robots, sitemap XML, redirects, one canonical, noindex response headers                  |
+| Rendering           | SSR before hydration, JavaScript-disabled crawl, hydrated load-more behavior             |
+| Privacy             | hidden fields absent from head, JSON-LD, OG/Twitter, sitemap, and cache                  |
+| GEO structured data | exactly one Event entity, correct status/image/organizer, visible-content parity         |
+| GEO discovery       | `llms.txt`/feed origin safety, canonical links, bounded public fields, staging exclusion |
+| Quality gates       | format, typecheck, lint/boundaries, Miniflare integration, build, staging smoke          |
 
 ## 7. Rollout and rollback
 
@@ -327,6 +442,8 @@ branded image; dynamic Browser Rendering cards remain future work.
 4. Submit the sitemap only after production responses, canonicals, and hreflang pass the smoke.
 5. If a regression appears, restore the previous metadata/sitemap version, keep staging noindex, and
    remove only new locale redirects after preserving legacy URL responses.
+6. Ship GEO-01/02 independently from optional GEO-03/04; if an AI-readable endpoint leaks private or
+   non-canonical data, disable that route while preserving the existing sitemap and SSR pages.
 
 ## 8. Definition of done
 
@@ -343,3 +460,7 @@ branded image; dynamic Browser Rendering cards remain future work.
 - [ ] SSR, prerender inventory, response time, and Core Web Vitals are verified.
 - [x] Unit/integration/build gates pass; E2E remains outside CI as decided.
 - [ ] Search Console/Bing submission and monitoring ownership are documented.
+- [x] Event structured data has one authoritative entity with no stale duplicate payload.
+- [x] Public entity signals contain only verified, non-empty, privacy-safe properties.
+- [x] Any `llms.txt` or public feed is deterministic, canonical, bounded, and staging-safe.
+- [ ] GEO parity and privacy regression tests pass for `ar`, `fr`, and `en`.

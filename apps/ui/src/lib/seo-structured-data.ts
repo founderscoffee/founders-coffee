@@ -19,6 +19,7 @@ export type StructuredEventData = {
   readonly marketCode: string;
   readonly language: string;
   readonly url: string;
+  readonly image?: string;
   readonly currency: string;
   readonly organizer: { readonly name: string; readonly url: string } | null;
 };
@@ -95,6 +96,7 @@ export const eventJsonLd = (event: StructuredEventData): JsonLdObject => {
     name: event.title,
     description: event.description,
     url: event.url,
+    ...(event.image ? { image: event.image } : {}),
     startDate: event.startsAt.toISOString(),
     ...(event.endsAt ? { endDate: event.endsAt.toISOString() } : {}),
     eventStatus:

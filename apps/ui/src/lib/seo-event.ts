@@ -6,7 +6,12 @@ import {
   type StructuredEventData,
   type StructuredListItem,
 } from './seo-structured-data';
-import { buildPageMetadata, type CanonicalRoute } from './seo';
+import {
+  buildPageMetadata,
+  DEFAULT_SOCIAL_IMAGE_PATH,
+  getSiteOrigin,
+  type CanonicalRoute,
+} from './seo';
 
 type EventHeadInput = {
   readonly locale: Locale;
@@ -42,6 +47,8 @@ export const eventPageHead = ({
   );
   const eventSchema = eventJsonLd({
     ...structuredEvent,
+    image:
+      structuredEvent.image ?? `${getSiteOrigin()}${DEFAULT_SOCIAL_IMAGE_PATH}`,
     description:
       normalizedDescription &&
       'content' in normalizedDescription &&

@@ -52,6 +52,40 @@ describe('public Worker SEO contract', () => {
     expect(sitemapBody).not.toContain('<url>');
   });
 
+  it('serves a staging-safe llms guide and a production discovery guide', async () => {
+    const staging = await worker.fetch(
+      new Request(`${ORIGIN}/llms.txt`),
+      env,
+      createExecutionContext(),
+    );
+    const stagingBody = await staging.text();
+
+    expect(staging.status).toBe(200);
+    expect(staging.headers.get('content-type')).toContain('text/plain');
+    expect(staging.headers.get('x-robots-tag')).toBe('noindex, nofollow');
+    expect(staging.headers.get('cache-control')).toBe('no-store');
+    expect(stagingBody).toContain(
+      'This staging environment is not for public discovery.',
+    );
+    expect(stagingBody).not.toContain('https://founders.coffee');
+
+    const production = await worker.fetch(
+      new Request('https://founders.coffee/llms.txt'),
+      env,
+      createExecutionContext(),
+    );
+    const productionBody = await production.text();
+
+    expect(production.status).toBe(200);
+    expect(production.headers.get('content-type')).toContain('text/plain');
+    expect(production.headers.get('x-robots-tag')).toBeNull();
+    expect(production.headers.get('cache-control')).toContain('s-maxage=3600');
+    expect(productionBody).toContain('# founders.coffee');
+    expect(productionBody).toContain('https://founders.coffee/sitemap.xml');
+    expect(productionBody).toContain('https://founders.coffee/robots.txt');
+    expect(productionBody).not.toContain('staging.founders.coffee');
+  });
+
   it('renders a public locale page with staging-safe metadata and hints', async () => {
     const response = await fetchDocument('/ar/algeria');
     const body = await response.text();

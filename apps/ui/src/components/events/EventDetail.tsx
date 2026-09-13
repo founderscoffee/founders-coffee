@@ -79,22 +79,6 @@ export const EventDetail = ({
 
   const cityName =
     locale === 'ar' ? (event.cityNameAr ?? event.cityName) : event.cityName;
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Event',
-    name: event.title,
-    description: event.description,
-    startDate: new Date(event.startsAt).toISOString(),
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    eventStatus: 'https://schema.org/EventScheduled',
-    inLanguage: event.language,
-    location: {
-      '@type': 'Place',
-      name: event.venue,
-      address: event.venueAddress ?? undefined,
-    },
-    organizer: host ? { '@type': 'Person', name: host.displayName } : undefined,
-  };
 
   return (
     <article className="mx-auto max-w-content px-4 py-8 md:px-8 md:py-10">
@@ -230,11 +214,6 @@ export const EventDetail = ({
           </div>
         </aside>
       </div>
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
     </article>
   );
 };

@@ -53,6 +53,7 @@ describe('structured discovery data', () => {
       marketCode: 'DZ',
       language: 'fr',
       url: 'https://founders.coffee/fr/algeria/e/founders-breakfast',
+      image: 'https://founders.coffee/social/event.webp',
       currency: 'DZD',
       organizer: {
         name: 'Amina',
@@ -67,6 +68,7 @@ describe('structured discovery data', () => {
 
     expect(published).toMatchObject({
       '@type': 'Event',
+      image: 'https://founders.coffee/social/event.webp',
       startDate: '2026-09-20T10:00:00.000Z',
       endDate: '2026-09-20T12:00:00.000Z',
       eventStatus: 'https://schema.org/EventScheduled',
