@@ -18,7 +18,7 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-03 are implemented and locally verified; SEO-04 through SEO-12 remain planned.
+Current progress: SEO-01 through SEO-04 are implemented and locally verified; SEO-05 through SEO-12 remain planned.
 
 ## 1. Audit baseline
 
@@ -123,6 +123,8 @@ default locale; each locale self-canonicalizes; reciprocal hreflang tests pass.
 ### SEO-04 — Sitemap generation and robots policy
 
 **Requirements:** FR-E5, FR-E7, NFR-1. **Depends on:** SEO-01, SEO-02, SEO-03.
+
+**Status:** Implemented and locally verified.
 
 - Add production `/sitemap.xml` using existing market, city, event, and company repositories.
 - Implement it as a dynamic `sitemap[.]xml.ts` server route because event and market records are D1 data
@@ -261,7 +263,7 @@ without canonical conflicts, and a 30-day monitoring review is scheduled.
 11. SEO-11 adds the automated release gate.
 12. SEO-12 completes search-engine submission and monitoring.
 
-SEO-01 through SEO-03 are the first implementation slice. SEO-03 is the only ticket that changes the
+SEO-01 through SEO-04 are the first implementation slice. SEO-03 is the only ticket that changes the
 public URL shape and requires a redirect map and staging rehearsal. SEO-07 can ship with a static
 branded image; dynamic Browser Rendering cards remain future work.
 

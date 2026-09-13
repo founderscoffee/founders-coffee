@@ -49,13 +49,13 @@ describe('indexation policy', () => {
 
   it('returns an allow-all production robots policy and blocks other environments', () => {
     expect(robotsBody({ APP_ENVIRONMENT: 'production' })).toBe(
-      'User-agent: *\nAllow: /\n',
+      'User-agent: *\nAllow: /\nSitemap: https://founders.coffee/sitemap.xml\n',
     );
     expect(robotsBody({ APP_ENVIRONMENT: 'staging' })).toBe(
       'User-agent: *\nDisallow: /\n',
     );
     expect(robotsBodyForOrigin(PRODUCTION_ORIGIN)).toBe(
-      'User-agent: *\nAllow: /\n',
+      'User-agent: *\nAllow: /\nSitemap: https://founders.coffee/sitemap.xml\n',
     );
     expect(robotsBodyForOrigin('https://staging.founders.coffee')).toBe(
       'User-agent: *\nDisallow: /\n',

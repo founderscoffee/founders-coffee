@@ -54,7 +54,7 @@ export const withIndexationHeaders = (
 
 export const robotsBody = (env: IndexationEnvironment): string =>
   isIndexableEnvironment(env)
-    ? 'User-agent: *\nAllow: /\n'
+    ? `User-agent: *\nAllow: /\nSitemap: ${PRODUCTION_ORIGIN}/sitemap.xml\n`
     : 'User-agent: *\nDisallow: /\n';
 
 export const robotsBodyForOrigin = (origin: string): string =>

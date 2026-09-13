@@ -54,3 +54,10 @@ export {
   type PermissionAction,
 } from './authz.js';
 export * from './markets/index.js';
+export { getSitemapData } from './sitemap.js';
+export type {
+  SitemapCity,
+  SitemapData,
+  SitemapEvent,
+  SitemapMarket,
+} from './sitemap.js';
