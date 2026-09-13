@@ -4,7 +4,7 @@ export type IndexationEnvironment = {
 };
 
 export const PRODUCTION_ORIGIN = 'https://founders.coffee';
-const NO_INDEX_VALUE = 'noindex, nofollow';
+export const NO_INDEX_VALUE = 'noindex, nofollow';
 
 const parseOrigin = (value: string | undefined): string | null => {
   if (!value) return null;

@@ -8,6 +8,7 @@ import type { geo } from '@founders-coffee/domain';
 
 import { HostCreatePage } from '../../components/host/HostCreatePage';
 import { eventsApi } from '../../features/events/api';
+import { NO_INDEX_VALUE } from '../../lib/indexation';
 
 type HostCreateLoaderData = {
   market: Market;
@@ -18,6 +19,10 @@ type HostCreateLoaderData = {
 };
 
 export const Route = createFileRoute('/$market/host/create')({
+  headers: () => ({
+    'Cache-Control': 'private, no-store',
+    'X-Robots-Tag': NO_INDEX_VALUE,
+  }),
   validateSearch: z.object({
     city: z.coerce.string().optional(),
     state: z.coerce.string().optional(),
@@ -70,4 +75,5 @@ export const Route = createFileRoute('/$market/host/create')({
       hasSocial: authConfig.hasSocial,
     };
   },
+  head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
 });

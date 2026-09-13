@@ -18,7 +18,7 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-08 are implemented and locally verified; SEO-09 through SEO-12 remain planned.
+Current progress: SEO-01 through SEO-09 are implemented and locally verified; SEO-10 through SEO-12 remain planned.
 
 ## 1. Audit baseline
 

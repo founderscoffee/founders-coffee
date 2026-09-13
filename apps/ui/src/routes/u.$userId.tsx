@@ -6,6 +6,7 @@ import { profile_title } from '@founders-coffee/i18n';
 import { eventsApi, type EventFeedItem } from '../features/events/api';
 import { profileApi, type PublicProfile } from '../features/profile/api';
 import { PublicProfilePage } from '../features/profile/components/PublicProfilePage';
+import { NO_INDEX_VALUE } from '../lib/indexation';
 import {
   hostedPaginationSearchSchema,
   type HostedPaginationSearch,
@@ -61,7 +62,7 @@ export const Route = createFileRoute('/u/$userId')({
   },
   headers: () => ({
     'Cache-Control': 'private, no-store',
-    'X-Robots-Tag': 'noindex, nofollow',
+    'X-Robots-Tag': NO_INDEX_VALUE,
   }),
   staleTime: 0,
   gcTime: 0,
@@ -70,7 +71,7 @@ export const Route = createFileRoute('/u/$userId')({
       {
         title: `${loaderData?.profile.displayName ?? profile_title({}, { locale: match.context.locale })} - founders.coffee`,
       },
-      { name: 'robots', content: 'noindex, nofollow' },
+      { name: 'robots', content: NO_INDEX_VALUE },
     ],
   }),
 });

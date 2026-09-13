@@ -1,7 +1,12 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
-import { detectLocale, direction, isLocale } from '@founders-coffee/i18n';
+import {
+  detectLocale,
+  direction,
+  isLocale,
+  type Locale,
+} from '@founders-coffee/i18n';
 import {
   configureClientLogger,
   logger,
@@ -15,7 +20,9 @@ import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
 import { AppProviders } from '../lib/app-providers';
 import { readCookieHeader } from '../lib/cookies';
+import { NO_INDEX_VALUE } from '../lib/indexation';
 import { organizationJsonLd } from '../lib/seo-company';
+import { errorPageHead } from '../lib/seo-error';
 
 import appCss from '../styles.css?url';
 
@@ -78,12 +85,39 @@ export const Route = createRootRoute({
     const markets = await getVisibleMarkets();
     return { locale, dir, markets: markets ?? [] };
   },
-  head: () => {
+  headers: ({ matches }) => {
+    const hasNoIndexableState = matches.some(
+      (match) =>
+        match.status === 'error' ||
+        match.status === 'notFound' ||
+        match.globalNotFound,
+    );
+    return hasNoIndexableState
+      ? {
+          'Cache-Control': 'private, no-store',
+          'X-Robots-Tag': NO_INDEX_VALUE,
+        }
+      : undefined;
+  },
+  head: ({ matches }) => {
+    const rootMatch = matches.find((match) => match.routeId === '__root__');
+    const locale =
+      (rootMatch?.context as { locale?: Locale } | undefined)?.locale ?? 'ar';
+    const hasNotFound = matches.some(
+      (match) => match.status === 'notFound' || match.globalNotFound,
+    );
+    const hasError = matches.some((match) => match.status === 'error');
+    const pageHead = hasNotFound
+      ? errorPageHead(locale, 'notFound')
+      : hasError
+        ? errorPageHead(locale, 'error')
+        : null;
     return {
       meta: [
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'theme-color', content: '#270F00' },
+        ...(pageHead?.meta ?? []),
       ],
       links: [
         { rel: 'stylesheet', href: appCss },
@@ -92,8 +126,9 @@ export const Route = createRootRoute({
         { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'manifest', href: '/manifest.json' },
+        ...(pageHead?.links ?? []),
       ],
-      scripts: [
+      scripts: pageHead?.scripts ?? [
         { type: 'application/ld+json', children: organizationJsonLd() },
       ],
     };
