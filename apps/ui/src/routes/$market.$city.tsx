@@ -5,7 +5,7 @@ import { city_empty_title, type Locale } from '@founders-coffee/i18n';
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
-import { getSiteOrigin } from '../lib/seo';
+import { canonicalUrl } from '../lib/seo';
 
 export const Route = createFileRoute('/$market/$city')({
   staticData: { prerender: true },
@@ -52,6 +52,13 @@ export const Route = createFileRoute('/$market/$city')({
     const citySlug = loaderData?.city.slug ?? '';
     const marketSlug = loaderData?.market.slug ?? '';
     const description = city_empty_title({ city: cityName }, { locale });
+    const url = loaderData
+      ? canonicalUrl({
+          type: 'city',
+          market: marketSlug,
+          city: citySlug,
+        })
+      : null;
 
     return {
       meta: [
@@ -60,22 +67,26 @@ export const Route = createFileRoute('/$market/$city')({
           name: 'description',
           content: description,
         },
+        ...(url ? [{ property: 'og:url' as const, content: url }] : []),
         ...(isEmpty
           ? [{ name: 'robots' as const, content: 'noindex,follow' }]
           : [{ name: 'robots' as const, content: 'index,follow' }]),
       ],
-      scripts: [
-        {
-          type: 'application/ld+json',
-          children: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Place',
-            name: `${cityName} - founders.coffee community`,
-            description,
-            url: `${getSiteOrigin()}/${marketSlug}/${citySlug}`,
-          }),
-        },
-      ],
+      links: url ? [{ rel: 'canonical', href: url }] : [],
+      scripts: url
+        ? [
+            {
+              type: 'application/ld+json',
+              children: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'Place',
+                name: `${cityName} - founders.coffee community`,
+                description,
+                url,
+              }),
+            },
+          ]
+        : [],
     };
   },
 });

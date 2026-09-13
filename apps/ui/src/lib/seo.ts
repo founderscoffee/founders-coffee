@@ -7,6 +7,40 @@ import { PRODUCTION_ORIGIN } from './indexation';
 
 export const SITE_ORIGIN = PRODUCTION_ORIGIN;
 
+export type CanonicalRoute =
+  | { readonly type: 'root' }
+  | { readonly type: 'market'; readonly market: string }
+  | {
+      readonly type: 'city';
+      readonly market: string;
+      readonly city: string;
+    }
+  | {
+      readonly type: 'event';
+      readonly market: string;
+      readonly slug: string;
+    }
+  | { readonly type: 'company'; readonly path: string };
+
+const canonicalSegments = (route: CanonicalRoute): string[] => {
+  if (route.type === 'root') return [];
+  if (route.type === 'market') return [route.market];
+  if (route.type === 'city') return [route.market, route.city];
+  if (route.type === 'event') return [route.market, 'e', route.slug];
+  return route.path.split(/[?#]/u, 1)[0].split('/').filter(Boolean);
+};
+
+export const canonicalPath = (route: CanonicalRoute): string => {
+  const segments = canonicalSegments(route)
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map(encodeURIComponent);
+  return segments.length === 0 ? '/' : `/${segments.join('/')}`;
+};
+
+export const canonicalUrl = (route: CanonicalRoute): string =>
+  `${getSiteOrigin()}${canonicalPath(route)}`;
+
 export const getSiteOrigin = (): string => {
   const requestOrigin = getRequestContext().siteOrigin;
   if (requestOrigin) return requestOrigin;
@@ -49,7 +83,7 @@ export const companyPageHead = ({
   description,
 }: CompanyHeadInput) => {
   const siteOrigin = getSiteOrigin();
-  const url = `${siteOrigin}${path}`;
+  const url = canonicalUrl({ type: 'company', path });
   const fullTitle = `${title} - founders.coffee`;
 
   return {

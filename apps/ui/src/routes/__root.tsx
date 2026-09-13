@@ -15,7 +15,7 @@ import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
 import { AppProviders } from '../lib/app-providers';
 import { readCookieHeader } from '../lib/cookies';
-import { getSiteOrigin, organizationJsonLd } from '../lib/seo';
+import { organizationJsonLd } from '../lib/seo';
 
 import appCss from '../styles.css?url';
 
@@ -76,7 +76,6 @@ export const Route = createRootRoute({
     return { locale, dir, markets: markets ?? [] };
   },
   head: () => {
-    const siteOrigin = getSiteOrigin();
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -95,13 +94,11 @@ export const Route = createRootRoute({
           content:
             'Local founder communities that meet over coffee - real conversations, no formalities.',
         },
-        { property: 'og:url', content: siteOrigin },
         { name: 'twitter:card', content: 'summary' },
         { name: 'theme-color', content: '#270F00' },
       ],
       links: [
         { rel: 'stylesheet', href: appCss },
-        { rel: 'canonical', href: siteOrigin },
         { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
         { rel: 'icon', href: '/favicon-32x32.png', sizes: '32x32' },
         { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16' },

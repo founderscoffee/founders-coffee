@@ -8,6 +8,7 @@ import {
 } from '@founders-coffee/server-fns';
 
 import { MarketLanding } from '../../components/landing/MarketLanding';
+import { canonicalUrl } from '../../lib/seo';
 
 export const Route = createFileRoute('/$market/')({
   staticData: { prerender: true },
@@ -46,18 +47,24 @@ export const Route = createFileRoute('/$market/')({
       throw error;
     }
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: `${loaderData?.market.name ?? 'founders.coffee'} - founders.coffee`,
-      },
-      {
-        name: 'description',
-        content: market_hero_desc(
-          {},
-          { locale: (loaderData?.market.defaultLocale ?? 'ar') as Locale },
-        ),
-      },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const market = loaderData?.market;
+    const locale = (market?.defaultLocale ?? 'ar') as Locale;
+    const url = market
+      ? canonicalUrl({ type: 'market', market: market.slug })
+      : null;
+    return {
+      meta: [
+        {
+          title: `${market?.name ?? 'founders.coffee'} - founders.coffee`,
+        },
+        {
+          name: 'description',
+          content: market_hero_desc({}, { locale }),
+        },
+        ...(url ? [{ property: 'og:url' as const, content: url }] : []),
+      ],
+      links: url ? [{ rel: 'canonical', href: url }] : [],
+    };
+  },
 });

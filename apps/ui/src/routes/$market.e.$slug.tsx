@@ -15,6 +15,7 @@ import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
+import { canonicalUrl } from '../lib/seo';
 
 type EventDetailLoaderData = {
   market: Market;
@@ -96,6 +97,13 @@ export const Route = createFileRoute('/$market/e/$slug')({
     return { market, event, host };
   },
   head: ({ loaderData }) => {
+    const url = loaderData
+      ? canonicalUrl({
+          type: 'event',
+          market: loaderData.market.slug,
+          slug: loaderData.event.slug,
+        })
+      : null;
     const description = loaderData?.event.description
       ? loaderData.event.description.length > 160
         ? `${loaderData.event.description.slice(0, 157)}...`
@@ -113,7 +121,9 @@ export const Route = createFileRoute('/$market/e/$slug')({
         },
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'event' },
+        ...(url ? [{ property: 'og:url' as const, content: url }] : []),
       ],
+      links: url ? [{ rel: 'canonical', href: url }] : [],
     };
   },
 });
