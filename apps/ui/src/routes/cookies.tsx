@@ -1,12 +1,19 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import type { Locale } from '@founders-coffee/i18n';
+import { detectLocale, type Locale } from '@founders-coffee/i18n';
 
 import { CompanyPage } from '../components/company/CompanyPage';
 import { cookiesContent } from '../content/company';
+import { readCookieHeader } from '../lib/cookies';
 import { companyPageHead } from '../lib/seo';
 
 export const Route = createFileRoute('/cookies')({
+  beforeLoad: () => {
+    throw redirect({
+      to: '/$market/$city',
+      params: { market: detectLocale(readCookieHeader()), city: 'cookies' },
+    });
+  },
   staticData: { prerender: true },
   component: () => {
     const { locale } = Route.useRouteContext();

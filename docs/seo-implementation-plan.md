@@ -5,7 +5,7 @@
 | Field         | Value                                                                                                                                                                                  |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Version       | 1.0                                                                                                                                                                                    |
-| Status        | Planned                                                                                                                                                                                |
+| Status        | In progress                                                                                                                                                                            |
 | Owner         | Engineering                                                                                                                                                                            |
 | Created       | 2026-09-13                                                                                                                                                                             |
 | Scope         | Public discovery surfaces in `apps/ui`: markets, cities, events, company pages, and the intentional public-profile policy                                                              |
@@ -13,12 +13,12 @@
 | Related plans | [SRS](./srs.md), [main implementation plan](./implementation-plan.md), [profile and account plan](./profile-account-implementation-plan.md), [release strategy](./release-strategy.md) |
 
 This plan is based on a repository and live-staging audit performed on 2026-09-13. It is an
-implementation plan; the progress note below records the only completed ticket and the remaining
-items are not shipped. The current community-building release remains the boundary: SEO work serves
+implementation plan; the progress note below records the completed tickets and the remaining items
+are not shipped. The current community-building release remains the boundary: SEO work serves
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 and SEO-02 are implemented and locally verified; SEO-03 through SEO-12 remain planned.
+Current progress: SEO-01 through SEO-03 are implemented and locally verified; SEO-04 through SEO-12 remain planned.
 
 ## 1. Audit baseline
 
@@ -261,7 +261,7 @@ without canonical conflicts, and a 30-day monitoring review is scheduled.
 11. SEO-11 adds the automated release gate.
 12. SEO-12 completes search-engine submission and monitoring.
 
-SEO-01 and SEO-02 are the first implementation slice. SEO-03 is the only ticket that changes the
+SEO-01 through SEO-03 are the first implementation slice. SEO-03 is the only ticket that changes the
 public URL shape and requires a redirect map and staging rehearsal. SEO-07 can ship with a static
 branded image; dynamic Browser Rendering cards remain future work.
 

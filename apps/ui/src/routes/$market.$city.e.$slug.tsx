@@ -1,32 +1,33 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { detectLocale } from '@founders-coffee/i18n';
+import { isLocale, type Locale } from '@founders-coffee/i18n';
 import {
   getEvent,
   getMarket,
+  getPublicProfile,
   type EventDetailItem,
+  type PublicProfile,
 } from '@founders-coffee/server-fns';
 import type { Market } from '@founders-coffee/db';
-import type { PublicProfile } from '@founders-coffee/server-fns';
 
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
-import { readCookieHeader } from '../lib/cookies';
+import { eventPageHead } from '../lib/seo';
 
-type EventDetailLoaderData = {
-  market: Market;
-  event: EventDetailItem;
-  host: PublicProfile | null;
+type EventRouteData = {
+  readonly locale: Locale;
+  readonly market: Market;
+  readonly event: EventDetailItem;
+  readonly host: PublicProfile | null;
 };
 
-export const Route = createFileRoute('/$market/e/$slug')({
+export const Route = createFileRoute('/$market/$city/e/$slug')({
   component: () => {
-    const { locale } = Route.useRouteContext();
-    const { market, event, host } = Route.useLoaderData();
+    const { locale, market, event, host } = Route.useLoaderData();
     const { user } = useAuth();
     const isHost = user?.id === event.hostId;
     const isWindowOpen =
@@ -58,24 +59,28 @@ export const Route = createFileRoute('/$market/e/$slug')({
       </>
     );
   },
-  loader: async ({ params }): Promise<EventDetailLoaderData> => {
+  loader: async ({ params }): Promise<EventRouteData> => {
+    if (!isLocale(params.market)) throw notFound();
     let market: Market;
     try {
-      market = await getMarket({ data: { slug: params.market } });
+      market = await getMarket({ data: { slug: params.city } });
     } catch (error) {
       if (appErrorCode(error) !== 'market_not_found') throw error;
       try {
-        market = await getMarket({ data: { code: params.market } });
+        market = await getMarket({ data: { code: params.city } });
       } catch (byCode) {
         if (appErrorCode(byCode) === 'market_not_found') throw notFound();
         throw byCode;
       }
     }
-    const locale = detectLocale(readCookieHeader());
-    if (params.market !== market.slug) {
+    if (params.city !== market.slug) {
       throw redirect({
         to: '/$market/$city/e/$slug',
-        params: { market: locale, city: market.slug, slug: params.slug },
+        params: {
+          market: params.market,
+          city: market.slug,
+          slug: params.slug,
+        },
       });
     }
 
@@ -89,33 +94,30 @@ export const Route = createFileRoute('/$market/e/$slug')({
       throw error;
     }
 
-    throw redirect({
-      to: '/$market/$city/e/$slug',
-      params: { market: locale, city: market.slug, slug: event.slug },
+    const host = await getPublicProfile({
+      data: { userId: event.hostId },
+    }).catch((error: unknown) => {
+      if (appErrorCode(error) === 'not_found') return null;
+      throw error;
     });
-
-    return { market, event, host: null };
+    return { locale: params.market, market, event, host };
   },
   head: ({ loaderData }) => {
-    const description = loaderData?.event.description
+    if (!loaderData) return { meta: [], links: [] };
+    const description = loaderData.event.description
       ? loaderData.event.description.length > 160
         ? `${loaderData.event.description.slice(0, 157)}...`
         : loaderData.event.description
       : '';
-    return {
-      meta: [
-        {
-          title: `${loaderData?.event.title ?? 'founders.coffee'} - founders.coffee`,
-        },
-        { name: 'description', content: description },
-        {
-          property: 'og:title',
-          content: loaderData?.event.title ?? 'founders.coffee',
-        },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'event' },
-      ],
-      links: [],
-    };
+    return eventPageHead({
+      title: loaderData.event.title,
+      description,
+      route: {
+        type: 'event',
+        market: loaderData.market.slug,
+        slug: loaderData.event.slug,
+        locale: loaderData.locale,
+      },
+    });
   },
 });

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { runWithContext } from '@founders-coffee/observability/context';
 
-import { canonicalPath, canonicalUrl } from './seo';
+import { canonicalPath, canonicalUrl, localeAlternates } from './seo';
 
 describe('canonical URLs', () => {
   it('builds query-free paths for every public route class', () => {
@@ -34,5 +34,62 @@ describe('canonical URLs', () => {
         canonicalUrl({ type: 'event', market: 'algeria', slug: 'meetup' }),
       ),
     ).toBe('https://staging.founders.coffee/algeria/e/meetup');
+  });
+
+  it('builds locale-prefixed paths for public routes', () => {
+    expect(
+      canonicalPath({ type: 'market', market: 'algeria', locale: 'fr' }),
+    ).toBe('/fr/algeria');
+    expect(
+      canonicalPath({
+        type: 'city',
+        market: 'algeria',
+        city: 'algiers',
+        locale: 'ar',
+      }),
+    ).toBe('/ar/algeria/algiers');
+    expect(
+      canonicalPath({
+        type: 'event',
+        market: 'algeria',
+        slug: 'meetup',
+        locale: 'en',
+      }),
+    ).toBe('/en/algeria/e/meetup');
+  });
+
+  it('returns reciprocal localized alternates and a locale-neutral default', () => {
+    const alternates = runWithContext(
+      { siteOrigin: 'https://founders.coffee' },
+      () =>
+        localeAlternates({
+          type: 'company',
+          path: '/about',
+          locale: 'ar',
+        }),
+    );
+
+    expect(alternates).toEqual([
+      {
+        rel: 'alternate',
+        hrefLang: 'ar',
+        href: 'https://founders.coffee/ar/about',
+      },
+      {
+        rel: 'alternate',
+        hrefLang: 'en',
+        href: 'https://founders.coffee/en/about',
+      },
+      {
+        rel: 'alternate',
+        hrefLang: 'fr',
+        href: 'https://founders.coffee/fr/about',
+      },
+      {
+        rel: 'alternate',
+        hrefLang: 'x-default',
+        href: 'https://founders.coffee/about',
+      },
+    ]);
   });
 });

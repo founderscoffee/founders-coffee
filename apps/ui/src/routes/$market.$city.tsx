@@ -1,38 +1,136 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { city_empty_title, type Locale } from '@founders-coffee/i18n';
-import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
+import { detectLocale, isLocale, type Locale } from '@founders-coffee/i18n';
+import {
+  getCityLanding,
+  getMarketLanding,
+  type MarketCity,
+  type MarketWithCities,
+} from '@founders-coffee/server-fns';
 
+import { CompanyPage } from '../components/company/CompanyPage';
 import { CityLanding } from '../components/landing/CityLanding';
-import { canonicalUrl } from '../lib/seo';
+import { MarketLanding } from '../components/landing/MarketLanding';
+import {
+  aboutContent,
+  contactContent,
+  cookiesContent,
+  privacyContent,
+  termsContent,
+} from '../content/company';
+import { readCookieHeader } from '../lib/cookies';
+import {
+  cityPageHead,
+  companyPageHead,
+  getRequestPath,
+  marketPageHead,
+} from '../lib/seo';
+
+const companyPages = {
+  about: aboutContent,
+  contact: contactContent,
+  cookies: cookiesContent,
+  privacy: privacyContent,
+  terms: termsContent,
+} as const;
+
+type CompanyPageKey = keyof typeof companyPages;
+
+type LocalizedMarket = MarketWithCities & {
+  readonly kind: 'market';
+  readonly locale: Locale;
+};
+
+type LocalizedCity = MarketCity & {
+  readonly kind: 'city';
+  readonly locale: Locale;
+};
+
+type LocalizedCompany = {
+  readonly kind: 'company';
+  readonly locale: Locale;
+  readonly page: CompanyPageKey;
+};
+
+type RouteData = LocalizedMarket | LocalizedCity | LocalizedCompany;
+
+const isCompanyPage = (value: string): value is CompanyPageKey =>
+  value in companyPages;
+
+const localizedMarket = async (
+  locale: Locale,
+  marketKey: string,
+): Promise<LocalizedMarket> => {
+  try {
+    const data = await getMarketLanding({ data: { key: marketKey } });
+    if (marketKey !== data.market.slug) {
+      throw redirect({
+        to: '/$market/$city',
+        params: { market: locale, city: data.market.slug },
+      });
+    }
+    return { kind: 'market', locale, ...data };
+  } catch (error) {
+    if (appErrorCode(error) === 'market_not_found') throw notFound();
+    throw error;
+  }
+};
 
 export const Route = createFileRoute('/$market/$city')({
   staticData: { prerender: true },
   component: () => {
-    const { locale } = Route.useRouteContext();
-    const { market, city, events } = Route.useLoaderData();
+    const data = Route.useLoaderData();
+    if (data.kind === 'market') {
+      return (
+        <MarketLanding
+          locale={data.locale}
+          market={data.market}
+          cities={data.cities}
+          cityEventCounts={data.cityEventCounts}
+          events={data.events}
+          trending={data.trending}
+        />
+      );
+    }
+    if (data.kind === 'company') {
+      return (
+        <CompanyPage
+          locale={data.locale}
+          content={companyPages[data.page][data.locale]}
+          showEmailActions={data.page === 'contact'}
+        />
+      );
+    }
     return (
       <CityLanding
-        locale={locale}
-        market={market}
-        city={city}
-        events={events}
+        locale={data.locale}
+        market={data.market}
+        city={data.city}
+        events={data.events}
       />
     );
   },
-  loader: async ({ params }): Promise<MarketCity> => {
+  loader: async ({ params }): Promise<RouteData> => {
+    if (isLocale(params.market)) {
+      if (isCompanyPage(params.city)) {
+        return { kind: 'company', locale: params.market, page: params.city };
+      }
+      return localizedMarket(params.market, params.city);
+    }
+
     try {
-      const { market, city, events } = await getCityLanding({
+      const data = await getCityLanding({
         data: { marketKey: params.market, citySlug: params.city },
       });
-      if (params.market !== market.slug) {
-        throw redirect({
-          to: '/$market/$city',
-          params: { market: market.slug, city: params.city },
-        });
-      }
-      return { market, city, events };
+      throw redirect({
+        to: '/$market/$city/$subcity',
+        params: {
+          market: detectLocale(readCookieHeader()),
+          city: data.market.slug,
+          subcity: data.city.slug,
+        },
+      });
     } catch (error) {
       const code = appErrorCode(error);
       if (code === 'market_not_found' || code === 'city_not_found')
@@ -41,52 +139,46 @@ export const Route = createFileRoute('/$market/$city')({
     }
   },
   head: ({ loaderData }) => {
-    const locale = (loaderData?.market.defaultLocale ?? 'ar') as Locale;
-    const cityName =
-      locale === 'ar'
-        ? (loaderData?.city.nameAr ??
-          loaderData?.city.name ??
-          'founders.coffee')
-        : (loaderData?.city.name ?? 'founders.coffee');
-    const isEmpty = (loaderData?.events.length ?? 0) === 0;
-    const citySlug = loaderData?.city.slug ?? '';
-    const marketSlug = loaderData?.market.slug ?? '';
-    const description = city_empty_title({ city: cityName }, { locale });
-    const url = loaderData
-      ? canonicalUrl({
-          type: 'city',
-          market: marketSlug,
-          city: citySlug,
-        })
-      : null;
-
-    return {
-      meta: [
-        { title: `${cityName} - founders.coffee` },
-        {
-          name: 'description',
-          content: description,
+    const pathSegments = getRequestPath().split('/').filter(Boolean);
+    if (pathSegments.length >= 3) {
+      return { meta: [], links: [], scripts: [] };
+    }
+    if (!loaderData) return { meta: [], links: [], scripts: [] };
+    if (loaderData.kind === 'market') {
+      return marketPageHead({
+        locale: loaderData.locale,
+        marketName: loaderData.market.name,
+        route: {
+          type: 'market',
+          market: loaderData.market.slug,
+          locale: loaderData.locale,
         },
-        ...(url ? [{ property: 'og:url' as const, content: url }] : []),
-        ...(isEmpty
-          ? [{ name: 'robots' as const, content: 'noindex,follow' }]
-          : [{ name: 'robots' as const, content: 'index,follow' }]),
-      ],
-      links: url ? [{ rel: 'canonical', href: url }] : [],
-      scripts: url
-        ? [
-            {
-              type: 'application/ld+json',
-              children: JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'Place',
-                name: `${cityName} - founders.coffee community`,
-                description,
-                url,
-              }),
-            },
-          ]
-        : [],
-    };
+      });
+    }
+    if (loaderData.kind === 'company') {
+      const content = companyPages[loaderData.page][loaderData.locale];
+      return companyPageHead({
+        locale: loaderData.locale,
+        path: `/${loaderData.page}`,
+        canonicalLocale: loaderData.locale,
+        title: content.title,
+        description: content.description,
+      });
+    }
+    const cityName =
+      loaderData.locale === 'ar'
+        ? (loaderData.city.nameAr ?? loaderData.city.name)
+        : loaderData.city.name;
+    return cityPageHead({
+      locale: loaderData.locale,
+      cityName,
+      isEmpty: loaderData.events.length === 0,
+      route: {
+        type: 'city',
+        market: loaderData.market.slug,
+        city: loaderData.city.slug,
+        locale: loaderData.locale,
+      },
+    });
   },
 });

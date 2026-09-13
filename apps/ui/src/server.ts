@@ -127,7 +127,11 @@ export default {
     if (url.pathname.startsWith('/api/auth/'))
       return secure(await authHandler(env)(request));
     return runWithContext(
-      { cspNonce: nonce, siteOrigin: siteOriginFromEnv(env, url.origin) },
+      {
+        cspNonce: nonce,
+        requestPath: url.pathname,
+        siteOrigin: siteOriginFromEnv(env, url.origin),
+      },
       async () => secure(await handler.fetch(request)),
     );
   },

@@ -1,14 +1,11 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { market_hero_desc, type Locale } from '@founders-coffee/i18n';
-import {
-  getMarketLanding,
-  type MarketWithCities,
-} from '@founders-coffee/server-fns';
+import type { Market } from '@founders-coffee/db';
+import { detectLocale, isLocale } from '@founders-coffee/i18n';
+import { getMarket } from '@founders-coffee/server-fns';
 
-import { MarketLanding } from '../../components/landing/MarketLanding';
-import { canonicalUrl } from '../../lib/seo';
+import { readCookieHeader } from '../../lib/cookies';
 
 export const Route = createFileRoute('/$market/')({
   staticData: { prerender: true },
@@ -17,54 +14,33 @@ export const Route = createFileRoute('/$market/')({
       <span className="loading loading-dots loading-lg text-primary" />
     </div>
   ),
-  component: () => {
-    const { locale } = Route.useRouteContext();
-    const { market, cities, events, cityEventCounts, trending } =
-      Route.useLoaderData();
-    return (
-      <MarketLanding
-        locale={locale}
-        market={market}
-        cities={cities}
-        cityEventCounts={cityEventCounts}
-        events={events}
-        trending={trending}
-      />
-    );
-  },
-  loader: async ({ params }): Promise<MarketWithCities> => {
-    try {
-      const { market, cities, events, cityEventCounts, trending } =
-        await getMarketLanding({
-          data: { key: params.market },
-        });
-      if (params.market !== market.slug) {
-        throw redirect({ to: '/$market', params: { market: market.slug } });
-      }
-      return { market, cities, events, cityEventCounts, trending };
-    } catch (error) {
-      if (appErrorCode(error) === 'market_not_found') throw notFound();
-      throw error;
+  component: () => null,
+  loader: async ({ params }) => {
+    if (isLocale(params.market)) {
+      throw redirect({
+        to: '/$market/$city',
+        params: { market: params.market, city: 'algeria' },
+      });
     }
+    let market: Market;
+    try {
+      market = await getMarket({ data: { slug: params.market } });
+    } catch (error) {
+      if (appErrorCode(error) !== 'market_not_found') throw error;
+      try {
+        market = await getMarket({ data: { code: params.market } });
+      } catch (byCode) {
+        if (appErrorCode(byCode) === 'market_not_found') throw notFound();
+        throw byCode;
+      }
+    }
+    throw redirect({
+      to: '/$market/$city',
+      params: {
+        market: detectLocale(readCookieHeader()),
+        city: market.slug,
+      },
+    });
   },
-  head: ({ loaderData }) => {
-    const market = loaderData?.market;
-    const locale = (market?.defaultLocale ?? 'ar') as Locale;
-    const url = market
-      ? canonicalUrl({ type: 'market', market: market.slug })
-      : null;
-    return {
-      meta: [
-        {
-          title: `${market?.name ?? 'founders.coffee'} - founders.coffee`,
-        },
-        {
-          name: 'description',
-          content: market_hero_desc({}, { locale }),
-        },
-        ...(url ? [{ property: 'og:url' as const, content: url }] : []),
-      ],
-      links: url ? [{ rel: 'canonical', href: url }] : [],
-    };
-  },
+  head: () => ({ meta: [], links: [], scripts: [] }),
 });

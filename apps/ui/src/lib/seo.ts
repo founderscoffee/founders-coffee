@@ -1,4 +1,9 @@
-import type { Locale } from '@founders-coffee/i18n';
+import {
+  city_empty_title,
+  LOCALES,
+  market_hero_desc,
+  type Locale,
+} from '@founders-coffee/i18n';
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { CONTACT_EMAIL } from '../content/company';
@@ -8,26 +13,37 @@ import { PRODUCTION_ORIGIN } from './indexation';
 export const SITE_ORIGIN = PRODUCTION_ORIGIN;
 
 export type CanonicalRoute =
-  | { readonly type: 'root' }
-  | { readonly type: 'market'; readonly market: string }
+  | { readonly type: 'root'; readonly locale?: Locale }
+  | {
+      readonly type: 'market';
+      readonly market: string;
+      readonly locale?: Locale;
+    }
   | {
       readonly type: 'city';
       readonly market: string;
       readonly city: string;
+      readonly locale?: Locale;
     }
   | {
       readonly type: 'event';
       readonly market: string;
       readonly slug: string;
+      readonly locale?: Locale;
     }
-  | { readonly type: 'company'; readonly path: string };
+  | {
+      readonly type: 'company';
+      readonly path: string;
+      readonly locale?: Locale;
+    };
 
 const canonicalSegments = (route: CanonicalRoute): string[] => {
-  if (route.type === 'root') return [];
-  if (route.type === 'market') return [route.market];
-  if (route.type === 'city') return [route.market, route.city];
-  if (route.type === 'event') return [route.market, 'e', route.slug];
-  return route.path.split(/[?#]/u, 1)[0].split('/').filter(Boolean);
+  const locale = route.locale ? [route.locale] : [];
+  if (route.type === 'root') return locale;
+  if (route.type === 'market') return [...locale, route.market];
+  if (route.type === 'city') return [...locale, route.market, route.city];
+  if (route.type === 'event') return [...locale, route.market, 'e', route.slug];
+  return [...locale, ...route.path.split(/[?#]/u, 1)[0].split('/')];
 };
 
 export const canonicalPath = (route: CanonicalRoute): string => {
@@ -41,11 +57,40 @@ export const canonicalPath = (route: CanonicalRoute): string => {
 export const canonicalUrl = (route: CanonicalRoute): string =>
   `${getSiteOrigin()}${canonicalPath(route)}`;
 
+export const localeAlternates = (
+  route: CanonicalRoute,
+): Array<{
+  readonly rel: 'alternate';
+  readonly hrefLang: string;
+  readonly href: string;
+}> => {
+  const baseRoute = { ...route, locale: undefined } as CanonicalRoute;
+  return [
+    ...LOCALES.map((locale) => ({
+      rel: 'alternate' as const,
+      hrefLang: locale,
+      href: canonicalUrl({ ...baseRoute, locale }),
+    })),
+    {
+      rel: 'alternate' as const,
+      hrefLang: 'x-default',
+      href: canonicalUrl(baseRoute),
+    },
+  ];
+};
+
 export const getSiteOrigin = (): string => {
   const requestOrigin = getRequestContext().siteOrigin;
   if (requestOrigin) return requestOrigin;
   if (typeof window !== 'undefined') return window.location.origin;
   return SITE_ORIGIN;
+};
+
+export const getRequestPath = (): string => {
+  const requestPath = getRequestContext().requestPath;
+  if (requestPath) return requestPath;
+  if (typeof window !== 'undefined') return window.location.pathname;
+  return '/';
 };
 
 export const organizationJsonLd = () =>
@@ -68,9 +113,98 @@ export const organizationJsonLd = () =>
     ],
   });
 
+type MarketHeadInput = {
+  readonly locale: Locale;
+  readonly marketName: string;
+  readonly route: CanonicalRoute;
+};
+
+export const marketPageHead = ({
+  locale,
+  marketName,
+  route,
+}: MarketHeadInput) => {
+  const url = canonicalUrl(route);
+  return {
+    meta: [
+      { title: `${marketName} - founders.coffee` },
+      { name: 'description', content: market_hero_desc({}, { locale }) },
+      { property: 'og:url', content: url },
+    ],
+    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
+  };
+};
+
+type CityHeadInput = {
+  readonly locale: Locale;
+  readonly cityName: string;
+  readonly isEmpty: boolean;
+  readonly route: CanonicalRoute;
+};
+
+export const cityPageHead = ({
+  locale,
+  cityName,
+  isEmpty,
+  route,
+}: CityHeadInput) => {
+  const description = city_empty_title({ city: cityName }, { locale });
+  const url = canonicalUrl(route);
+  return {
+    meta: [
+      { title: `${cityName} - founders.coffee` },
+      { name: 'description', content: description },
+      { property: 'og:url', content: url },
+      {
+        name: 'robots',
+        content: isEmpty ? 'noindex,follow' : 'index,follow',
+      },
+    ],
+    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
+    scripts: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Place',
+          name: `${cityName} - founders.coffee community`,
+          description,
+          url,
+        }),
+      },
+    ],
+  };
+};
+
+type EventHeadInput = {
+  readonly title: string;
+  readonly description: string;
+  readonly route: CanonicalRoute;
+};
+
+export const eventPageHead = ({
+  title,
+  description,
+  route,
+}: EventHeadInput) => {
+  const url = canonicalUrl(route);
+  return {
+    meta: [
+      { title: `${title} - founders.coffee` },
+      { name: 'description', content: description },
+      { property: 'og:title', content: title },
+      { property: 'og:description', content: description },
+      { property: 'og:type', content: 'event' },
+      { property: 'og:url', content: url },
+    ],
+    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
+  };
+};
+
 type CompanyHeadInput = {
   locale: Locale;
   path: string;
+  canonicalLocale?: Locale;
   title: string;
   description: string;
 };
@@ -79,11 +213,17 @@ type CompanyHeadInput = {
 export const companyPageHead = ({
   locale,
   path,
+  canonicalLocale,
   title,
   description,
 }: CompanyHeadInput) => {
   const siteOrigin = getSiteOrigin();
-  const url = canonicalUrl({ type: 'company', path });
+  const route: CanonicalRoute = {
+    type: 'company',
+    path,
+    locale: canonicalLocale,
+  };
+  const url = canonicalUrl(route);
   const fullTitle = `${title} - founders.coffee`;
 
   return {
@@ -105,7 +245,7 @@ export const companyPageHead = ({
       { name: 'twitter:title', content: fullTitle },
       { name: 'twitter:description', content: description },
     ],
-    links: [{ rel: 'canonical', href: url }],
+    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
     scripts: [
       {
         type: 'application/ld+json',
