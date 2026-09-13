@@ -18,7 +18,7 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-06 are implemented and locally verified; SEO-07 through SEO-12 remain planned.
+Current progress: SEO-01 through SEO-07 are implemented and locally verified; SEO-08 through SEO-12 remain planned.
 
 ## 1. Audit baseline
 
@@ -174,6 +174,8 @@ events do not claim scheduled status; representative pages pass Rich Results val
 ### SEO-07 — Social preview assets and metadata
 
 **Requirements:** FR-E5, FR-E7, NFR-1. **Depends on:** SEO-05.
+
+**Status:** Implemented and locally verified.
 
 - Add a branded default social image with stable dimensions and alt text.
 - Emit `og:image`, dimensions, alt, and `twitter:image` for market, city, event, and company pages.

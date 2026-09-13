@@ -125,6 +125,18 @@ describe('public page metadata', () => {
           content: expect.stringContaining('Real meetups'),
         },
         { property: 'og:url', content: 'https://founders.coffee/en/algeria' },
+        {
+          property: 'og:image',
+          content:
+            'https://founders.coffee/social/founders-coffee-default.webp',
+        },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        {
+          name: 'twitter:image',
+          content:
+            'https://founders.coffee/social/founders-coffee-default.webp',
+        },
         { name: 'twitter:card', content: 'summary' },
       ]),
     );
@@ -174,6 +186,10 @@ describe('public page metadata', () => {
     });
     expect(JSON.parse(active.scripts[1]?.children ?? '{}')).toMatchObject({
       '@type': 'BreadcrumbList',
+    });
+    expect(active.meta).toContainEqual({
+      property: 'og:image:alt',
+      content: expect.stringContaining('مجتمعات'),
     });
   });
 
@@ -261,6 +277,10 @@ describe('public page metadata', () => {
     expect(head.meta).toContainEqual({
       property: 'og:locale:alternate',
       content: 'ar_DZ',
+    });
+    expect(head.meta).toContainEqual({
+      name: 'twitter:image',
+      content: 'https://founders.coffee/social/founders-coffee-default.webp',
     });
     expect(head.links).toContainEqual({
       rel: 'canonical',

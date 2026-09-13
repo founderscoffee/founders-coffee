@@ -103,6 +103,7 @@
   "city_empty_title": "Be the first to host a work meetup in {city}",
   "city_empty_body": "Be the first to host a work meetup in {city}.",
   "city_events_description": "Discover upcoming founder meetups and community gatherings in {city}.",
+  "social_image_alt": "founders.coffee local founder communities and meaningful conversations over coffee.",
   "city_empty_cta": "Host the first meetup",
   "login_to_host": "Log in to host",
   "not_found_title": "Page not found",

@@ -4,6 +4,7 @@ import {
   LOCALES,
   market_hero_desc,
   market_hero_title,
+  social_image_alt,
   type Locale,
 } from '@founders-coffee/i18n';
 import { getRequestContext } from '@founders-coffee/observability/context';
@@ -16,6 +17,7 @@ import {
 } from './seo-structured-data';
 
 export const SITE_ORIGIN = PRODUCTION_ORIGIN;
+export const DEFAULT_SOCIAL_IMAGE_PATH = '/social/founders-coffee-default.webp';
 
 export type CanonicalRoute =
   | { readonly type: 'root'; readonly locale?: Locale }
@@ -142,6 +144,8 @@ export const buildPageMetadata = ({
     MAX_DESCRIPTION_LENGTH,
   );
   const url = canonicalUrl(route);
+  const socialImage = `${getSiteOrigin()}${DEFAULT_SOCIAL_IMAGE_PATH}`;
+  const socialImageAlt = social_image_alt({}, { locale });
   return {
     meta: [
       { title: fullTitle },
@@ -153,6 +157,10 @@ export const buildPageMetadata = ({
       { property: 'og:description', content: normalizedDescription },
       { property: 'og:url', content: url },
       { property: 'og:locale', content: localeOpenGraph(locale) },
+      { property: 'og:image', content: socialImage },
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
+      { property: 'og:image:alt', content: socialImageAlt },
       ...LOCALES.filter((alternate) => alternate !== locale).map(
         (alternate) => ({
           property: 'og:locale:alternate',
@@ -162,6 +170,8 @@ export const buildPageMetadata = ({
       { name: 'twitter:card', content: 'summary' },
       { name: 'twitter:title', content: fullTitle },
       { name: 'twitter:description', content: normalizedDescription },
+      { name: 'twitter:image', content: socialImage },
+      { name: 'twitter:image:alt', content: socialImageAlt },
     ],
     links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
   };
