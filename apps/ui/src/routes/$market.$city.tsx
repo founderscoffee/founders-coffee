@@ -20,12 +20,8 @@ import {
   termsContent,
 } from '../content/company';
 import { readCookieHeader } from '../lib/cookies';
-import {
-  cityPageHead,
-  companyPageHead,
-  getRequestPath,
-  marketPageHead,
-} from '../lib/seo';
+import { cityPageHead, getRequestPath, marketPageHead } from '../lib/seo';
+import { companyPageHead } from '../lib/seo-company';
 
 const companyPages = {
   about: aboutContent,
@@ -171,6 +167,10 @@ export const Route = createFileRoute('/$market/$city')({
         : loaderData.city.name;
     return cityPageHead({
       locale: loaderData.locale,
+      marketName:
+        loaderData.locale === 'ar'
+          ? (loaderData.market.nameAr ?? loaderData.market.name)
+          : loaderData.market.name,
       cityName,
       isEmpty: loaderData.events.length === 0,
       route: {

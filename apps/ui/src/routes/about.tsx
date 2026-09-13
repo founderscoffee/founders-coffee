@@ -5,7 +5,7 @@ import { detectLocale, type Locale } from '@founders-coffee/i18n';
 import { CompanyPage } from '../components/company/CompanyPage';
 import { aboutContent } from '../content/company';
 import { readCookieHeader } from '../lib/cookies';
-import { companyPageHead } from '../lib/seo';
+import { companyPageHead } from '../lib/seo-company';
 
 export const Route = createFileRoute('/about')({
   beforeLoad: () => {

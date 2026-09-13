@@ -18,7 +18,7 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-04 are implemented and locally verified; SEO-05 through SEO-12 remain planned.
+Current progress: SEO-01 through SEO-05 are implemented and locally verified; SEO-06 through SEO-12 remain planned.
 
 ## 1. Audit baseline
 
@@ -141,6 +141,8 @@ production robots references it; parsing and inclusion/exclusion tests pass.
 ### SEO-05 — Shared page metadata builder
 
 **Requirements:** FR-E5, FR-E6, FR-E7, FR-L1 through FR-L6. **Depends on:** SEO-02, SEO-03.
+
+**Status:** Implemented and locally verified.
 
 - Produce title, description, robots, canonical, OG, Twitter, locale, and alternate-link metadata
   from one shared helper.

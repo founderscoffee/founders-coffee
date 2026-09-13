@@ -104,14 +104,15 @@ export const Route = createFileRoute('/$market/$city/e/$slug')({
   },
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [], links: [] };
-    const description = loaderData.event.description
-      ? loaderData.event.description.length > 160
-        ? `${loaderData.event.description.slice(0, 157)}...`
-        : loaderData.event.description
-      : '';
+    const cityName =
+      loaderData.locale === 'ar'
+        ? loaderData.event.cityNameAr
+        : loaderData.event.cityName;
     return eventPageHead({
+      locale: loaderData.locale,
       title: loaderData.event.title,
-      description,
+      cityName,
+      description: loaderData.event.description,
       route: {
         type: 'event',
         market: loaderData.market.slug,

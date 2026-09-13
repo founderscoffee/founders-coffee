@@ -1,12 +1,13 @@
 import {
-  city_empty_title,
+  city_events_description,
+  city_empty_body,
+  event_meta_description,
   LOCALES,
   market_hero_desc,
+  market_hero_title,
   type Locale,
 } from '@founders-coffee/i18n';
 import { getRequestContext } from '@founders-coffee/observability/context';
-
-import { CONTACT_EMAIL } from '../content/company';
 
 import { PRODUCTION_ORIGIN } from './indexation';
 
@@ -93,25 +94,74 @@ export const getRequestPath = (): string => {
   return '/';
 };
 
-export const organizationJsonLd = () =>
-  JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'founders.coffee',
-    url: getSiteOrigin(),
-    logo: `${getSiteOrigin()}/logo-fc.svg`,
-    email: CONTACT_EMAIL,
-    description: 'Local founder communities that meet over coffee.',
-    sameAs: [],
-    contactPoint: [
-      {
-        '@type': 'ContactPoint',
-        email: CONTACT_EMAIL,
-        contactType: 'customer support',
-        availableLanguage: ['ar', 'en', 'fr'],
-      },
+const MAX_TITLE_LENGTH = 70;
+const MAX_DESCRIPTION_LENGTH = 160;
+
+const normalizeText = (value: string, maxLength: number): string => {
+  const normalized = value.replace(/\s+/gu, ' ').trim();
+  const codePoints = Array.from(normalized);
+  if (codePoints.length <= maxLength) return normalized;
+  return `${codePoints.slice(0, maxLength - 1).join('')}…`;
+};
+
+const brandedTitle = (title: string): string => {
+  const normalized = normalizeText(title, MAX_TITLE_LENGTH);
+  if (normalized.toLocaleLowerCase().includes('founders.coffee')) {
+    return normalized;
+  }
+  return normalizeText(`${normalized} - founders.coffee`, MAX_TITLE_LENGTH);
+};
+
+const localeOpenGraph = (locale: Locale): string =>
+  locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US';
+
+export type PageMetadataInput = {
+  readonly locale: Locale;
+  readonly title: string;
+  readonly description: string;
+  readonly route: CanonicalRoute;
+  readonly robots?: string;
+  readonly openGraphType?: 'website' | 'event';
+};
+
+export const buildPageMetadata = ({
+  locale,
+  title,
+  description,
+  route,
+  robots = 'index,follow',
+  openGraphType = 'website',
+}: PageMetadataInput) => {
+  const fullTitle = brandedTitle(title);
+  const normalizedDescription = normalizeText(
+    description,
+    MAX_DESCRIPTION_LENGTH,
+  );
+  const url = canonicalUrl(route);
+  return {
+    meta: [
+      { title: fullTitle },
+      { name: 'description', content: normalizedDescription },
+      { name: 'robots', content: robots },
+      { property: 'og:type', content: openGraphType },
+      { property: 'og:site_name', content: 'founders.coffee' },
+      { property: 'og:title', content: fullTitle },
+      { property: 'og:description', content: normalizedDescription },
+      { property: 'og:url', content: url },
+      { property: 'og:locale', content: localeOpenGraph(locale) },
+      ...LOCALES.filter((alternate) => alternate !== locale).map(
+        (alternate) => ({
+          property: 'og:locale:alternate',
+          content: localeOpenGraph(alternate),
+        }),
+      ),
+      { name: 'twitter:card', content: 'summary' },
+      { name: 'twitter:title', content: fullTitle },
+      { name: 'twitter:description', content: normalizedDescription },
     ],
-  });
+    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
+  };
+};
 
 type MarketHeadInput = {
   readonly locale: Locale;
@@ -124,19 +174,17 @@ export const marketPageHead = ({
   marketName,
   route,
 }: MarketHeadInput) => {
-  const url = canonicalUrl(route);
-  return {
-    meta: [
-      { title: `${marketName} - founders.coffee` },
-      { name: 'description', content: market_hero_desc({}, { locale }) },
-      { property: 'og:url', content: url },
-    ],
-    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
-  };
+  return buildPageMetadata({
+    locale,
+    title: market_hero_title({ market: marketName }, { locale }),
+    description: market_hero_desc({}, { locale }),
+    route,
+  });
 };
 
 type CityHeadInput = {
   readonly locale: Locale;
+  readonly marketName: string;
   readonly cityName: string;
   readonly isEmpty: boolean;
   readonly route: CanonicalRoute;
@@ -144,23 +192,23 @@ type CityHeadInput = {
 
 export const cityPageHead = ({
   locale,
+  marketName,
   cityName,
   isEmpty,
   route,
 }: CityHeadInput) => {
-  const description = city_empty_title({ city: cityName }, { locale });
-  const url = canonicalUrl(route);
+  const description = isEmpty
+    ? city_empty_body({ city: cityName }, { locale })
+    : city_events_description({ city: cityName }, { locale });
+  const metadata = buildPageMetadata({
+    locale,
+    title: `${cityName} · ${marketName}`,
+    description,
+    route,
+    robots: isEmpty ? 'noindex,follow' : 'index,follow',
+  });
   return {
-    meta: [
-      { title: `${cityName} - founders.coffee` },
-      { name: 'description', content: description },
-      { property: 'og:url', content: url },
-      {
-        name: 'robots',
-        content: isEmpty ? 'noindex,follow' : 'index,follow',
-      },
-    ],
-    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
+    ...metadata,
     scripts: [
       {
         type: 'application/ld+json',
@@ -169,7 +217,7 @@ export const cityPageHead = ({
           '@type': 'Place',
           name: `${cityName} - founders.coffee community`,
           description,
-          url,
+          url: canonicalUrl(route),
         }),
       },
     ],
@@ -177,92 +225,27 @@ export const cityPageHead = ({
 };
 
 type EventHeadInput = {
+  readonly locale: Locale;
   readonly title: string;
-  readonly description: string;
+  readonly cityName: string;
+  readonly description?: string;
   readonly route: CanonicalRoute;
 };
 
 export const eventPageHead = ({
+  locale,
   title,
+  cityName,
   description,
   route,
 }: EventHeadInput) => {
-  const url = canonicalUrl(route);
-  return {
-    meta: [
-      { title: `${title} - founders.coffee` },
-      { name: 'description', content: description },
-      { property: 'og:title', content: title },
-      { property: 'og:description', content: description },
-      { property: 'og:type', content: 'event' },
-      { property: 'og:url', content: url },
-    ],
-    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
-  };
-};
-
-type CompanyHeadInput = {
-  locale: Locale;
-  path: string;
-  canonicalLocale?: Locale;
-  title: string;
-  description: string;
-};
-
-/** Shared meta + WebPage JSON-LD for About / Contact / Privacy / Terms / Cookies. */
-export const companyPageHead = ({
-  locale,
-  path,
-  canonicalLocale,
-  title,
-  description,
-}: CompanyHeadInput) => {
-  const siteOrigin = getSiteOrigin();
-  const route: CanonicalRoute = {
-    type: 'company',
-    path,
-    locale: canonicalLocale,
-  };
-  const url = canonicalUrl(route);
-  const fullTitle = `${title} - founders.coffee`;
-
-  return {
-    meta: [
-      { title: fullTitle },
-      { name: 'description', content: description },
-      { name: 'robots', content: 'index,follow' },
-      { property: 'og:type', content: 'website' },
-      { property: 'og:site_name', content: 'founders.coffee' },
-      { property: 'og:title', content: fullTitle },
-      { property: 'og:description', content: description },
-      { property: 'og:url', content: url },
-      {
-        property: 'og:locale',
-        content:
-          locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US',
-      },
-      { name: 'twitter:card', content: 'summary' },
-      { name: 'twitter:title', content: fullTitle },
-      { name: 'twitter:description', content: description },
-    ],
-    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
-    scripts: [
-      {
-        type: 'application/ld+json',
-        children: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'WebPage',
-          name: fullTitle,
-          description,
-          url,
-          isPartOf: {
-            '@type': 'WebSite',
-            name: 'founders.coffee',
-            url: siteOrigin,
-          },
-          inLanguage: locale,
-        }),
-      },
-    ],
-  };
+  return buildPageMetadata({
+    locale,
+    title: `${title} · ${cityName}`,
+    description:
+      description ||
+      event_meta_description({ title, city: cityName }, { locale }),
+    route,
+    openGraphType: 'event',
+  });
 };

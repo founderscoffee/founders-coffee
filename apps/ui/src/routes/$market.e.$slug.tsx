@@ -96,26 +96,5 @@ export const Route = createFileRoute('/$market/e/$slug')({
 
     return { market, event, host: null };
   },
-  head: ({ loaderData }) => {
-    const description = loaderData?.event.description
-      ? loaderData.event.description.length > 160
-        ? `${loaderData.event.description.slice(0, 157)}...`
-        : loaderData.event.description
-      : '';
-    return {
-      meta: [
-        {
-          title: `${loaderData?.event.title ?? 'founders.coffee'} - founders.coffee`,
-        },
-        { name: 'description', content: description },
-        {
-          property: 'og:title',
-          content: loaderData?.event.title ?? 'founders.coffee',
-        },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'event' },
-      ],
-      links: [],
-    };
-  },
+  head: () => ({ meta: [], links: [] }),
 });

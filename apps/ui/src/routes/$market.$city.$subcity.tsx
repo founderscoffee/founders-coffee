@@ -52,6 +52,10 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
         : loaderData.city.name;
     return cityPageHead({
       locale: loaderData.locale,
+      marketName:
+        loaderData.locale === 'ar'
+          ? (loaderData.market.nameAr ?? loaderData.market.name)
+          : loaderData.market.name,
       cityName,
       isEmpty: loaderData.events.length === 0,
       route: {

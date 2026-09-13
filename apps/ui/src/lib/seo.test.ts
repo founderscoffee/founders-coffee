@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { runWithContext } from '@founders-coffee/observability/context';
 
-import { canonicalPath, canonicalUrl, localeAlternates } from './seo';
+import { companyPageHead } from './seo-company';
+import {
+  canonicalPath,
+  canonicalUrl,
+  cityPageHead,
+  eventPageHead,
+  localeAlternates,
+  marketPageHead,
+} from './seo';
 
 describe('canonical URLs', () => {
   it('builds query-free paths for every public route class', () => {
@@ -91,5 +99,114 @@ describe('canonical URLs', () => {
         href: 'https://founders.coffee/about',
       },
     ]);
+  });
+});
+
+describe('public page metadata', () => {
+  it('uses localized market copy and emits a complete shared metadata set', () => {
+    const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
+      marketPageHead({
+        locale: 'en',
+        marketName: 'Algeria',
+        route: { type: 'market', market: 'algeria', locale: 'en' },
+      }),
+    );
+
+    expect(head.meta).toEqual(
+      expect.arrayContaining([
+        {
+          name: 'description',
+          content: expect.stringContaining('Real meetups'),
+        },
+        { property: 'og:url', content: 'https://founders.coffee/en/algeria' },
+        { name: 'twitter:card', content: 'summary' },
+      ]),
+    );
+    expect(head.links).toContainEqual({
+      rel: 'canonical',
+      href: 'https://founders.coffee/en/algeria',
+    });
+  });
+
+  it('changes city descriptions with event availability and keeps empty cities noindex', () => {
+    const empty = cityPageHead({
+      locale: 'ar',
+      marketName: 'الجزائر',
+      cityName: 'وهران',
+      isEmpty: true,
+      route: { type: 'city', market: 'algeria', city: 'oran', locale: 'ar' },
+    });
+    const active = cityPageHead({
+      locale: 'ar',
+      marketName: 'الجزائر',
+      cityName: 'وهران',
+      isEmpty: false,
+      route: { type: 'city', market: 'algeria', city: 'oran', locale: 'ar' },
+    });
+
+    expect(empty.meta).toContainEqual({
+      name: 'robots',
+      content: 'noindex,follow',
+    });
+    expect(active.meta).toContainEqual({
+      name: 'robots',
+      content: 'index,follow',
+    });
+    expect(
+      empty.meta.find((item) => item.name === 'description')?.content,
+    ).not.toBe(
+      active.meta.find((item) => item.name === 'description')?.content,
+    );
+  });
+
+  it('falls back to localized event copy and truncates authored descriptions by code points', () => {
+    const head = eventPageHead({
+      locale: 'fr',
+      title: 'Café fondateurs',
+      cityName: 'Alger',
+      description: '😀'.repeat(200),
+      route: { type: 'event', market: 'algeria', slug: 'cafe', locale: 'fr' },
+    });
+    const fallback = eventPageHead({
+      locale: 'fr',
+      title: 'Café fondateurs',
+      cityName: 'Alger',
+      description: '',
+      route: { type: 'event', market: 'algeria', slug: 'cafe', locale: 'fr' },
+    });
+    const description = head.meta.find(
+      (item) => item.name === 'description',
+    )?.content;
+
+    expect(Array.from(description ?? '')).toHaveLength(160);
+    expect(description?.endsWith('…')).toBe(true);
+    expect(
+      fallback.meta.find((item) => item.name === 'description')?.content,
+    ).toContain('Rejoignez');
+    expect(head.meta).toContainEqual({ property: 'og:type', content: 'event' });
+  });
+
+  it('uses the same builder for company pages', () => {
+    const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
+      companyPageHead({
+        locale: 'en',
+        path: '/about',
+        title: 'About founders.coffee',
+        description: '  A company page\nwith stable copy.  ',
+      }),
+    );
+
+    expect(head.meta).toContainEqual({
+      name: 'description',
+      content: 'A company page with stable copy.',
+    });
+    expect(head.meta).toContainEqual({
+      property: 'og:locale:alternate',
+      content: 'ar_DZ',
+    });
+    expect(head.links).toContainEqual({
+      rel: 'canonical',
+      href: 'https://founders.coffee/about',
+    });
   });
 });
