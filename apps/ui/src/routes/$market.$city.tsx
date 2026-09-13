@@ -5,6 +5,7 @@ import { city_empty_title, type Locale } from '@founders-coffee/i18n';
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
+import { getSiteOrigin } from '../lib/seo';
 
 export const Route = createFileRoute('/$market/$city')({
   staticData: { prerender: true },
@@ -71,7 +72,7 @@ export const Route = createFileRoute('/$market/$city')({
             '@type': 'Place',
             name: `${cityName} - founders.coffee community`,
             description,
-            url: `https://founders.coffee/${marketSlug}/${citySlug}`,
+            url: `${getSiteOrigin()}/${marketSlug}/${citySlug}`,
           }),
         },
       ],

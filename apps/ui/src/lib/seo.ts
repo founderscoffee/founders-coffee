@@ -1,16 +1,26 @@
 import type { Locale } from '@founders-coffee/i18n';
+import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { CONTACT_EMAIL } from '../content/company';
 
-export const SITE_ORIGIN = 'https://founders.coffee';
+import { PRODUCTION_ORIGIN } from './indexation';
+
+export const SITE_ORIGIN = PRODUCTION_ORIGIN;
+
+export const getSiteOrigin = (): string => {
+  const requestOrigin = getRequestContext().siteOrigin;
+  if (requestOrigin) return requestOrigin;
+  if (typeof window !== 'undefined') return window.location.origin;
+  return SITE_ORIGIN;
+};
 
 export const organizationJsonLd = () =>
   JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'founders.coffee',
-    url: SITE_ORIGIN,
-    logo: `${SITE_ORIGIN}/logo-fc.svg`,
+    url: getSiteOrigin(),
+    logo: `${getSiteOrigin()}/logo-fc.svg`,
     email: CONTACT_EMAIL,
     description: 'Local founder communities that meet over coffee.',
     sameAs: [],
@@ -38,7 +48,8 @@ export const companyPageHead = ({
   title,
   description,
 }: CompanyHeadInput) => {
-  const url = `${SITE_ORIGIN}${path}`;
+  const siteOrigin = getSiteOrigin();
+  const url = `${siteOrigin}${path}`;
   const fullTitle = `${title} - founders.coffee`;
 
   return {
@@ -73,7 +84,7 @@ export const companyPageHead = ({
           isPartOf: {
             '@type': 'WebSite',
             name: 'founders.coffee',
-            url: SITE_ORIGIN,
+            url: siteOrigin,
           },
           inLanguage: locale,
         }),

@@ -6,6 +6,7 @@ export interface RequestContext {
   readonly userId?: string;
   readonly requestId?: string;
   readonly cspNonce?: string;
+  readonly siteOrigin?: string;
 }
 
 const EMPTY_CONTEXT: RequestContext = {};
