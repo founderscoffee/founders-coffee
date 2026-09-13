@@ -7,6 +7,7 @@ export default defineConfig({
       'eslint/**/*.test.mjs',
       'release/**/*.test.mjs',
       'local-state/**/*.test.mjs',
+      'seo/**/*.test.mjs',
     ],
     root: __dirname,
   },

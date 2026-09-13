@@ -116,6 +116,18 @@ repository settings, not here.
 `concurrency` is set with `cancel-in-progress: false`: cancelling between the migration step and the
 Worker deploy would leave the schema ahead of the deployed code.
 
+### SEO/GEO release review
+
+Last reviewed: **2026-09-13**. Review owner: **Engineering**. Re-run the local or deployed smoke on
+every release and during the monthly discovery review. The smoke validates one primary JSON-LD entity
+per public page type, visible `h1`/`h2` hierarchy, canonical and locale parity, public-field
+boundaries, and staging-safe `llms.txt` and `/events.json` responses. Keep the machine-readable feed
+and `llms.txt` as discovery aids only; they do not replace the sitemap or SSR pages.
+
+AI citation and recommendation monitoring is advisory. A citation, ranking, or recommendation is not
+guaranteed by this contract. Record manual observations and any corrective action in the deployment
+evidence without adding private member data or fabricated content to public surfaces.
+
 ## Versioning and releases
 
 Versions are derived from the conventional commits (AGENTS.md §15) since the last release tag, by

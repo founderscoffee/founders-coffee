@@ -1,6 +1,9 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
+import { discoveryFailures } from './discovery-contract.mjs';
+import { inspectGeoDocument } from './geo-contract.mjs';
+
 const DEFAULT_ORIGIN = 'https://staging.founders.coffee';
 const LOCALES = ['ar', 'fr', 'en'];
 const COMPANY_PAGES = ['about', 'contact', 'cookies', 'privacy', 'terms'];
@@ -91,6 +94,13 @@ const routeEntry = (path, type, response, body, failures) => {
     failures.push(
       `${path}: canonical ${canonical ?? 'missing'} != ${expectedCanonical}`,
     );
+  for (const failure of inspectGeoDocument({
+    path,
+    type,
+    body,
+    canonical,
+  }))
+    failures.push(`${path}: GEO ${failure}`);
   if (canonicalOrigin === 'https://founders.coffee') {
     if (robots?.toLowerCase().includes('noindex'))
       failures.push(`${path}: production response is noindex`);
@@ -178,6 +188,7 @@ const run = async () => {
   const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/giu)].map(
     (match) => match[1],
   );
+  failures.push(...(await discoveryFailures({ origin, canonicalOrigin })));
 
   const paths = new Set([
     ...LOCALES.flatMap((locale) => [

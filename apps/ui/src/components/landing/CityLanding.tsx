@@ -5,6 +5,7 @@ import {
   back_to_market,
   city_empty_cta,
   city_empty_title,
+  city_upcoming_title,
   host_here,
   host_progress_label,
   host_step1_short,
@@ -89,6 +90,9 @@ export const CityLanding = ({
 
     return (
       <section className="mx-auto max-w-lg px-4 py-16">
+        <h1 className="font-display text-h2 font-semibold">
+          {cityDisplayName}
+        </h1>
         <EmptyState
           title={city_empty_title({ city: cityDisplayName }, { locale })}
           action={
@@ -153,6 +157,10 @@ export const CityLanding = ({
           {host_here({}, { locale })}
         </Link>
       </div>
+
+      <h2 className="font-display text-h4 font-semibold">
+        {city_upcoming_title({ city: cityDisplayName }, { locale })}
+      </h2>
 
       <CityFilters locale={locale} active={filters} onToggle={toggleFilter} />
 

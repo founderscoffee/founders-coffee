@@ -18,9 +18,9 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-10 are implemented and locally verified; SEO-11 through SEO-12 remain planned.
-GEO-01 through GEO-04 are implemented and locally verified; GEO-05 remains planned
-follow-up tickets based on a review of TanStack Start's Generative Engine Optimization guidance. They
+Current progress: SEO-01 through SEO-11 are implemented and locally or staging verified; SEO-12 remains planned.
+GEO-01 through GEO-05 are implemented and locally verified; SEO-12 remains planned
+follow-up work based on a review of TanStack Start's Generative Engine Optimization guidance. It
 do not change the current release boundary or the noindex policy for public member profiles.
 
 ## 1. Audit baseline
@@ -386,6 +386,8 @@ sitemap and JSON-LD, pagination is deterministic, and privacy/market-scope integ
 
 **Requirements:** FR-E5, FR-E6, FR-E7, FR-L1 through FR-L6, NFR-1, NFR-12. **Depends on:** GEO-01 through GEO-04 and SEO-11.
 
+**Status:** Implemented and locally audited on 2026-09-13.
+
 - Extend the existing SEO regression suite to assert one authoritative JSON-LD entity per type,
   visible-content parity, localized `inLanguage`, organizer attribution, and canonical URLs.
 - Verify SSR output has a clear `h1` and ordered `h2` sections for market, city, event, and company
@@ -393,9 +395,12 @@ sitemap and JSON-LD, pagination is deterministic, and privacy/market-scope integ
 - Add staging smoke checks for any `llms.txt` or public feed route, including noindex and origin safety.
 - Document that AI citation/recommendation monitoring is advisory and requires periodic manual checks;
   do not claim a ranking or citation guarantee.
+- The release smoke uses shared GEO contract helpers to validate JSON-LD cardinality, visible headings,
+  canonical parity, supported locales, public-field boundaries, and staging discovery responses.
 
 **Acceptance:** CI and staging smoke cover the GEO contract, no private or fabricated content is
-exposed, all three locales pass, and a dated review owner is recorded in the deployment runbook.
+exposed, all three locales pass, and the dated Engineering review owner is recorded in the deployment
+runbook.
 
 ## 5. Sequence and dependencies
 
@@ -466,4 +471,4 @@ branded image; dynamic Browser Rendering cards remain future work.
 - [x] Event structured data has one authoritative entity with no stale duplicate payload.
 - [x] Public entity signals contain only verified, non-empty, privacy-safe properties.
 - [x] Any `llms.txt` or public feed is deterministic, canonical, bounded, and staging-safe.
-- [ ] GEO parity and privacy regression tests pass for `ar`, `fr`, and `en`.
+- [x] GEO parity and privacy regression tests pass for `ar`, `fr`, and `en`.
