@@ -18,7 +18,7 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-07 are implemented and locally verified; SEO-08 through SEO-12 remain planned.
+Current progress: SEO-01 through SEO-08 are implemented and locally verified; SEO-09 through SEO-12 remain planned.
 
 ## 1. Audit baseline
 
@@ -188,6 +188,8 @@ staging, or unprocessed asset appears in production tags.
 ### SEO-08 — Crawlable event pagination and internal linking
 
 **Requirements:** FR-E5, FR-E7, NFR-1. **Depends on:** SEO-04, SEO-05.
+
+**Status:** Implemented and locally verified.
 
 - Add crawlable pagination for market, city, and hosted-event history when the first page is incomplete.
 - Keep “load more” for users, but render normal links for crawlers and keyboard users.

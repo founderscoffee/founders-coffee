@@ -20,28 +20,32 @@ export const SITE_ORIGIN = PRODUCTION_ORIGIN;
 export const DEFAULT_SOCIAL_IMAGE_PATH = '/social/founders-coffee-default.webp';
 
 export type CanonicalRoute =
-  | { readonly type: 'root'; readonly locale?: Locale }
+  | { readonly type: 'root'; readonly locale?: Locale; readonly query?: string }
   | {
       readonly type: 'market';
       readonly market: string;
       readonly locale?: Locale;
+      readonly query?: string;
     }
   | {
       readonly type: 'city';
       readonly market: string;
       readonly city: string;
       readonly locale?: Locale;
+      readonly query?: string;
     }
   | {
       readonly type: 'event';
       readonly market: string;
       readonly slug: string;
       readonly locale?: Locale;
+      readonly query?: string;
     }
   | {
       readonly type: 'company';
       readonly path: string;
       readonly locale?: Locale;
+      readonly query?: string;
     };
 
 const canonicalSegments = (route: CanonicalRoute): string[] => {
@@ -62,7 +66,7 @@ export const canonicalPath = (route: CanonicalRoute): string => {
 };
 
 export const canonicalUrl = (route: CanonicalRoute): string =>
-  `${getSiteOrigin()}${canonicalPath(route)}`;
+  `${getSiteOrigin()}${canonicalPath(route)}${route.query ? `?${route.query}` : ''}`;
 
 export const localeAlternates = (
   route: CanonicalRoute,

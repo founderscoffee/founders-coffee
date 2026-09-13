@@ -11,6 +11,7 @@ import { LoadMoreEvents } from '../../../components/events/LoadMoreEvents';
 import { useHostedEvents } from '../../events/hooks';
 import { useEventPages } from '../../events/useEventPages';
 import { initials } from '../../../lib/utils';
+import { hostedPaginationQuery } from '../../../lib/public-pagination';
 import { profilePhotoUrl } from '../photo-url';
 import { localeLabel, topicLabel } from '../profile-labels';
 import type { EventFeedItem } from '../../events/api';
@@ -23,15 +24,26 @@ export const PublicProfilePage = ({
   locale,
   profile,
   events,
+  eventsNextCursor,
+  beforeStartsAt,
+  beforeId,
   markets,
 }: {
   locale: Locale;
   profile: PublicProfile;
   events: readonly EventFeedItem[];
+  eventsNextCursor?: { startsAt: number; id: string } | null;
+  beforeStartsAt?: number;
+  beforeId?: string;
   markets: readonly Market[];
 }) => {
   const pagination = useEventPages(
-    useHostedEvents({ hostId: profile.userId, limit: PAGE_SIZE }),
+    useHostedEvents({
+      hostId: profile.userId,
+      beforeStartsAt,
+      beforeId,
+      limit: PAGE_SIZE,
+    }),
     events,
   );
   const now = Date.now();
@@ -135,7 +147,15 @@ export const PublicProfilePage = ({
                   );
                 })}
               </ul>
-              <LoadMoreEvents locale={locale} pagination={pagination} />
+              <LoadMoreEvents
+                locale={locale}
+                pagination={pagination}
+                nextPageHref={
+                  eventsNextCursor
+                    ? `/u/${encodeURIComponent(profile.userId)}?${hostedPaginationQuery(eventsNextCursor)}`
+                    : undefined
+                }
+              />
             </>
           )}
         </div>

@@ -31,6 +31,9 @@ type CityLandingProps = {
   market: Market;
   city: geo.GeoCity;
   events: readonly EventFeedItem[];
+  afterStartsAt?: number;
+  afterId?: string;
+  nextPageHref?: string;
 };
 
 const PAGE_SIZE = 20;
@@ -43,6 +46,9 @@ export const CityLanding = ({
   market,
   city,
   events,
+  afterStartsAt,
+  afterId,
+  nextPageHref,
 }: CityLandingProps) => {
   const cityDisplayName = locale === 'ar' ? city.nameAr : city.name;
   const marketName = marketDisplayName(market, locale);
@@ -60,6 +66,8 @@ export const CityLanding = ({
       marketCode: market.code,
       cityCode: city.code,
       limit: PAGE_SIZE,
+      afterStartsAt,
+      afterId,
     }),
     events,
   );
@@ -159,7 +167,11 @@ export const CityLanding = ({
         </ul>
       )}
 
-      <LoadMoreEvents locale={locale} pagination={pagination} />
+      <LoadMoreEvents
+        locale={locale}
+        pagination={pagination}
+        nextPageHref={nextPageHref}
+      />
     </section>
   );
 };

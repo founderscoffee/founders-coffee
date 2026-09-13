@@ -21,6 +21,12 @@ import {
 } from '../content/company';
 import { readCookieHeader } from '../lib/cookies';
 import {
+  paginationQuery,
+  paginationSearch,
+  publicPaginationSearchSchema,
+  type PublicPaginationSearch,
+} from '../lib/public-pagination';
+import {
   canonicalUrl,
   cityPageHead,
   getRequestPath,
@@ -41,11 +47,13 @@ type CompanyPageKey = keyof typeof companyPages;
 type LocalizedMarket = MarketWithCities & {
   readonly kind: 'market';
   readonly locale: Locale;
+  readonly pagination: PublicPaginationSearch;
 };
 
 type LocalizedCity = MarketCity & {
   readonly kind: 'city';
   readonly locale: Locale;
+  readonly pagination: PublicPaginationSearch;
 };
 
 type LocalizedCompany = {
@@ -59,19 +67,25 @@ type RouteData = LocalizedMarket | LocalizedCity | LocalizedCompany;
 const isCompanyPage = (value: string): value is CompanyPageKey =>
   value in companyPages;
 
+const landingSearchSchema = publicPaginationSearchSchema;
+
 const localizedMarket = async (
   locale: Locale,
   marketKey: string,
+  pagination: PublicPaginationSearch,
 ): Promise<LocalizedMarket> => {
   try {
-    const data = await getMarketLanding({ data: { key: marketKey } });
+    const data = await getMarketLanding({
+      data: { key: marketKey, ...pagination },
+    });
     if (marketKey !== data.market.slug) {
       throw redirect({
         to: '/$market/$city',
         params: { market: locale, city: data.market.slug },
+        search: pagination,
       });
     }
-    return { kind: 'market', locale, ...data };
+    return { kind: 'market', locale, pagination, ...data };
   } catch (error) {
     if (appErrorCode(error) === 'market_not_found') throw notFound();
     throw error;
@@ -80,6 +94,11 @@ const localizedMarket = async (
 
 export const Route = createFileRoute('/$market/$city')({
   staticData: { prerender: true },
+  validateSearch: landingSearchSchema,
+  loaderDeps: ({ search }) => ({
+    afterStartsAt: search.afterStartsAt,
+    afterId: search.afterId,
+  }),
   component: () => {
     const data = Route.useLoaderData();
     if (data.kind === 'market') {
@@ -90,6 +109,20 @@ export const Route = createFileRoute('/$market/$city')({
           cities={data.cities}
           cityEventCounts={data.cityEventCounts}
           events={data.events}
+          afterStartsAt={data.pagination.afterStartsAt}
+          afterId={data.pagination.afterId}
+          nextPageHref={
+            data.eventsNextCursor
+              ? canonicalUrl({
+                  type: 'market',
+                  market: data.market.slug,
+                  locale: data.locale,
+                  query: paginationQuery(
+                    paginationSearch(data.eventsNextCursor),
+                  ),
+                })
+              : undefined
+          }
           trending={data.trending}
         />
       );
@@ -112,17 +145,21 @@ export const Route = createFileRoute('/$market/$city')({
       />
     );
   },
-  loader: async ({ params }): Promise<RouteData> => {
+  loader: async ({ params, deps }): Promise<RouteData> => {
     if (isLocale(params.market)) {
       if (isCompanyPage(params.city)) {
         return { kind: 'company', locale: params.market, page: params.city };
       }
-      return localizedMarket(params.market, params.city);
+      return localizedMarket(params.market, params.city, deps);
     }
 
     try {
       const data = await getCityLanding({
-        data: { marketKey: params.market, citySlug: params.city },
+        data: {
+          marketKey: params.market,
+          citySlug: params.city,
+          ...deps,
+        },
       });
       throw redirect({
         to: '/$market/$city/$subcity',
@@ -131,6 +168,7 @@ export const Route = createFileRoute('/$market/$city')({
           city: data.market.slug,
           subcity: data.city.slug,
         },
+        search: deps,
       });
     } catch (error) {
       const code = appErrorCode(error);
@@ -165,6 +203,7 @@ export const Route = createFileRoute('/$market/$city')({
           type: 'market',
           market: loaderData.market.slug,
           locale: loaderData.locale,
+          query: paginationQuery(loaderData.pagination),
         },
       });
     }
@@ -204,6 +243,7 @@ export const Route = createFileRoute('/$market/$city')({
         market: loaderData.market.slug,
         city: loaderData.city.slug,
         locale: loaderData.locale,
+        query: paginationQuery(loaderData.pagination),
       },
     });
   },

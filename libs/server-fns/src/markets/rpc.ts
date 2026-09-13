@@ -11,6 +11,17 @@ import {
   resolveMarketLanding,
 } from './resolver.js';
 
+const landingPaginationSchema = z
+  .object({
+    afterStartsAt: z.number().int().positive().optional(),
+    afterId: z.string().trim().min(1).max(64).optional(),
+  })
+  .refine(
+    ({ afterStartsAt, afterId }) =>
+      (afterStartsAt === undefined) === (afterId === undefined),
+    'Both pagination cursor fields are required together',
+  );
+
 /**
  * The `createServerFn` RPC wrappers over the db-injected resolver. These are the **throw boundary**:
  * `handleResult` unwraps the domain `Result` and throws the typed `AppError` on failure so TanStack
@@ -30,12 +41,18 @@ export const getVisibleMarkets = createServerFn({ strict: false }).handler(
 
 /** Country-landing data (market + featured cities from TS geo data) by slug-or-code. */
 export const getMarketLanding = createServerFn({ strict: false })
-  .validator(z.object({ key: z.string() }))
+  .validator(z.object({ key: z.string() }).and(landingPaginationSchema))
   .handler(async ({ data }) =>
-    handleResult(resolveMarketLanding(getDb(), data.key)),
+    handleResult(resolveMarketLanding(getDb(), data.key, data)),
   );
 
 /** City-landing data (market + city) by market key + city slug. City validated from geo TS data. */
 export const getCityLanding = createServerFn({ strict: false })
-  .validator(z.object({ marketKey: z.string(), citySlug: z.string() }))
-  .handler(async ({ data }) => handleResult(resolveCityLanding(getDb(), data)));
+  .validator(
+    z
+      .object({ marketKey: z.string(), citySlug: z.string() })
+      .and(landingPaginationSchema),
+  )
+  .handler(async ({ data }) =>
+    handleResult(resolveCityLanding(getDb(), data, data)),
+  );

@@ -11,7 +11,7 @@ import {
   user,
 } from '@founders-coffee/db';
 
-import { unlinkProvider, unlinkProviderIfNotLast } from './sessions.js';
+import { unlinkProvider } from './sessions.js';
 
 const setup = async (overrides: Record<string, unknown> = {}) => {
   const db = createDb(env.DB);

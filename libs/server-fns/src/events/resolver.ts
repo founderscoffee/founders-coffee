@@ -247,6 +247,8 @@ export interface EventFeedPage {
   } | null;
 }
 
+export type EventFeedCursor = NonNullable<EventFeedPage['nextCursor']>;
+
 /** List upcoming published events, optionally scoped to a market/city (composite cursor). */
 export const listEvents = async (
   db: Db,

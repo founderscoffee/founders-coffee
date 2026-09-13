@@ -37,8 +37,8 @@ export const useUpcomingEvents = (params: UpcomingEventsParams) =>
       return eventsApi.getUpcomingEvents({
         data: {
           ...params,
-          afterStartsAt: cursor?.startsAt,
-          afterId: cursor?.id,
+          afterStartsAt: cursor?.startsAt ?? params.afterStartsAt,
+          afterId: cursor?.id ?? params.afterId,
         },
       });
     },
@@ -84,6 +84,8 @@ export const useMyJoinedEvents = (
 export const useHostedEvents = (params: {
   hostId: string;
   marketCode?: string;
+  beforeStartsAt?: number;
+  beforeId?: string;
   limit?: number;
 }) =>
   useInfiniteQuery({
@@ -93,8 +95,8 @@ export const useHostedEvents = (params: {
       return eventsApi.getHostedEvents({
         data: {
           ...params,
-          beforeStartsAt: cursor?.startsAt,
-          beforeId: cursor?.id,
+          beforeStartsAt: cursor?.startsAt ?? params.beforeStartsAt,
+          beforeId: cursor?.id ?? params.beforeId,
         },
       });
     },

@@ -98,6 +98,7 @@
   "host_in_market": "استضف في {market}",
   "cities_in": "المدن في {market}",
   "feed_load_more": "تحميل المزيد",
+  "next_page": "الصفحة التالية",
   "going_count": "+{count} ذاهب",
   "no_events_yet": "لا فعاليات بعد - كن أول من يستضيف",
   "city_empty_title": "كن أول من يستضيف لقاء عمل في {city}",

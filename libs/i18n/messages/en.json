@@ -98,6 +98,7 @@
   "host_in_market": "Host in {market}",
   "cities_in": "Cities in {market}",
   "feed_load_more": "Load more",
+  "next_page": "Next page",
   "going_count": "+{count} going",
   "no_events_yet": "No events yet - be the first to host",
   "city_empty_title": "Be the first to host a work meetup in {city}",

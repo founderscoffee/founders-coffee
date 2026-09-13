@@ -5,6 +5,7 @@ export {
   type EventWithAttendance,
 } from './attendance.js';
 export type {
+  EventFeedCursor,
   EventFeedItem,
   EventFeedItemBase,
   EventFeedPage,

@@ -16,6 +16,9 @@ type MarketLandingProps = {
   cities: readonly geo.GeoCity[];
   cityEventCounts: Record<string, number>;
   events: readonly EventFeedItem[];
+  afterStartsAt?: number;
+  afterId?: string;
+  nextPageHref?: string;
   trending: TrendingSection;
 };
 
@@ -24,6 +27,9 @@ export const MarketLanding = ({
   market,
   cityEventCounts,
   events,
+  afterStartsAt,
+  afterId,
+  nextPageHref,
   trending,
 }: MarketLandingProps) => (
   <>
@@ -33,6 +39,13 @@ export const MarketLanding = ({
       cityEventCounts={cityEventCounts}
     />
     <TrendingStates locale={locale} market={market} trending={trending} />
-    <DiscoverFeed locale={locale} market={market} events={events} />
+    <DiscoverFeed
+      locale={locale}
+      market={market}
+      events={events}
+      afterStartsAt={afterStartsAt}
+      afterId={afterId}
+      nextPageHref={nextPageHref}
+    />
   </>
 );

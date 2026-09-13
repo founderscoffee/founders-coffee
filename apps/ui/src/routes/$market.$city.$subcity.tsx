@@ -5,26 +5,68 @@ import { isLocale, type Locale } from '@founders-coffee/i18n';
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
+import {
+  paginationQuery,
+  paginationSearch,
+  publicPaginationSearchSchema,
+  type PublicPaginationSearch,
+} from '../lib/public-pagination';
 import { canonicalUrl, cityPageHead } from '../lib/seo';
 
 export const Route = createFileRoute('/$market/$city/$subcity')({
   staticData: { prerender: true },
+  validateSearch: publicPaginationSearchSchema,
+  loaderDeps: ({ search }) => ({
+    afterStartsAt: search.afterStartsAt,
+    afterId: search.afterId,
+  }),
   component: () => {
-    const { locale, market, city, events } = Route.useLoaderData();
+    const {
+      locale,
+      market,
+      city,
+      events,
+      eventsNextCursor,
+      afterStartsAt,
+      afterId,
+    } = Route.useLoaderData();
     return (
       <CityLanding
         locale={locale}
         market={market}
         city={city}
         events={events}
+        afterStartsAt={afterStartsAt}
+        afterId={afterId}
+        nextPageHref={
+          eventsNextCursor
+            ? canonicalUrl({
+                type: 'city',
+                market: market.slug,
+                city: city.slug,
+                locale,
+                query: paginationQuery(paginationSearch(eventsNextCursor)),
+              })
+            : undefined
+        }
       />
     );
   },
-  loader: async ({ params }): Promise<MarketCity & { locale: Locale }> => {
+  loader: async ({
+    params,
+    deps,
+  }): Promise<
+    MarketCity & {
+      locale: Locale;
+      pagination: PublicPaginationSearch;
+      afterStartsAt?: number;
+      afterId?: string;
+    }
+  > => {
     if (!isLocale(params.market)) throw notFound();
     try {
       const data = await getCityLanding({
-        data: { marketKey: params.city, citySlug: params.subcity },
+        data: { marketKey: params.city, citySlug: params.subcity, ...deps },
       });
       if (params.city !== data.market.slug) {
         throw redirect({
@@ -34,9 +76,15 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
             city: data.market.slug,
             subcity: data.city.slug,
           },
+          search: deps,
         });
       }
-      return { ...data, locale: params.market };
+      return {
+        ...data,
+        ...deps,
+        locale: params.market,
+        pagination: deps,
+      };
     } catch (error) {
       const code = appErrorCode(error);
       if (code === 'market_not_found' || code === 'city_not_found')
@@ -72,6 +120,7 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
         market: loaderData.market.slug,
         city: loaderData.city.slug,
         locale: loaderData.locale,
+        query: paginationQuery(loaderData.pagination),
       },
     });
   },

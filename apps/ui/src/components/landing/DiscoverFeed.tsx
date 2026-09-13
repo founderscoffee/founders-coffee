@@ -21,11 +21,26 @@ type DiscoverFeedProps = {
   locale: Locale;
   market: Market;
   events: readonly EventFeedItem[];
+  afterStartsAt?: number;
+  afterId?: string;
+  nextPageHref?: string;
 };
 
-export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
+export const DiscoverFeed = ({
+  locale,
+  market,
+  events,
+  afterStartsAt,
+  afterId,
+  nextPageHref,
+}: DiscoverFeedProps) => {
   const pagination = useEventPages(
-    useUpcomingEvents({ marketCode: market.code, limit: PAGE_SIZE }),
+    useUpcomingEvents({
+      marketCode: market.code,
+      limit: PAGE_SIZE,
+      afterStartsAt,
+      afterId,
+    }),
     events,
   );
   const items = pagination.items;
@@ -59,7 +74,11 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
             </li>
           </ul>
 
-          <LoadMoreEvents locale={locale} pagination={pagination} />
+          <LoadMoreEvents
+            locale={locale}
+            pagination={pagination}
+            nextPageHref={nextPageHref}
+          />
         </>
       ) : (
         <EmptyState title={no_events_yet({}, { locale })} />

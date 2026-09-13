@@ -40,8 +40,8 @@ The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, F
 | domain (`geo.*`)     | `GeoState`, `GeoCity` types                                                              | `{ code, name, nameAr, slug, stateCode, featured }` for cities; states omit city-only fields |
 | db                   | `getMarketByCode`, `getMarketBySlug`, `listMarkets({states?})`                           | market queries only                                                                          |
 | server-fns           | `resolveMarket(db, {code?, slug?})`                                                      | public market resolution                                                                     |
-| server-fns           | `resolveMarketLanding(db, key)`                                                          | market + **featured cities** from geo TS data                                                |
-| server-fns           | `resolveCityLanding(db, {marketKey, citySlug})`                                          | market + city (validated via `geo.findCityBySlug`)                                           |
+| server-fns           | `resolveMarketLanding(db, key, pagination?)`                                             | market + **featured cities** from geo TS data + cursor page                                  |
+| server-fns           | `resolveCityLanding(db, {marketKey, citySlug}, pagination?)`                             | market + city (validated via `geo.findCityBySlug`) + cursor page                             |
 | server-fns (RPC)     | `getMarket`, `getMarketLanding`, `getCityLanding`, `getVisibleMarkets`                   | client-safe wrappers                                                                         |
 | server-fns (RPC)     | `getStates`, `getCities`, `getFeaturedCities`                                            | geo data RPCs                                                                                |
 
