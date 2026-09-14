@@ -1,6 +1,6 @@
 {
   "description": "Public discovery files and SEO smoke requests bypass managed challenge controls",
-  "expression": "(http.request.method eq \"GET\" and (http.request.uri.path in {\"/robots.txt\" \"/sitemap.xml\" \"/llms.txt\" \"/events.json\"} or (http.user_agent contains \"founders-coffee-seo-smoke\" and (starts_with(http.request.uri.path, \"/ar/\") or starts_with(http.request.uri.path, \"/fr/\") or starts_with(http.request.uri.path, \"/en/\")))))",
+  "expression": "(http.request.method eq \"GET\" and (http.request.uri.path in {\"/robots.txt\" \"/sitemap.xml\" \"/llms.txt\" \"/events.json\"} or (http.request.headers[\"x-founders-coffee-seo-smoke\"][0] eq \"1\" and (starts_with(http.request.uri.path, \"/ar/\") or starts_with(http.request.uri.path, \"/fr/\") or starts_with(http.request.uri.path, \"/en/\")))))",
   "action": "skip",
   "action_parameters": {
     "products": ["bic", "securityLevel"],
