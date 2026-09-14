@@ -1,15 +1,15 @@
 # Community Operations and Admin Implementation Plan
 
-| Field          | Value                                                                                                                                                                            |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-10 signed off, CO-01 through CO-06 implemented, CO-02/CO-03 deployed to both environments, CO-04/CO-05 staging-verified, and CO-06 locally verified pending promotion |
-| Last reviewed  | 2026-09-14                                                                                                                                                                       |
-| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                                      |
-| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                                     |
-| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                                   |
-| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                                        |
-| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                                 |
-| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                                   |
+| Field          | Value                                                                                                                                                                                          |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; EC-10 signed off, CO-01 through CO-07 implemented locally, CO-02/CO-03 deployed to both environments, CO-04/CO-05 staging-verified, and CO-06/CO-07 locally verified pending promotion |
+| Last reviewed  | 2026-09-14                                                                                                                                                                                     |
+| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                                                    |
+| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                                                   |
+| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                                                 |
+| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                                                      |
+| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                                               |
+| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                                                 |
 
 ## 1. Objective
 
@@ -142,10 +142,13 @@ Drizzle, domain internals, or server functions from a component.
    predefined friction categories applied. It does not collect an unrestricted operational diary.
 9. **Host closeout belongs in `apps/ui`.** Hosts must never enter the internal admin app to finish an
    ordinary event. Admin can inspect, correct, or complete an overdue closeout with a required reason.
-10. **Repeat hosting reuses, then revalidates.** “Host another like this” may prefill city, venue,
-    capacity, language, category, and safe descriptive fields, but never copies timestamps,
-    attendance, IDs, slug, or security responses. Submission still uses the EC shared schema and
-    full authorization/Turnstile/rate-limit pipeline.
+10. **Repeat hosting reuses, then revalidates.** “Host another like this” may prefill the source
+    city, venue, title, and description—the safe fields exposed by the current EC wizard. Event
+    language follows the active locale because EC has no separate language control. The flow never
+    copies timestamps, attendance, IDs, slug, closeout, security responses, or expired provider
+    state. Submission still uses the EC shared schema and the existing EC authorization,
+    rate-limit, and WAF pipeline; the event-create Turnstile challenge remains intentionally
+    disabled by the recorded product decision.
 11. **The admin app is double-gated.** Cloudflare Access JWT verification remains mandatory and
     `workers.dev` stays disabled. Inside the Worker, Better Auth session and centralized RBAC permit
     only `moderator`/`admin` operations. Access identity alone never grants product permissions.
@@ -865,10 +868,11 @@ Verification:
 Work:
 
 - Add “Host another like this” after a held closeout and on the host's own past-event view.
-- Prefill only the safe fields defined in §5; clear schedule, IDs, slug, attendance, closeout,
-  security responses, and any expired provider state.
-- Send the host through the complete EC wizard review, validation, authentication, Turnstile, and
-  persistence pipeline.
+- Prefill only the safe fields defined in §5 (city, venue, title, and description); clear schedule,
+  IDs, slug, attendance, closeout, security responses, and any expired provider state. The event
+  language is the active locale selected for the new wizard session.
+- Send the host through the complete EC wizard review, validation, authentication, persistence,
+  rate-limit, and WAF pipeline, preserving the current event-create Turnstile decision.
 - Preserve the normal ability to change every prefilled value and make copied fields obvious rather
   than silently resubmitting an old event.
 - Require the `communityOperations` flag to expose repeat-host entry points; final submission still
@@ -879,6 +883,13 @@ Verification:
 - Tests prove forbidden fields are never copied and all prefilled fields are revalidated.
 - A repeated event receives a fresh ID/slug/timestamps and appears correctly in city/host feeds.
 - The flow works in all locales, directions, and target widths covered by EC-09.
+
+Implementation status (2026-09-14): the host-only repeat-template server function enforces the
+held-closeout and `communityOperations` gates; repeat links are available from held closeout,
+hosted activity history, and the host's past event view. The wizard starts with safe editable fields,
+clears its schedule and provider search state, and continues through the existing EC validation,
+auth, persistence, and rate-limit pipeline. Server, draft, activity, closeout, and locale copy tests
+are passing locally; staging/production promotion remains a release operation.
 
 ### CO-08 — Build the admin event-operations workspace
 
@@ -1093,7 +1104,7 @@ Relevant Playwright remains a separate local/staging release gate.
 4. `feat(admin): establish secure community operations shell` — CO-04.
 5. `feat(events): add host closeout and attendance` — CO-05.
 6. `feat(events): collect post-event feedback` — CO-06.
-7. `feat(events): reduce repeat-host friction` — CO-07.
+7. `feat(events): reduce repeat-host friction` — CO-07 (implemented locally; promotion pending).
 8. `feat(admin): add event operations workspace` — CO-08.
 9. `feat(admin): add host trust and moderation` — CO-09.
 10. `feat(admin): report community health` — CO-10.

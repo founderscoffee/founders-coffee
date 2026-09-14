@@ -8,6 +8,7 @@ import {
 export interface CloseoutStateView {
   readonly eventId: string;
   readonly closed: boolean;
+  readonly outcome: 'held' | 'did_not_happen' | null;
 }
 
 /**
@@ -44,6 +45,6 @@ export const readCloseoutStates = async (
   return ok(
     states
       .filter((state) => enabled.get(state.marketCode))
-      .map(({ eventId, closed }) => ({ eventId, closed })),
+      .map(({ eventId, closed, outcome }) => ({ eventId, closed, outcome })),
   );
 };

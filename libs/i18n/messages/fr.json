@@ -400,6 +400,8 @@
   "host_step1_short": "Où",
   "host_step2_short": "Quand",
   "host_step3_short": "Quoi",
+  "host_repeat_link": "Organiser une rencontre similaire",
+  "host_repeat_notice": "À partir de « {title} ». Vérifiez chaque détail et choisissez une nouvelle date avant de publier.",
   "host_nearby_venues": "Cafés et espaces de coworking à proximité",
   "host_venue_selected": "Sélectionné",
   "host_venue_ineligible": "ni café ni espace de coworking",

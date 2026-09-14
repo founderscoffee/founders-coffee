@@ -400,6 +400,8 @@
   "host_step1_short": "أين",
   "host_step2_short": "متى",
   "host_step3_short": "ماذا",
+  "host_repeat_link": "استضف لقاءً مشابهًا",
+  "host_repeat_notice": "نبدأ من «{title}». راجع كل التفاصيل واختر وقتًا جديدًا قبل النشر.",
   "host_nearby_venues": "مقاهٍ ومساحات عمل قريبة",
   "host_venue_selected": "محدد",
   "host_venue_ineligible": "ليس مقهى أو مساحة عمل",

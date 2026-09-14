@@ -211,6 +211,7 @@ export const EventDetail = ({
             <RsvpSection
               event={event}
               hostName={hostName}
+              marketSlug={market.slug}
               locale={locale}
               isHost={isHost}
               live={live}

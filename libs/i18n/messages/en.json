@@ -400,6 +400,8 @@
   "host_step1_short": "Where",
   "host_step2_short": "When",
   "host_step3_short": "What",
+  "host_repeat_link": "Host another like this",
+  "host_repeat_notice": "Starting from “{title}”. Check every detail and choose a new time before publishing.",
   "host_nearby_venues": "Cafés and coworking spaces nearby",
   "host_venue_selected": "Selected",
   "host_venue_ineligible": "not a café or coworking space",

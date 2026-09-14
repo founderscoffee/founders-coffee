@@ -7,7 +7,7 @@ import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 
 import { HostCreatePage } from '../../components/host/HostCreatePage';
-import { eventsApi } from '../../features/events/api';
+import { eventsApi, type RepeatEventTemplate } from '../../features/events/api';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
 
 type HostCreateLoaderData = {
@@ -16,6 +16,28 @@ type HostCreateLoaderData = {
   mapboxToken: string;
   turnstileSiteKey: string | null;
   hasSocial: boolean;
+  repeatTemplate: RepeatEventTemplate | null;
+};
+
+const REPEAT_OPTIONAL_ERRORS = new Set([
+  'event_not_found',
+  'forbidden',
+  'operations_disabled',
+  'repeat_event_not_eligible',
+  'repeat_event_not_host',
+  'unauthenticated',
+]);
+
+const loadRepeatTemplate = async (
+  eventId: string | undefined,
+): Promise<RepeatEventTemplate | null> => {
+  if (!eventId) return null;
+  try {
+    return await eventsApi.getRepeatEventTemplate({ data: { eventId } });
+  } catch (error) {
+    if (REPEAT_OPTIONAL_ERRORS.has(appErrorCode(error))) return null;
+    throw error;
+  }
 };
 
 export const Route = createFileRoute('/$market/host/create')({
@@ -26,12 +48,19 @@ export const Route = createFileRoute('/$market/host/create')({
   validateSearch: z.object({
     city: z.coerce.string().optional(),
     state: z.coerce.string().optional(),
+    repeat: z.coerce.string().min(1).max(64).optional(),
   }),
-  loaderDeps: ({ search }) => ({ city: search.city }),
+  loaderDeps: ({ search }) => ({ city: search.city, repeat: search.repeat }),
   component: () => {
     const { locale } = Route.useRouteContext();
-    const { market, city, mapboxToken, turnstileSiteKey, hasSocial } =
-      Route.useLoaderData();
+    const {
+      market,
+      city,
+      mapboxToken,
+      turnstileSiteKey,
+      hasSocial,
+      repeatTemplate,
+    } = Route.useLoaderData();
     return (
       <HostCreatePage
         locale={locale}
@@ -40,6 +69,7 @@ export const Route = createFileRoute('/$market/host/create')({
         mapboxToken={mapboxToken}
         turnstileSiteKey={turnstileSiteKey}
         hasSocial={hasSocial}
+        repeatTemplate={repeatTemplate}
       />
     );
   },
@@ -55,12 +85,18 @@ export const Route = createFileRoute('/$market/host/create')({
       throw redirect({
         to: '/$market/host/create',
         params: { market: market.slug },
-        search: { city: deps.city },
+        search: { city: deps.city, repeat: deps.repeat },
       });
     }
-    const city = deps.city
+    const repeatTemplate = await loadRepeatTemplate(deps.repeat);
+    const repeatCity =
+      repeatTemplate?.marketCode === market.code
+        ? repeatTemplate.cityCode
+        : undefined;
+    const cityCode = repeatCity ?? deps.city;
+    const city = cityCode
       ? await eventsApi.getCity({
-          data: { country: market.code, cityCode: deps.city },
+          data: { country: market.code, cityCode },
         })
       : null;
     const [mapboxToken, authConfig] = await Promise.all([
@@ -73,6 +109,8 @@ export const Route = createFileRoute('/$market/host/create')({
       mapboxToken,
       turnstileSiteKey: authConfig.turnstileSiteKey,
       hasSocial: authConfig.hasSocial,
+      repeatTemplate:
+        repeatTemplate?.marketCode === market.code ? repeatTemplate : null,
     };
   },
   head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),

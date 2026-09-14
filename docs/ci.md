@@ -332,15 +332,11 @@ match the exported component in PascalCase; that rule is what keeps CI honest.
 
 - **Playwright e2e smoke** (P0-021) — no post-deploy health check runs today.
 
-## `dangerouslyIgnoreUnhandledErrors` in `libs/server-fns`
+## Better Auth contact-test error handling
 
-Better Auth's router settles the `Response` a caller awaits and separately drops the `APIError` its
-endpoint threw, so every test that deliberately submits a wrong or expired code — most of the
-PF-07c contact-change suite — ends the run with an unhandled rejection that no caller could have
-caught. The flag is set on that project alone, and only because the rejection originates inside a
-dependency: an `unhandledrejection` listener in `setup.ts` was tried first and never fires under the
-Workers pool.
-
-What it costs: a genuine unhandled rejection in `libs/server-fns`' own code no longer fails that
-project's run. Every other project keeps the default. Remove the flag when the upstream router stops
-orphaning the promise, and check by deleting it and running the contact suites.
+PF-07c originally sent every contact operation through the Better Auth HTTP router. Under the
+Workers pool, deliberately invalid contact codes and duplicate numbers produced a response while
+also leaving the endpoint's `APIError` promise unhandled. `contact-preflight.ts` now resolves those
+expected refusal cases against the D1 verification records (including expiry and attempt limits),
+then leaves successful operations on the composed auth handler. The test project no longer uses
+`dangerouslyIgnoreUnhandledErrors`; the two contact suites run with zero unhandled errors.

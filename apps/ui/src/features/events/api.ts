@@ -11,6 +11,7 @@ import {
   getMapboxToken,
   getMarket,
   getPublicAuthConfig,
+  getRepeatEventTemplate,
   getUpcomingEvents,
   listNearbyVenues,
   reverseEventVenue,
@@ -20,6 +21,7 @@ import {
   type EventFeedItem,
   type EventFeedPage,
   type HostedEventPage,
+  type RepeatEventTemplate,
   type EventWithAttendance,
   type HostMapContext,
   type VenueCandidate,
@@ -43,6 +45,7 @@ export const eventsApi = {
   getCity,
   getMapboxToken,
   getPublicAuthConfig,
+  getRepeatEventTemplate,
 };
 
 export type {
@@ -51,6 +54,7 @@ export type {
   EventFeedItem,
   EventFeedPage,
   HostedEventPage,
+  RepeatEventTemplate,
   EventWithAttendance,
   HostMapContext,
   VenueCandidate,

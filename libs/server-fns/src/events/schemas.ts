@@ -33,6 +33,12 @@ export type HostedEventsRequestInput = z.infer<
   typeof hostedEventsRequestSchema
 >;
 
+export const repeatEventRequestSchema = z
+  .object({ eventId: z.string().min(1).max(64) })
+  .strict();
+
+export type RepeatEventRequestInput = z.infer<typeof repeatEventRequestSchema>;
+
 export const joinedEventsRequestSchema = z
   .object({
     marketCode: z.string().min(2).max(8).optional(),

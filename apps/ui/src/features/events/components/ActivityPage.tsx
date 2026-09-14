@@ -41,7 +41,7 @@ export const ActivityPage = ({
   const hostedItems = flatten(hosted.data?.pages);
   const closeoutStates = useMyCloseoutStates(closeoutCandidates(hostedItems));
   const closeoutByEvent = new Map(
-    (closeoutStates.data ?? []).map((state) => [state.eventId, state.closed]),
+    (closeoutStates.data ?? []).map((state) => [state.eventId, state]),
   );
 
   const marketSlugFor = (code: string) =>

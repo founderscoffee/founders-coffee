@@ -6,10 +6,23 @@ import {
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import type { RepeatEventTemplate } from '../../features/events/api';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 const hostCreateMocks = getHostCreateMocks();
+
+const REPEAT_TEMPLATE: RepeatEventTemplate = {
+  sourceEventId: 'evt_previous',
+  marketCode: 'DZ',
+  cityCode: '1',
+  title: 'Previous founders breakfast',
+  description: 'A relaxed breakfast for local founders.',
+  venue: 'Founders Café',
+  venueAddress: '12 Startup Street, Algiers',
+  latitude: 36.7538,
+  longitude: 3.0588,
+};
 
 describe('HostCreatePage EC-07 state', () => {
   afterEach(resetHostCreateFixtures);
@@ -29,6 +42,22 @@ describe('HostCreatePage EC-07 state', () => {
       (screen.getByLabelText(/^Description/) as unknown as HTMLTextAreaElement)
         .value,
     ).toBe('A complete protected meetup for founders.');
+  });
+
+  it('prefills a repeat with safe values and no schedule', async () => {
+    renderHostCreateWizard('en', REPEAT_TEMPLATE);
+
+    expect(screen.getByRole('note').textContent).toMatch(
+      /Previous founders breakfast/,
+    );
+    await goToHostDetails();
+
+    expect((screen.getByLabelText(/^Title/) as HTMLInputElement).value).toBe(
+      'Previous founders breakfast',
+    );
+    expect(
+      (screen.getByLabelText(/^Description/) as HTMLTextAreaElement).value,
+    ).toBe('A relaxed breakfast for local founders.');
   });
 
   it('keeps the stepper and the map in place, and stops the map selecting after step 1', async () => {

@@ -7,6 +7,7 @@ export interface CloseoutState {
   readonly eventId: string;
   readonly marketCode: string;
   readonly closed: boolean;
+  readonly outcome: 'held' | 'did_not_happen' | null;
 }
 
 /**
@@ -38,6 +39,7 @@ export const listCloseoutStates = async (
     .select({
       eventId: events.id,
       marketCode: events.marketCode,
+      outcome: eventCloseouts.outcome,
       closedId: eventCloseouts.eventId,
     })
     .from(events)
@@ -56,5 +58,6 @@ export const listCloseoutStates = async (
     eventId: row.eventId,
     marketCode: row.marketCode,
     closed: row.closedId !== null,
+    outcome: row.outcome,
   }));
 };

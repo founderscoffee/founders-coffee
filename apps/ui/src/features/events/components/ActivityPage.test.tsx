@@ -7,7 +7,11 @@ const state = vi.hoisted(() => ({
   session: {} as Record<string, unknown>,
   joined: {} as Record<string, unknown>,
   hosted: {} as Record<string, unknown>,
-  closeoutStates: [] as { eventId: string; closed: boolean }[],
+  closeoutStates: [] as {
+    eventId: string;
+    closed: boolean;
+    outcome: 'held' | 'did_not_happen' | null;
+  }[],
   askedAbout: [] as string[][],
 }));
 
@@ -29,16 +33,18 @@ vi.mock('@tanstack/react-router', () => ({
     children,
     to,
     params,
+    search,
   }: {
     children: React.ReactNode;
     to: string;
     params?: Record<string, string>;
+    search?: Record<string, string>;
   }) => (
     <a
-      href={Object.entries(params ?? {}).reduce(
+      href={`${Object.entries(params ?? {}).reduce(
         (path, [key, value]) => path.replace(`$${key}`, value),
         to,
-      )}
+      )}${search ? `?${new URLSearchParams(search).toString()}` : ''}`}
     >
       {children}
     </a>
@@ -61,6 +67,7 @@ const event = (overrides: Record<string, unknown> = {}) => ({
   title: 'Coffee + code',
   venue: 'Café des Délices',
   marketCode: 'DZ',
+  cityCode: '1',
   status: 'published',
   startsAt: new Date('2099-01-15T18:00:00Z'),
   cityName: 'Algiers',
@@ -163,25 +170,13 @@ describe('the gatherings screen', () => {
     state.hosted = page([
       event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
     ]);
-    state.closeoutStates = [{ eventId: 'evt_1', closed: false }];
+    state.closeoutStates = [{ eventId: 'evt_1', closed: false, outcome: null }];
 
     show();
 
     expect(
       screen.getByRole('link', { name: /Close it out/i }).getAttribute('href'),
     ).toBe('/closeout/evt_1');
-  });
-
-  it('says a gathering is closed out rather than asking again', () => {
-    state.hosted = page([
-      event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
-    ]);
-    state.closeoutStates = [{ eventId: 'evt_1', closed: true }];
-
-    show();
-
-    expect(screen.getByText('Closed out')).toBeTruthy();
-    expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
   });
 
   it('offers nothing for a past gathering the server did not answer for', () => {
@@ -221,7 +216,7 @@ describe('the gatherings screen', () => {
     state.joined = page([
       event({ startsAt: new Date('2020-01-01T18:00:00Z') }),
     ]);
-    state.closeoutStates = [{ eventId: 'evt_1', closed: false }];
+    state.closeoutStates = [{ eventId: 'evt_1', closed: false, outcome: null }];
 
     show();
 

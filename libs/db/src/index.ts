@@ -33,3 +33,4 @@ export * from './account-summary.js';
 export * from './account-sessions.js';
 export * from './profile-assets.js';
 export * from './profile-device-links.js';
+export * from './contact-verification.js';

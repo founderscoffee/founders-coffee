@@ -9,9 +9,9 @@ export const Route = createFileRoute('/closeout/$eventId')({
     'X-Robots-Tag': NO_INDEX_VALUE,
   }),
   component: () => {
-    const { locale } = Route.useRouteContext();
+    const { locale, markets } = Route.useRouteContext();
     const { eventId } = Route.useParams();
-    return <CloseoutPage locale={locale} eventId={eventId} />;
+    return <CloseoutPage locale={locale} eventId={eventId} markets={markets} />;
   },
   head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
 });

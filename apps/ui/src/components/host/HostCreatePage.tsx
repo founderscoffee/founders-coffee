@@ -8,6 +8,7 @@ import {
   host_or_click_map,
   host_page_title,
   host_progress_label,
+  host_repeat_notice,
   host_step_counter,
   host_step_progress,
   host_venue_rate_limited,
@@ -16,6 +17,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { useHostMapContext } from '../../features/events/hooks';
+import type { RepeatEventTemplate } from '../../features/events/api';
 import {
   TOTAL_STEPS,
   useHostCreateWizard,
@@ -38,6 +40,7 @@ type HostCreatePageProps = {
   mapboxToken: string;
   turnstileSiteKey: string | null;
   hasSocial: boolean;
+  repeatTemplate: RepeatEventTemplate | null;
 };
 
 export const HostCreatePage = ({
@@ -47,6 +50,7 @@ export const HostCreatePage = ({
   mapboxToken,
   turnstileSiteKey,
   hasSocial,
+  repeatTemplate,
 }: HostCreatePageProps) => {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [mapCenter, setMapCenter] = useState<{
@@ -67,6 +71,7 @@ export const HostCreatePage = ({
     locale,
     market,
     city,
+    repeatTemplate,
     isAuthenticated,
     isAuthLoading,
   });
@@ -93,6 +98,14 @@ export const HostCreatePage = ({
       {wizard.stepSub && (
         <p className="mt-1 text-body text-neutral">{wizard.stepSub}</p>
       )}
+      {wizard.isRepeat && repeatTemplate ? (
+        <p
+          className="mt-3 rounded-box bg-secondary-tint px-3 py-2 text-body-sm text-base-content"
+          role="note"
+        >
+          {host_repeat_notice({ title: repeatTemplate.title }, { locale })}
+        </p>
+      ) : null}
     </div>
   );
 

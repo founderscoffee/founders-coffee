@@ -12,14 +12,19 @@ import {
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import {
+  useCancelEvent,
+  useRepeatEventTemplate,
+} from '../../features/events/hooks';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
-import { useCancelEvent } from '../../features/events/hooks';
 import { CancelEventDialog } from './CancelEventDialog';
+import { RepeatHostLink } from './RepeatHostLink';
 import { HostLiveActions } from './HostLiveActions';
 
 type HostEventPanelProps = {
   event: EventWithAttendance;
   locale: Locale;
+  marketSlug: string;
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
 };
@@ -27,11 +32,16 @@ type HostEventPanelProps = {
 export const HostEventPanel = ({
   event,
   locale,
+  marketSlug,
   live,
   isWindowOpen,
 }: HostEventPanelProps) => {
   const router = useRouter();
   const cancelEvent = useCancelEvent();
+  const repeat = useRepeatEventTemplate(
+    event.id,
+    event.endsAt !== null && new Date(event.endsAt).getTime() <= Date.now(),
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +98,15 @@ export const HostEventPanel = ({
           {host_cancel_event({}, { locale })}
         </button>
       )}
+
+      {repeat.data ? (
+        <RepeatHostLink
+          locale={locale}
+          marketSlug={marketSlug}
+          cityCode={event.cityCode}
+          eventId={event.id}
+        />
+      ) : null}
 
       {error ? (
         <p role="alert" className="text-body-sm text-error">

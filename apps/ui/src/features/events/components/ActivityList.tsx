@@ -13,6 +13,9 @@ import {
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
+import type { CloseoutStateView } from '../../operations/api';
+import { RepeatHostLink } from '../../../components/events/RepeatHostLink';
+
 export interface ActivityItem {
   readonly id: string;
   readonly slug: string;
@@ -21,20 +24,21 @@ export interface ActivityItem {
   readonly marketCode: string;
   readonly status: string;
   readonly startsAt: Date | string | number;
+  readonly cityCode?: string;
   readonly cityName?: string | null;
 }
 
 const CloseoutLine = ({
   eventId,
-  closed,
+  state,
   locale,
 }: {
   eventId: string;
-  closed: boolean | undefined;
+  state: CloseoutStateView | undefined;
   locale: Locale;
 }) => {
-  if (closed === undefined) return null;
-  if (closed)
+  if (state === undefined) return null;
+  if (state.closed)
     return (
       <span className="mt-1 inline-block text-caption text-neutral">
         {activity_closed_out({}, { locale })}
@@ -89,7 +93,7 @@ export const ActivityList = ({
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
-  closeoutStates?: ReadonlyMap<string, boolean>;
+  closeoutStates?: ReadonlyMap<string, CloseoutStateView>;
 }) => (
   <section className="rounded-box border border-base-300 bg-base-100 p-5 md:p-6">
     <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -136,9 +140,18 @@ export const ActivityList = ({
             </Link>
             <CloseoutLine
               eventId={item.id}
-              closed={closeoutStates?.get(item.id)}
+              state={closeoutStates?.get(item.id)}
               locale={locale}
             />
+            {closeoutStates?.get(item.id)?.outcome === 'held' &&
+            item.cityCode ? (
+              <RepeatHostLink
+                locale={locale}
+                marketSlug={marketSlugFor(item.marketCode)}
+                cityCode={item.cityCode}
+                eventId={item.id}
+              />
+            ) : null}
           </li>
         ))}
       </ul>

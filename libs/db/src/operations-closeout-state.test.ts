@@ -24,7 +24,7 @@ const close = (db: Db, eventId: string) =>
 
 const idsFrom = async (db: Db, eventIds: readonly string[]) =>
   (await listCloseoutStates(db, { hostId: HOST_ID, eventIds })).map(
-    ({ eventId, closed }) => [eventId, closed],
+    ({ eventId, closed, outcome }) => [eventId, closed, outcome],
   );
 
 describe('what the host may still close out', () => {
@@ -37,14 +37,14 @@ describe('what the host may still close out', () => {
   it('reports an elapsed gathering as open', async () => {
     const eventId = await pastEvent(db);
 
-    expect(await idsFrom(db, [eventId])).toEqual([[eventId, false]]);
+    expect(await idsFrom(db, [eventId])).toEqual([[eventId, false, null]]);
   });
 
   it('reports it as closed once it has been closed out', async () => {
     const eventId = await pastEvent(db);
     await close(db, eventId);
 
-    expect(await idsFrom(db, [eventId])).toEqual([[eventId, true]]);
+    expect(await idsFrom(db, [eventId])).toEqual([[eventId, true, 'held']]);
   });
 
   it('carries the market, so the caller can apply the flag without a second read', async () => {
@@ -94,7 +94,7 @@ describe('what the host may still close out', () => {
     const states = await idsFrom(db, [open, done]);
 
     expect(states).toHaveLength(2);
-    expect(states).toContainEqual([open, false]);
-    expect(states).toContainEqual([done, true]);
+    expect(states).toContainEqual([open, false, null]);
+    expect(states).toContainEqual([done, true, 'held']);
   });
 });

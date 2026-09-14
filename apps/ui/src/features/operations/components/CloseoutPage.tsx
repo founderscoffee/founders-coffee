@@ -24,6 +24,8 @@ import {
 import { Button } from '@founders-coffee/ui';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
+import { RepeatHostLink } from '../../../components/events/RepeatHostLink';
+import { useRepeatEventTemplate } from '../../events/hooks';
 import { canSubmit, draftFrom, toRequest, type CloseoutDraft } from '../draft';
 import { useCloseout, useSubmitCloseout } from '../hooks';
 import { CloseoutForm } from './CloseoutForm';
@@ -52,14 +54,23 @@ const messageFor = (error: unknown, locale: Locale): string => {
 export const CloseoutPage = ({
   locale,
   eventId,
+  markets = [],
 }: {
   locale: Locale;
   eventId: string;
+  markets?: readonly { code: string; slug: string }[];
 }) => {
   const query = useCloseout(eventId);
   const save = useSubmitCloseout(eventId);
   const [draft, setDraft] = useState<CloseoutDraft | null>(null);
   const refusal = useRef<HTMLParagraphElement>(null);
+  const repeat = useRepeatEventTemplate(
+    eventId,
+    save.isSuccess && draft?.outcome === 'held',
+  );
+  const repeatMarketSlug = repeat.data
+    ? markets.find((market) => market.code === repeat.data?.marketCode)?.slug
+    : undefined;
 
   useEffect(() => {
     if (query.data) setDraft(draftFrom(query.data));
@@ -112,6 +123,14 @@ export const CloseoutPage = ({
               {closeout_refused_marks({}, { locale })}
             </p>
           )}
+          {draft.outcome === 'held' && repeat.data && repeatMarketSlug ? (
+            <RepeatHostLink
+              locale={locale}
+              marketSlug={repeatMarketSlug}
+              cityCode={repeat.data.cityCode}
+              eventId={eventId}
+            />
+          ) : null}
         </div>
       ) : (
         <div className="space-y-6">
