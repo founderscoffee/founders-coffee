@@ -105,10 +105,17 @@ const pemToBinary = (pem: string): ArrayBuffer => {
 export const toPushTopic = (key: string): string =>
   key.replace(/[^A-Za-z0-9\-_]/g, '').slice(-32);
 
+const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
+
+const JWT_BEARER_GRANT = 'urn:ietf:params:oauth:grant-type:jwt-bearer';
+
+const TOKEN_EXPIRY_MARGIN_MS = 60_000;
+
 export class FcmPushProvider implements PushProvider {
   readonly name = 'fcm';
   private readonly projectId: string;
   private readonly serviceAccount: FirebaseServiceAccount;
+  private accessToken: { value: string; expiresAtMs: number } | null = null;
 
   constructor(opts: { projectId: string; serviceAccountJson: string }) {
     this.projectId = opts.projectId;
@@ -117,8 +124,76 @@ export class FcmPushProvider implements PushProvider {
     ) as FirebaseServiceAccount;
   }
 
+  /**
+   * Exchange the signed assertion for an access token FCM will actually accept.
+   *
+   * The JWT this class signs is an OAuth *assertion*: its `aud` is Google's token endpoint and it
+   * carries a `scope`, which is the shape `grant_type=jwt-bearer` requires. It is not a credential.
+   * Sending it straight to `fcm.googleapis.com` as the bearer — which this provider did — earns a
+   * 401 on every message, and because 401 is not in the permanent-failure list each one would have
+   * been retried to the end of its attempt budget before the SMS fallback was even considered.
+   *
+   * Nothing caught it because no environment has ever had a service account, so `createPushProvider`
+   * always returned `null` and this code never ran against Google.
+   *
+   * The token is cached until a minute before it expires. A Worker isolate is short-lived, so this
+   * saves a round trip within one dispatch batch rather than across hours.
+   */
+  private accessTokenFor = async (): Promise<string> => {
+    const now = Date.now();
+    if (this.accessToken && this.accessToken.expiresAtMs > now)
+      return this.accessToken.value;
+
+    const assertion = await buildFcmJwt(this.serviceAccount);
+    const response = await fetch(TOKEN_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: JWT_BEARER_GRANT,
+        assertion,
+      }).toString(),
+    });
+
+    if (!response.ok)
+      throw new AppError(
+        'push_transient_failure',
+        `FCM token exchange failed with ${response.status}`,
+      );
+
+    const token = (await response.json()) as {
+      access_token?: string;
+      expires_in?: number;
+    };
+    if (!token.access_token)
+      throw new AppError(
+        'push_transient_failure',
+        'FCM token exchange returned no access token',
+      );
+
+    this.accessToken = {
+      value: token.access_token,
+      expiresAtMs:
+        now + (token.expires_in ?? 3600) * 1000 - TOKEN_EXPIRY_MARGIN_MS,
+    };
+    return this.accessToken.value;
+  };
+
+  /**
+   * Send one push as data, never as an FCM `notification`.
+   *
+   * A `webpush.notification` message is addressed to Firebase's own service worker, which displays
+   * it. This app has its own worker — `apps/ui/src/sw.ts` owns `push` and `notificationclick`, and a
+   * second Firebase worker beside it would compete for the same event — and that worker reads a flat
+   * object off `event.data.json()`. Sending `notification` therefore produced a message our worker
+   * could not read: a shape mismatch that survived because no push has ever been delivered.
+   *
+   * Data-only also keeps display ours. `showNotification` is called in one place, so the icon, the
+   * dedupe tag and the click target cannot drift between what Firebase renders and what we do.
+   *
+   * Every value is a string because FCM's `data` map rejects anything else; the worker reads them
+   * back as strings and needs no coercion.
+   */
   send = async (args: SendPushArgs): Promise<Result<SendPushResult>> => {
-    const jwt = await buildFcmJwt(this.serviceAccount);
     const url = `https://fcm.googleapis.com/v1/projects/${this.projectId}/messages:send`;
 
     const message = {
@@ -127,11 +202,12 @@ export class FcmPushProvider implements PushProvider {
         ...(args.dedupeKey
           ? { headers: { Topic: toPushTopic(args.dedupeKey) } }
           : {}),
-        notification: {
+        data: {
           title: args.title,
           body: args.body,
-          icon: args.icon ?? '/icons/icon-192.png',
-          data: { url: args.url ?? '/', dedupeKey: args.dedupeKey ?? null },
+          url: args.url ?? '/',
+          ...(args.icon ? { icon: args.icon } : {}),
+          ...(args.dedupeKey ? { dedupeKey: args.dedupeKey } : {}),
         },
       },
     };
@@ -140,7 +216,7 @@ export class FcmPushProvider implements PushProvider {
       const res = await fetch(url, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${jwt}`,
+          Authorization: `Bearer ${await this.accessTokenFor()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message }),

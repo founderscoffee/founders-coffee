@@ -74,3 +74,13 @@ export const eventUrlFor = (opts: {
   marketSlug: string;
   eventSlug: string;
 }): string => `${notificationBaseUrl()}/${opts.marketSlug}/e/${opts.eventSlug}`;
+
+/**
+ * The private screen where a host closes a gathering out.
+ *
+ * Not `eventUrlFor`. That points at the public event page, which says nothing about a closeout and
+ * would leave a host who tapped the prompt exactly where they started — the failure that made every
+ * reminder link to a 404 until it was measured.
+ */
+export const closeoutUrlFor = (eventId: string): string =>
+  `${notificationBaseUrl()}/closeout/${eventId}`;

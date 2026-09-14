@@ -5,6 +5,7 @@ import {
   back_to_market,
   city_empty_cta,
   city_empty_title,
+  city_upcoming_title,
   host_here,
   host_progress_label,
   host_step1_short,
@@ -15,7 +16,7 @@ import {
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
-import type { EventFeedItem } from '@founders-coffee/server-fns';
+import type { EventFeedItem, EventFeedPage } from '@founders-coffee/server-fns';
 
 import { applyCityFilters, type CityFilterKey } from '../../lib/city-filters';
 import { useUpcomingEvents } from '../../features/events/hooks';
@@ -31,6 +32,10 @@ type CityLandingProps = {
   market: Market;
   city: geo.GeoCity;
   events: readonly EventFeedItem[];
+  afterStartsAt?: number;
+  afterId?: string;
+  nextPageHref?: string;
+  nextCursor?: EventFeedPage['nextCursor'];
 };
 
 const PAGE_SIZE = 20;
@@ -43,6 +48,10 @@ export const CityLanding = ({
   market,
   city,
   events,
+  afterStartsAt,
+  afterId,
+  nextPageHref,
+  nextCursor,
 }: CityLandingProps) => {
   const cityDisplayName = locale === 'ar' ? city.nameAr : city.name;
   const marketName = marketDisplayName(market, locale);
@@ -56,11 +65,18 @@ export const CityLanding = ({
     );
 
   const pagination = useEventPages(
-    useUpcomingEvents({
-      marketCode: market.code,
-      cityCode: city.code,
-      limit: PAGE_SIZE,
-    }),
+    useUpcomingEvents(
+      {
+        marketCode: market.code,
+        cityCode: city.code,
+        limit: PAGE_SIZE,
+        afterStartsAt,
+        afterId,
+      },
+      {
+        initialPage: { items: events, nextCursor: nextCursor ?? null },
+      },
+    ),
     events,
   );
   const items = pagination.items;
@@ -74,6 +90,9 @@ export const CityLanding = ({
 
     return (
       <section className="mx-auto max-w-lg px-4 py-16">
+        <h1 className="font-display text-h2 font-semibold">
+          {cityDisplayName}
+        </h1>
         <EmptyState
           title={city_empty_title({ city: cityDisplayName }, { locale })}
           action={
@@ -139,6 +158,10 @@ export const CityLanding = ({
         </Link>
       </div>
 
+      <h2 className="font-display text-h4 font-semibold">
+        {city_upcoming_title({ city: cityDisplayName }, { locale })}
+      </h2>
+
       <CityFilters locale={locale} active={filters} onToggle={toggleFilter} />
 
       {visible.length === 0 ? (
@@ -159,7 +182,11 @@ export const CityLanding = ({
         </ul>
       )}
 
-      <LoadMoreEvents locale={locale} pagination={pagination} />
+      <LoadMoreEvents
+        locale={locale}
+        pagination={pagination}
+        nextPageHref={nextPageHref}
+      />
     </section>
   );
 };

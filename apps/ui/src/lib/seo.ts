@@ -1,82 +1,281 @@
-import type { Locale } from '@founders-coffee/i18n';
+import {
+  city_events_description,
+  city_empty_body,
+  LOCALES,
+  market_hero_desc,
+  market_hero_title,
+  social_image_alt,
+  type Locale,
+} from '@founders-coffee/i18n';
+import { getRequestContext } from '@founders-coffee/observability/context';
 
-import { CONTACT_EMAIL } from '../content/company';
+import { PRODUCTION_ORIGIN } from './indexation';
+import {
+  breadcrumbJsonLd,
+  collectionPageJsonLd,
+  type StructuredListItem,
+} from './seo-structured-data';
 
-export const SITE_ORIGIN = 'https://founders.coffee';
+export const SITE_ORIGIN = PRODUCTION_ORIGIN;
+export const DEFAULT_SOCIAL_IMAGE_PATH = '/social/founders-coffee-default.webp';
 
-export const organizationJsonLd = () =>
-  JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'founders.coffee',
-    url: SITE_ORIGIN,
-    logo: `${SITE_ORIGIN}/logo-fc.svg`,
-    email: CONTACT_EMAIL,
-    description: 'Local founder communities that meet over coffee.',
-    sameAs: [],
-    contactPoint: [
-      {
-        '@type': 'ContactPoint',
-        email: CONTACT_EMAIL,
-        contactType: 'customer support',
-        availableLanguage: ['ar', 'en', 'fr'],
-      },
-    ],
-  });
+export type CanonicalRoute =
+  | { readonly type: 'root'; readonly locale?: Locale; readonly query?: string }
+  | {
+      readonly type: 'market';
+      readonly market: string;
+      readonly locale?: Locale;
+      readonly query?: string;
+    }
+  | {
+      readonly type: 'city';
+      readonly market: string;
+      readonly city: string;
+      readonly locale?: Locale;
+      readonly query?: string;
+    }
+  | {
+      readonly type: 'event';
+      readonly market: string;
+      readonly slug: string;
+      readonly locale?: Locale;
+      readonly query?: string;
+    }
+  | {
+      readonly type: 'company';
+      readonly path: string;
+      readonly locale?: Locale;
+      readonly query?: string;
+    };
 
-type CompanyHeadInput = {
-  locale: Locale;
-  path: string;
-  title: string;
-  description: string;
+const canonicalSegments = (route: CanonicalRoute): string[] => {
+  const locale = route.locale ? [route.locale] : [];
+  if (route.type === 'root') return locale;
+  if (route.type === 'market') return [...locale, route.market];
+  if (route.type === 'city') return [...locale, route.market, route.city];
+  if (route.type === 'event') return [...locale, route.market, 'e', route.slug];
+  return [...locale, ...route.path.split(/[?#]/u, 1)[0].split('/')];
 };
 
-/** Shared meta + WebPage JSON-LD for About / Contact / Privacy / Terms / Cookies. */
-export const companyPageHead = ({
+export const canonicalPath = (route: CanonicalRoute): string => {
+  const segments = canonicalSegments(route)
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map(encodeURIComponent);
+  return segments.length === 0 ? '/' : `/${segments.join('/')}`;
+};
+
+export const canonicalUrl = (route: CanonicalRoute): string =>
+  `${getSiteOrigin()}${canonicalPath(route)}${route.query ? `?${route.query}` : ''}`;
+
+export const localeAlternates = (
+  route: CanonicalRoute,
+): Array<{
+  readonly rel: 'alternate';
+  readonly hrefLang: string;
+  readonly href: string;
+}> => {
+  const baseRoute = { ...route, locale: undefined } as CanonicalRoute;
+  return [
+    ...LOCALES.map((locale) => ({
+      rel: 'alternate' as const,
+      hrefLang: locale,
+      href: canonicalUrl({ ...baseRoute, locale }),
+    })),
+    {
+      rel: 'alternate' as const,
+      hrefLang: 'x-default',
+      href: canonicalUrl(baseRoute),
+    },
+  ];
+};
+
+export const getSiteOrigin = (): string => {
+  const requestOrigin = getRequestContext().siteOrigin;
+  if (requestOrigin) return requestOrigin;
+  if (typeof window !== 'undefined') return window.location.origin;
+  return SITE_ORIGIN;
+};
+
+export const getRequestPath = (): string => {
+  const requestPath = getRequestContext().requestPath;
+  if (requestPath) return requestPath;
+  if (typeof window !== 'undefined') return window.location.pathname;
+  return '/';
+};
+
+const MAX_TITLE_LENGTH = 70;
+const MAX_DESCRIPTION_LENGTH = 160;
+
+const normalizeText = (value: string, maxLength: number): string => {
+  const normalized = value.replace(/\s+/gu, ' ').trim();
+  const codePoints = Array.from(normalized);
+  if (codePoints.length <= maxLength) return normalized;
+  return `${codePoints.slice(0, maxLength - 1).join('')}…`;
+};
+
+const brandedTitle = (title: string): string => {
+  const normalized = normalizeText(title, MAX_TITLE_LENGTH);
+  if (normalized.toLocaleLowerCase().includes('founders.coffee')) {
+    return normalized;
+  }
+  return normalizeText(`${normalized} - founders.coffee`, MAX_TITLE_LENGTH);
+};
+
+const localeOpenGraph = (locale: Locale): string =>
+  locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US';
+
+export type PageMetadataInput = {
+  readonly locale: Locale;
+  readonly title: string;
+  readonly description: string;
+  readonly route: CanonicalRoute;
+  readonly robots?: string;
+  readonly openGraphType?: 'website' | 'event';
+};
+
+export const buildPageMetadata = ({
   locale,
-  path,
   title,
   description,
-}: CompanyHeadInput) => {
-  const url = `${SITE_ORIGIN}${path}`;
-  const fullTitle = `${title} - founders.coffee`;
-
+  route,
+  robots = 'index,follow',
+  openGraphType = 'website',
+}: PageMetadataInput) => {
+  const fullTitle = brandedTitle(title);
+  const normalizedDescription = normalizeText(
+    description,
+    MAX_DESCRIPTION_LENGTH,
+  );
+  const url = canonicalUrl(route);
+  const socialImage = `${getSiteOrigin()}${DEFAULT_SOCIAL_IMAGE_PATH}`;
+  const socialImageAlt = social_image_alt({}, { locale });
   return {
     meta: [
       { title: fullTitle },
-      { name: 'description', content: description },
-      { name: 'robots', content: 'index,follow' },
-      { property: 'og:type', content: 'website' },
+      { name: 'description', content: normalizedDescription },
+      { name: 'robots', content: robots },
+      { property: 'og:type', content: openGraphType },
       { property: 'og:site_name', content: 'founders.coffee' },
       { property: 'og:title', content: fullTitle },
-      { property: 'og:description', content: description },
+      { property: 'og:description', content: normalizedDescription },
       { property: 'og:url', content: url },
-      {
-        property: 'og:locale',
-        content:
-          locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US',
-      },
+      { property: 'og:locale', content: localeOpenGraph(locale) },
+      { property: 'og:image', content: socialImage },
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
+      { property: 'og:image:alt', content: socialImageAlt },
+      ...LOCALES.filter((alternate) => alternate !== locale).map(
+        (alternate) => ({
+          property: 'og:locale:alternate',
+          content: localeOpenGraph(alternate),
+        }),
+      ),
       { name: 'twitter:card', content: 'summary' },
       { name: 'twitter:title', content: fullTitle },
-      { name: 'twitter:description', content: description },
+      { name: 'twitter:description', content: normalizedDescription },
+      { name: 'twitter:image', content: socialImage },
+      { name: 'twitter:image:alt', content: socialImageAlt },
     ],
-    links: [{ rel: 'canonical', href: url }],
+    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
+  };
+};
+
+type MarketHeadInput = {
+  readonly locale: Locale;
+  readonly marketName: string;
+  readonly route: Extract<CanonicalRoute, { readonly type: 'market' }>;
+  readonly events?: readonly StructuredListItem[];
+};
+
+export const marketPageHead = ({
+  locale,
+  marketName,
+  route,
+  events = [],
+}: MarketHeadInput) => {
+  const metadata = buildPageMetadata({
+    locale,
+    title: market_hero_title({ market: marketName }, { locale }),
+    description: market_hero_desc({}, { locale }),
+    route,
+  });
+  return {
+    ...metadata,
     scripts: [
       {
         type: 'application/ld+json',
-        children: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'WebPage',
-          name: fullTitle,
-          description,
-          url,
-          isPartOf: {
-            '@type': 'WebSite',
-            name: 'founders.coffee',
-            url: SITE_ORIGIN,
-          },
-          inLanguage: locale,
-        }),
+        children: JSON.stringify(
+          collectionPageJsonLd({
+            name: marketName,
+            description: market_hero_desc({}, { locale }),
+            url: canonicalUrl(route),
+            locale,
+            items: events,
+          }),
+        ),
+      },
+    ],
+  };
+};
+
+type CityHeadInput = {
+  readonly locale: Locale;
+  readonly marketName: string;
+  readonly cityName: string;
+  readonly isEmpty: boolean;
+  readonly route: Extract<CanonicalRoute, { readonly type: 'city' }>;
+  readonly events?: readonly StructuredListItem[];
+};
+
+export const cityPageHead = ({
+  locale,
+  marketName,
+  cityName,
+  isEmpty,
+  route,
+  events = [],
+}: CityHeadInput) => {
+  const description = isEmpty
+    ? city_empty_body({ city: cityName }, { locale })
+    : city_events_description({ city: cityName }, { locale });
+  const metadata = buildPageMetadata({
+    locale,
+    title: `${cityName} · ${marketName}`,
+    description,
+    route,
+    robots: isEmpty ? 'noindex,follow' : 'index,follow',
+  });
+  const breadcrumbs: StructuredListItem[] = [
+    { name: 'founders.coffee', url: canonicalUrl({ type: 'root', locale }) },
+    {
+      name: marketName,
+      url: canonicalUrl({
+        type: 'market',
+        market: route.market,
+        locale,
+      }),
+    },
+    { name: cityName, url: canonicalUrl(route) },
+  ];
+  return {
+    ...metadata,
+    scripts: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify(
+          collectionPageJsonLd({
+            name: `${cityName} · ${marketName}`,
+            description,
+            url: canonicalUrl(route),
+            locale,
+            items: events,
+          }),
+        ),
+      },
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify(breadcrumbJsonLd(breadcrumbs)),
       },
     ],
   };

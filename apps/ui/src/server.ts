@@ -11,9 +11,21 @@ import {
 } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
+import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
+import {
+  robotsBody,
+  siteOriginFromEnv,
+  withPrivateRouteHeaders,
+  withIndexationHeaders,
+} from './lib/indexation.js';
+import {
+  isCacheSafeEarlyHint,
+  removeEarlyHintsFromResponse,
+  shouldEmitEarlyHints,
+} from './lib/early-hints.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
 
@@ -61,16 +73,32 @@ export default {
     const url = new URL(request.url);
     const nonce = createCspNonce();
     const secure = (response: Response): Response =>
-      withSecurityHeaders(response, {
-        enforceCsp: env.CSP_ENFORCED === 'true',
-        reportPath: CSP_REPORT_PATH,
-        nonce,
-      });
+      withIndexationHeaders(
+        withSecurityHeaders(response, {
+          enforceCsp: env.CSP_ENFORCED === 'true',
+          reportPath: CSP_REPORT_PATH,
+          nonce,
+        }),
+        env,
+      );
 
     if (url.pathname === CSP_REPORT_PATH && request.method === 'POST') {
       const report = await request.json().catch(() => null);
       if (report) logger.warn('csp.violation', { report });
       return secure(new Response(null, { status: 204 }));
+    }
+
+    if (
+      url.pathname === '/robots.txt' &&
+      (request.method === 'GET' || request.method === 'HEAD')
+    ) {
+      const headers = { 'content-type': 'text/plain; charset=utf-8' };
+      const body = robotsBody(env);
+      return secure(
+        request.method === 'HEAD'
+          ? new Response(null, { headers })
+          : new Response(body, { headers }),
+      );
     }
 
     if (url.pathname.startsWith('/api/live/')) {
@@ -105,8 +133,29 @@ export default {
 
     if (url.pathname.startsWith('/api/auth/'))
       return secure(await authHandler(env)(request));
-    return runWithContext({ cspNonce: nonce }, async () =>
-      secure(await handler.fetch(request)),
+    return runWithContext(
+      {
+        cspNonce: nonce,
+        requestPath: url.pathname,
+        siteOrigin: siteOriginFromEnv(env, url.origin),
+      },
+      async () => {
+        const requestOptions = shouldEmitEarlyHints(request, url.pathname)
+          ? {
+              responseLinkHeader: {
+                filter: (entry: ResponseLinkHeaderEntry) =>
+                  isCacheSafeEarlyHint(entry, url.origin),
+              },
+            }
+          : undefined;
+        const response = await handler.fetch(request, requestOptions);
+        return secure(
+          withPrivateRouteHeaders(
+            removeEarlyHintsFromResponse(response),
+            url.pathname,
+          ),
+        );
+      },
     );
   },
 } satisfies ExportedHandler<UiEnv>;

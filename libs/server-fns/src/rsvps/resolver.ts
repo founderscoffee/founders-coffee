@@ -5,9 +5,11 @@ import {
   getEvent,
   getRsvpForUser,
   getUser,
+  withdrawStaleHostNotice,
   type Db,
 } from '@founders-coffee/db';
 
+import { enqueueHostRsvpNotice } from '../notifications/host-notice.js';
 import {
   cancelRsvpNotifications,
   enqueueRsvpNotifications,
@@ -91,6 +93,22 @@ export const createRsvpResolver = async (
     });
   }
 
+  if (event.hostId !== opts.userId) {
+    const host = await getUser(db, event.hostId);
+    await enqueueHostRsvpNotice(db, {
+      eventId: opts.eventId,
+      hostId: event.hostId,
+      guestId: opts.userId,
+      eventTitle: event.title,
+      eventSlug: event.slug,
+      marketCode: event.marketCode,
+      startsAt: event.startsAt,
+      venue: event.venue,
+      hostEmail: host?.email,
+      hostLocale: host?.localePref,
+    });
+  }
+
   return ok({ status: 'going' });
 };
 
@@ -142,6 +160,10 @@ export const cancelRsvpResolver = async (
   await cancelRsvpNotifications(db, {
     eventId: opts.eventId,
     userId: opts.userId,
+  });
+  await withdrawStaleHostNotice(db, {
+    eventId: opts.eventId,
+    hostId: event.hostId,
   });
 
   return ok({ deleted: true });

@@ -1,4 +1,5 @@
 import {
+  communityOperationsEnabled,
   getNotificationContact,
   isDeliverableAccountState,
   listDeliverablePushTokens,
@@ -13,7 +14,28 @@ export type Destination =
 
 export type DestinationResult =
   | { readonly ok: true; readonly destination: Destination }
-  | { readonly ok: false; readonly reason: string; readonly account: boolean };
+  | {
+      readonly ok: false;
+      readonly reason: string;
+      readonly account: boolean;
+      readonly transient?: boolean;
+    };
+
+/**
+ * A refusal that will stop being true on its own.
+ *
+ * Every other refusal here is a statement about the recipient — no address, no device, a category
+ * switched off — and none of those resolve by waiting, so the row is failed permanently and the
+ * budget is not spent retrying. A market flag is different in kind: it is a statement about the
+ * deployment, it is expected to change, and §5 asks that an intent stay recoverable while it is off.
+ * Retiring the row would make "recoverable" mean "recoverable until it comes due".
+ */
+const held = (reason: string): DestinationResult => ({
+  ok: false,
+  reason,
+  account: true,
+  transient: true,
+});
 
 const unreachable = (reason: string, account = false): DestinationResult => ({
   ok: false,
@@ -47,9 +69,22 @@ const unreachable = (reason: string, account = false): DestinationResult => ({
  *
  * `rsvp_confirmation` passes every category gate. It is the receipt for something the member did a
  * second ago, not an update the product decided to send them, and a product that swallows its own
- * confirmations leaves people wondering whether the RSVP worked. The categories exist to control
+ * confirmations leaves people wondering whether the RSVP worked.
+ *
+ * `closeout_prompt` passes them for the same reason, and deliberately does not hang off
+ * `host_updates`. That switch reads "who is coming to what you host", and asking a host what
+ * happened at their own gathering is not that — honouring it here would mean a control that does
+ * something other than what it says, which is the defect this product keeps finding. If hosts want
+ * to silence the prompt it earns its own switch; until then the market flag below is its only gate. The categories exist to control
  * what arrives unprompted: reminders under `event_reminders`, cancellation notices under
  * `event_updates`.
+ *
+ * The market flag is enforced here rather than in the producer, and rather than in the sweep loop.
+ * §5 gates prompt delivery, and this is the one place every channel already passes through before a
+ * send — a market that switches operations off between the intent being written and the prompt
+ * coming due refuses here, and one that switches them on later delivers without needing the intent
+ * to have been rewritten. The sweep already wraps this call against exceptions, which a gate bolted
+ * into its claimed-row loop would not have been.
  *
  * `account` marks the refusals that are true of every channel. A missing phone says nothing about
  * email, and falling back is exactly right; a closed account says the same thing about all of them,
@@ -60,6 +95,7 @@ export const resolveDestination = async (
   channel: ScheduledNotification['channel'],
   userId: string,
   templateKey?: ScheduledNotification['templateKey'],
+  marketCode?: string,
 ): Promise<DestinationResult> => {
   const contact = await getNotificationContact(db, userId);
   if (!contact) return unreachable('recipient_no_longer_exists', true);
@@ -73,6 +109,14 @@ export const resolveDestination = async (
     return unreachable('event_reminders_off', true);
   if (templateKey === 'event_cancelled' && !contact.eventUpdates)
     return unreachable('event_updates_off', true);
+  if (templateKey === 'rsvp_received' && !contact.hostUpdates)
+    return unreachable('host_updates_off', true);
+
+  if (
+    templateKey === 'closeout_prompt' &&
+    !(await communityOperationsEnabled(db, marketCode ?? ''))
+  )
+    return held('operations_disabled');
 
   if (channel === 'sms') {
     if (!contact.phoneNumber) return unreachable('phone_number_removed');

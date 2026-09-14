@@ -103,4 +103,26 @@ export const eventCreateSchema = z
   .strict()
   .superRefine(addScheduleIssues);
 
+export const publicEventDiscoverySchema = z.strictObject({
+  market: z.string().trim().min(1).max(80),
+  city: z.string().trim().min(1).max(80),
+  cityName: z.string().trim().min(1).max(160),
+  slug: z.string().trim().min(1).max(80),
+  title: eventTitleSchema,
+  description: eventDescriptionSchema,
+  venue: eventVenueNameSchema,
+  venueAddress: eventVenueAddressSchema.nullable(),
+  startsAt: z.string().datetime({ offset: true }),
+  endsAt: z.string().datetime({ offset: true }).nullable(),
+  timezone: z.string().trim().min(1).max(64),
+  language: localeSchema,
+  organizer: z
+    .strictObject({ name: z.string().trim().min(1).max(80) })
+    .nullable(),
+  status: z.literal('published'),
+  updatedAt: z.string().datetime({ offset: true }),
+});
+
+export type PublicEventDiscovery = z.infer<typeof publicEventDiscoverySchema>;
+
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;

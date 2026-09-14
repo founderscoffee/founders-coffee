@@ -49,7 +49,11 @@ describe('parseNotificationPayload', () => {
   });
 
   it('accepts an sms payload carrying no email content, which most now do not', () => {
-    const { subject: _subject, html: _html, ...withoutEmail } = sms;
+    const withoutEmail = {
+      ...base,
+      phoneNumber: sms.phoneNumber,
+      smsBody: sms.smsBody,
+    };
     expect(parseNotificationPayload('sms', withoutEmail).ok).toBe(true);
   });
 

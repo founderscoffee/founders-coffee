@@ -1,7 +1,6 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import {
   countUpcomingByCity,
-  countUpcomingByState,
   getMarketByCode,
   getMarketBySlug,
   listMarkets,
@@ -10,94 +9,34 @@ import {
 } from '@founders-coffee/db';
 import { geo, markets } from '@founders-coffee/domain';
 
-import { listEvents, type EventFeedItem } from '../events/resolver.js';
+import {
+  listEvents,
+  type EventFeedCursor,
+  type EventFeedItem,
+} from '../events/resolver.js';
+import { resolveTrendingStates, type TrendingSection } from './trending.js';
+
+export { resolveTrendingStates } from './trending.js';
+export type {
+  TrendingCity,
+  TrendingSection,
+  TrendingState,
+} from './trending.js';
 
 export interface MarketWithCities {
   readonly market: Market;
   readonly cities: readonly geo.GeoCity[];
   readonly events: readonly EventFeedItem[];
+  readonly eventsNextCursor: EventFeedCursor | null;
   readonly cityEventCounts: Record<string, number>;
   readonly trending: TrendingSection;
 }
-
-export interface TrendingCity {
-  readonly city: geo.GeoCity;
-  readonly count: number;
-}
-
-export interface TrendingState {
-  readonly state: geo.GeoState | null;
-  readonly cities: readonly TrendingCity[];
-}
-
-export interface TrendingSection {
-  readonly variant: 'major' | 'active';
-  readonly groups: readonly TrendingState[];
-}
-
-const COLD_MAJOR_CITY_CAP = 18;
-const WARM_STATE_CAP = 3;
-const WARM_CITY_CAP = 8;
-const WARM_CITY_TOTAL_CAP = 4;
-
-const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
-  DZ: [
-    'algiers',
-    'oran',
-    'constantine',
-    'bejaia',
-    'setif',
-    'annaba',
-    'blida',
-    'batna',
-    'tlemcen',
-    'tizi-ouzou',
-    'djelfa',
-    'sidi-bel-abbes',
-    'biskra',
-    'tebessa',
-    'skikda',
-    'tiaret',
-    'bechar',
-    'mostaganem',
-  ],
-  EG: [
-    'cairo',
-    'alexandria',
-    'giza',
-    'mansoura',
-    'tanta',
-    'hurghada',
-    'sharm-el-shaikh',
-    'aswan',
-    'luxor',
-    'ismailia',
-    'suez',
-    'zagazig',
-    'damanhour',
-    'minya',
-  ],
-  SA: [
-    'riyadh',
-    'makkah',
-    'dammam',
-    'madinah',
-    'tabuk',
-    'abha',
-    'buraidah',
-    'jazan',
-    'hail',
-    'najran',
-    'bahah',
-    'arar',
-    'sakaka',
-  ],
-};
 
 export interface MarketCity {
   readonly market: Market;
   readonly city: geo.GeoCity;
   readonly events: readonly EventFeedItem[];
+  readonly eventsNextCursor: EventFeedCursor | null;
 }
 
 /**
@@ -152,6 +91,10 @@ export const listVisibleMarkets = (db: Db): Promise<Market[]> =>
 export const resolveMarketLanding = async (
   db: Db,
   key: string,
+  pagination: {
+    readonly afterStartsAt?: number;
+    readonly afterId?: string;
+  } = {},
 ): Promise<Result<MarketWithCities>> => {
   const market = await findMarketByKey(db, key);
   if (!market) {
@@ -159,8 +102,17 @@ export const resolveMarketLanding = async (
       new AppError('market_not_found', `No visible market for ${key}`),
     );
   }
-  const [{ items: events }, cityEventCounts, trending] = await Promise.all([
-    listEvents(db, { marketCode: market.code, limit: 20 }),
+  const [
+    { items: events, nextCursor: eventsNextCursor },
+    cityEventCounts,
+    trending,
+  ] = await Promise.all([
+    listEvents(db, {
+      marketCode: market.code,
+      afterStartsAt: pagination.afterStartsAt,
+      afterId: pagination.afterId,
+      limit: 20,
+    }),
     countUpcomingByCity(db, market.code),
     resolveTrendingStates(db, market.code),
   ]);
@@ -168,107 +120,10 @@ export const resolveMarketLanding = async (
     market,
     cities: geo.getFeaturedCities(market.code),
     events,
+    eventsNextCursor,
     cityEventCounts,
     trending,
   });
-};
-
-const coldMajorCities = (marketCode: string): TrendingSection => {
-  const priority = new Map(
-    (COLD_PRIORITY_SLUGS[marketCode] ?? []).map((slug, i) => [slug, i]),
-  );
-  const cities = [...geo.getFeaturedCities(marketCode)]
-    .map((city) => ({ city, count: 0 }))
-    .sort(
-      (a, b) =>
-        (priority.get(a.city.slug) ?? 1_000) -
-          (priority.get(b.city.slug) ?? 1_000) ||
-        a.city.name.localeCompare(b.city.name),
-    )
-    .slice(0, COLD_MAJOR_CITY_CAP);
-  if (cities.length === 0) return { variant: 'major', groups: [] };
-  return { variant: 'major', groups: [{ state: null, cities }] };
-};
-
-const warmActiveCities = (
-  marketCode: string,
-  stateCounts: Record<string, number>,
-  cityCounts: Record<string, number>,
-): TrendingSection => {
-  const topStates = geo
-    .getStates(marketCode)
-    .map((state) => ({ state, count: stateCounts[state.code] ?? 0 }))
-    .filter((s) => s.count > 0)
-    .sort(
-      (a, b) => b.count - a.count || a.state.code.localeCompare(b.state.code),
-    )
-    .slice(0, WARM_STATE_CAP);
-
-  const groups = topStates.map(({ state }) => {
-    const cities = geo
-      .getCities(marketCode, state.code)
-      .map((city) => ({ city, count: cityCounts[city.code] ?? 0 }))
-      .filter((c) => c.count > 0)
-      .sort(
-        (a, b) => b.count - a.count || a.city.name.localeCompare(b.city.name),
-      )
-      .slice(0, WARM_CITY_CAP);
-    return { state, cities };
-  });
-
-  const active = groups.filter((g) => g.cities.length > 0);
-  const taken = new Set(
-    active.flatMap((g) => g.cities.map(({ city }) => city.code)),
-  );
-  const priority = new Map(
-    (COLD_PRIORITY_SLUGS[marketCode] ?? []).map((slug, i) => [slug, i]),
-  );
-  const pioneer = [...geo.getFeaturedCities(marketCode)]
-    .filter((city) => !taken.has(city.code))
-    .sort(
-      (a, b) =>
-        (priority.get(a.slug) ?? 1_000) - (priority.get(b.slug) ?? 1_000) ||
-        a.name.localeCompare(b.name),
-    )
-    .slice(0, Math.max(0, WARM_CITY_TOTAL_CAP - taken.size))
-    .map((city) => ({ city, count: 0 }));
-
-  return {
-    variant: 'active',
-    groups:
-      pioneer.length === 0
-        ? active
-        : [...active, { state: null, cities: pioneer }],
-  };
-};
-
-/**
- * Browse section for a market landing.
- *
- * - **Cold** (no upcoming events): flat list of featured/major cities — never pads empty communes.
- * - **Warm**: top states by upcoming events, cities with `count > 0`, then up to
- *   `WARM_CITY_TOTAL_CAP` featured cities that have none.
- *
- * The warm list used to stop at `count > 0` on the reasoning that a zero badge is noise. The
- * redesign asks for those cities anyway, and it is right to: a city with no meetups is not padding,
- * it is the pioneer recruitment surface (FR-E6), and it renders as "be the first host" rather than
- * as a zero. The original guard against padding is kept where it mattered — the candidates come
- * from `getFeaturedCities`, so an empty commune still never appears.
- */
-export const resolveTrendingStates = async (
-  db: Db,
-  marketCode: string,
-): Promise<TrendingSection> => {
-  const [stateCounts, cityCounts] = await Promise.all([
-    countUpcomingByState(db, marketCode),
-    countUpcomingByCity(db, marketCode),
-  ]);
-  const totalUpcoming = Object.values(cityCounts).reduce(
-    (sum, n) => sum + n,
-    0,
-  );
-  if (totalUpcoming === 0) return coldMajorCities(marketCode);
-  return warmActiveCities(marketCode, stateCounts, cityCounts);
 };
 
 /**
@@ -278,6 +133,10 @@ export const resolveTrendingStates = async (
 export const resolveCityLanding = async (
   db: Db,
   { marketKey, citySlug }: { marketKey: string; citySlug: string },
+  pagination: {
+    readonly afterStartsAt?: number;
+    readonly afterId?: string;
+  } = {},
 ): Promise<Result<MarketCity>> => {
   const market = await findMarketByKey(db, marketKey);
   if (!market) {
@@ -291,10 +150,12 @@ export const resolveCityLanding = async (
       new AppError('city_not_found', `No city ${citySlug} in ${market.code}`),
     );
   }
-  const { items: events } = await listEvents(db, {
+  const { items: events, nextCursor: eventsNextCursor } = await listEvents(db, {
     marketCode: market.code,
     cityCode: city.code,
+    afterStartsAt: pagination.afterStartsAt,
+    afterId: pagination.afterId,
     limit: 20,
   });
-  return ok({ market, city, events });
+  return ok({ market, city, events, eventsNextCursor });
 };

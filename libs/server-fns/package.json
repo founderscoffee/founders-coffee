@@ -23,6 +23,16 @@
       "@founders-coffee/source": "./src/rate-limiter-do.ts",
       "types": "./src/rate-limiter-do.ts",
       "default": "./src/rate-limiter-do.ts"
+    },
+    "./closeout-prompt": {
+      "@founders-coffee/source": "./src/notifications/closeout-prompt.ts",
+      "types": "./src/notifications/closeout-prompt.ts",
+      "default": "./src/notifications/closeout-prompt.ts"
+    },
+    "./did-not-happen": {
+      "@founders-coffee/source": "./src/notifications/did-not-happen.ts",
+      "types": "./src/notifications/did-not-happen.ts",
+      "default": "./src/notifications/did-not-happen.ts"
     }
   },
   "dependencies": {

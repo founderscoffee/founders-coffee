@@ -16,6 +16,7 @@ import {
   type CancelEventInput,
   type CreatedEvent,
   type CreateEventInput,
+  type EventFeedPage,
   type HostMapContext,
   type HostMapLocationInput,
   type NearbyVenuesInput,
@@ -25,9 +26,15 @@ import {
   type VenueSearchInput,
 } from './api';
 
-type UpcomingEventsParams = Parameters<typeof eventsApi.getUpcomingEvents>[0];
+import { authClient } from '../../lib/auth';
 
-export const useUpcomingEvents = (params: UpcomingEventsParams) =>
+type UpcomingEventsParams = Parameters<typeof eventsApi.getUpcomingEvents>[0];
+type UpcomingEventsOptions = { initialPage?: EventFeedPage };
+
+export const useUpcomingEvents = (
+  params: UpcomingEventsParams,
+  options: UpcomingEventsOptions = {},
+) =>
   useInfiniteQuery({
     queryKey: ['events', 'upcoming', params],
     queryFn: ({ pageParam }) => {
@@ -35,25 +42,39 @@ export const useUpcomingEvents = (params: UpcomingEventsParams) =>
       return eventsApi.getUpcomingEvents({
         data: {
           ...params,
-          afterStartsAt: cursor?.startsAt,
-          afterId: cursor?.id,
+          afterStartsAt: cursor?.startsAt ?? params.afterStartsAt,
+          afterId: cursor?.id ?? params.afterId,
         },
       });
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as { startsAt: number; id: string } | undefined,
+    initialData: options.initialPage
+      ? { pages: [options.initialPage], pageParams: [undefined] }
+      : undefined,
+    staleTime: options.initialPage ? 30_000 : 0,
   });
 
-export const useHostedEvents = (params: {
-  hostId: string;
-  marketCode?: string;
-  limit?: number;
-}) =>
-  useInfiniteQuery({
-    queryKey: ['events', 'hosted', params],
+/**
+ * The gatherings the signed-in member has joined.
+ *
+ * No id in the params, unlike `useHostedEvents`. A host's history is public and takes whose history
+ * to fetch; this one is the caller's own by construction — the server function reads the session,
+ * so there is nothing here that could be pointed at somebody else.
+ */
+export const useMyJoinedEvents = (
+  params: {
+    marketCode?: string;
+    limit?: number;
+  } = {},
+) => {
+  const auth = authClient.useSession();
+  const userId = auth.data?.user.id;
+  return useInfiniteQuery({
+    queryKey: ['events', 'joined', userId, params],
     queryFn: ({ pageParam }) => {
       const cursor = pageParam as { startsAt: number; id: string } | undefined;
-      return eventsApi.getHostedEvents({
+      return eventsApi.getMyJoinedEvents({
         data: {
           ...params,
           beforeStartsAt: cursor?.startsAt,
@@ -63,6 +84,34 @@ export const useHostedEvents = (params: {
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as { startsAt: number; id: string } | undefined,
+    enabled: !!userId,
+    staleTime: 0,
+    gcTime: 0,
+  });
+};
+
+export const useHostedEvents = (params: {
+  hostId: string;
+  marketCode?: string;
+  beforeStartsAt?: number;
+  beforeId?: string;
+  limit?: number;
+}) =>
+  useInfiniteQuery({
+    queryKey: ['events', 'hosted', params],
+    queryFn: ({ pageParam }) => {
+      const cursor = pageParam as { startsAt: number; id: string } | undefined;
+      return eventsApi.getHostedEvents({
+        data: {
+          ...params,
+          beforeStartsAt: cursor?.startsAt ?? params.beforeStartsAt,
+          beforeId: cursor?.id ?? params.beforeId,
+        },
+      });
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: undefined as { startsAt: number; id: string } | undefined,
+    enabled: !!params.hostId,
   });
 
 export const useEvent = (slug: string) =>

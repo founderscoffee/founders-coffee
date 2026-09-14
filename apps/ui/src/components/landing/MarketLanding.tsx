@@ -3,6 +3,7 @@ import type { geo } from '@founders-coffee/domain';
 import { type Locale } from '@founders-coffee/i18n';
 import type {
   EventFeedItem,
+  EventFeedPage,
   TrendingSection,
 } from '@founders-coffee/server-fns';
 
@@ -16,6 +17,10 @@ type MarketLandingProps = {
   cities: readonly geo.GeoCity[];
   cityEventCounts: Record<string, number>;
   events: readonly EventFeedItem[];
+  afterStartsAt?: number;
+  afterId?: string;
+  nextPageHref?: string;
+  nextCursor?: EventFeedPage['nextCursor'];
   trending: TrendingSection;
 };
 
@@ -24,6 +29,10 @@ export const MarketLanding = ({
   market,
   cityEventCounts,
   events,
+  afterStartsAt,
+  afterId,
+  nextPageHref,
+  nextCursor,
   trending,
 }: MarketLandingProps) => (
   <>
@@ -33,6 +42,14 @@ export const MarketLanding = ({
       cityEventCounts={cityEventCounts}
     />
     <TrendingStates locale={locale} market={market} trending={trending} />
-    <DiscoverFeed locale={locale} market={market} events={events} />
+    <DiscoverFeed
+      locale={locale}
+      market={market}
+      events={events}
+      afterStartsAt={afterStartsAt}
+      afterId={afterId}
+      nextPageHref={nextPageHref}
+      nextCursor={nextCursor}
+    />
   </>
 );

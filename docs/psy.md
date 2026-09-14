@@ -33,7 +33,9 @@ pre-start cancellation path, and timely notifications—not extra transactional 
 
 ### Reminders
 
-PWA web push is the primary event-reminder channel and SMS is the fallback. Copy should be specific, local, and useful without manufacturing urgency. Email is reserved for authentication, billing, and explicitly email-based workflows.
+PWA web push is the primary event-reminder channel and email is the default fallback. SMS is reserved
+for same-day cancellation disruption. Copy should be specific, local, and useful without manufacturing
+urgency. Email also remains the authentication channel.
 
 ## Design principles
 

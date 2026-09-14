@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { sql } from 'drizzle-orm';
+
 import { accountPreferences, eq, type Db } from '@founders-coffee/db';
 
 import { resolveDestination } from './notification-destination.js';
@@ -100,6 +102,98 @@ describe('categories are enforced at send time, not at enqueue time', () => {
       [],
     );
     expect((await rowById(db, rowId))?.status).toBe('failed');
+  });
+
+  it('holds a closeout prompt while the market has operations switched off', async () => {
+    const off = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'closeout_prompt',
+      'DZ',
+    );
+
+    expect(off.ok).toBe(false);
+    if (!off.ok) {
+      expect(off.reason).toBe('operations_disabled');
+      expect(off.account).toBe(true);
+      expect(off.transient).toBe(true);
+    }
+  });
+
+  it('marks every other refusal permanent, so only the flag is waited on', async () => {
+    await setPreferences(db, { eventReminders: false });
+
+    const off = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'reminder_24h',
+      'DZ',
+    );
+
+    expect(off.ok).toBe(false);
+    if (!off.ok) expect(off.transient).toBeUndefined();
+  });
+
+  it('does not hang a closeout prompt off the who-is-coming switch', async () => {
+    await setPreferences(db, { hostUpdates: false });
+    await db.run(
+      sql`UPDATE markets SET feature_flags = json_set(coalesce(feature_flags, '{}'), '$.communityOperations', json('true')) WHERE code = 'DZ'`,
+    );
+
+    const result = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'closeout_prompt',
+      'DZ',
+    );
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('refuses a host notice when host updates are off, and not otherwise', async () => {
+    const on = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'rsvp_received',
+    );
+    await setPreferences(db, { hostUpdates: false });
+    const off = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'rsvp_received',
+    );
+
+    expect(on.ok).toBe(true);
+    expect(off.ok).toBe(false);
+    if (!off.ok) {
+      expect(off.reason).toBe('host_updates_off');
+      expect(off.account).toBe(true);
+    }
+  });
+
+  it('leaves the other categories alone when host updates are off', async () => {
+    await setPreferences(db, { hostUpdates: false });
+
+    const reminder = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'reminder_24h',
+    );
+    const cancellation = await resolveDestination(
+      db,
+      'email',
+      MEMBER_ID,
+      'event_cancelled',
+    );
+
+    expect(reminder.ok).toBe(true);
+    expect(cancellation.ok).toBe(true);
   });
 
   it('refuses a cancellation notice only when event updates are off', async () => {

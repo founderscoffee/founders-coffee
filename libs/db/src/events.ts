@@ -27,7 +27,7 @@ const ASSUMED_DURATION_SECONDS = 2 * 60 * 60;
  * A suppressed host takes their gatherings with them: {@link visibleIdentity} is part of the scope
  * rather than a filter applied afterwards, so the counts cannot describe rows the list refuses.
  */
-const upcomingScope = (now: Date) =>
+export const upcomingScope = (now: Date) =>
   and(
     sql`coalesce(${events.endsAt}, ${events.startsAt} + ${ASSUMED_DURATION_SECONDS}) > ${Math.floor(now.getTime() / 1000)}`,
     visibleIdentity(events.hostId),
@@ -82,6 +82,25 @@ export const getEventBySlug = async (
     .limit(1);
   return rows[0];
 };
+
+export type PublicEventSitemapRow = Pick<
+  Event,
+  'marketCode' | 'cityCode' | 'slug' | 'updatedAt'
+>;
+
+export const listPublicEventSitemapRows = async (
+  db: Db,
+): Promise<PublicEventSitemapRow[]> =>
+  db
+    .select({
+      marketCode: events.marketCode,
+      cityCode: events.cityCode,
+      slug: events.slug,
+      updatedAt: events.updatedAt,
+    })
+    .from(events)
+    .where(and(eq(events.status, 'published'), visibleIdentity(events.hostId)))
+    .orderBy(events.updatedAt, events.id);
 
 /**
  * List upcoming published events, optionally scoped to a market and/or city. Cursor-based with a

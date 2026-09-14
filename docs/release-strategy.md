@@ -1,12 +1,13 @@
 # Release Strategy — Community First
 
-| Field         | Value                                             |
-| ------------- | ------------------------------------------------- |
-| Status        | Approved                                          |
-| Owner         | Founder / Product                                 |
-| Decision date | 2026-09-01                                        |
-| Current focus | Community-building release                        |
-| Canonical in  | [SRS](./srs.md), [plan](./implementation-plan.md) |
+| Field         | Value                                                                    |
+| ------------- | ------------------------------------------------------------------------ |
+| Status        | Approved                                                                 |
+| Owner         | Founder / Product                                                        |
+| Decision date | 2026-09-01                                                               |
+| Last reviewed | 2026-09-14 — notification, migration, and deployment evidence reconciled |
+| Current focus | Community-building release                                               |
+| Canonical in  | [SRS](./srs.md), [plan](./implementation-plan.md)                        |
 
 ## Decision
 
@@ -34,7 +35,8 @@ The community-building release includes only the capabilities needed for the fre
 - RSVP, pre-start cancellation, capacity integrity, reminders, and host notifications;
 - post-event host closeout, attendance/no-show evidence, a small private attendee feedback pulse,
   and repeat-host support;
-- PWA web push as the primary notification channel and SMS as fallback;
+- PWA web push as the primary notification channel and email as the default fallback; SMS is
+  reserved for same-day cancellation disruption;
 - lightweight host trust, event moderation, safety, abuse prevention, and operational tooling;
 - Arabic, French, and English, with Arabic-first RTL support;
 - accessibility, performance, observability, deployment, and release verification required to run
@@ -86,14 +88,13 @@ the current sequence.
    performed and verified on 2026-09-10.
 2. EC-10 was signed off on 2026-09-10 and CO-01 approved the same day, so the
    [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
-   is open. CO-02 was implemented locally on 2026-09-10 and is not deployed.
+   is open. CO-02 is deployed to staging and production; the latest versions are recorded in
+   [deployment evidence](./deployment-evidence.md#current-operational-snapshot--2026-09-14).
 
-**PF-03b is now on the critical path.** CO-03's migration (`0025`, seven additive tables) is
-quarantined behind `0021`-`0024`, because the quarantine test rejects a shipped migration that
-follows a pending journal entry. Nothing from CO-03 onwards can reach staging or production until
-those four contractions are promoted, which is PF-03b — a release ticket needing a recorded
-deployed Worker version, a D1 recovery point and a compatible rollback version. It was previously
-described as able to wait indefinitely; that was true only while nobody needed a new migration.
+**PF-03b is complete.** The five migrations `0021` through `0025` were promoted in journal order and
+applied to staging and production on 2026-09-10. The migration quarantine is empty; new migrations
+can proceed through the normal review and deploy gate. See the migration rows in
+[deployment evidence](./deployment-evidence.md#current-operational-snapshot--2026-09-14).
 
 **Deploy order changed by CO-02.** `apps/ui` now binds `NOTIFICATION_SCHEDULE` across scripts to a
 Durable Object class defined in `apps/worker-jobs`, so worker-jobs deploys first in each
@@ -109,9 +110,7 @@ post-community commercial phase.
 
 The [Profile and Account Management Plan](./profile-account-implementation-plan.md) is a supporting
 P1-004 lane approved on 2026-09-08. It removes profile residence, gives members control of optional
-public details and photos, and adds full account/privacy controls. It does not replace the EC → CO
-execution priority. Its delivery, retention and moderation integrations reuse the named CO owners;
-writing the plan does not mean those capabilities have shipped. The 2026-09-08 implementation
-request started the PF lane locally as a supporting foundation. The production smoke has since been
-certified separately on 2026-09-10; nothing in the PF lane is deployed, and CO implementation begins
-at CO-01.
+public details and photos, and adds full account/privacy controls. PF-03a/b and PF-05 through PF-08
+have been promoted with the 2026-09-10 releases; the plan records the remaining PF work separately.
+It does not replace the EC → CO execution priority. Its delivery, retention and moderation
+integrations reuse the named CO owners.

@@ -3,12 +3,8 @@ import { useEffect, useState } from 'react';
 import {
   cookieName,
   prefs_conflict_error,
-  prefs_delivery_note,
-  prefs_delivery_title,
   prefs_discard,
-  prefs_heading,
   prefs_loading,
-  prefs_note,
   prefs_save,
   prefs_save_error,
   prefs_saved,
@@ -26,30 +22,14 @@ import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { ProfileSectionNav } from '../../account/components/ProfileSectionNav';
 import type { AccountPreferencesView } from '../api';
 import {
-  forgetRememberedMarket,
-  marketCodeFor,
-  rememberedMarket,
-} from '../device-location';
-import {
   draftFrom,
   hasChanges,
   localeChanged,
   toInput,
   type PreferencesDraft,
 } from '../draft';
-import {
-  useDevicePushState,
-  useMyPreferences,
-  useSavePreferences,
-} from '../hooks';
-import {
-  CategoryGroup,
-  DeviceLocationGroup,
-  Group,
-  LanguageGroup,
-  SmsRow,
-} from './PreferenceGroups';
-import { PushRow } from './PushRow';
+import { useMyPreferences, useSavePreferences } from '../hooks';
+import { CategoryGroup, LanguageGroup } from './PreferenceGroups';
 
 const saveErrorFor = (error: unknown, locale: Locale): string => {
   const code = appErrorCode(error);
@@ -62,20 +42,15 @@ const saveErrorFor = (error: unknown, locale: Locale): string => {
 
 const PreferencesForm = ({
   locale,
-  marketCode,
   view,
 }: {
   locale: Locale;
-  marketCode: string;
   view: AccountPreferencesView;
 }) => {
   const [draft, setDraft] = useState<PreferencesDraft>(() => draftFrom(view));
-  const [remembered, setRemembered] = useState<string | null>(null);
-  const push = useDevicePushState(marketCode);
   const save = useSavePreferences();
 
   useEffect(() => setDraft(draftFrom(view)), [view]);
-  useEffect(() => setRemembered(rememberedMarket()), []);
 
   const dirty = hasChanges(draft, view);
   const change = (changes: Partial<PreferencesDraft>) =>
@@ -86,9 +61,7 @@ const PreferencesForm = ({
     save.mutate(toInput(draft, view.revision), {
       onSuccess: () => {
         if (!willReload) return;
-        document.cookie = `${cookieName}=${draft.locale ?? ''}; path=/; max-age=${
-          draft.locale ? 31536000 : 0
-        }; samesite=lax`;
+        document.cookie = `${cookieName}=${draft.locale}; path=/; max-age=31536000; samesite=lax`;
         window.location.reload();
       },
     });
@@ -103,34 +76,6 @@ const PreferencesForm = ({
       />
 
       <CategoryGroup locale={locale} draft={draft} onChange={change} />
-
-      <Group
-        title={prefs_delivery_title({}, { locale })}
-        note={prefs_delivery_note({}, { locale })}
-      >
-        <PushRow
-          locale={locale}
-          state={push.state}
-          isEnabling={push.isEnabling}
-          onEnable={() => void push.enable()}
-        />
-        <SmsRow
-          locale={locale}
-          checked={draft.smsFallbackEnabled}
-          available={view.smsAvailable}
-          consentAt={view.smsConsentAt}
-          onChange={(smsFallbackEnabled) => change({ smsFallbackEnabled })}
-        />
-      </Group>
-
-      <DeviceLocationGroup
-        locale={locale}
-        remembered={remembered}
-        onForget={() => {
-          forgetRememberedMarket();
-          setRemembered(null);
-        }}
-      />
 
       <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100 p-4">
         <p
@@ -170,49 +115,36 @@ const PreferencesForm = ({
   );
 };
 
-export const PreferencesPage = ({
-  locale,
-  markets,
-}: {
-  locale: Locale;
-  markets: readonly { code: string; slug: string }[];
-}) => {
+export const PreferencesPage = ({ locale }: { locale: Locale }) => {
   const query = useMyPreferences();
   const isLoading =
     query.isAuthLoading ||
     (!!query.userId && query.isPending && !query.isError);
 
   return (
-    <section className="mx-auto max-w-3xl px-5 py-12">
-      <h1 className="mb-1 font-display text-h3">
-        {prefs_title({}, { locale })}
-      </h1>
-      <p className="mb-6 text-body-sm text-neutral">
-        {prefs_heading({}, { locale })} {prefs_note({}, { locale })}
-      </p>
+    <section className="mx-auto max-w-5xl px-5 py-12 lg:grid lg:grid-cols-[184px_minmax(0,1fr)] lg:gap-12">
       <ProfileSectionNav locale={locale} />
+      <div className="min-w-0">
+        <h1 className="sr-only">{prefs_title({}, { locale })}</h1>
 
-      {query.data ? (
-        <PreferencesForm
-          locale={locale}
-          marketCode={marketCodeFor(markets)}
-          view={query.data}
-        />
-      ) : query.isError && query.userId ? (
-        <p role="alert" className="text-body-sm text-error">
-          {prefs_unavailable({}, { locale })}
-        </p>
-      ) : isLoading ? (
-        <p role="status">{prefs_loading({}, { locale })}</p>
-      ) : (
-        <ProfileAccess
-          locale={locale}
-          isLoading={false}
-          isAnonymous={!query.userId}
-          returnPath="/preferences"
-          onRetry={() => void query.refetch()}
-        />
-      )}
+        {query.data ? (
+          <PreferencesForm locale={locale} view={query.data} />
+        ) : query.isError && query.userId ? (
+          <p role="alert" className="text-body-sm text-error">
+            {prefs_unavailable({}, { locale })}
+          </p>
+        ) : isLoading ? (
+          <p role="status">{prefs_loading({}, { locale })}</p>
+        ) : (
+          <ProfileAccess
+            locale={locale}
+            isLoading={false}
+            isAnonymous={!query.userId}
+            returnPath="/preferences"
+            onRetry={() => void query.refetch()}
+          />
+        )}
+      </div>
     </section>
   );
 };

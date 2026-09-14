@@ -22,5 +22,7 @@ export {
   eventTitleSchema,
   eventVenueAddressSchema,
   eventVenueNameSchema,
+  publicEventDiscoverySchema,
   type EventCreateInput,
+  type PublicEventDiscovery,
 } from './schemas.js';

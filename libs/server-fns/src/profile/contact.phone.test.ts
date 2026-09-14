@@ -8,13 +8,7 @@ import {
 } from '@founders-coffee/auth';
 import { createDb, eq, user } from '@founders-coffee/db';
 
-import {
-  confirmEmailChange,
-  confirmPhoneNumber,
-  requestEmailChange,
-  sendCurrentEmailCode,
-  sendPhoneCode,
-} from './contact.js';
+import { confirmPhoneNumber, sendPhoneCode } from './contact.js';
 
 const authEnv = {
   DB: env.DB,
@@ -59,9 +53,6 @@ const signedInMember = async () => {
     headers: new Headers({ cookie }),
   };
 };
-
-const codeFor = (provider: DevEmailProvider, type: string) =>
-  provider.sent.filter((sent) => sent.type === type).at(-1)?.otp ?? '';
 
 const currentEmail = async (
   db: ReturnType<typeof createDb>,

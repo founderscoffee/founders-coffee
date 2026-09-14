@@ -1,7 +1,12 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
-import { detectLocale, direction } from '@founders-coffee/i18n';
+import {
+  detectLocale,
+  direction,
+  isLocale,
+  type Locale,
+} from '@founders-coffee/i18n';
 import {
   configureClientLogger,
   logger,
@@ -10,16 +15,24 @@ import {
 import { getVisibleMarkets } from '@founders-coffee/server-fns';
 
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
+import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
 import { AppProviders } from '../lib/app-providers';
 import { readCookieHeader } from '../lib/cookies';
-import { SITE_ORIGIN, organizationJsonLd } from '../lib/seo';
+import {
+  NO_INDEX_VALUE,
+  PUBLIC_DOCUMENT_CACHE_CONTROL,
+} from '../lib/indexation';
+import { organizationJsonLd } from '../lib/seo-company';
+import { errorPageHead } from '../lib/seo-error';
 
 import appCss from '../styles.css?url';
 
-const detectActiveLocale = () => {
-  const locale = detectLocale(readCookieHeader());
+const detectActiveLocale = (routeLocale?: string) => {
+  const locale = isLocale(routeLocale)
+    ? routeLocale
+    : detectLocale(readCookieHeader());
   return { locale, dir: direction(locale) };
 };
 
@@ -39,9 +52,20 @@ const useClientObservability = () => {
   }, []);
 };
 
+const useServiceWorker = () => {
+  useEffect(() => {
+    void import('../features/push/service-worker')
+      .then(({ registerServiceWorker }) =>
+        registerServiceWorker({ onRegistrationError: logServiceWorkerFailure }),
+      )
+      .catch(logServiceWorkerFailure);
+  }, []);
+};
+
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { locale, dir, markets } = Route.useRouteContext();
   useClientObservability();
+  useServiceWorker();
   useStoredLocale(locale);
 
   return (
@@ -62,43 +86,60 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const Route = createRootRoute({
-  beforeLoad: async () => {
-    const { locale, dir } = detectActiveLocale();
+  beforeLoad: async ({ params }) => {
+    const routeParams = params as { readonly market?: string };
+    const { locale, dir } = detectActiveLocale(routeParams.market);
     const markets = await getVisibleMarkets();
     return { locale, dir, markets: markets ?? [] };
   },
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'founders.coffee' },
-      {
-        name: 'description',
-        content:
-          'founders.coffee - local founder communities that meet over coffee.',
-      },
-      { property: 'og:type', content: 'website' },
-      { property: 'og:site_name', content: 'founders.coffee' },
-      { property: 'og:title', content: 'founders.coffee' },
-      {
-        property: 'og:description',
-        content:
-          'Local founder communities that meet over coffee - real conversations, no formalities.',
-      },
-      { property: 'og:url', content: SITE_ORIGIN },
-      { name: 'twitter:card', content: 'summary' },
-      { name: 'theme-color', content: '#270F00' },
-    ],
-    links: [
-      { rel: 'stylesheet', href: appCss },
-      { rel: 'canonical', href: SITE_ORIGIN },
-      { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
-      { rel: 'icon', href: '/favicon-32x32.png', sizes: '32x32' },
-      { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16' },
-      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
-      { rel: 'manifest', href: '/manifest.json' },
-    ],
-    scripts: [{ type: 'application/ld+json', children: organizationJsonLd() }],
-  }),
+  headers: ({ matches }) => {
+    const hasNoIndexableState = matches.some(
+      (match) =>
+        match.status === 'error' ||
+        match.status === 'notFound' ||
+        match.globalNotFound,
+    );
+    const headers: Record<string, string> = hasNoIndexableState
+      ? {
+          'Cache-Control': 'private, no-store',
+          'X-Robots-Tag': NO_INDEX_VALUE,
+        }
+      : { 'Cache-Control': PUBLIC_DOCUMENT_CACHE_CONTROL };
+    return headers;
+  },
+  head: ({ matches }) => {
+    const rootMatch = matches.find((match) => match.routeId === '__root__');
+    const locale =
+      (rootMatch?.context as { locale?: Locale } | undefined)?.locale ?? 'ar';
+    const hasNotFound = matches.some(
+      (match) => match.status === 'notFound' || match.globalNotFound,
+    );
+    const hasError = matches.some((match) => match.status === 'error');
+    const pageHead = hasNotFound
+      ? errorPageHead(locale, 'notFound')
+      : hasError
+        ? errorPageHead(locale, 'error')
+        : null;
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'theme-color', content: '#270F00' },
+        ...(pageHead?.meta ?? []),
+      ],
+      links: [
+        { rel: 'stylesheet', href: appCss },
+        { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+        { rel: 'icon', href: '/favicon-32x32.png', sizes: '32x32' },
+        { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/manifest.json' },
+        ...(pageHead?.links ?? []),
+      ],
+      scripts: pageHead?.scripts ?? [
+        { type: 'application/ld+json', children: organizationJsonLd() },
+      ],
+    };
+  },
   shellComponent: RootDocument,
 });

@@ -8,6 +8,7 @@ import {
   isPrivateProfilePath,
   purgePrivateCacheEntries,
 } from './lib/profile-cache';
+import { readPushPayload } from './lib/push-payload';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -43,31 +44,28 @@ self.addEventListener('activate', (event) => {
  * The tag is the sending notification's own key, so a redelivered copy replaces the one already on
  * screen instead of stacking. A constant tag would do the opposite of what it looks like: distinct
  * reminders would overwrite each other while duplicates of one still stacked across devices.
+ *
+ * The envelope is normalised by {@link readPushPayload} rather than read directly, because FCM
+ * rewraps what the sender wrote and the shape it arrives in cannot be confirmed until a push is
+ * actually delivered.
  */
 self.addEventListener('push', (event: PushEvent) => {
   if (!event.data) return;
 
-  let payload: {
-    title: string;
-    body: string;
-    url?: string;
-    icon?: string;
-    dedupeKey?: string;
-  };
+  let raw: unknown;
   try {
-    payload = event.data.json();
+    raw = event.data.json();
   } catch {
-    payload = {
-      title: 'founders.coffee',
-      body: event.data.text(),
-    };
+    raw = { body: event.data.text() };
   }
+
+  const payload = readPushPayload(raw);
 
   const options: NotificationOptions & { vibrate?: number[] } = {
     body: payload.body,
-    icon: payload.icon ?? '/android-chrome-192x192.png',
+    icon: payload.icon,
     badge: '/android-chrome-192x192.png',
-    data: { url: payload.url ?? '/' },
+    data: { url: payload.url },
     vibrate: [200, 100, 200],
     tag: payload.dedupeKey ?? 'founders-coffee-push',
   };

@@ -5,10 +5,10 @@
 | Field           | Value                                                                                                 |
 | --------------- | ----------------------------------------------------------------------------------------------------- |
 | Document        | SRS — founders.coffee                                                                                 |
-| Version         | 1.6                                                                                                   |
+| Version         | 1.7                                                                                                   |
 | Status          | Approved — architecture locked                                                                        |
 | Owner           | Founder / Product                                                                                     |
-| Last updated    | 2026-09-01                                                                                            |
+| Last updated    | 2026-09-14                                                                                            |
 | Target stack    | Nx monorepo · TanStack Start (fullstack) · Drizzle + Cloudflare D1 · Better Auth · Cloudflare Workers |
 | Source research | Market validation sessions (Algeria + MENA) — see Appendix A                                          |
 
@@ -169,7 +169,8 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
   bounded comment. A held closeout submitted within seven days of `endsAt` shall invite eligible
   members; create/update access shall end fourteen days after `endsAt`, and a late closeout shall not
   reopen the window. A non-empty comment shall carry its authored `ar`, `fr`, or `en` language.
-- **FR-E14** The system shall send localized post-event prompts using PWA push first and SMS fallback:
+- **FR-E14** The system shall send localized post-event prompts using PWA push first and email
+  fallback; SMS is reserved for same-day cancellation disruption:
   an idempotent closeout prompt to the host after event end, feedback/return to attended members
   after a timely held closeout, and a transparent notice to frozen going members when the host
   records `did_not_happen`.
@@ -241,7 +242,7 @@ Requirement IDs use the prefix `FR`. Each is tagged with phase (`P0`–`P4`) and
   through Better Auth. Sensitive changes require recent authentication, prevent loss of the last
   usable login method and shall not enable a separate phone-login flow implicitly.
 - **FR-A9** Members shall manage interface locale and notification preferences, with PWA push primary
-  and SMS fallback only to a verified, consented number. Current preferences and destinations shall
+  and SMS disruption only to a verified, consented number. Current preferences and destinations shall
   be enforced at dispatch as well as scheduling; browser permission and delivery state stay distinct.
 - **FR-A10** Members shall request private data export and confirmed account deletion from account
   settings. Deletion shall revoke access, remove public identity and personal delivery, safely handle
@@ -310,7 +311,7 @@ and legacy migration are tracked by PF-01 through PF-12 in the
 
 ### 5.9 Notifications & communications (P1)
 
-- **FR-N1** Event notifications shall use **PWA web push (FCM)** as the primary channel for subscribed devices and **Twilio Programmable SMS** as fallback. Email remains the authentication and explicitly-email channel. Future billing may use email if enabled; Twilio Verify is authentication-only.
+- **FR-N1** Event notifications shall use **PWA web push (FCM)** as the primary channel for subscribed devices and **Cloudflare Email** as the default fallback. Twilio Programmable SMS is reserved for same-day cancellation disruption and requires a verified, consented number. Twilio Verify remains authentication-only.
 - **FR-N2** Notification preferences shall be user-configurable.
 - **FR-N3** Notifications shall be localized.
 
@@ -415,7 +416,7 @@ ScheduledNotification
   payload (JSON), status (pending | sent | failed)
   send_at (unix timestamp), created_at
   // Event alarms enqueue due work; a low-frequency sweep only recovers missed alarms.
-  // One logical event delivery selects push first and creates SMS fallback only when needed.
+  // One logical event delivery selects push first and creates email fallback only when needed.
 
 PushSubscription                (PWA web push via FCM HTTP v1)
   id, user_id, token (device token or FCM web push token)
@@ -675,7 +676,7 @@ admin.)
 | D2  | **ORM**                   | **Drizzle**                                                                                                                                                                                                                                       | Edge-native (unlike Prisma on Workers); portable to Postgres.                                                                                                                                                     |
 | D3  | **Frontend framework**    | **TanStack Start** (fullstack) + Query, Form, Table, Virtual, Store, Config                                                                                                                                                                       | Typed server functions = the backend; full TanStack toolset; end-to-end type safety; edge-native.                                                                                                                 |
 | D4  | **Auth method**           | **Passwordless Better Auth.** Current UI: email OTP plus configured OAuth. Dormant capability: phone OTP via Twilio Verify, enabled only after a separately approved UI decision.                                                                 | Matches operational reality while preserving one global identity, trusted account linking, no passwords, D1 sessions, and centralized rate limiting.                                                              |
-| D5  | **Notification channels** | PWA web push via FCM (primary) + Twilio Programmable SMS (fallback) + Cloudflare Email (authentication/billing/explicit email)                                                                                                                    | Keeps event communication immediate while retaining SMS coverage when push is unavailable. Twilio Verify remains authentication-only.                                                                             |
+| D5  | **Notification channels** | PWA web push via FCM (primary) + Cloudflare Email (default fallback) + Twilio Programmable SMS (same-day cancellation disruption)                                                                                                                 | Keeps event communication immediate while retaining a no-cost fallback; SMS is limited to the cases where an unread email could send someone to a venue unnecessarily. Twilio Verify remains authentication-only. |
 | D6  | **Hosting region**        | Cloudflare edge; **D1 primary near Maghreb**                                                                                                                                                                                                      | Latency + data-residency considerations.                                                                                                                                                                          |
 | D7  | **Monetization build**    | **Deferred until after the community validation gate and explicit Founder / Product approval.**                                                                                                                                                   | A sponsor product has no durable value before founders.coffee has a real, trusted, repeat community. Existing foundations are not a launch commitment.                                                            |
 | D8  | **Hackathon engine**      | **Future option, not current committed delivery.** It may be opened only after the community validation gate and explicit approval.                                                                                                               | Challenges cannot rescue a weak community loop and must not distract from proving the local event community first.                                                                                                |
@@ -704,7 +705,7 @@ admin.)
 | **Brand dilution from future commercial layers**                                  | Medium   | Keep sponsor surfaces out of the current release; if later approved, require clear disclosure and preserve the community experience.                                                |
 | **RTL/i18n technical debt**                                                       | Medium   | Build RTL-correct from P0 (FR-L2); shared `libs/i18n`; never defer.                                                                                                                 |
 | **TanStack Start maturity**                                                       | Medium   | Accept the maturity tax for type safety; mitigate with shared libs + solid testing.                                                                                                 |
-| **PWA push availability** (permission, installation, browser support)             | Medium   | Ask contextually, store preferences, and use SMS fallback when no valid push subscription exists.                                                                                   |
+| **PWA push availability** (permission, installation, browser support)             | Medium   | Ask contextually, store preferences, and use email fallback when no valid push subscription exists; reserve SMS for same-day cancellation disruption.                               |
 | **"Why not just use Meetup or a group chat?"**                                    | Medium   | Win through trusted local curation, Arabic/French/English community context, frictionless hosting, reliable reminders, and a repeat founder ritual—not through feature breadth.     |
 | **Regulatory change** (e.g., MA CMI liberalization)                               | Low-Med  | Payment abstraction isolates per-market changes (§8.5).                                                                                                                             |
 

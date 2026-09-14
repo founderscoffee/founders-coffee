@@ -66,7 +66,13 @@ jobs:
       - name: Check Nx tsconfig project references are in sync
         run: npx nx sync:check
 
+      - name: Initialize local D1 for SSR prerender builds
+        run: npx nx run worker-jobs:migrate:local
+
       # `lint` includes the Nx module-boundary rules that enforce the one-directional
       # data flow (AGENTS.md §4), so a boundary violation fails CI here.
       - name: Typecheck, lint, test and build
-        run: npx nx run-many -t typecheck lint test build
+        run: npx nx run-many -t typecheck lint test build --parallel=1
+
+      - name: Run Miniflare SEO integration gate
+        run: npx nx run public:integration-test

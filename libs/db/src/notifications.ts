@@ -1,9 +1,10 @@
-import { and, asc, eq, lte } from 'drizzle-orm';
+import { and, asc, eq, inArray, lte, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
   NOTIFICATION_CHANNELS,
   NOTIFICATION_TEMPLATE_KEYS,
+  RSVP_LIFECYCLE_TEMPLATE_KEYS,
   scheduledNotifications,
   type NewScheduledNotification,
   type ScheduledNotification,
@@ -47,6 +48,52 @@ export const enqueueNotification = async (
   await db.insert(scheduledNotifications).values(row);
 
   return { ...row, status: 'pending' } as ScheduledNotification;
+};
+
+/**
+ * Enqueue this notification unless its id is already taken.
+ *
+ * For intents whose id is a pure function of what they are about, so that writing one twice is a
+ * question the database answers rather than one the caller has to ask first. `ON CONFLICT DO
+ * NOTHING` makes the second write a no-op inside the statement; a read-then-write would leave a
+ * window in which two callers both read absent and both insert, which is exactly the race a
+ * creation hook and a nightly backfill would run into.
+ *
+ * Returns whether a row was written, so a caller can tell "I scheduled it" from "it was already
+ * scheduled" without another query.
+ */
+export const enqueueNotificationIfAbsent = async (
+  db: Db,
+  opts: {
+    id: string;
+    eventId: string;
+    userId: string;
+    channel: (typeof NOTIFICATION_CHANNELS)[number];
+    templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
+    payload: Record<string, unknown>;
+    sendAt: Date;
+    fallbackChannel?: 'email' | 'sms';
+  },
+): Promise<{ written: boolean }> => {
+  const result = await db
+    .insert(scheduledNotifications)
+    .values({
+      id: opts.id,
+      eventId: opts.eventId,
+      userId: opts.userId,
+      channel: opts.channel,
+      status: 'pending',
+      templateKey: opts.templateKey,
+      payload: opts.payload,
+      sendAt: opts.sendAt,
+      attempts: 0,
+      fallbackChannel: opts.fallbackChannel ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .onConflictDoNothing({ target: scheduledNotifications.id });
+
+  return { written: ((result.meta?.changes ?? 0) as number) > 0 };
 };
 
 /**
@@ -142,6 +189,18 @@ export const cancelNotificationsByEvent = async (
 };
 
 /** Cancel one user's pending notifications for an event (EC-1). See {@link cancelNotificationsByEvent}. */
+/**
+ * Withdraw the messages that existed because this member said they were coming.
+ *
+ * Scoped to `RSVP_LIFECYCLE_TEMPLATE_KEYS` rather than to every pending row for the pair, and the
+ * distinction is not cosmetic. A host holds a `going` RSVP on their own event — `attendHostOwnEvent`
+ * creates one at creation — so an unscoped cancel let a host who merely changed their mind about
+ * attending silently withdraw every pending row addressed to them, including host-directed notices
+ * that have nothing to do with their own attendance.
+ *
+ * Adding a key to that list is a statement that the message is about the recipient's own attendance.
+ * A host-directed message must never be listed, however convenient it looks.
+ */
 export const cancelNotificationsByUserEvent = async (
   db: Db,
   opts: { eventId: string; userId: string },
@@ -154,6 +213,9 @@ export const cancelNotificationsByUserEvent = async (
         eq(scheduledNotifications.eventId, opts.eventId),
         eq(scheduledNotifications.userId, opts.userId),
         eq(scheduledNotifications.status, 'pending'),
+        inArray(scheduledNotifications.templateKey, [
+          ...RSVP_LIFECYCLE_TEMPLATE_KEYS,
+        ]),
       ),
     );
 
@@ -186,4 +248,49 @@ export const hasPendingNotification = async (
     .limit(1);
 
   return rows.length > 0;
+};
+
+const JUSTIFICATION_SLACK_SECONDS = 5;
+
+/**
+ * Drop a host's pending "somebody is coming" notice once nobody is.
+ *
+ * The notice is coalesced: one pending row stands for every RSVP that arrived while it was waiting.
+ * Cancelling an RSVP therefore cannot simply cancel the notice, because a second guest may be
+ * relying on the same row — and it cannot be left alone either, or a host is told to expect somebody
+ * who has withdrawn, opens the event and finds the list unchanged.
+ *
+ * The test is whether anyone is still going who joined after the notice was written. `cancelRsvp`
+ * deletes the attendee row rather than marking it, and `createRsvp` inserts a fresh one, so "still
+ * going" and "joined recently" are both readable from `event_rsvps` alone with no extra state.
+ *
+ * One statement, so the count and the withdrawal see the same snapshot; a read followed by a write
+ * would let a concurrent RSVP land in between and lose its notice.
+ *
+ * The slack covers the gap between inserting the RSVP and enqueueing the notice, which happen in one
+ * request but can straddle a second boundary. Without it a guest who joined a fraction of a second
+ * before the notice was written would not count as justifying it, and a burst of two could be
+ * withdrawn by one of them cancelling.
+ */
+export const withdrawStaleHostNotice = async (
+  db: Db,
+  opts: { eventId: string; hostId: string },
+): Promise<number> => {
+  const result = await db.run(
+    sql`UPDATE scheduled_notifications
+        SET status = 'cancelled', updated_at = unixepoch()
+        WHERE event_id = ${opts.eventId}
+          AND user_id = ${opts.hostId}
+          AND template_key = 'rsvp_received'
+          AND status = 'pending'
+          AND NOT EXISTS (
+            SELECT 1 FROM event_rsvps
+            WHERE event_id = ${opts.eventId}
+              AND status = 'going'
+              AND created_at >= scheduled_notifications.created_at - ${JUSTIFICATION_SLACK_SECONDS}
+          )`,
+  );
+  return (
+    (result as unknown as { meta?: { changes?: number } }).meta?.changes ?? 0
+  );
 };

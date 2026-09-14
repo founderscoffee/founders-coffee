@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  countEventsByStatus,
   createEvent,
   createEventIfRouteAvailable,
   getEvent,
   getEventBySlug,
-  transitionEventStatus,
 } from './events.js';
 import { baseEvent, nextId, nextSlug, setupDb } from './events.fixtures.js';
 

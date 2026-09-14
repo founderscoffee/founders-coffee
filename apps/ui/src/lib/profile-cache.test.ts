@@ -10,6 +10,9 @@ describe('profile navigation privacy', () => {
   it.each([
     '/profile',
     '/profile/',
+    '/preferences',
+    '/activity',
+    '/account',
     '/onboarding',
     '/login',
     '/u/usr_123',
@@ -18,12 +21,16 @@ describe('profile navigation privacy', () => {
   ])('excludes %s from service-worker caching', (path) => {
     expect(isPrivateProfilePath(path)).toBe(true);
   });
-  it.each(['/', '/algeria', '/assets/profile.js', '/unrelated', '/profiles'])(
-    'keeps unrelated paths %s unchanged',
-    (path) => {
-      expect(isPrivateProfilePath(path)).toBe(false);
-    },
-  );
+  it.each([
+    '/',
+    '/algeria',
+    '/assets/profile.js',
+    '/unrelated',
+    '/profiles',
+    '/activities',
+  ])('keeps unrelated paths %s unchanged', (path) => {
+    expect(isPrivateProfilePath(path)).toBe(false);
+  });
   it.each([
     '/login?redirect=/login',
     '/onboarding/',

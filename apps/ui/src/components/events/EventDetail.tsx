@@ -4,6 +4,7 @@ import {
   back_to_city,
   event_cancelled_body,
   event_cancelled_title,
+  event_details_title,
   event_when,
   event_where,
   formatDate,
@@ -79,22 +80,6 @@ export const EventDetail = ({
 
   const cityName =
     locale === 'ar' ? (event.cityNameAr ?? event.cityName) : event.cityName;
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Event',
-    name: event.title,
-    description: event.description,
-    startDate: new Date(event.startsAt).toISOString(),
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    eventStatus: 'https://schema.org/EventScheduled',
-    inLanguage: event.language,
-    location: {
-      '@type': 'Place',
-      name: event.venue,
-      address: event.venueAddress ?? undefined,
-    },
-    organizer: host ? { '@type': 'Person', name: host.displayName } : undefined,
-  };
 
   return (
     <article className="mx-auto max-w-content px-4 py-8 md:px-8 md:py-10">
@@ -142,7 +127,11 @@ export const EventDetail = ({
             {event.title}
           </h1>
 
-          <dl className="mt-6 grid gap-3 sm:grid-cols-2">
+          <h2 className="mt-6 font-display text-h4 font-semibold">
+            {event_details_title({}, { locale })}
+          </h2>
+
+          <dl className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-box border border-base-300 bg-base-100 p-4">
               <dt className="eyebrow">{event_when({}, { locale })}</dt>
               <dd className="mt-1.5 font-medium">
@@ -230,11 +219,6 @@ export const EventDetail = ({
           </div>
         </aside>
       </div>
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
     </article>
   );
 };

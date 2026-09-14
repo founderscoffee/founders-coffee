@@ -3,14 +3,12 @@ import { describe, expect, it } from 'vitest';
 
 import { id } from '@founders-coffee/core';
 import {
-  account,
   createDb,
   eq,
   pushSessionLinks,
   pushSubscriptions,
   seed,
   session,
-  unlinkProviderIfNotLast,
   user,
 } from '@founders-coffee/db';
 
@@ -18,7 +16,6 @@ import {
   readDevices,
   revokeDevices,
   sessionTokenFromCookie,
-  unlinkProvider,
 } from './sessions.js';
 
 const LIVE = new Date('2099-01-01T00:00:00Z');
@@ -74,22 +71,6 @@ const addDevice = async (
     .run();
   return subscriptionId;
 };
-
-const addProvider = (
-  db: ReturnType<typeof createDb>,
-  userId: string,
-  providerId: string,
-) =>
-  db
-    .insert(account)
-    .values({
-      id: id('acc'),
-      userId,
-      providerId,
-      accountId: `${providerId}-x`,
-      accessToken: 'secret-token',
-    })
-    .run();
 
 describe('PF-07d — finding the caller among their own devices', () => {
   it('drops the signature Better Auth appends to the cookie', () => {

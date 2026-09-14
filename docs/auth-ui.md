@@ -46,18 +46,21 @@ The UI app adapts the auth-specific OTP interface to the general Cloudflare Emai
 
 - `apps/ui`: member and host authentication, onboarding, profile, and event participation.
 - `apps/dashboard`: future sponsor-only application; it remains outside the community release.
-- `apps/admin`: internal operations; Cloudflare Access is present, while the correlated
-  Better Auth/RBAC session wiring remains planned under CO-04.
+- `apps/admin`: internal operations; Cloudflare Access, correlated Better Auth/RBAC session wiring
+  and the operations shell are implemented and staging-verified under CO-04. Production still needs
+  an operator account and promotion verification.
 
-Onboarding for market, state, and city is implemented in `apps/ui`. The geographic values use canonical market/state/city codes and the current versioned TypeScript reference datasets.
+Onboarding in `apps/ui` now collects display-name completion only. Event market, state and city are
+selected in the event flow and remain canonical geographic values; they are never copied into a
+member's home profile.
 
-## Approved replacement — planned, 2026-09-08
+## Location-free profile onboarding — implemented 2026-09-10
 
 The [Profile and Account Management Plan](./profile-account-implementation-plan.md), PF-01 through
-PF-12, replaces this location-based onboarding with display-name completion only. OTP and OAuth
-shall return members to their original action without collecting a home location or requiring
-optional profile details. The existing inline host sign-in gate must follow the same name-completion
-rule while preserving its pending publish and OAuth draft-return behavior. It also adds opt-in public fields, managed photos, verified contact and
-session controls, notification preferences, export and deletion. Existing home columns are removed
-through a reviewed migration; event geography remains unchanged. The current-flow description above
-is an implementation audit, not a requirement to preserve geographic onboarding.
+PF-01 through PF-03b replaced the former location-based onboarding with display-name completion.
+OTP and OAuth return members to their original action without collecting a home location or requiring
+optional profile details. The inline host sign-in gate follows the same name-completion rule while
+preserving its pending publish and OAuth draft-return behavior. PF-04 onward adds opt-in public
+details, managed photos, verified contact and session controls, notification preferences, export and
+deletion. The historical home columns were removed through the reviewed migration; event geography
+remains unchanged.

@@ -69,7 +69,7 @@ export const EventCard = ({
 
         <span className="mt-auto flex flex-wrap items-center gap-2 pt-1.5">
           {event.goingCount != null ? (
-            <span className="text-caption text-neutral">
+            <span className="text-body-sm text-neutral">
               {going_count({ count: event.goingCount }, { locale })}
             </span>
           ) : null}

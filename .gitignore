@@ -93,3 +93,7 @@ playwright-report/
 
 # Raw Overpass output; the committed artefact is libs/domain/src/venues/data
 .osm-snapshot/
+
+# Service-account keys are downloaded into the tree and must never be committed.
+*firebase-adminsdk*.json
+*-service-account*.json

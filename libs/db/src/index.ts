@@ -1,10 +1,12 @@
-export { eq, sql } from 'drizzle-orm';
+export { and, eq, sql } from 'drizzle-orm';
 
 export * from './schema.js';
 export * from './db.js';
 export * from './atomic.js';
 export * from './orders.js';
 export * from './events.js';
+export * from './events-discovery.js';
+export * from './events-joined.js';
 export * from './markets.js';
 export * from './rsvps.js';
 export * from './waitlist.js';
@@ -13,6 +15,7 @@ export * from './operations-attendance.js';
 export * from './operations-attention.js';
 export * from './operations-audit.js';
 export * from './operations-closeout.js';
+export * from './operations-closeout-state.js';
 export * from './operations-feedback.js';
 export * from './operations-errors.js';
 export * from './operations-flag.js';

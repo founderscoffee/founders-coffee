@@ -6,7 +6,7 @@ import {
   no_events_yet,
   type Locale,
 } from '@founders-coffee/i18n';
-import type { EventFeedItem } from '@founders-coffee/server-fns';
+import type { EventFeedItem, EventFeedPage } from '@founders-coffee/server-fns';
 import { LogoSymbol } from '@founders-coffee/ui';
 
 import { useUpcomingEvents } from '../../features/events/hooks';
@@ -21,11 +21,33 @@ type DiscoverFeedProps = {
   locale: Locale;
   market: Market;
   events: readonly EventFeedItem[];
+  afterStartsAt?: number;
+  afterId?: string;
+  nextPageHref?: string;
+  nextCursor?: EventFeedPage['nextCursor'];
 };
 
-export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
+export const DiscoverFeed = ({
+  locale,
+  market,
+  events,
+  afterStartsAt,
+  afterId,
+  nextPageHref,
+  nextCursor,
+}: DiscoverFeedProps) => {
   const pagination = useEventPages(
-    useUpcomingEvents({ marketCode: market.code, limit: PAGE_SIZE }),
+    useUpcomingEvents(
+      {
+        marketCode: market.code,
+        limit: PAGE_SIZE,
+        afterStartsAt,
+        afterId,
+      },
+      {
+        initialPage: { items: events, nextCursor: nextCursor ?? null },
+      },
+    ),
     events,
   );
   const items = pagination.items;
@@ -59,7 +81,11 @@ export const DiscoverFeed = ({ locale, market, events }: DiscoverFeedProps) => {
             </li>
           </ul>
 
-          <LoadMoreEvents locale={locale} pagination={pagination} />
+          <LoadMoreEvents
+            locale={locale}
+            pagination={pagination}
+            nextPageHref={nextPageHref}
+          />
         </>
       ) : (
         <EmptyState title={no_events_yet({}, { locale })} />

@@ -46,7 +46,9 @@ describe('geo lookups', () => {
   it('finds a city by code and its state by code', () => {
     const city = findCity('DZ', ALGIERS.code);
     expect(city?.slug).toBe(ALGIERS.slug);
-    expect(findState('DZ', city!.stateCode)?.name).toBe('Alger');
+    expect(city).toBeDefined();
+    if (!city) return;
+    expect(findState('DZ', city.stateCode)?.name).toBe('Alger');
   });
 
   it('resolves a legacy city slug through its alias', () => {

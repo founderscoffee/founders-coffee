@@ -73,15 +73,36 @@ Threshold is set **programmatically**, not via an env var: `createServerLogger({
 
 ## Wiring status
 
-| Piece                                                                                                           | Status                                                                |
-| --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `libs/observability` (logger, metrics, ingest, reportError, context, sanitize)                                  | Complete in code and tests                                            |
-| Workers Observability `console.*` capture                                                                       | Complete in source configuration (`observability: { enabled: true }`) |
-| AsyncLocalStorage request-context propagation                                                                   | Complete in tests under `nodejs_compat`                               |
-| Client `/client-logs` ingestion endpoint + `configureClientLogger` + `reportError` → `onError`/error boundaries | Complete in `apps/ui`                                                 |
-| `ANALYTICS` binding + Logpush destination + dashboard/alerts                                                    | Planned/Unverified under P0-019 and P1-019                            |
+| Piece                                                                                                           | Status                                                                                                                                |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `libs/observability` (logger, metrics, ingest, reportError, context, sanitize)                                  | Complete in code and tests                                                                                                            |
+| Workers Observability `console.*` capture                                                                       | Complete in source configuration (`observability: { enabled: true }`)                                                                 |
+| AsyncLocalStorage request-context propagation                                                                   | Complete in tests under `nodejs_compat`                                                                                               |
+| Client `/client-logs` ingestion endpoint + `configureClientLogger` + `reportError` → `onError`/error boundaries | Complete in `apps/ui`                                                                                                                 |
+| `ANALYTICS` binding + first metric (`events_created`)                                                           | Binding is active and the metric is verified on the public Worker; community dashboards and alerts remain planned under P0-019/P1-019 |
 
-The other app shells must wire the same ingestion and error-reporting path as they become functional. Account-side Analytics Engine and Logpush configuration remains subject to the dated provisioning verification rather than being assumed from source declarations.
+The other app shells must wire the same ingestion and error-reporting path as they become functional.
+The public Worker's Analytics Engine binding and `events_created` metric are verified; account-side
+dashboard, alert and Logpush setup remains subject to dated provisioning verification rather than
+being assumed from source declarations.
+
+### Failure counters (CO-05)
+
+Some failures are swallowed on purpose — a best-effort closeout intent must never be able to undo a
+durable event, and an unreachable notification scheduler must never fail the RSVP behind it. A log
+line is the wrong record for those, because nothing watches it. `libs/server-fns/src/alerts.ts`
+therefore writes an Analytics Engine data point alongside the log:
+
+| Counter                            | Index    | Raised when                                                                         |
+| ---------------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| `closeout_intent_failed`           | market   | Scheduling an event's closeout prompt threw; the nightly backfill will re-derive it |
+| `notification_schedule_arm_failed` | `global` | A Durable Object alarm could not be armed; the recovery sweep delivers late instead |
+
+Both are counted per occurrence with `blob1` as the counter name, so a threshold is a
+`WHERE blob1 = …` with a `GROUP BY index1`. Neither can throw: a failure to count is reported through
+`reportError` and swallowed, because both call sites exist precisely because nothing there may throw.
+A market whose counter climbs is running on its safety net, which is otherwise indistinguishable from
+health — the sweep keeps delivering, fifteen minutes late.
 
 ## Logpush setup (P0-019)
 

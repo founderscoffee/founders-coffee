@@ -1,7 +1,16 @@
-/** Profile visibility and session responses must never survive in the service-worker cache. */
+/**
+ * Profile visibility and session responses must never survive in the service-worker cache.
+ *
+ * Every account section belongs here, not only the ones named `profile`. Serwist's default runtime
+ * caching ends in a catch-all `NetworkFirst` that stores any navigation for 24 hours, so a page
+ * missing from this list is a signed-in member's screen sitting in a shared browser's cache.
+ * `/preferences` and `/activity` were absent while no service worker was ever registered, which is
+ * the only reason it did not matter.
+ */
 export const isPrivateProfilePath = (pathname: string): boolean =>
-  /^\/(?:profile|account|onboarding|login|u)(?:\/|$)/.test(pathname) ||
-  /^\/(?:_serverFn|api\/auth)(?:\/|$)/.test(pathname);
+  /^\/(?:profile|account|preferences|activity|onboarding|login|u)(?:\/|$)/.test(
+    pathname,
+  ) || /^\/(?:_serverFn|api\/auth)(?:\/|$)/.test(pathname);
 
 /** A cached page carries whatever the server rendered for whoever asked for it. */
 export const isCachedDocument = (response: Response | undefined): boolean =>

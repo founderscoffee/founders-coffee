@@ -5,7 +5,7 @@
 | Field        | Value                                                                            |
 | ------------ | -------------------------------------------------------------------------------- |
 | Status       | Active; core loop implemented, launch hardening incomplete                       |
-| Last updated | 2026-09-01                                                                       |
+| Last updated | 2026-09-14                                                                       |
 | Parent plan  | [Implementation plan, P1](./implementation-plan.md#5-phase-p1--community-launch) |
 | Strategy     | [Community-first release](./release-strategy.md)                                 |
 | Operations   | [Community Operations Plan](./community-operations-implementation-plan.md)       |
@@ -19,6 +19,9 @@ React Native/Expo is not committed scope.
 ## 1. Locked behavior
 
 - DZ is `active`; EG and SA are self-serve `open`; MA and AE are `dark`.
+- This is the target market policy. The current seed still marks DZ/EG/SA `active` and has no MA/AE
+  rows, so P0-007 remains blocked until code and deployed rows are aligned; do not describe EG/SA
+  as operationally open yet.
 - `/` geo-routes to a visible market and falls back to `/algeria`.
 - Canonical market URLs use slugs (`/algeria`); code aliases redirect (`/dz` → `/algeria`).
 - Locale resolution is preference/cookie → market default → `ar`. Supported locales are `ar`, `fr`, and `en`.
@@ -26,10 +29,11 @@ React Native/Expo is not committed scope.
 - RSVP is immediate and idempotent before event start. Create, cancel, and restore stop when trusted
   server time reaches `startsAt`, freezing the going set for attendance; there is no seat-hold or
   second confirmation lifecycle.
-- PWA web push is the primary event-notification channel; SMS is fallback.
+- PWA web push is the primary event-notification channel; email is the default fallback. SMS is
+  reserved for same-day cancellation disruption.
 - The current UI uses email OTP and configured OAuth. Phone OTP via Twilio Verify is a dormant
-  backend capability, not an active login flow. Notification fallback uses Twilio Programmable SMS
-  through a separate provider contract.
+  backend capability, not an active login flow. Twilio Programmable SMS remains a separate provider
+  contract for same-day cancellation disruption only.
 - Per-event reminders use Durable Object alarms → Notifications Queue. Cron is recovery-only.
 
 ## 2. Implemented member flow
@@ -42,10 +46,10 @@ selection remains independent of a member's residence.
 ```text
 discover market/city
   → authenticate when an action requires identity
-  → complete home-location onboarding
+  → complete display-name onboarding when needed
   → create or view an event
   → RSVP or cancel
-  → receive push/SMS reminders
+  → receive push/email notifications (SMS only for same-day cancellation disruption)
   → use the live event dashboard
 ```
 
@@ -93,16 +97,17 @@ The desired operation is a single atomic D1 capacity decision plus idempotent me
 - integration tests must exercise concurrent/full/duplicate/cancel paths and exact-start boundary
   races against real D1.
 
-The current full-capacity path is **blocked** until the update/insert behavior is corrected and regression-tested.
+The full-capacity path is fixed and regression-tested by AR-04/CO-02. Remaining launch hardening is
+the separate RSVP Turnstile requirement and the live event dashboard verification.
 
 ## 6. Notification architecture
 
 ### Channel policy
 
 1. Send PWA web push when the user has a valid subscription and permits the category.
-2. Fall back to Twilio Programmable SMS when push is unavailable or permanently fails.
-3. Use Cloudflare Email for authentication and explicitly email-based communications—not as the
-   default event reminder. Future billing may use it only if that phase is approved.
+2. Fall back to Cloudflare Email when push is unavailable or permanently fails.
+3. Use Twilio Programmable SMS only for same-day cancellation disruption, with a verified and
+   consented number. It is not a general reminder fallback.
 
 ### Scheduling policy
 
@@ -115,11 +120,11 @@ When an RSVP or event change creates reminder work:
 5. retry transient failures through Queue policy and send exhausted work to a DLQ;
 6. run a low-frequency Cron recovery sweep only for missed/stuck intents.
 
-CO-02 implemented exactly this on 2026-09-10, and it is not yet deployed. `NotificationScheduleDO`
-holds the per-event alarm, the queue message names the event rather than carrying content, the
-consumer claims only that event's due rows, and the cron drops to a fifteen-minute recovery sweep.
-The producer now writes one row per notification on push with `fallback_channel = 'sms'`, so SMS is
-reached only by push failing permanently.
+CO-02 implemented and deployed this on 2026-09-10. `NotificationScheduleDO` holds the per-event
+alarm, the queue message names the event rather than carrying content, the consumer claims only that
+event's due rows, and the cron is a fifteen-minute recovery sweep. ND-07 is the active channel policy:
+push first, email fallback, and SMS only for same-day cancellation disruption. Staging delivery is
+proven end to end; production policy parity is the remaining promotion check.
 
 ## 7. Live event dashboard
 
@@ -137,11 +142,15 @@ The feature is **Partial** until session-expiry, cancellation, and heartbeat beh
 
 ## 8. Launch hardening
 
-- Complete Turnstile coverage for event creation and RSVP.
+- Resolve the remaining Turnstile policy gap for event creation and RSVP. The current release
+  deliberately omits the event-create challenge; AGENTS.md still requires state-changing coverage,
+  so the exception stays tracked under P1-018 rather than being described as complete.
 - Retain the active shared Free-plan WAF rule in addition to identity-scoped Durable Object limits.
-  Re-run the production behavioral probe after the apex DNS record serves traffic.
+  The production behavioral probe and custom-domain verification were completed on 2026-09-04;
+  repeat them only after a WAF or routing change.
 - Apply strict CSP and secure headers.
-- Bind Analytics Engine and add delivery/density/error/SMS-cost dashboards and alerts.
+- Keep the verified Analytics Engine binding and add delivery/density/error dashboards and alerts;
+  SMS-cost reporting is limited to the same-day cancellation channel.
 - Verify offline shell, city/event prerendering, Lighthouse score, and optional PWA Builder packaging.
 - Add Playwright coverage for signup → onboarding → create → RSVP → notification intent → cancel.
 - Verify Arabic RTL plus French/English LTR.

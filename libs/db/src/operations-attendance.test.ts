@@ -217,6 +217,38 @@ describe('the audit says only what actually happened', () => {
     expect(await auditRows(db)).toEqual([]);
   });
 
+  it('writes nothing when the same outcome is marked again', async () => {
+    const eventId = await pastEvent(db, { attendees: [MEMBER_ID] });
+    await mark(db, eventId);
+
+    await mark(db, eventId);
+    await mark(db, eventId);
+
+    expect(await auditRows(db)).toHaveLength(1);
+  });
+
+  it('still records the row on a replay, so a resumed submission converges', async () => {
+    const eventId = await pastEvent(db, { attendees: [MEMBER_ID] });
+    await mark(db, eventId);
+
+    const again = await mark(db, eventId);
+
+    expect(again.outcome).toBe('recorded');
+    expect(await listAttendance(db, eventId)).toHaveLength(1);
+  });
+
+  it('writes an entry when the replay actually changes the outcome', async () => {
+    const eventId = await pastEvent(db, { attendees: [MEMBER_ID] });
+    await mark(db, eventId);
+
+    await mark(db, eventId, { outcome: 'no_show', isCorrection: true });
+
+    expect((await auditRows(db)).map((row) => row.action)).toEqual([
+      'attendance_recorded',
+      'attendance_corrected',
+    ]);
+  });
+
   it('writes nothing for a cancelled event, and says so', async () => {
     const eventId = await pastEvent(db, {
       attendees: [MEMBER_ID],

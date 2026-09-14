@@ -3,21 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { AppError, err, ok } from '@founders-coffee/core';
 import {
   countEventsByStatus,
-  createEvent,
   getEvent,
   getRsvpForUser,
 } from '@founders-coffee/db';
 
 import type { MapProvider } from '../maps/provider.js';
+import { createEventResolver } from './resolver.js';
 import {
-  createEventResolver,
-  createEventResolverWithId,
-  eventSlugCandidates,
-} from './resolver.js';
-import {
-  baseEvent,
   createInput,
-  nextId,
   setupDb,
   testMapProvider,
   TEST_HOST_ID,

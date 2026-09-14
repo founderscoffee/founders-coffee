@@ -5,16 +5,6 @@ import { id } from '@founders-coffee/core';
 
 import type { Db } from './db.js';
 import { communityOperationsEnabled } from './operations-flag.js';
-import { recordAttendance } from './operations-attendance.js';
-import { submitCloseout } from './operations-closeout.js';
-import { saveFeedback } from './operations-feedback.js';
-import {
-  clearAgedComments,
-  listAttendeeHistory,
-  listHostCompletionHistory,
-  retireAgedOperations,
-  withdrawMemberOperations,
-} from './operations-retention.js';
 import {
   getHostTrust,
   listHostsByTrust,
@@ -25,41 +15,13 @@ import {
   setHostTrust,
   upsertMetricSnapshot,
 } from './operations-trust.js';
-import { eventFeedback, markets } from './schema.js';
+import { markets } from './schema.js';
 import {
   HOST_ID,
-  MEMBER_ID,
   OTHER_ID,
   auditRows,
-  pastEvent,
   setupDb,
 } from './operations.fixtures.js';
-
-const DAY = 24 * 3600;
-
-const heldEventWith = async (db: Db, attendees: readonly string[]) => {
-  const eventId = await pastEvent(db, { attendees });
-  for (const userId of attendees) {
-    await recordAttendance(db, {
-      eventId,
-      userId,
-      hostId: HOST_ID,
-      outcome: 'attended',
-      rowId: id('att'),
-      auditId: id('aud'),
-    });
-  }
-  await submitCloseout(db, {
-    eventId,
-    actorId: HOST_ID,
-    outcome: 'held',
-    walkInCount: 0,
-    wouldHostAgain: true,
-    hostFriction: [],
-    auditId: id('aud'),
-  });
-  return eventId;
-};
 
 describe('communityOperationsEnabled', () => {
   let db: Db;

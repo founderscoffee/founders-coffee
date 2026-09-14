@@ -40,8 +40,8 @@ The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, F
 | domain (`geo.*`)     | `GeoState`, `GeoCity` types                                                              | `{ code, name, nameAr, slug, stateCode, featured }` for cities; states omit city-only fields |
 | db                   | `getMarketByCode`, `getMarketBySlug`, `listMarkets({states?})`                           | market queries only                                                                          |
 | server-fns           | `resolveMarket(db, {code?, slug?})`                                                      | public market resolution                                                                     |
-| server-fns           | `resolveMarketLanding(db, key)`                                                          | market + **featured cities** from geo TS data                                                |
-| server-fns           | `resolveCityLanding(db, {marketKey, citySlug})`                                          | market + city (validated via `geo.findCityBySlug`)                                           |
+| server-fns           | `resolveMarketLanding(db, key, pagination?)`                                             | market + **featured cities** from geo TS data + cursor page                                  |
+| server-fns           | `resolveCityLanding(db, {marketKey, citySlug}, pagination?)`                             | market + city (validated via `geo.findCityBySlug`) + cursor page                             |
 | server-fns (RPC)     | `getMarket`, `getMarketLanding`, `getCityLanding`, `getVisibleMarkets`                   | client-safe wrappers                                                                         |
 | server-fns (RPC)     | `getStates`, `getCities`, `getFeaturedCities`                                            | geo data RPCs                                                                                |
 
@@ -55,6 +55,7 @@ The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, F
 - **Geo data is server-side** (TS files in `libs/domain/src/geo/data/`). The client gets filtered
   subsets via RPCs — the full 6,518-city dataset never touches the browser bundle.
 - **Featured cities** (state capitals) drive the landing page's city buttons. All cities are
-  available in the onboarding/profile cascading picker.
+  available to the event wizard's city selection; member profiles are location-free and have no
+  residence picker.
 - **Caching** — markets are near-static; reads D1 each call. An in-memory per-Worker cache (NOT KV
   — eventually consistent) is a later optimization for NFR-1's 300ms p95.

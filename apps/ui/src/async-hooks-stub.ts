@@ -1,5 +1,5 @@
 export class AsyncLocalStorage<T = unknown> {
-  enterWith = (_store: T): void => undefined;
+  enterWith = (store: T): void => void store;
 
   disable = (): void => undefined;
 

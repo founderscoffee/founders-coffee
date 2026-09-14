@@ -8,6 +8,11 @@
       "@founders-coffee/source": "./src/index.ts",
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./operations-fixtures": {
+      "@founders-coffee/source": "./src/operations.fixtures.ts",
+      "types": "./src/operations.fixtures.ts",
+      "default": "./src/operations.fixtures.ts"
     }
   }
 }

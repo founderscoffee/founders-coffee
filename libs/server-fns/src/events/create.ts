@@ -8,6 +8,7 @@ import {
 } from '@founders-coffee/observability';
 
 import type { MapProvider } from '../maps/provider.js';
+import { scheduleEventCloseoutPrompt } from './closeout-intent.js';
 import { createEventResolver } from './resolver.js';
 
 export const EVENTS_CREATED_METRIC = 'events_created';
@@ -116,5 +117,6 @@ export const createEventWithTelemetry = async (
     stateCode: result.data.stateCode,
   });
   recordEventCreated(metrics, resolved);
+  await scheduleEventCloseoutPrompt(db, result.data);
   return result;
 };

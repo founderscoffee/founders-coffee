@@ -2,7 +2,16 @@
 # Copy to `.dev.vars` (gitignored) and fill in. NEVER commit real values.
 
 # Bypass Cloudflare Access JWT verification in local dev (no Access on localhost).
+# It bypasses the JWT check ONLY. The request still needs a Better Auth session on this
+# origin, that account still needs an `admin` or `moderator` role, and its email still has
+# to equal CF_ACCESS_DEV_EMAIL below — the correlation is the thing CO-04 exists for, so
+# development runs the same path production does rather than a shortcut around it.
 CF_ACCESS_DISABLED=true
+
+# The email the bypass pretends Access vouched for. Set it to the address of the local
+# operator account, or every request fails closed on the correlation and it looks like
+# the app is broken.
+CF_ACCESS_DEV_EMAIL=you@example.com
 
 # Your Cloudflare Access team domain and the Application Audience Tag (AUD)
 # for the admin app. In production, set these via `wrangler secret put`

@@ -22,7 +22,8 @@ const snapshotVenue = () => {
     venue,
     'Algiers snapshot must ship at least one eligible venue',
   ).toBeDefined();
-  return venue!;
+  if (!venue) throw new Error('Algiers snapshot must ship an eligible venue');
+  return venue;
 };
 
 describe('createEventResolver venue verification', () => {

@@ -8,13 +8,12 @@ import {
 } from './context.js';
 import { armNotificationSchedule } from './schedule.js';
 import {
+  emailPayloadFor,
   pushPayloadFor,
-  smsBodyFor,
   type TemplateValues,
 } from './templates.js';
 import {
   enqueueNotification,
-  getNotificationContact,
   hasPendingNotification,
   cancelNotificationsByUserEvent,
   cancelNotificationsByEvent,
@@ -95,26 +94,27 @@ export const valuesFor = (
  * - `rsvp_confirmation`: immediately
  * - `reminder_72h` and `reminder_24h`: only while the event is still that far away
  *
- * Push first, SMS only as the fallback behind it, and no email at all. Each reminder used to be
- * enqueued twice — once on SMS or email and once on push — so a member with a phone and a device
- * received the same reminder through two channels at the same moment. CO-02 removes that: one row
- * per reminder, `push` with `fallback_channel = 'sms'` where a verified number exists, and the
- * fallback is reached the way every other fallback is, by the primary failing permanently. PF-07a's
- * guard makes that path real — a member with no live device fails push permanently, which is
- * exactly the condition that writes the SMS row.
+ * Push first, email behind it, and no SMS. Each reminder used to be enqueued twice — once on SMS or
+ * email and once on push — so a member with a phone and a device received the same reminder through
+ * two channels at the same moment. CO-02 removed that: one row per reminder, and the fallback is
+ * reached the way every other fallback is, by the primary failing permanently. PF-07a's guard makes
+ * that path real — a member with no live device fails push permanently, which is exactly the
+ * condition that writes the fallback row.
  *
- * Email is deliberately absent. §5 of the community-operations plan retains it for authentication
- * and for a workflow a member explicitly chose, and an event reminder is neither; sending one
- * anyway is how a product ends up with a channel nobody picked and nobody can turn off.
+ * **ND-07 changed what that fallback is.** It was SMS behind a consent almost nobody had given, and
+ * email was excluded on the grounds that a reminder is not a workflow the member chose. Both halves
+ * were wrong for this product. Push reaches perhaps a third of members — iOS needs the app installed,
+ * a denied permission is permanent, and a subscription dies quietly when a device is signed out — so
+ * something has to sit under it. Email is that floor and costs nothing per message: authentication
+ * here is an email OTP, so a member without a working address cannot exist. SMS billed per message
+ * for a confirmation and two reminders, to reach the same person the free channel already reaches.
  *
- * The SMS fallback is written only where the member has affirmatively consented to it — a verified
- * number is necessary and not sufficient, per §5 of the profile plan, where push and SMS fallback
- * both default disabled. Deciding it here as well as at send time is not redundant: a row written
- * with no fallback channel can never produce an SMS, whatever a later bug in the dispatcher does.
+ * SMS is not deleted, it is narrowed. It survives for same-day disruption in `cancellation.ts`,
+ * where an unread email means somebody crosses the city for a gathering that is not happening.
+ * Nothing routine goes to it.
  *
- * A member with neither a live device nor a consented number receives nothing, and that is the
- * designed outcome rather than a gap: the event is on their profile and in the app, and inventing a
- * channel to reach them with would undo the decision above.
+ * A member with no live device and no email address receives nothing, which is now a state that
+ * cannot occur through the front door — it is kept as a guard, not as a designed outcome.
  *
  * Skips if a pending notification already exists, so re-RSVPing does not duplicate anything.
  */
@@ -140,14 +140,8 @@ export const enqueueRsvpNotifications = async (
   const locale = context.locale;
   const now = Date.now();
   const startsAtMs = opts.startsAt.getTime();
-  const contact = await getNotificationContact(db, opts.userId);
-  const smsAllowed = Boolean(
-    opts.phoneNumber &&
-    contact?.phoneNumberVerified &&
-    contact.smsFallbackEnabled,
-  );
   const channel = 'push' as const;
-  const fallback: 'sms' | undefined = smsAllowed ? 'sms' : undefined;
+  const fallback: 'email' | undefined = opts.email ? 'email' : undefined;
 
   const basePayload: NotificationPayload = {
     phoneNumber: opts.phoneNumber ?? undefined,
@@ -182,9 +176,9 @@ export const enqueueRsvpNotifications = async (
         valuesFor(basePayload, context, true),
         locale,
       ),
-      smsBody: smsBodyFor(
+      ...emailPayloadFor(
         templateKey,
-        valuesFor(basePayload, context, false),
+        valuesFor(basePayload, context, true),
         locale,
       ),
     };
@@ -196,7 +190,7 @@ export const enqueueRsvpNotifications = async (
       channel,
       templateKey,
       payload: fallback
-        ? validPayload('sms', validPayload(channel, payload))
+        ? validPayload('email', validPayload(channel, payload))
         : validPayload(channel, payload),
       sendAt,
       fallbackChannel: fallback,

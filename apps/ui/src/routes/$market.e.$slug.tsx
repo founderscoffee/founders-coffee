@@ -1,10 +1,10 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
+import { detectLocale } from '@founders-coffee/i18n';
 import {
   getEvent,
   getMarket,
-  getPublicProfile,
   type EventDetailItem,
 } from '@founders-coffee/server-fns';
 import type { Market } from '@founders-coffee/db';
@@ -15,6 +15,7 @@ import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
+import { readCookieHeader } from '../lib/cookies';
 
 type EventDetailLoaderData = {
   market: Market;
@@ -23,6 +24,7 @@ type EventDetailLoaderData = {
 };
 
 export const Route = createFileRoute('/$market/e/$slug')({
+  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   component: () => {
     const { locale } = Route.useRouteContext();
     const { market, event, host } = Route.useLoaderData();
@@ -70,10 +72,11 @@ export const Route = createFileRoute('/$market/e/$slug')({
         throw byCode;
       }
     }
+    const locale = detectLocale(readCookieHeader());
     if (params.market !== market.slug) {
       throw redirect({
-        to: '/$market/e/$slug',
-        params: { market: market.slug, slug: params.slug },
+        to: '/$market/$city/e/$slug',
+        params: { market: locale, city: market.slug, slug: params.slug },
       });
     }
 
@@ -87,33 +90,12 @@ export const Route = createFileRoute('/$market/e/$slug')({
       throw error;
     }
 
-    const host = await getPublicProfile({
-      data: { userId: event.hostId },
-    }).catch((error: unknown) => {
-      if (appErrorCode(error) === 'not_found') return null;
-      throw error;
+    throw redirect({
+      to: '/$market/$city/e/$slug',
+      params: { market: locale, city: market.slug, slug: event.slug },
     });
-    return { market, event, host };
+
+    return { market, event, host: null };
   },
-  head: ({ loaderData }) => {
-    const description = loaderData?.event.description
-      ? loaderData.event.description.length > 160
-        ? `${loaderData.event.description.slice(0, 157)}...`
-        : loaderData.event.description
-      : '';
-    return {
-      meta: [
-        {
-          title: `${loaderData?.event.title ?? 'founders.coffee'} - founders.coffee`,
-        },
-        { name: 'description', content: description },
-        {
-          property: 'og:title',
-          content: loaderData?.event.title ?? 'founders.coffee',
-        },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'event' },
-      ],
-    };
-  },
+  head: () => ({ meta: [], links: [] }),
 });

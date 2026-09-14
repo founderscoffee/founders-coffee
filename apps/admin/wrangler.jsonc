@@ -13,7 +13,28 @@
 
   // Top-level = local dev. `CF_ACCESS_DISABLED=true` in `.dev.vars` bypasses the JWT guard locally;
   // `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are secrets in the deployed environments.
-  "vars": { "APP_URL": "http://localhost:3002" },
+  "vars": {
+    "APP_URL": "http://localhost:3002",
+    "MAIL_FROM": "no-reply@founders.coffee",
+  },
+
+  // Sign-in here is the same email OTP the public app uses, so the admin Worker needs its own
+  // send binding. Without it an operator can request a code that is never delivered — the failure
+  // Better Auth swallows, answering 200 either way.
+  "send_email": [{ "name": "EMAIL" }],
+
+  // The admin app reads the same D1 the public app does. It has to: an operator's Better Auth
+  // session lives in that database, and CO-04 refuses a request whose Access identity does not match
+  // it. Without the binding there is nothing to correlate against and every request fails closed —
+  // which is how the app shipped, safe and useless. `migrations_dir` is deliberately absent; admin
+  // never migrates, `apps/ui` owns that.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "founders-coffee-db-staging",
+      "database_id": "LOCAL_DEV_ONLY",
+    },
+  ],
 
   "env": {
     "staging": {
@@ -22,13 +43,35 @@
       "routes": [
         { "pattern": "admin-staging.founders.coffee", "custom_domain": true },
       ],
-      "vars": { "APP_URL": "https://admin-staging.founders.coffee" },
+      "vars": {
+        "APP_URL": "https://admin-staging.founders.coffee",
+        "MAIL_FROM": "no-reply@founders.coffee",
+      },
+      "send_email": [{ "name": "EMAIL" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "founders-coffee-db-staging",
+          "database_id": "cbbba018-a4e3-491a-9a02-7995aa45315b",
+        },
+      ],
     },
     "production": {
       "name": "founders-coffee-admin-production",
       "workers_dev": false,
       "routes": [{ "pattern": "admin.founders.coffee", "custom_domain": true }],
-      "vars": { "APP_URL": "https://admin.founders.coffee" },
+      "vars": {
+        "APP_URL": "https://admin.founders.coffee",
+        "MAIL_FROM": "no-reply@founders.coffee",
+      },
+      "send_email": [{ "name": "EMAIL" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "founders-coffee-db-production",
+          "database_id": "7685fda1-7bc0-4907-a37a-a77e8daa5ecb",
+        },
+      ],
     },
   },
 }

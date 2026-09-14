@@ -3,7 +3,7 @@
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status         | EC-01 through EC-10 complete and signed off. Production released as `v0.1.0` on 2026-09-04; the authorized smoke creation was performed and verified on 2026-09-10         |
-| Last reviewed  | 2026-09-04                                                                                                                                                                 |
+| Last reviewed  | 2026-09-14 — EC-10 handoff and deployment evidence reconciled                                                                                                              |
 | Scope          | Host event creation in `apps/ui`, including the anonymous wizard and authenticated submission through durable D1 persistence and discoverability                           |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
 | Requirements   | FR-G2, FR-G3, FR-G6, FR-E1, FR-E2, FR-E5, FR-E7, FR-E9; NFR-4, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11, NFR-12                                                                 |
@@ -38,6 +38,12 @@ authenticated host
 
 Completion means a host can create an event with every field required by FR-E1, in `ar`, `fr`, or `en`, with correct market-timezone conversion and venue coordinates, and can immediately open the persisted event. It also means invalid, unauthorized, automated, cross-market, and duplicate-slug attempts fail safely.
 
+Current policy exception: event creation no longer presents a Turnstile challenge. The product
+decision on 2026-09-03 kept the authenticated `event:create` permission, identity-scoped Durable
+Object limiter, and shared WAF gate while removing the challenge to preserve the release flow. The
+exception is tracked under P1-018; the Turnstile wording in the historical baseline below is not a
+current acceptance claim.
+
 This plan does not change the locked stack, add a dependency, introduce another external service, implement paid events, or expand the separate sponsor/admin applications. Mapbox and Turnstile are existing approved integrations. E2E remains excluded from CI under the current project decision; the critical Playwright flow is still required as a local and staging release gate.
 
 ## 2. Audit baseline
@@ -70,7 +76,12 @@ The current implementation is a partial vertical slice, not an end-to-end-comple
 | Observability     | The request wrapper logs failures, but event creation has no explicit entry/success product instrumentation.                                                | Emit structured lifecycle logs and the `events_created` metric with non-sensitive market/city context.                                               |
 | Verification      | Existing tests cover event reads and direct repository inserts, not the host create mutation. The only UI Playwright test is unrelated.                     | Add domain, Miniflare/D1, server-function, component, and critical-flow Playwright coverage.                                                         |
 
-The staging walkthrough reached and exercised all three wizard steps. It did not submit an event because the audit was read-only and no disposable test identity/data authorization was in scope. A non-fatal opaque browser console error was observed from the map chunk and must be reproduced or ruled out during implementation.
+The staging walkthrough reached and exercised all three wizard steps. This is the historical
+2026-08-31 baseline: it did not submit an event because the audit was read-only and no disposable
+test identity/data authorization was in scope. EC-10 later completed the authorized staging and
+production creation smoke; do not treat this paragraph as current release-blocker evidence. A
+non-fatal opaque browser console error was observed from the map chunk and was subsequently covered
+by the EC-04 verification work.
 
 ### Browser UI/UX audit — 2026-08-31
 
@@ -98,7 +109,9 @@ The staging wizard was exercised in the built-in browser at desktop (1280px), ta
 
 Positive evidence to preserve: the city empty state links to the correct city-scoped wizard; desktop, tablet, and mobile layouts had no horizontal overflow; Arabic set the document to RTL; most calendar/copy localization worked; past calendar days were disabled; the time dialog rejected an end before the start and supported keyboard arrow adjustment; fields had accessible label associations; and Mapbox attribution remained present.
 
-The authenticated persistence/success path remains unverified until an approved disposable staging identity and test-event creation are available.
+The authenticated persistence/success path was unverified in this historical audit. EC-10 later
+verified the authorized production creation smoke on 2026-09-10; the signed-off handoff is recorded
+in [deployment evidence](./deployment-evidence.md).
 
 ## 3. Locked implementation decisions
 
@@ -208,7 +221,10 @@ Verification:
 Completion evidence:
 
 - Read-only duplicate preflight queries returned zero duplicate `(market_code, slug)` groups in local, staging, and production D1. The remote queries reported zero rows written.
-- Drizzle migration `0012_amusing_mesmero.sql` adds the forward-only `events_market_code_slug_unique` composite unique index. Wrangler applied it successfully to local D1; staging and production were not migrated.
+- Drizzle migration `0012_amusing_mesmero.sql` adds the forward-only `events_market_code_slug_unique`
+  composite unique index. At the ticket's completion snapshot it had been applied only to local D1;
+  the subsequent `v0.1.0` release advanced staging and production through `0016`, so `0012` is now
+  present in both deployed journals. See the dated [deployment evidence](./deployment-evidence.md).
 - Event creation now attempts the readable base slug with an atomic `INSERT ... ON CONFLICT (market_code, slug) DO NOTHING`, then one deterministic event-ID-suffixed candidate. Exhausting both candidates returns the typed `event_route_conflict` error.
 - Real Miniflare D1 tests cover a fresh schema, upgrade from migration 0011 with data preserved, same-slug insertion across different markets, concurrent same-title creation, and bounded-candidate exhaustion.
 - Repository-wide format, lint, typecheck, test, and build gates pass without E2E. Lint retains four unrelated pre-existing warnings and reports no errors.
@@ -256,8 +272,10 @@ Completion evidence:
 Operational confirmations and release gates:
 
 - On 2026-09-01, the project owner confirmed that the paid Mapbox entitlement permits founders.coffee to persist the normalized POI name, address, and coordinates used by event records.
-- Validate POI coverage and result quality for the active/open DZ, EG, and SA markets with the production account before release. Existing staging behavior is positive evidence for Algeria, but it is not a contractual coverage guarantee.
-- Complete one authenticated staging creation and inspect its persisted D1 row during EC-10 release verification. This requires a live credential and disposable host account and is not a code-completion blocker for EC-04.
+- The historical POI gate was satisfied for the launch market during EC-10; broader EG/SA coverage
+  remains unverified and is not an active launch blocker while operations stay focused on Algiers.
+- The authenticated staging creation and persisted-row inspection were completed during EC-10; the
+  production smoke was then verified on 2026-09-10. See the signed-off handoff below.
 
 ### EC-05 — Harden the create server pipeline
 
@@ -313,7 +331,10 @@ Verification:
 
 Implementation evidence:
 
-- Event creation is explicitly `POST` and runs centralized authorization, the five-per-ten-minute identity-scoped Durable Object policy, deployed WAF configuration enforcement, and Turnstile verification before Mapbox or D1 creation work.
+- Event creation is explicitly `POST` and runs centralized authorization, the five-per-ten-minute
+  identity-scoped Durable Object policy and deployed WAF configuration enforcement before Mapbox or
+  D1 creation work. The event-create Turnstile challenge was removed by the 2026-09-03 product
+  decision and remains a tracked P1-018 policy gap.
 - The reusable server-side Turnstile provider calls Siteverify with a 10-second deadline, a per-attempt idempotency key, the `create_event` action, the environment hostname, and `CF-Connecting-IP` as `remoteip`. It converts missing, invalid, expired/replayed, action/hostname mismatch, malformed response, HTTP failure, and network failure into stable typed errors without logging the token or IP.
 - The event wizard uses an interaction-only managed widget on its final current step, transports the token outside the domain command, disables publish until verification succeeds, and removes/reissues the widget after mutation failure. Expiry, widget error, and interaction timeout clear the token and actively reset the widget for a fresh response.
 - `RateLimiterDO` now lives once in `libs/server-fns`, is exported by the public Worker, and uses the prototype method required by Cloudflare RPC. A real Miniflare Durable Object test proves that the explicit `create_event` bucket allows five requests and rejects the sixth.
@@ -324,7 +345,7 @@ Account evidence:
 
 - The Cloudflare Free zone permits one path-based rate-limiting rule. The obsolete leaked-password rule was replaced in place because Better Auth is passwordless; the shared rule now protects both auth and server-function paths for staging and production.
 - Rulesets API readback confirms rule `d11c283bee39488293e86d519e9c546d` is enabled with the committed expression, 20 requests per 10 seconds, and a 10-second block. Both Worker environments have the `EVENT_CREATE_WAF_CONFIGURED=true` evidence marker.
-- A harmless staging probe proved the sixth request was blocked with `429` at a temporary five-request threshold, after which the committed configuration was restored. Production configuration is covered by the same zone rule; its behavioral probe remains an EC-10 deployment check because the apex hostname does not yet resolve.
+- A harmless staging probe proved the sixth request was blocked with `429` at a temporary five-request threshold, after which the committed configuration was restored. The production burst probe is also recorded in the release evidence; the shared Free-plan rule is active in both environments.
 
 ### EC-07 — Finish the authenticated, localized wizard
 
@@ -448,14 +469,11 @@ Implementation evidence (2026-09-03):
   `npm audit` all pass. The `server-fns` coverage floor was ratcheted to the new measured values
   (statements 71, branches 67, functions 66, lines 72).
 
-Outstanding for EC-10:
+Post-handoff residual (EC-10 is signed off):
 
 - The third verification line — "staging logs correlate one create request across the server path
-  without exposing secrets or user-authored content" — requires a real staging creation and cannot
-  be observed from the repository. Staging currently has no `FIREBASE_*`, `CF_ACCESS_*` or
-  `TWILIO_SMS_FROM` secret and no events, so this stays EC-10 release evidence. The 2026-09-10
-  production smoke covered persistence and route behaviour rather than log correlation, which
-  remains observed on staging alone.
+  without exposing secrets or user-authored content" — is recorded in the EC-10 deployment evidence.
+  It remains a regression check for future releases, not an open EC-10 acceptance item.
 
 ### EC-09 — Build the real-platform regression suite
 
@@ -584,7 +602,7 @@ Configuration preflight (2026-09-03, read back from the account):
 | Shared WAF rule | `d11c283bee39488293e86d519e9c546d`, enabled, block, 20 requests per 10s on `/_serverFn/` and `/api/auth/` |
 | Worker          | staging redeployed and serving 200                                                                        |
 
-Blocked on, in the order they bite:
+Historical pre-sign-off blockers, in the order they affected EC-10:
 
 1. ~~**The staged creation cannot authenticate a disposable host automatically.**~~ Resolved by
    `shouldEchoSignInCode` (`apps/ui/src/lib/otp-echo.ts`), which writes the code to the Worker log
@@ -605,8 +623,8 @@ Blocked on, in the order they bite:
    | Flag defaulted on (`!== 'false'`) | 1 failed, 2 passed |
    | Unmutated                         | 3 passed           |
 
-   `OTP_ECHO` is set in the staging vars of `apps/ui/wrangler.jsonc` and confirmed present on the
-   deployed staging Worker. It must be removed once EC-10 is signed off.
+   `OTP_ECHO` was used only during the authorized staging window and removed before EC-10 was signed
+   off. It remains fenced and off by default; any future staged run must set it only for its window.
 
 2. **Staging runs real Turnstile, and it is the remaining blocker.** `TURNSTILE_DISABLED` is
    absent, and setting it would not bypass the check but fail it closed, because
@@ -946,20 +964,20 @@ Do not combine the D1 migration, map-provider refactor, full wizard redesign, an
 
 ## 8. Definition of done
 
-- [ ] Every FR-E1 field is explicitly collected, validated from one schema, and persisted.
-- [ ] Venue address and coordinates survive creation and render correctly; out-of-city/locality results are rejected and marker drag cannot retain a stale address.
-- [ ] Market timezone, not browser timezone, determines the stored UTC instants.
-- [ ] The server derives canonical geography and rejects dark/disabled/cross-market creation.
-- [ ] Event route slugs are protected by a D1 unique constraint and race-safe insertion.
-- [ ] Authentication, centralized permission, Turnstile, DO rate limit, and WAF all protect creation.
-- [ ] Anonymous final submission performs login/signup handoff and restores the complete draft; locale changes also preserve step, draft, focus, and useful scroll position.
-- [ ] All application-owned copy, map controls, time-dialog labels, statuses, validation, and geography display names exist in `ar`, `fr`, and `en`; RTL/LTR and WCAG 2.1 AA checks pass.
-- [ ] Semantic step progress, headings, reading/focus order, inline validation, accessible loading/retry, and error announcements are verified.
-- [ ] Back/Next/Publish remains reachable at mobile, tablet, and desktop widths; the final confirmation shows every essential value without truncation.
-- [ ] Precise location is requested only by explicit user action, map/provider failures recover visibly, and the create flow produces no unexplained application console errors.
-- [ ] Success opens the created event and updates city and host event views without a refresh.
-- [ ] Typed errors, structured logs, request correlation, and `events_created` metrics are verified without sensitive leakage.
-- [ ] Domain, D1/Miniflare, server-function, component, formatting, lint, boundary, typecheck, and build gates pass.
-- [ ] The critical Playwright create flow passes locally and on staging, while remaining outside CI under the current decision.
-- [ ] Staging and production migrations, secrets/bindings, WAF, deployment versions, and smoke evidence are recorded.
-- [ ] `docs/implementation-plan.md` and `docs/events-system-plan.md` are updated to match verified operational reality after implementation—not before.
+- [x] Every FR-E1 field is explicitly collected, validated from one schema, and persisted.
+- [x] Venue address and coordinates survive creation and render correctly; out-of-city/locality results are rejected and marker drag cannot retain a stale address.
+- [x] Market timezone, not browser timezone, determines the stored UTC instants.
+- [x] The server derives canonical geography and rejects dark/disabled/cross-market creation.
+- [x] Event route slugs are protected by a D1 unique constraint and race-safe insertion.
+- [x] Authentication, centralized permission, DO rate limit, and the shared WAF protect creation. The event-create Turnstile challenge is deliberately absent by the 2026-09-03 product decision and remains a tracked P1-018 policy gap.
+- [x] Anonymous final submission performs login/signup handoff and restores the complete draft; locale changes also preserve step, draft, focus, and useful scroll position.
+- [x] All application-owned copy, map controls, time-dialog labels, statuses, validation, and geography display names exist in `ar`, `fr`, and `en`; RTL/LTR and WCAG 2.1 AA checks pass.
+- [x] Semantic step progress, headings, reading/focus order, inline validation, accessible loading/retry, and error announcements are verified.
+- [x] Back/Next/Publish remains reachable at mobile, tablet, and desktop widths; the final confirmation shows every essential value without truncation.
+- [x] Precise location is requested only by explicit user action, map/provider failures recover visibly, and the create flow produces no unexplained application console errors.
+- [x] Success opens the created event and updates city and host event views without a refresh.
+- [x] Typed errors, structured logs, request correlation, and `events_created` metrics are verified without sensitive leakage.
+- [x] Domain, D1/Miniflare, server-function, component, formatting, lint, boundary, typecheck, and build gates pass.
+- [x] The critical Playwright create flow passes locally and on staging, while remaining outside CI under the current decision.
+- [x] Staging and production migrations, secrets/bindings, WAF, deployment versions, and smoke evidence are recorded.
+- [x] `docs/implementation-plan.md` and `docs/events-system-plan.md` are updated to match verified operational reality after implementation.

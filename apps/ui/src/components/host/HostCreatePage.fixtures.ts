@@ -79,7 +79,8 @@ vi.mock('../../lib/auth', () => ({
   },
 }));
 
-vi.mock('../auth/Turnstile', () => ({
+vi.mock('@founders-coffee/ui', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
   Turnstile: ({ onToken }: { onToken: (token: string) => void }) =>
     createElement(
       'button',

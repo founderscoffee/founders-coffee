@@ -6,14 +6,12 @@ import {
   seed,
   type Db,
 } from '@founders-coffee/db';
-import { geo } from '@founders-coffee/domain';
 
 import {
   listVisibleMarkets,
   resolveCityLanding,
   resolveMarket,
   resolveMarketLanding,
-  resolveTrendingStates,
 } from './resolver.js';
 
 /**

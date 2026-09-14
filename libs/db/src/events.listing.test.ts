@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { eq } from 'drizzle-orm';
 
 import {
   countEventsByStatus,
   createEvent,
   getEvent,
+  listPublicEventSitemapRows,
   listUpcomingEvents,
   transitionEventStatus,
 } from './events.js';
+import { user } from './schema.js';
 import {
   OTHER_HOST_ID,
   baseEvent,
@@ -16,6 +19,41 @@ import {
 } from './events.fixtures.js';
 
 describe('events listing (real D1)', () => {
+  it('lists only published events with visible hosts for the sitemap', async () => {
+    const db = await setupDb();
+    const includedId = nextId();
+    const cancelledId = nextId();
+    const hiddenId = nextId();
+    await createEvent(db, {
+      ...baseEvent,
+      id: includedId,
+      slug: nextSlug(),
+    });
+    await createEvent(db, {
+      ...baseEvent,
+      id: cancelledId,
+      slug: nextSlug(),
+    });
+    await transitionEventStatus(db, cancelledId, 'published', 'cancelled');
+    await createEvent(db, {
+      ...baseEvent,
+      id: hiddenId,
+      slug: nextSlug(),
+      hostId: OTHER_HOST_ID,
+    });
+    await db
+      .update(user)
+      .set({ banned: true })
+      .where(eq(user.id, OTHER_HOST_ID))
+      .run();
+
+    const rows = await listPublicEventSitemapRows(db);
+    const ids = rows.map(({ slug }) => slug);
+    expect(ids).toContain((await getEvent(db, includedId))?.slug);
+    expect(ids).not.toContain((await getEvent(db, cancelledId))?.slug);
+    expect(ids).not.toContain((await getEvent(db, hiddenId))?.slug);
+  });
+
   it('lists upcoming events with cursor pagination', async () => {
     const db = await setupDb();
     const cityCode = 'pgtest';

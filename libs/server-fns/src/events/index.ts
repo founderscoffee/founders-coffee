@@ -4,24 +4,27 @@ export {
   type EventDetailItem,
   type EventWithAttendance,
 } from './attendance.js';
-export {
-  createEventResolver,
-  listEvents,
-  resolveEvent,
-  type EventFeedItem,
-  type EventFeedItemBase,
-  type EventFeedPage,
+export type {
+  EventFeedCursor,
+  EventFeedItem,
+  EventFeedItemBase,
+  EventFeedPage,
 } from './resolver.js';
 export type { EventCreateInput } from '@founders-coffee/domain';
 export type {
   EventCancelRequestInput,
   EventCreateRequestInput,
+  PublicEventFeedRequestInput,
 } from './schemas.js';
+export { publicEventFeedRequestSchema } from './schemas.js';
 export {
   cancelEvent,
   createEvent,
   getEvent,
   getHostedEvents,
+  getMyJoinedEvents,
+  getPublicEventFeed,
   getUpcomingEvents,
 } from './rpc.js';
 export type { HostedEventPage } from './hosted.js';
+export type { PublicEventFeedPage } from './public-feed.js';

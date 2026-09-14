@@ -102,43 +102,44 @@ describe('enqueued notification content is localized (AR-07)', () => {
     const payloads = await enqueueFor(db, 'ar');
 
     expect(payloads.length).toBeGreaterThan(0);
-    const sms = payloads.find((p) => typeof p.smsBody === 'string');
-    expect(sms?.smsBody as string).toMatch(ARABIC);
-    expect(sms?.smsBody as string).not.toMatch(/You're in/);
+    const mail = payloads.find((p) => typeof p.text === 'string');
+    expect(mail?.text as string).toMatch(ARABIC);
+    expect(mail?.subject as string).toMatch(ARABIC);
+    expect(mail?.text as string).not.toMatch(/You're in/);
   });
 
   it('writes French bodies for a French member', async () => {
     const db = await setupDb();
     const payloads = await enqueueFor(db, 'fr');
-    const sms = payloads.find((p) => typeof p.smsBody === 'string');
-    expect(sms?.smsBody as string).toMatch(FRENCH_MARKERS);
+    const mail = payloads.find((p) => typeof p.text === 'string');
+    expect(mail?.text as string).toMatch(FRENCH_MARKERS);
   });
 
   it('uses the market default, not English, when no preference is stored', async () => {
     const db = await setupDb();
     const payloads = await enqueueFor(db, null);
-    const sms = payloads.find((p) => typeof p.smsBody === 'string');
-    expect(sms?.smsBody as string).not.toMatch(/You're in/);
+    const mail = payloads.find((p) => typeof p.text === 'string');
+    expect(mail?.text as string).not.toMatch(/You're in/);
   });
 
   it('links to the configured environment rather than production', async () => {
     const db = await setupDb();
     const payloads = await enqueueFor(db, 'en');
     const base = (env as unknown as { APP_URL: string }).APP_URL;
-    const sms = payloads.find((p) => typeof p.smsBody === 'string');
+    const mail = payloads.find((p) => typeof p.text === 'string');
 
-    expect(sms?.smsBody as string).toContain(`${base}/algeria/e/`);
-    expect(sms?.smsBody as string).not.toContain('https://founders.coffee');
+    expect(mail?.text as string).toContain(`${base}/algeria/e/`);
+    expect(mail?.text as string).not.toContain('https://founders.coffee');
   });
 
   /** 2099-01-15T23:30Z is Thursday in UTC and Friday in Africa/Algiers. */
   it('renders the date in the market time zone, not the worker UTC', async () => {
     const db = await setupDb();
     const payloads = await enqueueFor(db, 'en');
-    const sms = payloads.find((p) => typeof p.smsBody === 'string');
+    const mail = payloads.find((p) => typeof p.text === 'string');
 
-    expect(sms?.smsBody as string).toContain('Friday');
-    expect(sms?.smsBody as string).not.toContain('Thursday');
+    expect(mail?.text as string).toContain('Friday');
+    expect(mail?.text as string).not.toContain('Thursday');
   });
 
   it('never leaves an unresolved placeholder in a stored payload', async () => {
@@ -153,5 +154,87 @@ describe('enqueued notification content is localized (AR-07)', () => {
         );
       }
     }
+  });
+});
+
+const rowsFor = async (
+  db: Db,
+  opts: { email?: string; phoneNumber?: string | null },
+) => {
+  const event = await seedEvent(db);
+  const memberId = `usr_prod_fb${++seq}`;
+  await db
+    .insert(user)
+    .values({
+      id: memberId,
+      name: 'Member',
+      email: `${memberId}@producer.test`,
+      emailVerified: true,
+      role: 'member',
+    })
+    .onConflictDoNothing()
+    .run();
+
+  await enqueueRsvpNotifications(db, {
+    eventId: event.id,
+    userId: memberId,
+    eventTitle: 'Coffee + Code',
+    eventSlug: event.slug,
+    marketCode: 'DZ',
+    startsAt: new Date('2099-01-15T23:30:00Z'),
+    venue: 'Café des Délices, Hydra',
+    phoneNumber: opts.phoneNumber ?? null,
+    email: opts.email,
+    locale: 'en',
+  });
+
+  return db
+    .select()
+    .from(scheduledNotifications)
+    .where(eq(scheduledNotifications.eventId, event.id));
+};
+
+describe('what sits behind push for an RSVP (ND-07)', () => {
+  it('falls back to email, which every member has because sign-in is an email OTP', async () => {
+    const db = await setupDb();
+
+    const rows = await rowsFor(db, { email: 'member@producer.test' });
+
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row.channel).toBe('push');
+      expect(row.fallbackChannel).toBe('email');
+    }
+  });
+
+  it('never falls back to SMS, even for a member with a verified number', async () => {
+    const db = await setupDb();
+
+    const rows = await rowsFor(db, {
+      email: 'member@producer.test',
+      phoneNumber: '+213600000000',
+    });
+
+    expect(rows.map((row) => row.fallbackChannel)).not.toContain('sms');
+  });
+
+  it('carries the email body the fallback needs, and no SMS body', async () => {
+    const db = await setupDb();
+
+    const rows = await rowsFor(db, { email: 'member@producer.test' });
+    const payload = rows[0]?.payload as Record<string, unknown>;
+
+    expect(payload.subject).toBeTruthy();
+    expect(payload.html).toBeTruthy();
+    expect(payload.smsBody).toBeUndefined();
+  });
+
+  it('writes no fallback when there is no address to fall back to', async () => {
+    const db = await setupDb();
+
+    const rows = await rowsFor(db, { email: undefined });
+
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) expect(row.fallbackChannel).toBeNull();
   });
 });

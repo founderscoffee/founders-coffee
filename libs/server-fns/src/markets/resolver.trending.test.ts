@@ -3,20 +3,13 @@ import { describe, expect, it } from 'vitest';
 import {
   createDb,
   createEvent,
-  markets as marketsTable,
   seed,
   user,
   type NewUser,
 } from '@founders-coffee/db';
 import { geo } from '@founders-coffee/domain';
 
-import {
-  listVisibleMarkets,
-  resolveCityLanding,
-  resolveMarket,
-  resolveMarketLanding,
-  resolveTrendingStates,
-} from './resolver.js';
+import { resolveTrendingStates } from './resolver.js';
 
 /**
  * Seed a dark market to verify it is hidden from public resolution. Uses `AE` (a target country

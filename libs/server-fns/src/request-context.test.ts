@@ -51,10 +51,14 @@ describe('withRequestContext', () => {
   it('uses a fresh requestId per call', async () => {
     const ids: string[] = [];
     await withRequestContext(async () => {
-      ids.push(getRequestContext().requestId!);
+      const requestId = getRequestContext().requestId;
+      expect(requestId).toBeTruthy();
+      if (requestId) ids.push(requestId);
     });
     await withRequestContext(async () => {
-      ids.push(getRequestContext().requestId!);
+      const requestId = getRequestContext().requestId;
+      expect(requestId).toBeTruthy();
+      if (requestId) ids.push(requestId);
     });
     expect(ids).toHaveLength(2);
     expect(ids[0]).not.toBe(ids[1]);

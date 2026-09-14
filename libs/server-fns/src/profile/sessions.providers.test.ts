@@ -6,22 +6,12 @@ import {
   account,
   createDb,
   eq,
-  pushSessionLinks,
-  pushSubscriptions,
   seed,
-  session,
   unlinkProviderIfNotLast,
   user,
 } from '@founders-coffee/db';
 
-import {
-  readDevices,
-  revokeDevices,
-  sessionTokenFromCookie,
-  unlinkProvider,
-} from './sessions.js';
-
-const LIVE = new Date('2099-01-01T00:00:00Z');
+import { unlinkProvider } from './sessions.js';
 
 const setup = async (overrides: Record<string, unknown> = {}) => {
   const db = createDb(env.DB);
@@ -35,44 +25,6 @@ const setup = async (overrides: Record<string, unknown> = {}) => {
     ...overrides,
   });
   return { db, userId };
-};
-
-const addSession = async (
-  db: ReturnType<typeof createDb>,
-  userId: string,
-  userAgent: string,
-) => {
-  const sessionId = id('ses');
-  const token = id('tok');
-  await db
-    .insert(session)
-    .values({ id: sessionId, userId, token, expiresAt: LIVE, userAgent })
-    .run();
-  return { sessionId, token };
-};
-
-const addDevice = async (
-  db: ReturnType<typeof createDb>,
-  userId: string,
-  sessionId: string,
-) => {
-  const subscriptionId = id('push');
-  await db
-    .insert(pushSubscriptions)
-    .values({
-      id: subscriptionId,
-      userId,
-      token: id('tok'),
-      platform: 'web',
-      surface: 'pwa',
-      marketCode: 'DZ',
-    })
-    .run();
-  await db
-    .insert(pushSessionLinks)
-    .values({ subscriptionId, sessionId, userId })
-    .run();
-  return subscriptionId;
 };
 
 const addProvider = (

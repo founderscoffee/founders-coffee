@@ -1,13 +1,13 @@
 # Profile UI/UX — Round Table, 2026
 
-| Field          | Value                                                                                        |
-| -------------- | -------------------------------------------------------------------------------------------- |
-| Status         | Concrete design proposal and interactive prototype; production profile remains unchanged     |
-| Date           | 2026-09-08                                                                                   |
-| Delivery owner | PF-04/05/06/07/08/11 in the [profile/account plan](./profile-account-implementation-plan.md) |
-| Identity       | Existing Round Table theme in `libs/ui/src/styles.css`                                       |
-| Prototype      | [Source](./design/profile/index.html), Arabic default with French and English controls       |
-| Purpose        | Make introductions feel welcoming and account management feel clear, private and dependable  |
+| Field          | Value                                                                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Design contract and interactive prototype; PF-04 through PF-08 production work is implemented incrementally, with the embedded preview superseded |
+| Date           | 2026-09-08; reviewed 2026-09-14                                                                                                                   |
+| Delivery owner | PF-04/05/06/07/08/11 in the [profile/account plan](./profile-account-implementation-plan.md)                                                      |
+| Identity       | Existing Round Table theme in `libs/ui/src/styles.css`                                                                                            |
+| Prototype      | [Source](./design/profile/index.html), Arabic default with French and English controls                                                            |
+| Purpose        | Make introductions feel welcoming and account management feel clear, private and dependable                                                       |
 
 ## 1. Design direction
 
@@ -55,7 +55,7 @@ Account & security
 Your private        │ The introduction       │  ┌───────────────────────┐
 space               │ Photo • Display name   │  │ Round-table detail    │
                     │ Short introduction     │  │ Initials / photo      │
-                    │ Publication controls   │  │ Name                  │
+                    │ Optional detail controls │  │ Name                  │
                     └────────────────────────┘  │ Shared details only   │
                     ┌────────────────────────┐  └───────────────────────┘
                     │ Find common ground     │  Privacy reassurance
@@ -65,17 +65,21 @@ space               │ Photo • Display name   │  │ Round-table detail    
                     Saved / unsaved state        Discard   Save changes
 ```
 
-The preview remains visible while editing on wide screens. It labels unsaved changes as a draft
-preview: seeing something there does not imply it has already been published. Private contact or
-account information never appears in this column, even for the owner.
+The embedded preview shown above belongs to the initial prototype. PF-04 removed it from the
+production editor; the public profile route remains the source of truth. Private contact or account
+information never appears on that public route, even for the owner.
 
 ### Tablet and mobile
 
-- Below 1100px, the preview becomes an explicit **Preview public profile** button opening a dialog. It must not duplicate the editor or create nested scrolling on the main page.
+- The initial prototype's mobile preview dialog is superseded by PF-04. Production links to the
+  standalone public profile route instead of duplicating an editor preview or creating nested scrolling.
 - Below 700px, section navigation is a two-column set of four readable controls above the heading. There is no horizontally clipped tab strip; long French and Arabic labels fit.
 - Content becomes one column with 20px page gutters and approximately 18px card padding. Fields remain at least 44px tall; topic choices use 44px targets on mobile.
 - A solid bottom save area shows state, Discard and Save changes, includes the device safe area, and stays clear of form content. Production implementation must verify the real virtual keyboard and zoom, not just viewport emulation.
-- The public preview dialog has a clear title, native modal focus behavior, Escape/Close and focus return. Arabic mirrors layout through logical CSS properties; user-authored text keeps its own `dir="auto"` and authored language.
+- The prototype's public-preview dialog had a clear title, native modal focus behavior, Escape/Close
+  and focus return. It is retained here as historical interaction research; production uses the
+  standalone profile route. Arabic mirrors layout through logical CSS properties; user-authored text
+  keeps its own `dir="auto"` and authored language.
 
 ## 3. Visual system
 
@@ -88,7 +92,7 @@ account information never appears in this column, even for the owner.
 | Typography        | Existing Outfit/Inter and Tajawal; proposal heading 32–48px, section 20–24px; Arabic gets natural line-height and no Latin tracking   |
 | Production tokens | Express final scale and spacing through shared theme/Tailwind tokens; do not copy prototype CSS as an independent app theme           |
 | Shape             | Existing 12px card and 8px field radii; circles for identity and the round-table motif; pills for topic choices                       |
-| Density           | Two meaningful profile groups; consistent vertical rhythm; explain a field once and place visibility beside it                        |
+| Density           | Two meaningful profile groups; consistent vertical rhythm; explain a field once and place optional-detail visibility beside it        |
 | Motion            | Existing 120/200/320ms tokens for relevant transitions; motion respects reduced-motion; no animated background or auto-moving content |
 | Icons             | Small consistent stroke icons supporting labels; icon-only controls need accessible names; retain the current brand asset             |
 | Photography       | Optional; initials are a deliberate first-class state. No stock person, fake verification badge or upload-completion pressure         |
@@ -96,7 +100,8 @@ account information never appears in this column, even for the owner.
 
 Shared tokens are imported directly into the prototype and compiled with the repository's installed
 Tailwind/DaisyUI/Vite tooling. Its isolated layout styles explore composition; they do not change
-the production theme. Local JSON copy is design material, to be mapped to `libs/i18n` during PF-04/11.
+the production theme. Local JSON copy remains design material; production copy is now sourced from
+the shared `libs/i18n` resources under PF-04/PF-11.
 
 ## 4. Screen and interaction specification
 
@@ -106,14 +111,16 @@ The first card contains photo, display name and a short introduction. The second
 role, up to five topics, spoken languages and a professional link. Labels remain visible. Optional
 fields say so. The display name explicitly says it is public.
 
-Each optional field has an independent **Show publicly** control with a readable state. The default
-is **Only you**, including an OAuth photo. Selecting interests is not consent to publish them.
-Emptying a field also withdraws its publication. A small privacy note explains that contact details
+The display name, photo and introduction follow the minimal public-profile contract: the name is
+always public, an uploaded photo is public when present, and an introduction is public when provided.
+The photo and introduction have no publication toggle. The optional detail fields (interests,
+spoken languages and personal website) retain independent **Show publicly** controls with a readable
+state; the default is **Only you**. Emptying a field also withdraws its publication. Contact details
 stay private and residence is never requested.
 
-Editing updates the draft public preview. Save is explicit, with pending/success/failure state;
-Discard restores the last saved values. Production saves must use revision checks, refresh the real
-public projection and report conflicts. A success toast supplements persistent status rather than
+Editing updates the local draft. Save is explicit, with pending/success/failure state; Discard
+restores the last saved values. Production saves use revision checks and refresh the real public
+projection on the standalone profile route. A success toast supplements persistent status rather than
 being the only evidence of a save. Keep form values on error and focus the first invalid field.
 
 ### Your gatherings
@@ -128,7 +135,8 @@ uses an empty state; it does not invent event or attendance statistics.
 Start with interface language, then notification categories and delivery methods. UI language changes
 must preserve drafted user content and authored language. Push permission, device registration and
 delivery eligibility are distinct states. Do not present a switch that claims to turn browser
-permission on. SMS fallback remains optional and requires a verified number and explicit consent.
+permission on. Email is the default fallback after push. SMS is reserved for same-day cancellation
+disruption and is server-controlled rather than a general profile preference.
 
 Notification rows put the topic and plain-language explanation together, with the action at
 inline-end. Keep authentication/security messages distinct from optional event reminders. Connect
@@ -161,10 +169,11 @@ success screen is not an implementation.
 | Profile hidden/deleted       | Safe public unavailable state without exposing private moderation reasons                                                     |
 | Deletion/export pending      | Named job state and next step; completion only after backend confirmation                                                     |
 
-These state treatments are implementation acceptance criteria. The prototype demonstrates local
-editing, validation, publication, preview, discard, language switching, preference toggles and
-explanatory account dialogs. It does not implement auth, uploads, delivery, export, deletion,
-concurrency, provider failures or durable persistence.
+These state treatments are implementation acceptance criteria. The initial prototype demonstrated
+local editing, validation, publication, preview, discard, language switching, preference toggles and
+explanatory account dialogs. Its preview and local-only behavior are historical; production uses the
+real profile route, upload path, delivery controls and durable persistence described in the profile
+plan.
 
 ## 5. Prototype use and engineering handoff
 
