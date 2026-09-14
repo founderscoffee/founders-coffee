@@ -1,11 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
-import {
-  discoveryFailures,
-  SEO_SMOKE_USER_AGENT,
-} from './discovery-contract.mjs';
+import { discoveryFailures } from './discovery-contract.mjs';
 import { inspectGeoDocument } from './geo-contract.mjs';
+import { fetchSmoke } from './http.mjs';
+import { privateRouteFailures } from './private-contract.mjs';
 
 const DEFAULT_ORIGIN = 'https://staging.founders.coffee';
 const LOCALES = ['ar', 'fr', 'en'];
@@ -131,11 +130,8 @@ const fetchResponse = async (path, followRedirects = true) => {
   let current = absoluteUrl(path);
   const redirects = [];
   for (let hop = 0; hop <= 3; hop += 1) {
-    const response = await fetch(current, {
-      headers: {
-        accept: 'text/html',
-        'user-agent': SEO_SMOKE_USER_AGENT,
-      },
+    const response = await fetchSmoke(current, {
+      headers: { accept: 'text/html' },
       redirect: 'manual',
     });
     const location = response.headers.get('location');
@@ -160,10 +156,12 @@ const fetchStatic = async (path) => {
 const run = async () => {
   const failures = [];
   const routes = [];
-  const robotsResponse = await fetch(new URL('/robots.txt', `${origin}/`), {
-    headers: { 'user-agent': SEO_SMOKE_USER_AGENT },
-    redirect: 'manual',
-  });
+  const robotsResponse = await fetchSmoke(
+    new URL('/robots.txt', `${origin}/`),
+    {
+      redirect: 'manual',
+    },
+  );
   const robots = await robotsResponse.text();
   if (robotsResponse.status !== 200)
     failures.push(`robots.txt: expected 200, got ${robotsResponse.status}`);
@@ -176,10 +174,12 @@ const run = async () => {
     );
   }
 
-  const sitemapResponse = await fetch(new URL('/sitemap.xml', `${origin}/`), {
-    headers: { 'user-agent': SEO_SMOKE_USER_AGENT },
-    redirect: 'manual',
-  });
+  const sitemapResponse = await fetchSmoke(
+    new URL('/sitemap.xml', `${origin}/`),
+    {
+      redirect: 'manual',
+    },
+  );
   const sitemap = await sitemapResponse.text();
   if (sitemapResponse.status !== 200)
     failures.push(`sitemap.xml: expected 200, got ${sitemapResponse.status}`);
@@ -249,22 +249,7 @@ const run = async () => {
   }
   for (const path of PRIVATE_PATHS) {
     const { response, body } = await fetchResponse(path, false);
-    const robotsHeader = response.headers.get('x-robots-tag');
-    const cacheControl = response.headers.get('cache-control');
-    if (response.status < 200 || response.status >= 400)
-      failures.push(
-        `${path}: utility response has unexpected status ${response.status}`,
-      );
-    if (robotsHeader !== NO_INDEX)
-      failures.push(
-        `${path}: expected ${NO_INDEX} response header, got ${robotsHeader ?? 'missing'}`,
-      );
-    if (cacheControl !== 'private, no-store')
-      failures.push(
-        `${path}: expected private, no-store cache policy, got ${cacheControl ?? 'missing'}`,
-      );
-    if (/<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/iu.test(body))
-      failures.push(`${path}: utility page must not emit a canonical`);
+    failures.push(...privateRouteFailures({ path, response, body }));
   }
   const coverage = Object.fromEntries(
     ['company', 'market', 'city', 'event'].map((type) => [
