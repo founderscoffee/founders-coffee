@@ -213,6 +213,15 @@ normal operational path. Record timestamps, the shared rule ID, response statuse
 configuration. Run the production behavioral check only after the apex hostname resolves, using the
 same unique-path procedure without changing the live shared expression longer than the test window.
 
+**Production SEO smoke exception** — Security → Security rules → Custom rules. Apply the exact
+definition in `libs/infra/cloudflare/waf/seo-smoke-skip-rule.json` as the zone entrypoint rule in
+the `http_request_firewall_custom` phase. It matches only GET requests carrying the
+`founders-coffee-seo-smoke/1.0` User-Agent and only the public locale/static SEO paths. Its skip
+targets are the managed firewall and rate-limit phases plus the Browser Integrity Check and
+security-level products. This lets the GitHub-hosted deploy gate read the production custom domain
+without weakening ordinary traffic. Keep Browser Integrity Check `on` and security level `medium`;
+the rule ID currently in the zone is `249f3894757b4252923bbf2fdf9f07c6`.
+
 **`www` redirect** — production binds the apex `founders.coffee` only. Add a Cloudflare Redirect Rule
 for `www` rather than a second custom domain.
 

@@ -1,8 +1,10 @@
+import { fetchSmoke } from './http.mjs';
+
 const PRODUCTION_ORIGIN = 'https://founders.coffee';
 const NO_INDEX = 'noindex, nofollow';
 
 const read = async (origin, path) => {
-  const response = await fetch(new URL(path, `${origin}/`), {
+  const response = await fetchSmoke(new URL(path, `${origin}/`), {
     redirect: 'manual',
   });
   return { response, body: await response.text() };
