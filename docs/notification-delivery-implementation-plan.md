@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                           |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Planned. Nothing in this plan is implemented. ND-00 (delete the delivery and device boxes) landed on 2026-09-10 and is recorded here as done                    |
+| Status         | ND-00 through ND-02 complete; ND-03 onward planned. Staging delivery is proven; production still needs the post-CO-02 ND-07 promotion                           |
 | Decision date  | 2026-09-10                                                                                                                                                      |
 | Owner          | Founder / Product                                                                                                                                               |
 | Scope          | Make push deliver, make every notification category real, and give the member per-category channel control                                                      |
@@ -11,56 +11,60 @@
 
 ## 1. What is actually true today
 
-Verified on 2026-09-10 by reading the send path and listing the deployed secrets in both
-environments. This section is evidence, not recollection.
+Verified on 2026-09-14 by reconciling the send path, deployment versions and account-side evidence.
+This section is evidence, not recollection. The production release currently predates ND-01/ND-07;
+staging carries the current push/email implementation.
 
-| Claim the product makes                    | What the code and the deployment say                                                                                                                                                  |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Push is the primary channel                | Every producer writes `channel: 'push'` (`producer.ts:149`, `cancellation.ts:70`). No environment can deliver one. Every notification ever sent has been a fallback                   |
-| Push is configured                         | `wrangler secret list` on `ui` and `worker-jobs`, staging and production: no `FIREBASE_*` in any of the four. `getFirebaseConfig` returns `null`, `createPushProvider` returns `null` |
-| The site is a PWA that can receive push    | It is not. `sw.ts` exists and handles `push`, but Serwist emits no `sw.js`, nothing registers one, and `/sw.js` is 404 in production. See §2                                          |
-| SMS is a fallback behind push              | True and working. `TWILIO_AID`/`TWILIO_SEC` secrets and `TWILIO_SMS_FROM` var are set in staging and production                                                                       |
-| Email is not an event channel              | Mostly true. `producer.ts:105` excludes it by decision; `cancellation.ts:71` uses it as the fallback when a member has no phone                                                       |
-| Four notification categories can be chosen | Two of them gate nothing. `resolveDestination` reads `eventReminders` and `eventUpdates` only (`notification-destination.ts:70-76`)                                                   |
-| Four categories exist to be sent           | Four template keys exist — `rsvp_confirmation`, `reminder_72h`, `reminder_24h`, `event_cancelled` — and two producers. Nothing sends a host update or a follow-up                     |
-| A member can consent to SMS                | No longer, as of ND-00. The consent control was in the deleted box. See §5                                                                                                            |
+| Claim the product makes                    | What the code and the deployment say                                                                                                                                                                                  |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Push is the primary channel                | Current staging producers write `channel: 'push'`; staging delivered a real push on 2026-09-10. The production version deployed on 2026-09-10 predates ND-01 and needs promotion for parity                           |
+| Push is configured                         | Staging and production Firebase credentials are recorded by ND-01; staging minting and delivery are proven. Production must be rechecked after the current Worker is promoted                                         |
+| The site is a PWA that can receive push    | Staging ships and registers `sw.js`; production's older release predates that service-worker fix. See [deployment evidence](./deployment-evidence.md#nd-01--service-worker-and-fcm-credentials-on-staging-2026-09-10) |
+| SMS is a fallback behind push              | This is true only in the older production CO-02 release. ND-07 changes current code to email fallback and keeps SMS for same-day cancellation disruption                                                              |
+| Email is an event channel                  | Yes in current staging code under ND-07: email is the default fallback after push; production needs the promotion                                                                                                     |
+| Four notification categories can be chosen | Two of them gate nothing. `resolveDestination` reads `eventReminders` and `eventUpdates` only (`notification-destination.ts:70-76`)                                                                                   |
+| Four categories exist to be sent           | Four template keys exist — `rsvp_confirmation`, `reminder_72h`, `reminder_24h`, `event_cancelled` — and two producers. Nothing sends a host update or a follow-up                                                     |
+| A member can consent to SMS                | No longer, as of ND-00. The consent control was in the deleted box. See §5                                                                                                                                            |
 
-The net effect: **the product currently cannot deliver a notification to anybody.** Push has no
-provider, and SMS requires `sms_fallback_enabled`, which now has no control that can set it.
+The net effect is environment-specific: staging delivers push and email fallback end to end;
+production is still on the pre-ND-07 Worker and therefore requires the next promotion to receive the
+same policy and service-worker behavior. The notification plan must not claim production parity until
+that release is verified.
 
-## 2. The blocker that credentials do not fix
+## 2. The historical blocker that credentials did not fix
 
-Setting the five `FIREBASE_*` values will not make push work on its own. The service-worker half of
-the chain is broken in four separate places, and each one is silent.
+Setting the five `FIREBASE_*` values did not make push work on its own. The service-worker half of the
+chain was broken in four separate places; ND-01 fixed those breaks on 2026-09-10. The production
+release still predates that fix, so its promotion is the remaining operational action.
 
 **A service worker is required on every platform.** A PWA install is required only on iOS — see §2.1.
 Nothing here is about being installable; it is about the worker existing, shipping, registering, and
 being the one FCM talks to.
 
-1. **The worker is written and never built.** `apps/ui/src/sw.ts` is a complete Serwist worker with a
+1. **Resolved by ND-01.** Before the fix, the worker was written and never built. `apps/ui/src/sw.ts` is a complete Serwist worker with a
    `push` handler, a `notificationclick` handler that opens the event URL, and dedupe by tag. The
    `@serwist/vite` plugin is configured (`vite.config.ts:78`) with `swSrc: 'src/sw.ts'`,
    `swDest: 'sw.js'` and `globDirectory: 'dist'` — but TanStack Start emits the client bundle to
    `dist/client`, and `nx build public` produces no `sw.js` anywhere. `https://founders.coffee/sw.js`
    returns **404** in production today, while `manifest.json` returns 200. The build fails without
    failing.
-2. **Nothing registers it.** `@serwist/window` is a declared dependency and is imported nowhere. There
+2. **Resolved by ND-01.** Before the fix, nothing registered it. `@serwist/window` is a declared dependency and is imported nowhere. There
    is no `navigator.serviceWorker.register` call in `apps/ui`. Even a correctly built `sw.js` would
    sit unused.
-3. **FCM is not told to use it.** `push/client.ts:25` calls `getToken(messaging, { vapidKey })` with no
+3. **Resolved by ND-01.** Before the fix, FCM was not told to use it. `push/client.ts:25` calls `getToken(messaging, { vapidKey })` with no
    `serviceWorkerRegistration`, so the SDK looks for `/firebase-messaging-sw.js` at the origin root —
    a file this repo does not have and, given `sw.ts` already exists, should not add. Pass the existing
    registration instead.
-4. **The payload contracts disagree.** `FcmPushProvider` sends an FCM `webpush.notification` envelope
+4. **Resolved by ND-01.** Before the fix, the payload contracts disagreed. `FcmPushProvider` sent an FCM `webpush.notification` envelope
    (`push-provider.ts:126-135`); `sw.ts` reads a flat `{ title, body, url, icon, dedupeKey }` off
    `event.data.json()`. One of the two has to move. Sending a **data-only** message and letting `sw.ts`
    render it is the better direction: it keeps one code path for display, and `showNotification` stays
    ours rather than the SDK's.
 
-`isSupported()` returns true in any browser that _supports_ service workers, so none of this surfaces
-as an error. `readPushEnvironment` reports `configured: true`, the UI offers to enable push, and
-`enablePushOnThisDevice` swallows the failure in its `catch { return null }` (`push/client.ts:105`).
-The member clicks a control that does nothing, and no log records why.
+Before ND-01, `isSupported()` returned true in any browser that _supports_ service workers, so none
+of the breaks surfaced as an error. `enablePushOnThisDevice` still has a named follow-up to return a
+discriminated failure reason instead of swallowing every error; the shipped path itself is now proven
+on staging.
 
 ### 2.1 Where a PWA install is actually required
 
@@ -76,10 +80,9 @@ and not `display-mode: standalone` ⇒ `install_required`, ranked above every ot
 permission prompt does not exist until the app is installed. `manifest.json` is already correct for
 that install — `display: standalone`, 192/512 icons, a maskable icon, theme colours.
 
-Per `docs/mobile-research.md`, iOS is **~10-12%** of the Algerian market against 85%+ Android
-(StatCounter, Jan 2026). So roughly nine in ten members can receive push in an ordinary browser tab
-with no install at all, and the install requirement is a minority path that must be explained rather
-than a prerequisite for the feature.
+Because iOS requires a home-screen install before browser push permission is available while desktop
+and Android browsers can receive push in a normal tab, the UI explains `install_required`
+contextually rather than treating installation as a universal prerequisite.
 
 The CSP already allows what FCM needs — `firebaseinstallations.googleapis.com` and
 `fcmregistrations.googleapis.com` for `connect-src` (`libs/core/src/security-headers.ts:17-32`) — and
@@ -117,7 +120,8 @@ credentials return `20008` on every call and look like a delivery.
 
 ### ND-01 — Make the service worker ship, register, and receive — done 2026-09-10
 
-**Depends on:** the `ui` Firebase secrets for the last two items only. **Blocks:** everything else.
+**Depends on:** the `ui` Firebase secrets for the last two items only. Staging proof is complete;
+production promotion remains the deployment follow-up.
 
 The worker is already written. This ticket is the four breaks in §2, in order — none of them needs a
 new `firebase-messaging-sw.js`, and adding one would give the app two workers competing for the same
@@ -137,7 +141,8 @@ push event. The two items that need no credentials are done; the rest waits on �
   neither `/preferences` nor `/activity`. Both added. `Cache-Control: private, no-store` on the route
   does not help — the strategy caches any 200 regardless.
 - ✅ **Point FCM at it.** `getToken(messaging, { vapidKey, serviceWorkerRegistration })`, refusing to
-  mint a token when there is no worker. **Wired, not yet proven** — needs the credentials.
+  mint a token when there is no worker. **Wired and proven on staging**; production promotion remains
+  tracked in the deployment evidence.
 - ✅ **Agree on the payload.** `FcmPushProvider` sends `webpush.data`, never `webpush.notification`,
   so display stays with `sw.ts`. `readPushPayload` normalises all three envelopes FCM can produce,
   because the real one cannot be observed until a push is delivered, and confines the click target
@@ -157,8 +162,9 @@ push event. The two items that need no credentials are done; the rest waits on �
   open** — the path works now, so nothing is hidden today, but the next break will hide the same way.
 - Acceptance: `/sw.js` returns 200 on staging; a Chrome desktop tab and an installed iOS PWA both mint
   a token and land a row in `push_subscriptions`; a real FCM message renders with its own title and
-  opens the event on click. With the secrets unset, the state reads `unavailable` and no control
-  offers to enable anything. Every failure names itself on screen and in the log.
+  opens the event on click. These acceptance checks are recorded as passed for staging on 2026-09-10;
+  production still needs the current Worker promotion. With the secrets unset, the state reads
+  `unavailable` and no control offers to enable anything.
 
 ### ND-02 — Prove delivery end to end on staging — done 2026-09-10
 
@@ -171,14 +177,15 @@ failure now lands on email in 302 seconds, the `REARM_FLOOR_MS` window. Evidence
 `E_VALIDATION_ERROR` that showed email had never delivered a notification in this product's life, is
 in [deployment evidence](./deployment-evidence.md).
 
-- RSVP on staging from a real device, confirm the DO alarm fires, the queue message routes, and the
-  notification arrives as a push rather than a fallback. Compare against the CO-02 smoke, which
-  measured 8 seconds from RSVP to confirmation on the SMS path.
-- Confirm the fallback still works when push fails permanently: sign the device out, re-RSVP, expect
-  the SMS. This is the one path that has ever run in production, and ND-01 must not break it.
-- Record the evidence in `docs/deployment-evidence.md` — Worker versions, a token id, timings.
+- ~~RSVP on staging from a real device, confirm the DO alarm fires, the queue message routes, and the
+  notification arrives as a push rather than a fallback.~~ Done on 2026-09-10; the push arrived in
+  seven seconds and the event route opened correctly.
+- ~~Confirm the fallback still works when push fails permanently.~~ Done on staging after ND-07: the
+  deliberate push failure lands on email in 302 seconds with no duplicate. SMS remains reserved for
+  same-day cancellation disruption.
+- ~~Record the evidence in `docs/deployment-evidence.md`.~~ Done with Worker versions and timings.
 - Acceptance: a push received on a real handset in Algeria, and a deliberate push failure that lands
-  on SMS with no duplicate.
+  on the active email fallback with no duplicate.
 
 ### ND-03 — Make the two dead categories real
 
@@ -261,14 +268,14 @@ a separate question from getting the first one working.
 **Depends on:** ND-03.
 
 - Do **not** add twelve booleans. Add one integer `channels` bitmask per category to
-  `account_preferences` (`1` push, `2` sms, `4` email), keeping the single-row `revision` guard that
+  `account_preferences` (`1` push, `4` email; SMS is server-controlled for same-day cancellation), keeping the single-row `revision` guard that
   makes concurrent saves safe. A side table breaks optimistic concurrency and buys nothing.
 - Default per category from today's behaviour so no existing member's delivery changes on migration:
-  push and SMS on, email off. The four existing booleans become `channels != 0` and stay as the
+  push and email on. The four existing booleans become `channels != 0` and stay as the
   category gate; they are not replaced, because "off entirely" must remain expressible in one bit.
 - `updateAccountPreferencesSchema` gains the per-category channel sets, and `pushEnabled` stays
   server-owned and absent from the input, for the reason `draft.ts` already gives.
-- Acceptance: a migration test asserting every pre-migration row lands on push+SMS for the
+- Acceptance: a migration test asserting every pre-migration row lands on push+email for the
   categories it had enabled; a conflicting concurrent save still fails on `revision`.
 
 ### ND-05 — Producer and dispatcher honour the matrix
@@ -277,15 +284,15 @@ a separate question from getting the first one working.
 
 - Producers stop hardcoding `channel: 'push'`. Each resolves the member's channel set for that
   category at enqueue, writes the primary, and writes `fallback_channel` from what is left.
-- Decide and write down what a fallback means once the member has named their channels. The current
-  semantics — push primary, SMS behind it — is a policy the member did not choose. When they have
-  chosen, "fallback" should mean _the next channel they picked_, and no channel they did not pick.
+- Decide and write down what a fallback means once the member has named their channels. The active
+  semantics are push primary and email fallback; no channel the member cannot control is presented
+  as a general preference.
 - `resolveDestination`'s `account: true` refusal (true of every channel) needs revisiting: with
   per-category channels, "category off for this channel" is a channel-level refusal that should
   still allow the fallback, which is the opposite of today.
 - `rsvp_confirmation` keeps bypassing category gates and must not bypass channel selection.
-- Acceptance: for each of the four categories, a member with only SMS selected receives SMS and no
-  push; a member with nothing selected receives nothing and no fallback row is written.
+- Acceptance: for each of the four categories, a member with only email selected receives email and
+  no push; a member with nothing selected receives nothing and no fallback row is written.
 
 ### ND-06 — The grid, and delivery controls come back
 
@@ -297,9 +304,8 @@ a separate question from getting the first one working.
 - Push permission moves into the grid: switching a push cell on for the first time is the user
   gesture that requests permission. This is better than the row it replaces — the ask now arrives
   attached to a thing the member just said they wanted.
-- SMS consent comes back the same way: the first SMS cell switched on is the consent, recorded with
-  `sms_consent_at` exactly as before, and disabled with an explanation when no verified phone
-  exists. **This closes the §5 regression.**
+- SMS does not return as a general settings cell. Same-day cancellation SMS remains a server-owned
+  disruption path and is never represented by a member-facing toggle.
 - Re-attach `push-state.ts`, `useDevicePushState`, `device-location.ts` and the retained copy.
 - RTL and 400px: four rows × three columns does not fit. Below `md`, each category becomes a row
   with channel chips beneath its label. Arabic is the primary case, not the check at the end.
@@ -355,22 +361,19 @@ every member, so the production deploy is now purely additive rather than a trad
 - Staging first, per the standing rule. Migration rehearsed on populated staging data.
 - Record Worker versions, D1 bookmarks, the migration list and a real delivery on each live channel,
   in `docs/deployment-evidence.md`.
-- Acceptance: a member on production receives a push, turns that category's push off, and stops.
+- Acceptance: after the ND-07 promotion, a member on production receives a push, turns that
+  category's push off, and receives the documented email fallback instead.
 
 ## 5. Known limits and open risks
 
-- **No member can consent to SMS right now.** ND-00 deleted the only control that writes
-  `sms_fallback_enabled`, and push has no provider, so between now and ND-06 the product delivers
-  nothing to anyone. Two ways out: run ND-06 early behind the rest of the plan, or accept the gap
-  because push was already dead and a verified phone is rare today. **This is a deliberate choice,
-  not an oversight — revisit it if the gap outlasts the plan.**
-- **`docs/secrets.md` says the Firebase values are required and they have never been set.** A
-  documented requirement is not a configured one; this plan exists because nothing checked.
-- **`docs/mobile-research.md` calls `apps/ui` "the installable Serwist PWA".** Serwist is installed
-  and configured, `sw.ts` is written, and no `sw.js` has ever been served. A doc describing intent
-  in the present tense is how this went unnoticed; that line should be corrected when ND-01 lands.
-- **The four preference switches have shipped to production gating almost nothing.** Two gate
-  nothing at all. Members may have set them believing otherwise.
+- **The SMS consent control remains intentionally absent.** ND-00 removed it and ND-07 made email the
+  default fallback. SMS is limited to same-day cancellation disruption and is not a general
+  preference.
+- **Production policy parity is open.** The production Worker version predates ND-01/ND-07; promote
+  the current service-worker, push and email-fallback code before claiming end-to-end production
+  delivery.
+- **The four preference switches are still a product-surface follow-up.** ND-03 through ND-06 must
+  make every visible category actionable before adding more controls.
 - **A per-category grid multiplies the promise.** Twelve controls over a system with four template
   keys means eight of them describe messages that do not exist. ND-03 is not optional decoration
   before ND-06; it is what makes the grid honest.

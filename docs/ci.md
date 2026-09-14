@@ -6,9 +6,13 @@ project decision, Playwright E2E remains a local/staging release gate and is not
 
 Implements **P0-020**. Two workflows, two Cloudflare environments, four Workers per environment.
 
-**Source configuration last checked: 2026-09-13.** The workflow files match the behavior below.
-GitHub environment, secret, billing-plan, and recent-run state were not verified from the current
-engineering environment and must be checked in the repository settings before relying on deployment.
+**Source configuration last checked: 2026-09-14.** The workflow files match the behavior below.
+The latest GEO push ([run 34777686347](https://github.com/AmineYagoub/founders-coffee/actions/runs/34777686347))
+reached `format:check` and failed only because `docs/implementation-plan.md` had drifted from
+Prettier; this documentation update repairs that drift. Its migration and deploy jobs were skipped.
+The prior staging deployment ([run 34770191868](https://github.com/AmineYagoub/founders-coffee/actions/runs/34770191868))
+was green. GitHub environment and secret settings remain account-side facts and should be rechecked
+before relying on a new deployment.
 
 ## Branch → environment mapping
 
@@ -118,7 +122,7 @@ Worker deploy would leave the schema ahead of the deployed code.
 
 ### SEO/GEO release review
 
-Last reviewed: **2026-09-13**. Review owner: **Engineering**. Re-run the local or deployed smoke on
+Last reviewed: **2026-09-14**. Review owner: **Engineering**. Re-run the local or deployed smoke on
 every release and during the monthly discovery review. The smoke validates one primary JSON-LD entity
 per public page type, visible `h1`/`h2` hierarchy, canonical and locale parity, public-field
 boundaries, and staging-safe `llms.txt` and `/events.json` responses. Keep the machine-readable feed

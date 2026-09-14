@@ -8,6 +8,7 @@
 | Status        | In progress                                                                                                                                                                            |
 | Owner         | Engineering                                                                                                                                                                            |
 | Created       | 2026-09-13                                                                                                                                                                             |
+| Last reviewed | 2026-09-14 — current deployment and GEO gate evidence reconciled                                                                                                                       |
 | Scope         | Public discovery surfaces in `apps/ui`: markets, cities, events, company pages, GEO/AI-readable content, and the intentional public-profile policy                                     |
 | Requirements  | FR-E5, FR-E6, FR-E7, FR-A6, FR-A7, FR-L1 through FR-L6; NFR-1, NFR-4, NFR-7, NFR-9, NFR-10, NFR-12                                                                                     |
 | Related plans | [SRS](./srs.md), [main implementation plan](./implementation-plan.md), [profile and account plan](./profile-account-implementation-plan.md), [release strategy](./release-strategy.md) |
@@ -18,10 +19,10 @@ are not shipped. The current community-building release remains the boundary: SE
 free local events, repeat participation, hosts,
 trust, and the PWA. Sponsorship, challenges, talent, payments, and expansion remain future work.
 
-Current progress: SEO-01 through SEO-11 are implemented and locally or staging verified; SEO-12 remains planned.
-GEO-01 through GEO-05 are implemented and locally verified; SEO-12 remains planned
-follow-up work based on a review of TanStack Start's Generative Engine Optimization guidance. It
-do not change the current release boundary or the noindex policy for public member profiles.
+Current progress: SEO-01 through SEO-11 are implemented and locally or staging verified; SEO-12
+remains planned. GEO-01 through GEO-05 are implemented and locally verified; SEO-12 remains planned
+follow-up work based on a review of TanStack Start's Generative Engine Optimization guidance. These
+items do not change the current release boundary or the noindex policy for public member profiles.
 
 ## 1. Audit baseline
 

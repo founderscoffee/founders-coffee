@@ -1,5 +1,9 @@
 # Secrets & environment variables — inventory
 
+> **Last reviewed:** 2026-09-14. This inventory reflects the deployed CO-02 notification path,
+> PF-03b migrations, and the current staging/production evidence; account-side secret presence is
+> still an environment fact and must be checked through the provisioning runbook.
+
 This inventory includes dormant foundations, but only credentials consumed by the
 [community-building release](./release-strategy.md) are current launch requirements. Future sponsor,
 challenge, talent, payment, AI/search, and expansion secrets become required only after that phase is
@@ -138,7 +142,8 @@ degradation and must be caught by release checks.
 
 ### Notifications — apps/worker-jobs
 
-Consumed by the delivery worker. PWA web push is primary and Programmable SMS is the fallback.
+Consumed by the delivery worker. PWA web push is primary and Cloudflare Email is the default
+fallback; Programmable SMS is reserved for same-day cancellation disruption.
 Development logging variants are local-only; a deployed worker must never silently replace a real
 provider with a logger when credentials are absent.
 
@@ -181,7 +186,7 @@ prove account-side provisioning. The last verified state is recorded in
 | `apps/ui`          | Better Auth, Turnstile, email OTP, Mapbox, and Firebase public web configuration; Twilio Verify remains dormant/fail-closed until phone login is enabled |
 | `apps/dashboard`   | Sponsor-only shell today; its future authenticated sponsor flows require Better Auth and the applicable protection secrets                               |
 | `apps/admin`       | Cloudflare Access guard today; CO-04 must add an admin-origin Better Auth session and require its verified email to match the Access identity            |
-| `apps/worker-jobs` | Firebase service account for primary push, Twilio Programmable SMS for fallback, and email only for explicitly email-based jobs                          |
+| `apps/worker-jobs` | Firebase service account for primary push, Cloudflare Email for the default fallback, and Twilio Programmable SMS for same-day cancellation disruption   |
 
 ## `apps/admin` — Cloudflare Access and sign-in
 

@@ -1,9 +1,14 @@
 # Email
 
+> **Last reviewed:** 2026-09-14. Queue-backed notification delivery is deployed to staging and
+> production; staging push/email fallback delivery is proven, while the production policy promotion
+> remains tracked in the notification plan.
+
 `libs/email` provides the general Cloudflare Email delivery adapter and React Email rendering for founders.coffee. Authentication keeps its purpose-specific OTP adapter in `libs/auth`; the two interfaces are intentionally separate.
 
 In the current community release, email is used for authentication and workflows that explicitly
-select email. Event reminders use PWA web push first and SMS as the fallback. Billing email is a
+select email. Event reminders use PWA web push first and email as the default fallback. SMS is
+reserved for same-day cancellation disruption. Billing email is a
 future capability under the [release strategy](./release-strategy.md).
 
 ## Current implementation
@@ -55,12 +60,14 @@ Miniflare exercises supported binding behavior locally. Sender-domain verificati
 
 ## Delivery architecture
 
-Current notification delivery includes direct scheduled-worker paths. The required architecture is producer → Queue → `apps/worker-jobs` consumer, with per-message retry and dead-letter handling. Until those bindings and routes are verified, queue retry must be described as planned rather than operational.
+Current notification delivery uses the deployed producer → Queue → `apps/worker-jobs` consumer path,
+with per-message retry and dead-letter handling. Staging delivery is proven; production sender and
+post-ND-07 policy parity remain release checks.
 
 ## Remaining work
 
 - complete and verify the localized template inventory;
 - connect email only to workflows that explicitly require it;
 - persist recipient suppression where applicable;
-- prove staging sender configuration and delivery;
-- exercise retry/dead-letter behavior once queue-backed email producers are enabled.
+- preserve the staging sender and delivery evidence;
+- exercise retry/dead-letter behavior against production after the post-ND-07 policy promotion.

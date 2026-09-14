@@ -229,8 +229,8 @@ confirmation step, in place: `HostSignInGate` renders inside the step with the s
 screen, and publishes as soon as the code verifies. Nothing navigates to `/login` any more -- not
 the first sign-in, and not an expired session mid-publish. The draft is still written to session
 storage first, because an OAuth provider takes the page away and back; that path returns to the
-confirmation step authenticated and costs one click on Publish. Onboarding is skipped on this
-path (the legacy `/profile` page still sets a home market). The approved
+confirmation step authenticated and costs one click on Publish. Onboarding is skipped on this path;
+the approved
 [profile/account plan](./profile-account-implementation-plan.md), PF-03, removes that residence
 collection and handles a missing display name inside the gate while preserving the pending publish.
 

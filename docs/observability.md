@@ -73,15 +73,18 @@ Threshold is set **programmatically**, not via an env var: `createServerLogger({
 
 ## Wiring status
 
-| Piece                                                                                                           | Status                                                                |
-| --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `libs/observability` (logger, metrics, ingest, reportError, context, sanitize)                                  | Complete in code and tests                                            |
-| Workers Observability `console.*` capture                                                                       | Complete in source configuration (`observability: { enabled: true }`) |
-| AsyncLocalStorage request-context propagation                                                                   | Complete in tests under `nodejs_compat`                               |
-| Client `/client-logs` ingestion endpoint + `configureClientLogger` + `reportError` → `onError`/error boundaries | Complete in `apps/ui`                                                 |
-| `ANALYTICS` binding + Logpush destination + dashboard/alerts                                                    | Planned/Unverified under P0-019 and P1-019                            |
+| Piece                                                                                                           | Status                                                                                                                                |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `libs/observability` (logger, metrics, ingest, reportError, context, sanitize)                                  | Complete in code and tests                                                                                                            |
+| Workers Observability `console.*` capture                                                                       | Complete in source configuration (`observability: { enabled: true }`)                                                                 |
+| AsyncLocalStorage request-context propagation                                                                   | Complete in tests under `nodejs_compat`                                                                                               |
+| Client `/client-logs` ingestion endpoint + `configureClientLogger` + `reportError` → `onError`/error boundaries | Complete in `apps/ui`                                                                                                                 |
+| `ANALYTICS` binding + first metric (`events_created`)                                                           | Binding is active and the metric is verified on the public Worker; community dashboards and alerts remain planned under P0-019/P1-019 |
 
-The other app shells must wire the same ingestion and error-reporting path as they become functional. Account-side Analytics Engine and Logpush configuration remains subject to the dated provisioning verification rather than being assumed from source declarations.
+The other app shells must wire the same ingestion and error-reporting path as they become functional.
+The public Worker's Analytics Engine binding and `events_created` metric are verified; account-side
+dashboard, alert and Logpush setup remains subject to dated provisioning verification rather than
+being assumed from source declarations.
 
 ### Failure counters (CO-05)
 

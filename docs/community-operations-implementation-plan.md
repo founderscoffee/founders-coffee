@@ -1,15 +1,15 @@
 # Community Operations and Admin Implementation Plan
 
-| Field          | Value                                                                                                                                   |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Sequenced next after verified EC-10 handoff; EC staging/release evidence exists, authorized production creation smoke still outstanding |
-| Last reviewed  | 2026-09-01                                                                                                                              |
-| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                             |
-| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                            |
-| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                          |
-| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12               |
-| Strategy       | [Community-first release](./release-strategy.md)                                                                                        |
-| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                          |
+| Field          | Value                                                                                                                                                                  |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; EC-10 signed off, CO-01 through CO-05 implemented, CO-02/CO-03 deployed to both environments, and CO-04/CO-05 verified on staging pending production promotion |
+| Last reviewed  | 2026-09-14                                                                                                                                                             |
+| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                            |
+| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                           |
+| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                         |
+| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                              |
+| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                       |
+| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                         |
 
 ## 1. Objective
 
@@ -102,21 +102,21 @@ component -> hook -> feature api.ts -> server function -> domain -> repository -
 Both UI apps use thin route files and feature-domain folders. `apps/admin` may never import D1,
 Drizzle, domain internals, or server functions from a component.
 
-## 4. Current baseline and gaps
+## 4. Current baseline and gaps (reviewed 2026-09-14)
 
-| Area                      | Current evidence                                                                                                                                      | Required result                                                                                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Event creation            | EC-01 through EC-10 recorded complete; staging 18/18 and production release/DNS/WAF evidence exist; authorized production creation smoke remains open | Close the outstanding authorized production smoke/handoff before CO production implementation; preserve the dated trace without rerunning it implicitly |
-| RSVP                      | Immediate flow exists; full-capacity atomicity remains blocked                                                                                        | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                                                                      |
-| Notifications             | Providers exist; one-minute D1 polling and parallel channel scheduling violate the locked design                                                      | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                                                                       |
-| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                              | Explicit held/did-not-happen closeout separate from publication status                                                                                  |
-| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                           | Attendance outcome remains separate from RSVP intent and is recorded safely                                                                             |
-| Feedback                  | No post-event participant or host pulse                                                                                                               | One small, optional, localized pulse per eligible person                                                                                                |
-| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                          | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract                                                   |
-| Admin app                 | Access JWT guard and empty TanStack shell only                                                                                                        | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states                                                          |
-| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                         | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence                                                        |
-| Metrics                   | Analytics API foundation exists; account binding/dashboard unverified                                                                                 | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard                                                 |
-| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                 | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning                                                            |
+| Area                      | Current evidence                                                                                                                                                         | Required result                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Event creation            | EC-01 through EC-10 signed off; staging 18/18, production release/DNS/WAF evidence, and the authorized production smoke are recorded                                     | Preserve the dated handoff trace; no additional creation smoke is required for CO work                  |
+| RSVP                      | Immediate flow exists; full-capacity atomicity and duplicate handling are fixed by AR-04/CO-02. RSVP Turnstile remains open under P1-018                                 | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
+| Notifications             | Historical one-minute D1 polling and parallel channel scheduling were replaced by CO-02; staging push/email delivery is proven and production policy parity remains open | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                       |
+| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                                                 | Explicit held/did-not-happen closeout separate from publication status                                  |
+| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                                              | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
+| Feedback                  | No post-event participant or host pulse                                                                                                                                  | One small, optional, localized pulse per eligible person                                                |
+| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                                             | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
+| Admin app                 | Access JWT guard and the CO-04 operations shell are implemented; staging Access/Better Auth correlation is verified, while production has no operator account            | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
+| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                                            | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
+| Metrics                   | Analytics Engine binding and the first `events_created` write are verified; the account-side dashboard and remaining community metrics are not complete                  | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
+| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                                    | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
 
 ## 5. Locked product and data decisions
 
@@ -347,8 +347,8 @@ mission and should remain one reviewable PR unless its security/data migration m
 **Parent:** P1-019, P1-023
 **Requirements:** FR-E10, FR-M1, FR-M7 through FR-M10; NFR-5, NFR-7, NFR-10
 **Status:** Complete — approved 2026-09-10. The operating contract is recorded at the end of this
-document; §5, §6 and §7 are frozen from that date. CO-02 followed and is implemented; see its own
-status below.
+document; §5, §6 and §7 are frozen from that date. CO-02 followed and is implemented/deployed; see
+its own status below.
 
 Work:
 
@@ -381,7 +381,7 @@ Verification:
 
 **Parent:** P1-008, P1-009, P0-018, P1-018
 **Requirements:** FR-E3, FR-E4, FR-E8, FR-E10; NFR-4, NFR-7, NFR-11
-**Status:** Implemented 2026-09-10, not deployed. What changed, and what it costs:
+**Status:** Complete and deployed to staging and production on 2026-09-10. What changed, and what it costs:
 
 - **RSVP freeze.** `libs/db/src/rsvps.ts` gates create, cancel and restore on
   `starts_at > unixepoch()` inside the conditional write itself, so server time decides and no
@@ -421,10 +421,10 @@ Verification:
   still defaults disabled and still has no surface, which now costs nothing outside the same-day
   cancellation path. `push_enabled` is recorded by device registration, and push is reachable and
   proven as of 2026-09-10.
-- **Account-side evidence, read 2026-09-10:** all eight queues exist in both environments; both
-  notifications queues have one consumer and, correctly, zero producers until worker-jobs is
-  deployed with its new producer binding; both DLQs have zero consumers by design. The Durable
-  Object namespace does not exist yet — it is created by the first worker-jobs deploy.
+- **Account-side evidence:** all eight queues exist in both environments; the notifications queues
+  have their producer and consumer bindings, and both DLQs have zero consumers by design. The
+  `NotificationScheduleDO` namespace is deployed in both environments. Version IDs and run links
+  are recorded in [deployment evidence](./deployment-evidence.md#current-operational-snapshot--2026-09-14).
 
 Work:
 
@@ -435,12 +435,12 @@ Work:
   typed error and preserve the frozen going set used for attendance eligibility.
 - Replace one-minute D1 reminder polling with per-event Durable Object alarms feeding the
   Notifications Queue and a low-frequency recovery sweep.
-- Enforce PWA push first and Programmable SMS only as fallback (**as built; superseded by the ND-07
-  amendment above, which puts email in the fallback slot**); remove parallel default SMS/email
-  event reminders.
+- Enforce the active ND-07 policy: PWA push first, email fallback, and SMS only for same-day
+  cancellation disruption; remove parallel default SMS/email event reminders.
 - Verify notification preferences, idempotency, retry, DLQ, delivery observability, and the
   production/staging bindings already required by P1-009/P0-018.
-- Retain email only for authentication or an explicitly email-selected current workflow.
+- Retain email for authentication, the default event fallback, and explicitly email-selected
+  workflows.
 
 Verification:
 
@@ -457,7 +457,7 @@ Verification:
 
 **Parent:** P1-013, P1-019, P1-023
 **Requirements:** FR-E11 through FR-E13, FR-M4, FR-M7 through FR-M10; NFR-4, NFR-5, NFR-7, NFR-10, NFR-11
-**Status:** Implemented 2026-09-10, not deployable until PF-03b. What exists and what it costs:
+**Status:** Complete and deployed to staging and production on 2026-09-10. What exists and what it costs:
 
 - **The seven §7 tables** and their indexes, in `libs/db/src/schema.ts`, with migration `0025`.
 - **Every write is conditional and audited in the same batch.** A closeout, an attendance outcome
@@ -482,12 +482,10 @@ Verification:
 - **Retention runs in bounded market-scoped batches**: comments cleared at twelve months with the
   structured pulse kept, rows retired at twenty-four, aggregates never. Member withdrawal removes
   the person and keeps the meetup.
-- **The blocker to accept:** migration `0025` is quarantined in `libs/db/pending-migrations/`
-  because it follows `0021`-`0024` in the journal, and the quarantine test rejects a shipped
-  migration after a pending entry. CO-03's tables therefore exist in tests and in no deployed
-  environment. **PF-03b — promoting `0021`-`0024` — is now on the critical path**, and it is a
-  release ticket needing a recorded deployed version, a D1 recovery point and a rollback version.
-  Nothing in CO-04 onwards can reach an environment before it runs.
+- **Deployment evidence:** migration `0025` and its predecessors `0021`–`0024` were promoted in
+  journal order and applied to both environments. `libs/db/pending-migrations/` contains only its
+  README, and the quarantine guard passes. The applied versions and workflow links are recorded in
+  [deployment evidence](./deployment-evidence.md#current-operational-snapshot--2026-09-14).
 
 Work:
 
@@ -647,6 +645,9 @@ Verification:
   remains.
 
 ### CO-05 — Add host closeout and attendance in `apps/ui`
+
+**Status:** Complete in code and verified on staging on 2026-09-11; production promotion remains a
+release action. The six slices and the full-ticket audit below are the implementation record.
 
 **Slice 1 landed 2026-09-11 — the server layer.** `libs/server-fns/src/operations/` is the first
 thing above CO-03's database code to import it. `readCloseout` builds the host's roster from the
@@ -1121,8 +1122,9 @@ stubs/placeholders.
 
 ## 13. Definition of done
 
-- [ ] EC-01 through EC-10 are Complete with recorded handoff evidence before CO implementation starts.
-- [ ] P1-008 RSVP atomicity and P1-009/P0-018 notification architecture are no longer Blocked.
+- [x] EC-01 through EC-10 are Complete with recorded handoff evidence before CO implementation starts.
+- [x] CO-02/P0-018 notification architecture is deployed and no longer Blocked. P1-008 still has the
+      separate RSVP Turnstile gap tracked in the main implementation plan.
 - [ ] The weekly community-operations cadence has an owner and has been rehearsed with real evidence.
 - [ ] RSVP create/cancel/restore is atomic before `startsAt` and immutable at/after it, preserving a
       stable attendance-eligibility set.
@@ -1248,27 +1250,24 @@ prerequisite rather than a CO-01 deliverable:
 
 Roles are seeded explicitly and revoked explicitly; none is left standing after CO-11.
 
-### E. Configuration baseline, read from the account 2026-09-10
+### E. Configuration baseline, read from the account 2026-09-14
 
-| Surface             | State                                                                                                                                                  |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| D1                  | `founders-coffee-db-production` and `founders-coffee-db-staging`; `verified-prof` deleted 2026-09-10 (see F)                                           |
-| Workers             | 8 scripts — `ui`, `admin`, `dashboard`, `worker-jobs`, each in staging and production; production last modified 2026-09-04, staging 2026-09-05         |
-| Queues              | 8 — `notifications`, `embeddings-jobs`, `reconcile` and `dlq`, each per environment. All have one consumer except both DLQs, which correctly have none |
-| R2                  | `founders-coffee-assets-{dev,staging,production}`, created 2026-09-09 for PF-06, all empty, all WEUR                                                   |
-| Access applications | the API returns **zero**                                                                                                                               |
-| Analytics Engine    | not readable with the current token                                                                                                                    |
-| Secrets             | not readable by design; recorded from the EC-10 preflight rather than re-read                                                                          |
+| Surface             | State                                                                                                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1                  | `founders-coffee-db-production` and `founders-coffee-db-staging`; `verified-prof` deleted 2026-09-10 (see F)                                                     |
+| Workers             | 8 scripts — `ui`, `admin`, `dashboard`, `worker-jobs`, each in staging and production; CO-02/CO-03 are deployed in both, and CO-04/CO-05 are verified on staging |
+| Queues              | 8 — `notifications`, `embeddings-jobs`, `reconcile` and `dlq`, each per environment. All have one consumer except both DLQs, which correctly have none           |
+| R2                  | `founders-coffee-assets-{dev,staging,production}`, created 2026-09-09 for PF-06, all empty, all WEUR                                                             |
+| Access applications | staging and production admin applications are configured; staging Access correlation was verified on 2026-09-11                                                  |
+| Analytics Engine    | Public Worker binding and `events_created` write verified during EC-10; the current token cannot read account-side dashboards                                    |
+| Secrets             | not readable by design; recorded from the EC-10 preflight rather than re-read                                                                                    |
 
 ### F. Two things the baseline turned up
 
-**The admin app is unreachable by anyone, including the Founder.** `admin.founders.coffee` answers
-`403 {"error":"Missing Cf-Access-Jwt-Assertion"}`, which is the Worker's own guard failing closed and
-therefore correct. But with zero Access applications configured, no one can obtain an assertion to
-present. The double gate in §5.11 has its inner half built and its outer half absent. Nothing is
-exposed — this is a "cannot be used" rather than a "can be bypassed" — but _"define who may act as
-`admin`"_ has no working path until an Access application exists, and creating one is a Founder
-action on the dashboard.
+**Admin Access is configured, with environment-specific readiness.** The staging application was
+driven through Access and the admin-owned Better Auth session on 2026-09-11. The production admin
+Worker and Access application exist, but production still has zero operator accounts; it therefore
+remains unavailable to operators while continuing to fail closed without a valid assertion.
 
 **`verified-prof` was a D1 database belonging to a different product, and has been deleted.**
 Identified 2026-09-10: created 2026-01-20, holding a PascalCase schema — `User`, `Account`,

@@ -4,15 +4,32 @@ This file records account-side facts that repository code and CI cannot prove. D
 complete from configuration intent alone. Never record secrets, Turnstile responses, full IP
 addresses, session cookies, or personal test-account data.
 
+## Current operational snapshot — 2026-09-14
+
+The following dated deployment records supersede older “not deployed” and “pending migration” notes
+below. Those notes remain as historical release records, but they are not the current state.
+
+| Area                        | Staging                                                                                                                                                            | Production                                                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CO-02 alarm/Queue scheduler | Deployed by [run 34770191868](https://github.com/AmineYagoub/founders-coffee/actions/runs/34770191868), worker-jobs version `7524ef6c-7775-4586-baf7-7da5acfd15ff` | Deployed by [run 34489143025](https://github.com/AmineYagoub/founders-coffee/actions/runs/34489143025), worker-jobs version `4804e71b-ed5a-453d-9837-b4307afd2033` |
+| CO-03 operations schema     | Migration `0025` applied                                                                                                                                           | Migration `0025` applied                                                                                                                                           |
+| Profile contractions        | `0021` through `0025` applied in order by [run 34490988914](https://github.com/AmineYagoub/founders-coffee/actions/runs/34490988914)                               | `0021` through `0025` applied in order by [run 34492217711](https://github.com/AmineYagoub/founders-coffee/actions/runs/34492217711)                               |
+| Notification policy         | Latest staging code proves push first and email fallback; SMS is reserved for same-day cancellation                                                                | The deployed production CO-02 version predates ND-07 and still needs promotion of the current policy                                                               |
+
+The latest GEO push ([run 34777686347](https://github.com/AmineYagoub/founders-coffee/actions/runs/34777686347))
+failed only at `format:check` because `docs/implementation-plan.md` was not Prettier-clean; no
+migration or deployment job ran. The formatting fix in this change is intended to make that gate
+green on the next CI run.
+
 ## EC-06 event-create anti-abuse
 
-| Check                           | Staging                                                                                                      | Production                                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| WAF rule definition             | Shared Free-plan definition in `libs/infra/cloudflare/waf/free-shared-mutation-rate-limit-rule.json`         | Same zone-wide definition                                                                   |
-| WAF rule ID                     | `d11c283bee39488293e86d519e9c546d`                                                                           | `d11c283bee39488293e86d519e9c546d`                                                          |
-| Rule behavior                   | Verified on 2026-09-02: responses `403, 403, 403, 403, 403, 429` at a temporary five-request probe threshold | Configuration verified; behavioral probe blocked because the apex hostname does not resolve |
-| Turnstile widget/secret pairing | Not externally verified                                                                                      | Not externally verified                                                                     |
-| Worker evidence marker          | Uploaded as `true` on 2026-09-02                                                                             | Uploaded as `true` on 2026-09-02                                                            |
+| Check                           | Staging                                                                                                      | Production                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| WAF rule definition             | Shared Free-plan definition in `libs/infra/cloudflare/waf/free-shared-mutation-rate-limit-rule.json`         | Same zone-wide definition                                                    |
+| WAF rule ID                     | `d11c283bee39488293e86d519e9c546d`                                                                           | `d11c283bee39488293e86d519e9c546d`                                           |
+| Rule behavior                   | Verified on 2026-09-02: responses `403, 403, 403, 403, 403, 429` at a temporary five-request probe threshold | Verified in the 2026-09-04 production burst probe; the shared rule is active |
+| Turnstile widget/secret pairing | Not externally verified                                                                                      | Not externally verified                                                      |
+| Worker evidence marker          | Uploaded as `true` on 2026-09-02                                                                             | Uploaded as `true` on 2026-09-02                                             |
 
 ### 2026-09-02 Free-plan activation
 
@@ -33,8 +50,8 @@ The staging behavioral test temporarily narrowed the expression to the unique no
 requests reached the Worker and returned its normal `403`; the sixth returned WAF `429`. The final
 committed expression and 20-request threshold were restored and read back from Rulesets API version
 4 before both Worker evidence markers were uploaded. Production uses the same active zone rule, but
-its independent behavioral check remains pending because `founders.coffee` had no resolvable DNS
-record from the verification environment.
+its independent behavioral check was completed in the v0.1.0 production release after the Worker
+custom domain provisioned the apex record.
 
 ## EC-10 release verification — staging
 
@@ -197,10 +214,9 @@ Proven end to end on staging rather than assumed: a message posted to
 ```
 
 — the environment-suffixed name resolved to its catalogue name, the consumer ran, and the message
-was acked. Nothing produced into these queues at the time; CO-02 (2026-09-10) added the producer —
-a per-event `NotificationScheduleDO` alarm — but it is not deployed, so the account still shows zero
-producers on both notifications queues. Re-read 2026-09-10: all eight queues present in both
-environments, one consumer each, both DLQs correctly with none.
+was acked. At the time of this 2026-09-04 release record, nothing produced into the notifications
+queues. CO-02 subsequently added the per-event `NotificationScheduleDO` producer and was deployed to
+both environments; see the 2026-09-14 snapshot above. Both DLQs remain intentionally unconsumed.
 
 **The sponsor portal is unpublished.** `app.founders.coffee`'s custom domain
 (`1d629406ba19fc525a1c26448571667a83e5685b`) was deleted and its DNS record went with it; the zone
@@ -323,11 +339,10 @@ fixes it directly — the current `EventDetail` renders a cancellation notice fo
 | Firebase secrets, `worker-jobs` staging + production | `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT`                                                                                               |
 | Project coherence                                    | the sender id inside `FIREBASE_APP_ID` matches `FIREBASE_MESSAGING_SENDER_ID`; `FIREBASE_PROJECT_ID` matches the service account's `project_id` |
 
-The URL that was 404 for the life of the feature now serves the worker. **Nothing beyond that is
-proven**: registration, token minting and delivery all need a browser, and the Chrome extension was
-not connected for this session. ND-02 remains open.
+The URL that was 404 for the life of the feature now serves the worker. Registration, token minting
+and delivery were subsequently proven in the ND-02 browser run below.
 
-### ND-02 — push delivered end to end on staging, 2026-09-10
+### ND-02 — push delivered end to end on staging, 2026-09-10 ✅
 
 The first push notification this product has ever delivered. Driven through the real UI on
 `staging.founders.coffee`, signed in, against real FCM.
@@ -346,11 +361,12 @@ Each of the four payload defects is disproved by that last row: FCM accepted the
 exchange), the title rendered rather than `undefined` (data-only envelope read by `readPushPayload`),
 the click target is the event and not `/` (`pushUrl` now travels), and the icon path resolves.
 
-The refusal before a device existed was also correct: an earlier confirmation failed with
-`unreachable: push_not_enabled` and wrote no fallback, because the member had neither a live device
-nor a consented number.
+The refusal before a device existed was correct under the pre-ND-07 policy: an earlier confirmation
+failed with `unreachable: push_not_enabled` and wrote no fallback because the member had neither a
+live device nor a consented number. ND-07 now writes the email fallback when push is unavailable.
 
-**Open:** the notification rendered in Arabic while the browser was in English. `locale_pref` is null,
+**Remaining follow-up:** the notification rendered in Arabic while the browser was in English.
+`locale_pref` is null,
 so `resolveNotificationContext` falls back to the market default rather than the device cookie. By
 design — the server cannot see a device cookie — but a member reading English gets notified in Arabic.
 
@@ -395,7 +411,8 @@ Driven through a real browser on `admin-staging.founders.coffee`, signed in end 
 | Locale                        | rendered in Arabic RTL with the toggle present. Without that toggle every operator would have seen Arabic forever: `detectLocale` falls back to the base locale and cookies are host-scoped, so nothing on this origin could ever have set one |
 | Bidi                          | the address and the permission strings carry `dir="ltr"` inside the RTL document and read correctly                                                                                                                                            |
 
-Operator accounts: **staging one (`admin`), production zero** — confirmed by query. The production
-admin app is not deployed and gets no operator until it is.
+Operator accounts: **staging one (`admin`), production zero** — confirmed by query at the time of
+this 2026-09-11 check. The production admin Worker is deployed, but no production operator account
+has been provisioned yet.
 
 **Not covered:** DO/WAF rate limiting on sign-in, the one CO-04 bullet deliberately not built.

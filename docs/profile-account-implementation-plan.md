@@ -1,15 +1,15 @@
 # Profile and Account Management Implementation Plan
 
-| Field          | Value                                                                                                                                                                   |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | PF-01 through PF-07a complete locally and audited; four contractions quarantined and deliberately unexecuted; PF-07b onward planned; no remote migration or deployment  |
-| Decision date  | 2026-09-08                                                                                                                                                              |
-| Last reviewed  | 2026-09-09 — PF-07a implemented and audited against real D1                                                                                                             |
-| Owner          | Founder / Product                                                                                                                                                       |
-| Scope          | Location-free onboarding, editable profiles, privacy, photos, notifications, account security, export and deletion                                                      |
-| Parent tickets | P1-003, P1-004, P1-009, P1-013, P1-018, P1-021                                                                                                                          |
-| Requirements   | FR-A1 through FR-A11, FR-G2, FR-E7, FR-E8, FR-E12, FR-L1 through FR-L6, FR-M2; NFR-4, NFR-5, NFR-7 through NFR-12                                                       |
-| Related plans  | [Event creation](./event-creation-remediation-plan.md), [community operations](./community-operations-implementation-plan.md), [main roadmap](./implementation-plan.md) |
+| Field          | Value                                                                                                                                                                            |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | PF-01 through PF-03b, PF-04a/b, and PF-05 through PF-08 implemented; PF-03b and `0021`–`0025` deployed to staging and production; PF-04c and PF-09 onward remain planned/partial |
+| Decision date  | 2026-09-08                                                                                                                                                                       |
+| Last reviewed  | 2026-09-14 — deployment and migration evidence reconciled                                                                                                                        |
+| Owner          | Founder / Product                                                                                                                                                                |
+| Scope          | Location-free onboarding, editable profiles, privacy, photos, notifications, account security, export and deletion                                                               |
+| Parent tickets | P1-003, P1-004, P1-009, P1-013, P1-018, P1-021                                                                                                                                   |
+| Requirements   | FR-A1 through FR-A11, FR-G2, FR-E7, FR-E8, FR-E12, FR-L1 through FR-L6, FR-M2; NFR-4, NFR-5, NFR-7 through NFR-12                                                                |
+| Related plans  | [Event creation](./event-creation-remediation-plan.md), [community operations](./community-operations-implementation-plan.md), [main roadmap](./implementation-plan.md)          |
 
 ## 1. Approved product decisions
 
@@ -20,8 +20,12 @@ It is not a professional directory, recruiting product or social network.
 - Keep event market/state/city and city discovery. A browsing location is a device preference, not a statement about where the member lives.
 - Public profiles are minimal. Optional details are private until the member explicitly opts to publish them. Saving a detail and publishing it are separate choices.
 - Include full profile and account management: verified email/phone changes, connected login methods, active sessions, notification preferences, data export and account deletion.
-- Include custom photo upload, replacement and removal using R2 and Cloudflare Images. The user approved planning these services subject to checking cost and availability; provisioning or purchasing is not part of this documentation task.
-- Keep authentication passwordless, interface locales `ar`, `fr`, `en`, PWA push primary and SMS fallback. Do not add phone-login UI merely because verified contact management needs phone OTP.
+- Include custom photo upload, replacement and removal using private R2 storage and the Images
+  binding for transforms. PF-06 verified the free-tier decision and deployed the upload route and
+  per-environment resources; ongoing usage monitoring remains operational follow-up.
+- Keep authentication passwordless and interface locales `ar`, `fr`, `en`. PWA push is primary,
+  email is the default fallback, and SMS is reserved for same-day cancellation disruption. Do not
+  add phone-login UI merely because verified contact management needs phone OTP.
 - Collect only a display name beyond authentication. Never force optional profile enrichment before RSVP or event creation, and never discard the event draft during authentication or reauthentication.
 
 ## 2. Repository audit and patterns to follow
@@ -111,9 +115,10 @@ and account preferences have independent nonnegative revisions and reject stale 
 optional fields normalize to null/empty arrays and clear their publication flags where applicable.
 Introductions have no language metadata or publication flag. Only owned, processed, attached photo assets can be delivered as public avatars; no photo publication flag exists.
 
-Event updates, reminders and host updates default enabled as category preferences; follow-up prompts,
-push and SMS fallback default disabled. Category defaults are not channel consent. SMS consent time
-is server-owned and requires a currently verified nonempty phone; withdrawing consent clears it.
+Event updates, reminders and host updates default enabled as category preferences; follow-up prompts
+and push default disabled. Category defaults are not channel consent. Email fallback needs no separate
+consent; SMS is server-controlled for same-day cancellation disruption and is not a general reminder
+preference.
 `user.locale_pref` stays the only persisted interface locale; null retains cookie → market → `ar`
 resolution. PF-08 must migrate existing delivery deliberately: PF-02 does not change active sending.
 
@@ -121,9 +126,13 @@ resolution. PF-08 must migrate existing delivery deliberately: PF-02 does not ch
 
 Keep `/profile` as the authenticated entry point, with accessible sections or nested routes for:
 
-1. **Profile:** edit identity and optional introduction fields; save/cancel per section, explicit publish controls, read-only preview of the exact public projection.
+1. **Profile:** edit identity and optional introduction fields; save/cancel per section and explicit
+   publish controls. The public projection is viewed on its standalone profile route, not in an
+   embedded editor preview.
 2. **My activity:** owner-only links/lists for upcoming RSVPs and hosted events; reuse event actions and CO-owned closeout/feedback flows rather than duplicating them.
-3. **Preferences:** interface language, notification categories, current-device push state, SMS fallback consent and a control to forget browsing location on this device.
+3. **Preferences:** interface language, notification categories, current-device push state and a
+   control to forget browsing location on this device. SMS consent is not exposed in the UI; the
+   same-day cancellation path is server-controlled.
 4. **Account and security:** verified email/phone, enabled connected providers, sessions, sign out of this/other devices, export and deletion.
 
 No home address, home city, map, residence hint or location completeness score appears on this page.
@@ -182,7 +191,7 @@ Until then, do not describe budgets as centrally governed.
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `getMyProfile` / `updateMyProfile`            | Owner DTO; allowlisted editable fields plus expected revision; return saved projection/revision; never accept owner/role/contact verification flags |
 | `getPublicProfile` / `listHostedEvents`       | Validated user ID; explicit market filter and bounded cursor for event history; public projection only                                              |
-| `getMyPreferences` / `updateMyPreferences`    | Validated locale/category/channel settings, SMS consent and revision; return actual saved policy                                                    |
+| `getMyPreferences` / `updateMyPreferences`    | Validated locale/category/channel settings and revision; return the actual saved policy, with same-day SMS reserved server-side                     |
 | `uploadMyPhoto` / `removeMyPhoto`             | Bounded multipart body through protected Worker, owned asset ID and revision; return processing/active state; uploaded avatar is public             |
 | `getMyAccount` / contact verification actions | Masked contact/provider status; Better Auth verified change flow; recent action-bound proof and no secret-bearing responses                         |
 | `listMySessions` / revoke actions             | Opaque owner-bound session IDs, current-session indicator; protect matching device delivery and invalidate auth/cache state                         |
@@ -214,12 +223,22 @@ default to `noindex`; public event discovery remains unchanged.
 
 1. Inventory every live reference, auth additional field, session payload, fixture, loader, privacy string and export path; distinguish historical migration records from active code.
 2. Deploy additive profile/preferences schemas and explicit response projection. Stop reading and writing home fields; retire `setHomeLocation` and geography onboarding safely. Old clients receive a typed refresh-required failure and cannot resume location writes.
-3. After the deployed fleet no longer depends on the columns, apply a reviewed Drizzle migration to remove `home_market_code`, `home_state`, `home_city_id` and the relevant FK. Do not copy their values into a renamed preference/profile table. "No longer depends" is a **recorded Worker version on every environment**, not elapsed time; PF-03b names that version in its release evidence.
+3. **Completed by PF-03b on 2026-09-10.** After the deployed fleet stopped depending on the columns,
+   the reviewed Drizzle migrations removed `home_market_code`, `home_state`, `home_city_id` and the
+   relevant FK in journal order. The recorded staging/production Worker versions and D1 evidence are
+   in [deployment evidence](./deployment-evidence.md#current-operational-snapshot--2026-09-14). No
+   residence values were copied into a renamed preference/profile table.
 4. Test populated migration histories on local D1 and staging; verify users, sessions, events, RSVPs, market codes and FK integrity are preserved. Invalidate auth snapshots and cached responses containing the removed values.
-5. **Test the intermediate state, not only the endpoints.** Between the PF-03a release and the PF-03b promotion, production runs code that never mentions residence against a schema that still has the columns and their FK — and that window is as long as the operator's confidence takes. `libs/db/src/setup.ts` applies `TEST_MIGRATIONS`, which includes the pending contraction, so every repository and RPC test currently proves only the _contracted_ schema. PF-03a adds a suite that builds the database from the migrations **minus** the contraction and runs the profile repositories, a user insert and an auth sign-in against it. The columns are nullable today, so the state is expected to be safe; the test is what keeps a later `NOT NULL` from breaking signup for the length of that window.
-6. **Guard the quarantine mechanically.** `migrations/meta/_journal.json` and the 0021 snapshot are committed while `0021_remove_profile_residence.sql` sits in `libs/db/pending-migrations/`, so the next `db:generate-migrations` diffs against the contracted schema and emits an 0022 that assumes 0021 applied. A README is not a guard. The quarantine test fails when a shipped migration follows a pending journal entry. A fully pending suffix is allowed for user-requested schema changes, but must be promoted in journal order.
+5. **The intermediate state was tested and closed.** PF-03a exercised the repositories and auth flow
+   against the pre-contraction schema; PF-03b then promoted the contraction after the compatible
+   Worker versions were recorded. The live fleet now uses the contracted schema.
+6. **The quarantine was promoted mechanically.** The journal guard rejected out-of-order suffixes,
+   so `0021` through `0025` were moved into `libs/db/migrations/` and applied in order. The pending
+   directory now contains only its README, and the guard remains in CI for future migrations.
 7. Historical SQL/snapshots remain immutable. Document existing backup retention and expiry; dropping active columns does not erase older backups. Restore procedures must rerun the privacy migration before serving traffic.
-8. Roll back application behavior only to a location-independent compatible version. After data removal, never restore home data as an ordinary rollback. No remote migration runs as part of writing this plan.
+8. Roll back application behavior only to a location-independent compatible version. After data
+   removal, never restore home data as an ordinary rollback. PF-03b is a completed release action;
+   future destructive schema work still requires the same operator-authorized runbook.
 
 ## 5. Account security and service contracts
 
@@ -302,7 +321,8 @@ prompts. Authentication/security messages remain a separate necessary category, 
 no marketing opt-in is bundled with joining. Optional event delivery can be disabled, with a clear
 statement that event information remains available in the app.
 
-Push is first choice; SMS fallback requires a verified phone and affirmative consent. Show separate
+Push is first choice and email is the default fallback. SMS is reserved for same-day cancellation
+disruption and is server-controlled rather than a member-facing consent toggle. Show separate
 states for unsupported browser, not installed where installation is required, not requested, denied,
 granted but unregistered, registered and delivery unavailable. Permission prompts follow a user
 gesture; a switch cannot override a browser denial. Removing phone/consent disables fallback without
@@ -354,11 +374,13 @@ carries no profile data and is bounded by the retention policy above, then purge
 Each ticket is one reviewable mission/PR with its own tests. Four stages were too large to review as
 a single PR and are split into lettered tickets: PF-03a/b, PF-04a/b/c, PF-07a/b/c/d and PF-11a/b. The
 stage numbers keep their meaning — nine other documents cite `PF-04` and `PF-11`, and a dependency on
-`PF-04` means the whole stage — so nothing is renumbered. PF-01 and PF-02 are complete locally and
-audited; PF-03a is in progress on the working tree; PF-03b onward remain planned. Parent P1-004 owns the
+`PF-04` means the whole stage — so nothing is renumbered. PF-01 through PF-03b and PF-05 through PF-08
+are implemented; PF-03b and migrations `0021`–`0025` are deployed in both environments. PF-04c is
+reopened for the private activity surface, and PF-09 onward remain planned. Parent P1-004 owns the
 profile lane; P1-003 owns auth changes, P1-009 delivery integration, P1-013 moderation integration,
 P1-018 security and P1-021 release evidence. Requirements below reference the SRS, including the
-new approved profile/account requirements; writing this document does not mark their code complete.
+new approved profile/account requirements; implementation and deployment evidence are called out
+per ticket rather than inferred from the plan alone.
 
 ### PF-01 — Freeze contracts and reconcile integration boundaries
 
@@ -369,7 +391,9 @@ inventory and recorded EC handoff reconciliation are captured in §9. No live se
 or event-security policy change was performed.
 
 - Adopt the field/visibility contracts, narrow global-identity exception and location-free completion rule in the engineering/SRS references before code changes.
-- Reconcile recorded EC status with its release evidence; the EC plan reports EC-10 complete but an outstanding production smoke action, while the roadmap/CO baseline retain older status. Do not invent live completion evidence or silently reorder CO work.
+- Reconcile recorded EC status with its release evidence; EC-10 and the authorized production smoke
+  are signed off, while older roadmap/CO notes are historical. Do not invent live completion evidence
+  or silently reorder CO work.
 - Inventory affected tables, query keys, auth endpoints, current policies, image resources, notification contracts and data deletion dependencies. Identify any new dependency/service approval before installation.
 - Acceptance: traceability and endpoint/field matrices reviewed; no unknown home-location consumer, duplicate ownership or unresolved contract hidden as implementation work.
 
@@ -377,8 +401,8 @@ or event-security policy change was performed.
 
 **Requirements:** FR-A1, FR-A6, FR-A7, FR-A9, FR-A11; NFR-4, NFR-5, NFR-10. **Depends on:** PF-01.
 
-**Status:** Complete locally and audited, 2026-09-08. Migration `0020_profile_foundation.sql`
-is additive and has not been applied to staging or production. Endpoint/UI wiring remains PF-03/04.
+**Status:** Complete and audited, 2026-09-08. Migration `0020_profile_foundation.sql` was applied
+before the ordered `0021`–`0025` promotion; endpoint/UI wiring is covered by PF-03/04.
 
 - Add shared Zod schemas, enums, field limits, explicit DTOs, profile revision and publication defaults; keep auth data authoritative in Better Auth.
 - Add Drizzle migrations/repositories for profile, preferences, asset metadata and session/device subscription association; initialize old users with no optional public disclosure. PF-07/08 require fresh registration or safe withdrawal for legacy unassociated subscriptions before enforcing the new delivery policy; PF-02 leaves existing delivery untouched and never guesses session ownership.
@@ -387,7 +411,7 @@ is additive and has not been applied to staging or production. Endpoint/UI wirin
 ### PF-03a — Replace profile API and remove location onboarding
 
 **Requirements:** FR-A3, FR-A4, FR-A6, FR-A7; NFR-4, NFR-7, NFR-10, NFR-11. **Depends on:** PF-02.
-**Status:** in progress on the working tree, uncommitted.
+**Status:** Complete and deployed to staging and production with PF-03b on 2026-09-10.
 
 - Split the legacy profile server module into small RPC/resolver/repository responsibilities; add owner/public projections and complete mutation protection. Retire the location mutation to a typed `client_refresh_required` tombstone rather than deleting the route.
 - Remove geographic loaders, auth completion checks and redirects from standalone OTP/OAuth/onboarding and the inline host gate; ask only for a missing display name. Preserve normalized safe return paths, drafts and the already-requested inline publish intent.
@@ -400,16 +424,24 @@ is additive and has not been applied to staging or production. Endpoint/UI wirin
 
 **Requirements:** FR-A3; NFR-4, NFR-5, NFR-10. **Depends on:** PF-03a deployed to every environment.
 
+**Status:** Complete — migrations `0021` through `0025` were promoted in journal order and applied
+to staging and production on 2026-09-10. See [deployment evidence](./deployment-evidence.md#current-operational-snapshot--2026-09-14).
+
 This is the plan's only irreversible data action and it gets its own ticket so it cannot ride along
 inside a feature PR. It is a release, not a code change: the SQL is already written and reviewed.
 
 - Confirm and record the deployed Worker version on staging and production, the D1 recovery point and the compatible rollback version, per §4 step 3.
-- Move `0021_remove_profile_residence.sql` unchanged from `libs/db/pending-migrations/` into `libs/db/migrations/`, then apply it through the canonical worker-jobs Wrangler config. Never split the file into separate executions.
+- ~~Move `0021_remove_profile_residence.sql` unchanged from `libs/db/pending-migrations/` into
+  `libs/db/migrations/` and apply it through the canonical worker-jobs Wrangler config.~~ Completed
+  as the ordered `0021`–`0025` promotion on 2026-09-10; the pending directory now contains only its
+  README. Never split future contractions into separate executions.
 - Acceptance: staging rehearsal on populated data first; users, sessions, events, RSVPs, market codes and FK integrity preserved; home columns absent from the live schema; auth snapshots and cached responses carrying removed values invalidated; the quarantine guard passes again with the file promoted. **Deployment is user-triggered — this ticket is prepared, never executed on the implementer's initiative.**
 
 ### PF-04a — Profile shell and identity editing
 
 **Requirements:** FR-A6, FR-L1 through FR-L5; NFR-8, NFR-9. **Depends on:** PF-03a.
+
+**Status:** Complete and included in the 2026-09-10 staging/production release.
 
 - Move profile components to `features/profile/components`; add section navigation and shared query options with owner-keyed cache keys and centralized invalidation.
 - Implement display-name editing with save/cancel per section, revision conflict handling with reload/reapply, preserved values after failure, rejected duplicate saves while pending, and `aria-live` save status.
@@ -420,9 +452,15 @@ inside a feature PR. It is a release, not a code change: the SQL is already writ
 
 **Requirements:** FR-A6, FR-A7, FR-L1 through FR-L5; NFR-5, NFR-8. **Depends on:** PF-04a.
 
+**Status:** Complete and included in the 2026-09-10 staging/production release. The embedded
+editor preview was removed by the 2026-09-09 UI amendment; the standalone public profile remains the
+projection contract.
+
 - Implement introduction, interests, spoken languages and personal website against the frozen PF-01 contracts, including code-point counters that match the schema rather than UTF-16 length.
 - Implement the individual publish switches, the rule that clearing a field clears its flag, and a read-only preview of the exact public projection.
-- Acceptance: every field can be saved and cleared; switching publication off removes the field from the public projection in the same test that asserts the owner still sees it; the preview and the public API agree field for field.
+- Acceptance: every field can be saved and cleared; switching publication off removes the field from
+  the public projection in the same test that asserts the owner still sees it. The public API and
+  the standalone public profile route agree field for field; the editor has no embedded preview.
 
 ### PF-04c — Hosted event history
 
@@ -452,6 +490,8 @@ writes one, so no held evidence exists yet.
 
 **Requirements:** FR-A6, FR-A7, FR-M2; NFR-4, NFR-5. **Depends on:** PF-04a, PF-04b.
 
+**Status:** Complete and included in the 2026-09-10 staging/production release.
+
 - Audit SSR, search metadata, APIs, session snapshots, service worker caches, exports and logs for implicit disclosure. Add no-store/private boundaries and logout/account-switch cleanup.
 - Enforce publication and existing moderation restrictions server-side. Share CO-09 visibility decisions instead of creating a second moderation system; implement that adapter when CO-09 lands.
 - Protect raw update-user endpoints from mass assignment and preserve user edits across OAuth refresh/linking. Public system roles and contact-derived name fallbacks are forbidden.
@@ -460,6 +500,9 @@ writes one, so no held evidence exists yet.
 ### PF-06 — Deliver managed profile photos
 
 **Requirements:** FR-A11, FR-A6; NFR-4, NFR-5, NFR-8, NFR-12. **Depends on:** PF-02, PF-03a, PF-05.
+
+**Status:** Complete and included in the 2026-09-10 staging/production release. R2/Images bindings
+and avatar delivery are live; the follow-up notes below preserve the operator verification details.
 
 - Provision one **private** R2 bucket per environment — never one bucket shared across them — and declare the `r2_buckets` and `images` bindings plus their types in `apps/ui/wrangler.jsonc` and `apps/worker-jobs/wrangler.jsonc` under the existing per-environment convention. No Cloudflare Images storage subscription; see §5 for the cost decision and the figures behind it.
 - Implement the provider on the existing `R2ImageProvider` seam in `libs/infra/src/images/provider.ts`, which today is a read-only `fetch(key)` and has no upload, validation, normalization or cleanup.
@@ -471,6 +514,8 @@ writes one, so no held evidence exists yet.
 
 **Requirements:** FR-A8, FR-E8; NFR-4, NFR-5. **Depends on:** PF-02.
 
+**Status:** Complete and included in the 2026-09-10 staging/production release.
+
 This is delivery-path work, not account settings. It was previously a bullet inside the contact and
 session ticket, where it would have been reviewed by whoever reviews settings UI. PF-07c, PF-07d,
 PF-08 and CO-02 all consume it, so it stands alone and lands first.
@@ -481,6 +526,8 @@ PF-08 and CO-02 all consume it, so it stands alone and lands first.
 ### PF-07b — Account and security section and account read model
 
 **Requirements:** FR-A4, FR-A8; NFR-4, NFR-5, NFR-7, NFR-8. **Depends on:** PF-04a, PF-05.
+
+**Status:** Complete and included in the 2026-09-10 staging/production release.
 
 The design study's fourth screen had no ticket of its own. Its six capabilities were each owned —
 contact changes, login methods, sessions, export, deletion — but the page that shows them, and the
@@ -501,6 +548,8 @@ explanatory dialog instead of doing the thing is the inert settings control §7 
 
 **Requirements:** FR-A4; NFR-4, NFR-5, NFR-7. **Depends on:** PF-03a, PF-05, PF-07a, PF-07b.
 
+**Status:** Complete and included in the 2026-09-10 staging/production release.
+
 - Attach the email **change** and phone **add/change** actions to the PF-07b rows.
 
 - Configure the installed Better Auth email and phone update flows with recent-action verification through shared protected adapters. Never edit verified contact columns directly.
@@ -511,6 +560,8 @@ explanatory dialog instead of doing the thing is the inert settings control §7 
 
 **Requirements:** FR-A8; NFR-4, NFR-5, NFR-7. **Depends on:** PF-07b, PF-07c.
 
+**Status:** Complete and included in the 2026-09-10 staging/production release.
+
 - Attach the **manage** actions to the login-methods and connected-devices rows: provider linking/unlinking, and session summaries with owner-bound opaque session IDs, a current-session indicator and revoke-one/revoke-others.
 - Prevent lockout, privilege escalation, bypass through direct auth endpoints and OAuth overwrites of member-edited names, photos or publication choices.
 - Acceptance: concurrent last-usable-method removal is rejected atomically; own- and other-session revocation removes matching device delivery through the PF-07a guard; no DTO carries a token; real provider staging checks pass.
@@ -519,20 +570,26 @@ explanatory dialog instead of doing the thing is the inert settings control §7 
 
 **Requirements:** FR-A9, FR-E8, FR-L3, FR-L6; NFR-4, NFR-5, NFR-9. **Depends on:** PF-04, PF-07a (the guard, not the whole of PF-07) and CO-02.
 
+**Status:** Complete and included in the 2026-09-10 staging/production release. Staging proves the
+current push/email delivery path; production still needs the post-CO-02 ND-07 policy promotion.
+
 - Persist locale with cookie/session/SSR consistency, channel/category preferences and SMS consent. Model device/session subscription ownership and expose browser permission/service states truthfully.
 - Reuse producer/dispatch/fallback policy and CO-02 alarm/Queue infrastructure. Resolve current eligible contact at dispatch, and remove delivery to revoked sessions/devices, signed-out shared devices or deleted users.
-- Acceptance: real local Queue/DO/D1 tests show opted-out categories never dispatch, push failure uses only eligible SMS, queued old contacts are not used, and all three locales are honored. Verify enabled providers on staging before labeling controls operational.
+- Acceptance: real local Queue/DO/D1 tests show opted-out categories never dispatch, push failure uses
+  only the active email fallback, queued old contacts are not used, and all three locales are honored.
+  Verify enabled providers on staging before labeling controls operational; ND-02 records that proof.
 
 ### PF-09 — Implement private data export
 
 **Requirements:** FR-A10; NFR-4, NFR-5, NFR-7. **Depends on:** PF-05, PF-07b, PF-07c.
 
-Export deliberately does **not** depend on PF-06. Photo storage is gated on R2/Images entitlement and
-cost that §5 says were never verified, and a member's ability to take their data out should not inherit
-a provisioning decision that may not survive its own cost review.
+Export deliberately does **not** depend on the PF-06 upload implementation. Photo storage is live,
+but the export ticket still owns its snapshot schema and explicit decision about including processed
+photo bytes; a member's ability to take their data out must not depend on an unrelated UI route.
 
 - Implement an owner-authorized, bounded snapshot/export with durable progress if required, explicit field allowlists, short-lived download access, expiry and cleanup.
-- Until PF-06 lands, the archive lists photo asset metadata and states plainly that no binary is included; the export's stated omissions are part of its contract. Photo bytes join the archive with PF-06 and bump the snapshot schema version.
+- The archive must list photo asset metadata and state explicitly whether processed photo bytes are
+  included; any omission is part of its contract. Adding bytes later requires a snapshot schema bump.
 - Include CO-owned data through its repositories when those schemas exist; require corresponding adapters before releasing an export that claims completeness for that schema version.
 - Attach the **your data** row on the PF-07b screen: what the archive contains, a request action, a named job state while it builds, a download that expires, and an honest failure. A finished-looking control over an unfinished job is the thing this plan refuses everywhere else.
 - Acceptance: two users cannot access each other's exports; secrets/other members' data stay absent; pagination covers all permitted rows; expired/deleted-account downloads fail; retries and cleanup work; the request, pending, ready, expired and failed states each render in all three locales.
@@ -572,32 +629,38 @@ a provisioning decision that may not survive its own cost review.
 
 - EC owns event creation, venue/schedule persistence and submission. PF-03a changes only identity completion/return wiring; it must rerun EC regressions, including the current inline OTP continuation, and must not reintroduce location onboarding or silently alter the current event security decision.
 - CO retains its existing immediate-after-EC priority. This plan adds a P1-004 lane and does not authorize silently replacing CO-01 as the next mission. Selecting a PF ticket for execution is a separate task from writing this plan.
-- PF-01 through PF-07d can progress independently of CO delivery once their own dependencies are satisfied. PF-08 waits for CO-02; PF-09/10 require adapters for every deployed operational schema; PF-11a completes the CO-facing integration. None of these dependencies makes CO depend on the full profile redesign.
-- PF-03b is a release, not development work. It can wait indefinitely behind PF-03a without blocking any other ticket: everything downstream reads the contracted Drizzle schema, and the residual columns are inert. Do not treat a long quarantine as a problem to rush.
+- PF-01 through PF-08 are implemented; PF-09/10 require adapters for every deployed operational
+  schema; PF-11a completes the CO-facing integration. None of these dependencies makes CO depend on
+  the full profile redesign.
+- PF-03b was a release, not development work. It is complete, and the contracted Drizzle schema is
+  now the live schema in both environments; future contractions must still use the ordered migration
+  gate.
 - CO-03 designs retained references and deletion-compatible FKs; CO-05 owns closeout evidence, CO-06 feedback, CO-09 moderation/trust. PF owns member controls, public projection and account lifecycle orchestration; no duplicate retention or authorization implementation.
-- PF-01 reconciled event/CO status from dated repository release evidence rather than a new live verification, and recorded the authorized production creation smoke as outstanding. That smoke was performed and verified on 2026-09-10, so EC-10 is signed off and CO-01 is the immediate next work package. No PF ticket was ever gated on it; PF-08 is gated on CO-02, which follows CO-01.
+- PF-01 reconciled event/CO status from dated repository release evidence rather than a new live
+  verification. The authorized production creation smoke was performed and verified on 2026-09-10,
+  so EC-10 is signed off; PF-08 and CO-02 are now released, while PF-09 is the next profile ticket.
 
-Recommended execution order inside this lane is PF-01 → PF-02 → PF-03a → PF-04a → PF-04b → PF-04c →
-PF-05, then PF-06 and PF-07a → PF-07b → PF-07c → PF-07d in parallel, then PF-08 → PF-09 → PF-10 → PF-11a →
-PF-11b → PF-12 when CO dependencies permit. PF-03b is scheduled by the operator once PF-03a has been
-live on every environment long enough to record the version. Ship each vertical slice only when its
-behavior is real; unfinished services do not get inert settings controls.
+Recommended execution order inside this lane was PF-01 → PF-02 → PF-03a → PF-04a → PF-04b → PF-04c →
+PF-05, then PF-06 and PF-07a → PF-07b → PF-07c → PF-07d in parallel, followed by PF-08. PF-03b was
+promoted by the operator on 2026-09-10. PF-04c remains reopened for private activity; PF-09 → PF-10
+→ PF-11a → PF-11b → PF-12 are the remaining sequence when CO dependencies permit. Ship each vertical
+slice only when its behavior is real; unfinished services do not get inert settings controls.
 
 ## 8. Verification matrix and completion checklist
 
-| Layer                 | Required evidence                                                                                                                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Domain                | Unicode limits, clearing, visibility projection, allowed links/enums/locales, ownership and notification/deletion policy                                |
-| D1/Miniflare          | Populated migrations, FK integrity, conditional saves, concurrency, session/device ownership, deletion/counter/retention invariants                     |
-| Pre-contraction state | Repositories, user insert and auth sign-in against the schema **without** the pending contraction — the state production runs between PF-03a and PF-03b |
-| Migration quarantine  | A shipped migration cannot follow a pending journal entry; pending suffixes are promoted strictly in order                                              |
-| Server/auth           | Every mutation's permission/rate-limit/Turnstile failures; raw auth endpoint bypass; fresh proof; no mass assignment; no public PII                     |
-| R2/Images             | Owned private originals, real local bucket, staged transforms, metadata stripping, quota limits, failure recovery, withdrawn URL denial                 |
-| Delivery              | Current preferences/contact at production and dispatch, eligible fallback, revoked-device/deleted-user suppression, durable retries                     |
-| Components            | All states, error focus, save/cancel/conflict, keyboard dialogs, field publication, locale changes, private session/token handling                      |
-| Browser local/staging | OTP/OAuth location-free onboarding; create draft return; edit/public preview; photos; contact verification; session revoke; opt-out; export/delete      |
-| Privacy               | Anonymous vs owner vs second user, SSR/metadata/SW/cache/log inspection, old-photo access, sign-out/account-switch isolation                            |
-| Release               | Versioned evidence, migration runbook, provider/WAF checks, sanitized artifacts and tested rollback/recovery                                            |
+| Layer                 | Required evidence                                                                                                                                                      |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain                | Unicode limits, clearing, visibility projection, allowed links/enums/locales, ownership and notification/deletion policy                                               |
+| D1/Miniflare          | Populated migrations, FK integrity, conditional saves, concurrency, session/device ownership, deletion/counter/retention invariants                                    |
+| Pre-contraction state | Historical PF-03a rehearsal against the schema before the residence contraction; live environments now use the contracted schema                                       |
+| Migration quarantine  | `0021`–`0025` were promoted strictly in order; the guard remains active for future suffixes                                                                            |
+| Server/auth           | Every mutation's permission/rate-limit/Turnstile failures; raw auth endpoint bypass; fresh proof; no mass assignment; no public PII                                    |
+| R2/Images             | Owned private originals, real local bucket, staged transforms, metadata stripping, quota limits, failure recovery, withdrawn URL denial                                |
+| Delivery              | Current preferences/contact at production and dispatch, eligible fallback, revoked-device/deleted-user suppression, durable retries                                    |
+| Components            | All states, error focus, save/cancel/conflict, keyboard dialogs, field publication, locale changes, private session/token handling                                     |
+| Browser local/staging | OTP/OAuth location-free onboarding; create draft return; profile editor without embedded preview; photos; contact verification; session revoke; opt-out; export/delete |
+| Privacy               | Anonymous vs owner vs second user, SSR/metadata/SW/cache/log inspection, old-photo access, sign-out/account-switch isolation                                           |
+| Release               | Versioned evidence, migration runbook, provider/WAF checks, sanitized artifacts and tested rollback/recovery                                                           |
 
 Everything above except the browser and release rows runs in CI. The public DTO contract test, the
 pre-contraction suite and the quarantine guard are gates, not advisory checks: a leak, a broken
@@ -626,19 +689,19 @@ weaken bot controls, echo deployed OTPs or add test-only production routes to ma
 
 ### Contract and integration inventory
 
-| Consumer / boundary                | Audited files or contracts                                                                                                       | Follow-up owner                                                                                                 |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Identity storage and auth payloads | `libs/db/src/schema.ts`; `libs/auth/src/auth.ts` additional home fields; `libs/db/src/db.test.ts` fixture                        | PF-03 removes active home fields after compatible deployment; historical migrations remain immutable            |
-| Profile reads/writes               | `libs/server-fns/src/profile.ts` and barrel; `features/profile/api.ts` / `hooks.ts`; owner/public DTOs and `setHomeLocation`     | PF-03 replaces unsafe projections and mutation; session-derived owner, no client-selected owner                 |
-| Location UI and completion         | `routes/profile.tsx`, `routes/onboarding.tsx`; `ProfilePage`, `OnboardingPage`, `LoginPage`                                      | PF-03 removes geography and completion gate                                                                     |
-| Public identity and events         | `routes/u.$userId.tsx`, `PublicProfilePage`, event host identity                                                                 | PF-03/04 explicit public projection, no contact fallback, correct event pagination/aggregates                   |
-| Inline authentication              | `HostSignInGate`, `useHostCreateWizard`, safe redirects and wizard draft                                                         | PF-03 preserves OTP pending-publish continuation and OAuth explicit Publish                                     |
-| Copy                               | `libs/i18n/messages/{ar,fr,en}.json` onboarding/profile keys; `apps/ui/src/content/company/privacy.ts` localized privacy content | PF-03 updates onboarding; PF-11 completes runtime legal/help copy with shipped behavior                         |
-| Cache isolation                    | Current `['profile','me']` and `['profile','public',userId]`; Better Auth session cache, event-created cache, Router/Serwist     | PF-03/04 owner-keyed queries and invalidation; PF-05 full SSR/metadata/cache withdrawal audit                   |
-| Better Auth alternate endpoints    | Update-user, email-OTP change, phone-number update, link/unlink, list/revoke sessions, delete-user                               | PF-05/07/10 protect raw paths as well as facade; no second OTP implementation                                   |
-| Photos                             | Existing `ImageProvider`, absent public R2/Images bindings, new owned `profile_assets`                                           | PF-06 verifies entitlement/cost before approved provisioning and implements processing/cleanup                  |
-| Delivery                           | Existing push RPC/provider, notification producer/dispatcher/sweeper, deployed-environment Queue consumers, no DO alarm producer | CO-02 owns scheduling; PF-07 revocation/current destination guard; PF-08 preferences at production and dispatch |
-| Retained data                      | Cascading user FKs to events/RSVPs/notifications; future CO-03/05/06/09 data                                                     | PF-10 must replace unsafe raw deletion; no deletion endpoint added here                                         |
+| Consumer / boundary                | Audited files or contracts                                                                                                       | Follow-up owner                                                                                                          |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Identity storage and auth payloads | `libs/db/src/schema.ts`; `libs/auth/src/auth.ts` additional home fields; `libs/db/src/db.test.ts` fixture                        | PF-03 removes active home fields after compatible deployment; historical migrations remain immutable                     |
+| Profile reads/writes               | `libs/server-fns/src/profile.ts` and barrel; `features/profile/api.ts` / `hooks.ts`; owner/public DTOs and `setHomeLocation`     | PF-03 replaces unsafe projections and mutation; session-derived owner, no client-selected owner                          |
+| Location UI and completion         | `routes/profile.tsx`, `routes/onboarding.tsx`; `ProfilePage`, `OnboardingPage`, `LoginPage`                                      | PF-03 removes geography and completion gate                                                                              |
+| Public identity and events         | `routes/u.$userId.tsx`, `PublicProfilePage`, event host identity                                                                 | PF-03/04 explicit public projection, no contact fallback, correct event pagination/aggregates                            |
+| Inline authentication              | `HostSignInGate`, `useHostCreateWizard`, safe redirects and wizard draft                                                         | PF-03 preserves OTP pending-publish continuation and OAuth explicit Publish                                              |
+| Copy                               | `libs/i18n/messages/{ar,fr,en}.json` onboarding/profile keys; `apps/ui/src/content/company/privacy.ts` localized privacy content | PF-03 updates onboarding; PF-11 completes runtime legal/help copy with shipped behavior                                  |
+| Cache isolation                    | Current `['profile','me']` and `['profile','public',userId]`; Better Auth session cache, event-created cache, Router/Serwist     | PF-03/04 owner-keyed queries and invalidation; PF-05 full SSR/metadata/cache withdrawal audit                            |
+| Better Auth alternate endpoints    | Update-user, email-OTP change, phone-number update, link/unlink, list/revoke sessions, delete-user                               | PF-05/07/10 protect raw paths as well as facade; no second OTP implementation                                            |
+| Photos                             | PF-06 `ImageProvider`, private per-environment R2/Images bindings, and owned `profile_assets` are deployed                       | Continue free-tier usage monitoring and bounded cleanup; no public originals or visibility toggle                        |
+| Delivery                           | Notification producer/dispatcher/sweeper plus `NotificationScheduleDO` are deployed; staging push/email fallback is proven       | CO-02 owns scheduling; PF-07 revocation/current destination guard; PF-08 preferences; production ND-07 promotion remains |
+| Retained data                      | Cascading user FKs to events/RSVPs/notifications; future CO-03/05/06/09 data                                                     | PF-10 must replace unsafe raw deletion; no deletion endpoint added here                                                  |
 
 This inventory intentionally distinguishes home fields from event geography and device browsing
 preferences. Existing `back_home` navigation copy is unrelated and is not a residence consumer.
@@ -651,8 +714,9 @@ The EC plan's 2026-09-03 release verification records 18/18 staging browser case
 events, request/log correlation and cleanup. `deployment-evidence.md` records production v0.1.0
 on 2026-09-04, its DNS/WAF verification, then v0.2.0/v0.3.0. The later records supersede old claims
 that staging creation or production DNS was still blocked. The authorized production creation smoke
-is explicitly still outstanding. Roadmap, release strategy and CO baseline now distinguish those
-facts. No deployed auth challenge was weakened and no production event was created during this audit.
+was performed and verified on 2026-09-10; roadmap, release strategy and CO baseline now distinguish
+those facts. No deployed auth challenge was weakened and no production event was created during the
+historical audit.
 The existing event-create Turnstile exception is documented, not extended to new profile endpoints.
 
 ### Foundation boundaries and migration safety
@@ -667,8 +731,8 @@ The existing event-create Turnstile exception is documented, not extended to new
   Missing defaults are separate idempotent atomic inserts, not an interactive transaction. Retrying
   partial initialization repairs the missing row without overwriting edited fields.
 - Composite foreign keys prevent another owner's asset/session/subscription from being attached.
-  Asset publication requires `ready`; reservation/read are real D1 operations but do not pretend
-  that an R2 upload or image processing already exists.
+  Asset publication requires `ready`; reservation/read are real D1 operations and PF-06 now performs
+  the real R2 upload and Images transformation before publication.
 - Session links record only actual owner-matched live sessions. Deleting a session cascades the
   association, not the existing subscription: removing its delivery is PF-07, with dispatch-time
   enforcement and legacy-registration migration in PF-07/08 before the controls ship.
@@ -744,10 +808,11 @@ plugin will put a phone number where a public display name goes. The §3 contrac
 system still never _falls back_ to a contact address, and a name equal to the email is still refused.
 `getProfileIdentity` also stopped selecting the phone column, since nothing reads it any more.
 
-Not defects, and deliberately not built in an audit: **PF-04b** (optional-field editing, per-field
-publish switches, public preview) and **PF-04c** (paginated hosted events, aggregate counts) have no
-implementation to audit. The public profile still renders name and introduction only and still reads
-at most twenty upcoming events, exactly as §2 recorded before the lane began.
+At the time of this historical audit, **PF-04b** (optional-field editing, per-field publish switches,
+public preview) and **PF-04c** (paginated hosted events, aggregate counts) had no implementation to
+audit. PF-04b and PF-04c were subsequently implemented or re-scoped; current status is recorded in
+the ticket sections below. The public profile projection is now governed by the deployed PF-04
+contract rather than this starting-condition note.
 
 ### Design coverage audit of 2026-09-09 — the account screen
 
@@ -870,16 +935,16 @@ Deferred to their own tickets, unchanged: the CO-09 visibility adapter (PF-05 pr
 CO-09 provides the decision), export disclosure (PF-09 — nothing to audit until an archive exists)
 and lifecycle transitions that set `account_state` (PF-10).
 
-Next ticket: **PF-06** — managed profile photos, which needs verified R2/Images entitlements on the
-account before any upload control ships.
+Historical next-ticket note: **PF-06** — managed profile photos. PF-06 is now implemented and
+deployed; the current next ticket is **PF-09**.
 
 ### PF-06 implementation and audit — 2026-09-09
 
 Built as §5 decided: private R2 for the bytes, the Images binding for the resize, no Cloudflare
 Images subscription. `founders-coffee-assets-{dev,staging,production}` are declared per environment
-in both `apps/ui/wrangler.jsonc` and `apps/worker-jobs/wrangler.jsonc`; **no bucket has been created
-on the account** — the token now carries R2 edit and R2 reports zero buckets, and provisioning waits
-for the owner.
+in both `apps/ui/wrangler.jsonc` and `apps/worker-jobs/wrangler.jsonc`. The 2026-09-09 entitlement
+check was the pre-provisioning snapshot; the three environment buckets were subsequently created
+and are currently empty, as recorded in the CO-01 account baseline.
 
 **Reserve, then transfer.** `reserveMyPhotoUpload` is a cheap JSON server function carrying the
 Turnstile challenge and its own rate budget; the bytes then go to `PUT /api/profile/photo/:assetId`
@@ -927,7 +992,9 @@ would refuse a legitimate feed before it refused anything else. Past 5,000 trans
 month the free tier errors rather than bills, which surfaces as an honest upload failure; reading
 that usage needs a Cloudflare Images read permission the token does not have.
 
-**Before this can be deployed:** create the three buckets. Nothing else is outstanding.
+**Deployment status:** the required R2/Images resources and avatar route are included in the
+2026-09-10 staging/production release. Ongoing free-tier usage monitoring remains an operational
+follow-up, not a deployment blocker.
 
 Next ticket: **PF-07a** — the dispatcher current-destination and lifecycle guard, which PF-07c/d,
 PF-08 and CO-02 all consume.
@@ -938,9 +1005,9 @@ Owner-requested change under FR-A6/FR-A11 and NFR-8: uploading an avatar makes i
 variants public, without a separate “Show publicly” switch. The later PF-04 follow-up also makes introductions public; remaining optional details keep
 their per-field opt-ins. The UI, Zod contracts, repositories and current Drizzle schema no longer
 carry photo visibility. Immutable historical migrations retain the old field; generated migration
-`0022_remove_photo_visibility.sql` removes it after compatible code is deployed. It remains in
-`libs/db/pending-migrations/`, behind 0021, with a populated local D1 preservation test. No remote
-migration or deployment is authorized by this implementation request.
+`0022_remove_photo_visibility.sql` removes it after compatible code is deployed. It was promoted and
+applied to staging and production with the ordered `0021`–`0025` release on 2026-09-10, with a
+populated local D1 preservation test.
 
 The header reads the owner-keyed profile query, renders the current avatar variant and falls back
 to initials on removal or delivery failure. Upload/replacement/removal invalidate owner/public
@@ -950,7 +1017,8 @@ card has no title; its localized subtitle contains only JPEG/PNG/WebP and the 5 
 Verification covers immediate header upload/replacement/removal, account isolation, loading and
 image failure, removal of the photo switch, strict rejection of obsolete API input, anonymous
 avatar delivery, moderation/removal withdrawal, and preserving all other columns/privacy flags
-when dropping the database column. Live deployment remains a separate operator action.
+when dropping the database column. Deployment and migration evidence is recorded in
+[`deployment-evidence.md`](./deployment-evidence.md#current-operational-snapshot--2026-09-14).
 
 ### PF-04 follow-up — one identity card and simpler introductions (2026-09-09)
 
@@ -967,10 +1035,10 @@ language/publication input. Existing introductions remain intact and are now pub
 communicate that change to members who previously kept an introduction private.
 
 Generated migration `0023_simplify_profile_introduction.sql` drops `introduction_locale` and
-`publish_introduction` only. It is quarantined behind 0021/0022 pending compatible Worker deployment
-and operator-authorized promotion; no remote migration is performed. Historical migrations and
-snapshots remain immutable. A populated D1 test verifies that introduction text, other privacy
-settings, all remaining profile columns and foreign keys survive the drop.
+`publish_introduction` only. It was promoted and applied to staging and production with the ordered
+`0021`–`0025` release. Historical migrations and snapshots remain immutable. A populated D1 test
+verifies that introduction text, other privacy settings, all remaining profile columns and foreign
+keys survive the drop.
 
 Regression coverage includes a single card in `ar`, `fr`, `en`, absent heading/selector/toggle,
 public introduction preview/save/clear, retained optional-field controls, and strict DTO boundaries.
@@ -991,10 +1059,9 @@ the existing HTTPS validation and storage key. Interests, spoken languages and w
 their independent visibility controls.
 
 Generated `0024_remove_profile_community_role.sql` drops only `community_role` and
-`publish_community_role`. It remains in pending-migrations behind 0021–0023 until compatible code
-is deployed and an operator authorizes promotion. Local populated-D1 verification preserves all
-remaining profile values, authentication rows and foreign keys. Historical migration files remain
-immutable. No remote migration, commit or push is part of this follow-up.
+`publish_community_role`. It was promoted and applied to staging and production with the ordered
+`0021`–`0025` release. Local populated-D1 verification preserves all remaining profile values,
+authentication rows and foreign keys. Historical migration files remain immutable.
 
 ### PF-04 follow-up — remove embedded preview and editor border (2026-09-09)
 
@@ -1225,4 +1292,6 @@ else deletes nothing. Two concurrent unlinks of the last two providers leave exa
   orphans the `APIError` its endpoints throw. Recorded in `docs/ci.md` with how to check whether it
   is still needed.
 
-Next ticket: **PF-08** — preferences connected to real delivery, which waits on CO-02.
+Next ticket: **PF-09** — private data export, after PF-08 preferences and CO-02 delivery were
+implemented and released. Production notification policy parity after ND-07 remains tracked in the
+notification plan.

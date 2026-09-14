@@ -8,7 +8,7 @@
 
   // ── Top-level = local dev (`wrangler dev`, Miniflare) ────────────────────────────────────────
   // Deploys always target a named environment below. Workers AI and Vectorize are not emulated by
-  // Miniflare (see docs/ai.md), so those bindings only do real work once deployed.
+  // Miniflare, so those bindings only do real work once deployed.
   "vars": {
     "MAIL_FROM": "no-reply@founders.coffee",
   },

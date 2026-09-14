@@ -10,20 +10,20 @@ created once per environment with an `-staging` / `-production` suffix.
 
 ## Status
 
-**Last checked: 2026-09-02.** Repository configuration contains staging and production D1 IDs,
-Vectorize bindings, Worker routes, migrations, and deployment targets. Cloudflare dashboard state and
-secret presence are not externally observable and must be verified with the commands in §7.
+**Last checked: 2026-09-14.** Repository configuration and deployment evidence cover staging and
+production D1 IDs, Vectorize bindings, Worker routes, migrations, notification queues and Durable
+Objects. Cloudflare dashboard state and secret presence are still environment facts; the dated
+deployment records in [deployment-evidence.md](./deployment-evidence.md) are the current proof.
 
-A bounded check from the current engineering environment could not verify the public endpoints:
-staging hosts timed out and production hostnames did not resolve from that environment. Treat every
-deployment as **unverified**, not serving, until §7 succeeds from a normal network and the Cloudflare
-dashboard confirms the routes. The earlier undated claim that staging was serving has been removed.
+A bounded check from the current engineering environment is not a substitute for the account-side
+records below. Treat a newly changed deployment as **unverified** until §7 succeeds from a normal
+network and the Cloudflare dashboard confirms the routes; the dated staging/production releases in
+deployment evidence are the current verification baseline.
 
 A dedicated API token activated the shared EC-06 WAF rule on 2026-09-02. The zone is on the Free
-Website plan, so its single rate-limiting-rule slot now protects both `/api/auth/` and `/_serverFn/`
-for every hostname. The rule and both Worker evidence markers are active. Staging behavior is
-verified; production behavior must be verified after the apex DNS record serves traffic. See
-[`deployment-evidence.md`](./deployment-evidence.md) for the rule ID and response evidence.
+Website plan, so its single rate-limiting-rule slot protects both `/api/auth/` and `/_serverFn/` for
+every hostname. The rule and both Worker evidence markers are active; staging and production burst
+probes are recorded in [`deployment-evidence.md`](./deployment-evidence.md).
 
 | Unset secret                              | Consequence                                                                                                                                |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -31,8 +31,8 @@ verified; production behavior must be verified after the apex DNS record serves 
 | `TURNSTILE_SECRET_KEY`                    | Gated auth endpoints fail closed with `503`; event/RSVP coverage still requires the P1-018 audit.                                          |
 | `EVENT_CREATE_WAF_CONFIGURED`             | Event creation fails closed before Siteverify, Mapbox, or D1 work in staging and production.                                               |
 | `TWILIO_SID`                              | Phone login remains disabled without a Verify Service SID. Deployed phone-OTP endpoints must fail closed rather than use `DevSmsProvider`. |
-| `TWILIO_AID` / `TWILIO_SEC`               | SMS fallback cannot send, and deployed phone-OTP endpoints must remain fail-closed.                                                        |
-| `TWILIO_SMS_FROM`                         | SMS fallback delivery cannot send with the configured notification provider.                                                               |
+| `TWILIO_AID` / `TWILIO_SEC`               | Same-day cancellation SMS cannot send, and deployed phone-OTP endpoints must remain fail-closed.                                           |
+| `TWILIO_SMS_FROM`                         | Same-day cancellation SMS cannot send with the configured notification provider.                                                           |
 | `FIREBASE_*`                              | Web push disabled; `getFirebaseConfig` returns `null`.                                                                                     |
 | `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` | `apps/admin` rejects every request until Access is configured.                                                                             |
 
@@ -47,7 +47,7 @@ environments.
 | D1 database     | `founders-coffee-db-staging`                                | `founders-coffee-db-production`         | wrangler                            |
 | Vectorize index | `founders-coffee-embeddings-staging`                        | `founders-coffee-embeddings-production` | wrangler                            |
 | Workers AI      | binding only                                                | binding only                            | nothing to create                   |
-| Durable Objects | `EventLiveDO`, `RateLimiterDO`                              | same                                    | created on first deploy             |
+| Durable Objects | `EventLiveDO`, `RateLimiterDO`, `NotificationScheduleDO`    | same                                    | created/bound by deployed Workers   |
 | Custom domains  | `staging.founders.coffee`, `app-staging.`, `admin-staging.` | `founders.coffee`, `app.`, `admin.`     | `wrangler deploy` (zone must exist) |
 | Email Sending   | shared                                                      | shared                                  | **dashboard + DNS (manual)**        |
 | Access (admin)  | `admin-staging.founders.coffee`                             | `admin.founders.coffee`                 | **dashboard (manual)**              |
@@ -56,23 +56,27 @@ environments.
 
 The Notifications, embeddings and reconcile queues plus a dead-letter queue were created per
 environment on 2026-09-04 and their consumers bound in `apps/worker-jobs/wrangler.jsonc`; see
-[`worker-jobs.md`](./worker-jobs.md) for the names and the routing rule. Nothing produces into them
-yet, so notification delivery is unchanged.
+[`worker-jobs.md`](./worker-jobs.md) for the names and routing rule. CO-02's notification producer
+and `NotificationScheduleDO` binding are deployed in both environments. Embeddings and reconcile
+producers remain intentionally dormant.
 
-**Declared but not yet verified/provisioned:** R2 (`founders-coffee-images`), KV
-(`founders-coffee-flags`), and Analytics Engine. Of these, Analytics Engine
-supports the current community release. R2/KV and the existing AI/Vectorize
-foundation are not launch blockers unless a current community workflow is explicitly enabled that
+**Declared but not yet verified/provisioned:** KV (`founders-coffee-flags`) and the existing
+AI/Vectorize foundation. The private R2 buckets `founders-coffee-assets-{dev,staging,production}`
+were created for PF-06 on 2026-09-09 and are currently empty; the Images binding is runtime
+configuration rather than a separately provisioned storage subscription. Analytics Engine is bound
+to the public Worker and its first `events_created` write was verified during EC-10. KV and the
+AI/Vectorize foundation are not launch blockers unless a current community workflow explicitly
 requires them. Notifications flow through per-event Durable Object alarms into the Notifications
-Queue, with a fifteen-minute recovery sweep behind them, as of CO-02 on 2026-09-10. That code is not
-deployed: the Durable Object namespace and the worker-jobs producer binding are created by its next
-deploy, and worker-jobs must be deployed before `apps/ui`, which binds the class across scripts.
+Queue, with a fifteen-minute recovery sweep behind them, as of CO-02 on 2026-09-10. The Durable
+Object namespace and worker-jobs producer binding are deployed in both environments. Worker-jobs
+must still be deployed before `apps/ui`, which binds the class across scripts.
 
-Current launch provisioning requires D1, event/rate-limit Durable Objects, custom domains, Email
-Sending for email OTP, Turnstile, Mapbox, FCM web push, Twilio Programmable SMS fallback, the
-Notifications Queue/DLQ, Analytics Engine, and Access for the essential admin surface. Workers AI,
-Vectorize, future image/media storage, sponsor/dashboard integrations, and payment infrastructure do
-not delay the community release.
+Current launch provisioning requires D1, event/rate-limit/notification Durable Objects, custom
+domains, Email Sending for email OTP and notification fallback, Turnstile, Mapbox, FCM web push,
+private R2 plus Images bindings for profile photos, Twilio Programmable SMS for same-day cancellation
+disruption, the Notifications Queue/DLQ, Analytics Engine, and Access for the essential admin
+surface. Workers AI, Vectorize, future sponsor/media storage, sponsor/dashboard integrations, and
+payment infrastructure do not delay the community release.
 
 ## API token scopes
 
@@ -98,7 +102,7 @@ npx wrangler whoami          # confirms the token resolves to the right account
 npx wrangler d1 create founders-coffee-db-staging
 npx wrangler d1 create founders-coffee-db-production
 
-# 1024 dimensions / cosine — fixed by the bge-m3 embedding model (see docs/ai.md).
+# 1024 dimensions / cosine — fixed by the bge-m3 embedding model.
 npx wrangler vectorize create founders-coffee-embeddings-staging --dimensions 1024 --metric cosine
 npx wrangler vectorize create founders-coffee-embeddings-production --dimensions 1024 --metric cosine
 ```

@@ -6,9 +6,11 @@ sponsor, challenge, talent, payment, or expansion work.
 
 The P0-012 → **P1-017** linchpin connects a TanStack Start router to (a) global middleware, (b) the
 Cloudflare Worker `env`, (c) i18n locale detection, (d) Better Auth, and (e) the client→server log
-stream. **Phase A + B + C are complete for `apps/ui`.** `apps/admin` still requires the CO-04 D1,
-i18n, observability, admin-origin Better Auth, and correlated Access identity wiring; account-side
-`ANALYTICS` plus production CSRF-origin verification also remain under P0-019/deployment.
+stream. **Phase A + B + C are complete for `apps/ui`.** `apps/admin`'s D1, i18n, observability,
+admin-origin Better Auth and correlated Access identity wiring are implemented and staging-verified
+under CO-04; production CSRF-origin verification, operator setup and promotion remain under
+P0-019/deployment. The public Worker's `ANALYTICS` binding and first `events_created` metric were
+verified during EC-10; broader product dashboards remain planned.
 
 ## 1. `createStart` — `apps/ui/src/start.ts`
 
@@ -119,10 +121,12 @@ through the custom entry (`start.ts` + `getDb` unregressed); server-fns tests gr
 
 **Deferred (P0-019 / deploy):**
 
-- **`ANALYTICS` binding** — product metrics (Analytics Engine); NOT needed for the log stream.
 - **CSRF prod origin** — `createCsrfMiddleware({ origin })` for prod domains.
 - **Deployed D1 + `BETTER_AUTH_SECRET` verification** — production sessions require both even though
   their presence cannot be established from source control alone.
+- **Admin production operator and metrics dashboards** — the public analytics binding and admin
+  wiring are live/verified on staging; production operator setup and the remaining dashboards are
+  not complete.
 
 ## Notes
 

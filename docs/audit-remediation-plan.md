@@ -1,13 +1,13 @@
 # Audit Remediation Plan
 
-| Field          | Value                                                                                                                                                                                                |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-01 through AR-13 complete. AR-08's CSP is enforced in both environments as of 2026-09-04; `apps/admin` stays report-only until it can be measured                                         |
-| Last reviewed  | 2026-09-04                                                                                                                                                                                           |
-| Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
-| Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                               |
-| Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                       |
-| Related plans  | [Implementation plan](./implementation-plan.md), [Event Creation Remediation Plan](./event-creation-remediation-plan.md), [Community Operations Plan](./community-operations-implementation-plan.md) |
+| Field          | Value                                                                                                                                                                                                                |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; AR-02 through AR-07 and AR-09 through AR-13 are complete. AR-01's audit gate was removed from CI on 2026-09-04 and needs a replacement; AR-08 is complete for `apps/ui` while `apps/admin` stays report-only |
+| Last reviewed  | 2026-09-14 — deployment evidence and notification policy reconciled                                                                                                                                                  |
+| Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                                           |
+| Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                                               |
+| Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                                       |
+| Related plans  | [Implementation plan](./implementation-plan.md), [Event Creation Remediation Plan](./event-creation-remediation-plan.md), [Community Operations Plan](./community-operations-implementation-plan.md)                 |
 
 This plan records defects found by auditing the repository against [`AGENTS.md`](../AGENTS.md), the
 [SRS](./srs.md), and the [implementation plan](./implementation-plan.md), and by executing every
@@ -23,8 +23,10 @@ found but deliberately left with its existing owner.
 
 AR-01 was a prerequisite for every other ticket in the repository, not only for this plan:
 continuous integration was red at the audited commit, so no pull request could pass verification. It
-is closed as of 2026-09-02 and all seven gates now pass; the section 2 baseline is left as it was
-recorded at `1167e0d`.
+was closed on 2026-09-02 and the seven local gates passed at that point. The `npm audit` step was then
+removed from CI on 2026-09-04 because npm's audit endpoint began returning registry errors. The
+current pipeline therefore has no dependency-advisory gate; the original section 2 baseline remains
+historical and the replacement scan is still open.
 
 ## 1. Objective
 
@@ -120,10 +122,11 @@ it was taken at `1167e0d`.
 
 ## 3. Locked remediation decisions
 
-1. **The dependency-audit gate stays as written.** `npm audit --audit-level=high` remains a required
-   CI step. The advisory is resolved through the existing root `overrides` block, in the same way the
-   eleven transitive pins already present were resolved. Lowering or removing the gate is not an
-   acceptable remediation.
+1. **The dependency-audit gate must be restored with a working scanner.** AR-01 temporarily restored
+   `npm audit --audit-level=high` and resolved the advisory through the existing root `overrides` block,
+   but the step was removed on 2026-09-04 after npm's audit endpoint began returning registry errors.
+   Dependabot alerts are useful account-side coverage but do not replace a required CI gate; no
+   replacement tool is authorized yet.
 2. **A scheduled notification always reaches a terminal state.** Every dispatch path resolves the row
    to `sent` or `failed`, including the case where no provider is configured for its channel. No
    input may leave a row selectable forever.
@@ -153,17 +156,17 @@ it was taken at `1167e0d`.
 The `AR-*` identifiers are local work packages under the existing parent tickets. They do not replace
 the repository's P0/P1 ticket IDs.
 
-Recommended order: AR-01 first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
+Recommended order: restore AR-01's dependency scan first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
 production consequences; AR-02, AR-03 and AR-04 are complete. Then AR-09, which restores the mechanisms that would
 have caught several of the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
 rewrites the same sweep. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule
-allows. AR-01 and AR-11 are complete.
+allows. AR-11 is complete; AR-01 requires a working replacement scan.
 
 ### AR-01 — Restore the dependency-audit gate
 
 **Parent:** P0-020
 **Requirements:** NFR-4, NFR-12
-**Status:** Complete — 2026-09-02
+**Status:** Complete at the 2026-09-02 baseline; superseded in CI on 2026-09-04 and currently open for replacement
 
 Closes F-01.
 
@@ -193,6 +196,10 @@ Completion evidence:
 - `npm audit --audit-level=high` exits 0.
 - Repository-wide format, sync, typecheck, lint, test, and build gates pass without E2E: 16 projects,
   no errors. Continuous integration is green at head for the first time since the audit.
+
+Current status: the workflow no longer runs `npm audit` because npm's registry audit endpoint returns
+400/503 in this environment. See [CI/CD](./ci.md#there-is-no-dependency-audit-step). Dependabot is
+not treated as a substitute for the required CI gate, so AR-01 is not current-release complete.
 
 ### AR-02 — Guarantee terminal state and a reachable fallback for scheduled notifications
 
@@ -556,20 +563,20 @@ Completion evidence:
   double duty as the request type, which is why adding one wire-only field became a type error at
   every call site.
 
-### Endpoint audit — closes the P1-018 audit rather than sampling it
+### Endpoint audit — current protection matrix
 
 All 27 server functions were enumerated with their middleware chains. The state-changing surface is
 now complete:
 
-| Endpoint              | Method | Protection                                         |
-| --------------------- | ------ | -------------------------------------------------- |
-| `createEvent`         | POST   | `event:create` + rate limit + Turnstile + WAF gate |
-| `createRsvp`          | POST   | `rsvp:create` + rate limit                         |
-| `cancelRsvp`          | POST   | `rsvp:update` + rate limit                         |
-| `setHomeLocation`     | POST   | `profile:update` + rate limit                      |
-| `registerPushTokenFn` | POST   | `push:manage` + rate limit                         |
-| `removePushTokenFn`   | POST   | `push:manage` + rate limit                         |
-| `joinWaitlist`        | POST   | Turnstile + rate limit (anonymous by design)       |
+| Endpoint              | Method | Protection                                                                                    |
+| --------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| `createEvent`         | POST   | `event:create` + rate limit + WAF gate; event-create Turnstile exception tracked under P1-018 |
+| `createRsvp`          | POST   | `rsvp:create` + rate limit                                                                    |
+| `cancelRsvp`          | POST   | `rsvp:update` + rate limit                                                                    |
+| `setHomeLocation`     | POST   | typed `client_refresh_required` tombstone; no location write                                  |
+| `registerPushTokenFn` | POST   | `push:manage` + rate limit                                                                    |
+| `removePushTokenFn`   | POST   | `push:manage` + rate limit                                                                    |
+| `joinWaitlist`        | POST   | Turnstile + rate limit (anonymous by design)                                                  |
 
 Two results recorded rather than fixed silently:
 
@@ -585,8 +592,8 @@ Two results recorded rather than fixed silently:
   permission; applying RBAC to a public city listing would be noise, so the deviation is recorded
   here rather than papered over.
 - **RSVP still has no Turnstile**, which §10 requires alongside signup, login and event creation.
-  Out of AR-06's scope, which named the authorization and waitlist gaps; recorded so the §10 gap is
-  not lost.
+  The event-create challenge is also deliberately absent by the 2026-09-03 product decision. Both
+  policy gaps remain tracked under P1-018 rather than being presented as complete.
 
 Verification — 14 new tests:
 
@@ -679,15 +686,13 @@ revisiting when AR-13 lands.
 **Requirements:** NFR-4
 **Status:** Complete for `apps/ui` — headers enforced and script nonces wired 2026-09-03, the Zod `eval` fixed 2026-09-04, and the CSP enforced in staging and production the same day. `apps/admin` keeps the report-only policy until it is reachable enough to measure.
 
-Closes F-09 for the header set. The CSP is shipped but not yet enforcing; see the boundary at the
-end of this ticket.
+Closes F-09 for the public header set. The CSP is enforced for `apps/ui` in staging and production;
+`apps/admin` remains report-only because its Access-gated origin cannot yet be measured without an
+Access JWT.
 
-Current behavior: searching the repository for `Content-Security-Policy`, `Strict-Transport-Security`,
-`X-Frame-Options`, or `nonce` returns nothing. `AGENTS.md` §10 requires a secure-headers middleware
-and a strict CSP with nonces. The public application loads third-party script from Cloudflare
-Turnstile, Mapbox, and Firebase, and renders host-authored titles, venue names, and descriptions, so
-it is the application that most needs the header it does not send. Session cookies are already
-correctly `Secure; HttpOnly; SameSite=Lax`.
+Historical baseline (before AR-08): the repository had no shared secure-headers middleware or strict
+CSP. That baseline is closed for `apps/ui`; the public application now sends the policy and nonces
+while retaining the required Turnstile, Mapbox and Firebase integrations.
 
 Work:
 
@@ -768,8 +773,8 @@ Boundary — what is deliberately not done, and why:
   landed.** The three violations above were captured before per-request nonces were wired the same
   day; the blocker was then carried forward on the strength of that stale measurement. Cloudflare's
   HTML rewriter propagates the nonce to the scripts it injects. See the production capture below.
-  The CSP still ships report-only because nothing has flipped `CSP_ENFORCED` yet, not because
-  anything blocks it.
+  The public CSP is now enforced in both environments; only the Access-gated admin Worker remains
+  report-only pending a measurable authenticated run.
 - **`style-src` keeps `'unsafe-inline'`**, recorded rather than hidden: React writes inline `style`
   attributes and streaming SSR inserts a style element before hydration. The nonce now reaches
   style tags too, so removing it is a smaller change than it was, but it still needs its own
@@ -895,9 +900,8 @@ The beacon's host is not in `script-src`, and it does not need to be: a nonce-ma
 allowed regardless of its origin. So enforcement does not require turning Web Analytics
 `auto_install` off, and no widening of the policy is needed either.
 
-**Both environments are now clean under report-only.** Staging since the `eval` fix, production on
-its first release. `CSP_ENFORCED=true` is a per-environment variable and nothing outside the
-repository has to change first.
+**Historical report-only capture is complete.** Staging and production then passed the enforced
+checks after `CSP_ENFORCED=true` was set on 2026-09-04.
 
 ### Enforced — 2026-09-04
 
@@ -1297,14 +1301,12 @@ only for external services, per `AGENTS.md` §11.5.
 The audit confirmed two further defects that this plan deliberately does **not** own, because an
 existing plan already does and duplicating ownership would fragment it:
 
-- **F-08 — one-minute D1 polling with an unbound queue.** `apps/worker-jobs/wrangler.jsonc` runs
-  `*/1 * * * *` against D1 in all three environments, while the queue consumer is fully written and
-  dispatches on `RESOURCES.queues.notifications` with no queue binding or consumer declared anywhere —
-  so that path is unreachable in every deployed environment. This is the largest gap between the
-  documented architecture and what runs. It is owned by **P0-018** and sequenced at **CO-02** in the
-  [Community Operations Plan](./community-operations-implementation-plan.md). AR-02 and AR-03 are
-  interim integrity fixes for the sweep that CO-02 replaces; if CO-02 lands first, AR-03 is superseded
-  and AR-02 reduces to the terminal-state guarantee, which the queue path needs regardless.
+- **F-08 — one-minute D1 polling with an unbound queue (resolved).** This was the historical finding
+  recorded before CO-02: `apps/worker-jobs/wrangler.jsonc` ran `*/1 * * * *` against D1 while the queue
+  consumer was unfed. CO-02 replaced it with per-event `NotificationScheduleDO` alarms and a
+  Notifications Queue, deployed to staging and production on 2026-09-10. AR-02 remains the terminal-
+  state guarantee, and the fifteen-minute cron is recovery-only. See the current [worker-jobs
+  evidence](./deployment-evidence.md#current-operational-snapshot--2026-09-14).
 - **F-13 — the critical-flow release gate does not exist.** The Playwright suite is one file,
   `apps/ui/e2e/company-footer.spec.ts`, covering five footer links. The signup → create event → RSVP
   flow named in `AGENTS.md` §12 has no end-to-end coverage. This is owned by **P1-021** and delivered
@@ -1322,35 +1324,40 @@ admin applications; or move E2E into CI, which remains excluded by current proje
 - **AR-02 may reveal existing stuck rows** in staging or production. Read-only counts of `pending`
   rows older than their `send_at` must be taken before remediation, and any backfill of existing rows
   requires explicit approval, as it changes deployed member-facing state.
-- **AR-08 can break the application if enforced before it is measured.** The report-only phase is not
-  optional. A CSP that blocks Turnstile or Mapbox silently disables event creation.
+- **AR-08 can break the application if enforced before it is measured.** The public Worker was
+  measured before enforcement and remains green. The admin Worker stays report-only until an
+  authenticated Access measurement is available.
 - **AR-09 layer tags may surface a wide set of existing boundary violations.** If the surfaced set is
   large, the remediation is staged rather than widened, and the interim state is recorded rather than
   suppressed with rule exceptions.
 - **AR-05's policy sizing depends on real wizard behavior.** A limit set too tight breaks venue search
   for legitimate hosts; the policy must be derived from an observed session, not guessed.
-- **AR-01 was the only ticket with no execution-time risk** and gated everything else. It is closed,
-  so the remaining tickets are no longer blocked on a red pipeline.
+- **AR-01 was the only ticket with no execution-time risk** and gated everything else. Its historical
+  fix is complete, but the CI step was removed on 2026-09-04; a working replacement scan is still
+  open and should be restored before the next release gate is called complete.
 
 ## 8. Definition of done
 
-- [x] All seven verification gates pass, including `npm audit --audit-level=high`. (AR-01, 2026-09-02)
+- [ ] A dependency-advisory scan runs as a required CI gate and passes. The historical `npm audit`
+      run passed on 2026-09-02, but that step was removed on 2026-09-04 pending a working replacement.
 - [x] No scheduled notification can remain selectable indefinitely, and the documented retry and
       email fallback are exercised by tests rather than described by comments. (AR-02, 2026-09-02)
 - [x] A rejected full-capacity RSVP writes nothing, and no untyped error crosses a server-function
       boundary. (AR-04, 2026-09-02)
-- [ ] Every state-changing server function declares a permission and enforces a rate limit; anonymous
-      and metered endpoints carry the additional protection their exposure requires.
-- [ ] Notification content is localized in `ar`, `fr`, and `en` from `libs/i18n`, with parity enforced
-      by test.
-- [ ] Responses carry the required security headers and an enforced CSP with zero violations in the
-      audited flows.
-- [ ] The boundary lint rule covers every component directory, and coverage gates run on `libs/domain`
-      and `libs/server-fns` in CI.
-- [ ] Every finding in section 2 is either closed by an `AR-*` ticket or explicitly assigned to its
+- [x] Every audited state-changing server function declares a permission and enforces a rate limit;
+      anonymous and metered endpoints carry the additional protection their exposure requires.
+      Event-create Turnstile remains a documented product-policy exception under P1-018.
+- [x] Notification content is localized in `ar`, `fr`, and `en` from `libs/i18n`, with parity enforced
+      by test. (AR-07, 2026-09-02)
+- [x] Public responses carry the required security headers and an enforced CSP with zero violations
+      in the audited flows. `apps/admin` remains report-only pending authenticated measurement.
+      (AR-08, 2026-09-04)
+- [x] The boundary lint rule covers every component directory, and coverage gates run on `libs/domain`
+      and `libs/server-fns` in CI. (AR-09/AR-12, 2026-09-02)
+- [x] Every finding in section 2 is either closed by an `AR-*` ticket or explicitly assigned to its
       owning plan in section 6.
-- [ ] No runtime import of `libs/server-fns`, `libs/db`, or `libs/domain` exists outside `api.ts`,
+- [x] No runtime import of `libs/server-fns`, `libs/db`, or `libs/domain` exists outside `api.ts`,
       and the boundary rule covers `features/` so a new one cannot land unnoticed.
 - [x] No notification payload is cast rather than parsed, on either side of the row. (AR-13, 2026-09-02)
-- [ ] The implementation plan's status table is updated from the evidence this plan produces, and no
-      `Partial` or `Blocked` item is promoted without it.
+- [x] The implementation plan's status table is updated from the evidence this plan produces, and no
+      `Partial` or `Blocked` item is promoted without it. (Reconciled 2026-09-14.)

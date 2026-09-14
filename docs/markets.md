@@ -55,6 +55,7 @@ The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, F
 - **Geo data is server-side** (TS files in `libs/domain/src/geo/data/`). The client gets filtered
   subsets via RPCs — the full 6,518-city dataset never touches the browser bundle.
 - **Featured cities** (state capitals) drive the landing page's city buttons. All cities are
-  available in the onboarding/profile cascading picker.
+  available to the event wizard's city selection; member profiles are location-free and have no
+  residence picker.
 - **Caching** — markets are near-static; reads D1 each call. An in-memory per-Worker cache (NOT KV
   — eventually consistent) is a later optimization for NFR-1's 300ms p95.
