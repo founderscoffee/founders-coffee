@@ -31,10 +31,12 @@ describe('libs/db seed (real D1 via Miniflare)', () => {
     const eg = rows.find((m) => m.code === 'EG');
     expect(eg?.state).toBe('active');
     expect(eg?.defaultCurrency).toBe('EGP');
+    expect(eg?.featureFlags?.communityOperations).toBe(true);
 
     const sa = rows.find((m) => m.code === 'SA');
     expect(sa?.state).toBe('active');
     expect(sa?.defaultCurrency).toBe('SAR');
+    expect(sa?.featureFlags?.communityOperations).toBe(true);
   });
 
   it('is idempotent — re-running neither duplicates nor overwrites', async () => {

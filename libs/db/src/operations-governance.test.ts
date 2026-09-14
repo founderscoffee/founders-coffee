@@ -30,8 +30,12 @@ describe('communityOperationsEnabled', () => {
     db = await setupDb();
   });
 
-  it('is enabled for the DZ launch market', async () => {
-    expect(await communityOperationsEnabled(db, 'DZ')).toBe(true);
+  it('is enabled for every configured market', async () => {
+    await expect(
+      Promise.all(
+        ['DZ', 'EG', 'SA'].map((code) => communityOperationsEnabled(db, code)),
+      ),
+    ).resolves.toEqual([true, true, true]);
   });
 
   it('is on once the market flag is set', async () => {

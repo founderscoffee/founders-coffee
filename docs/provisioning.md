@@ -149,7 +149,7 @@ site cannot render:
 ```sh
 cd apps/worker-jobs
 npx wrangler d1 execute founders-coffee-db-staging --remote --env staging \
-  --command "INSERT INTO markets (code, name, name_ar, slug, default_locale, default_currency, timezone, direction, state, feature_flags) VALUES ('DZ','Algeria','الجزائر','algeria','ar','DZD','Africa/Algiers','rtl','active','{\"events\":true,\"hackathons\":false,\"payments\":false,\"recruiting\":false}') ON CONFLICT (code) DO NOTHING"
+  --command "INSERT INTO markets (code, name, name_ar, slug, default_locale, default_currency, timezone, direction, state, feature_flags) VALUES ('DZ','Algeria','الجزائر','algeria','ar','DZD','Africa/Algiers','rtl','active','{\"events\":true,\"communityOperations\":true,\"hackathons\":false,\"payments\":false,\"recruiting\":false}') ON CONFLICT (code) DO NOTHING"
 ```
 
 Repeat per market and per environment. Folding this into a migration (so every environment,

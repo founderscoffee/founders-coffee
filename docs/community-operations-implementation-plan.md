@@ -197,10 +197,9 @@ Drizzle, domain internals, or server functions from a component.
     `operations_reviews` record containing scope, evidence window, bottleneck, intervention, owner,
     due date, and follow-up result. This is the operating record; no CRM is introduced.
 26. **Market-scoped rollout is reversible.** `communityOperations` gates closeout, feedback,
-    repeat-host, operations, and metrics entry points and server functions. It is enabled for the
-    DZ launch market by the 2026-09-14 Founder decision and remains disabled for EG/SA until their
-    operational acceptance. Disabling it never deletes data or reopens frozen RSVP intent; security-
-    critical moderation and host-trust controls remain available.
+    repeat-host, operations, and metrics entry points and server functions. It is enabled for every
+    configured market by the 2026-09-14 Founder decision. Disabling it never deletes data or reopens
+    frozen RSVP intent; security-critical moderation and host-trust controls remain available.
 
 ## 6. Canonical community-health definitions
 
@@ -474,9 +473,9 @@ Verification:
   opposite facts and a dashboard rendering both as 0% invites the wrong intervention.
 - **The feedback window is anchored to `ends_at`, never to the closeout**, which is the only way
   §5.20's "late closeouts do not reopen the window" is actually true.
-- **`communityOperations` is enabled only for DZ in the launch release** (migration `0026`); EG/SA
-  remain disabled and an absent or non-boolean value resolves to disabled. It gates closeout,
-  feedback, repeat-host, operations and metrics; moderation and host trust stay available.
+- **`communityOperations` is enabled for every configured market in the launch release** (migration
+  `0027`); an absent or non-boolean value still resolves to disabled. It gates closeout, feedback,
+  repeat-host, operations and metrics; moderation and host trust stay available.
 - **Legacy `ends_at IS NULL` events are excluded from every path and listed for attention** (§5.24).
   No duration is inferred anywhere.
 - **Retention runs in bounded market-scoped batches**: comments cleared at twelve months with the
@@ -500,9 +499,9 @@ Work:
   repository queries; CO-03 provides only row-level repositories and atomic helpers required by
   closeout, feedback, trust, and weekly review workflows.
 - Add the typed `communityOperations` feature flag and shared read helper to the existing first-party
-  flag configuration, seed DZ enabled for the launch market (migration `0026`), keep EG/SA disabled,
-  and prove absent/invalid values resolve to disabled. CO-05 through CO-08 and CO-10 own enforcement
-  on the real routes/server functions they introduce; moderation and host trust remain ungated.
+  flag configuration, seed it enabled for every configured market (migration `0027`), and prove
+  absent/invalid values resolve to disabled. CO-05 through CO-08 and CO-10 own enforcement on the
+  real routes/server functions they introduce; moderation and host trust remain ungated.
 - Detect legacy `endsAt = null` rows during migration verification, add the repository attention
   query and typed state used later by CO-08, and provide only an authorized audited backfill command;
   never infer an end time.
@@ -996,9 +995,8 @@ Work:
 
 - Apply migrations to staging and deploy `apps/ui`, `apps/admin`, and `apps/worker-jobs` with the
   compatible shared libraries.
-- Enable `communityOperations` for the DZ launch market through migration `0026`; keep EG/SA
-  disabled until their operational acceptance and treat production promotion as a controlled release
-  action.
+- Enable `communityOperations` for every configured market through migration `0027` and treat
+  production promotion as a controlled release action.
 - Verify Access plus Better Auth/RBAC, D1/DO/Queue/Analytics bindings, Turnstile, WAF, FCM, Twilio,
   CSP, logs, alerts, and `workers.dev` isolation.
 - Use the dedicated host/member/admin identities from CO-01; prove the admin's Access and Better Auth
@@ -1026,8 +1024,8 @@ Work:
 Rollback:
 
 - Disable `communityOperations` for the affected market at its environment-scoped first-party
-  configuration and verify the route and server-function gates preserve the core event flow. Moderation and host-trust
-  access remains available for safety response.
+  configuration and verify the route and server-function gates preserve the core event flow.
+  Moderation and host-trust access remains available for safety response.
 - Roll back compatible Worker versions; never destructively reverse a D1 migration.
 - Keep closeout/attendance/feedback records immutable during diagnosis except through audited forward
   correction.
@@ -1153,7 +1151,7 @@ stubs/placeholders.
 - [ ] Post-event prompts use Durable Object alarms -> Queue -> PWA push first -> email fallback, with
       retry, DLQ, idempotency, alerts, a host closeout prompt, and transparent did-not-happen member
       communication.
-- [ ] `communityOperations` gates every intended UI/server entry point, is enabled only for accepted
+- [ ] `communityOperations` gates every intended UI/server entry point, is enabled for all configured
       markets, rolls back without data loss, and never disables moderation or host-trust safety controls.
 - [ ] No PII, feedback comments, raw identifiers, or venue free text enters logs or Analytics Engine.
 - [ ] All screens and notifications are complete in `ar`, `fr`, and `en`; RTL/LTR, WCAG 2.1 AA,
