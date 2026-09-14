@@ -55,11 +55,18 @@ verify their current existence and settings in GitHub.
 
 ### `.github/workflows/ci.yml`
 
-Runs on every pull request, and is called by `deploy.yml` as a gate. It deliberately has no `push`
-trigger: a push to `develop` or `main` runs `deploy.yml`, which calls this workflow, so a `push`
-trigger here would only duplicate the same run. Needs **no** Cloudflare credentials — the
-integration tests run against Miniflare with real local D1/Queues/Email bindings (AGENTS.md §12),
-not the live account.
+Runs on pull requests (except documentation-only changes) and on pushes to `develop` and `main`.
+The push run is the canonical verification for a commit; `deploy.yml` starts only after that run
+finishes successfully. This avoids running the same full graph once as a deploy gate and again as
+a push check. Needs **no** Cloudflare credentials — the integration tests run against Miniflare
+with real local D1/Queues/Email bindings (AGENTS.md §12), not the live account.
+
+The `quality` and `build` jobs run in parallel. On a `develop` → `main` release pull request, the
+pull-request jobs are skipped because the push to `develop` already verified the exact commit; the
+merge then produces one new `main` push run. Feature pull requests into `develop` still run the
+pull-request jobs normally. Documentation-only pull requests are filtered out because they cannot
+change application or deployment artifacts; pushes to the protected branches still run the full
+check.
 
 1. `npm ci --no-audit --no-fund` — skipped entirely when the `node_modules` cache hits.
 2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
@@ -70,11 +77,14 @@ not the live account.
    matching local target (`migrate:local` for staging, `migrate:local:production` for production),
    because the environment-specific UI configs use different D1 database names in the shared state.
    This keeps every build deterministic without requiring Cloudflare credentials or live data.
-5. `nx run-many -t typecheck lint test build --parallel=1` — verifies every production build; the
-   serial graph keeps Istanbul coverage output isolated between Miniflare projects. `lint` includes
-   the Nx module-boundary rules, so a violation of the one-directional data flow (AGENTS.md §4) fails here.
-6. `nx run public:integration-test` — exercises the Worker, SSR documents, redirects, robots, sitemap,
-   indexation headers, and Early Hint filtering against Miniflare's real D1/R2/Queues bindings.
+5. `nx run-many -t typecheck lint test --parallel=1` (quality job) — verifies the type graph,
+   boundaries, and unit/integration tests. `lint` includes the Nx module-boundary rules, so a
+   violation of the one-directional data flow (AGENTS.md §4) fails here.
+6. `nx run-many -t build --parallel=1` (build job) — verifies every production build. The serial
+   graph keeps Istanbul coverage output isolated between Miniflare projects.
+7. `nx run public:integration-test` (build job) — exercises the Worker, SSR documents, redirects,
+   robots, sitemap, indexation headers, and Early Hint filtering against Miniflare's real D1/R2/Queues
+   bindings.
 
 ### Two caches, and why `npm ci` is usually skipped
 
@@ -104,10 +114,10 @@ repository settings, not here.
 
 ### `.github/workflows/deploy.yml`
 
-1. **resolve** — picks the target environment from the branch (or the manual input) and refuses
-   production from a non-`main` ref.
-2. **verify** — calls `ci.yml`.
-3. **deploy** — bound to the matching GitHub Environment (so its scoped secrets apply), applies D1
+1. **resolve** — for a successful CI push, picks the target environment from the CI run's branch;
+   a manual run may choose its environment and production is still refused from a non-`main` ref.
+2. **deploy** — starts only after the successful CI push, checks out that run's exact commit, and is
+   bound to the matching GitHub Environment (so its scoped secrets apply). It applies D1
    migrations, deploys the four Workers, then runs the SEO route smoke against the deployed origin.
    Staging probes use the environment's `workers.dev` hostname and assert canonical URLs against
    `staging.founders.coffee`, so the gate tests the deployed Worker without depending on a
@@ -125,7 +135,8 @@ repository settings, not here.
    noindex/cache headers, robots, canonical URLs, and same-origin Early Hint links. Dynamic city/event
    coverage is reported when staging has public rows; an empty staging database is a valid state and
    does not fabricate fixtures. Playwright E2E remains excluded from CI by the current project decision.
-4. **release** — only for a push to `main`. Tags the commit and publishes a GitHub release.
+3. **release** — only for a successful CI push to `main`. Tags that exact deployed commit and
+   publishes a GitHub release. Manual redeploys never create a second tag.
 
 `concurrency` is set with `cancel-in-progress: false`: cancelling between the migration step and the
 Worker deploy would leave the schema ahead of the deployed code.

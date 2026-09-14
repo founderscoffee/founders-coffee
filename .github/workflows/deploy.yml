@@ -1,11 +1,13 @@
 name: Deploy
 
-# Branch is the environment. A push to develop deploys staging; a push to main deploys
-# production, then tags the commit and publishes a GitHub release for it. Merging to main
-# IS the production approval gate: GitHub's required-reviewer protection rule would be the
+# A successful CI push is the deployment trigger. A push to develop deploys staging; a push to
+# main deploys production, then tags the commit and publishes a GitHub release for it. Merging to
+# main IS the production approval gate: GitHub's required-reviewer protection rule would be the
 # better mechanism, but it needs GitHub Pro/Team on a private repository — see docs/ci.md.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [develop, main]
   workflow_dispatch:
     inputs:
@@ -16,10 +18,10 @@ on:
         required: true
         default: staging
 
-# Deploys are never cancelled mid-flight: interrupting between the migration step and the
-# Worker deploy would leave the schema ahead of the code.
+# Deploys are never cancelled mid-flight: interrupting between the migration step and the Worker
+# deploy would leave the schema ahead of the code.
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ github.event.workflow_run.head_branch || github.ref_name }}
   cancel-in-progress: false
 
 permissions:
@@ -31,6 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.pick.outputs.environment }}
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
     steps:
       # A manual run may name its environment; a push takes it from the branch. Production
       # may only ever be deployed from `main`, so neither a manual run against a feature
@@ -38,7 +41,7 @@ jobs:
       - id: pick
         env:
           REQUESTED: ${{ inputs.environment }}
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
         run: |
           RESOLVED="$REQUESTED"
           if [ -z "$RESOLVED" ]; then
@@ -51,13 +54,9 @@ jobs:
           echo "environment=$RESOLVED" >> "$GITHUB_OUTPUT"
           echo "Deploying to $RESOLVED (ref: $BRANCH)"
 
-  verify:
-    name: Verify
-    uses: ./.github/workflows/ci.yml
-
   deploy:
     name: Migrate and deploy
-    needs: [resolve, verify]
+    needs: [resolve]
     runs-on: ubuntu-latest
     environment: ${{ needs.resolve.outputs.environment }}
     env:
@@ -66,6 +65,8 @@ jobs:
       TARGET_ENV: ${{ needs.resolve.outputs.environment }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - uses: actions/setup-node@v5
         id: node
@@ -73,9 +74,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      # Same tree, same key as ci.yml, so the verify job has usually already populated it
-      # and this restores rather than reinstalls. See the note there for why there are no
-      # `restore-keys`.
+      # The successful CI run uses the same key, so this restores rather than reinstalls. See the
+      # note in ci.yml for why there are no `restore-keys`.
       - name: Restore node_modules
         id: modules
         uses: actions/cache@v6
@@ -155,10 +155,9 @@ jobs:
   release:
     name: Tag and release
     needs: [resolve, deploy]
-    # Tags and releases are main-only, stated as the branch rather than inferred from the
-    # resolved environment. A manual production run is a redeploy of something already
+    # Tags and releases are main-only. A manual production run is a redeploy of something already
     # tagged, and tagging it again would claim a version that has no new commits.
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.resolve.outputs.environment == 'production'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && needs.resolve.outputs.environment == 'production'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -168,6 +167,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v5
         with:
@@ -184,6 +184,7 @@ jobs:
         if: steps.version.outputs.version != ''
         env:
           GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           git config user.name "github-actions[bot]"
@@ -193,7 +194,7 @@ jobs:
           gh release create "v$VERSION" \
             --title "v$VERSION" \
             --notes-file "$RUNNER_TEMP/notes.md" \
-            --target "$GITHUB_SHA"
+            --target "$TARGET_SHA"
           {
             echo "## Released v$VERSION"
             echo

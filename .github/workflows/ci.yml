@@ -1,13 +1,16 @@
 name: CI
 
-# Runs on every pull request, and is called by deploy.yml as the gate before any
-# Cloudflare deploy. There is deliberately no `push` trigger: a push to develop or main
-# runs deploy.yml, which calls this workflow, so a `push` trigger here would only duplicate
-# the same run. Needs no Cloudflare credentials — the integration tests run against
-# Miniflare (real local D1/Queues/Email bindings), not the live account.
+# Runs on pull requests and integration pushes. Deploy starts from a successful push run, so
+# the full verification is performed once per commit rather than once in CI and again in Deploy.
+# Needs no Cloudflare credentials — integration tests use Miniflare (real local bindings), not the
+# live account.
 on:
   pull_request:
-  workflow_call:
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  push:
+    branches: [develop, main]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -17,8 +20,9 @@ permissions:
   contents: read
 
 jobs:
-  verify:
-    name: Format, sync, typecheck, lint, test and build
+  quality:
+    name: Format, sync, typecheck, lint and test
+    if: github.event_name != 'pull_request' || github.head_ref != 'develop'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -71,8 +75,50 @@ jobs:
 
       # `lint` includes the Nx module-boundary rules that enforce the one-directional
       # data flow (AGENTS.md §4), so a boundary violation fails CI here.
-      - name: Typecheck, lint, test and build
-        run: npx nx run-many -t typecheck lint test build --parallel=1
+      - name: Typecheck, lint and test
+        run: npx nx run-many -t typecheck lint test --parallel=1
+
+  build:
+    name: Build and Miniflare SEO gate
+    if: github.event_name != 'pull_request' || github.head_ref != 'develop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        id: node
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Restore Nx cache
+        uses: actions/cache@v6
+        with:
+          path: .nx/cache
+          key: nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            nx-${{ runner.os }}-
+
+      - name: Restore node_modules
+        id: modules
+        uses: actions/cache@v6
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            libs/*/node_modules
+          key: modules-${{ runner.os }}-node${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Initialize local D1 for SSR prerender builds
+        run: npx nx run worker-jobs:migrate:local
+
+      - name: Build
+        run: npx nx run-many -t build --parallel=1
 
       - name: Run Miniflare SEO integration gate
         run: npx nx run public:integration-test
