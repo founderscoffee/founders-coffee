@@ -97,7 +97,12 @@ jobs:
         run: npx nx run worker-jobs:migrate:${{ env.TARGET_ENV }}
 
       - name: Initialize local D1 for prerender build
+        if: env.TARGET_ENV == 'staging'
         run: npx nx run worker-jobs:migrate:local
+
+      - name: Initialize production local D1 for prerender build
+        if: env.TARGET_ENV == 'production'
+        run: npx nx run worker-jobs:migrate:local:production
 
       # `--parallel=1` keeps the four Workers' logs readable and makes a partial failure
       # unambiguous. apps/ui, apps/dashboard and apps/admin select their environment via

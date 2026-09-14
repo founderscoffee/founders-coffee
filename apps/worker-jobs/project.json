@@ -53,6 +53,13 @@
         "command": "wrangler d1 migrations apply founders-coffee-db-staging --local --persist-to ../../.wrangler/state",
         "cwd": "apps/worker-jobs"
       }
+    },
+    "migrate:local:production": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "wrangler d1 migrations apply founders-coffee-db-production --local --env production --persist-to ../../.wrangler/state",
+        "cwd": "apps/worker-jobs"
+      }
     }
   }
 }

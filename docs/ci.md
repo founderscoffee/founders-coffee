@@ -65,9 +65,11 @@ not the live account.
 2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
 3. `nx sync:check` — asserts the tsconfig project references are committed. `nx.json` sets
    `sync.applyChanges: true`, so local runs repair them silently; this catches the un-committed repair.
-4. `nx run worker-jobs:migrate:local` — applies the committed D1 migrations to the local state used
-   by Cloudflare's Vite prerender server. This keeps the production build deterministic without
-   requiring Cloudflare credentials or staging data.
+4. `nx run worker-jobs:migrate:local` — applies the committed D1 migrations to the local staging
+   database used by the default Cloudflare Vite prerender server. The deploy workflow selects the
+   matching local target (`migrate:local` for staging, `migrate:local:production` for production),
+   because the environment-specific UI configs use different D1 database names in the shared state.
+   This keeps every build deterministic without requiring Cloudflare credentials or live data.
 5. `nx run-many -t typecheck lint test build --parallel=1` — verifies every production build; the
    serial graph keeps Istanbul coverage output isolated between Miniflare projects. `lint` includes
    the Nx module-boundary rules, so a violation of the one-directional data flow (AGENTS.md §4) fails here.
@@ -188,7 +190,8 @@ applies. Migrations therefore run **first**, from `apps/worker-jobs` (which has 
 ```sh
 npm run migrate:staging      # nx run worker-jobs:migrate:staging
 npm run migrate:production
-npm run migrate:local        # local Miniflare D1
+npm run migrate:local        # local Miniflare staging D1
+npx nx run worker-jobs:migrate:local:production # local Miniflare production-named D1
 ```
 
 Local Cloudflare state lives in **one** directory at the repository root, `.wrangler/state`, shared
