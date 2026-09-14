@@ -19,6 +19,7 @@ const PRIVATE_PATHS = [
 const HTML_CONTENT_TYPE = 'text/html';
 const NO_INDEX = 'noindex, nofollow';
 const MAX_DYNAMIC_ROUTES = 25;
+const SITEMAP_SMOKE_QUERY = '?seo_smoke=1';
 
 const argument = (name, fallback) => {
   const index = process.argv.indexOf(name);
@@ -175,7 +176,7 @@ const run = async () => {
   }
 
   const sitemapResponse = await fetchSmoke(
-    new URL('/sitemap.xml', `${origin}/`),
+    new URL(`/sitemap.xml${SITEMAP_SMOKE_QUERY}`, `${origin}/`),
     {
       redirect: 'manual',
     },
