@@ -1,0 +1,9 @@
+{
+  "description": "Read-only production SEO smoke requests bypass managed challenge controls",
+  "expression": "(http.request.method eq \"GET\" and http.user_agent contains \"founders-coffee-seo-smoke\" and (http.request.uri.path in {\"/robots.txt\" \"/sitemap.xml\" \"/llms.txt\" \"/events.json\"} or starts_with(http.request.uri.path, \"/ar/\") or starts_with(http.request.uri.path, \"/fr/\") or starts_with(http.request.uri.path, \"/en/\")))",
+  "action": "skip",
+  "action_parameters": {
+    "products": ["bic", "securityLevel"],
+    "phases": ["http_request_firewall_managed", "http_ratelimit"]
+  }
+}

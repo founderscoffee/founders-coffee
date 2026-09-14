@@ -1,8 +1,10 @@
 const PRODUCTION_ORIGIN = 'https://founders.coffee';
 const NO_INDEX = 'noindex, nofollow';
+export const SEO_SMOKE_USER_AGENT = 'founders-coffee-seo-smoke/1.0';
 
 const read = async (origin, path) => {
   const response = await fetch(new URL(path, `${origin}/`), {
+    headers: { 'user-agent': SEO_SMOKE_USER_AGENT },
     redirect: 'manual',
   });
   return { response, body: await response.text() };

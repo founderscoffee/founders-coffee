@@ -1,7 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
-import { discoveryFailures } from './discovery-contract.mjs';
+import {
+  discoveryFailures,
+  SEO_SMOKE_USER_AGENT,
+} from './discovery-contract.mjs';
 import { inspectGeoDocument } from './geo-contract.mjs';
 
 const DEFAULT_ORIGIN = 'https://staging.founders.coffee';
@@ -129,7 +132,10 @@ const fetchResponse = async (path, followRedirects = true) => {
   const redirects = [];
   for (let hop = 0; hop <= 3; hop += 1) {
     const response = await fetch(current, {
-      headers: { accept: 'text/html' },
+      headers: {
+        accept: 'text/html',
+        'user-agent': SEO_SMOKE_USER_AGENT,
+      },
       redirect: 'manual',
     });
     const location = response.headers.get('location');
@@ -155,6 +161,7 @@ const run = async () => {
   const failures = [];
   const routes = [];
   const robotsResponse = await fetch(new URL('/robots.txt', `${origin}/`), {
+    headers: { 'user-agent': SEO_SMOKE_USER_AGENT },
     redirect: 'manual',
   });
   const robots = await robotsResponse.text();
@@ -170,6 +177,7 @@ const run = async () => {
   }
 
   const sitemapResponse = await fetch(new URL('/sitemap.xml', `${origin}/`), {
+    headers: { 'user-agent': SEO_SMOKE_USER_AGENT },
     redirect: 'manual',
   });
   const sitemap = await sitemapResponse.text();
