@@ -117,8 +117,9 @@ repository settings, not here.
    [`libs/infra/cloudflare/waf/seo-smoke-skip-rule.json`](../libs/infra/cloudflare/waf/seo-smoke-skip-rule.json),
    which applies to the four public discovery files and to GET requests for public locale paths
    carrying that header. Browser Integrity Check and the normal medium security level remain
-   enabled for every other request. The browser-shaped request avoids Cloudflare Free Bot Fight
-   Mode false positives from the Node client on cacheable XML resources.
+   enabled for every other request. Production Bot Fight Mode is disabled because the Free plan
+   applies it across the whole zone and cannot selectively exempt the monitor; WAF rules, rate
+   limits, Turnstile, and Browser Integrity Check remain enabled.
    The smoke writes a JSON route report and the fetched sitemap, uploaded as a `seo-<environment>-<sha>`
    artifact. It covers all locales, company and market routes, discovered city/event routes, utility
    noindex/cache headers, robots, canonical URLs, and same-origin Early Hint links. Dynamic city/event
