@@ -35,6 +35,11 @@ import {
   ntf_email_rsvp_received_html,
   ntf_email_rsvp_received_subject,
   ntf_email_rsvp_received_text,
+  ntf_push_feedback_invitation_body,
+  ntf_push_feedback_invitation_title,
+  ntf_email_feedback_invitation_html,
+  ntf_email_feedback_invitation_subject,
+  ntf_email_feedback_invitation_text,
   ntf_sms_confirmation,
   ntf_sms_event_cancelled,
   ntf_sms_reminder_24h,
@@ -49,7 +54,8 @@ export type NotificationTemplateKey =
   | 'event_cancelled'
   | 'rsvp_received'
   | 'closeout_prompt'
-  | 'event_did_not_happen';
+  | 'event_did_not_happen'
+  | 'feedback_invitation';
 
 export interface TemplateValues {
   readonly title: string;
@@ -110,7 +116,10 @@ const withReason = (
 export const smsBodyFor = (
   templateKey: Exclude<
     NotificationTemplateKey,
-    'rsvp_received' | 'closeout_prompt' | 'event_did_not_happen'
+    | 'rsvp_received'
+    | 'closeout_prompt'
+    | 'event_did_not_happen'
+    | 'feedback_invitation'
   >,
   values: TemplateValues,
   locale: Locale,
@@ -145,6 +154,12 @@ export const emailPayloadFor = (
         subject: ntf_email_did_not_happen_subject(values, options),
         html: ntf_email_did_not_happen_html(safe, options),
         text: ntf_email_did_not_happen_text(values, options),
+      };
+    case 'feedback_invitation':
+      return {
+        subject: ntf_email_feedback_invitation_subject(values, options),
+        html: ntf_email_feedback_invitation_html(safe, options),
+        text: ntf_email_feedback_invitation_text(values, options),
       };
     case 'closeout_prompt':
       return {
@@ -213,6 +228,13 @@ export const pushPayloadFor = (
     return {
       pushTitle: ntf_push_did_not_happen_title(values, options),
       pushBody: ntf_push_did_not_happen_body({}, options),
+      pushUrl,
+    };
+  }
+  if (templateKey === 'feedback_invitation') {
+    return {
+      pushTitle: ntf_push_feedback_invitation_title(values, options),
+      pushBody: ntf_push_feedback_invitation_body({}, options),
       pushUrl,
     };
   }

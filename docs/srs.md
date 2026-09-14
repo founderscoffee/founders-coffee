@@ -297,9 +297,11 @@ and legacy migration are tracked by PF-01 through PF-12 in the
 - **FR-M8** The weekly community review shall be stored as a market-scoped D1 record with evidence
   window, structured bottleneck, bounded intervention, owner, due date, and follow-up result. No CRM
   shall be required for the current release, and the bounded text shall contain no member PII.
-- **FR-M9** A `communityOperations` feature flag, disabled until acceptance, shall gate closeout,
-  feedback, repeat-host, operations, and metrics entry points at both UI and server boundaries.
-  Disabling it shall preserve data and shall not disable moderation or host-trust safety controls.
+- **FR-M9** A market-scoped `communityOperations` feature flag shall gate closeout, feedback,
+  repeat-host, operations, and metrics entry points at both UI and server boundaries. It is enabled
+  for the DZ launch market by Founder decision and remains disabled for markets without operational
+  acceptance. Disabling it shall preserve data and shall not disable moderation or host-trust safety
+  controls.
 - **FR-M10** Closeout, attendance, feedback, host trust, audit, and weekly-review records shall be
   market-scoped at rest. Host trust shall be unique per market/member. Host friction shall use
   `venue`, `scheduling`, `promotion`, `attendance`, `format`, `safety`, or `other_structured`;

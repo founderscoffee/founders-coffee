@@ -84,3 +84,6 @@ export const eventUrlFor = (opts: {
  */
 export const closeoutUrlFor = (eventId: string): string =>
   `${notificationBaseUrl()}/closeout/${eventId}`;
+
+export const feedbackUrlFor = (eventId: string): string =>
+  `${notificationBaseUrl()}/feedback/${eventId}`;

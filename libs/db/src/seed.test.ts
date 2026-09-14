@@ -25,7 +25,7 @@ describe('libs/db seed (real D1 via Miniflare)', () => {
       hackathons: false,
       payments: false,
       recruiting: false,
-      communityOperations: false,
+      communityOperations: true,
     });
 
     const eg = rows.find((m) => m.code === 'EG');

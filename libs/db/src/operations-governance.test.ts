@@ -30,8 +30,8 @@ describe('communityOperationsEnabled', () => {
     db = await setupDb();
   });
 
-  it('is off in every seeded market, because rollback comes before exposure', async () => {
-    expect(await communityOperationsEnabled(db, 'DZ')).toBe(false);
+  it('is enabled for the DZ launch market', async () => {
+    expect(await communityOperationsEnabled(db, 'DZ')).toBe(true);
   });
 
   it('is on once the market flag is set', async () => {

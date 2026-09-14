@@ -112,8 +112,12 @@ export const resolveDestination = async (
   if (templateKey === 'rsvp_received' && !contact.hostUpdates)
     return unreachable('host_updates_off', true);
 
+  if (templateKey === 'feedback_invitation' && !contact.followUpPrompts)
+    return unreachable('follow_up_prompts_off', true);
+
   if (
-    templateKey === 'closeout_prompt' &&
+    (templateKey === 'closeout_prompt' ||
+      templateKey === 'feedback_invitation') &&
     !(await communityOperationsEnabled(db, marketCode ?? ''))
   )
     return held('operations_disabled');

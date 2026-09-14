@@ -189,12 +189,12 @@ in [deployment evidence](./deployment-evidence.md).
 
 ### ND-03 — Make the two dead categories real
 
-`host_updates` and `follow_up_prompts` are stored, saved, rendered and read by nothing:
-`resolveDestination` gates on `eventReminders` and `eventUpdates` and no others. Either they send
-something or they leave the screen.
+At the start of this plan, `host_updates` and `follow_up_prompts` were stored and rendered but not
+enforced by delivery. ND-03a made host updates real, and CO-06 now makes follow-up prompts real
+through the feedback invitation producer and send-time preference gate.
 
 Split on 2026-09-11, because the two halves are not the same size. One is a producer and some copy.
-The other needs a page nobody has built.
+The other required a page, which CO-06 now supplies.
 
 #### ND-03a — Host updates
 
@@ -223,10 +223,11 @@ The other needs a page nobody has built.
   guest can join a minute beforehand, and a notice fifteen minutes later would reach a host already
   in the room.
 
-#### ND-03b — Follow-up prompts — **not a ticket in this plan.** It is CO-06
+#### ND-03b — Follow-up prompts — **implemented by CO-06**
 
-Attempted 2026-09-11 and stopped. This plan mis-scoped it as "a producer plus a feedback page", and
-the database says otherwise.
+CO-06 now owns the producer, authenticated feedback page, eligibility enforcement, and delivery
+policy. The implementation uses the existing persistence layer rather than introducing another
+notification or feedback model.
 
 `feedbackAllowed` in `libs/db/src/operations-feedback.ts` refuses a pulse unless **all three** hold:
 
@@ -239,23 +240,18 @@ So feedback is invited by a closeout, not by an event ending. A prompt at `ends_
 reach members whose event has no closeout, no attendance record, and therefore no page that will
 accept them — every single one, today.
 
-And the surfaces that would produce those rows do not exist either. CO-03 built the whole operations
-persistence layer — `submitCloseout`, `correctCloseout`, `getCloseout`, `recordAttendance`,
-`listAttendance`, `attendanceTally`, `saveFeedback`, `getFeedback`, `feedbackTally` — and **nothing
-above the database imports any of it**, in `libs/server-fns` or in any of the three apps.
+The CO-06 server resolver now imports those persistence functions, and the host closeout path
+enqueues one idempotent invitation per attended member.
 
 The real chain is CO-04 (a secure `apps/admin`) → CO-05 (host closeout and attendance in `apps/ui`)
-→ **CO-06**, which already specifies this work in full: invitations only for attended members, the
+→ **CO-06**, which implements invitations only for attended members, the
 seven- and fourteen-day windows, the authenticated feedback surface, one idempotent updateable
 submission, the `communityOperations` flag. Re-specifying it here would fork it.
 
-**Conflict to resolve when CO-06 runs:** it says "do not add email as a default event channel," which
-ND-07 has since overridden with evidence. CO-06's delivery bullet should be rewritten to push-first
-with email behind it, not push-first with SMS.
+The delivery policy is push-first with email behind it, not SMS. This follows the ND-07 amendment.
 
-**The decision this plan still owns:** `follow_up_prompts` is on the preferences screen now, gating
-nothing, and CO-06 is several tickets away. Either it comes off the screen until CO-06 lands, or it
-stays as a control that does nothing — which is the defect this plan was written to remove.
+`follow_up_prompts` is now enforced at send time for feedback invitations. Push remains primary,
+email is the fallback, and SMS is excluded.
 
 #### ND-03c — Telling a host somebody dropped out
 

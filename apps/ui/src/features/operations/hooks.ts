@@ -1,8 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { authClient } from '../../lib/auth';
-import { operationsApi } from './api';
-import type { SubmitCloseoutRequest } from '@founders-coffee/server-fns';
+import {
+  operationsApi,
+  type SubmitCloseoutRequest,
+  type SubmitFeedbackRequest,
+} from './api';
 
 export const useCloseout = (eventId: string) => {
   const auth = authClient.useSession();
@@ -45,5 +48,29 @@ export const useSubmitCloseout = (eventId: string) => {
     onSuccess: () => {
       void cache.invalidateQueries({ queryKey: ['closeout', eventId] });
     },
+  });
+};
+
+export const useFeedback = (eventId: string) => {
+  const auth = authClient.useSession();
+  const userId = auth.data?.user.id;
+  const query = useQuery({
+    queryKey: ['feedback', eventId, userId],
+    queryFn: () => operationsApi.getFeedbackView(eventId),
+    enabled: !!userId && eventId.length > 0,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+  });
+  return { ...query, isAuthLoading: auth.isPending, userId };
+};
+
+export const useSubmitFeedback = (eventId: string) => {
+  const cache = useQueryClient();
+  return useMutation({
+    mutationFn: (input: SubmitFeedbackRequest) =>
+      operationsApi.submitFeedback(input),
+    onSuccess: () =>
+      void cache.invalidateQueries({ queryKey: ['feedback', eventId] }),
   });
 };

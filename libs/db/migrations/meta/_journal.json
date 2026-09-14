@@ -183,6 +183,13 @@
       "when": 1789034922150,
       "tag": "0025_woozy_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1789405079000,
+      "tag": "0026_enable_community_operations",
+      "breakpoints": true
     }
   ]
 }

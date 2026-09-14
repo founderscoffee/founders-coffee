@@ -1,15 +1,15 @@
 # Community Operations and Admin Implementation Plan
 
-| Field          | Value                                                                                                                                                                  |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-10 signed off, CO-01 through CO-05 implemented, CO-02/CO-03 deployed to both environments, and CO-04/CO-05 verified on staging pending production promotion |
-| Last reviewed  | 2026-09-14                                                                                                                                                             |
-| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                            |
-| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                           |
-| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                         |
-| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                              |
-| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                       |
-| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                         |
+| Field          | Value                                                                                                                                                                            |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; EC-10 signed off, CO-01 through CO-06 implemented, CO-02/CO-03 deployed to both environments, CO-04/CO-05 staging-verified, and CO-06 locally verified pending promotion |
+| Last reviewed  | 2026-09-14                                                                                                                                                                       |
+| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                                      |
+| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                                     |
+| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                                   |
+| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                                        |
+| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                                 |
+| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                                   |
 
 ## 1. Objective
 
@@ -196,10 +196,11 @@ Drizzle, domain internals, or server functions from a component.
 25. **Weekly decisions are first-party records.** Each weekly review writes one D1
     `operations_reviews` record containing scope, evidence window, bottleneck, intervention, owner,
     due date, and follow-up result. This is the operating record; no CRM is introduced.
-26. **Rollback is implemented before exposure.** A current-release `communityOperations` feature
-    flag defaults off until CO-11 acceptance. It gates closeout, feedback, repeat-host, operations,
-    and metrics entry points and server functions; security-critical moderation and host-trust
-    controls remain available. Disabling it never deletes data or reopens frozen RSVP intent.
+26. **Market-scoped rollout is reversible.** `communityOperations` gates closeout, feedback,
+    repeat-host, operations, and metrics entry points and server functions. It is enabled for the
+    DZ launch market by the 2026-09-14 Founder decision and remains disabled for EG/SA until their
+    operational acceptance. Disabling it never deletes data or reopens frozen RSVP intent; security-
+    critical moderation and host-trust controls remain available.
 
 ## 6. Canonical community-health definitions
 
@@ -473,10 +474,9 @@ Verification:
   opposite facts and a dashboard rendering both as 0% invites the wrong intervention.
 - **The feedback window is anchored to `ends_at`, never to the closeout**, which is the only way
   §5.20's "late closeouts do not reopen the window" is actually true.
-- **`communityOperations` is seeded disabled in every market** and resolves an absent or non-boolean
-  value to disabled. It gates closeout, feedback, repeat-host, operations and metrics; moderation
-  and host trust stay available, because the reason to switch the feature off may be the reason
-  they are needed.
+- **`communityOperations` is enabled only for DZ in the launch release** (migration `0026`); EG/SA
+  remain disabled and an absent or non-boolean value resolves to disabled. It gates closeout,
+  feedback, repeat-host, operations and metrics; moderation and host trust stay available.
 - **Legacy `ends_at IS NULL` events are excluded from every path and listed for attention** (§5.24).
   No duration is inferred anywhere.
 - **Retention runs in bounded market-scoped batches**: comments cleared at twelve months with the
@@ -500,9 +500,9 @@ Work:
   repository queries; CO-03 provides only row-level repositories and atomic helpers required by
   closeout, feedback, trust, and weekly review workflows.
 - Add the typed `communityOperations` feature flag and shared read helper to the existing first-party
-  flag configuration, seed it disabled in every environment, and prove absent/invalid values resolve
-  to disabled. CO-05 through CO-08 and CO-10 own enforcement on the real routes/server functions they
-  introduce; moderation and host trust remain ungated.
+  flag configuration, seed DZ enabled for the launch market (migration `0026`), keep EG/SA disabled,
+  and prove absent/invalid values resolve to disabled. CO-05 through CO-08 and CO-10 own enforcement
+  on the real routes/server functions they introduce; moderation and host trust remain ungated.
 - Detect legacy `endsAt = null` rows during migration verification, add the repository attention
   query and typed state used later by CO-08, and provide only an authorized audited backfill command;
   never infer an end time.
@@ -827,6 +827,8 @@ Verification:
 
 ### CO-06 — Add attendee feedback and post-event follow-up
 
+**Status:** Implemented locally on 2026-09-14; staging and production promotion remain release actions.
+
 **Parent:** P1-009, P1-018, P1-019, P1-023
 **Requirements:** FR-E13, FR-E14, FR-M9; NFR-4, NFR-5, NFR-7 through NFR-11
 
@@ -994,8 +996,9 @@ Work:
 
 - Apply migrations to staging and deploy `apps/ui`, `apps/admin`, and `apps/worker-jobs` with the
   compatible shared libraries.
-- Enable `communityOperations` in staging only for the operational rehearsal; keep production
-  disabled until all staged evidence is accepted and the controlled production enable step begins.
+- Enable `communityOperations` for the DZ launch market through migration `0026`; keep EG/SA
+  disabled until their operational acceptance and treat production promotion as a controlled release
+  action.
 - Verify Access plus Better Auth/RBAC, D1/DO/Queue/Analytics bindings, Turnstile, WAF, FCM, Twilio,
   CSP, logs, alerts, and `workers.dev` isolation.
 - Use the dedicated host/member/admin identities from CO-01; prove the admin's Access and Better Auth
@@ -1022,8 +1025,8 @@ Work:
 
 Rollback:
 
-- Disable `communityOperations` at its existing environment-scoped first-party configuration and
-  verify the route and server-function gates preserve the core event flow. Moderation and host-trust
+- Disable `communityOperations` for the affected market at its environment-scoped first-party
+  configuration and verify the route and server-function gates preserve the core event flow. Moderation and host-trust
   access remains available for safety response.
 - Roll back compatible Worker versions; never destructively reverse a D1 migration.
 - Keep closeout/attendance/feedback records immutable during diagnosis except through audited forward
@@ -1150,8 +1153,8 @@ stubs/placeholders.
 - [ ] Post-event prompts use Durable Object alarms -> Queue -> PWA push first -> email fallback, with
       retry, DLQ, idempotency, alerts, a host closeout prompt, and transparent did-not-happen member
       communication.
-- [ ] `communityOperations` defaults off until acceptance, gates every intended UI/server entry
-      point, rolls back without data loss, and never disables moderation or host-trust safety controls.
+- [ ] `communityOperations` gates every intended UI/server entry point, is enabled only for accepted
+      markets, rolls back without data loss, and never disables moderation or host-trust safety controls.
 - [ ] No PII, feedback comments, raw identifiers, or venue free text enters logs or Analytics Engine.
 - [ ] All screens and notifications are complete in `ar`, `fr`, and `en`; RTL/LTR, WCAG 2.1 AA,
       loading/error/empty states, keyboard/focus, and responsive behavior are verified.

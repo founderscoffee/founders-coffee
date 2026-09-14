@@ -23,6 +23,17 @@ export const submitCloseoutRequestSchema = z.strictObject({
     .default([]),
 });
 
+export const feedbackViewRequestSchema = z.strictObject({
+  eventId: z.string().min(1),
+});
+
+export const submitFeedbackRequestSchema = z.strictObject({
+  feedback: operations.submitFeedbackSchema,
+  turnstileToken: z.string().trim().max(2_048).optional(),
+});
+
 export type CloseoutViewRequest = z.infer<typeof closeoutViewRequestSchema>;
 export type CloseoutStatesRequest = z.infer<typeof closeoutStatesRequestSchema>;
 export type SubmitCloseoutRequest = z.infer<typeof submitCloseoutRequestSchema>;
+export type FeedbackViewRequest = z.infer<typeof feedbackViewRequestSchema>;
+export type SubmitFeedbackRequest = z.infer<typeof submitFeedbackRequestSchema>;

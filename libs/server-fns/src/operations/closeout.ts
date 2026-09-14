@@ -10,6 +10,7 @@ import {
 import type { operations } from '@founders-coffee/domain';
 
 import { enqueueDidNotHappenNotices } from '../notifications/did-not-happen.js';
+import { enqueueFeedbackInvitations } from '../notifications/feedback-invitation.js';
 import { listCloseoutRoster, type RosterMember } from './roster.js';
 
 export interface CloseoutView {
@@ -233,6 +234,8 @@ export const submitCloseoutResolver = async (
     });
     if (written.outcome !== 'recorded') refusedMarks.push(mark.userId);
   }
+
+  await enqueueFeedbackInvitations(db, event);
 
   return ok({ refusedMarks });
 };
