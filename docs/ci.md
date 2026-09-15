@@ -62,11 +62,11 @@ integration tests run against Miniflare with real local D1/Queues/Email bindings
 not the live account.
 
 The `quality` and `build` jobs run in parallel. A `develop` → `main` release pull request remains
-skipped by the branch guard because the exact commit was already verified on its `develop` push; the
-subsequent deployment runs the reusable checks for the merge commit. Feature pull requests into
-`develop` run the pull-request jobs normally. Documentation-only pull requests are filtered out
-because they cannot change application or deployment artifacts; push deployments still run the full
-check.
+skipped by the branch guard; the resulting production deployment either reuses exact staging evidence
+or runs the full check. Feature pull requests into `develop` run the pull-request jobs normally.
+Documentation-only pull requests are filtered out because they cannot change application or deployment
+artifacts; push deployments still run the full check unless the exact-tree gate below proves they can
+safely reuse it.
 
 1. `npm ci --no-audit --no-fund` — skipped entirely when the `node_modules` cache hits.
 2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
@@ -88,7 +88,8 @@ check.
 
 ### Two caches, and why `npm ci` is usually skipped
 
-The Nx local cache (`.nx/cache`) is restored via `actions/cache`, keyed on `package-lock.json`.
+The Nx local cache (`.nx/cache`) is restored via `actions/cache`, keyed on the operating system,
+`package-lock.json`, and the exact commit SHA, with lockfile-scoped restore keys.
 
 `node_modules` is cached separately, across the root and every workspace package
 (`apps/*/node_modules`, `libs/*/node_modules` — this is an npm workspaces repo, so the tree is not
@@ -101,8 +102,9 @@ deliberate: `restore-keys` would let a near-miss restore a tree built from a dif
 because a hit skips `npm ci`, the job would then run against dependencies that do not match the
 lockfile. A miss must reinstall.
 
-There are no `install`, `preinstall`, `postinstall` or `prepare` scripts anywhere in the workspace,
-which is what makes restoring the tree equivalent to installing it.
+The only lifecycle script is the local-state linker in `postinstall`; it creates or repairs local
+Wrangler state symlinks and does not alter dependency contents. That keeps restoring the tree
+equivalent to installing it.
 
 ### There is no dependency audit step
 
@@ -116,7 +118,14 @@ repository settings, not here.
 
 1. **resolve** — picks the target environment from the pushed branch; a manual run may choose its
    environment and production is still refused from a non-`main` ref.
-2. **verify** — calls the reusable CI workflow before any deployment step.
+2. **verify** — calls the reusable CI workflow before any deployment step. On a `push` to `main`, its
+   first job independently checks the latest 100 completed `Deploy` runs from `develop`. It reuses
+   long CI only when a successful staging deployment completed before the current run began, has the
+   exact same Git tree, and its quality, build/Miniflare, and migration/deployment jobs all succeeded.
+   The lookup has read-only GitHub Actions access and emits its source run URL and tree in the workflow
+   summary. A manual run, a staging run, a missing/malformed match, or any API error always falls back
+   to the full CI gate. When reuse succeeds, only the long `quality` and `build` jobs are skipped; the
+   always-run `Verification evidence` job validates the internally produced metadata.
 3. **deploy** — starts only after verification succeeds, checks out the exact pushed commit, and is
    bound to the matching GitHub Environment (so its scoped secrets apply). It applies D1
    migrations, deploys the four Workers, then runs the SEO route smoke against the deployed origin.
