@@ -42,7 +42,7 @@ export const createOtpEmailProvider = (
       greeting: 'مرحبًا بك في founders.coffee',
       codeLabel: 'استخدم الرمز التالي للمتابعة.',
       code: otp,
-      expiry: 'تنتهي صلاحيته خلال 5 دقائق.',
+      expiry: 'تنتهي صلاحيته خلال 30 دقيقة.',
       footer: 'founders.coffee',
     });
     const result = await provider.send({

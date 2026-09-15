@@ -56,12 +56,12 @@ describe('renderEmail', () => {
       greeting: 'Welcome',
       codeLabel: 'Use this code',
       code: '123456',
-      expiry: 'Expires in 5 minutes.',
+      expiry: 'Expires in 30 minutes.',
     });
 
     expect(result.html).toContain('123456');
     expect(result.html).toContain('founders.coffee');
     expect(result.text).toContain('123456');
-    expect(result.text).toContain('Expires in 5 minutes.');
+    expect(result.text).toContain('Expires in 30 minutes.');
   });
 });

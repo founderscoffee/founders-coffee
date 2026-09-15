@@ -67,6 +67,12 @@ const contentStyle: CSSProperties = {
   padding: '36px 40px 8px',
 };
 
+const copyrightByLocale: Record<Locale, string> = {
+  ar: '© 2026 founders.coffee — جميع الحقوق محفوظة.',
+  en: '© 2026 founders.coffee — All rights reserved.',
+  fr: '© 2026 founders.coffee — Tous droits réservés.',
+};
+
 export const EmailBase = ({ locale, preview, children }: EmailBaseProps) => (
   <Html lang={locale} dir={direction(locale)}>
     <Head />
@@ -78,10 +84,18 @@ export const EmailBase = ({ locale, preview, children }: EmailBaseProps) => (
             founders.coffee <span style={{ color: '#c26232' }}>●</span>
           </Text>
         </Section>
-        <Section style={contentStyle}>{children}</Section>
+        <Section
+          style={{
+            ...contentStyle,
+            textAlign: direction(locale) === 'rtl' ? 'right' : 'left',
+          }}
+        >
+          {children}
+        </Section>
         <Section style={{ padding: '0 40px 28px' }}>
           <Hr style={hrStyle} />
           <Text style={footerStyle}>founders.coffee</Text>
+          <Text style={footerStyle}>{copyrightByLocale[locale]}</Text>
         </Section>
       </Container>
     </Body>
