@@ -1,3 +1,4 @@
+import type { CloseoutPromptOutcome } from '@founders-coffee/core';
 import { operations } from '@founders-coffee/domain';
 import { formatDate } from '@founders-coffee/i18n';
 import {
@@ -12,6 +13,8 @@ import { armNotificationSchedule } from './schedule.js';
 import { emailPayloadFor, pushPayloadFor } from './templates.js';
 import { validPayload } from './producer.js';
 
+export type { CloseoutPromptOutcome } from '@founders-coffee/core';
+
 export interface CloseoutPromptEvent {
   readonly id: string;
   readonly hostId: string;
@@ -22,9 +25,6 @@ export interface CloseoutPromptEvent {
   readonly startsAt: Date;
   readonly endsAt: Date | null;
 }
-
-export type CloseoutPromptOutcome =
-  'scheduled' | 'already_scheduled' | 'no_end_time' | 'no_channels';
 
 /**
  * The row's id, derived from the event rather than generated.

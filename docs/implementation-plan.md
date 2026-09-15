@@ -137,15 +137,19 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 ### Enum contract consolidation
 
 The enum audit identified repeated finite-value declarations across the core, database, domain,
-server-function, and UI layers. These tickets consolidate active contracts without changing stored
-values or runtime behavior. Dynamic market/geography codes, provider identifiers, routes, HTTP
-values, i18n keys, and UI-only state remain scoped to their owning module.
+server-function, worker, and UI layers. These tickets consolidate active contracts without changing
+stored values or runtime behavior. Core owns values shared by persistence and delivery boundaries;
+domain owns feature-specific input contracts. Dynamic market/geography codes, provider identifiers,
+routes, HTTP values, i18n keys, and UI/protocol/infrastructure-only state remain scoped to their
+owning module.
 
 | ID      | Status   | Scope                                                                                                                                                                | Remaining evidence or work                                                                                                                   |
 | ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | ENUM-01 | Complete | Establish canonical `as const` arrays, inferred unions, and Zod schemas in `libs/core`                                                                               | Targeted typecheck, lint, and core tests pass; Nx-wide verification is blocked by the existing i18n source-import graph error                |
 | ENUM-02 | Complete | Replace duplicate locale, lifecycle, notification, push, venue-kind, profile-asset, operations, and DB contracts with canonical imports and compatibility re-exports | Targeted typecheck, lint, and domain/DB/server/UI tests pass; Nx-wide verification is blocked by the existing i18n source-import graph error |
 | ENUM-03 | Complete | Finish domain-owned contracts for notification categories, account providers, and venue categories with reusable schemas and boundary imports                        | Targeted domain/server typecheck, lint, and tests pass; provider IDs, routes/protocol values, and UI-only states remain intentionally scoped |
+| ENUM-04 | Complete | Establish core-owned contracts for transient RSVP, waitlist, attendance, closeout, feedback, prompt, notification-dispatch, and operations-error outcomes            | Core outcome schemas and guards are covered by Vitest; stored values and runtime behavior are unchanged                                      |
+| ENUM-05 | Complete | Adopt the ENUM-04 contracts in D1 repositories, server functions, and notification jobs, keeping compatibility exports and documenting intentional local unions      | DB, server-fns, and worker-jobs typechecks and tests pass; UI/protocol/infrastructure state and dynamic identifiers remain local by design   |
 
 ### Immediate sequence
 

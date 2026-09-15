@@ -1,6 +1,6 @@
 import { and, eq, isNull } from 'drizzle-orm';
 
-import type { Locale } from '@founders-coffee/core';
+import type { Locale, WaitlistJoinOutcome } from '@founders-coffee/core';
 
 import type { Db } from './db.js';
 import { cityWaitlist, type CityWaitlistRow } from './schema.js';
@@ -23,7 +23,7 @@ export const insertWaitlistEntry = async (
     cityCode: string;
     locale: Locale;
   },
-): Promise<{ status: 'joined' | 'already_waitlisted' }> => {
+): Promise<{ status: WaitlistJoinOutcome }> => {
   try {
     await db.insert(cityWaitlist).values({
       id: entry.id,

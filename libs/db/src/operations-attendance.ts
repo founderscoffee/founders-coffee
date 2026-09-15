@@ -2,6 +2,7 @@ import { and, eq, sql } from 'drizzle-orm';
 
 import type {
   AttendanceOutcome as RecordedAttendanceOutcome,
+  AttendanceRecordingOutcome,
   OperationReason,
 } from '@founders-coffee/core';
 
@@ -10,8 +11,7 @@ import type { Db } from './db.js';
 import { auditStatement } from './operations-audit.js';
 import { eventAttendance, events, type EventAttendanceRow } from './schema.js';
 
-export type AttendanceOutcome =
-  'recorded' | 'not_host' | 'not_eligible' | 'not_ended' | 'event_cancelled';
+export type AttendanceOutcome = AttendanceRecordingOutcome;
 
 /**
  * The member held a going RSVP for this event, and the caller hosts it.

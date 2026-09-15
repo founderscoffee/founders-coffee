@@ -1,4 +1,10 @@
-import { AppError, err, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  ok,
+  type FeedbackEligibilityStatus,
+  type Result,
+} from '@founders-coffee/core';
 import {
   communityOperationsEnabled,
   findNextEvent,
@@ -21,12 +27,15 @@ export interface FeedbackView {
   readonly marketSlug: string;
   readonly cityCode: string;
   readonly citySlug: string | null;
-  readonly status: 'ready' | 'window_closed';
+  readonly status: Extract<
+    FeedbackEligibilityStatus,
+    'ready' | 'window_closed'
+  >;
   readonly feedback: EventFeedbackRow | null;
   readonly nextEvent: { readonly slug: string; readonly title: string } | null;
 }
 
-const feedbackError = (status: string): AppError => {
+const feedbackError = (status: FeedbackEligibilityStatus): AppError => {
   if (status === 'not_attended')
     return new AppError(
       'feedback_not_attended',
@@ -102,6 +111,10 @@ export const submitFeedbackResolver = async (
     rowId: `fbk_${opts.input.eventId}_${opts.userId}`,
   });
   if (result.outcome !== 'saved' || !result.row)
-    return err(feedbackError(result.outcome));
+    return err(
+      feedbackError(
+        result.outcome === 'saved' ? 'not_invited' : result.outcome,
+      ),
+    );
   return ok(result.row);
 };

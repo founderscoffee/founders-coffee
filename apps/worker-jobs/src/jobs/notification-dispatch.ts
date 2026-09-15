@@ -1,3 +1,4 @@
+import type { NotificationDispatchKind } from '@founders-coffee/core';
 import type { Db, ScheduledNotification } from '@founders-coffee/db';
 import type { notifications } from '@founders-coffee/domain';
 import type { EmailProvider } from '@founders-coffee/email';
@@ -12,9 +13,9 @@ import {
 } from './notification-destination.js';
 
 export type DispatchOutcome =
-  | { readonly kind: 'sent' }
+  | { readonly kind: Extract<NotificationDispatchKind, 'sent'> }
   | {
-      readonly kind: 'failed';
+      readonly kind: Extract<NotificationDispatchKind, 'failed'>;
       readonly permanent: boolean;
       readonly error: string;
       readonly unreachable?: boolean;

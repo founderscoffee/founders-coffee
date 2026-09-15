@@ -1,3 +1,4 @@
+import type { NotificationDeliveryChannel } from '@founders-coffee/core';
 import {
   communityOperationsEnabled,
   getNotificationContact,
@@ -9,9 +10,18 @@ import {
 import { notifications } from '@founders-coffee/domain';
 
 export type Destination =
-  | { readonly channel: 'sms'; readonly phoneNumber: string }
-  | { readonly channel: 'email'; readonly email: string }
-  | { readonly channel: 'push'; readonly tokens: readonly string[] };
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'sms'>;
+      readonly phoneNumber: string;
+    }
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'email'>;
+      readonly email: string;
+    }
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'push'>;
+      readonly tokens: readonly string[];
+    };
 
 export type DestinationResult =
   | { readonly ok: true; readonly destination: Destination }

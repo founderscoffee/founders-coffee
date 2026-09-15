@@ -57,9 +57,18 @@ export type PushNotificationPayload = z.infer<
 export type NotificationChannel = NotificationDeliveryChannel;
 
 export type ParsedNotificationPayload =
-  | { readonly channel: 'sms'; readonly payload: SmsNotificationPayload }
-  | { readonly channel: 'email'; readonly payload: EmailNotificationPayload }
-  | { readonly channel: 'push'; readonly payload: PushNotificationPayload };
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'sms'>;
+      readonly payload: SmsNotificationPayload;
+    }
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'email'>;
+      readonly payload: EmailNotificationPayload;
+    }
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'push'>;
+      readonly payload: PushNotificationPayload;
+    };
 
 const schemaFor = {
   sms: smsNotificationPayloadSchema,

@@ -1,5 +1,10 @@
 import { and, eq, sql } from 'drizzle-orm';
 
+import type {
+  FeedbackEligibilityStatus,
+  FeedbackSubmissionOutcome,
+} from '@founders-coffee/core';
+
 import type { Db } from './db.js';
 import {
   eventAttendance,
@@ -11,11 +16,8 @@ import {
 } from './schema.js';
 import { listUpcomingEvents } from './events.js';
 
-export type FeedbackOutcome =
-  'saved' | 'not_attended' | 'window_closed' | 'not_invited';
-
-export type FeedbackEligibility =
-  'ready' | 'not_attended' | 'not_invited' | 'window_closed';
+export type FeedbackOutcome = FeedbackSubmissionOutcome;
+export type FeedbackEligibility = FeedbackEligibilityStatus;
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60;
 const FOURTEEN_DAYS = 14 * 24 * 60 * 60;

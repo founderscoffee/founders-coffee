@@ -1,11 +1,12 @@
 import { and, eq, inArray, sql } from 'drizzle-orm';
 
+import type { RsvpCreationOutcome } from '@founders-coffee/core';
+
 import { batch } from './atomic.js';
 import type { Db } from './db.js';
 import { eventRsvps, events, user, type EventRsvp } from './schema.js';
 
-export type CreateRsvpOutcome =
-  'created' | 'event_missing' | 'already_rsvpd' | 'rsvp_closed';
+export type CreateRsvpOutcome = RsvpCreationOutcome;
 
 export const RSVP_INSERT_COLUMNS = [
   'id',

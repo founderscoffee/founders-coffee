@@ -2,6 +2,7 @@ import {
   AppError,
   id,
   ok,
+  type WaitlistJoinOutcome,
   type Locale,
   type Result,
 } from '@founders-coffee/core';
@@ -14,7 +15,7 @@ export type JoinWaitlistInput = {
   locale: Locale;
 };
 
-export type JoinWaitlistResult = { status: 'joined' | 'already_waitlisted' };
+export type JoinWaitlistResult = { status: WaitlistJoinOutcome };
 
 /**
  * Join a city's waitlist. Anonymous demand capture — no session required.
