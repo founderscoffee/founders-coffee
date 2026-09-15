@@ -1,3 +1,5 @@
+import type { EventStatus } from '@founders-coffee/core';
+
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
@@ -12,7 +14,7 @@ export const FEEDBACK_CLOSES_AFTER_MS = 14 * DAY_MS;
 
 export type EventTiming = {
   readonly endsAt: number | null;
-  readonly status: string;
+  readonly status: EventStatus;
 };
 
 /**

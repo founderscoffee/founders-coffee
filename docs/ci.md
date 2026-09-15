@@ -6,7 +6,7 @@ project decision, Playwright E2E remains a local/staging release gate and is not
 
 Implements **P0-020**. Two workflows, two Cloudflare environments, four Workers per environment.
 
-**Source configuration last checked: 2026-09-14.** The workflow files match the behavior below.
+**Source configuration last checked: 2026-09-15.** The workflow files match the behavior below.
 The latest GEO push ([run 34777686347](https://github.com/AmineYagoub/founders-coffee/actions/runs/34777686347))
 reached `format:check` and failed only because `docs/implementation-plan.md` had drifted from
 Prettier; this documentation update repairs that drift. Its migration and deploy jobs were skipped.
@@ -55,17 +55,17 @@ verify their current existence and settings in GitHub.
 
 ### `.github/workflows/ci.yml`
 
-Runs on pull requests (except documentation-only changes) and on pushes to `develop` and `main`.
-The push run is the canonical verification for a commit; `deploy.yml` starts only after that run
-finishes successfully. This avoids running the same full graph once as a deploy gate and again as
-a push check. Needs **no** Cloudflare credentials — the integration tests run against Miniflare
-with real local D1/Queues/Email bindings (AGENTS.md §12), not the live account.
+Runs on pull requests (except documentation-only changes) and as a reusable `workflow_call` from
+`deploy.yml`. Pushes to `develop` and `main` are owned by `deploy.yml`, which calls this workflow as
+the required verification gate before deployment. Needs **no** Cloudflare credentials — the
+integration tests run against Miniflare with real local D1/Queues/Email bindings (AGENTS.md §12),
+not the live account.
 
-The `quality` and `build` jobs run in parallel. On a `develop` → `main` release pull request, the
-pull-request jobs are skipped because the push to `develop` already verified the exact commit; the
-merge then produces one new `main` push run. Feature pull requests into `develop` still run the
-pull-request jobs normally. Documentation-only pull requests are filtered out because they cannot
-change application or deployment artifacts; pushes to the protected branches still run the full
+The `quality` and `build` jobs run in parallel. A `develop` → `main` release pull request remains
+skipped by the branch guard because the exact commit was already verified on its `develop` push; the
+subsequent deployment runs the reusable checks for the merge commit. Feature pull requests into
+`develop` run the pull-request jobs normally. Documentation-only pull requests are filtered out
+because they cannot change application or deployment artifacts; push deployments still run the full
 check.
 
 1. `npm ci --no-audit --no-fund` — skipped entirely when the `node_modules` cache hits.
@@ -114,9 +114,10 @@ repository settings, not here.
 
 ### `.github/workflows/deploy.yml`
 
-1. **resolve** — for a successful CI push, picks the target environment from the CI run's branch;
-   a manual run may choose its environment and production is still refused from a non-`main` ref.
-2. **deploy** — starts only after the successful CI push, checks out that run's exact commit, and is
+1. **resolve** — picks the target environment from the pushed branch; a manual run may choose its
+   environment and production is still refused from a non-`main` ref.
+2. **verify** — calls the reusable CI workflow before any deployment step.
+3. **deploy** — starts only after verification succeeds, checks out the exact pushed commit, and is
    bound to the matching GitHub Environment (so its scoped secrets apply). It applies D1
    migrations, deploys the four Workers, then runs the SEO route smoke against the deployed origin.
    Staging probes use the environment's `workers.dev` hostname and assert canonical URLs against
@@ -135,7 +136,7 @@ repository settings, not here.
    noindex/cache headers, robots, canonical URLs, and same-origin Early Hint links. Dynamic city/event
    coverage is reported when staging has public rows; an empty staging database is a valid state and
    does not fabricate fixtures. Playwright E2E remains excluded from CI by the current project decision.
-3. **release** — only for a successful CI push to `main`. Tags that exact deployed commit and
+4. **release** — only for a successful CI push to `main`. Tags that exact deployed commit and
    publishes a GitHub release. Manual redeploys never create a second tag.
 
 `concurrency` is set with `cancel-in-progress: false`: cancelling between the migration step and the
@@ -332,15 +333,11 @@ match the exported component in PascalCase; that rule is what keeps CI honest.
 
 - **Playwright e2e smoke** (P0-021) — no post-deploy health check runs today.
 
-## `dangerouslyIgnoreUnhandledErrors` in `libs/server-fns`
+## Better Auth contact-test error handling
 
-Better Auth's router settles the `Response` a caller awaits and separately drops the `APIError` its
-endpoint threw, so every test that deliberately submits a wrong or expired code — most of the
-PF-07c contact-change suite — ends the run with an unhandled rejection that no caller could have
-caught. The flag is set on that project alone, and only because the rejection originates inside a
-dependency: an `unhandledrejection` listener in `setup.ts` was tried first and never fires under the
-Workers pool.
-
-What it costs: a genuine unhandled rejection in `libs/server-fns`' own code no longer fails that
-project's run. Every other project keeps the default. Remove the flag when the upstream router stops
-orphaning the promise, and check by deleting it and running the contact suites.
+PF-07c originally sent every contact operation through the Better Auth HTTP router. Under the
+Workers pool, deliberately invalid contact codes and duplicate numbers produced a response while
+also leaving the endpoint's `APIError` promise unhandled. `contact-preflight.ts` now resolves those
+expected refusal cases against the D1 verification records (including expiry and attempt limits),
+then leaves successful operations on the composed auth handler. The test project no longer uses
+`dangerouslyIgnoreUnhandledErrors`; the two contact suites run with zero unhandled errors.

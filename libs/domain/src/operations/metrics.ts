@@ -1,18 +1,5 @@
-export const METRIC_KEYS = [
-  'completed_events',
-  'did_not_happen_events',
-  'rsvp_to_attendance',
-  'no_show_rate',
-  'recurring_hosts',
-  'host_retention_60d',
-  'repeat_participation',
-  'return_intent',
-  'host_again_intent',
-  'four_week_cover',
-  'overdue_closeouts',
-] as const;
-
-export type MetricKey = (typeof METRIC_KEYS)[number];
+export { METRIC_KEYS } from '@founders-coffee/core';
+export type { MetricKey } from '@founders-coffee/core';
 
 export const RECURRING_HOST_WINDOW_DAYS = 90;
 export const RECURRING_HOST_MIN_EVENTS = 2;

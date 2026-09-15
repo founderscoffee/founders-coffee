@@ -12,6 +12,7 @@ import {
 
 import { hostCreateStepCopy, hostCreateViewCopy } from './host-create-copy';
 import { hostScheduleSummary } from './host-create-schedule';
+import { repeatDraftFrom } from './host-create-repeat';
 import {
   readHostCreateDraft,
   writeHostCreateDraft,
@@ -26,6 +27,7 @@ import {
   validateVenueStep,
   type HostCreateFieldErrors,
 } from './host-create-validation';
+import type { RepeatEventTemplate } from './api';
 import type { VenueSelection } from './types';
 import { useHostPublish } from './useHostPublish';
 import { useAuth } from '../../lib/app-providers';
@@ -37,12 +39,14 @@ export const useHostCreateWizard = ({
   locale,
   market,
   city,
+  repeatTemplate,
   isAuthenticated,
   isAuthLoading,
 }: {
   locale: Locale;
   market: Market;
   city: geo.GeoCity | null;
+  repeatTemplate?: RepeatEventTemplate | null;
   isAuthenticated: boolean;
   isAuthLoading: boolean;
 }) => {
@@ -59,6 +63,7 @@ export const useHostCreateWizard = ({
   const [description, setDescription] = useState('');
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false);
   const [isAuthGateOpen, setIsAuthGateOpen] = useState(false);
   const [needsReauthentication, setNeedsReauthentication] = useState(false);
 
@@ -87,7 +92,9 @@ export const useHostCreateWizard = ({
     },
   });
   useEffect(() => {
-    const restored = readHostCreateDraft(market.code);
+    const isMatchingRepeat = repeatTemplate?.marketCode === market.code;
+    setIsRepeat(isMatchingRepeat);
+    const restored = isMatchingRepeat ? null : readHostCreateDraft(market.code);
     if (restored) {
       setStep(restoredDraftStep(restored, locale));
       setVenue(restored.venue);
@@ -97,9 +104,19 @@ export const useHostCreateWizard = ({
       setEndsAt(restored.endsAt);
       setTitle(restored.title);
       setDescription(restored.description);
+    } else if (repeatTemplate?.marketCode === market.code) {
+      const repeated = repeatDraftFrom(repeatTemplate);
+      setStep(repeated.step);
+      setVenue(repeated.venue);
+      setVenueName(repeated.venueName);
+      setSearchValue(repeated.searchValue);
+      setStartsAt(repeated.startsAt);
+      setEndsAt(repeated.endsAt);
+      setTitle(repeated.title);
+      setDescription(repeated.description);
     }
     setHasRestoredDraft(true);
-  }, [market.code, locale]);
+  }, [market.code, locale, repeatTemplate]);
 
   useEffect(() => {
     if (!hasRestoredDraft) return;
@@ -251,6 +268,7 @@ export const useHostCreateWizard = ({
     view: hostCreateViewCopy(),
     isAuthGateOpen,
     needsReauthentication,
+    isRepeat,
     closeAuthGate: () => setIsAuthGateOpen(false),
     onGateAuthenticated: () => {
       setNeedsReauthentication(false);

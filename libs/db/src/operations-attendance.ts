@@ -1,12 +1,17 @@
 import { and, eq, sql } from 'drizzle-orm';
 
+import type {
+  AttendanceOutcome as RecordedAttendanceOutcome,
+  AttendanceRecordingOutcome,
+  OperationReason,
+} from '@founders-coffee/core';
+
 import { batch } from './atomic.js';
 import type { Db } from './db.js';
 import { auditStatement } from './operations-audit.js';
 import { eventAttendance, events, type EventAttendanceRow } from './schema.js';
 
-export type AttendanceOutcome =
-  'recorded' | 'not_host' | 'not_eligible' | 'not_ended' | 'event_cancelled';
+export type AttendanceOutcome = AttendanceRecordingOutcome;
 
 /**
  * The member held a going RSVP for this event, and the caller hosts it.
@@ -112,12 +117,12 @@ export const recordAttendance = async (
     eventId: string;
     userId: string;
     hostId: string;
-    outcome: 'attended' | 'no_show';
+    outcome: RecordedAttendanceOutcome;
     rowId: string;
     auditId: string;
     accessSubject?: string | null;
     isCorrection?: boolean;
-    reason?: string | null;
+    reason?: OperationReason | null;
   },
 ): Promise<{ outcome: AttendanceOutcome; row?: EventAttendanceRow }> => {
   const guard = eligibleAttendee(input.eventId, input.userId, input.hostId);

@@ -26,6 +26,7 @@ import { RsvpCancelDialog } from './RsvpCancelDialog';
 export type RsvpSectionProps = {
   event: EventWithAttendance;
   hostName: string;
+  marketSlug: string;
   locale: Locale;
   isHost: boolean;
   live: UseEventLiveResult | null;
@@ -35,6 +36,7 @@ export type RsvpSectionProps = {
 export const RsvpSection = ({
   event,
   hostName,
+  marketSlug,
   locale,
   isHost,
   live,
@@ -101,6 +103,7 @@ export const RsvpSection = ({
       <HostEventPanel
         event={event}
         locale={locale}
+        marketSlug={marketSlug}
         live={live}
         isWindowOpen={isWindowOpen}
       />

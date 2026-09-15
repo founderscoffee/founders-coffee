@@ -216,7 +216,7 @@ their phases are approved) are additionally **rate-limited (Durable Object + WAF
 - **Queries:** use Drizzle's query builder; parameterize everything (no string interpolation into SQL).
 - **Transactions — D1 is batch-only:** D1 supports **batch** transactions (`db.batch([...])`) but **not interactive read→decide→write** across awaits. A Drizzle `db.transaction(async tx => { const x = await tx.select(); if (x) await tx.update(); })` is **not atomic** on D1 — it is a TOCTOU race. For check-then-write use **single atomic SQL** (`INSERT … SELECT … WHERE`, `ON CONFLICT`, CTEs, atomic `UPDATE … WHERE rsvps < cap`) inside `db.batch()`. Provide a `libs/db` atomic helper so the unsafe pattern is hard to reach for (see §11.5).
 - **Performance:** watch query cost (D1 throughput is tied to query duration). Index hot paths. Avoid N+1. Re-review before crossing the §8.7 D1 size ceiling (monitor monthly).
-- **Market configuration:** D1 rows define DZ (`active`), EG/SA (`open`), and future MA/AE (`dark`). Versioned state/city reference data lives in `libs/domain/src/geo/data`; updating that reference data requires a reviewed code change.
+- **Market configuration:** D1 rows define DZ/EG/SA (`active`). MA/AE are not configured. Versioned state/city reference data lives in `libs/domain/src/geo/data`; updating that reference data requires a reviewed code change.
 
 ---
 

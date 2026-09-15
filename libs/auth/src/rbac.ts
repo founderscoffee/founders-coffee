@@ -1,6 +1,8 @@
 import { createAccessControl } from 'better-auth/plugins/access';
 import { adminAc, defaultStatements } from 'better-auth/plugins/admin/access';
 
+import type { UserRole } from '@founders-coffee/core';
+
 const statements = {
   ...defaultStatements,
   event: ['create', 'read'],
@@ -68,7 +70,7 @@ export const roles = {
   }),
 } as const;
 
-export type Role = keyof typeof roles;
+export type Role = UserRole;
 
 export const ADMIN_APP_PERMISSION = { operations: ['read'] } as const;
 

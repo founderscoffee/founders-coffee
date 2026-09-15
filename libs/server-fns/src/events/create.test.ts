@@ -163,7 +163,7 @@ describe('createEventWithTelemetry (real D1)', () => {
         testMapProvider,
         metrics,
         TEST_HOST_ID,
-        createInput({ ...FREE_TEXT, marketCode: 'MA', cityCode: '1' }),
+        createInput({ ...FREE_TEXT, marketCode: 'ZZ', cityCode: '1' }),
       ),
     );
 

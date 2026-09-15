@@ -1,3 +1,4 @@
+import type { NotificationDeliveryChannel } from '@founders-coffee/core';
 import {
   communityOperationsEnabled,
   getNotificationContact,
@@ -6,11 +7,21 @@ import {
   type Db,
   type ScheduledNotification,
 } from '@founders-coffee/db';
+import { notifications } from '@founders-coffee/domain';
 
 export type Destination =
-  | { readonly channel: 'sms'; readonly phoneNumber: string }
-  | { readonly channel: 'email'; readonly email: string }
-  | { readonly channel: 'push'; readonly tokens: readonly string[] };
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'sms'>;
+      readonly phoneNumber: string;
+    }
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'email'>;
+      readonly email: string;
+    }
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'push'>;
+      readonly tokens: readonly string[];
+    };
 
 export type DestinationResult =
   | { readonly ok: true; readonly destination: Destination }
@@ -75,9 +86,10 @@ const unreachable = (reason: string, account = false): DestinationResult => ({
  * `host_updates`. That switch reads "who is coming to what you host", and asking a host what
  * happened at their own gathering is not that — honouring it here would mean a control that does
  * something other than what it says, which is the defect this product keeps finding. If hosts want
- * to silence the prompt it earns its own switch; until then the market flag below is its only gate. The categories exist to control
- * what arrives unprompted: reminders under `event_reminders`, cancellation notices under
- * `event_updates`.
+ * to silence the prompt it earns its own switch; until then the market flag below is its only gate.
+ * The categories exist to control what arrives unprompted: reminders under `event_reminders`, event
+ * cancellation notices under `event_updates`, host RSVP changes under `host_updates`, and feedback
+ * invitations under `follow_up_prompts`.
  *
  * The market flag is enforced here rather than in the producer, and rather than in the sweep loop.
  * §5 gates prompt delivery, and this is the one place every channel already passes through before a
@@ -107,13 +119,35 @@ export const resolveDestination = async (
     !contact.eventReminders
   )
     return unreachable('event_reminders_off', true);
-  if (templateKey === 'event_cancelled' && !contact.eventUpdates)
+  if (
+    (templateKey === 'event_cancelled' ||
+      templateKey === 'event_did_not_happen') &&
+    !contact.eventUpdates
+  )
     return unreachable('event_updates_off', true);
-  if (templateKey === 'rsvp_received' && !contact.hostUpdates)
+  if (
+    (templateKey === 'rsvp_received' || templateKey === 'rsvp_cancelled') &&
+    !contact.hostUpdates
+  )
     return unreachable('host_updates_off', true);
 
+  if (templateKey === 'feedback_invitation' && !contact.followUpPrompts)
+    return unreachable('follow_up_prompts_off', true);
+
+  const categoryMask = notifications.notificationMaskForTemplate(
+    templateKey,
+    contact,
+  );
+  if (categoryMask === 0) return unreachable('notification_channels_off', true);
   if (
-    templateKey === 'closeout_prompt' &&
+    (channel === 'push' || channel === 'email') &&
+    !notifications.isNotificationChannelEnabled(categoryMask, channel)
+  )
+    return unreachable(`${channel}_disabled`, false);
+
+  if (
+    (templateKey === 'closeout_prompt' ||
+      templateKey === 'feedback_invitation') &&
     !(await communityOperationsEnabled(db, marketCode ?? ''))
   )
     return held('operations_disabled');

@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                           |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | ND-00 through ND-02 complete; ND-03 onward planned. Staging delivery is proven; production still needs the post-CO-02 ND-07 promotion                           |
+| Status         | ND-00 through ND-04 complete in code (including ND-03c); staging delivery is proven; production still needs the post-CO-02 ND-07 promotion                      |
 | Decision date  | 2026-09-10                                                                                                                                                      |
 | Owner          | Founder / Product                                                                                                                                               |
 | Scope          | Make push deliver, make every notification category real, and give the member per-category channel control                                                      |
@@ -22,8 +22,8 @@ staging carries the current push/email implementation.
 | The site is a PWA that can receive push    | Staging ships and registers `sw.js`; production's older release predates that service-worker fix. See [deployment evidence](./deployment-evidence.md#nd-01--service-worker-and-fcm-credentials-on-staging-2026-09-10) |
 | SMS is a fallback behind push              | This is true only in the older production CO-02 release. ND-07 changes current code to email fallback and keeps SMS for same-day cancellation disruption                                                              |
 | Email is an event channel                  | Yes in current staging code under ND-07: email is the default fallback after push; production needs the promotion                                                                                                     |
-| Four notification categories can be chosen | Two of them gate nothing. `resolveDestination` reads `eventReminders` and `eventUpdates` only (`notification-destination.ts:70-76`)                                                                                   |
-| Four categories exist to be sent           | Four template keys exist — `rsvp_confirmation`, `reminder_72h`, `reminder_24h`, `event_cancelled` — and two producers. Nothing sends a host update or a follow-up                                                     |
+| Four notification categories can be chosen | All four category gates are enforced at send time: reminders, event updates, host updates, and follow-up prompts.                                                                                                     |
+| Four categories exist to be sent           | The original member-facing keys plus `rsvp_received`, `rsvp_cancelled`, `closeout_prompt`, `event_did_not_happen`, and `feedback_invitation` are produced and dispatched by the current code.                         |
 | A member can consent to SMS                | No longer, as of ND-00. The consent control was in the deleted box. See §5                                                                                                                                            |
 
 The net effect is environment-specific: staging delivers push and email fallback end to end;
@@ -187,14 +187,14 @@ in [deployment evidence](./deployment-evidence.md).
 - Acceptance: a push received on a real handset in Algeria, and a deliberate push failure that lands
   on the active email fallback with no duplicate.
 
-### ND-03 — Make the two dead categories real
+### ND-03 — Make notification categories real
 
-`host_updates` and `follow_up_prompts` are stored, saved, rendered and read by nothing:
-`resolveDestination` gates on `eventReminders` and `eventUpdates` and no others. Either they send
-something or they leave the screen.
+At the start of this plan, `host_updates` and `follow_up_prompts` were stored and rendered but not
+enforced by delivery. ND-03a made host updates real, and CO-06 now makes follow-up prompts real
+through the feedback invitation producer and send-time preference gate.
 
 Split on 2026-09-11, because the two halves are not the same size. One is a producer and some copy.
-The other needs a page nobody has built.
+The other required a page, which CO-06 now supplies.
 
 #### ND-03a — Host updates
 
@@ -213,20 +213,20 @@ The other needs a page nobody has built.
 - The host never hears about their own RSVP.
 - Acceptance: the switch demonstrably stops it; a burst produces one message; the host's own RSVP
   produces none.
-- **Known limit, accepted.** A guest who cancels inside the coalescing window does not withdraw the
-  notice. `cancelNotificationsByUserEvent` is keyed on the _guest's_ user id and the notice belongs to
-  the host, so the host can be told somebody is coming, open the event, and find the list unchanged.
-  Withdrawing it would mean tracking which guest triggered which pending notice — state this design
-  deliberately does not keep — and the message is count-free and links to the event precisely so the
-  truth is one tap away. Revisit with ND-03c, where cancellations get their own message.
+- A guest cancellation reconciles the pending coalesced notice with the current RSVP rows in one
+  atomic D1 statement. If no recent going RSVP still justifies it, the pending `rsvp_received` row is
+  withdrawn; if another guest remains, it stays pending. No guest identity or count is stored in the
+  coalesced payload. ND-03c now adds a separate cancellation notice so the host still learns that
+  the guest list changed after the join notice has been sent.
 - The delay is clamped to `startsAt`: §5.17 freezes RSVP intent at the start and not before, so a
   guest can join a minute beforehand, and a notice fifteen minutes later would reach a host already
   in the room.
 
-#### ND-03b — Follow-up prompts — **not a ticket in this plan.** It is CO-06
+#### ND-03b — Follow-up prompts — **implemented by CO-06**
 
-Attempted 2026-09-11 and stopped. This plan mis-scoped it as "a producer plus a feedback page", and
-the database says otherwise.
+CO-06 now owns the producer, authenticated feedback page, eligibility enforcement, and delivery
+policy. The implementation uses the existing persistence layer rather than introducing another
+notification or feedback model.
 
 `feedbackAllowed` in `libs/db/src/operations-feedback.ts` refuses a pulse unless **all three** hold:
 
@@ -239,31 +239,40 @@ So feedback is invited by a closeout, not by an event ending. A prompt at `ends_
 reach members whose event has no closeout, no attendance record, and therefore no page that will
 accept them — every single one, today.
 
-And the surfaces that would produce those rows do not exist either. CO-03 built the whole operations
-persistence layer — `submitCloseout`, `correctCloseout`, `getCloseout`, `recordAttendance`,
-`listAttendance`, `attendanceTally`, `saveFeedback`, `getFeedback`, `feedbackTally` — and **nothing
-above the database imports any of it**, in `libs/server-fns` or in any of the three apps.
+The CO-06 server resolver now imports those persistence functions, and the host closeout path
+enqueues one idempotent invitation per attended member.
 
 The real chain is CO-04 (a secure `apps/admin`) → CO-05 (host closeout and attendance in `apps/ui`)
-→ **CO-06**, which already specifies this work in full: invitations only for attended members, the
+→ **CO-06**, which implements invitations only for attended members, the
 seven- and fourteen-day windows, the authenticated feedback surface, one idempotent updateable
 submission, the `communityOperations` flag. Re-specifying it here would fork it.
 
-**Conflict to resolve when CO-06 runs:** it says "do not add email as a default event channel," which
-ND-07 has since overridden with evidence. CO-06's delivery bullet should be rewritten to push-first
-with email behind it, not push-first with SMS.
+The delivery policy is push-first with email behind it, not SMS. This follows the ND-07 amendment.
 
-**The decision this plan still owns:** `follow_up_prompts` is on the preferences screen now, gating
-nothing, and CO-06 is several tickets away. Either it comes off the screen until CO-06 lands, or it
-stays as a control that does nothing — which is the defect this plan was written to remove.
+`follow_up_prompts` is now enforced at send time for feedback invitations. Push remains primary,
+email is the fallback, and SMS is excluded.
 
-#### ND-03c — Telling a host somebody dropped out
+#### ND-03c — Telling a host somebody dropped out ✅ implemented locally
 
-Deliberately not in ND-03a. A freed chair is worth knowing about, but a join and a cancellation
-inside one coalescing window net out to nothing worth sending, and deciding what that message says is
-a separate question from getting the first one working.
+The cancellation resolver now writes one host-directed `rsvp_cancelled` notification for every
+guest RSVP that is successfully withdrawn. It is immediate, push-first, and carries an email
+fallback when the host has an email address. The copy is identity-free and links to the event's
+current guest list, so it does not disclose which guest cancelled in a shared notification channel.
+The key is added to the shared typed template catalogue; `scheduled_notifications.template_key` has
+no SQL `CHECK`, so no database migration is required.
+The host's own RSVP cancellation produces no host notice. `host_updates` is checked at send time, so
+turning the preference off after enqueue still suppresses both `rsvp_received` and `rsvp_cancelled`.
 
-### ND-04 — Per-category channel model
+The original coalesced `rsvp_received` row is withdrawn atomically when no recent going RSVP still
+justifies it. A cancellation notice is still retained: it tells the host that the guest list changed,
+even when the earlier join notice was already sent or another guest remains. Its deterministic ID is
+derived from the deleted RSVP row, making retries idempotent for that cancellation event.
+
+Acceptance is covered locally by resolver, producer, template, destination-gate, delivery, and D1
+concurrency tests. Staging and production promotion remain deployment work, not an implementation
+gap.
+
+### ND-04 — Per-category channel model ✅ implemented 2026-09-15
 
 **Depends on:** ND-03.
 
@@ -278,7 +287,14 @@ a separate question from getting the first one working.
 - Acceptance: a migration test asserting every pre-migration row lands on push+email for the
   categories it had enabled; a conflicting concurrent save still fails on `revision`.
 
-### ND-05 — Producer and dispatcher honour the matrix
+The implementation adds four integer masks to `account_preferences` (`1` push, `4` email), with
+`0028_notification_category_channels.sql` backfilling each legacy category from its existing gate.
+The profile contract exposes validated channel arrays, converts them at the server-function boundary,
+and keeps the category booleans synchronized with whether a mask is non-zero. The existing single-row
+optimistic revision guard remains the only write gate. Destination reads include the masks so ND-05 can
+resolve the matrix without another query; delivery policy is unchanged until that ticket.
+
+### ND-05 — Producer and dispatcher honour the matrix ✅ done 2026-09-15
 
 **Depends on:** ND-04. **This is the ticket the grid actually costs.**
 
@@ -293,6 +309,16 @@ a separate question from getting the first one working.
 - `rsvp_confirmation` keeps bypassing category gates and must not bypass channel selection.
 - Acceptance: for each of the four categories, a member with only email selected receives email and
   no push; a member with nothing selected receives nothing and no fallback row is written.
+
+Implemented with a shared domain channel matrix and a server-side channel plan. RSVP confirmations
+and closeout prompts use the union of the member's category channel masks: they remain operational
+receipts/prompts without pretending to belong to a different preference row. Category templates map
+to their own mask, producers persist the selected primary plus email fallback, and the dispatcher
+re-reads the mask at send time. A category mask of zero suppresses the row and its fallback; a
+disabled primary channel remains eligible for the selected fallback. Same-day cancellation SMS is
+still the server-owned disruption path and is not exposed as a category channel. Miniflare coverage
+now exercises email-only, push-only, all-off, channel-disabled fallback, and all four category
+mappings.
 
 ### ND-06 — The grid, and delivery controls come back
 
@@ -372,11 +398,12 @@ every member, so the production deploy is now purely additive rather than a trad
 - **Production policy parity is open.** The production Worker version predates ND-01/ND-07; promote
   the current service-worker, push and email-fallback code before claiming end-to-end production
   delivery.
-- **The four preference switches are still a product-surface follow-up.** ND-03 through ND-06 must
-  make every visible category actionable before adding more controls.
-- **A per-category grid multiplies the promise.** Twelve controls over a system with four template
-  keys means eight of them describe messages that do not exist. ND-03 is not optional decoration
-  before ND-06; it is what makes the grid honest.
+- **The four preference switches are actionable in the current surface.** ND-03 made host updates
+  and follow-up prompts real at send time; ND-05 now makes their channel masks authoritative for
+  enqueue and dispatch. ND-06 remains for the provider-state grid.
+- **A per-category grid must preserve that honest promise.** The current producers and dispatchers
+  have concrete keys for all four categories, so the future grid can be implemented without
+  controls describing messages that do not exist.
 - **iOS web push needs the Home-Screen install.** Even after ND-01, an iOS member who has not
   installed the app cannot receive push, and the grid must say so rather than showing a dead switch.
   Everywhere else a plain browser tab is enough; see §2.1. On the Algerian traffic mix that is a

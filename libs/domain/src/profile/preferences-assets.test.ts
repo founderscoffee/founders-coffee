@@ -7,6 +7,8 @@ import {
 } from './assets.js';
 import {
   accountStateSchema,
+  channelsToMask,
+  maskToChannels,
   notificationPreferencesSchema,
   updateAccountPreferencesSchema,
 } from './preferences.js';
@@ -19,12 +21,34 @@ describe('account preferences', () => {
     expect(accountStateSchema.safeParse('suspended').success).toBe(false);
     expect(notificationPreferencesSchema.parse({})).toEqual({
       eventUpdates: true,
+      eventUpdatesChannels: ['push', 'email'],
       eventReminders: true,
+      eventRemindersChannels: ['push', 'email'],
       hostUpdates: true,
+      hostUpdatesChannels: ['push', 'email'],
       followUpPrompts: false,
+      followUpPromptsChannels: [],
       pushEnabled: false,
       smsFallbackEnabled: false,
     });
+  });
+
+  it('accepts unique channel sets and converts their masks without losing order', () => {
+    const parsed = notificationPreferencesSchema.parse({
+      eventUpdatesChannels: ['email'],
+      eventRemindersChannels: [],
+    });
+
+    expect(parsed.eventUpdatesChannels).toEqual(['email']);
+    expect(channelsToMask(parsed.eventUpdatesChannels)).toBe(4);
+    expect(channelsToMask(['push', 'email'])).toBe(5);
+    expect(maskToChannels(5)).toEqual(['push', 'email']);
+    expect(maskToChannels(0)).toEqual([]);
+    expect(
+      notificationPreferencesSchema.safeParse({
+        eventUpdatesChannels: ['push', 'push'],
+      }).success,
+    ).toBe(false);
   });
 
   it('permits only supported locale preferences or the existing fallback chain', () => {

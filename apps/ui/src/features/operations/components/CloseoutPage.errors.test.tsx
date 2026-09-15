@@ -13,6 +13,9 @@ vi.mock('../hooks', () => ({
   useCloseout: () => state.query,
   useSubmitCloseout: () => state.save,
 }));
+vi.mock('../../events/hooks', () => ({
+  useRepeatEventTemplate: () => ({ data: null }),
+}));
 vi.mock('../../profile/components/ProfileAccess', () => ({
   ProfileAccess: () => <div data-testid="access-recovery" />,
 }));

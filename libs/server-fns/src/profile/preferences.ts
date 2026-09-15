@@ -31,9 +31,21 @@ const view = (stored: StoredPreferences): profile.AccountPreferencesView =>
     revision: stored.preferences.revision,
     preferences: {
       eventUpdates: stored.preferences.eventUpdates,
+      eventUpdatesChannels: profile.maskToChannels(
+        stored.preferences.eventUpdatesChannels,
+      ),
       eventReminders: stored.preferences.eventReminders,
+      eventRemindersChannels: profile.maskToChannels(
+        stored.preferences.eventRemindersChannels,
+      ),
       hostUpdates: stored.preferences.hostUpdates,
+      hostUpdatesChannels: profile.maskToChannels(
+        stored.preferences.hostUpdatesChannels,
+      ),
       followUpPrompts: stored.preferences.followUpPrompts,
+      followUpPromptsChannels: profile.maskToChannels(
+        stored.preferences.followUpPromptsChannels,
+      ),
       pushEnabled: stored.preferences.pushEnabled,
       smsFallbackEnabled: stored.preferences.smsFallbackEnabled,
     },
@@ -122,12 +134,35 @@ export const saveMyPreferences = (
     const before = await getAccountPreferences(db, userId);
     if (!before) return err(new AppError('not_found', 'Account not found'));
 
-    const { locale, expectedRevision, ...categories } = input;
+    const {
+      locale,
+      expectedRevision,
+      eventUpdatesChannels,
+      eventRemindersChannels,
+      hostUpdatesChannels,
+      followUpPromptsChannels,
+      ...categories
+    } = input;
     const saved = await updateAccountPreferences(db, {
       userId,
       expectedRevision,
       locale,
-      changes: { ...categories, pushEnabled: before.preferences.pushEnabled },
+      changes: {
+        ...categories,
+        eventUpdatesChannels: profile.channelsToMask(
+          input.eventUpdates ? eventUpdatesChannels : [],
+        ),
+        eventRemindersChannels: profile.channelsToMask(
+          input.eventReminders ? eventRemindersChannels : [],
+        ),
+        hostUpdatesChannels: profile.channelsToMask(
+          input.hostUpdates ? hostUpdatesChannels : [],
+        ),
+        followUpPromptsChannels: profile.channelsToMask(
+          input.followUpPrompts ? followUpPromptsChannels : [],
+        ),
+        pushEnabled: before.preferences.pushEnabled,
+      },
     });
 
     if (!saved) {

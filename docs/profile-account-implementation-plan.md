@@ -1288,9 +1288,10 @@ else deletes nothing. Two concurrent unlinks of the last two providers leave exa
   control §7 forbids.
 - **"Real provider staging checks pass" is outstanding**, and cannot be met locally — it needs a
   deploy with real Google, GitHub and Twilio credentials.
-- `dangerouslyIgnoreUnhandledErrors` is set for `libs/server-fns` alone, because Better Auth's router
-  orphans the `APIError` its endpoints throw. Recorded in `docs/ci.md` with how to check whether it
-  is still needed.
+- Better Auth's Workers-pool APIError rejection is handled by the contact preflight adapter rather
+  than a Vitest suppression flag. Invalid and duplicate contact tests now complete with zero
+  unhandled errors; the adapter preserves the verification expiry and attempt-limit contract before
+  successful requests reach Better Auth. The resolution is recorded in `docs/ci.md`.
 
 Next ticket: **PF-09** — private data export, after PF-08 preferences and CO-02 delivery were
 implemented and released. Production notification policy parity after ND-07 remains tracked in the

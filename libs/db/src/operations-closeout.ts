@@ -1,24 +1,24 @@
 import { and, eq, sql } from 'drizzle-orm';
 
+import type {
+  CloseoutOutcome as StoredCloseoutOutcome,
+  CloseoutCorrectionOutcome,
+  CloseoutSubmissionOutcome,
+  OperationReason,
+} from '@founders-coffee/core';
+
 import { batch } from './atomic.js';
 import type { Db } from './db.js';
 import { auditStatement, type AuditEntry } from './operations-audit.js';
 import { eventCloseouts, events, type EventCloseoutRow } from './schema.js';
 
-export type CloseoutOutcome =
-  | 'submitted'
-  | 'already_closed'
-  | 'not_host'
-  | 'not_ended'
-  | 'no_end_time'
-  | 'event_cancelled';
-
-export type CorrectionOutcome = 'corrected' | 'stale_version' | 'not_closed';
+export type CloseoutOutcome = CloseoutSubmissionOutcome;
+export type CorrectionOutcome = CloseoutCorrectionOutcome;
 
 export interface SubmitCloseoutRow {
   readonly eventId: string;
   readonly actorId: string;
-  readonly outcome: 'held' | 'did_not_happen';
+  readonly outcome: StoredCloseoutOutcome;
   readonly walkInCount: number;
   readonly wouldHostAgain: boolean | null;
   readonly hostFriction: readonly string[];
@@ -199,11 +199,11 @@ export const correctCloseout = async (
     expectedVersion: number;
     actorId: string;
     accessSubject?: string | null;
-    outcome: 'held' | 'did_not_happen';
+    outcome: StoredCloseoutOutcome;
     walkInCount: number;
     wouldHostAgain: boolean | null;
     hostFriction: readonly string[];
-    reason: string;
+    reason: OperationReason;
     auditId: string;
   },
 ): Promise<{ outcome: CorrectionOutcome; row?: EventCloseoutRow }> => {

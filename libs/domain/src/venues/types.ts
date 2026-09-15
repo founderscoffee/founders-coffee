@@ -1,8 +1,14 @@
-export type VenueCategory = 'cafe' | 'coworking' | 'restaurant';
+import { z } from 'zod';
+
+import type { VenueKind } from '@founders-coffee/core';
+
+export const VENUE_CATEGORIES = ['cafe', 'coworking', 'restaurant'] as const;
+export const venueCategorySchema = z.enum(VENUE_CATEGORIES);
+export type VenueCategory = (typeof VENUE_CATEGORIES)[number];
 
 export interface SnapshotVenue {
   readonly providerId: string;
-  readonly kind: 'poi';
+  readonly kind: Extract<VenueKind, 'poi'>;
   readonly name: string;
   readonly nameLatin: string;
   readonly address: string;

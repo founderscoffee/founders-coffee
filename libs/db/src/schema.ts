@@ -9,7 +9,65 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core';
 
-import { LOCALES } from '@founders-coffee/core';
+import {
+  ACCOUNT_STATES,
+  ATTENDANCE_OUTCOMES,
+  AUDIT_ACTIONS,
+  AUDIT_TARGETS,
+  CLOSEOUT_OUTCOMES,
+  CURRENCY_CODES,
+  EVENT_STATUSES,
+  FEEDBACK_RATINGS,
+  HOST_TRUST_STATUSES,
+  LOCALES,
+  MARKET_DIRECTIONS,
+  MARKET_STATES,
+  METRIC_KEYS,
+  NOTIFICATION_DELIVERY_CHANNELS,
+  NOTIFICATION_FALLBACK_CHANNELS,
+  NOTIFICATION_STATUSES,
+  NOTIFICATION_TEMPLATE_KEYS,
+  OPERATIONS_SCOPES,
+  OPERATION_REASONS,
+  ORDER_PURPOSES,
+  ORDER_STATUSES,
+  PROFILE_ASSET_STATUSES,
+  PROFILE_PHOTO_MIME_TYPES,
+  PUSH_PLATFORMS,
+  PUSH_SURFACES,
+  REVIEW_BOTTLENECKS,
+  RSVP_STATUSES,
+  USER_ROLES,
+} from '@founders-coffee/core';
+
+export {
+  ATTENDANCE_OUTCOMES,
+  AUDIT_ACTIONS,
+  AUDIT_TARGETS,
+  CLOSEOUT_OUTCOMES,
+  EVENT_STATUSES,
+  FEEDBACK_RATINGS,
+  HOST_TRUST_STATUSES,
+  METRIC_KEYS,
+  NOTIFICATION_DELIVERY_CHANNELS as NOTIFICATION_CHANNELS,
+  NOTIFICATION_FALLBACK_CHANNELS,
+  NOTIFICATION_STATUSES,
+  NOTIFICATION_TEMPLATE_KEYS,
+  OPERATIONS_SCOPES,
+  OPERATION_REASONS,
+  ORDER_PURPOSES,
+  ORDER_STATUSES,
+  PROFILE_ASSET_STATUSES,
+  PROFILE_PHOTO_MIME_TYPES,
+  PUSH_PLATFORMS,
+  PUSH_SURFACES,
+  REVIEW_BOTTLENECKS,
+  RSVP_LIFECYCLE_TEMPLATE_KEYS,
+  RSVP_STATUSES,
+  USER_ROLES,
+} from '@founders-coffee/core';
+
+export type { OrderPurpose, OrderStatus } from '@founders-coffee/core';
 
 type MarketFeatureFlags = {
   events: boolean;
@@ -24,13 +82,13 @@ export const markets = sqliteTable('markets', {
   name: text('name').notNull(),
   nameAr: text('name_ar'),
   slug: text('slug').notNull().unique(),
-  defaultLocale: text('default_locale').notNull(),
+  defaultLocale: text('default_locale', { enum: [...LOCALES] }).notNull(),
   defaultCurrency: text('default_currency', {
-    enum: ['DZD', 'MAD', 'EGP', 'SAR', 'AED'],
+    enum: [...CURRENCY_CODES],
   }).notNull(),
   timezone: text('timezone').notNull(),
-  direction: text('direction', { enum: ['rtl', 'ltr'] }).notNull(),
-  state: text('state', { enum: ['dark', 'open', 'active'] }).notNull(),
+  direction: text('direction', { enum: [...MARKET_DIRECTIONS] }).notNull(),
+  state: text('state', { enum: [...MARKET_STATES] }).notNull(),
   featureFlags: text('feature_flags', { mode: 'json' })
     .$type<MarketFeatureFlags>()
     .notNull(),
@@ -53,8 +111,12 @@ export const user = sqliteTable('user', {
     .notNull()
     .default(false),
   image: text('image'),
-  role: text('role').notNull().default('member'),
-  accountState: text('account_state').notNull().default('active'),
+  role: text('role', { enum: [...USER_ROLES] })
+    .notNull()
+    .default('member'),
+  accountState: text('account_state', { enum: [...ACCOUNT_STATES] })
+    .notNull()
+    .default('active'),
   banned: integer('banned', { mode: 'boolean' }).default(false),
   banReason: text('ban_reason'),
   banExpires: integer('ban_expires', { mode: 'timestamp' }),
@@ -62,7 +124,7 @@ export const user = sqliteTable('user', {
   phoneNumberVerified: integer('phone_number_verified', { mode: 'boolean' })
     .notNull()
     .default(false),
-  localePref: text('locale_pref'),
+  localePref: text('locale_pref', { enum: [...LOCALES] }),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -144,8 +206,6 @@ export const verification = sqliteTable('verification', {
 export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
 
-export const EVENT_STATUSES = ['published', 'cancelled'] as const;
-
 /** Event — a free local meetup created by a host (FR-E1). Every event is free (FR-E2). */
 export const events = sqliteTable(
   'events',
@@ -194,8 +254,6 @@ export const events = sqliteTable(
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;
 
-export const RSVP_STATUSES = ['going', 'waitlist', 'cancelled'] as const;
-
 /** Event RSVP — one per user per event (UNIQUE constraint). */
 export const eventRsvps = sqliteTable(
   'event_rsvps',
@@ -229,24 +287,6 @@ export const eventRsvps = sqliteTable(
 export type EventRsvp = typeof eventRsvps.$inferSelect;
 export type NewEventRsvp = typeof eventRsvps.$inferInsert;
 
-export const ORDER_PURPOSES = [
-  'sponsorship',
-  'hosted_challenge_fee',
-  'prize_payout',
-  'host_fee',
-] as const;
-export type OrderPurpose = (typeof ORDER_PURPOSES)[number];
-
-export const ORDER_STATUSES = [
-  'pending',
-  'paid',
-  'cancelled',
-  'refunded',
-] as const;
-export type OrderStatus = (typeof ORDER_STATUSES)[number];
-
-const CURRENCIES = ['DZD', 'MAD', 'EGP', 'SAR', 'AED'] as const;
-
 export const orders = sqliteTable('orders', {
   id: text('id').primaryKey(),
   marketCode: text('market_code')
@@ -257,7 +297,7 @@ export const orders = sqliteTable('orders', {
   referenceId: text('reference_id'),
   payerUserId: text('payer_user_id').references(() => user.id),
   amountMinor: integer('amount_minor').notNull(),
-  currency: text('currency', { enum: [...CURRENCIES] }).notNull(),
+  currency: text('currency', { enum: [...CURRENCY_CODES] }).notNull(),
   status: text('status', { enum: [...ORDER_STATUSES] })
     .notNull()
     .default('pending'),
@@ -287,7 +327,7 @@ export const invoices = sqliteTable('invoices', {
   billToName: text('bill_to_name').notNull(),
   billToEmail: text('bill_to_email').notNull(),
   amountMinor: integer('amount_minor').notNull(),
-  currency: text('currency', { enum: [...CURRENCIES] }).notNull(),
+  currency: text('currency', { enum: [...CURRENCY_CODES] }).notNull(),
   notes: text('notes'),
   issuedAt: integer('issued_at', { mode: 'timestamp' })
     .notNull()
@@ -299,32 +339,6 @@ export const invoices = sqliteTable('invoices', {
 
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
-
-export const NOTIFICATION_CHANNELS = ['sms', 'email', 'push'] as const;
-export const NOTIFICATION_STATUSES = [
-  'pending',
-  'processing',
-  'sent',
-  'delivered',
-  'failed',
-  'cancelled',
-] as const;
-export const NOTIFICATION_TEMPLATE_KEYS = [
-  'rsvp_confirmation',
-  'reminder_72h',
-  'reminder_24h',
-  'event_cancelled',
-  'rsvp_received',
-  'closeout_prompt',
-  'event_did_not_happen',
-] as const;
-
-export const RSVP_LIFECYCLE_TEMPLATE_KEYS = [
-  'rsvp_confirmation',
-  'reminder_72h',
-  'reminder_24h',
-  'event_cancelled',
-] as const;
 
 /**
  * Scheduled notification — one row per notification to send.
@@ -365,7 +379,7 @@ export const scheduledNotifications = sqliteTable(
     userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
-    channel: text('channel', { enum: [...NOTIFICATION_CHANNELS] })
+    channel: text('channel', { enum: [...NOTIFICATION_DELIVERY_CHANNELS] })
       .notNull()
       .default('sms'),
     status: text('status', { enum: [...NOTIFICATION_STATUSES] })
@@ -381,7 +395,7 @@ export const scheduledNotifications = sqliteTable(
     attempts: integer('attempts').notNull().default(0),
     lastError: text('last_error'),
     fallbackChannel: text('fallback_channel', {
-      enum: ['email', 'sms'],
+      enum: [...NOTIFICATION_FALLBACK_CHANNELS],
     }),
     fallbackOf: text('fallback_of'),
     claimedAt: integer('claimed_at', { mode: 'timestamp' }),
@@ -411,9 +425,6 @@ export const scheduledNotifications = sqliteTable(
 export type ScheduledNotification = typeof scheduledNotifications.$inferSelect;
 export type NewScheduledNotification =
   typeof scheduledNotifications.$inferInsert;
-
-export const PUSH_PLATFORMS = ['ios', 'android', 'web'] as const;
-export const PUSH_SURFACES = ['pwa', 'rn'] as const;
 
 export const pushSubscriptions = sqliteTable(
   'push_subscriptions',
@@ -460,7 +471,7 @@ export const cityWaitlist = sqliteTable(
       .notNull()
       .references(() => markets.code),
     cityCode: text('city_code').notNull(),
-    locale: text('locale').notNull(),
+    locale: text('locale', { enum: [...LOCALES] }).notNull(),
     notifiedAt: integer('notified_at', { mode: 'timestamp' }),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
@@ -486,8 +497,10 @@ export const profileAssets = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     objectKey: text('object_key').notNull().unique(),
-    status: text('status').notNull().default('pending'),
-    mimeType: text('mime_type'),
+    status: text('status', { enum: [...PROFILE_ASSET_STATUSES] })
+      .notNull()
+      .default('pending'),
+    mimeType: text('mime_type', { enum: [...PROFILE_PHOTO_MIME_TYPES] }),
     byteSize: integer('byte_size'),
     width: integer('width'),
     height: integer('height'),
@@ -559,15 +572,23 @@ export const accountPreferences = sqliteTable('account_preferences', {
   eventUpdates: integer('event_updates', { mode: 'boolean' })
     .notNull()
     .default(true),
+  eventUpdatesChannels: integer('event_updates_channels').notNull().default(5),
   eventReminders: integer('event_reminders', { mode: 'boolean' })
     .notNull()
     .default(true),
+  eventRemindersChannels: integer('event_reminders_channels')
+    .notNull()
+    .default(5),
   hostUpdates: integer('host_updates', { mode: 'boolean' })
     .notNull()
     .default(true),
+  hostUpdatesChannels: integer('host_updates_channels').notNull().default(5),
   followUpPrompts: integer('follow_up_prompts', { mode: 'boolean' })
     .notNull()
     .default(false),
+  followUpPromptsChannels: integer('follow_up_prompts_channels')
+    .notNull()
+    .default(0),
   pushEnabled: integer('push_enabled', { mode: 'boolean' })
     .notNull()
     .default(false),
@@ -612,16 +633,6 @@ export const pushSessionLinks = sqliteTable(
 export type MemberProfileRow = typeof memberProfiles.$inferSelect;
 export type ProfileAssetRow = typeof profileAssets.$inferSelect;
 export type AccountPreferencesRow = typeof accountPreferences.$inferSelect;
-
-export const CLOSEOUT_OUTCOMES = ['held', 'did_not_happen'] as const;
-export const ATTENDANCE_OUTCOMES = ['attended', 'no_show'] as const;
-export const FEEDBACK_RATINGS = ['valuable', 'okay', 'not_valuable'] as const;
-export const HOST_TRUST_STATUSES = [
-  'unreviewed',
-  'verified',
-  'restricted',
-] as const;
-export const OPERATIONS_SCOPES = ['market', 'state', 'city'] as const;
 
 /**
  * One row per event, written after it is over, saying whether it happened.
@@ -782,7 +793,7 @@ export const hostTrust = sqliteTable(
     status: text('status', { enum: [...HOST_TRUST_STATUSES] })
       .notNull()
       .default('unreviewed'),
-    reasonCode: text('reason_code'),
+    reasonCode: text('reason_code', { enum: [...OPERATION_REASONS] }),
     reviewedByUserId: text('reviewed_by_user_id').references(() => user.id),
     reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
     updatedAt: integer('updated_at', { mode: 'timestamp' })
@@ -820,10 +831,10 @@ export const operationsAudit = sqliteTable(
       .notNull()
       .references(() => user.id),
     accessSubject: text('access_subject'),
-    action: text('action').notNull(),
-    targetType: text('target_type').notNull(),
+    action: text('action', { enum: [...AUDIT_ACTIONS] }).notNull(),
+    targetType: text('target_type', { enum: [...AUDIT_TARGETS] }).notNull(),
     targetId: text('target_id').notNull(),
-    reasonCode: text('reason_code'),
+    reasonCode: text('reason_code', { enum: [...OPERATION_REASONS] }),
     metadata: text('metadata', { mode: 'json' })
       .$type<Record<string, unknown>>()
       .notNull()
@@ -857,7 +868,7 @@ export const operationsReviews = sqliteTable(
     evidenceWindowEnd: integer('evidence_window_end', {
       mode: 'timestamp',
     }).notNull(),
-    bottleneck: text('bottleneck').notNull(),
+    bottleneck: text('bottleneck', { enum: [...REVIEW_BOTTLENECKS] }).notNull(),
     intervention: text('intervention').notNull(),
     ownerUserId: text('owner_user_id')
       .notNull()
@@ -900,7 +911,7 @@ export const communityMetricSnapshots = sqliteTable(
     scopeType: text('scope_type', { enum: [...OPERATIONS_SCOPES] }).notNull(),
     scopeCode: text('scope_code').notNull(),
     periodMonth: text('period_month').notNull(),
-    metricKey: text('metric_key').notNull(),
+    metricKey: text('metric_key', { enum: [...METRIC_KEYS] }).notNull(),
     numerator: integer('numerator').notNull(),
     denominator: integer('denominator'),
     computedAt: integer('computed_at', { mode: 'timestamp' })

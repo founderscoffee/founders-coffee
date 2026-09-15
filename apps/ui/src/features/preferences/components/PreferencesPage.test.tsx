@@ -36,9 +36,13 @@ const view = (
   revision: 3,
   preferences: {
     eventUpdates: true,
+    eventUpdatesChannels: ['push', 'email'],
     eventReminders: true,
+    eventRemindersChannels: ['push', 'email'],
     hostUpdates: true,
+    hostUpdatesChannels: ['push', 'email'],
     followUpPrompts: false,
+    followUpPromptsChannels: [],
     pushEnabled: false,
     smsFallbackEnabled: false,
   },

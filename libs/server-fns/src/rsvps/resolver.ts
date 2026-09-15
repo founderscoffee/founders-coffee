@@ -9,7 +9,10 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
-import { enqueueHostRsvpNotice } from '../notifications/host-notice.js';
+import {
+  enqueueHostRsvpCancellationNotice,
+  enqueueHostRsvpNotice,
+} from '../notifications/host-notice.js';
 import {
   cancelRsvpNotifications,
   enqueueRsvpNotifications,
@@ -157,6 +160,8 @@ export const cancelRsvpResolver = async (
     );
   }
 
+  const host =
+    opts.userId === event.hostId ? undefined : await getUser(db, event.hostId);
   await cancelRsvpNotifications(db, {
     eventId: opts.eventId,
     userId: opts.userId,
@@ -164,6 +169,19 @@ export const cancelRsvpResolver = async (
   await withdrawStaleHostNotice(db, {
     eventId: opts.eventId,
     hostId: event.hostId,
+  });
+  await enqueueHostRsvpCancellationNotice(db, {
+    eventId: opts.eventId,
+    hostId: event.hostId,
+    guestId: opts.userId,
+    rsvpId: existing.id,
+    eventTitle: event.title,
+    eventSlug: event.slug,
+    marketCode: event.marketCode,
+    startsAt: event.startsAt,
+    venue: event.venue,
+    hostEmail: host?.email,
+    hostLocale: host?.localePref,
   });
 
   return ok({ deleted: true });

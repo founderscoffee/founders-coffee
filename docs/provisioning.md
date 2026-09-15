@@ -137,24 +137,24 @@ npm run migrate:production
 
 ## 4. Seed the markets
 
-The required market rows are DZ (`active`), EG/SA (`open`), and MA/AE (`dark`). The current seed file
-still marks DZ/EG/SA `active`; P0-007 remains blocked until code and deployed rows are aligned. Rows are defined in
-[`libs/db/src/seed.ts`](../libs/db/src/seed.ts). Cities are **not** in D1; the 6,518-city datasets are
-server-side TS files in `libs/domain/src/geo/data/`.
+The configured market rows are DZ, EG, and SA, all `active`. MA and AE are not configured. The
+canonical rows are defined in [`libs/db/src/seed.ts`](../libs/db/src/seed.ts), and migration
+`0029_activate_launch_markets` activates existing DZ/EG/SA rows and removes legacy MA/AE rows.
+Cities are **not** in D1; the 6,518-city datasets are server-side TS files in
+`libs/domain/src/geo/data/`.
 
-`seed()` takes a Drizzle `Db` and today has no caller outside the test suite, so a deployed database
-must be seeded with the equivalent idempotent SQL. Without it every market lookup misses and the
-site cannot render:
+Apply migrations first, then seed the three rows idempotently in each environment. This preserves
+the test/local convention where migrations create schema and `seed()` supplies market data:
 
 ```sh
-cd apps/worker-jobs
-npx wrangler d1 execute founders-coffee-db-staging --remote --env staging \
-  --command "INSERT INTO markets (code, name, name_ar, slug, default_locale, default_currency, timezone, direction, state, feature_flags) VALUES ('DZ','Algeria','الجزائر','algeria','ar','DZD','Africa/Algiers','rtl','active','{\"events\":true,\"hackathons\":false,\"payments\":false,\"recruiting\":false}') ON CONFLICT (code) DO NOTHING"
+npm run migrate:staging
+npm run migrate:production
 ```
 
-Repeat per market and per environment. Folding this into a migration (so every environment,
-including a fresh local one, self-seeds through the existing CI migration step) is the obvious
-follow-up — it would also remove the second source of truth this command creates.
+For a deployed database, run the equivalent `seed()` values for DZ, EG, and SA (all with
+`state='active'`) after the migration. Do not recreate MA or AE rows. The migration does not
+cascade dependent historical records; if a legacy MA/AE row is referenced, stop and review that
+data before applying the deletion.
 
 ## 5. Set secrets per environment
 

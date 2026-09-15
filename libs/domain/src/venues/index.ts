@@ -13,7 +13,11 @@ export type {
   SnapshotVenue,
   VenueCategory,
 } from './types.js';
-export { SNAPSHOT_PROVIDER_PREFIX } from './types.js';
+export {
+  SNAPSHOT_PROVIDER_PREFIX,
+  VENUE_CATEGORIES,
+  venueCategorySchema,
+} from './types.js';
 
 const SNAPSHOTS: Readonly<Record<string, Record<string, CityVenueSnapshot>>> = {
   DZ: DZ_CITY_VENUES,

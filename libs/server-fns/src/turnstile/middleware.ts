@@ -70,3 +70,7 @@ export const requireWaitlistTurnstile = requireTurnstile(
 export const requireProfileTurnstile = requireTurnstile(
   TURNSTILE_ACTIONS.updateProfile,
 );
+
+export const requireFeedbackTurnstile = requireTurnstile(
+  TURNSTILE_ACTIONS.submitFeedback,
+);

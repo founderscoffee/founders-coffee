@@ -1,8 +1,8 @@
 # Markets — domain, queries, resolution
 
-The architecture remains multi-market, but the [current release](./release-strategy.md) is
-Algeria-first with an operational focus on Algiers. Configured future markets do not authorize
-seeding, launch operations, or expansion before the community validation gate.
+The architecture remains multi-market, while the [current release](./release-strategy.md) is
+configured for three active markets: Algeria, Egypt, and Saudi Arabia. The initial operating focus
+remains Algiers; adding another market requires a separate geography and operations decision.
 
 The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, FR-L6), updated in
 **P1-004** (cities → TS data) + **P1-005** (events). Splits across:
@@ -20,11 +20,10 @@ The market data-access + resolution layer. Implements **P1-001** (FR-G3/G4/G6, F
 
 - **Market `code` is the D1 primary key; `slug` is the canonical URL key** — resolved from a path (`/algeria`). Slug URLs are
   canonical (`/algeria`); code alias redirects (`/dz` → 307 `/algeria`).
-- **Canonical market policy**: DZ (`active`), EG/SA (`open`), MA/AE (`dark`). The current seed still
-  marks DZ/EG/SA `active` and does not include MA/AE, so P0-007 remains blocked until code and deployed
-  rows are aligned. Geography datasets currently exist for DZ/EG/SA. Adding or correcting state/city
-  data requires a reviewed dataset change and deployment; market visibility and feature activation
-  remain D1 configuration.
+- **Canonical market policy**: DZ, EG, and SA are `active`; MA and AE are not configured. Migration
+  `0029_activate_launch_markets` aligns existing rows and removes legacy MA/AE rows. Geography
+  datasets currently exist for DZ/EG/SA. Adding or correcting state/city data requires a reviewed
+  dataset change and deployment; market visibility and feature activation remain D1 configuration.
 - **State visibility (FR-G3)**: `markets.isMarketVisible(state)` — `dark` hidden, `open`/`active`
   visible. Dark → `market_not_found` (no existence leak).
 - **State machine**: `dark → open → active` (+ rollback) via `markets.transition`.

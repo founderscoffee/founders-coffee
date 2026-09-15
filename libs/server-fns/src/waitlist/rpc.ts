@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
   appValidator,
   handleResult,
+  localeSchema,
   marketCodeSchema,
 } from '@founders-coffee/core';
 
@@ -16,7 +17,7 @@ const joinWaitlistSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
   marketCode: marketCodeSchema,
   cityCode: z.string().min(1).max(50),
-  locale: z.enum(['ar', 'en', 'fr']),
+  locale: localeSchema,
   turnstileToken: z.string().trim().max(2_048).optional(),
 });
 

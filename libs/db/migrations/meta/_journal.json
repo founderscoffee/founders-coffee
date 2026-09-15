@@ -183,6 +183,34 @@
       "when": 1789034922150,
       "tag": "0025_woozy_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1789405079000,
+      "tag": "0026_enable_community_operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "6",
+      "when": 1789408263000,
+      "tag": "0027_enable_community_operations_all_markets",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1789453886484,
+      "tag": "0028_notification_category_channels",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1789468639500,
+      "tag": "0029_activate_launch_markets",
+      "breakpoints": true
     }
   ]
 }

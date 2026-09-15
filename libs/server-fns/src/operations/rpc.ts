@@ -3,17 +3,21 @@ import { createServerFn } from '@tanstack/react-start';
 import { appValidator, handleResult } from '@founders-coffee/core';
 
 import { requireAuth } from '../authz.js';
-import { authMiddleware } from '../auth-middleware.js';
+import { authMiddleware, requirePermission } from '../auth-middleware.js';
 import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import { readCloseoutStates } from './closeout-state.js';
 import { readCloseout, submitCloseoutResolver } from './closeout.js';
+import { readFeedback, submitFeedbackResolver } from './feedback.js';
 import {
   closeoutStatesRequestSchema,
   closeoutViewRequestSchema,
   submitCloseoutRequestSchema,
+  feedbackViewRequestSchema,
+  submitFeedbackRequestSchema,
 } from './schemas.js';
+import { requireFeedbackTurnstile } from '../turnstile/middleware.js';
 
 /**
  * What the host needs to close a gathering out.
@@ -84,6 +88,36 @@ export const submitCloseout = createServerFn({ method: 'POST', strict: false })
         actorId: session.user.id,
         input: data.closeout,
         attendance: data.attendance,
+      }),
+    );
+  });
+
+export const getFeedbackView = createServerFn({ strict: false })
+  .middleware([requirePermission('rsvp', 'read')])
+  .validator(appValidator(feedbackViewRequestSchema))
+  .handler(({ context, data }) => {
+    privateNoStore();
+    return handleResult(
+      readFeedback(getDb(), {
+        eventId: data.eventId,
+        userId: requireAuth(context.session).user.id,
+      }),
+    );
+  });
+
+export const submitFeedback = createServerFn({ method: 'POST', strict: false })
+  .middleware([
+    requirePermission('rsvp', 'update'),
+    rateLimit('submit_feedback', 5, 600_000),
+    requireFeedbackTurnstile,
+  ])
+  .validator(appValidator(submitFeedbackRequestSchema))
+  .handler(({ context, data }) => {
+    privateNoStore();
+    return handleResult(
+      submitFeedbackResolver(getDb(), {
+        userId: requireAuth(context.session).user.id,
+        input: data.feedback,
       }),
     );
   });

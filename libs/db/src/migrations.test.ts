@@ -230,3 +230,66 @@ describe('0019 — the free flag retires (real D1)', () => {
     );
   });
 });
+
+describe('0028 — per-category notification channels (real D1)', () => {
+  it('backfills push and email for every enabled legacy category', async () => {
+    const { suffix, apply } = await atMigration(
+      '0028_notification_category_channels.sql',
+    );
+    const firstUserId = `usr_prior_schema_host_${suffix}`;
+    const secondUserId = `usr_prior_schema_member_${suffix}`;
+    await env.PRIOR_DB.batch([
+      env.PRIOR_DB.prepare(
+        'INSERT INTO user (id, name, email, email_verified, role) VALUES (?, ?, ?, 0, ?)',
+      ).bind(
+        firstUserId,
+        'Prior Schema Host',
+        `${firstUserId}@test.coffee`,
+        'host',
+      ),
+      env.PRIOR_DB.prepare(
+        'INSERT INTO user (id, name, email, email_verified, role) VALUES (?, ?, ?, 0, ?)',
+      ).bind(
+        secondUserId,
+        'Prior Schema Member',
+        `${secondUserId}@test.coffee`,
+        'member',
+      ),
+    ]);
+    await env.PRIOR_DB.prepare(
+      `INSERT INTO account_preferences
+         (user_id, event_updates, event_reminders, host_updates, follow_up_prompts)
+       VALUES (?, 1, 0, 1, 1), (?, 0, 0, 0, 0)`,
+    )
+      .bind(firstUserId, secondUserId)
+      .run();
+
+    await apply();
+
+    const rows = await env.PRIOR_DB.prepare(
+      `SELECT user_id, event_updates_channels, event_reminders_channels,
+              host_updates_channels, follow_up_prompts_channels
+         FROM account_preferences
+        WHERE user_id IN (?, ?)
+        ORDER BY user_id`,
+    )
+      .bind(firstUserId, secondUserId)
+      .all<Record<string, unknown>>();
+    expect(rows.results).toEqual([
+      {
+        user_id: firstUserId,
+        event_updates_channels: 5,
+        event_reminders_channels: 0,
+        host_updates_channels: 5,
+        follow_up_prompts_channels: 5,
+      },
+      {
+        user_id: secondUserId,
+        event_updates_channels: 0,
+        event_reminders_channels: 0,
+        host_updates_channels: 0,
+        follow_up_prompts_channels: 0,
+      },
+    ]);
+  });
+});

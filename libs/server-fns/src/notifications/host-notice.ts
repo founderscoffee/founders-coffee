@@ -1,10 +1,12 @@
 import { id } from '@founders-coffee/core';
 import {
-  enqueueNotification,
-  hasPendingNotification,
+  enqueueNotificationIfAbsent,
+  enqueueNotificationIfNoPending,
+  getNotificationContact,
   type Db,
 } from '@founders-coffee/db';
 
+import { channelPlanFor } from './channel-plan.js';
 import { resolveNotificationContext } from './context.js';
 import {
   validPayload,
@@ -56,14 +58,10 @@ export const enqueueHostRsvpNotice = async (
   if (opts.guestId === opts.hostId) return;
 
   const templateKey = 'rsvp_received' as const;
-  if (
-    await hasPendingNotification(db, {
-      eventId: opts.eventId,
-      userId: opts.hostId,
-      templateKey,
-    })
-  )
-    return;
+  const contact = await getNotificationContact(db, opts.hostId);
+  if (!contact) return;
+  const plan = channelPlanFor(contact, templateKey);
+  if (!plan) return;
 
   const context = await resolveNotificationContext(db, {
     preferred: opts.hostLocale,
@@ -71,7 +69,7 @@ export const enqueueHostRsvpNotice = async (
   });
 
   const basePayload: NotificationPayload = {
-    email: opts.hostEmail,
+    email: contact.email,
     eventTitle: opts.eventTitle,
     eventSlug: opts.eventSlug,
     marketCode: opts.marketCode,
@@ -86,24 +84,81 @@ export const enqueueHostRsvpNotice = async (
     ...emailPayloadFor(templateKey, values, context.locale),
   };
 
-  const channel = 'push' as const;
-  const fallback: 'email' | undefined = opts.hostEmail ? 'email' : undefined;
   const sendAt = new Date(
     Math.min(Date.now() + HOST_NOTICE_DELAY_MS, opts.startsAt.getTime()),
   );
 
-  await enqueueNotification(db, {
+  const result = await enqueueNotificationIfNoPending(db, {
     id: id('ntf'),
     eventId: opts.eventId,
     userId: opts.hostId,
-    channel,
+    channel: plan.primary,
     templateKey,
-    payload: fallback
-      ? validPayload('email', validPayload(channel, payload))
-      : validPayload(channel, payload),
+    payload: plan.fallback
+      ? validPayload(plan.fallback, validPayload(plan.primary, payload))
+      : validPayload(plan.primary, payload),
     sendAt,
-    fallbackChannel: fallback,
+    fallbackChannel: plan.fallback ?? undefined,
   });
 
-  await armNotificationSchedule(opts.eventId, sendAt);
+  if (result.written) await armNotificationSchedule(opts.eventId, sendAt);
+};
+
+/** Tell the host when a guest withdraws an RSVP, once for that RSVP record. */
+export const enqueueHostRsvpCancellationNotice = async (
+  db: Db,
+  opts: {
+    eventId: string;
+    hostId: string;
+    guestId: string;
+    rsvpId: string;
+    eventTitle: string;
+    eventSlug: string;
+    marketCode: string;
+    startsAt: Date;
+    venue: string;
+    hostEmail?: string;
+    hostLocale?: string | null;
+  },
+): Promise<void> => {
+  if (opts.guestId === opts.hostId) return;
+
+  const contact = await getNotificationContact(db, opts.hostId);
+  if (!contact) return;
+  const context = await resolveNotificationContext(db, {
+    preferred: opts.hostLocale,
+    marketCode: opts.marketCode,
+  });
+  const basePayload: NotificationPayload = {
+    email: contact.email,
+    eventTitle: opts.eventTitle,
+    eventSlug: opts.eventSlug,
+    marketCode: opts.marketCode,
+    startsAt: opts.startsAt.toISOString(),
+    venue: opts.venue,
+    locale: context.locale,
+  };
+  const values = valuesFor(basePayload, context, true);
+  const templateKey = 'rsvp_cancelled' as const;
+  const plan = channelPlanFor(contact, templateKey);
+  if (!plan) return;
+  const payload = {
+    ...basePayload,
+    ...pushPayloadFor(templateKey, values, context.locale),
+    ...emailPayloadFor(templateKey, values, context.locale),
+  };
+  const sendAt = new Date();
+  const result = await enqueueNotificationIfAbsent(db, {
+    id: `ntf_rsvp_cancelled_${opts.eventId}_${opts.rsvpId}`,
+    eventId: opts.eventId,
+    userId: opts.hostId,
+    channel: plan.primary,
+    templateKey,
+    payload: plan.fallback
+      ? validPayload(plan.fallback, validPayload(plan.primary, payload))
+      : validPayload(plan.primary, payload),
+    sendAt,
+    fallbackChannel: plan.fallback ?? undefined,
+  });
+  if (result.written) await armNotificationSchedule(opts.eventId, sendAt);
 };

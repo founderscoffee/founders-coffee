@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { attendanceOutcomeSchema } from '@founders-coffee/core';
 import { operations } from '@founders-coffee/domain';
 
 export const closeoutViewRequestSchema = z.strictObject({
@@ -16,13 +17,24 @@ export const submitCloseoutRequestSchema = z.strictObject({
     .array(
       z.strictObject({
         userId: z.string().min(1),
-        outcome: z.enum(['attended', 'no_show']),
+        outcome: attendanceOutcomeSchema,
       }),
     )
     .max(200)
     .default([]),
 });
 
+export const feedbackViewRequestSchema = z.strictObject({
+  eventId: z.string().min(1),
+});
+
+export const submitFeedbackRequestSchema = z.strictObject({
+  feedback: operations.submitFeedbackSchema,
+  turnstileToken: z.string().trim().max(2_048).optional(),
+});
+
 export type CloseoutViewRequest = z.infer<typeof closeoutViewRequestSchema>;
 export type CloseoutStatesRequest = z.infer<typeof closeoutStatesRequestSchema>;
 export type SubmitCloseoutRequest = z.infer<typeof submitCloseoutRequestSchema>;
+export type FeedbackViewRequest = z.infer<typeof feedbackViewRequestSchema>;
+export type SubmitFeedbackRequest = z.infer<typeof submitFeedbackRequestSchema>;

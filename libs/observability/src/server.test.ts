@@ -41,17 +41,17 @@ describe('server logger', () => {
   it('merges AsyncLocalStorage request context into every entry', () => {
     const { transport, entries } = recorder();
     const logger = createServerLogger({ transport });
-    runWithContext({ market: 'MA', requestId: 'r9' }, () => {
+    runWithContext({ market: 'EG', requestId: 'r9' }, () => {
       logger.error('boom');
     });
-    expect(entries[0].market).toBe('MA');
+    expect(entries[0].market).toBe('EG');
     expect(entries[0].requestId).toBe('r9');
   });
 
   it('per-call context overrides ALS context', () => {
     const { transport, entries } = recorder();
     const logger = createServerLogger({ transport });
-    runWithContext({ market: 'MA' }, () => {
+    runWithContext({ market: 'EG' }, () => {
       logger.info('override', { market: 'EG' });
     });
     expect(entries[0].market).toBe('EG');

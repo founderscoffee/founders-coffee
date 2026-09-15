@@ -6,6 +6,7 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
+import { channelPlanFor } from './channel-plan.js';
 import { resolveNotificationContext } from './context.js';
 import {
   valuesFor,
@@ -36,11 +37,11 @@ export const isSameDay = (startsAt: Date, now = Date.now()): boolean =>
  * enqueued after. Each attendee is told in their own language, which is why the roster carries
  * `localePref` rather than resolving one locale for the whole event.
  *
- * One row per attendee, on push, exactly like the RSVP path (CO-02). The fallback behind it is SMS
- * for an attendee who has consented to it on a verified number, and email for everyone else. Email survives here and nowhere
- * else in the event lane: a reminder that never arrives costs someone a calendar entry, while an
- * unheard cancellation sends them to a café for a meetup that is not happening, so this is the one
- * event notice worth reaching a member who has neither a live device nor a phone on file.
+ * One row per attendee, using the member's event-update channel selection. When push is selected,
+ * email is the ordinary fallback; same-day disruption may use consented SMS instead. A reminder
+ * that never arrives costs someone a calendar entry, while an unheard cancellation sends them to a
+ * café for a meetup that is not happening, so this is the one event notice that may use the
+ * server-owned SMS exception.
  *
  * A fallback row inherits this payload unchanged, so it carries whichever content its own fallback
  * channel requires and is validated against both channels before it is written.
@@ -70,23 +71,27 @@ export const enqueueEventCancellationNotices = async (
 
   for (const attendee of attendees) {
     if (attendee.userId === opts.hostId) continue;
+    const contact = await getNotificationContact(db, attendee.userId);
+    if (!contact) continue;
+    const plan = channelPlanFor(contact, templateKey);
+    if (!plan) continue;
 
     const context = await resolveNotificationContext(db, {
-      preferred: attendee.localePref,
+      preferred: contact.localePref,
       marketCode: opts.marketCode,
     });
-    const contact = await getNotificationContact(db, attendee.userId);
-    const hasPhone = Boolean(
-      attendee.phoneNumber &&
-      contact?.phoneNumberVerified &&
+    const hasSmsFallback = Boolean(
+      contact.phoneNumber &&
+      contact.phoneNumberVerified &&
       contact.smsFallbackEnabled,
     );
-    const channel = 'push' as const;
-    const fallback: 'sms' | 'email' =
-      hasPhone && isSameDay(opts.startsAt) ? 'sms' : 'email';
+    const fallback: 'sms' | 'email' | undefined =
+      hasSmsFallback && isSameDay(opts.startsAt)
+        ? 'sms'
+        : (plan.fallback ?? undefined);
     const basePayload: NotificationPayload = {
-      phoneNumber: attendee.phoneNumber ?? undefined,
-      email: attendee.email,
+      phoneNumber: contact.phoneNumber ?? undefined,
+      email: contact.email,
       eventTitle: opts.eventTitle,
       eventSlug: opts.eventSlug,
       marketCode: opts.marketCode,
@@ -104,26 +109,30 @@ export const enqueueEventCancellationNotices = async (
       valuesFor(basePayload, context, true, reason),
       context.locale,
     );
-    const payload =
-      fallback === 'sms'
-        ? { ...basePayload, ...pushPayload, smsBody }
-        : {
-            ...basePayload,
-            ...pushPayload,
+    const payload = {
+      ...basePayload,
+      ...pushPayload,
+      ...(plan.primary === 'email' || fallback === 'email'
+        ? {
             ...emailPayloadFor(
               templateKey,
               valuesFor(basePayload, context, true, reason),
               context.locale,
             ),
-          };
+          }
+        : {}),
+      ...(fallback === 'sms' ? { smsBody } : {}),
+    };
 
     await enqueueNotification(db, {
       id: id('ntf'),
       eventId: opts.eventId,
       userId: attendee.userId,
-      channel,
+      channel: plan.primary,
       templateKey,
-      payload: validPayload(fallback, validPayload(channel, payload)),
+      payload: fallback
+        ? validPayload(fallback, validPayload(plan.primary, payload))
+        : validPayload(plan.primary, payload),
       sendAt: new Date(),
       fallbackChannel: fallback,
     });

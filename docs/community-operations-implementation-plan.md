@@ -1,15 +1,15 @@
 # Community Operations and Admin Implementation Plan
 
-| Field          | Value                                                                                                                                                                  |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-10 signed off, CO-01 through CO-05 implemented, CO-02/CO-03 deployed to both environments, and CO-04/CO-05 verified on staging pending production promotion |
-| Last reviewed  | 2026-09-14                                                                                                                                                             |
-| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                            |
-| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                           |
-| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                         |
-| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                              |
-| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                       |
-| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                         |
+| Field          | Value                                                                                                                                                                                          |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; EC-10 signed off, CO-01 through CO-07 implemented locally, CO-02/CO-03 deployed to both environments, CO-04/CO-05 staging-verified, and CO-06/CO-07 locally verified pending promotion |
+| Last reviewed  | 2026-09-14                                                                                                                                                                                     |
+| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                                                    |
+| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                                                   |
+| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                                                 |
+| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                                                      |
+| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                                               |
+| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                                                 |
 
 ## 1. Objective
 
@@ -142,10 +142,13 @@ Drizzle, domain internals, or server functions from a component.
    predefined friction categories applied. It does not collect an unrestricted operational diary.
 9. **Host closeout belongs in `apps/ui`.** Hosts must never enter the internal admin app to finish an
    ordinary event. Admin can inspect, correct, or complete an overdue closeout with a required reason.
-10. **Repeat hosting reuses, then revalidates.** “Host another like this” may prefill city, venue,
-    capacity, language, category, and safe descriptive fields, but never copies timestamps,
-    attendance, IDs, slug, or security responses. Submission still uses the EC shared schema and
-    full authorization/Turnstile/rate-limit pipeline.
+10. **Repeat hosting reuses, then revalidates.** “Host another like this” may prefill the source
+    city, venue, title, and description—the safe fields exposed by the current EC wizard. Event
+    language follows the active locale because EC has no separate language control. The flow never
+    copies timestamps, attendance, IDs, slug, closeout, security responses, or expired provider
+    state. Submission still uses the EC shared schema and the existing EC authorization,
+    rate-limit, and WAF pipeline; the event-create Turnstile challenge remains intentionally
+    disabled by the recorded product decision.
 11. **The admin app is double-gated.** Cloudflare Access JWT verification remains mandatory and
     `workers.dev` stays disabled. Inside the Worker, Better Auth session and centralized RBAC permit
     only `moderator`/`admin` operations. Access identity alone never grants product permissions.
@@ -196,10 +199,10 @@ Drizzle, domain internals, or server functions from a component.
 25. **Weekly decisions are first-party records.** Each weekly review writes one D1
     `operations_reviews` record containing scope, evidence window, bottleneck, intervention, owner,
     due date, and follow-up result. This is the operating record; no CRM is introduced.
-26. **Rollback is implemented before exposure.** A current-release `communityOperations` feature
-    flag defaults off until CO-11 acceptance. It gates closeout, feedback, repeat-host, operations,
-    and metrics entry points and server functions; security-critical moderation and host-trust
-    controls remain available. Disabling it never deletes data or reopens frozen RSVP intent.
+26. **Market-scoped rollout is reversible.** `communityOperations` gates closeout, feedback,
+    repeat-host, operations, and metrics entry points and server functions. It is enabled for every
+    configured market by the 2026-09-14 Founder decision. Disabling it never deletes data or reopens
+    frozen RSVP intent; security-critical moderation and host-trust controls remain available.
 
 ## 6. Canonical community-health definitions
 
@@ -473,10 +476,9 @@ Verification:
   opposite facts and a dashboard rendering both as 0% invites the wrong intervention.
 - **The feedback window is anchored to `ends_at`, never to the closeout**, which is the only way
   §5.20's "late closeouts do not reopen the window" is actually true.
-- **`communityOperations` is seeded disabled in every market** and resolves an absent or non-boolean
-  value to disabled. It gates closeout, feedback, repeat-host, operations and metrics; moderation
-  and host trust stay available, because the reason to switch the feature off may be the reason
-  they are needed.
+- **`communityOperations` is enabled for every configured market in the launch release** (migration
+  `0027`); an absent or non-boolean value still resolves to disabled. It gates closeout, feedback,
+  repeat-host, operations and metrics; moderation and host trust stay available.
 - **Legacy `ends_at IS NULL` events are excluded from every path and listed for attention** (§5.24).
   No duration is inferred anywhere.
 - **Retention runs in bounded market-scoped batches**: comments cleared at twelve months with the
@@ -500,9 +502,9 @@ Work:
   repository queries; CO-03 provides only row-level repositories and atomic helpers required by
   closeout, feedback, trust, and weekly review workflows.
 - Add the typed `communityOperations` feature flag and shared read helper to the existing first-party
-  flag configuration, seed it disabled in every environment, and prove absent/invalid values resolve
-  to disabled. CO-05 through CO-08 and CO-10 own enforcement on the real routes/server functions they
-  introduce; moderation and host trust remain ungated.
+  flag configuration, seed it enabled for every configured market (migration `0027`), and prove
+  absent/invalid values resolve to disabled. CO-05 through CO-08 and CO-10 own enforcement on the
+  real routes/server functions they introduce; moderation and host trust remain ungated.
 - Detect legacy `endsAt = null` rows during migration verification, add the repository attention
   query and typed state used later by CO-08, and provide only an authorized audited backfill command;
   never infer an end time.
@@ -827,6 +829,8 @@ Verification:
 
 ### CO-06 — Add attendee feedback and post-event follow-up
 
+**Status:** Implemented locally on 2026-09-14; staging and production promotion remain release actions.
+
 **Parent:** P1-009, P1-018, P1-019, P1-023
 **Requirements:** FR-E13, FR-E14, FR-M9; NFR-4, NFR-5, NFR-7 through NFR-11
 
@@ -864,10 +868,11 @@ Verification:
 Work:
 
 - Add “Host another like this” after a held closeout and on the host's own past-event view.
-- Prefill only the safe fields defined in §5; clear schedule, IDs, slug, attendance, closeout,
-  security responses, and any expired provider state.
-- Send the host through the complete EC wizard review, validation, authentication, Turnstile, and
-  persistence pipeline.
+- Prefill only the safe fields defined in §5 (city, venue, title, and description); clear schedule,
+  IDs, slug, attendance, closeout, security responses, and any expired provider state. The event
+  language is the active locale selected for the new wizard session.
+- Send the host through the complete EC wizard review, validation, authentication, persistence,
+  rate-limit, and WAF pipeline, preserving the current event-create Turnstile decision.
 - Preserve the normal ability to change every prefilled value and make copied fields obvious rather
   than silently resubmitting an old event.
 - Require the `communityOperations` flag to expose repeat-host entry points; final submission still
@@ -878,6 +883,13 @@ Verification:
 - Tests prove forbidden fields are never copied and all prefilled fields are revalidated.
 - A repeated event receives a fresh ID/slug/timestamps and appears correctly in city/host feeds.
 - The flow works in all locales, directions, and target widths covered by EC-09.
+
+Implementation status (2026-09-14): the host-only repeat-template server function enforces the
+held-closeout and `communityOperations` gates; repeat links are available from held closeout,
+hosted activity history, and the host's past event view. The wizard starts with safe editable fields,
+clears its schedule and provider search state, and continues through the existing EC validation,
+auth, persistence, and rate-limit pipeline. Server, draft, activity, closeout, and locale copy tests
+are passing locally; staging/production promotion remains a release operation.
 
 ### CO-08 — Build the admin event-operations workspace
 
@@ -994,8 +1006,8 @@ Work:
 
 - Apply migrations to staging and deploy `apps/ui`, `apps/admin`, and `apps/worker-jobs` with the
   compatible shared libraries.
-- Enable `communityOperations` in staging only for the operational rehearsal; keep production
-  disabled until all staged evidence is accepted and the controlled production enable step begins.
+- Enable `communityOperations` for every configured market through migration `0027` and treat
+  production promotion as a controlled release action.
 - Verify Access plus Better Auth/RBAC, D1/DO/Queue/Analytics bindings, Turnstile, WAF, FCM, Twilio,
   CSP, logs, alerts, and `workers.dev` isolation.
 - Use the dedicated host/member/admin identities from CO-01; prove the admin's Access and Better Auth
@@ -1022,9 +1034,9 @@ Work:
 
 Rollback:
 
-- Disable `communityOperations` at its existing environment-scoped first-party configuration and
-  verify the route and server-function gates preserve the core event flow. Moderation and host-trust
-  access remains available for safety response.
+- Disable `communityOperations` for the affected market at its environment-scoped first-party
+  configuration and verify the route and server-function gates preserve the core event flow.
+  Moderation and host-trust access remains available for safety response.
 - Roll back compatible Worker versions; never destructively reverse a D1 migration.
 - Keep closeout/attendance/feedback records immutable during diagnosis except through audited forward
   correction.
@@ -1092,7 +1104,7 @@ Relevant Playwright remains a separate local/staging release gate.
 4. `feat(admin): establish secure community operations shell` — CO-04.
 5. `feat(events): add host closeout and attendance` — CO-05.
 6. `feat(events): collect post-event feedback` — CO-06.
-7. `feat(events): reduce repeat-host friction` — CO-07.
+7. `feat(events): reduce repeat-host friction` — CO-07 (implemented locally; promotion pending).
 8. `feat(admin): add event operations workspace` — CO-08.
 9. `feat(admin): add host trust and moderation` — CO-09.
 10. `feat(admin): report community health` — CO-10.
@@ -1150,8 +1162,8 @@ stubs/placeholders.
 - [ ] Post-event prompts use Durable Object alarms -> Queue -> PWA push first -> email fallback, with
       retry, DLQ, idempotency, alerts, a host closeout prompt, and transparent did-not-happen member
       communication.
-- [ ] `communityOperations` defaults off until acceptance, gates every intended UI/server entry
-      point, rolls back without data loss, and never disables moderation or host-trust safety controls.
+- [ ] `communityOperations` gates every intended UI/server entry point, is enabled for all configured
+      markets, rolls back without data loss, and never disables moderation or host-trust safety controls.
 - [ ] No PII, feedback comments, raw identifiers, or venue free text enters logs or Analytics Engine.
 - [ ] All screens and notifications are complete in `ar`, `fr`, and `en`; RTL/LTR, WCAG 2.1 AA,
       loading/error/empty states, keyboard/focus, and responsive behavior are verified.

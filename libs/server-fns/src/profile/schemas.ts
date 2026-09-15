@@ -35,7 +35,7 @@ export const revokeDeviceRequestSchema = z.strictObject({
   othersOnly: z.boolean().optional(),
 });
 export const unlinkProviderRequestSchema = z.strictObject({
-  providerId: z.enum(profile.ACCOUNT_PROVIDERS),
+  providerId: profile.accountProviderSchema,
 });
 export const phoneConfirmRequestSchema = z.strictObject({
   phoneNumber: phoneField,

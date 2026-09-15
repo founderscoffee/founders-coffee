@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ACCOUNT_PROVIDERS,
+  accountProviderSchema,
   knownAccountProviders,
   maskEmail,
   maskPhoneNumber,
@@ -63,6 +65,13 @@ describe('masking an account identifier', () => {
 });
 
 describe('provider list', () => {
+  it('keeps provider values unique and schema-backed', () => {
+    expect(new Set(ACCOUNT_PROVIDERS).size).toBe(ACCOUNT_PROVIDERS.length);
+    for (const provider of ACCOUNT_PROVIDERS)
+      expect(accountProviderSchema.parse(provider)).toBe(provider);
+    expect(accountProviderSchema.safeParse('saml').success).toBe(false);
+  });
+
   it('keeps the providers this product knows, once each', () => {
     expect(
       knownAccountProviders(['google', 'github', 'google', 'email']),

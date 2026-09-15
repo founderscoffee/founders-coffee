@@ -3,6 +3,7 @@ import { createElement, type ReactNode } from 'react';
 import { vi } from 'vitest';
 
 import { HostCreatePage } from './HostCreatePage';
+import type { RepeatEventTemplate } from '../../features/events/api';
 
 export const CREATED_EVENT = {
   id: 'evt_00000000000000000000000000000001',
@@ -244,7 +245,10 @@ const city = {
   nameAr: 'الجزائر',
 } as never;
 
-export const renderHostCreateWizard = (locale: 'ar' | 'fr' | 'en' = 'en') =>
+export const renderHostCreateWizard = (
+  locale: 'ar' | 'fr' | 'en' = 'en',
+  repeatTemplate: RepeatEventTemplate | null = null,
+) =>
   render(
     createElement(HostCreatePage, {
       locale,
@@ -253,6 +257,7 @@ export const renderHostCreateWizard = (locale: 'ar' | 'fr' | 'en' = 'en') =>
       mapboxToken: 'map-token',
       turnstileSiteKey: 'test-site-key',
       hasSocial: false,
+      repeatTemplate,
     }),
   );
 

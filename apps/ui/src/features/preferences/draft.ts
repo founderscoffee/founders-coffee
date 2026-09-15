@@ -4,12 +4,29 @@ import type { AccountPreferencesView, PreferencesInput } from './api';
 
 export interface NotificationDraft {
   readonly eventUpdates: boolean;
+  readonly eventUpdatesChannels: readonly PreferencesInput['eventUpdatesChannels'][number][];
   readonly eventReminders: boolean;
+  readonly eventRemindersChannels: readonly PreferencesInput['eventRemindersChannels'][number][];
   readonly hostUpdates: boolean;
+  readonly hostUpdatesChannels: readonly PreferencesInput['hostUpdatesChannels'][number][];
   readonly followUpPrompts: boolean;
+  readonly followUpPromptsChannels: readonly PreferencesInput['followUpPromptsChannels'][number][];
   readonly pushEnabled: boolean;
   readonly smsFallbackEnabled: boolean;
 }
+
+const channelsEqual = (
+  left: readonly string[],
+  right: readonly string[],
+): boolean =>
+  left.length === right.length &&
+  left.every((channel) => right.includes(channel));
+
+const channelsForCategory = <T extends string>(
+  enabled: boolean,
+  channels: readonly T[],
+): readonly T[] =>
+  enabled ? (channels.length > 0 ? channels : (['push', 'email'] as T[])) : [];
 
 export interface PreferencesDraft extends NotificationDraft {
   readonly locale: Locale;
@@ -45,7 +62,14 @@ export const hasChanges = (
 ): boolean => {
   const saved = draftFrom(view);
   return (Object.keys(saved) as (keyof PreferencesDraft)[]).some(
-    (key) => key !== 'pushEnabled' && draft[key] !== saved[key],
+    (key) =>
+      key !== 'pushEnabled' &&
+      (Array.isArray(draft[key]) && Array.isArray(saved[key])
+        ? !channelsEqual(
+            draft[key] as readonly string[],
+            saved[key] as readonly string[],
+          )
+        : draft[key] !== saved[key]),
   );
 };
 
@@ -62,9 +86,24 @@ export const toInput = (
   revision: number,
 ): PreferencesInput => ({
   eventUpdates: draft.eventUpdates,
+  eventUpdatesChannels: [
+    ...channelsForCategory(draft.eventUpdates, draft.eventUpdatesChannels),
+  ],
   eventReminders: draft.eventReminders,
+  eventRemindersChannels: [
+    ...channelsForCategory(draft.eventReminders, draft.eventRemindersChannels),
+  ],
   hostUpdates: draft.hostUpdates,
+  hostUpdatesChannels: [
+    ...channelsForCategory(draft.hostUpdates, draft.hostUpdatesChannels),
+  ],
   followUpPrompts: draft.followUpPrompts,
+  followUpPromptsChannels: [
+    ...channelsForCategory(
+      draft.followUpPrompts,
+      draft.followUpPromptsChannels,
+    ),
+  ],
   smsFallbackEnabled: draft.smsFallbackEnabled,
   locale: draft.locale,
   expectedRevision: revision,

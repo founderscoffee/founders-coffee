@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import type { EventTiming } from './windows.js';
 import {
   CLOSEOUT_OVERDUE_AFTER_MS,
   FEEDBACK_CLOSES_AFTER_MS,
@@ -12,7 +13,10 @@ import {
 } from './windows.js';
 
 const ENDED = Date.UTC(2026, 8, 1, 18, 0);
-const published = (endsAt: number | null) => ({ endsAt, status: 'published' });
+const published = (endsAt: number | null): EventTiming => ({
+  endsAt,
+  status: 'published',
+});
 
 describe('canCloseOut', () => {
   it('allows it once the event has ended', () => {

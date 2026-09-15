@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { createDb } from './db.js';
 import { atMigration, priorHost } from './migrations.fixtures.js';
 import { getMemberProfile } from './member-profiles.js';
-import { getAccountPreferences } from './account-preferences.js';
 import { eventRsvps, events, session } from './schema.js';
 
 describe('PF-02 additive migration', () => {
@@ -41,13 +40,18 @@ describe('PF-02 additive migration', () => {
         spokenLanguages: [],
       },
     });
-    expect(await getAccountPreferences(db, priorHost.id)).toMatchObject({
-      preferences: {
-        pushEnabled: false,
-        smsFallbackEnabled: false,
-        smsConsentAt: null,
-        followUpPrompts: false,
-      },
+    expect(
+      await env.PRIOR_DB.prepare(
+        `SELECT push_enabled, sms_fallback_enabled, sms_consent_at, follow_up_prompts
+           FROM account_preferences WHERE user_id = ?`,
+      )
+        .bind(priorHost.id)
+        .first(),
+    ).toMatchObject({
+      push_enabled: 0,
+      sms_fallback_enabled: 0,
+      sms_consent_at: null,
+      follow_up_prompts: 0,
     });
     expect(
       await env.PRIOR_DB.prepare(

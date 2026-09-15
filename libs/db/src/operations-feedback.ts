@@ -1,5 +1,10 @@
 import { and, eq, sql } from 'drizzle-orm';
 
+import type {
+  FeedbackEligibilityStatus,
+  FeedbackSubmissionOutcome,
+} from '@founders-coffee/core';
+
 import type { Db } from './db.js';
 import {
   eventAttendance,
@@ -7,10 +12,12 @@ import {
   eventFeedback,
   events,
   type EventFeedbackRow,
+  type Event,
 } from './schema.js';
+import { listUpcomingEvents } from './events.js';
 
-export type FeedbackOutcome =
-  'saved' | 'not_attended' | 'window_closed' | 'not_invited';
+export type FeedbackOutcome = FeedbackSubmissionOutcome;
+export type FeedbackEligibility = FeedbackEligibilityStatus;
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60;
 const FOURTEEN_DAYS = 14 * 24 * 60 * 60;
@@ -170,6 +177,56 @@ export const getFeedback = async (
       ),
     )
     .limit(1);
+  return rows[0];
+};
+
+export const getFeedbackEligibility = async (
+  db: Db,
+  opts: { eventId: string; userId: string; now?: Date },
+): Promise<FeedbackEligibility> => {
+  const attended = await db
+    .select({ id: eventAttendance.id })
+    .from(eventAttendance)
+    .where(
+      and(
+        eq(eventAttendance.eventId, opts.eventId),
+        eq(eventAttendance.userId, opts.userId),
+        eq(eventAttendance.outcome, 'attended'),
+      ),
+    )
+    .limit(1);
+  if (attended.length === 0) return 'not_attended';
+  const rows = await db
+    .select({
+      endsAt: events.endsAt,
+      outcome: eventCloseouts.outcome,
+      submittedAt: eventCloseouts.submittedAt,
+    })
+    .from(events)
+    .leftJoin(eventCloseouts, eq(eventCloseouts.eventId, events.id))
+    .where(eq(events.id, opts.eventId))
+    .limit(1);
+  const row = rows[0];
+  if (!row?.endsAt || row.outcome !== 'held' || !row.submittedAt)
+    return 'not_invited';
+  const endMs = row.endsAt.getTime();
+  if (row.submittedAt.getTime() - endMs > SEVEN_DAYS * 1000)
+    return 'not_invited';
+  return (opts.now ?? new Date()).getTime() - endMs <= FOURTEEN_DAYS * 1000
+    ? 'ready'
+    : 'window_closed';
+};
+
+export const findNextEvent = async (
+  db: Db,
+  opts: { marketCode: string; cityCode: string; now?: Date },
+): Promise<Event | undefined> => {
+  const rows = await listUpcomingEvents(db, {
+    marketCode: opts.marketCode,
+    cityCode: opts.cityCode,
+    limit: 1,
+    now: opts.now,
+  });
   return rows[0];
 };
 

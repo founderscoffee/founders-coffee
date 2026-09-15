@@ -15,6 +15,7 @@ export type {
   EventCancelRequestInput,
   EventCreateRequestInput,
   PublicEventFeedRequestInput,
+  RepeatEventRequestInput,
 } from './schemas.js';
 export { publicEventFeedRequestSchema } from './schemas.js';
 export {
@@ -24,7 +25,9 @@ export {
   getHostedEvents,
   getMyJoinedEvents,
   getPublicEventFeed,
+  getRepeatEventTemplate,
   getUpcomingEvents,
 } from './rpc.js';
 export type { HostedEventPage } from './hosted.js';
 export type { PublicEventFeedPage } from './public-feed.js';
+export type { RepeatEventTemplate } from './repeat.js';

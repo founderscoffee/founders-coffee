@@ -13,10 +13,10 @@ describe('request context (AsyncLocalStorage)', () => {
   });
 
   it('propagates across awaits', async () => {
-    await runWithContext({ market: 'MA' }, async () => {
+    await runWithContext({ market: 'EG' }, async () => {
       await Promise.resolve();
       await Promise.resolve();
-      expect(getRequestContext().market).toBe('MA');
+      expect(getRequestContext().market).toBe('EG');
     });
   });
 

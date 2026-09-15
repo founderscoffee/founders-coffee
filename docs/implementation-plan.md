@@ -4,10 +4,10 @@
 
 | Field        | Value                                                                              |
 | ------------ | ---------------------------------------------------------------------------------- |
-| Version      | 2.5                                                                                |
+| Version      | 2.9                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
-| Last updated | 2026-09-14                                                                         |
+| Last updated | 2026-09-15                                                                         |
 | Derived from | [SRS v1.7](./srs.md) and [community-first release strategy](./release-strategy.md) |
 
 This document is the current sequencing and status source. Status is evidence-based:
@@ -20,9 +20,9 @@ This document is the current sequencing and status source. Status is evidence-ba
 
 ## 1. Canonical product and architecture decisions
 
-- DZ is `active`; EG and SA are `open`; MA and AE are `dark`.
-- This is the target market policy. The current seed/deployed rows still mark DZ/EG/SA `active`
-  and omit MA/AE, so P0-007 remains blocked until configuration and deployed evidence agree.
+- DZ, EG, and SA are the only configured markets, and all three are `active`.
+- MA and AE are removed from the market configuration. Migration `0029_activate_launch_markets`
+  aligns existing rows; `SEED_MARKETS` keeps fresh local/test environments on the same policy.
 - Expansion requires eight completed events per month for three consecutive months, three recurring hosts, and at least 60% host retention.
 - D1 owns market configuration. Versioned TypeScript datasets own state/city reference data.
 - Geographic records use `market_code`, `state_code`, and `city_code`.
@@ -89,7 +89,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P0-004 | Partial  | Admin Worker and Access JWT guard                         | Access applications and in-Worker JWT verification are configured; staging correlation is verified, while production operator setup and end-to-end verification remain                                                                                                                                                                            |
 | P0-005 | Complete | Core Result, AppError, Money, IDs, config                 | —                                                                                                                                                                                                                                                                                                                                                 |
 | P0-006 | Complete | D1/Drizzle schema, migrations, atomic helpers             | —                                                                                                                                                                                                                                                                                                                                                 |
-| P0-007 | Blocked  | Market configuration and geography                        | Change seed/config to DZ active, EG/SA open, MA/AE dark                                                                                                                                                                                                                                                                                           |
+| P0-007 | Partial  | Market configuration and geography                        | Seed and migration `0029` now align DZ/EG/SA as active and remove MA/AE; apply and verify the migration in staging and production                                                                                                                                                                                                                 |
 | P0-008 | Partial  | Better Auth, phone/email OTP, OAuth, RBAC                 | Production must fail closed when Twilio/email providers are absent                                                                                                                                                                                                                                                                                |
 | P0-009 | Complete | Arabic-first `ar`/`fr`/`en` i18n and formatting           | —                                                                                                                                                                                                                                                                                                                                                 |
 | P0-010 | Complete | Shared Tailwind/DaisyUI design system                     | —                                                                                                                                                                                                                                                                                                                                                 |
@@ -109,7 +109,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 
 | ID     | Status   | Scope                                                                | Remaining evidence or work                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ------ | -------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P1-001 | Complete | Market resolution and visibility                                     | Align seed states under P0-007                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| P1-001 | Complete | Market resolution and visibility                                     | Resolution logic is complete; deployed market-row alignment is tracked under P0-007                                                                                                                                                                                                                                                                                                                                                                      |
 | P1-002 | Complete | Geo redirect, canonical market/city pages, empty states              | —                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | P1-003 | Partial  | Email-OTP login UI, OAuth UI, and dormant phone-OTP capability       | Verify current email/OAuth production flow; keep unexposed phone endpoints fail-closed                                                                                                                                                                                                                                                                                                                                                                   |
 | P1-004 | Partial  | Geography datasets, onboarding, profiles                             | PF-01 through PF-12 in the [Profile and Account Management Plan](./profile-account-implementation-plan.md): remove home location, add editable opt-in public profiles and full account controls; preserve event geography                                                                                                                                                                                                                                |
@@ -117,7 +117,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-006 | Complete | Event creation wizard and Mapbox venue selection                     | EC-01 through EC-10 are signed off. Staging 18/18, production release/DNS/WAF evidence, and the authorized production creation smoke were verified by 2026-09-10.                                                                                                                                                                                                                                                                                        |
 | P1-007 | Partial  | Event feed/detail, virtualization, SEO metadata                      | Canonical/OG URL inheritance, missing sitemap, cookie-only locale indexing, incomplete event/city metadata and structured data, crawlable utility routes, missing social images, and unverified TanStack Start prerender configuration are tracked in the [SEO Implementation Plan](./seo-implementation-plan.md) as SEO-01 through SEO-12. GEO-01 through GEO-05 are implemented and locally verified; full prerender verification remains under P1-020 |
 | P1-008 | Partial  | Immediate idempotent RSVP and cancellation                           | Full-capacity atomicity is fixed and proven by AR-04: a rejected RSVP writes nothing, a duplicate returns the typed `already_rsvpd`, and counter and attendee rows are asserted to agree. Remaining: `§10` requires Turnstile on RSVP and it is absent                                                                                                                                                                                                   |
-| P1-009 | Partial  | PWA push primary, email fallback, SMS same-day cancellation          | CO-02 is deployed; ND-01/ND-02 prove service-worker push and email fallback on staging. Remaining: production promotion of ND-07 and future CO-05/06/08 host, attendee, correction, and did-not-happen delivery                                                                                                                                                                                                                                          |
+| P1-009 | Partial  | PWA push primary, email fallback, SMS same-day cancellation          | CO-02 is deployed; ND-01/ND-02 prove service-worker push and email fallback on staging. CO-06 and CO-07 add attendee follow-up and repeat-host support locally; production promotion and CO-08 host, correction, and operations delivery remain                                                                                                                                                                                                          |
 | P1-010 | Partial  | Live event Durable Object/WebSocket experience                       | Verify per-message session expiry, heartbeat cleanup, and cancellation behavior                                                                                                                                                                                                                                                                                                                                                                          |
 | P1-011 | Future   | Disclosed sponsorship surfaces                                       | Post-community gate; not part of the current release                                                                                                                                                                                                                                                                                                                                                                                                     |
 | P1-012 | Future   | Sponsor media through R2/Images                                      | Post-community gate; not part of the current release                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -131,10 +131,34 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-020 | Partial  | Installable PWA                                                      | Manifest/service worker exist; offline, prerender, Lighthouse, and PWA Builder verification remain                                                                                                                                                                                                                                                                                                                                                       |
 | P1-021 | Partial  | End-to-end tests                                                     | EC-09/10 recorded 18/18 locally and on staging across ar/fr/en at 390/768/1280 on 2026-09-03; the authorized production creation smoke was verified on 2026-09-10. CO-11 remains, and E2E stays outside CI.                                                                                                                                                                                                                                              |
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
-| P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-05 are implemented; CO-02/CO-03 are deployed to both environments and CO-04/CO-05 are staging-verified. CO-06 through CO-11, production promotion, and the remaining operations evidence are still planned                                                                                                                                                                                                                              |
+| P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
 
-### Immediate sequence
+### Enum contract consolidation
+
+The enum audit identified repeated finite-value declarations across the core, database, domain,
+server-function, worker, and UI layers. These tickets consolidate active contracts without changing
+stored values or runtime behavior. Core owns values shared by persistence and delivery boundaries;
+domain owns feature-specific input contracts. Dynamic market/geography codes, provider identifiers,
+routes, HTTP values, i18n keys, and UI/protocol/infrastructure-only state remain scoped to their
+owning module.
+
+| ID      | Status   | Scope                                                                                                                                                                | Remaining evidence or work                                                                                                                                     |
+| ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ENUM-01 | Complete | Establish canonical `as const` arrays, inferred unions, and Zod schemas in `libs/core`                                                                               | Targeted and Nx-wide typecheck/lint/build verification passes; stored values and runtime behavior are unchanged                                                |
+| ENUM-02 | Complete | Replace duplicate locale, lifecycle, notification, push, venue-kind, profile-asset, operations, and DB contracts with canonical imports and compatibility re-exports | Targeted and Nx-wide typecheck/lint/build verification passes; stored values and runtime behavior are unchanged                                                |
+| ENUM-03 | Complete | Finish domain-owned contracts for notification categories, account providers, and venue categories with reusable schemas and boundary imports                        | Targeted domain/server typecheck, lint, and tests pass; provider IDs, routes/protocol values, and UI-only states remain intentionally scoped                   |
+| ENUM-04 | Complete | Establish core-owned contracts for transient RSVP, waitlist, attendance, closeout, feedback, prompt, notification-dispatch, and operations-error outcomes            | Core outcome schemas and guards are covered by Vitest; stored values and runtime behavior are unchanged                                                        |
+| ENUM-05 | Complete | Adopt the ENUM-04 contracts in D1 repositories, server functions, and notification jobs, keeping compatibility exports and documenting intentional local unions      | DB, server-fns, and worker-jobs typechecks and tests pass; UI/protocol/infrastructure state and dynamic identifiers remain local by design                     |
+| ENUM-06 | Complete | Remove the remaining duplicated profile-photo variant and test-harness locale declarations where a shared contract is appropriate                                    | UI photo URLs reuse the domain variant; E2E and UI integration suites reuse the core locale contract; test matrices and SEO tooling remain intentionally local |
+
+### Tooling and documentation closure
+
+| ID      | Status   | Scope                                                                                                         | Evidence                                                                                                                                                                       |
+| ------- | -------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| TOOL-01 | Complete | Keep Nx project-graph evaluation independent of generated i18n output while retaining NodeNext source imports | `apps/ui` config-time sitemap metadata imports the canonical leaf locale contract; clean graph, Nx-wide typecheck/lint, public build, i18n/UI tests, and server-fns tests pass |
+
+### Remaining work order
 
 Audit-remediation tickets are tracked in the
 [Audit Remediation Plan](./audit-remediation-plan.md). AR-02 through AR-07 and AR-09 through AR-13
@@ -145,39 +169,40 @@ Access-gated origin still needs an authenticated measurement. The later [deploym
 records CSP enforcement, Queue consumers, the EC release and the Round Table redesign. This is
 documentary evidence, not a new live CI or infrastructure certification.
 
-1. **Plan 1 — EC-10 final handoff:** the
-   [Event Creation Remediation Plan](./event-creation-remediation-plan.md) records EC-01 through
-   EC-10 complete, 18/18 staging cases on 2026-09-03, three persisted events and cleanup. Production
-   v0.1.0 and DNS/WAF verification followed on 2026-09-04. The authorized production creation smoke
-   was performed and verified on 2026-09-10, so the EC handoff is signed off. Do not repeat the
-   superseded staging mailbox or production DNS blockers.
-2. **Provider readiness for CO/PF:** verify current deployed secrets and real channel delivery
-   when the relevant ticket begins. Existing provider interfaces or bound consumers do not prove
-   delivery. EC-08's staging request/metric correlation is recorded; that does not certify all
-   notification providers or the future account-management flows.
-3. **CSP regression:** preserve the enforced policy declared in current staging/production UI
-   configuration and recorded in the v0.2.0/v0.3.0 release evidence. New profile/photo behavior must
-   pass the same policy; no return to report-only mode is authorized by this plan.
-4. **Plan 2 — CO-01 immediately after EC-10:** begin the
-   [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
-   with the operating contract and baseline.
-5. **CO-02 / P0-018 / P1-009:** deployed to staging and production. Per-event Durable Object alarms
-   feed the environment-specific Notifications Queue, the cron is a fifteen-minute recovery sweep,
-   and member preferences are enforced at send time. Staging proves push-first with email fallback;
-   production still needs the post-ND-07 release promotion. See the dated deployment snapshot.
-6. **CO-03 through CO-11 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout, attendance,
-   feedback, repeat-host support, the secure correlated-identity admin surface, trust/moderation,
-   weekly reviews, metrics, a real rollback flag, and three-checkpoint staged operations
-   verification in the documented order.
-7. **P0-007/P1-004/P0-019:** complete remaining market configuration and dated deployment evidence
-   where it blocks the community operations flow. P1-004 now owns the
-   [Profile and Account Management Plan](./profile-account-implementation-plan.md), PF-01 through
-   PF-12: remove profile residence and deliver member profile/account controls. This lane preserves
-   the EC → CO priority above; notification, retention and moderation integration depend on the
-   named CO tickets rather than duplicating them. No home-code renaming project remains required.
-8. Complete only the moderation, trust, PWA, accessibility, performance, and operational work
-   required to run the community reliably. Do not pull future sponsorship, challenge, talent,
-   payment, or expansion work into this sequence.
+The following order supersedes older sequencing notes in this document and its supporting plans.
+Each step is a release or verification dependency; completed work is retained as evidence and is
+not repeated.
+
+1. **Unblock release foundations:** resolve `P0-007` market configuration, `P0-001` Nx boundary
+   coverage, `P0-004/P1-017` production Access/operator/CSRF verification, `P0-008/P1-003`
+   production authentication checks, `P0-016` Email Sending activation and templates, and
+   `P0-019` provider/binding/secret verification.
+2. **Close security and CI gaps:** replace the removed `P0-020` dependency advisory gate and record
+   migration rollback/token-rotation evidence; then complete `P1-008/P1-018` RSVP Turnstile,
+   anonymous map protection, and remaining mutation permissions.
+3. **Promote notification delivery:** ship and verify `P0-018/P1-009/ND-08` so production matches
+   staging's push-primary/email-fallback policy, including real provider delivery evidence.
+4. **Verify live event coordination:** complete `P1-010` Durable Object expiry, heartbeat cleanup,
+   and cancellation behavior.
+5. **Build operational administration:** deliver `CO-08/CO-09` for event operations, corrections,
+   moderation, host trust, and audit.
+6. **Deliver community-health evidence:** implement `CO-10/P1-019` metrics repositories, dashboards,
+   alerts, retention snapshots, denominators, and as-of evidence.
+7. **Run the operational launch rehearsal:** complete `CO-11/P1-021/P1-023` across all checkpoints,
+   locales, directions, roles, mobile/desktop surfaces, and recovery paths.
+8. **Finish PWA verification:** complete `P1-020` offline behavior, prerender verification, Lighthouse
+   budgets, and PWA Builder checks.
+9. **Complete profile/account work:** finish `PF-04c`, then `PF-09` export, `PF-10` deletion and
+   retention, `PF-11a/PF-11b` CO integration and localized UX, and `PF-12` release evidence.
+10. **Complete search-engine operations:** deliver `SEO-12` Search Console/Bing submission, sitemap
+    processing, representative URL indexing, and 30-day monitoring; finish full prerender evidence.
+11. **Complete notification controls:** deliver `ND-06` provider-aware, responsive per-category
+    controls and push-permission UX; retain `ND-08` production evidence as the release gate from step 3.
+12. **Close documentation:** `TOOL-01` resolved the Nx-wide i18n source-import graph error and
+    Nx-wide lint is green; reconcile remaining stale status text in the SEO and notification plans.
+
+Future sponsorship, challenges, talent, payments, semantic search, browser-generated OG images, and
+new-market expansion remain outside this order behind the community validation gate.
 
 ### P1 exit criteria
 
@@ -220,7 +245,7 @@ authorized by this roadmap.
 
 ## 8. Phase P4 — automated payments and expansion (future)
 
-**Status: Future.** Payment automation and additional-market operations require the community validation gate, explicit Founder / Product approval, and the relevant compliance review. EG/SA configuration does not authorize operational expansion. MA and AE remain `dark` until geography and operational readiness exist.
+**Status: Future.** Payment automation and additional-market operations require the community validation gate, explicit Founder / Product approval, and the relevant compliance review. The current configured markets are DZ, EG, and SA; adding another market requires a separate geography, operations, and compliance decision.
 
 ## 9. Continuous gates
 

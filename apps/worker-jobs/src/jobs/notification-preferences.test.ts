@@ -105,6 +105,9 @@ describe('categories are enforced at send time, not at enqueue time', () => {
   });
 
   it('holds a closeout prompt while the market has operations switched off', async () => {
+    await db.run(
+      sql`UPDATE markets SET feature_flags = json_set(feature_flags, '$.communityOperations', json('false')) WHERE code = 'DZ'`,
+    );
     const off = await resolveDestination(
       db,
       'email',

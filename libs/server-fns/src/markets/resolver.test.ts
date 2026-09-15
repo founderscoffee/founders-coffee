@@ -14,21 +14,17 @@ import {
   resolveMarketLanding,
 } from './resolver.js';
 
-/**
- * Seed a dark market to verify it is hidden from public resolution. Uses `AE` (a target country
- * that is NOT in the active seed) so `onConflictDoNothing` does not silently no-op against a seeded
- * active row — the dark insert must actually take effect.
- */
+/** Seed a synthetic dark market to verify it is hidden from public resolution. */
 const seedDarkMarket = async (db: Db): Promise<void> => {
   await db
     .insert(marketsTable)
     .values({
-      code: 'AE',
-      name: 'United Arab Emirates',
-      slug: 'united-arab-emirates',
+      code: 'ZZ',
+      name: 'Dark test market',
+      slug: 'dark-test-market',
       defaultLocale: 'ar',
-      defaultCurrency: 'AED',
-      timezone: 'Asia/Dubai',
+      defaultCurrency: 'DZD',
+      timezone: 'Africa/Algiers',
       direction: 'rtl',
       state: 'dark',
       featureFlags: {
@@ -61,7 +57,7 @@ describe('markets resolver (real D1)', () => {
     await seed(db);
     await seedDarkMarket(db);
 
-    const dark = await resolveMarket(db, { code: 'AE' });
+    const dark = await resolveMarket(db, { code: 'ZZ' });
     expect(dark.ok).toBe(false);
     if (!dark.ok) expect(dark.error.code).toBe('market_not_found');
 
@@ -77,7 +73,7 @@ describe('markets resolver (real D1)', () => {
     const visible = await listVisibleMarkets(db);
 
     expect(visible.every((m) => m.state !== 'dark')).toBe(true);
-    expect(visible.find((m) => m.code === 'AE')).toBeUndefined();
+    expect(visible.find((m) => m.code === 'ZZ')).toBeUndefined();
   });
 });
 
@@ -107,8 +103,8 @@ describe('resolveMarketLanding (slug-or-code key)', () => {
     await seed(db);
     await seedDarkMarket(db);
 
-    const bySlug = await resolveMarketLanding(db, 'united-arab-emirates');
-    const byCode = await resolveMarketLanding(db, 'ae');
+    const bySlug = await resolveMarketLanding(db, 'dark-test-market');
+    const byCode = await resolveMarketLanding(db, 'zz');
 
     expect(bySlug.ok).toBe(false);
     expect(byCode.ok).toBe(false);

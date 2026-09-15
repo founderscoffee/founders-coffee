@@ -21,6 +21,7 @@ import {
   type HostMapLocationInput,
   type NearbyVenuesInput,
   type RsvpInput,
+  type RepeatEventTemplate,
   type VenueCandidate,
   type VenueReverseInput,
   type VenueSearchInput,
@@ -118,6 +119,15 @@ export const useEvent = (slug: string) =>
   useQuery({
     queryKey: ['event', slug],
     queryFn: () => eventsApi.getEvent({ data: { slug } }),
+  });
+
+export const useRepeatEventTemplate = (eventId: string, enabled = true) =>
+  useQuery<RepeatEventTemplate>({
+    queryKey: ['events', 'repeat-template', eventId],
+    queryFn: () => eventsApi.getRepeatEventTemplate({ data: { eventId } }),
+    enabled: enabled && eventId.length > 0,
+    staleTime: 0,
+    retry: false,
   });
 
 /**

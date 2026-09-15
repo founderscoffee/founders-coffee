@@ -11,11 +11,6 @@ import { geo } from '@founders-coffee/domain';
 
 import { resolveTrendingStates } from './resolver.js';
 
-/**
- * Seed a dark market to verify it is hidden from public resolution. Uses `AE` (a target country
- * that is NOT in the active seed) so `onConflictDoNothing` does not silently no-op against a seeded
- * active row — the dark insert must actually take effect.
- */
 describe('resolveTrendingStates (cold vs warm)', () => {
   const host: NewUser = {
     id: 'usr_trend_host',

@@ -11,6 +11,7 @@ import {
   getMapboxToken,
   getMarket,
   getPublicAuthConfig,
+  getRepeatEventTemplate,
   getUpcomingEvents,
   listNearbyVenues,
   reverseEventVenue,
@@ -20,11 +21,13 @@ import {
   type EventFeedItem,
   type EventFeedPage,
   type HostedEventPage,
+  type RepeatEventTemplate,
   type EventWithAttendance,
   type HostMapContext,
   type VenueCandidate,
 } from '@founders-coffee/server-fns';
 import type { Event } from '@founders-coffee/db';
+import type { Locale } from '@founders-coffee/core';
 
 export const eventsApi = {
   getUpcomingEvents,
@@ -43,6 +46,7 @@ export const eventsApi = {
   getCity,
   getMapboxToken,
   getPublicAuthConfig,
+  getRepeatEventTemplate,
 };
 
 export type {
@@ -51,6 +55,7 @@ export type {
   EventFeedItem,
   EventFeedPage,
   HostedEventPage,
+  RepeatEventTemplate,
   EventWithAttendance,
   HostMapContext,
   VenueCandidate,
@@ -62,7 +67,7 @@ export type CancelEventInput = { data: EventCancelRequestInput };
 export type HostMapLocationInput = {
   marketCode: string;
   cityCode?: string;
-  locale: 'ar' | 'fr' | 'en';
+  locale: Locale;
 };
 export type NearbyVenuesInput = {
   marketCode: string;

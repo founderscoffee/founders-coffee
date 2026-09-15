@@ -1,0 +1,103 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  ACCOUNT_STATES,
+  accountStateSchema,
+  ATTENDANCE_OUTCOMES,
+  attendanceOutcomeSchema,
+  AUDIT_ACTIONS,
+  auditActionSchema,
+  AUDIT_TARGETS,
+  auditTargetSchema,
+  CLOSEOUT_OUTCOMES,
+  closeoutOutcomeSchema,
+  EVENT_STATUSES,
+  eventStatusSchema,
+  FEEDBACK_RATINGS,
+  feedbackRatingSchema,
+  HOST_FRICTIONS,
+  hostFrictionSchema,
+  HOST_TRUST_STATUSES,
+  hostTrustStatusSchema,
+  MARKET_DIRECTIONS,
+  marketDirectionSchema,
+  MARKET_STATES,
+  marketStateSchema,
+  METRIC_KEYS,
+  metricKeySchema,
+  NOTIFICATION_DELIVERY_CHANNELS,
+  notificationDeliveryChannelSchema,
+  NOTIFICATION_FALLBACK_CHANNELS,
+  notificationFallbackChannelSchema,
+  NOTIFICATION_PREFERENCE_CHANNELS,
+  notificationPreferenceChannelSchema,
+  NOTIFICATION_STATUSES,
+  notificationStatusSchema,
+  NOTIFICATION_TEMPLATE_KEYS,
+  notificationTemplateKeySchema,
+  OPERATION_REASONS,
+  operationReasonSchema,
+  ORDER_PURPOSES,
+  orderPurposeSchema,
+  ORDER_STATUSES,
+  orderStatusSchema,
+  PROFILE_ASSET_STATUSES,
+  profileAssetStatusSchema,
+  PROFILE_PHOTO_MIME_TYPES,
+  profilePhotoMimeSchema,
+  PUSH_PLATFORMS,
+  pushPlatformSchema,
+  PUSH_SURFACES,
+  pushSurfaceSchema,
+  REVIEW_BOTTLENECKS,
+  reviewBottleneckSchema,
+  RSVP_STATUSES,
+  rsvpStatusSchema,
+  USER_ROLES,
+  userRoleSchema,
+  VENUE_KINDS,
+  venueKindSchema,
+} from './enums.js';
+
+const contracts = [
+  [ACCOUNT_STATES, accountStateSchema],
+  [ATTENDANCE_OUTCOMES, attendanceOutcomeSchema],
+  [AUDIT_ACTIONS, auditActionSchema],
+  [AUDIT_TARGETS, auditTargetSchema],
+  [CLOSEOUT_OUTCOMES, closeoutOutcomeSchema],
+  [EVENT_STATUSES, eventStatusSchema],
+  [FEEDBACK_RATINGS, feedbackRatingSchema],
+  [HOST_FRICTIONS, hostFrictionSchema],
+  [HOST_TRUST_STATUSES, hostTrustStatusSchema],
+  [MARKET_DIRECTIONS, marketDirectionSchema],
+  [MARKET_STATES, marketStateSchema],
+  [METRIC_KEYS, metricKeySchema],
+  [NOTIFICATION_DELIVERY_CHANNELS, notificationDeliveryChannelSchema],
+  [NOTIFICATION_FALLBACK_CHANNELS, notificationFallbackChannelSchema],
+  [NOTIFICATION_PREFERENCE_CHANNELS, notificationPreferenceChannelSchema],
+  [NOTIFICATION_STATUSES, notificationStatusSchema],
+  [NOTIFICATION_TEMPLATE_KEYS, notificationTemplateKeySchema],
+  [OPERATION_REASONS, operationReasonSchema],
+  [ORDER_PURPOSES, orderPurposeSchema],
+  [ORDER_STATUSES, orderStatusSchema],
+  [PROFILE_ASSET_STATUSES, profileAssetStatusSchema],
+  [PROFILE_PHOTO_MIME_TYPES, profilePhotoMimeSchema],
+  [PUSH_PLATFORMS, pushPlatformSchema],
+  [PUSH_SURFACES, pushSurfaceSchema],
+  [REVIEW_BOTTLENECKS, reviewBottleneckSchema],
+  [RSVP_STATUSES, rsvpStatusSchema],
+  [USER_ROLES, userRoleSchema],
+  [VENUE_KINDS, venueKindSchema],
+] as const;
+
+describe('canonical enum contracts', () => {
+  it.each(contracts)('accepts every value in %j', (values, schema) => {
+    for (const value of values)
+      expect(schema.safeParse(value).success).toBe(true);
+  });
+
+  it.each(contracts)('rejects values outside %j', (values, schema) => {
+    expect(schema.safeParse('__invalid_enum_value__').success).toBe(false);
+    expect(new Set(values).size).toBe(values.length);
+  });
+});

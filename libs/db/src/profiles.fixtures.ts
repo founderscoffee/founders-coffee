@@ -22,9 +22,13 @@ export const profileChanges: MemberProfileChanges = {
 
 export const preferenceChanges: AccountPreferenceChanges = {
   eventUpdates: true,
+  eventUpdatesChannels: 5,
   eventReminders: true,
+  eventRemindersChannels: 5,
   hostUpdates: true,
+  hostUpdatesChannels: 5,
   followUpPrompts: false,
+  followUpPromptsChannels: 0,
   pushEnabled: false,
   smsFallbackEnabled: false,
 };

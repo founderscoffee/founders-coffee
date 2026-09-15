@@ -1,5 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm';
 
+import type { PushPlatform, PushSurface } from '@founders-coffee/core';
+
 import type { Db } from './db.js';
 import { listDeliverablePushTokens } from './notification-destinations.js';
 import {
@@ -41,8 +43,8 @@ export const registerPushToken = async (
     id: string;
     userId: string;
     token: string;
-    platform: 'ios' | 'android' | 'web';
-    surface: 'pwa' | 'rn';
+    platform: PushPlatform;
+    surface: PushSurface;
     marketCode: string;
   },
 ): Promise<PushSubscriptionRow> => {

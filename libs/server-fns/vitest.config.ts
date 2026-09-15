@@ -18,7 +18,6 @@ export default defineConfig(async () => {
       }),
     ],
     test: {
-      dangerouslyIgnoreUnhandledErrors: true,
       include: ['src/**/*.test.ts'],
       setupFiles: ['./src/setup.ts'],
       coverage: {

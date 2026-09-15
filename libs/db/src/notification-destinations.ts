@@ -15,8 +15,13 @@ export interface NotificationContact {
   readonly phoneNumber: string | null;
   readonly phoneNumberVerified: boolean;
   readonly eventUpdates: boolean;
+  readonly eventUpdatesChannels: number;
   readonly eventReminders: boolean;
+  readonly eventRemindersChannels: number;
   readonly hostUpdates: boolean;
+  readonly hostUpdatesChannels: number;
+  readonly followUpPrompts: boolean;
+  readonly followUpPromptsChannels: number;
   readonly localePref: string | null;
   readonly pushEnabled: boolean;
   readonly smsFallbackEnabled: boolean;
@@ -52,9 +57,14 @@ export const getNotificationContact = async (
       phoneNumber: user.phoneNumber,
       phoneNumberVerified: user.phoneNumberVerified,
       localePref: user.localePref,
-      eventUpdates: sql<number>`coalesce(${accountPreferences.eventUpdates}, 1)`,
-      eventReminders: sql<number>`coalesce(${accountPreferences.eventReminders}, 1)`,
-      hostUpdates: sql<number>`coalesce(${accountPreferences.hostUpdates}, 1)`,
+      eventUpdatesChannels: sql<number>`coalesce(${accountPreferences.eventUpdatesChannels}, 5)`,
+      eventUpdates: sql<number>`case when coalesce(${accountPreferences.eventUpdatesChannels}, 5) != 0 then 1 else 0 end`,
+      eventRemindersChannels: sql<number>`coalesce(${accountPreferences.eventRemindersChannels}, 5)`,
+      eventReminders: sql<number>`case when coalesce(${accountPreferences.eventRemindersChannels}, 5) != 0 then 1 else 0 end`,
+      hostUpdatesChannels: sql<number>`coalesce(${accountPreferences.hostUpdatesChannels}, 5)`,
+      hostUpdates: sql<number>`case when coalesce(${accountPreferences.hostUpdatesChannels}, 5) != 0 then 1 else 0 end`,
+      followUpPromptsChannels: sql<number>`coalesce(${accountPreferences.followUpPromptsChannels}, 0)`,
+      followUpPrompts: sql<number>`case when coalesce(${accountPreferences.followUpPromptsChannels}, 0) != 0 then 1 else 0 end`,
       pushEnabled: sql<number>`coalesce(${accountPreferences.pushEnabled}, 0)`,
       smsFallbackEnabled: sql<number>`coalesce(${accountPreferences.smsFallbackEnabled}, 0)`,
     })
@@ -71,8 +81,13 @@ export const getNotificationContact = async (
     phoneNumberVerified: row.phoneNumberVerified,
     localePref: row.localePref,
     eventUpdates: row.eventUpdates === 1,
+    eventUpdatesChannels: row.eventUpdatesChannels,
     eventReminders: row.eventReminders === 1,
+    eventRemindersChannels: row.eventRemindersChannels,
     hostUpdates: row.hostUpdates === 1,
+    hostUpdatesChannels: row.hostUpdatesChannels,
+    followUpPrompts: row.followUpPrompts === 1,
+    followUpPromptsChannels: row.followUpPromptsChannels,
     pushEnabled: row.pushEnabled === 1,
     smsFallbackEnabled: row.smsFallbackEnabled === 1,
   };

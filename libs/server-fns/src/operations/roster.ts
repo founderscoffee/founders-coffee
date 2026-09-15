@@ -6,11 +6,12 @@ import {
   user,
   type Db,
 } from '@founders-coffee/db';
+import type { AttendanceOutcome } from '@founders-coffee/core';
 
 export interface RosterMember {
   readonly userId: string;
   readonly name: string;
-  readonly outcome: 'attended' | 'no_show' | null;
+  readonly outcome: AttendanceOutcome | null;
 }
 
 /**

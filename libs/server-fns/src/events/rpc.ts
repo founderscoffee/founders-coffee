@@ -20,6 +20,7 @@ import { cancelEventResolver } from './cancel.js';
 import { listHostedEventPage } from './hosted.js';
 import { listJoinedEventPage } from './joined.js';
 import { readPublicEventFeed } from './public-feed.js';
+import { readRepeatEventTemplate } from './repeat.js';
 import { createEventWithTelemetry } from './create.js';
 import { listEvents, resolveEvent } from './resolver.js';
 import {
@@ -28,6 +29,7 @@ import {
   hostedEventsRequestSchema,
   joinedEventsRequestSchema,
   publicEventFeedRequestSchema,
+  repeatEventRequestSchema,
 } from './schemas.js';
 
 /**
@@ -152,6 +154,19 @@ export const cancelEvent = createServerFn({ method: 'POST', strict: false })
 export const getHostedEvents = createServerFn({ strict: false })
   .validator(appValidator(hostedEventsRequestSchema))
   .handler(({ data }) => listHostedEventPage(getDb(), data));
+
+export const getRepeatEventTemplate = createServerFn({ strict: false })
+  .middleware([requirePermission('event', 'create')])
+  .validator(appValidator(repeatEventRequestSchema))
+  .handler(({ context, data }) => {
+    privateNoStore();
+    return handleResult(
+      readRepeatEventTemplate(getDb(), {
+        eventId: data.eventId,
+        actorId: requireAuth(context.session).user.id,
+      }),
+    );
+  });
 
 /**
  * One page of the gatherings the caller has joined. Owner-only, and owner-only by construction.

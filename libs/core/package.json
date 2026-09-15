@@ -13,6 +13,11 @@
       "@founders-coffee/source": "./src/ai/index.ts",
       "types": "./src/ai/index.ts",
       "default": "./src/ai/index.ts"
+    },
+    "./locale": {
+      "@founders-coffee/source": "./src/locale.ts",
+      "types": "./src/locale.ts",
+      "default": "./src/locale.ts"
     }
   }
 }
