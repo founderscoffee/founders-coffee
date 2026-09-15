@@ -4,7 +4,7 @@
 
 | Field        | Value                                                                              |
 | ------------ | ---------------------------------------------------------------------------------- |
-| Version      | 2.5                                                                                |
+| Version      | 2.7                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
 | Last updated | 2026-09-15                                                                         |
@@ -143,15 +143,22 @@ domain owns feature-specific input contracts. Dynamic market/geography codes, pr
 routes, HTTP values, i18n keys, and UI/protocol/infrastructure-only state remain scoped to their
 owning module.
 
-| ID      | Status   | Scope                                                                                                                                                                | Remaining evidence or work                                                                                                                   |
-| ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| ENUM-01 | Complete | Establish canonical `as const` arrays, inferred unions, and Zod schemas in `libs/core`                                                                               | Targeted typecheck, lint, and core tests pass; Nx-wide verification is blocked by the existing i18n source-import graph error                |
-| ENUM-02 | Complete | Replace duplicate locale, lifecycle, notification, push, venue-kind, profile-asset, operations, and DB contracts with canonical imports and compatibility re-exports | Targeted typecheck, lint, and domain/DB/server/UI tests pass; Nx-wide verification is blocked by the existing i18n source-import graph error |
-| ENUM-03 | Complete | Finish domain-owned contracts for notification categories, account providers, and venue categories with reusable schemas and boundary imports                        | Targeted domain/server typecheck, lint, and tests pass; provider IDs, routes/protocol values, and UI-only states remain intentionally scoped |
-| ENUM-04 | Complete | Establish core-owned contracts for transient RSVP, waitlist, attendance, closeout, feedback, prompt, notification-dispatch, and operations-error outcomes            | Core outcome schemas and guards are covered by Vitest; stored values and runtime behavior are unchanged                                      |
-| ENUM-05 | Complete | Adopt the ENUM-04 contracts in D1 repositories, server functions, and notification jobs, keeping compatibility exports and documenting intentional local unions      | DB, server-fns, and worker-jobs typechecks and tests pass; UI/protocol/infrastructure state and dynamic identifiers remain local by design   |
+| ID      | Status   | Scope                                                                                                                                                                | Remaining evidence or work                                                                                                                             |
+| ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ENUM-01 | Complete | Establish canonical `as const` arrays, inferred unions, and Zod schemas in `libs/core`                                                                               | Targeted and Nx-wide typecheck/lint/build verification passes; stored values and runtime behavior are unchanged                                        |
+| ENUM-02 | Complete | Replace duplicate locale, lifecycle, notification, push, venue-kind, profile-asset, operations, and DB contracts with canonical imports and compatibility re-exports | Targeted and Nx-wide typecheck/lint/build verification passes; stored values and runtime behavior are unchanged                                        |
+| ENUM-03 | Complete | Finish domain-owned contracts for notification categories, account providers, and venue categories with reusable schemas and boundary imports                        | Targeted domain/server typecheck, lint, and tests pass; provider IDs, routes/protocol values, and UI-only states remain intentionally scoped           |
+| ENUM-04 | Complete | Establish core-owned contracts for transient RSVP, waitlist, attendance, closeout, feedback, prompt, notification-dispatch, and operations-error outcomes            | Core outcome schemas and guards are covered by Vitest; stored values and runtime behavior are unchanged                                                |
+| ENUM-05 | Complete | Adopt the ENUM-04 contracts in D1 repositories, server functions, and notification jobs, keeping compatibility exports and documenting intentional local unions      | DB, server-fns, and worker-jobs typechecks and tests pass; UI/protocol/infrastructure state and dynamic identifiers remain local by design             |
+| ENUM-06 | Planned  | Remove the remaining duplicated profile-photo variant and E2E locale declarations where a shared contract is appropriate                                             | Reuse the domain photo-variant type in the UI URL helper and the core locale contract in E2E support; preserve UI/protocol/infrastructure-local unions |
 
-### Immediate sequence
+### Tooling and documentation closure
+
+| ID      | Status   | Scope                                                                                                         | Evidence                                                                                                                                                                       |
+| ------- | -------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| TOOL-01 | Complete | Keep Nx project-graph evaluation independent of generated i18n output while retaining NodeNext source imports | `apps/ui` config-time sitemap metadata imports the canonical leaf locale contract; clean graph, Nx-wide typecheck/lint, public build, i18n/UI tests, and server-fns tests pass |
+
+### Remaining work order
 
 Audit-remediation tickets are tracked in the
 [Audit Remediation Plan](./audit-remediation-plan.md). AR-02 through AR-07 and AR-09 through AR-13
@@ -162,39 +169,43 @@ Access-gated origin still needs an authenticated measurement. The later [deploym
 records CSP enforcement, Queue consumers, the EC release and the Round Table redesign. This is
 documentary evidence, not a new live CI or infrastructure certification.
 
-1. **Plan 1 — EC-10 final handoff:** the
-   [Event Creation Remediation Plan](./event-creation-remediation-plan.md) records EC-01 through
-   EC-10 complete, 18/18 staging cases on 2026-09-03, three persisted events and cleanup. Production
-   v0.1.0 and DNS/WAF verification followed on 2026-09-04. The authorized production creation smoke
-   was performed and verified on 2026-09-10, so the EC handoff is signed off. Do not repeat the
-   superseded staging mailbox or production DNS blockers.
-2. **Provider readiness for CO/PF:** verify current deployed secrets and real channel delivery
-   when the relevant ticket begins. Existing provider interfaces or bound consumers do not prove
-   delivery. EC-08's staging request/metric correlation is recorded; that does not certify all
-   notification providers or the future account-management flows.
-3. **CSP regression:** preserve the enforced policy declared in current staging/production UI
-   configuration and recorded in the v0.2.0/v0.3.0 release evidence. New profile/photo behavior must
-   pass the same policy; no return to report-only mode is authorized by this plan.
-4. **Plan 2 — CO-01 immediately after EC-10:** begin the
-   [Community Operations and Admin Implementation Plan](./community-operations-implementation-plan.md)
-   with the operating contract and baseline.
-5. **CO-02 / P0-018 / P1-009:** deployed to staging and production. Per-event Durable Object alarms
-   feed the environment-specific Notifications Queue, the cron is a fifteen-minute recovery sweep,
-   and member preferences are enforced at send time. Staging proves push-first with email fallback;
-   production still needs the post-ND-07 release promotion. See the dated deployment snapshot.
-6. **CO-03 through CO-11 / P1-013 / P1-017 / P1-019 / P1-023:** deliver closeout, attendance,
-   feedback, repeat-host support, the secure correlated-identity admin surface, trust/moderation,
-   weekly reviews, metrics, a real rollback flag, and three-checkpoint staged operations
-   verification in the documented order.
-7. **P0-007/P1-004/P0-019:** complete remaining market configuration and dated deployment evidence
-   where it blocks the community operations flow. P1-004 now owns the
-   [Profile and Account Management Plan](./profile-account-implementation-plan.md), PF-01 through
-   PF-12: remove profile residence and deliver member profile/account controls. This lane preserves
-   the EC → CO priority above; notification, retention and moderation integration depend on the
-   named CO tickets rather than duplicating them. No home-code renaming project remains required.
-8. Complete only the moderation, trust, PWA, accessibility, performance, and operational work
-   required to run the community reliably. Do not pull future sponsorship, challenge, talent,
-   payment, or expansion work into this sequence.
+The following order supersedes older sequencing notes in this document and its supporting plans.
+Each step is a release or verification dependency; completed work is retained as evidence and is
+not repeated.
+
+1. **Unblock release foundations:** resolve `P0-007` market configuration, `P0-001` Nx boundary
+   coverage, `P0-004/P1-017` production Access/operator/CSRF verification, `P0-008/P1-003`
+   production authentication checks, `P0-016` Email Sending activation and templates, and
+   `P0-019` provider/binding/secret verification.
+2. **Close security and CI gaps:** replace the removed `P0-020` dependency advisory gate and record
+   migration rollback/token-rotation evidence; then complete `P1-008/P1-018` RSVP Turnstile,
+   anonymous map protection, and remaining mutation permissions.
+3. **Promote notification delivery:** ship and verify `P0-018/P1-009/ND-08` so production matches
+   staging's push-primary/email-fallback policy, including real provider delivery evidence.
+4. **Verify live event coordination:** complete `P1-010` Durable Object expiry, heartbeat cleanup,
+   and cancellation behavior.
+5. **Build operational administration:** deliver `CO-08/CO-09` for event operations, corrections,
+   moderation, host trust, and audit.
+6. **Deliver community-health evidence:** implement `CO-10/P1-019` metrics repositories, dashboards,
+   alerts, retention snapshots, denominators, and as-of evidence.
+7. **Run the operational launch rehearsal:** complete `CO-11/P1-021/P1-023` across all checkpoints,
+   locales, directions, roles, mobile/desktop surfaces, and recovery paths.
+8. **Finish PWA verification:** complete `P1-020` offline behavior, prerender verification, Lighthouse
+   budgets, and PWA Builder checks.
+9. **Complete profile/account work:** finish `PF-04c`, then `PF-09` export, `PF-10` deletion and
+   retention, `PF-11a/PF-11b` CO integration and localized UX, and `PF-12` release evidence.
+10. **Complete search-engine operations:** deliver `SEO-12` Search Console/Bing submission, sitemap
+    processing, representative URL indexing, and 30-day monitoring; finish full prerender evidence.
+11. **Complete notification controls:** deliver `ND-06` provider-aware, responsive per-category
+    controls and push-permission UX; retain `ND-08` production evidence as the release gate from step 3.
+12. **Finish enum cleanup:** execute planned `ENUM-06` for the remaining profile-photo and E2E locale
+    declarations; keep admin steps, live protocol states, filters, error-page kinds, logging levels,
+    and infrastructure actions local by design.
+13. **Close documentation:** `TOOL-01` resolved the Nx-wide i18n source-import graph error and
+    Nx-wide lint is green; reconcile remaining stale status text in the SEO and notification plans.
+
+Future sponsorship, challenges, talent, payments, semantic search, browser-generated OG images, and
+MA/AE expansion remain outside this order behind the community validation gate.
 
 ### P1 exit criteria
 

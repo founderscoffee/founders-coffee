@@ -1,4 +1,4 @@
-import { LOCALES } from '@founders-coffee/i18n';
+import { LOCALES } from '@founders-coffee/core/locale';
 
 export const SITEMAP_LOCALES = LOCALES;
 
