@@ -1,4 +1,6 @@
-export type PhotoVariant = 'md' | 'sm';
+import type { profile } from '@founders-coffee/domain';
+
+export type PhotoVariant = profile.ProfilePhotoVariant;
 
 /**
  * Where to fetch one variant of a member's photo.

@@ -4,7 +4,7 @@
 
 | Field        | Value                                                                              |
 | ------------ | ---------------------------------------------------------------------------------- |
-| Version      | 2.7                                                                                |
+| Version      | 2.8                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
 | Last updated | 2026-09-15                                                                         |
@@ -143,14 +143,14 @@ domain owns feature-specific input contracts. Dynamic market/geography codes, pr
 routes, HTTP values, i18n keys, and UI/protocol/infrastructure-only state remain scoped to their
 owning module.
 
-| ID      | Status   | Scope                                                                                                                                                                | Remaining evidence or work                                                                                                                             |
-| ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ENUM-01 | Complete | Establish canonical `as const` arrays, inferred unions, and Zod schemas in `libs/core`                                                                               | Targeted and Nx-wide typecheck/lint/build verification passes; stored values and runtime behavior are unchanged                                        |
-| ENUM-02 | Complete | Replace duplicate locale, lifecycle, notification, push, venue-kind, profile-asset, operations, and DB contracts with canonical imports and compatibility re-exports | Targeted and Nx-wide typecheck/lint/build verification passes; stored values and runtime behavior are unchanged                                        |
-| ENUM-03 | Complete | Finish domain-owned contracts for notification categories, account providers, and venue categories with reusable schemas and boundary imports                        | Targeted domain/server typecheck, lint, and tests pass; provider IDs, routes/protocol values, and UI-only states remain intentionally scoped           |
-| ENUM-04 | Complete | Establish core-owned contracts for transient RSVP, waitlist, attendance, closeout, feedback, prompt, notification-dispatch, and operations-error outcomes            | Core outcome schemas and guards are covered by Vitest; stored values and runtime behavior are unchanged                                                |
-| ENUM-05 | Complete | Adopt the ENUM-04 contracts in D1 repositories, server functions, and notification jobs, keeping compatibility exports and documenting intentional local unions      | DB, server-fns, and worker-jobs typechecks and tests pass; UI/protocol/infrastructure state and dynamic identifiers remain local by design             |
-| ENUM-06 | Planned  | Remove the remaining duplicated profile-photo variant and E2E locale declarations where a shared contract is appropriate                                             | Reuse the domain photo-variant type in the UI URL helper and the core locale contract in E2E support; preserve UI/protocol/infrastructure-local unions |
+| ID      | Status   | Scope                                                                                                                                                                | Remaining evidence or work                                                                                                                                     |
+| ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ENUM-01 | Complete | Establish canonical `as const` arrays, inferred unions, and Zod schemas in `libs/core`                                                                               | Targeted and Nx-wide typecheck/lint/build verification passes; stored values and runtime behavior are unchanged                                                |
+| ENUM-02 | Complete | Replace duplicate locale, lifecycle, notification, push, venue-kind, profile-asset, operations, and DB contracts with canonical imports and compatibility re-exports | Targeted and Nx-wide typecheck/lint/build verification passes; stored values and runtime behavior are unchanged                                                |
+| ENUM-03 | Complete | Finish domain-owned contracts for notification categories, account providers, and venue categories with reusable schemas and boundary imports                        | Targeted domain/server typecheck, lint, and tests pass; provider IDs, routes/protocol values, and UI-only states remain intentionally scoped                   |
+| ENUM-04 | Complete | Establish core-owned contracts for transient RSVP, waitlist, attendance, closeout, feedback, prompt, notification-dispatch, and operations-error outcomes            | Core outcome schemas and guards are covered by Vitest; stored values and runtime behavior are unchanged                                                        |
+| ENUM-05 | Complete | Adopt the ENUM-04 contracts in D1 repositories, server functions, and notification jobs, keeping compatibility exports and documenting intentional local unions      | DB, server-fns, and worker-jobs typechecks and tests pass; UI/protocol/infrastructure state and dynamic identifiers remain local by design                     |
+| ENUM-06 | Complete | Remove the remaining duplicated profile-photo variant and test-harness locale declarations where a shared contract is appropriate                                    | UI photo URLs reuse the domain variant; E2E and UI integration suites reuse the core locale contract; test matrices and SEO tooling remain intentionally local |
 
 ### Tooling and documentation closure
 
@@ -198,10 +198,7 @@ not repeated.
     processing, representative URL indexing, and 30-day monitoring; finish full prerender evidence.
 11. **Complete notification controls:** deliver `ND-06` provider-aware, responsive per-category
     controls and push-permission UX; retain `ND-08` production evidence as the release gate from step 3.
-12. **Finish enum cleanup:** execute planned `ENUM-06` for the remaining profile-photo and E2E locale
-    declarations; keep admin steps, live protocol states, filters, error-page kinds, logging levels,
-    and infrastructure actions local by design.
-13. **Close documentation:** `TOOL-01` resolved the Nx-wide i18n source-import graph error and
+12. **Close documentation:** `TOOL-01` resolved the Nx-wide i18n source-import graph error and
     Nx-wide lint is green; reconcile remaining stale status text in the SEO and notification plans.
 
 Future sponsorship, challenges, talent, payments, semantic search, browser-generated OG images, and

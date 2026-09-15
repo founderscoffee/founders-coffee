@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 
-export const E2E_LOCALES = ['ar', 'fr', 'en'] as const;
+import type { Locale } from '@founders-coffee/core/locale';
 
-export type E2eLocale = (typeof E2E_LOCALES)[number];
+export type E2eLocale = Locale;
 
 const catalogue = (locale: E2eLocale): Record<string, string> =>
   JSON.parse(

@@ -1,4 +1,5 @@
 import { createDb, events, seed, user } from '@founders-coffee/db';
+import { LOCALES } from '@founders-coffee/core/locale';
 import {
   createExecutionContext,
   env,
@@ -9,7 +10,6 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import worker from '../src/server';
 
 const PRODUCTION_ORIGIN = 'https://founders.coffee';
-const LOCALES = ['ar', 'fr', 'en'] as const;
 const productionEnv = {
   ...env,
   APP_ENVIRONMENT: 'production',
