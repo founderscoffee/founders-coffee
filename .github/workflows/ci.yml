@@ -1,16 +1,14 @@
 name: CI
 
-# Runs on pull requests and integration pushes. Deploy starts from a successful push run, so
-# the full verification is performed once per commit rather than once in CI and again in Deploy.
-# Needs no Cloudflare credentials — integration tests use Miniflare (real local bindings), not the
-# live account.
+# Runs on pull requests and reusable verification calls from Deploy. Pushes are owned by the
+# deployment workflow so verification runs once as the deployment gate. Needs no Cloudflare
+# credentials — integration tests use Miniflare (real local bindings), not the live account.
 on:
   pull_request:
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
-  push:
-    branches: [develop, main]
+  workflow_call:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}

@@ -55,17 +55,17 @@ verify their current existence and settings in GitHub.
 
 ### `.github/workflows/ci.yml`
 
-Runs on pull requests (except documentation-only changes) and on pushes to `develop` and `main`.
-The push run is the canonical verification for a commit; `deploy.yml` starts only after that run
-finishes successfully. This avoids running the same full graph once as a deploy gate and again as
-a push check. Needs **no** Cloudflare credentials — the integration tests run against Miniflare
-with real local D1/Queues/Email bindings (AGENTS.md §12), not the live account.
+Runs on pull requests (except documentation-only changes) and as a reusable `workflow_call` from
+`deploy.yml`. Pushes to `develop` and `main` are owned by `deploy.yml`, which calls this workflow as
+the required verification gate before deployment. Needs **no** Cloudflare credentials — the
+integration tests run against Miniflare with real local D1/Queues/Email bindings (AGENTS.md §12),
+not the live account.
 
-The `quality` and `build` jobs run in parallel. On a `develop` → `main` release pull request, the
-pull-request jobs are skipped because the push to `develop` already verified the exact commit; the
-merge then produces one new `main` push run. Feature pull requests into `develop` still run the
-pull-request jobs normally. Documentation-only pull requests are filtered out because they cannot
-change application or deployment artifacts; pushes to the protected branches still run the full
+The `quality` and `build` jobs run in parallel. A `develop` → `main` release pull request remains
+skipped by the branch guard because the exact commit was already verified on its `develop` push; the
+subsequent deployment runs the reusable checks for the merge commit. Feature pull requests into
+`develop` run the pull-request jobs normally. Documentation-only pull requests are filtered out
+because they cannot change application or deployment artifacts; push deployments still run the full
 check.
 
 1. `npm ci --no-audit --no-fund` — skipped entirely when the `node_modules` cache hits.
@@ -114,12 +114,10 @@ repository settings, not here.
 
 ### `.github/workflows/deploy.yml`
 
-1. **resolve** — listens for completed CI runs and, for a successful push on `develop` or `main`,
-   picks the target environment from the CI run's branch. The branch check is kept in the job guard
-   rather than the `workflow_run` trigger because GitHub can silently omit non-default-branch
-   workflow-run events when that trigger has a `branches` filter. A manual run may choose its
+1. **resolve** — picks the target environment from the pushed branch; a manual run may choose its
    environment and production is still refused from a non-`main` ref.
-2. **deploy** — starts only after the successful CI push, checks out that run's exact commit, and is
+2. **verify** — calls the reusable CI workflow before any deployment step.
+3. **deploy** — starts only after verification succeeds, checks out the exact pushed commit, and is
    bound to the matching GitHub Environment (so its scoped secrets apply). It applies D1
    migrations, deploys the four Workers, then runs the SEO route smoke against the deployed origin.
    Staging probes use the environment's `workers.dev` hostname and assert canonical URLs against
@@ -138,7 +136,7 @@ repository settings, not here.
    noindex/cache headers, robots, canonical URLs, and same-origin Early Hint links. Dynamic city/event
    coverage is reported when staging has public rows; an empty staging database is a valid state and
    does not fabricate fixtures. Playwright E2E remains excluded from CI by the current project decision.
-3. **release** — only for a successful CI push to `main`. Tags that exact deployed commit and
+4. **release** — only for a successful CI push to `main`. Tags that exact deployed commit and
    publishes a GitHub release. Manual redeploys never create a second tag.
 
 `concurrency` is set with `cancel-in-progress: false`: cancelling between the migration step and the
