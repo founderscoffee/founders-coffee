@@ -6,7 +6,7 @@ project decision, Playwright E2E remains a local/staging release gate and is not
 
 Implements **P0-020**. Two workflows, two Cloudflare environments, four Workers per environment.
 
-**Source configuration last checked: 2026-09-14.** The workflow files match the behavior below.
+**Source configuration last checked: 2026-09-15.** The workflow files match the behavior below.
 The latest GEO push ([run 34777686347](https://github.com/AmineYagoub/founders-coffee/actions/runs/34777686347))
 reached `format:check` and failed only because `docs/implementation-plan.md` had drifted from
 Prettier; this documentation update repairs that drift. Its migration and deploy jobs were skipped.
@@ -114,8 +114,11 @@ repository settings, not here.
 
 ### `.github/workflows/deploy.yml`
 
-1. **resolve** — for a successful CI push, picks the target environment from the CI run's branch;
-   a manual run may choose its environment and production is still refused from a non-`main` ref.
+1. **resolve** — listens for completed CI runs and, for a successful push on `develop` or `main`,
+   picks the target environment from the CI run's branch. The branch check is kept in the job guard
+   rather than the `workflow_run` trigger because GitHub can silently omit non-default-branch
+   workflow-run events when that trigger has a `branches` filter. A manual run may choose its
+   environment and production is still refused from a non-`main` ref.
 2. **deploy** — starts only after the successful CI push, checks out that run's exact commit, and is
    bound to the matching GitHub Environment (so its scoped secrets apply). It applies D1
    migrations, deploys the four Workers, then runs the SEO route smoke against the deployed origin.

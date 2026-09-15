@@ -8,7 +8,6 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    branches: [develop, main]
   workflow_dispatch:
     inputs:
       environment:
@@ -33,7 +32,16 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.pick.outputs.environment }}
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        (
+          github.event.workflow_run.head_branch == 'develop' ||
+          github.event.workflow_run.head_branch == 'main'
+        )
+      )
     steps:
       # A manual run may name its environment; a push takes it from the branch. Production
       # may only ever be deployed from `main`, so neither a manual run against a feature
