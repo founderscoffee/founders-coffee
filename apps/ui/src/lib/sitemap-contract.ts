@@ -1,4 +1,6 @@
-export const SITEMAP_LOCALES = ['ar', 'fr', 'en'] as const;
+import { LOCALES } from '@founders-coffee/i18n';
+
+export const SITEMAP_LOCALES = LOCALES;
 
 export const SITEMAP_COMPANY_PATHS = [
   'about',

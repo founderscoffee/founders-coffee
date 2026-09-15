@@ -1,12 +1,14 @@
+import type { FeedbackRating, Locale } from '@founders-coffee/core';
+
 import type { FeedbackView } from './api';
 
-export type FeedbackRating = 'valuable' | 'okay' | 'not_valuable';
+export type { FeedbackRating };
 
 export interface FeedbackDraft {
   readonly rating: FeedbackRating | null;
   readonly wouldReturn: boolean | null;
   readonly comment: string;
-  readonly commentLanguage: 'ar' | 'fr' | 'en' | null;
+  readonly commentLanguage: Locale | null;
 }
 
 export const draftFromFeedback = (view: FeedbackView): FeedbackDraft => ({

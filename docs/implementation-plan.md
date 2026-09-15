@@ -7,7 +7,7 @@
 | Version      | 2.5                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
-| Last updated | 2026-09-14                                                                         |
+| Last updated | 2026-09-15                                                                         |
 | Derived from | [SRS v1.7](./srs.md) and [community-first release strategy](./release-strategy.md) |
 
 This document is the current sequencing and status source. Status is evidence-based:
@@ -133,6 +133,19 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
+
+### Enum contract consolidation
+
+The enum audit identified repeated finite-value declarations across the core, database, domain,
+server-function, and UI layers. These tickets consolidate active contracts without changing stored
+values or runtime behavior. Dynamic market/geography codes, provider identifiers, routes, HTTP
+values, i18n keys, and UI-only state remain scoped to their owning module.
+
+| ID      | Status   | Scope                                                                                                                                                                | Remaining evidence or work                                                                                                                   |
+| ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| ENUM-01 | Complete | Establish canonical `as const` arrays, inferred unions, and Zod schemas in `libs/core`                                                                               | Targeted typecheck, lint, and core tests pass; Nx-wide verification is blocked by the existing i18n source-import graph error                |
+| ENUM-02 | Complete | Replace duplicate locale, lifecycle, notification, push, venue-kind, profile-asset, operations, and DB contracts with canonical imports and compatibility re-exports | Targeted typecheck, lint, and domain/DB/server/UI tests pass; Nx-wide verification is blocked by the existing i18n source-import graph error |
+| ENUM-03 | Complete | Finish domain-owned contracts for notification categories, account providers, and venue categories with reusable schemas and boundary imports                        | Targeted domain/server typecheck, lint, and tests pass; provider IDs, routes/protocol values, and UI-only states remain intentionally scoped |
 
 ### Immediate sequence
 

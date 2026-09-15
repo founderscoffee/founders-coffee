@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { attendanceOutcomeSchema } from '@founders-coffee/core';
 import { operations } from '@founders-coffee/domain';
 
 export const closeoutViewRequestSchema = z.strictObject({
@@ -16,7 +17,7 @@ export const submitCloseoutRequestSchema = z.strictObject({
     .array(
       z.strictObject({
         userId: z.string().min(1),
-        outcome: z.enum(['attended', 'no_show']),
+        outcome: attendanceOutcomeSchema,
       }),
     )
     .max(200)

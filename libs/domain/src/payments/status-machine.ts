@@ -1,6 +1,12 @@
-import { AppError, err, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  ok,
+  type OrderStatus,
+  type Result,
+} from '@founders-coffee/core';
 
-export type OrderStatus = 'pending' | 'paid' | 'cancelled' | 'refunded';
+export type { OrderStatus } from '@founders-coffee/core';
 
 const TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   pending: ['paid', 'cancelled'],

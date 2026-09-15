@@ -52,16 +52,9 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
-export type NotificationTemplateKey =
-  | 'rsvp_confirmation'
-  | 'reminder_72h'
-  | 'reminder_24h'
-  | 'event_cancelled'
-  | 'rsvp_received'
-  | 'rsvp_cancelled'
-  | 'closeout_prompt'
-  | 'event_did_not_happen'
-  | 'feedback_invitation';
+import type { NotificationTemplateKey } from '@founders-coffee/core';
+
+export type { NotificationTemplateKey } from '@founders-coffee/core';
 
 export interface TemplateValues {
   readonly title: string;

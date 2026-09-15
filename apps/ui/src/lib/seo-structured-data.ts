@@ -5,12 +5,14 @@ export type StructuredListItem = {
   readonly url: string;
 };
 
+import type { EventStatus } from '@founders-coffee/core';
+
 export type StructuredEventData = {
   readonly title: string;
   readonly description: string;
   readonly startsAt: Date;
   readonly endsAt: Date | null;
-  readonly status: 'published' | 'cancelled';
+  readonly status: EventStatus;
   readonly venue: string;
   readonly cityName: string;
   readonly venueAddress: string | null;

@@ -9,6 +9,7 @@ export const ACCOUNT_PROVIDERS = [
   'phone',
 ] as const;
 
+export const accountProviderSchema = z.enum(ACCOUNT_PROVIDERS);
 export type AccountProvider = (typeof ACCOUNT_PROVIDERS)[number];
 
 export const accountSummarySchema = z.strictObject({
@@ -21,7 +22,7 @@ export const accountSummarySchema = z.strictObject({
     masked: z.string().nullable(),
     verified: z.boolean(),
   }),
-  providers: z.array(z.enum(ACCOUNT_PROVIDERS)),
+  providers: z.array(accountProviderSchema),
   sessionCount: z.number().int().nonnegative(),
 });
 

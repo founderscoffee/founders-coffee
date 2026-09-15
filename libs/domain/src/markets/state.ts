@@ -1,6 +1,12 @@
-import { AppError, err, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  ok,
+  type MarketState,
+  type Result,
+} from '@founders-coffee/core';
 
-export type MarketState = 'dark' | 'open' | 'active';
+export type { MarketState } from '@founders-coffee/core';
 
 const TRANSITIONS: Record<MarketState, readonly MarketState[]> = {
   dark: ['open'],

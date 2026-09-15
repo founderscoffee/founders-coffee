@@ -1,24 +1,29 @@
+import { z } from 'zod';
+
+import type { NotificationFallbackChannel } from '@founders-coffee/core';
+
 import {
   maskToChannels,
   type NotificationChannel,
 } from '../profile/preferences.js';
 
-export type NotificationCategory =
-  | 'eventUpdatesChannels'
-  | 'eventRemindersChannels'
-  | 'hostUpdatesChannels'
-  | 'followUpPromptsChannels';
+export const NOTIFICATION_CATEGORIES = [
+  'eventUpdatesChannels',
+  'eventRemindersChannels',
+  'hostUpdatesChannels',
+  'followUpPromptsChannels',
+] as const;
 
-export interface NotificationCategoryMasks {
-  readonly eventUpdatesChannels: number;
-  readonly eventRemindersChannels: number;
-  readonly hostUpdatesChannels: number;
-  readonly followUpPromptsChannels: number;
-}
+export const notificationCategorySchema = z.enum(NOTIFICATION_CATEGORIES);
+export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number];
+
+export type NotificationCategoryMasks = Readonly<
+  Record<NotificationCategory, number>
+>;
 
 export interface NotificationChannelSelection {
   readonly primary: NotificationChannel;
-  readonly fallback: 'email' | null;
+  readonly fallback: NotificationFallbackChannel | null;
 }
 
 const allCategoryChannels = (masks: NotificationCategoryMasks): number =>

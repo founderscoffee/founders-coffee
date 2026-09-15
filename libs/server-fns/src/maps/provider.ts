@@ -1,4 +1,4 @@
-import type { Result } from '@founders-coffee/core';
+import type { Result, VenueKind } from '@founders-coffee/core';
 import type { geo } from '@founders-coffee/domain';
 
 import type { MapLocale } from './types.js';
@@ -51,7 +51,7 @@ export interface HostMapContext {
   readonly bounds: readonly [number, number, number, number];
 }
 
-export type VenueKind = 'poi' | 'address';
+export type { VenueKind } from '@founders-coffee/core';
 
 export interface VenueAdmin {
   readonly isoRegionCode?: string;

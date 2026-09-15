@@ -1,4 +1,5 @@
 import { operations } from '@founders-coffee/domain';
+import type { AttendanceOutcome, CloseoutOutcome } from '@founders-coffee/core';
 
 import type { CloseoutView } from './api';
 
@@ -16,10 +17,10 @@ export const FRICTIONS: readonly Friction[] = [
   'other_structured',
 ];
 
-export type Mark = 'attended' | 'no_show';
+export type Mark = AttendanceOutcome;
 
 export interface CloseoutDraft {
-  readonly outcome: 'held' | 'did_not_happen' | null;
+  readonly outcome: CloseoutOutcome | null;
   readonly marks: Readonly<Record<string, Mark>>;
   readonly walkInCount: number;
   readonly wouldHostAgain: boolean | null;

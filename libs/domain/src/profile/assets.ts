@@ -1,22 +1,20 @@
 import { z } from 'zod';
 
-import { idSchema } from '@founders-coffee/core';
+import {
+  idSchema,
+  profileAssetStatusSchema,
+  profilePhotoMimeSchema,
+  type ProfilePhotoMimeType,
+} from '@founders-coffee/core';
 
 import { profileIdentitySchema } from './schemas.js';
 
 export const PROFILE_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 export const PROFILE_PHOTO_MAX_PIXELS = 16_000_000;
-export const profilePhotoMimeSchema = z.enum([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-]);
-export const profileAssetStatusSchema = z.enum([
-  'pending',
-  'processing',
-  'ready',
-  'deleting',
-]);
+export type {
+  ProfileAssetStatus,
+  ProfilePhotoMimeType,
+} from '@founders-coffee/core';
 export const profilePhotoMetadataSchema = z
   .strictObject({
     mimeType: profilePhotoMimeSchema,
@@ -76,7 +74,7 @@ export const profilePhotoObjectKey = (
  */
 export const sniffProfilePhotoMime = (
   bytes: Uint8Array,
-): 'image/jpeg' | 'image/png' | 'image/webp' | null => {
+): ProfilePhotoMimeType | null => {
   const at = (index: number) => bytes[index];
   if (at(0) === 0xff && at(1) === 0xd8 && at(2) === 0xff) return 'image/jpeg';
   if (

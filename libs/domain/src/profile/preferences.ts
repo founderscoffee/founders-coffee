@@ -1,15 +1,20 @@
 import { z } from 'zod';
 
-import { localeSchema } from '@founders-coffee/core';
+import {
+  accountStateSchema as coreAccountStateSchema,
+  localeSchema,
+  NOTIFICATION_PREFERENCE_CHANNELS,
+  notificationPreferenceChannelSchema,
+} from '@founders-coffee/core';
 
 import { profileRevisionSchema } from './schemas.js';
 
-export const accountStateSchema = z.enum(['active', 'closing', 'deleted']);
-export type AccountState = z.infer<typeof accountStateSchema>;
+export const accountStateSchema = coreAccountStateSchema;
+export type { AccountState } from '@founders-coffee/core';
 
-export const NOTIFICATION_CHANNELS = ['push', 'email'] as const;
+export const NOTIFICATION_CHANNELS = NOTIFICATION_PREFERENCE_CHANNELS;
 export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
-export const notificationChannelSchema = z.enum(NOTIFICATION_CHANNELS);
+export const notificationChannelSchema = notificationPreferenceChannelSchema;
 export const notificationChannelsSchema = z
   .array(notificationChannelSchema)
   .max(NOTIFICATION_CHANNELS.length)

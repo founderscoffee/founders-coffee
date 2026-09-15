@@ -9,14 +9,13 @@ import {
   feedback_return_no,
   feedback_return_yes,
   feedback_valuable,
+  LOCALES,
   type Locale,
 } from '@founders-coffee/i18n';
 
 import type { FeedbackDraft, FeedbackRating } from '../feedback-draft';
 
 const ratings: readonly FeedbackRating[] = ['valuable', 'okay', 'not_valuable'];
-const locales = ['ar', 'fr', 'en'] as const;
-
 export const FeedbackForm = ({
   locale,
   draft,
@@ -106,7 +105,7 @@ export const FeedbackForm = ({
           <option value="" disabled>
             {locale.toUpperCase()}
           </option>
-          {locales.map((item) => (
+          {LOCALES.map((item) => (
             <option key={item} value={item}>
               {item.toUpperCase()}
             </option>

@@ -1,5 +1,13 @@
 import { and, desc, eq, gte, lte } from 'drizzle-orm';
 
+import type {
+  HostTrustStatus,
+  MetricKey,
+  OperationReason,
+  OperationsScope,
+  ReviewBottleneck,
+} from '@founders-coffee/core';
+
 import { batch } from './atomic.js';
 import type { Db } from './db.js';
 import { auditStatement } from './operations-audit.js';
@@ -30,8 +38,8 @@ export const setHostTrust = async (
   input: {
     marketCode: string;
     userId: string;
-    status: 'unreviewed' | 'verified' | 'restricted';
-    reason: string | null;
+    status: HostTrustStatus;
+    reason: OperationReason | null;
     actorId: string;
     accessSubject?: string | null;
     rowId: string;
@@ -114,7 +122,7 @@ export const listHostsByTrust = (
   db: Db,
   opts: {
     marketCode: string;
-    status: 'unreviewed' | 'verified' | 'restricted';
+    status: HostTrustStatus;
     limit: number;
   },
 ): Promise<HostTrustRow[]> =>
@@ -139,7 +147,7 @@ export const recordReview = async (
     cityCode: string | null;
     windowStart: Date;
     windowEnd: Date;
-    bottleneck: string;
+    bottleneck: ReviewBottleneck;
     intervention: string;
     ownerUserId: string;
     dueAt: Date;
@@ -229,10 +237,10 @@ export const upsertMetricSnapshot = async (
   db: Db,
   input: {
     marketCode: string;
-    scopeType: 'market' | 'state' | 'city';
+    scopeType: OperationsScope;
     scopeCode: string;
     periodMonth: string;
-    metricKey: string;
+    metricKey: MetricKey;
     numerator: number;
     denominator: number | null;
     rowId: string;
@@ -271,7 +279,7 @@ export const listMetricSnapshots = (
   db: Db,
   opts: {
     marketCode: string;
-    scopeType: 'market' | 'state' | 'city';
+    scopeType: OperationsScope;
     scopeCode: string;
     fromMonth: string;
     toMonth: string;

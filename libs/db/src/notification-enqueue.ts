@@ -1,9 +1,13 @@
 import { sql } from 'drizzle-orm';
 
+import type {
+  NotificationDeliveryChannel,
+  NotificationFallbackChannel,
+  NotificationTemplateKey,
+} from '@founders-coffee/core';
+
 import type { Db } from './db.js';
 import {
-  NOTIFICATION_CHANNELS,
-  NOTIFICATION_TEMPLATE_KEYS,
   scheduledNotifications,
   type NewScheduledNotification,
   type ScheduledNotification,
@@ -13,11 +17,11 @@ export type NotificationEnqueueOptions = {
   id: string;
   eventId: string;
   userId: string;
-  channel: (typeof NOTIFICATION_CHANNELS)[number];
-  templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
+  channel: NotificationDeliveryChannel;
+  templateKey: NotificationTemplateKey;
   payload: Record<string, unknown>;
   sendAt: Date;
-  fallbackChannel?: 'email' | 'sms';
+  fallbackChannel?: NotificationFallbackChannel;
 };
 
 /**

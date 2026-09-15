@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { venueKindSchema } from '@founders-coffee/core';
 import { events } from '@founders-coffee/domain';
 
 import { VENUE_SEARCH_MAX_LENGTH, type VenueSelection } from './types';
@@ -9,7 +10,7 @@ const DRAFT_MAX_AGE_MS = 24 * 60 * 60_000;
 
 const venueSelectionSchema = z.object({
   providerId: z.string().min(1),
-  kind: z.enum(['poi', 'address']),
+  kind: venueKindSchema,
   name: events.eventVenueNameSchema,
   address: events.eventVenueAddressSchema,
   latitude: z.number().finite().min(-90).max(90),

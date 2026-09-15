@@ -6,7 +6,7 @@ import {
   spokenLanguageSchema,
   displayNameSchema,
   introductionSchema,
-  PROFILE_INTERESTS,
+  profileInterestSchema,
   professionalLinkSchema,
   profileIdentitySchema,
   type OwnerProfile,
@@ -17,7 +17,7 @@ export const publicMemberProfileSchema = z.strictObject({
   displayName: displayNameSchema,
   photoAssetId: idSchema.nullable(),
   introduction: introductionSchema,
-  interests: z.array(z.enum(PROFILE_INTERESTS)).max(5),
+  interests: z.array(profileInterestSchema).max(5),
   spokenLanguages: z.array(spokenLanguageSchema).max(6),
   professionalLink: professionalLinkSchema,
 });

@@ -1,11 +1,17 @@
-import { AppError, id, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  id,
+  ok,
+  type Locale,
+  type Result,
+} from '@founders-coffee/core';
 import { insertWaitlistEntry, type Db } from '@founders-coffee/db';
 
 export type JoinWaitlistInput = {
   email: string;
   marketCode: string;
   cityCode: string;
-  locale: string;
+  locale: Locale;
 };
 
 export type JoinWaitlistResult = { status: 'joined' | 'already_waitlisted' };

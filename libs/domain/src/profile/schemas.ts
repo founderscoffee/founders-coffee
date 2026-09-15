@@ -4,6 +4,7 @@ import { idSchema } from '@founders-coffee/core';
 
 export const SPOKEN_LANGUAGES = ['ar', 'fr', 'en', 'es', 'de', 'ber'] as const;
 export const spokenLanguageSchema = z.enum(SPOKEN_LANGUAGES);
+export type SpokenLanguage = z.infer<typeof spokenLanguageSchema>;
 export const PROFILE_INTERESTS = [
   'bootstrapping',
   'product',
@@ -20,6 +21,8 @@ export const PROFILE_INTERESTS = [
   'experience_sharing',
   'learning_new_skills',
 ] as const;
+export const profileInterestSchema = z.enum(PROFILE_INTERESTS);
+export type ProfileInterest = z.infer<typeof profileInterestSchema>;
 
 export const profileIdentitySchema = z.string().trim().min(1).max(128);
 export const profileRevisionSchema = z
@@ -68,7 +71,7 @@ export const profileVisibilitySchema = z.strictObject({
 export const profileDetailsSchema = z.strictObject({
   introduction: introductionSchema.default(null),
   interests: z
-    .array(z.enum(PROFILE_INTERESTS))
+    .array(profileInterestSchema)
     .max(5)
     .refine(
       (values) => new Set(values).size === values.length,

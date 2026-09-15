@@ -1,7 +1,12 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 
-import { appValidator, id } from '@founders-coffee/core';
+import {
+  appValidator,
+  id,
+  pushPlatformSchema,
+  pushSurfaceSchema,
+} from '@founders-coffee/core';
 import {
   pushTokenState,
   registerPushToken,
@@ -15,8 +20,8 @@ import { getDb } from '../db.js';
 
 const registerPushSchema = z.object({
   token: z.string().min(1),
-  platform: z.enum(['ios', 'android', 'web']),
-  surface: z.enum(['pwa', 'rn']),
+  platform: pushPlatformSchema,
+  surface: pushSurfaceSchema,
   marketCode: z.string().min(2),
 });
 

@@ -1,6 +1,8 @@
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 
-const PUBLIC_LOCALES = new Set(['ar', 'fr', 'en']);
+import { LOCALES } from '@founders-coffee/i18n';
+
+const PUBLIC_LOCALES = new Set<string>(LOCALES);
 const ASSET_PATH_PREFIX = '/assets/';
 const NON_PUBLIC_SEGMENTS = new Set([
   'account',

@@ -12,6 +12,8 @@ import {
   getCityVenues,
   getMarketViewport,
   getCityViewportSnapshot,
+  VENUE_CATEGORIES,
+  venueCategorySchema,
   isSnapshotProviderId,
   matchSnapshotVenue,
 } from './index.js';
@@ -46,6 +48,13 @@ const SNAPSHOT_CITY_CODES: Record<string, Record<string, unknown>> = {
 };
 
 describe('venue snapshot matching', () => {
+  it('keeps venue categories unique and schema-backed', () => {
+    expect(new Set(VENUE_CATEGORIES).size).toBe(VENUE_CATEGORIES.length);
+    for (const category of VENUE_CATEGORIES)
+      expect(venueCategorySchema.parse(category)).toBe(category);
+    expect(venueCategorySchema.safeParse('bar').success).toBe(false);
+  });
+
   it('recognises only its own provider ids', () => {
     expect(isSnapshotProviderId('osm:node/1')).toBe(true);
     expect(isSnapshotProviderId('dXJuOm1ieHBvaTo')).toBe(false);

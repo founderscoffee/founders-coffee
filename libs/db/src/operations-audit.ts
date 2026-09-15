@@ -1,6 +1,12 @@
 import { and, desc, eq, gte, sql, type SQL } from 'drizzle-orm';
 import type { AnySQLiteColumn, SQLiteTable } from 'drizzle-orm/sqlite-core';
 
+import type {
+  AuditAction,
+  AuditTarget,
+  OperationReason,
+} from '@founders-coffee/core';
+
 import type { Db } from './db.js';
 import { operationsAudit, type OperationsAuditRow } from './schema.js';
 
@@ -8,10 +14,10 @@ export interface AuditEntry {
   readonly id: string;
   readonly actorUserId: string;
   readonly accessSubject: string | null;
-  readonly action: string;
-  readonly targetType: string;
+  readonly action: AuditAction;
+  readonly targetType: AuditTarget;
   readonly targetId: string;
-  readonly reasonCode: string | null;
+  readonly reasonCode: OperationReason | null;
   readonly metadata: Record<string, unknown>;
 }
 
@@ -47,10 +53,12 @@ export const auditStatement = (
         accessSubject: sql<string | null>`${entry.accessSubject}`.as(
           'access_subject',
         ),
-        action: sql<string>`${entry.action}`.as('action'),
-        targetType: sql<string>`${entry.targetType}`.as('target_type'),
+        action: sql<AuditAction>`${entry.action}`.as('action'),
+        targetType: sql<AuditTarget>`${entry.targetType}`.as('target_type'),
         targetId: sql<string>`${entry.targetId}`.as('target_id'),
-        reasonCode: sql<string | null>`${entry.reasonCode}`.as('reason_code'),
+        reasonCode: sql<OperationReason | null>`${entry.reasonCode}`.as(
+          'reason_code',
+        ),
         metadata: sql<string>`${JSON.stringify(entry.metadata)}`.as('metadata'),
         createdAt: sql<number>`unixepoch()`.as('created_at'),
       })
@@ -67,7 +75,7 @@ export const auditStatement = (
  */
 export const listAuditForTarget = (
   db: Db,
-  opts: { targetType: string; targetId: string; limit: number },
+  opts: { targetType: AuditTarget; targetId: string; limit: number },
 ): Promise<OperationsAuditRow[]> =>
   db
     .select()

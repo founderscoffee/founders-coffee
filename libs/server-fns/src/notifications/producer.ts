@@ -1,4 +1,8 @@
-import { id } from '@founders-coffee/core';
+import {
+  id,
+  type Locale,
+  type NotificationDeliveryChannel,
+} from '@founders-coffee/core';
 import { notifications } from '@founders-coffee/domain';
 import { formatDate } from '@founders-coffee/i18n';
 import {
@@ -33,7 +37,7 @@ export interface NotificationPayload {
   marketCode: string;
   startsAt: string;
   venue: string;
-  locale: string;
+  locale: Locale;
   rsvpCount?: number;
   capacity?: number;
 }
@@ -62,7 +66,7 @@ const dateFor = (
  * transaction path, and a malformed notification is a bug in this file, not a user error.
  */
 export const validPayload = (
-  channel: 'sms' | 'email' | 'push',
+  channel: NotificationDeliveryChannel,
   payload: Record<string, unknown>,
 ): Record<string, unknown> => {
   const parsed = notifications.parseNotificationPayload(channel, payload);

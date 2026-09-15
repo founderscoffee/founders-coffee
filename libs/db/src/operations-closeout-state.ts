@@ -1,5 +1,7 @@
 import { and, eq, inArray, isNotNull, lte, ne } from 'drizzle-orm';
 
+import type { CloseoutOutcome } from '@founders-coffee/core';
+
 import type { Db } from './db.js';
 import { eventCloseouts, events } from './schema.js';
 
@@ -7,7 +9,7 @@ export interface CloseoutState {
   readonly eventId: string;
   readonly marketCode: string;
   readonly closed: boolean;
-  readonly outcome: 'held' | 'did_not_happen' | null;
+  readonly outcome: CloseoutOutcome | null;
 }
 
 /**

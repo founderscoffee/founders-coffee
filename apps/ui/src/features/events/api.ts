@@ -27,6 +27,7 @@ import {
   type VenueCandidate,
 } from '@founders-coffee/server-fns';
 import type { Event } from '@founders-coffee/db';
+import type { Locale } from '@founders-coffee/core';
 
 export const eventsApi = {
   getUpcomingEvents,
@@ -66,7 +67,7 @@ export type CancelEventInput = { data: EventCancelRequestInput };
 export type HostMapLocationInput = {
   marketCode: string;
   cityCode?: string;
-  locale: 'ar' | 'fr' | 'en';
+  locale: Locale;
 };
 export type NearbyVenuesInput = {
   marketCode: string;

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-import { marketCodeSchema } from '@founders-coffee/core';
+import { localeSchema, marketCodeSchema } from '@founders-coffee/core';
 
-export const mapLocaleSchema = z.enum(['ar', 'fr', 'en']);
+export const mapLocaleSchema = localeSchema;
 
 const mapLocationSchema = z.object({
   marketCode: marketCodeSchema,

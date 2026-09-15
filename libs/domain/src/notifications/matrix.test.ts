@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   isNotificationChannelEnabled,
+  NOTIFICATION_CATEGORIES,
   notificationCategoryForTemplate,
   notificationMaskForTemplate,
+  notificationCategorySchema,
   selectNotificationChannels,
   type NotificationCategory,
 } from './matrix.js';
@@ -16,6 +18,14 @@ const masks = {
 } as const;
 
 describe('notification channel matrix', () => {
+  it('keeps category keys unique and schema-backed', () => {
+    expect(new Set(NOTIFICATION_CATEGORIES).size).toBe(
+      NOTIFICATION_CATEGORIES.length,
+    );
+    for (const category of NOTIFICATION_CATEGORIES)
+      expect(notificationCategorySchema.parse(category)).toBe(category);
+  });
+
   it.each([
     ['event_cancelled', 'eventUpdatesChannels'],
     ['event_did_not_happen', 'eventUpdatesChannels'],

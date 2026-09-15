@@ -1,26 +1,28 @@
 import { z } from 'zod';
 
 import {
-  ATTENDANCE_OUTCOMES,
-  AUDIT_ACTIONS,
-  AUDIT_TARGETS,
-  CLOSEOUT_OUTCOMES,
-  FEEDBACK_RATINGS,
-  HOST_FRICTIONS,
-  HOST_TRUST_STATUSES,
-  OPERATION_REASONS,
-  REVIEW_BOTTLENECKS,
-} from './enums.js';
+  attendanceOutcomeSchema as coreAttendanceOutcomeSchema,
+  auditActionSchema as coreAuditActionSchema,
+  auditTargetSchema as coreAuditTargetSchema,
+  closeoutOutcomeSchema as coreCloseoutOutcomeSchema,
+  feedbackRatingSchema as coreFeedbackRatingSchema,
+  hostFrictionSchema as coreHostFrictionSchema,
+  hostTrustStatusSchema as coreHostTrustStatusSchema,
+  operationReasonSchema as coreOperationReasonSchema,
+  reviewBottleneckSchema as coreReviewBottleneckSchema,
+} from '@founders-coffee/core';
 
-export const closeoutOutcomeSchema = z.enum(CLOSEOUT_OUTCOMES);
-export const attendanceOutcomeSchema = z.enum(ATTENDANCE_OUTCOMES);
-export const feedbackRatingSchema = z.enum(FEEDBACK_RATINGS);
-export const hostTrustStatusSchema = z.enum(HOST_TRUST_STATUSES);
-export const hostFrictionSchema = z.enum(HOST_FRICTIONS);
-export const operationReasonSchema = z.enum(OPERATION_REASONS);
-export const reviewBottleneckSchema = z.enum(REVIEW_BOTTLENECKS);
-export const auditTargetSchema = z.enum(AUDIT_TARGETS);
-export const auditActionSchema = z.enum(AUDIT_ACTIONS);
+import { AUDIT_ACTIONS, HOST_FRICTIONS } from './enums.js';
+
+export const closeoutOutcomeSchema = coreCloseoutOutcomeSchema;
+export const attendanceOutcomeSchema = coreAttendanceOutcomeSchema;
+export const feedbackRatingSchema = coreFeedbackRatingSchema;
+export const hostTrustStatusSchema = coreHostTrustStatusSchema;
+export const hostFrictionSchema = coreHostFrictionSchema;
+export const operationReasonSchema = coreOperationReasonSchema;
+export const reviewBottleneckSchema = coreReviewBottleneckSchema;
+export const auditTargetSchema = coreAuditTargetSchema;
+export const auditActionSchema = coreAuditActionSchema;
 
 /**
  * The friction a host reports, as a set rather than a sentence.

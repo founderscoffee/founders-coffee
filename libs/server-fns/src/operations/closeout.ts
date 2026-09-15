@@ -1,4 +1,12 @@
-import { AppError, err, id, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  id,
+  ok,
+  type AttendanceOutcome,
+  type CloseoutOutcome,
+  type Result,
+} from '@founders-coffee/core';
 import {
   communityOperationsEnabled,
   getCloseout,
@@ -15,7 +23,7 @@ import { listCloseoutRoster, type RosterMember } from './roster.js';
 
 export interface CloseoutView {
   readonly eventId: string;
-  readonly outcome: 'held' | 'did_not_happen' | null;
+  readonly outcome: CloseoutOutcome | null;
   readonly version: number;
   readonly walkInCount: number;
   readonly roster: readonly RosterMember[];
@@ -130,7 +138,7 @@ export const readCloseout = async (
 const resumesTheSameCloseout = async (
   db: Db,
   eventId: string,
-  outcome: 'held' | 'did_not_happen',
+  outcome: CloseoutOutcome,
 ): Promise<boolean> => (await getCloseout(db, eventId))?.outcome === outcome;
 
 /**
@@ -171,7 +179,7 @@ export const submitCloseoutResolver = async (
   opts: {
     actorId: string;
     input: operations.SubmitCloseoutInput;
-    attendance: readonly { userId: string; outcome: 'attended' | 'no_show' }[];
+    attendance: readonly { userId: string; outcome: AttendanceOutcome }[];
   },
 ): Promise<Result<{ refusedMarks: readonly string[] }>> => {
   const event = await getEvent(db, opts.input.eventId);

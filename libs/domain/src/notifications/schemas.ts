@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-const LOCALES = ['ar', 'fr', 'en'] as const;
+import {
+  notificationDeliveryChannelSchema,
+  localeSchema,
+  type NotificationDeliveryChannel,
+} from '@founders-coffee/core';
 
 const notificationBase = z.object({
   eventTitle: z.string().min(1).max(200),
@@ -8,7 +12,7 @@ const notificationBase = z.object({
   marketCode: z.string().min(2).max(8),
   startsAt: z.string().min(1),
   venue: z.string().min(1).max(300),
-  locale: z.enum(LOCALES),
+  locale: localeSchema,
   phoneNumber: z.string().min(1).max(32).optional(),
   email: z.string().email().max(254).optional(),
   rsvpCount: z.number().int().nonnegative().optional(),
@@ -50,7 +54,7 @@ export type PushNotificationPayload = z.infer<
   typeof pushNotificationPayloadSchema
 >;
 
-export type NotificationChannel = 'sms' | 'email' | 'push';
+export type NotificationChannel = NotificationDeliveryChannel;
 
 export type ParsedNotificationPayload =
   | { readonly channel: 'sms'; readonly payload: SmsNotificationPayload }
@@ -88,10 +92,11 @@ export const parseNotificationPayload = (
 ):
   | { readonly ok: true; readonly value: ParsedNotificationPayload }
   | { readonly ok: false; readonly reason: string } => {
-  const schema = schemaFor[channel as NotificationChannel];
-  if (!schema) {
+  const channelResult = notificationDeliveryChannelSchema.safeParse(channel);
+  if (!channelResult.success) {
     return { ok: false, reason: `unknown channel '${channel}'` };
   }
+  const schema = schemaFor[channelResult.data];
 
   const result = schema.safeParse(payload);
   if (!result.success) {
@@ -104,7 +109,7 @@ export const parseNotificationPayload = (
   return {
     ok: true,
     value: {
-      channel,
+      channel: channelResult.data,
       payload: result.data,
     } as ParsedNotificationPayload,
   };

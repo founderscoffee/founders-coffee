@@ -1,6 +1,12 @@
-import { AppError, err, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  ok,
+  type EventStatus,
+  type Result,
+} from '@founders-coffee/core';
 
-export type EventStatus = 'published' | 'cancelled';
+export type { EventStatus } from '@founders-coffee/core';
 
 const TRANSITIONS: Record<EventStatus, readonly EventStatus[]> = {
   published: ['cancelled'],

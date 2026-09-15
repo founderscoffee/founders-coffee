@@ -1,4 +1,4 @@
-import { type Locale } from '@founders-coffee/i18n';
+import { LOCALES, type Locale } from '@founders-coffee/i18n';
 
 import { CONTACT_EMAIL } from '../content/company';
 
@@ -23,7 +23,7 @@ export const organizationJsonLd = () =>
         '@type': 'ContactPoint',
         email: CONTACT_EMAIL,
         contactType: 'customer support',
-        availableLanguage: ['ar', 'en', 'fr'],
+        availableLanguage: [...LOCALES],
       },
     ],
   });

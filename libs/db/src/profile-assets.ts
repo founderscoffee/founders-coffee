@@ -1,6 +1,6 @@
 import { and, eq, exists, lte, ne, notExists, sql } from 'drizzle-orm';
 
-import { id } from '@founders-coffee/core';
+import { id, type ProfilePhotoMimeType } from '@founders-coffee/core';
 
 import type { Db } from './db.js';
 import { activeProfileIdentity, visibleIdentity } from './profile-access.js';
@@ -70,7 +70,7 @@ export const attachReadyProfilePhoto = async (
   input: {
     userId: string;
     assetId: string;
-    mimeType: string;
+    mimeType: ProfilePhotoMimeType;
     byteSize: number;
     width: number;
     height: number;
