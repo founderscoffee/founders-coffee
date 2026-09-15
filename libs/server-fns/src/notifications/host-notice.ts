@@ -1,7 +1,7 @@
 import { id } from '@founders-coffee/core';
 import {
-  enqueueNotification,
-  hasPendingNotification,
+  enqueueNotificationIfAbsent,
+  enqueueNotificationIfNoPending,
   type Db,
 } from '@founders-coffee/db';
 
@@ -56,14 +56,6 @@ export const enqueueHostRsvpNotice = async (
   if (opts.guestId === opts.hostId) return;
 
   const templateKey = 'rsvp_received' as const;
-  if (
-    await hasPendingNotification(db, {
-      eventId: opts.eventId,
-      userId: opts.hostId,
-      templateKey,
-    })
-  )
-    return;
 
   const context = await resolveNotificationContext(db, {
     preferred: opts.hostLocale,
@@ -92,7 +84,7 @@ export const enqueueHostRsvpNotice = async (
     Math.min(Date.now() + HOST_NOTICE_DELAY_MS, opts.startsAt.getTime()),
   );
 
-  await enqueueNotification(db, {
+  const result = await enqueueNotificationIfNoPending(db, {
     id: id('ntf'),
     eventId: opts.eventId,
     userId: opts.hostId,
@@ -105,5 +97,60 @@ export const enqueueHostRsvpNotice = async (
     fallbackChannel: fallback,
   });
 
-  await armNotificationSchedule(opts.eventId, sendAt);
+  if (result.written) await armNotificationSchedule(opts.eventId, sendAt);
+};
+
+/** Tell the host when a guest withdraws an RSVP, once for that RSVP record. */
+export const enqueueHostRsvpCancellationNotice = async (
+  db: Db,
+  opts: {
+    eventId: string;
+    hostId: string;
+    guestId: string;
+    rsvpId: string;
+    eventTitle: string;
+    eventSlug: string;
+    marketCode: string;
+    startsAt: Date;
+    venue: string;
+    hostEmail?: string;
+    hostLocale?: string | null;
+  },
+): Promise<void> => {
+  if (opts.guestId === opts.hostId) return;
+
+  const context = await resolveNotificationContext(db, {
+    preferred: opts.hostLocale,
+    marketCode: opts.marketCode,
+  });
+  const basePayload: NotificationPayload = {
+    email: opts.hostEmail,
+    eventTitle: opts.eventTitle,
+    eventSlug: opts.eventSlug,
+    marketCode: opts.marketCode,
+    startsAt: opts.startsAt.toISOString(),
+    venue: opts.venue,
+    locale: context.locale,
+  };
+  const values = valuesFor(basePayload, context, true);
+  const templateKey = 'rsvp_cancelled' as const;
+  const payload = {
+    ...basePayload,
+    ...pushPayloadFor(templateKey, values, context.locale),
+    ...emailPayloadFor(templateKey, values, context.locale),
+  };
+  const sendAt = new Date();
+  const result = await enqueueNotificationIfAbsent(db, {
+    id: `ntf_rsvp_cancelled_${opts.eventId}_${opts.rsvpId}`,
+    eventId: opts.eventId,
+    userId: opts.hostId,
+    channel: 'push',
+    templateKey,
+    payload: opts.hostEmail
+      ? validPayload('email', validPayload('push', payload))
+      : validPayload('push', payload),
+    sendAt,
+    fallbackChannel: opts.hostEmail ? 'email' : undefined,
+  });
+  if (result.written) await armNotificationSchedule(opts.eventId, sendAt);
 };

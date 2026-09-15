@@ -11,7 +11,10 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
-import { enqueueHostRsvpNotice } from './host-notice.js';
+import {
+  enqueueHostRsvpCancellationNotice,
+  enqueueHostRsvpNotice,
+} from './host-notice.js';
 
 const HOST_ID = 'usr_hn_host';
 const GUEST_ID = 'usr_hn_guest';
@@ -171,6 +174,82 @@ describe('telling the host somebody is coming', () => {
     await notice(db, event.id, { hostEmail: undefined });
 
     expect((await rowsFor(db, event.id))[0]?.fallbackChannel).toBeNull();
+  });
+});
+
+describe('telling the host somebody cancelled', () => {
+  it('writes an immediate push notice with an email fallback', async () => {
+    const db = await setupDb();
+    const event = await seedEvent(db);
+
+    await enqueueHostRsvpCancellationNotice(db, {
+      eventId: event.id,
+      hostId: HOST_ID,
+      guestId: GUEST_ID,
+      rsvpId: 'rsvp_hn_cancelled',
+      eventTitle: 'Coffee + Code',
+      eventSlug: event.slug,
+      marketCode: 'DZ',
+      startsAt: new Date('2099-01-15T18:00:00Z'),
+      venue: 'Café des Délices',
+      hostEmail: 'host@hn.test',
+      hostLocale: 'en',
+    });
+
+    const row = (await rowsFor(db, event.id))[0];
+    expect(row?.id).toBe(`ntf_rsvp_cancelled_${event.id}_rsvp_hn_cancelled`);
+    expect(row?.userId).toBe(HOST_ID);
+    expect(row?.templateKey).toBe('rsvp_cancelled');
+    expect(row?.channel).toBe('push');
+    expect(row?.fallbackChannel).toBe('email');
+    expect(row?.sendAt.getTime()).toBeLessThanOrEqual(Date.now());
+    const payload = row?.payload as Record<string, unknown>;
+    expect(payload.pushUrl).toContain(`/${event.slug}`);
+    expect(payload.smsBody).toBeUndefined();
+  });
+
+  it('does not notify a host about their own cancellation', async () => {
+    const db = await setupDb();
+    const event = await seedEvent(db);
+
+    await enqueueHostRsvpCancellationNotice(db, {
+      eventId: event.id,
+      hostId: HOST_ID,
+      guestId: HOST_ID,
+      rsvpId: 'rsvp_hn_host_cancelled',
+      eventTitle: 'Coffee + Code',
+      eventSlug: event.slug,
+      marketCode: 'DZ',
+      startsAt: new Date('2099-01-15T18:00:00Z'),
+      venue: 'Café des Délices',
+      hostEmail: 'host@hn.test',
+      hostLocale: 'en',
+    });
+
+    expect(await rowsFor(db, event.id)).toHaveLength(0);
+  });
+
+  it('is idempotent when the cancellation producer is retried', async () => {
+    const db = await setupDb();
+    const event = await seedEvent(db);
+    const options = {
+      eventId: event.id,
+      hostId: HOST_ID,
+      guestId: GUEST_ID,
+      rsvpId: 'rsvp_hn_retry',
+      eventTitle: 'Coffee + Code',
+      eventSlug: event.slug,
+      marketCode: 'DZ',
+      startsAt: new Date('2099-01-15T18:00:00Z'),
+      venue: 'Café des Délices',
+      hostEmail: 'host@hn.test',
+      hostLocale: 'en',
+    };
+
+    await enqueueHostRsvpCancellationNotice(db, options);
+    await enqueueHostRsvpCancellationNotice(db, options);
+
+    expect(await rowsFor(db, event.id)).toHaveLength(1);
   });
 });
 

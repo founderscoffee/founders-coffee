@@ -35,6 +35,11 @@ import {
   ntf_email_rsvp_received_html,
   ntf_email_rsvp_received_subject,
   ntf_email_rsvp_received_text,
+  ntf_push_rsvp_cancelled_body,
+  ntf_push_rsvp_cancelled_title,
+  ntf_email_rsvp_cancelled_html,
+  ntf_email_rsvp_cancelled_subject,
+  ntf_email_rsvp_cancelled_text,
   ntf_push_feedback_invitation_body,
   ntf_push_feedback_invitation_title,
   ntf_email_feedback_invitation_html,
@@ -53,6 +58,7 @@ export type NotificationTemplateKey =
   | 'reminder_24h'
   | 'event_cancelled'
   | 'rsvp_received'
+  | 'rsvp_cancelled'
   | 'closeout_prompt'
   | 'event_did_not_happen'
   | 'feedback_invitation';
@@ -107,7 +113,7 @@ const withReason = (
 /**
  * The SMS form of a message, for the keys that have one.
  *
- * `rsvp_received` and `closeout_prompt` are excluded in the type rather than handled and refused at
+ * `rsvp_received`, `rsvp_cancelled` and `closeout_prompt` are excluded in the type rather than handled and refused at
  * runtime. ND-07 left exactly one thing on SMS — a cancellation close enough to the start that an
  * unread email means somebody sets off anyway — and neither a host learning that a guest is coming
  * nor a host being asked how it went is that. Asking for an SMS body this product has decided not to
@@ -117,6 +123,7 @@ export const smsBodyFor = (
   templateKey: Exclude<
     NotificationTemplateKey,
     | 'rsvp_received'
+    | 'rsvp_cancelled'
     | 'closeout_prompt'
     | 'event_did_not_happen'
     | 'feedback_invitation'
@@ -172,6 +179,12 @@ export const emailPayloadFor = (
         subject: ntf_email_rsvp_received_subject(values, options),
         html: ntf_email_rsvp_received_html(safe, options),
         text: ntf_email_rsvp_received_text(values, options),
+      };
+    case 'rsvp_cancelled':
+      return {
+        subject: ntf_email_rsvp_cancelled_subject(values, options),
+        html: ntf_email_rsvp_cancelled_html(safe, options),
+        text: ntf_email_rsvp_cancelled_text(values, options),
       };
     case 'rsvp_confirmation':
       return {
@@ -249,6 +262,13 @@ export const pushPayloadFor = (
     return {
       pushTitle: ntf_push_rsvp_received_title(values, options),
       pushBody: ntf_push_rsvp_received_body({}, options),
+      pushUrl,
+    };
+  }
+  if (templateKey === 'rsvp_cancelled') {
+    return {
+      pushTitle: ntf_push_rsvp_cancelled_title(values, options),
+      pushBody: ntf_push_rsvp_cancelled_body({}, options),
       pushUrl,
     };
   }

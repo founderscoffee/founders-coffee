@@ -180,6 +180,20 @@ describe('dedupe keys reach the providers', () => {
     expect(sends).toEqual([{ token: 'tok_a', dedupeKey: rowId }]);
   });
 
+  it('delivers host RSVP cancellation notices over push', async () => {
+    const rowId = await enqueue(db, {
+      channel: 'push',
+      templateKey: 'rsvp_cancelled',
+    });
+    await addPushToken(db, 'tok_cancelled');
+    const push = countingPush();
+
+    await sweepNotifications(db, providers({ push: push.provider }), NOW);
+
+    expect(push.sends).toEqual([{ token: 'tok_cancelled', dedupeKey: rowId }]);
+    expect((await rowById(db, rowId))?.status).toBe('sent');
+  });
+
   it('declares suppression only for channels that can actually do it', () => {
     expect(CHANNEL_SUPPRESSES_DUPLICATES).toEqual({
       push: true,

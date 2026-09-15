@@ -2,99 +2,17 @@ import { and, asc, eq, inArray, lte, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
-  NOTIFICATION_CHANNELS,
   NOTIFICATION_TEMPLATE_KEYS,
   RSVP_LIFECYCLE_TEMPLATE_KEYS,
   scheduledNotifications,
-  type NewScheduledNotification,
   type ScheduledNotification,
 } from './schema.js';
 
-/**
- * Enqueue a notification for later delivery. The producer (server-fn) calls this
- * after a successful RSVP or event creation. The Cron sweep (worker-jobs) picks
- * it up when `send_at <= now`.
- *
- * Returns the inserted row so the caller can inspect if needed.
- */
-export const enqueueNotification = async (
-  db: Db,
-  opts: {
-    id: string;
-    eventId: string;
-    userId: string;
-    channel: (typeof NOTIFICATION_CHANNELS)[number];
-    templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
-    payload: Record<string, unknown>;
-    sendAt: Date;
-    fallbackChannel?: 'email' | 'sms';
-  },
-): Promise<ScheduledNotification> => {
-  const row: NewScheduledNotification = {
-    id: opts.id,
-    eventId: opts.eventId,
-    userId: opts.userId,
-    channel: opts.channel,
-    status: 'pending',
-    templateKey: opts.templateKey,
-    payload: opts.payload,
-    sendAt: opts.sendAt,
-    attempts: 0,
-    fallbackChannel: opts.fallbackChannel ?? null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  await db.insert(scheduledNotifications).values(row);
-
-  return { ...row, status: 'pending' } as ScheduledNotification;
-};
-
-/**
- * Enqueue this notification unless its id is already taken.
- *
- * For intents whose id is a pure function of what they are about, so that writing one twice is a
- * question the database answers rather than one the caller has to ask first. `ON CONFLICT DO
- * NOTHING` makes the second write a no-op inside the statement; a read-then-write would leave a
- * window in which two callers both read absent and both insert, which is exactly the race a
- * creation hook and a nightly backfill would run into.
- *
- * Returns whether a row was written, so a caller can tell "I scheduled it" from "it was already
- * scheduled" without another query.
- */
-export const enqueueNotificationIfAbsent = async (
-  db: Db,
-  opts: {
-    id: string;
-    eventId: string;
-    userId: string;
-    channel: (typeof NOTIFICATION_CHANNELS)[number];
-    templateKey: (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
-    payload: Record<string, unknown>;
-    sendAt: Date;
-    fallbackChannel?: 'email' | 'sms';
-  },
-): Promise<{ written: boolean }> => {
-  const result = await db
-    .insert(scheduledNotifications)
-    .values({
-      id: opts.id,
-      eventId: opts.eventId,
-      userId: opts.userId,
-      channel: opts.channel,
-      status: 'pending',
-      templateKey: opts.templateKey,
-      payload: opts.payload,
-      sendAt: opts.sendAt,
-      attempts: 0,
-      fallbackChannel: opts.fallbackChannel ?? null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .onConflictDoNothing({ target: scheduledNotifications.id });
-
-  return { written: ((result.meta?.changes ?? 0) as number) > 0 };
-};
+export {
+  enqueueNotification,
+  enqueueNotificationIfAbsent,
+  enqueueNotificationIfNoPending,
+} from './notification-enqueue.js';
 
 /**
  * List pending notifications due for delivery (`send_at <= now`), oldest first.

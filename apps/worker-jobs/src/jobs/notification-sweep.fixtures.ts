@@ -100,6 +100,7 @@ export const setupDb = async (): Promise<Db> => {
     eventUpdates: true,
     eventReminders: true,
     hostUpdates: true,
+    followUpPrompts: false,
     pushEnabled: true,
     smsFallbackEnabled: true,
   });
@@ -119,6 +120,7 @@ export const setPreferences = async (
     eventUpdates?: boolean;
     eventReminders?: boolean;
     hostUpdates?: boolean;
+    followUpPrompts?: boolean;
     pushEnabled?: boolean;
     smsFallbackEnabled?: boolean;
   },
@@ -141,7 +143,13 @@ export const enqueue = async (
     eventId?: string;
     sendAt?: Date;
     fallbackChannel?: 'email' | 'sms';
-    templateKey?: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h';
+    templateKey?:
+      | 'rsvp_confirmation'
+      | 'reminder_72h'
+      | 'reminder_24h'
+      | 'rsvp_received'
+      | 'rsvp_cancelled'
+      | 'feedback_invitation';
     payload?: Record<string, unknown>;
   } = {},
 ): Promise<string> => {

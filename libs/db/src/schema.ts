@@ -315,6 +315,7 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'reminder_24h',
   'event_cancelled',
   'rsvp_received',
+  'rsvp_cancelled',
   'closeout_prompt',
   'event_did_not_happen',
   'feedback_invitation',

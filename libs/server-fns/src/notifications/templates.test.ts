@@ -23,11 +23,22 @@ const KEYS: NotificationTemplateKey[] = [
 ];
 
 const REMINDERS = ['reminder_72h', 'reminder_24h'] as const;
+const HOST_AND_OPERATIONS_KEYS: NotificationTemplateKey[] = [
+  'rsvp_received',
+  'rsvp_cancelled',
+  'closeout_prompt',
+  'event_did_not_happen',
+  'feedback_invitation',
+];
+const ALL_KEYS = [...KEYS, ...HOST_AND_OPERATIONS_KEYS];
 
 const ARABIC = /[؀-ۿ]/;
 
 const combos = LOCALES.flatMap((locale) =>
   KEYS.map((key) => [locale, key] as const),
+);
+const hostAndOperationsCombos = LOCALES.flatMap((locale) =>
+  HOST_AND_OPERATIONS_KEYS.map((key) => [locale, key] as const),
 );
 
 describe('notification templates render in every locale', () => {
@@ -48,6 +59,21 @@ describe('notification templates render in every locale', () => {
     expect(email.text).toContain(VALUES.url);
   });
 
+  it.each(hostAndOperationsCombos)(
+    '%s / %s interpolates the host or operations email payload',
+    (locale, key) => {
+      const email = emailPayloadFor(key, VALUES, locale);
+      for (const part of [email.subject, email.html, email.text]) {
+        expect(part).toContain(VALUES.title);
+        expect(part).not.toContain('{');
+      }
+      if (key !== 'event_did_not_happen') {
+        expect(email.html).toContain(`href="${VALUES.url}"`);
+        expect(email.text).toContain(VALUES.url);
+      }
+    },
+  );
+
   it.each(
     LOCALES.flatMap((locale) => REMINDERS.map((key) => [locale, key] as const)),
   )('%s / %s interpolates the push payload', (locale, key) => {
@@ -58,15 +84,33 @@ describe('notification templates render in every locale', () => {
     expect(push.pushBody.trim().length).toBeGreaterThan(0);
   });
 
-  it.each(KEYS)('writes %s in Arabic script for the ar locale', (key) => {
-    expect(smsBodyFor(key, VALUES, 'ar')).toMatch(ARABIC);
+  it.each(hostAndOperationsCombos)(
+    '%s / %s interpolates the host or operations push payload',
+    (locale, key) => {
+      const push = pushPayloadFor(key, VALUES, locale);
+      expect(push.pushTitle).toContain(VALUES.title);
+      expect(push.pushTitle).not.toContain('{');
+      expect(push.pushBody).not.toContain('{');
+      expect(push.pushBody.trim().length).toBeGreaterThan(0);
+      expect(push.pushUrl).toBe(VALUES.url);
+    },
+  );
+
+  it.each(ALL_KEYS)('writes %s in Arabic script for the ar locale', (key) => {
+    if (!HOST_AND_OPERATIONS_KEYS.includes(key))
+      expect(smsBodyFor(key, VALUES, 'ar')).toMatch(ARABIC);
     expect(emailPayloadFor(key, VALUES, 'ar').subject).toMatch(ARABIC);
   });
 
-  it.each(KEYS)('does not fall back to English for %s in fr', (key) => {
-    const fr = smsBodyFor(key, VALUES, 'fr');
-    const en = smsBodyFor(key, VALUES, 'en');
-    expect(fr).not.toBe(en);
+  it.each(ALL_KEYS)('does not fall back to English for %s in fr', (key) => {
+    if (!HOST_AND_OPERATIONS_KEYS.includes(key)) {
+      const fr = smsBodyFor(key, VALUES, 'fr');
+      const en = smsBodyFor(key, VALUES, 'en');
+      expect(fr).not.toBe(en);
+    }
+    expect(emailPayloadFor(key, VALUES, 'fr').subject).not.toBe(
+      emailPayloadFor(key, VALUES, 'en').subject,
+    );
   });
 
   it('escapes user-authored values in the html variant only', () => {
