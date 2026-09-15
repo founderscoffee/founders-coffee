@@ -53,6 +53,10 @@ jobs:
 
   verify:
     name: Verify
+    needs: resolve
+    permissions:
+      actions: read
+      contents: read
     uses: ./.github/workflows/ci.yml
 
   deploy:

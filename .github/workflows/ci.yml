@@ -15,12 +15,40 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
+  reuse-evidence:
+    name: Reuse verified staging tree
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    outputs:
+      reuse: ${{ steps.lookup.outputs.reuse }}
+      source_run_url: ${{ steps.lookup.outputs.source_run_url }}
+      tree: ${{ steps.lookup.outputs.tree }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          ref: ${{ github.sha }}
+
+      - id: target-tree
+        run: echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
+
+      - id: lookup
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TARGET_TREE: ${{ steps.target-tree.outputs.tree }}
+        run: node tools/ci/verified-staging-tree.mjs
+
   quality:
     name: Format, sync, typecheck, lint and test
-    if: github.event_name != 'pull_request' || github.head_ref != 'develop'
+    needs: reuse-evidence
+    if: >-
+      always() &&
+      needs.reuse-evidence.outputs.reuse != 'true' &&
+      (github.event_name != 'pull_request' || github.head_ref != 'develop')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -78,7 +106,11 @@ jobs:
 
   build:
     name: Build and Miniflare SEO gate
-    if: github.event_name != 'pull_request' || github.head_ref != 'develop'
+    needs: reuse-evidence
+    if: >-
+      always() &&
+      needs.reuse-evidence.outputs.reuse != 'true' &&
+      (github.event_name != 'pull_request' || github.head_ref != 'develop')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -120,3 +152,44 @@ jobs:
 
       - name: Run Miniflare SEO integration gate
         run: npx nx run public:integration-test
+
+  verification:
+    name: Verification evidence
+    needs: [reuse-evidence, quality, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm verification evidence
+        env:
+          BUILD: ${{ needs.build.result }}
+          QUALITY: ${{ needs.quality.result }}
+          RELEASE_PULL_REQUEST: ${{ github.event_name == 'pull_request' && github.head_ref == 'develop' }}
+          REUSE_EVIDENCE: ${{ needs.reuse-evidence.result }}
+          REUSED: ${{ needs.reuse-evidence.outputs.reuse }}
+          SOURCE_RUN_URL: ${{ needs.reuse-evidence.outputs.source_run_url }}
+          SOURCE_TREE: ${{ needs.reuse-evidence.outputs.tree }}
+        run: |
+          if [ "$REUSED" = "true" ]; then
+            if [ "$REUSE_EVIDENCE" != "success" ] || [ "$QUALITY" != "skipped" ] || [ "$BUILD" != "skipped" ] || [ -z "$SOURCE_RUN_URL" ] || [ -z "$SOURCE_TREE" ]; then
+              echo "::error::Verified-tree reuse evidence is incomplete."
+              exit 1
+            fi
+            {
+              echo "## Reused verified staging tree"
+              echo
+              echo "Source: $SOURCE_RUN_URL"
+              echo "Tree: \`$SOURCE_TREE\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$RELEASE_PULL_REQUEST" = "true" ]; then
+            if [ "$QUALITY" != "skipped" ] || [ "$BUILD" != "skipped" ]; then
+              echo "::error::The develop release pull request must not run duplicate checks."
+              exit 1
+            fi
+            exit 0
+          fi
+          if [ "$QUALITY" != "success" ] || [ "$BUILD" != "success" ]; then
+            echo "::error::Long CI verification did not complete successfully."
+            exit 1
+          fi
