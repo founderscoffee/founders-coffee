@@ -561,15 +561,23 @@ export const accountPreferences = sqliteTable('account_preferences', {
   eventUpdates: integer('event_updates', { mode: 'boolean' })
     .notNull()
     .default(true),
+  eventUpdatesChannels: integer('event_updates_channels').notNull().default(5),
   eventReminders: integer('event_reminders', { mode: 'boolean' })
     .notNull()
     .default(true),
+  eventRemindersChannels: integer('event_reminders_channels')
+    .notNull()
+    .default(5),
   hostUpdates: integer('host_updates', { mode: 'boolean' })
     .notNull()
     .default(true),
+  hostUpdatesChannels: integer('host_updates_channels').notNull().default(5),
   followUpPrompts: integer('follow_up_prompts', { mode: 'boolean' })
     .notNull()
     .default(false),
+  followUpPromptsChannels: integer('follow_up_prompts_channels')
+    .notNull()
+    .default(0),
   pushEnabled: integer('push_enabled', { mode: 'boolean' })
     .notNull()
     .default(false),

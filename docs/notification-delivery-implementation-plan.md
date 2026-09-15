@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                           |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | ND-00 through ND-03 complete in code (including ND-03c); staging delivery is proven; production still needs the post-CO-02 ND-07 promotion                      |
+| Status         | ND-00 through ND-04 complete in code (including ND-03c); staging delivery is proven; production still needs the post-CO-02 ND-07 promotion                      |
 | Decision date  | 2026-09-10                                                                                                                                                      |
 | Owner          | Founder / Product                                                                                                                                               |
 | Scope          | Make push deliver, make every notification category real, and give the member per-category channel control                                                      |
@@ -272,7 +272,7 @@ Acceptance is covered locally by resolver, producer, template, destination-gate,
 concurrency tests. Staging and production promotion remain deployment work, not an implementation
 gap.
 
-### ND-04 — Per-category channel model
+### ND-04 — Per-category channel model ✅ implemented 2026-09-15
 
 **Depends on:** ND-03.
 
@@ -286,6 +286,13 @@ gap.
   server-owned and absent from the input, for the reason `draft.ts` already gives.
 - Acceptance: a migration test asserting every pre-migration row lands on push+email for the
   categories it had enabled; a conflicting concurrent save still fails on `revision`.
+
+The implementation adds four integer masks to `account_preferences` (`1` push, `4` email), with
+`0028_notification_category_channels.sql` backfilling each legacy category from its existing gate.
+The profile contract exposes validated channel arrays, converts them at the server-function boundary,
+and keeps the category booleans synchronized with whether a mask is non-zero. The existing single-row
+optimistic revision guard remains the only write gate. Destination reads include the masks so ND-05 can
+resolve the matrix without another query; delivery policy is unchanged until that ticket.
 
 ### ND-05 — Producer and dispatcher honour the matrix
 
@@ -382,8 +389,8 @@ every member, so the production deploy is now purely additive rather than a trad
   the current service-worker, push and email-fallback code before claiming end-to-end production
   delivery.
 - **The four preference switches are actionable in the current surface.** ND-03 made host updates
-  and follow-up prompts real at send time; the remaining ND-04 through ND-06 work is the separate
-  per-category channel matrix, migration, and provider-state presentation.
+  and follow-up prompts real at send time; ND-05 and ND-06 remain for channel-aware delivery and
+  the provider-state grid.
 - **A per-category grid must preserve that honest promise.** The current producers and dispatchers
   have concrete keys for all four categories, so the future grid can be implemented without
   controls describing messages that do not exist.

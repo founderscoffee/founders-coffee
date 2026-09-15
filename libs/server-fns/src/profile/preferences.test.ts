@@ -17,9 +17,13 @@ import { readMyPreferences, saveMyPreferences } from './preferences.js';
 
 const DEFAULTS = {
   eventUpdates: true,
+  eventUpdatesChannels: ['push', 'email'] as ('push' | 'email')[],
   eventReminders: true,
+  eventRemindersChannels: ['push', 'email'] as ('push' | 'email')[],
   hostUpdates: true,
+  hostUpdatesChannels: ['push', 'email'] as ('push' | 'email')[],
   followUpPrompts: false,
+  followUpPromptsChannels: [] as ('push' | 'email')[],
   smsFallbackEnabled: false,
 };
 

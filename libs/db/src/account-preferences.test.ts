@@ -15,9 +15,13 @@ describe('account preferences on real D1', () => {
       locale: 'fr',
       preferences: {
         eventUpdates: true,
+        eventUpdatesChannels: 5,
         eventReminders: true,
+        eventRemindersChannels: 5,
         hostUpdates: true,
+        hostUpdatesChannels: 5,
         followUpPrompts: false,
+        followUpPromptsChannels: 0,
         pushEnabled: false,
         smsFallbackEnabled: false,
         smsConsentAt: null,
@@ -59,13 +63,40 @@ describe('account preferences on real D1', () => {
           userId,
           expectedRevision: 0,
           locale,
-          changes: { ...preferenceChanges, followUpPrompts: locale === 'fr' },
+          changes: {
+            ...preferenceChanges,
+            followUpPrompts: locale === 'fr',
+            followUpPromptsChannels: locale === 'fr' ? 5 : 0,
+          },
         }),
       ),
     );
     expect(results.filter(Boolean)).toHaveLength(1);
     const saved = await getAccountPreferences(db, userId);
     expect(saved?.preferences.followUpPrompts).toBe(saved?.locale === 'fr');
+  });
+
+  it('stores channel masks and derives category gates from whether any channel remains', async () => {
+    const { db, userId } = await profileFixture();
+    const saved = await updateAccountPreferences(db, {
+      userId,
+      expectedRevision: 0,
+      locale: 'en',
+      changes: {
+        ...preferenceChanges,
+        eventUpdates: false,
+        eventUpdatesChannels: 4,
+        eventRemindersChannels: 0,
+      },
+    });
+
+    expect(saved).toMatchObject({
+      eventUpdates: true,
+      eventUpdatesChannels: 4,
+      eventReminders: false,
+      eventRemindersChannels: 0,
+      revision: 1,
+    });
   });
 
   it.each([

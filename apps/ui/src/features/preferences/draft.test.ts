@@ -10,9 +10,13 @@ const view = (
   revision: 4,
   preferences: {
     eventUpdates: true,
+    eventUpdatesChannels: ['push', 'email'],
     eventReminders: true,
+    eventRemindersChannels: ['push', 'email'],
     hostUpdates: true,
+    hostUpdatesChannels: ['push', 'email'],
     followUpPrompts: false,
+    followUpPromptsChannels: [],
     pushEnabled: false,
     smsFallbackEnabled: false,
   },
@@ -25,9 +29,13 @@ describe('draftFrom', () => {
   it('carries the locale alongside the switches, as one editable form', () => {
     expect(draftFrom(view({ locale: 'fr' }))).toEqual({
       eventUpdates: true,
+      eventUpdatesChannels: ['push', 'email'],
       eventReminders: true,
+      eventRemindersChannels: ['push', 'email'],
       hostUpdates: true,
+      hostUpdatesChannels: ['push', 'email'],
       followUpPrompts: false,
+      followUpPromptsChannels: [],
       pushEnabled: false,
       smsFallbackEnabled: false,
       locale: 'fr',
@@ -71,6 +79,15 @@ describe('hasChanges', () => {
     expect(hasChanges(draft, view())).toBe(true);
   });
 
+  it('treats channel order as a set because masks have no ordering', () => {
+    const saved = view();
+    const draft = {
+      ...draftFrom(saved),
+      eventRemindersChannels: ['email', 'push'] as const,
+    };
+    expect(hasChanges(draft, saved)).toBe(false);
+  });
+
   it('is not made dirty by a device registered in another tab', () => {
     const draft = draftFrom(view());
     const registered = view({
@@ -92,10 +109,14 @@ describe('toInput', () => {
   it('carries no field the update schema would reject', () => {
     expect(Object.keys(toInput(draftFrom(view()), 4)).sort()).toEqual([
       'eventReminders',
+      'eventRemindersChannels',
       'eventUpdates',
+      'eventUpdatesChannels',
       'expectedRevision',
       'followUpPrompts',
+      'followUpPromptsChannels',
       'hostUpdates',
+      'hostUpdatesChannels',
       'locale',
       'smsFallbackEnabled',
     ]);

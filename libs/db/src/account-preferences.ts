@@ -13,9 +13,13 @@ import {
 export type AccountPreferenceChanges = Pick<
   AccountPreferencesRow,
   | 'eventUpdates'
+  | 'eventUpdatesChannels'
   | 'eventReminders'
+  | 'eventRemindersChannels'
   | 'hostUpdates'
+  | 'hostUpdatesChannels'
   | 'followUpPrompts'
+  | 'followUpPromptsChannels'
   | 'pushEnabled'
   | 'smsFallbackEnabled'
 >;
@@ -88,10 +92,14 @@ export const updateAccountPreferences = async (
     db
       .update(accountPreferences)
       .set({
-        eventUpdates: changes.eventUpdates,
-        eventReminders: changes.eventReminders,
-        hostUpdates: changes.hostUpdates,
-        followUpPrompts: changes.followUpPrompts,
+        eventUpdates: changes.eventUpdatesChannels !== 0,
+        eventUpdatesChannels: changes.eventUpdatesChannels,
+        eventReminders: changes.eventRemindersChannels !== 0,
+        eventRemindersChannels: changes.eventRemindersChannels,
+        hostUpdates: changes.hostUpdatesChannels !== 0,
+        hostUpdatesChannels: changes.hostUpdatesChannels,
+        followUpPrompts: changes.followUpPromptsChannels !== 0,
+        followUpPromptsChannels: changes.followUpPromptsChannels,
         pushEnabled: changes.pushEnabled,
         smsFallbackEnabled: changes.smsFallbackEnabled,
         smsConsentAt: changes.smsFallbackEnabled

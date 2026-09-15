@@ -2,7 +2,6 @@ import { env } from 'cloudflare:workers';
 
 import { AppError, err, ok } from '@founders-coffee/core';
 import {
-  accountPreferences,
   createDb,
   createEvent,
   enqueueNotification,
@@ -11,7 +10,6 @@ import {
   pushSubscriptions,
   scheduledNotifications,
   seed,
-  sql,
   user,
   type Db,
   type ScheduledNotification,
@@ -23,9 +21,17 @@ import type {
 } from '@founders-coffee/notifications';
 
 import type { DispatchProviders } from './notification-dispatch.js';
+import {
+  MEMBER_ID,
+  setPreferences,
+} from './notification-preferences.fixtures.js';
+
+export {
+  MEMBER_ID,
+  setPreferences,
+} from './notification-preferences.fixtures.js';
 
 export const HOST_ID = 'usr_sweephost';
-export const MEMBER_ID = 'usr_sweepmember';
 export const EVENT_ID = 'evt_sweep001';
 export const OTHER_EVENT_ID = 'evt_sweep002';
 export const MEMBER_PHONE = '+213600000000';
@@ -105,33 +111,6 @@ export const setupDb = async (): Promise<Db> => {
     smsFallbackEnabled: true,
   });
   return db;
-};
-
-/**
- * Put the member's notification preferences in a known state.
- *
- * The fixture member starts fully reachable — both channels enabled, both categories on — because
- * that is the state a test about delivery wants to start from. A test about a preference says so by
- * calling this with the switch it is testing; nothing is implicit.
- */
-export const setPreferences = async (
-  db: Db,
-  changes: {
-    eventUpdates?: boolean;
-    eventReminders?: boolean;
-    hostUpdates?: boolean;
-    followUpPrompts?: boolean;
-    pushEnabled?: boolean;
-    smsFallbackEnabled?: boolean;
-  },
-): Promise<void> => {
-  await db
-    .insert(accountPreferences)
-    .values({ userId: MEMBER_ID, ...changes })
-    .onConflictDoUpdate({
-      target: accountPreferences.userId,
-      set: { ...changes, updatedAt: sql`(unixepoch())` },
-    });
 };
 
 let counter = 0;
