@@ -4,7 +4,7 @@
 
 | Field        | Value                                                                              |
 | ------------ | ---------------------------------------------------------------------------------- |
-| Version      | 2.8                                                                                |
+| Version      | 2.9                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
 | Last updated | 2026-09-15                                                                         |
@@ -20,9 +20,9 @@ This document is the current sequencing and status source. Status is evidence-ba
 
 ## 1. Canonical product and architecture decisions
 
-- DZ is `active`; EG and SA are `open`; MA and AE are `dark`.
-- This is the target market policy. The current seed/deployed rows still mark DZ/EG/SA `active`
-  and omit MA/AE, so P0-007 remains blocked until configuration and deployed evidence agree.
+- DZ, EG, and SA are the only configured markets, and all three are `active`.
+- MA and AE are removed from the market configuration. Migration `0029_activate_launch_markets`
+  aligns existing rows; `SEED_MARKETS` keeps fresh local/test environments on the same policy.
 - Expansion requires eight completed events per month for three consecutive months, three recurring hosts, and at least 60% host retention.
 - D1 owns market configuration. Versioned TypeScript datasets own state/city reference data.
 - Geographic records use `market_code`, `state_code`, and `city_code`.
@@ -89,7 +89,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P0-004 | Partial  | Admin Worker and Access JWT guard                         | Access applications and in-Worker JWT verification are configured; staging correlation is verified, while production operator setup and end-to-end verification remain                                                                                                                                                                            |
 | P0-005 | Complete | Core Result, AppError, Money, IDs, config                 | —                                                                                                                                                                                                                                                                                                                                                 |
 | P0-006 | Complete | D1/Drizzle schema, migrations, atomic helpers             | —                                                                                                                                                                                                                                                                                                                                                 |
-| P0-007 | Blocked  | Market configuration and geography                        | Change seed/config to DZ active, EG/SA open, MA/AE dark                                                                                                                                                                                                                                                                                           |
+| P0-007 | Partial  | Market configuration and geography                        | Seed and migration `0029` now align DZ/EG/SA as active and remove MA/AE; apply and verify the migration in staging and production                                                                                                                                                                                                                 |
 | P0-008 | Partial  | Better Auth, phone/email OTP, OAuth, RBAC                 | Production must fail closed when Twilio/email providers are absent                                                                                                                                                                                                                                                                                |
 | P0-009 | Complete | Arabic-first `ar`/`fr`/`en` i18n and formatting           | —                                                                                                                                                                                                                                                                                                                                                 |
 | P0-010 | Complete | Shared Tailwind/DaisyUI design system                     | —                                                                                                                                                                                                                                                                                                                                                 |
@@ -109,7 +109,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 
 | ID     | Status   | Scope                                                                | Remaining evidence or work                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ------ | -------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P1-001 | Complete | Market resolution and visibility                                     | Align seed states under P0-007                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| P1-001 | Complete | Market resolution and visibility                                     | Resolution logic is complete; deployed market-row alignment is tracked under P0-007                                                                                                                                                                                                                                                                                                                                                                      |
 | P1-002 | Complete | Geo redirect, canonical market/city pages, empty states              | —                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | P1-003 | Partial  | Email-OTP login UI, OAuth UI, and dormant phone-OTP capability       | Verify current email/OAuth production flow; keep unexposed phone endpoints fail-closed                                                                                                                                                                                                                                                                                                                                                                   |
 | P1-004 | Partial  | Geography datasets, onboarding, profiles                             | PF-01 through PF-12 in the [Profile and Account Management Plan](./profile-account-implementation-plan.md): remove home location, add editable opt-in public profiles and full account controls; preserve event geography                                                                                                                                                                                                                                |
@@ -202,7 +202,7 @@ not repeated.
     Nx-wide lint is green; reconcile remaining stale status text in the SEO and notification plans.
 
 Future sponsorship, challenges, talent, payments, semantic search, browser-generated OG images, and
-MA/AE expansion remain outside this order behind the community validation gate.
+new-market expansion remain outside this order behind the community validation gate.
 
 ### P1 exit criteria
 
@@ -245,7 +245,7 @@ authorized by this roadmap.
 
 ## 8. Phase P4 — automated payments and expansion (future)
 
-**Status: Future.** Payment automation and additional-market operations require the community validation gate, explicit Founder / Product approval, and the relevant compliance review. EG/SA configuration does not authorize operational expansion. MA and AE remain `dark` until geography and operational readiness exist.
+**Status: Future.** Payment automation and additional-market operations require the community validation gate, explicit Founder / Product approval, and the relevant compliance review. The current configured markets are DZ, EG, and SA; adding another market requires a separate geography, operations, and compliance decision.
 
 ## 9. Continuous gates
 

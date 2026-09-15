@@ -8,7 +8,7 @@ import {
 
 const MARKETS = [
   { code: 'DZ', slug: 'algeria' },
-  { code: 'MA', slug: 'morocco' },
+  { code: 'EG', slug: 'egypt' },
 ];
 
 const remember = (value: string) => {
@@ -19,8 +19,8 @@ afterEach(() => forgetRememberedMarket());
 
 describe('rememberedMarket', () => {
   it('reads what this browser was told to remember', () => {
-    remember('morocco');
-    expect(rememberedMarket()).toBe('morocco');
+    remember('egypt');
+    expect(rememberedMarket()).toBe('egypt');
   });
 
   it('is null when nothing was remembered', () => {
@@ -47,8 +47,8 @@ describe('forgetRememberedMarket', () => {
 
 describe('marketCodeFor', () => {
   it('uses the market this browser remembers', () => {
-    remember('morocco');
-    expect(marketCodeFor(MARKETS)).toBe('MA');
+    remember('egypt');
+    expect(marketCodeFor(MARKETS)).toBe('EG');
   });
 
   it('falls back to the first visible market with nothing remembered', () => {

@@ -18,7 +18,7 @@ const CACHED_QUERIES: Record<string, readonly unknown[]> = {
   cityLanding: ['markets', 'city', 'DZ', '1'],
   hostProfile: ['profile', 'public', 'usr_host01'],
   otherEvent: ['event', 'someone-elses-meetup'],
-  otherMarket: ['markets', 'landing', 'MA'],
+  otherMarket: ['markets', 'landing', 'EG'],
   otherCity: ['markets', 'city', 'DZ', '31'],
   otherProfile: ['profile', 'public', 'usr_other'],
   visibleMarkets: ['markets', 'visible'],

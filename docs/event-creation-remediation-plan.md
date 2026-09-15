@@ -273,7 +273,7 @@ Operational confirmations and release gates:
 
 - On 2026-09-01, the project owner confirmed that the paid Mapbox entitlement permits founders.coffee to persist the normalized POI name, address, and coordinates used by event records.
 - The historical POI gate was satisfied for the launch market during EC-10; broader EG/SA coverage
-  remains unverified and is not an active launch blocker while operations stay focused on Algiers.
+  remains an operational verification follow-up now that all three configured markets are active.
 - The authenticated staging creation and persisted-row inspection were completed during EC-10; the
   production smoke was then verified on 2026-09-10. See the signed-off handoff below.
 
@@ -552,8 +552,8 @@ Execution evidence (2026-09-03):
   removed exactly what each run created.
 - Running it found four production defects that every prior gate had passed, which is the whole
   argument for a real-platform suite:
-  1. **Mapbox indexes no points of interest in DZ, MA or EG.** A POI-only venue rule made event
-     creation impossible in three of four markets, the launch market among them: eight reverse
+  1. **Mapbox indexes no points of interest in DZ or EG.** A POI-only venue rule made event
+     creation impossible in two configured markets, the launch market among them: eight reverse
      lookups spread across Algiers returned eight features, none of them a POI. Fixed by the
      address fallback recorded above; SA and FR were verified as controls with the same token.
   2. **The host wizard was unusable in French.** Mapbox localizes place names — the same city is

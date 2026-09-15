@@ -15,12 +15,12 @@ describe('app config', () => {
       createConfig({
         name: 'founders.coffee',
         env: 'production',
-        defaultMarketCode: 'MA',
+        defaultMarketCode: 'EG',
       }),
     ).toEqual({
       name: 'founders.coffee',
       env: 'production',
-      defaultMarketCode: 'MA',
+      defaultMarketCode: 'EG',
     });
   });
 

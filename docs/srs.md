@@ -44,7 +44,7 @@
 ### 1.3 Why this, why now (condensed)
 
 - **Strong cultural fit in the Maghreb:** Algeria has a centuries-old café culture (Algiers alone: ~1,833 cafés, ~478 specialty). Coffee is already the default venue for informal business talk.
-- **Real gap:** No dominant Algeria-native, self-serve, online, locally-payable founder-community/hackathon platform exists. Incumbents (`hackathon.dz`, `Soolvit`) are enterprise/B2B sales tools, not open community marketplaces. The UAE/Saudi gap is _different_ (saturation + curation), not the same.
+- **Real gap:** No dominant Algeria-native, self-serve, online, locally-payable founder-community/hackathon platform exists. Incumbents (`hackathon.dz`, `Soolvit`) are enterprise/B2B sales tools, not open community marketplaces. Established Gulf markets have a different gap (saturation + curation), not the same.
 - **Government tailwinds:** Algeria's Startup Law (4-year corporate-tax exemption for labelled startups, 30% R&D/open-innovation tax allowance capped at 200M DZD), the Startup Fund, Algeria Venture, and the "1,000 Tech Startups" program.
 - **Demographics:** ~46.8M population, ~79.5% internet penetration, 118% mobile connections, median age ~29.
 
@@ -59,26 +59,28 @@
 1. **Achieve local community density in Algiers** before any monetization or expansion. Density is the only moat.
 2. **Validate the free events wedge** through repeat participation and a healthy host loop in the initial Algeria/Algiers community.
 3. **Keep future B2B revenue options documented, but do not launch them** until community density is proven and Founder / Product explicitly approves the next phase.
-4. **Remain architecturally ready** for future expansion without making expansion part of the current release. Egypt and Saudi Arabia may remain configured as open markets; operations stay focused on Algeria/Algiers.
+4. **Remain architecturally ready** for future expansion without making expansion part of the current release. DZ, EG, and SA are the configured active markets; initial operating focus remains Algeria/Algiers.
 
 ### 2.2 Success metrics (density-gated)
 
-Activation of a market and of monetized features is **gated by density thresholds**, not by ambition. The operating threshold is:
+The current Founder / Product decision activates DZ, EG, and SA for the community release. Density
+still gates activation of any future market, deeper operational expansion, and all monetized or
+post-community features. The operating threshold is:
 
 | Gate                                  | Threshold                                                                                                                                                            |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Market: `dark` → `open`               | Architecture/config ready; landing page published; no active seeding.                                                                                                |
-| Market: `open` → `active`             | **≥ 8 completed events/month for 3 consecutive months, ≥ 3 recurring hosts, and host retention ≥ 60%.**                                                              |
+| Future market: `dark` → `open`        | Architecture/config ready; landing page published; no active seeding.                                                                                                |
+| Future market: `open` → `active`      | **≥ 8 completed events/month for 3 consecutive months, ≥ 3 recurring hosts, and host retention ≥ 60%.**                                                              |
 | Open any post-community roadmap phase | Community release stable **AND** Algiers density threshold met **AND** repeat participation/host-loop evidence reviewed **AND** explicit Founder / Product approval. |
 | Activate **hackathons** in a market   | Post-community phase explicitly approved **AND** market is `active` **AND** `hackathons` feature flag on **AND** the first real challenge is instrumented.           |
-| Expand operational investment         | The candidate market meets the same density gate and has moderation and operational readiness.                                                                       |
+| Expand operational investment         | The candidate market or city meets the same density gate and has moderation and operational readiness.                                                               |
 
 ### 2.3 Explicit non-goals (current release)
 
 - We are **not** building a global Devpost competitor.
 - We are **not** charging for membership, community events, participation, or ordinary hosting. Any
   commercial B2B service belongs to a future explicitly approved phase.
-- We are **not** operating/seeding all target markets at launch (architecture everywhere; operation in one).
+- We are **not** expanding beyond the configured DZ, EG, and SA markets in this release.
 - We are **not** launching hackathons, sponsorship products, sponsor dashboards, talent workflows, billing, payment execution, Founder Picks, or the proposed project showcase in the community-building release.
 - We are **not** running talent or recruiting workflows in this release. Any future warm-introduction
   model requires explicit opt-in; transactional recruiting remains out of scope.
@@ -108,14 +110,14 @@ Delivery is stage-gated. The community event loop ships first and remains the on
 scope until it proves durable local density. Future engines remain documented so they can be
 evaluated later, but they are not current commitments and must not distract from community building.
 
-| Phase                                           | Scope                                                                                                                                                                                                                                                     | Exit criteria                                                                                             |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **P0 — Foundation**                             | Multi-market architecture, i18n/RTL, identity (Better Auth), geo model, market config, feature-flag system, payment _abstraction interface_ (no integrations), shared Nx libs scaffolded.                                                                 | All three apps + shared libs scaffolded; one market (DZ) configured; empty-state UX works.                |
-| **P1 — Community release (ships now)**          | Free local-event loop: discovery, profiles, hosting, RSVP/pre-start cancellation, reminders, closeout, attendance, feedback, repeat hosting, lightweight trust/moderation, Arabic-first PWA/admin operations, accessibility, security, and observability. | Production-stable community flow; operational community-building can proceed.                             |
-| **Community validation gate**                   | Operate the Algiers community, recruit credible hosts, deliver consistently useful meetups, and measure repeat participation and host retention.                                                                                                          | Density threshold met, host loop healthy, and Founder / Product explicitly approves further product work. |
-| **P2 — Challenges (future option)**             | Challenge creation, teams, submissions, judging, results, and associated commercial workflows, only if opened after the validation gate.                                                                                                                  | Defined only when the phase is explicitly approved.                                                       |
-| **P3 — Sponsorship and talent (future option)** | Sponsor products, measurement, dashboard, Founder Picks, and opt-in talent workflows, only if opened after the validation gate.                                                                                                                           | Defined only when the phase is explicitly approved.                                                       |
-| **P4 — Payments and expansion (future option)** | Provider automation and additional-market operations only after community, compliance, and market-specific readiness are demonstrated.                                                                                                                    | Defined only when the phase is explicitly approved.                                                       |
+| Phase                                           | Scope                                                                                                                                                                                                                                                     | Exit criteria                                                                                               |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **P0 — Foundation**                             | Multi-market architecture, i18n/RTL, identity (Better Auth), geo model, market config, feature-flag system, payment _abstraction interface_ (no integrations), shared Nx libs scaffolded.                                                                 | All three apps + shared libs scaffolded; DZ, EG, and SA configured as active markets; empty-state UX works. |
+| **P1 — Community release (ships now)**          | Free local-event loop: discovery, profiles, hosting, RSVP/pre-start cancellation, reminders, closeout, attendance, feedback, repeat hosting, lightweight trust/moderation, Arabic-first PWA/admin operations, accessibility, security, and observability. | Production-stable community flow; operational community-building can proceed.                               |
+| **Community validation gate**                   | Operate the Algiers community, recruit credible hosts, deliver consistently useful meetups, and measure repeat participation and host retention.                                                                                                          | Density threshold met, host loop healthy, and Founder / Product explicitly approves further product work.   |
+| **P2 — Challenges (future option)**             | Challenge creation, teams, submissions, judging, results, and associated commercial workflows, only if opened after the validation gate.                                                                                                                  | Defined only when the phase is explicitly approved.                                                         |
+| **P3 — Sponsorship and talent (future option)** | Sponsor products, measurement, dashboard, Founder Picks, and opt-in talent workflows, only if opened after the validation gate.                                                                                                                           | Defined only when the phase is explicitly approved.                                                         |
+| **P4 — Payments and expansion (future option)** | Provider automation and additional-market operations only after community, compliance, and market-specific readiness are demonstrated.                                                                                                                    | Defined only when the phase is explicitly approved.                                                         |
 
 > **Sequencing principle:** finish and operate the community release first. Do not begin the
 > hackathon, sponsorship, talent, payment, or expansion phases merely because their plans or
@@ -343,7 +345,7 @@ Storage: **Cloudflare D1** (SQLite-based, edge). ORM: **Drizzle** (portable to P
 
 ```
 Market (D1)
-  code (DZ | MA | EG | SA | AE), name, slug
+  code (DZ | EG | SA), name, slug
   default_locale, default_currency, timezone, direction (rtl|ltr)
   state (dark | open | active)
   feature_flags { events, communityOperations, hackathons, payments, recruiting }
@@ -452,7 +454,7 @@ PaymentRecord   (P4+: populated when providers are wired)
 
 Money (value object, used everywhere — never bare numbers)
   amount_minor: int   // minor units (e.g., centimes)
-  currency: string    // ISO 4217 (DZD, MAD, EGP, SAR, AED)
+  currency: string    // ISO 4217 (current markets: DZD, EGP, SAR; dormant payment foundations may retain additional codes)
 ```
 
 **Rule:** monetary values are always `{ amount_minor, currency }`. Never store or pass a bare
@@ -596,23 +598,21 @@ passing the community validation gate and receiving explicit Founder / Product a
 
 ### 10.1 Market states
 
-| State      | Visible?         | Seeded/Market?                                              | Used for                                                     |
-| ---------- | ---------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
-| **dark**   | No               | No                                                          | Future markets — exists in code/data only.                   |
-| **open**   | Yes (self-serve) | No                                                          | Anyone can post; we do not invest. Reads demand. (EG and SA) |
-| **active** | Yes              | Yes (host recruitment, marketing, partnerships, moderation) | Full operational investment. (e.g., DZ at launch)            |
+| State      | Visible?         | Seeded/Market?                                              | Used for                                      |
+| ---------- | ---------------- | ----------------------------------------------------------- | --------------------------------------------- |
+| **dark**   | No               | No                                                          | Future markets — exists in code/data only.    |
+| **open**   | Yes (self-serve) | No                                                          | Transitional state before activation.         |
+| **active** | Yes              | Yes (host recruitment, marketing, partnerships, moderation) | Full operational investment. (DZ, EG, and SA) |
 
 ### 10.2 Per-market configuration (target end-state)
 
-| Market | Default locale    | Direction | Currency | Timezone          | Payment rails (P4)                   | Launch state |
-| ------ | ----------------- | --------- | -------- | ----------------- | ------------------------------------ | ------------ |
-| 🇩🇿 DZ  | `ar` (+`fr`,`en`) | rtl       | DZD      | Africa/Algiers    | BaridiMob, CIB, Edahabia, DZ MOB PAY | **active**   |
-| 🇪🇬 EG  | `ar` (+`en`,`fr`) | rtl       | EGP      | Africa/Cairo      | InstaPay (IPN), Fawry, Vodafone Cash | **open**     |
-| 🇸🇦 SA  | `ar` (+`en`,`fr`) | rtl       | SAR      | Asia/Riyadh       | Mada, STC Pay, SARIE, Geidea         | **open**     |
-| 🇲🇦 MA  | `ar` (+`fr`,`en`) | rtl       | MAD      | Africa/Casablanca | CMI, PayZone                         | dark         |
-| 🇦🇪 AE  | `ar` (+`en`,`fr`) | rtl       | AED      | Asia/Dubai        | AANI, cards, BNPL                    | dark         |
+| Market | Default locale    | Direction | Currency | Timezone       | Payment rails (P4)                   | Launch state |
+| ------ | ----------------- | --------- | -------- | -------------- | ------------------------------------ | ------------ |
+| 🇩🇿 DZ  | `ar` (+`fr`,`en`) | rtl       | DZD      | Africa/Algiers | BaridiMob, CIB, Edahabia, DZ MOB PAY | **active**   |
+| 🇪🇬 EG  | `ar` (+`en`,`fr`) | rtl       | EGP      | Africa/Cairo   | InstaPay (IPN), Fawry, Vodafone Cash | **active**   |
+| 🇸🇦 SA  | `ar` (+`en`,`fr`) | rtl       | SAR      | Asia/Riyadh    | Mada, STC Pay, SARIE, Geidea         | **active**   |
 
-**Expansion rule:** operate DZ first. EG and SA remain self-serve `open`; either advances only after the density gate. MA and AE remain `dark` until geography and operational readiness are complete.
+**Market rule:** DZ, EG, and SA are configured as active. Adding another market requires an explicit Founder / Product decision plus geography, operational, and compliance readiness.
 
 ### 10.3 Future sponsorship research (indicative pricing, DZ)
 
@@ -700,7 +700,7 @@ admin.)
 | --------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **R-H1: Future layers distract from community validation**                        | **High** | Keep hackathons, sponsorship, talent, payments, and expansion outside the current release. Open a future phase only after the density gate and explicit Founder / Product approval. |
 | **Cold-start / no-show death spiral** (free events → 30–50% no-show → hosts quit) | High     | Density-first (one city); timely reminders and easy cancellation (FR-E10); hand-recruit first hosts.                                                                                |
-| **Ghost-town across markets** (multi-market spread thin)                          | High     | Three-state model (§10.1); density-gated activation (§2.2); seed only DZ.                                                                                                           |
+| **Ghost-town across markets** (multi-market spread thin)                          | High     | Three-state model (§10.1); density and operating evidence per active market; keep post-community expansion gated.                                                                   |
 | **D1 data ceiling** (~10 GB / DB, no auto-sharding)                               | Medium   | Drizzle→Postgres migration path; per-market D1 sharding option (§8.7).                                                                                                              |
 | **Future payment operational drag**                                               | Medium   | Do not activate payments in the community release; if later approved, start manual-first and measure operational cost before automation.                                            |
 | **Brand dilution from future commercial layers**                                  | Medium   | Keep sponsor surfaces out of the current release; if later approved, require clear disclosure and preserve the community experience.                                                |
@@ -708,13 +708,13 @@ admin.)
 | **TanStack Start maturity**                                                       | Medium   | Accept the maturity tax for type safety; mitigate with shared libs + solid testing.                                                                                                 |
 | **PWA push availability** (permission, installation, browser support)             | Medium   | Ask contextually, store preferences, and use email fallback when no valid push subscription exists; reserve SMS for same-day cancellation disruption.                               |
 | **"Why not just use Meetup or a group chat?"**                                    | Medium   | Win through trusted local curation, Arabic/French/English community context, frictionless hosting, reliable reminders, and a repeat founder ritual—not through feature breadth.     |
-| **Regulatory change** (e.g., MA CMI liberalization)                               | Low-Med  | Payment abstraction isolates per-market changes (§8.5).                                                                                                                             |
+| **Regulatory change** (market-specific)                                           | Low-Med  | Payment abstraction isolates per-market changes (§8.5).                                                                                                                             |
 
 ---
 
 ## 15. Glossary
 
-- **Market** — a country configuration. DZ is active; EG/SA are open; MA/AE are dark.
+- **Market** — a country configuration. DZ, EG, and SA are the configured active markets.
 - **City** — a geographic unit within a market where events happen.
 - **Market state** — `dark` (not visible), `open` (visible, self-serve, unseeded), `active` (fully operated).
 - **Density** — the concentration of active hosts, events, and repeat attendance in a city; the core moat and the activation gate.
@@ -744,12 +744,10 @@ admin.)
 
 - `hackathon.dz`, `Soolvit` (B2B SaaS), Algeria 2.0, Algeria Venture, Algeria Startup Challenge/Leancubator, Sonatrach/Sonelgaz/Saidal in-house challenges. **Gap:** no open, self-serve, online, locally-payable community marketplace.
 
-**Other target markets (expansion)**
+**Configured market context**
 
-- 🇲🇦 Morocco — CMI monopoly ended May 2025; Darija/French near-twin to DZ.
 - 🇪🇬 Egypt — InstaPay (IPN, 40M+ users), Fawry; large population.
 - 🇸🇦 Saudi — Mada, STC Pay, SARIE; Vision 2030 funding.
-- 🇦🇪 UAE — AANI, mature card/BNPL market; **already saturated** community space (Founder Connects, Startup Grind Dubai, LEAP, GITEX) — wedge there is curation, not first-mover.
 
 **Monetization model (B2B, invisible to founders)**
 

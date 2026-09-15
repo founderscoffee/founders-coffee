@@ -18,10 +18,9 @@ React Native/Expo is not committed scope.
 
 ## 1. Locked behavior
 
-- DZ is `active`; EG and SA are self-serve `open`; MA and AE are `dark`.
-- This is the target market policy. The current seed still marks DZ/EG/SA `active` and has no MA/AE
-  rows, so P0-007 remains blocked until code and deployed rows are aligned; do not describe EG/SA
-  as operationally open yet.
+- DZ, EG, and SA are the only configured markets, and all three are `active`.
+- MA and AE are not configured. Migration `0029_activate_launch_markets` removes any legacy rows
+  and aligns existing environments with the three active markets.
 - `/` geo-routes to a visible market and falls back to `/algeria`.
 - Canonical market URLs use slugs (`/algeria`); code aliases redirect (`/dz` → `/algeria`).
 - Locale resolution is preference/cookie → market default → `ar`. Supported locales are `ar`, `fr`, and `en`.

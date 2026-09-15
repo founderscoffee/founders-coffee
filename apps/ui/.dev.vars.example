@@ -20,7 +20,7 @@ TURNSTILE_SECRET_KEY=
 TURNSTILE_SITE_KEY=1x00000000000000000000AA
 TURNSTILE_DISABLED=true
 
-# Geo-routing dev override — Miniflare doesn't set CF-IPCountry. Set to a country code (DZ, MA)
+# Geo-routing dev override — Miniflare doesn't set CF-IPCountry. Set to a configured country code (DZ, EG, SA)
 # to test the geo-redirect for that market. Leave unset → default (Algeria).
 DEV_GEO=
 

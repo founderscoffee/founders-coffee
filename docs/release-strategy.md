@@ -27,7 +27,7 @@ quality, trust, and consistent local participation.
 
 The community-building release includes only the capabilities needed for the free local-event loop:
 
-- Algeria-first market and city discovery, with operational focus on Algiers;
+- DZ, EG, and SA active market and city discovery, with initial operational focus on Algiers;
 - passwordless member authentication and onboarding;
 - public member and host identity;
 - free café/coworking event discovery and detail;
@@ -52,7 +52,7 @@ criteria, or reasons to delay the community release:
 - hosted-challenge fees, prize payouts, billing, and payment automation;
 - talent introductions and recruiting-adjacent workflows;
 - Founder Picks and the proposed project showcase;
-- expansion operations outside the initial Algeria/Algiers community focus;
+- expansion operations outside the configured DZ/EG/SA markets;
 - a separate native mobile application;
 - AI features that do not directly improve the current community event loop.
 
