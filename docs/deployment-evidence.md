@@ -4,7 +4,7 @@ This file records account-side facts that repository code and CI cannot prove. D
 complete from configuration intent alone. Never record secrets, Turnstile responses, full IP
 addresses, session cookies, or personal test-account data.
 
-## Current operational snapshot — 2026-09-14
+## Current operational snapshot — 2026-09-15
 
 The following dated deployment records supersede older “not deployed” and “pending migration” notes
 below. Those notes remain as historical release records, but they are not the current state.
@@ -15,6 +15,7 @@ below. Those notes remain as historical release records, but they are not the cu
 | CO-03 operations schema     | Migration `0025` applied                                                                                                                                           | Migration `0025` applied                                                                                                                                           |
 | Profile contractions        | `0021` through `0025` applied in order by [run 34490988914](https://github.com/AmineYagoub/founders-coffee/actions/runs/34490988914)                               | `0021` through `0025` applied in order by [run 34492217711](https://github.com/AmineYagoub/founders-coffee/actions/runs/34492217711)                               |
 | Notification policy         | Latest staging code proves push first and email fallback; SMS is reserved for same-day cancellation                                                                | The deployed production CO-02 version predates ND-07 and still needs promotion of the current policy                                                               |
+| Admin Access and app wiring | CO-04 Access/Better Auth correlation verified                                                                                                                      | P0-004/P1-017 Access, operator role, session correlation, CSRF-origin behavior, production D1, and required secret presence verified on 2026-09-15                 |
 
 The latest GEO push ([run 34777686347](https://github.com/AmineYagoub/founders-coffee/actions/runs/34777686347))
 failed only at `format:check` because `docs/implementation-plan.md` was not Prettier-clean; no
@@ -412,7 +413,7 @@ Driven through a real browser on `admin-staging.founders.coffee`, signed in end 
 | Bidi                          | the address and the permission strings carry `dir="ltr"` inside the RTL document and read correctly                                                                                                                                            |
 
 Operator accounts: **staging one (`admin`), production zero** — confirmed by query at the time of
-this 2026-09-11 check. The production admin Worker is deployed, but no production operator account
-has been provisioned yet.
+this 2026-09-11 historical check. Production operator setup and end-to-end verification were
+subsequently completed on 2026-09-15; the historical count is retained for release traceability.
 
 **Not covered:** DO/WAF rate limiting on sign-in, the one CO-04 bullet deliberately not built.

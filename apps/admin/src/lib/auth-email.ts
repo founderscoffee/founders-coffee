@@ -3,7 +3,7 @@ import {
   createCloudflareEmailProvider,
   renderEmail,
 } from '@founders-coffee/email';
-import { NotificationEmail } from '@founders-coffee/email/templates';
+import { OtpEmail } from '@founders-coffee/email/templates';
 import { logger } from '@founders-coffee/observability';
 
 const OTP_SUBJECTS: Record<OtpType, string> = {
@@ -36,11 +36,13 @@ export const createAdminOtpEmailProvider = (
 ): EmailProvider => ({
   sendOtp: async ({ email, otp, type }) => {
     const provider = createCloudflareEmailProvider(emailBinding, defaultFrom);
-    const { html, text } = await renderEmail(NotificationEmail, {
+    const { html, text } = await renderEmail(OtpEmail, {
       locale: 'en',
       preview: 'Your founders.coffee admin sign-in code',
       greeting: 'founders.coffee operations',
-      lines: ['Use this code to continue. It expires in 5 minutes.', otp],
+      codeLabel: 'Use this code to continue.',
+      code: otp,
+      expiry: 'It expires in 5 minutes.',
       footer: 'founders.coffee',
     });
     const result = await provider.send({

@@ -39,6 +39,7 @@ const PROVIDER_LABEL: Record<(typeof OAUTH_PROVIDERS)[number], string> = {
 type LoginPageProps = {
   locale: Locale;
   turnstileSiteKey: string | null;
+  isTurnstileBypassed: boolean;
   hasSocial: boolean;
   redirect: string;
 };
@@ -46,6 +47,7 @@ type LoginPageProps = {
 export const LoginPage = ({
   locale,
   turnstileSiteKey,
+  isTurnstileBypassed,
   hasSocial,
   redirect,
 }: LoginPageProps) => {
@@ -63,7 +65,7 @@ export const LoginPage = ({
   const emailValid = /.+@.+\..+/.test(email);
 
   const sendCode = async () => {
-    if (!emailValid || !token) return;
+    if (!emailValid || (!isTurnstileBypassed && !token)) return;
     setBusy(true);
     setError(null);
     const { error: sendError } = await authClient.emailOtp.sendVerificationOtp(
@@ -168,7 +170,7 @@ export const LoginPage = ({
                   {login_help({}, { locale })}
                 </span>
               </label>
-              {turnstileSiteKey && (
+              {turnstileSiteKey && !isTurnstileBypassed && (
                 <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
               )}
               {error && (
@@ -178,7 +180,9 @@ export const LoginPage = ({
               )}
               <Button
                 onClick={sendCode}
-                disabled={!emailValid || !token || busy}
+                disabled={
+                  !emailValid || (!isTurnstileBypassed && !token) || busy
+                }
                 isFullWidth
               >
                 {busy ? (
@@ -249,7 +253,7 @@ export const LoginPage = ({
                 {login_verify({}, { locale })}
               </Button>
               <LegalNotice locale={locale} />
-              {turnstileSiteKey && (
+              {turnstileSiteKey && !isTurnstileBypassed && (
                 <Turnstile
                   sitekey={turnstileSiteKey}
                   appearance="interaction-only"

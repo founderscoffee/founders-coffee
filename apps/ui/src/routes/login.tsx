@@ -16,12 +16,14 @@ export const Route = createFileRoute('/login')({
   }),
   component: () => {
     const { locale } = Route.useRouteContext();
-    const { turnstileSiteKey, hasSocial } = Route.useLoaderData();
+    const { turnstileSiteKey, isTurnstileBypassed, hasSocial } =
+      Route.useLoaderData();
     const { redirect } = Route.useSearch();
     return (
       <LoginPage
         locale={locale}
         turnstileSiteKey={turnstileSiteKey}
+        isTurnstileBypassed={isTurnstileBypassed}
         hasSocial={hasSocial}
         redirect={redirect}
       />

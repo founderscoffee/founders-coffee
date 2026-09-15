@@ -3,7 +3,7 @@ import {
   createCloudflareEmailProvider,
   renderEmail,
 } from '@founders-coffee/email';
-import { NotificationEmail } from '@founders-coffee/email/templates';
+import { OtpEmail } from '@founders-coffee/email/templates';
 import { logger } from '@founders-coffee/observability';
 
 import { shouldEchoSignInCode, type OtpEchoEnv } from './otp-echo';
@@ -36,11 +36,13 @@ export const createOtpEmailProvider = (
       });
     }
     const provider = createCloudflareEmailProvider(emailBinding, defaultFrom);
-    const { html, text } = await renderEmail(NotificationEmail, {
+    const { html, text } = await renderEmail(OtpEmail, {
       locale: 'ar',
       preview: `رمز التحقق: ${otp}`,
       greeting: 'مرحبًا بك في founders.coffee',
-      lines: ['استخدم الرمز التالي للمتابعة. تنتهي صلاحيته خلال 5 دقائق.', otp],
+      codeLabel: 'استخدم الرمز التالي للمتابعة.',
+      code: otp,
+      expiry: 'تنتهي صلاحيته خلال 5 دقائق.',
       footer: 'founders.coffee',
     });
     const result = await provider.send({

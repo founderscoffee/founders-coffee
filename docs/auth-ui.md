@@ -36,7 +36,8 @@ The UI app adapts the auth-specific OTP interface to the general Cloudflare Emai
 - Missing Turnstile configuration fails the protected deployed endpoints closed.
 - `TURNSTILE_DISABLED=true` and development Turnstile keys are local-only.
 - Twilio development logging is local-only. The current missing-credential fallback in the shared auth provider must fail closed before phone OTP is enabled in a deployed UI.
-- Production cookie domain, HTTPS, and cross-subdomain behavior must be verified in staging.
+- Production cookie domain, HTTPS, and cross-subdomain behavior are verified in staging and
+  production.
 - The admin app remains protected by Cloudflare Access and must also verify the Access JWT inside the
   Worker. Its admin-owned Better Auth session stays on the admin origin; every privileged request
   must match the verified Access email to the verified Better Auth email and carry both the Access
@@ -47,8 +48,8 @@ The UI app adapts the auth-specific OTP interface to the general Cloudflare Emai
 - `apps/ui`: member and host authentication, onboarding, profile, and event participation.
 - `apps/dashboard`: future sponsor-only application; it remains outside the community release.
 - `apps/admin`: internal operations; Cloudflare Access, correlated Better Auth/RBAC session wiring
-  and the operations shell are implemented and staging-verified under CO-04. Production still needs
-  an operator account and promotion verification.
+  and the operations shell are implemented and verified in staging and production under CO-04,
+  P0-004, and P1-017.
 
 Onboarding in `apps/ui` now collects display-name completion only. Event market, state and city are
 selected in the event flow and remain canonical geographic values; they are never copied into a

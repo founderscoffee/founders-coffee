@@ -1,15 +1,15 @@
 # Community Operations and Admin Implementation Plan
 
-| Field          | Value                                                                                                                                                                                          |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; EC-10 signed off, CO-01 through CO-07 implemented locally, CO-02/CO-03 deployed to both environments, CO-04/CO-05 staging-verified, and CO-06/CO-07 locally verified pending promotion |
-| Last reviewed  | 2026-09-14                                                                                                                                                                                     |
-| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                                                    |
-| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                                                   |
-| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                                                 |
-| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                                                      |
-| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                                               |
-| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                                                 |
+| Field          | Value                                                                                                                                                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; EC-10 signed off, CO-01 through CO-07 implemented locally, CO-02/CO-03 deployed to both environments, and P0-004/P1-017 production admin verification complete; CO-06/CO-07 remain locally verified pending promotion |
+| Last reviewed  | 2026-09-15                                                                                                                                                                                                                    |
+| Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                                                                                   |
+| Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                                                                                  |
+| Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                                                                                |
+| Requirements   | FR-E3, FR-E4, FR-E8, FR-E10 through FR-E15, FR-M1 through FR-M4, FR-M6 through FR-M10; NFR-4, NFR-5, NFR-7 through NFR-12                                                                                                     |
+| Strategy       | [Community-first release](./release-strategy.md)                                                                                                                                                                              |
+| Related plans  | [Events System Plan](./events-system-plan.md), [Implementation Plan](./implementation-plan.md)                                                                                                                                |
 
 ## 1. Objective
 
@@ -104,19 +104,19 @@ Drizzle, domain internals, or server functions from a component.
 
 ## 4. Current baseline and gaps (reviewed 2026-09-14)
 
-| Area                      | Current evidence                                                                                                                                                         | Required result                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| Event creation            | EC-01 through EC-10 signed off; staging 18/18, production release/DNS/WAF evidence, and the authorized production smoke are recorded                                     | Preserve the dated handoff trace; no additional creation smoke is required for CO work                  |
-| RSVP                      | Immediate flow exists; full-capacity atomicity and duplicate handling are fixed by AR-04/CO-02. RSVP Turnstile remains open under P1-018                                 | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
-| Notifications             | Historical one-minute D1 polling and parallel channel scheduling were replaced by CO-02; staging push/email delivery is proven and production policy parity remains open | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                       |
-| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                                                 | Explicit held/did-not-happen closeout separate from publication status                                  |
-| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                                              | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
-| Feedback                  | No post-event participant or host pulse                                                                                                                                  | One small, optional, localized pulse per eligible person                                                |
-| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                                             | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
-| Admin app                 | Access JWT guard and the CO-04 operations shell are implemented; staging Access/Better Auth correlation is verified, while production has no operator account            | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
-| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                                            | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
-| Metrics                   | Analytics Engine binding and the first `events_created` write are verified; the account-side dashboard and remaining community metrics are not complete                  | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
-| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                                    | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
+| Area                      | Current evidence                                                                                                                                                                 | Required result                                                                                         |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Event creation            | EC-01 through EC-10 signed off; staging 18/18, production release/DNS/WAF evidence, and the authorized production smoke are recorded                                             | Preserve the dated handoff trace; no additional creation smoke is required for CO work                  |
+| RSVP                      | Immediate flow exists; full-capacity atomicity and duplicate handling are fixed by AR-04/CO-02. RSVP Turnstile remains open under P1-018                                         | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
+| Notifications             | Historical one-minute D1 polling and parallel channel scheduling were replaced by CO-02; staging push/email delivery is proven and production policy parity remains open         | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                       |
+| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                                                         | Explicit held/did-not-happen closeout separate from publication status                                  |
+| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                                                      | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
+| Feedback                  | No post-event participant or host pulse                                                                                                                                          | One small, optional, localized pulse per eligible person                                                |
+| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                                                     | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
+| Admin app                 | Access JWT guard and the CO-04 operations shell are implemented; Access/Better Auth correlation and the operator role are verified in staging and production under P0-004/P1-017 | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
+| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                                                    | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
+| Metrics                   | Analytics Engine binding and the first `events_created` write are verified; the account-side dashboard and remaining community metrics are not complete                          | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
+| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                                            | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
 
 ## 5. Locked product and data decisions
 
@@ -1262,24 +1262,24 @@ prerequisite rather than a CO-01 deliverable:
 
 Roles are seeded explicitly and revoked explicitly; none is left standing after CO-11.
 
-### E. Configuration baseline, read from the account 2026-09-14
+### E. Configuration baseline, read from the account 2026-09-15
 
-| Surface             | State                                                                                                                                                            |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1                  | `founders-coffee-db-production` and `founders-coffee-db-staging`; `verified-prof` deleted 2026-09-10 (see F)                                                     |
-| Workers             | 8 scripts — `ui`, `admin`, `dashboard`, `worker-jobs`, each in staging and production; CO-02/CO-03 are deployed in both, and CO-04/CO-05 are verified on staging |
-| Queues              | 8 — `notifications`, `embeddings-jobs`, `reconcile` and `dlq`, each per environment. All have one consumer except both DLQs, which correctly have none           |
-| R2                  | `founders-coffee-assets-{dev,staging,production}`, created 2026-09-09 for PF-06, all empty, all WEUR                                                             |
-| Access applications | staging and production admin applications are configured; staging Access correlation was verified on 2026-09-11                                                  |
-| Analytics Engine    | Public Worker binding and `events_created` write verified during EC-10; the current token cannot read account-side dashboards                                    |
-| Secrets             | not readable by design; recorded from the EC-10 preflight rather than re-read                                                                                    |
+| Surface             | State                                                                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1                  | `founders-coffee-db-production` and `founders-coffee-db-staging`; `verified-prof` deleted 2026-09-10 (see F)                                                             |
+| Workers             | 8 scripts — `ui`, `admin`, `dashboard`, `worker-jobs`, each in staging and production; CO-02/CO-03 are deployed in both, and CO-04/CO-05 are verified on staging         |
+| Queues              | 8 — `notifications`, `embeddings-jobs`, `reconcile` and `dlq`, each per environment. All have one consumer except both DLQs, which correctly have none                   |
+| R2                  | `founders-coffee-assets-{dev,staging,production}`, created 2026-09-09 for PF-06, all empty, all WEUR                                                                     |
+| Access applications | staging and production admin applications are configured; Access/Better Auth correlation, operator role, and production CSRF-origin behavior were verified on 2026-09-15 |
+| Analytics Engine    | Public Worker binding and `events_created` write verified during EC-10; the current token cannot read account-side dashboards                                            |
+| Secrets             | not readable by design; recorded from the EC-10 preflight rather than re-read                                                                                            |
 
 ### F. Two things the baseline turned up
 
-**Admin Access is configured, with environment-specific readiness.** The staging application was
-driven through Access and the admin-owned Better Auth session on 2026-09-11. The production admin
-Worker and Access application exist, but production still has zero operator accounts; it therefore
-remains unavailable to operators while continuing to fail closed without a valid assertion.
+**Admin Access is configured and verified in both environments.** The staging application was
+driven through Access and the admin-owned Better Auth session on 2026-09-11. Production operator
+setup, Access/Better Auth correlation, role authorization, and CSRF-origin behavior were verified on
+2026-09-15. Requests without a valid assertion continue to fail closed.
 
 **`verified-prof` was a D1 database belonging to a different product, and has been deleted.**
 Identified 2026-09-10: created 2026-01-20, holding a PascalCase schema — `User`, `Account`,
