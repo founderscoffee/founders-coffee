@@ -6,6 +6,7 @@ import {
   resolveNotificationContext,
   type NotificationContext,
 } from './context.js';
+import { channelPlanFor } from './channel-plan.js';
 import { armNotificationSchedule } from './schedule.js';
 import {
   emailPayloadFor,
@@ -14,6 +15,7 @@ import {
 } from './templates.js';
 import {
   enqueueNotification,
+  getNotificationContact,
   hasPendingNotification,
   cancelNotificationsByUserEvent,
   cancelNotificationsByEvent,
@@ -94,10 +96,12 @@ export const valuesFor = (
  * - `rsvp_confirmation`: immediately
  * - `reminder_72h` and `reminder_24h`: only while the event is still that far away
  *
- * Push first, email behind it, and no SMS. Each reminder used to be enqueued twice — once on SMS or
- * email and once on push — so a member with a phone and a device received the same reminder through
- * two channels at the same moment. CO-02 removed that: one row per reminder, and the fallback is
- * reached the way every other fallback is, by the primary failing permanently. PF-07a's guard makes
+ * The channel plan selects push first with email behind it when both are enabled, or email as the
+ * primary when it is the member's only selection. There is no SMS. Each reminder used to be
+ * enqueued twice — once on SMS or email and once on push — so a member with a phone and a device
+ * received the same reminder through two channels at the same moment. CO-02 removed that: one row
+ * per reminder, and the fallback is reached the way every other fallback is, by the primary failing
+ * permanently. PF-07a's guard makes
  * that path real — a member with no live device fails push permanently, which is exactly the
  * condition that writes the fallback row.
  *
@@ -133,6 +137,8 @@ export const enqueueRsvpNotifications = async (
     locale?: string | null;
   },
 ): Promise<void> => {
+  const contact = await getNotificationContact(db, opts.userId);
+  if (!contact) return;
   const context = await resolveNotificationContext(db, {
     preferred: opts.locale,
     marketCode: opts.marketCode,
@@ -140,12 +146,10 @@ export const enqueueRsvpNotifications = async (
   const locale = context.locale;
   const now = Date.now();
   const startsAtMs = opts.startsAt.getTime();
-  const channel = 'push' as const;
-  const fallback: 'email' | undefined = opts.email ? 'email' : undefined;
 
   const basePayload: NotificationPayload = {
     phoneNumber: opts.phoneNumber ?? undefined,
-    email: opts.email,
+    email: contact.email,
     eventTitle: opts.eventTitle,
     eventSlug: opts.eventSlug,
     marketCode: opts.marketCode,
@@ -156,10 +160,12 @@ export const enqueueRsvpNotifications = async (
 
   let earliest: Date | null = null;
 
-  const enqueueOnPush = async (
+  const enqueueNotificationFor = async (
     templateKey: 'rsvp_confirmation' | 'reminder_72h' | 'reminder_24h',
     sendAt: Date,
   ): Promise<void> => {
+    const plan = channelPlanFor(contact, templateKey);
+    if (!plan) return;
     if (
       await hasPendingNotification(db, {
         eventId: opts.eventId,
@@ -187,28 +193,28 @@ export const enqueueRsvpNotifications = async (
       id: id('ntf'),
       eventId: opts.eventId,
       userId: opts.userId,
-      channel,
+      channel: plan.primary,
       templateKey,
-      payload: fallback
-        ? validPayload('email', validPayload(channel, payload))
-        : validPayload(channel, payload),
+      payload: plan.fallback
+        ? validPayload(plan.fallback, validPayload(plan.primary, payload))
+        : validPayload(plan.primary, payload),
       sendAt,
-      fallbackChannel: fallback,
+      fallbackChannel: plan.fallback ?? undefined,
     });
 
     if (!earliest || sendAt < earliest) earliest = sendAt;
   };
 
-  await enqueueOnPush('rsvp_confirmation', new Date());
+  await enqueueNotificationFor('rsvp_confirmation', new Date());
 
   if (startsAtMs - now > SEVENTY_TWO_HOURS_MS)
-    await enqueueOnPush(
+    await enqueueNotificationFor(
       'reminder_72h',
       new Date(startsAtMs - SEVENTY_TWO_HOURS_MS),
     );
 
   if (startsAtMs - now > TWENTY_FOUR_HOURS_MS)
-    await enqueueOnPush(
+    await enqueueNotificationFor(
       'reminder_24h',
       new Date(startsAtMs - TWENTY_FOUR_HOURS_MS),
     );

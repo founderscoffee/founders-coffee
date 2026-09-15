@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 import {
+  accountPreferences,
   createDb,
   createEvent,
   eq,
@@ -159,7 +160,13 @@ describe('enqueued notification content is localized (AR-07)', () => {
 
 const rowsFor = async (
   db: Db,
-  opts: { email?: string; phoneNumber?: string | null },
+  opts: {
+    email?: string;
+    phoneNumber?: string | null;
+    eventUpdatesChannels?: number;
+    eventRemindersChannels?: number;
+    hostUpdatesChannels?: number;
+  },
 ) => {
   const event = await seedEvent(db);
   const memberId = `usr_prod_fb${++seq}`;
@@ -174,6 +181,18 @@ const rowsFor = async (
     })
     .onConflictDoNothing()
     .run();
+  if (
+    opts.eventUpdatesChannels !== undefined ||
+    opts.eventRemindersChannels !== undefined ||
+    opts.hostUpdatesChannels !== undefined
+  ) {
+    await db.insert(accountPreferences).values({
+      userId: memberId,
+      eventUpdatesChannels: opts.eventUpdatesChannels ?? 5,
+      eventRemindersChannels: opts.eventRemindersChannels ?? 5,
+      hostUpdatesChannels: opts.hostUpdatesChannels ?? 5,
+    });
+  }
 
   await enqueueRsvpNotifications(db, {
     eventId: event.id,
@@ -229,12 +248,34 @@ describe('what sits behind push for an RSVP (ND-07)', () => {
     expect(payload.smsBody).toBeUndefined();
   });
 
-  it('writes no fallback when there is no address to fall back to', async () => {
+  it('writes no fallback when the member selects push only', async () => {
     const db = await setupDb();
 
-    const rows = await rowsFor(db, { email: undefined });
+    const rows = await rowsFor(db, {
+      email: 'member@producer.test',
+      eventUpdatesChannels: 1,
+      eventRemindersChannels: 1,
+      hostUpdatesChannels: 1,
+    });
 
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) expect(row.fallbackChannel).toBeNull();
+  });
+
+  it('writes email as the primary channel when the member selects email only', async () => {
+    const db = await setupDb();
+
+    const rows = await rowsFor(db, {
+      email: 'member@producer.test',
+      eventUpdatesChannels: 4,
+      eventRemindersChannels: 4,
+      hostUpdatesChannels: 4,
+    });
+
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row.channel).toBe('email');
+      expect(row.fallbackChannel).toBeNull();
+    }
   });
 });

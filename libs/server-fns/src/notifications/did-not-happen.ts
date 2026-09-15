@@ -1,13 +1,16 @@
 import { formatDate } from '@founders-coffee/i18n';
 import {
   enqueueNotificationIfAbsent,
+  getNotificationContact,
   listGoingAttendees,
   type Db,
 } from '@founders-coffee/db';
 
+import { channelPlanFor } from './channel-plan.js';
 import { resolveNotificationContext } from './context.js';
 import { armNotificationSchedule } from './schedule.js';
 import { emailPayloadFor, pushPayloadFor } from './templates.js';
+import { validPayload } from './producer.js';
 
 export interface DidNotHappenEvent {
   readonly id: string;
@@ -50,8 +53,9 @@ export const didNotHappenNoticeId = (eventId: string, userId: string): string =>
  *
  * The host is skipped. They are the one who just said it did not happen.
  *
- * Push first with email behind it, per ND-07, and no SMS: a gathering that already failed to occur
- * is not the same-day disruption SMS survives for — the member is not about to set off.
+ * The channel plan selects push first with email behind it when both are enabled, or email as the
+ * primary when it is the member's only selection. There is no SMS: a gathering that already failed
+ * to occur is not the same-day disruption SMS survives for — the member is not about to set off.
  */
 export const enqueueDidNotHappenNotices = async (
   db: Db,
@@ -62,6 +66,10 @@ export const enqueueDidNotHappenNotices = async (
 
   for (const attendee of attendees) {
     if (attendee.userId === event.hostId) continue;
+    const contact = await getNotificationContact(db, attendee.userId);
+    if (!contact) continue;
+    const plan = channelPlanFor(contact, 'event_did_not_happen');
+    if (!plan) continue;
 
     const context = await resolveNotificationContext(db, {
       preferred: attendee.localePref,
@@ -88,7 +96,7 @@ export const enqueueDidNotHappenNotices = async (
     void _discarded;
 
     const payload = {
-      email: attendee.email,
+      email: contact.email,
       eventTitle: event.title,
       eventSlug: event.slug,
       marketCode: event.marketCode,
@@ -103,11 +111,13 @@ export const enqueueDidNotHappenNotices = async (
       id: didNotHappenNoticeId(event.id, attendee.userId),
       eventId: event.id,
       userId: attendee.userId,
-      channel: 'push',
+      channel: plan.primary,
       templateKey: 'event_did_not_happen',
-      payload,
+      payload: plan.fallback
+        ? validPayload(plan.fallback, validPayload(plan.primary, payload))
+        : validPayload(plan.primary, payload),
       sendAt: new Date(),
-      ...(attendee.email ? { fallbackChannel: 'email' as const } : {}),
+      fallbackChannel: plan.fallback ?? undefined,
     });
 
     if (written) sent += 1;

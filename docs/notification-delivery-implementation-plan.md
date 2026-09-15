@@ -294,7 +294,7 @@ and keeps the category booleans synchronized with whether a mask is non-zero. Th
 optimistic revision guard remains the only write gate. Destination reads include the masks so ND-05 can
 resolve the matrix without another query; delivery policy is unchanged until that ticket.
 
-### ND-05 — Producer and dispatcher honour the matrix
+### ND-05 — Producer and dispatcher honour the matrix ✅ done 2026-09-15
 
 **Depends on:** ND-04. **This is the ticket the grid actually costs.**
 
@@ -309,6 +309,16 @@ resolve the matrix without another query; delivery policy is unchanged until tha
 - `rsvp_confirmation` keeps bypassing category gates and must not bypass channel selection.
 - Acceptance: for each of the four categories, a member with only email selected receives email and
   no push; a member with nothing selected receives nothing and no fallback row is written.
+
+Implemented with a shared domain channel matrix and a server-side channel plan. RSVP confirmations
+and closeout prompts use the union of the member's category channel masks: they remain operational
+receipts/prompts without pretending to belong to a different preference row. Category templates map
+to their own mask, producers persist the selected primary plus email fallback, and the dispatcher
+re-reads the mask at send time. A category mask of zero suppresses the row and its fallback; a
+disabled primary channel remains eligible for the selected fallback. Same-day cancellation SMS is
+still the server-owned disruption path and is not exposed as a category channel. Miniflare coverage
+now exercises email-only, push-only, all-off, channel-disabled fallback, and all four category
+mappings.
 
 ### ND-06 — The grid, and delivery controls come back
 
@@ -389,8 +399,8 @@ every member, so the production deploy is now purely additive rather than a trad
   the current service-worker, push and email-fallback code before claiming end-to-end production
   delivery.
 - **The four preference switches are actionable in the current surface.** ND-03 made host updates
-  and follow-up prompts real at send time; ND-05 and ND-06 remain for channel-aware delivery and
-  the provider-state grid.
+  and follow-up prompts real at send time; ND-05 now makes their channel masks authoritative for
+  enqueue and dispatch. ND-06 remains for the provider-state grid.
 - **A per-category grid must preserve that honest promise.** The current producers and dispatchers
   have concrete keys for all four categories, so the future grid can be implemented without
   controls describing messages that do not exist.

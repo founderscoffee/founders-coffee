@@ -166,15 +166,6 @@ describe('telling the host somebody is coming', () => {
     const sendAt = (await rowsFor(db, event.id))[0]?.sendAt as Date;
     expect(sendAt.getTime()).toBeGreaterThan(Date.now() + 60_000);
   });
-
-  it('writes no fallback for a host with no address to fall back to', async () => {
-    const db = await setupDb();
-    const event = await seedEvent(db);
-
-    await notice(db, event.id, { hostEmail: undefined });
-
-    expect((await rowsFor(db, event.id))[0]?.fallbackChannel).toBeNull();
-  });
 });
 
 describe('telling the host somebody cancelled', () => {

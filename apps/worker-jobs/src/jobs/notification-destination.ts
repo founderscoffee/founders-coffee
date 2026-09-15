@@ -6,6 +6,7 @@ import {
   type Db,
   type ScheduledNotification,
 } from '@founders-coffee/db';
+import { notifications } from '@founders-coffee/domain';
 
 export type Destination =
   | { readonly channel: 'sms'; readonly phoneNumber: string }
@@ -108,7 +109,11 @@ export const resolveDestination = async (
     !contact.eventReminders
   )
     return unreachable('event_reminders_off', true);
-  if (templateKey === 'event_cancelled' && !contact.eventUpdates)
+  if (
+    (templateKey === 'event_cancelled' ||
+      templateKey === 'event_did_not_happen') &&
+    !contact.eventUpdates
+  )
     return unreachable('event_updates_off', true);
   if (
     (templateKey === 'rsvp_received' || templateKey === 'rsvp_cancelled') &&
@@ -118,6 +123,17 @@ export const resolveDestination = async (
 
   if (templateKey === 'feedback_invitation' && !contact.followUpPrompts)
     return unreachable('follow_up_prompts_off', true);
+
+  const categoryMask = notifications.notificationMaskForTemplate(
+    templateKey,
+    contact,
+  );
+  if (categoryMask === 0) return unreachable('notification_channels_off', true);
+  if (
+    (channel === 'push' || channel === 'email') &&
+    !notifications.isNotificationChannelEnabled(categoryMask, channel)
+  )
+    return unreachable(`${channel}_disabled`, false);
 
   if (
     (templateKey === 'closeout_prompt' ||

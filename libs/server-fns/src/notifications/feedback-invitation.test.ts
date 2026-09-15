@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { sql } from 'drizzle-orm';
 import {
+  accountPreferences,
   eq,
   eventAttendance,
   scheduledNotifications,
@@ -70,6 +71,13 @@ describe('feedback invitation fan-out', () => {
       startsAt: new Date(),
       endsAt: new Date(),
     };
+    await db
+      .insert(accountPreferences)
+      .values({ userId: MEMBER_ID, followUpPromptsChannels: 5 })
+      .onConflictDoUpdate({
+        target: accountPreferences.userId,
+        set: { followUpPromptsChannels: 5, followUpPrompts: true },
+      });
     expect(await enqueueFeedbackInvitations(db, event)).toBe(1);
     expect(await enqueueFeedbackInvitations(db, event)).toBe(0);
     const rows = await db
@@ -80,6 +88,56 @@ describe('feedback invitation fan-out', () => {
       feedbackInvitationId(eventId, MEMBER_ID),
     ]);
     expect(rows[0]?.fallbackChannel).toBe('email');
+  });
+
+  it('uses email as the primary channel when it is the only selection', async () => {
+    const eventId = await pastEvent(db);
+    await submitCloseout(db, {
+      eventId,
+      actorId: HOST_ID,
+      outcome: 'held',
+      walkInCount: 0,
+      wouldHostAgain: null,
+      hostFriction: [],
+      auditId: id('audit'),
+    });
+    await db.insert(eventAttendance).values({
+      id: id('att'),
+      eventId,
+      userId: MEMBER_ID,
+      marketCode: 'DZ',
+      stateCode: '16',
+      cityCode: '1',
+      outcome: 'attended',
+      recordedByUserId: HOST_ID,
+    });
+    await db
+      .insert(accountPreferences)
+      .values({ userId: MEMBER_ID, followUpPromptsChannels: 4 })
+      .onConflictDoUpdate({
+        target: accountPreferences.userId,
+        set: { followUpPromptsChannels: 4, followUpPrompts: true },
+      });
+
+    const scheduled = await enqueueFeedbackInvitations(db, {
+      id: eventId,
+      marketCode: 'DZ',
+      title: 'Coffee + Code',
+      venue: 'Café',
+      slug: 'coffee',
+      startsAt: new Date(),
+      endsAt: new Date(),
+    });
+    const row = (
+      await db
+        .select()
+        .from(scheduledNotifications)
+        .where(eq(scheduledNotifications.eventId, eventId))
+    )[0];
+
+    expect(scheduled).toBe(1);
+    expect(row?.channel).toBe('email');
+    expect(row?.fallbackChannel).toBeNull();
   });
 
   it('does not invite after a closeout arrives more than seven days late', async () => {

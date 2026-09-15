@@ -126,6 +126,7 @@ export const enqueue = async (
       | 'rsvp_confirmation'
       | 'reminder_72h'
       | 'reminder_24h'
+      | 'event_cancelled'
       | 'rsvp_received'
       | 'rsvp_cancelled'
       | 'feedback_invitation';

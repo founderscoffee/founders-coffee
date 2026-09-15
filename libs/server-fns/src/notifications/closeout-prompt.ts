@@ -6,9 +6,11 @@ import {
   type Db,
 } from '@founders-coffee/db';
 
+import { channelPlanFor } from './channel-plan.js';
 import { closeoutUrlFor, resolveNotificationContext } from './context.js';
 import { armNotificationSchedule } from './schedule.js';
 import { emailPayloadFor, pushPayloadFor } from './templates.js';
+import { validPayload } from './producer.js';
 
 export interface CloseoutPromptEvent {
   readonly id: string;
@@ -22,7 +24,7 @@ export interface CloseoutPromptEvent {
 }
 
 export type CloseoutPromptOutcome =
-  'scheduled' | 'already_scheduled' | 'no_end_time';
+  'scheduled' | 'already_scheduled' | 'no_end_time' | 'no_channels';
 
 /**
  * The row's id, derived from the event rather than generated.
@@ -45,8 +47,9 @@ export const closeoutPromptId = (eventId: string): string =>
  * event ends, and §5.24 makes an event with no recorded end a first-class case rather than bad data
  * — so one without an end is refused here instead of being given an inferred one.
  *
- * Push first with email behind it, per ND-07. No SMS: `smsBodyFor` excludes this key in its type,
- * because being asked how it went is not the same-day disruption SMS survives for.
+ * The channel plan selects push first with email behind it when both are enabled, or email as the
+ * primary when it is the member's only selection. No SMS: `smsBodyFor` excludes this key in its
+ * type, because being asked how it went is not the same-day disruption SMS survives for.
  *
  * The market flag is deliberately **not** checked here. §5 gates delivery, and delivery is gated at
  * send time in `resolveDestination`, which is the one place every channel already passes through and
@@ -61,6 +64,9 @@ export const enqueueCloseoutPrompt = async (
   if (!event.endsAt) return 'no_end_time';
 
   const contact = await getNotificationContact(db, event.hostId);
+  if (!contact) return 'no_channels';
+  const plan = channelPlanFor(contact, 'closeout_prompt');
+  if (!plan) return 'no_channels';
   const context = await resolveNotificationContext(db, {
     preferred: contact?.localePref ?? null,
     marketCode: event.marketCode,
@@ -104,11 +110,13 @@ export const enqueueCloseoutPrompt = async (
     id: closeoutPromptId(event.id),
     eventId: event.id,
     userId: event.hostId,
-    channel: 'push',
+    channel: plan.primary,
     templateKey: 'closeout_prompt',
-    payload,
+    payload: plan.fallback
+      ? validPayload(plan.fallback, validPayload(plan.primary, payload))
+      : validPayload(plan.primary, payload),
     sendAt,
-    ...(contact?.email ? { fallbackChannel: 'email' as const } : {}),
+    fallbackChannel: plan.fallback ?? undefined,
   });
 
   if (!written) return 'already_scheduled';

@@ -10,6 +10,7 @@ import {
 } from '@founders-coffee/db';
 
 import { feedbackUrlFor, resolveNotificationContext } from './context.js';
+import { channelPlanFor } from './channel-plan.js';
 import { armNotificationSchedule } from './schedule.js';
 import { emailPayloadFor, pushPayloadFor } from './templates.js';
 import { validPayload } from './producer.js';
@@ -51,6 +52,8 @@ export const enqueueFeedbackInvitations = async (
       preferred: contact.localePref,
       marketCode: event.marketCode,
     });
+    const plan = channelPlanFor(contact, 'feedback_invitation');
+    if (!plan) continue;
     const values = {
       title: event.title,
       venue: event.venue,
@@ -78,11 +81,13 @@ export const enqueueFeedbackInvitations = async (
       id: feedbackInvitationId(event.id, member.userId),
       eventId: event.id,
       userId: member.userId,
-      channel: 'push',
+      channel: plan.primary,
       templateKey: 'feedback_invitation',
-      payload: validPayload('email', validPayload('push', payload)),
+      payload: plan.fallback
+        ? validPayload(plan.fallback, validPayload(plan.primary, payload))
+        : validPayload(plan.primary, payload),
       sendAt,
-      fallbackChannel: 'email',
+      fallbackChannel: plan.fallback ?? undefined,
     });
     if (result.written) scheduled += 1;
   }
