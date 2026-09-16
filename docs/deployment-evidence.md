@@ -21,6 +21,19 @@ failed only at `format:check` because `docs/implementation-plan.md` was not Pret
 migration or deployment job ran. The formatting fix in this change is intended to make that gate
 green on the next CI run.
 
+## P0-020 rollback guardrails — staging, 2026-09-16
+
+The new `release-state.mjs capture` command was run against the live staging account. It returned a
+valid release-state artifact with the current D1 Time Travel bookmark, migration head
+`0029_activate_launch_markets`, and all four Workers at a single 100% version. A second read-only
+check confirmed every captured Worker version remains in Cloudflare deployment history. The
+bookmark is intentionally not reproduced here; it is retained only in the protected artifact.
+
+The existing deployed SEO smoke contract then checked staging end to end: 18 routes across `ar`,
+`fr`, and `en`, with zero failures. No Worker rollback or D1 restore was executed during this
+verification because both operations change live state; the manual Rollback workflow is the
+operator-controlled path for an incident, while D1 restore requires explicit incident approval.
+
 ## EC-06 event-create anti-abuse
 
 | Check                           | Staging                                                                                                      | Production                                                                   |

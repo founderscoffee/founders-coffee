@@ -31,6 +31,7 @@
     "migrate:local": "nx run worker-jobs:migrate:local",
     "migrate:staging": "nx run worker-jobs:migrate:staging",
     "migrate:production": "nx run worker-jobs:migrate:production",
+    "rollback:staging": "node tools/deploy/staging-rollback-drill.mjs",
     "deploy:staging": "nx run-many -t deploy:staging",
     "deploy:production": "nx run-many -t deploy:production",
     "seo:smoke": "node tools/seo/smoke.mjs"
