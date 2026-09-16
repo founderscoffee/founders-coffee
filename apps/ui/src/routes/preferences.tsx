@@ -9,8 +9,8 @@ export const Route = createFileRoute('/preferences')({
     'X-Robots-Tag': NO_INDEX_VALUE,
   }),
   component: () => {
-    const { locale } = Route.useRouteContext();
-    return <PreferencesPage locale={locale} />;
+    const { locale, markets } = Route.useRouteContext();
+    return <PreferencesPage locale={locale} markets={markets} />;
   },
   head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
 });

@@ -21,6 +21,7 @@ import { appErrorCode } from '@founders-coffee/core';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { ProfileSectionNav } from '../../account/components/ProfileSectionNav';
 import type { AccountPreferencesView } from '../api';
+import { marketCodeFor } from '../device-location';
 import {
   draftFrom,
   hasChanges,
@@ -28,7 +29,11 @@ import {
   toInput,
   type PreferencesDraft,
 } from '../draft';
-import { useMyPreferences, useSavePreferences } from '../hooks';
+import {
+  useDevicePushState,
+  useMyPreferences,
+  useSavePreferences,
+} from '../hooks';
 import { CategoryGroup, LanguageGroup } from './PreferenceGroups';
 
 const saveErrorFor = (error: unknown, locale: Locale): string => {
@@ -42,12 +47,15 @@ const saveErrorFor = (error: unknown, locale: Locale): string => {
 
 const PreferencesForm = ({
   locale,
+  marketCode,
   view,
 }: {
   locale: Locale;
+  marketCode: string;
   view: AccountPreferencesView;
 }) => {
   const [draft, setDraft] = useState<PreferencesDraft>(() => draftFrom(view));
+  const push = useDevicePushState(marketCode);
   const save = useSavePreferences();
 
   useEffect(() => setDraft(draftFrom(view)), [view]);
@@ -75,7 +83,14 @@ const PreferencesForm = ({
         onChange={(next) => change({ locale: next })}
       />
 
-      <CategoryGroup locale={locale} draft={draft} onChange={change} />
+      <CategoryGroup
+        locale={locale}
+        draft={draft}
+        pushState={push.state}
+        isEnabling={push.isEnabling}
+        onEnablePush={push.enable}
+        onChange={change}
+      />
 
       <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100 p-4">
         <p
@@ -115,7 +130,13 @@ const PreferencesForm = ({
   );
 };
 
-export const PreferencesPage = ({ locale }: { locale: Locale }) => {
+export const PreferencesPage = ({
+  locale,
+  markets,
+}: {
+  locale: Locale;
+  markets: readonly { code: string; slug: string }[];
+}) => {
   const query = useMyPreferences();
   const isLoading =
     query.isAuthLoading ||
@@ -128,7 +149,11 @@ export const PreferencesPage = ({ locale }: { locale: Locale }) => {
         <h1 className="sr-only">{prefs_title({}, { locale })}</h1>
 
         {query.data ? (
-          <PreferencesForm locale={locale} view={query.data} />
+          <PreferencesForm
+            locale={locale}
+            marketCode={marketCodeFor(markets)}
+            view={query.data}
+          />
         ) : query.isError && query.userId ? (
           <p role="alert" className="text-body-sm text-error">
             {prefs_unavailable({}, { locale })}

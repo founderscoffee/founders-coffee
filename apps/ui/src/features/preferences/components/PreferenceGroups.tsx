@@ -3,21 +3,16 @@ import {
   prefs_always_on,
   prefs_categories_note,
   prefs_categories_title,
-  prefs_event_reminders,
-  prefs_event_reminders_note,
-  prefs_event_updates,
-  prefs_event_updates_note,
-  prefs_follow_up,
-  prefs_follow_up_note,
-  prefs_host_updates,
-  prefs_host_updates_note,
+  prefs_delivery_note,
+  prefs_delivery_title,
   prefs_language_title,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Select } from '@founders-coffee/ui';
 
 import type { NotificationDraft } from '../draft';
-import { PreferenceToggle } from './PreferenceToggle';
+import type { PushState } from '../push-state';
+import { NotificationChannelGrid } from './NotificationChannelGrid';
 
 const LOCALE_LABELS: Record<Locale, string> = {
   ar: 'عربية',
@@ -71,39 +66,37 @@ export const LanguageGroup = ({
 export const CategoryGroup = ({
   locale,
   draft,
+  pushState,
+  isEnabling,
+  onEnablePush,
   onChange,
 }: {
   locale: Locale;
   draft: NotificationDraft;
+  pushState: PushState;
+  isEnabling: boolean;
+  onEnablePush: () => Promise<boolean>;
   onChange: (changes: Partial<NotificationDraft>) => void;
 }) => (
   <Group
     title={prefs_categories_title({}, { locale })}
     note={prefs_categories_note({}, { locale })}
   >
-    <PreferenceToggle
-      label={prefs_event_updates({}, { locale })}
-      note={prefs_event_updates_note({}, { locale })}
-      checked={draft.eventUpdates}
-      onChange={(eventUpdates) => onChange({ eventUpdates })}
-    />
-    <PreferenceToggle
-      label={prefs_event_reminders({}, { locale })}
-      note={prefs_event_reminders_note({}, { locale })}
-      checked={draft.eventReminders}
-      onChange={(eventReminders) => onChange({ eventReminders })}
-    />
-    <PreferenceToggle
-      label={prefs_host_updates({}, { locale })}
-      note={prefs_host_updates_note({}, { locale })}
-      checked={draft.hostUpdates}
-      onChange={(hostUpdates) => onChange({ hostUpdates })}
-    />
-    <PreferenceToggle
-      label={prefs_follow_up({}, { locale })}
-      note={prefs_follow_up_note({}, { locale })}
-      checked={draft.followUpPrompts}
-      onChange={(followUpPrompts) => onChange({ followUpPrompts })}
+    <div className="border-b border-base-200 pb-4">
+      <h3 className="font-display text-h5">
+        {prefs_delivery_title({}, { locale })}
+      </h3>
+      <p className="mt-1 text-body-sm text-neutral">
+        {prefs_delivery_note({}, { locale })}
+      </p>
+    </div>
+    <NotificationChannelGrid
+      locale={locale}
+      draft={draft}
+      pushState={pushState}
+      isEnabling={isEnabling}
+      onEnablePush={onEnablePush}
+      onChange={onChange}
     />
     <p className="mt-3 text-caption text-neutral">
       {prefs_always_on({}, { locale })}

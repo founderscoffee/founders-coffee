@@ -2,7 +2,7 @@
 
 | Field          | Value                                                                                                                                                           |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | ND-00 through ND-04 complete in code (including ND-03c); staging delivery is proven; production still needs the post-CO-02 ND-07 promotion                      |
+| Status         | ND-00 through ND-06 complete in code (including ND-03c); staging delivery is proven; production still needs the post-CO-02 ND-07 promotion                      |
 | Decision date  | 2026-09-10                                                                                                                                                      |
 | Owner          | Founder / Product                                                                                                                                               |
 | Scope          | Make push deliver, make every notification category real, and give the member per-category channel control                                                      |
@@ -112,10 +112,9 @@ credentials return `20008` on every call and look like a delivery.
 - Deleted the _كيف نصل إليك_ group (push status row, SMS consent row, go-to-account link) and the
   _هذا الجهاز_ group from `/preferences`. Deleted `PushRow.tsx`, `PreferencesDelivery.test.tsx`,
   `SmsRow`, `DeviceLocationGroup`, and the six `prefs_location_*` keys in all three locales.
-- **Retained deliberately, currently unreferenced by any component:** `push-state.ts`,
-  `useDevicePushState`, `push/client.ts`, `device-location.ts`, and the `push_*` / `prefs_sms_*` /
-  `prefs_delivery_*` copy. ND-06 re-attaches all of it. This is a documented gap with a named owner
-  ticket, not dead code left to rot — if ND-06 is abandoned, delete them.
+- **Retained deliberately and now reattached by ND-06:** `push-state.ts`, `useDevicePushState`,
+  `push/client.ts`, `device-location.ts`, and the `push_*` / `prefs_sms_*` / `prefs_delivery_*` copy
+  remain the shared provider-state and permission-request path for the channel grid.
 - Push permission can still be granted: `RsvpSection.tsx:181` offers it at RSVP time.
 
 ### ND-01 — Make the service worker ship, register, and receive — done 2026-09-10
@@ -320,7 +319,7 @@ still the server-owned disruption path and is not exposed as a category channel.
 now exercises email-only, push-only, all-off, channel-disabled fallback, and all four category
 mappings.
 
-### ND-06 — The grid, and delivery controls come back
+### ND-06 — The grid, and delivery controls come back ✅ implemented 2026-09-16
 
 **Depends on:** ND-05.
 
@@ -337,6 +336,24 @@ mappings.
   with channel chips beneath its label. Arabic is the primary case, not the check at the end.
 - Acceptance: 390/768/1280 in `ar`, `fr`, `en`; every push state renders its own sentence; an
   all-off category reads as off without a second control saying the same thing.
+
+Implementation and audit:
+
+- `NotificationChannelGrid` now owns the four category rows and the deployment-backed channel
+  cells. Email is always present because every member has a verified email; push is omitted only
+  when the live provider state is `unavailable`. SMS remains server-owned for same-day cancellation
+  disruption and is not exposed here.
+- The push cell is the permission gesture for `not_requested` and `granted_unregistered`. The hook
+  returns whether registration succeeded, so a denied prompt or failed registration cannot alter a
+  category's saved mask. Registered devices can toggle push directly, while blocked and unavailable
+  states remain honest and allow an already-selected channel to be turned off.
+- The grid uses one accessible checkbox per category/channel, with desktop columns at `md` and
+  mobile chips below each category label. All nine `PushState` values have an i18n explanation in
+  `ar`, `fr`, and `en`; the delivery note now describes the actual email fallback.
+- When push is unavailable, hidden push selections are excluded from the rendered mask so a legacy
+  push-only category can be switched to email or fully turned off.
+- Focused component, draft, lint, and typecheck audits pass. Live-device delivery evidence remains
+  the ND-08 release gate and is not claimed by this local implementation ticket.
 
 ### ND-07 — Decide about email — decided and applied 2026-09-10
 
@@ -398,16 +415,16 @@ every member, so the production deploy is now purely additive rather than a trad
 - **Production policy parity is open.** The production Worker version predates ND-01/ND-07; promote
   the current service-worker, push and email-fallback code before claiming end-to-end production
   delivery.
-- **The four preference switches are actionable in the current surface.** ND-03 made host updates
-  and follow-up prompts real at send time; ND-05 now makes their channel masks authoritative for
-  enqueue and dispatch. ND-06 remains for the provider-state grid.
-- **A per-category grid must preserve that honest promise.** The current producers and dispatchers
-  have concrete keys for all four categories, so the future grid can be implemented without
-  controls describing messages that do not exist.
+- **The four preference rows are actionable in the current surface.** ND-03 made host updates and
+  follow-up prompts real at send time; ND-05 now makes their channel masks authoritative for enqueue
+  and dispatch. ND-06 connects those masks to the provider-state grid without adding a second global
+  switch.
+- **A per-category grid preserves that honest promise.** The current producers and dispatchers have
+  concrete keys for all four categories, so every cell describes a message that actually exists.
 - **iOS web push needs the Home-Screen install.** Even after ND-01, an iOS member who has not
   installed the app cannot receive push, and the grid must say so rather than showing a dead switch.
   Everywhere else a plain browser tab is enough; see §2.1. On the Algerian traffic mix that is a
   ~10-12% minority path, so it is a sentence to write well, not a reason to build an app.
 - **The push column must hide itself when unconfigured.** The failure this plan starts from is a
-  control rendered for a channel with no provider. ND-06 must read the real provider state, not a
-  build-time flag.
+  control rendered for a channel with no provider. The implemented ND-06 grid reads the real
+  provider state, not a build-time flag.

@@ -21,6 +21,20 @@ failed only at `format:check` because `docs/implementation-plan.md` was not Pret
 migration or deployment job ran. The formatting fix in this change is intended to make that gate
 green on the next CI run.
 
+## P0-007 market configuration verification — 2026-09-16
+
+Read-only Wrangler D1 checks against both deployed databases returned exactly these rows:
+
+| Environment | Database                        | Market rows                           |
+| ----------- | ------------------------------- | ------------------------------------- |
+| Staging     | `founders-coffee-db-staging`    | `DZ=active`, `EG=active`, `SA=active` |
+| Production  | `founders-coffee-db-production` | `DZ=active`, `EG=active`, `SA=active` |
+
+No `MA` or `AE` rows were returned. `wrangler d1 migrations list --remote --env staging` and the
+equivalent production command both reported no migrations to apply, confirming that the committed
+`0029_activate_launch_markets` migration is applied in each environment. The checks read three rows,
+wrote zero rows, and changed no database state.
+
 ## P0-020 rollback guardrails — staging, 2026-09-16
 
 The new `release-state.mjs capture` command was run against the live staging account. It returned a
