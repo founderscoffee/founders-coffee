@@ -90,16 +90,16 @@ jobs:
             --worker-jobs-version "$WORKER_JOBS_VERSION"
 
       - name: Roll back UI Worker
-        run: npx wrangler rollback "$UI_VERSION" --name "founders-coffee-ui-$TARGET_ENV" --yes --message "P0-020 Worker rollback"
+        run: npx wrangler rollback "$UI_VERSION" --config apps/ui/wrangler.jsonc --env "$TARGET_ENV" --yes --message "P0-020 Worker rollback"
 
       - name: Roll back dashboard Worker
-        run: npx wrangler rollback "$DASHBOARD_VERSION" --name "founders-coffee-dashboard-$TARGET_ENV" --yes --message "P0-020 Worker rollback"
+        run: npx wrangler rollback "$DASHBOARD_VERSION" --config apps/dashboard/wrangler.jsonc --env "$TARGET_ENV" --yes --message "P0-020 Worker rollback"
 
       - name: Roll back admin Worker
-        run: npx wrangler rollback "$ADMIN_VERSION" --name "founders-coffee-admin-$TARGET_ENV" --yes --message "P0-020 Worker rollback"
+        run: npx wrangler rollback "$ADMIN_VERSION" --config apps/admin/wrangler.jsonc --env "$TARGET_ENV" --yes --message "P0-020 Worker rollback"
 
       - name: Roll back worker-jobs Worker
-        run: npx wrangler rollback "$WORKER_JOBS_VERSION" --name "founders-coffee-worker-jobs-$TARGET_ENV" --yes --message "P0-020 Worker rollback"
+        run: npx wrangler rollback "$WORKER_JOBS_VERSION" --config apps/worker-jobs/wrangler.jsonc --env "$TARGET_ENV" --yes --message "P0-020 Worker rollback"
 
       - name: Resolve SEO smoke origin
         id: seo-origin

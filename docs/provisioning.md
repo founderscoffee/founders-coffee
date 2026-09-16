@@ -161,6 +161,10 @@ artifacts.
 To exercise the complete staging path with one guarded command, run `npm run rollback:staging` from
 the repository root. It deploys the current `develop` revision, rolls back the captured Worker
 versions, verifies the SEO smoke contract, and redeploys the latest code without changing D1.
+If GitHub cannot dispatch `rollback.yml` because the workflow has not reached the default branch,
+the command performs the same Worker-only rollback locally with each Worker's canonical Wrangler
+config, then continues with the final deploy. A failed rollback stops before the final deploy so an
+operator can inspect the mixed state and recover deliberately.
 
 ## 4. Seed the markets
 

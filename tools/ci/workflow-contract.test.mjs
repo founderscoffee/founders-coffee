@@ -18,6 +18,10 @@ const packageManifest = JSON.parse(
 const ciWorkflow = workflow('ci.yml');
 const deployWorkflow = workflow('deploy.yml');
 const rollbackWorkflow = workflow('rollback.yml');
+const stagingDrill = fs.readFileSync(
+  path.join(import.meta.dirname, '..', 'deploy', 'staging-rollback-drill.mjs'),
+  'utf8',
+);
 
 describe('verified staging tree workflow contract', () => {
   it('does not accept caller-controlled reuse evidence', () => {
@@ -69,8 +73,23 @@ describe('rollback workflow contract', () => {
     }
     expect(rollbackWorkflow).toContain('validate-rollback');
     expect(rollbackWorkflow).toContain('wrangler rollback');
+    for (const config of [
+      'apps/ui/wrangler.jsonc',
+      'apps/dashboard/wrangler.jsonc',
+      'apps/admin/wrangler.jsonc',
+      'apps/worker-jobs/wrangler.jsonc',
+    ]) {
+      expect(rollbackWorkflow).toContain(`--config ${config}`);
+    }
     expect(rollbackWorkflow).not.toContain('time-travel restore');
     expect(rollbackWorkflow).not.toContain('restore_database');
+  });
+
+  it('keeps the staging drill runnable before rollback.yml reaches the default branch', () => {
+    expect(stagingDrill).toContain('local Wrangler staging fallback');
+    expect(stagingDrill).toContain("'wrangler'");
+    expect(stagingDrill).toContain("'https://staging.founders.coffee'");
+    expect(stagingDrill).not.toContain('time-travel restore');
   });
 
   it('runs smoke verification only after every Worker rollback', () => {

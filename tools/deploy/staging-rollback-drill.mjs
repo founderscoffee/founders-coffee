@@ -8,6 +8,13 @@ import { validateReleaseState } from './release-state-core.mjs';
 
 const execFileAsync = promisify(execFile);
 const repositoryRoot = process.cwd();
+const workerKeys = ['ui', 'dashboard', 'admin', 'workerJobs'];
+const workerConfigs = {
+  ui: 'apps/ui/wrangler.jsonc',
+  dashboard: 'apps/dashboard/wrangler.jsonc',
+  admin: 'apps/admin/wrangler.jsonc',
+  workerJobs: 'apps/worker-jobs/wrangler.jsonc',
+};
 const temporaryRoot = path.join(
   '/tmp',
   `founders-coffee-rollback-${Date.now()}`,
@@ -15,6 +22,15 @@ const temporaryRoot = path.join(
 
 const runGh = async (args, options = {}) => {
   const { stdout } = await execFileAsync('gh', args, {
+    cwd: repositoryRoot,
+    maxBuffer: 2 * 1024 * 1024,
+    ...options,
+  });
+  return stdout.trim();
+};
+
+const runCommand = async (command, args, options = {}) => {
+  const { stdout } = await execFileAsync(command, args, {
     cwd: repositoryRoot,
     maxBuffer: 2 * 1024 * 1024,
     ...options,
@@ -115,12 +131,77 @@ const downloadState = async (runId) => {
 };
 
 const rollbackFields = (state) =>
-  Object.entries(state.workers).flatMap(([key, worker]) => [
-    [
-      key === 'workerJobs' ? 'worker_jobs_version' : `${key}_version`,
-      worker.versionId,
-    ],
+  workerKeys.map((key) => [
+    key === 'workerJobs' ? 'worker_jobs_version' : `${key}_version`,
+    state.workers[key].versionId,
   ]);
+
+const rollbackWorkflowUnavailable = (error) =>
+  error instanceof Error &&
+  /HTTP 404: workflow rollback\.yml not found on the default branch/u.test(
+    error.message,
+  );
+
+const verifyLocalRollbackTargets = async (state) => {
+  await runCommand('node', [
+    'tools/deploy/release-state.mjs',
+    'verify-targets',
+    '--environment',
+    'staging',
+    ...rollbackFields(state).flatMap(([key, value]) => [
+      `--${key.replaceAll('_', '-')}`,
+      value,
+    ]),
+  ]);
+};
+
+const rollbackWorkersLocally = async (state) => {
+  await verifyLocalRollbackTargets(state);
+  for (const key of workerKeys) {
+    const worker = state.workers[key];
+    await runCommand('npx', [
+      '--no-install',
+      'wrangler',
+      'rollback',
+      worker.versionId,
+      '--config',
+      workerConfigs[key],
+      '--env',
+      'staging',
+      '--yes',
+      '--message',
+      'P0-020 staging rollback drill',
+    ]);
+  }
+  const smokeDirectory = path.join(temporaryRoot, 'rollback-smoke');
+  fs.mkdirSync(smokeDirectory, { recursive: true });
+  await runCommand('node', [
+    'tools/seo/smoke.mjs',
+    '--origin',
+    'https://staging.founders.coffee',
+    '--canonical-origin',
+    'https://staging.founders.coffee',
+    '--output',
+    path.join(smokeDirectory, 'seo-route-report.json'),
+    '--sitemap-output',
+    path.join(smokeDirectory, 'sitemap.xml'),
+  ]);
+};
+
+const rollbackStaging = async (state) => {
+  try {
+    await dispatchAndWatch('rollback.yml', [
+      ['environment', 'staging'],
+      ...rollbackFields(state),
+    ]);
+  } catch (error) {
+    if (!rollbackWorkflowUnavailable(error)) throw error;
+    process.stdout.write(
+      'rollback.yml is not on the default branch; using the local Wrangler staging fallback\n',
+    );
+    await rollbackWorkersLocally(state);
+  }
+};
 
 const main = async () => {
   await requireConfirmation();
@@ -134,10 +215,7 @@ const main = async () => {
   process.stdout.write(
     'Captured rollback state is valid; rollback will leave D1 untouched\n',
   );
-  await dispatchAndWatch('rollback.yml', [
-    ['environment', 'staging'],
-    ...rollbackFields(state),
-  ]);
+  await rollbackStaging(state);
   process.stdout.write(
     'Staging rollback drill passed; restoring latest code\n',
   );
