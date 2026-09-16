@@ -24,9 +24,5 @@
   "0022_remove_photo_visibility": "irreversible",
   "0023_simplify_profile_introduction": "irreversible",
   "0024_remove_profile_community_role": "irreversible",
-  "0025_woozy_apocalypse": "compatible",
-  "0026_enable_community_operations": "compatible",
-  "0027_enable_community_operations_all_markets": "compatible",
-  "0028_notification_category_channels": "compatible",
-  "0029_activate_launch_markets": "irreversible"
+  "0025_woozy_apocalypse": "compatible"
 }
