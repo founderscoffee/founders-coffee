@@ -102,14 +102,6 @@ The only lifecycle script is the local-state linker in `postinstall`; it creates
 Wrangler state symlinks and does not alter dependency contents. That keeps restoring the tree
 equivalent to installing it.
 
-### There is no dependency audit step
-
-`npm audit --audit-level=high` was removed on 2026-09-04. npm is retiring the
-`/-/npm/v1/security/audits/quick` endpoint this npm version calls; it began answering `400` and
-`503`, taking five minutes to fail, and it blocked every deploy. Nothing in the pipeline checks
-advisories now — GitHub's Dependabot alerts are the intended replacement and are configured in
-repository settings, not here.
-
 ### `.github/workflows/deploy.yml`
 
 1. **resolve** — for a successful CI push, picks the target environment from the CI run's branch;

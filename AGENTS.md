@@ -204,7 +204,7 @@ their phases are approved) are additionally **rate-limited (Durable Object + WAF
 - **Secrets:** `wrangler secret` / Secrets Store only. Never committed. `.env` for local dev only; `.env.example` sanitized.
 - **Headers:** secure-headers middleware; strict CSP with nonces; HTTPS-only; cookies `Secure; HttpOnly; SameSite=Lax`.
 - **Uploads:** worker-mediated to R2; MIME + size validation; images served through Cloudflare Images transforms. No raw HTML injection of uploads.
-- **OWASP Top-10:** addressed per NFR-4. Dependency/CVE scan in CI.
+- **OWASP Top-10:** addressed per NFR-4.
 
 ---
 

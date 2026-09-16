@@ -266,7 +266,7 @@ Completion evidence:
 - The map starts at the server-resolved city viewport, constrains panning to its bounds, requests geolocation only from the explicit locate control, and invalidates the selected venue while click/drag reverse lookup is pending. Search and map loading, empty, timeout/provider failure, denial, unsupported-venue, out-of-city, and retry states are localized in `ar`, `fr`, and `en`.
 - Provider and resolver tests cover normalization, malformed responses and bounds, Arabic locale forwarding, canonical geography, city/country/type/category filtering, false-positive retail categories, out-of-city selection, reverse-distance enforcement, typed failures, pre-write rejection, and provider-owned persistence. The server-function suite passes 47 tests against real Miniflare/D1 bindings.
 - Component tests prove that search and map-click selection produce the same normalized venue model, that search is unavailable without valid map context, that marker drag invalidates stale venue data, that stale reverse-geocode responses cannot replace newer selections, and that geolocation is requested only after the explicit locate action. The public-app suite passes nine tests across three files.
-- The workspace-wide Undici override is upgraded to `7.29.0`, restoring the supported `jsdom` component-test environment while retaining green Miniflare suites. `npm audit` reports zero vulnerabilities.
+- The workspace-wide Undici override is upgraded to `7.29.0`, restoring the supported `jsdom` component-test environment while retaining green Miniflare suites.
 - Repository-wide format, lint, typecheck, test, and build gates pass without E2E. The built-in browser verified the Arabic failure/retry path with an intentionally invalid token and confirmed that progression remains disabled.
 
 Operational confirmations and release gates:
@@ -465,8 +465,8 @@ Implementation evidence (2026-09-03):
   collapsing the error mapping to the generic message, removing the re-authentication handoff,
   skipping the Turnstile reissue, widening the cache prefix to the billed Mapbox keys, emitting the
   metric before persistence, leaking the title into a log line, and swallowing a metrics throw.
-- Gates: nx sync, `format:check`, `typecheck`, `lint`, `build`, `test` across 17 projects, and
-  `npm audit` all pass. The `server-fns` coverage floor was ratcheted to the new measured values
+- Gates: nx sync, `format:check`, `typecheck`, `lint`, `build`, and `test` across 17 projects all
+  pass. The `server-fns` coverage floor was ratcheted to the new measured values
   (statements 71, branches 67, functions 66, lines 72).
 
 Post-handoff residual (EC-10 is signed off):

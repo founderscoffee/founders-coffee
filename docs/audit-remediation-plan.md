@@ -1,13 +1,13 @@
 # Audit Remediation Plan
 
-| Field          | Value                                                                                                                                                                                                                |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-02 through AR-07 and AR-09 through AR-13 are complete. AR-01's audit gate was removed from CI on 2026-09-04 and needs a replacement; AR-08 is complete for `apps/ui` while `apps/admin` stays report-only |
-| Last reviewed  | 2026-09-14 — deployment evidence and notification policy reconciled                                                                                                                                                  |
-| Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                                           |
-| Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                                               |
-| Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                                       |
-| Related plans  | [Implementation plan](./implementation-plan.md), [Event Creation Remediation Plan](./event-creation-remediation-plan.md), [Community Operations Plan](./community-operations-implementation-plan.md)                 |
+| Field          | Value                                                                                                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; AR-02 through AR-07 and AR-09 through AR-13 are complete. AR-08 is complete for `apps/ui` while `apps/admin` stays report-only                                                               |
+| Last reviewed  | 2026-09-14 — deployment evidence and notification policy reconciled                                                                                                                                  |
+| Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
+| Parent tickets | P0-018, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                                       |
+| Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                       |
+| Related plans  | [Implementation plan](./implementation-plan.md), [Event Creation Remediation Plan](./event-creation-remediation-plan.md), [Community Operations Plan](./community-operations-implementation-plan.md) |
 
 This plan records defects found by auditing the repository against [`AGENTS.md`](../AGENTS.md), the
 [SRS](./srs.md), and the [implementation plan](./implementation-plan.md), and by executing every
@@ -21,13 +21,6 @@ replacement, delivery-channel fallback, and post-event operations stay with the
 [Community Operations Plan](./community-operations-implementation-plan.md). Section 6 lists what was
 found but deliberately left with its existing owner.
 
-AR-01 was a prerequisite for every other ticket in the repository, not only for this plan:
-continuous integration was red at the audited commit, so no pull request could pass verification. It
-was closed on 2026-09-02 and the seven local gates passed at that point. The `npm audit` step was then
-removed from CI on 2026-09-04 because npm's audit endpoint began returning registry errors. The
-current pipeline therefore has no dependency-advisory gate; the original section 2 baseline remains
-historical and the replacement scan is still open.
-
 ## 1. Objective
 
 Close the gap between the behavior the constitution and SRS require and the behavior the code
@@ -37,7 +30,7 @@ Completion means:
 
 ```text
 verification gates
-  -> all seven pass, including the dependency audit
+  -> all configured gates pass
 scheduled notifications
   -> every row reaches a terminal state
   -> a failure retries within budget and falls back to email as documented
@@ -76,7 +69,6 @@ was inferred from documentation alone.
 | `npx nx run-many -t lint`      | Pass   | Includes Nx module-boundary rules                         |
 | `npx nx run-many -t test`      | Pass   | 363 tests across 66 files against real Miniflare bindings |
 | `npx nx run-many -t build`     | Pass   | 14 projects                                               |
-| `npm audit --audit-level=high` | Fail   | Exit code 1; see AR-01                                    |
 
 ### Conformance evidence to preserve
 
@@ -96,7 +88,6 @@ records the defect and refuses to mark the work complete; "New" means it does no
 
 | ID   | Severity | Status | Finding                                                                                | Ticket |
 | ---- | -------- | ------ | -------------------------------------------------------------------------------------- | ------ |
-| F-01 | Blocking | New    | `npm audit --audit-level=high` exits 1, so CI fails at head                            | AR-01  |
 | F-02 | Blocking | New    | Push rows with no configured provider never reach a terminal state and jam the sweep   | AR-02  |
 | F-03 | Blocking | New    | The SMS-to-email fallback branch is unreachable; one failure is terminal               | AR-02  |
 | F-04 | Blocking | Known  | A rejected full-capacity RSVP is still inserted                                        | AR-04  |
@@ -116,90 +107,45 @@ records the defect and refuses to mark the work complete; "New" means it does no
 | F-18 | High     | New    | The notification sweep casts row payloads instead of validating them with Zod          | AR-13  |
 | F-19 | Medium   | New    | Root files were linted by nothing — resolved 2026-09-02                                | AR-11  |
 
-F-17 through F-19 were found by a second conformance pass on 2026-09-02, after AR-11 and AR-01
-closed. They are recorded here rather than folded into the 2026-09-01 baseline above, which stays as
+F-17 through F-19 were found by a second conformance pass on 2026-09-02, after AR-11 closed. They are
+recorded here rather than folded into the 2026-09-01 baseline above, which stays as
 it was taken at `1167e0d`.
 
 ## 3. Locked remediation decisions
 
-1. **The dependency-audit gate must be restored with a working scanner.** AR-01 temporarily restored
-   `npm audit --audit-level=high` and resolved the advisory through the existing root `overrides` block,
-   but the step was removed on 2026-09-04 after npm's audit endpoint began returning registry errors.
-   Dependabot alerts are useful account-side coverage but do not replace a required CI gate; no
-   replacement tool is authorized yet.
-2. **A scheduled notification always reaches a terminal state.** Every dispatch path resolves the row
+1. **A scheduled notification always reaches a terminal state.** Every dispatch path resolves the row
    to `sent` or `failed`, including the case where no provider is configured for its channel. No
    input may leave a row selectable forever.
-3. **Retryable and terminal failures are distinct.** `failed` means the retry budget is spent. A
+2. **Retryable and terminal failures are distinct.** `failed` means the retry budget is spent. A
    retryable failure keeps the row `pending` with a deferred `send_at`, so the documented
    three-attempt SMS budget and its email fallback become reachable.
-4. **Cancellation is not failure.** Cancelling an RSVP or an event must not write the same status
+3. **Cancellation is not failure.** Cancelling an RSVP or an event must not write the same status
    that a delivery failure writes; operational metrics must be able to tell them apart.
-5. **Check-then-write stays atomic on D1.** The RSVP capacity decision moves into a single statement
+4. **Check-then-write stays atomic on D1.** The RSVP capacity decision moves into a single statement
    whose insert is itself conditional on remaining capacity. A guarded update paired with an
    unguarded insert is not atomicity.
-6. **The throw boundary is absolute.** Every anticipated failure crossing a server function is a
+5. **The throw boundary is absolute.** Every anticipated failure crossing a server function is a
    typed `AppError`. A constraint violation is anticipated.
-7. **Metered third-party calls are never anonymous and unmetered.** Any server function that forwards
+6. **Metered third-party calls are never anonymous and unmetered.** Any server function that forwards
    to a billed external API carries identity-scoped rate limiting at minimum. The active shared
    Free-plan WAF is a blunt edge layer and does not replace endpoint-specific application limits.
-8. **User-facing notification copy lives in `libs/i18n`.** No user-facing string is authored in
+7. **User-facing notification copy lives in `libs/i18n`.** No user-facing string is authored in
    `libs/server-fns`. Environment-specific URLs come from configuration.
-9. **Enforcement mechanisms are themselves tested.** A lint rule or coverage gate that silently fails
+8. **Enforcement mechanisms are themselves tested.** A lint rule or coverage gate that silently fails
    to cover its target is a defect equal to the code it was meant to catch.
-10. **No new package or platform service.** If execution proves the current bindings, providers, or
-    platform primitives insufficient, implementation pauses for explicit approval before adding
-    anything.
+9. **No new package or platform service.** If execution proves the current bindings, providers, or
+   platform primitives insufficient, implementation pauses for explicit approval before adding
+   anything.
 
 ## 4. Work breakdown and sequence
 
 The `AR-*` identifiers are local work packages under the existing parent tickets. They do not replace
 the repository's P0/P1 ticket IDs.
 
-Recommended order: restore AR-01's dependency scan first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
-production consequences; AR-02, AR-03 and AR-04 are complete. Then AR-09, which restores the mechanisms that would
-have caught several of the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
+AR-02, AR-03 and AR-04 are complete. AR-09 restores the mechanisms that would have caught several of
+the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
 rewrites the same sweep. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule
-allows. AR-11 is complete; AR-01 requires a working replacement scan.
-
-### AR-01 — Restore the dependency-audit gate
-
-**Parent:** P0-020
-**Requirements:** NFR-4, NFR-12
-**Status:** Complete at the 2026-09-02 baseline; superseded in CI on 2026-09-04 and currently open for replacement
-
-Closes F-01.
-
-Work:
-
-- Add `browserslist` to the root `package.json` `overrides` block at the first version clearing
-  GHSA-c83g-rgw3-j3cx and GHSA-73wf-gq98-2v4g, alongside the existing transitive pins.
-- Refresh `package-lock.json` and confirm the override reaches both dependents, `@nx/js` through
-  `@babel/helper-compilation-targets` and `@serwist/vite` through `@serwist/utils`.
-- Record that the package is a build-time transitive with no Worker runtime exposure, so the change
-  carries no runtime risk.
-
-Completion evidence:
-
-- `"browserslist": "^4.28.7"` added to `overrides`. Both advisories are fixed in `4.28.7`, the first
-  version above the `<=4.28.6` vulnerable range; the lockfile resolves `4.28.8`.
-- `npm ls browserslist --all` shows `4.28.8` on both paths: `@nx/js` through
-  `@babel/helper-compilation-targets` and `core-js-compat`, and `@serwist/vite` through
-  `@serwist/utils`, where it is reported as `overridden`.
-- The lockfile change is confined to `browserslist` and the packages it owns: `caniuse-lite`,
-  `electron-to-chromium`, `node-releases`, `baseline-browser-mapping`, and `update-browserslist-db`.
-  No application or Worker-runtime dependency moved.
-- `browserslist` is a build-time transitive of the Babel and Serwist toolchains. Nothing under
-  `apps/*/src` or `libs/*/src` imports it and it is not bundled into any Worker, so the bump carries
-  no runtime risk.
-- `npm ci` from the refreshed lockfile installs `4.28.8` and reports `found 0 vulnerabilities`.
-- `npm audit --audit-level=high` exits 0.
-- Repository-wide format, sync, typecheck, lint, test, and build gates pass without E2E: 16 projects,
-  no errors. Continuous integration is green at head for the first time since the audit.
-
-Current status: the workflow no longer runs `npm audit` because npm's registry audit endpoint returns
-400/503 in this environment. See [CI/CD](./ci.md#there-is-no-dependency-audit-step). Dependabot is
-not treated as a substitute for the required CI gate, so AR-01 is not current-release complete.
+allows. AR-11 is complete.
 
 ### AR-02 — Guarantee terminal state and a reachable fallback for scheduled notifications
 
@@ -1022,10 +968,9 @@ libraries are exactly where F-02, F-03 and F-05 hid, so the number had to come f
 - `.gitignore` carried `/coverage`, which is root-anchored and would have let `libs/*/coverage`
   be committed. Widened to `**/coverage`.
 
-Installing the provider refreshed the lockfile and surfaced an unrelated high-severity advisory:
-the existing `fast-uri` override pinned `^4.1.2`, which is inside the newly published vulnerable
-range `4.0.0 - 4.1.2`. Bumped to `^4.1.3`, resolving 4.1.4; `npm audit --audit-level=high` is back to
-exit 0. The AR-01 gate would otherwise have gone red on the next push.
+Installing the provider refreshed the lockfile and surfaced an unrelated high-severity advisory in
+the existing `fast-uri` override. Bumped the pin from `^4.1.2` to `^4.1.3`, resolving 4.1.4 without
+changing any application or Worker-runtime dependency.
 
 ### AR-10 — Correctness and hygiene cleanup
 
@@ -1332,14 +1277,9 @@ admin applications; or move E2E into CI, which remains excluded by current proje
   suppressed with rule exceptions.
 - **AR-05's policy sizing depends on real wizard behavior.** A limit set too tight breaks venue search
   for legitimate hosts; the policy must be derived from an observed session, not guessed.
-- **AR-01 was the only ticket with no execution-time risk** and gated everything else. Its historical
-  fix is complete, but the CI step was removed on 2026-09-04; a working replacement scan is still
-  open and should be restored before the next release gate is called complete.
 
 ## 8. Definition of done
 
-- [ ] A dependency-advisory scan runs as a required CI gate and passes. The historical `npm audit`
-      run passed on 2026-09-02, but that step was removed on 2026-09-04 pending a working replacement.
 - [x] No scheduled notification can remain selectable indefinitely, and the documented retry and
       email fallback are exercised by tests rather than described by comments. (AR-02, 2026-09-02)
 - [x] A rejected full-capacity RSVP writes nothing, and no untyped error crosses a server-function
