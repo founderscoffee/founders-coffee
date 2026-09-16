@@ -11,9 +11,8 @@ import {
   profile_load_error,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, useToast, Turnstile } from '@founders-coffee/ui';
+import { Button, Input, useToast } from '@founders-coffee/ui';
 
-import { usePublicAuthConfig } from '../../auth/hooks';
 import type { UserProfile } from '../api';
 import { profileErrorMessage } from '../errors';
 import { useUpdateDisplayName } from '../hooks';
@@ -35,13 +34,10 @@ export const ProfileNameEditor = ({
 }) => {
   const [name, setName] = useState(profile.displayName);
   const [revision, setRevision] = useState(profile.revision);
-  const [token, setToken] = useState<string | null>(null);
-  const [nonce, setNonce] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const mutation = useUpdateDisplayName();
-  const config = usePublicAuthConfig();
   const feedback = useToast();
   const reportError = (message: string) => {
     setError(message);
@@ -55,7 +51,6 @@ export const ProfileNameEditor = ({
     reportDirty.current?.(isDirty);
     return () => reportDirty.current?.(false);
   }, [isDirty]);
-  const canVerify = !!token || config.data?.isTurnstileBypassed === true;
   const revert = () => {
     setName(saved);
     setError(null);
@@ -64,7 +59,7 @@ export const ProfileNameEditor = ({
   };
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (inFlight.current || !canVerify) return;
+    if (inFlight.current) return;
     const parsed = validateProfileName(name);
     if (!parsed.success) {
       reportError(profile_name_invalid({}, { locale }));
@@ -78,7 +73,6 @@ export const ProfileNameEditor = ({
       const result = await mutation.mutateAsync({
         displayName: parsed.data,
         expectedRevision: revision,
-        turnstileToken: token ?? undefined,
       });
       setName(result.displayName);
       setSaved(result.displayName);
@@ -89,8 +83,6 @@ export const ProfileNameEditor = ({
       reportError(profileErrorMessage(failure, locale));
     } finally {
       inFlight.current = false;
-      setToken(null);
-      setNonce((value) => value + 1);
     }
   };
   const reload = async () => {
@@ -131,28 +123,13 @@ export const ProfileNameEditor = ({
       <p id="profile-name-help" className="text-body-sm text-neutral">
         {profile_name_hint({}, { locale })}
       </p>
-      {!config.data?.isTurnstileBypassed && config.data?.turnstileSiteKey && (
-        <Turnstile
-          sitekey={config.data.turnstileSiteKey}
-          action="update_profile"
-          resetKey={nonce}
-          onToken={setToken}
-        />
-      )}
       <ProfileFeedback
         locale={locale}
         notification={feedback.notification}
         onDismiss={feedback.clear}
-        hasSecurityError={
-          config.isError ||
-          (!!config.data &&
-            !config.data.isTurnstileBypassed &&
-            !config.data.turnstileSiteKey)
-        }
-        onRetry={() => void config.refetch()}
       />
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={!canVerify || mutation.isPending}>
+        <Button type="submit" disabled={mutation.isPending}>
           {profile_save({}, { locale })}
         </Button>
         {isDirty && (

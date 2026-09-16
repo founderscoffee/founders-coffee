@@ -13,8 +13,6 @@ import { ProfileForm } from './ProfileForm';
 const state = vi.hoisted(() => ({
   save: vi.fn(),
   reload: vi.fn(),
-  retry: vi.fn(),
-  hasSecurityError: false,
 }));
 
 vi.mock('../hooks', () => ({
@@ -24,16 +22,6 @@ vi.mock('../hooks', () => ({
     reset: () => undefined,
   }),
   usePhotoUploadAvailability: () => ({ data: { enabled: false } }),
-}));
-vi.mock('../../auth/hooks', () => ({
-  usePublicAuthConfig: () => ({
-    data: {
-      isTurnstileBypassed: !state.hasSecurityError,
-      turnstileSiteKey: null,
-    },
-    isError: state.hasSecurityError,
-    refetch: state.retry,
-  }),
 }));
 
 const show = () =>
@@ -46,7 +34,6 @@ const save = () =>
 afterEach(() => {
   cleanup();
   vi.resetAllMocks();
-  state.hasSecurityError = false;
 });
 
 describe('profile form action feedback', () => {
@@ -96,20 +83,4 @@ describe('profile form action feedback', () => {
       expect(screen.getByRole('alert').closest('.toast')).not.toBeNull();
     },
   );
-
-  it('shows configuration errors as a toast while keeping verification retry accessible', () => {
-    state.hasSecurityError = true;
-    show();
-    expect(screen.getByRole('alert').className).toContain('alert-error');
-    expect(screen.getByRole('alert').closest('.toast')).not.toBeNull();
-    expect(
-      (
-        screen.getByRole('button', {
-          name: 'Save changes',
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(true);
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(state.retry).toHaveBeenCalledOnce();
-  });
 });

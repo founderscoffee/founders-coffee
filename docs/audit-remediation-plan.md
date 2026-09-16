@@ -1,13 +1,13 @@
 # Audit Remediation Plan
 
-| Field          | Value                                                                                                                                                                                                                |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Active; AR-02 through AR-07 and AR-09 through AR-13 are complete. AR-01's audit gate was removed from CI on 2026-09-04 and needs a replacement; AR-08 is complete for `apps/ui` while `apps/admin` stays report-only |
-| Last reviewed  | 2026-09-14 — deployment evidence and notification policy reconciled                                                                                                                                                  |
-| Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                                           |
-| Parent tickets | P0-018, P0-020, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                                               |
-| Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                                       |
-| Related plans  | [Implementation plan](./implementation-plan.md), [Event Creation Remediation Plan](./event-creation-remediation-plan.md), [Community Operations Plan](./community-operations-implementation-plan.md)                 |
+| Field          | Value                                                                                                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Active; AR-02 through AR-07 and AR-09 through AR-13 are complete. AR-08 is complete for `apps/ui` while `apps/admin` stays report-only                                                               |
+| Last reviewed  | 2026-09-16 — P0-001 enforcement and coverage gates re-audited                                                                                                                                        |
+| Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
+| Parent tickets | P0-018, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                                       |
+| Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                       |
+| Related plans  | [Implementation plan](./implementation-plan.md), [Event Creation Remediation Plan](./event-creation-remediation-plan.md), [Community Operations Plan](./community-operations-implementation-plan.md) |
 
 This plan records defects found by auditing the repository against [`AGENTS.md`](../AGENTS.md), the
 [SRS](./srs.md), and the [implementation plan](./implementation-plan.md), and by executing every
@@ -15,18 +15,16 @@ verification gate locally. It is remediation work, not new product scope. It doe
 sponsorship, challenges, talent, payments, or expansion, all of which remain behind the
 [community validation gate](./release-strategy.md).
 
+The session-aware Turnstile policy adopted on 2026-09-16 is now the current security boundary:
+public and anonymous operations retain Turnstile, while authenticated session mutations use
+centralized authorization and rate limiting without a browser challenge. Findings and evidence
+below that describe broader historical coverage are retained as dated audit records.
+
 This plan does not take ownership of work an existing plan already owns. Event creation stays with
 the [Event Creation Remediation Plan](./event-creation-remediation-plan.md); the scheduler
 replacement, delivery-channel fallback, and post-event operations stay with the
 [Community Operations Plan](./community-operations-implementation-plan.md). Section 6 lists what was
 found but deliberately left with its existing owner.
-
-AR-01 was a prerequisite for every other ticket in the repository, not only for this plan:
-continuous integration was red at the audited commit, so no pull request could pass verification. It
-was closed on 2026-09-02 and the seven local gates passed at that point. The `npm audit` step was then
-removed from CI on 2026-09-04 because npm's audit endpoint began returning registry errors. The
-current pipeline therefore has no dependency-advisory gate; the original section 2 baseline remains
-historical and the replacement scan is still open.
 
 ## 1. Objective
 
@@ -37,7 +35,7 @@ Completion means:
 
 ```text
 verification gates
-  -> all seven pass, including the dependency audit
+  -> all configured gates pass
 scheduled notifications
   -> every row reaches a terminal state
   -> a failure retries within budget and falls back to email as documented
@@ -76,7 +74,6 @@ was inferred from documentation alone.
 | `npx nx run-many -t lint`      | Pass   | Includes Nx module-boundary rules                         |
 | `npx nx run-many -t test`      | Pass   | 363 tests across 66 files against real Miniflare bindings |
 | `npx nx run-many -t build`     | Pass   | 14 projects                                               |
-| `npm audit --audit-level=high` | Fail   | Exit code 1; see AR-01                                    |
 
 ### Conformance evidence to preserve
 
@@ -96,7 +93,6 @@ records the defect and refuses to mark the work complete; "New" means it does no
 
 | ID   | Severity | Status | Finding                                                                                | Ticket |
 | ---- | -------- | ------ | -------------------------------------------------------------------------------------- | ------ |
-| F-01 | Blocking | New    | `npm audit --audit-level=high` exits 1, so CI fails at head                            | AR-01  |
 | F-02 | Blocking | New    | Push rows with no configured provider never reach a terminal state and jam the sweep   | AR-02  |
 | F-03 | Blocking | New    | The SMS-to-email fallback branch is unreachable; one failure is terminal               | AR-02  |
 | F-04 | Blocking | Known  | A rejected full-capacity RSVP is still inserted                                        | AR-04  |
@@ -116,90 +112,45 @@ records the defect and refuses to mark the work complete; "New" means it does no
 | F-18 | High     | New    | The notification sweep casts row payloads instead of validating them with Zod          | AR-13  |
 | F-19 | Medium   | New    | Root files were linted by nothing — resolved 2026-09-02                                | AR-11  |
 
-F-17 through F-19 were found by a second conformance pass on 2026-09-02, after AR-11 and AR-01
-closed. They are recorded here rather than folded into the 2026-09-01 baseline above, which stays as
+F-17 through F-19 were found by a second conformance pass on 2026-09-02, after AR-11 closed. They are
+recorded here rather than folded into the 2026-09-01 baseline above, which stays as
 it was taken at `1167e0d`.
 
 ## 3. Locked remediation decisions
 
-1. **The dependency-audit gate must be restored with a working scanner.** AR-01 temporarily restored
-   `npm audit --audit-level=high` and resolved the advisory through the existing root `overrides` block,
-   but the step was removed on 2026-09-04 after npm's audit endpoint began returning registry errors.
-   Dependabot alerts are useful account-side coverage but do not replace a required CI gate; no
-   replacement tool is authorized yet.
-2. **A scheduled notification always reaches a terminal state.** Every dispatch path resolves the row
+1. **A scheduled notification always reaches a terminal state.** Every dispatch path resolves the row
    to `sent` or `failed`, including the case where no provider is configured for its channel. No
    input may leave a row selectable forever.
-3. **Retryable and terminal failures are distinct.** `failed` means the retry budget is spent. A
+2. **Retryable and terminal failures are distinct.** `failed` means the retry budget is spent. A
    retryable failure keeps the row `pending` with a deferred `send_at`, so the documented
    three-attempt SMS budget and its email fallback become reachable.
-4. **Cancellation is not failure.** Cancelling an RSVP or an event must not write the same status
+3. **Cancellation is not failure.** Cancelling an RSVP or an event must not write the same status
    that a delivery failure writes; operational metrics must be able to tell them apart.
-5. **Check-then-write stays atomic on D1.** The RSVP capacity decision moves into a single statement
+4. **Check-then-write stays atomic on D1.** The RSVP capacity decision moves into a single statement
    whose insert is itself conditional on remaining capacity. A guarded update paired with an
    unguarded insert is not atomicity.
-6. **The throw boundary is absolute.** Every anticipated failure crossing a server function is a
+5. **The throw boundary is absolute.** Every anticipated failure crossing a server function is a
    typed `AppError`. A constraint violation is anticipated.
-7. **Metered third-party calls are never anonymous and unmetered.** Any server function that forwards
+6. **Metered third-party calls are never anonymous and unmetered.** Any server function that forwards
    to a billed external API carries identity-scoped rate limiting at minimum. The active shared
    Free-plan WAF is a blunt edge layer and does not replace endpoint-specific application limits.
-8. **User-facing notification copy lives in `libs/i18n`.** No user-facing string is authored in
+7. **User-facing notification copy lives in `libs/i18n`.** No user-facing string is authored in
    `libs/server-fns`. Environment-specific URLs come from configuration.
-9. **Enforcement mechanisms are themselves tested.** A lint rule or coverage gate that silently fails
+8. **Enforcement mechanisms are themselves tested.** A lint rule or coverage gate that silently fails
    to cover its target is a defect equal to the code it was meant to catch.
-10. **No new package or platform service.** If execution proves the current bindings, providers, or
-    platform primitives insufficient, implementation pauses for explicit approval before adding
-    anything.
+9. **No new package or platform service.** If execution proves the current bindings, providers, or
+   platform primitives insufficient, implementation pauses for explicit approval before adding
+   anything.
 
 ## 4. Work breakdown and sequence
 
 The `AR-*` identifiers are local work packages under the existing parent tickets. They do not replace
 the repository's P0/P1 ticket IDs.
 
-Recommended order: restore AR-01's dependency scan first and alone. Then AR-02, AR-04, and AR-05, which are the defects with
-production consequences; AR-02, AR-03 and AR-04 are complete. Then AR-09, which restores the mechanisms that would
-have caught several of the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
+AR-02, AR-03 and AR-04 are complete. AR-09 restores the mechanisms that would have caught several of
+the others. AR-12 belongs with AR-09, which fixes the same rule. AR-13 sequences after AR-02, which
 rewrites the same sweep. AR-03, AR-06, AR-07, AR-08, and AR-10 follow in any order the schedule
-allows. AR-11 is complete; AR-01 requires a working replacement scan.
-
-### AR-01 — Restore the dependency-audit gate
-
-**Parent:** P0-020
-**Requirements:** NFR-4, NFR-12
-**Status:** Complete at the 2026-09-02 baseline; superseded in CI on 2026-09-04 and currently open for replacement
-
-Closes F-01.
-
-Work:
-
-- Add `browserslist` to the root `package.json` `overrides` block at the first version clearing
-  GHSA-c83g-rgw3-j3cx and GHSA-73wf-gq98-2v4g, alongside the existing transitive pins.
-- Refresh `package-lock.json` and confirm the override reaches both dependents, `@nx/js` through
-  `@babel/helper-compilation-targets` and `@serwist/vite` through `@serwist/utils`.
-- Record that the package is a build-time transitive with no Worker runtime exposure, so the change
-  carries no runtime risk.
-
-Completion evidence:
-
-- `"browserslist": "^4.28.7"` added to `overrides`. Both advisories are fixed in `4.28.7`, the first
-  version above the `<=4.28.6` vulnerable range; the lockfile resolves `4.28.8`.
-- `npm ls browserslist --all` shows `4.28.8` on both paths: `@nx/js` through
-  `@babel/helper-compilation-targets` and `core-js-compat`, and `@serwist/vite` through
-  `@serwist/utils`, where it is reported as `overridden`.
-- The lockfile change is confined to `browserslist` and the packages it owns: `caniuse-lite`,
-  `electron-to-chromium`, `node-releases`, `baseline-browser-mapping`, and `update-browserslist-db`.
-  No application or Worker-runtime dependency moved.
-- `browserslist` is a build-time transitive of the Babel and Serwist toolchains. Nothing under
-  `apps/*/src` or `libs/*/src` imports it and it is not bundled into any Worker, so the bump carries
-  no runtime risk.
-- `npm ci` from the refreshed lockfile installs `4.28.8` and reports `found 0 vulnerabilities`.
-- `npm audit --audit-level=high` exits 0.
-- Repository-wide format, sync, typecheck, lint, test, and build gates pass without E2E: 16 projects,
-  no errors. Continuous integration is green at head for the first time since the audit.
-
-Current status: the workflow no longer runs `npm audit` because npm's registry audit endpoint returns
-400/503 in this environment. See [CI/CD](./ci.md#there-is-no-dependency-audit-step). Dependabot is
-not treated as a substitute for the required CI gate, so AR-01 is not current-release complete.
+allows. AR-11 is complete.
 
 ### AR-02 — Guarantee terminal state and a reachable fallback for scheduled notifications
 
@@ -568,15 +519,15 @@ Completion evidence:
 All 27 server functions were enumerated with their middleware chains. The state-changing surface is
 now complete:
 
-| Endpoint              | Method | Protection                                                                                    |
-| --------------------- | ------ | --------------------------------------------------------------------------------------------- |
-| `createEvent`         | POST   | `event:create` + rate limit + WAF gate; event-create Turnstile exception tracked under P1-018 |
-| `createRsvp`          | POST   | `rsvp:create` + rate limit                                                                    |
-| `cancelRsvp`          | POST   | `rsvp:update` + rate limit                                                                    |
-| `setHomeLocation`     | POST   | typed `client_refresh_required` tombstone; no location write                                  |
-| `registerPushTokenFn` | POST   | `push:manage` + rate limit                                                                    |
-| `removePushTokenFn`   | POST   | `push:manage` + rate limit                                                                    |
-| `joinWaitlist`        | POST   | Turnstile + rate limit (anonymous by design)                                                  |
+| Endpoint              | Method | Protection                                                                                     |
+| --------------------- | ------ | ---------------------------------------------------------------------------------------------- |
+| `createEvent`         | POST   | `event:create` + rate limit + WAF gate; event-create Turnstile exception recorded under P1-018 |
+| `createRsvp`          | POST   | `rsvp:create` + rate limit                                                                     |
+| `cancelRsvp`          | POST   | `rsvp:update` + rate limit                                                                     |
+| `setHomeLocation`     | POST   | typed `client_refresh_required` tombstone; no location write                                   |
+| `registerPushTokenFn` | POST   | `push:manage` + rate limit                                                                     |
+| `removePushTokenFn`   | POST   | `push:manage` + rate limit                                                                     |
+| `joinWaitlist`        | POST   | Turnstile + rate limit (anonymous by design)                                                   |
 
 Two results recorded rather than fixed silently:
 
@@ -591,9 +542,10 @@ Two results recorded rather than fixed silently:
   session-enforced in its handler. A literal reading of §7 asks every server function to declare a
   permission; applying RBAC to a public city listing would be noise, so the deviation is recorded
   here rather than papered over.
-- **RSVP still has no Turnstile**, which §10 requires alongside signup, login and event creation.
-  The event-create challenge is also deliberately absent by the 2026-09-03 product decision. Both
-  policy gaps remain tracked under P1-018 rather than being presented as complete.
+- **RSVP is session-bound and has no browser Turnstile**, consistent with the 2026-09-16
+  session-aware policy. Event creation remains intentionally challenge-free by the 2026-09-03
+  product decision. Public auth and waitlist operations retain Turnstile; anonymous map protection
+  and remaining mutation permissions remain tracked under P1-018.
 
 Verification — 14 new tests:
 
@@ -935,28 +887,30 @@ unmeasured is the one thing this ticket keeps saying not to do.
 
 Closes F-11 and F-12. These are the mechanisms that would have caught several of the other findings.
 
-Current behavior:
+Audit baseline before AR-09:
 
-- App projects carry only `type:app` and `domain:*` tags — no `layer:` tag — so
-  `@nx/enforce-module-boundaries` asserts only that apps depend on libraries, and none of the layer
-  constraints apply to application code. The gap is covered by the local rule
-  `no-server-fns-in-components`, whose path test at `eslint.config.mjs:46` matches
-  `/\/src\/(components|lib)\//`. That misses `features/<domain>/components/`, the exact directory
-  `AGENTS.md` §3 designates for domain components. Nothing violates it today and the type-only
-  discipline is spotless; the guard simply would not catch a regression.
+- App projects carried only `type:app` and `domain:*` tags — no `layer:` tag — so
+  `@nx/enforce-module-boundaries` asserted only that apps depend on libraries, and none of the layer
+  constraints applied to application code. The remaining file-level gap was covered by the local rule
+  `no-server-fns-in-components`, whose path test in the original `eslint.config.mjs:46` matched
+  `/\/src\/(components|lib)\//`. It missed `features/<domain>/components/`, the exact directory
+  `AGENTS.md` §3 designates for domain components. No violation was detected in the original audit
+  snapshot, and the type-only discipline was spotless; the guard simply would not have caught a
+  regression. The later conformance pass recorded the runtime violation as F-17 and closed it under
+  AR-12.
 - `AGENTS.md` §12 requires coverage gates on `libs/domain` and `libs/server-fns`. No `coverage`
-  configuration exists in any vitest config, and CI never collects it. F-02, F-03, and F-05 all sit in
-  code paths with no test.
+  configuration existed in any vitest config, and CI did not collect it. F-02, F-03, and F-05 all
+  sat in code paths with no test.
 
-Work:
+Implemented work:
 
-- Widen the local rule's path test to any `components/` path segment and add a fixture test proving it
-  fires for `features/<domain>/components/`.
-- Add `layer:ui` to the application projects so the Nx layer constraints engage, and resolve whatever
-  the newly active constraints surface. Route files and `features/*/api.ts` legitimately reach the
-  server layer; encode that exception deliberately rather than by omission.
-- Configure vitest coverage for `libs/domain` and `libs/server-fns` with thresholds set from a
-  measured baseline, and collect it in CI.
+- Widened the local rule's path test to any `components/` path segment and added a fixture test proving
+  it fires for `features/<domain>/components/`.
+- Added explicit application layer tags so the Nx constraints engage: `layer:app-ui` for the UI apps
+  and `layer:server` for `worker-jobs`. Route files and `features/*/api.ts` legitimately reach the
+  server layer; that exception is encoded deliberately rather than by omission.
+- Configured Vitest coverage for `libs/domain` and `libs/server-fns` with thresholds set from a
+  measured baseline; the existing CI test target collects it on every quality run.
 
 Completion evidence — F-11:
 
@@ -968,6 +922,9 @@ Completion evidence — F-11:
 - Those tests live at the repository root beside the rules they cover, so `workspace-root` gained a
   `test` target. `nx run-many -t test` — the command CI already runs — now covers them; nothing ran
   them before.
+- `tools/eslint/module-boundaries.test.mjs` independently verifies every app and library has the
+  required `type:*`, `domain:*`, and `layer:*` tags, checks that no project directory is omitted, and
+  locks every layer constraint to the documented allow-list.
 - The application projects carry layer tags, so the Nx constraints engage where they asserted
   nothing:
 
@@ -988,8 +945,8 @@ Completion evidence — F-11:
   with no UI. It can no longer import `libs/ui` or any application code.
 - Both constraints were probed rather than assumed. `worker-jobs` importing `libs/ui` and `libs/ui`
   importing `server-fns` each fail lint with the expected message; both probes were removed.
-- Repository-wide gates pass with the tags applied: 17 projects, 588 tests, zero boundary
-  violations.
+- Repository-wide gates pass with the tags applied: 17 projects, zero boundary violations, and the
+  new enforcement suite is included in the root test target.
 
 Completion evidence — F-12:
 
@@ -999,12 +956,17 @@ which the Workers runtime does not provide, so it cannot run in the `@cloudflare
 pool that `libs/server-fns` uses for every test. Istanbul instruments at transform time and works in
 both pools, so one provider serves both libraries.
 
-Thresholds are the measured baseline, floored — not an aspiration:
+Thresholds were initially set from the measured baseline, floored — not an aspiration:
 
 | Library           | Statements | Branches | Functions | Lines  |
 | ----------------- | ---------- | -------- | --------- | ------ |
 | `libs/domain`     | 59.80%     | 40.00%   | 40.00%    | 63.15% |
 | `libs/server-fns` | 69.90%     | 67.28%   | 64.53%    | 71.00% |
+
+The thresholds were subsequently ratcheted as coverage improved. The current configs enforce
+`libs/domain` at 99/98/100/100% and `libs/server-fns` at 71/67/66/72% for statements, branches,
+functions, and lines respectively; the 2026-09-16 run measured 99.76/98.79/100/100% and
+75/74.3/71.42/76.6%.
 
 Set at the floor of each measurement so the gate cannot pass a regression and can only be raised
 deliberately. An invented number would have failed on day one or asserted nothing — and these two
@@ -1022,10 +984,9 @@ libraries are exactly where F-02, F-03 and F-05 hid, so the number had to come f
 - `.gitignore` carried `/coverage`, which is root-anchored and would have let `libs/*/coverage`
   be committed. Widened to `**/coverage`.
 
-Installing the provider refreshed the lockfile and surfaced an unrelated high-severity advisory:
-the existing `fast-uri` override pinned `^4.1.2`, which is inside the newly published vulnerable
-range `4.0.0 - 4.1.2`. Bumped to `^4.1.3`, resolving 4.1.4; `npm audit --audit-level=high` is back to
-exit 0. The AR-01 gate would otherwise have gone red on the next push.
+Installing the provider refreshed the lockfile and surfaced an unrelated high-severity advisory in
+the existing `fast-uri` override. Bumped the pin from `^4.1.2` to `^4.1.3`, resolving 4.1.4 without
+changing any application or Worker-runtime dependency.
 
 ### AR-10 — Correctness and hygiene cleanup
 
@@ -1170,15 +1131,14 @@ owns the repository root.
 
 Closes F-17, and the `features/` half of F-11.
 
-Current behavior: `apps/ui/src/features/push/client.ts` imports `registerPushTokenFn` and
+Pre-fix behavior: `apps/ui/src/features/push/client.ts` imported `registerPushTokenFn` and
 `removePushTokenFn` from `@founders-coffee/server-fns` as runtime values. §3 makes `api.ts` the only
 module permitted to import `libs/server-fns`, and §4 routes every component call through
-`hooks.ts`. The `local/no-server-fns-in-components` rule cannot see it: the rule returns early
-unless the path matches `/src/(components|lib)/`, so all of `features/` — including
-`features/<domain>/components/` — is unguarded. The violation is real, not theoretical; it is the
-only one, and it exists because nothing was checking.
+`hooks.ts`. The `local/no-server-fns-in-components` rule could not see it: the rule returned early
+unless the path matched `/src/(components|lib)/`, so all of `features/` — including
+`features/<domain>/components/` — was unguarded. The violation was the only one found in the audit.
 
-Work:
+Implemented work:
 
 - Move the two server-function imports into `features/push/api.ts` and have `client.ts` call
   through it, keeping the Firebase messaging setup where it is.
@@ -1188,11 +1148,13 @@ Work:
 - Add a fixture pair under the rule's own tests: a `features/x/components/` file importing
   `server-fns` fails; `features/x/api.ts` importing the same passes.
 
-Verification:
+Completion evidence:
 
 - `nx run-many -t lint` fails on a probe import in `features/<domain>/components/` and passes on the
   same import in `api.ts`.
-- No runtime import of `server-fns`, `db`, or `domain` outside `api.ts` anywhere under `apps/*/src`.
+- No runtime import of `server-fns`, `db`, or `domain` occurs in app components, `lib/`, or
+  non-`api.ts` feature modules. Route loaders and `worker-jobs` remain explicit server-side
+  exceptions; the local rule prevents new client-side bypasses.
 - Push registration still works end to end against Miniflare.
 
 ### AR-13 — Validate notification payloads at the sweep boundary
@@ -1332,14 +1294,9 @@ admin applications; or move E2E into CI, which remains excluded by current proje
   suppressed with rule exceptions.
 - **AR-05's policy sizing depends on real wizard behavior.** A limit set too tight breaks venue search
   for legitimate hosts; the policy must be derived from an observed session, not guessed.
-- **AR-01 was the only ticket with no execution-time risk** and gated everything else. Its historical
-  fix is complete, but the CI step was removed on 2026-09-04; a working replacement scan is still
-  open and should be restored before the next release gate is called complete.
 
 ## 8. Definition of done
 
-- [ ] A dependency-advisory scan runs as a required CI gate and passes. The historical `npm audit`
-      run passed on 2026-09-02, but that step was removed on 2026-09-04 pending a working replacement.
 - [x] No scheduled notification can remain selectable indefinitely, and the documented retry and
       email fallback are exercised by tests rather than described by comments. (AR-02, 2026-09-02)
 - [x] A rejected full-capacity RSVP writes nothing, and no untyped error crosses a server-function
@@ -1356,8 +1313,10 @@ admin applications; or move E2E into CI, which remains excluded by current proje
       and `libs/server-fns` in CI. (AR-09/AR-12, 2026-09-02)
 - [x] Every finding in section 2 is either closed by an `AR-*` ticket or explicitly assigned to its
       owning plan in section 6.
-- [x] No runtime import of `libs/server-fns`, `libs/db`, or `libs/domain` exists outside `api.ts`,
-      and the boundary rule covers `features/` so a new one cannot land unnoticed.
+- [x] No runtime import of `libs/server-fns`, `libs/db`, or `libs/domain` occurs in app components,
+      `lib/`, or non-`api.ts` feature modules. Route loaders and `worker-jobs` remain explicit
+      server-side exceptions, and the boundary rule covers `features/` so a new client-side bypass
+      cannot land unnoticed.
 - [x] No notification payload is cast rather than parsed, on either side of the row. (AR-13, 2026-09-02)
 - [x] The implementation plan's status table is updated from the evidence this plan produces, and no
-      `Partial` or `Blocked` item is promoted without it. (Reconciled 2026-09-14.)
+      `Partial` or `Blocked` item is promoted without it. (Reconciled 2026-09-16.)

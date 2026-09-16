@@ -3,7 +3,9 @@
 Authentication is passwordless and implemented with Better Auth. The backend supports email OTP, phone OTP, and configured OAuth providers; the current `apps/ui` login screen exposes email OTP and conditional OAuth.
 
 Authentication in the [current release](./release-strategy.md) exists to support community members,
-hosts, profiles, event creation, and RSVP. Sponsor and commercial-client authentication belongs to
+hosts, profiles, event creation, and RSVP. Turnstile is shown on the public sign-in/OTP request
+surface; once a member is authenticated, profile, account, photo, feedback, event, RSVP, and
+operations actions use the session and rate limits without a browser challenge. Sponsor and commercial-client authentication belongs to
 future work and is not a release requirement.
 
 ## Current user flow
@@ -33,7 +35,8 @@ The UI app adapts the auth-specific OTP interface to the general Cloudflare Emai
 
 ## Security and release requirements
 
-- Missing Turnstile configuration fails the protected deployed endpoints closed.
+- Missing Turnstile configuration fails public protected endpoints closed. Authenticated contact
+  mutations use the server-only Better Auth handler after the outer session and permission checks.
 - `TURNSTILE_DISABLED=true` and development Turnstile keys are local-only.
 - Twilio development logging is local-only. The current missing-credential fallback in the shared auth provider must fail closed before phone OTP is enabled in a deployed UI.
 - Production cookie domain, HTTPS, and cross-subdomain behavior are verified in staging and

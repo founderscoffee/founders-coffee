@@ -44,6 +44,7 @@ export interface AuthEnv {
 export interface AuthDeps {
   emailProvider?: EmailProvider;
   smsProvider?: SmsProvider;
+  captchaBypassed?: boolean;
 }
 
 /**
@@ -85,9 +86,11 @@ const GUARDED_ACCOUNT_PATHS = [
  * client (AGENTS §11.5). Both the D1-backed rate limiter and the captcha plugin's `remoteip` key off
  * this, so the default would let a client choose its own rate-limit bucket.
  *
- * The captcha plugin is registered unconditionally (see `captchaEndpointsFor` for why) and an absent
- * secret key is not a bypass: the plugin errors on the gated endpoints, and `createAuthHandler`
- * refuses them outright with a clearer 503 before it gets that far.
+ * The captcha plugin is registered unconditionally (see `captchaEndpointsFor` for why) for public
+ * auth requests. An absent secret key is not a bypass: the plugin errors on gated endpoints, and
+ * `createAuthHandler` refuses them outright with a clearer 503 before it gets that far. The one
+ * internal bypass is reserved for server-side authenticated contact operations, whose surrounding
+ * server functions already require a member session and permission.
  *
  * `GUARDED_ACCOUNT_PATHS` closes the raw endpoints this product answers for itself. Each has a rule
  * that lives above Better Auth and cannot be expressed inside it: unlinking must leave a member a
@@ -176,7 +179,9 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
       captcha({
         provider: 'cloudflare-turnstile',
         secretKey: env.TURNSTILE_SECRET_KEY ?? '',
-        endpoints: captchaEndpointsFor(env.TURNSTILE_DISABLED === 'true'),
+        endpoints: captchaEndpointsFor(
+          env.TURNSTILE_DISABLED === 'true' || deps.captchaBypassed === true,
+        ),
       }),
       emailOTP({
         sendVerificationOTP: async ({ email, otp, type }) => {

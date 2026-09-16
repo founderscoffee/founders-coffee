@@ -55,18 +55,14 @@ verify their current existence and settings in GitHub.
 
 ### `.github/workflows/ci.yml`
 
-Runs on pull requests (except documentation-only changes) and as a reusable `workflow_call` from
-`deploy.yml`. Pushes to `develop` and `main` are owned by `deploy.yml`, which calls this workflow as
-the required verification gate before deployment. Needs **no** Cloudflare credentials — the
-integration tests run against Miniflare with real local D1/Queues/Email bindings (AGENTS.md §12),
-not the live account.
+Runs on pull requests (except documentation-only changes) and on pushes to `develop` and `main`.
+The push run is the canonical verification for a commit; `deploy.yml` starts only after that run
+finishes successfully. Needs **no** Cloudflare credentials — the integration tests run against
+Miniflare with real local D1/Queues/Email bindings (AGENTS.md §12), not the live account.
 
-The `quality` and `build` jobs run in parallel. A `develop` → `main` release pull request remains
-skipped by the branch guard; the resulting production deployment either reuses exact staging evidence
-or runs the full check. Feature pull requests into `develop` run the pull-request jobs normally.
-Documentation-only pull requests are filtered out because they cannot change application or deployment
-artifacts; push deployments still run the full check unless the exact-tree gate below proves they can
-safely reuse it.
+The `quality` and `build` jobs run in parallel. Documentation-only pull requests are filtered out
+because they cannot change application or deployment artifacts; pushes to the protected branches
+still run the full check.
 
 1. `npm ci --no-audit --no-fund` — skipped entirely when the `node_modules` cache hits.
 2. `npm run format:check` — rejects formatting drift before the more expensive verification steps.
@@ -106,14 +102,6 @@ The only lifecycle script is the local-state linker in `postinstall`; it creates
 Wrangler state symlinks and does not alter dependency contents. That keeps restoring the tree
 equivalent to installing it.
 
-### There is no dependency audit step
-
-`npm audit --audit-level=high` was removed on 2026-09-04. npm is retiring the
-`/-/npm/v1/security/audits/quick` endpoint this npm version calls; it began answering `400` and
-`503`, taking five minutes to fail, and it blocked every deploy. Nothing in the pipeline checks
-advisories now — GitHub's Dependabot alerts are the intended replacement and are configured in
-repository settings, not here.
-
 ### `.github/workflows/deploy.yml`
 
 1. **resolve** — picks the target environment from the pushed branch; a manual run may choose its
@@ -127,10 +115,11 @@ repository settings, not here.
    to the full CI gate. When reuse succeeds, only the long `quality` and `build` jobs are skipped; the
    always-run `Verification evidence` job validates the internally produced metadata.
 3. **deploy** — starts only after verification succeeds, checks out the exact pushed commit, and is
-   bound to the matching GitHub Environment (so its scoped secrets apply). It applies D1 migrations
-   only after `migration-compatibility.mjs` confirms every pending migration has a manifest entry
-   marked `compatible` and contains no destructive SQL, deploys the four Workers, then runs the SEO
-   route smoke against the deployed origin.
+   bound to the matching GitHub Environment (so its scoped secrets apply). Before migrations it
+   captures the active versions of all four Workers and the D1 bookmark as a 30-day rollback
+   artifact. It applies D1 migrations only after `migration-compatibility.mjs` confirms every
+   pending migration has a manifest entry marked `compatible` and contains no destructive SQL,
+   deploys the four Workers, then runs the SEO route smoke against the deployed origin.
    Staging probes use the environment's `workers.dev` hostname and assert canonical URLs against
    `staging.founders.coffee`, so the gate tests the deployed Worker without depending on a
    custom-domain WAF challenge from GitHub-hosted runners. Production probes use `founders.coffee`.

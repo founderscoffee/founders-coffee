@@ -8,12 +8,14 @@ import type { AccountPreferencesView } from '../api';
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
   save: {} as Record<string, unknown>,
+  push: {} as Record<string, unknown>,
   saved: [] as unknown[],
 }));
 
 vi.mock('../hooks', () => ({
   useMyPreferences: () => state.query,
   useSavePreferences: () => state.save,
+  useDevicePushState: () => state.push,
 }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
@@ -28,6 +30,8 @@ vi.mock('../../account/components/ProfileSectionNav', () => ({
 }));
 
 const { PreferencesPage } = await import('./PreferencesPage');
+
+const MARKETS = [{ code: 'DZ', slug: 'algeria' }];
 
 const view = (
   overrides: Partial<AccountPreferencesView> = {},
@@ -56,7 +60,15 @@ const show = (
   options: { locale?: Locale } = {},
 ) => {
   state.query = { userId: 'usr_1', isAuthLoading: false, ...query };
-  return render(<PreferencesPage locale={options.locale ?? 'en'} />);
+  state.push = {
+    state: 'registered',
+    enable: vi.fn(async () => true),
+    isEnabling: false,
+    refresh: vi.fn(),
+  };
+  return render(
+    <PreferencesPage locale={options.locale ?? 'en'} markets={MARKETS} />,
+  );
 };
 
 beforeEach(() => {
@@ -78,15 +90,15 @@ describe('the preferences screen', () => {
 
     expect(
       (
-        screen.getByRole('switch', {
-          name: /Reminders before a gathering/i,
+        screen.getByRole('checkbox', {
+          name: /Reminders before a gathering: Email/i,
         }) as HTMLInputElement
       ).checked,
     ).toBe(true);
     expect(
       (
-        screen.getByRole('switch', {
-          name: /After a gathering/i,
+        screen.getByRole('checkbox', {
+          name: /After a gathering: Email/i,
         }) as HTMLInputElement
       ).checked,
     ).toBe(false);
@@ -125,7 +137,14 @@ describe('the preferences screen', () => {
     show({ data: view({ revision: 7 }) });
 
     fireEvent.click(
-      screen.getByRole('switch', { name: /Reminders before a gathering/i }),
+      screen.getByRole('checkbox', {
+        name: /Reminders before a gathering: Notifications/i,
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: /Reminders before a gathering: Email/i,
+      }),
     );
     fireEvent.click(screen.getByRole('button', { name: /Save preferences/i }));
 
@@ -148,10 +167,15 @@ describe('the preferences screen', () => {
 
   it('discards back to what is saved', () => {
     show({ data: view() });
-    const reminders = screen.getByRole('switch', {
-      name: /Reminders before a gathering/i,
+    const reminders = screen.getByRole('checkbox', {
+      name: /Reminders before a gathering: Email/i,
     });
 
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: /Reminders before a gathering: Notifications/i,
+      }),
+    );
     fireEvent.click(reminders);
     fireEvent.click(screen.getByRole('button', { name: /Discard/i }));
 
@@ -183,7 +207,7 @@ describe('states the design spec requires', () => {
 
   it('offers sign-in to an anonymous visitor', () => {
     state.query = { userId: undefined, isAuthLoading: false };
-    render(<PreferencesPage locale="en" />);
+    render(<PreferencesPage locale="en" markets={MARKETS} />);
 
     expect(screen.getByTestId('access-recovery')).toBeTruthy();
   });

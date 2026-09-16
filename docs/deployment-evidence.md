@@ -4,10 +4,16 @@ This file records account-side facts that repository code and CI cannot prove. D
 complete from configuration intent alone. Never record secrets, Turnstile responses, full IP
 addresses, session cookies, or personal test-account data.
 
-## Current operational snapshot — 2026-09-15
+## Current operational snapshot — 2026-09-16
 
 The following dated deployment records supersede older “not deployed” and “pending migration” notes
 below. Those notes remain as historical release records, but they are not the current state.
+
+Current Turnstile policy: public login/OTP, public waitlist, and other anonymous operations render
+and verify Turnstile. Authenticated profile, account, RSVP, feedback, event, and operations
+mutations rely on session authentication, centralized authorization, rate limiting, and applicable
+WAF controls without a browser challenge. Historical challenge measurements below remain valid as
+evidence of the deployments tested at that time.
 
 | Area                        | Staging                                                                                                                                                            | Production                                                                                                                                                         |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -21,6 +27,20 @@ The latest GEO push ([run 34777686347](https://github.com/AmineYagoub/founders-c
 failed only at `format:check` because `docs/implementation-plan.md` was not Prettier-clean; no
 migration or deployment job ran. The formatting fix in this change is intended to make that gate
 green on the next CI run.
+
+## P0-007 market configuration verification — 2026-09-16
+
+Read-only Wrangler D1 checks against both deployed databases returned exactly these rows:
+
+| Environment | Database                        | Market rows                           |
+| ----------- | ------------------------------- | ------------------------------------- |
+| Staging     | `founders-coffee-db-staging`    | `DZ=active`, `EG=active`, `SA=active` |
+| Production  | `founders-coffee-db-production` | `DZ=active`, `EG=active`, `SA=active` |
+
+No `MA` or `AE` rows were returned. `wrangler d1 migrations list --remote --env staging` and the
+equivalent production command both reported no migrations to apply, confirming that the committed
+`0029_activate_launch_markets` migration is applied in each environment. The checks read three rows,
+wrote zero rows, and changed no database state.
 
 ## P0-020 rollback guardrails — staging, 2026-09-16
 

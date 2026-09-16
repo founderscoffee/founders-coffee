@@ -45,6 +45,19 @@ describe('libs/auth handler — captcha gating (real D1 via Miniflare)', () => {
     expect(emailProvider.sent).toHaveLength(1);
   });
 
+  it('allows an explicitly configured internal handler to call a gated endpoint without a widget', async () => {
+    const emailProvider = new DevEmailProvider();
+    const handler = createAuthHandler(baseEnv, {
+      emailProvider,
+      captchaBypassed: true,
+    });
+
+    const res = await handler(sendOtp('internal-contact@example.dz'));
+
+    expect(res.status).toBe(200);
+    expect(emailProvider.sent).toHaveLength(1);
+  });
+
   it('rejects a gated endpoint with a secret configured but no captcha token', async () => {
     const emailProvider = new DevEmailProvider();
     const handler = createAuthHandler(

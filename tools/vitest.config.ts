@@ -4,9 +4,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: [
-      'eslint/**/*.test.mjs',
       'ci/**/*.test.mjs',
       'deploy/**/*.test.mjs',
+      'eslint/**/*.test.mjs',
       'release/**/*.test.mjs',
       'local-state/**/*.test.mjs',
       'seo/**/*.test.mjs',

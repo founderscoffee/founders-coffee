@@ -25,7 +25,6 @@ export const ProfilePhotoField = ({
   displayName,
   photoAssetId,
   isDisabled,
-  turnstileToken,
   onPhotoChange,
   onFeedback,
 }: {
@@ -33,7 +32,6 @@ export const ProfilePhotoField = ({
   displayName: string;
   photoAssetId: string | null;
   isDisabled?: boolean;
-  turnstileToken?: string;
   onPhotoChange: (assetId: string | null) => void;
   onFeedback: (message: string, variant: ToastMessage['variant']) => void;
 }) => {
@@ -45,7 +43,7 @@ export const ProfilePhotoField = ({
   const choose = async (file: File | undefined) => {
     if (!file) return;
     try {
-      onPhotoChange(await upload.mutateAsync({ file, turnstileToken }));
+      onPhotoChange(await upload.mutateAsync({ file }));
       onFeedback(profile_photo_saved({}, { locale }), 'success');
     } catch (failure) {
       onFeedback(photoErrorMessage(appErrorCode(failure), locale), 'error');
@@ -54,7 +52,7 @@ export const ProfilePhotoField = ({
 
   const discard = async () => {
     try {
-      await remove.mutateAsync(turnstileToken);
+      await remove.mutateAsync();
       onPhotoChange(null);
       onFeedback(profile_photo_removed({}, { locale }), 'success');
     } catch (failure) {

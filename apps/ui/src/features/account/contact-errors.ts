@@ -8,7 +8,6 @@ import {
   error_contact_unchanged,
   error_last_sign_in_method,
   error_sms_unavailable,
-  profile_security_error,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -33,7 +32,5 @@ export const contactErrorMessage = (error: unknown, locale: Locale): string => {
   const code = appErrorCode(error);
   const message = MESSAGES[code as keyof typeof MESSAGES];
   if (message) return message({}, { locale });
-  if (code.startsWith('turnstile') || code === 'rate_limited')
-    return profile_security_error({}, { locale });
   return error_contact_change_failed({}, { locale });
 };
