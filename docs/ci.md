@@ -173,14 +173,16 @@ deploys the latest code again:
 ```sh
 npm run rollback:staging
 npm run rollback:staging -- --yes  # non-interactive CI/operator shell
+npm run rollback:staging -- --yes --local-fallback  # pre-default-branch escape hatch
 ```
 
 The command requires authenticated `gh` access and asks for the exact `ROLLBACK STAGING`
 confirmation unless `--yes` is supplied. It never restores D1 or accepts a database bookmark. The
-rollback workflow is the canonical path once it is present on the repository default branch; while
-it exists only on `develop`, the staging command falls back only for GitHub's workflow-dispatch
-404 and runs the same four sequential Wrangler rollbacks locally. Each local rollback uses the
-Worker's canonical Wrangler config and staging environment, then runs the same SEO smoke contract.
+rollback workflow must be present on the repository default branch because GitHub only dispatches
+manual workflows from that branch. If it is missing, the command fails safely; `--local-fallback`
+is an explicit pre-default-branch escape hatch that runs the same four sequential Wrangler
+rollbacks locally. Each local rollback uses the Worker's canonical Wrangler config and staging
+environment, then runs the same SEO smoke contract.
 
 D1 restore is deliberately absent from the normal rollback workflow. Keep the captured bookmark as
 an emergency recovery point only. If corruption or an irreversible data change requires a restore,
