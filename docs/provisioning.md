@@ -135,6 +135,33 @@ npm run migrate:staging
 npm run migrate:production
 ```
 
+Before applying a remote migration in a deployment, capture the release state from the repository
+root so the matching Worker versions and D1 bookmark are retained together:
+
+```sh
+mkdir -p /tmp/founders-coffee-rollback
+node tools/deploy/release-state.mjs capture \
+  --environment staging \
+  --output /tmp/founders-coffee-rollback/staging.json
+```
+
+The deploy workflow performs this capture automatically and uploads it as a GitHub Actions
+artifact. The artifact is the recovery record for that release; do not replace it with a bookmark
+captured after the migration. D1 Time Travel retention is plan-dependent, so copy production
+artifacts to the approved operational archive before the retention window expires.
+
+If a release is incompatible, use the manual **Rollback** workflow described in
+[`ci.md`](ci.md#githubworkflowsrollbackyml) to roll back the four Worker versions. Do not restore
+D1 as part of that workflow. If corruption or an irreversible data change requires reversal, stop
+deployments, obtain incident approval, and run the Cloudflare Time Travel restore manually during a
+maintenance window. This is an overwrite operation; the restore response's previous bookmark is
+the only safe undo point and must be recorded in the incident log without publishing it in chat or
+artifacts.
+
+To exercise the complete staging path with one guarded command, run `npm run rollback:staging` from
+the repository root. It deploys the current `develop` revision, rolls back the captured Worker
+versions, verifies the SEO smoke contract, and redeploys the latest code without changing D1.
+
 ## 4. Seed the markets
 
 The configured market rows are DZ, EG, and SA, all `active`. MA and AE are not configured. The

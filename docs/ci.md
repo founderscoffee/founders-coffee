@@ -4,9 +4,9 @@ CI protects delivery of the [community-building release](./release-strategy.md).
 and dormant foundations may continue to compile, but they are not launch features. Per the current
 project decision, Playwright E2E remains a local/staging release gate and is not run in CI.
 
-Implements **P0-020**. Two workflows, two Cloudflare environments, four Workers per environment.
+Implements **P0-020**. Three workflows, two Cloudflare environments, four Workers per environment.
 
-**Source configuration last checked: 2026-09-15.** The workflow files match the behavior below.
+**Source configuration last checked: 2026-09-16.** The workflow files match the behavior below.
 The latest GEO push ([run 34777686347](https://github.com/AmineYagoub/founders-coffee/actions/runs/34777686347))
 reached `format:check` and failed only because `docs/implementation-plan.md` had drifted from
 Prettier; this documentation update repairs that drift. Its migration and deploy jobs were skipped.
@@ -127,8 +127,10 @@ repository settings, not here.
    to the full CI gate. When reuse succeeds, only the long `quality` and `build` jobs are skipped; the
    always-run `Verification evidence` job validates the internally produced metadata.
 3. **deploy** — starts only after verification succeeds, checks out the exact pushed commit, and is
-   bound to the matching GitHub Environment (so its scoped secrets apply). It applies D1
-   migrations, deploys the four Workers, then runs the SEO route smoke against the deployed origin.
+   bound to the matching GitHub Environment (so its scoped secrets apply). It applies D1 migrations
+   only after `migration-compatibility.mjs` confirms every pending migration has a manifest entry
+   marked `compatible` and contains no destructive SQL, deploys the four Workers, then runs the SEO
+   route smoke against the deployed origin.
    Staging probes use the environment's `workers.dev` hostname and assert canonical URLs against
    `staging.founders.coffee`, so the gate tests the deployed Worker without depending on a
    custom-domain WAF challenge from GitHub-hosted runners. Production probes use `founders.coffee`.
@@ -147,6 +149,47 @@ repository settings, not here.
    does not fabricate fixtures. Playwright E2E remains excluded from CI by the current project decision.
 4. **release** — only for a successful CI push to `main`. Tags that exact deployed commit and
    publishes a GitHub release. Manual redeploys never create a second tag.
+
+### `.github/workflows/rollback.yml`
+
+Rollback is a manual, operator-driven recovery path. Every deploy first runs
+`tools/deploy/release-state.mjs capture`, before migrations, and uploads a 30-day
+`rollback-state-<environment>-<sha>` artifact containing the active version of all four Workers,
+the D1 Time Travel bookmark, the migration head, and the commit SHA. The capture step fails the
+deployment if any Worker is not at a single 100% version or if D1 cannot return a bookmark, so a
+release cannot silently lose its recovery point.
+
+To recover, open **Actions → Rollback → Run workflow**, choose the environment, and copy the four
+version IDs from the matching rollback-state artifact. The workflow validates every ID against a
+strict opaque-value format, verifies that each ID belongs to the selected Worker's deployment
+history, rolls back UI, dashboard, admin, and worker-jobs sequentially with `wrangler rollback`,
+and runs the deployed SEO smoke contract. Worker rollback is the default and does not change D1,
+R2, Queues, or Durable Object state.
+
+The complete staging drill is available as one guarded local command. It dispatches a staging
+deploy to create the recovery artifact, rolls back all four Workers, runs the SEO smoke, and then
+deploys the latest code again:
+
+```sh
+npm run rollback:staging
+npm run rollback:staging -- --yes  # non-interactive CI/operator shell
+```
+
+The command requires authenticated `gh` access and asks for the exact `ROLLBACK STAGING`
+confirmation unless `--yes` is supplied. It never restores D1 or accepts a database bookmark.
+
+D1 restore is deliberately absent from the normal rollback workflow. Keep the captured bookmark as
+an emergency recovery point only. If corruption or an irreversible data change requires a restore,
+stop deployments, open an incident, obtain explicit incident-owner approval, and run the Cloudflare
+Time Travel restore manually during a maintenance window. A restore overwrites current data,
+cancels in-flight queries, and returns a new bookmark that can undo the restore; it is not a routine
+rollback step.
+
+Schema changes still follow expand/contract: deploy additive columns/tables first, deploy code that
+can read both shapes, backfill and observe, then remove old shapes in a later release. Never use a
+Worker rollback as a substitute for a down migration. If the rollback command reports a Durable
+Object lifecycle or missing-resource incompatibility, stop and restore the forward-compatible code
+instead of forcing it.
 
 `concurrency` is set with `cancel-in-progress: false`: cancelling between the migration step and the
 Worker deploy would leave the schema ahead of the deployed code.
@@ -215,6 +258,13 @@ the top-level config, creating an unsuffixed fifth Worker outside either environ
 `vite build` writes `apps/<app>/.wrangler/deploy/config.json`, which redirects subsequent wrangler
 commands in that directory to the flattened single-environment config — where `--env` no longer
 applies. Migrations therefore run **first**, from `apps/worker-jobs` (which has no Vite build):
+
+Before applying them, deploy runs `tools/deploy/migration-compatibility.mjs check`. It asks Wrangler
+for pending remote migrations, requires each one in
+[`libs/db/migrations/compatibility.json`](../libs/db/migrations/compatibility.json) to be marked
+`compatible`, and rejects destructive `DROP`, `DELETE`, and table-rename statements. A migration
+without a compatibility entry fails closed. Such an irreversible change needs a separate reviewed
+recovery plan and must not be shipped through the automatic rollback path.
 
 ```sh
 npm run migrate:staging      # nx run worker-jobs:migrate:staging

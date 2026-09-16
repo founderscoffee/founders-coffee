@@ -95,6 +95,26 @@ jobs:
         if: steps.modules.outputs.cache-hit != 'true'
         run: npm ci --no-audit --no-fund
 
+      - name: Capture rollback state
+        env:
+          RELEASE_STATE_OUTPUT: ${{ runner.temp }}/rollback/${{ env.TARGET_ENV }}.json
+        run: |
+          node tools/deploy/release-state.mjs capture \
+            --environment "$TARGET_ENV" \
+            --output "$RELEASE_STATE_OUTPUT"
+
+      - name: Upload rollback state
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rollback-state-${{ env.TARGET_ENV }}-${{ github.sha }}
+          path: ${{ runner.temp }}/rollback
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Check migration compatibility
+        run: node tools/deploy/migration-compatibility.mjs check --environment "$TARGET_ENV"
+
       # Migrations run before any build. The Cloudflare Vite plugin writes a flattened
       # `.wrangler/deploy/config.json` during `vite build`, which redirects later wrangler
       # commands in that directory and makes `--env` invalid — so schema first, then code.
