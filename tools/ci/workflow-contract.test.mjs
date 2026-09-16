@@ -86,8 +86,13 @@ describe('rollback workflow contract', () => {
     expect(rollbackWorkflow).not.toContain('restore_database');
   });
 
-  it('keeps the staging drill runnable before rollback.yml reaches the default branch', () => {
+  it('requires explicit opt-in for the pre-default-branch local escape hatch', () => {
     expect(stagingDrill).toContain('local Wrangler staging fallback');
+    expect(stagingDrill).toContain("process.argv.includes('--local-fallback')");
+    expect(stagingDrill).toContain(
+      'rollback.yml must be present on the repository default branch',
+    );
+    expect(stagingDrill).toContain('actions/workflows/rollback.yml');
     expect(stagingDrill).toContain("'wrangler'");
     expect(stagingDrill).toContain("'https://staging.founders.coffee'");
     expect(stagingDrill).not.toContain('time-travel restore');

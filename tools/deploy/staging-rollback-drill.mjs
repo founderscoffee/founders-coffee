@@ -19,6 +19,7 @@ const temporaryRoot = path.join(
   '/tmp',
   `founders-coffee-rollback-${Date.now()}`,
 );
+const allowLocalFallback = process.argv.includes('--local-fallback');
 
 const runGh = async (args, options = {}) => {
   const { stdout } = await execFileAsync('gh', args, {
@@ -66,6 +67,31 @@ const workflowRunId = (output) => {
   const match = output.match(/\/actions\/runs\/(\d+)/u);
   if (!match) throw new Error('GitHub did not return a workflow run URL');
   return match[1];
+};
+
+const rollbackWorkflowMissingError = (error) =>
+  new Error(
+    'rollback.yml must be present on the repository default branch; merge it to main before retrying or rerun with --local-fallback for the explicit staging escape hatch',
+    { cause: error },
+  );
+
+const requireDefaultBranchRollbackWorkflow = async () => {
+  const repository = await runGh([
+    'repo',
+    'view',
+    '--json',
+    'nameWithOwner',
+    '--jq',
+    '.nameWithOwner',
+  ]);
+  try {
+    await runGh(['api', `repos/${repository}/actions/workflows/rollback.yml`]);
+  } catch (error) {
+    if (error instanceof Error && /HTTP 404/u.test(error.message)) {
+      throw rollbackWorkflowMissingError(error);
+    }
+    throw error;
+  }
 };
 
 const dispatchAndWatch = async (workflow, fields) => {
@@ -196,8 +222,11 @@ const rollbackStaging = async (state) => {
     ]);
   } catch (error) {
     if (!rollbackWorkflowUnavailable(error)) throw error;
+    if (!allowLocalFallback) {
+      throw rollbackWorkflowMissingError(error);
+    }
     process.stdout.write(
-      'rollback.yml is not on the default branch; using the local Wrangler staging fallback\n',
+      'rollback.yml is not on the default branch; using the explicitly requested local Wrangler staging fallback\n',
     );
     await rollbackWorkersLocally(state);
   }
@@ -206,6 +235,7 @@ const rollbackStaging = async (state) => {
 const main = async () => {
   await requireConfirmation();
   await requireAuth();
+  if (!allowLocalFallback) await requireDefaultBranchRollbackWorkflow();
   fs.mkdirSync(temporaryRoot, { recursive: true });
   const deployRun = await dispatchAndWatch('deploy.yml', [
     ['environment', 'staging'],

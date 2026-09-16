@@ -51,6 +51,18 @@ A post-recovery capture at `2026-09-16T08:26:29Z` validated all four Workers at 
 head `0029_activate_launch_markets`; D1 remained untouched throughout. The drill now passes each
 Worker's canonical Wrangler config explicitly in both the GitHub workflow and local fallback.
 
+### 2026-09-16 default-branch dispatch guard
+
+The second automated drill attempt [35075590338](https://github.com/AmineYagoub/founders-coffee/actions/runs/35075590338)
+was canceled during its pre-rollback migrate/deploy job after the operator interrupted the run to
+review the dispatch design. Its rollback job did not start, so it is not counted as an end-to-end
+drill. The staging command now fails safely when GitHub reports that `rollback.yml` is absent from
+the default branch; the local Wrangler path requires the explicit `--local-fallback` flag.
+
+After cancellation, a fresh release-state capture still reported migration head
+`0029_activate_launch_markets`, and the independent staging SEO smoke covered 18 routes with zero
+failures. No rollback or D1 restore was performed by the canceled run.
+
 ## EC-06 event-create anti-abuse
 
 | Check                           | Staging                                                                                                      | Production                                                                   |
