@@ -63,6 +63,22 @@ After cancellation, a fresh release-state capture still reported migration head
 `0029_activate_launch_markets`, and the independent staging SEO smoke covered 18 routes with zero
 failures. No rollback or D1 restore was performed by the canceled run.
 
+### 2026-09-16 explicit local-fallback drill and recovery
+
+The guarded drill's pre-deploy run [35079443998](https://github.com/AmineYagoub/founders-coffee/actions/runs/35079443998)
+passed all verification, captured a valid staging rollback artifact, and deployed the current
+revision. The explicit `--local-fallback` path then verified the four captured versions and rolled
+back UI, dashboard, admin, and worker-jobs sequentially with their canonical Wrangler configs. No
+D1 restore or migration reversal was performed.
+
+The immediate smoke request from the operator shell could not connect to either the staging custom
+domain or its `workers.dev` origin, so the drill did not count that local probe as successful. The
+required recovery deploy [35081624701](https://github.com/AmineYagoub/founders-coffee/actions/runs/35081624701)
+passed every CI gate and its runner-side deployed-origin smoke artifact reported 18 routes with
+zero failures. A final Cloudflare release-state capture validated migration head
+`0029_activate_launch_markets` and all four recovered Workers at 100%. The local timeout was limited
+to the operator network path; Cloudflare API access and the GitHub runner remained healthy.
+
 ## EC-06 event-create anti-abuse
 
 | Check                           | Staging                                                                                                      | Production                                                                   |
