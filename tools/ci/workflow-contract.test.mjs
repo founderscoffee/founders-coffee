@@ -44,6 +44,7 @@ describe('verified staging tree workflow contract', () => {
     expect(deployWorkflow).toContain('uses: ./.github/workflows/ci.yml');
   });
 });
+
 describe('rollback workflow contract', () => {
   it('exposes the guarded staging drill as one npm command', () => {
     expect(packageManifest.scripts['rollback:staging']).toBe(

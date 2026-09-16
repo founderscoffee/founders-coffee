@@ -7,7 +7,6 @@ export default defineConfig({
       'ci/**/*.test.mjs',
       'deploy/**/*.test.mjs',
       'eslint/**/*.test.mjs',
-      'ci/**/*.test.mjs',
       'release/**/*.test.mjs',
       'local-state/**/*.test.mjs',
       'seo/**/*.test.mjs',
