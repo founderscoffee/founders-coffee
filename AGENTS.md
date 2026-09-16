@@ -102,10 +102,14 @@ apps/<app>/src/
 Component → hook (TanStack Query) → api.ts → libs/server-fns → libs/domain → libs/db → D1
 ```
 
-**Nx project tags** classify projects (`type:app|lib`, `domain:*`, `layer:ui|server|data`). **`@nx/eslint-plugin` dependency rules** enforce:
+**Nx project tags** classify projects (`type:app|lib`, `domain:*`, `layer:app-ui|ui|server|domain|data|shared`). **`@nx/eslint-plugin` dependency rules** enforce:
 
-- `layer:ui` **may not** import `layer:server` or `layer:data` (no server-fns/db/drizzle/domain in components).
-- `layer:server` **may not** import `layer:ui`.
+- `layer:app-ui` may import only `layer:ui|shared|server|domain|data`; route loaders and feature `api.ts` modules are the explicit server-wiring path, while the local rule keeps server imports out of components, `lib/`, and other feature modules.
+- `layer:ui` may import only `layer:ui|shared` (the shared design system cannot reach server, domain, or data layers).
+- `layer:server` may import only `layer:server|domain|data|shared` (workers cannot reach the UI layer).
+- `layer:domain` may import only `layer:domain|shared`.
+- `layer:data` may import only `layer:data|shared`.
+- `layer:shared` may import only `layer:shared`.
 - Apps depend only on `libs/*`, **never** on sibling `apps/*`.
 - Boundary violations are **build-breaking lint errors**, not warnings.
 

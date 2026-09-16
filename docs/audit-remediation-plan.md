@@ -3,7 +3,7 @@
 | Field          | Value                                                                                                                                                                                                |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status         | Active; AR-02 through AR-07 and AR-09 through AR-13 are complete. AR-08 is complete for `apps/ui` while `apps/admin` stays report-only                                                               |
-| Last reviewed  | 2026-09-14 — deployment evidence and notification policy reconciled                                                                                                                                  |
+| Last reviewed  | 2026-09-16 — P0-001 enforcement and coverage gates re-audited                                                                                                                                        |
 | Scope          | Defects and rule deviations found by the repository-wide audit at `1167e0d` on `develop`, excluding work already owned by an existing plan                                                           |
 | Parent tickets | P0-018, P0-021, P1-008, P1-009, P1-018, P1-019                                                                                                                                                       |
 | Requirements   | FR-E3, FR-E4, FR-N1, FR-N3; NFR-3, NFR-4, NFR-7, NFR-9, NFR-10, NFR-11, NFR-12                                                                                                                       |
@@ -881,28 +881,30 @@ unmeasured is the one thing this ticket keeps saying not to do.
 
 Closes F-11 and F-12. These are the mechanisms that would have caught several of the other findings.
 
-Current behavior:
+Audit baseline before AR-09:
 
-- App projects carry only `type:app` and `domain:*` tags — no `layer:` tag — so
-  `@nx/enforce-module-boundaries` asserts only that apps depend on libraries, and none of the layer
-  constraints apply to application code. The gap is covered by the local rule
-  `no-server-fns-in-components`, whose path test at `eslint.config.mjs:46` matches
-  `/\/src\/(components|lib)\//`. That misses `features/<domain>/components/`, the exact directory
-  `AGENTS.md` §3 designates for domain components. Nothing violates it today and the type-only
-  discipline is spotless; the guard simply would not catch a regression.
+- App projects carried only `type:app` and `domain:*` tags — no `layer:` tag — so
+  `@nx/enforce-module-boundaries` asserted only that apps depend on libraries, and none of the layer
+  constraints applied to application code. The remaining file-level gap was covered by the local rule
+  `no-server-fns-in-components`, whose path test in the original `eslint.config.mjs:46` matched
+  `/\/src\/(components|lib)\//`. It missed `features/<domain>/components/`, the exact directory
+  `AGENTS.md` §3 designates for domain components. No violation was detected in the original audit
+  snapshot, and the type-only discipline was spotless; the guard simply would not have caught a
+  regression. The later conformance pass recorded the runtime violation as F-17 and closed it under
+  AR-12.
 - `AGENTS.md` §12 requires coverage gates on `libs/domain` and `libs/server-fns`. No `coverage`
-  configuration exists in any vitest config, and CI never collects it. F-02, F-03, and F-05 all sit in
-  code paths with no test.
+  configuration existed in any vitest config, and CI did not collect it. F-02, F-03, and F-05 all
+  sat in code paths with no test.
 
-Work:
+Implemented work:
 
-- Widen the local rule's path test to any `components/` path segment and add a fixture test proving it
-  fires for `features/<domain>/components/`.
-- Add `layer:ui` to the application projects so the Nx layer constraints engage, and resolve whatever
-  the newly active constraints surface. Route files and `features/*/api.ts` legitimately reach the
-  server layer; encode that exception deliberately rather than by omission.
-- Configure vitest coverage for `libs/domain` and `libs/server-fns` with thresholds set from a
-  measured baseline, and collect it in CI.
+- Widened the local rule's path test to any `components/` path segment and added a fixture test proving
+  it fires for `features/<domain>/components/`.
+- Added explicit application layer tags so the Nx constraints engage: `layer:app-ui` for the UI apps
+  and `layer:server` for `worker-jobs`. Route files and `features/*/api.ts` legitimately reach the
+  server layer; that exception is encoded deliberately rather than by omission.
+- Configured Vitest coverage for `libs/domain` and `libs/server-fns` with thresholds set from a
+  measured baseline; the existing CI test target collects it on every quality run.
 
 Completion evidence — F-11:
 
@@ -914,6 +916,9 @@ Completion evidence — F-11:
 - Those tests live at the repository root beside the rules they cover, so `workspace-root` gained a
   `test` target. `nx run-many -t test` — the command CI already runs — now covers them; nothing ran
   them before.
+- `tools/eslint/module-boundaries.test.mjs` independently verifies every app and library has the
+  required `type:*`, `domain:*`, and `layer:*` tags, checks that no project directory is omitted, and
+  locks every layer constraint to the documented allow-list.
 - The application projects carry layer tags, so the Nx constraints engage where they asserted
   nothing:
 
@@ -934,8 +939,8 @@ Completion evidence — F-11:
   with no UI. It can no longer import `libs/ui` or any application code.
 - Both constraints were probed rather than assumed. `worker-jobs` importing `libs/ui` and `libs/ui`
   importing `server-fns` each fail lint with the expected message; both probes were removed.
-- Repository-wide gates pass with the tags applied: 17 projects, 588 tests, zero boundary
-  violations.
+- Repository-wide gates pass with the tags applied: 17 projects, zero boundary violations, and the
+  new enforcement suite is included in the root test target.
 
 Completion evidence — F-12:
 
@@ -945,12 +950,17 @@ which the Workers runtime does not provide, so it cannot run in the `@cloudflare
 pool that `libs/server-fns` uses for every test. Istanbul instruments at transform time and works in
 both pools, so one provider serves both libraries.
 
-Thresholds are the measured baseline, floored — not an aspiration:
+Thresholds were initially set from the measured baseline, floored — not an aspiration:
 
 | Library           | Statements | Branches | Functions | Lines  |
 | ----------------- | ---------- | -------- | --------- | ------ |
 | `libs/domain`     | 59.80%     | 40.00%   | 40.00%    | 63.15% |
 | `libs/server-fns` | 69.90%     | 67.28%   | 64.53%    | 71.00% |
+
+The thresholds were subsequently ratcheted as coverage improved. The current configs enforce
+`libs/domain` at 99/98/100/100% and `libs/server-fns` at 71/67/66/72% for statements, branches,
+functions, and lines respectively; the 2026-09-16 run measured 99.76/98.79/100/100% and
+75/74.3/71.42/76.6%.
 
 Set at the floor of each measurement so the gate cannot pass a regression and can only be raised
 deliberately. An invented number would have failed on day one or asserted nothing — and these two
@@ -1115,15 +1125,14 @@ owns the repository root.
 
 Closes F-17, and the `features/` half of F-11.
 
-Current behavior: `apps/ui/src/features/push/client.ts` imports `registerPushTokenFn` and
+Pre-fix behavior: `apps/ui/src/features/push/client.ts` imported `registerPushTokenFn` and
 `removePushTokenFn` from `@founders-coffee/server-fns` as runtime values. §3 makes `api.ts` the only
 module permitted to import `libs/server-fns`, and §4 routes every component call through
-`hooks.ts`. The `local/no-server-fns-in-components` rule cannot see it: the rule returns early
-unless the path matches `/src/(components|lib)/`, so all of `features/` — including
-`features/<domain>/components/` — is unguarded. The violation is real, not theoretical; it is the
-only one, and it exists because nothing was checking.
+`hooks.ts`. The `local/no-server-fns-in-components` rule could not see it: the rule returned early
+unless the path matched `/src/(components|lib)/`, so all of `features/` — including
+`features/<domain>/components/` — was unguarded. The violation was the only one found in the audit.
 
-Work:
+Implemented work:
 
 - Move the two server-function imports into `features/push/api.ts` and have `client.ts` call
   through it, keeping the Firebase messaging setup where it is.
@@ -1133,11 +1142,13 @@ Work:
 - Add a fixture pair under the rule's own tests: a `features/x/components/` file importing
   `server-fns` fails; `features/x/api.ts` importing the same passes.
 
-Verification:
+Completion evidence:
 
 - `nx run-many -t lint` fails on a probe import in `features/<domain>/components/` and passes on the
   same import in `api.ts`.
-- No runtime import of `server-fns`, `db`, or `domain` outside `api.ts` anywhere under `apps/*/src`.
+- No runtime import of `server-fns`, `db`, or `domain` occurs in app components, `lib/`, or
+  non-`api.ts` feature modules. Route loaders and `worker-jobs` remain explicit server-side
+  exceptions; the local rule prevents new client-side bypasses.
 - Push registration still works end to end against Miniflare.
 
 ### AR-13 — Validate notification payloads at the sweep boundary
@@ -1296,8 +1307,10 @@ admin applications; or move E2E into CI, which remains excluded by current proje
       and `libs/server-fns` in CI. (AR-09/AR-12, 2026-09-02)
 - [x] Every finding in section 2 is either closed by an `AR-*` ticket or explicitly assigned to its
       owning plan in section 6.
-- [x] No runtime import of `libs/server-fns`, `libs/db`, or `libs/domain` exists outside `api.ts`,
-      and the boundary rule covers `features/` so a new one cannot land unnoticed.
+- [x] No runtime import of `libs/server-fns`, `libs/db`, or `libs/domain` occurs in app components,
+      `lib/`, or non-`api.ts` feature modules. Route loaders and `worker-jobs` remain explicit
+      server-side exceptions, and the boundary rule covers `features/` so a new client-side bypass
+      cannot land unnoticed.
 - [x] No notification payload is cast rather than parsed, on either side of the row. (AR-13, 2026-09-02)
 - [x] The implementation plan's status table is updated from the evidence this plan produces, and no
-      `Partial` or `Blocked` item is promoted without it. (Reconciled 2026-09-14.)
+      `Partial` or `Blocked` item is promoted without it. (Reconciled 2026-09-16.)

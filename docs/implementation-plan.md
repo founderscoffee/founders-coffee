@@ -7,7 +7,7 @@
 | Version      | 2.9                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
-| Last updated | 2026-09-15                                                                         |
+| Last updated | 2026-09-16                                                                         |
 | Derived from | [SRS v1.7](./srs.md) and [community-first release strategy](./release-strategy.md) |
 
 This document is the current sequencing and status source. Status is evidence-based:
@@ -83,7 +83,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 
 | ID     | Status   | Scope                                                     | Remaining evidence or work                                                                                                                                                                                                                                                                                         |
 | ------ | -------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| P0-001 | Partial  | Nx workspace, TypeScript, lint boundaries, Vitest         | Workspace, TypeScript, and Vitest are complete. Boundaries are not: no app carries a `layer:*` tag, so the layer constraints apply to no app, and `local/no-server-fns-in-components` does not cover `features/` — where one live violation sits. AR-09 and AR-12                                                  |
+| P0-001 | Complete | Nx workspace, TypeScript, lint boundaries, Vitest         | All applications carry explicit layer tags, Nx module-boundary constraints are active, `local/no-server-fns-in-components` guards `components/`, `lib/`, and `features/`, and Istanbul coverage gates run for `libs/domain` and `libs/server-fns`. P0-001 enforcement and regression tests pass.                   |
 | P0-002 | Complete | Public TanStack Start Worker                              | —                                                                                                                                                                                                                                                                                                                  |
 | P0-003 | Complete | Future sponsor dashboard scaffold                         | Dormant foundation; no community-release product UI                                                                                                                                                                                                                                                                |
 | P0-004 | Partial  | Admin Worker and Access JWT guard                         | Access applications and in-Worker JWT verification are configured; staging correlation is verified, while production operator setup and end-to-end verification remain                                                                                                                                             |
@@ -172,8 +172,8 @@ The following order supersedes older sequencing notes in this document and its s
 Each step is a release or verification dependency; completed work is retained as evidence and is
 not repeated.
 
-1. **Unblock release foundations:** resolve `P0-007` market configuration, `P0-001` Nx boundary
-   coverage, `P0-004/P1-017` production Access/operator/CSRF verification, `P0-008/P1-003`
+1. **Unblock release foundations:** resolve `P0-007` market configuration,
+   `P0-004/P1-017` production Access/operator/CSRF verification, `P0-008/P1-003`
    production authentication checks, `P0-016` Email Sending activation and templates, and
    `P0-019` provider/binding/secret verification.
 2. **Close security gaps:** complete `P1-008/P1-018` RSVP Turnstile,
