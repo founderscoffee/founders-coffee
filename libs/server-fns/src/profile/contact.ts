@@ -44,19 +44,18 @@ const refusal = (message: string): AppError => {
  * the only thing standing between a session token and a JSON response, and a change of contact
  * either happened or it did not, so there is nothing else worth returning.
  *
- * Going through the handler keeps the composed Better Auth pipeline intact, including CAPTCHA on
- * the two endpoints that spend money. Expected invalid-code and duplicate-contact outcomes are
+ * Going through the handler keeps the composed Better Auth pipeline intact. Expected invalid-code
+ * and duplicate-contact outcomes are
  * preflighted in the repository adapter because Better Auth's router leaks its APIError promise in
  * the Workers test pool even after it has produced the corresponding HTTP response.
  *
  * The preflight only short-circuits a known refusal; successful requests still go through the
  * handler, which remains the source of truth for session and account mutation.
  *
- * The handler is also what keeps the challenge on the two endpoints that spend money.
- * `send-verification-otp` and `phone-number/send-otp` are captcha-gated, the plugin reads its token
- * from `x-captcha-response`, and an unconfigured secret makes the handler answer 503 rather than
- * send. The token is forwarded from the caller's own headers, so the check happens once, where the
- * member actually solved it.
+ * These operations run only after the surrounding server functions have authenticated the member
+ * and checked the profile-update permission, so they use the internal authenticated handler mode
+ * without a browser challenge. Public auth requests continue through the normal captcha-gated
+ * handler.
  */
 const contactOperation = async (
   operation: string,
@@ -68,14 +67,12 @@ const contactOperation = async (
 ): Promise<Result<ContactChangeAccepted>> => {
   logger.info('contact_change_requested', { operation, userId });
   const env = getAuthEnv();
-  const captchaToken = headers.get('x-captcha-response');
   const request = new Request(`${env.APP_URL}/api/auth${path}`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       origin: env.APP_URL,
       cookie: headers.get('cookie') ?? '',
-      ...(captchaToken ? { 'x-captcha-response': captchaToken } : {}),
     },
     body: JSON.stringify(body),
   });
@@ -101,7 +98,10 @@ const contactOperation = async (
       );
     }
 
-    const response = await createAuthHandler(env, deps)(request);
+    const response = await createAuthHandler(env, {
+      ...deps,
+      captchaBypassed: true,
+    })(request);
     if (response.ok) return ok(ACCEPTED);
     const answer = (await response.json().catch(() => null)) as {
       message?: string;

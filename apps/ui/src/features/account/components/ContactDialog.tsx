@@ -41,12 +41,10 @@ import {
 export const ContactDialog = ({
   locale,
   kind,
-  turnstileToken,
   onClose,
 }: {
   locale: Locale;
   kind: ContactKind;
-  turnstileToken?: string;
   onClose: () => void;
 }) => {
   const [step, setStep] = useState<ContactStep>(FIRST_STEP[kind]);
@@ -78,14 +76,13 @@ export const ContactDialog = ({
 
   const advance = async (): Promise<void> => {
     if (step === 'prove-current') {
-      await sendEmailCode.mutateAsync({ turnstileToken });
+      await sendEmailCode.mutateAsync(undefined);
       return;
     }
     if (step === 'new-email') {
       await requestEmail.mutateAsync({
         newEmail: contact,
         otp: code,
-        turnstileToken,
       });
       setNotice(contact_sent({}, { locale }));
       return;
@@ -94,18 +91,16 @@ export const ContactDialog = ({
       await confirmEmail.mutateAsync({
         newEmail: contact,
         otp: code,
-        turnstileToken,
       });
       return;
     }
     if (step === 'new-phone') {
-      await sendPhone.mutateAsync({ phoneNumber: contact, turnstileToken });
+      await sendPhone.mutateAsync({ phoneNumber: contact });
       return;
     }
     await confirmPhone.mutateAsync({
       phoneNumber: contact,
       otp: code,
-      turnstileToken,
     });
   };
 

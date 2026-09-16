@@ -53,26 +53,28 @@ in the repository; both are read server-side and handed to the client by a serve
 | Var                           | Required | Description                                                                                                                      |
 | ----------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `APP_ENVIRONMENT`             | yes      | Committed Worker var: `development`, `staging`, or `production`; prevents local security bypasses from working when deployed.    |
-| `TURNSTILE_SECRET_KEY`        | yes      | Server-side siteverify key. **Omitting it denies the gated endpoints**, it does not disable the check.                           |
+| `TURNSTILE_SECRET_KEY`        | yes      | Server-side siteverify key for public gated endpoints. **Omitting it denies those endpoints**, it does not disable the check.    |
 | `TURNSTILE_DISABLED`          | local    | `"true"` bypasses Turnstile only when `APP_ENVIRONMENT=development`; it fails closed in staging and production.                  |
 | `TURNSTILE_SITE_KEY`          | public   | Client-side site key (safe to expose in client bundles). Local automated tests may use `1x00000000000000000000AA` (always-pass). |
 | `EVENT_CREATE_WAF_CONFIGURED` | yes      | Set to `true` only after the shared zone WAF rule is active and recorded; absence intentionally blocks deployed creation.        |
 
-`TURNSTILE_SECRET_KEY` and `TURNSTILE_SITE_KEY` must be set **together**. `getPublicAuthConfig`
+`TURNSTILE_SECRET_KEY` and `TURNSTILE_SITE_KEY` must be set **together** for public auth/waitlist
+flows. `getPublicAuthConfig`
 returns `turnstileSiteKey: null` when the site key is absent, so the widget never renders, the client
 sends no token, and siteverify rejects every request — a secret key without a site key locks users
 out of login entirely.
 
 Authentication verification is Better Auth's official `captcha` plugin (`provider: 'cloudflare-turnstile'`),
-registered in `createAuth` when the secret key is present. It reads the token from the
+registered in `createAuth` for public OTP-send endpoints. It reads the token from the
 `x-captcha-response` header, calls siteverify under a 10-second deadline, and rejects a missing or
 invalid token. The gated paths are listed once in
 [`libs/auth/src/captcha.ts`](../libs/auth/src/captcha.ts) — only the endpoints that _send_ an SMS or
 an email.
 
-The gate fails **closed**. `TURNSTILE_DISABLED=true` is the only bypass; when the secret key is
-merely absent the plugin is not registered at all, so `createAuthHandler` refuses the gated
-endpoints with a 503. These endpoints spend money — an unprotected `/phone-number/send-otp` is an
+The public gate fails **closed**. `TURNSTILE_DISABLED=true` is the local-development bypass; when
+the secret key is merely absent, `createAuthHandler` refuses public gated endpoints with a 503.
+Authenticated contact mutations use an explicit server-only handler dependency after their session
+and permission checks, so they do not render or require a browser challenge. These public endpoints spend money — an unprotected `/phone-number/send-otp` is an
 open SMS-pumping relay against the Twilio account — so a forgotten secret must be a visible outage,
 not a silent hole (AGENTS.md §10). The dev-only `1x00000000000000000000AA` site key and
 `TURNSTILE_DISABLED` must never be set on a deployed environment.

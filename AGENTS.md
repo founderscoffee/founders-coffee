@@ -24,7 +24,7 @@ explicit Founder / Product decision.
 1. **No stubs. No mocks. No placeholders. No `TODO`.** Production code must be fully implemented and working. If a dependency isn't ready, the work is **blocked** — never faked. "I'll wire this later" is forbidden; ship it real or don't ship it.
 2. **DRY across apps.** All domain logic, DB access, auth, i18n, UI, server functions, and integrations live **once** in `libs/*` and are consumed by all apps. Duplication between `apps/ui`, `apps/dashboard`, `apps/admin` is a defect.
 3. **Strict one-directional data flow.** Components → hooks → api → server-fns → domain → db → D1. Enforced by Nx tags + lint (§4). No layer skips.
-4. **Security by default.** Validate every input (Zod). Authorize every server function. Rate-limit + Turnstile every state-changing endpoint. Secrets only in `wrangler secret`/Secrets Store.
+4. **Security by default.** Validate every input (Zod). Authorize every server function. Rate-limit every state-changing endpoint; anonymous/public state-changing operations also require Turnstile. Authenticated session mutations rely on the session, centralized authorization, and rate limiting without rendering or requiring a browser challenge. Secrets only in `wrangler secret`/Secrets Store.
 5. **Type safety end-to-end.** Zod is the single source of truth; types are inferred. No `any`. Strict TS everywhere.
 6. **Real platform in tests.** Test against **Miniflare** (real local D1/R2/KV/Queues/AI/Vectorize). Never mock Cloudflare bindings. E2E via Playwright against local Workers.
 7. **Production-grade from ticket #1.** Observability, error handling, validation, and tests are part of each feature — never a "later phase."
@@ -167,7 +167,9 @@ Every server function (`createServerFn`):
 
 State-changing server functions (currently signup, create event, and RSVP; future mutations when
 their phases are approved) are additionally **rate-limited (Durable Object + WAF — never KV; see
-§11.5)** and **Turnstile-protected** at the edge/middleware layer.
+§11.5)**. Anonymous/public operations are **Turnstile-protected** at the edge/middleware layer;
+authenticated session mutations use the session and centralized authorization plus rate limiting,
+without rendering or requiring a browser challenge.
 
 ---
 
@@ -201,8 +203,10 @@ their phases are approved) are additionally **rate-limited (Durable Object + WAF
   `sponsor_contact`). Permission declared per server function; enforced in one middleware. **Never**
   spread authz checks ad hoc.
 - **Input validation:** Zod at every server-function boundary. No unvalidated input reaches domain/DB.
-- **Bot protection:** Turnstile on signup, login, event creation, and RSVP. Future state-changing
-  flows inherit the same requirement if their roadmap phase is approved.
+- **Bot protection:** Turnstile on public signup/login and other anonymous/public operations.
+  Authenticated session mutations do not render or require Turnstile; they use session authz and
+  rate limiting. Future flows inherit the rule that matches their authentication boundary when their
+  roadmap phase is approved.
 - **Rate limiting:** **Durable Object token-bucket** (identity-scoped, strongly consistent) + **Cloudflare WAF Rate Limiting** (blunt volume, edge) — **never KV** (see §11.5).
 - **Admin isolation:** `apps/admin` is gated by **Cloudflare Access** (team SSO/allow-list) **and** the Worker verifies the `Cf-Access-Jwt-Assertion` JWT against the team JWKS + **disables its `workers.dev` route** (Access alone is bypassable via the raw Worker URL).
 - **Secrets:** `wrangler secret` / Secrets Store only. Never committed. `.env` for local dev only; `.env.example` sanitized.
@@ -314,7 +318,7 @@ These are non-negotiable platform-specific rules; several correct common mistake
 
 - [ ] Real implementation — no stubs/placeholders/TODOs.
 - [ ] Inputs Zod-validated; types inferred and reused.
-- [ ] Authz + rate-limit + Turnstile where state-changing.
+- [ ] Authz + rate-limit on every state-changing flow; Turnstile on anonymous/public operations.
 - [ ] Money via `Money` value object; no bare numbers.
 - [ ] i18n complete (`ar`, `fr`, and `en`); RTL and LTR verified.
 - [ ] Errors via the throw boundary (`AppError` after `handleResult`); structured logs on server paths.

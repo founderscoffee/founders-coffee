@@ -4,10 +4,16 @@ This file records account-side facts that repository code and CI cannot prove. D
 complete from configuration intent alone. Never record secrets, Turnstile responses, full IP
 addresses, session cookies, or personal test-account data.
 
-## Current operational snapshot — 2026-09-14
+## Current operational snapshot — 2026-09-16
 
 The following dated deployment records supersede older “not deployed” and “pending migration” notes
 below. Those notes remain as historical release records, but they are not the current state.
+
+Current Turnstile policy: public login/OTP, public waitlist, and other anonymous operations render
+and verify Turnstile. Authenticated profile, account, RSVP, feedback, event, and operations
+mutations rely on session authentication, centralized authorization, rate limiting, and applicable
+WAF controls without a browser challenge. Historical challenge measurements below remain valid as
+evidence of the deployments tested at that time.
 
 | Area                        | Staging                                                                                                                                                            | Production                                                                                                                                                         |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

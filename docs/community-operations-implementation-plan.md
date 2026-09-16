@@ -3,7 +3,7 @@
 | Field          | Value                                                                                                                                                                                          |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status         | Active; EC-10 signed off, CO-01 through CO-07 implemented locally, CO-02/CO-03 deployed to both environments, CO-04/CO-05 staging-verified, and CO-06/CO-07 locally verified pending promotion |
-| Last reviewed  | 2026-09-14                                                                                                                                                                                     |
+| Last reviewed  | 2026-09-16 — session-aware Turnstile policy reconciled                                                                                                                                         |
 | Scope          | Post-creation community operations across `apps/ui`, `apps/admin`, `apps/worker-jobs`, and shared libraries                                                                                    |
 | Predecessor    | [Event Creation Remediation Plan](./event-creation-remediation-plan.md), EC-01 through EC-10                                                                                                   |
 | Parent tickets | P0-004, P0-018, P1-008, P1-009, P1-013, P1-017, P1-018, P1-019, P1-021, P1-023                                                                                                                 |
@@ -38,6 +38,10 @@ This plan adds no sponsorship, challenge, talent, payment, expansion, native-mob
 nonessential AI work. It introduces no new vendor, Cloudflare service, or package. If execution
 proves that the locked stack is insufficient, work pauses for explicit approval under AGENTS.md
 §1.8.
+
+Security policy update (2026-09-16): Turnstile is rendered and verified only for public or anonymous
+operations. Authenticated member and operator mutations use Better Auth sessions, centralized
+permissions, identity-scoped rate limiting, and applicable WAF controls without a browser challenge.
 
 ## 2. Sequencing contract with the event-creation plan
 
@@ -104,19 +108,19 @@ Drizzle, domain internals, or server functions from a component.
 
 ## 4. Current baseline and gaps (reviewed 2026-09-14)
 
-| Area                      | Current evidence                                                                                                                                                         | Required result                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| Event creation            | EC-01 through EC-10 signed off; staging 18/18, production release/DNS/WAF evidence, and the authorized production smoke are recorded                                     | Preserve the dated handoff trace; no additional creation smoke is required for CO work                  |
-| RSVP                      | Immediate flow exists; full-capacity atomicity and duplicate handling are fixed by AR-04/CO-02. RSVP Turnstile remains open under P1-018                                 | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
-| Notifications             | Historical one-minute D1 polling and parallel channel scheduling were replaced by CO-02; staging push/email delivery is proven and production policy parity remains open | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                       |
-| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                                                 | Explicit held/did-not-happen closeout separate from publication status                                  |
-| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                                              | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
-| Feedback                  | No post-event participant or host pulse                                                                                                                                  | One small, optional, localized pulse per eligible person                                                |
-| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                                             | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
-| Admin app                 | Access JWT guard and the CO-04 operations shell are implemented; staging Access/Better Auth correlation is verified, while production has no operator account            | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
-| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                                            | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
-| Metrics                   | Analytics Engine binding and the first `events_created` write are verified; the account-side dashboard and remaining community metrics are not complete                  | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
-| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                                    | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
+| Area                      | Current evidence                                                                                                                                                                    | Required result                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Event creation            | EC-01 through EC-10 signed off; staging 18/18, production release/DNS/WAF evidence, and the authorized production smoke are recorded                                                | Preserve the dated handoff trace; no additional creation smoke is required for CO work                  |
+| RSVP                      | Immediate flow exists; full-capacity atomicity and duplicate handling are fixed by AR-04/CO-02. RSVP is session-bound and uses authz plus rate limiting without a browser challenge | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
+| Notifications             | Historical one-minute D1 polling and parallel channel scheduling were replaced by CO-02; staging push/email delivery is proven and production policy parity remains open            | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                       |
+| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                                                            | Explicit held/did-not-happen closeout separate from publication status                                  |
+| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                                                         | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
+| Feedback                  | No post-event participant or host pulse                                                                                                                                             | One small, optional, localized pulse per eligible person                                                |
+| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                                                        | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
+| Admin app                 | Access JWT guard and the CO-04 operations shell are implemented; staging Access/Better Auth correlation is verified, while production has no operator account                       | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
+| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                                                       | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
+| Metrics                   | Analytics Engine binding and the first `events_created` write are verified; the account-side dashboard and remaining community metrics are not complete                             | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
+| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                                               | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
 
 ## 5. Locked product and data decisions
 
@@ -157,7 +161,8 @@ Drizzle, domain internals, or server functions from a component.
     component or server function performs an ad hoc role comparison.
 13. **State changes retain the security baseline.** Host closeout, feedback, repeat-event creation,
     moderation, trust updates, and corrections use Zod, authz, identity-scoped DO rate limiting,
-    Turnstile at the edge/middleware boundary, and applicable WAF policies.
+    and applicable WAF policies. These are session-bound operations and do not render or require a
+    browser Turnstile challenge; anonymous/public operations retain their own challenge policy.
 14. **Analytics contains no PII or free text.** D1 remains the source of truth. Analytics Engine
     receives event names, market/city, locale, and aggregate numeric values—never names, emails,
     phone numbers, comments, venue free text, or raw identifiers.
@@ -629,14 +634,15 @@ Work:
   empty files and future-facing placeholders are forbidden.
 - Localize all copy in `ar`, `fr`, and `en`; support Arabic RTL and French/English LTR with keyboard
   and focus behavior at WCAG 2.1 AA.
-- Apply managed Turnstile plus DO/WAF protection to admin sign-in. CO-08 and CO-09 own the same
-  protection on the real operations/moderation mutations they introduce.
+- Apply managed Turnstile plus DO/WAF protection to the public admin sign-in flow. CO-08 and CO-09
+  protect authenticated operations/moderation mutations with session authorization, DO limiting,
+  and applicable WAF controls without rendering a browser challenge.
 
 Verification:
 
 - Requests fail closed independently for missing/invalid Access JWT, missing session, wrong role,
-  mismatched Access/Better Auth identity, missing permission, Turnstile failure, rate limit, and
-  cross-market input.
+  mismatched Access/Better Auth identity, missing permission, public sign-in Turnstile failure,
+  rate limit, and cross-market input.
 - A valid Access identity without a Better Auth `moderator`/`admin` session cannot read operational
   data.
 - Tests prove a valid Access identity paired with a different valid Better Auth account is rejected,
@@ -856,7 +862,7 @@ Verification:
 - Queue tests prove only attended members are invited, retries are idempotent, and push/email fallback
   remains correct.
 - Server tests cover eligibility, feedback window, duplicate/update behavior, market scope,
-  late-closeout behavior, authored language, Turnstile, rate limiting, and typed errors.
+  late-closeout behavior, authored language, session authorization, rate limiting, and typed errors.
 - Component tests cover privacy copy, optional comment, success/empty next-event states,
   accessibility, and all locales/directions.
 
@@ -905,7 +911,7 @@ Work:
 - Build an event detail view with canonical event data, host, RSVP/attendance summary, closeout,
   feedback aggregates, notification outcomes, and audit history.
 - Permit authorized closeout correction/override only with a shared reason code, optimistic version,
-  Turnstile, rate limit, and an atomic audit write.
+  session authorization, rate limit, and an atomic audit write.
 - Permit authorized person-level attendance correction only with a shared reason code, optimistic
   version, and an append-only atomic before/after audit entry containing both verified admin
   identities.
@@ -917,8 +923,8 @@ Work:
   metrics; changing to `held` invites feedback only when still inside the seven-day closeout rule.
 - Require `communityOperations` for operations, correction, backfill, and weekly-review routes and
   server functions.
-- Apply centralized permission, managed Turnstile, identity-scoped DO limiting, and WAF coverage to
-  every correction, backfill, and weekly-review mutation.
+- Apply centralized permission, identity-scoped DO limiting, and WAF coverage to every correction,
+  backfill, and weekly-review mutation. These authenticated operations do not render Turnstile.
 - Provide empty states that direct the operator to human action—recruit a host, confirm a venue,
   contact the event host, or review delivery—without inventing data or automating outreach.
 
@@ -948,8 +954,9 @@ Work:
   moderation state must be added through a reviewed domain transition and migration.
 - Wire user ban/unban through the centralized Better Auth/admin capability and record a local
   operations audit entry without duplicating the auth source of truth.
-- Protect every trust, event, and user mutation with its declared permission, managed Turnstile,
-  identity-scoped DO limit, and applicable WAF policy.
+- Protect every trust, event, and user mutation with its declared permission, identity-scoped DO
+  limit, and applicable WAF policy. These admin/session-bound mutations do not render Turnstile;
+  public operations retain their own challenge policy.
 - Require culturally/language-appropriate review and show authored content in its original language;
   do not auto-translate member content.
 
@@ -1008,7 +1015,7 @@ Work:
   compatible shared libraries.
 - Enable `communityOperations` for every configured market through migration `0027` and treat
   production promotion as a controlled release action.
-- Verify Access plus Better Auth/RBAC, D1/DO/Queue/Analytics bindings, Turnstile, WAF, FCM, Twilio,
+- Verify Access plus Better Auth/RBAC, D1/DO/Queue/Analytics bindings, public Turnstile, WAF, FCM, Twilio,
   CSP, logs, alerts, and `workers.dev` isolation.
 - Use the dedicated host/member/admin identities from CO-01; prove the admin's Access and Better Auth
   identities correlate before any privileged test.
@@ -1076,7 +1083,7 @@ good events, returning participants, and recurring hosts with decreasing founder
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Domain                   | Closeout/attendance/feedback/trust/review schemas; locked enums; metric formulas; zero denominators; concrete windows/timezones; retention; repeat-host prefills      |
 | Repository/D1            | Fresh/upgrade migrations; frozen RSVP eligibility; batched attendance; idempotency; append-only audit; weekly reviews; indexes; market scoping; legacy null end times |
-| Server functions         | Correlated Access/Auth identity; authz; feature flag; Turnstile; DO limit; WAF evidence; host/admin ownership; typed errors; no leakage                               |
+| Server functions         | Correlated Access/Auth identity; authz; feature flag; public Turnstile boundary; DO limit; WAF evidence; host/admin ownership; typed errors; no leakage               |
 | `apps/ui` components     | Closeout, long attendance list, feedback, return action, repeat hosting, loading/error/empty, all locales/directions/widths                                           |
 | `apps/admin` components  | Secure shell, operations table/detail, trust/moderation, metrics, audit, permissions, filters, large lists, all locales/directions                                    |
 | Worker/Queues            | Post-event alarms, host/member prompts, closeout/feedback windows, push success, email fallback, retry, DLQ, idempotency, recovery sweep                              |
@@ -1135,8 +1142,8 @@ stubs/placeholders.
 ## 13. Definition of done
 
 - [x] EC-01 through EC-10 are Complete with recorded handoff evidence before CO implementation starts.
-- [x] CO-02/P0-018 notification architecture is deployed and no longer Blocked. P1-008 still has the
-      separate RSVP Turnstile gap tracked in the main implementation plan.
+- [x] CO-02/P0-018 notification architecture is deployed and no longer Blocked. RSVP is session-bound
+      and covered by authz plus rate limiting without a browser challenge.
 - [ ] The weekly community-operations cadence has an owner and has been rehearsed with real evidence.
 - [ ] RSVP create/cancel/restore is atomic before `startsAt` and immutable at/after it, preserving a
       stable attendance-eligibility set.
@@ -1170,7 +1177,7 @@ stubs/placeholders.
 - [ ] Format, sync, typecheck, lint/boundaries, unit/integration, test, and build gates pass.
 - [ ] The complete Playwright operations loop passes locally and across three real-time staging
       checkpoints while remaining outside CI; no deployed fake clock or completion endpoint exists.
-- [ ] Staging/production migrations, deployments, Access, secrets/bindings, Turnstile/WAF, alerts,
+- [ ] Staging/production migrations, deployments, Access, public Turnstile/WAF, alerts,
       smoke evidence, and rollback points are recorded.
 - [ ] No sponsorship, challenge, talent, payment, expansion, speculative CRM, native app, or
       nonessential AI scope was introduced.

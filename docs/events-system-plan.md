@@ -97,7 +97,7 @@ The desired operation is a single atomic D1 capacity decision plus idempotent me
   races against real D1.
 
 The full-capacity path is fixed and regression-tested by AR-04/CO-02. Remaining launch hardening is
-the separate RSVP Turnstile requirement and the live event dashboard verification.
+the session-bound RSVP authz/rate-limit policy and the live event dashboard verification.
 
 ## 6. Notification architecture
 
@@ -141,9 +141,9 @@ The feature is **Partial** until session-expiry, cancellation, and heartbeat beh
 
 ## 8. Launch hardening
 
-- Resolve the remaining Turnstile policy gap for event creation and RSVP. The current release
-  deliberately omits the event-create challenge; AGENTS.md still requires state-changing coverage,
-  so the exception stays tracked under P1-018 rather than being described as complete.
+- Resolve the remaining public bot-protection gaps while keeping event creation and RSVP session-bound
+  without a browser challenge. The current release deliberately omits the event-create challenge,
+  consistent with the session-aware Turnstile policy in AGENTS.md.
 - Retain the active shared Free-plan WAF rule in addition to identity-scoped Durable Object limits.
   The production behavioral probe and custom-domain verification were completed on 2026-09-04;
   repeat them only after a WAF or routing change.

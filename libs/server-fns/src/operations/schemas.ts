@@ -30,7 +30,6 @@ export const feedbackViewRequestSchema = z.strictObject({
 
 export const submitFeedbackRequestSchema = z.strictObject({
   feedback: operations.submitFeedbackSchema,
-  turnstileToken: z.string().trim().max(2_048).optional(),
 });
 
 export type CloseoutViewRequest = z.infer<typeof closeoutViewRequestSchema>;

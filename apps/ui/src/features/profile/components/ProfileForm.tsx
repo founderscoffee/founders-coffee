@@ -11,9 +11,8 @@ import {
   profile_load_error,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, useToast, Turnstile } from '@founders-coffee/ui';
+import { Button, useToast } from '@founders-coffee/ui';
 
-import { usePublicAuthConfig } from '../../auth/hooks';
 import type { UserProfile } from '../api';
 import { profileErrorMessage } from '../errors';
 import { usePhotoUploadAvailability, useUpdateProfile } from '../hooks';
@@ -41,14 +40,11 @@ export const ProfileForm = ({
 }) => {
   const [draft, setDraft] = useState<ProfileDraft>(() => draftFrom(saved));
   const [base, setBase] = useState<UserProfile>(saved);
-  const [token, setToken] = useState<string | null>(null);
-  const [nonce, setNonce] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [invalidField, setInvalidField] = useState<string | null>(null);
   const inFlight = useRef(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const mutation = useUpdateProfile();
-  const config = usePublicAuthConfig();
   const photos = usePhotoUploadAvailability();
   const feedback = useToast();
   const reportError = (message: string) => {
@@ -57,7 +53,6 @@ export const ProfileForm = ({
   };
 
   const isDirty = isDraftDirty(draft, base);
-  const canVerify = !!token || config.data?.isTurnstileBypassed === true;
 
   const reportDirty = useRef(onDirtyChange);
   reportDirty.current = onDirtyChange;
@@ -85,7 +80,7 @@ export const ProfileForm = ({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (inFlight.current || !canVerify) return;
+    if (inFlight.current) return;
     const built = commandFrom(draft, base.revision);
     if (!built.ok) {
       setInvalidField(built.field);
@@ -105,7 +100,6 @@ export const ProfileForm = ({
       adopt(
         await mutation.mutateAsync({
           profile: built.command,
-          turnstileToken: token ?? undefined,
         }),
       );
       feedback.show(profile_saved({}, { locale }), 'success');
@@ -113,8 +107,6 @@ export const ProfileForm = ({
       reportError(profileErrorMessage(failure, locale));
     } finally {
       inFlight.current = false;
-      setToken(null);
-      setNonce((value) => value + 1);
     }
   };
 
@@ -149,7 +141,6 @@ export const ProfileForm = ({
                 displayName={draft.displayName}
                 photoAssetId={draft.photoAssetId}
                 isDisabled={mutation.isPending}
-                turnstileToken={token ?? undefined}
                 onPhotoChange={applyPhoto}
                 onFeedback={feedback.show}
               />
@@ -171,29 +162,14 @@ export const ProfileForm = ({
           />
         </section>
 
-        {!config.data?.isTurnstileBypassed && config.data?.turnstileSiteKey && (
-          <Turnstile
-            sitekey={config.data.turnstileSiteKey}
-            action="update_profile"
-            resetKey={nonce}
-            onToken={setToken}
-          />
-        )}
         <ProfileFeedback
           locale={locale}
           notification={feedback.notification}
           onDismiss={feedback.clear}
-          hasSecurityError={
-            config.isError ||
-            (!!config.data &&
-              !config.data.isTurnstileBypassed &&
-              !config.data.turnstileSiteKey)
-          }
-          onRetry={() => void config.refetch()}
         />
 
         <div className="flex flex-wrap gap-3">
-          <Button type="submit" disabled={!canVerify || mutation.isPending}>
+          <Button type="submit" disabled={mutation.isPending}>
             {profile_save({}, { locale })}
           </Button>
           {isDirty && (

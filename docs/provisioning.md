@@ -25,16 +25,16 @@ Website plan, so its single rate-limiting-rule slot protects both `/api/auth/` a
 every hostname. The rule and both Worker evidence markers are active; staging and production burst
 probes are recorded in [`deployment-evidence.md`](./deployment-evidence.md).
 
-| Unset secret                              | Consequence                                                                                                                                |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `MAPBOX_TOKEN`                            | The café map picker on `/{market}/host/create` cannot load.                                                                                |
-| `TURNSTILE_SECRET_KEY`                    | Gated auth endpoints fail closed with `503`; event/RSVP coverage still requires the P1-018 audit.                                          |
-| `EVENT_CREATE_WAF_CONFIGURED`             | Event creation fails closed before Siteverify, Mapbox, or D1 work in staging and production.                                               |
-| `TWILIO_SID`                              | Phone login remains disabled without a Verify Service SID. Deployed phone-OTP endpoints must fail closed rather than use `DevSmsProvider`. |
-| `TWILIO_AID` / `TWILIO_SEC`               | Same-day cancellation SMS cannot send, and deployed phone-OTP endpoints must remain fail-closed.                                           |
-| `TWILIO_SMS_FROM`                         | Same-day cancellation SMS cannot send with the configured notification provider.                                                           |
-| `FIREBASE_*`                              | Web push disabled; `getFirebaseConfig` returns `null`.                                                                                     |
-| `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` | `apps/admin` rejects every request until Access is configured.                                                                             |
+| Unset secret                              | Consequence                                                                                                                                                           |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MAPBOX_TOKEN`                            | The café map picker on `/{market}/host/create` cannot load.                                                                                                           |
+| `TURNSTILE_SECRET_KEY`                    | Public auth and waitlist operations fail closed with `503` when the challenge cannot be verified; authenticated session mutations do not require a browser challenge. |
+| `EVENT_CREATE_WAF_CONFIGURED`             | Event creation fails closed before Siteverify, Mapbox, or D1 work in staging and production.                                                                          |
+| `TWILIO_SID`                              | Phone login remains disabled without a Verify Service SID. Deployed phone-OTP endpoints must fail closed rather than use `DevSmsProvider`.                            |
+| `TWILIO_AID` / `TWILIO_SEC`               | Same-day cancellation SMS cannot send, and deployed phone-OTP endpoints must remain fail-closed.                                                                      |
+| `TWILIO_SMS_FROM`                         | Same-day cancellation SMS cannot send with the configured notification provider.                                                                                      |
+| `FIREBASE_*`                              | Web push disabled; `getFirebaseConfig` returns `null`.                                                                                                                |
+| `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` | `apps/admin` rejects every request until Access is configured.                                                                                                        |
 
 Email Sending is another hard gap: until the required sender and DNS records exist, the `EMAIL`
 binding cannot send, so email-OTP login and any explicitly email-based workflow fail in deployed
@@ -72,7 +72,7 @@ Object namespace and worker-jobs producer binding are deployed in both environme
 must still be deployed before `apps/ui`, which binds the class across scripts.
 
 Current launch provisioning requires D1, event/rate-limit/notification Durable Objects, custom
-domains, Email Sending for email OTP and notification fallback, Turnstile, Mapbox, FCM web push,
+domains, Email Sending for email OTP and notification fallback, public-auth/waitlist Turnstile, Mapbox, FCM web push,
 private R2 plus Images bindings for profile photos, Twilio Programmable SMS for same-day cancellation
 disruption, the Notifications Queue/DLQ, Analytics Engine, and Access for the essential admin
 surface. Workers AI, Vectorize, future sponsor/media storage, sponsor/dashboard integrations, and

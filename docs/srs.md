@@ -480,7 +480,7 @@ its initial approach is manual recording/confirmation with no automated provider
 - **AI & search:** **Workers AI** (moderation, embeddings, summaries) + **Vectorize** (semantic search over events/challenges).
 - **Email:** **Cloudflare Email** (native; auto SPF/DKIM/DMARC) with **React Email** templates.
 - **Rendering:** **Browser Rendering** (OG images for social sharing, PDF receipts).
-- **Security:** **Turnstile** (bot protection on all forms); **Cloudflare Access / Zero Trust** (gates `apps/admin` to the team).
+- **Security:** **Turnstile** (bot protection on public/anonymous forms and operations); authenticated session mutations use Better Auth sessions, centralized authorization, and rate limiting without a browser challenge. **Cloudflare Access / Zero Trust** gates `apps/admin` to the team.
 - **Observability:** **Analytics Engine** (product metrics) + **Web Analytics** (privacy analytics); structured logging.
 - **Secrets:** **Cloudflare Secrets Store / `wrangler secret`**.
 - **Auth:** **Better Auth** — the current UI uses passwordless email OTP plus configured OAuth

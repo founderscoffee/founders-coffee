@@ -239,7 +239,7 @@ describe('PF-03 strict request boundaries', () => {
       }).success,
     ).toBe(false);
   });
-  it('rejects owner selectors, unbounded public ids, invalid revisions and oversized security tokens', () => {
+  it('rejects owner selectors, unbounded public ids, invalid revisions and legacy security fields', () => {
     expect(
       emptyProfileRequestSchema.safeParse({ userId: 'victim' }).success,
     ).toBe(false);
@@ -262,7 +262,7 @@ describe('PF-03 strict request boundaries', () => {
       updateDisplayNameRequestSchema.safeParse({
         displayName: 'Amina',
         expectedRevision: 0,
-        turnstileToken: 'x'.repeat(2049),
+        turnstileToken: 'legacy',
       }).success,
     ).toBe(false);
   });

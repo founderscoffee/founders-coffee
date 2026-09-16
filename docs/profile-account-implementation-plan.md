@@ -4,7 +4,7 @@
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status         | PF-01 through PF-03b, PF-04a/b, and PF-05 through PF-08 implemented; PF-03b and `0021`–`0025` deployed to staging and production; PF-04c and PF-09 onward remain planned/partial |
 | Decision date  | 2026-09-08                                                                                                                                                                       |
-| Last reviewed  | 2026-09-14 — deployment and migration evidence reconciled                                                                                                                        |
+| Last reviewed  | 2026-09-16 — deployment, migration, and session-aware Turnstile evidence reconciled                                                                                              |
 | Owner          | Founder / Product                                                                                                                                                                |
 | Scope          | Location-free onboarding, editable profiles, privacy, photos, notifications, account security, export and deletion                                                               |
 | Parent tickets | P1-003, P1-004, P1-009, P1-013, P1-018, P1-021                                                                                                                                   |
@@ -64,10 +64,11 @@ parent `/Users/workstation/CLAUDE.md` did not exist; source inspection used `rg`
 - Current CI runs Prettier, `nx sync:check`, typecheck, lint including Nx boundaries, tests and builds. Vitest uses real Miniflare bindings; Playwright remains local/staging and outside CI.
 - Keep arrow functions, inferred types, component/file naming, comment policy and the 300-line source-file limit. Shared test setup ends in `.fixtures.ts`.
 
-The current event-create RPC intentionally has no Turnstile challenge, while AGENTS.md still requires
-it for state-changing endpoints. This is an existing policy/code mismatch. It is not permission to
-omit protection from new profile mutations, and this plan does not reopen event creation. PF-01
-records the applicable decision and avoids copying an exception to unrelated endpoints.
+The current event-create RPC intentionally has no Turnstile challenge, and authenticated profile and
+account mutations now follow the same session-aware policy: public/anonymous operations retain
+Turnstile where applicable, while session-bound mutations use centralized authz and rate limiting
+without a browser widget. This plan does not reopen event creation or add a challenge to private
+profile operations.
 
 ## 3. Profile contract and page behavior
 
@@ -256,7 +257,7 @@ login, profile editing and account reauthentication never create an event or RSV
 
 ### Mutation protection and credentials
 
-- All new profile/account/asset/preference mutations require session, centralized permission, ownership, shared Zod validation, DO rate limiting and action-bound Turnstile as required by AGENTS.md. Use the existing shared Free-plan WAF coverage; verify endpoint coverage without adding paid-tier rule requirements.
+- All profile/account/asset/preference mutations require a session, centralized permission, ownership, shared Zod validation and DO rate limiting. They do not render or require a browser Turnstile challenge because they are session-bound; anonymous/public operations retain their own Turnstile policy. Use the existing shared Free-plan WAF coverage; verify endpoint coverage without adding paid-tier rule requirements.
 - Inventory raw Better Auth endpoints as well as the facade. Generic update-user, contact changes, linking/unlinking, session revocation and deletion must not bypass validation, recent-auth requirements, rate limits or lifecycle rules by being called directly.
 - Use Better Auth verification flows, never direct edits of verified email/phone columns. Require recent authentication and proof of the new contact; email change also proves the existing contact through the installed email-OTP configuration. Give an explicit recovery path if the old contact is inaccessible.
 - Keep the old contact usable until the new one is verified. A uniqueness collision, failed OTP, expiry or provider error leaves the original identity intact; existing-email linking must never merge two users implicitly.
@@ -654,7 +655,7 @@ slice only when its behavior is real; unfinished services do not get inert setti
 | D1/Miniflare          | Populated migrations, FK integrity, conditional saves, concurrency, session/device ownership, deletion/counter/retention invariants                                    |
 | Pre-contraction state | Historical PF-03a rehearsal against the schema before the residence contraction; live environments now use the contracted schema                                       |
 | Migration quarantine  | `0021`–`0025` were promoted strictly in order; the guard remains active for future suffixes                                                                            |
-| Server/auth           | Every mutation's permission/rate-limit/Turnstile failures; raw auth endpoint bypass; fresh proof; no mass assignment; no public PII                                    |
+| Server/auth           | Every mutation's permission/rate-limit failures; public Turnstile coverage; raw auth endpoint bypass; fresh proof; no mass assignment; no public PII                   |
 | R2/Images             | Owned private originals, real local bucket, staged transforms, metadata stripping, quota limits, failure recovery, withdrawn URL denial                                |
 | Delivery              | Current preferences/contact at production and dispatch, eligible fallback, revoked-device/deleted-user suppression, durable retries                                    |
 | Components            | All states, error focus, save/cancel/conflict, keyboard dialogs, field publication, locale changes, private session/token handling                                     |
@@ -717,7 +718,8 @@ that staging creation or production DNS was still blocked. The authorized produc
 was performed and verified on 2026-09-10; roadmap, release strategy and CO baseline now distinguish
 those facts. No deployed auth challenge was weakened and no production event was created during the
 historical audit.
-The existing event-create Turnstile exception is documented, not extended to new profile endpoints.
+The existing event-create Turnstile exception and the authenticated session policy are documented;
+neither is extended to unrelated public endpoints.
 
 ### Foundation boundaries and migration safety
 
@@ -947,10 +949,10 @@ check was the pre-provisioning snapshot; the three environment buckets were subs
 and are currently empty, as recorded in the CO-01 account baseline.
 
 **Reserve, then transfer.** `reserveMyPhotoUpload` is a cheap JSON server function carrying the
-Turnstile challenge and its own rate budget; the bytes then go to `PUT /api/profile/photo/:assetId`
-as a raw body. The split is what lets each half be protected properly: a challenge cannot ride along
-on an image stream, and a multi-megabyte request should not be the first thing an unproven caller
-gets to send. The reservation was already in the schema from PF-02 and had no caller until now.
+member session and its own rate budget; authenticated photo mutations do not render or require a
+browser challenge. The bytes then go to `PUT /api/profile/photo/:assetId` as a raw body. The
+reservation separates the small authorized decision from the multi-megabyte transfer, so the worker
+can validate the asset before associating it with the profile.
 
 **The order of writes is the contract.** Nothing is stored until the bytes decode; variants are
 written before the row is told they exist; the profile points at the asset only once both are true.
@@ -1238,7 +1240,7 @@ test now documents it rather than asserting a refusal that never comes. A member
 somebody else's address simply never receives a code.
 
 **Adapters go through the HTTP handler, not the typed API.** The handler is the composed pipeline,
-captcha gating included, and its `Response` has to be opened and discarded deliberately — which is
+and its `Response` has to be opened and discarded deliberately — which is
 exactly the projection this needs, because `/phone-number/verify` answers with the session token and
 the whole user row.
 

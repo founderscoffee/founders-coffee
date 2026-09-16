@@ -15,6 +15,11 @@ verification gate locally. It is remediation work, not new product scope. It doe
 sponsorship, challenges, talent, payments, or expansion, all of which remain behind the
 [community validation gate](./release-strategy.md).
 
+The session-aware Turnstile policy adopted on 2026-09-16 is now the current security boundary:
+public and anonymous operations retain Turnstile, while authenticated session mutations use
+centralized authorization and rate limiting without a browser challenge. Findings and evidence
+below that describe broader historical coverage are retained as dated audit records.
+
 This plan does not take ownership of work an existing plan already owns. Event creation stays with
 the [Event Creation Remediation Plan](./event-creation-remediation-plan.md); the scheduler
 replacement, delivery-channel fallback, and post-event operations stay with the
@@ -514,15 +519,15 @@ Completion evidence:
 All 27 server functions were enumerated with their middleware chains. The state-changing surface is
 now complete:
 
-| Endpoint              | Method | Protection                                                                                    |
-| --------------------- | ------ | --------------------------------------------------------------------------------------------- |
-| `createEvent`         | POST   | `event:create` + rate limit + WAF gate; event-create Turnstile exception tracked under P1-018 |
-| `createRsvp`          | POST   | `rsvp:create` + rate limit                                                                    |
-| `cancelRsvp`          | POST   | `rsvp:update` + rate limit                                                                    |
-| `setHomeLocation`     | POST   | typed `client_refresh_required` tombstone; no location write                                  |
-| `registerPushTokenFn` | POST   | `push:manage` + rate limit                                                                    |
-| `removePushTokenFn`   | POST   | `push:manage` + rate limit                                                                    |
-| `joinWaitlist`        | POST   | Turnstile + rate limit (anonymous by design)                                                  |
+| Endpoint              | Method | Protection                                                                                     |
+| --------------------- | ------ | ---------------------------------------------------------------------------------------------- |
+| `createEvent`         | POST   | `event:create` + rate limit + WAF gate; event-create Turnstile exception recorded under P1-018 |
+| `createRsvp`          | POST   | `rsvp:create` + rate limit                                                                     |
+| `cancelRsvp`          | POST   | `rsvp:update` + rate limit                                                                     |
+| `setHomeLocation`     | POST   | typed `client_refresh_required` tombstone; no location write                                   |
+| `registerPushTokenFn` | POST   | `push:manage` + rate limit                                                                     |
+| `removePushTokenFn`   | POST   | `push:manage` + rate limit                                                                     |
+| `joinWaitlist`        | POST   | Turnstile + rate limit (anonymous by design)                                                   |
 
 Two results recorded rather than fixed silently:
 
@@ -537,9 +542,10 @@ Two results recorded rather than fixed silently:
   session-enforced in its handler. A literal reading of §7 asks every server function to declare a
   permission; applying RBAC to a public city listing would be noise, so the deviation is recorded
   here rather than papered over.
-- **RSVP still has no Turnstile**, which §10 requires alongside signup, login and event creation.
-  The event-create challenge is also deliberately absent by the 2026-09-03 product decision. Both
-  policy gaps remain tracked under P1-018 rather than being presented as complete.
+- **RSVP is session-bound and has no browser Turnstile**, consistent with the 2026-09-16
+  session-aware policy. Event creation remains intentionally challenge-free by the 2026-09-03
+  product decision. Public auth and waitlist operations retain Turnstile; anonymous map protection
+  and remaining mutation permissions remain tracked under P1-018.
 
 Verification — 14 new tests:
 

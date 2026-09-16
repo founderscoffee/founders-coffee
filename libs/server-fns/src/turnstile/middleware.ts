@@ -66,11 +66,3 @@ export const requireEventCreateWafRule = createMiddleware({
 export const requireWaitlistTurnstile = requireTurnstile(
   TURNSTILE_ACTIONS.joinWaitlist,
 );
-
-export const requireProfileTurnstile = requireTurnstile(
-  TURNSTILE_ACTIONS.updateProfile,
-);
-
-export const requireFeedbackTurnstile = requireTurnstile(
-  TURNSTILE_ACTIONS.submitFeedback,
-);

@@ -3,7 +3,7 @@
 | Field          | Value                                                                                                                                                                      |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status         | EC-01 through EC-10 complete and signed off. Production released as `v0.1.0` on 2026-09-04; the authorized smoke creation was performed and verified on 2026-09-10         |
-| Last reviewed  | 2026-09-14 — EC-10 handoff and deployment evidence reconciled                                                                                                              |
+| Last reviewed  | 2026-09-16 — EC-10 handoff, deployment evidence, and session-aware Turnstile policy reconciled                                                                             |
 | Scope          | Host event creation in `apps/ui`, including the anonymous wizard and authenticated submission through durable D1 persistence and discoverability                           |
 | Parent tickets | P1-005, P1-006, P1-018, P1-019, P1-021                                                                                                                                     |
 | Requirements   | FR-G2, FR-G3, FR-G6, FR-E1, FR-E2, FR-E5, FR-E7, FR-E9; NFR-4, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11, NFR-12                                                                 |
@@ -29,7 +29,7 @@ authenticated host
   -> visible market and valid city
   -> localized venue, schedule, and event details
   -> shared Zod validation
-  -> Turnstile and identity-scoped rate limiting
+  -> authenticated permission and identity-scoped rate limiting
   -> authorized server function
   -> atomic, complete D1 persistence
   -> created event detail and city-feed discoverability
@@ -41,8 +41,13 @@ Completion means a host can create an event with every field required by FR-E1, 
 Current policy exception: event creation no longer presents a Turnstile challenge. The product
 decision on 2026-09-03 kept the authenticated `event:create` permission, identity-scoped Durable
 Object limiter, and shared WAF gate while removing the challenge to preserve the release flow. The
-exception is tracked under P1-018; the Turnstile wording in the historical baseline below is not a
+exception is recorded under P1-018; the Turnstile wording in the historical baseline below is not a
 current acceptance claim.
+
+The 2026-09-16 security-policy update applies the same boundary consistently: authenticated
+profile, account, RSVP, feedback, and operations mutations use session authentication, centralized
+authorization, and rate limiting without a browser challenge. Turnstile remains on public auth,
+waitlist, and other anonymous operations only.
 
 This plan does not change the locked stack, add a dependency, introduce another external service, implement paid events, or expand the separate sponsor/admin applications. Mapbox and Turnstile are existing approved integrations. E2E remains excluded from CI under the current project decision; the critical Playwright flow is still required as a local and staging release gate.
 
@@ -61,20 +66,20 @@ The current implementation is a partial vertical slice, not an end-to-end-comple
 
 ### Gaps to close
 
-| Area              | Current inconsistency                                                                                                                                       | Required outcome                                                                                                                                     |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Required fields   | The wizard submits `capacity: 0`, derives language from the UI locale, and hardcodes `coffee-meetup`; no capacity, language, or category control is shown.  | The host explicitly chooses capacity, event language, and category using the shared schema. Unlimited capacity remains an explicit supported choice. |
-| Venue persistence | The selected address and coordinates are held in the browser but only the venue name is submitted.                                                          | Persist the exact selected venue name, formatted address, latitude, and longitude.                                                                   |
-| Timezone          | The picker labels `Africa/Algiers` and constructs timestamps in the browser's local timezone.                                                               | Display and convert using the selected market's configured IANA timezone, independent of browser timezone.                                           |
-| Schedule validity | The server checks only that timestamps are positive.                                                                                                        | Reject past starts, `end <= start`, and durations outside the agreed event bounds in the shared schema/domain rules.                                 |
-| Geography         | The resolver checks that state and city exist independently but not that the city belongs to the submitted state/market; it trusts client geography fields. | Resolve the visible market and canonical city server-side, derive `state_code`, and reject cross-market or disabled-event creation.                  |
-| Slug integrity    | Slug selection uses read-before-write and the database has no uniqueness constraint for the event route key.                                                | Enforce a D1 unique index on `(market_code, slug)` and make collision handling atomic and bounded.                                                   |
-| Bot protection    | Event creation has authz and the DO rate limiter but no Turnstile verification.                                                                             | Verify a single-use Turnstile response at the server boundary and forward `CF-Connecting-IP` as `remoteip`; retain DO and WAF layers.                |
-| Map data flow     | `HostMap` performs raw Mapbox fetches and contains user-facing inline English strings.                                                                      | Put Mapbox requests behind the approved feature API/server/provider boundary and localize all application-owned copy.                                |
-| Authentication UX | Anonymous visitors can enter the wizard, but submission currently fails instead of deliberately handing off to authentication.                              | Let visitors complete the wizard, require login/signup at final submission, preserve the draft, and resume submission after authentication.          |
-| Mutation UX       | Success returns to the market landing page; errors are generic and cache invalidation is not explicit.                                                      | On success invalidate affected event queries and open the created event; map stable error codes to localized, actionable messages.                   |
-| Observability     | The request wrapper logs failures, but event creation has no explicit entry/success product instrumentation.                                                | Emit structured lifecycle logs and the `events_created` metric with non-sensitive market/city context.                                               |
-| Verification      | Existing tests cover event reads and direct repository inserts, not the host create mutation. The only UI Playwright test is unrelated.                     | Add domain, Miniflare/D1, server-function, component, and critical-flow Playwright coverage.                                                         |
+| Area              | Current inconsistency                                                                                                                                       | Required outcome                                                                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Required fields   | The wizard submits `capacity: 0`, derives language from the UI locale, and hardcodes `coffee-meetup`; no capacity, language, or category control is shown.  | The host explicitly chooses capacity, event language, and category using the shared schema. Unlimited capacity remains an explicit supported choice.       |
+| Venue persistence | The selected address and coordinates are held in the browser but only the venue name is submitted.                                                          | Persist the exact selected venue name, formatted address, latitude, and longitude.                                                                         |
+| Timezone          | The picker labels `Africa/Algiers` and constructs timestamps in the browser's local timezone.                                                               | Display and convert using the selected market's configured IANA timezone, independent of browser timezone.                                                 |
+| Schedule validity | The server checks only that timestamps are positive.                                                                                                        | Reject past starts, `end <= start`, and durations outside the agreed event bounds in the shared schema/domain rules.                                       |
+| Geography         | The resolver checks that state and city exist independently but not that the city belongs to the submitted state/market; it trusts client geography fields. | Resolve the visible market and canonical city server-side, derive `state_code`, and reject cross-market or disabled-event creation.                        |
+| Slug integrity    | Slug selection uses read-before-write and the database has no uniqueness constraint for the event route key.                                                | Enforce a D1 unique index on `(market_code, slug)` and make collision handling atomic and bounded.                                                         |
+| Bot protection    | Historical baseline: event creation had authz and the DO rate limiter but no Turnstile verification.                                                        | Current outcome: authenticated creation uses authz, DO limiting, and WAF; public/anonymous operations retain Turnstile with `CF-Connecting-IP` forwarding. |
+| Map data flow     | `HostMap` performs raw Mapbox fetches and contains user-facing inline English strings.                                                                      | Put Mapbox requests behind the approved feature API/server/provider boundary and localize all application-owned copy.                                      |
+| Authentication UX | Anonymous visitors can enter the wizard, but submission currently fails instead of deliberately handing off to authentication.                              | Let visitors complete the wizard, require login/signup at final submission, preserve the draft, and resume submission after authentication.                |
+| Mutation UX       | Success returns to the market landing page; errors are generic and cache invalidation is not explicit.                                                      | On success invalidate affected event queries and open the created event; map stable error codes to localized, actionable messages.                         |
+| Observability     | The request wrapper logs failures, but event creation has no explicit entry/success product instrumentation.                                                | Emit structured lifecycle logs and the `events_created` metric with non-sensitive market/city context.                                                     |
+| Verification      | Existing tests cover event reads and direct repository inserts, not the host create mutation. The only UI Playwright test is unrelated.                     | Add domain, Miniflare/D1, server-function, component, and critical-flow Playwright coverage.                                                               |
 
 The staging walkthrough reached and exercised all three wizard steps. This is the historical
 2026-08-31 baseline: it did not submit an event because the audit was read-only and no disposable
@@ -89,7 +94,7 @@ The staging wizard was exercised in the built-in browser at desktop (1280px), ta
 
 | Severity | Confirmed issue                                                                                                                                                                                                | Required acceptance behavior                                                                                                                                                                  |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Blocker  | An anonymous visitor can enable `Publish`; final submission does not deliberately hand off to login/signup. The header login link omits the supported redirect parameter.                                      | Final submission opens login/signup with a validated return path, restores the draft at confirmation, obtains a fresh managed Turnstile response, and creates only with a valid session.      |
+| Blocker  | An anonymous visitor can enable `Publish`; final submission does not deliberately hand off to login/signup. The header login link omits the supported redirect parameter.                                      | Final submission opens login/signup with a validated return path, restores the draft, and creates only with a valid session; the public login step owns Turnstile.                            |
 | Blocker  | Visiting login and returning reset the completed draft to step 1.                                                                                                                                              | Venue, schedule, details, capacity, language, and category survive the complete authentication round trip without user-authored content in the URL.                                           |
 | Blocker  | The Adrar wizard accepted an out-of-city café and also accepted the `Adrar` locality itself as a venue.                                                                                                        | Search and server validation restrict results to the selected city and acceptable venue types; a city/locality result cannot be submitted as a café/coworking venue.                          |
 | Blocker  | Capacity, event language, and category are absent from the UI and are silently hardcoded in the mutation.                                                                                                      | Each FR-E1 field is an explicit, validated host choice and is shown again at confirmation.                                                                                                    |
@@ -125,7 +130,7 @@ in [deployment evidence](./deployment-evidence.md).
 8. **The database is the slug authority.** Add a composite unique index for `(market_code, slug)`. Generate a readable base slug and resolve conflicts through a bounded insert/retry path, or use an ID-derived suffix; never use a read-then-write uniqueness decision.
 9. **External calls stay behind providers.** Mapbox geocoding/reverse-geocoding moves out of React components and behind a server-side map provider consumed by server functions. Turnstile verification uses a server-side provider/helper with a real production implementation and an explicit local/test implementation. Cloudflare bindings remain real Miniflare bindings in integration tests.
 10. **Security fails closed outside local development.** A missing Mapbox or Turnstile production/staging secret/configuration is an operational failure, not an implicit bypass. Local bypasses must be explicit environment modes and cannot be accepted by deployed configurations.
-11. **Authentication happens at the conversion boundary.** Anonymous visitors may complete the wizard. Final submission opens login/signup, preserves the draft safely, returns to the same market/city flow, obtains a fresh managed Turnstile response, and submits only after a valid session exists.
+11. **Authentication happens at the conversion boundary.** Anonymous visitors may complete the wizard. Final submission opens login/signup, preserves the draft safely, returns to the same market/city flow, and submits only after a valid session exists. Turnstile belongs to the public authentication step, not the authenticated create mutation.
 12. **Successful creation is immediately visible.** The server returns the canonical created event. The UI invalidates the market/city/host event queries and navigates to `/$market/e/$slug`.
 13. **No new package or platform service.** If execution proves that `Intl`, current bindings, or existing providers are insufficient, implementation pauses for explicit approval before adding anything.
 
@@ -315,7 +320,8 @@ Completion evidence:
 
 Work:
 
-- Run Turnstile in managed/non-interactive mode at the final create step and send a single-use response with the mutation. It must not add another visible challenge after login/signup unless Cloudflare determines interaction is necessary.
+- Keep the final create step session-bound and challenge-free; public authentication remains
+  Turnstile-gated before a session exists. Do not add a second browser challenge after login.
 - Add reusable server-side verification at the server-function boundary, forwarding `CF-Connecting-IP` as `remoteip`.
 - Reset/reissue the widget response after verification failure, mutation failure, expiry, or retry.
 - Retain the identity-scoped Durable Object token bucket and verify that create-event has its own explicit policy.
@@ -325,7 +331,7 @@ Work:
 
 Verification:
 
-- Integration tests cover valid, missing, invalid, expired, replayed, and provider-unavailable Turnstile responses plus DO rate-limit exhaustion.
+- Integration tests cover valid, missing, invalid, expired, replayed, and provider-unavailable public Turnstile responses plus DO rate-limit exhaustion.
 - Confirm the remote IP is forwarded without logging the token or full IP as product telemetry.
 - Staging tests verify WAF and application limits independently using a safe low-volume procedure.
 
@@ -335,8 +341,8 @@ Implementation evidence:
   identity-scoped Durable Object policy and deployed WAF configuration enforcement before Mapbox or
   D1 creation work. The event-create Turnstile challenge was removed by the 2026-09-03 product
   decision and remains a tracked P1-018 policy gap.
-- The reusable server-side Turnstile provider calls Siteverify with a 10-second deadline, a per-attempt idempotency key, the `create_event` action, the environment hostname, and `CF-Connecting-IP` as `remoteip`. It converts missing, invalid, expired/replayed, action/hostname mismatch, malformed response, HTTP failure, and network failure into stable typed errors without logging the token or IP.
-- The event wizard uses an interaction-only managed widget on its final current step, transports the token outside the domain command, disables publish until verification succeeds, and removes/reissues the widget after mutation failure. Expiry, widget error, and interaction timeout clear the token and actively reset the widget for a fresh response.
+- The reusable server-side Turnstile provider calls Siteverify with a 10-second deadline, a per-attempt idempotency key, the public operation action, the environment hostname, and `CF-Connecting-IP` as `remoteip`. It converts missing, invalid, expired/replayed, action/hostname mismatch, malformed response, HTTP failure, and network failure into stable typed errors without logging the token or IP.
+- The authenticated event wizard preserves its draft through the public sign-in challenge, then submits with session authorization, DO limiting, and WAF protection. It does not render or transport a Turnstile response for the create mutation.
 - `RateLimiterDO` now lives once in `libs/server-fns`, is exported by the public Worker, and uses the prototype method required by Cloudflare RPC. A real Miniflare Durable Object test proves that the explicit `create_event` bucket allows five requests and rejects the sixth.
 - Miniflare tests cover valid, missing, invalid, expired, replayed, action/hostname mismatch, provider HTTP/payload/network failure, development-only bypass, missing deployed configuration, WAF fail-closed behavior, and DO exhaustion. UI component tests cover managed widget behavior, expiry, reissue, token transport, and mutation-failure reset.
 - One Free-plan-compatible `http_ratelimit` rule definition is committed under `libs/infra/cloudflare/waf`, using a 20-request/10-second IP edge-volume ceiling for `/api/auth/` and the stable `/_serverFn/` path across the zone. The application refuses deployed event creation until `EVENT_CREATE_WAF_CONFIGURED=true` is recorded for that Worker environment.
@@ -355,7 +361,7 @@ Account evidence:
 Work:
 
 - Allow anonymous visitors to complete the wizard, then intercept final submission and send them through login/signup with a validated same-origin return path containing market/city context.
-- Preserve the draft across the authentication round trip without placing sensitive or user-authored form content in the URL. After authentication, restore the confirmation step, obtain a fresh Turnstile response, and require the user to confirm submission.
+- Preserve the draft across the authentication round trip without placing sensitive or user-authored form content in the URL. After authentication, restore the confirmation step and require the user to confirm the session-bound submission.
 - Preserve the complete draft and active step across `ar`/`fr`/`en` locale changes, and restore a useful focus/scroll position instead of retaining a stale page offset.
 - Add explicit capacity, event-language, and category controls sourced from the shared schema.
 - Preserve venue address/coordinates and timezone-aware schedule through all steps and back navigation.
@@ -370,26 +376,27 @@ Work:
 
 Verification:
 
-- Component tests exercise all steps, anonymous final-submit authentication handoff, post-auth draft restoration, locale-change preservation, back/forward state retention, validation messages/focus, unlimited/limited capacity, each language/category, confirmation, sticky actions, submission lock, and Turnstile reset.
+- Component tests exercise all steps, anonymous final-submit authentication handoff, post-auth draft restoration, locale-change preservation, back/forward state retention, validation messages/focus, unlimited/limited capacity, each language/category, confirmation, sticky actions, submission lock, and the public-auth challenge boundary.
 - Accessibility checks cover semantic progress, headings, DOM/reading order, labels, names, keyboard operation, focus, modal labels, and error/status announcements.
 - Render checks cover Arabic RTL and French/English LTR at 390px mobile, 768px tablet, and 1280px desktop widths with no horizontal overflow or truncated essential summary.
 
-Implementation evidence (2026-09-02):
+Implementation evidence (2026-09-02; challenge wording reconciled with the 2026-09-16 policy):
 
 - The four-step wizard now keeps venue, coordinates, timezone-aware schedule, title, description,
   capacity, language, category, and active step in a versioned, market/city-scoped session draft.
-  The draft excludes Turnstile responses, expires after 24 hours, and is removed only after a
+  The draft excludes authentication challenge tokens, expires after 24 hours, and is removed only after a
   successful create mutation.
 - Anonymous visitors reach the full confirmation state before authentication. Email OTP and OAuth
   use a validated same-origin return path; new accounts complete onboarding first, then return to
-  the confirmation state for a fresh interaction-only Turnstile response and explicit publish.
+  the confirmation state for explicit session-authenticated publish.
 - Step validation projects the shared event schemas, focuses the first invalid control, and exposes
   localized constraints, required status, character counts, inline errors, semantic progress, and
   a complete untruncated confirmation in `ar`, `fr`, and `en`.
 - Component and utility tests cover auth restoration, locale restoration, back/forward retention,
   limited and unlimited capacity, every schema-owned language/category option, complete payload,
   duplicate-submit locking, safe-area actions, safe redirects, first-error focus, malformed draft
-  rejection, and Turnstile reissue. The focused public-app suite passes 42 tests across 10 files.
+  rejection, and the public authentication challenge boundary. The focused public-app suite passes
+  42 tests across 10 files.
 - A built-in-browser Arabic RTL check at 390px found an 18px step-label overflow; the logical-edge
   label alignment was corrected and the same DOM measurement then reported no overflow. The browser
   safety layer blocked the subsequent reload, so the complete nine-case visual matrix remains
@@ -404,7 +411,8 @@ Implementation evidence (2026-09-02):
 Work:
 
 - Map `appErrorCode()` values to localized, actionable messages and retain entered values on recoverable failures.
-- Treat authentication expiry specially: preserve safe form state, re-authenticate, and require a fresh Turnstile response.
+- Treat authentication expiry specially: preserve safe form state, re-authenticate through the public
+  challenge, and retry the session-bound mutation without attaching a Turnstile response to it.
 - On success, invalidate the affected market, city, event-detail, and host-profile query keys.
 - Navigate to the returned canonical event route and render the new event without a manual refresh.
 - Add structured entry, success, and failure logs with request, market, city, and host identifiers according to the observability redaction policy.
@@ -926,15 +934,15 @@ Rollback:
 
 ## 5. Required test matrix
 
-| Layer              | Required cases                                                                                                                                                                                                                                                                                     |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Domain             | Field bounds; trimming; schedule ordering; future start; duration; capacity; language/category enums; coordinate ranges; `isFree` invariant                                                                                                                                                        |
-| i18n/time          | Browser zone differs from market; day rollover; DST gap/overlap; ar/fr/en rendering; RTL/LTR                                                                                                                                                                                                       |
-| Repository/D1      | Every venue field persists; composite uniqueness; concurrent same-title inserts; same slug across different markets; typed conflict handling                                                                                                                                                       |
-| Server function    | Authn; authz; market state/flag; city derivation; forged fields; Turnstile; DO limit; success; provider failure; D1 failure; typed error serialization                                                                                                                                             |
-| Component          | Final-submit auth handoff; auth/locale draft restoration; step validation and messages; back/forward retention; semantic progress; sticky actions; loading/retry; explicit geolocation; marker address refresh; localized controls/dialogs; duplicate submit; Turnstile refresh; full confirmation |
-| Playwright         | Anonymous wizard -> locale switch -> login/signup -> restored confirmation -> create -> detail -> city feed -> host profile; persisted field equality; non-market browser timezone; 390/768/1280 widths; RTL/LTR; reachable actions; no unexpected application console errors                      |
-| Staging operations | Secrets/bindings; WAF; D1 migration; logs; metric; canonical URL; no sensitive telemetry; map console health                                                                                                                                                                                       |
+| Layer              | Required cases                                                                                                                                                                                                                                                                                                  |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain             | Field bounds; trimming; schedule ordering; future start; duration; capacity; language/category enums; coordinate ranges; `isFree` invariant                                                                                                                                                                     |
+| i18n/time          | Browser zone differs from market; day rollover; DST gap/overlap; ar/fr/en rendering; RTL/LTR                                                                                                                                                                                                                    |
+| Repository/D1      | Every venue field persists; composite uniqueness; concurrent same-title inserts; same slug across different markets; typed conflict handling                                                                                                                                                                    |
+| Server function    | Authn; authz; market state/flag; city derivation; forged fields; session-aware public Turnstile boundary; DO limit; success; provider failure; D1 failure; typed error serialization                                                                                                                            |
+| Component          | Final-submit auth handoff; auth/locale draft restoration; step validation and messages; back/forward retention; semantic progress; sticky actions; loading/retry; explicit geolocation; marker address refresh; localized controls/dialogs; duplicate submit; public-auth Turnstile behavior; full confirmation |
+| Playwright         | Anonymous wizard -> locale switch -> login/signup -> restored confirmation -> create -> detail -> city feed -> host profile; persisted field equality; non-market browser timezone; 390/768/1280 widths; RTL/LTR; reachable actions; no unexpected application console errors                                   |
+| Staging operations | Secrets/bindings; WAF; D1 migration; logs; metric; canonical URL; no sensitive telemetry; map console health                                                                                                                                                                                                    |
 
 ## 6. Delivery boundaries
 
@@ -969,7 +977,7 @@ Do not combine the D1 migration, map-provider refactor, full wizard redesign, an
 - [x] Market timezone, not browser timezone, determines the stored UTC instants.
 - [x] The server derives canonical geography and rejects dark/disabled/cross-market creation.
 - [x] Event route slugs are protected by a D1 unique constraint and race-safe insertion.
-- [x] Authentication, centralized permission, DO rate limit, and the shared WAF protect creation. The event-create Turnstile challenge is deliberately absent by the 2026-09-03 product decision and remains a tracked P1-018 policy gap.
+- [x] Authentication, centralized permission, DO rate limit, and the shared WAF protect creation. The event-create Turnstile challenge is deliberately absent by the 2026-09-03 product decision; the 2026-09-16 policy update confirms that authenticated mutations do not require a browser challenge.
 - [x] Anonymous final submission performs login/signup handoff and restores the complete draft; locale changes also preserve step, draft, focus, and useful scroll position.
 - [x] All application-owned copy, map controls, time-dialog labels, statuses, validation, and geography display names exist in `ar`, `fr`, and `en`; RTL/LTR and WCAG 2.1 AA checks pass.
 - [x] Semantic step progress, headings, reading/focus order, inline validation, accessible loading/retry, and error announcements are verified.

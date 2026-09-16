@@ -24,12 +24,10 @@ export const profileApi = {
     updateMyProfile({ data }),
   photoAvailability: (): Promise<{ enabled: boolean }> =>
     getPhotoUploadAvailability(),
-  reservePhoto: (turnstileToken?: string): Promise<{ assetId: string }> =>
-    reserveMyPhotoUpload({ data: { turnstileToken } }),
-  removePhoto: (
-    turnstileToken?: string,
-  ): Promise<{ removedAssetId: string | null }> =>
-    removeMyPhoto({ data: { turnstileToken } }),
+  reservePhoto: (): Promise<{ assetId: string }> =>
+    reserveMyPhotoUpload({ data: {} }),
+  removePhoto: (): Promise<{ removedAssetId: string | null }> =>
+    removeMyPhoto({ data: {} }),
 };
 export type {
   PublicProfile,

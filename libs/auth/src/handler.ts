@@ -12,14 +12,17 @@ export type HandlerEnv = AuthEnv;
  * Turnstile verification itself belongs to the `captcha` plugin registered in `createAuth`, which
  * calls siteverify under a 10-second deadline and rejects a missing or invalid token. This wrapper
  * covers the one case the plugin cannot: when no secret key is configured the plugin is not
- * registered at all, which would leave the money-spending endpoints wide open. Refusing them with a
- * 503 makes a forgotten secret a visible outage instead of a silent hole (AGENTS §10). The only
- * bypass is an explicit `TURNSTILE_DISABLED=true`, for local dev.
+ * registered at all, which would leave public endpoints wide open. Refusing them with a 503 makes
+ * a forgotten secret a visible outage instead of a silent hole (AGENTS §10). The explicit
+ * `captchaBypassed` dependency is reserved for internal authenticated contact operations after
+ * their server-function permission check; public handlers cannot set it.
  */
 export const createAuthHandler = (env: HandlerEnv, deps: AuthDeps = {}) => {
   const { auth } = createAuth(env, deps);
   const isCaptchaUnconfigured =
-    !env.TURNSTILE_SECRET_KEY && env.TURNSTILE_DISABLED !== 'true';
+    !env.TURNSTILE_SECRET_KEY &&
+    env.TURNSTILE_DISABLED !== 'true' &&
+    deps.captchaBypassed !== true;
 
   return async (request: Request): Promise<Response> => {
     if (isCaptchaUnconfigured) {
