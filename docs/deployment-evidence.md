@@ -35,6 +35,22 @@ The existing deployed SEO smoke contract then checked staging end to end: 18 rou
 verification because both operations change live state; the manual Rollback workflow is the
 operator-controlled path for an incident, while D1 restore requires explicit incident approval.
 
+### 2026-09-16 staging rollback drill and recovery
+
+The staging drill's pre-deploy run [35070399630](https://github.com/AmineYagoub/founders-coffee/actions/runs/35070399630)
+passed all verification and deployed successfully. GitHub rejected dispatch of `rollback.yml` with
+HTTP 404 because that workflow was not yet on the default branch. The guarded local fallback then
+rolled back UI, dashboard, and admin; worker-jobs initially rejected the target when no Wrangler
+config was supplied, and succeeded immediately when retried with
+`apps/worker-jobs/wrangler.jsonc --env staging`. No D1 operation occurred.
+
+The recovery deploy [35072320764](https://github.com/AmineYagoub/founders-coffee/actions/runs/35072320764)
+passed quality, build, migration-compatibility, all four Worker deployments, and SEO smoke. An
+independent smoke run against `https://staging.founders.coffee` covered 18 routes with zero failures.
+A post-recovery capture at `2026-09-16T08:26:29Z` validated all four Workers at 100% and migration
+head `0029_activate_launch_markets`; D1 remained untouched throughout. The drill now passes each
+Worker's canonical Wrangler config explicitly in both the GitHub workflow and local fallback.
+
 ## EC-06 event-create anti-abuse
 
 | Check                           | Staging                                                                                                      | Production                                                                   |
