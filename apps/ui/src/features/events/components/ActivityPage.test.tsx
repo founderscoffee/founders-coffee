@@ -109,7 +109,6 @@ afterEach(() => cleanup());
 describe('the gatherings screen', () => {
   it('shows both lists as tabs with joined selected first', () => {
     show();
-
     expect(screen.getAllByRole('tab')).toHaveLength(2);
     expect(
       screen
@@ -121,14 +120,12 @@ describe('the gatherings screen', () => {
 
   it('requests ten items per activity page', () => {
     show();
-
     expect(state.joinedParams).toEqual({ limit: 10 });
     expect(state.hostedParams).toEqual({ hostId: 'usr_1', limit: 10 });
   });
 
   it('says plainly when a member has joined nothing', () => {
     show();
-
     expect(screen.getByText(/have not joined a gathering yet/i)).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: 'Gatherings you hosted' }));
     expect(screen.getByText(/have not hosted a gathering yet/i)).toBeTruthy();
