@@ -16,8 +16,11 @@ export const Navbar = ({ locale }: NavbarProps) => {
   const market = params.market;
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-base-300 bg-base-100">
-      <div className="mx-auto flex h-14 max-w-content items-center justify-between px-4 md:h-16 md:px-8">
+    <header className="sticky top-0 z-50 border-b border-base-300 bg-base-100">
+      <nav
+        aria-label={brand({}, { locale })}
+        className="mx-auto flex h-14 max-w-content items-center justify-between px-4 md:h-16 md:px-8"
+      >
         <div className="flex items-center gap-2">
           <ProfileMenuDrawer locale={locale} />
           <Link
@@ -25,10 +28,8 @@ export const Navbar = ({ locale }: NavbarProps) => {
             aria-label={brand({}, { locale })}
             className="flex items-center rounded-field"
           >
-            <LogoSymbol size={28} className="sm:hidden" />
-            <span className="hidden sm:inline-flex">
-              <Logo />
-            </span>
+            <LogoSymbol size={55} className="sm:hidden" />
+            <Logo className="hidden sm:inline-flex" />
           </Link>
         </div>
 
@@ -44,7 +45,7 @@ export const Navbar = ({ locale }: NavbarProps) => {
           ) : null}
           <SessionNav locale={locale} />
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 };

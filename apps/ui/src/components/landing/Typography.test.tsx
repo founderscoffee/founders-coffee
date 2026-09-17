@@ -115,6 +115,10 @@ describe('P1-002 landing typography', () => {
       expect(screen.getByRole('heading', { level: 1 }).className).toContain(
         'text-display',
       );
+      expect(screen.getByRole('search')).toBeTruthy();
+      expect(screen.getByRole('region').getAttribute('aria-labelledby')).toBe(
+        'market-hero-title',
+      );
       expect(screen.queryByText(market.nameAr ?? market.name)).toBeNull();
     },
   );

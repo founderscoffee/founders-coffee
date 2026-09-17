@@ -74,7 +74,10 @@ export const MarketHero = ({
     : '';
 
   return (
-    <section className="relative isolate flex min-h-[calc(min(100vw,2172px)/2.99)] items-center bg-base-200">
+    <section
+      aria-labelledby="market-hero-title"
+      className="relative isolate flex min-h-[calc(min(100vw,2172px)/2.99)] items-center bg-base-200"
+    >
       {heroArt && (
         <picture className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 mx-auto block w-full max-w-[2172px] select-none">
           <source
@@ -97,14 +100,20 @@ export const MarketHero = ({
         </picture>
       )}
       <div className="mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-[calc(33.4vw+1rem)] text-center md:px-8 md:pt-14 md:pb-14">
-        <h1 className="font-display text-display leading-tight font-semibold tracking-tight text-balance text-base-content">
+        <h1
+          id="market-hero-title"
+          className="font-display text-display leading-tight font-semibold tracking-tight text-balance text-base-content"
+        >
           {hero_tagline({}, { locale })}
         </h1>
         <p className="mx-auto mt-4 max-w-prose text-body-lg text-neutral">
           {hero_subtitle({}, { locale })}
         </p>
 
-        <div className="mt-6 flex h-12 w-full max-w-lg items-center rounded-full border border-base-300 bg-base-100 ps-2 pe-1.5 focus-within:border-secondary md:h-13">
+        <div
+          role="search"
+          className="mt-6 flex h-12 w-full max-w-lg items-center rounded-full border border-base-300 bg-base-100 ps-2 pe-1.5 focus-within:border-secondary md:h-13"
+        >
           <HeroCitySearch
             marketCode={market.code}
             selected={selectedCity}

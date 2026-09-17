@@ -10,7 +10,7 @@ type LogoSymbolProps = Omit<
 };
 
 export const LogoSymbol = ({
-  size = 28,
+  size = 55,
   className,
   ...props
 }: LogoSymbolProps) => {
@@ -37,13 +37,18 @@ export const LogoWordmark = ({ className }: { className?: string }) => (
   </span>
 );
 
-type LogoProps = { symbolSize?: number; textClassName?: string };
+type LogoProps = {
+  symbolSize?: number;
+  textClassName?: string;
+  className?: string;
+};
 
 export const Logo = ({
-  symbolSize = 28,
-  textClassName = 'text-lg',
+  symbolSize = 55,
+  textClassName = 'text-xl',
+  className,
 }: LogoProps) => (
-  <span className="inline-flex items-center gap-[0.32em]">
+  <span className={cn('inline-flex items-center gap-[0.32em]', className)}>
     <LogoSymbol size={symbolSize} />
     <LogoWordmark className={textClassName} />
   </span>

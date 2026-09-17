@@ -39,7 +39,7 @@ export const Footer = ({ locale, markets }: FooterProps) => (
           aria-label={brand({}, { locale })}
           className="w-fit rounded-field"
         >
-          <Logo symbolSize={20} textClassName="text-body-sm" />
+          <Logo symbolSize={55} textClassName="text-body" />
         </Link>
         <p className="text-caption text-neutral">
           {footer_tagline({}, { locale })}

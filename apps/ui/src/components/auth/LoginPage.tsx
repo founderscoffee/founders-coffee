@@ -147,7 +147,7 @@ export const LoginPage = ({
               aria-label={brand({}, { locale })}
               className="rounded-full"
             >
-              <LogoSymbol size={40} />
+              <LogoSymbol size={55} />
             </Link>
             <h1 className="font-display text-h3 font-semibold">
               {login_title({}, { locale })}
