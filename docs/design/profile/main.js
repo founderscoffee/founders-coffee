@@ -26,7 +26,8 @@ let state = {
     link: false,
   },
   reminders: true,
-  hostUpdates: true,
+  hostRsvpReceived: true,
+  hostRsvpCancelled: true,
 };
 let saved = structuredClone(state);
 let toastTimeout;

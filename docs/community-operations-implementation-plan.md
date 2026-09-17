@@ -676,7 +676,7 @@ changing your mind twice does not lose the roster. Every server refusal has its 
 message. Twenty-seven unit tests and thirteen component tests.
 
 Audit of that slice found two things. The page existed and **nothing linked to it** — a host would
-have had to know the URL — so `/activity` now offers "close it out" on hosted gatherings that have
+have had to know the URL — so `/profile/activity` now offers "close it out" on hosted gatherings that have
 ended and were not cancelled. And the walk-in count had no client-side bound, so a host could type a
 number the server would refuse with a generic error; `WALK_IN_MAX` is now imported from the domain
 rather than retyped.
@@ -701,9 +701,9 @@ whatever it lost, so a failure is a delay rather than an absence. Failure inject
 Audit of that slice found three things. The hook had to move from `createEventResolver` to
 `createEventWithTelemetry`: `markets/index.ts` value-exports a resolver that imports `listEvents`
 from `events/resolver.ts`, so that file is on the **browser's** import graph and one edge to
-`cloudflare:workers` broke the client bundle outright. The prompt was gated on `host_updates`, a
-switch that reads "who is coming to what you host" — asking a host what happened is not that, so it
-now passes the category gates like `rsvp_confirmation` does and the market flag is its only gate. And
+`cloudflare:workers` broke the client bundle outright. The prompt is not gated on either host RSVP
+preference: asking a host what happened is not an RSVP confirmation or cancellation, so it now passes
+the category gates like `rsvp_confirmation` does and the market flag is its only gate. And
 the date reached the template as a raw ISO string; it is formatted in the market's timezone now, so a
 later `{date}` in the copy cannot render `2099-01-15T19:00:00.000Z` in Arabic.
 
@@ -750,7 +750,7 @@ now fixed, with a test that fails without the fix:
    Engine — `closeout_intent_failed` indexed by market, `notification_schedule_arm_failed` global — so
    a threshold can be set on the thing that was previously only a log line nothing watched. The
    counter is itself wrapped: the paths that call it exist because nothing there may throw.
-6. **`/activity` shows completion.** A new `getMyCloseoutStates` answers, for the caller's **own**
+6. **`/profile/activity` shows completion.** A new `getMyCloseoutStates` answers, for the caller's **own**
    hosted events only, which are closed and which are still open; the list shows "Closed out" or the
    link, and nothing at all for an event the server did not answer for. It is deliberately not folded
    into the hosted feed — that query is the public profile's too, and which of a host's gatherings did

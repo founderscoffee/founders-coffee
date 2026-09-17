@@ -22,8 +22,8 @@ staging carries the current push/email implementation.
 | The site is a PWA that can receive push    | Staging ships and registers `sw.js`; production's older release predates that service-worker fix. See [deployment evidence](./deployment-evidence.md#nd-01--service-worker-and-fcm-credentials-on-staging-2026-09-10) |
 | SMS is a fallback behind push              | This is true only in the older production CO-02 release. ND-07 changes current code to email fallback and keeps SMS for same-day cancellation disruption                                                              |
 | Email is an event channel                  | Yes in current staging code under ND-07: email is the default fallback after push; production needs the promotion                                                                                                     |
-| Four notification categories can be chosen | All four category gates are enforced at send time: reminders, event updates, host updates, and follow-up prompts.                                                                                                     |
-| Four categories exist to be sent           | The original member-facing keys plus `rsvp_received`, `rsvp_cancelled`, `closeout_prompt`, `event_did_not_happen`, and `feedback_invitation` are produced and dispatched by the current code.                         |
+| Five notification categories can be chosen | All five category gates are enforced at send time: reminders, event updates, RSVP confirmations, RSVP cancellations, and follow-up prompts.                                                                           |
+| Five categories exist to be sent           | The original member-facing keys plus `rsvp_received`, `rsvp_cancelled`, `closeout_prompt`, `event_did_not_happen`, and `feedback_invitation` are produced and dispatched by the current code.                         |
 | A member can consent to SMS                | No longer, as of ND-00. The consent control was in the deleted box. See §5                                                                                                                                            |
 
 The net effect is environment-specific: staging delivers push and email fallback end to end;
@@ -110,11 +110,12 @@ credentials return `20008` on every call and look like a delivery.
 ### ND-00 — Remove the delivery and device boxes ✅ done 2026-09-10
 
 - Deleted the _كيف نصل إليك_ group (push status row, SMS consent row, go-to-account link) and the
-  _هذا الجهاز_ group from `/preferences`. Deleted `PushRow.tsx`, `PreferencesDelivery.test.tsx`,
+  _هذا الجهاز_ group from `/profile/notifications` (the legacy `/preferences` path redirects).
+  Deleted `PushRow.tsx`, `PreferencesDelivery.test.tsx`,
   `SmsRow`, `DeviceLocationGroup`, and the six `prefs_location_*` keys in all three locales.
 - **Retained deliberately and now reattached by ND-06:** `push-state.ts`, `useDevicePushState`,
-  `push/client.ts`, `device-location.ts`, and the `push_*` / `prefs_sms_*` / `prefs_delivery_*` copy
-  remain the shared provider-state and permission-request path for the channel grid.
+  `push/client.ts`, `device-location.ts`, and the `push_*` copy remain the shared provider-state and
+  permission-request path for the channel grid. SMS remains server-owned and is not exposed here.
 - Push permission can still be granted: `RsvpSection.tsx:181` offers it at RSVP time.
 
 ### ND-01 — Make the service worker ship, register, and receive — done 2026-09-10
@@ -136,8 +137,8 @@ push event. The two items that need no credentials are done; the rest waits on �
   called from the root layout, memoised on the promise, `null` rather than throwing, and retryable
   after a refusal.
 - ✅ **Close the cache-privacy gap the registration opens.** Serwist's default runtime caching ends in
-  a catch-all `NetworkFirst` storing any navigation for 24 hours, and `isPrivateProfilePath` listed
-  neither `/preferences` nor `/activity`. Both added. `Cache-Control: private, no-store` on the route
+  a catch-all `NetworkFirst` storing any navigation for 24 hours. `isPrivateProfilePath` covers the
+  `/profile/*` namespace and the legacy aliases. `Cache-Control: private, no-store` on the route
   does not help — the strategy caches any 200 regardless.
 - ✅ **Point FCM at it.** `getToken(messaging, { vapidKey, serviceWorkerRegistration })`, refusing to
   mint a token when there is no worker. **Wired and proven on staging**; production promotion remains
@@ -188,18 +189,19 @@ in [deployment evidence](./deployment-evidence.md).
 
 ### ND-03 — Make notification categories real
 
-At the start of this plan, `host_updates` and `follow_up_prompts` were stored and rendered but not
-enforced by delivery. ND-03a made host updates real, and CO-06 now makes follow-up prompts real
-through the feedback invitation producer and send-time preference gate.
+At the start of this plan, host RSVP notices and `follow_up_prompts` were stored and rendered but
+not enforced by delivery. ND-03a made the RSVP confirmation notice real, ND-03c added the
+cancellation notice, and the current profile surface gives each its own preference. CO-06 now makes
+follow-up prompts real through the feedback invitation producer and send-time preference gate.
 
 Split on 2026-09-11, because the two halves are not the same size. One is a producer and some copy.
 The other required a page, which CO-06 now supplies.
 
-#### ND-03a — Host updates
+#### ND-03a — RSVP confirmations
 
 **Depends on:** ND-02.
 
-- A producer on RSVP that tells the host somebody is coming, gated on `hostUpdates`, under a new
+- A producer on RSVP that tells the host somebody is coming, gated on `hostRsvpReceived`, under a new
   `rsvp_received` template key. `template_key` is plain `text NOT NULL` in
   `0007_scheduled_notifications.sql` with no CHECK constraint, so the key costs no migration.
 - **Coalesced, not batched into a digest.** A pending notice for the same event suppresses the next,
@@ -259,8 +261,9 @@ fallback when the host has an email address. The copy is identity-free and links
 current guest list, so it does not disclose which guest cancelled in a shared notification channel.
 The key is added to the shared typed template catalogue; `scheduled_notifications.template_key` has
 no SQL `CHECK`, so no database migration is required.
-The host's own RSVP cancellation produces no host notice. `host_updates` is checked at send time, so
-turning the preference off after enqueue still suppresses both `rsvp_received` and `rsvp_cancelled`.
+The host's own RSVP cancellation produces no host notice. `hostRsvpReceived` and
+`hostRsvpCancelled` are checked independently at send time, so turning either preference off after
+enqueue suppresses only its matching notice.
 
 The original coalesced `rsvp_received` row is withdrawn atomically when no recent going RSVP still
 justifies it. A cancellation notice is still retained: it tells the host that the guest list changed,
@@ -278,20 +281,26 @@ gap.
 - Do **not** add twelve booleans. Add one integer `channels` bitmask per category to
   `account_preferences` (`1` push, `4` email; SMS is server-controlled for same-day cancellation), keeping the single-row `revision` guard that
   makes concurrent saves safe. A side table breaks optimistic concurrency and buys nothing.
-- Default per category from today's behaviour so no existing member's delivery changes on migration:
-  push and email on. The four existing booleans become `channels != 0` and stay as the
-  category gate; they are not replaced, because "off entirely" must remain expressible in one bit.
+- The current implementation has five masks: event updates, reminders, RSVP confirmations, RSVP
+  cancellations and follow-up prompts. The two RSVP masks replace the former combined host mask in
+  migration `0030_white_vindicator`; this is intentionally a clean replacement with no legacy alias,
+  data backfill or rollback compatibility layer.
+- Each category gate remains expressible as `channels != 0`, so "off entirely" is still one bitmask
+  decision. New rows default to push and email on; the irreversible split migration establishes the
+  independent RSVP defaults directly.
 - `updateAccountPreferencesSchema` gains the per-category channel sets, and `pushEnabled` stays
   server-owned and absent from the input, for the reason `draft.ts` already gives.
 - Acceptance: a migration test asserting every pre-migration row lands on push+email for the
   categories it had enabled; a conflicting concurrent save still fails on `revision`.
 
-The implementation adds four integer masks to `account_preferences` (`1` push, `4` email), with
-`0028_notification_category_channels.sql` backfilling each legacy category from its existing gate.
-The profile contract exposes validated channel arrays, converts them at the server-function boundary,
-and keeps the category booleans synchronized with whether a mask is non-zero. The existing single-row
-optimistic revision guard remains the only write gate. Destination reads include the masks so ND-05 can
-resolve the matrix without another query; delivery policy is unchanged until that ticket.
+The implementation adds five integer masks to `account_preferences` (`1` push, `4` email). Migration
+`0028_notification_category_channels.sql` established the original four masks by backfilling each
+legacy category from its existing gate; migration `0030_white_vindicator.sql` adds the independent
+RSVP masks and drops the combined host columns without backfill. The profile contract exposes
+validated channel arrays, converts them at the server-function boundary, and keeps the category
+booleans synchronized with whether a mask is non-zero. The existing single-row optimistic revision
+guard remains the only write gate. Destination reads include the masks so ND-05 can resolve the matrix
+without another query; delivery policy is unchanged until that ticket.
 
 ### ND-05 — Producer and dispatcher honour the matrix ✅ done 2026-09-15
 
@@ -306,7 +315,7 @@ resolve the matrix without another query; delivery policy is unchanged until tha
   per-category channels, "category off for this channel" is a channel-level refusal that should
   still allow the fallback, which is the opposite of today.
 - `rsvp_confirmation` keeps bypassing category gates and must not bypass channel selection.
-- Acceptance: for each of the four categories, a member with only email selected receives email and
+- Acceptance: for each of the five categories, a member with only email selected receives email and
   no push; a member with nothing selected receives nothing and no fallback row is written.
 
 Implemented with a shared domain channel matrix and a server-side channel plan. RSVP confirmations
@@ -348,8 +357,9 @@ Implementation and audit:
   category's saved mask. Registered devices can toggle push directly, while blocked and unavailable
   states remain honest and allow an already-selected channel to be turned off.
 - The grid uses one accessible checkbox per category/channel, with desktop columns at `md` and
-  mobile chips below each category label. All nine `PushState` values have an i18n explanation in
-  `ar`, `fr`, and `en`; the delivery note now describes the actual email fallback.
+  mobile chips below each category label. Eight actionable or diagnostic `PushState` values have an
+  i18n explanation in `ar`, `fr`, and `en`; the initial `not_requested` state stays quiet until the
+  member takes the permission action.
 - When push is unavailable, hidden push selections are excluded from the rendered mask so a legacy
   push-only category can be switched to email or fully turned off.
 - Focused component, draft, lint, and typecheck audits pass. Live-device delivery evidence remains
@@ -415,12 +425,12 @@ every member, so the production deploy is now purely additive rather than a trad
 - **Production policy parity is open.** The production Worker version predates ND-01/ND-07; promote
   the current service-worker, push and email-fallback code before claiming end-to-end production
   delivery.
-- **The four preference rows are actionable in the current surface.** ND-03 made host updates and
-  follow-up prompts real at send time; ND-05 now makes their channel masks authoritative for enqueue
+- **The five preference rows are actionable in the current surface.** ND-03 made RSVP confirmations,
+  RSVP cancellations and follow-up prompts real at send time; ND-05 now makes their channel masks authoritative for enqueue
   and dispatch. ND-06 connects those masks to the provider-state grid without adding a second global
   switch.
 - **A per-category grid preserves that honest promise.** The current producers and dispatchers have
-  concrete keys for all four categories, so every cell describes a message that actually exists.
+  concrete keys for all five categories, so every cell describes a message that actually exists.
 - **iOS web push needs the Home-Screen install.** Even after ND-01, an iOS member who has not
   installed the app cannot receive push, and the grid must say so rather than showing a dead switch.
   Everywhere else a plain browser tab is enough; see §2.1. On the Algerian traffic mix that is a
@@ -428,3 +438,8 @@ every member, so the production deploy is now purely additive rather than a trad
 - **The push column must hide itself when unconfigured.** The failure this plan starts from is a
   control rendered for a channel with no provider. The implemented ND-06 grid reads the real
   provider state, not a build-time flag.
+- **The notification screen stays intentionally light.** The delivery headings and explanatory
+  panel copy were removed, the push column is labelled `In app`/`Dans l’application`/`داخل التطبيق`,
+  the initial `not_requested` state is silent, and both the grid and action area are borderless.
+  The profile nav uses a bell icon for notifications and exact matching so the Profile link is not
+  selected on child routes.

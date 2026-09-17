@@ -23,7 +23,8 @@ export const preferences = (copy, state, locale) => `
     ${sectionHead(copy.notifications)}
     ${row(copy.push, copy.pushNote, `<span class="tag whitespace-normal! max-w-36">${copy.pushState}</span>`)}
     ${row(copy.reminders, copy.remindersNote, toggle(copy.reminders, 'reminders', state))}
-    ${row(copy.hostUpdates, copy.hostUpdatesNote, toggle(copy.hostUpdates, 'hostUpdates', state))}
+    ${row(copy.hostRsvpReceived, copy.hostRsvpReceivedNote, toggle(copy.hostRsvpReceived, 'hostRsvpReceived', state))}
+    ${row(copy.hostRsvpCancelled, copy.hostRsvpCancelledNote, toggle(copy.hostRsvpCancelled, 'hostRsvpCancelled', state))}
     ${row(copy.sms, copy.smsNote, action(copy.add))}
   </section>`;
 
