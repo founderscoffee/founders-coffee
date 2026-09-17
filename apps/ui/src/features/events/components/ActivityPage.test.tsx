@@ -7,6 +7,8 @@ const state = vi.hoisted(() => ({
   session: {} as Record<string, unknown>,
   joined: {} as Record<string, unknown>,
   hosted: {} as Record<string, unknown>,
+  joinedParams: null as { limit?: number } | null,
+  hostedParams: null as { hostId?: string; limit?: number } | null,
   closeoutStates: [] as {
     eventId: string;
     closed: boolean;
@@ -16,8 +18,14 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock('../hooks', () => ({
-  useMyJoinedEvents: () => state.joined,
-  useHostedEvents: () => state.hosted,
+  useMyJoinedEvents: (params: { limit?: number }) => {
+    state.joinedParams = params;
+    return state.joined;
+  },
+  useHostedEvents: (params: { hostId?: string; limit?: number }) => {
+    state.hostedParams = params;
+    return state.hosted;
+  },
 }));
 vi.mock('../../operations/hooks', () => ({
   useMyCloseoutStates: (eventIds: readonly string[]) => {
@@ -91,29 +99,38 @@ beforeEach(() => {
   state.session = { data: { user: { id: 'usr_1' } }, isPending: false };
   state.joined = page([]);
   state.hosted = page([]);
+  state.joinedParams = null;
+  state.hostedParams = null;
   state.closeoutStates = [];
   state.askedAbout = [];
 });
 
 afterEach(() => cleanup());
-
 describe('the gatherings screen', () => {
-  it('shows both lists, joined before hosted', () => {
+  it('shows both lists as tabs with joined selected first', () => {
     show();
 
-    const headings = screen
-      .getAllByRole('heading', { level: 2 })
-      .map((heading) => heading.textContent);
-    expect(headings).toEqual([
-      'Gatherings you joined',
-      'Gatherings you hosted',
-    ]);
+    expect(screen.getAllByRole('tab')).toHaveLength(2);
+    expect(
+      screen
+        .getByRole('tab', { name: 'Gatherings you joined' })
+        .getAttribute('aria-selected'),
+    ).toBe('true');
+    expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
+  });
+
+  it('requests ten items per activity page', () => {
+    show();
+
+    expect(state.joinedParams).toEqual({ limit: 10 });
+    expect(state.hostedParams).toEqual({ hostId: 'usr_1', limit: 10 });
   });
 
   it('says plainly when a member has joined nothing', () => {
     show();
 
     expect(screen.getByText(/have not joined a gathering yet/i)).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', { name: 'Gatherings you hosted' }));
     expect(screen.getByText(/have not hosted a gathering yet/i)).toBeTruthy();
   });
 
@@ -173,6 +190,7 @@ describe('the gatherings screen', () => {
     state.closeoutStates = [{ eventId: 'evt_1', closed: false, outcome: null }];
 
     show();
+    fireEvent.click(screen.getByRole('tab', { name: 'Gatherings you hosted' }));
 
     expect(
       screen.getByRole('link', { name: /Close it out/i }).getAttribute('href'),
@@ -185,6 +203,7 @@ describe('the gatherings screen', () => {
     ]);
 
     show();
+    fireEvent.click(screen.getByRole('tab', { name: 'Gatherings you hosted' }));
 
     expect(screen.queryByRole('link', { name: /Close it out/i })).toBeNull();
     expect(screen.queryByText('Closed out')).toBeNull();
@@ -268,9 +287,7 @@ describe('states the member can land in', () => {
 
     show();
 
-    expect(screen.getByRole('alert').textContent).toMatch(
-      /could not be loaded/i,
-    );
+    expect(screen.getByRole('alert').textContent).toMatch(/could not be loaded/i);
   });
 
   it('renders in the member locale', () => {

@@ -74,7 +74,6 @@ const Badge = ({ item, locale }: { item: ActivityItem; locale: Locale }) => {
 
 export const ActivityList = ({
   locale,
-  title,
   emptyNote,
   items,
   total,
@@ -85,7 +84,6 @@ export const ActivityList = ({
   closeoutStates,
 }: {
   locale: Locale;
-  title: string;
   emptyNote: string;
   items: readonly ActivityItem[];
   total: number;
@@ -95,15 +93,14 @@ export const ActivityList = ({
   onLoadMore: () => void;
   closeoutStates?: ReadonlyMap<string, CloseoutStateView>;
 }) => (
-  <section className="rounded-box border border-base-300 bg-base-100 p-5 md:p-6">
-    <div className="flex flex-wrap items-baseline justify-between gap-2">
-      <h2 className="font-display text-h4">{title}</h2>
-      {items.length > 0 && (
+  <section className="p-5 md:p-6">
+    {items.length > 0 && (
+      <div className="flex justify-end">
         <p className="text-caption text-neutral">
           {activity_count({ count: total }, { locale })}
         </p>
-      )}
-    </div>
+      </div>
+    )}
 
     {items.length === 0 ? (
       <p className="mt-4 text-body-sm text-neutral">{emptyNote}</p>
