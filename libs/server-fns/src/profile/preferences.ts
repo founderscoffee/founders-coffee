@@ -27,7 +27,6 @@ type StoredPreferences = NonNullable<
  */
 const view = (stored: StoredPreferences): profile.AccountPreferencesView =>
   profile.accountPreferencesViewSchema.parse({
-    locale: stored.locale,
     revision: stored.preferences.revision,
     preferences: {
       eventUpdates: stored.preferences.eventUpdates,
@@ -38,9 +37,13 @@ const view = (stored: StoredPreferences): profile.AccountPreferencesView =>
       eventRemindersChannels: profile.maskToChannels(
         stored.preferences.eventRemindersChannels,
       ),
-      hostUpdates: stored.preferences.hostUpdates,
-      hostUpdatesChannels: profile.maskToChannels(
-        stored.preferences.hostUpdatesChannels,
+      hostRsvpReceived: stored.preferences.hostRsvpReceived,
+      hostRsvpReceivedChannels: profile.maskToChannels(
+        stored.preferences.hostRsvpReceivedChannels,
+      ),
+      hostRsvpCancelled: stored.preferences.hostRsvpCancelled,
+      hostRsvpCancelledChannels: profile.maskToChannels(
+        stored.preferences.hostRsvpCancelledChannels,
       ),
       followUpPrompts: stored.preferences.followUpPrompts,
       followUpPromptsChannels: profile.maskToChannels(
@@ -135,18 +138,17 @@ export const saveMyPreferences = (
     if (!before) return err(new AppError('not_found', 'Account not found'));
 
     const {
-      locale,
       expectedRevision,
       eventUpdatesChannels,
       eventRemindersChannels,
-      hostUpdatesChannels,
+      hostRsvpReceivedChannels,
+      hostRsvpCancelledChannels,
       followUpPromptsChannels,
       ...categories
     } = input;
     const saved = await updateAccountPreferences(db, {
       userId,
       expectedRevision,
-      locale,
       changes: {
         ...categories,
         eventUpdatesChannels: profile.channelsToMask(
@@ -155,8 +157,11 @@ export const saveMyPreferences = (
         eventRemindersChannels: profile.channelsToMask(
           input.eventReminders ? eventRemindersChannels : [],
         ),
-        hostUpdatesChannels: profile.channelsToMask(
-          input.hostUpdates ? hostUpdatesChannels : [],
+        hostRsvpReceivedChannels: profile.channelsToMask(
+          input.hostRsvpReceived ? hostRsvpReceivedChannels : [],
+        ),
+        hostRsvpCancelledChannels: profile.channelsToMask(
+          input.hostRsvpCancelled ? hostRsvpCancelledChannels : [],
         ),
         followUpPromptsChannels: profile.channelsToMask(
           input.followUpPrompts ? followUpPromptsChannels : [],

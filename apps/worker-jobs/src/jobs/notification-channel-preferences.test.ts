@@ -31,7 +31,8 @@ describe('category channel matrix', () => {
       await setPreferences(db, {
         eventUpdatesChannels: 4,
         eventRemindersChannels: 4,
-        hostUpdatesChannels: 4,
+        hostRsvpReceivedChannels: 4,
+        hostRsvpCancelledChannels: 4,
         followUpPromptsChannels: 4,
       });
       await addPushToken(db, 'device-email-only');
@@ -62,7 +63,8 @@ describe('category channel matrix', () => {
       await setPreferences(db, {
         eventUpdatesChannels: 0,
         eventRemindersChannels: 0,
-        hostUpdatesChannels: 0,
+        hostRsvpReceivedChannels: 0,
+        hostRsvpCancelledChannels: 0,
         followUpPromptsChannels: 0,
       });
 

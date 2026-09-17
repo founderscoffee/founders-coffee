@@ -211,6 +211,13 @@
       "when": 1789468639500,
       "tag": "0029_activate_launch_markets",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1789579878841,
+      "tag": "0030_white_vindicator",
+      "breakpoints": true
     }
   ]
 }

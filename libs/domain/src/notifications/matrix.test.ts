@@ -13,7 +13,8 @@ import {
 const masks = {
   eventUpdatesChannels: 4,
   eventRemindersChannels: 1,
-  hostUpdatesChannels: 5,
+  hostRsvpReceivedChannels: 5,
+  hostRsvpCancelledChannels: 5,
   followUpPromptsChannels: 0,
 } as const;
 
@@ -30,7 +31,8 @@ describe('notification channel matrix', () => {
     ['event_cancelled', 'eventUpdatesChannels'],
     ['event_did_not_happen', 'eventUpdatesChannels'],
     ['reminder_24h', 'eventRemindersChannels'],
-    ['rsvp_received', 'hostUpdatesChannels'],
+    ['rsvp_received', 'hostRsvpReceivedChannels'],
+    ['rsvp_cancelled', 'hostRsvpCancelledChannels'],
     ['feedback_invitation', 'followUpPromptsChannels'],
   ] as const)('maps %s to %s', (template, category: NotificationCategory) => {
     expect(notificationCategoryForTemplate(template)).toBe(category);

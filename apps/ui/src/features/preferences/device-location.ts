@@ -33,7 +33,7 @@ export const forgetRememberedMarket = (): void => {
 /**
  * The market code to register a push device against, from what this browser already knows.
  *
- * `/preferences` is not market-scoped, so there is no code in the route. The remembered cookie
+ * `/profile/notifications` is not market-scoped, so there is no code in the route. The remembered cookie
  * holds a slug, which is matched against the visible markets the root layout already loaded; a
  * browser with no cookie, or one remembering a market that has since gone dark, falls back to the
  * first visible market rather than failing the registration on a foreign key.

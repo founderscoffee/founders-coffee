@@ -1,20 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
 import type { AccountPreferencesView } from './api';
-import { draftFrom, hasChanges, localeChanged, toInput } from './draft';
+import { draftFrom, hasChanges, toInput } from './draft';
 
 const view = (
   overrides: Partial<AccountPreferencesView> = {},
 ): AccountPreferencesView => ({
-  locale: null,
   revision: 4,
   preferences: {
     eventUpdates: true,
     eventUpdatesChannels: ['push', 'email'],
     eventReminders: true,
     eventRemindersChannels: ['push', 'email'],
-    hostUpdates: true,
-    hostUpdatesChannels: ['push', 'email'],
+    hostRsvpReceived: true,
+    hostRsvpReceivedChannels: ['push', 'email'],
+    hostRsvpCancelled: true,
+    hostRsvpCancelledChannels: ['push', 'email'],
     followUpPrompts: false,
     followUpPromptsChannels: [],
     pushEnabled: false,
@@ -26,24 +27,21 @@ const view = (
 });
 
 describe('draftFrom', () => {
-  it('carries the locale alongside the switches, as one editable form', () => {
-    expect(draftFrom(view({ locale: 'fr' }))).toEqual({
+  it('carries the notification switches as one editable form', () => {
+    expect(draftFrom(view())).toEqual({
       eventUpdates: true,
       eventUpdatesChannels: ['push', 'email'],
       eventReminders: true,
       eventRemindersChannels: ['push', 'email'],
-      hostUpdates: true,
-      hostUpdatesChannels: ['push', 'email'],
+      hostRsvpReceived: true,
+      hostRsvpReceivedChannels: ['push', 'email'],
+      hostRsvpCancelled: true,
+      hostRsvpCancelledChannels: ['push', 'email'],
       followUpPrompts: false,
       followUpPromptsChannels: [],
       pushEnabled: false,
       smsFallbackEnabled: false,
-      locale: 'fr',
     });
-  });
-
-  it('shows Arabic for an account that has never chosen a language', () => {
-    expect(draftFrom(view({ locale: null })).locale).toBe('ar');
   });
 });
 
@@ -55,13 +53,7 @@ describe('hasChanges', () => {
 
   it('notices a switched category', () => {
     const saved = view();
-    const draft = { ...draftFrom(saved), hostUpdates: false };
-    expect(hasChanges(draft, saved)).toBe(true);
-  });
-
-  it('notices a changed language', () => {
-    const saved = view({ locale: 'fr' });
-    const draft = { ...draftFrom(saved), locale: 'ar' as const };
+    const draft = { ...draftFrom(saved), hostRsvpReceived: false };
     expect(hasChanges(draft, saved)).toBe(true);
   });
 
@@ -102,10 +94,6 @@ describe('toInput', () => {
     expect(toInput(draftFrom(view()), 4).expectedRevision).toBe(4);
   });
 
-  it('sends the base locale for an account that never chose one', () => {
-    expect(toInput(draftFrom(view()), 4)).toHaveProperty('locale', 'ar');
-  });
-
   it('carries no field the update schema would reject', () => {
     expect(Object.keys(toInput(draftFrom(view()), 4)).sort()).toEqual([
       'eventReminders',
@@ -115,29 +103,15 @@ describe('toInput', () => {
       'expectedRevision',
       'followUpPrompts',
       'followUpPromptsChannels',
-      'hostUpdates',
-      'hostUpdatesChannels',
-      'locale',
+      'hostRsvpCancelled',
+      'hostRsvpCancelledChannels',
+      'hostRsvpReceived',
+      'hostRsvpReceivedChannels',
       'smsFallbackEnabled',
     ]);
   });
 
   it('never sends push, which the form has no control for and cannot own', () => {
     expect(toInput(draftFrom(view()), 4)).not.toHaveProperty('pushEnabled');
-  });
-});
-
-describe('localeChanged', () => {
-  it('is true only when the interface language actually moved', () => {
-    const saved = view({ locale: 'ar' });
-    expect(localeChanged({ ...draftFrom(saved), locale: 'fr' }, saved)).toBe(
-      true,
-    );
-    expect(localeChanged(draftFrom(saved), saved)).toBe(false);
-  });
-
-  it('is false for an account that never chose, which already reads as Arabic', () => {
-    const saved = view({ locale: null });
-    expect(localeChanged(draftFrom(saved), saved)).toBe(false);
   });
 });

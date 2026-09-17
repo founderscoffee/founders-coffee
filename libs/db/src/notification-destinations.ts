@@ -18,8 +18,10 @@ export interface NotificationContact {
   readonly eventUpdatesChannels: number;
   readonly eventReminders: boolean;
   readonly eventRemindersChannels: number;
-  readonly hostUpdates: boolean;
-  readonly hostUpdatesChannels: number;
+  readonly hostRsvpReceived: boolean;
+  readonly hostRsvpReceivedChannels: number;
+  readonly hostRsvpCancelled: boolean;
+  readonly hostRsvpCancelledChannels: number;
   readonly followUpPrompts: boolean;
   readonly followUpPromptsChannels: number;
   readonly localePref: string | null;
@@ -61,8 +63,10 @@ export const getNotificationContact = async (
       eventUpdates: sql<number>`case when coalesce(${accountPreferences.eventUpdatesChannels}, 5) != 0 then 1 else 0 end`,
       eventRemindersChannels: sql<number>`coalesce(${accountPreferences.eventRemindersChannels}, 5)`,
       eventReminders: sql<number>`case when coalesce(${accountPreferences.eventRemindersChannels}, 5) != 0 then 1 else 0 end`,
-      hostUpdatesChannels: sql<number>`coalesce(${accountPreferences.hostUpdatesChannels}, 5)`,
-      hostUpdates: sql<number>`case when coalesce(${accountPreferences.hostUpdatesChannels}, 5) != 0 then 1 else 0 end`,
+      hostRsvpReceivedChannels: sql<number>`coalesce(${accountPreferences.hostRsvpReceivedChannels}, 5)`,
+      hostRsvpReceived: sql<number>`case when coalesce(${accountPreferences.hostRsvpReceivedChannels}, 5) != 0 then 1 else 0 end`,
+      hostRsvpCancelledChannels: sql<number>`coalesce(${accountPreferences.hostRsvpCancelledChannels}, 5)`,
+      hostRsvpCancelled: sql<number>`case when coalesce(${accountPreferences.hostRsvpCancelledChannels}, 5) != 0 then 1 else 0 end`,
       followUpPromptsChannels: sql<number>`coalesce(${accountPreferences.followUpPromptsChannels}, 0)`,
       followUpPrompts: sql<number>`case when coalesce(${accountPreferences.followUpPromptsChannels}, 0) != 0 then 1 else 0 end`,
       pushEnabled: sql<number>`coalesce(${accountPreferences.pushEnabled}, 0)`,
@@ -84,8 +88,10 @@ export const getNotificationContact = async (
     eventUpdatesChannels: row.eventUpdatesChannels,
     eventReminders: row.eventReminders === 1,
     eventRemindersChannels: row.eventRemindersChannels,
-    hostUpdates: row.hostUpdates === 1,
-    hostUpdatesChannels: row.hostUpdatesChannels,
+    hostRsvpReceived: row.hostRsvpReceived === 1,
+    hostRsvpReceivedChannels: row.hostRsvpReceivedChannels,
+    hostRsvpCancelled: row.hostRsvpCancelled === 1,
+    hostRsvpCancelledChannels: row.hostRsvpCancelledChannels,
     followUpPrompts: row.followUpPrompts === 1,
     followUpPromptsChannels: row.followUpPromptsChannels,
     pushEnabled: row.pushEnabled === 1,

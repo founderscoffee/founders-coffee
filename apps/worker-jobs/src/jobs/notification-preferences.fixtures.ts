@@ -11,8 +11,10 @@ export const setPreferences = async (
     eventUpdatesChannels?: number;
     eventReminders?: boolean;
     eventRemindersChannels?: number;
-    hostUpdates?: boolean;
-    hostUpdatesChannels?: number;
+    hostRsvpReceived?: boolean;
+    hostRsvpReceivedChannels?: number;
+    hostRsvpCancelled?: boolean;
+    hostRsvpCancelledChannels?: number;
     followUpPrompts?: boolean;
     followUpPromptsChannels?: number;
     pushEnabled?: boolean;
@@ -45,16 +47,28 @@ export const setPreferences = async (
         : changes.eventReminders
           ? 5
           : 0),
-    hostUpdates:
-      changes.hostUpdates ??
-      (changes.hostUpdatesChannels === undefined
+    hostRsvpReceived:
+      changes.hostRsvpReceived ??
+      (changes.hostRsvpReceivedChannels === undefined
         ? undefined
-        : changes.hostUpdatesChannels !== 0),
-    hostUpdatesChannels:
-      changes.hostUpdatesChannels ??
-      (changes.hostUpdates === undefined
+        : changes.hostRsvpReceivedChannels !== 0),
+    hostRsvpReceivedChannels:
+      changes.hostRsvpReceivedChannels ??
+      (changes.hostRsvpReceived === undefined
         ? undefined
-        : changes.hostUpdates
+        : changes.hostRsvpReceived
+          ? 5
+          : 0),
+    hostRsvpCancelled:
+      changes.hostRsvpCancelled ??
+      (changes.hostRsvpCancelledChannels === undefined
+        ? undefined
+        : changes.hostRsvpCancelledChannels !== 0),
+    hostRsvpCancelledChannels:
+      changes.hostRsvpCancelledChannels ??
+      (changes.hostRsvpCancelled === undefined
+        ? undefined
+        : changes.hostRsvpCancelled
           ? 5
           : 0),
     followUpPrompts:

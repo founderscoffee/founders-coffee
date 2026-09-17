@@ -4,17 +4,17 @@ import {
   prefs_event_reminders_note,
   prefs_event_updates,
   prefs_event_updates_note,
-  prefs_delivery_title,
   prefs_follow_up,
   prefs_follow_up_note,
-  prefs_host_updates,
-  prefs_host_updates_note,
+  prefs_host_rsvp_cancelled,
+  prefs_host_rsvp_cancelled_note,
+  prefs_host_rsvp_received,
+  prefs_host_rsvp_received_note,
   prefs_push,
   prefs_push_checking,
   prefs_push_denied,
   prefs_push_enable,
   prefs_push_install,
-  prefs_push_not_requested,
   prefs_push_registered,
   prefs_push_undeliverable,
   prefs_push_unavailable,
@@ -28,11 +28,16 @@ import { pushIsActionable, type PushState } from '../push-state';
 
 type NotificationChannel = NotificationDraft['eventUpdatesChannels'][number];
 type EnabledField =
-  'eventUpdates' | 'eventReminders' | 'hostUpdates' | 'followUpPrompts';
+  | 'eventUpdates'
+  | 'eventReminders'
+  | 'hostRsvpReceived'
+  | 'hostRsvpCancelled'
+  | 'followUpPrompts';
 type ChannelsField =
   | 'eventUpdatesChannels'
   | 'eventRemindersChannels'
-  | 'hostUpdatesChannels'
+  | 'hostRsvpReceivedChannels'
+  | 'hostRsvpCancelledChannels'
   | 'followUpPromptsChannels';
 
 type CategoryDefinition = {
@@ -58,10 +63,16 @@ const CATEGORIES: readonly CategoryDefinition[] = [
     note: (locale) => prefs_event_reminders_note({}, { locale }),
   },
   {
-    enabledField: 'hostUpdates',
-    channelsField: 'hostUpdatesChannels',
-    label: (locale) => prefs_host_updates({}, { locale }),
-    note: (locale) => prefs_host_updates_note({}, { locale }),
+    enabledField: 'hostRsvpReceived',
+    channelsField: 'hostRsvpReceivedChannels',
+    label: (locale) => prefs_host_rsvp_received({}, { locale }),
+    note: (locale) => prefs_host_rsvp_received_note({}, { locale }),
+  },
+  {
+    enabledField: 'hostRsvpCancelled',
+    channelsField: 'hostRsvpCancelledChannels',
+    label: (locale) => prefs_host_rsvp_cancelled({}, { locale }),
+    note: (locale) => prefs_host_rsvp_cancelled_note({}, { locale }),
   },
   {
     enabledField: 'followUpPrompts',
@@ -71,17 +82,17 @@ const CATEGORIES: readonly CategoryDefinition[] = [
   },
 ];
 
-const PUSH_EXPLANATION: Record<PushState, (locale: Locale) => string> = {
-  checking: (locale) => prefs_push_checking({}, { locale }),
-  unsupported: (locale) => prefs_push_unsupported({}, { locale }),
-  install_required: (locale) => prefs_push_install({}, { locale }),
-  unavailable: (locale) => prefs_push_unavailable({}, { locale }),
-  not_requested: (locale) => prefs_push_not_requested({}, { locale }),
-  denied: (locale) => prefs_push_denied({}, { locale }),
-  granted_unregistered: (locale) => prefs_push_unregistered({}, { locale }),
-  delivery_unavailable: (locale) => prefs_push_undeliverable({}, { locale }),
-  registered: (locale) => prefs_push_registered({}, { locale }),
-};
+const PUSH_EXPLANATION: Partial<Record<PushState, (locale: Locale) => string>> =
+  {
+    checking: (locale) => prefs_push_checking({}, { locale }),
+    unsupported: (locale) => prefs_push_unsupported({}, { locale }),
+    install_required: (locale) => prefs_push_install({}, { locale }),
+    unavailable: (locale) => prefs_push_unavailable({}, { locale }),
+    denied: (locale) => prefs_push_denied({}, { locale }),
+    granted_unregistered: (locale) => prefs_push_unregistered({}, { locale }),
+    delivery_unavailable: (locale) => prefs_push_undeliverable({}, { locale }),
+    registered: (locale) => prefs_push_registered({}, { locale }),
+  };
 
 const channelLabel = (channel: NotificationChannel, locale: Locale): string =>
   channel === 'push' ? prefs_push({}, { locale }) : prefs_email({}, { locale });
@@ -168,11 +179,11 @@ export const NotificationChannelGrid = ({
     onChange(toggleChannel(draft, category, channel, showPush));
   };
 
+  const explanation =
+    pushState === 'not_requested' ? undefined : PUSH_EXPLANATION[pushState];
+
   return (
-    <fieldset className="mt-5 min-w-0">
-      <legend className="sr-only">
-        {prefs_delivery_title({}, { locale })}
-      </legend>
+    <div className="mt-5 min-w-0">
       <div className="hidden border-b border-base-200 pb-3 text-caption font-medium text-neutral md:grid md:grid-cols-[minmax(0,1fr)_7rem_7rem] md:items-center md:gap-3">
         <span />
         <span className="text-center">{prefs_push({}, { locale })}</span>
@@ -227,9 +238,11 @@ export const NotificationChannelGrid = ({
           </div>
         );
       })}
-      <p className="mt-3 text-caption text-neutral" aria-live="polite">
-        {PUSH_EXPLANATION[pushState](locale)}
-      </p>
-    </fieldset>
+      {explanation && (
+        <p className="mt-3 text-caption text-neutral" aria-live="polite">
+          {explanation(locale)}
+        </p>
+      )}
+    </div>
   );
 };

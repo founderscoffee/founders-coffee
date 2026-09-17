@@ -1,5 +1,3 @@
-import { baseLocale, type Locale } from '@founders-coffee/i18n';
-
 import type { AccountPreferencesView, PreferencesInput } from './api';
 
 export interface NotificationDraft {
@@ -7,8 +5,10 @@ export interface NotificationDraft {
   readonly eventUpdatesChannels: readonly PreferencesInput['eventUpdatesChannels'][number][];
   readonly eventReminders: boolean;
   readonly eventRemindersChannels: readonly PreferencesInput['eventRemindersChannels'][number][];
-  readonly hostUpdates: boolean;
-  readonly hostUpdatesChannels: readonly PreferencesInput['hostUpdatesChannels'][number][];
+  readonly hostRsvpReceived: boolean;
+  readonly hostRsvpReceivedChannels: readonly PreferencesInput['hostRsvpReceivedChannels'][number][];
+  readonly hostRsvpCancelled: boolean;
+  readonly hostRsvpCancelledChannels: readonly PreferencesInput['hostRsvpCancelledChannels'][number][];
   readonly followUpPrompts: boolean;
   readonly followUpPromptsChannels: readonly PreferencesInput['followUpPromptsChannels'][number][];
   readonly pushEnabled: boolean;
@@ -28,23 +28,15 @@ const channelsForCategory = <T extends string>(
 ): readonly T[] =>
   enabled ? (channels.length > 0 ? channels : (['push', 'email'] as T[])) : [];
 
-export interface PreferencesDraft extends NotificationDraft {
-  readonly locale: Locale;
-}
+export type PreferencesDraft = NotificationDraft;
 
 /**
  * The saved preferences as an editable form.
  *
- * An account that has never chosen a language stores `null`, and the form shows the base locale
- * rather than a fourth "no choice" option: the server render already falls back to it, so `null`
- * and `ar` look identical on screen and offering both would be a distinction without a difference.
- * Every comparison here goes through this function, so a member who has chosen nothing still opens
- * a clean form instead of one claiming an unsaved change they did not make.
+ * The notification form contains only delivery policy. Interface language is managed on Account.
  */
-export const draftFrom = (view: AccountPreferencesView): PreferencesDraft => ({
-  ...view.preferences,
-  locale: view.locale ?? baseLocale,
-});
+export const draftFrom = (view: AccountPreferencesView): PreferencesDraft =>
+  view.preferences;
 
 /**
  * Whether anything in the form differs from what is saved.
@@ -93,9 +85,19 @@ export const toInput = (
   eventRemindersChannels: [
     ...channelsForCategory(draft.eventReminders, draft.eventRemindersChannels),
   ],
-  hostUpdates: draft.hostUpdates,
-  hostUpdatesChannels: [
-    ...channelsForCategory(draft.hostUpdates, draft.hostUpdatesChannels),
+  hostRsvpReceived: draft.hostRsvpReceived,
+  hostRsvpReceivedChannels: [
+    ...channelsForCategory(
+      draft.hostRsvpReceived,
+      draft.hostRsvpReceivedChannels,
+    ),
+  ],
+  hostRsvpCancelled: draft.hostRsvpCancelled,
+  hostRsvpCancelledChannels: [
+    ...channelsForCategory(
+      draft.hostRsvpCancelled,
+      draft.hostRsvpCancelledChannels,
+    ),
   ],
   followUpPrompts: draft.followUpPrompts,
   followUpPromptsChannels: [
@@ -105,19 +107,5 @@ export const toInput = (
     ),
   ],
   smsFallbackEnabled: draft.smsFallbackEnabled,
-  locale: draft.locale,
   expectedRevision: revision,
 });
-
-/**
- * Whether the page has to reload after saving.
- *
- * Only when the interface language actually changed. Paraglide resolves the locale during the
- * server render, so the strings already on screen were chosen before the save; re-rendering in
- * React would translate the parts that re-render and leave the rest, which is worse than either
- * outcome. The cookie is written first so the reload comes back in the new language.
- */
-export const localeChanged = (
-  draft: PreferencesDraft,
-  view: AccountPreferencesView,
-): boolean => draft.locale !== draftFrom(view).locale;

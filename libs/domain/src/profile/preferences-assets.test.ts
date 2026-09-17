@@ -12,6 +12,10 @@ import {
   notificationPreferencesSchema,
   updateAccountPreferencesSchema,
 } from './preferences.js';
+import {
+  accountSummarySchema,
+  updateAccountLocaleSchema,
+} from './account-summary.js';
 
 describe('account preferences', () => {
   it('defaults channels and optional follow-up prompts off', () => {
@@ -24,8 +28,10 @@ describe('account preferences', () => {
       eventUpdatesChannels: ['push', 'email'],
       eventReminders: true,
       eventRemindersChannels: ['push', 'email'],
-      hostUpdates: true,
-      hostUpdatesChannels: ['push', 'email'],
+      hostRsvpReceived: true,
+      hostRsvpReceivedChannels: ['push', 'email'],
+      hostRsvpCancelled: true,
+      hostRsvpCancelledChannels: ['push', 'email'],
       followUpPrompts: false,
       followUpPromptsChannels: [],
       pushEnabled: false,
@@ -51,26 +57,41 @@ describe('account preferences', () => {
     ).toBe(false);
   });
 
-  it('permits only supported locale preferences or the existing fallback chain', () => {
-    for (const locale of ['ar', 'fr', 'en', null]) {
-      expect(
-        updateAccountPreferencesSchema.parse({ locale, expectedRevision: 0 })
-          .locale,
-      ).toBe(locale);
-    }
+  it('requires the optimistic revision and rejects unsupported fields', () => {
+    expect(
+      updateAccountPreferencesSchema.parse({ expectedRevision: 0 }),
+    ).toEqual({
+      eventUpdates: true,
+      eventUpdatesChannels: ['push', 'email'],
+      eventReminders: true,
+      eventRemindersChannels: ['push', 'email'],
+      hostRsvpReceived: true,
+      hostRsvpReceivedChannels: ['push', 'email'],
+      hostRsvpCancelled: true,
+      hostRsvpCancelledChannels: ['push', 'email'],
+      followUpPrompts: false,
+      followUpPromptsChannels: [],
+      smsFallbackEnabled: false,
+      expectedRevision: 0,
+    });
     expect(
       updateAccountPreferencesSchema.safeParse({
-        locale: 'es',
-        expectedRevision: 0,
-      }).success,
-    ).toBe(false);
-    expect(
-      updateAccountPreferencesSchema.safeParse({
-        locale: 'en',
         expectedRevision: 0,
         smsConsentAt: new Date(),
       }).success,
     ).toBe(false);
+  });
+});
+
+describe('account language', () => {
+  it('accepts only the supported interface locales', () => {
+    expect(accountSummarySchema.shape.locale.parse('fr')).toBe('fr');
+    expect(updateAccountLocaleSchema.parse({ locale: 'en' })).toEqual({
+      locale: 'en',
+    });
+    expect(updateAccountLocaleSchema.safeParse({ locale: 'es' }).success).toBe(
+      false,
+    );
   });
 });
 

@@ -105,7 +105,8 @@ export const setupDb = async (): Promise<Db> => {
   await setPreferences(db, {
     eventUpdates: true,
     eventReminders: true,
-    hostUpdates: true,
+    hostRsvpReceived: true,
+    hostRsvpCancelled: true,
     followUpPrompts: false,
     pushEnabled: true,
     smsFallbackEnabled: true,
