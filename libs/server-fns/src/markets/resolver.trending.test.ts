@@ -20,7 +20,7 @@ describe('resolveTrendingStates (cold vs warm)', () => {
     role: 'host',
   };
 
-  it('cold markets return major featured cities (no empty-commune padding) for DZ/EG/SA', async () => {
+  it('cold markets return 11 ordered landing cities for DZ/EG/SA', async () => {
     const db = createDb(env.DB);
     await seed(db);
 
@@ -31,12 +31,13 @@ describe('resolveTrendingStates (cold vs warm)', () => {
       expect(trending.groups[0]?.state).toBeNull();
 
       const cities = trending.groups[0]?.cities ?? [];
-      expect(cities.length).toBeGreaterThan(0);
-      expect(cities.length).toBeLessThanOrEqual(18);
+      expect(cities).toHaveLength(11);
       expect(cities.every((c) => c.count === 0)).toBe(true);
-      expect(cities.every((c) => c.city.featured)).toBe(true);
+      const featuredCount = geo.getFeaturedCities(code).length;
+      expect(cities.filter((c) => c.city.featured)).toHaveLength(
+        Math.min(11, featuredCount),
+      );
 
-      /** Must not pad Adrar/Chlef-style empty communes as "popular". */
       const slugs = cities.map((c) => c.city.slug);
       if (code === 'DZ') {
         expect(slugs[0]).toBe('algiers');
@@ -51,13 +52,10 @@ describe('resolveTrendingStates (cold vs warm)', () => {
         expect(slugs[0]).toBe('riyadh');
         expect(slugs).toContain('makkah');
       }
-
-      const featuredCount = geo.getFeaturedCities(code).length;
-      expect(cities.length).toBe(Math.min(18, featuredCount));
     }
   });
 
-  it('warm markets only list cities with upcoming events (no zero padding)', async () => {
+  it('warm markets lead with cities that have upcoming events', async () => {
     const db = createDb(env.DB);
     await seed(db);
     await db.insert(user).values(host).onConflictDoNothing().run();
@@ -117,6 +115,7 @@ describe('resolveTrendingStates (cold vs warm)', () => {
         .map((c) => c.city.slug)
         .sort(),
     ).toEqual(['algiers', 'oran'].sort());
+    expect(trending.groups.flatMap((group) => group.cities)).toHaveLength(11);
   });
 
   it('offers featured cities with no meetups as pioneer entries, never communes', async () => {

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getMemberProfile,
   initializeMemberProfile,
+  listPublicEventHosts,
   updateMemberProfile,
 } from './member-profiles.js';
 import { getAccountPreferences } from './account-preferences.js';
@@ -116,6 +117,24 @@ describe('member profiles on real D1', () => {
         .from(memberProfiles)
         .where(eq(memberProfiles.userId, userId)),
     ).toEqual([]);
+  });
+
+  it('lists only visible host identities for public event cards', async () => {
+    const visible = await profileFixture();
+    const hidden = await profileFixture({ banned: true });
+
+    const hosts = await listPublicEventHosts(visible.db, [
+      visible.userId,
+      hidden.userId,
+    ]);
+
+    expect(hosts).toEqual([
+      {
+        userId: visible.userId,
+        name: 'Original',
+        photoAssetId: null,
+      },
+    ]);
   });
 
   it('never changes another owner or protected fields through extra object keys', async () => {

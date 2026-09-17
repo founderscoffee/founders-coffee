@@ -14,6 +14,7 @@ import {
   type EventFeedCursor,
   type EventFeedItem,
 } from '../events/resolver.js';
+import { attachAttendance } from '../events/attendance.js';
 import { resolveTrendingStates, type TrendingSection } from './trending.js';
 
 export { resolveTrendingStates } from './trending.js';
@@ -116,10 +117,11 @@ export const resolveMarketLanding = async (
     countUpcomingByCity(db, market.code),
     resolveTrendingStates(db, market.code),
   ]);
+  const eventsWithAttendance = await attachAttendance(db, events);
   return ok({
     market,
     cities: geo.getFeaturedCities(market.code),
-    events,
+    events: eventsWithAttendance,
     eventsNextCursor,
     cityEventCounts,
     trending,
@@ -157,5 +159,11 @@ export const resolveCityLanding = async (
     afterId: pagination.afterId,
     limit: 20,
   });
-  return ok({ market, city, events, eventsNextCursor });
+  const eventsWithAttendance = await attachAttendance(db, events);
+  return ok({
+    market,
+    city,
+    events: eventsWithAttendance,
+    eventsNextCursor,
+  });
 };

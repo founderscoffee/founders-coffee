@@ -67,8 +67,6 @@ export const MarketHero = ({
   const heroArt = HERO_ART[market.code];
   const heroArtDesktop = HERO_ART_DESKTOP[market.code];
   const heroArtMobile = HERO_ART_MOBILE[market.code];
-  const marketName =
-    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
   const cityDisplayName = selectedCity
     ? locale === 'ar'
       ? selectedCity.nameAr
@@ -99,13 +97,10 @@ export const MarketHero = ({
         </picture>
       )}
       <div className="mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-[calc(33.4vw+1rem)] text-center md:px-8 md:pt-14 md:pb-14">
-        <span className="inline-flex h-[26px] items-center rounded-full bg-base-100 px-2.5 text-caption font-medium">
-          {marketName}
-        </span>
-        <h1 className="mt-4 font-display text-h2 font-semibold tracking-tight text-balance text-base-content md:text-h1">
+        <h1 className="font-display text-display leading-tight font-semibold tracking-tight text-balance text-base-content">
           {hero_tagline({}, { locale })}
         </h1>
-        <p className="mx-auto mt-3 max-w-prose text-body text-neutral md:text-body-lg">
+        <p className="mx-auto mt-4 max-w-prose text-body-lg text-neutral">
           {hero_subtitle({}, { locale })}
         </p>
 

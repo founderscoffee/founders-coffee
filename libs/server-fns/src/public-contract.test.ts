@@ -58,6 +58,8 @@ const PUBLIC_EVENT_FIELDS = [
   'cityNameAr',
   'citySlug',
   'goingCount',
+  'hostName',
+  'hostPhotoAssetId',
   'viewerRsvp',
 ] as const;
 

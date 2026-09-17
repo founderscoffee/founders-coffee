@@ -1,7 +1,8 @@
-import { and, eq, exists, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/sqlite-core';
+import { and, eq, exists, inArray, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
-import { activeProfileIdentity } from './profile-access.js';
+import { activeProfileIdentity, visibleIdentity } from './profile-access.js';
 import {
   accountPreferences,
   memberProfiles,
@@ -31,6 +32,32 @@ export const getProfileIdentity = async (db: Db, userId: string) => {
     .where(activeProfileIdentity(userId))
     .limit(1);
   return rows[0] ?? null;
+};
+
+export type PublicEventHost = {
+  readonly userId: string;
+  readonly name: string;
+  readonly photoAssetId: string | null;
+};
+
+export const listPublicEventHosts = async (
+  db: Db,
+  userIds: readonly string[],
+): Promise<PublicEventHost[]> => {
+  const uniqueUserIds = [...new Set(userIds)];
+  if (uniqueUserIds.length === 0) return [];
+  const identities = alias(user, 'public_event_host');
+  return db
+    .select({
+      userId: identities.id,
+      name: identities.name,
+      photoAssetId: memberProfiles.photoAssetId,
+    })
+    .from(identities)
+    .leftJoin(memberProfiles, eq(memberProfiles.userId, identities.id))
+    .where(
+      and(inArray(identities.id, uniqueUserIds), visibleIdentity(identities.id)),
+    );
 };
 
 /**
