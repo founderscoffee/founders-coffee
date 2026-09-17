@@ -17,6 +17,7 @@ export {
   updateMyPreferences,
   updateMyProfile,
   updateMyDisplayName,
+  updateMyAccountLocale,
 } from './profile/rpc.js';
 export {
   confirmMyEmailChange,
@@ -40,6 +41,7 @@ export type {
   UpdateProfileRequest,
   UpdateDisplayNameRequest,
   UpdatePreferencesRequest,
+  UpdateAccountLocaleRequest,
 } from './profile/schemas.js';
 
 /** Retired compatibility endpoint: never persist residence, including for old clients. */

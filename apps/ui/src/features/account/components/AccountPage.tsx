@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
+  baseLocale,
+  cookieName,
   account_contacts_note,
   account_contacts_title,
   account_data_title,
@@ -30,14 +32,15 @@ import {
 import { Button } from '@founders-coffee/ui';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
-import { useMyAccount } from '../hooks';
-import { providerLabel } from '../account-labels';
+import { useMyAccount, useUpdateAccountLocale } from '../hooks';
 import type { AccountSummary } from '../api';
 import type { ContactKind } from '../contact-flow';
 import { AccountRow } from './AccountRow';
 import { ContactDialog } from './ContactDialog';
 import { DevicePanel } from './DevicePanel';
+import { LanguageGroup } from './LanguageGroup';
 import { ProfileSectionNav } from './ProfileSectionNav';
+import { ProviderIdentityList } from './ProviderIdentity';
 
 const Group = ({
   title,
@@ -63,7 +66,7 @@ const VerifiedChip = ({
   isVerified: boolean;
 }) => (
   <span
-    className={`badge badge-sm shrink-0 ${isVerified ? 'badge-success badge-soft' : 'badge-ghost'}`}
+    className={`badge btn-sm w-16 shrink-0 justify-center ${isVerified ? 'badge-success badge-soft' : 'badge-ghost'}`}
   >
     {isVerified
       ? account_verified({}, { locale })
@@ -96,6 +99,7 @@ const AccountSections = ({
               type="button"
               variant="outline"
               size="sm"
+              className="w-16"
               onClick={() => onChange('email')}
             >
               {contact_change_email({}, { locale })}
@@ -119,6 +123,7 @@ const AccountSections = ({
               type="button"
               variant="outline"
               size="sm"
+              className="w-16"
               onClick={() => onChange('phone')}
             >
               {account.phone.masked
@@ -135,11 +140,11 @@ const AccountSections = ({
         locale={locale}
         label={account_providers({}, { locale })}
         value={
-          account.providers.length > 0
-            ? account.providers
-                .map((provider) => providerLabel(provider, locale))
-                .join(' · ')
-            : account_providers_empty({}, { locale })
+          <ProviderIdentityList
+            locale={locale}
+            providers={account.providers}
+            empty={account_providers_empty({}, { locale })}
+          />
         }
       />
       <AccountRow
@@ -172,10 +177,16 @@ const AccountSections = ({
 
 export const AccountPage = ({ locale }: { locale: Locale }) => {
   const query = useMyAccount();
+  const updateLocale = useUpdateAccountLocale();
   const [changing, setChanging] = useState<ContactKind | null>(null);
+  const [language, setLanguage] = useState<Locale>(baseLocale);
   const isLoading =
     query.isAuthLoading ||
     (!!query.userId && query.isPending && !query.isError);
+
+  useEffect(() => {
+    if (query.data) setLanguage(query.data.locale ?? baseLocale);
+  }, [query.data]);
 
   return (
     <section className="mx-auto max-w-5xl px-5 py-12 lg:grid lg:grid-cols-[184px_minmax(0,1fr)] lg:gap-12">
@@ -189,11 +200,33 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
         </p>
 
         {query.data ? (
-          <AccountSections
-            locale={locale}
-            account={query.data}
-            onChange={setChanging}
-          />
+          <>
+            <LanguageGroup
+              locale={locale}
+              value={language}
+              isDirty={language !== (query.data.locale ?? baseLocale)}
+              isPending={updateLocale.isPending}
+              isError={updateLocale.isError}
+              isSuccess={updateLocale.isSuccess}
+              onChange={setLanguage}
+              onReset={() => setLanguage(query.data.locale ?? baseLocale)}
+              onSave={() =>
+                updateLocale.mutate(language, {
+                  onSuccess: () => {
+                    document.cookie = `${cookieName}=${language}; path=/; max-age=31536000; samesite=lax`;
+                    window.location.reload();
+                  },
+                })
+              }
+            />
+            <div className="mt-6">
+              <AccountSections
+                locale={locale}
+                account={query.data}
+                onChange={setChanging}
+              />
+            </div>
+          </>
         ) : query.isError && query.userId ? (
           <p role="alert" className="text-body-sm text-error">
             {account_unavailable({}, { locale })}
@@ -207,7 +240,7 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
             locale={locale}
             isLoading={false}
             isAnonymous
-            returnPath="/account"
+            returnPath="/profile/account"
             onRetry={() => void query.refetch()}
           />
         )}

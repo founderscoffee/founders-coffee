@@ -5,11 +5,13 @@ import {
   unlinkMyProvider,
   confirmMyPhoneNumber,
   getMyAccount,
+  updateMyAccountLocale,
   requestMyEmailChange,
   sendMyEmailChangeCode,
   sendMyPhoneCode,
 } from '@founders-coffee/server-fns';
 import type { AccountSummary, DeviceList } from '@founders-coffee/server-fns';
+import type { Locale } from '@founders-coffee/i18n';
 
 export type ContactAccepted = { accepted: true };
 export type EmailChangeInput = {
@@ -28,6 +30,8 @@ export const accountApi = {
   unlinkProvider: (data: { providerId: string }): Promise<{ unlinked: true }> =>
     unlinkMyProvider({ data: data as { providerId: 'google' } }),
   getMyAccount: (): Promise<AccountSummary> => getMyAccount({ data: {} }),
+  updateMyLocale: (locale: Locale): Promise<AccountSummary> =>
+    updateMyAccountLocale({ data: { account: { locale } } }),
   sendEmailChangeCode: (): Promise<ContactAccepted> =>
     sendMyEmailChangeCode({ data: {} }),
   requestEmailChange: (data: EmailChangeInput): Promise<ContactAccepted> =>

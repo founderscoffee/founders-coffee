@@ -10,6 +10,9 @@ describe('profile navigation privacy', () => {
   it.each([
     '/profile',
     '/profile/',
+    '/profile/activity',
+    '/profile/notifications',
+    '/profile/account',
     '/preferences',
     '/activity',
     '/account',

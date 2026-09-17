@@ -11,7 +11,7 @@ export const AccountRow = ({
   isPending = false,
 }: {
   locale: Locale;
-  label: string;
+  label: ReactNode;
   value?: ReactNode;
   note?: string;
   status?: ReactNode;

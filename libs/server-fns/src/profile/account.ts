@@ -1,5 +1,10 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
-import { getAccountSummary, type Db } from '@founders-coffee/db';
+import {
+  getAccountSummary,
+  updateAccountLocale,
+  type AccountSummaryRow,
+  type Db,
+} from '@founders-coffee/db';
 import { profile } from '@founders-coffee/domain';
 import { logger } from '@founders-coffee/observability';
 
@@ -24,23 +29,49 @@ export const readAccountSummary = async (
     const row = await getAccountSummary(db, userId);
     if (!row) return err(new AppError('not_found', 'Account not found'));
 
-    return ok(
-      profile.accountSummarySchema.parse({
-        userId,
-        email: {
-          masked: profile.maskEmail(row.email),
-          verified: row.emailVerified,
-        },
-        phone: {
-          masked: profile.maskPhoneNumber(row.phoneNumber),
-          verified: row.phoneNumberVerified,
-        },
-        providers: profile.knownAccountProviders(row.providerIds),
-        sessionCount: row.sessionCount,
-      }),
-    );
+    return ok(toAccountSummary(row, userId));
   } catch {
     logger.error('account_summary_failed', { userId, scope: 'owner' });
+    return err(
+      new AppError('account_unavailable', 'Account is temporarily unavailable'),
+    );
+  }
+};
+
+const toAccountSummary = (
+  row: AccountSummaryRow,
+  userId: string,
+): profile.AccountSummary =>
+  profile.accountSummarySchema.parse({
+    userId,
+    locale: row.locale,
+    email: {
+      masked: profile.maskEmail(row.email),
+      verified: row.emailVerified,
+    },
+    phone: {
+      masked: profile.maskPhoneNumber(row.phoneNumber),
+      verified: row.phoneNumberVerified,
+    },
+    providers: profile.knownAccountProviders(row.providerIds),
+    sessionCount: row.sessionCount,
+  });
+
+export const saveAccountLocale = async (
+  db: Db,
+  userId: string,
+  locale: profile.UpdateAccountLocale['locale'],
+): Promise<Result<profile.AccountSummary>> => {
+  logger.info('account_locale_requested', { userId, scope: 'owner' });
+  try {
+    const savedLocale = await updateAccountLocale(db, userId, locale);
+    if (!savedLocale)
+      return err(new AppError('not_found', 'Account not found'));
+    const row = await getAccountSummary(db, userId);
+    if (!row) return err(new AppError('not_found', 'Account not found'));
+    return ok(toAccountSummary(row, userId));
+  } catch {
+    logger.error('account_locale_failed', { userId, scope: 'owner' });
     return err(
       new AppError('account_unavailable', 'Account is temporarily unavailable'),
     );

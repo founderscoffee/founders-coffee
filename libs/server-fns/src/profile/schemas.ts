@@ -41,6 +41,9 @@ export const updateProfileRequestSchema = z.strictObject({
 export const updatePreferencesRequestSchema = z.strictObject({
   preferences: profile.updateAccountPreferencesSchema,
 });
+export const updateAccountLocaleRequestSchema = z.strictObject({
+  account: profile.updateAccountLocaleSchema,
+});
 export const updateDisplayNameRequestSchema = z.strictObject({
   displayName: profile.displayNameSchema,
   expectedRevision: profile.profileRevisionSchema,
@@ -53,6 +56,9 @@ export const CONTACT_CHANGE_LIMIT = RATE_BUDGETS.otp.contactChange;
 export type UpdateProfileRequest = z.infer<typeof updateProfileRequestSchema>;
 export type UpdatePreferencesRequest = z.infer<
   typeof updatePreferencesRequestSchema
+>;
+export type UpdateAccountLocaleRequest = z.infer<
+  typeof updateAccountLocaleRequestSchema
 >;
 export type AccountPreferencesView = profile.AccountPreferencesView;
 export type UpdateDisplayNameRequest = z.infer<

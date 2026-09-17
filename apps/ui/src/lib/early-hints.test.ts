@@ -18,6 +18,7 @@ describe('Early Hints policy', () => {
     expect(isPublicEarlyHintsPath('/about')).toBe(false);
     expect(isPublicEarlyHintsPath('/login')).toBe(false);
     expect(isPublicEarlyHintsPath('/ar/account')).toBe(false);
+    expect(isPublicEarlyHintsPath('/ar/profile/notifications')).toBe(false);
     expect(isPublicEarlyHintsPath('/ar/algeria/unknown/path')).toBe(false);
   });
 

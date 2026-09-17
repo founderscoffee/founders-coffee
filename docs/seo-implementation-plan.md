@@ -95,7 +95,7 @@ a profile residence field or a canonical-URL input.
 | Locale event detail                                            | Index while public and discoverable                             | `Event` JSON-LD, canonical, date/location/host metadata, social card  |
 | Company pages                                                  | Index                                                           | `WebPage`, canonical, localized content, OG/Twitter                   |
 | Public host profile                                            | Noindex under current plan                                      | `X-Robots-Tag`, no sitemap entry, no private fields in metadata       |
-| Login/onboarding/account/profile/preferences/activity/closeout | Noindex                                                         | Route and response-header directives                                  |
+| Login/onboarding/profile/*/closeout                            | Noindex                                                         | Route and response-header directives                                  |
 | Host creation wizard                                           | Noindex                                                         | Route directive; workflow queries are not public URLs                 |
 | 404 and error documents                                        | Noindex                                                         | Dedicated title; no canonical to a valid page                         |
 

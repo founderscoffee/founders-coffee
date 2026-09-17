@@ -35,6 +35,7 @@ export {
   updateMyPreferences,
   updateMyProfile,
   updateMyDisplayName,
+  updateMyAccountLocale,
 } from './profile.js';
 export type {
   AccountPreferencesView,
@@ -46,6 +47,7 @@ export type {
   UpdateProfileRequest,
   UpdateDisplayNameRequest,
   UpdatePreferencesRequest,
+  UpdateAccountLocaleRequest,
 } from './profile.js';
 export {
   checkPermission,

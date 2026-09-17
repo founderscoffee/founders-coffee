@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { id } from '@founders-coffee/core';
 import { account, createDb, eq, session, user } from '@founders-coffee/db';
 
-import { readAccountSummary } from './account.js';
+import { readAccountSummary, saveAccountLocale } from './account.js';
 
 const LIVE = new Date('2099-01-01T00:00:00Z');
 const EXPIRED = new Date('2020-01-01T00:00:00Z');
@@ -68,7 +68,17 @@ describe('account summary (real D1)', () => {
     expect(result.data.email.masked).not.toBe(`${userId}@test.coffee`);
     expect(result.data.email.verified).toBe(true);
     expect(result.data.phone).toEqual({ masked: null, verified: false });
+    expect(result.data.locale).toBeNull();
     expect(result.data.sessionCount).toBe(0);
+  });
+
+  it('saves the interface language independently of notification preferences', async () => {
+    const { db, userId } = await setup();
+
+    const result = await saveAccountLocale(db, userId, 'fr');
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.locale).toBe('fr');
   });
 
   it('never carries a token, a password or a raw contact', async () => {

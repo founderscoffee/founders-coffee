@@ -72,6 +72,12 @@ profile operations.
 
 ## 3. Profile contract and page behavior
 
+The authenticated member surface is grouped under one `/profile` route namespace. `/profile` is
+the editable public-profile screen, `/profile/activity` is the member's hosted and joined activity,
+`/profile/notifications` contains notification delivery preferences only, and `/profile/account`
+contains contacts, sessions, providers and the private interface-language setting. The former
+`/activity`, `/preferences` and `/account` paths remain redirect-only compatibility aliases.
+
 The [Profile UI/UX Design Specification](./profile-ui-design-spec.md) and its
 [interactive prototype](./design/profile/index.html) define the premium Round Table visual direction,
 responsive composition, privacy affordances and state treatments. Created on 2026-09-08 after a
@@ -116,7 +122,7 @@ and account preferences have independent nonnegative revisions and reject stale 
 optional fields normalize to null/empty arrays and clear their publication flags where applicable.
 Introductions have no language metadata or publication flag. Only owned, processed, attached photo assets can be delivered as public avatars; no photo publication flag exists.
 
-Event updates, reminders and host updates default enabled as category preferences; follow-up prompts
+Event updates, reminders, RSVP confirmations and RSVP cancellations default enabled as category preferences; follow-up prompts
 and push default disabled. Category defaults are not channel consent. Email fallback needs no separate
 consent; SMS is server-controlled for same-day cancellation disruption and is not a general reminder
 preference.

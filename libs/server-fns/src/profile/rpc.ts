@@ -7,7 +7,7 @@ import { requireAuth } from '../authz.js';
 import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
-import { readAccountSummary } from './account.js';
+import { readAccountSummary, saveAccountLocale } from './account.js';
 import { readMyPreferences, saveMyPreferences } from './preferences.js';
 import { removeCurrentPhoto, reservePhotoUpload } from './photo.js';
 import { photoServices } from './photo-runtime.js';
@@ -24,6 +24,7 @@ import {
   PROFILE_UPDATE_LIMIT,
   publicProfileRequestSchema,
   updateDisplayNameRequestSchema,
+  updateAccountLocaleRequestSchema,
   updatePreferencesRequestSchema,
   updateProfileRequestSchema,
 } from './schemas.js';
@@ -166,5 +167,22 @@ export const getMyAccount = createServerFn({ strict: false })
     privateNoStore();
     return handleResult(
       readAccountSummary(getDb(), requireAuth(context.session).user.id),
+    );
+  });
+
+export const updateMyAccountLocale = createServerFn({
+  method: 'POST',
+  strict: false,
+})
+  .middleware(profileWriteProtection)
+  .validator(appValidator(updateAccountLocaleRequestSchema))
+  .handler(({ context, data }) => {
+    privateNoStore();
+    return handleResult(
+      saveAccountLocale(
+        getDb(),
+        requireAuth(context.session).user.id,
+        data.account.locale,
+      ),
     );
   });

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { localeSchema } from '@founders-coffee/core';
+
 import { profileIdentitySchema } from './schemas.js';
 
 export const ACCOUNT_PROVIDERS = [
@@ -14,6 +16,7 @@ export type AccountProvider = (typeof ACCOUNT_PROVIDERS)[number];
 
 export const accountSummarySchema = z.strictObject({
   userId: profileIdentitySchema,
+  locale: localeSchema.nullable(),
   email: z.strictObject({
     masked: z.string().min(1),
     verified: z.boolean(),
@@ -27,6 +30,12 @@ export const accountSummarySchema = z.strictObject({
 });
 
 export type AccountSummary = z.infer<typeof accountSummarySchema>;
+
+export const updateAccountLocaleSchema = z.strictObject({
+  locale: localeSchema,
+});
+
+export type UpdateAccountLocale = z.infer<typeof updateAccountLocaleSchema>;
 
 const KEEP_LOCAL = 2;
 const KEEP_DIGITS = 2;
