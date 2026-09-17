@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { atMigration, columnNames } from './migrations.fixtures.js';
 
 describe('0030 — split host RSVP preferences (real D1)', () => {
-  it('replaces the combined host preference with independent defaults', async () => {
+  it('adds independent defaults while retaining legacy columns for rollback safety', async () => {
     const { apply } = await atMigration('0030_white_vindicator.sql');
 
     await apply();
@@ -13,7 +13,7 @@ describe('0030 — split host RSVP preferences (real D1)', () => {
     expect(columns).toContain('host_rsvp_received_channels');
     expect(columns).toContain('host_rsvp_cancelled');
     expect(columns).toContain('host_rsvp_cancelled_channels');
-    expect(columns).not.toContain('host_updates');
-    expect(columns).not.toContain('host_updates_channels');
+    expect(columns).toContain('host_updates');
+    expect(columns).toContain('host_updates_channels');
   });
 });

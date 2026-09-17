@@ -282,11 +282,11 @@ gap.
   `account_preferences` (`1` push, `4` email; SMS is server-controlled for same-day cancellation), keeping the single-row `revision` guard that
   makes concurrent saves safe. A side table breaks optimistic concurrency and buys nothing.
 - The current implementation has five masks: event updates, reminders, RSVP confirmations, RSVP
-  cancellations and follow-up prompts. The two RSVP masks replace the former combined host mask in
-  migration `0030_white_vindicator`; this is intentionally a clean replacement with no legacy alias,
-  data backfill or rollback compatibility layer.
+  cancellations and follow-up prompts. The two RSVP masks are added alongside the former combined
+  host mask in migration `0030_white_vindicator`; retaining the legacy columns keeps the migration
+  backward-compatible for a safe rollback.
 - Each category gate remains expressible as `channels != 0`, so "off entirely" is still one bitmask
-  decision. New rows default to push and email on; the irreversible split migration establishes the
+  decision. New rows default to push and email on; the additive split migration establishes the
   independent RSVP defaults directly.
 - `updateAccountPreferencesSchema` gains the per-category channel sets, and `pushEnabled` stays
   server-owned and absent from the input, for the reason `draft.ts` already gives.
@@ -296,7 +296,7 @@ gap.
 The implementation adds five integer masks to `account_preferences` (`1` push, `4` email). Migration
 `0028_notification_category_channels.sql` established the original four masks by backfilling each
 legacy category from its existing gate; migration `0030_white_vindicator.sql` adds the independent
-RSVP masks and drops the combined host columns without backfill. The profile contract exposes
+RSVP masks while retaining the combined host columns for rollback compatibility. The profile contract exposes
 validated channel arrays, converts them at the server-function boundary, and keeps the category
 booleans synchronized with whether a mask is non-zero. The existing single-row optimistic revision
 guard remains the only write gate. Destination reads include the masks so ND-05 can resolve the matrix
