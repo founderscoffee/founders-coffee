@@ -32,11 +32,7 @@ import {
 } from '@founders-coffee/i18n';
 import type { NotificationTemplateKey } from '@founders-coffee/core';
 
-import {
-  escapeValues,
-  withReason,
-  type TemplateValues,
-} from './templates.js';
+import { escapeValues, withReason, type TemplateValues } from './templates.js';
 
 type EmailPayload = { subject: string; html: string; text: string };
 

@@ -49,18 +49,21 @@ describe('notification templates render in every locale', () => {
     expect(body).not.toContain('{');
   });
 
-  it.each(combos)('%s / %s interpolates the email payload', async (locale, key) => {
-    const email = await emailPayloadFor(key, VALUES, locale);
-    for (const part of [email.subject, email.html, email.text]) {
-      expect(part).toContain(VALUES.title);
-      expect(part).not.toContain('{');
-    }
-    expect(email.html).toContain(
-      'src="https://founders.coffee/branding/pwa-logo.png"',
-    );
-    expect(email.html).toContain(`href="${VALUES.url}"`);
-    expect(email.text).toContain(VALUES.url);
-  });
+  it.each(combos)(
+    '%s / %s interpolates the email payload',
+    async (locale, key) => {
+      const email = await emailPayloadFor(key, VALUES, locale);
+      for (const part of [email.subject, email.html, email.text]) {
+        expect(part).toContain(VALUES.title);
+        expect(part).not.toContain('{');
+      }
+      expect(email.html).toContain(
+        'src="https://founders.coffee/branding/pwa-logo.png"',
+      );
+      expect(email.html).toContain(`href="${VALUES.url}"`);
+      expect(email.text).toContain(VALUES.url);
+    },
+  );
 
   it.each(hostAndOperationsCombos)(
     '%s / %s interpolates the host or operations email payload',
@@ -99,22 +102,30 @@ describe('notification templates render in every locale', () => {
     },
   );
 
-  it.each(ALL_KEYS)('writes %s in Arabic script for the ar locale', async (key) => {
-    if (!HOST_AND_OPERATIONS_KEYS.includes(key))
-      expect(smsBodyFor(key, VALUES, 'ar')).toMatch(ARABIC);
-    expect((await emailPayloadFor(key, VALUES, 'ar')).subject).toMatch(ARABIC);
-  });
+  it.each(ALL_KEYS)(
+    'writes %s in Arabic script for the ar locale',
+    async (key) => {
+      if (!HOST_AND_OPERATIONS_KEYS.includes(key))
+        expect(smsBodyFor(key, VALUES, 'ar')).toMatch(ARABIC);
+      expect((await emailPayloadFor(key, VALUES, 'ar')).subject).toMatch(
+        ARABIC,
+      );
+    },
+  );
 
-  it.each(ALL_KEYS)('does not fall back to English for %s in fr', async (key) => {
-    if (!HOST_AND_OPERATIONS_KEYS.includes(key)) {
-      const fr = smsBodyFor(key, VALUES, 'fr');
-      const en = smsBodyFor(key, VALUES, 'en');
-      expect(fr).not.toBe(en);
-    }
-    expect((await emailPayloadFor(key, VALUES, 'fr')).subject).not.toBe(
-      (await emailPayloadFor(key, VALUES, 'en')).subject,
-    );
-  });
+  it.each(ALL_KEYS)(
+    'does not fall back to English for %s in fr',
+    async (key) => {
+      if (!HOST_AND_OPERATIONS_KEYS.includes(key)) {
+        const fr = smsBodyFor(key, VALUES, 'fr');
+        const en = smsBodyFor(key, VALUES, 'en');
+        expect(fr).not.toBe(en);
+      }
+      expect((await emailPayloadFor(key, VALUES, 'fr')).subject).not.toBe(
+        (await emailPayloadFor(key, VALUES, 'en')).subject,
+      );
+    },
+  );
 
   it('escapes user-authored values in the html variant only', async () => {
     const hostile = { ...VALUES, title: '<img src=x onerror="alert(1)">' };

@@ -153,9 +153,11 @@ describe('the account and security screen', () => {
     show({ data: summary({ locale: 'fr' }) });
 
     expect(
-      (screen.getByRole('combobox', {
-        name: 'Interface language',
-      }) as unknown as HTMLSelectElement).value,
+      (
+        screen.getByRole('combobox', {
+          name: 'Interface language',
+        }) as unknown as HTMLSelectElement
+      ).value,
     ).toBe('fr');
     expect(
       screen.getByText('Choose the language used across Founders Coffee.'),

@@ -56,7 +56,10 @@ export const listPublicEventHosts = async (
     .from(identities)
     .leftJoin(memberProfiles, eq(memberProfiles.userId, identities.id))
     .where(
-      and(inArray(identities.id, uniqueUserIds), visibleIdentity(identities.id)),
+      and(
+        inArray(identities.id, uniqueUserIds),
+        visibleIdentity(identities.id),
+      ),
     );
 };
 

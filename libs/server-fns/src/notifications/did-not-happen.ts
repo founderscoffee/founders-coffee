@@ -105,7 +105,11 @@ export const enqueueDidNotHappenNotices = async (
       venue: event.venue,
       locale: context.locale,
       ...push,
-      ...(await emailPayloadFor('event_did_not_happen', values, context.locale)),
+      ...(await emailPayloadFor(
+        'event_did_not_happen',
+        values,
+        context.locale,
+      )),
     };
 
     const { written } = await enqueueNotificationIfAbsent(db, {

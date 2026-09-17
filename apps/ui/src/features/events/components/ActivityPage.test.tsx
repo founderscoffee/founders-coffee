@@ -287,7 +287,9 @@ describe('states the member can land in', () => {
 
     show();
 
-    expect(screen.getByRole('alert').textContent).toMatch(/could not be loaded/i);
+    expect(screen.getByRole('alert').textContent).toMatch(
+      /could not be loaded/i,
+    );
   });
 
   it('renders in the member locale', () => {
