@@ -133,6 +133,11 @@ export const Route = createFileRoute('/$market/$city')({
           locale={data.locale}
           content={companyPages[data.page][data.locale]}
           showEmailActions={data.page === 'contact'}
+          showLegalDraftNotice={
+            data.page === 'privacy' ||
+            data.page === 'terms' ||
+            data.page === 'cookies'
+          }
         />
       );
     }
