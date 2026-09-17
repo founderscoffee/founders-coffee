@@ -117,10 +117,10 @@ describe('public GEO contract', () => {
           schemaType: 'WebPage',
           visibleText:
             locale === 'ar'
-              ? 'عن founders.coffee'
+              ? 'من نحن'
               : locale === 'fr'
-                ? 'À propos de founders.coffee'
-                : 'About founders.coffee',
+                ? 'À propos de Founders Coffee'
+                : 'About Founders Coffee',
         },
       ];
 

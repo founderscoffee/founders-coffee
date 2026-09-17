@@ -13,9 +13,9 @@ export const organizationJsonLd = () =>
   JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'founders.coffee',
+    name: 'Founders Coffee',
     url: getSiteOrigin(),
-    logo: `${getSiteOrigin()}/logo-fc.svg`,
+    logo: `${getSiteOrigin()}/android-chrome-512x512.png`,
     email: CONTACT_EMAIL,
     description: 'Local founder communities that meet over coffee.',
     contactPoint: [
@@ -71,7 +71,7 @@ export const companyPageHead = ({
           url,
           isPartOf: {
             '@type': 'WebSite',
-            name: 'founders.coffee',
+            name: 'Founders Coffee',
             url: siteOrigin,
           },
           inLanguage: locale,

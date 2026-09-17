@@ -11,6 +11,7 @@ import {
   hostedPaginationSearchSchema,
   type HostedPaginationSearch,
 } from '../lib/public-pagination';
+import { buildPageTitle } from '../lib/seo';
 
 export const Route = createFileRoute('/u/$userId')({
   validateSearch: hostedPaginationSearchSchema,
@@ -69,7 +70,10 @@ export const Route = createFileRoute('/u/$userId')({
   head: ({ loaderData, match }) => ({
     meta: [
       {
-        title: `${loaderData?.profile.displayName ?? profile_title({}, { locale: match.context.locale })} - founders.coffee`,
+        title: buildPageTitle(
+          loaderData?.profile.displayName ??
+            profile_title({}, { locale: match.context.locale }),
+        ),
       },
       { name: 'robots', content: NO_INDEX_VALUE },
     ],

@@ -13,7 +13,7 @@ describe('error page metadata', () => {
       ]),
     );
     expect(head.meta.find((item) => 'title' in item)?.title).toContain(
-      'founders.coffee',
+      'Founders Coffee',
     );
     expect(head.links).toEqual([]);
     expect(head.scripts).toEqual([]);

@@ -109,7 +109,7 @@ describe('public Worker SEO contract', () => {
     expect(production.headers.get('content-type')).toContain('text/plain');
     expect(production.headers.get('x-robots-tag')).toBeNull();
     expect(production.headers.get('cache-control')).toContain('s-maxage=3600');
-    expect(productionBody).toContain('# founders.coffee');
+    expect(productionBody).toContain('# Founders Coffee');
     expect(productionBody).toContain('https://founders.coffee/sitemap.xml');
     expect(productionBody).toContain('https://founders.coffee/robots.txt');
     expect(productionBody).not.toContain('staging.founders.coffee');

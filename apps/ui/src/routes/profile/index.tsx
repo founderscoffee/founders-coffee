@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { profile_title } from '@founders-coffee/i18n';
+
 import { ProfilePage } from '../../features/profile/components/ProfilePage';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
+import { privatePageHead } from '../../lib/seo-private';
 
 export const Route = createFileRoute('/profile/')({
   headers: () => ({
@@ -12,5 +15,6 @@ export const Route = createFileRoute('/profile/')({
     const { locale } = Route.useRouteContext();
     return <ProfilePage locale={locale} />;
   },
-  head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
+  head: ({ match }) =>
+    privatePageHead(profile_title({}, { locale: match.context.locale })),
 });

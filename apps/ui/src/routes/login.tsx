@@ -1,10 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 
+import { login_title } from '@founders-coffee/i18n';
+
 import { LoginPage } from '../components/auth/LoginPage';
 import { authApi } from '../features/auth/api';
 import { NO_INDEX_VALUE } from '../lib/indexation';
 import { authReturnPathSchema } from '../lib/redirect';
+import { privatePageHead } from '../lib/seo-private';
 
 export const Route = createFileRoute('/login')({
   headers: () => ({
@@ -30,5 +33,6 @@ export const Route = createFileRoute('/login')({
     );
   },
   loader: () => authApi.getPublicAuthConfig(),
-  head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
+  head: ({ match }) =>
+    privatePageHead(login_title({}, { locale: match.context.locale })),
 });

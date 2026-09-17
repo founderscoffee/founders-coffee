@@ -3,12 +3,14 @@ import { z } from 'zod';
 
 import { appErrorCode } from '@founders-coffee/core';
 import { getPublicAuthConfig } from '@founders-coffee/server-fns';
+import { host_page_title } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 
 import { HostCreatePage } from '../../components/host/HostCreatePage';
 import { eventsApi, type RepeatEventTemplate } from '../../features/events/api';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
+import { privatePageHead } from '../../lib/seo-private';
 
 type HostCreateLoaderData = {
   market: Market;
@@ -113,5 +115,6 @@ export const Route = createFileRoute('/$market/host/create')({
         repeatTemplate?.marketCode === market.code ? repeatTemplate : null,
     };
   },
-  head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
+  head: ({ match }) =>
+    privatePageHead(host_page_title({}, { locale: match.context.locale })),
 });

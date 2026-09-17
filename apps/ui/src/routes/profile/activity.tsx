@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { activity_title } from '@founders-coffee/i18n';
+
 import { ActivityPage } from '../../features/events/components/ActivityPage';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
+import { privatePageHead } from '../../lib/seo-private';
 
 export const Route = createFileRoute('/profile/activity')({
   headers: () => ({
@@ -12,5 +15,6 @@ export const Route = createFileRoute('/profile/activity')({
     const { locale, markets } = Route.useRouteContext();
     return <ActivityPage locale={locale} markets={markets} />;
   },
-  head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
+  head: ({ match }) =>
+    privatePageHead(activity_title({}, { locale: match.context.locale })),
 });

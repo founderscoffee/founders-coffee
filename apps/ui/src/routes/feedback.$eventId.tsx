@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { feedback_title } from '@founders-coffee/i18n';
+
 import { FeedbackPage } from '../features/operations/components/FeedbackPage';
 import { NO_INDEX_VALUE } from '../lib/indexation';
+import { privatePageHead } from '../lib/seo-private';
 
 export const Route = createFileRoute('/feedback/$eventId')({
   headers: () => ({
@@ -13,5 +16,6 @@ export const Route = createFileRoute('/feedback/$eventId')({
     const { eventId } = Route.useParams();
     return <FeedbackPage locale={locale} eventId={eventId} />;
   },
-  head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
+  head: ({ match }) =>
+    privatePageHead(feedback_title({}, { locale: match.context.locale })),
 });
