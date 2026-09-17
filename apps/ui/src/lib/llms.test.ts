@@ -20,7 +20,7 @@ describe('llms discovery guide', () => {
   it('contains only canonical public discovery surfaces', () => {
     const text = llmsText('https://founders.coffee', data, 'en');
 
-    expect(text).toContain('# founders.coffee');
+    expect(text).toContain('# Founders Coffee');
     expect(text).toContain('The current release focuses on free local events');
     expect(text).toContain('https://founders.coffee/en');
     expect(text).toContain('https://founders.coffee/en/algeria');
@@ -50,7 +50,7 @@ describe('llms discovery guide', () => {
     const text = llmsText('https://founders.coffee', data, 'ar');
 
     expect(text).toContain(
-      'founders.coffee مجتمع للقاءات المؤسسين المحلية حول القهوة.',
+      'Founders Coffee مجتمع للقاءات المؤسسين المحلية حول القهوة.',
     );
     expect(text).toContain('https://founders.coffee/ar');
     expect(text).toContain('https://founders.coffee/fr');

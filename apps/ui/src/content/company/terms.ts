@@ -7,19 +7,19 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
   en: {
     title: 'Terms',
     description:
-      'Terms of use for founders.coffee - accounts, hosting, and community rules.',
+      'Terms of use for Founders Coffee - accounts, hosting, and community rules.',
     updated: '8 August 2026',
     sections: [
       {
         heading: 'Agreement',
         paragraphs: [
-          'By using founders.coffee you agree to these Terms and our Privacy notice. If you do not agree, do not use the service.',
+          'By using Founders Coffee you agree to these Terms and our Privacy notice. If you do not agree, do not use the service.',
         ],
       },
       {
         heading: 'The service',
         paragraphs: [
-          'founders.coffee is a platform to discover and host informal founder meetups at cafés. Meetups are organized by users. We do not guarantee attendance, outcomes, or venue availability.',
+          'Founders Coffee is a platform to discover and host informal founder meetups at cafés. Meetups are organized by users. We do not guarantee attendance, outcomes, or venue availability.',
         ],
       },
       {
@@ -38,7 +38,7 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Sponsorships',
         paragraphs: [
-          'Any sponsorship on founders.coffee must be disclosed. Covert promotions are not allowed.',
+          'Any sponsorship on Founders Coffee must be disclosed. Covert promotions are not allowed.',
         ],
       },
       {
@@ -53,19 +53,19 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
   ar: {
     title: 'الشروط',
     description:
-      'شروط استخدام founders.coffee - الحسابات والاستضافة وقواعد المجتمع.',
+      'شروط استخدام Founders Coffee - الحسابات والاستضافة وقواعد المجتمع.',
     updated: '8 أغسطس 2026',
     sections: [
       {
         heading: 'الاتفاق',
         paragraphs: [
-          'باستخدامك founders.coffee فإنك توافق على هذه الشروط وإشعار الخصوصية. إن لم توافق، لا تستخدم الخدمة.',
+          'باستخدامك Founders Coffee فإنك توافق على هذه الشروط وإشعار الخصوصية. إن لم توافق، لا تستخدم الخدمة.',
         ],
       },
       {
         heading: 'الخدمة',
         paragraphs: [
-          'founders.coffee منصة لاكتشاف واستضافة لقاءات عمل غير رسمية في المقاهي. اللقاءات ينظّمها المستخدمون. لا نضمن الحضور أو النتائج أو توفّر المكان.',
+          'Founders Coffee منصة لاكتشاف واستضافة لقاءات عمل غير رسمية في المقاهي. اللقاءات ينظّمها المستخدمون. لا نضمن الحضور أو النتائج أو توفّر المكان.',
         ],
       },
       {
@@ -84,7 +84,7 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'الرعاية',
         paragraphs: [
-          'أي رعاية على founders.coffee يجب أن تكون معلَنة. الترويج المخفي غير مسموح.',
+          'أي رعاية على Founders Coffee يجب أن تكون معلَنة. الترويج المخفي غير مسموح.',
         ],
       },
       {
@@ -99,19 +99,19 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
   fr: {
     title: 'Conditions',
     description:
-      'Conditions d’utilisation de founders.coffee - comptes, organisation et règles communautaires.',
+      'Conditions d’utilisation de Founders Coffee - comptes, organisation et règles communautaires.',
     updated: '8 août 2026',
     sections: [
       {
         heading: 'Accord',
         paragraphs: [
-          'En utilisant founders.coffee, vous acceptez ces Conditions et notre notice de confidentialité. Sinon, n’utilisez pas le service.',
+          'En utilisant Founders Coffee, vous acceptez ces Conditions et notre notice de confidentialité. Sinon, n’utilisez pas le service.',
         ],
       },
       {
         heading: 'Le service',
         paragraphs: [
-          'founders.coffee est une plateforme pour découvrir et organiser des meetups informels de fondateurs dans des cafés. Les meetups sont organisés par les utilisateurs. Nous ne garantissons ni la présence, ni les résultats, ni la disponibilité des lieux.',
+          'Founders Coffee est une plateforme pour découvrir et organiser des meetups informels de fondateurs dans des cafés. Les meetups sont organisés par les utilisateurs. Nous ne garantissons ni la présence, ni les résultats, ni la disponibilité des lieux.',
         ],
       },
       {
@@ -130,7 +130,7 @@ export const termsContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Sponsoring',
         paragraphs: [
-          'Tout sponsoring sur founders.coffee doit être divulgué. Les promotions dissimulées sont interdites.',
+          'Tout sponsoring sur Founders Coffee doit être divulgué. Les promotions dissimulées sont interdites.',
         ],
       },
       {

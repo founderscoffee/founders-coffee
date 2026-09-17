@@ -7,13 +7,13 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
   en: {
     title: 'Privacy',
     description:
-      'How founders.coffee collects, uses, and protects your personal data.',
+      'How Founders Coffee collects, uses, and protects your personal data.',
     updated: '9 September 2026',
     sections: [
       {
         heading: 'Who we are',
         paragraphs: [
-          `This notice describes how founders.coffee (“we”) processes personal data when you use founders.coffee. For privacy requests, contact ${PRIVACY_EMAIL}. General inquiries: ${CONTACT_EMAIL}.`,
+          `This notice describes how Founders Coffee (“we”) processes personal data when you use Founders Coffee. For privacy requests, contact ${PRIVACY_EMAIL}. General inquiries: ${CONTACT_EMAIL}.`,
           'We are an early-stage product. Legal entity details will be updated here when incorporation paperwork is finalized.',
         ],
       },
@@ -57,7 +57,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Children',
         paragraphs: [
-          'founders.coffee is intended for adults participating in professional communities. We do not knowingly collect data from children.',
+          'Founders Coffee is intended for adults participating in professional communities. We do not knowingly collect data from children.',
         ],
       },
       {
@@ -70,13 +70,13 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
   },
   ar: {
     title: 'الخصوصية',
-    description: 'كيف يجمع founders.coffee بياناتك الشخصية ويستخدمها ويحميها.',
+    description: 'كيف يجمع Founders Coffee بياناتك الشخصية ويستخدمها ويحميها.',
     updated: '9 سبتمبر 2026',
     sections: [
       {
         heading: 'من نحن',
         paragraphs: [
-          `توضح هذه الصفحة كيف يعالج founders.coffee («نحن») البيانات الشخصية عند استخدامك للمنصة. لطلبات الخصوصية: ${PRIVACY_EMAIL}. للاستفسارات العامة: ${CONTACT_EMAIL}.`,
+          `توضح هذه الصفحة كيف يعالج Founders Coffee («نحن») البيانات الشخصية عند استخدامك للمنصة. لطلبات الخصوصية: ${PRIVACY_EMAIL}. للاستفسارات العامة: ${CONTACT_EMAIL}.`,
           'نحن منتج في مرحلة مبكرة. سنحدّث بيانات الكيان القانوني هنا عند اكتمال التأسيس.',
         ],
       },
@@ -120,7 +120,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'الأطفال',
         paragraphs: [
-          'founders.coffee موجّه للبالغين المشاركين في مجتمعات مهنية. لا نجمع بيانات الأطفال عن علم.',
+          'Founders Coffee موجّه للبالغين المشاركين في مجتمعات مهنية. لا نجمع بيانات الأطفال عن علم.',
         ],
       },
       {
@@ -134,13 +134,13 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
   fr: {
     title: 'Confidentialité',
     description:
-      'Comment founders.coffee collecte, utilise et protège vos données personnelles.',
+      'Comment Founders Coffee collecte, utilise et protège vos données personnelles.',
     updated: '9 septembre 2026',
     sections: [
       {
         heading: 'Qui nous sommes',
         paragraphs: [
-          `Cette notice décrit comment founders.coffee (« nous ») traite les données personnelles lorsque vous utilisez le service. Pour les demandes de confidentialité : ${PRIVACY_EMAIL}. Contact général : ${CONTACT_EMAIL}.`,
+          `Cette notice décrit comment Founders Coffee (« nous ») traite les données personnelles lorsque vous utilisez le service. Pour les demandes de confidentialité : ${PRIVACY_EMAIL}. Contact général : ${CONTACT_EMAIL}.`,
           'Nous sommes un produit en phase de démarrage. Les détails de l’entité légale seront mis à jour ici une fois l’immatriculation finalisée.',
         ],
       },
@@ -184,7 +184,7 @@ export const privacyContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Enfants',
         paragraphs: [
-          'founders.coffee s’adresse aux adultes participant à des communautés professionnelles. Nous ne collectons pas sciemment de données d’enfants.',
+          'Founders Coffee s’adresse aux adultes participant à des communautés professionnelles. Nous ne collectons pas sciemment de données d’enfants.',
         ],
       },
       {

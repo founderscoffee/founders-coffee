@@ -9,7 +9,7 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
   en: {
     title: 'Contact',
     description:
-      'Reach the founders.coffee team for support, privacy requests, or partnerships.',
+      'Reach the Founders Coffee team for support, privacy requests, or partnerships.',
     updated: '8 August 2026',
     sections: [
       {
@@ -36,7 +36,7 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
   ar: {
     title: 'تواصل معنا',
     description:
-      'تواصل مع فريق founders.coffee للدعم أو طلبات الخصوصية أو الشراكات.',
+      'تواصل مع فريق Founders Coffee للدعم أو طلبات الخصوصية أو الشراكات.',
     updated: '8 أغسطس 2026',
     sections: [
       {
@@ -63,7 +63,7 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
   fr: {
     title: 'Contact',
     description:
-      'Contactez l’équipe founders.coffee pour le support, les demandes de confidentialité ou les partenariats.',
+      'Contactez l’équipe Founders Coffee pour le support, les demandes de confidentialité ou les partenariats.',
     updated: '8 août 2026',
     sections: [
       {

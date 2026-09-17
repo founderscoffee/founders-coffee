@@ -3,8 +3,8 @@ import { createConfig } from './config.js';
 
 describe('app config', () => {
   it('applies defaults for env and market', () => {
-    expect(createConfig({ name: 'founders.coffee' })).toEqual({
-      name: 'founders.coffee',
+    expect(createConfig({ name: 'Founders Coffee' })).toEqual({
+      name: 'Founders Coffee',
       env: 'development',
       defaultMarketCode: 'DZ',
     });
@@ -13,12 +13,12 @@ describe('app config', () => {
   it('honours provided values', () => {
     expect(
       createConfig({
-        name: 'founders.coffee',
+        name: 'Founders Coffee',
         env: 'production',
         defaultMarketCode: 'EG',
       }),
     ).toEqual({
-      name: 'founders.coffee',
+      name: 'Founders Coffee',
       env: 'production',
       defaultMarketCode: 'EG',
     });

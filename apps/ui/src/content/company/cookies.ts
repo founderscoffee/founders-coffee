@@ -6,7 +6,7 @@ import type { CompanyPageContent } from './types';
 export const cookiesContent: Record<Locale, CompanyPageContent> = {
   en: {
     title: 'Cookies',
-    description: 'How founders.coffee uses cookies and similar technologies.',
+    description: 'How Founders Coffee uses cookies and similar technologies.',
     updated: '8 August 2026',
     sections: [
       {
@@ -36,7 +36,7 @@ export const cookiesContent: Record<Locale, CompanyPageContent> = {
   ar: {
     title: 'ملفات تعريف الارتباط',
     description:
-      'كيف يستخدم founders.coffee ملفات تعريف الارتباط والتقنيات المشابهة.',
+      'كيف يستخدم Founders Coffee ملفات تعريف الارتباط والتقنيات المشابهة.',
     updated: '8 أغسطس 2026',
     sections: [
       {
@@ -66,7 +66,7 @@ export const cookiesContent: Record<Locale, CompanyPageContent> = {
   fr: {
     title: 'Cookies',
     description:
-      'Comment founders.coffee utilise les cookies et technologies similaires.',
+      'Comment Founders Coffee utilise les cookies et technologies similaires.',
     updated: '8 août 2026',
     sections: [
       {

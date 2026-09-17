@@ -158,7 +158,7 @@ describe('the account and security screen', () => {
       }) as unknown as HTMLSelectElement).value,
     ).toBe('fr');
     expect(
-      screen.getByText('Choose the language used across founders.coffee.'),
+      screen.getByText('Choose the language used across Founders Coffee.'),
     ).toBeTruthy();
   });
 

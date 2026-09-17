@@ -4,7 +4,7 @@ import type { CompanyPageContent } from './types';
 
 export const aboutContent: Record<Locale, CompanyPageContent> = {
   en: {
-    title: 'About founders.coffee',
+    title: 'About Founders Coffee',
     description:
       'Local founder communities that meet over coffee - real conversations, no formalities.',
     updated: '8 August 2026',
@@ -12,7 +12,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'What we are',
         paragraphs: [
-          'founders.coffee helps entrepreneurs find and host small work meetups at real cafés. The goal is simple: start partnerships and friendships over coffee, not pitch decks.',
+          'Founders Coffee helps entrepreneurs find and host small work meetups at real cafés. The goal is simple: start partnerships and friendships over coffee, not pitch decks.',
           'We currently support communities in Algeria, Egypt, and Saudi Arabia, with Arabic, English, and French.',
         ],
       },
@@ -38,7 +38,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
     ],
   },
   ar: {
-    title: 'عن founders.coffee',
+    title: 'من نحن',
     description:
       'مجتمعات رواد أعمال تلتقي حول القهوة - حوارات حقيقية بلا رسميات.',
     updated: '8 أغسطس 2026',
@@ -46,7 +46,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'من نحن',
         paragraphs: [
-          'founders.coffee يساعد رواد الأعمال على إيجاد واستضافة لقاءات عمل صغيرة في مقاهٍ حقيقية. الهدف بسيط: تبدأ الشراكات والصداقات حول فنجان قهوة، لا حول عروض تقديمية.',
+          'Founders Coffee يساعد رواد الأعمال على إيجاد واستضافة لقاءات عمل صغيرة في مقاهٍ حقيقية. الهدف بسيط: تبدأ الشراكات والصداقات حول فنجان قهوة، لا حول عروض تقديمية.',
           'ندعم حالياً مجتمعات في الجزائر ومصر والسعودية، بالعربية والإنجليزية والفرنسية.',
         ],
       },
@@ -72,7 +72,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
     ],
   },
   fr: {
-    title: 'À propos de founders.coffee',
+    title: 'À propos de Founders Coffee',
     description:
       'Des communautés de fondateurs qui se retrouvent autour d’un café - de vraies conversations, sans formalités.',
     updated: '8 août 2026',
@@ -80,7 +80,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
       {
         heading: 'Qui nous sommes',
         paragraphs: [
-          'founders.coffee aide les entrepreneurs à trouver et organiser de petits meetups de travail dans de vrais cafés. L’objectif est simple : démarrer des partenariats et des amitiés autour d’un café, pas d’un pitch deck.',
+          'Founders Coffee aide les entrepreneurs à trouver et organiser de petits meetups de travail dans de vrais cafés. L’objectif est simple : démarrer des partenariats et des amitiés autour d’un café, pas d’un pitch deck.',
           'Nous couvrons aujourd’hui l’Algérie, l’Égypte et l’Arabie saoudite, en arabe, anglais et français.',
         ],
       },

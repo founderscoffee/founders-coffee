@@ -1,4 +1,4 @@
-/* founders.coffee design system — "Round Table" theme.
+/* Founders Coffee design system — "Round Table" theme.
    Single source of truth: apps import this stylesheet and add an @source
    directive pointing at this lib's src directory (Tailwind v4 ignores
    node_modules, so the lib's component classes must be scanned from each app). */
