@@ -7,8 +7,9 @@ import { EmailBase } from './base.js';
 export interface NotificationEmailProps {
   readonly locale: Locale;
   readonly preview: string;
-  readonly greeting: string;
-  readonly lines: readonly string[];
+  readonly bodyHtml?: string;
+  readonly greeting?: string;
+  readonly lines?: readonly string[];
   readonly cta?: { readonly label: string; readonly href: string };
   readonly footer?: string;
 }
@@ -26,6 +27,13 @@ const lineStyle: CSSProperties = {
   fontSize: '16px',
   lineHeight: '26px',
   margin: '0 0 12px',
+};
+
+const bodyHtmlStyle: CSSProperties = {
+  color: '#5e5044',
+  fontSize: '16px',
+  lineHeight: '26px',
+  margin: 0,
 };
 
 const mutedStyle: CSSProperties = {
@@ -53,18 +61,28 @@ const ctaButtonStyle: CSSProperties = {
 export const NotificationEmail = ({
   locale,
   preview,
+  bodyHtml,
   greeting,
   lines,
   cta,
   footer,
 }: NotificationEmailProps) => (
   <EmailBase locale={locale} preview={preview}>
-    <Text style={greetingStyle}>{greeting}</Text>
-    {lines.map((line) => (
-      <Text key={line} style={lineStyle}>
-        {line}
-      </Text>
-    ))}
+    {bodyHtml ? (
+      <div
+        style={bodyHtmlStyle}
+        dangerouslySetInnerHTML={{ __html: bodyHtml }}
+      />
+    ) : (
+      <>
+        {greeting ? <Text style={greetingStyle}>{greeting}</Text> : null}
+        {(lines ?? []).map((line) => (
+          <Text key={line} style={lineStyle}>
+            {line}
+          </Text>
+        ))}
+      </>
+    )}
     {cta ? (
       <Section style={ctaSectionStyle}>
         <Button style={ctaButtonStyle} href={cta.href}>

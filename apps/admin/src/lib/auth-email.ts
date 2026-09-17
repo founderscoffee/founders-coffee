@@ -7,10 +7,10 @@ import { OtpEmail } from '@founders-coffee/email/templates';
 import { logger } from '@founders-coffee/observability';
 
 const OTP_SUBJECTS: Record<OtpType, string> = {
-  'sign-in': 'founders.coffee admin - your sign-in code',
-  'email-verification': 'founders.coffee admin - your verification code',
-  'forget-password': 'founders.coffee admin - your password-reset code',
-  'change-email': 'founders.coffee admin - your email-change code',
+  'sign-in': 'Founders Coffee admin - your sign-in code',
+  'email-verification': 'Founders Coffee admin - your verification code',
+  'forget-password': 'Founders Coffee admin - your password-reset code',
+  'change-email': 'Founders Coffee admin - your email-change code',
 };
 
 /**
@@ -38,12 +38,12 @@ export const createAdminOtpEmailProvider = (
     const provider = createCloudflareEmailProvider(emailBinding, defaultFrom);
     const { html, text } = await renderEmail(OtpEmail, {
       locale: 'en',
-      preview: 'Your founders.coffee admin sign-in code',
-      greeting: 'founders.coffee operations',
+      preview: 'Your Founders Coffee admin sign-in code',
+      greeting: 'Founders Coffee operations',
       codeLabel: 'Use this code to continue.',
       code: otp,
       expiry: 'It expires in 30 minutes.',
-      footer: 'founders.coffee',
+      footer: 'Founders Coffee',
     });
     const result = await provider.send({
       to: email,

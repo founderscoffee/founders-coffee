@@ -15,9 +15,10 @@ export interface RenderedEmail {
 export const renderEmail = async <Props extends object>(
   template: FunctionComponent<Props>,
   props: Props,
+  textOverride?: string,
 ): Promise<RenderedEmail> => {
   const element = createElement(template, props);
   const html = await render(element);
-  const text = await render(element, { plainText: true });
+  const text = textOverride ?? (await render(element, { plainText: true }));
   return { html, text };
 };

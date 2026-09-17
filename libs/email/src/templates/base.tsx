@@ -3,6 +3,7 @@ import {
   Container,
   Head,
   Hr,
+  Img,
   Html,
   Preview,
   Section,
@@ -63,15 +64,30 @@ const brandStyle: CSSProperties = {
   margin: 0,
 };
 
+const logoStyle: CSSProperties = {
+  backgroundColor: '#fffdf9',
+  border: 0,
+  borderRadius: '14px',
+  display: 'block',
+  height: '56px',
+  margin: '0 auto 12px',
+  outline: 'none',
+  padding: '8px',
+  textDecoration: 'none',
+  width: '56px',
+};
+
 const contentStyle: CSSProperties = {
   padding: '36px 40px 8px',
 };
 
 const copyrightByLocale: Record<Locale, string> = {
-  ar: '© 2026 founders.coffee — جميع الحقوق محفوظة.',
-  en: '© 2026 founders.coffee — All rights reserved.',
-  fr: '© 2026 founders.coffee — Tous droits réservés.',
+  ar: '© 2026 Founders Coffee — جميع الحقوق محفوظة.',
+  en: '© 2026 Founders Coffee — All rights reserved.',
+  fr: '© 2026 Founders Coffee — Tous droits réservés.',
 };
+
+const EMAIL_LOGO_URL = 'https://founders.coffee/branding/pwa-logo.png';
 
 export const EmailBase = ({ locale, preview, children }: EmailBaseProps) => (
   <Html lang={locale} dir={direction(locale)}>
@@ -80,8 +96,15 @@ export const EmailBase = ({ locale, preview, children }: EmailBaseProps) => (
     <Body style={bodyStyle}>
       <Container style={containerStyle}>
         <Section style={headerStyle}>
+          <Img
+            src={EMAIL_LOGO_URL}
+            alt="Founders Coffee"
+            width="56"
+            height="56"
+            style={logoStyle}
+          />
           <Text style={brandStyle}>
-            founders.coffee <span style={{ color: '#c26232' }}>●</span>
+            Founders Coffee <span style={{ color: '#c26232' }}>●</span>
           </Text>
         </Section>
         <Section
@@ -94,7 +117,7 @@ export const EmailBase = ({ locale, preview, children }: EmailBaseProps) => (
         </Section>
         <Section style={{ padding: '0 40px 28px' }}>
           <Hr style={hrStyle} />
-          <Text style={footerStyle}>founders.coffee</Text>
+          <Text style={footerStyle}>Founders Coffee</Text>
           <Text style={footerStyle}>{copyrightByLocale[locale]}</Text>
         </Section>
       </Container>

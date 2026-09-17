@@ -14,7 +14,8 @@ import {
   type NotificationPayload,
 } from './producer.js';
 import { armNotificationSchedule } from './schedule.js';
-import { emailPayloadFor, pushPayloadFor } from './templates.js';
+import { pushPayloadFor } from './templates.js';
+import { emailPayloadFor } from './email-templates.js';
 
 export const HOST_NOTICE_DELAY_MS = 15 * 60 * 1000;
 
@@ -81,7 +82,7 @@ export const enqueueHostRsvpNotice = async (
   const payload = {
     ...basePayload,
     ...pushPayloadFor(templateKey, values, context.locale),
-    ...emailPayloadFor(templateKey, values, context.locale),
+    ...(await emailPayloadFor(templateKey, values, context.locale)),
   };
 
   const sendAt = new Date(
@@ -145,7 +146,7 @@ export const enqueueHostRsvpCancellationNotice = async (
   const payload = {
     ...basePayload,
     ...pushPayloadFor(templateKey, values, context.locale),
-    ...emailPayloadFor(templateKey, values, context.locale),
+    ...(await emailPayloadFor(templateKey, values, context.locale)),
   };
   const sendAt = new Date();
   const result = await enqueueNotificationIfAbsent(db, {

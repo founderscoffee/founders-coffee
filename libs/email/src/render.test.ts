@@ -19,6 +19,12 @@ describe('renderEmail', () => {
 
     expect(html).toContain('lang="ar"');
     expect(html).toContain('dir="rtl"');
+    expect(html).toContain(
+      'src="https://founders.coffee/branding/pwa-logo.png"',
+    );
+    expect(html).toContain('alt="Founders Coffee"');
+    expect(html).toContain('width="56"');
+    expect(html).toContain('height="56"');
   });
 
   it('renders localized greeting, lines, and cta into the HTML', async () => {
@@ -60,7 +66,7 @@ describe('renderEmail', () => {
     });
 
     expect(result.html).toContain('123456');
-    expect(result.html).toContain('founders.coffee');
+    expect(result.html).toContain('Founders Coffee');
     expect(result.text).toContain('123456');
     expect(result.text).toContain('Expires in 30 minutes.');
   });
