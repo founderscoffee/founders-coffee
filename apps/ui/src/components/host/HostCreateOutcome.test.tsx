@@ -46,7 +46,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     renderHostCreateWizard();
     await publishHostEvent();
 
-    await screen.findByText('Hosting is paused in this market right now.');
+    await screen.findByText('Hosting is paused in this region right now.');
     expect(hostCreateMocks.navigate).not.toHaveBeenCalled();
     expect(hostCreateMocks.routerInvalidate).not.toHaveBeenCalled();
     expect(hostCreateMocks.invalidateCreatedEvent).not.toHaveBeenCalled();
@@ -66,7 +66,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     ],
     [
       'event_route_conflict',
-      'Another event just took this name. Change the title slightly and publish again.',
+      'Another event already has this title. Change it slightly and publish.',
     ],
     [
       'map_venue_unsupported',
