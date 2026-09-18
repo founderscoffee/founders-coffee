@@ -62,7 +62,7 @@ describe('HostVenueList', () => {
   it('shows an ineligible venue with its reason and refuses to select it', () => {
     const onSelect = renderList();
     expect(
-      screen.getByText('Restaurant — not a café or coworking space'),
+      screen.getByText('Restaurant · not a café or coworking space'),
     ).toBeTruthy();
     fireEvent.click(screen.getByText('Tantonville Rooftop'));
     expect(onSelect).not.toHaveBeenCalled();

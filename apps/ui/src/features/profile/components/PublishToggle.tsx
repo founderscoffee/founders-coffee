@@ -34,7 +34,7 @@ export const PublishToggle = ({
         className="toggle toggle-primary toggle-sm"
         checked={isPublic}
         disabled={isDisabled}
-        aria-label={`${profile_publish_public({}, { locale })} — ${fieldLabel}`}
+        aria-label={`${profile_publish_public({}, { locale })}: ${fieldLabel}`}
         onChange={(event) => onChange(event.target.checked)}
       />
     </label>

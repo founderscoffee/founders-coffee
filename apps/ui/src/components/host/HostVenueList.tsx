@@ -123,7 +123,7 @@ export const HostVenueList = ({
                       ? [venue.address, category].filter(Boolean).join(' · ')
                       : [category, host_venue_ineligible({}, { locale })]
                           .filter(Boolean)
-                          .join(' — ')}
+                          .join(' · ')}
                   </bdi>
                 </span>
               </span>

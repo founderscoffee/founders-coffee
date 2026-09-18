@@ -146,7 +146,7 @@ describe('PF-04b optional fields', () => {
     ];
     for (const name of languages)
       fireEvent.click(screen.getByRole('button', { name }));
-    fireEvent.click(screen.getByLabelText('Show publicly — Languages I speak'));
+    fireEvent.click(screen.getByLabelText('Show publicly: Languages I speak'));
     for (const name of languages) {
       expect(
         screen.getByRole('button', { name }).getAttribute('aria-pressed'),
@@ -172,7 +172,7 @@ describe('PF-04b optional fields', () => {
       'Building small tools.',
     );
     expect(
-      screen.queryByLabelText('Show publicly — A short introduction'),
+      screen.queryByLabelText('Show publicly: A short introduction'),
     ).toBeNull();
     expect(screen.queryByLabelText('Writing language')).toBeNull();
     fireEvent.change(intro(), { target: { value: '' } });
@@ -182,7 +182,7 @@ describe('PF-04b optional fields', () => {
   it('keeps publication controls for interests', () => {
     show();
     const toggle = screen.getByLabelText(
-      'Show publicly — My interests',
+      'Show publicly: My interests',
     ) as HTMLInputElement;
     expect(toggle.disabled).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: 'Investing' }));
