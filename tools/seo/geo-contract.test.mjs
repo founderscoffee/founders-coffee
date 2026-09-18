@@ -17,6 +17,17 @@ const document = ({ type, name, locale = 'en', url }) => `
   </html>
 `;
 
+const withAlternates = (body, locales, path) =>
+  body.replace(
+    '<head>',
+    `<head>${locales
+      .map(
+        (locale) =>
+          `<link rel="alternate" hrefLang="${locale}" href="https://founders.coffee/${locale}${path}"/>`,
+      )
+      .join('')}`,
+  );
+
 describe('GEO document contract', () => {
   it('accepts a localized canonical primary entity with visible headings', () => {
     expect(
@@ -67,5 +78,45 @@ describe('GEO document contract', () => {
         canonical: 'https://founders.coffee/en/algeria/e/phone-founders',
       }),
     ).toEqual([]);
+  });
+
+  it('reads a document published in one language only as that language', () => {
+    expect(
+      inspectGeoDocument({
+        path: '/fr/terms',
+        type: 'company',
+        body: withAlternates(
+          document({
+            type: 'WebPage',
+            name: 'Terms',
+            locale: 'ar',
+            url: 'https://founders.coffee/ar/terms',
+          }),
+          ['ar'],
+          '/terms',
+        ),
+        canonical: 'https://founders.coffee/ar/terms',
+      }),
+    ).toEqual([]);
+  });
+
+  it('still wants a translated document to speak the language of its own URL', () => {
+    expect(
+      inspectGeoDocument({
+        path: '/fr/about',
+        type: 'company',
+        body: withAlternates(
+          document({
+            type: 'WebPage',
+            name: 'About',
+            locale: 'ar',
+            url: 'https://founders.coffee/ar/about',
+          }),
+          ['ar', 'fr', 'en'],
+          '/about',
+        ),
+        canonical: 'https://founders.coffee/ar/about',
+      }),
+    ).toContain('WebPage JSON-LD inLanguage does not match the route');
   });
 });
