@@ -8,6 +8,8 @@ import viteReact from '@vitejs/plugin-react';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import { defineConfig } from 'vitest/config';
 
+import { mapboxCspWorker } from './vite-mapbox-worker';
+
 export default defineConfig(async () => {
   const migrations = await readD1Migrations(
     path.join(__dirname, '../../libs/db/migrations'),
@@ -17,6 +19,7 @@ export default defineConfig(async () => {
     plugins: [
       tanstackStart(),
       viteReact(),
+      mapboxCspWorker(),
       cloudflareTest({
         wrangler: { configPath: './wrangler.test.jsonc' },
         miniflare: { bindings: { TEST_MIGRATIONS: migrations } },

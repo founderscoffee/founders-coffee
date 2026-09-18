@@ -1,7 +1,13 @@
 import { DurableObject } from 'cloudflare:workers';
 
+import { handleLiveAction } from './event-live/actions.js';
 import { EventConnections } from './event-live/connections.js';
+import {
+  HEARTBEAT_INTERVAL_MS,
+  HEARTBEAT_TIMEOUT_MS,
+} from './event-live/constants.js';
 import { clientMessage, type ClientMessage } from './event-live/protocol.js';
+import { revalidateConnection } from './event-live/revalidate.js';
 import { EventRoster } from './event-live/roster.js';
 import {
   verifyEventSession,
@@ -10,14 +16,17 @@ import {
   type VerifyResult,
 } from './event-live/session.js';
 
+const EVENT_ID_KEY = 'eventId';
+const INTERNAL_CANCEL_HEADER = 'x-event-live-internal';
+
 export class EventLiveDO extends DurableObject<DoEnv> {
   private connections = new EventConnections();
   private roster: EventRoster;
-  private eventId: string | null = null;
 
   constructor(ctx: DurableObjectState, env: DoEnv) {
     super(ctx, env);
     this.roster = new EventRoster(ctx.storage);
+    this.connections.restore(ctx.getWebSockets());
 
     ctx.setWebSocketAutoResponse(
       new WebSocketRequestResponsePair('ping', 'pong'),
@@ -26,11 +35,28 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
   /** HTTP handler — upgrades to WebSocket (taking the eventId from the URL) or 405. */
   fetch = async (request: Request): Promise<Response> => {
+    const url = new URL(request.url);
+    const eventId = url.pathname.split('/').pop() ?? '';
+    if (
+      request.method === 'POST' &&
+      request.headers.get(INTERNAL_CANCEL_HEADER) === '1' &&
+      eventId
+    ) {
+      await this.setEventId(eventId);
+      await this.roster.ensureRehydrated();
+      this.connections.restore(this.ctx.getWebSockets());
+      this.connections.broadcast({ type: 'event_cancelled' });
+      for (const [ws] of this.connections.entries())
+        this.connections.close(ws, 4003, 'event_cancelled');
+      await this.ctx.storage.deleteAlarm();
+      return new Response(null, { status: 204 });
+    }
     if (
       request.method === 'GET' &&
-      request.headers.get('Upgrade') === 'websocket'
+      request.headers.get('Upgrade') === 'websocket' &&
+      eventId
     ) {
-      this.eventId = new URL(request.url).pathname.split('/').pop() ?? '';
+      await this.setEventId(eventId);
       await this.roster.ensureRehydrated();
       return this.handleUpgrade(request);
     }
@@ -41,6 +67,7 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     ws: WebSocket,
     message: string | ArrayBuffer,
   ): Promise<void> => {
+    await this.roster.ensureRehydrated();
     if (typeof message !== 'string') return;
 
     let parsed: unknown;
@@ -60,61 +87,81 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       return;
     }
 
+    const eventId = await this.eventId();
+    if (!eventId) return;
+    if (result.data.type === 'auth') {
+      await this.handleMessage(ws, result.data);
+      return;
+    }
+    const valid = await revalidateConnection({
+      db: this.env.DB,
+      eventId,
+      ws,
+      connections: this.connections,
+      now: Date.now(),
+    });
+    if (!valid) return;
+    this.connections.touch(ws, Date.now());
+    if (result.data.type === 'heartbeat') {
+      this.connections.send(ws, { type: 'heartbeat_ack' });
+      return;
+    }
     await this.handleMessage(ws, result.data);
   };
 
   webSocketClose = async (ws: WebSocket): Promise<void> => {
     const conn = this.connections.drop(ws);
     if (conn?.authenticated) this.broadcastRoster();
+    await this.armHeartbeat();
   };
 
   webSocketError = async (ws: WebSocket): Promise<void> => {
     this.connections.drop(ws);
+    await this.armHeartbeat();
   };
 
-  private handleUpgrade = (request: Request): Response => {
+  private handleUpgrade = async (request: Request): Promise<Response> => {
     const pair = new WebSocketPair();
     const [clientWs, serverWs] = [pair[0], pair[1]];
 
     this.ctx.acceptWebSocket(serverWs);
-    this.connections.register(serverWs);
+    this.connections.register(serverWs, Date.now());
+    await this.armHeartbeat();
 
-    void this.authenticateConnection(serverWs, clientWs, request);
+    await this.authenticateConnection(serverWs, request);
 
     return new Response(null, { status: 101, webSocket: clientWs });
   };
 
   private authenticateConnection = async (
     serverWs: WebSocket,
-    clientWs: WebSocket,
     request: Request,
   ): Promise<void> => {
+    const eventId = await this.eventId();
     const result = await verifyEventSessionFromCookie(
       this.env.DB,
-      this.eventId,
+      eventId,
       request,
     );
-    await this.applyVerifiedSession(serverWs, clientWs, result);
+    await this.applyVerifiedSession(serverWs, result);
   };
 
   /**
-   * Shared outcome of both authentication routes (cookie on upgrade, `auth` frame). `serverWs` is
-   * the connection being authenticated; `replyWs` is the socket the reply is written to.
+   * Shared outcome of both authentication routes (cookie on upgrade, `auth` frame).
    */
   private applyVerifiedSession = async (
     serverWs: WebSocket,
-    replyWs: WebSocket,
     result: VerifyResult,
   ): Promise<void> => {
     if (!result.ok) {
       if (result.reason === 'db_error') {
-        this.connections.send(replyWs, {
+        this.connections.send(serverWs, {
           type: 'error',
           message: 'Temporary auth error, please retry',
         });
         return;
       }
-      this.connections.send(replyWs, {
+      this.connections.send(serverWs, {
         type: 'auth_expired',
         message:
           result.reason === 'not_allowed'
@@ -125,17 +172,22 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       return;
     }
 
-    const attached = this.connections.authenticate(serverWs, {
-      userId: result.userId,
-      userName: result.userName,
-      isHost: result.isHost,
-    });
+    const attached = this.connections.authenticate(
+      serverWs,
+      {
+        userId: result.userId,
+        userName: result.userName,
+        isHost: result.isHost,
+        sessionToken: result.sessionToken,
+      },
+      Date.now(),
+    );
     if (!attached) return;
 
     if (result.isHost) await this.roster.claimHost(result.userId);
     await this.roster.admitAttendee(result.userId, result.userName);
 
-    this.connections.send(replyWs, {
+    this.connections.send(serverWs, {
       type: 'auth_ok',
       message: 'Authenticated',
     });
@@ -147,88 +199,27 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     ws: WebSocket,
     msg: ClientMessage,
   ): Promise<void> => {
-    switch (msg.type) {
-      case 'auth':
-        await this.handleAuth(ws, msg.sessionToken);
-        break;
-      case 'arrived':
-        await this.handleArrived(ws, msg);
-        break;
-      case 'walking_in':
-        await this.handleAttendeeStatus(ws, 'walking_in');
-        break;
-      case 'running_late':
-        await this.handleAttendeeStatus(ws, 'running_late', msg.etaMinutes);
-        break;
-      case 'table_pin':
-        await this.handleTablePin(ws, msg.tableNumber);
-        break;
+    if (msg.type === 'auth') {
+      await this.handleAuth(ws, msg.sessionToken);
+      return;
     }
+    if (msg.type === 'heartbeat') return;
+    await handleLiveAction({
+      ws,
+      message: msg,
+      connections: this.connections,
+      roster: this.roster,
+    });
   };
 
   private handleAuth = async (
     ws: WebSocket,
     sessionToken: string,
   ): Promise<void> => {
-    if (!this.connections.get(ws) || !this.eventId) return;
-    const result = await verifyEventSession(
-      this.env.DB,
-      this.eventId,
-      sessionToken,
-    );
-    await this.applyVerifiedSession(ws, ws, result);
-  };
-
-  private handleArrived = async (
-    ws: WebSocket,
-    msg: { tableNumber?: number; visualCue?: string },
-  ): Promise<void> => {
-    const conn = this.connections.get(ws);
-    if (!conn?.authenticated) {
-      this.connections.send(ws, {
-        type: 'error',
-        message: 'Not authenticated',
-      });
-      return;
-    }
-
-    if (conn.isHost && this.roster.getHost()) {
-      await this.roster.markHostArrived(msg);
-      this.broadcastHost();
-      return;
-    }
-    if (await this.roster.setAttendeeStatus(conn.userId, 'arrived')) {
-      this.broadcastRoster();
-    }
-  };
-
-  private handleAttendeeStatus = async (
-    ws: WebSocket,
-    status: 'walking_in' | 'running_late',
-    etaMinutes?: number,
-  ): Promise<void> => {
-    const conn = this.connections.get(ws);
-    if (!conn?.authenticated) return;
-    if (await this.roster.setAttendeeStatus(conn.userId, status, etaMinutes)) {
-      this.broadcastRoster();
-    }
-  };
-
-  private handleTablePin = async (
-    ws: WebSocket,
-    tableNumber: number,
-  ): Promise<void> => {
-    const conn = this.connections.get(ws);
-    if (!conn?.authenticated) return;
-    if (conn.isHost && this.roster.getHost()) {
-      await this.roster.pinTable(tableNumber);
-      this.broadcastHost();
-      return;
-    }
-    this.connections.send(ws, {
-      type: 'error',
-      message: 'Only the host can pin tables',
-    });
+    const eventId = await this.eventId();
+    if (!this.connections.get(ws) || !eventId) return;
+    const result = await verifyEventSession(this.env.DB, eventId, sessionToken);
+    await this.applyVerifiedSession(ws, result);
   };
 
   private broadcastRoster = (): void => {
@@ -241,5 +232,42 @@ export class EventLiveDO extends DurableObject<DoEnv> {
   private broadcastHost = (): void => {
     const host = this.roster.getHost();
     if (host) this.connections.broadcast({ type: 'host_update', host });
+  };
+
+  // eslint-disable-next-line no-restricted-syntax -- Cloudflare RPC requires a prototype method.
+  override async alarm(): Promise<void> {
+    await this.roster.ensureRehydrated();
+    this.connections.restore(this.ctx.getWebSockets());
+    const stale = this.connections.stale(Date.now(), HEARTBEAT_TIMEOUT_MS);
+    let rosterChanged = false;
+    for (const ws of stale) {
+      const connection = this.connections.drop(ws);
+      if (connection?.authenticated) rosterChanged = true;
+      try {
+        ws.close(4002, 'heartbeat_timeout');
+      } catch {
+        continue;
+      }
+    }
+    if (rosterChanged) this.broadcastRoster();
+    await this.armHeartbeat();
+  }
+
+  private setEventId = async (eventId: string): Promise<void> => {
+    await this.ctx.storage.put(EVENT_ID_KEY, eventId);
+  };
+
+  private eventId = async (): Promise<string | null> =>
+    (await this.ctx.storage.get<string>(EVENT_ID_KEY)) ?? null;
+
+  private armHeartbeat = async (): Promise<void> => {
+    if (this.connections.size() === 0) {
+      await this.ctx.storage.deleteAlarm();
+      return;
+    }
+    const next = Date.now() + HEARTBEAT_INTERVAL_MS;
+    const current = await this.ctx.storage.getAlarm();
+    if (current === null || current > next)
+      await this.ctx.storage.setAlarm(next);
   };
 }

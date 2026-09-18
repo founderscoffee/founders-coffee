@@ -23,12 +23,15 @@ const tablePinMessage = z.object({
   tableNumber: z.number().int().positive(),
 });
 
+const heartbeatMessage = z.object({ type: z.literal('heartbeat') });
+
 export const clientMessage = z.discriminatedUnion('type', [
   authMessage,
   arrivedMessage,
   walkingInMessage,
   runningLateMessage,
   tablePinMessage,
+  heartbeatMessage,
 ]);
 
 export type ClientMessage = z.infer<typeof clientMessage>;
@@ -57,6 +60,7 @@ export interface OutboundMessage {
     | 'auth_ok'
     | 'auth_required'
     | 'auth_expired'
+    | 'heartbeat_ack'
     | 'error'
     | 'event_cancelled';
   roster?: RosterUser[];
@@ -69,4 +73,6 @@ export interface ConnectionInfo {
   userName: string;
   isHost: boolean;
   authenticated: boolean;
+  sessionToken: string;
+  lastSeenAt: number;
 }

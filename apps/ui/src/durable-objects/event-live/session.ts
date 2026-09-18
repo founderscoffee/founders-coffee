@@ -12,7 +12,13 @@ export interface DoEnv {
 }
 
 export type VerifyResult =
-  | { ok: true; userId: string; userName: string; isHost: boolean }
+  | {
+      ok: true;
+      userId: string;
+      userName: string;
+      isHost: boolean;
+      sessionToken: string;
+    }
   | { ok: false; reason: 'no_session' | 'not_allowed' | 'db_error' };
 
 const MEMBERSHIP_QUERY = `SELECT s.user_id AS user_id, u.name AS name, e.host_id AS host_id,
@@ -48,7 +54,13 @@ export const verifyEventSession = async (
   const isHost = row.user_id === row.host_id;
   if (!isHost && row.rsvpd !== 1) return { ok: false, reason: 'not_allowed' };
 
-  return { ok: true, userId: row.user_id, userName: row.name, isHost };
+  return {
+    ok: true,
+    userId: row.user_id,
+    userName: row.name,
+    isHost,
+    sessionToken,
+  };
 };
 
 /**

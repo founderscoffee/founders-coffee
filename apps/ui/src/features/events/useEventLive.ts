@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { HEARTBEAT_INTERVAL_MS } from '../../durable-objects/event-live/constants';
+
 export interface RosterUser {
   userId: string;
   name: string;
@@ -33,7 +35,13 @@ export interface UseEventLiveResult {
 }
 
 interface OutboundMsg {
-  type: 'auth' | 'arrived' | 'walking_in' | 'running_late' | 'table_pin';
+  type:
+    | 'auth'
+    | 'arrived'
+    | 'walking_in'
+    | 'running_late'
+    | 'table_pin'
+    | 'heartbeat';
   sessionToken?: string;
   tableNumber?: number;
   visualCue?: string;
@@ -183,6 +191,15 @@ export const useEventLive = (
       wsRef.current?.close();
     };
   }, [connect, isEnabled]);
+
+  useEffect(() => {
+    if (!isEnabled) return;
+    const interval = window.setInterval(
+      () => send({ type: 'heartbeat' }),
+      HEARTBEAT_INTERVAL_MS,
+    );
+    return () => window.clearInterval(interval);
+  }, [isEnabled, send]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
