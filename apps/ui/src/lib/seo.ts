@@ -70,14 +70,16 @@ export const canonicalUrl = (route: CanonicalRoute): string =>
 
 export const localeAlternates = (
   route: CanonicalRoute,
+  locales: readonly Locale[] = LOCALES,
 ): Array<{
   readonly rel: 'alternate';
   readonly hrefLang: string;
   readonly href: string;
 }> => {
   const baseRoute = { ...route, locale: undefined } as CanonicalRoute;
+  const soleLocale = locales.length === 1 ? locales[0] : undefined;
   return [
-    ...LOCALES.map((locale) => ({
+    ...locales.map((locale) => ({
       rel: 'alternate' as const,
       hrefLang: locale,
       href: canonicalUrl({ ...baseRoute, locale }),
@@ -85,7 +87,9 @@ export const localeAlternates = (
     {
       rel: 'alternate' as const,
       hrefLang: 'x-default',
-      href: canonicalUrl(baseRoute),
+      href: canonicalUrl(
+        soleLocale ? { ...baseRoute, locale: soleLocale } : baseRoute,
+      ),
     },
   ];
 };
@@ -137,6 +141,7 @@ export type PageMetadataInput = {
   readonly route: CanonicalRoute;
   readonly robots?: string;
   readonly openGraphType?: 'website' | 'event';
+  readonly alternateLocales?: readonly Locale[];
 };
 
 export const buildPageMetadata = ({
@@ -146,6 +151,7 @@ export const buildPageMetadata = ({
   route,
   robots = 'index,follow',
   openGraphType = 'website',
+  alternateLocales = LOCALES,
 }: PageMetadataInput) => {
   const fullTitle = buildPageTitle(title);
   const normalizedDescription = normalizeText(
@@ -170,19 +176,22 @@ export const buildPageMetadata = ({
       { property: 'og:image:width', content: '1200' },
       { property: 'og:image:height', content: '630' },
       { property: 'og:image:alt', content: socialImageAlt },
-      ...LOCALES.filter((alternate) => alternate !== locale).map(
-        (alternate) => ({
+      ...alternateLocales
+        .filter((alternate) => alternate !== locale)
+        .map((alternate) => ({
           property: 'og:locale:alternate',
           content: localeOpenGraph(alternate),
-        }),
-      ),
+        })),
       { name: 'twitter:card', content: 'summary' },
       { name: 'twitter:title', content: fullTitle },
       { name: 'twitter:description', content: normalizedDescription },
       { name: 'twitter:image', content: socialImage },
       { name: 'twitter:image:alt', content: socialImageAlt },
     ],
-    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
+    links: [
+      { rel: 'canonical', href: url },
+      ...localeAlternates(route, alternateLocales),
+    ],
   };
 };
 

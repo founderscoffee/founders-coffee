@@ -1,96 +1,130 @@
-import type { Locale } from '@founders-coffee/i18n';
-
-import { CONTACT_EMAIL } from './contact';
 import type { CompanyPageContent } from './types';
 
-export const cookiesContent: Record<Locale, CompanyPageContent> = {
-  en: {
-    title: 'Cookies',
-    description: 'How Founders Coffee uses cookies and similar technologies.',
-    updated: '8 August 2026',
-    sections: [
-      {
-        heading: 'Essential only',
-        paragraphs: [
-          'We use cookies and similar storage only as needed to run the product securely. We do not use advertising cookies, and we do not run third-party analytics unless we add them later and update this page.',
-        ],
-      },
-      {
-        heading: 'What we store',
-        paragraphs: [
-          'Locale preference - remembers Arabic, English, or French.',
-          'Session cookies - keep you signed in after email verification (Better Auth).',
-          'Geo preference cookie (fc_geo) - remembers your market redirect so the home logo returns you to the right community.',
-          'Cloudflare Turnstile - security checks on sign-in to block bots (may set short-lived cookies).',
-        ],
-      },
-      {
-        heading: 'Your choices',
-        paragraphs: [
-          'You can clear cookies in your browser at any time. Doing so may sign you out or reset language and market preferences.',
-          `Questions: ${CONTACT_EMAIL}.`,
-        ],
-      },
-    ],
-  },
-  ar: {
-    title: 'ملفات تعريف الارتباط',
-    description:
-      'كيف يستخدم Founders Coffee ملفات تعريف الارتباط والتقنيات المشابهة.',
-    updated: '8 أغسطس 2026',
-    sections: [
-      {
-        heading: 'الأساسية فقط',
-        paragraphs: [
-          'نستخدم ملفات تعريف الارتباط والتخزين المشابه فقط بقدر ما يلزم لتشغيل المنتج بأمان. لا نستخدم ملفات إعلانية، ولا نستخدم تحليلات طرف ثالث إلا إذا أضفناها لاحقاً وحدّثنا هذه الصفحة.',
-        ],
-      },
-      {
-        heading: 'ما نخزّنه',
-        paragraphs: [
-          'تفضيل اللغة - يتذكر العربية أو الإنجليزية أو الفرنسية.',
-          'ملفات الجلسة - تبقيك مسجّل الدخول بعد التحقق بالبريد (Better Auth).',
-          'ملف geo (fc_geo) - يتذكر سوقك حتى يعيدك شعار الصفحة الرئيسية إلى المجتمع المناسب.',
-          'Cloudflare Turnstile - فحوصات أمان عند تسجيل الدخول لمنع البوتات (قد تضع ملفات قصيرة الأمد).',
-        ],
-      },
-      {
-        heading: 'خياراتك',
-        paragraphs: [
-          'يمكنك مسح ملفات تعريف الارتباط من المتصفح في أي وقت. قد يؤدي ذلك إلى تسجيل الخروج أو إعادة تعيين اللغة والسوق.',
-          `للاستفسارات: ${CONTACT_EMAIL}.`,
-        ],
-      },
-    ],
-  },
-  fr: {
-    title: 'Cookies',
-    description:
-      'Comment Founders Coffee utilise les cookies et technologies similaires.',
-    updated: '8 août 2026',
-    sections: [
-      {
-        heading: 'Essentiels uniquement',
-        paragraphs: [
-          'Nous utilisons des cookies et un stockage similaire uniquement pour faire fonctionner le produit en toute sécurité. Pas de cookies publicitaires, et pas d’analytique tierce sauf ajout ultérieur avec mise à jour de cette page.',
-        ],
-      },
-      {
-        heading: 'Ce que nous stockons',
-        paragraphs: [
-          'Préférence de langue - arabe, anglais ou français.',
-          'Cookies de session - vous garder connecté après vérification e-mail (Better Auth).',
-          'Cookie geo (fc_geo) - mémorise votre marché pour le retour via le logo.',
-          'Cloudflare Turnstile - contrôle anti-bots à la connexion (cookies éventuels de courte durée).',
-        ],
-      },
-      {
-        heading: 'Vos choix',
-        paragraphs: [
-          'Vous pouvez effacer les cookies dans votre navigateur à tout moment. Cela peut vous déconnecter ou réinitialiser langue et marché.',
-          `Questions : ${CONTACT_EMAIL}.`,
-        ],
-      },
-    ],
-  },
+export const cookiesContent: CompanyPageContent = {
+  title: 'سياسة ملفات تعريف الارتباط',
+  description:
+    'الملفات الثلاثة التي تضعها المنصة على جهازك، ولماذا، وما لا نستعمله: لا تحليلات ولا إعلانات ولا تتبّع.',
+  updated: '18 سبتمبر 2026',
+  sections: [
+    {
+      heading: 'خلاصة قصيرة',
+      blocks: [
+        {
+          kind: 'text',
+          text: 'نستعمل ثلاثة ملفات تعريف ارتباط: واحد يُبقيك مسجَّل الدخول، وواحد يتذكّر لغة الواجهة، وواحد يتذكّر البلد الذي تتصفّح منه.',
+        },
+        {
+          kind: 'text',
+          text: '**لا نستعمل ملفات تحليلات، ولا ملفات إعلانية، ولا أدوات تتبّع عبر المواقع.** لا يوجد على المنصة نصّ برمجي لطرف ثالث يراقب تصفّحك، ولا بكسل إعلاني، ولا ملفّ يُبنى عليه ملفّ اهتمامات لأغراض تسويقية.',
+        },
+        {
+          kind: 'text',
+          text: 'لهذا السبب لن ترى عندنا نافذة موافقة على التتبّع: ليس هناك تتبّع يُوافَق عليه.',
+        },
+      ],
+    },
+    {
+      heading: 'ما هو ملف تعريف الارتباط',
+      blocks: [
+        {
+          kind: 'text',
+          text: 'نصّ صغير يحفظه المتصفّح على جهازك بطلب من الموقع، ويُعاد إرساله إلى الموقع في كل زيارة. يُستعمل عادةً لتذكّر شيء بين صفحة وأخرى: أنك سجّلت الدخول، أو أنك تفضّل العربية.',
+        },
+      ],
+    },
+    {
+      heading: 'الملفات التي نضعها',
+      blocks: [
+        {
+          kind: 'table',
+          columns: ['الملف', 'النوع', 'ما يفعله', 'المدّة'],
+          rows: [
+            [
+              '`better-auth.session_token`',
+              'ضروري',
+              'يحمل معرّف جلستك ليبقى دخولك سارياً بين الصفحات والزيارات. ملف محميّ لا تستطيع نصوص الصفحة قراءته، ولا يُرسَل إلّا عبر اتصال مشفّر.',
+              'مدّة صلاحية الجلسة',
+            ],
+            [
+              '`PARAGLIDE_LOCALE`',
+              'تفضيل',
+              'يحفظ اللغة التي اخترتها للواجهة: العربية أو الفرنسية أو الإنجليزية.',
+              'سنة واحدة',
+            ],
+            [
+              '`fc_geo`',
+              'تفضيل',
+              'يحفظ البلد الذي وُجّهت إليه عند أول زيارة، فلا تُعاد التوجيه في كل مرة.',
+              'سنة واحدة',
+            ],
+          ],
+        },
+        {
+          kind: 'text',
+          text: 'وقد تضع خدمة الحماية من الاستعمال الآلي ملفاً تقنياً قصير الأجل عند تسجيل الدخول أو عند الانضمام إلى قائمة انتظار مدينة، غرضه التمييز بين الزائر والبرنامج الآلي. لا يُستعمل هذا الملف في التتبّع، ولا نقرأ منه شيئاً يخصّك.',
+        },
+      ],
+    },
+    {
+      heading: 'أنواع لا نستعملها',
+      blocks: [
+        {
+          kind: 'text',
+          text: '**ملفات التحليلات.** لا نستعمل أدوات قياس في المتصفّح. نقيس استعمال المنصة بعدّادات مجمّعة على الخادم (كم طلباً ورد، كم لقاءً نُشر، أين تقع الأعطال)، وهذه العدّادات لا تُنسَب إلى شخص ولا تحتاج ملفاً على جهازك.',
+        },
+        {
+          kind: 'text',
+          text: '**ملفات التسويق والإعلان.** المنصة لا تعرض إعلانات ولا تبيع مساحات إعلانية، فلا وجود لهذه الملفات.',
+        },
+        {
+          kind: 'text',
+          text: '**ملفات التتبّع عبر المواقع.** لا نشارك أحداً في شبكات تتبّع، ولا نضع عندك ما يتيح لغيرنا معرفة أنك زرتنا.',
+        },
+      ],
+    },
+    {
+      heading: 'التخزين على جهازك خارج ملفات الارتباط',
+      blocks: [
+        {
+          kind: 'text',
+          text: 'المنصة تطبيق ويب قابل للتثبيت. إن ثبّته على هاتفك، يحفظ المتصفّح نسخة من ملفات الواجهة لتعمل بسرعة ولو ضعف الاتصال. وقد تُحفَظ محلياً بعض اختياراتك في العرض.',
+        },
+        {
+          kind: 'text',
+          text: 'هذا تخزين تقني على جهازك، لا يصلنا منه شيء، ويزول بحذف بيانات الموقع من المتصفّح أو بإزالة التطبيق المثبَّت.',
+        },
+        {
+          kind: 'text',
+          text: 'وإن فعّلت الإشعارات الفورية، يُنشئ المتصفّح رمزاً للجهاز ونحفظه عندنا لإرسال الإشعارات إليك. هذا ليس ملف ارتباط، وتفصيله في [سياسة الخصوصية](/privacy).',
+        },
+      ],
+    },
+    {
+      heading: 'كيف تتحكّم فيها',
+      blocks: [
+        {
+          kind: 'text',
+          text: 'يمكنك حذف ملفات تعريف الارتباط أو منعها من إعدادات متصفّحك في أي وقت.',
+        },
+        {
+          kind: 'text',
+          text: 'خذ في الحسبان أثر ذلك: حذف ملف الجلسة يعني خروجك من الحساب، ومنع الملفات كلياً يجعل تسجيل الدخول متعذّراً، لأن الجلسة لا تُحفَظ بغير هذه الوسيلة.',
+        },
+        {
+          kind: 'text',
+          text: 'أمّا ملفّا اللغة والبلد فحذفهما لا يمنع شيئاً؛ سيُسألان من جديد.',
+        },
+      ],
+    },
+    {
+      heading: 'إن تغيّر هذا',
+      blocks: [
+        {
+          kind: 'text',
+          text: 'إن أضفنا يوماً أداة قياس أو أيّ ملفّ يتجاوز ما ذُكر أعلاه، حدّثنا هذه الصفحة قبل ذلك، وطلبنا موافقتك حين يقتضي القانون طلبها.',
+        },
+        { kind: 'text', text: 'للاستفسار: **contact@founders.coffee**' },
+      ],
+    },
+  ],
 };

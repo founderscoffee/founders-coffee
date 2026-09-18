@@ -1,6 +1,6 @@
 import type { Locale } from '@founders-coffee/i18n';
 
-import type { CompanyPageContent } from './types';
+import { textBlocks, type CompanyPageContent } from './types';
 
 export const CONTACT_EMAIL = 'contact@founders.coffee';
 export const PRIVACY_EMAIL = CONTACT_EMAIL;
@@ -14,22 +14,22 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
     sections: [
       {
         heading: 'General support',
-        paragraphs: [
+        blocks: textBlocks(
           `Email us at ${CONTACT_EMAIL} for help with accounts, hosting a meetup, or using the product.`,
           'We read every message. Please include your city and a short description of what you need.',
-        ],
+        ),
       },
       {
         heading: 'Privacy requests',
-        paragraphs: [
+        blocks: textBlocks(
           `For access, correction, or deletion requests, write to ${PRIVACY_EMAIL}. See also our Privacy page.`,
-        ],
+        ),
       },
       {
         heading: 'Partnerships & sponsorships',
-        paragraphs: [
+        blocks: textBlocks(
           `Interested in disclosed sponsorships? Contact ${CONTACT_EMAIL} with “Partnership” in the subject line. We do not run covert promotions.`,
-        ],
+        ),
       },
     ],
   },
@@ -41,22 +41,22 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
     sections: [
       {
         heading: 'الدعم العام',
-        paragraphs: [
+        blocks: textBlocks(
           `راسلنا على ${CONTACT_EMAIL} للمساعدة في الحسابات أو استضافة لقاء أو استخدام المنصة.`,
           'نقرأ كل الرسائل. يُرجى ذكر مدينتك ووصف مختصر لما تحتاجه.',
-        ],
+        ),
       },
       {
         heading: 'طلبات الخصوصية',
-        paragraphs: [
+        blocks: textBlocks(
           `لطلبات الوصول أو التصحيح أو الحذف، راسل ${PRIVACY_EMAIL}. راجع أيضاً صفحة الخصوصية.`,
-        ],
+        ),
       },
       {
         heading: 'الشراكات والرعاية',
-        paragraphs: [
+        blocks: textBlocks(
           `للاهتمام برعاية معلَنة، راسل ${CONTACT_EMAIL} مع وضع «شراكة» في عنوان الرسالة. لا نقدّم ترويجاً مخفياً.`,
-        ],
+        ),
       },
     ],
   },
@@ -68,22 +68,22 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
     sections: [
       {
         heading: 'Support général',
-        paragraphs: [
+        blocks: textBlocks(
           `Écrivez-nous à ${CONTACT_EMAIL} pour l’aide sur les comptes, l’organisation d’un meetup ou l’utilisation du produit.`,
           'Nous lisons chaque message. Indiquez votre ville et une courte description de votre besoin.',
-        ],
+        ),
       },
       {
         heading: 'Demandes de confidentialité',
-        paragraphs: [
+        blocks: textBlocks(
           `Pour un accès, une correction ou une suppression, contactez ${PRIVACY_EMAIL}. Consultez aussi notre page Confidentialité.`,
-        ],
+        ),
       },
       {
         heading: 'Partenariats & sponsoring',
-        paragraphs: [
+        blocks: textBlocks(
           `Intéressé par un sponsoring divulgué ? Contactez ${CONTACT_EMAIL} avec « Partenariat » en objet. Nous ne faisons pas de promotion dissimulée.`,
-        ],
+        ),
       },
     ],
   },

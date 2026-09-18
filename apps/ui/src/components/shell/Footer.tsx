@@ -2,21 +2,23 @@ import type { ReactNode } from 'react';
 
 import { Link } from '@tanstack/react-router';
 
-import type { Market } from '@founders-coffee/db';
 import {
   brand,
   footer_about,
   footer_activity,
   footer_company,
   footer_contact,
+  footer_community,
   footer_cookies,
   footer_copyright_brand,
   footer_copyright_made,
   footer_cta,
   footer_cta_host,
   footer_discover,
+  footer_faq,
   footer_legal,
-  footer_markets,
+  footer_legal_info,
+  footer_organizers,
   footer_participate,
   footer_privacy,
   footer_tagline,
@@ -25,11 +27,21 @@ import {
 } from '@founders-coffee/i18n';
 import { Logo } from '@founders-coffee/ui';
 
+import { LEGAL_PAGE_KEYS, type LegalPageKey } from '../../content/company';
+
 import { LocaleToggle } from './LocaleToggle';
 
 type FooterProps = {
   locale: Locale;
-  markets: readonly Market[];
+  markets: readonly FooterMarket[];
+  market?: FooterMarket;
+};
+
+type FooterMarket = {
+  readonly code: string;
+  readonly slug: string;
+  readonly name: string;
+  readonly nameAr: string | null;
 };
 
 type FooterNavGroupProps = {
@@ -38,11 +50,28 @@ type FooterNavGroupProps = {
   children: ReactNode;
 };
 
-const marketLabel = (market: Market, locale: Locale) =>
-  locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
+const marketLabel = (
+  market: Pick<FooterMarket, 'name' | 'nameAr'>,
+  locale: Locale,
+) => (locale === 'ar' ? (market.nameAr ?? market.name) : market.name);
 
 const linkClass =
   'inline-flex min-h-11 items-center text-body-sm text-neutral transition-colors hover:text-base-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+
+const LEGAL_LABELS: Record<LegalPageKey, typeof footer_terms> = {
+  terms: footer_terms,
+  privacy: footer_privacy,
+  cookies: footer_cookies,
+  community: footer_community,
+  organizers: footer_organizers,
+  legal: footer_legal_info,
+};
+
+export const LEGAL_LINKS = LEGAL_PAGE_KEYS.map((key) => ({
+  key,
+  to: `/${key}` as const,
+  label: LEGAL_LABELS[key],
+}));
 
 const FooterNavGroup = ({ id, title, children }: FooterNavGroupProps) => (
   <>
@@ -71,8 +100,11 @@ const FooterNavGroup = ({ id, title, children }: FooterNavGroupProps) => (
   </>
 );
 
-export const Footer = ({ locale, markets }: FooterProps) => {
-  const primaryMarket = markets[0];
+export const Footer = ({ locale, markets, market }: FooterProps) => {
+  const primaryMarket = market ?? markets[0];
+  const primaryMarketLabel = primaryMarket
+    ? marketLabel(primaryMarket, locale)
+    : '';
 
   return (
     <footer className="mt-16 bg-base-200">
@@ -87,7 +119,7 @@ export const Footer = ({ locale, markets }: FooterProps) => {
               <Logo symbolSize={55} textClassName="text-body-lg" />
             </Link>
             <p className="max-w-xs text-body-sm leading-relaxed text-neutral">
-              {footer_tagline({}, { locale })}
+              {footer_tagline({ market: primaryMarketLabel }, { locale })}
             </p>
             {primaryMarket ? (
               <Link
@@ -151,17 +183,13 @@ export const Footer = ({ locale, markets }: FooterProps) => {
           </FooterNavGroup>
 
           <FooterNavGroup
-            id="footer-markets"
-            title={footer_markets({}, { locale })}
+            id="footer-legal"
+            title={footer_legal({}, { locale })}
           >
-            {markets.map((market) => (
-              <li key={market.code}>
-                <Link
-                  to="/$market"
-                  params={{ market: market.slug }}
-                  className={linkClass}
-                >
-                  {marketLabel(market, locale)}
+            {LEGAL_LINKS.map((item) => (
+              <li key={item.key}>
+                <Link to={item.to} className={linkClass}>
+                  {item.label({}, { locale })}
                 </Link>
               </li>
             ))}
@@ -174,6 +202,11 @@ export const Footer = ({ locale, markets }: FooterProps) => {
             <li>
               <Link to="/about" className={linkClass}>
                 {footer_about({}, { locale })}
+              </Link>
+            </li>
+            <li>
+              <Link to="/faq" className={linkClass}>
+                {footer_faq({}, { locale })}
               </Link>
             </li>
             <li>
@@ -191,28 +224,7 @@ export const Footer = ({ locale, markets }: FooterProps) => {
               <span>{footer_copyright_made({}, { locale })}</span>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
-              <nav aria-label={footer_legal({}, { locale })}>
-                <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                  <li>
-                    <Link to="/privacy" className={linkClass}>
-                      {footer_privacy({}, { locale })}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/terms" className={linkClass}>
-                      {footer_terms({}, { locale })}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/cookies" className={linkClass}>
-                      {footer_cookies({}, { locale })}
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-              <LocaleToggle locale={locale} />
-            </div>
+            <LocaleToggle locale={locale} />
           </div>
         </div>
       </div>
