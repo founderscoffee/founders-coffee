@@ -21,7 +21,7 @@ export const Route = createFileRoute('/u/$userId')({
   }),
   component: () => {
     const { locale, markets } = Route.useRouteContext();
-    const { profile, events, eventsNextCursor, pagination } =
+    const { profile, events, eventsNextCursor, eventsTotal, pagination } =
       Route.useLoaderData();
     return (
       <PublicProfilePage
@@ -29,6 +29,7 @@ export const Route = createFileRoute('/u/$userId')({
         profile={profile}
         events={events}
         eventsNextCursor={eventsNextCursor}
+        eventsTotal={eventsTotal}
         beforeStartsAt={pagination.beforeStartsAt}
         beforeId={pagination.beforeId}
         markets={markets}
@@ -42,6 +43,7 @@ export const Route = createFileRoute('/u/$userId')({
     profile: PublicProfile;
     events: readonly EventFeedItem[];
     eventsNextCursor: { startsAt: number; id: string } | null;
+    eventsTotal: number;
     pagination: HostedPaginationSearch;
   }> => {
     let profile: PublicProfile;
@@ -58,6 +60,7 @@ export const Route = createFileRoute('/u/$userId')({
       profile,
       events: page.items,
       eventsNextCursor: page.nextCursor,
+      eventsTotal: page.total,
       pagination: deps,
     };
   },
