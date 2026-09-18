@@ -13,6 +13,7 @@ export default defineConfig(async () => {
     path.join(__dirname, '../../libs/db/migrations'),
   );
   return {
+    cacheDir: './node_modules/.vite-vitest-integration',
     plugins: [
       tanstackStart(),
       viteReact(),

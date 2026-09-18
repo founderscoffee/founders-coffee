@@ -62,7 +62,12 @@ const isStagingEnvironment = process.env.CLOUDFLARE_ENV === 'staging';
 export default defineConfig(({ command }) => ({
   server: {
     watch: {
-      ignored: ['**/.osm-snapshot/**', '**/.wrangler/**', '**/dist/**'],
+      ignored: [
+        '**/.osm-snapshot/**',
+        '**/.wrangler/**',
+        '**/dist/**',
+        '**/libs/i18n/src/paraglide/**',
+      ],
     },
   },
   resolve: {
