@@ -134,7 +134,6 @@ export const Route = createFileRoute('/$market/$city')({
           showEmailActions={
             entry.kind === 'localized' && entry.emailActions === true
           }
-          showLegalDraftNotice={arabicSource}
           arabicSource={arabicSource}
         />
       );

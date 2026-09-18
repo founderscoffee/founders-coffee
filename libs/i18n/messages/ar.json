@@ -196,7 +196,6 @@
   "contact_copy_email": "نسخ البريد",
   "contact_copied_email": "تم النسخ",
   "auth_legal_notice": "بالمتابعة، فإنك توافق على {privacy} و{terms}.",
-  "page_legal_draft_notice": "مسودة منتج سارية من {date}. للتواصل بشأن الخصوصية أو الشؤون القانونية: {email}. يُنصح بمراجعة قانونية قبل اعتبارها نهائية.",
   "city_empty_bullet1": "أنشئ اللقاء",
   "city_empty_bullet2": "اختر مقهى",
   "city_empty_bullet3": "حدد الوقت",

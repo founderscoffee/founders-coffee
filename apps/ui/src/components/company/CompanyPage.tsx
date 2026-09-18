@@ -14,7 +14,6 @@ import {
   footer_terms,
   page_arabic_source_notice,
   page_last_updated,
-  page_legal_draft_notice,
   page_on_this_page,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -29,7 +28,6 @@ type CompanyPageProps = {
   content: CompanyPageContent;
   showEmailActions?: boolean;
   related?: readonly RelatedKey[];
-  showLegalDraftNotice?: boolean;
   arabicSource?: boolean;
 };
 
@@ -58,7 +56,6 @@ export const CompanyPage = ({
   content,
   showEmailActions = false,
   related = ['privacy', 'terms', 'cookies'],
-  showLegalDraftNotice = false,
   arabicSource = false,
 }: CompanyPageProps) => {
   const [copied, setCopied] = useState(false);
@@ -110,18 +107,6 @@ export const CompanyPage = ({
               { locale: textLocale },
             )}
           </p>
-
-          {showLegalDraftNotice ? (
-            <p
-              role="note"
-              className="mt-4 rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-body-sm leading-6 text-neutral"
-            >
-              {page_legal_draft_notice(
-                { date: content.updated, email: CONTACT_EMAIL },
-                { locale: textLocale },
-              )}
-            </p>
-          ) : null}
 
           {showEmailActions ? (
             <div className="mt-6 flex flex-wrap items-center gap-3">

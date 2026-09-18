@@ -4,7 +4,7 @@ const companyPaths = [
   { path: '/about', heading: /about|من نحن|عن|à propos/i },
   { path: '/contact', heading: /contact|تواصل/i },
   { path: '/privacy', heading: /privacy|الخصوصية|confidentialité/i },
-  { path: '/terms', heading: /terms|الشروط|conditions/i },
+  { path: '/terms', heading: /terms|شروط|conditions/i },
   { path: '/cookies', heading: /cookie|ملفات تعريف الارتباط/i },
 ] as const;
 
@@ -31,11 +31,14 @@ test.describe('Company footer links', () => {
     });
   }
 
-  test('privacy shows legal draft notice', async ({ page }) => {
-    await page.goto('/privacy');
-    await expect(page.getByRole('note')).toContainText(
-      /draft|مسودة|brouillon/i,
-    );
+  test('legal pages publish as final, with no draft disclaimer', async ({
+    page,
+  }) => {
+    for (const path of ['/privacy', '/terms', '/cookies']) {
+      await page.goto(path);
+      await expect(page.locator('h1').first()).toBeVisible();
+      await expect(page.getByText(/draft|مسودة|brouillon/i)).toHaveCount(0);
+    }
   });
 
   test('footer adapts navigation for mobile, tablet, and desktop', async ({
