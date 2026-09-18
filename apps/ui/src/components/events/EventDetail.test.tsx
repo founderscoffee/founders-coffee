@@ -125,12 +125,12 @@ describe('EventDetail once the host has called the meetup off', () => {
 
   it('does not invite a stranger to save a spot at it', () => {
     show(cancelled);
-    expect(screen.queryByText('Save your spot')).toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Your place' })).toBeNull();
+    expect(screen.queryByText('Save your seat')).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Your seat' })).toBeNull();
   });
 
   it('still has a place to address whoever had said they were coming', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
-    expect(screen.getByRole('heading', { name: 'Your place' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Your seat' })).toBeTruthy();
   });
 });
