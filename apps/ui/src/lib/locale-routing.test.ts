@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { localizedEvent, localizedLanding, withLocale } from './locale-routing';
+import {
+  localizedEvent,
+  localizedHostCreate,
+  localizedLanding,
+  withLocale,
+} from './locale-routing';
 
 describe('switching the language of the page in view', () => {
   it.each([
@@ -40,6 +45,13 @@ describe('addressing a page in the language the reader is in', () => {
     expect(localizedLanding('ar', 'terms').params).toEqual({
       market: 'ar',
       city: 'terms',
+    });
+  });
+
+  it('pushes the market down a level for the host wizard too', () => {
+    expect(localizedHostCreate('fr', 'algeria')).toEqual({
+      to: '/$market/$city/host/create',
+      params: { market: 'fr', city: 'algeria' },
     });
   });
 

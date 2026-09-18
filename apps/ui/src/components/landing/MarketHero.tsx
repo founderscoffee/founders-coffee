@@ -25,6 +25,7 @@ import heroEgyptMobile from '../../assets/hero-egypt-mobile.webp';
 import heroSaudi from '../../assets/hero-saudi.webp';
 import heroSaudiDesktop from '../../assets/hero-saudi-desktop.webp';
 import heroSaudiMobile from '../../assets/hero-saudi-mobile.webp';
+import { localizedHostCreate } from '../../lib/locale-routing';
 
 const EVENTS_ANCHOR = 'market-events';
 
@@ -133,8 +134,7 @@ export const MarketHero = ({
             <Link
               {...(isSelectedCityEmpty
                 ? {
-                    to: '/$market/host/create',
-                    params: { market: market.slug },
+                    ...localizedHostCreate(locale, market.slug),
                     search: {
                       city: selectedCity.code,
                       state: selectedCity.stateCode,

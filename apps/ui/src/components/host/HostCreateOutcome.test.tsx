@@ -113,7 +113,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
 
   it('reopens the sign-in gate in place when the session expired, keeping the draft', async () => {
     failPublishWith('unauthenticated');
-    window.history.replaceState({}, '', '/algeria/host/create?city=1');
+    window.history.replaceState({}, '', '/ar/algeria/host/create?city=1');
     renderHostCreateWizard();
     await publishHostEvent();
 

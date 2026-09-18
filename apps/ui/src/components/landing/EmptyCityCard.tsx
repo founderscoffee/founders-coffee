@@ -13,6 +13,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { WaitlistForm } from '../../features/waitlist/components/WaitlistForm';
+import { localizedHostCreate } from '../../lib/locale-routing';
 
 type EmptyCityCardProps = {
   locale: Locale;
@@ -42,8 +43,7 @@ export const EmptyCityCard = ({
         </div>
         <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
           <Link
-            to="/$market/host/create"
-            params={{ market: market.slug }}
+            {...localizedHostCreate(locale, market.slug)}
             search={{ city: selectedCity.code, state: selectedCity.stateCode }}
             className="btn btn-primary h-12 w-full gap-2 text-base font-semibold shadow-none transition md:w-48"
           >

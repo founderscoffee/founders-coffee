@@ -10,9 +10,8 @@ import { isLocale, type Locale } from '@founders-coffee/i18n';
  *
  * That is also why switching language cannot be a cookie alone: on a prefixed URL the cookie is
  * read and then ignored, so the page reloads in the language the reader just asked to leave. The
- * prefix has to be rewritten. Paths that carry no prefix — `/login`, `/algeria/host/create` — have
- * no prefixed form to rewrite to, and those do settle from the cookie, so they are left as they
- * are.
+ * prefix has to be rewritten. Paths that carry no prefix — `/login`, `/profile/activity` — have no
+ * prefixed form to rewrite to, and those do settle from the cookie, so they are left as they are.
  */
 export const withLocale = (pathname: string, locale: Locale): string => {
   const [, first, ...rest] = pathname.split('/');
@@ -45,4 +44,18 @@ export const localizedEvent = (
 ) => ({
   to: '/$market/$city/e/$slug' as const,
   params: { market: locale, city: marketSlug, slug },
+});
+
+/**
+ * The host wizard, addressed in the reader's language.
+ *
+ * It used to sit at `/$market/host/create` with the market slug in the `market` slot, which is
+ * the one route that read that parameter as a market rather than as a locale. The effect was that
+ * `/algeria/host/create` had no prefixed form at all: the page settled from the cookie, and a
+ * French member could not send anyone a French link to it. That address still answers, and now
+ * answers 307 to this one.
+ */
+export const localizedHostCreate = (locale: Locale, marketSlug: string) => ({
+  to: '/$market/$city/host/create' as const,
+  params: { market: locale, city: marketSlug },
 });

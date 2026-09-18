@@ -9,6 +9,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 import type { TrendingSection } from '@founders-coffee/server-fns';
+import { localizedHostCreate } from '../../lib/locale-routing';
 
 const CITY_CARD_COUNT = 11;
 
@@ -87,8 +88,7 @@ export const TrendingStates = ({
         })}
         <li className="h-full">
           <Link
-            to="/$market/host/create"
-            params={{ market: market.slug }}
+            {...localizedHostCreate(locale, market.slug)}
             aria-labelledby="market-create-card"
             className="inline-block h-full min-h-24 w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
           >

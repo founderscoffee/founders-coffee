@@ -27,7 +27,10 @@ import {
 import { Logo } from '@founders-coffee/ui';
 
 import { LEGAL_PAGE_KEYS, type LegalPageKey } from '../../content/company';
-import { localizedLanding } from '../../lib/locale-routing';
+import {
+  localizedHostCreate,
+  localizedLanding,
+} from '../../lib/locale-routing';
 
 import { LocaleToggle } from './LocaleToggle';
 
@@ -144,8 +147,7 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
             {primaryMarket ? (
               <li>
                 <Link
-                  to="/$market/host/create"
-                  params={{ market: primaryMarket.slug }}
+                  {...localizedHostCreate(locale, primaryMarket.slug)}
                   className={linkClass}
                 >
                   {footer_cta_host({}, { locale })}

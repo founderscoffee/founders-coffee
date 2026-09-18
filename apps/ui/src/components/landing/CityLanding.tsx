@@ -18,7 +18,10 @@ import type { geo } from '@founders-coffee/domain';
 import type { EventFeedItem, EventFeedPage } from '@founders-coffee/server-fns';
 
 import { applyCityFilters, type CityFilterKey } from '../../lib/city-filters';
-import { localizedLanding } from '../../lib/locale-routing';
+import {
+  localizedHostCreate,
+  localizedLanding,
+} from '../../lib/locale-routing';
 import { useUpcomingEvents } from '../../features/events/hooks';
 import { useEventPages } from '../../features/events/useEventPages';
 import { LoadMoreEvents } from '../events/LoadMoreEvents';
@@ -105,8 +108,7 @@ export const CityLanding = ({
           </p>
         </div>
         <Link
-          to="/$market/host/create"
-          params={{ market: market.slug }}
+          {...localizedHostCreate(locale, market.slug)}
           search={{ city: city.code, state: city.stateCode }}
           className="btn btn-outline h-10 min-h-10 px-4"
         >
@@ -127,8 +129,7 @@ export const CityLanding = ({
           headingLevel="h1"
           action={
             <Link
-              to="/$market/host/create"
-              params={{ market: market.slug }}
+              {...localizedHostCreate(locale, market.slug)}
               search={{ city: city.code, state: city.stateCode }}
               className="btn btn-secondary h-12 px-5"
             >

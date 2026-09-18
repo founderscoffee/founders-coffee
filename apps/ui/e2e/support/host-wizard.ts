@@ -8,8 +8,14 @@ export const VENUE_QUERY = 'Didouche Mourad';
 export const CITY_CODE = '556';
 export const CITY_SLUG = 'algiers';
 
-export const wizardPath = (): string =>
-  `/${MARKET_SLUG}/host/create?city=${CITY_CODE}`;
+/**
+ * The host wizard, as a member reaches it.
+ *
+ * Unprefixed by default, which is the address an old link or a saved bookmark still carries and
+ * which answers 307 to the prefixed form; pass a locale to land on the prefixed form directly.
+ */
+export const wizardPath = (locale?: E2eLocale): string =>
+  `${locale ? `/${locale}` : ''}/${MARKET_SLUG}/host/create?city=${CITY_CODE}`;
 
 /**
  * Put the browser in `locale` before the first navigation.

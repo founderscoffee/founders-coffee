@@ -42,7 +42,7 @@ const hrefs = () =>
 const renderFooter = (locale: 'ar' | 'fr' | 'en' = 'fr') =>
   render(<Footer locale={locale} markets={[MARKET]} market={MARKET} />);
 
-const UNPREFIXED = ['/', '/algeria/host/create', '/profile/activity'];
+const UNPREFIXED = ['/', '/profile/activity'];
 
 const timesLinked = (href: string) =>
   screen
@@ -83,7 +83,12 @@ describe('the footer', () => {
 
   it('leaves the routes that have no localized form unprefixed', () => {
     renderFooter('fr');
-    expect(hrefs()).toContain('/algeria/host/create');
     expect(hrefs()).toContain('/profile/activity');
+  });
+
+  it('sends a French reader to the French host wizard', () => {
+    renderFooter('fr');
+    expect(hrefs()).toContain('/fr/algeria/host/create');
+    expect(hrefs()).not.toContain('/algeria/host/create');
   });
 });

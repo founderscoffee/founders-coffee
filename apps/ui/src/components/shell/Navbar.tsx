@@ -6,6 +6,7 @@ import { Logo, LogoSymbol } from '@founders-coffee/ui';
 import { OfflineNotice } from './OfflineNotice';
 import { SessionNav } from './SessionNav';
 import { ProfileMenuDrawer } from './ProfileMenuDrawer';
+import { localizedHostCreate } from '../../lib/locale-routing';
 
 type NavbarProps = { locale: Locale; marketSlug?: string };
 
@@ -34,8 +35,7 @@ export const Navbar = ({ locale, marketSlug }: NavbarProps) => {
         <div className="flex items-center gap-1.5">
           {marketSlug ? (
             <Link
-              to="/$market/host/create"
-              params={{ market: marketSlug }}
+              {...localizedHostCreate(locale, marketSlug)}
               className={hostClass}
             >
               {nav_host({}, { locale })}

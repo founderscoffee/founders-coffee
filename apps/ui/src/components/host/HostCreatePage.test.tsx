@@ -68,7 +68,11 @@ describe('HostCreatePage EC-07 flow', () => {
 
   it('asks an anonymous host to sign in without leaving the wizard, and publishes once they do', async () => {
     hostCreateMocks.isAuthenticated = false;
-    window.history.replaceState({}, '', '/algeria/host/create?city=1&state=16');
+    window.history.replaceState(
+      {},
+      '',
+      '/ar/algeria/host/create?city=1&state=16',
+    );
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
