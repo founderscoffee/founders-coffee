@@ -101,7 +101,7 @@
   --color-secondary-tint: #fbede4;
 
   --color-focus: #b4562e;
-  --color-taupe: #9a8676; /* overlines >=11px/600, icons, placeholders — never body text */
+  --color-taupe: #9a8676; /* icons, borders, markers — 3.39:1 on paper, so never text */
 
   --container-content: 70rem; /* 1120px */
   --container-prose: 42rem; /* 672px */
@@ -165,6 +165,13 @@
    Tajawal at 11px with tracking is unreadable — so the Arabic branch drops the
    transform and tracking and steps the size up instead.
 
+   The colour is mocha, not taupe. Taupe on paper is 3.39:1 and on linen 2.93:1, and an
+   eyebrow is text: 11px at weight 600 is nowhere near WCAG's large-text threshold of
+   18.66px bold, so no size exemption applies in either script. Arabic is where it reads
+   worst — Tajawal at 12px/500 is lighter still — but the Latin branch failed by exactly
+   the same numbers, so both are read off one token. Mocha clears 4.5:1 on every surface
+   in this palette, down to 4.78:1 on sand.
+
    .datechip-line uses the 12px caption scale with comfortable line-height, for the date block on an event
    card: the design sets those three lines in sentence case ("Sun", "Sep") so the
    weekday and month read as words next to the numeral, not as a keyline label. */
@@ -175,7 +182,7 @@
     letter-spacing: var(--text-overline--letter-spacing);
     font-weight: 600;
     text-transform: uppercase;
-    color: var(--color-taupe);
+    color: var(--color-neutral);
   }
   :lang(ar) .eyebrow {
     font-size: var(--text-caption);
