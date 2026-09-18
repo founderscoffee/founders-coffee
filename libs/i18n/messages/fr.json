@@ -115,7 +115,16 @@
   "hero_subtitle": "Nous réunissons les entrepreneurs pour tisser des relations, découvrir des opportunités de partenariat et grandir ensemble",
   "hero_search_placeholder": "Votre ville…",
   "hero_search_cta": "Explorer les rencontres",
-  "hero_social_proof": "{count} rencontres cette semaine à {city}",
+  "hero_social_proof": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} rencontre cette semaine à {city}",
+        "countPlural=*": "{count} rencontres cette semaine à {city}"
+      }
+    }
+  ],
   "hero_empty_city": "Pas de rencontres à {city} pour le moment",
   "hero_empty_subtitle": "Soyez le premier à lancer une communauté de fondateurs dans votre ville.",
   "hero_empty_cta": "Organiser la première rencontre",
@@ -130,14 +139,32 @@
   "host_in_your_city": "Hébergez dans votre ville",
   "cities_in": "Partenariats et rencontres qui commencent maintenant dans les villes de {market}",
   "next_page": "Page suivante",
-  "going_count": "+{count} participants",
+  "going_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "+{count} participant",
+        "countPlural=*": "+{count} participants"
+      }
+    }
+  ],
   "no_events_yet": "Pas encore de rencontres. Soyez le premier à héberger",
   "city_empty_title": "Soyez le premier à organiser une rencontre pro à {city}",
   "city_empty_body": "Soyez le premier à organiser une rencontre pro à {city}.",
   "city_upcoming_title": "Prochaines rencontres à {city}",
   "city_events_description": "Découvrez les prochaines rencontres de fondateurs et communautés à {city}.",
   "city_filters_label": "Filtrer les rencontres",
-  "city_loaded_count": "{count} rencontres affichées",
+  "city_loaded_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} rencontre affichée",
+        "countPlural=*": "{count} rencontres affichées"
+      }
+    }
+  ],
   "clear_city_filters": "Effacer les filtres",
   "social_image_alt": "Communautés locales de fondateurs et conversations autour du café sur Founders Coffee.",
   "city_empty_cta": "Animer la première rencontre",
@@ -467,7 +494,16 @@
   "account_providers": "Méthodes de connexion associées",
   "account_providers_empty": "Code par e-mail uniquement",
   "account_sessions": "Appareils connectés",
-  "account_sessions_count": "{count} connecté(s) en ce moment",
+  "account_sessions_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} connecté en ce moment",
+        "countPlural=*": "{count} connectés en ce moment"
+      }
+    }
+  ],
   "account_data_title": "Vos données",
   "account_export": "Télécharger vos informations",
   "account_export_note": "Une copie privée de votre profil et de votre activité.",

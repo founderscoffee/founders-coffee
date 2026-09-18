@@ -115,7 +115,16 @@
   "hero_subtitle": "We bring entrepreneurs together to build relationships, discover partnership opportunities, and grow together",
   "hero_search_placeholder": "Your city…",
   "hero_search_cta": "Explore meetups",
-  "hero_social_proof": "{count} casual meetups this week in {city}",
+  "hero_social_proof": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} casual meetup this week in {city}",
+        "countPlural=*": "{count} casual meetups this week in {city}"
+      }
+    }
+  ],
   "hero_empty_city": "No meetups in {city} yet",
   "hero_empty_subtitle": "Be the first to start a founder community in your city.",
   "hero_empty_cta": "Host the first meetup",
@@ -137,7 +146,16 @@
   "city_upcoming_title": "Upcoming meetups in {city}",
   "city_events_description": "Discover upcoming founder meetups and community gatherings in {city}.",
   "city_filters_label": "Filter meetups",
-  "city_loaded_count": "Showing {count} meetups",
+  "city_loaded_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "Showing {count} meetup",
+        "countPlural=*": "Showing {count} meetups"
+      }
+    }
+  ],
   "clear_city_filters": "Clear filters",
   "social_image_alt": "Founders Coffee local founder communities and meaningful conversations over coffee.",
   "city_empty_cta": "Host the first meetup",

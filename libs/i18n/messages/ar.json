@@ -115,7 +115,20 @@
   "hero_subtitle": "نجمع رواد الأعمال لبناء العلاقات، واكتشاف فرص الشراكة، والنمو معًا.",
   "hero_search_placeholder": "اسم مدينتك…",
   "hero_search_cta": "استكشف اللقاءات",
-  "hero_social_proof": "{count} لقاءات هذا الأسبوع في {city}",
+  "hero_social_proof": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=zero": "{count} لقاءات هذا الأسبوع في {city}",
+        "countPlural=one": "{count} لقاء هذا الأسبوع في {city}",
+        "countPlural=two": "{count} لقاءان هذا الأسبوع في {city}",
+        "countPlural=few": "{count} لقاءات هذا الأسبوع في {city}",
+        "countPlural=many": "{count} لقاءً هذا الأسبوع في {city}",
+        "countPlural=*": "{count} لقاء هذا الأسبوع في {city}"
+      }
+    }
+  ],
   "hero_empty_city": "لا توجد لقاءات في {city} حاليًا",
   "hero_empty_subtitle": "كن أول من يبدأ مجتمع رواد الأعمال في مدينتك.",
   "hero_empty_cta": "استضف أول لقاء",
@@ -130,14 +143,40 @@
   "host_in_your_city": "استضف في مدينتك",
   "cities_in": "شراكات ولقاءات تبدأ الآن في مدن {market}",
   "next_page": "الصفحة التالية",
-  "going_count": "+{count} مشارك",
+  "going_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=zero": "+{count} مشاركين",
+        "countPlural=one": "+{count} مشارك",
+        "countPlural=two": "+{count} مشاركان",
+        "countPlural=few": "+{count} مشاركين",
+        "countPlural=many": "+{count} مشاركًا",
+        "countPlural=*": "+{count} مشارك"
+      }
+    }
+  ],
   "no_events_yet": "لا لقاءات بعد. كن أول من يستضيف",
   "city_empty_title": "كن أول من يستضيف لقاء عمل في {city}",
   "city_empty_body": "كن أول من يستضيف لقاء عمل في {city}.",
   "city_upcoming_title": "اللقاءات القادمة في {city}",
   "city_events_description": "اكتشف لقاءات المؤسسين والمجتمع القادمة في {city}.",
   "city_filters_label": "تصفية اللقاءات",
-  "city_loaded_count": "عرض {count} لقاء",
+  "city_loaded_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=zero": "عرض {count} لقاءات",
+        "countPlural=one": "عرض {count} لقاء",
+        "countPlural=two": "عرض {count} لقاءين",
+        "countPlural=few": "عرض {count} لقاءات",
+        "countPlural=many": "عرض {count} لقاءً",
+        "countPlural=*": "عرض {count} لقاء"
+      }
+    }
+  ],
   "clear_city_filters": "مسح الفلاتر",
   "social_image_alt": "مجتمعات المؤسسين المحلية ومحادثات هادفة حول القهوة على Founders Coffee.",
   "city_empty_cta": "استضف اللقاء الأول",
@@ -467,7 +506,20 @@
   "account_providers": "طرق تسجيل الدخول المرتبطة",
   "account_providers_empty": "رمز البريد الإلكتروني فقط",
   "account_sessions": "الأجهزة المسجّلة",
-  "account_sessions_count": "{count} مسجّل الآن",
+  "account_sessions_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=zero": "{count} مسجّلين الآن",
+        "countPlural=one": "{count} مسجّل الآن",
+        "countPlural=two": "{count} مسجّلان الآن",
+        "countPlural=few": "{count} مسجّلين الآن",
+        "countPlural=many": "{count} مسجّلًا الآن",
+        "countPlural=*": "{count} مسجّل الآن"
+      }
+    }
+  ],
   "account_data_title": "بياناتك",
   "account_export": "تنزيل معلوماتك",
   "account_export_note": "نسخة خاصة من ملفك ونشاطك.",
