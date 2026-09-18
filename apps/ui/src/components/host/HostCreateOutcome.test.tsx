@@ -118,13 +118,13 @@ describe('HostCreatePage EC-08 outcomes', () => {
     await publishHostEvent();
 
     await screen.findByRole('heading', {
-      name: 'One last step, sign in to publish',
+      name: 'One last step: sign in to publish',
     });
     expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
       expect.objectContaining({ to: '/login' }),
     );
     await screen.findByText(
-      'Your session expired. Sign in again to publish - your draft is saved.',
+      'Your session expired. Sign in again to publish. Your draft is saved.',
     );
     const draft = window.sessionStorage.getItem(draftKey);
     expect(draft).toContain('Protected meetup');
