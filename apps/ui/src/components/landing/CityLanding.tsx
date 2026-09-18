@@ -3,14 +3,13 @@ import { useState } from 'react';
 
 import {
   back_to_market,
+  city_events_description,
   city_empty_cta,
   city_empty_title,
+  city_loaded_count,
   city_upcoming_title,
-  host_here,
-  host_progress_label,
-  host_step1_short,
-  host_step2_short,
-  host_step3_short,
+  clear_city_filters,
+  host_meetup_here,
   no_filter_match,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -25,7 +24,6 @@ import { LoadMoreEvents } from '../events/LoadMoreEvents';
 import { EventCard } from '../events/EventCard';
 import { CityFilters } from './CityFilters';
 import { EmptyState } from './EmptyState';
-import { WizardSteps } from '../host/WizardSteps';
 
 type CityLandingProps = {
   locale: Locale;
@@ -80,21 +78,53 @@ export const CityLanding = ({
     events,
   );
   const items = pagination.items;
+  const pageHeader = (
+    <header className="flex flex-col gap-4">
+      <nav aria-label={back_to_market({ market: marketName }, { locale })}>
+        <Link
+          to="/$market"
+          params={{ market: market.slug }}
+          className="inline-flex min-h-6 w-fit items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
+        >
+          {back_to_market({ market: marketName }, { locale })}
+        </Link>
+      </nav>
+      <span className="eyebrow">
+        {marketName} · {cityDisplayName}
+      </span>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="max-w-2xl">
+          <h1
+            id="city-page-title"
+            className="font-display text-h2 font-semibold"
+          >
+            {cityDisplayName}
+          </h1>
+          <p className="mt-2 max-w-prose text-body text-neutral">
+            {city_events_description({ city: cityDisplayName }, { locale })}
+          </p>
+        </div>
+        <Link
+          to="/$market/host/create"
+          params={{ market: market.slug }}
+          search={{ city: city.code, state: city.stateCode }}
+          className="btn btn-outline h-10 min-h-10 px-4"
+        >
+          {host_meetup_here({}, { locale })}
+        </Link>
+      </div>
+    </header>
+  );
 
   if (items.length === 0) {
-    const stepLabels = [
-      host_step1_short({}, { locale }),
-      host_step2_short({}, { locale }),
-      host_step3_short({}, { locale }),
-    ];
-
     return (
-      <section className="mx-auto max-w-lg px-4 py-16">
-        <h1 className="font-display text-h2 font-semibold">
-          {cityDisplayName}
-        </h1>
+      <section
+        aria-label={city_empty_title({ city: cityDisplayName }, { locale })}
+        className="mx-auto flex max-w-lg flex-col gap-8 px-4 py-16"
+      >
         <EmptyState
           title={city_empty_title({ city: cityDisplayName }, { locale })}
+          headingLevel="h1"
           action={
             <Link
               to="/$market/host/create"
@@ -115,14 +145,6 @@ export const CityLanding = ({
             </Link>
           }
         />
-
-        <div className="mx-auto mt-10 max-w-md">
-          <WizardSteps
-            current={1}
-            labels={stepLabels}
-            ariaLabel={host_progress_label({}, { locale })}
-          />
-        </div>
       </section>
     );
   }
@@ -130,57 +152,66 @@ export const CityLanding = ({
   const visible = applyCityFilters(items, filters, market.timezone, new Date());
 
   return (
-    <section className="mx-auto flex max-w-content flex-col gap-5 px-4 py-8 md:px-8">
-      <div className="flex flex-col gap-1.5">
-        <Link
-          to="/$market"
-          params={{ market: market.slug }}
-          className="inline-flex min-h-6 w-fit items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
-        >
-          {back_to_market({ market: marketName }, { locale })}
-        </Link>
-        <span className="eyebrow">
-          {marketName} · {cityDisplayName}
-        </span>
-      </div>
+    <section
+      aria-labelledby="city-page-title"
+      className="mx-auto flex max-w-content flex-col gap-8 px-4 py-8 md:px-8"
+    >
+      {pageHeader}
+      <section
+        aria-labelledby="city-events-title"
+        className="flex flex-col gap-5"
+      >
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2
+              id="city-events-title"
+              className="font-display text-h4 font-semibold"
+            >
+              {city_upcoming_title({ city: cityDisplayName }, { locale })}
+            </h2>
+            <p aria-live="polite" className="mt-1 text-body-sm text-neutral">
+              {city_loaded_count({ count: visible.length }, { locale })}
+            </p>
+          </div>
+          <CityFilters
+            locale={locale}
+            active={filters}
+            onToggle={toggleFilter}
+          />
+        </header>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-display text-h2 font-semibold">
-          {cityDisplayName}
-        </h1>
-        <Link
-          to="/$market/host/create"
-          params={{ market: market.slug }}
-          search={{ city: city.code, state: city.stateCode }}
-          className="btn btn-outline h-10 min-h-10 px-4"
-        >
-          {host_here({}, { locale })}
-        </Link>
-      </div>
-
-      <h2 className="font-display text-h4 font-semibold">
-        {city_upcoming_title({ city: cityDisplayName }, { locale })}
-      </h2>
-
-      <CityFilters locale={locale} active={filters} onToggle={toggleFilter} />
-
-      {visible.length === 0 ? (
-        <EmptyState title={no_filter_match({}, { locale })} />
-      ) : (
-        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))] gap-3.5">
-          {visible.map((e) => (
-            <li key={e.id}>
-              <EventCard
-                event={e}
-                locale={locale}
-                timezone={market.timezone}
-                marketSlug={market.slug}
-                trailing="language"
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+        {visible.length === 0 ? (
+          <EmptyState
+            title={no_filter_match({}, { locale })}
+            action={
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setFilters([])}
+              >
+                {clear_city_filters({}, { locale })}
+              </button>
+            }
+          />
+        ) : (
+          <ul
+            aria-labelledby="city-events-title"
+            className="grid grid-cols-1 gap-3.5"
+          >
+            {visible.map((e) => (
+              <li key={e.id}>
+                <EventCard
+                  event={e}
+                  locale={locale}
+                  timezone={market.timezone}
+                  marketSlug={market.slug}
+                  trailing="language"
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <LoadMoreEvents
         locale={locale}

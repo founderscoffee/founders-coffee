@@ -22,10 +22,24 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
     className,
+    params,
+    to,
   }: {
     children: ReactNode;
     className?: string;
-  }) => createElement('a', { href: '/', className }, children),
+    params?: Record<string, string>;
+    to?: string;
+  }) =>
+    createElement(
+      'a',
+      {
+        href: '/',
+        className,
+        'data-route': to,
+        'data-route-params': params ? JSON.stringify(params) : undefined,
+      },
+      children,
+    ),
 }));
 vi.mock('../../features/geo/hooks', () => ({
   useCitySearch: () => ({ data: [], isFetching: false }),
@@ -248,6 +262,19 @@ describe('P1-002 landing typography', () => {
           name: host_in_your_city({}, { locale }),
         }),
       ).toBeTruthy();
+      const cityLink = screen.getByRole('link', {
+        name: new RegExp(locale === 'ar' ? 'الجزائر' : 'Algiers'),
+      });
+      expect(cityLink.getAttribute('data-route')).toBe(
+        '/$market/$city/$subcity',
+      );
+      expect(cityLink.getAttribute('data-route-params')).toBe(
+        JSON.stringify({
+          market: locale,
+          city: market.slug,
+          subcity: 'algiers',
+        }),
+      );
     },
   );
 });

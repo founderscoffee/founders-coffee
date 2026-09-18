@@ -136,8 +136,12 @@ export const MarketHero = ({
                     },
                   }
                 : {
-                    to: '/$market/$city',
-                    params: { market: market.slug, city: selectedCity.slug },
+                    to: '/$market/$city/$subcity',
+                    params: {
+                      market: locale,
+                      city: market.slug,
+                      subcity: selectedCity.slug,
+                    },
                   }
               : { to: '/login' })}
             className="btn btn-primary hidden h-9 min-h-9 shrink-0 rounded-full border-0 px-4 text-body shadow-none sm:inline-flex"
