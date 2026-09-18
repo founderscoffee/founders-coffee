@@ -48,7 +48,10 @@ export const DiscoverFeed = ({
     locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
 
   return (
-    <section className="mx-auto max-w-content px-4 pb-16 pt-8 md:px-8">
+    <section
+      id="market-events"
+      className="mx-auto max-w-content scroll-mt-24 px-4 pb-16 pt-8 md:px-8"
+    >
       {items.length > 0 ? (
         <>
           <h2

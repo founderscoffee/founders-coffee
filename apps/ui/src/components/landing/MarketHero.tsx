@@ -26,6 +26,11 @@ import heroSaudi from '../../assets/hero-saudi.webp';
 import heroSaudiDesktop from '../../assets/hero-saudi-desktop.webp';
 import heroSaudiMobile from '../../assets/hero-saudi-mobile.webp';
 
+const EVENTS_ANCHOR = 'market-events';
+
+const CTA_CLASS =
+  'btn btn-primary hidden h-9 min-h-9 shrink-0 rounded-full border-0 px-4 text-body shadow-none sm:inline-flex';
+
 const HERO_ART: Record<string, string> = {
   DZ: heroAlgeria,
   EG: heroEgypt,
@@ -124,9 +129,9 @@ export const MarketHero = ({
             locale={locale}
             className="min-w-0 flex-1"
           />
-          <Link
-            {...(selectedCity
-              ? isSelectedCityEmpty
+          {selectedCity ? (
+            <Link
+              {...(isSelectedCityEmpty
                 ? {
                     to: '/$market/host/create',
                     params: { market: market.slug },
@@ -142,12 +147,16 @@ export const MarketHero = ({
                       city: market.slug,
                       subcity: selectedCity.slug,
                     },
-                  }
-              : { to: '/login' })}
-            className="btn btn-primary hidden h-9 min-h-9 shrink-0 rounded-full border-0 px-4 text-body shadow-none sm:inline-flex"
-          >
-            {hero_search_cta({}, { locale })}
-          </Link>
+                  })}
+              className={CTA_CLASS}
+            >
+              {hero_search_cta({}, { locale })}
+            </Link>
+          ) : (
+            <a href={`#${EVENTS_ANCHOR}`} className={CTA_CLASS}>
+              {hero_search_cta({}, { locale })}
+            </a>
+          )}
         </div>
 
         {selectedCity && !isSelectedCityEmpty && (
