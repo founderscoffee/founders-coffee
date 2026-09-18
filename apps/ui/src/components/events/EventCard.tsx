@@ -11,6 +11,8 @@ import {
 } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
+import { localizedEvent } from '../../lib/locale-routing';
+
 type EventCardProps = {
   event: EventFeedItem;
   locale: Locale;
@@ -18,11 +20,6 @@ type EventCardProps = {
   marketSlug: string;
   trailing?: 'city' | 'language';
 };
-
-const eventHref = (marketSlug: string, slug: string) => ({
-  to: '/$market/e/$slug' as const,
-  params: { market: marketSlug, slug },
-});
 
 const hostPhotoUrl = (assetId: string): string =>
   `/media/profile/${assetId}/sm`;
@@ -54,7 +51,7 @@ export const EventCard = ({
     0,
     attendeeCount - (hasHost ? 1 : 0),
   );
-  const detailsHref = eventHref(marketSlug, event.slug);
+  const detailsHref = localizedEvent(locale, marketSlug, event.slug);
 
   return (
     <article className="flex h-full flex-col items-stretch gap-3.5 rounded-box border border-base-300 bg-base-100 p-3.5 transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none sm:flex-row">

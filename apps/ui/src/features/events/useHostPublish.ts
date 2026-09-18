@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import type { Market } from '@founders-coffee/db';
 import type { Locale } from '@founders-coffee/i18n';
 
+import { localizedEvent } from '../../lib/locale-routing';
 import type { EventCreateRequestInput } from './api';
 import {
   clearHostCreateDraft,
@@ -81,10 +82,7 @@ export const useHostPublish = ({
       slug: created.slug,
     });
     void router.invalidate();
-    void navigate({
-      to: '/$market/e/$slug',
-      params: { market: market.slug, slug: created.slug },
-    });
+    void navigate(localizedEvent(locale, market.slug, created.slug));
   };
 
   const publish = async (event: EventCreateCommand) => {

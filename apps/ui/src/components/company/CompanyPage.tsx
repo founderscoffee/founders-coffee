@@ -21,6 +21,8 @@ import {
 import type { CompanyPageContent, RelatedKey } from '../../content/company';
 import { CONTACT_EMAIL } from '../../content/company';
 
+import { localizedLanding } from '../../lib/locale-routing';
+
 import { CompanyBlocks } from './CompanyBlocks';
 
 type CompanyPageProps = {
@@ -32,12 +34,12 @@ type CompanyPageProps = {
 };
 
 const RELATED_LINKS = [
-  { key: 'terms', to: '/terms', label: footer_terms },
-  { key: 'privacy', to: '/privacy', label: footer_privacy },
-  { key: 'cookies', to: '/cookies', label: footer_cookies },
-  { key: 'community', to: '/community', label: footer_community },
-  { key: 'organizers', to: '/organizers', label: footer_organizers },
-  { key: 'legal', to: '/legal', label: footer_legal_info },
+  { key: 'terms', label: footer_terms },
+  { key: 'privacy', label: footer_privacy },
+  { key: 'cookies', label: footer_cookies },
+  { key: 'community', label: footer_community },
+  { key: 'organizers', label: footer_organizers },
+  { key: 'legal', label: footer_legal_info },
 ] as const;
 
 const sectionDomId = (heading: string, index: number) => {
@@ -166,7 +168,7 @@ export const CompanyPage = ({
                 {section.heading}
               </h2>
               <div className="mt-4">
-                <CompanyBlocks blocks={section.blocks} />
+                <CompanyBlocks blocks={section.blocks} locale={locale} />
               </div>
             </section>
           ))}
@@ -182,7 +184,7 @@ export const CompanyPage = ({
             (item) => (
               <Link
                 key={item.key}
-                to={item.to}
+                {...localizedLanding(locale, item.key)}
                 className="inline-flex min-h-6 items-center hover:text-primary"
               >
                 {item.label({}, { locale })}

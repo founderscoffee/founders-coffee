@@ -141,7 +141,7 @@ describe('the gatherings screen', () => {
       screen
         .getByRole('link', { name: /Coffee \+ code/i })
         .getAttribute('href'),
-    ).toBe('/algeria/e/coffee-code-hydra');
+    ).toBe('/en/algeria/e/coffee-code-hydra');
   });
 
   it('reports the server total, not the length of the page it was given', () => {

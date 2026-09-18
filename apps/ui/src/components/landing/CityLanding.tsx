@@ -18,6 +18,7 @@ import type { geo } from '@founders-coffee/domain';
 import type { EventFeedItem, EventFeedPage } from '@founders-coffee/server-fns';
 
 import { applyCityFilters, type CityFilterKey } from '../../lib/city-filters';
+import { localizedLanding } from '../../lib/locale-routing';
 import { useUpcomingEvents } from '../../features/events/hooks';
 import { useEventPages } from '../../features/events/useEventPages';
 import { LoadMoreEvents } from '../events/LoadMoreEvents';
@@ -82,8 +83,7 @@ export const CityLanding = ({
     <header className="flex flex-col gap-4">
       <nav aria-label={back_to_market({ market: marketName }, { locale })}>
         <Link
-          to="/$market"
-          params={{ market: market.slug }}
+          {...localizedLanding(locale, market.slug)}
           className="inline-flex min-h-6 w-fit items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
         >
           {back_to_market({ market: marketName }, { locale })}
@@ -137,8 +137,7 @@ export const CityLanding = ({
           }
           secondary={
             <Link
-              to="/$market"
-              params={{ market: market.slug }}
+              {...localizedLanding(locale, market.slug)}
               className="mt-2 inline-flex min-h-6 items-center text-label font-medium text-neutral underline decoration-secondary underline-offset-[3px] hover:text-base-content"
             >
               {back_to_market({ market: marketName }, { locale })}

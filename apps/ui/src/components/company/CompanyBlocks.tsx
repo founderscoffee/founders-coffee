@@ -1,9 +1,12 @@
+import type { Locale } from '@founders-coffee/i18n';
+
 import type { CompanyBlock } from '../../content/company';
 
 import { RichText } from './RichText';
 
 type CompanyBlocksProps = {
   blocks: readonly CompanyBlock[];
+  locale: Locale;
 };
 
 const blockKey = (block: CompanyBlock, index: number) => {
@@ -12,7 +15,7 @@ const blockKey = (block: CompanyBlock, index: number) => {
   return `${index}-${block.kind}-${block.text.slice(0, 32)}`;
 };
 
-export const CompanyBlocks = ({ blocks }: CompanyBlocksProps) => (
+export const CompanyBlocks = ({ blocks, locale }: CompanyBlocksProps) => (
   <div className="space-y-4">
     {blocks.map((block, index) => {
       const key = blockKey(block, index);
@@ -23,7 +26,7 @@ export const CompanyBlocks = ({ blocks }: CompanyBlocksProps) => (
             key={key}
             className="pt-4 font-display text-body-lg font-semibold text-base-content"
           >
-            <RichText value={block.text} />
+            <RichText value={block.text} locale={locale} />
           </h3>
         );
       }
@@ -35,7 +38,7 @@ export const CompanyBlocks = ({ blocks }: CompanyBlocksProps) => (
             role="note"
             className="rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-body-sm leading-7 text-neutral"
           >
-            <RichText value={block.text} />
+            <RichText value={block.text} locale={locale} />
           </p>
         );
       }
@@ -48,7 +51,7 @@ export const CompanyBlocks = ({ blocks }: CompanyBlocksProps) => (
                 key={item.slice(0, 40)}
                 className="list-disc text-body leading-8 text-neutral marker:text-taupe"
               >
-                <RichText value={item} />
+                <RichText value={item} locale={locale} />
               </li>
             ))}
           </ul>
@@ -70,7 +73,7 @@ export const CompanyBlocks = ({ blocks }: CompanyBlocksProps) => (
                       scope="col"
                       className="border-b border-base-300 px-4 py-3 text-start font-semibold text-base-content"
                     >
-                      <RichText value={column} />
+                      <RichText value={column} locale={locale} />
                     </th>
                   ))}
                 </tr>
@@ -83,7 +86,7 @@ export const CompanyBlocks = ({ blocks }: CompanyBlocksProps) => (
                         key={`${cellIndex}-${cell.slice(0, 24)}`}
                         className="border-b border-base-300 px-4 py-3 align-top leading-7 text-neutral last:border-b-0"
                       >
-                        <RichText value={cell} />
+                        <RichText value={cell} locale={locale} />
                       </td>
                     ))}
                   </tr>
@@ -96,7 +99,7 @@ export const CompanyBlocks = ({ blocks }: CompanyBlocksProps) => (
 
       return (
         <p key={key} className="text-body leading-8 text-neutral">
-          <RichText value={block.text} />
+          <RichText value={block.text} locale={locale} />
         </p>
       );
     })}

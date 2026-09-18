@@ -7,6 +7,8 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
+import { localizedLanding } from '../../lib/locale-routing';
+
 type LegalNoticeProps = {
   locale: Locale;
   className?: string;
@@ -28,7 +30,7 @@ export const LegalNotice = ({ locale, className = '' }: LegalNoticeProps) => {
           return (
             <Link
               key={`privacy-${i}`}
-              to="/privacy"
+              {...localizedLanding(locale, 'privacy')}
               className="font-medium text-neutral underline underline-offset-2 hover:text-primary"
             >
               {footer_privacy({}, { locale })}
@@ -39,7 +41,7 @@ export const LegalNotice = ({ locale, className = '' }: LegalNoticeProps) => {
           return (
             <Link
               key={`terms-${i}`}
-              to="/terms"
+              {...localizedLanding(locale, 'terms')}
               className="font-medium text-neutral underline underline-offset-2 hover:text-primary"
             >
               {footer_terms({}, { locale })}

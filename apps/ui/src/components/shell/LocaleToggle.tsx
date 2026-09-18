@@ -1,5 +1,7 @@
 import { cookieName, LOCALES, type Locale } from '@founders-coffee/i18n';
 
+import { withLocale } from '../../lib/locale-routing';
+
 const LOCALE_LABELS: Record<Locale, string> = {
   ar: 'عربية',
   fr: 'FR',
@@ -11,7 +13,10 @@ type LocaleToggleProps = { locale: Locale };
 export const LocaleToggle = ({ locale }: LocaleToggleProps) => {
   const change = (next: Locale) => {
     document.cookie = `${cookieName}=${next}; path=/; max-age=31536000; samesite=lax`;
-    window.location.reload();
+    const { pathname, search, hash } = window.location;
+    const target = withLocale(pathname, next);
+    if (target === pathname) window.location.reload();
+    else window.location.assign(`${target}${search}${hash}`);
   };
   return (
     <div role="group" aria-label="Language" className="flex gap-1.5">

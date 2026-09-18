@@ -1,11 +1,13 @@
 import { Link } from '@tanstack/react-router';
 
+import type { Locale } from '@founders-coffee/i18n';
+
+import { localizedLanding } from '../../lib/locale-routing';
+
 type RichTextProps = {
   value: string;
+  locale: Locale;
 };
-
-type LegalPath =
-  '/terms' | '/privacy' | '/cookies' | '/community' | '/organizers' | '/legal';
 
 const LEGAL_PATHS: readonly string[] = [
   '/terms',
@@ -18,7 +20,7 @@ const LEGAL_PATHS: readonly string[] = [
 
 const TOKEN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`)/g;
 
-export const RichText = ({ value }: RichTextProps) => (
+export const RichText = ({ value, locale }: RichTextProps) => (
   <>
     {value
       .split(TOKEN)
@@ -51,7 +53,7 @@ export const RichText = ({ value }: RichTextProps) => (
           return (
             <Link
               key={key}
-              to={link[2] as LegalPath}
+              {...localizedLanding(locale, link[2].slice(1))}
               className="font-medium text-base-content underline underline-offset-2 hover:text-primary"
             >
               {link[1]}

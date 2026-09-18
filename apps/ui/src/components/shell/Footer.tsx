@@ -14,7 +14,6 @@ import {
   footer_copyright_made,
   footer_cta,
   footer_cta_host,
-  footer_discover,
   footer_faq,
   footer_legal,
   footer_legal_info,
@@ -28,6 +27,7 @@ import {
 import { Logo } from '@founders-coffee/ui';
 
 import { LEGAL_PAGE_KEYS, type LegalPageKey } from '../../content/company';
+import { localizedLanding } from '../../lib/locale-routing';
 
 import { LocaleToggle } from './LocaleToggle';
 
@@ -69,7 +69,6 @@ const LEGAL_LABELS: Record<LegalPageKey, typeof footer_terms> = {
 
 export const LEGAL_LINKS = LEGAL_PAGE_KEYS.map((key) => ({
   key,
-  to: `/${key}` as const,
   label: LEGAL_LABELS[key],
 }));
 
@@ -109,7 +108,7 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
   return (
     <footer className="mt-16 bg-base-200">
       <div className="mx-auto max-w-content px-4 py-12 md:px-8 md:py-14">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[minmax(15rem,1.4fr)_repeat(4,minmax(0,1fr))]">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[minmax(15rem,1.4fr)_repeat(3,minmax(0,1fr))]">
           <div className="flex flex-col items-start gap-4 md:col-span-2 lg:col-span-1">
             <Link
               to="/"
@@ -123,8 +122,7 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
             </p>
             {primaryMarket ? (
               <Link
-                to="/$market"
-                params={{ market: primaryMarket.slug }}
+                {...localizedLanding(locale, primaryMarket.slug)}
                 className="btn btn-primary h-11 min-h-11 rounded-full border-0 px-5 text-body-sm shadow-none"
               >
                 {footer_cta({}, { locale })}
@@ -138,27 +136,6 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
               </Link>
             )}
           </div>
-
-          <FooterNavGroup
-            id="footer-discover"
-            title={footer_discover({}, { locale })}
-          >
-            <li>
-              {primaryMarket ? (
-                <Link
-                  to="/$market"
-                  params={{ market: primaryMarket.slug }}
-                  className={linkClass}
-                >
-                  {footer_cta({}, { locale })}
-                </Link>
-              ) : (
-                <Link to="/" className={linkClass}>
-                  {footer_cta({}, { locale })}
-                </Link>
-              )}
-            </li>
-          </FooterNavGroup>
 
           <FooterNavGroup
             id="footer-participate"
@@ -188,7 +165,10 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
           >
             {LEGAL_LINKS.map((item) => (
               <li key={item.key}>
-                <Link to={item.to} className={linkClass}>
+                <Link
+                  {...localizedLanding(locale, item.key)}
+                  className={linkClass}
+                >
                   {item.label({}, { locale })}
                 </Link>
               </li>
@@ -200,17 +180,23 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
             title={footer_company({}, { locale })}
           >
             <li>
-              <Link to="/about" className={linkClass}>
+              <Link
+                {...localizedLanding(locale, 'about')}
+                className={linkClass}
+              >
                 {footer_about({}, { locale })}
               </Link>
             </li>
             <li>
-              <Link to="/faq" className={linkClass}>
+              <Link {...localizedLanding(locale, 'faq')} className={linkClass}>
                 {footer_faq({}, { locale })}
               </Link>
             </li>
             <li>
-              <Link to="/contact" className={linkClass}>
+              <Link
+                {...localizedLanding(locale, 'contact')}
+                className={linkClass}
+              >
                 {footer_contact({}, { locale })}
               </Link>
             </li>

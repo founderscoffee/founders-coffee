@@ -15,6 +15,7 @@ import { Button } from '@founders-coffee/ui';
 
 import type { CloseoutStateView } from '../../operations/api';
 import { RepeatHostLink } from '../../../components/events/RepeatHostLink';
+import { localizedEvent } from '../../../lib/locale-routing';
 
 export interface ActivityItem {
   readonly id: string;
@@ -112,11 +113,11 @@ export const ActivityList = ({
             className="border-b border-base-200 py-3 last:border-b-0"
           >
             <Link
-              to="/$market/e/$slug"
-              params={{
-                market: marketSlugFor(item.marketCode),
-                slug: item.slug,
-              }}
+              {...localizedEvent(
+                locale,
+                marketSlugFor(item.marketCode),
+                item.slug,
+              )}
               className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 hover:underline"
             >
               <span className="min-w-0">
