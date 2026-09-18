@@ -19,7 +19,7 @@ import { hostedPaginationQuery } from '../../../lib/public-pagination';
 import { profilePhotoUrl } from '../photo-url';
 import { localeLabel, topicLabel } from '../profile-labels';
 import type { EventFeedItem } from '../../events/api';
-import type { Market } from '../../markets/api';
+import type { RootMarket } from '../../markets/api';
 import type { PublicProfile } from '../api';
 
 const PAGE_SIZE = 12;
@@ -41,7 +41,7 @@ export const PublicProfilePage = ({
   eventsTotal: number;
   beforeStartsAt?: number;
   beforeId?: string;
-  markets: readonly Market[];
+  markets: readonly RootMarket[];
 }) => {
   const pagination = useEventPages(
     useHostedEvents(

@@ -14,6 +14,7 @@ import {
 } from '@founders-coffee/observability';
 import { getVisibleMarkets } from '@founders-coffee/server-fns';
 
+import { toRootMarket, type RootMarket } from '../features/markets/api';
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
@@ -34,13 +35,6 @@ const detectActiveLocale = (routeLocale?: string) => {
     ? routeLocale
     : detectLocale(readCookieHeader());
   return { locale, dir: direction(locale) };
-};
-
-type RootMarket = {
-  readonly code: string;
-  readonly slug: string;
-  readonly name: string;
-  readonly nameAr: string | null;
 };
 
 const useClientObservability = () => {
@@ -96,14 +90,7 @@ export const Route = createRootRoute({
   beforeLoad: async ({ params }) => {
     const routeParams = params as { readonly market?: string };
     const { locale, dir } = detectActiveLocale(routeParams.market);
-    const markets = ((await getVisibleMarkets()) ?? []).map(
-      (market: RootMarket) => ({
-        code: market.code,
-        slug: market.slug,
-        name: market.name,
-        nameAr: market.nameAr,
-      }),
-    );
+    const markets = ((await getVisibleMarkets()) ?? []).map(toRootMarket);
     const activeMarket =
       markets.find(
         (market: RootMarket) => market.slug === routeParams.market,

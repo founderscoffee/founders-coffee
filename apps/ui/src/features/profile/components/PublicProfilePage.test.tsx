@@ -24,6 +24,7 @@ vi.mock('@tanstack/react-router', () => ({
     createElement('a', props, children),
 }));
 
+import type { RootMarket } from '../../markets/api';
 import type { PublicProfile } from '../api';
 import { PublicProfilePage } from './PublicProfilePage';
 
@@ -41,9 +42,15 @@ const publicProfile: PublicProfile = {
   professionalLink: null,
 };
 
-const markets = [
-  { code: 'DZ', slug: 'algeria', timezone: 'Africa/Algiers' },
-] as never;
+const markets: readonly RootMarket[] = [
+  {
+    code: 'DZ',
+    slug: 'algeria',
+    name: 'Algeria',
+    nameAr: 'الجزائر',
+    timezone: 'Africa/Algiers',
+  },
+];
 
 const hostedEvent = {
   id: 'evt_1',
@@ -89,6 +96,12 @@ describe('PublicProfilePage', () => {
     expect(screen.getByText('Coffee and Code')).toBeTruthy();
     expect(screen.getByText('Showing 1 of 1')).toBeTruthy();
     expect(screen.queryByText(/No events hosted yet/i)).toBeNull();
+  });
+
+  it("renders event times in the market's zone, not the runtime's", () => {
+    renderProfile([hostedEvent]);
+
+    expect(screen.getByText('19:00\u201320:00')).toBeTruthy();
   });
 
   it('keeps the server cursor available for the next hosted-events page', () => {
