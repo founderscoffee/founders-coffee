@@ -197,3 +197,23 @@
     font-weight: 600;
   }
 }
+
+/* A run of Arabic takes its word space from the first font in the stack that owns a space
+   glyph, and `--font-display` leads with Outfit. So a heading carrying the `font-display`
+   utility was set in Tajawal but spaced by Outfit: 0.17em where the same sentence in a
+   paragraph gets 0.24em. Arabic letters join inside a word, which makes that gap the only
+   mark of where one word ends and the next begins, and at 0.17em "الجزائر العاصمة" reads as
+   one word. `tracking-tight` on the same elements took another 0.025em off it.
+
+   The base layer already says both of these for `:lang(ar)`, and a utility outranks a base
+   rule, so it says them again from inside the utilities layer with a selector specific
+   enough to win. Scoped to `.font-display` on purpose: daisyUI's `.otp` and `.countdown`
+   place their digits with letter-spacing measured in `ch`, and a blanket Arabic reset would
+   collapse both. */
+@layer utilities {
+  :lang(ar) .font-display,
+  :lang(ar).font-display {
+    font-family: var(--font-arabic);
+    letter-spacing: 0;
+  }
+}
