@@ -1,7 +1,7 @@
 import type { CompanyPageContent } from './types';
 
 export const organizersContent: CompanyPageContent = {
-  title: 'شروط منظّمي الفعاليات',
+  title: 'شروط المنظّمين',
   description:
     'مسؤوليات من ينشر لقاءً على المنصة: دقّة المعلومات، المكان، السلامة، قائمة المسجَّلين، والإلغاء.',
   updated: '18 سبتمبر 2026',
