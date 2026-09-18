@@ -7,6 +7,7 @@ import viteReact from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { cloudflare } from '@cloudflare/vite-plugin';
 
+import { assertAssetsIgnored } from './vite-assets-ignore';
 import { mapboxCspWorker } from './vite-mapbox-worker';
 import { isSeoPrerenderPath, seoPrerenderPages } from './src/lib/seo-prerender';
 import {
@@ -124,6 +125,8 @@ export default defineConfig(({ command }) => ({
       rollupFormat: 'iife',
       disable: command === 'serve',
     }),
-    ...(command === 'serve' ? [] : [assertServiceWorkerEmitted()]),
+    ...(command === 'serve'
+      ? []
+      : [assertServiceWorkerEmitted(), assertAssetsIgnored(['.DS_Store'])]),
   ],
 }));
