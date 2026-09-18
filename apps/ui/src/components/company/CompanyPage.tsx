@@ -150,7 +150,7 @@ export const CompanyPage = ({
                     href={`#${section.id}`}
                     className="inline-flex min-h-6 items-center text-body-sm leading-6 text-neutral transition-colors hover:text-primary"
                   >
-                    <span className="me-2 text-taupe">{index + 1}.</span>
+                    <span className="me-2">{index + 1}.</span>
                     {section.heading}
                   </a>
                 </li>
