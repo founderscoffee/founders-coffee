@@ -155,6 +155,7 @@
   "back_home": "العودة للرئيسية",
   "nav_login": "تسجيل الدخول",
   "nav_logout": "تسجيل الخروج",
+  "offline_notice": "أنت غير متصل بالإنترنت. ما تراه محفوظ من زيارتك الأخيرة.",
   "login_title": "سجّل الدخول إلى Founders Coffee",
   "login_email_label": "البريد الإلكتروني",
   "login_email_placeholder": "you@example.com",

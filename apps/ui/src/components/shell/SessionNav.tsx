@@ -15,6 +15,7 @@ import { profilePhotoUrl } from '../../features/profile/photo-url';
 
 import { useAuth } from '../../lib/app-providers';
 import { authClient } from '../../lib/auth';
+import { useBoundedPending } from '../../lib/network-status';
 import { ProfileIcon, SignOutIcon } from './SessionIcon';
 import { useDismissableDetails } from './useDismissableDetails';
 
@@ -38,7 +39,8 @@ type SessionNavProps = { locale: Locale };
 
 export const SessionNav = ({ locale }: SessionNavProps) => {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const { data: profile, isPending: isProfilePending } = useMyProfile();
+  const { data: profile, isPending } = useMyProfile();
+  const isProfilePending = useBoundedPending(isPending);
   const [failedPhoto, setFailedPhoto] = useState<string | null>(null);
   const { ref, close } = useDismissableDetails();
   const [isMounted, setIsMounted] = useState(false);

@@ -155,6 +155,7 @@
   "back_home": "Back home",
   "nav_login": "Sign in",
   "nav_logout": "Sign out",
+  "offline_notice": "You are offline. What you see is from your last visit.",
   "login_title": "Sign in to Founders Coffee",
   "login_email_label": "Email",
   "login_email_placeholder": "you@example.com",

@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { authClient } from './auth';
+import { useBoundedPending } from './network-status';
 import { createQueryClient } from './query-client';
 import { memberChanged, withdrawMemberCaches } from './session-cache';
 
@@ -55,6 +56,7 @@ const AuthProvider = ({
   client: ReturnType<typeof createQueryClient>;
 }) => {
   const { data, isPending } = authClient.useSession();
+  const isLoading = useBoundedPending(isPending);
   useMemberCacheIsolation(data?.user?.id ?? null, isPending, client);
 
   const value = useMemo(() => {
@@ -75,9 +77,9 @@ const AuthProvider = ({
       session,
       permissions,
       isAuthenticated,
-      isLoading: isPending,
+      isLoading,
     };
-  }, [data, isPending]);
+  }, [data, isLoading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

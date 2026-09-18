@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { brand, nav_host, type Locale } from '@founders-coffee/i18n';
 import { Logo, LogoSymbol } from '@founders-coffee/ui';
 
+import { OfflineNotice } from './OfflineNotice';
 import { SessionNav } from './SessionNav';
 import { ProfileMenuDrawer } from './ProfileMenuDrawer';
 
@@ -43,6 +44,7 @@ export const Navbar = ({ locale, marketSlug }: NavbarProps) => {
           <SessionNav locale={locale} />
         </div>
       </nav>
+      <OfflineNotice locale={locale} />
     </header>
   );
 };
