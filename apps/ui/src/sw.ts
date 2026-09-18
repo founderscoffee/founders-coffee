@@ -18,6 +18,8 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+const OFFLINE_DOCUMENT = '/offline';
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
@@ -30,6 +32,14 @@ const serwist = new Serwist({
     },
     ...defaultCache,
   ],
+  fallbacks: {
+    entries: [
+      {
+        url: OFFLINE_DOCUMENT,
+        matcher: ({ request }) => request.destination === 'document',
+      },
+    ],
+  },
 });
 
 serwist.addEventListeners();

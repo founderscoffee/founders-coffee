@@ -11,6 +11,7 @@ import { mapboxCspWorker } from './vite-mapbox-worker';
 import { isSeoPrerenderPath, seoPrerenderPages } from './src/lib/seo-prerender';
 import {
   CLIENT_OUT_DIR,
+  offlinePrecacheEntry,
   precacheIgnores,
   SW_DEST,
   assertServiceWorkerEmitted,
@@ -118,6 +119,7 @@ export default defineConfig(({ command }) => ({
       swDest: SW_DEST,
       globDirectory: CLIENT_OUT_DIR,
       globIgnores: precacheIgnores(),
+      additionalPrecacheEntries: [offlinePrecacheEntry()],
       injectionPoint: 'self.__SW_MANIFEST',
       rollupFormat: 'iife',
       disable: command === 'serve',
