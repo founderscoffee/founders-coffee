@@ -11,7 +11,6 @@ export interface OtpEmailProps {
   readonly codeLabel: string;
   readonly code: string;
   readonly expiry: string;
-  readonly footer?: string;
 }
 
 const greetingStyle: CSSProperties = {
@@ -50,13 +49,6 @@ const expiryStyle: CSSProperties = {
   margin: 0,
 };
 
-const footerStyle: CSSProperties = {
-  color: '#8b7b6b',
-  fontSize: '13px',
-  lineHeight: '20px',
-  margin: '24px 0 0',
-};
-
 export const OtpEmail = ({
   locale,
   preview,
@@ -64,7 +56,6 @@ export const OtpEmail = ({
   codeLabel,
   code,
   expiry,
-  footer,
 }: OtpEmailProps) => (
   <EmailBase locale={locale} preview={preview}>
     <Text style={greetingStyle}>{greeting}</Text>
@@ -73,6 +64,5 @@ export const OtpEmail = ({
       <Text style={codeStyle}>{code}</Text>
     </Section>
     <Text style={expiryStyle}>{expiry}</Text>
-    {footer ? <Text style={footerStyle}>{footer}</Text> : null}
   </EmailBase>
 );

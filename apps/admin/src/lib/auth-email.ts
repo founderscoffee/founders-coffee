@@ -43,7 +43,6 @@ export const createAdminOtpEmailProvider = (
       codeLabel: 'Use this code to continue.',
       code: otp,
       expiry: 'It expires in 30 minutes.',
-      footer: 'Founders Coffee',
     });
     const result = await provider.send({
       to: email,

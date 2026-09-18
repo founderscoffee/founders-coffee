@@ -82,9 +82,9 @@ const contentStyle: CSSProperties = {
 };
 
 const copyrightByLocale: Record<Locale, string> = {
-  ar: '© 2026 Founders Coffee — جميع الحقوق محفوظة.',
-  en: '© 2026 Founders Coffee — All rights reserved.',
-  fr: '© 2026 Founders Coffee — Tous droits réservés.',
+  ar: '© 2026 Founders Coffee. جميع الحقوق محفوظة.',
+  en: '© 2026 Founders Coffee. All rights reserved.',
+  fr: '© 2026 Founders Coffee. Tous droits réservés.',
 };
 
 const EMAIL_LOGO_URL = 'https://founders.coffee/branding/pwa-logo.png';
@@ -117,7 +117,6 @@ export const EmailBase = ({ locale, preview, children }: EmailBaseProps) => (
         </Section>
         <Section style={{ padding: '0 40px 28px' }}>
           <Hr style={hrStyle} />
-          <Text style={footerStyle}>Founders Coffee</Text>
           <Text style={footerStyle}>{copyrightByLocale[locale]}</Text>
         </Section>
       </Container>

@@ -70,4 +70,36 @@ describe('renderEmail', () => {
     expect(result.text).toContain('123456');
     expect(result.text).toContain('Expires in 30 minutes.');
   });
+
+  it('names the brand once in the footer, in every locale', async () => {
+    for (const locale of ['ar', 'en', 'fr'] as const) {
+      const { html } = await renderEmail(OtpEmail, {
+        locale,
+        preview: 'preview',
+        greeting: 'greeting',
+        codeLabel: 'codeLabel',
+        code: '123456',
+        expiry: 'expiry',
+      });
+      const footer = html.slice(html.lastIndexOf('123456'));
+
+      expect(footer.match(/Founders Coffee/gu) ?? [], locale).toHaveLength(1);
+    }
+  });
+
+  it('keeps em dashes out of what a reader sees', async () => {
+    for (const locale of ['ar', 'en', 'fr'] as const) {
+      const { html, text } = await renderEmail(OtpEmail, {
+        locale,
+        preview: 'preview',
+        greeting: 'greeting',
+        codeLabel: 'codeLabel',
+        code: '123456',
+        expiry: 'expiry',
+      });
+
+      expect(html, `${locale} html`).not.toMatch(/\u2014/);
+      expect(text, `${locale} text`).not.toMatch(/\u2014/);
+    }
+  });
 });
