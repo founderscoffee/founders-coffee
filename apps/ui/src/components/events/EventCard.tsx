@@ -3,6 +3,7 @@ import { ArrowUpRight, MapPin } from 'lucide-react';
 
 import {
   event_details_title,
+  event_host,
   formatDate,
   going_count,
   rsvp_attending,
@@ -56,32 +57,35 @@ export const EventCard = ({
   const detailsHref = eventHref(marketSlug, event.slug);
 
   return (
-    <article className="flex h-full items-stretch gap-3.5 rounded-box border border-base-300 bg-base-100 p-3.5 transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none">
+    <article className="flex h-full flex-col items-stretch gap-3.5 rounded-box border border-base-300 bg-base-100 p-3.5 transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none sm:flex-row">
       <Link
         {...detailsHref}
-        className="flex h-full min-w-0 flex-1 gap-3.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+        className="flex h-full min-w-0 flex-1 flex-col gap-3.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary sm:flex-row"
       >
         <time
           dateTime={start.toISOString()}
-          className="flex h-full w-[4.375rem] shrink-0 flex-col items-center justify-center gap-px self-stretch rounded-field bg-base-200 py-3"
+          className="flex h-auto w-full shrink-0 flex-col items-center justify-center gap-px self-stretch rounded-field bg-base-200 py-3 sm:h-full sm:w-[6.5rem]"
         >
           <span className="datechip-line">{at({ weekday: 'short' })}</span>
           <span className="font-display text-h4 font-semibold leading-none">
             {at({ day: 'numeric' })}
           </span>
-          <span className="datechip-line hidden text-neutral sm:block">
+          <span className="datechip-line text-neutral">
             {at({ month: 'short' })}
           </span>
         </time>
 
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <header>
-            <h3 className="font-display text-body font-semibold leading-snug">
+            <h3
+              dir="auto"
+              className="font-display text-body font-semibold leading-snug"
+            >
               {event.title}
             </h3>
           </header>
           {event.description?.trim() ? (
-            <p className="line-clamp-2 text-body-sm text-neutral">
+            <p dir="auto" className="line-clamp-2 text-body-sm text-neutral">
               {event.description}
             </p>
           ) : null}
@@ -90,19 +94,19 @@ export const EventCard = ({
               {timeRange}
             </span>
             <span aria-hidden="true">·</span>
-            <span className="inline-flex items-start gap-1 font-medium text-base-content">
+            <span className="inline-flex items-start gap-1 rounded-full bg-secondary/10 px-2 py-0.5 font-medium text-secondary">
               <MapPin
                 className="mt-0.5 size-4 shrink-0 text-secondary"
                 aria-hidden="true"
               />
-              <span>{event.venue}</span>
+              <span dir="auto">{event.venue}</span>
             </span>
             {trailing === 'language' ? (
               <span className="hidden sm:inline">
                 · {event.language.toUpperCase()}
               </span>
             ) : (
-              <span className="text-secondary">
+              <span dir="auto" className="text-secondary">
                 {locale === 'ar' ? '،' : ','} {cityName}
               </span>
             )}
@@ -164,7 +168,12 @@ export const EventCard = ({
                     </span>
                   </span>
                 )}
-                <span className="truncate">{event.hostName}</span>
+                <span className="truncate">
+                  <span className="sr-only">
+                    {event_host({}, { locale })}:{' '}
+                  </span>
+                  <bdi>{event.hostName}</bdi>
+                </span>
               </span>
             ) : null}
 
@@ -189,7 +198,7 @@ export const EventCard = ({
 
       <Link
         {...detailsHref}
-        className="btn btn-sm btn-outline h-9 min-h-9 shrink-0 self-center whitespace-nowrap px-3"
+        className="btn btn-sm btn-outline h-9 min-h-9 w-full shrink-0 self-center whitespace-nowrap px-3 sm:w-auto"
       >
         <span>{event_details_title({}, { locale })}</span>
         <ArrowUpRight className="size-4 rtl:rotate-180" aria-hidden="true" />

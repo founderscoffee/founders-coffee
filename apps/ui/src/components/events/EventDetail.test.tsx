@@ -14,6 +14,10 @@ vi.mock('./RsvpSection', () => ({
   RsvpSection: () => null,
 }));
 
+vi.mock('./EventLocationMap', () => ({
+  EventLocationMap: () => null,
+}));
+
 const { EventDetail } = await import('./EventDetail');
 
 const market = {

@@ -131,6 +131,9 @@ export const RsvpSection = ({
         </>
       ) : (
         <>
+          <p className="max-w-prose text-body-sm text-neutral">
+            {rsvp_help({}, { locale })}
+          </p>
           <button
             type="button"
             className="btn btn-secondary btn-lg w-full sm:w-auto"
@@ -149,9 +152,6 @@ export const RsvpSection = ({
               rsvp_cta({}, { locale })
             )}
           </button>
-          <p className="max-w-prose text-body-sm text-neutral">
-            {rsvp_help({}, { locale })}
-          </p>
         </>
       )}
 
