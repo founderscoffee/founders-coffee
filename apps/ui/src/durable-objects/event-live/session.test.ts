@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  verifyEventSession,
-  verifyEventSessionFromCookie,
-} from './session.js';
+import { verifyEventSession, verifyEventSessionFromCookie } from './session.js';
 
 const dbFor = (row: Record<string, unknown> | null) => {
   const statement = {
