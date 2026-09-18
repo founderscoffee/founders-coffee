@@ -1,12 +1,31 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Response privacy directives', () => {
-  test('private pages refuse every cache and every index', async ({ page }) => {
+  test('private pages refuse every cache and every index', async ({
+    request,
+  }) => {
     for (const path of ['/profile', '/u/usr_nobody']) {
-      const response = await page.goto(path);
-      const headers = response?.headers() ?? {};
+      const response = await request.get(path, { maxRedirects: 0 });
+      const headers = response.headers();
       expect(headers['cache-control']).toBe('private, no-store');
       expect(headers['x-robots-tag']).toBe('noindex, nofollow');
+    }
+  });
+
+  test('a private page turns an anonymous visitor away before it renders', async ({
+    request,
+  }) => {
+    for (const path of [
+      '/profile',
+      '/profile/account',
+      '/profile/activity',
+      '/profile/notifications',
+    ]) {
+      const response = await request.get(path, { maxRedirects: 0 });
+      expect(response.status()).toBe(307);
+      expect(response.headers()['location']).toBe(
+        `/login?redirect=${encodeURIComponent(path)}`,
+      );
     }
   });
 

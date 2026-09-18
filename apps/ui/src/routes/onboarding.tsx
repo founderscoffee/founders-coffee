@@ -6,6 +6,7 @@ import { onboarding_title } from '@founders-coffee/i18n';
 import { OnboardingPage } from '../features/profile/components/OnboardingPage';
 import { NO_INDEX_VALUE } from '../lib/indexation';
 import { authReturnPathSchema } from '../lib/redirect';
+import { requireSession } from '../features/auth/require-session';
 import { privatePageHead } from '../lib/seo-private';
 
 export const Route = createFileRoute('/onboarding')({
@@ -16,6 +17,7 @@ export const Route = createFileRoute('/onboarding')({
   validateSearch: z.object({
     redirect: authReturnPathSchema.catch('/').optional().default('/'),
   }),
+  beforeLoad: ({ search }) => requireSession(search.redirect),
   component: () => {
     const { locale } = Route.useRouteContext();
     const { redirect } = Route.useSearch();
