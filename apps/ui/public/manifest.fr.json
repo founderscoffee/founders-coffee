@@ -2,9 +2,9 @@
   "id": "/",
   "name": "Founders Coffee",
   "short_name": "Founders",
-  "description": "مجتمع للقاءات المؤسسين المحلية حول القهوة.",
-  "lang": "ar",
-  "dir": "rtl",
+  "description": "Une communauté de rencontres locales entre fondateurs autour d'un café.",
+  "lang": "fr",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -32,21 +32,21 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/home-ar-narrow.png",
+      "src": "/screenshots/home-fr-narrow.png",
       "sizes": "412x824",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "لقاءات المؤسسين القادمة في مدن الجزائر"
+      "label": "Les prochaines rencontres de fondateurs dans les villes d'Algérie"
     }
   ],
   "shortcuts": [
     {
-      "name": "نظّم لقاء",
+      "name": "Organiser une rencontre",
       "url": "/algeria/host/create"
     },
     {
-      "name": "ابحث عن لقاء",
-      "url": "/ar/algeria"
+      "name": "Trouver une rencontre",
+      "url": "/fr/algeria"
     }
   ]
 }

@@ -25,8 +25,10 @@ import {
   NO_INDEX_VALUE,
   PUBLIC_DOCUMENT_CACHE_CONTROL,
 } from '../lib/indexation';
+import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd } from '../lib/seo-company';
 import { errorPageHead } from '../lib/seo-error';
+import { manifestHref } from '../lib/web-manifest';
 
 import appCss from '../styles.css?url';
 
@@ -36,6 +38,9 @@ const detectActiveLocale = (routeLocale?: string) => {
     : detectLocale(readCookieHeader());
   return { locale, dir: direction(locale) };
 };
+
+const localeFromRequest = (): Locale =>
+  detectActiveLocale(getRequestPath().split('/').filter(Boolean)[0]).locale;
 
 const useClientObservability = () => {
   useEffect(() => {
@@ -113,9 +118,7 @@ export const Route = createRootRoute({
     return headers;
   },
   head: ({ matches }) => {
-    const rootMatch = matches.find((match) => match.routeId === '__root__');
-    const locale =
-      (rootMatch?.context as { locale?: Locale } | undefined)?.locale ?? 'ar';
+    const locale = localeFromRequest();
     const hasNotFound = matches.some(
       (match) => match.status === 'notFound' || match.globalNotFound,
     );
@@ -137,7 +140,7 @@ export const Route = createRootRoute({
         { rel: 'icon', href: '/favicon-32x32.png', sizes: '32x32' },
         { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
-        { rel: 'manifest', href: '/manifest.json' },
+        { rel: 'manifest', href: manifestHref(locale) },
         ...(pageHead?.links ?? []),
       ],
       scripts: pageHead?.scripts ?? [
