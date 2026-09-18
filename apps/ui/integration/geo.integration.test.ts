@@ -101,7 +101,7 @@ describe('public GEO contract', () => {
           path: `/${locale}/algeria/algiers`,
           canonical: `${PRODUCTION_ORIGIN}/${locale}/algeria/algiers`,
           schemaType: 'CollectionPage',
-          visibleText: locale === 'ar' ? 'الجزائر' : 'Algiers',
+          visibleText: locale === 'ar' ? 'الجزائر العاصمة' : 'Algiers',
         },
         {
           type: 'event',
