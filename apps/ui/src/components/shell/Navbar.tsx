@@ -1,4 +1,4 @@
-import { Link, useParams } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 
 import { brand, nav_host, type Locale } from '@founders-coffee/i18n';
 import { Logo, LogoSymbol } from '@founders-coffee/ui';
@@ -6,15 +6,12 @@ import { Logo, LogoSymbol } from '@founders-coffee/ui';
 import { SessionNav } from './SessionNav';
 import { ProfileMenuDrawer } from './ProfileMenuDrawer';
 
-type NavbarProps = { locale: Locale };
+type NavbarProps = { locale: Locale; marketSlug?: string };
 
 const hostClass =
   'inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 text-body font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
 
-export const Navbar = ({ locale }: NavbarProps) => {
-  const params = useParams({ strict: false });
-  const market = params.market;
-
+export const Navbar = ({ locale, marketSlug }: NavbarProps) => {
   return (
     <header className="sticky top-0 z-50 border-b border-base-300 bg-base-100">
       <nav
@@ -34,10 +31,10 @@ export const Navbar = ({ locale }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-1.5">
-          {market ? (
+          {marketSlug ? (
             <Link
               to="/$market/host/create"
-              params={{ market }}
+              params={{ market: marketSlug }}
               className={hostClass}
             >
               {nav_host({}, { locale })}

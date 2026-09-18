@@ -36,6 +36,13 @@ const detectActiveLocale = (routeLocale?: string) => {
   return { locale, dir: direction(locale) };
 };
 
+type RootMarket = {
+  readonly code: string;
+  readonly slug: string;
+  readonly name: string;
+  readonly nameAr: string | null;
+};
+
 const useClientObservability = () => {
   useEffect(() => {
     configureClientLogger({ endpoint: '/client-logs' });
@@ -63,7 +70,7 @@ const useServiceWorker = () => {
 };
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
-  const { locale, dir, markets } = Route.useRouteContext();
+  const { locale, dir, markets, activeMarket } = Route.useRouteContext();
   useClientObservability();
   useServiceWorker();
   useStoredLocale(locale);
@@ -75,9 +82,9 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
       </head>
       <body className="flex flex-col bg-base-100 text-base-content">
         <AppProviders>
-          <Navbar locale={locale} />
+          <Navbar locale={locale} marketSlug={activeMarket?.slug} />
           <main className="flex-1">{children}</main>
-          <Footer locale={locale} markets={markets} />
+          <Footer locale={locale} markets={markets} market={activeMarket} />
         </AppProviders>
         <Scripts />
       </body>
@@ -89,8 +96,19 @@ export const Route = createRootRoute({
   beforeLoad: async ({ params }) => {
     const routeParams = params as { readonly market?: string };
     const { locale, dir } = detectActiveLocale(routeParams.market);
-    const markets = await getVisibleMarkets();
-    return { locale, dir, markets: markets ?? [] };
+    const markets = ((await getVisibleMarkets()) ?? []).map(
+      (market: RootMarket) => ({
+        code: market.code,
+        slug: market.slug,
+        name: market.name,
+        nameAr: market.nameAr,
+      }),
+    );
+    const activeMarket =
+      markets.find(
+        (market: RootMarket) => market.slug === routeParams.market,
+      ) ?? markets[0];
+    return { locale, dir, markets, activeMarket };
   },
   headers: ({ matches }) => {
     const hasNoIndexableState = matches.some(
