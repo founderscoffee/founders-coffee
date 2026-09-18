@@ -7,6 +7,7 @@ import {
   event_cancelled_title,
   event_details_title,
   event_host,
+  rsvp_box_cancelled,
   rsvp_box_title,
   event_when,
   event_where,
@@ -91,6 +92,8 @@ export const EventDetail = ({
   const cityName =
     locale === 'ar' ? (event.cityNameAr ?? event.cityName) : event.cityName;
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
+  const isCancelled = event.status === 'cancelled';
+  const hasRsvpBox = isHost || !isCancelled || event.viewerRsvp === 'going';
 
   return (
     <article className="mx-auto max-w-5xl px-4 py-6 sm:py-8 md:px-8 md:py-10">
@@ -108,7 +111,7 @@ export const EventDetail = ({
         </Link>
       )}
 
-      {event.status === 'cancelled' && (
+      {isCancelled && (
         <div
           role="status"
           className="mb-4 rounded-box border border-error bg-error-tint p-4"
@@ -155,7 +158,7 @@ export const EventDetail = ({
               {day} · {timeRange}
             </time>
           </span>
-          {event.goingCount > 0 ? (
+          {event.goingCount > 0 && !isCancelled ? (
             <span className="inline-flex items-center gap-2 rounded-full bg-secondary-tint px-3 py-2 text-body-sm font-medium text-accent">
               <Users className="size-4" aria-hidden="true" />
               {going_count({ count: event.goingCount }, { locale })}
@@ -175,7 +178,9 @@ export const EventDetail = ({
         </div>
       ) : null}
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.75fr)]">
+      <div
+        className={`mt-8 grid gap-8 ${hasRsvpBox ? 'lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.75fr)]' : ''}`}
+      >
         <section aria-labelledby="event-details-title">
           <h2
             id="event-details-title"
@@ -243,32 +248,36 @@ export const EventDetail = ({
           </section>
         </section>
 
-        <aside className="flex h-full flex-col gap-4 lg:sticky lg:top-6 lg:self-stretch lg:pt-12">
-          <section
-            aria-labelledby="event-rsvp-title"
-            className="flex flex-1 flex-col rounded-box border-2 border-secondary bg-base-100 p-5 shadow-[var(--shadow-2)]"
-          >
-            <h2
-              id="event-rsvp-title"
-              className="mb-4 font-display text-h4 font-semibold"
+        {hasRsvpBox ? (
+          <aside className="flex h-full flex-col gap-4 lg:sticky lg:top-6 lg:self-stretch lg:pt-12">
+            <section
+              aria-labelledby="event-rsvp-title"
+              className="flex flex-1 flex-col rounded-box border-2 border-secondary bg-base-100 p-5 shadow-[var(--shadow-2)]"
             >
-              {isHost
-                ? event_host({}, { locale })
-                : rsvp_box_title({}, { locale })}
-            </h2>
-            <div className="mt-auto">
-              <RsvpSection
-                event={event}
-                hostName={hostName}
-                marketSlug={market.slug}
-                locale={locale}
-                isHost={isHost}
-                live={live}
-                isWindowOpen={isWindowOpen}
-              />
-            </div>
-          </section>
-        </aside>
+              <h2
+                id="event-rsvp-title"
+                className="mb-4 font-display text-h4 font-semibold"
+              >
+                {isHost
+                  ? event_host({}, { locale })
+                  : isCancelled
+                    ? rsvp_box_cancelled({}, { locale })
+                    : rsvp_box_title({}, { locale })}
+              </h2>
+              <div className="mt-auto">
+                <RsvpSection
+                  event={event}
+                  hostName={hostName}
+                  marketSlug={market.slug}
+                  locale={locale}
+                  isHost={isHost}
+                  live={live}
+                  isWindowOpen={isWindowOpen}
+                />
+              </div>
+            </section>
+          </aside>
+        ) : null}
       </div>
     </article>
   );

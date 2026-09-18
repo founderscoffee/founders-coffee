@@ -1,4 +1,4 @@
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Market } from '@founders-coffee/db';
@@ -88,5 +88,49 @@ describe('EventDetail structured data ownership', () => {
     expect(
       container.querySelectorAll('script[type="application/ld+json"]'),
     ).toHaveLength(0);
+  });
+});
+
+const cancelled = {
+  ...event,
+  status: 'cancelled',
+  goingCount: 3,
+  cancelledAt: new Date('2026-09-10T00:00:00Z'),
+  cancellationReason: 'The café closed without warning.',
+} satisfies EventDetailItem;
+
+const show = (item: EventDetailItem) =>
+  render(
+    <EventDetail
+      locale="en"
+      market={market}
+      event={item}
+      host={null}
+      isHost={false}
+      live={null}
+      isWindowOpen={false}
+    />,
+  );
+
+describe('EventDetail once the host has called the meetup off', () => {
+  it('counts the people coming while the meetup is still on', () => {
+    show({ ...event, goingCount: 3 });
+    expect(screen.getByText('+3 going')).toBeTruthy();
+  });
+
+  it('stops advertising an audience for a meetup nobody can attend', () => {
+    show(cancelled);
+    expect(screen.queryByText('+3 going')).toBeNull();
+  });
+
+  it('does not invite a stranger to save a spot at it', () => {
+    show(cancelled);
+    expect(screen.queryByText('Save your spot')).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Your place' })).toBeNull();
+  });
+
+  it('still has a place to address whoever had said they were coming', () => {
+    show({ ...cancelled, viewerRsvp: 'going' });
+    expect(screen.getByRole('heading', { name: 'Your place' })).toBeTruthy();
   });
 });
