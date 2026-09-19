@@ -83,7 +83,7 @@ export const MarketHero = ({
       aria-labelledby="market-hero-title"
       className="relative isolate flex min-h-[calc(min(100vw,2172px)/2.99)] items-center bg-base-200"
     >
-      <div className="mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-9 text-center md:px-8 md:pt-14 md:pb-14">
+      <div className="hero-stack mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-9 text-center md:px-8 md:pt-14 md:pb-14">
         <div className="@container w-full">
           <h1
             id="market-hero-title"

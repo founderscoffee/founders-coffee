@@ -309,29 +309,50 @@
    empty sky and 15px of empty water, which is 12.0px and 5.8px once scaled to a 320px viewport,
    the narrowest we support. Both fades finish inside that margin, so neither erases anything
    drawn. */
-/* Tablet, meaning 768px up to the desktop breakpoint. The hero is sized for the two ends of
-   the range: on a phone it is already compact, and on a desktop the headline is the page's
-   anchor and has the width to be it. Between them the three stacked elements crowd, so the
-   headline steps down to 55% of its fitted size, the subtitle to 75% of its own, and the
-   search field drops 50px clear of them.
+/* Tablet, meaning 768px up to the desktop breakpoint. The hero is composed for the two ends of
+   the range — a phone, where it is already compact, and a desktop, where the headline is the
+   page's anchor and has the width to be it — and between them the three stacked elements
+   crowd. These numbers come from matching a reference composition measured at 986px: the
+   headline and subtitle sit clear in the sky, and the search field drops onto the waterline of
+   the artwork behind it. Every value below was read off that comparison rather than chosen, so
+   changing one in isolation will pull the composition apart.
 
    The headline reduction is a multiplier on the fitted size rather than a size of its own, so
    it composes with the machinery above instead of replacing it: the per-language shares stay
    the single place a measured headline is recorded, `min()` still applies the 5.5rem ceiling,
-   and the one-line guarantee survives because the multiplier only ever makes the line shorter.
-   Both line-heights are unitless, so they follow their font-size down without a rule here.
+   and the one-line guarantee survives because a multiplier below one only ever shortens the
+   line. Both line-heights are unitless, so they follow their font-size down on their own.
 
-   The search field's offset is written as its own margin plus 50px, so it tracks the `md:mt-6`
-   the element carries; change that utility and this number has to change with it. */
+   Arabic takes a larger subtitle than the Latin locales, not a smaller one. The reduction that
+   suits French and English makes Arabic too light to read against the artwork, because the
+   script carries its meaning in strokes that thin out faster as the size drops.
+
+   The padding and margins here are absolute because the section's own `min-height` is within a
+   pixel or two of the content height at this width: a proportional value would let the content
+   fall under the minimum, at which point `items-center` starts centring it and the offsets stop
+   meaning what they say.
+
+   The wrapper is `hero-stack`, not `hero-content`: DaisyUI ships a `.hero-content` component
+   that sets `gap: 1rem`, and borrowing the name added 16px between every child of this element
+   at every width — 48px on a phone, where the artwork is still in flow. */
 @media (48rem <= width < 64rem) {
   .text-display-fit {
-    --display-fit-scale: 0.55;
+    --display-fit-scale: 0.686;
   }
   .hero-subtitle {
-    font-size: calc(var(--text-body-lg) * 0.75);
+    --hero-sub-scale: 0.75;
+    margin-top: 15.5px;
+    font-size: calc(var(--text-body-lg) * var(--hero-sub-scale));
+  }
+  :lang(ar) .hero-subtitle {
+    --hero-sub-scale: 1.09;
+  }
+  .hero-stack {
+    padding-top: 112px;
+    padding-bottom: 10.2px;
   }
   .hero-search {
-    margin-top: calc(1.5rem + 50px);
+    margin-top: 50.5px;
   }
 }
 
