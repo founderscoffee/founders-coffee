@@ -12,7 +12,9 @@ const isFeatureLogic = (filename) =>
   /\/src\/features\//.test(filename) && !FEATURE_COMPONENT.test(filename);
 
 /**
- * Nothing may reach past the `api.ts` layer at runtime (AGENTS.md §3, §4, §16).
+ * Within guarded component, lib, and feature paths, nothing may reach past the `api.ts` layer at
+ * runtime (AGENTS.md §3, §4, §16). Route loaders are outside those paths and remain an explicit
+ * server-side exception.
  *
  * `features/` is guarded alongside `components/` and `lib/` because §3 governs it identically: a
  * feature's modules call `hooks.ts`, which calls `api.ts`, which is the one module allowed to
@@ -48,7 +50,10 @@ export const noServerFnsInComponents = {
 
     return {
       ImportDeclaration: (node) => {
-        if (node.importKind === 'type') return;
+        const hasOnlyTypeSpecifiers =
+          node.specifiers.length > 0 &&
+          node.specifiers.every((specifier) => specifier.importKind === 'type');
+        if (node.importKind === 'type' || hasOnlyTypeSpecifiers) return;
         const source = node.source.value;
         const matches = (banned) =>
           source === banned || source.startsWith(banned + '/');

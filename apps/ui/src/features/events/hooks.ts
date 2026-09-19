@@ -17,6 +17,7 @@ import {
   type CreatedEvent,
   type CreateEventInput,
   type EventFeedPage,
+  type HostedEventPage,
   type HostMapContext,
   type HostMapLocationInput,
   type NearbyVenuesInput,
@@ -91,13 +92,18 @@ export const useMyJoinedEvents = (
   });
 };
 
-export const useHostedEvents = (params: {
-  hostId: string;
-  marketCode?: string;
-  beforeStartsAt?: number;
-  beforeId?: string;
-  limit?: number;
-}) =>
+type HostedEventsOptions = { initialPage?: HostedEventPage };
+
+export const useHostedEvents = (
+  params: {
+    hostId: string;
+    marketCode?: string;
+    beforeStartsAt?: number;
+    beforeId?: string;
+    limit?: number;
+  },
+  options: HostedEventsOptions = {},
+) =>
   useInfiniteQuery({
     queryKey: ['events', 'hosted', params],
     queryFn: ({ pageParam }) => {
@@ -112,6 +118,10 @@ export const useHostedEvents = (params: {
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as { startsAt: number; id: string } | undefined,
+    initialData: options.initialPage
+      ? { pages: [options.initialPage], pageParams: [undefined] }
+      : undefined,
+    staleTime: options.initialPage ? 30_000 : 0,
     enabled: !!params.hostId,
   });
 
@@ -119,6 +129,15 @@ export const useEvent = (slug: string) =>
   useQuery({
     queryKey: ['event', slug],
     queryFn: () => eventsApi.getEvent({ data: { slug } }),
+  });
+
+export const useMapboxToken = (enabled = true) =>
+  useQuery<string>({
+    queryKey: ['events', 'mapbox-token'],
+    queryFn: () => eventsApi.getMapboxToken(),
+    enabled,
+    staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
   });
 
 export const useRepeatEventTemplate = (eventId: string, enabled = true) =>

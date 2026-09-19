@@ -5,12 +5,13 @@ import { z } from 'zod';
 import { geo } from '@founders-coffee/domain';
 
 import { appValidator, handleResult } from '@founders-coffee/core';
+import { reportError } from '@founders-coffee/observability';
 
 import { requireAuth } from '../authz.js';
 import { requirePermission } from '../auth-middleware.js';
 import { resolveSession } from '../auth.js';
 import { getDb } from '../db.js';
-import { workerMetrics } from '../env.js';
+import { workerEnv, workerMetrics } from '../env.js';
 import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
@@ -31,6 +32,27 @@ import {
   publicEventFeedRequestSchema,
   repeatEventRequestSchema,
 } from './schemas.js';
+
+const notifyLiveCancellation = async (eventId: string): Promise<void> => {
+  const namespace = workerEnv().EVENT_LIVE;
+  if (!namespace) return;
+  try {
+    const stub = namespace.get(namespace.idFromName(`event:${eventId}`));
+    const response = await stub.fetch(
+      new Request(
+        `https://event-live.internal/internal/cancel/${encodeURIComponent(eventId)}`,
+        {
+          method: 'POST',
+          headers: { 'x-event-live-internal': '1' },
+        },
+      ),
+    );
+    if (!response.ok)
+      throw new Error(`Live cancellation returned ${response.status}`);
+  } catch (error) {
+    reportError(error, { operation: 'cancel_event_live', eventId });
+  }
+};
 
 /**
  * Create a new free event (FR-E1). Requires the `event:create` permission (host/moderator/admin).
@@ -138,13 +160,15 @@ export const cancelEvent = createServerFn({ method: 'POST', strict: false })
   .validator(appValidator(eventCancelRequestSchema))
   .handler(async ({ context, data }) => {
     const session = requireAuth(context.session);
-    return handleResult(
+    const result = await handleResult(
       cancelEventResolver(getDb(), {
         eventId: data.eventId,
         actorId: session.user.id,
         reason: data.reason,
       }),
     );
+    await notifyLiveCancellation(data.eventId);
+    return result;
   });
 
 /**

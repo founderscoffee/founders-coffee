@@ -3,7 +3,15 @@ import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Market } from '@founders-coffee/db';
-import { hero_subtitle, type Locale } from '@founders-coffee/i18n';
+import {
+  event_details_title,
+  going_count,
+  hero_search_cta,
+  hero_search_placeholder,
+  hero_subtitle,
+  host_in_your_city,
+  type Locale,
+} from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
 import { EventCard } from '../events/EventCard';
@@ -14,10 +22,24 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
     className,
+    params,
+    to,
   }: {
     children: ReactNode;
     className?: string;
-  }) => createElement('a', { href: '/', className }, children),
+    params?: Record<string, string>;
+    to?: string;
+  }) =>
+    createElement(
+      'a',
+      {
+        href: '/',
+        className,
+        'data-route': to,
+        'data-route-params': params ? JSON.stringify(params) : undefined,
+      },
+      children,
+    ),
 }));
 vi.mock('../../features/geo/hooks', () => ({
   useCitySearch: () => ({ data: [], isFetching: false }),
@@ -56,13 +78,13 @@ const event: EventFeedItem = {
   stateCode: '16',
   cityCode: '1',
   title: 'Founder coffee',
-  description: '',
+  description: 'A short founder conversation over coffee.',
   venue: 'Coffee shop',
   slug: 'founder-coffee',
   startsAt: new Date('2026-09-18T14:00:00Z'),
   endsAt: null,
   language: 'ar',
-  rsvps: 1,
+  rsvps: 2,
   latitude: null,
   longitude: null,
   venueAddress: null,
@@ -74,7 +96,9 @@ const event: EventFeedItem = {
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
   citySlug: 'algiers',
-  goingCount: 1,
+  goingCount: 2,
+  hostName: 'Host Name',
+  hostPhotoAssetId: null,
 };
 
 afterEach(cleanup);
@@ -87,17 +111,29 @@ describe('P1-002 landing typography', () => {
         <MarketHero locale={locale} market={market} cityEventCounts={{}} />,
       );
       const description = screen.getByText(hero_subtitle({}, { locale }));
-      expect(description.className.split(' ')).toContain('text-body');
-      expect(description.className).toContain('md:text-body-lg');
+      expect(description.className.split(' ')).toContain('text-body-lg');
       expect(screen.getByRole('combobox').className.split(' ')).toContain(
         'text-body',
       );
+      expect(screen.getByRole('combobox').getAttribute('placeholder')).toBe(
+        hero_search_placeholder({}, { locale }),
+      );
+      expect(
+        screen.getByRole('link', {
+          name: hero_search_cta({}, { locale }),
+        }),
+      ).toBeTruthy();
       expect(screen.getByRole('link').className.split(' ')).toContain(
         'text-body',
       );
       expect(screen.getByRole('heading', { level: 1 }).className).toContain(
-        'md:text-h1',
+        'text-display',
       );
+      expect(screen.getByRole('search')).toBeTruthy();
+      expect(screen.getByRole('region').getAttribute('aria-labelledby')).toBe(
+        'market-hero-title',
+      );
+      expect(screen.queryByText(market.nameAr ?? market.name)).toBeNull();
     },
   );
 
@@ -129,9 +165,43 @@ describe('P1-002 landing typography', () => {
       expect(
         view.container.querySelector('.mt-auto > span')?.className,
       ).toContain('text-body-sm');
+      expect(screen.getByText(event.description)).toBeTruthy();
+      expect(screen.getByText(event.hostName as string)).toBeTruthy();
+      expect(
+        screen.getByRole('link', {
+          name: event_details_title({}, { locale }),
+        }),
+      ).toBeTruthy();
+      expect(view.container.querySelector('.avatar-group')).toBeTruthy();
+      expect(
+        view.container.querySelector('.avatar-group')?.className,
+      ).toContain('overflow-visible');
+      expect(view.container.querySelector('[dir="rtl"]')).toBeTruthy();
+      expect(view.container.querySelector('[dir="ltr"]')).toBeTruthy();
+      expect(
+        view.container
+          .querySelector('.avatar-group')
+          ?.getAttribute('aria-label'),
+      ).toBe(going_count({ count: 2 }, { locale }));
+      expect(view.container.textContent).not.toContain(
+        going_count({ count: 2 }, { locale }),
+      );
       expect(view.container.querySelectorAll('.datechip-line')).toHaveLength(2);
     },
   );
+
+  it('keeps the host avatar but hides the group when no additional attendees exist', () => {
+    const view = render(
+      <EventCard
+        event={{ ...event, rsvps: 1, goingCount: 1 }}
+        locale="ar"
+        timezone={market.timezone}
+        marketSlug={market.slug}
+      />,
+    );
+    expect(view.container.querySelector('.avatar-group')).toBeNull();
+    expect(view.container.querySelector('.avatar')).toBeTruthy();
+  });
 
   it.each<Locale>(['ar', 'fr', 'en'])(
     'gives city names breathing room and larger subtitles in %s',
@@ -157,6 +227,17 @@ describe('P1-002 landing typography', () => {
                       featured: true,
                     },
                   },
+                  {
+                    count: 0,
+                    city: {
+                      code: '2',
+                      stateCode: '31',
+                      name: 'Oran',
+                      nameAr: 'وهران',
+                      slug: 'oran',
+                      featured: true,
+                    },
+                  },
                 ],
               },
             ],
@@ -164,10 +245,35 @@ describe('P1-002 landing typography', () => {
         />,
       );
       const name = view.container.querySelector('a .font-display');
-      expect(name?.className).toContain('leading-snug');
+      expect(name?.className).toContain('leading-tight');
       expect(name?.className).toContain('text-body-lg');
-      expect(view.container.querySelector('a > .mt-auto')?.className).toContain(
+      expect(view.container.querySelector('a .mt-auto')?.className).toContain(
         'text-body-sm',
+      );
+      expect(view.container.querySelectorAll('a.aura')).toHaveLength(1);
+      expect(view.container.querySelectorAll('a.aura-dual')).toHaveLength(1);
+      expect(view.container.querySelectorAll('a.hover-3d')).toHaveLength(0);
+      expect(view.container.querySelectorAll('article')).toHaveLength(3);
+      expect(view.container.querySelectorAll('data')).toHaveLength(2);
+      expect(view.container.querySelector('data[value="0"]')).toBeTruthy();
+      expect(
+        screen.getByRole('heading', {
+          level: 3,
+          name: host_in_your_city({}, { locale }),
+        }),
+      ).toBeTruthy();
+      const cityLink = screen.getByRole('link', {
+        name: new RegExp(locale === 'ar' ? 'الجزائر' : 'Algiers'),
+      });
+      expect(cityLink.getAttribute('data-route')).toBe(
+        '/$market/$city/$subcity',
+      );
+      expect(cityLink.getAttribute('data-route-params')).toBe(
+        JSON.stringify({
+          market: locale,
+          city: market.slug,
+          subcity: 'algiers',
+        }),
       );
     },
   );

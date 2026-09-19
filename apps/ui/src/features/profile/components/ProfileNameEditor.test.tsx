@@ -23,13 +23,6 @@ const state = vi.hoisted(() => ({
     isAuthLoading: false,
     isPending: false,
   },
-  config: {
-    data: {
-      isTurnstileBypassed: true,
-      turnstileSiteKey: null as string | null,
-    },
-    isError: false,
-  },
 }));
 vi.mock('../hooks', () => ({
   useUpdateDisplayName: () => ({
@@ -39,9 +32,6 @@ vi.mock('../hooks', () => ({
     isSuccess: false,
   }),
   useMyProfile: () => ({ ...state.query, refetch: state.refetch }),
-}));
-vi.mock('../../auth/hooks', () => ({
-  usePublicAuthConfig: () => ({ ...state.config, refetch: state.refetch }),
 }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: ReactNode }) =>
@@ -70,7 +60,6 @@ afterEach(() => {
   cleanup();
   vi.resetAllMocks();
   state.query.data = undefined;
-  state.config.data = { isTurnstileBypassed: true, turnstileSiteKey: null };
 });
 
 describe('PF-03 name editor', () => {
@@ -127,7 +116,6 @@ describe('PF-03 name editor', () => {
     expect(state.save).toHaveBeenCalledWith({
       displayName: 'Amina',
       expectedRevision: 0,
-      turnstileToken: undefined,
     });
     await act(async () =>
       finish({ ...owner, displayName: 'Amina', revision: 1 }),
@@ -171,23 +159,6 @@ describe('PF-03 name editor', () => {
       ),
     );
   });
-  it('fails closed with actionable copy when security configuration is missing', () => {
-    state.config.data.isTurnstileBypassed = false;
-    render(
-      <ProfileNameEditor
-        profile={owner}
-        locale="en"
-        onReload={state.refetch}
-      />,
-    );
-    expect((saveButton() as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByRole('alert').textContent).toContain(
-      'Verification is unavailable',
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(state.refetch).toHaveBeenCalledTimes(1);
-  });
-
   it('offers cancel only while dirty and restores the saved name', () => {
     render(
       <ProfileNameEditor

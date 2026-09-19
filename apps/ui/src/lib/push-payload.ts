@@ -6,7 +6,7 @@ export interface PushPayload {
   readonly dedupeKey: string | null;
 }
 
-const DEFAULT_TITLE = 'founders.coffee';
+const DEFAULT_TITLE = 'Founders Coffee';
 
 const DEFAULT_ICON = '/android-chrome-192x192.png';
 

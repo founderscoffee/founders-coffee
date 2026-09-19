@@ -17,13 +17,6 @@ const state = vi.hoisted(() => ({
   upload: vi.fn(),
   removePhoto: vi.fn(),
   photos: { enabled: false } as { enabled: boolean } | undefined,
-  config: {
-    data: {
-      isTurnstileBypassed: true,
-      turnstileSiteKey: null as string | null,
-    },
-    isError: false,
-  },
 }));
 
 vi.mock('../hooks', () => ({
@@ -36,9 +29,6 @@ vi.mock('../hooks', () => ({
   usePhotoUploadAvailability: () => ({ data: state.photos }),
   usePhotoUpload: () => ({ mutateAsync: state.upload, isPending: false }),
   useRemovePhoto: () => ({ mutateAsync: state.removePhoto, isPending: false }),
-}));
-vi.mock('../../auth/hooks', () => ({
-  usePublicAuthConfig: () => ({ ...state.config, refetch: state.refetch }),
 }));
 
 const show = (profile: UserProfile = saved) =>
@@ -156,7 +146,7 @@ describe('PF-04b optional fields', () => {
     ];
     for (const name of languages)
       fireEvent.click(screen.getByRole('button', { name }));
-    fireEvent.click(screen.getByLabelText('Show publicly — Languages I speak'));
+    fireEvent.click(screen.getByLabelText('Show publicly: Languages I speak'));
     for (const name of languages) {
       expect(
         screen.getByRole('button', { name }).getAttribute('aria-pressed'),
@@ -182,7 +172,7 @@ describe('PF-04b optional fields', () => {
       'Building small tools.',
     );
     expect(
-      screen.queryByLabelText('Show publicly — A short introduction'),
+      screen.queryByLabelText('Show publicly: A short introduction'),
     ).toBeNull();
     expect(screen.queryByLabelText('Writing language')).toBeNull();
     fireEvent.change(intro(), { target: { value: '' } });
@@ -192,7 +182,7 @@ describe('PF-04b optional fields', () => {
   it('keeps publication controls for interests', () => {
     show();
     const toggle = screen.getByLabelText(
-      'Show publicly — My interests',
+      'Show publicly: My interests',
     ) as HTMLInputElement;
     expect(toggle.disabled).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: 'Investing' }));

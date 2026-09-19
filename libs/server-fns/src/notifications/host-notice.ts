@@ -14,7 +14,8 @@ import {
   type NotificationPayload,
 } from './producer.js';
 import { armNotificationSchedule } from './schedule.js';
-import { emailPayloadFor, pushPayloadFor } from './templates.js';
+import { pushPayloadFor } from './templates.js';
+import { emailPayloadFor } from './email-templates.js';
 
 export const HOST_NOTICE_DELAY_MS = 15 * 60 * 1000;
 
@@ -36,9 +37,9 @@ export const HOST_NOTICE_DELAY_MS = 15 * 60 * 1000;
  * §5.17 freezes intent at `startsAt` and not before — and a host told a quarter of an hour later
  * that a guest is on the way is being told about a room they are already sitting in.
  *
- * The host's own RSVP is not news to the host, and `hostUpdates` is enforced at send time by
- * `resolveDestination` rather than here, so a switch turned off after this row was written still
- * stops it.
+ * The host's own RSVP is not news to the host. The separate confirmation and cancellation
+ * preferences are enforced at send time by `resolveDestination`, so a switch turned off after a
+ * row was written still stops that notice.
  */
 export const enqueueHostRsvpNotice = async (
   db: Db,
@@ -81,7 +82,7 @@ export const enqueueHostRsvpNotice = async (
   const payload = {
     ...basePayload,
     ...pushPayloadFor(templateKey, values, context.locale),
-    ...emailPayloadFor(templateKey, values, context.locale),
+    ...(await emailPayloadFor(templateKey, values, context.locale)),
   };
 
   const sendAt = new Date(
@@ -145,7 +146,7 @@ export const enqueueHostRsvpCancellationNotice = async (
   const payload = {
     ...basePayload,
     ...pushPayloadFor(templateKey, values, context.locale),
-    ...emailPayloadFor(templateKey, values, context.locale),
+    ...(await emailPayloadFor(templateKey, values, context.locale)),
   };
   const sendAt = new Date();
   const result = await enqueueNotificationIfAbsent(db, {

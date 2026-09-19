@@ -7,6 +7,7 @@ import type { AccountSummary } from '../api';
 
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
+  updateLocale: {} as Record<string, unknown>,
 }));
 
 vi.mock('../hooks', () => ({
@@ -14,6 +15,7 @@ vi.mock('../hooks', () => ({
   useMyDevices: () => ({ data: undefined }),
   useRevokeDevice: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUnlinkProvider: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateAccountLocale: () => state.updateLocale,
 }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
@@ -38,6 +40,7 @@ const { AccountPage } = await import('./AccountPage');
 
 const summary = (overrides: Partial<AccountSummary> = {}): AccountSummary => ({
   userId: 'usr_1',
+  locale: null,
   email: { masked: 'am•••@example.dz', verified: true },
   phone: { masked: null, verified: false },
   providers: ['google'],
@@ -47,6 +50,12 @@ const summary = (overrides: Partial<AccountSummary> = {}): AccountSummary => ({
 
 const show = (query: Record<string, unknown>, locale: Locale = 'en') => {
   state.query = { userId: 'usr_1', isAuthLoading: false, ...query };
+  state.updateLocale = {
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+  };
   return render(<AccountPage locale={locale} />);
 };
 
@@ -74,7 +83,8 @@ describe('the account and security screen', () => {
   it('names a sign-in method rather than showing its identifier', () => {
     show({ data: summary({ providers: ['google', 'github'] }) });
 
-    expect(screen.getByText('Google · GitHub')).toBeTruthy();
+    expect(screen.getByText('Google')).toBeTruthy();
+    expect(screen.getByText('GitHub')).toBeTruthy();
   });
 
   it('explains an account signed in with no linked provider', () => {
@@ -131,7 +141,27 @@ describe('the account and security screen', () => {
       screen
         .getAllByRole('heading', { level: 2 })
         .map((node) => node.textContent),
-    ).toEqual(['Private contacts', 'Sign-in and devices', 'Your data']);
+    ).toEqual([
+      'Interface language',
+      'Private contacts',
+      'Sign-in and devices',
+      'Your data',
+    ]);
+  });
+
+  it('keeps the interface language control on the account screen', () => {
+    show({ data: summary({ locale: 'fr' }) });
+
+    expect(
+      (
+        screen.getByRole('combobox', {
+          name: 'Interface language',
+        }) as unknown as HTMLSelectElement
+      ).value,
+    ).toBe('fr');
+    expect(
+      screen.getByText('Choose the language used across Founders Coffee.'),
+    ).toBeTruthy();
   });
 
   it('keeps the heading stable while the account is still loading', () => {
@@ -173,7 +203,7 @@ describe('the account and security screen', () => {
     expect(links.map((link) => link.textContent)).toEqual([
       'Profile',
       'Your gatherings',
-      'Preferences',
+      'Notifications',
       'Account & security',
     ]);
   });
@@ -187,9 +217,9 @@ describe('the account and security screen', () => {
     );
     expect(links).toEqual([
       '/profile',
-      '/activity',
-      '/preferences',
-      '/account',
+      '/profile/activity',
+      '/profile/notifications',
+      '/profile/account',
     ]);
   });
 });

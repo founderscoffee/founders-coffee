@@ -9,8 +9,8 @@ import {
   getNotificationContact,
   registerPushToken,
   seed,
-  user,
   type Db,
+  user,
 } from '@founders-coffee/db';
 
 import { readMyPreferences, saveMyPreferences } from './preferences.js';
@@ -20,8 +20,10 @@ const DEFAULTS = {
   eventUpdatesChannels: ['push', 'email'] as ('push' | 'email')[],
   eventReminders: true,
   eventRemindersChannels: ['push', 'email'] as ('push' | 'email')[],
-  hostUpdates: true,
-  hostUpdatesChannels: ['push', 'email'] as ('push' | 'email')[],
+  hostRsvpReceived: true,
+  hostRsvpReceivedChannels: ['push', 'email'] as ('push' | 'email')[],
+  hostRsvpCancelled: true,
+  hostRsvpCancelledChannels: ['push', 'email'] as ('push' | 'email')[],
   followUpPrompts: false,
   followUpPromptsChannels: [] as ('push' | 'email')[],
   smsFallbackEnabled: false,
@@ -50,16 +52,12 @@ const withVerifiedPhone = () =>
 const save = (
   db: Db,
   userId: string,
-  changes: Partial<typeof DEFAULTS> & {
-    locale?: 'ar' | 'fr' | 'en' | null;
-    expectedRevision: number;
-  },
+  changes: Partial<typeof DEFAULTS> & { expectedRevision: number },
 ) => {
-  const { locale = null, expectedRevision, ...rest } = changes;
+  const { expectedRevision, ...rest } = changes;
   return saveMyPreferences(db, userId, {
     ...DEFAULTS,
     ...rest,
-    locale,
     expectedRevision,
   });
 };
@@ -77,7 +75,6 @@ describe('readMyPreferences', () => {
         pushEnabled: false,
       });
       expect(result.data.revision).toBe(0);
-      expect(result.data.locale).toBeNull();
     }
   });
 
@@ -139,7 +136,7 @@ describe('saveMyPreferences', () => {
   it('rejects a second save at a revision another session already spent', async () => {
     const { db, userId } = await setup();
     await readMyPreferences(db, userId);
-    await save(db, userId, { hostUpdates: false, expectedRevision: 0 });
+    await save(db, userId, { hostRsvpReceived: false, expectedRevision: 0 });
 
     const stale = await save(db, userId, {
       followUpPrompts: true,
@@ -196,32 +193,6 @@ describe('saveMyPreferences', () => {
     expect(withdrawn.ok).toBe(true);
     if (withdrawn.ok) expect(withdrawn.data.smsConsentAt).toBeNull();
   });
-
-  it('persists the interface locale on the identity, which is its only home', async () => {
-    const { db, userId } = await setup();
-    await readMyPreferences(db, userId);
-
-    await save(db, userId, { locale: 'fr', expectedRevision: 0 });
-
-    const rows = await db
-      .select({ locale: user.localePref })
-      .from(user)
-      .where(eq(user.id, userId));
-    expect(rows[0]?.locale).toBe('fr');
-  });
-
-  it('clears the stored locale back to cookie resolution when set to null', async () => {
-    const { db, userId } = await setup();
-    await readMyPreferences(db, userId);
-    await save(db, userId, { locale: 'ar', expectedRevision: 0 });
-
-    const cleared = await save(db, userId, {
-      locale: null,
-      expectedRevision: 1,
-    });
-
-    expect(cleared.ok && cleared.data.locale).toBeNull();
-  });
 });
 
 describe('push belongs to the server to record, not to the form to send', () => {
@@ -253,7 +224,7 @@ describe('push belongs to the server to record, not to the form to send', () => 
     const { db, userId } = await setup();
     await readMyPreferences(db, userId);
 
-    const saved = await save(db, userId, { locale: 'en', expectedRevision: 0 });
+    const saved = await save(db, userId, { expectedRevision: 0 });
 
     expect(saved.ok && saved.data.preferences.pushEnabled).toBe(false);
   });

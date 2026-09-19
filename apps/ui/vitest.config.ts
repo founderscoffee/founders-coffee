@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 import { mapboxCspWorker } from './vite-mapbox-worker';
 
 export default defineConfig({
+  cacheDir: './node_modules/.vite-vitest',
   plugins: [mapboxCspWorker()],
   resolve: {
     conditions: ['@founders-coffee/source'],

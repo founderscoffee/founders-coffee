@@ -1,16 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-
-import { ActivityPage } from '../features/events/components/ActivityPage';
-import { NO_INDEX_VALUE } from '../lib/indexation';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/activity')({
-  headers: () => ({
-    'Cache-Control': 'private, no-store',
-    'X-Robots-Tag': NO_INDEX_VALUE,
-  }),
-  component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    return <ActivityPage locale={locale} markets={markets} />;
+  beforeLoad: () => {
+    throw redirect({ to: '/profile/activity' });
   },
-  head: () => ({ meta: [{ name: 'robots', content: NO_INDEX_VALUE }] }),
 });

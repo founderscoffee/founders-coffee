@@ -8,7 +8,6 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  profile_retry,
   profile_saved,
   toast_dismiss,
   type Locale,
@@ -97,26 +96,6 @@ describe('profile toast feedback', () => {
       screen.getByRole('button', { name: 'Dismiss notification' }),
     );
     expect(screen.queryByRole('alert')).toBeNull();
-  });
-
-  it('keeps the retry action legible on the filled security-error toast', () => {
-    const onRetry = vi.fn();
-    render(
-      <ProfileFeedback
-        locale="en"
-        notification={null}
-        onDismiss={vi.fn()}
-        hasSecurityError
-        onRetry={onRetry}
-      />,
-    );
-
-    const retry = screen.getByRole('button', {
-      name: profile_retry({}, { locale: 'en' }),
-    });
-    expect(retry.className).toContain('text-inherit');
-    fireEvent.click(retry);
-    expect(onRetry).toHaveBeenCalledOnce();
   });
 
   it('does not leak notifications across mounted editors or remounts', () => {

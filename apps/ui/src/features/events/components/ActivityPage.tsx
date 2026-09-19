@@ -1,3 +1,5 @@
+import { useState, type KeyboardEvent } from 'react';
+
 import {
   activity_hosted,
   activity_hosted_empty,
@@ -27,6 +29,11 @@ const closeoutCandidates = (items: readonly ActivityItem[]): string[] =>
     .filter((item) => new Date(item.startsAt).getTime() < Date.now())
     .map((item) => item.id);
 
+type ActivityTab = 'joined' | 'hosted';
+
+const tabIds: readonly ActivityTab[] = ['joined', 'hosted'];
+const ACTIVITY_PAGE_SIZE = 10;
+
 export const ActivityPage = ({
   locale,
   markets,
@@ -34,10 +41,14 @@ export const ActivityPage = ({
   locale: Locale;
   markets: readonly { code: string; slug: string }[];
 }) => {
+  const [activeTab, setActiveTab] = useState<ActivityTab>('joined');
   const auth = authClient.useSession();
   const userId = auth.data?.user.id;
-  const joined = useMyJoinedEvents();
-  const hosted = useHostedEvents({ hostId: userId ?? '' });
+  const joined = useMyJoinedEvents({ limit: ACTIVITY_PAGE_SIZE });
+  const hosted = useHostedEvents({
+    hostId: userId ?? '',
+    limit: ACTIVITY_PAGE_SIZE,
+  });
   const hostedItems = flatten(hosted.data?.pages);
   const closeoutStates = useMyCloseoutStates(closeoutCandidates(hostedItems));
   const closeoutByEvent = new Map(
@@ -48,6 +59,21 @@ export const ActivityPage = ({
     markets.find((market) => market.code === code)?.slug ?? code;
 
   const isLoading = auth.isPending || (!!userId && joined.isPending);
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    const currentTab = event.currentTarget.dataset.tab as ActivityTab;
+    const currentIndex = tabIds.indexOf(currentTab);
+    const offset = event.key === 'ArrowRight' ? 1 : -1;
+    const nextIndex = (currentIndex + offset + tabIds.length) % tabIds.length;
+    event.preventDefault();
+    setActiveTab(tabIds[nextIndex]);
+  };
+
+  const joinedTabId = 'activity-joined-tab';
+  const hostedTabId = 'activity-hosted-tab';
+  const joinedPanelId = 'activity-joined-panel';
+  const hostedPanelId = 'activity-hosted-panel';
 
   return (
     <section className="mx-auto max-w-5xl px-5 py-12 lg:grid lg:grid-cols-[184px_minmax(0,1fr)] lg:gap-12">
@@ -65,7 +91,7 @@ export const ActivityPage = ({
             locale={locale}
             isLoading={false}
             isAnonymous
-            returnPath="/activity"
+            returnPath="/profile/activity"
             onRetry={() => void joined.refetch()}
           />
         ) : isLoading ? (
@@ -75,30 +101,76 @@ export const ActivityPage = ({
             {activity_unavailable({}, { locale })}
           </p>
         ) : (
-          <div className="space-y-6">
-            <ActivityList
-              locale={locale}
-              title={activity_joined({}, { locale })}
-              emptyNote={activity_joined_empty({}, { locale })}
-              items={flatten(joined.data?.pages)}
-              total={joined.data?.pages[0]?.total ?? 0}
-              marketSlugFor={marketSlugFor}
-              hasMore={!!joined.hasNextPage}
-              isLoadingMore={joined.isFetchingNextPage}
-              onLoadMore={() => void joined.fetchNextPage()}
-            />
-            <ActivityList
-              locale={locale}
-              title={activity_hosted({}, { locale })}
-              emptyNote={activity_hosted_empty({}, { locale })}
-              items={hostedItems}
-              total={hosted.data?.pages[0]?.total ?? 0}
-              marketSlugFor={marketSlugFor}
-              hasMore={!!hosted.hasNextPage}
-              isLoadingMore={hosted.isFetchingNextPage}
-              onLoadMore={() => void hosted.fetchNextPage()}
-              closeoutStates={closeoutByEvent}
-            />
+          <div
+            className="tabs tabs-lift tabs-sm w-full md:tabs-md"
+            role="tablist"
+            aria-label={activity_title({}, { locale })}
+          >
+            <button
+              id={joinedTabId}
+              type="button"
+              role="tab"
+              className={`tab ${activeTab === 'joined' ? 'tab-active' : ''}`}
+              aria-controls={joinedPanelId}
+              aria-selected={activeTab === 'joined'}
+              data-tab="joined"
+              tabIndex={activeTab === 'joined' ? 0 : -1}
+              onClick={() => setActiveTab('joined')}
+              onKeyDown={handleTabKeyDown}
+            >
+              {activity_joined({}, { locale })}
+            </button>
+            <button
+              id={hostedTabId}
+              type="button"
+              role="tab"
+              className={`tab ${activeTab === 'hosted' ? 'tab-active' : ''}`}
+              aria-controls={hostedPanelId}
+              aria-selected={activeTab === 'hosted'}
+              data-tab="hosted"
+              tabIndex={activeTab === 'hosted' ? 0 : -1}
+              onClick={() => setActiveTab('hosted')}
+              onKeyDown={handleTabKeyDown}
+            >
+              {activity_hosted({}, { locale })}
+            </button>
+            <div
+              id={joinedPanelId}
+              role="tabpanel"
+              aria-labelledby={joinedTabId}
+              className={`tab-content border-base-300 bg-base-100 p-0 pt-4 md:pt-5 ${activeTab === 'joined' ? 'block' : ''}`}
+              hidden={activeTab !== 'joined'}
+            >
+              <ActivityList
+                locale={locale}
+                emptyNote={activity_joined_empty({}, { locale })}
+                items={flatten(joined.data?.pages)}
+                total={joined.data?.pages[0]?.total ?? 0}
+                marketSlugFor={marketSlugFor}
+                hasMore={!!joined.hasNextPage}
+                isLoadingMore={joined.isFetchingNextPage}
+                onLoadMore={() => void joined.fetchNextPage()}
+              />
+            </div>
+            <div
+              id={hostedPanelId}
+              role="tabpanel"
+              aria-labelledby={hostedTabId}
+              className={`tab-content border-base-300 bg-base-100 p-0 pt-4 md:pt-5 ${activeTab === 'hosted' ? 'block' : ''}`}
+              hidden={activeTab !== 'hosted'}
+            >
+              <ActivityList
+                locale={locale}
+                emptyNote={activity_hosted_empty({}, { locale })}
+                items={hostedItems}
+                total={hosted.data?.pages[0]?.total ?? 0}
+                marketSlugFor={marketSlugFor}
+                hasMore={!!hosted.hasNextPage}
+                isLoadingMore={hosted.isFetchingNextPage}
+                onLoadMore={() => void hosted.fetchNextPage()}
+                closeoutStates={closeoutByEvent}
+              />
+            </div>
           </div>
         )}
       </div>

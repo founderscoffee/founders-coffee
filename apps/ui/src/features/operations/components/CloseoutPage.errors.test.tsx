@@ -98,7 +98,7 @@ describe('states the host can land in', () => {
     show();
 
     expect(screen.getByRole('alert').textContent).toMatch(
-      /not available in your market/i,
+      /not available in your region/i,
     );
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
     expect(screen.queryByRole('button', { name: /Submit/i })).toBeNull();

@@ -3,9 +3,18 @@ import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../events/hooks', () => ({
-  useHostedEvents: () => ({
-    data: undefined,
-    hasNextPage: false,
+  useHostedEvents: (
+    _params: unknown,
+    options: {
+      initialPage?: {
+        nextCursor: unknown;
+        items: readonly unknown[];
+        total: number;
+      };
+    } = {},
+  ) => ({
+    data: options.initialPage ? { pages: [options.initialPage] } : undefined,
+    hasNextPage: Boolean(options.initialPage?.nextCursor),
     isFetchingNextPage: false,
     fetchNextPage: vi.fn(),
   }),
@@ -15,6 +24,7 @@ vi.mock('@tanstack/react-router', () => ({
     createElement('a', props, children),
 }));
 
+import type { RootMarket } from '../../markets/api';
 import type { PublicProfile } from '../api';
 import { PublicProfilePage } from './PublicProfilePage';
 
@@ -32,9 +42,15 @@ const publicProfile: PublicProfile = {
   professionalLink: null,
 };
 
-const markets = [
-  { code: 'DZ', slug: 'algeria', timezone: 'Africa/Algiers' },
-] as never;
+const markets: readonly RootMarket[] = [
+  {
+    code: 'DZ',
+    slug: 'algeria',
+    name: 'Algeria',
+    nameAr: 'الجزائر',
+    timezone: 'Africa/Algiers',
+  },
+];
 
 const hostedEvent = {
   id: 'evt_1',
@@ -57,6 +73,7 @@ const renderProfile = (events: readonly unknown[]) =>
       locale="en"
       profile={publicProfile}
       events={events as never}
+      eventsTotal={events.length}
       markets={markets}
     />,
   );
@@ -77,7 +94,30 @@ describe('PublicProfilePage', () => {
 
     expect(screen.getByText('Gatherings hosted')).toBeTruthy();
     expect(screen.getByText('Coffee and Code')).toBeTruthy();
+    expect(screen.getByText('Showing 1 of 1')).toBeTruthy();
     expect(screen.queryByText(/No events hosted yet/i)).toBeNull();
+  });
+
+  it("renders event times in the market's zone, not the runtime's", () => {
+    renderProfile([hostedEvent]);
+
+    expect(screen.getByText('19:00\u201320:00')).toBeTruthy();
+  });
+
+  it('keeps the server cursor available for the next hosted-events page', () => {
+    render(
+      <PublicProfilePage
+        locale="en"
+        profile={publicProfile}
+        events={[hostedEvent] as never}
+        eventsNextCursor={{ startsAt: 1, id: 'evt_1' }}
+        eventsTotal={2}
+        markets={markets}
+      />,
+    );
+
+    expect(screen.getByText('Showing 1 of 2')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Load more' })).toBeTruthy();
   });
 
   it('skips an event whose market is not visible rather than crashing', () => {
@@ -92,6 +132,7 @@ describe('PublicProfilePage', () => {
         locale="en"
         markets={markets}
         events={[]}
+        eventsTotal={0}
         profile={{
           ...publicProfile,
           interests: ['product', 'community'],
@@ -105,9 +146,7 @@ describe('PublicProfilePage', () => {
     expect(screen.getByText('Product')).toBeTruthy();
     expect(screen.getByText('Community')).toBeTruthy();
     expect(screen.getByText('Arabic · French')).toBeTruthy();
-    const link = screen.getByRole('link', {
-      name: 'https://example.com/work',
-    });
+    const link = screen.getByRole('link', { name: /example\.com\/work/ });
     expect(link.getAttribute('rel')).toContain('nofollow');
   });
 
@@ -117,6 +156,7 @@ describe('PublicProfilePage', () => {
         locale="en"
         markets={markets}
         events={[]}
+        eventsTotal={0}
         profile={publicProfile}
       />,
     );

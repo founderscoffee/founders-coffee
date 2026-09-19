@@ -1,4 +1,5 @@
-import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { serwist } from '@serwist/vite';
@@ -7,6 +8,10 @@ import type { Plugin } from 'vite';
 export const CLIENT_OUT_DIR = 'dist/client';
 
 export const SW_DEST = 'sw.js';
+
+export const OFFLINE_DOCUMENT_URL = '/offline';
+
+const OFFLINE_DOCUMENT_FILE = 'offline.html';
 
 /**
  * What the worker must not download before anyone asks for it.
@@ -17,8 +22,39 @@ export const SW_DEST = 'sw.js';
  * where that data is metered and not cheap. Excluding it costs the map a cold load on the one screen
  * that needs it, and those chunks are content-hashed under `/assets` with a year of immutable
  * caching, so that load happens once per release rather than once per visit.
+ *
+ * The offline document is excluded here and added back by {@link offlinePrecacheEntry} under the URL
+ * it is actually served at.
  */
-export const precacheIgnores = (): string[] => ['**/mapbox-gl*'];
+export const precacheIgnores = (): string[] => [
+  '**/mapbox-gl*',
+  `**/${OFFLINE_DOCUMENT_FILE}`,
+];
+
+/**
+ * The offline fallback, precached under its served URL rather than its filename.
+ *
+ * Workers Assets strips `.html`: `/offline.html` answers `307 → /offline`, and only `/offline`
+ * answers 200. Left to the glob, the worker would precache the filename, follow that redirect on
+ * install, and store a response whose `redirected` flag is set — which a browser then refuses to
+ * hand back for a navigation, so the fallback would fail in exactly the situation it exists for.
+ *
+ * The revision is the file's own content hash, so editing the page ships a new precache entry
+ * instead of leaving the old copy in place forever.
+ */
+export const offlinePrecacheEntry = (): { url: string; revision: string } => ({
+  url: OFFLINE_DOCUMENT_URL,
+  revision: createHash('sha256')
+    .update(
+      readFileSync(
+        fileURLToPath(
+          new URL(`./public/${OFFLINE_DOCUMENT_FILE}`, import.meta.url),
+        ),
+      ),
+    )
+    .digest('hex')
+    .slice(0, 32),
+});
 
 /**
  * Serwist, pinned to the client build.
@@ -71,12 +107,19 @@ export const clientOnlyServwist = (
   });
 
 /**
- * Fail the build when the service worker is missing from the client output.
+ * Fail the build when the service worker is missing from the client output, or when the offline
+ * fallback it names was not precached.
  *
  * The defect this guards against produced no error, no warning and a green build; it was found by
  * curling production months later. Every path that ships runs `vite build` — CI, `deploy:staging`,
  * `deploy:production` — so asserting here covers all of them, and none of them would otherwise
  * notice that push notifications and offline caching had quietly become inert.
+ *
+ * The fallback check is the same shape of failure. Serwist's `fallbacks` expects its entries to
+ * have been precached beforehand and says nothing when they were not: the worker builds, installs
+ * and serves, and the one request it exists for — a navigation with no network and no cache — still
+ * ends at the browser's error page. Matching on the revision hash rather than the URL keeps the
+ * assertion honest about which copy was injected, and is indifferent to how the bundler quoted it.
  *
  * Scoped to the client environment because that is the only one that emits the worker, and because
  * the SSR bundle closes after it: asserting on both would be checking the same file twice.
@@ -98,6 +141,12 @@ export const assertServiceWorkerEmitted = (): Plugin => ({
         throw new Error(
           `Service worker missing from the client build: ${CLIENT_OUT_DIR}/${SW_DEST}. ` +
             'Push notifications and offline caching are inert without it.',
+        );
+      const { revision } = offlinePrecacheEntry();
+      if (!readFileSync(built, 'utf8').includes(revision))
+        throw new Error(
+          `Offline fallback ${OFFLINE_DOCUMENT_URL} is not in the precache manifest. ` +
+            'Navigations with no network and no cache would fall to the browser error page.',
         );
     },
   },

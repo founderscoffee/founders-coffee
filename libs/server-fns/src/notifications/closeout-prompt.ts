@@ -10,7 +10,8 @@ import {
 import { channelPlanFor } from './channel-plan.js';
 import { closeoutUrlFor, resolveNotificationContext } from './context.js';
 import { armNotificationSchedule } from './schedule.js';
-import { emailPayloadFor, pushPayloadFor } from './templates.js';
+import { pushPayloadFor } from './templates.js';
+import { emailPayloadFor } from './email-templates.js';
 import { validPayload } from './producer.js';
 
 export type { CloseoutPromptOutcome } from '@founders-coffee/core';
@@ -98,7 +99,7 @@ export const enqueueCloseoutPrompt = async (
   const payload = {
     ...basePayload,
     ...pushPayloadFor('closeout_prompt', values, context.locale),
-    ...emailPayloadFor('closeout_prompt', values, context.locale),
+    ...(await emailPayloadFor('closeout_prompt', values, context.locale)),
     pushUrl: url,
   };
 

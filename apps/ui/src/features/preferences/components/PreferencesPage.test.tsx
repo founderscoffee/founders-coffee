@@ -8,12 +8,14 @@ import type { AccountPreferencesView } from '../api';
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
   save: {} as Record<string, unknown>,
+  push: {} as Record<string, unknown>,
   saved: [] as unknown[],
 }));
 
 vi.mock('../hooks', () => ({
   useMyPreferences: () => state.query,
   useSavePreferences: () => state.save,
+  useDevicePushState: () => state.push,
 }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
@@ -29,18 +31,21 @@ vi.mock('../../account/components/ProfileSectionNav', () => ({
 
 const { PreferencesPage } = await import('./PreferencesPage');
 
+const MARKETS = [{ code: 'DZ', slug: 'algeria' }];
+
 const view = (
   overrides: Partial<AccountPreferencesView> = {},
 ): AccountPreferencesView => ({
-  locale: null,
   revision: 3,
   preferences: {
     eventUpdates: true,
     eventUpdatesChannels: ['push', 'email'],
     eventReminders: true,
     eventRemindersChannels: ['push', 'email'],
-    hostUpdates: true,
-    hostUpdatesChannels: ['push', 'email'],
+    hostRsvpReceived: true,
+    hostRsvpReceivedChannels: ['push', 'email'],
+    hostRsvpCancelled: true,
+    hostRsvpCancelledChannels: ['push', 'email'],
     followUpPrompts: false,
     followUpPromptsChannels: [],
     pushEnabled: false,
@@ -56,7 +61,15 @@ const show = (
   options: { locale?: Locale } = {},
 ) => {
   state.query = { userId: 'usr_1', isAuthLoading: false, ...query };
-  return render(<PreferencesPage locale={options.locale ?? 'en'} />);
+  state.push = {
+    state: 'registered',
+    enable: vi.fn(async () => true),
+    isEnabling: false,
+    refresh: vi.fn(),
+  };
+  return render(
+    <PreferencesPage locale={options.locale ?? 'en'} markets={MARKETS} />,
+  );
 };
 
 beforeEach(() => {
@@ -78,54 +91,47 @@ describe('the preferences screen', () => {
 
     expect(
       (
-        screen.getByRole('switch', {
-          name: /Reminders before a gathering/i,
+        screen.getByRole('checkbox', {
+          name: /Reminders before a gathering: Email/i,
         }) as HTMLInputElement
       ).checked,
     ).toBe(true);
     expect(
       (
-        screen.getByRole('switch', {
-          name: /After a gathering/i,
+        screen.getByRole('checkbox', {
+          name: /After a gathering: Email/i,
         }) as HTMLInputElement
       ).checked,
     ).toBe(false);
   });
 
-  it('offers the three languages and no fourth way to opt out', () => {
+  it('keeps interface language off the notification screen', () => {
     const { container } = show({ data: view() });
 
-    expect(
-      [...container.querySelectorAll('#prefs-language option')].map((option) =>
-        option.getAttribute('value'),
-      ),
-    ).toEqual(['ar', 'en', 'fr']);
+    expect(container.querySelector('#prefs-language')).toBeNull();
   });
 
-  it('starts on Arabic for an account that has never chosen a language', () => {
+  it('keeps delivery copy focused on in-app notifications', () => {
     show({ data: view() });
 
-    expect(screen.getByDisplayValue('عربية')).toBeTruthy();
-    expect(
-      (
-        screen.getByRole('button', {
-          name: /Save preferences/i,
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(true);
-  });
-
-  it('says event details stay in the app whatever is switched off', () => {
-    show({ data: view() });
-
-    expect(screen.getByText(/Event details stay in the app/i)).toBeTruthy();
+    expect(screen.getAllByText('In app').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Event details stay in the app/i)).toBeNull();
+    expect(screen.queryByText(/How we reach you/i)).toBeNull();
+    expect(screen.queryByText(/What we send you/i)).toBeNull();
   });
 
   it('sends the revision it was shown, so a stale form is refused', () => {
     show({ data: view({ revision: 7 }) });
 
     fireEvent.click(
-      screen.getByRole('switch', { name: /Reminders before a gathering/i }),
+      screen.getByRole('checkbox', {
+        name: /Reminders before a gathering: In app/i,
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: /Reminders before a gathering: Email/i,
+      }),
     );
     fireEvent.click(screen.getByRole('button', { name: /Save preferences/i }));
 
@@ -148,10 +154,15 @@ describe('the preferences screen', () => {
 
   it('discards back to what is saved', () => {
     show({ data: view() });
-    const reminders = screen.getByRole('switch', {
-      name: /Reminders before a gathering/i,
+    const reminders = screen.getByRole('checkbox', {
+      name: /Reminders before a gathering: Email/i,
     });
 
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: /Reminders before a gathering: In app/i,
+      }),
+    );
     fireEvent.click(reminders);
     fireEvent.click(screen.getByRole('button', { name: /Discard/i }));
 
@@ -179,11 +190,13 @@ describe('states the design spec requires', () => {
     expect(screen.getByRole('alert').textContent).toMatch(
       /could not be loaded/i,
     );
+    expect(screen.getByRole('button', { name: /Try again/i })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Notifications' })).toBeTruthy();
   });
 
   it('offers sign-in to an anonymous visitor', () => {
     state.query = { userId: undefined, isAuthLoading: false };
-    render(<PreferencesPage locale="en" />);
+    render(<PreferencesPage locale="en" markets={MARKETS} />);
 
     expect(screen.getByTestId('access-recovery')).toBeTruthy();
   });
@@ -225,6 +238,6 @@ describe('in Arabic', () => {
   it('renders the screen in the member locale', () => {
     show({ data: view() }, { locale: 'ar' });
 
-    expect(screen.getByRole('combobox', { name: 'لغة الواجهة' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'الإشعارات' })).toBeTruthy();
   });
 });

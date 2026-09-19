@@ -21,7 +21,7 @@ export interface PushEnvironment {
 /**
  * Name what is actually true about push on this device, in the order the member can act on it.
  *
- * Seven states rather than a switch, because a switch would be a lie in five of them. The design
+ * Nine states rather than a switch, because a switch would be a lie in seven of them. The design
  * spec requires each to be visible and distinct, and they are ordered here by which obstacle the
  * member has to clear first: a browser that cannot receive notifications is not helped by being
  * told the site has not configured them, and neither is helped by a permission prompt.
@@ -36,7 +36,7 @@ export interface PushEnvironment {
  * member themselves. Collapsing either into "on" is how a preferences screen ends up claiming
  * delivery that will not happen.
  *
- * `registration === null` is "not asked yet", not "no". It reads as `checking` so the row never
+ * `registration === null` is "not asked yet", not "no". It reads as `checking` so the grid never
  * flashes an answer it is about to contradict.
  */
 export const pushStateFrom = (env: PushEnvironment): PushState => {
@@ -53,9 +53,9 @@ export const pushStateFrom = (env: PushEnvironment): PushState => {
 /**
  * Whether the member can do anything about this state from inside the page.
  *
- * Two of seven, which is why the push row renders a sentence rather than a switch. Browser
+ * Two of nine, which is why the push grid renders a sentence rather than a switch. Browser
  * permission cannot be turned on by a page — only requested, once, from a gesture — so a control
- * that appeared to set it would be claiming an authority it does not have. The other five states
+ * that appeared to set it would be claiming an authority it does not have. The other seven states
  * have their remedy somewhere else entirely: the browser's site settings, the home screen, a
  * deployment configuration, or signing this device back in.
  */

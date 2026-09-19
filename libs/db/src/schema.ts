@@ -579,10 +579,18 @@ export const accountPreferences = sqliteTable('account_preferences', {
   eventRemindersChannels: integer('event_reminders_channels')
     .notNull()
     .default(5),
-  hostUpdates: integer('host_updates', { mode: 'boolean' })
+  hostRsvpReceived: integer('host_rsvp_received', { mode: 'boolean' })
     .notNull()
     .default(true),
-  hostUpdatesChannels: integer('host_updates_channels').notNull().default(5),
+  hostRsvpReceivedChannels: integer('host_rsvp_received_channels')
+    .notNull()
+    .default(5),
+  hostRsvpCancelled: integer('host_rsvp_cancelled', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  hostRsvpCancelledChannels: integer('host_rsvp_cancelled_channels')
+    .notNull()
+    .default(5),
   followUpPrompts: integer('follow_up_prompts', { mode: 'boolean' })
     .notNull()
     .default(false),

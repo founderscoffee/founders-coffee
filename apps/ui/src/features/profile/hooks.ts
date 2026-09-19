@@ -93,8 +93,8 @@ const useInvalidatePhoto = () => {
 export const usePhotoUpload = () => {
   const invalidatePhoto = useInvalidatePhoto();
   return useMutation({
-    mutationFn: async (input: { file: Blob; turnstileToken?: string }) => {
-      const { assetId } = await profileApi.reservePhoto(input.turnstileToken);
+    mutationFn: async (input: { file: Blob }) => {
+      const { assetId } = await profileApi.reservePhoto();
       const sent = await putProfilePhoto(assetId, input.file);
       if (!sent.ok) throw new AppError(sent.error.code, 'Photo upload failed');
       return assetId;
@@ -106,8 +106,7 @@ export const usePhotoUpload = () => {
 export const useRemovePhoto = () => {
   const invalidatePhoto = useInvalidatePhoto();
   return useMutation({
-    mutationFn: (turnstileToken?: string) =>
-      profileApi.removePhoto(turnstileToken),
+    mutationFn: () => profileApi.removePhoto(),
     onSuccess: invalidatePhoto,
   });
 };

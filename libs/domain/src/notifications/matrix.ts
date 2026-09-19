@@ -10,7 +10,8 @@ import {
 export const NOTIFICATION_CATEGORIES = [
   'eventUpdatesChannels',
   'eventRemindersChannels',
-  'hostUpdatesChannels',
+  'hostRsvpReceivedChannels',
+  'hostRsvpCancelledChannels',
   'followUpPromptsChannels',
 ] as const;
 
@@ -29,7 +30,8 @@ export interface NotificationChannelSelection {
 const allCategoryChannels = (masks: NotificationCategoryMasks): number =>
   masks.eventUpdatesChannels |
   masks.eventRemindersChannels |
-  masks.hostUpdatesChannels |
+  masks.hostRsvpReceivedChannels |
+  masks.hostRsvpCancelledChannels |
   masks.followUpPromptsChannels;
 
 /** Return the member-facing category controlled by a notification template. */
@@ -44,8 +46,9 @@ export const notificationCategoryForTemplate = (
     case 'reminder_24h':
       return 'eventRemindersChannels';
     case 'rsvp_received':
+      return 'hostRsvpReceivedChannels';
     case 'rsvp_cancelled':
-      return 'hostUpdatesChannels';
+      return 'hostRsvpCancelledChannels';
     case 'feedback_invitation':
       return 'followUpPromptsChannels';
     default:

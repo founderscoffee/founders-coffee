@@ -101,7 +101,6 @@ describe('canonical URLs', () => {
     ]);
   });
 });
-
 describe('public page metadata', () => {
   it('uses localized market copy and emits a complete shared metadata set', () => {
     const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
@@ -120,9 +119,10 @@ describe('public page metadata', () => {
 
     expect(head.meta).toEqual(
       expect.arrayContaining([
+        { title: 'Founders Coffee - Algeria' },
         {
           name: 'description',
-          content: expect.stringContaining('Real meetups'),
+          content: expect.stringContaining('We bring entrepreneurs together'),
         },
         { property: 'og:url', content: 'https://founders.coffee/en/algeria' },
         {
@@ -276,7 +276,7 @@ describe('public page metadata', () => {
       companyPageHead({
         locale: 'en',
         path: '/about',
-        title: 'About founders.coffee',
+        title: 'About Founders Coffee',
         description: '  A company page\nwith stable copy.  ',
       }),
     );

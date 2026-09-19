@@ -20,10 +20,9 @@ export interface TrendingSection {
   readonly groups: readonly TrendingState[];
 }
 
-const COLD_MAJOR_CITY_CAP = 18;
+const TRENDING_CITY_CAP = 11;
 const WARM_STATE_CAP = 3;
 const WARM_CITY_CAP = 8;
-const WARM_CITY_TOTAL_CAP = 4;
 
 const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
   DZ: [
@@ -79,19 +78,36 @@ const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
   ],
 };
 
-const coldMajorCities = (marketCode: string): TrendingSection => {
+const allMarketCities = (marketCode: string): readonly geo.GeoCity[] =>
+  geo
+    .getStates(marketCode)
+    .flatMap((state) => geo.getCities(marketCode, state.code));
+
+const orderedLandingCities = (marketCode: string): readonly geo.GeoCity[] => {
+  const featured = geo.getFeaturedCities(marketCode);
+  const featuredCodes = new Set(featured.map((city) => city.code));
+  const candidates = [
+    ...featured,
+    ...allMarketCities(marketCode).filter(
+      (city) => !featuredCodes.has(city.code),
+    ),
+  ];
   const priority = new Map(
     (COLD_PRIORITY_SLUGS[marketCode] ?? []).map((slug, i) => [slug, i]),
   );
-  const cities = [...geo.getFeaturedCities(marketCode)]
-    .map((city) => ({ city, count: 0 }))
-    .sort(
-      (a, b) =>
-        (priority.get(a.city.slug) ?? 1_000) -
-          (priority.get(b.city.slug) ?? 1_000) ||
-        a.city.name.localeCompare(b.city.name),
-    )
-    .slice(0, COLD_MAJOR_CITY_CAP);
+
+  return candidates.sort(
+    (a, b) =>
+      (priority.get(a.slug) ?? 1_000) - (priority.get(b.slug) ?? 1_000) ||
+      Number(b.featured) - Number(a.featured) ||
+      a.name.localeCompare(b.name),
+  );
+};
+
+const coldMajorCities = (marketCode: string): TrendingSection => {
+  const cities = orderedLandingCities(marketCode)
+    .slice(0, TRENDING_CITY_CAP)
+    .map((city) => ({ city, count: 0 }));
   if (cities.length === 0) return { variant: 'major', groups: [] };
   return { variant: 'major', groups: [{ state: null, cities }] };
 };
@@ -123,34 +139,36 @@ const warmActiveCities = (
   });
 
   const active = groups.filter((g) => g.cities.length > 0);
+  const boundedActive: TrendingState[] = [];
+  let activeCityCount = 0;
+  for (const group of active) {
+    const remaining = TRENDING_CITY_CAP - activeCityCount;
+    if (remaining <= 0) break;
+    const cities = group.cities.slice(0, remaining);
+    if (cities.length === 0) continue;
+    boundedActive.push({ state: group.state, cities });
+    activeCityCount += cities.length;
+  }
   const taken = new Set(
-    active.flatMap((g) => g.cities.map(({ city }) => city.code)),
+    boundedActive.flatMap((g) => g.cities.map(({ city }) => city.code)),
   );
-  const priority = new Map(
-    (COLD_PRIORITY_SLUGS[marketCode] ?? []).map((slug, i) => [slug, i]),
-  );
-  const pioneer = [...geo.getFeaturedCities(marketCode)]
+  const pioneer = orderedLandingCities(marketCode)
     .filter((city) => !taken.has(city.code))
-    .sort(
-      (a, b) =>
-        (priority.get(a.slug) ?? 1_000) - (priority.get(b.slug) ?? 1_000) ||
-        a.name.localeCompare(b.name),
-    )
-    .slice(0, Math.max(0, WARM_CITY_TOTAL_CAP - taken.size))
+    .slice(0, Math.max(0, TRENDING_CITY_CAP - activeCityCount))
     .map((city) => ({ city, count: 0 }));
 
   return {
     variant: 'active',
     groups:
       pioneer.length === 0
-        ? active
-        : [...active, { state: null, cities: pioneer }],
+        ? boundedActive
+        : [...boundedActive, { state: null, cities: pioneer }],
   };
 };
 
 /**
- * Browse section for a market landing. Cold markets show major cities; warm markets show active
- * states and cities followed by a small pioneer recruitment surface.
+ * Browse section for a market landing. Active cities lead the fixed landing grid, followed by
+ * ordered city candidates until all 11 cards are filled.
  */
 export const resolveTrendingStates = async (
   db: Db,

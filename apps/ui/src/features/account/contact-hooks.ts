@@ -20,9 +20,7 @@ const useContactMutation = <TInput>(
 };
 
 export const useSendEmailChangeCode = () =>
-  useContactMutation((input: { turnstileToken?: string }) =>
-    accountApi.sendEmailChangeCode(input),
-  );
+  useContactMutation(() => accountApi.sendEmailChangeCode());
 
 export const useRequestEmailChange = () =>
   useContactMutation((input: EmailChangeInput) =>

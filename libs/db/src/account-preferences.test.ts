@@ -9,17 +9,18 @@ import { preferenceChanges, profileFixture } from './profiles.fixtures.js';
 import { user } from './schema.js';
 
 describe('account preferences on real D1', () => {
-  it('preserves existing locale and starts without channel consent', async () => {
+  it('starts with notification defaults and without channel consent', async () => {
     const { db, userId } = await profileFixture({ localePref: 'fr' });
     expect(await getAccountPreferences(db, userId)).toMatchObject({
-      locale: 'fr',
       preferences: {
         eventUpdates: true,
         eventUpdatesChannels: 5,
         eventReminders: true,
         eventRemindersChannels: 5,
-        hostUpdates: true,
-        hostUpdatesChannels: 5,
+        hostRsvpReceived: true,
+        hostRsvpReceivedChannels: 5,
+        hostRsvpCancelled: true,
+        hostRsvpCancelledChannels: 5,
         followUpPrompts: false,
         followUpPromptsChannels: 0,
         pushEnabled: false,
@@ -31,13 +32,12 @@ describe('account preferences on real D1', () => {
     expect(await getAccountPreferences(db, 'missing')).toBeNull();
   });
 
-  it('guards locale and preferences with the same optimistic revision', async () => {
+  it('guards notification preferences with an optimistic revision', async () => {
     const { db, userId } = await profileFixture();
     expect(
       await updateAccountPreferences(db, {
         userId,
         expectedRevision: 0,
-        locale: 'ar',
         changes: { ...preferenceChanges, pushEnabled: true },
       }),
     ).toMatchObject({ revision: 1, pushEnabled: true });
@@ -45,12 +45,10 @@ describe('account preferences on real D1', () => {
       await updateAccountPreferences(db, {
         userId,
         expectedRevision: 0,
-        locale: 'fr',
         changes: preferenceChanges,
       }),
     ).toBeNull();
     expect(await getAccountPreferences(db, userId)).toMatchObject({
-      locale: 'ar',
       preferences: { pushEnabled: true },
     });
   });
@@ -58,22 +56,21 @@ describe('account preferences on real D1', () => {
   it('prevents lost concurrent preference edits', async () => {
     const { db, userId } = await profileFixture();
     const results = await Promise.all(
-      (['ar', 'fr'] as const).map((locale) =>
+      ([true, false] as const).map((followUpPrompts) =>
         updateAccountPreferences(db, {
           userId,
           expectedRevision: 0,
-          locale,
           changes: {
             ...preferenceChanges,
-            followUpPrompts: locale === 'fr',
-            followUpPromptsChannels: locale === 'fr' ? 5 : 0,
+            followUpPrompts,
+            followUpPromptsChannels: followUpPrompts ? 5 : 0,
           },
         }),
       ),
     );
     expect(results.filter(Boolean)).toHaveLength(1);
     const saved = await getAccountPreferences(db, userId);
-    expect(saved?.preferences.followUpPrompts).toBe(saved?.locale === 'fr');
+    expect([true, false]).toContain(saved?.preferences.followUpPrompts);
   });
 
   it('stores channel masks and derives category gates from whether any channel remains', async () => {
@@ -81,7 +78,6 @@ describe('account preferences on real D1', () => {
     const saved = await updateAccountPreferences(db, {
       userId,
       expectedRevision: 0,
-      locale: 'en',
       changes: {
         ...preferenceChanges,
         eventUpdates: false,
@@ -111,12 +107,10 @@ describe('account preferences on real D1', () => {
         await updateAccountPreferences(db, {
           userId,
           expectedRevision: 0,
-          locale: 'en',
           changes: { ...preferenceChanges, smsFallbackEnabled: true },
         }),
       ).toBeNull();
       expect(await getAccountPreferences(db, userId)).toMatchObject({
-        locale: null,
         preferences: { revision: 0, smsConsentAt: null },
       });
     },
@@ -135,7 +129,6 @@ describe('account preferences on real D1', () => {
     const enabled = await updateAccountPreferences(db, {
       userId,
       expectedRevision: 0,
-      locale: 'en',
       changes,
     });
     expect(enabled?.smsConsentAt).toBeInstanceOf(Date);
@@ -145,7 +138,6 @@ describe('account preferences on real D1', () => {
         await updateAccountPreferences(db, {
           userId,
           expectedRevision: 1,
-          locale: null,
           changes,
         })
       )?.smsConsentAt,
@@ -154,7 +146,6 @@ describe('account preferences on real D1', () => {
       await updateAccountPreferences(db, {
         userId,
         expectedRevision: 2,
-        locale: null,
         changes: preferenceChanges,
       }),
     ).toMatchObject({
@@ -174,7 +165,6 @@ describe('account preferences on real D1', () => {
         await updateAccountPreferences(db, {
           userId,
           expectedRevision: 0,
-          locale: 'fr',
           changes: preferenceChanges,
         }),
       ).toBeNull();

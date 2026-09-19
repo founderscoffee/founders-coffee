@@ -31,6 +31,10 @@ describe('local/no-server-fns-in-components', () => {
           filename: at('components/events/Card.tsx'),
         },
         {
+          code: "import { type Market } from '@founders-coffee/db';",
+          filename: at('components/events/Card.tsx'),
+        },
+        {
           code: "import { events } from '@founders-coffee/domain';",
           filename: at('routes/index.tsx'),
         },

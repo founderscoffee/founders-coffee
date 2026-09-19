@@ -29,7 +29,11 @@ export const createCloudflareEmailProvider = (
     try {
       const result = await email.send({
         ...input,
-        from: input.from ?? defaultFrom,
+        from:
+          input.from ??
+          (typeof defaultFrom === 'string'
+            ? { email: defaultFrom, name: 'Founders Coffee' }
+            : defaultFrom),
       });
       logger.info('email.sent', {
         messageId: result.messageId,

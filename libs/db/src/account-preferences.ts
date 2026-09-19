@@ -1,7 +1,5 @@
 import { and, eq, exists, isNotNull, ne, sql } from 'drizzle-orm';
 
-import type { Locale } from '@founders-coffee/core';
-
 import type { Db } from './db.js';
 import { activeProfileIdentity } from './profile-access.js';
 import {
@@ -16,8 +14,10 @@ export type AccountPreferenceChanges = Pick<
   | 'eventUpdatesChannels'
   | 'eventReminders'
   | 'eventRemindersChannels'
-  | 'hostUpdates'
-  | 'hostUpdatesChannels'
+  | 'hostRsvpReceived'
+  | 'hostRsvpReceivedChannels'
+  | 'hostRsvpCancelled'
+  | 'hostRsvpCancelledChannels'
   | 'followUpPrompts'
   | 'followUpPromptsChannels'
   | 'pushEnabled'
@@ -25,7 +25,7 @@ export type AccountPreferenceChanges = Pick<
 >;
 
 /**
- * Read preferences with the existing identity locale as its sole persisted source.
+ * Read notification preferences and the phone state needed to explain the SMS fallback control.
  *
  * The phone's verified state travels with them because the SMS fallback switch is not the member's
  * to set alone: {@link updateAccountPreferences} refuses consent without a currently verified
@@ -35,7 +35,6 @@ export type AccountPreferenceChanges = Pick<
 export const getAccountPreferences = async (db: Db, userId: string) => {
   const rows = await db
     .select({
-      locale: user.localePref,
       phoneVerified: sql<number>`(${user.phoneNumberVerified} = 1
         and ${user.phoneNumber} is not null and ${user.phoneNumber} != '')`,
       preferences: accountPreferences,
@@ -48,13 +47,12 @@ export const getAccountPreferences = async (db: Db, userId: string) => {
   return row ? { ...row, phoneVerified: row.phoneVerified === 1 } : null;
 };
 
-/** Atomically persist preferences, locale and server-owned SMS consent evidence. */
+/** Atomically persist notification preferences and server-owned SMS consent evidence. */
 export const updateAccountPreferences = async (
   db: Db,
   input: {
     userId: string;
     expectedRevision: number;
-    locale: Locale | null;
     changes: AccountPreferenceChanges;
   },
 ): Promise<AccountPreferencesRow | null> => {
@@ -74,21 +72,7 @@ export const updateAccountPreferences = async (
     eq(accountPreferences.revision, expectedRevision),
   );
   const now = new Date();
-  const [, rows] = await db.batch([
-    db
-      .update(user)
-      .set({ localePref: input.locale, updatedAt: now })
-      .where(
-        and(
-          eligibleUser,
-          exists(
-            db
-              .select({ id: accountPreferences.userId })
-              .from(accountPreferences)
-              .where(matches),
-          ),
-        ),
-      ),
+  const [rows] = await db.batch([
     db
       .update(accountPreferences)
       .set({
@@ -96,8 +80,10 @@ export const updateAccountPreferences = async (
         eventUpdatesChannels: changes.eventUpdatesChannels,
         eventReminders: changes.eventRemindersChannels !== 0,
         eventRemindersChannels: changes.eventRemindersChannels,
-        hostUpdates: changes.hostUpdatesChannels !== 0,
-        hostUpdatesChannels: changes.hostUpdatesChannels,
+        hostRsvpReceived: changes.hostRsvpReceivedChannels !== 0,
+        hostRsvpReceivedChannels: changes.hostRsvpReceivedChannels,
+        hostRsvpCancelled: changes.hostRsvpCancelledChannels !== 0,
+        hostRsvpCancelledChannels: changes.hostRsvpCancelledChannels,
         followUpPrompts: changes.followUpPromptsChannels !== 0,
         followUpPromptsChannels: changes.followUpPromptsChannels,
         pushEnabled: changes.pushEnabled,

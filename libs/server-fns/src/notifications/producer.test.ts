@@ -165,7 +165,8 @@ const rowsFor = async (
     phoneNumber?: string | null;
     eventUpdatesChannels?: number;
     eventRemindersChannels?: number;
-    hostUpdatesChannels?: number;
+    hostRsvpReceivedChannels?: number;
+    hostRsvpCancelledChannels?: number;
   },
 ) => {
   const event = await seedEvent(db);
@@ -184,13 +185,15 @@ const rowsFor = async (
   if (
     opts.eventUpdatesChannels !== undefined ||
     opts.eventRemindersChannels !== undefined ||
-    opts.hostUpdatesChannels !== undefined
+    opts.hostRsvpReceivedChannels !== undefined ||
+    opts.hostRsvpCancelledChannels !== undefined
   ) {
     await db.insert(accountPreferences).values({
       userId: memberId,
       eventUpdatesChannels: opts.eventUpdatesChannels ?? 5,
       eventRemindersChannels: opts.eventRemindersChannels ?? 5,
-      hostUpdatesChannels: opts.hostUpdatesChannels ?? 5,
+      hostRsvpReceivedChannels: opts.hostRsvpReceivedChannels ?? 5,
+      hostRsvpCancelledChannels: opts.hostRsvpCancelledChannels ?? 5,
     });
   }
 
@@ -255,7 +258,8 @@ describe('what sits behind push for an RSVP (ND-07)', () => {
       email: 'member@producer.test',
       eventUpdatesChannels: 1,
       eventRemindersChannels: 1,
-      hostUpdatesChannels: 1,
+      hostRsvpReceivedChannels: 1,
+      hostRsvpCancelledChannels: 1,
     });
 
     expect(rows.length).toBeGreaterThan(0);
@@ -269,7 +273,8 @@ describe('what sits behind push for an RSVP (ND-07)', () => {
       email: 'member@producer.test',
       eventUpdatesChannels: 4,
       eventRemindersChannels: 4,
-      hostUpdatesChannels: 4,
+      hostRsvpReceivedChannels: 4,
+      hostRsvpCancelledChannels: 4,
     });
 
     expect(rows.length).toBeGreaterThan(0);

@@ -12,6 +12,7 @@ const NON_PUBLIC_SEGMENTS = new Set([
   'onboarding',
   'preferences',
   'profile',
+  'notifications',
 ]);
 
 const isHtmlRequest = (

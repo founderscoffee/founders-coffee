@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const state = vi.hoisted(() => ({
@@ -77,6 +77,7 @@ describe('repeat hosting entry point', () => {
     ];
 
     show();
+    fireEvent.click(screen.getByRole('tab', { name: 'Gatherings you hosted' }));
 
     expect(screen.getByText('Closed out')).toBeTruthy();
     expect(
@@ -90,6 +91,7 @@ describe('repeat hosting entry point', () => {
     ];
 
     show();
+    fireEvent.click(screen.getByRole('tab', { name: 'Gatherings you hosted' }));
 
     expect(
       screen.queryByRole('link', { name: /Host another like this/i }),

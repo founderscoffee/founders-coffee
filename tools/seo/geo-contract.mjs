@@ -1,3 +1,5 @@
+import { soleAlternateLocale } from './routes.mjs';
+
 const LOCALES = new Set(['ar', 'fr', 'en']);
 
 const PRIMARY_TYPES = {
@@ -79,7 +81,8 @@ export const inspectGeoDocument = ({ path, type, body, canonical }) => {
   else if (primary.url !== canonical)
     failures.push(`${primaryType} JSON-LD URL does not match canonical`);
 
-  const locale = path.split('/').filter(Boolean)[0];
+  const locale =
+    soleAlternateLocale(body) ?? path.split('/').filter(Boolean)[0];
   if (
     typeof primary.inLanguage !== 'string' ||
     !LOCALES.has(primary.inLanguage)

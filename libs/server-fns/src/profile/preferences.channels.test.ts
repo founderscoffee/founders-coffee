@@ -29,12 +29,13 @@ describe('per-category notification channels', () => {
       eventUpdatesChannels: [],
       eventReminders: true,
       eventRemindersChannels: ['email'],
-      hostUpdates: true,
-      hostUpdatesChannels: ['push', 'email'],
+      hostRsvpReceived: true,
+      hostRsvpReceivedChannels: ['push', 'email'],
+      hostRsvpCancelled: true,
+      hostRsvpCancelledChannels: ['push', 'email'],
       followUpPrompts: false,
       followUpPromptsChannels: [],
       smsFallbackEnabled: false,
-      locale: null,
       expectedRevision: 0,
     });
 

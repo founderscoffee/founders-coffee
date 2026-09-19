@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { Locale } from '@founders-coffee/i18n';
+
 import { authClient } from '../../lib/auth';
 import { accountApi } from './api';
 
@@ -49,3 +51,11 @@ export const useUnlinkProvider = () =>
   useDeviceMutation((input: { providerId: string }) =>
     accountApi.unlinkProvider(input),
   );
+
+export const useUpdateAccountLocale = () => {
+  const cache = useQueryClient();
+  return useMutation({
+    mutationFn: (locale: Locale) => accountApi.updateMyLocale(locale),
+    onSuccess: () => void cache.invalidateQueries({ queryKey: ['account'] }),
+  });
+};

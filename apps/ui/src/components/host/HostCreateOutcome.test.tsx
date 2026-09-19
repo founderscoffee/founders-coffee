@@ -27,8 +27,8 @@ describe('HostCreatePage EC-08 outcomes', () => {
 
     await waitFor(() =>
       expect(hostCreateMocks.navigate).toHaveBeenCalledWith({
-        to: '/$market/e/$slug',
-        params: { market: 'algeria', slug: CREATED_EVENT.slug },
+        to: '/$market/$city/e/$slug',
+        params: { market: 'en', city: 'algeria', slug: CREATED_EVENT.slug },
       }),
     );
     expect(hostCreateMocks.invalidateCreatedEvent).toHaveBeenCalledWith({
@@ -46,7 +46,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     renderHostCreateWizard();
     await publishHostEvent();
 
-    await screen.findByText('Hosting is paused in this market right now.');
+    await screen.findByText('Hosting is paused in this region right now.');
     expect(hostCreateMocks.navigate).not.toHaveBeenCalled();
     expect(hostCreateMocks.routerInvalidate).not.toHaveBeenCalled();
     expect(hostCreateMocks.invalidateCreatedEvent).not.toHaveBeenCalled();
@@ -66,7 +66,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     ],
     [
       'event_route_conflict',
-      'Another event just took this name. Change the title slightly and publish again.',
+      'Another event already has this title. Change it slightly and publish.',
     ],
     [
       'map_venue_unsupported',
@@ -113,18 +113,18 @@ describe('HostCreatePage EC-08 outcomes', () => {
 
   it('reopens the sign-in gate in place when the session expired, keeping the draft', async () => {
     failPublishWith('unauthenticated');
-    window.history.replaceState({}, '', '/algeria/host/create?city=1');
+    window.history.replaceState({}, '', '/ar/algeria/host/create?city=1');
     renderHostCreateWizard();
     await publishHostEvent();
 
     await screen.findByRole('heading', {
-      name: 'One last step, sign in to publish',
+      name: 'One last step: sign in to publish',
     });
     expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
       expect.objectContaining({ to: '/login' }),
     );
     await screen.findByText(
-      'Your session expired. Sign in again to publish - your draft is saved.',
+      'Your session expired. Sign in again to publish. Your draft is saved.',
     );
     const draft = window.sessionStorage.getItem(draftKey);
     expect(draft).toContain('Protected meetup');

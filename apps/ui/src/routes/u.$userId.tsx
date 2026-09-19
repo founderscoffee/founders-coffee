@@ -11,6 +11,7 @@ import {
   hostedPaginationSearchSchema,
   type HostedPaginationSearch,
 } from '../lib/public-pagination';
+import { buildPageTitle } from '../lib/seo';
 
 export const Route = createFileRoute('/u/$userId')({
   validateSearch: hostedPaginationSearchSchema,
@@ -20,7 +21,7 @@ export const Route = createFileRoute('/u/$userId')({
   }),
   component: () => {
     const { locale, markets } = Route.useRouteContext();
-    const { profile, events, eventsNextCursor, pagination } =
+    const { profile, events, eventsNextCursor, eventsTotal, pagination } =
       Route.useLoaderData();
     return (
       <PublicProfilePage
@@ -28,6 +29,7 @@ export const Route = createFileRoute('/u/$userId')({
         profile={profile}
         events={events}
         eventsNextCursor={eventsNextCursor}
+        eventsTotal={eventsTotal}
         beforeStartsAt={pagination.beforeStartsAt}
         beforeId={pagination.beforeId}
         markets={markets}
@@ -41,6 +43,7 @@ export const Route = createFileRoute('/u/$userId')({
     profile: PublicProfile;
     events: readonly EventFeedItem[];
     eventsNextCursor: { startsAt: number; id: string } | null;
+    eventsTotal: number;
     pagination: HostedPaginationSearch;
   }> => {
     let profile: PublicProfile;
@@ -57,6 +60,7 @@ export const Route = createFileRoute('/u/$userId')({
       profile,
       events: page.items,
       eventsNextCursor: page.nextCursor,
+      eventsTotal: page.total,
       pagination: deps,
     };
   },
@@ -69,7 +73,10 @@ export const Route = createFileRoute('/u/$userId')({
   head: ({ loaderData, match }) => ({
     meta: [
       {
-        title: `${loaderData?.profile.displayName ?? profile_title({}, { locale: match.context.locale })} - founders.coffee`,
+        title: buildPageTitle(
+          loaderData?.profile.displayName ??
+            profile_title({}, { locale: match.context.locale }),
+        ),
       },
       { name: 'robots', content: NO_INDEX_VALUE },
     ],

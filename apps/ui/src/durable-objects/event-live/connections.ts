@@ -1,32 +1,84 @@
 import type { ConnectionInfo, OutboundMessage } from './protocol.js';
+import { z } from 'zod';
+
+const connectionAttachment = z.object({
+  userId: z.string(),
+  userName: z.string(),
+  isHost: z.boolean(),
+  authenticated: z.boolean(),
+  sessionToken: z.string(),
+  lastSeenAt: z.number(),
+});
 
 export class EventConnections {
   private sockets = new Map<WebSocket, ConnectionInfo>();
 
-  /** Registers an accepted socket as anonymous until a session is verified for it. */
-  register = (ws: WebSocket): void => {
-    this.sockets.set(ws, {
+  register = (ws: WebSocket, now: number): void => {
+    const connection = {
       userId: '',
       userName: '',
       isHost: false,
       authenticated: false,
-    });
+      sessionToken: '',
+      lastSeenAt: now,
+    };
+    this.sockets.set(ws, connection);
+    ws.serializeAttachment(connection);
+  };
+
+  restore = (sockets: readonly WebSocket[]): void => {
+    this.sockets.clear();
+    for (const ws of sockets) {
+      const parsed = connectionAttachment.safeParse(ws.deserializeAttachment());
+      if (parsed.success) this.sockets.set(ws, parsed.data);
+    }
   };
 
   get = (ws: WebSocket): ConnectionInfo | undefined => this.sockets.get(ws);
 
-  /** Attaches a verified identity. No-op if the socket closed while the session was being checked. */
+  entries = (): readonly (readonly [WebSocket, ConnectionInfo])[] => [
+    ...this.sockets.entries(),
+  ];
+
+  size = (): number => this.sockets.size;
+
   authenticate = (
     ws: WebSocket,
-    identity: { userId: string; userName: string; isHost: boolean },
+    identity: {
+      userId: string;
+      userName: string;
+      isHost: boolean;
+      sessionToken: string;
+    },
+    now: number,
   ): boolean => {
     const existing = this.sockets.get(ws);
     if (!existing) return false;
-    this.sockets.set(ws, { ...existing, ...identity, authenticated: true });
+    const connection = {
+      ...existing,
+      ...identity,
+      authenticated: true,
+      lastSeenAt: now,
+    };
+    this.sockets.set(ws, connection);
+    ws.serializeAttachment(connection);
     return true;
   };
 
-  /** Removes a socket and returns what it was, so the caller can decide whether to rebroadcast. */
+  touch = (ws: WebSocket, now: number): boolean => {
+    const existing = this.sockets.get(ws);
+    if (!existing) return false;
+    const connection = { ...existing, lastSeenAt: now };
+    this.sockets.set(ws, connection);
+    ws.serializeAttachment(connection);
+    return true;
+  };
+
+  stale = (now: number, timeoutMs: number): readonly WebSocket[] =>
+    [...this.sockets.entries()]
+      .filter(([, connection]) => now - connection.lastSeenAt >= timeoutMs)
+      .map(([ws]) => ws);
+
   drop = (ws: WebSocket): ConnectionInfo | undefined => {
     const existing = this.sockets.get(ws);
     this.sockets.delete(ws);
@@ -49,6 +101,15 @@ export class EventConnections {
       } catch {
         this.sockets.delete(ws);
       }
+    }
+  };
+
+  close = (ws: WebSocket, code: number, reason: string): void => {
+    this.sockets.delete(ws);
+    try {
+      ws.close(code, reason);
+    } catch {
+      return;
     }
   };
 }

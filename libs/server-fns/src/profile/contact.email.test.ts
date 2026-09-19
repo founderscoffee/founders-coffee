@@ -66,6 +66,27 @@ const currentEmail = async (
 };
 
 describe('PF-07c — changing a verified email', () => {
+  it('does not require Turnstile for an authenticated contact operation', async () => {
+    const member = await signedInMember();
+    const emailProvider = new DevEmailProvider();
+    const runtime = env as Record<string, unknown>;
+    const previous = runtime.TURNSTILE_DISABLED;
+    runtime.TURNSTILE_DISABLED = undefined;
+
+    try {
+      const result = await sendCurrentEmailCode(
+        member.userId,
+        member.email,
+        member.headers,
+        { emailProvider },
+      );
+      expect(result).toMatchObject({ ok: true });
+      expect(emailProvider.sent).toHaveLength(1);
+    } finally {
+      runtime.TURNSTILE_DISABLED = previous;
+    }
+  });
+
   it('moves the address only after both sides are proven', async () => {
     const member = await signedInMember();
     const emailProvider = new DevEmailProvider();

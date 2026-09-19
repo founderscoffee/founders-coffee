@@ -18,7 +18,8 @@ interface TurnstileApi {
   reset: (id: string) => void;
 }
 
-const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+const SCRIPT_SRC =
+  'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 const getTurnstile = (): TurnstileApi | undefined =>
   (window as unknown as { turnstile?: TurnstileApi }).turnstile;
@@ -41,6 +42,10 @@ const loadTurnstile = (): Promise<void> => {
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
+    script.onerror = () => {
+      loading = null;
+      resolve();
+    };
     document.head.appendChild(script);
   });
   return loading;

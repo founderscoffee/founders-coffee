@@ -32,6 +32,9 @@
     },
     {
       "path": "../auth/tsconfig.lib.json"
+    },
+    {
+      "path": "../email/tsconfig.lib.json"
     }
   ]
 }

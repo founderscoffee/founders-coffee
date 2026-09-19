@@ -3,14 +3,14 @@ import {
   createCloudflareEmailProvider,
   renderEmail,
 } from '@founders-coffee/email';
-import { NotificationEmail } from '@founders-coffee/email/templates';
+import { OtpEmail } from '@founders-coffee/email/templates';
 import { logger } from '@founders-coffee/observability';
 
 const OTP_SUBJECTS: Record<OtpType, string> = {
-  'sign-in': 'founders.coffee admin - your sign-in code',
-  'email-verification': 'founders.coffee admin - your verification code',
-  'forget-password': 'founders.coffee admin - your password-reset code',
-  'change-email': 'founders.coffee admin - your email-change code',
+  'sign-in': 'Founders Coffee admin - your sign-in code',
+  'email-verification': 'Founders Coffee admin - your verification code',
+  'forget-password': 'Founders Coffee admin - your password-reset code',
+  'change-email': 'Founders Coffee admin - your email-change code',
 };
 
 /**
@@ -36,12 +36,13 @@ export const createAdminOtpEmailProvider = (
 ): EmailProvider => ({
   sendOtp: async ({ email, otp, type }) => {
     const provider = createCloudflareEmailProvider(emailBinding, defaultFrom);
-    const { html, text } = await renderEmail(NotificationEmail, {
+    const { html, text } = await renderEmail(OtpEmail, {
       locale: 'en',
-      preview: 'Your founders.coffee admin sign-in code',
-      greeting: 'founders.coffee operations',
-      lines: ['Use this code to continue. It expires in 5 minutes.', otp],
-      footer: 'founders.coffee',
+      preview: 'Your Founders Coffee admin sign-in code',
+      greeting: 'Founders Coffee operations',
+      codeLabel: 'Use this code to continue.',
+      code: otp,
+      expiry: 'It expires in 30 minutes.',
     });
     const result = await provider.send({
       to: email,

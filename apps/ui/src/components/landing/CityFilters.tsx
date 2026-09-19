@@ -1,4 +1,5 @@
 import {
+  city_filters_label,
   filter_ar,
   filter_fr,
   filter_today,
@@ -22,7 +23,8 @@ type CityFiltersProps = {
 };
 
 export const CityFilters = ({ locale, active, onToggle }: CityFiltersProps) => (
-  <div className="flex flex-wrap gap-2">
+  <fieldset className="flex flex-wrap gap-2">
+    <legend className="sr-only">{city_filters_label({}, { locale })}</legend>
     {CITY_FILTER_KEYS.map((key) => {
       const on = active.includes(key);
       return (
@@ -31,9 +33,9 @@ export const CityFilters = ({ locale, active, onToggle }: CityFiltersProps) => (
           type="button"
           aria-pressed={on}
           onClick={() => onToggle(key)}
-          className={`inline-flex h-8 items-center rounded-full px-3.5 text-body-sm font-medium transition-colors duration-[var(--duration-fast)] motion-reduce:transition-none ${
+          className={`inline-flex h-10 items-center rounded-full px-3.5 text-body-sm font-medium transition-colors duration-[var(--duration-fast)] motion-reduce:transition-none ${
             on
-              ? 'bg-primary text-primary-content'
+              ? 'bg-primary text-primary-content shadow-[var(--shadow-1)]'
               : 'bg-base-200 text-base-content hover:bg-base-300'
           }`}
         >
@@ -41,5 +43,5 @@ export const CityFilters = ({ locale, active, onToggle }: CityFiltersProps) => (
         </button>
       );
     })}
-  </div>
+  </fieldset>
 );

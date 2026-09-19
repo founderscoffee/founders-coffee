@@ -7,8 +7,7 @@ import { requireAuth } from '../authz.js';
 import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
-import { requireProfileTurnstile } from '../turnstile/middleware.js';
-import { readAccountSummary } from './account.js';
+import { readAccountSummary, saveAccountLocale } from './account.js';
 import { readMyPreferences, saveMyPreferences } from './preferences.js';
 import { removeCurrentPhoto, reservePhotoUpload } from './photo.js';
 import { photoServices } from './photo-runtime.js';
@@ -24,8 +23,8 @@ import {
   PROFILE_READ_LIMIT,
   PROFILE_UPDATE_LIMIT,
   publicProfileRequestSchema,
-  reservePhotoRequestSchema,
   updateDisplayNameRequestSchema,
+  updateAccountLocaleRequestSchema,
   updatePreferencesRequestSchema,
   updateProfileRequestSchema,
 } from './schemas.js';
@@ -37,7 +36,6 @@ const profileWriteProtection = [
     PROFILE_UPDATE_LIMIT.limit,
     PROFILE_UPDATE_LIMIT.windowMs,
   ),
-  requireProfileTurnstile,
 ] as const;
 
 export const getMyProfile = createServerFn({ strict: false })
@@ -143,9 +141,8 @@ export const reserveMyPhotoUpload = createServerFn({
       PHOTO_RESERVE_LIMIT.limit,
       PHOTO_RESERVE_LIMIT.windowMs,
     ),
-    requireProfileTurnstile,
   ])
-  .validator(appValidator(reservePhotoRequestSchema))
+  .validator(appValidator(emptyProfileRequestSchema))
   .handler(({ context }) => {
     privateNoStore();
     return handleResult(
@@ -155,7 +152,7 @@ export const reserveMyPhotoUpload = createServerFn({
 
 export const removeMyPhoto = createServerFn({ method: 'POST', strict: false })
   .middleware(profileWriteProtection)
-  .validator(appValidator(reservePhotoRequestSchema))
+  .validator(appValidator(emptyProfileRequestSchema))
   .handler(({ context }) => {
     privateNoStore();
     return handleResult(
@@ -170,5 +167,22 @@ export const getMyAccount = createServerFn({ strict: false })
     privateNoStore();
     return handleResult(
       readAccountSummary(getDb(), requireAuth(context.session).user.id),
+    );
+  });
+
+export const updateMyAccountLocale = createServerFn({
+  method: 'POST',
+  strict: false,
+})
+  .middleware(profileWriteProtection)
+  .validator(appValidator(updateAccountLocaleRequestSchema))
+  .handler(({ context, data }) => {
+    privateNoStore();
+    return handleResult(
+      saveAccountLocale(
+        getDb(),
+        requireAuth(context.session).user.id,
+        data.account.locale,
+      ),
     );
   });

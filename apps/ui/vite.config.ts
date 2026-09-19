@@ -7,10 +7,12 @@ import viteReact from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { cloudflare } from '@cloudflare/vite-plugin';
 
+import { assertAssetsIgnored } from './vite-assets-ignore';
 import { mapboxCspWorker } from './vite-mapbox-worker';
 import { isSeoPrerenderPath, seoPrerenderPages } from './src/lib/seo-prerender';
 import {
   CLIENT_OUT_DIR,
+  offlinePrecacheEntry,
   precacheIgnores,
   SW_DEST,
   assertServiceWorkerEmitted,
@@ -62,7 +64,12 @@ const isStagingEnvironment = process.env.CLOUDFLARE_ENV === 'staging';
 export default defineConfig(({ command }) => ({
   server: {
     watch: {
-      ignored: ['**/.osm-snapshot/**', '**/.wrangler/**', '**/dist/**'],
+      ignored: [
+        '**/.osm-snapshot/**',
+        '**/.wrangler/**',
+        '**/dist/**',
+        '**/libs/i18n/src/paraglide/**',
+      ],
     },
   },
   resolve: {
@@ -113,10 +120,13 @@ export default defineConfig(({ command }) => ({
       swDest: SW_DEST,
       globDirectory: CLIENT_OUT_DIR,
       globIgnores: precacheIgnores(),
+      additionalPrecacheEntries: [offlinePrecacheEntry()],
       injectionPoint: 'self.__SW_MANIFEST',
       rollupFormat: 'iife',
       disable: command === 'serve',
     }),
-    ...(command === 'serve' ? [] : [assertServiceWorkerEmitted()]),
+    ...(command === 'serve'
+      ? []
+      : [assertServiceWorkerEmitted(), assertAssetsIgnored(['.DS_Store'])]),
   ],
 }));

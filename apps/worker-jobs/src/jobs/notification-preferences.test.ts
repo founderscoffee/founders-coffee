@@ -139,8 +139,8 @@ describe('categories are enforced at send time, not at enqueue time', () => {
     if (!off.ok) expect(off.transient).toBeUndefined();
   });
 
-  it('does not hang a closeout prompt off the who-is-coming switch', async () => {
-    await setPreferences(db, { hostUpdates: false });
+  it('does not hang a closeout prompt off the RSVP confirmation switch', async () => {
+    await setPreferences(db, { hostRsvpReceived: false });
     await db.run(
       sql`UPDATE markets SET feature_flags = json_set(coalesce(feature_flags, '{}'), '$.communityOperations', json('true')) WHERE code = 'DZ'`,
     );
@@ -156,14 +156,14 @@ describe('categories are enforced at send time, not at enqueue time', () => {
     expect(result.ok).toBe(true);
   });
 
-  it('refuses a host notice when host updates are off, and not otherwise', async () => {
+  it('refuses a received-host notice when confirmations are off, and not otherwise', async () => {
     const on = await resolveDestination(
       db,
       'email',
       MEMBER_ID,
       'rsvp_received',
     );
-    await setPreferences(db, { hostUpdates: false });
+    await setPreferences(db, { hostRsvpReceived: false });
     const off = await resolveDestination(
       db,
       'email',
@@ -174,13 +174,13 @@ describe('categories are enforced at send time, not at enqueue time', () => {
     expect(on.ok).toBe(true);
     expect(off.ok).toBe(false);
     if (!off.ok) {
-      expect(off.reason).toBe('host_updates_off');
+      expect(off.reason).toBe('host_rsvp_received_off');
       expect(off.account).toBe(true);
     }
   });
 
-  it('leaves the other categories alone when host updates are off', async () => {
-    await setPreferences(db, { hostUpdates: false });
+  it('leaves the other categories alone when confirmations are off', async () => {
+    await setPreferences(db, { hostRsvpReceived: false });
 
     const reminder = await resolveDestination(
       db,

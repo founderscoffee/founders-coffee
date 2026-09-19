@@ -9,7 +9,8 @@ import {
 import { channelPlanFor } from './channel-plan.js';
 import { resolveNotificationContext } from './context.js';
 import { armNotificationSchedule } from './schedule.js';
-import { emailPayloadFor, pushPayloadFor } from './templates.js';
+import { pushPayloadFor } from './templates.js';
+import { emailPayloadFor } from './email-templates.js';
 import { validPayload } from './producer.js';
 
 export interface DidNotHappenEvent {
@@ -104,7 +105,11 @@ export const enqueueDidNotHappenNotices = async (
       venue: event.venue,
       locale: context.locale,
       ...push,
-      ...emailPayloadFor('event_did_not_happen', values, context.locale),
+      ...(await emailPayloadFor(
+        'event_did_not_happen',
+        values,
+        context.locale,
+      )),
     };
 
     const { written } = await enqueueNotificationIfAbsent(db, {

@@ -12,8 +12,28 @@ export interface DoEnv {
 }
 
 export type VerifyResult =
-  | { ok: true; userId: string; userName: string; isHost: boolean }
+  | {
+      ok: true;
+      userId: string;
+      userName: string;
+      isHost: boolean;
+      sessionToken: string;
+    }
   | { ok: false; reason: 'no_session' | 'not_allowed' | 'db_error' };
+
+const decodeCookieValue = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+const sessionTokenFromCookie = (value: string): string => {
+  const decoded = decodeCookieValue(value);
+  const separator = decoded.lastIndexOf('.');
+  return separator > 0 ? decoded.slice(0, separator) : decoded;
+};
 
 const MEMBERSHIP_QUERY = `SELECT s.user_id AS user_id, u.name AS name, e.host_id AS host_id,
                 EXISTS(SELECT 1 FROM event_rsvps WHERE event_id = e.id AND user_id = s.user_id AND status = 'going') AS rsvpd
@@ -48,7 +68,13 @@ export const verifyEventSession = async (
   const isHost = row.user_id === row.host_id;
   if (!isHost && row.rsvpd !== 1) return { ok: false, reason: 'not_allowed' };
 
-  return { ok: true, userId: row.user_id, userName: row.name, isHost };
+  return {
+    ok: true,
+    userId: row.user_id,
+    userName: row.name,
+    isHost,
+    sessionToken,
+  };
 };
 
 /**
@@ -67,7 +93,7 @@ export const verifyEventSessionFromCookie = async (
   for (const part of cookieHeader.split(';')) {
     const eq = part.indexOf('=');
     if (eq < 0) continue;
-    const value = part.slice(eq + 1).trim();
+    const value = sessionTokenFromCookie(part.slice(eq + 1).trim());
     if (!value) continue;
     const result = await verifyEventSession(db, eventId, value);
     if (result.ok || (!result.ok && result.reason === 'not_allowed')) {

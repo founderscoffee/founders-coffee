@@ -12,7 +12,8 @@ import {
 import { feedbackUrlFor, resolveNotificationContext } from './context.js';
 import { channelPlanFor } from './channel-plan.js';
 import { armNotificationSchedule } from './schedule.js';
-import { emailPayloadFor, pushPayloadFor } from './templates.js';
+import { pushPayloadFor } from './templates.js';
+import { emailPayloadFor } from './email-templates.js';
 import { validPayload } from './producer.js';
 
 export interface FeedbackInvitationEvent {
@@ -74,7 +75,7 @@ export const enqueueFeedbackInvitations = async (
       venue: event.venue,
       locale: context.locale,
       ...pushPayloadFor('feedback_invitation', values, context.locale),
-      ...emailPayloadFor('feedback_invitation', values, context.locale),
+      ...(await emailPayloadFor('feedback_invitation', values, context.locale)),
       pushUrl: values.url,
     };
     const result = await enqueueNotificationIfAbsent(db, {

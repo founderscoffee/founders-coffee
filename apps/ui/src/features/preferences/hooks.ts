@@ -48,7 +48,8 @@ export const useSavePreferences = () => {
  * the token it was given is still attached to a live session. Neither half is sufficient, and a
  * screen built on either alone would misreport a device that was signed out elsewhere.
  *
- * Nothing here prompts on mount. `enable` is the only path that asks, and it is wired to a button.
+ * Nothing here prompts on mount. `enable` is the only path that asks, and it is wired to a user
+ * gesture in the channel grid.
  */
 export const useDevicePushState = (marketCode: string) => {
   const [state, setState] = useState<PushState>('checking');
@@ -85,11 +86,14 @@ export const useDevicePushState = (marketCode: string) => {
     void refresh();
   }, [refresh]);
 
-  const enable = useCallback(async () => {
+  const enable = useCallback(async (): Promise<boolean> => {
     setIsEnabling(true);
     try {
-      await enablePushOnThisDevice(marketCode);
+      const token = await enablePushOnThisDevice(marketCode);
       await refresh();
+      return !!token;
+    } catch {
+      return false;
     } finally {
       setIsEnabling(false);
     }

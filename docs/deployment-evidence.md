@@ -4,10 +4,16 @@ This file records account-side facts that repository code and CI cannot prove. D
 complete from configuration intent alone. Never record secrets, Turnstile responses, full IP
 addresses, session cookies, or personal test-account data.
 
-## Current operational snapshot — 2026-09-14
+## Current operational snapshot — 2026-09-16
 
 The following dated deployment records supersede older “not deployed” and “pending migration” notes
 below. Those notes remain as historical release records, but they are not the current state.
+
+Current Turnstile policy: public login/OTP, public waitlist, and other anonymous operations render
+and verify Turnstile. Authenticated profile, account, RSVP, feedback, event, and operations
+mutations rely on session authentication, centralized authorization, rate limiting, and applicable
+WAF controls without a browser challenge. Historical challenge measurements below remain valid as
+evidence of the deployments tested at that time.
 
 | Area                        | Staging                                                                                                                                                            | Production                                                                                                                                                         |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -15,11 +21,26 @@ below. Those notes remain as historical release records, but they are not the cu
 | CO-03 operations schema     | Migration `0025` applied                                                                                                                                           | Migration `0025` applied                                                                                                                                           |
 | Profile contractions        | `0021` through `0025` applied in order by [run 34490988914](https://github.com/AmineYagoub/founders-coffee/actions/runs/34490988914)                               | `0021` through `0025` applied in order by [run 34492217711](https://github.com/AmineYagoub/founders-coffee/actions/runs/34492217711)                               |
 | Notification policy         | Latest staging code proves push first and email fallback; SMS is reserved for same-day cancellation                                                                | The deployed production CO-02 version predates ND-07 and still needs promotion of the current policy                                                               |
+| Admin Access and app wiring | CO-04 Access/Better Auth correlation verified                                                                                                                      | P0-004/P1-017 Access, operator role, session correlation, CSRF-origin behavior, production D1, and required secret presence verified on 2026-09-15                 |
 
 The latest GEO push ([run 34777686347](https://github.com/AmineYagoub/founders-coffee/actions/runs/34777686347))
 failed only at `format:check` because `docs/implementation-plan.md` was not Prettier-clean; no
 migration or deployment job ran. The formatting fix in this change is intended to make that gate
 green on the next CI run.
+
+## P0-007 market configuration verification — 2026-09-16
+
+Read-only Wrangler D1 checks against both deployed databases returned exactly these rows:
+
+| Environment | Database                        | Market rows                           |
+| ----------- | ------------------------------- | ------------------------------------- |
+| Staging     | `founders-coffee-db-staging`    | `DZ=active`, `EG=active`, `SA=active` |
+| Production  | `founders-coffee-db-production` | `DZ=active`, `EG=active`, `SA=active` |
+
+No `MA` or `AE` rows were returned. `wrangler d1 migrations list --remote --env staging` and the
+equivalent production command both reported no migrations to apply, confirming that the committed
+`0029_activate_launch_markets` migration is applied in each environment. The checks read three rows,
+wrote zero rows, and changed no database state.
 
 ## P0-020 rollback guardrails — staging, 2026-09-16
 
@@ -61,6 +82,22 @@ the default branch; the local Wrangler path requires the explicit `--local-fallb
 After cancellation, a fresh release-state capture still reported migration head
 `0029_activate_launch_markets`, and the independent staging SEO smoke covered 18 routes with zero
 failures. No rollback or D1 restore was performed by the canceled run.
+
+### 2026-09-16 explicit local-fallback drill and recovery
+
+The guarded drill's pre-deploy run [35079443998](https://github.com/AmineYagoub/founders-coffee/actions/runs/35079443998)
+passed all verification, captured a valid staging rollback artifact, and deployed the current
+revision. The explicit `--local-fallback` path then verified the four captured versions and rolled
+back UI, dashboard, admin, and worker-jobs sequentially with their canonical Wrangler configs. No
+D1 restore or migration reversal was performed.
+
+The immediate smoke request from the operator shell could not connect to either the staging custom
+domain or its `workers.dev` origin, so the drill did not count that local probe as successful. The
+required recovery deploy [35081624701](https://github.com/AmineYagoub/founders-coffee/actions/runs/35081624701)
+passed every CI gate and its runner-side deployed-origin smoke artifact reported 18 routes with
+zero failures. A final Cloudflare release-state capture validated migration head
+`0029_activate_launch_markets` and all four recovered Workers at 100%. The local timeout was limited
+to the operator network path; Cloudflare API access and the GitHub runner remained healthy.
 
 ## EC-06 event-create anti-abuse
 
@@ -453,7 +490,7 @@ Driven through a real browser on `admin-staging.founders.coffee`, signed in end 
 | Bidi                          | the address and the permission strings carry `dir="ltr"` inside the RTL document and read correctly                                                                                                                                            |
 
 Operator accounts: **staging one (`admin`), production zero** — confirmed by query at the time of
-this 2026-09-11 check. The production admin Worker is deployed, but no production operator account
-has been provisioned yet.
+this 2026-09-11 historical check. Production operator setup and end-to-end verification were
+subsequently completed on 2026-09-15; the historical count is retained for release traceability.
 
 **Not covered:** DO/WAF rate limiting on sign-in, the one CO-04 bullet deliberately not built.

@@ -47,7 +47,7 @@ describe('readPushPayload', () => {
 
   it('names the app rather than showing undefined when a title is missing', () => {
     expect(readPushPayload({ body: 'no title here' }).title).toBe(
-      'founders.coffee',
+      'Founders Coffee',
     );
   });
 
@@ -58,7 +58,7 @@ describe('readPushPayload', () => {
   });
 
   it('survives a payload that is not an object at all', () => {
-    expect(readPushPayload('just text').title).toBe('founders.coffee');
+    expect(readPushPayload('just text').title).toBe('Founders Coffee');
     expect(readPushPayload(null).url).toBe('/');
   });
 

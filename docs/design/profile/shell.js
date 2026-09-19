@@ -1,4 +1,4 @@
-import logo from '../../../apps/ui/public/logo-fc.svg';
+import logo from '../../../apps/ui/public/branding/pwa-logo.png';
 
 import { icon, languages } from './icons.js';
 import { profileForm, publicCard } from './profile.js';
@@ -29,7 +29,7 @@ export const shell = (copy, state, locale, page) => {
     <a class="skip" href="#profile-main">${copy.skip}</a>
     <div class="study">${copy.study}</div>
     <header class="masthead"><div class="masthead-inner">
-      <div class="brand"><img src="${logo}" alt="" /><span>founders.coffee</span></div>
+      <div class="brand"><img src="${logo}" alt="" /><span>Founders Coffee</span></div>
       <p class="masthead-note">${copy.community}</p>
       <select class="select locale" id="locale" aria-label="${copy.locale}">${Object.entries(
         languages,
@@ -41,7 +41,7 @@ export const shell = (copy, state, locale, page) => {
         .join('')}</select>
     </div></header>
     <div class="layout">
-      <aside class="sidebar"><p class="kicker">founders.coffee</p>
+      <aside class="sidebar"><p class="kicker">Founders Coffee</p>
         <nav aria-label="${copy.navLabel}">${['profile', 'activity', 'preferences', 'account'].map((id) => `<button type="button" class="nav-item" data-page="${id}" ${page === id ? 'aria-current="page"' : ''}>${icon(id)}${copy[id]}</button>`).join('')}</nav>
         <div class="sidebar-note">${icon('account')}<strong>${copy.privateSpace}</strong><p>${copy.privateNote}</p></div>
       </aside>

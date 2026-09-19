@@ -7,6 +7,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { NO_INDEX_VALUE } from './indexation';
+import { buildPageTitle } from './seo';
 
 export type ErrorPageKind = 'error' | 'notFound';
 
@@ -23,7 +24,7 @@ export const errorPageHead = (locale: Locale, kind: ErrorPageKind) => {
         };
   return {
     meta: [
-      { title: `${copy.title} - founders.coffee` },
+      { title: buildPageTitle(copy.title) },
       { name: 'description', content: copy.description },
       { name: 'robots', content: NO_INDEX_VALUE },
     ],

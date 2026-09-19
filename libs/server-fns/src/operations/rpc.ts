@@ -17,7 +17,6 @@ import {
   feedbackViewRequestSchema,
   submitFeedbackRequestSchema,
 } from './schemas.js';
-import { requireFeedbackTurnstile } from '../turnstile/middleware.js';
 
 /**
  * What the host needs to close a gathering out.
@@ -109,7 +108,6 @@ export const submitFeedback = createServerFn({ method: 'POST', strict: false })
   .middleware([
     requirePermission('rsvp', 'update'),
     rateLimit('submit_feedback', 5, 600_000),
-    requireFeedbackTurnstile,
   ])
   .validator(appValidator(submitFeedbackRequestSchema))
   .handler(({ context, data }) => {

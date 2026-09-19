@@ -102,23 +102,24 @@ The only lifecycle script is the local-state linker in `postinstall`; it creates
 Wrangler state symlinks and does not alter dependency contents. That keeps restoring the tree
 equivalent to installing it.
 
-### There is no dependency audit step
-
-`npm audit --audit-level=high` was removed on 2026-09-04. npm is retiring the
-`/-/npm/v1/security/audits/quick` endpoint this npm version calls; it began answering `400` and
-`503`, taking five minutes to fail, and it blocked every deploy. Nothing in the pipeline checks
-advisories now — GitHub's Dependabot alerts are the intended replacement and are configured in
-repository settings, not here.
-
 ### `.github/workflows/deploy.yml`
 
-1. **resolve** — for a successful CI push, picks the target environment from the CI run's branch;
-   a manual run may choose its environment and production is still refused from a non-`main` ref.
-2. **deploy** — starts only after the successful CI push, checks out that run's exact commit, and is
-   bound to the matching GitHub Environment (so its scoped secrets apply). It captures the active
-   versions of all four Workers and the D1 bookmark before migrations, uploads a 30-day rollback
-   artifact, checks pending migrations with `migration-compatibility.mjs`, applies D1 migrations,
-   deploys the four Workers, and then runs the SEO route smoke against the deployed origin.
+1. **resolve** — picks the target environment from the pushed branch; a manual run may choose its
+   environment and production is still refused from a non-`main` ref.
+2. **verify** — calls the reusable CI workflow before any deployment step. On a `push` to `main`, its
+   first job independently checks the latest 100 completed `Deploy` runs from `develop`. It reuses
+   long CI only when a successful staging deployment completed before the current run began, has the
+   exact same Git tree, and its quality, build/Miniflare, and migration/deployment jobs all succeeded.
+   The lookup has read-only GitHub Actions access and emits its source run URL and tree in the workflow
+   summary. A manual run, a staging run, a missing/malformed match, or any API error always falls back
+   to the full CI gate. When reuse succeeds, only the long `quality` and `build` jobs are skipped; the
+   always-run `Verification evidence` job validates the internally produced metadata.
+3. **deploy** — starts only after verification succeeds, checks out the exact pushed commit, and is
+   bound to the matching GitHub Environment (so its scoped secrets apply). Before migrations it
+   captures the active versions of all four Workers and the D1 bookmark as a 30-day rollback
+   artifact. It applies D1 migrations only after `migration-compatibility.mjs` confirms every
+   pending migration has a manifest entry marked `compatible` and contains no destructive SQL,
+   deploys the four Workers, then runs the SEO route smoke against the deployed origin.
    Staging probes use the environment's `workers.dev` hostname and assert canonical URLs against
    `staging.founders.coffee`, so the gate tests the deployed Worker without depending on a
    custom-domain WAF challenge from GitHub-hosted runners. Production probes use `founders.coffee`.
@@ -135,7 +136,7 @@ repository settings, not here.
    noindex/cache headers, robots, canonical URLs, and same-origin Early Hint links. Dynamic city/event
    coverage is reported when staging has public rows; an empty staging database is a valid state and
    does not fabricate fixtures. Playwright E2E remains excluded from CI by the current project decision.
-3. **release** — only for a successful CI push to `main`. Tags that exact deployed commit and
+4. **release** — only for a successful CI push to `main`. Tags that exact deployed commit and
    publishes a GitHub release. Manual redeploys never create a second tag.
 
 ### `.github/workflows/rollback.yml`

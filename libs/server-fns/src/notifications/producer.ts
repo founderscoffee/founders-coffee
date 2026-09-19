@@ -12,11 +12,8 @@ import {
 } from './context.js';
 import { channelPlanFor } from './channel-plan.js';
 import { armNotificationSchedule } from './schedule.js';
-import {
-  emailPayloadFor,
-  pushPayloadFor,
-  type TemplateValues,
-} from './templates.js';
+import { pushPayloadFor, type TemplateValues } from './templates.js';
+import { emailPayloadFor } from './email-templates.js';
 import {
   enqueueNotification,
   getNotificationContact,
@@ -186,11 +183,11 @@ export const enqueueRsvpNotifications = async (
         valuesFor(basePayload, context, true),
         locale,
       ),
-      ...emailPayloadFor(
+      ...(await emailPayloadFor(
         templateKey,
         valuesFor(basePayload, context, true),
         locale,
-      ),
+      )),
     };
 
     await enqueueNotification(db, {

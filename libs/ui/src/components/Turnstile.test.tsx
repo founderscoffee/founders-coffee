@@ -23,6 +23,11 @@ const turnstile = {
   reset: vi.fn(),
 };
 
+const resetScriptState = () => {
+  const script = document.querySelector('script[src*="turnstile"]');
+  script?.remove();
+};
+
 describe('Turnstile', () => {
   beforeEach(() => {
     Object.assign(window, { turnstile });
@@ -30,6 +35,7 @@ describe('Turnstile', () => {
 
   afterEach(() => {
     cleanup();
+    resetScriptState();
     vi.clearAllMocks();
     Reflect.deleteProperty(window, 'turnstile');
   });

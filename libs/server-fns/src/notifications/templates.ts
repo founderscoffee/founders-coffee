@@ -1,17 +1,5 @@
 import {
   ntf_cancel_reason,
-  ntf_email_confirmation_html,
-  ntf_email_confirmation_subject,
-  ntf_email_confirmation_text,
-  ntf_email_reminder_24h_html,
-  ntf_email_reminder_24h_subject,
-  ntf_email_reminder_24h_text,
-  ntf_email_reminder_72h_html,
-  ntf_email_reminder_72h_subject,
-  ntf_email_reminder_72h_text,
-  ntf_email_event_cancelled_html,
-  ntf_email_event_cancelled_subject,
-  ntf_email_event_cancelled_text,
   ntf_push_confirmation_body,
   ntf_push_confirmation_title,
   ntf_push_event_cancelled_body,
@@ -22,29 +10,14 @@ import {
   ntf_push_reminder_72h_title,
   ntf_push_did_not_happen_body,
   ntf_push_did_not_happen_title,
-  ntf_email_did_not_happen_html,
-  ntf_email_did_not_happen_subject,
-  ntf_email_did_not_happen_text,
   ntf_push_closeout_prompt_body,
   ntf_push_closeout_prompt_title,
-  ntf_email_closeout_prompt_html,
-  ntf_email_closeout_prompt_subject,
-  ntf_email_closeout_prompt_text,
   ntf_push_rsvp_received_body,
   ntf_push_rsvp_received_title,
-  ntf_email_rsvp_received_html,
-  ntf_email_rsvp_received_subject,
-  ntf_email_rsvp_received_text,
   ntf_push_rsvp_cancelled_body,
   ntf_push_rsvp_cancelled_title,
-  ntf_email_rsvp_cancelled_html,
-  ntf_email_rsvp_cancelled_subject,
-  ntf_email_rsvp_cancelled_text,
   ntf_push_feedback_invitation_body,
   ntf_push_feedback_invitation_title,
-  ntf_email_feedback_invitation_html,
-  ntf_email_feedback_invitation_subject,
-  ntf_email_feedback_invitation_text,
   ntf_sms_confirmation,
   ntf_sms_event_cancelled,
   ntf_sms_reminder_24h,
@@ -80,7 +53,7 @@ const escapeHtml = (value: string): string =>
  * it is handed. The title and venue are user-authored and the URL carries a slug, so all of them are
  * escaped for the HTML variants and left alone for the plain-text and SMS ones.
  */
-const escapeValues = (values: TemplateValues): TemplateValues => ({
+export const escapeValues = (values: TemplateValues): TemplateValues => ({
   title: escapeHtml(values.title),
   venue: escapeHtml(values.venue),
   date: escapeHtml(values.date),
@@ -96,7 +69,7 @@ const escapeValues = (values: TemplateValues): TemplateValues => ({
  * interpolated into the message — a locale whose word order puts it elsewhere can move
  * `ntf_cancel_reason` without the caller changing.
  */
-const withReason = (
+export const withReason = (
   body: string,
   reason: string | undefined,
   locale: Locale,
@@ -138,79 +111,6 @@ export const smsBodyFor = (
         values.reason,
         locale,
       );
-  }
-};
-
-export const emailPayloadFor = (
-  templateKey: NotificationTemplateKey,
-  values: TemplateValues,
-  locale: Locale,
-): { subject: string; html: string; text: string } => {
-  const options = { locale };
-  const safe = escapeValues(values);
-  switch (templateKey) {
-    case 'event_did_not_happen':
-      return {
-        subject: ntf_email_did_not_happen_subject(values, options),
-        html: ntf_email_did_not_happen_html(safe, options),
-        text: ntf_email_did_not_happen_text(values, options),
-      };
-    case 'feedback_invitation':
-      return {
-        subject: ntf_email_feedback_invitation_subject(values, options),
-        html: ntf_email_feedback_invitation_html(safe, options),
-        text: ntf_email_feedback_invitation_text(values, options),
-      };
-    case 'closeout_prompt':
-      return {
-        subject: ntf_email_closeout_prompt_subject(values, options),
-        html: ntf_email_closeout_prompt_html(safe, options),
-        text: ntf_email_closeout_prompt_text(values, options),
-      };
-    case 'rsvp_received':
-      return {
-        subject: ntf_email_rsvp_received_subject(values, options),
-        html: ntf_email_rsvp_received_html(safe, options),
-        text: ntf_email_rsvp_received_text(values, options),
-      };
-    case 'rsvp_cancelled':
-      return {
-        subject: ntf_email_rsvp_cancelled_subject(values, options),
-        html: ntf_email_rsvp_cancelled_html(safe, options),
-        text: ntf_email_rsvp_cancelled_text(values, options),
-      };
-    case 'rsvp_confirmation':
-      return {
-        subject: ntf_email_confirmation_subject(values, options),
-        html: ntf_email_confirmation_html(safe, options),
-        text: ntf_email_confirmation_text(values, options),
-      };
-    case 'reminder_72h':
-      return {
-        subject: ntf_email_reminder_72h_subject(values, options),
-        html: ntf_email_reminder_72h_html(safe, options),
-        text: ntf_email_reminder_72h_text(values, options),
-      };
-    case 'reminder_24h':
-      return {
-        subject: ntf_email_reminder_24h_subject(values, options),
-        html: ntf_email_reminder_24h_html(safe, options),
-        text: ntf_email_reminder_24h_text(values, options),
-      };
-    case 'event_cancelled':
-      return {
-        subject: ntf_email_event_cancelled_subject(values, options),
-        html: withReason(
-          ntf_email_event_cancelled_html(safe, options),
-          safe.reason,
-          locale,
-        ),
-        text: withReason(
-          ntf_email_event_cancelled_text(values, options),
-          values.reason,
-          locale,
-        ),
-      };
   }
 };
 

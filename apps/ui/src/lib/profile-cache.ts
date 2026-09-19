@@ -4,8 +4,8 @@
  * Every account section belongs here, not only the ones named `profile`. Serwist's default runtime
  * caching ends in a catch-all `NetworkFirst` that stores any navigation for 24 hours, so a page
  * missing from this list is a signed-in member's screen sitting in a shared browser's cache.
- * `/preferences` and `/activity` were absent while no service worker was ever registered, which is
- * the only reason it did not matter.
+ * The legacy aliases and nested profile routes are all covered, so a service worker update cannot
+ * expose a signed-in member's screen from a shared browser cache.
  */
 export const isPrivateProfilePath = (pathname: string): boolean =>
   /^\/(?:profile|account|preferences|activity|onboarding|login|u)(?:\/|$)/.test(

@@ -14,6 +14,7 @@ import {
 } from '@founders-coffee/observability';
 import { getVisibleMarkets } from '@founders-coffee/server-fns';
 
+import { toRootMarket, type RootMarket } from '../features/markets/api';
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
@@ -24,8 +25,10 @@ import {
   NO_INDEX_VALUE,
   PUBLIC_DOCUMENT_CACHE_CONTROL,
 } from '../lib/indexation';
+import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd } from '../lib/seo-company';
 import { errorPageHead } from '../lib/seo-error';
+import { manifestHref } from '../lib/web-manifest';
 
 import appCss from '../styles.css?url';
 
@@ -35,6 +38,9 @@ const detectActiveLocale = (routeLocale?: string) => {
     : detectLocale(readCookieHeader());
   return { locale, dir: direction(locale) };
 };
+
+const localeFromRequest = (): Locale =>
+  detectActiveLocale(getRequestPath().split('/').filter(Boolean)[0]).locale;
 
 const useClientObservability = () => {
   useEffect(() => {
@@ -63,7 +69,7 @@ const useServiceWorker = () => {
 };
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
-  const { locale, dir, markets } = Route.useRouteContext();
+  const { locale, dir, markets, activeMarket } = Route.useRouteContext();
   useClientObservability();
   useServiceWorker();
   useStoredLocale(locale);
@@ -75,9 +81,9 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
       </head>
       <body className="flex flex-col bg-base-100 text-base-content">
         <AppProviders>
-          <Navbar locale={locale} />
+          <Navbar locale={locale} marketSlug={activeMarket?.slug} />
           <main className="flex-1">{children}</main>
-          <Footer locale={locale} markets={markets} />
+          <Footer locale={locale} markets={markets} market={activeMarket} />
         </AppProviders>
         <Scripts />
       </body>
@@ -89,8 +95,12 @@ export const Route = createRootRoute({
   beforeLoad: async ({ params }) => {
     const routeParams = params as { readonly market?: string };
     const { locale, dir } = detectActiveLocale(routeParams.market);
-    const markets = await getVisibleMarkets();
-    return { locale, dir, markets: markets ?? [] };
+    const markets = ((await getVisibleMarkets()) ?? []).map(toRootMarket);
+    const activeMarket =
+      markets.find(
+        (market: RootMarket) => market.slug === routeParams.market,
+      ) ?? markets[0];
+    return { locale, dir, markets, activeMarket };
   },
   headers: ({ matches }) => {
     const hasNoIndexableState = matches.some(
@@ -108,9 +118,7 @@ export const Route = createRootRoute({
     return headers;
   },
   head: ({ matches }) => {
-    const rootMatch = matches.find((match) => match.routeId === '__root__');
-    const locale =
-      (rootMatch?.context as { locale?: Locale } | undefined)?.locale ?? 'ar';
+    const locale = localeFromRequest();
     const hasNotFound = matches.some(
       (match) => match.status === 'notFound' || match.globalNotFound,
     );
@@ -129,11 +137,10 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: 'stylesheet', href: appCss },
-        { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
         { rel: 'icon', href: '/favicon-32x32.png', sizes: '32x32' },
         { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
-        { rel: 'manifest', href: '/manifest.json' },
+        { rel: 'manifest', href: manifestHref(locale) },
         ...(pageHead?.links ?? []),
       ],
       scripts: pageHead?.scripts ?? [

@@ -123,7 +123,7 @@ export const HostVenueList = ({
                       ? [venue.address, category].filter(Boolean).join(' · ')
                       : [category, host_venue_ineligible({}, { locale })]
                           .filter(Boolean)
-                          .join(' — ')}
+                          .join(' · ')}
                   </bdi>
                 </span>
               </span>
@@ -137,7 +137,7 @@ export const HostVenueList = ({
         })}
       </div>
       {showAttribution && venues.length > 0 && (
-        <p className="mt-2 text-caption text-taupe">
+        <p className="mt-2 text-caption text-neutral">
           {host_osm_attribution({}, { locale })}
         </p>
       )}

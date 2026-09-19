@@ -1,10 +1,13 @@
 import { and, eq, gt, sql } from 'drizzle-orm';
 
+import type { Locale } from '@founders-coffee/core';
+
 import { account, session, user } from './schema.js';
 import type { Db } from './db.js';
 import { activeProfileIdentity } from './profile-access.js';
 
 export interface AccountSummaryRow {
+  readonly locale: Locale | null;
   readonly email: string;
   readonly emailVerified: boolean;
   readonly phoneNumber: string | null;
@@ -32,6 +35,7 @@ export const getAccountSummary = async (
 ): Promise<AccountSummaryRow | null> => {
   const identity = await db
     .select({
+      locale: user.localePref,
       email: user.email,
       emailVerified: user.emailVerified,
       phoneNumber: user.phoneNumber,
@@ -63,4 +67,17 @@ export const getAccountSummary = async (
     providerIds: providers.map((row) => row.providerId),
     sessionCount: Number(sessions[0]?.total ?? 0),
   };
+};
+
+export const updateAccountLocale = async (
+  db: Db,
+  userId: string,
+  locale: Locale,
+): Promise<Locale | null> => {
+  const rows = await db
+    .update(user)
+    .set({ localePref: locale, updatedAt: new Date() })
+    .where(activeProfileIdentity(userId))
+    .returning({ locale: user.localePref });
+  return rows[0]?.locale ?? null;
 };

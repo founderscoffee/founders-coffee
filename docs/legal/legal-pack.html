@@ -1,0 +1,4007 @@
+<title>Founders Coffee Legal Pack</title>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Spectral:wght@600&display=swap"
+/>
+<style>
+  :root {
+    --ground: #fafbf9;
+    --surface: #ffffff;
+    --sunk: #f1f5f2;
+    --ink: #16211c;
+    --ink-soft: #56655d;
+    --ink-faint: #7c8a82;
+    --rule: #dce4df;
+    --rule-soft: #eaf0ec;
+    --accent: #006233;
+    --accent-ink: #00512a;
+    --accent-wash: #e9f1ec;
+    --alert: #b3122c;
+    --alert-wash: #fbecee;
+    --amber: #8a5a00;
+    --amber-wash: #fbf2e2;
+    --shadow: 0 1px 2px rgba(16, 40, 28, 0.05);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --ground: #0e1411;
+      --surface: #141b17;
+      --sunk: #1a231e;
+      --ink: #e3eae5;
+      --ink-soft: #9fb0a6;
+      --ink-faint: #7a8b81;
+      --rule: #26322c;
+      --rule-soft: #1d2620;
+      --accent: #5fb287;
+      --accent-ink: #8acba9;
+      --accent-wash: #16241d;
+      --alert: #f2889a;
+      --alert-wash: #2a1519;
+      --amber: #d9a94e;
+      --amber-wash: #261d0e;
+      --shadow: none;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --ground: #0e1411;
+    --surface: #141b17;
+    --sunk: #1a231e;
+    --ink: #e3eae5;
+    --ink-soft: #9fb0a6;
+    --ink-faint: #7a8b81;
+    --rule: #26322c;
+    --rule-soft: #1d2620;
+    --accent: #5fb287;
+    --accent-ink: #8acba9;
+    --accent-wash: #16241d;
+    --alert: #f2889a;
+    --alert-wash: #2a1519;
+    --amber: #d9a94e;
+    --amber-wash: #261d0e;
+    --shadow: none;
+    color-scheme: dark;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family:
+      'IBM Plex Sans',
+      system-ui,
+      -apple-system,
+      sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 0 96px;
+  }
+
+  /* ---- masthead ---- */
+  .mast {
+    padding-block: 56px 30px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+  }
+  .mast h1 {
+    font-family: Spectral, Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(30px, 5.2vw, 50px);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .mast .sub {
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin: 16px 0 0;
+    font-size: 16.5px;
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+    padding: 0;
+    list-style: none;
+  }
+  .facts li {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 5px 10px;
+    color: var(--ink-soft);
+  }
+  .facts li b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .notice {
+    margin-top: 26px;
+    border-inline-start: 3px solid var(--alert);
+    background: var(--alert-wash);
+    padding: 14px 18px;
+    border-radius: 0 3px 3px 0;
+  }
+  .notice p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink);
+  }
+  .notice b {
+    color: var(--alert);
+  }
+
+  /* ---- layout ---- */
+  .cols {
+    display: grid;
+    grid-template-columns: 238px minmax(0, 1fr);
+    gap: 56px;
+    margin-top: 46px;
+    align-items: start;
+  }
+  nav.toc {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
+  nav.toc h2 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  nav.toc a {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 8px;
+    align-items: baseline;
+    padding: 6px 0;
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    border-top: 1px solid var(--rule-soft);
+    line-height: 1.35;
+  }
+  nav.toc li:first-child a {
+    border-top: 0;
+  }
+  nav.toc a:hover,
+  nav.toc a:focus-visible {
+    color: var(--accent-ink);
+  }
+  nav.toc .n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+  }
+  nav.toc .t[dir='rtl'] {
+    font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', sans-serif;
+    text-align: right;
+  }
+
+  /* ---- sections ---- */
+  .sec {
+    scroll-margin-top: 16px;
+    padding-block: 0 60px;
+  }
+  .sh {
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 8px;
+  }
+  .sh h2 {
+    font-family: Spectral, Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(23px, 3.4vw, 31px);
+    line-height: 1.2;
+    margin: 0;
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    text-wrap: balance;
+  }
+  .sh .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    flex: none;
+    padding-top: 2px;
+  }
+  .sec.rtl .sh h2 {
+    font-family: Amiri, 'IBM Plex Sans Arabic', serif;
+    font-size: clamp(26px, 4vw, 36px);
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .body {
+    max-width: 68ch;
+  }
+  .sec.rtl .body {
+    font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', sans-serif;
+    font-size: 16.5px;
+    line-height: 1.95;
+    max-width: 64ch;
+  }
+  .body p {
+    margin: 0 0 15px;
+  }
+  .body h3 {
+    font-family: Spectral, Georgia, serif;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1.3;
+    margin: 34px 0 12px;
+    text-wrap: balance;
+  }
+  .sec.rtl .body h3 {
+    font-family: Amiri, serif;
+    font-weight: 700;
+    font-size: 25px;
+    line-height: 1.5;
+    margin: 38px 0 12px;
+    color: var(--accent-ink);
+  }
+  .body h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 24px 0 8px;
+    letter-spacing: 0.01em;
+  }
+  .sec.rtl .body h4 {
+    font-size: 17px;
+  }
+  .body ul,
+  .body ol {
+    margin: 0 0 15px;
+    padding-inline-start: 22px;
+  }
+  .body li {
+    margin-bottom: 7px;
+  }
+  .body li::marker {
+    color: var(--ink-faint);
+  }
+  .body a {
+    color: var(--accent-ink);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+  .body strong {
+    font-weight: 600;
+  }
+  .body hr {
+    border: 0;
+    border-top: 1px solid var(--rule-soft);
+    margin: 34px 0;
+  }
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.86em;
+    background: var(--sunk);
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    padding: 1px 5px;
+    direction: ltr;
+    display: inline-block;
+  }
+
+  blockquote {
+    margin: 22px 0;
+    padding: 16px 20px;
+    background: var(--sunk);
+    border-inline-start: 3px solid var(--rule);
+    border-radius: 0 3px 3px 0;
+  }
+  blockquote p {
+    margin: 0 0 10px;
+  }
+  blockquote p:last-child {
+    margin: 0;
+  }
+  blockquote.warn {
+    background: var(--amber-wash);
+    border-inline-start-color: var(--amber);
+  }
+  blockquote h3,
+  blockquote h4 {
+    margin-top: 0;
+    color: var(--ink);
+  }
+
+  /* ---- tables ---- */
+  .tw {
+    overflow-x: auto;
+    margin: 20px 0;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13.8px;
+    line-height: 1.6;
+  }
+  .sec.rtl table {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 14.5px;
+  }
+  th,
+  td {
+    padding: 10px 13px;
+    text-align: start;
+    vertical-align: top;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  thead th {
+    background: var(--sunk);
+    font-weight: 600;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--rule);
+  }
+  .sec.rtl thead th {
+    text-transform: none;
+    font-size: 13px;
+    letter-spacing: 0;
+    white-space: normal;
+  }
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  tbody tr:nth-child(even) td {
+    background: var(--rule-soft);
+  }
+
+  /* ---- document status ---- */
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin: 0 0 6px;
+  }
+  .b-draft {
+    background: var(--accent-wash);
+    color: var(--accent-ink);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  .b-blocked {
+    background: var(--alert-wash);
+    color: var(--alert);
+    border: 1px solid color-mix(in srgb, var(--alert) 34%, transparent);
+  }
+  .b-dormant {
+    background: var(--amber-wash);
+    color: var(--amber);
+    border: 1px solid color-mix(in srgb, var(--amber) 34%, transparent);
+  }
+  .stamp {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    margin: 0 0 22px;
+    letter-spacing: 0.03em;
+  }
+
+  footer.end {
+    margin-top: 20px;
+    padding-top: 22px;
+    border-top: 2px solid var(--ink);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    max-width: 68ch;
+  }
+  footer.end p {
+    margin: 0 0 9px;
+  }
+
+  @media (max-width: 900px) {
+    .cols {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    nav.toc {
+      position: static;
+      max-height: none;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      padding: 16px 18px;
+      background: var(--surface);
+    }
+    .body,
+    .sec.rtl .body,
+    footer.end {
+      max-width: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+  a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+</style>
+<div class="wrap">
+  <header class="mast">
+    <p class="eyebrow">Founders Coffee · Legal pack · 18 September 2026</p>
+    <h1>Legal pages for an Algerian community platform</h1>
+    <p class="sub">
+      Seven documents in Modern Standard Arabic, drafted from the
+      <i>Journal Officiel</i> texts of Law 18-07 and Law 25-11 and from what the
+      product actually does — written for what Founders Coffee is today: a free
+      market-test beta run by one person, with no company behind it yet. Six of
+      the seven are now live in the product; the ticketing policy is
+      deliberately not routed.
+    </p>
+    <ul class="facts">
+      <li><b>7</b> documents</li>
+      <li><b>6</b> platforms reviewed</li>
+      <li><b>2</b> primary statutes read in full</li>
+      <li><b>1</b> blocking item</li>
+      <li>Arabic · <b>ar</b></li>
+    </ul>
+    <div class="notice">
+      <p>
+        <b>Not reviewed by a lawyer.</b> These are publication-quality drafts,
+        not legal advice, and they do not guarantee compliance. No company
+        exists yet, so the operator carries every obligation here personally —
+        and the remaining bracketed fields must never be filled with an
+        estimate.
+      </p>
+    </div>
+  </header>
+  <div class="cols">
+    <nav class="toc" aria-label="Contents">
+      <h2>Contents</h2>
+      <ol>
+        <li>
+          <a href="#s1"
+            ><span class="n">01</span
+            ><span class="t">Executive summary</span></a
+          >
+        </li>
+        <li>
+          <a href="#s2"
+            ><span class="n">02</span
+            ><span class="t"
+              >How comparable platforms write these documents</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="#s3"
+            ><span class="n">03</span
+            ><span class="t">Algerian legal research notes</span></a
+          >
+        </li>
+        <li>
+          <a href="#s4"
+            ><span class="n">04</span
+            ><span class="t"
+              >Information that must be confirmed before publication</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="#doc-10"
+            ><span class="n">05</span
+            ><span class="t" dir="rtl" lang="ar">شروط الاستخدام</span></a
+          >
+        </li>
+        <li>
+          <a href="#doc-20"
+            ><span class="n">06</span
+            ><span class="t" dir="rtl" lang="ar">سياسة الخصوصية</span></a
+          >
+        </li>
+        <li>
+          <a href="#doc-30"
+            ><span class="n">07</span
+            ><span class="t" dir="rtl" lang="ar">إرشادات المجتمع</span></a
+          >
+        </li>
+        <li>
+          <a href="#doc-40"
+            ><span class="n">08</span
+            ><span class="t" dir="rtl" lang="ar">شروط منظّمي الفعاليات</span></a
+          >
+        </li>
+        <li>
+          <a href="#doc-50"
+            ><span class="n">09</span
+            ><span class="t" dir="rtl" lang="ar"
+              >سياسة ملفات تعريف الارتباط</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="#doc-60"
+            ><span class="n">10</span
+            ><span class="t" dir="rtl" lang="ar">المعلومات القانونية</span></a
+          >
+        </li>
+        <li>
+          <a href="#doc-70"
+            ><span class="n">11</span
+            ><span class="t" dir="rtl" lang="ar"
+              >سياسة التذاكر والإلغاء والاسترجاع</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="#s12"
+            ><span class="n">12</span
+            ><span class="t">Final risks requiring professional review</span></a
+          >
+        </li>
+        <li>
+          <a href="#s13"
+            ><span class="n">13</span
+            ><span class="t">Quality-control review</span></a
+          >
+        </li>
+      </ol>
+    </nav>
+    <main>
+      <section id="s1" class="sec">
+        <header class="sh">
+          <p class="kicker">Analysis</p>
+          <h2><span class="num">01</span>Executive summary</h2>
+        </header>
+        <div class="body">
+          <p>
+            Founders Coffee today is a free meetup platform
+            <strong
+              >run as a market-test beta by a natural person, with no company
+              formed behind it</strong
+            >. An entity is intended if the test succeeds — along with physical
+            coffee spaces for founders — but it does not exist yet, and the
+            documents are drafted on that fact rather than around a placeholder
+            for it. Members create an account with an email code, optionally
+            fill a profile, browse cities, RSVP, and host. Hosts publish an
+            event, see who said they were coming, and after the event mark who
+            actually turned up. Nobody pays anything, there is no direct
+            messaging, and there is no advertising or analytics tracking in the
+            browser.
+          </p>
+          <p>That shape decides most of the drafting:</p>
+          <ul>
+            <li>
+              <strong>The platform is not the organiser.</strong> A member who
+              publishes a meetup is the organiser of it. This is the single most
+              important distinction in the whole package and it is stated in the
+              Terms, restated in the Organizer Terms, and reflected in the
+              Community Guidelines' enforcement section.
+            </li>
+            <li>
+              <strong
+                >Two clauses carry unusual weight for this product.</strong
+              >
+              The first is attendance: a host records whether a named member
+              showed up. That is personal data about one member created by
+              another, and it is not correctable through the interface. The
+              second is that all processing happens on infrastructure outside
+              Algeria.
+            </li>
+            <li>
+              <strong>Cookies are genuinely simple.</strong> The app sets a
+              session cookie, a language cookie and a region cookie. It sets
+              nothing for analytics and nothing for advertising. The Cookie
+              Policy says that, rather than filling a page with trackers the
+              product does not run.
+            </li>
+            <li>
+              <strong>The ticketing policy is written but not in force.</strong>
+              It is drafted so it can be switched on, and it carries a warning
+              that is the most consequential finding of this research: under Law
+              18-05 an e-commerce activity in Algeria must be registered with
+              the CNRC and must publish
+              <strong
+                >a site hosted in Algeria under a
+                <code>.com.dz</code> extension</strong
+              >, with payment settled into an Algerian account. Paid events are
+              therefore not a pricing decision; they are an entity, hosting and
+              domain decision.
+            </li>
+          </ul>
+          <p>
+            <strong
+              >Having no entity is a drafting input, not a drafting
+              problem.</strong
+            >
+            It settles more than it opens. Law 18-05 and the consumer-protection
+            regime attach to a supplier of goods or services _for
+            consideration_, so a free beta sits largely outside them — which is
+            why the ticketing policy is dormant structurally rather than by
+            choice: an unregistered natural person cannot lawfully take event
+            payments under that regime at all. Law 18-07 is the opposite: it
+            defines the controller as a natural <strong>or</strong> legal
+            person, so every data-protection obligation applies in full,
+            personally, today. The line that triggers incorporation is therefore
+            the first dinar charged, not "when we grow".
+          </p>
+          <p>
+            The corresponding cost is that there is no liability shield. Every
+            limitation clause in the Terms now protects one person's own
+            patrimony, which makes §2 of the Terms — _we are not the organiser,
+            not the venue operator, not a party to the arrangement_ — the most
+            load-bearing text in the package.
+          </p>
+          <p>
+            One thing blocks publication outright: the ANPDP declaration and the
+            transfer position that goes with it. It is listed in section 4.
+          </p>
+          <p>
+            <strong>Published state.</strong> Six of the seven documents are
+            live in the product, under <code>/terms</code>,
+            <code>/privacy</code>, <code>/cookies</code>,
+            <code>/community</code>, <code>/organizers</code> and
+            <code>/legal</code>, in Arabic for every locale — French and English
+            readers get a notice naming Arabic as the authoritative version,
+            above the full Arabic text. The ticketing policy is deliberately not
+            routed. The published copy is generated from the Markdown in this
+            directory into <code>apps/ui/src/content/company/*.ts</code>;
+            <strong>the two must be edited together</strong>, and
+            <code>pages.test.ts</code> guards the invariants that can be checked
+            mechanically — no editorial note reaches the public text, no
+            unresolved bracket survives, and every cross-document link resolves
+            to a real company route.
+          </p>
+          <hr />
+        </div>
+      </section>
+      <section id="s2" class="sec">
+        <header class="sh">
+          <p class="kicker">Analysis</p>
+          <h2>
+            <span class="num">02</span>How comparable platforms write these
+            documents
+          </h2>
+        </header>
+        <div class="body">
+          <p>
+            Six platforms reviewed. No ranking implied; each was read for
+            structure and for how it divides responsibility.
+          </p>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>Platform</th>
+                  <th>Document reviewed</th>
+                  <th>Useful drafting pattern</th>
+                  <th>Relevance to Founders Coffee</th>
+                  <th>Adopt</th>
+                  <th>Avoid</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Meetup</td>
+                  <td>
+                    Terms of Service; Groups &amp; events policies; Organizer
+                    standards
+                  </td>
+                  <td>
+                    Organiser conduct and member conduct live in separate
+                    documents from the contract, so the community rules can be
+                    read on their own
+                  </td>
+                  <td>
+                    Closest product shape: recurring local groups, volunteer
+                    organisers, free events
+                  </td>
+                  <td>
+                    The split between a contract (Terms) and readable rules
+                    (Guidelines); enforcement described as escalating but not
+                    promised in a fixed order
+                  </td>
+                  <td>
+                    Tying organiser standing to payment of a subscription —
+                    irrelevant and would read as hostile here
+                  </td>
+                </tr>
+                <tr>
+                  <td>Eventbrite</td>
+                  <td>
+                    Terms of Service; Organizer Terms; Cancelled/Postponed Event
+                    policies
+                  </td>
+                  <td>
+                    A named clause stating the platform is "not the creator,
+                    organizer, or owner" of any event, plus a separate organiser
+                    agreement carrying permits, accuracy and refunds
+                  </td>
+                  <td>
+                    The organiser/platform split is the exact problem we must
+                    solve
+                  </td>
+                  <td>
+                    The explicit non-organiser clause; requiring the organiser
+                    to obtain any permits the venue or activity needs
+                  </td>
+                  <td>
+                    The 90-day postponement refund rule and the
+                    arbitration/class-action waiver — the first presumes
+                    ticketing, the second is unenforceable and alien in Algeria
+                  </td>
+                </tr>
+                <tr>
+                  <td>Luma</td>
+                  <td>Terms of Use</td>
+                  <td>
+                    Opens with "Our Role in Events" as the _first_ substantive
+                    section rather than burying it at clause 14
+                  </td>
+                  <td>
+                    We want a reader to learn who is responsible before anything
+                    else
+                  </td>
+                  <td>Putting the role clause first</td>
+                  <td>
+                    An "unrestricted, worldwide, irrevocable" commercial licence
+                    over user content — disproportionate for a platform that
+                    only needs to display an event page
+                  </td>
+                </tr>
+                <tr>
+                  <td>Partiful</td>
+                  <td>Terms of Service</td>
+                  <td>
+                    Plain, almost conversational register while still being a
+                    contract
+                  </td>
+                  <td>
+                    Our audience is founders, not lawyers; Arabic legal prose
+                    can be formal and still plain
+                  </td>
+                  <td>
+                    Short sentences, concrete examples, no capitalised walls of
+                    text
+                  </td>
+                  <td>
+                    Liability capped at "$100", arbitration, and US-government
+                    clauses — meaningless here
+                  </td>
+                </tr>
+                <tr>
+                  <td>LinkedIn</td>
+                  <td>User Agreement ("Dos and Don'ts")</td>
+                  <td>
+                    Obligations written as a list of things you will and will
+                    not do, in the second person; real-name and anti-scraping
+                    rules stated as community rules rather than technical
+                    prohibitions
+                  </td>
+                  <td>
+                    A founder network has the same failure modes: fake profiles,
+                    harvesting contact details, unsolicited pitching
+                  </td>
+                  <td>
+                    Real-identity expectation; explicit prohibition on scraping
+                    member contact information; unsolicited bulk messaging
+                    treated as a community violation
+                  </td>
+                  <td>
+                    Length and cross-referencing — the document is unreadable
+                    end to end
+                  </td>
+                </tr>
+                <tr>
+                  <td>Meta (Pages, Groups and Events Policies)</td>
+                  <td>Events policies</td>
+                  <td>
+                    Requires an organiser collecting data at an event to say
+                    plainly that _they_, not the platform, are collecting it
+                  </td>
+                  <td>Directly relevant: our hosts see a roster of names</td>
+                  <td>
+                    The rule that a host collecting anything at the meetup must
+                    identify themselves as the collector
+                  </td>
+                  <td>
+                    Treating events as an advertising surface; none of the
+                    promotions machinery applies
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Two cross-cutting observations:</p>
+          <ol start="1">
+            <li>
+              <strong
+                >Every one of them separates the contract from the
+                rules.</strong
+              >
+              The Terms are the agreement; the Community Guidelines are the
+              behaviour. We have followed that, because the Guidelines are the
+              document people will actually read.
+            </li>
+            <li>
+              <strong
+                >None of them is a useful model for privacy in Algeria.</strong
+              >
+              All six are drafted against GDPR or US state law. Their
+              _structure_ (data categories, per-category purposes) is worth
+              borrowing; their _legal bases and deadlines_ are not.
+            </li>
+          </ol>
+          <p>
+            An attempt was also made to find Algerian consumer platforms
+            publishing full Arabic legal pages as a register reference. Nothing
+            substantial was located — Algerian platforms in this segment tend to
+            publish short French pages or none. That absence is itself worth
+            knowing: there is no local house style to imitate, so the Arabic
+            below aims at formal, plain Modern Standard Arabic of the kind used
+            in Algerian commercial and administrative writing.
+          </p>
+          <hr />
+        </div>
+      </section>
+      <section id="s3" class="sec">
+        <header class="sh">
+          <p class="kicker">Analysis</p>
+          <h2><span class="num">03</span>Algerian legal research notes</h2>
+        </header>
+        <div class="body">
+          <p>
+            Primary texts were read directly from the _Journal Officiel_ where
+            possible rather than through summaries. Where a secondary source
+            disagrees with the primary text, that is flagged.
+          </p>
+          <h4>3.1 Personal data</h4>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>Requirement</th>
+                  <th>Instrument</th>
+                  <th>Article</th>
+                  <th>Source</th>
+                  <th>What it means for Founders Coffee</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Governing statute</td>
+                  <td>
+                    Law 18-07 of 10 June 2018, as amended and supplemented by
+                    <strong>Law 25-11 of 24 July 2025</strong>
+                  </td>
+                  <td>—</td>
+                  <td>
+                    <a
+                      href="https://www.joradp.dz/FTP/jo-francais/2018/F2018034.pdf"
+                      target="_blank"
+                      rel="noopener"
+                      >JO 34/2018</a
+                    >;
+                    <a
+                      href="https://www.joradp.dz/FTP/jo-francais/2025/F2025048.pdf"
+                      target="_blank"
+                      rel="noopener"
+                      >JO 48/2025</a
+                    >
+                  </td>
+                  <td>
+                    The 2025 amendment is in force and materially changes
+                    controller obligations. Any policy drafted against 18-07
+                    alone is out of date.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Territorial scope</td>
+                  <td>18-07</td>
+                  <td>Art. 4</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Applies to a controller established in Algeria, and also to
+                    a controller not established in Algeria that uses means
+                    located in Algeria — in which case a representative in
+                    Algeria must be notified to the ANPDP. Which limb applies
+                    depends on where the operating entity is incorporated.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Lawful basis</td>
+                  <td>18-07</td>
+                  <td>Art. 7</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Express consent is the rule. Consent is
+                    <strong>not</strong> required where processing is necessary
+                    for a legal obligation, to protect life or vital interests,
+                    <strong
+                      >for performance of a contract to which the person is a
+                      party or pre-contractual steps</strong
+                    >, for a public-interest mission, or for a legitimate
+                    interest subject to the person's rights. Running an account
+                    and an RSVP is contract performance; sending an event
+                    reminder is contract performance; nothing we do needs
+                    marketing consent today.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Withdrawal</td>
+                  <td>18-07</td>
+                  <td>Art. 7 §3</td>
+                  <td>JO 34/2018</td>
+                  <td>The person may withdraw at any time.</td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Disclosure to third parties</td>
+                  <td>18-07</td>
+                  <td>Art. 7 §4</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Data may be communicated to a third party only for purposes
+                    directly linked to the functions of both, and subject to
+                    prior consent. Relevant to the host roster.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Children</td>
+                  <td>18-07</td>
+                  <td>Art. 8</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    A child's data may be processed only with the legal
+                    representative's consent or a judge's authorisation. The
+                    product has no mechanism for this — hence the minimum-age
+                    decision in §4.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Data quality and retention</td>
+                  <td>18-07</td>
+                  <td>Art. 9</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Lawful and fair processing; specified, explicit, legitimate
+                    purposes; adequate, relevant, not excessive; accurate; kept
+                    in identifying form no longer than necessary. Retention
+                    beyond that for historical/statistical/scientific purposes
+                    needs ANPDP authorisation.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Prior declaration</td>
+                  <td>18-07</td>
+                  <td>Arts. 12–14</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    <strong>Every</strong> processing operation requires a prior
+                    declaration to the ANPDP. Receipt issued within 48 hours;
+                    processing may begin on receipt. Art. 14 lists nine
+                    mandatory contents, including item 5, _the nature of the
+                    data intended to be transferred abroad_, and item 6,
+                    retention periods.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Possible authorisation regime</td>
+                  <td>18-07</td>
+                  <td>Art. 17</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    If, on examining the declaration, the ANPDP finds manifest
+                    dangers to privacy, it may place the processing under prior
+                    authorisation, by reasoned decision notified within 10 days.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Sensitive data</td>
+                  <td>18-07</td>
+                  <td>Art. 18</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Processing sensitive data is prohibited save in defined
+                    cases. The product should not collect it; free-text fields
+                    (profile introduction, feedback comments) are where it would
+                    arrive by accident.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Information to the person</td>
+                  <td>18-07</td>
+                  <td>Art. 32</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Must state, expressly and unambiguously: controller
+                    identity, purposes, and useful further information "notably
+                    the recipient, the obligation to reply and its consequences,
+                    their rights and
+                    <strong>the transfer of data abroad</strong>". A privacy
+                    policy that omits the transfers is non-compliant on its
+                    face.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Access</td>
+                  <td>18-07</td>
+                  <td>Art. 34</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Confirmation, purposes, categories, recipients, and an
+                    intelligible copy plus available information on origin.
+                    Manifestly abusive requests may be refused, burden of proof
+                    on the controller.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Rectification / erasure / blocking</td>
+                  <td>18-07</td>
+                  <td>Art. 35</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    <strong>Free of charge and within 10 days.</strong> Third
+                    parties who received the data must be notified. Heirs may
+                    exercise the right. The 10-day deadline is the operational
+                    commitment made in the Privacy Policy.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Objection</td>
+                  <td>18-07</td>
+                  <td>Art. 36</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Objection on legitimate grounds; an unqualified right to
+                    object to use for prospection.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Direct marketing</td>
+                  <td>18-07</td>
+                  <td>Art. 37</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Prohibited by automated call, fax or email without prior
+                    consent. A narrow soft-opt-in exists for email where details
+                    were collected directly in a sale or analogous service and
+                    an opt-out is offered at collection and in every message.
+                    Concealing the sender's identity, or using a subject line
+                    unrelated to the service, is prohibited outright.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Security and confidentiality</td>
+                  <td>18-07</td>
+                  <td>Arts. 38–41</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Appropriate technical and organisational measures;
+                    professional secrecy binding staff after they leave;
+                    processors act only on instruction.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Breach notification (private controllers)</td>
+                  <td>18-07</td>
+                  <td><strong>Art. 43</strong></td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Where processing on public electronic-communications
+                    networks causes destruction, loss, alteration, disclosure or
+                    unauthorised access, the service provider warns the ANPDP
+                    <strong>and the person, without delay</strong>, where the
+                    breach may harm their privacy. An inventory of breaches and
+                    remedial measures must be kept.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Breach notification (5 days)</td>
+                  <td>25-11</td>
+                  <td>Art. 45 bis 8</td>
+                  <td>JO 48/2025</td>
+                  <td>
+                    <strong>Read the scope carefully.</strong> Widely reported
+                    as a general 5-day rule. In the _Journal Officiel_ text it
+                    sits inside new <strong>Title V bis</strong>, headed
+                    "processing for the purposes of prevention and detection of
+                    offences, investigations, prosecutions and enforcement of
+                    sentences", addressed to competent authorities. For a
+                    private platform the governing rule remains Art. 43
+                    ("without delay"). We nevertheless adopt 5 days as an
+                    internal ceiling, since it is stricter than nothing and
+                    weaker than "without delay".
+                  </td>
+                  <td><strong>Needs legal verification</strong></td>
+                </tr>
+                <tr>
+                  <td>DPO</td>
+                  <td>25-11</td>
+                  <td>Art. 41 bis</td>
+                  <td>JO 48/2025</td>
+                  <td>
+                    Added to Title V (controller obligations), so it applies
+                    generally: every controller designates a data protection
+                    delegate chosen for professional qualities, and communicates
+                    their contact details to the ANPDP. One delegate may serve
+                    several controllers given their size and structure.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Register of processing</td>
+                  <td>25-11</td>
+                  <td>Art. 41 bis 2</td>
+                  <td>JO 48/2025</td>
+                  <td>
+                    Controller and processor each keep a register: contacts,
+                    purposes <strong>and legal basis</strong>, categories of
+                    recipients including those in other states, categories of
+                    persons and data, erasure deadlines where possible, and a
+                    general description of security measures. Paper or
+                    electronic; produced to the ANPDP on request.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Automated operations log</td>
+                  <td>25-11</td>
+                  <td>Art. 41 bis 3</td>
+                  <td>JO 48/2025</td>
+                  <td>
+                    An <strong>automated log</strong> of processing operations —
+                    collection, consultation, use, communication,
+                    interconnection, blocking, encryption, erasure, destruction
+                    — recording reasons, date and time and, where possible, who
+                    used or disclosed the data and to whom. Implementing rules
+                    to come by regulation. This is an engineering obligation,
+                    not a drafting one.
+                  </td>
+                  <td>
+                    High (scope of "where possible"
+                    <strong>needs verification</strong>)
+                  </td>
+                </tr>
+                <tr>
+                  <td>Profiling, pseudonymisation, breach — new definitions</td>
+                  <td>25-11</td>
+                  <td>Art. 2 (amending Art. 3)</td>
+                  <td>JO 48/2025</td>
+                  <td>
+                    "Profiling" is now defined and includes analysing or
+                    predicting personal preferences, interests, behaviour,
+                    location or movements. Relevant if recommendations or
+                    embeddings are ever used to rank people rather than content.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Transfer abroad</td>
+                  <td>18-07</td>
+                  <td><strong>Art. 44</strong></td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    A controller may transfer personal data to a foreign state
+                    <strong>only with ANPDP authorisation</strong> and only if
+                    that state ensures a sufficient level of protection.
+                    Transfer is prohibited outright where it could harm public
+                    security or the vital interests of the State.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Transfer — derogations</td>
+                  <td>18-07</td>
+                  <td><strong>Art. 45</strong></td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    By derogation, transfer to a non-qualifying state is
+                    permitted where: (1) the person has
+                    <strong>expressly consented</strong>; (2) it is necessary,
+                    inter alia, for
+                    <strong
+                      >performance of a contract between the controller and the
+                      person</strong
+                    >
+                    or pre-contractual steps at their request; (3) under a
+                    bilateral or multilateral agreement to which Algeria is
+                    party; or (4) on ANPDP authorisation.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Administrative measures</td>
+                  <td>18-07</td>
+                  <td>Art. 46</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Warning, formal notice, provisional withdrawal of up to one
+                    year or definitive withdrawal of the declaration receipt or
+                    authorisation, and fine. Appeal lies to the Conseil d'État.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Fine for refusing rights or failing to notify</td>
+                  <td>18-07</td>
+                  <td>Art. 47</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    <strong>500,000 DA</strong> against a controller who
+                    refuses, without legitimate reason, the rights under Arts.
+                    32, 34, 35 or 36, or who fails to make the notifications
+                    under Arts. 4, 14 or 16. Repeat offences attract Art. 64
+                    penalties.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Criminal penalties</td>
+                  <td>18-07</td>
+                  <td>Arts. 54–74</td>
+                  <td>JO 34/2018</td>
+                  <td>
+                    Imprisonment and fines for unlawful processing, unauthorised
+                    access, disclosure and related offences.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>ANPDP operational status</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>
+                    <a
+                      href="https://www.gide.com/en/news-insights/setting-up-of-the-national-authority-for-the-protection-of-personal-data-anpdp/"
+                      target="_blank"
+                      rel="noopener"
+                      >Gide</a
+                    >;
+                    <a
+                      href="https://www.aps.dz/fr/algerie/actualite-nationale/mjkdts4u-publication-de-la-premiere-deliberation-fixant-les-conditions-de-designation-du-delegue-a-la-protection-des-donnees-a-caractere-personnel"
+                      target="_blank"
+                      rel="noopener"
+                      >APS</a
+                    >
+                  </td>
+                  <td>
+                    The authority is operational and has begun issuing
+                    deliberations, the first concerning designation of the data
+                    protection delegate. Declaration forms are reported to be
+                    available online.
+                  </td>
+                  <td>
+                    <strong
+                      >Needs verification of current filing procedure directly
+                      with the ANPDP</strong
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>Cookies</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>
+                    <strong
+                      >No ANPDP deliberation on cookies or trackers was
+                      located.</strong
+                    >
+                    There is no Algerian equivalent of the CNIL guidelines, and
+                    therefore no published "strictly necessary" exemption to
+                    rely on. The general Art. 7 consent rule is the only anchor.
+                    Our position — essential and preference cookies only, no
+                    analytics, no advertising — avoids the question rather than
+                    answering it.
+                  </td>
+                  <td><strong>Needs legal verification</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h4>
+            3.2 Electronic commerce (relevant only when paid events launch)
+          </h4>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>Requirement</th>
+                  <th>Instrument</th>
+                  <th>Article</th>
+                  <th>Source</th>
+                  <th>What it means</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Applicable law</td>
+                  <td>Law 18-05 of 10 May 2018</td>
+                  <td>Art. 2</td>
+                  <td>
+                    <a
+                      href="https://www.mpt.gov.dz/wp-content/uploads/2023/11/Loi-n%C2%B0-18-05-du-10-mai-2018.-fr_0_0.pdf"
+                      target="_blank"
+                      rel="noopener"
+                      >Loi 18-05, MPT</a
+                    >
+                  </td>
+                  <td>
+                    Algerian law applies where a party is an Algerian national,
+                    legally resident in Algeria, an Algerian legal person, or
+                    where the contract is concluded or performed in Algeria. A
+                    foreign entity selling tickets to Algerian members is
+                    caught.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Prohibited transactions</td>
+                  <td>18-05</td>
+                  <td>Art. 3</td>
+                  <td>idem</td>
+                  <td>
+                    Games of chance, betting and lotteries; alcohol and tobacco;
+                    pharmaceuticals; goods infringing IP rights; anything
+                    otherwise prohibited; anything requiring an authenticated
+                    instrument.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong
+                      >Registration, <code>.com.dz</code> and hosting in
+                      Algeria</strong
+                    >
+                  </td>
+                  <td>18-05</td>
+                  <td><strong>Art. 8</strong></td>
+                  <td>idem</td>
+                  <td>
+                    E-commerce activity is subject to entry in the commercial
+                    register (or the register of crafts and trades)
+                    <strong
+                      >and to publishing a site or web page hosted in Algeria
+                      with a <code>.com.dz</code> extension</strong
+                    >, equipped with authentication tools.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Domain deposit with CNRC</td>
+                  <td>18-05</td>
+                  <td>Art. 9</td>
+                  <td>idem</td>
+                  <td>
+                    A national file of e-suppliers is kept at the CNRC;
+                    exercising the activity is conditional on depositing the
+                    domain name with CNRC services.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Contract formation</td>
+                  <td>18-05</td>
+                  <td>Art. 10</td>
+                  <td>idem</td>
+                  <td>
+                    Every transaction must be preceded by an electronic
+                    commercial offer and formalised in an electronic contract
+                    validated by the consumer.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Mandatory disclosures in the offer</td>
+                  <td>18-05</td>
+                  <td>Art. 11</td>
+                  <td>idem</td>
+                  <td>
+                    Tax identification number (NIF), physical and electronic
+                    addresses, telephone, commercial register number, and the
+                    nature, characteristics and price of the goods or services —
+                    presented visibly, legibly and comprehensibly.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Personal data in e-commerce</td>
+                  <td>18-05</td>
+                  <td>Art. 26</td>
+                  <td>idem</td>
+                  <td>
+                    Collect only data necessary to conclude the transaction;
+                    obtain the consumer's agreement
+                    <strong>before</strong> collection; guarantee
+                    information-system security and data confidentiality.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Payment</td>
+                  <td>18-05</td>
+                  <td>Art. 27 and Art. 7</td>
+                  <td>idem</td>
+                  <td>
+                    Payment by authorised means, credited to the e-supplier's
+                    account <strong>domiciled in Algeria</strong> with a bank
+                    approved by the Banque d'Algérie, or with Algérie Poste.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Refund timing benchmark</td>
+                  <td>18-05</td>
+                  <td>Arts. 22–23</td>
+                  <td>idem</td>
+                  <td>
+                    Where delivery is late or non-conforming, reimbursement
+                    within <strong>15 days</strong>. These provisions are
+                    drafted for goods; they are the closest statutory benchmark,
+                    not a rule made for event tickets.
+                  </td>
+                  <td>
+                    <strong>Needs legal verification for services</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Electronic advertising</td>
+                  <td>18-05</td>
+                  <td>Art. 30</td>
+                  <td>idem</td>
+                  <td>
+                    Must be clearly identifiable as commercial, identify the
+                    person on whose behalf it is sent, respect public order and
+                    morals, disclose any discount or gift, and state
+                    non-misleading conditions.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Unsolicited prospecting</td>
+                  <td>18-05</td>
+                  <td>Art. 31</td>
+                  <td>idem</td>
+                  <td>
+                    Direct prospecting to a natural person who has not given
+                    prior consent is prohibited.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td><strong>Opt-out within 24 hours</strong></td>
+                  <td>18-05</td>
+                  <td><strong>Art. 32</strong></td>
+                  <td>idem</td>
+                  <td>
+                    The supplier must provide an electronic means to opt out,
+                    free and without reasons; must acknowledge the request
+                    electronically; and must act on it
+                    <strong>within 24 hours</strong>.
+                  </td>
+                  <td>High</td>
+                </tr>
+                <tr>
+                  <td>Burden of proof</td>
+                  <td>18-05</td>
+                  <td>Art. 33</td>
+                  <td>idem</td>
+                  <td>
+                    In a dispute, the supplier must prove prior free consent and
+                    compliance with Art. 30.
+                  </td>
+                  <td>High</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h4>3.3 Other instruments touched</h4>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>Topic</th>
+                  <th>Instrument</th>
+                  <th>Relevance</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Capacity to contract</td>
+                  <td>
+                    Civil Code (Ord. 75-58), Art. 40 — civil majority at
+                    <strong>19 years</strong> since the 2014 amendment
+                  </td>
+                  <td>
+                    Determines the minimum age to accept the Terms. Criminal
+                    majority is 18; civil majority is 19. Most international
+                    templates say 18 and would be wrong here.
+                  </td>
+                  <td>
+                    High — but <strong>confirm with counsel</strong> whether a
+                    16–18 user may contract for a free service with guardian
+                    consent
+                  </td>
+                </tr>
+                <tr>
+                  <td>Consumer protection</td>
+                  <td>
+                    Law 09-03 of 25 February 2009, amended by Law 18-09 of 10
+                    June 2018
+                  </td>
+                  <td>
+                    Information, conformity and fair-dealing duties; bites once
+                    anything is sold.
+                  </td>
+                  <td>
+                    Medium — reviewed in summary,
+                    <a
+                      href="https://www.commerce.gov.dz/fr/reglementation/loi-n-deg-18-09-du-10-juin-2018"
+                      target="_blank"
+                      rel="noopener"
+                      >Ministry of Commerce</a
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>Copyright</td>
+                  <td>
+                    Ordinance 03-05 of 19 July 2003; Algeria party to the Berne
+                    Convention and the WIPO Copyright Treaty
+                  </td>
+                  <td>
+                    Basis for the IP clauses and the takedown procedure.
+                    Protection runs for the author's life plus 50 years.
+                  </td>
+                  <td>
+                    High —
+                    <a
+                      href="https://www.wipo.int/wipolex/fr/legislation/details/1199"
+                      target="_blank"
+                      rel="noopener"
+                      >Ordinance 03-05</a
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>ICT offences</td>
+                  <td>Law 09-04 of 5 August 2009</td>
+                  <td>
+                    Framework for prevention and prosecution of ICT-related
+                    offences, including cooperation with the competent national
+                    body. Basis for the "requests from authorities" clause.
+                  </td>
+                  <td>
+                    Medium —
+                    <a
+                      href="https://www.wipo.int/edocs/lexdocs/laws/fr/dz/dz033fr.pdf"
+                      target="_blank"
+                      rel="noopener"
+                      >WIPO Lex</a
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>Electronic signature</td>
+                  <td>Law 15-04 of 1 February 2015</td>
+                  <td>
+                    Cited in the visas of Law 25-11; relevant only if contracts
+                    are ever signed electronically.
+                  </td>
+                  <td>Low relevance today</td>
+                </tr>
+                <tr>
+                  <td><strong>Intermediary liability</strong></td>
+                  <td>—</td>
+                  <td>
+                    <strong
+                      >No Algerian equivalent of a hosting safe harbour was
+                      located</strong
+                    >
+                    — nothing resembling the EU e-Commerce Directive Art. 14 or
+                    US DMCA §512. Law 18-05 does not allocate liability between
+                    content creators and intermediaries. The Terms therefore
+                    commit to acting promptly on notice
+                    <strong>without claiming any statutory immunity</strong>,
+                    and the Organizer Terms place primary responsibility on the
+                    person who published the content.
+                  </td>
+                  <td>
+                    <strong>Needs legal verification — material risk</strong>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <hr />
+        </div>
+      </section>
+      <section id="s4" class="sec">
+        <header class="sh">
+          <p class="kicker">Analysis</p>
+          <h2>
+            <span class="num">04</span>Information that must be confirmed before
+            publication
+          </h2>
+        </header>
+        <div class="body">
+          <h4>Blocking — the pages cannot be published without these</h4>
+          <ol start="1">
+            <li>
+              ~~<strong>The operator's full name.</strong>~~
+              <strong>Resolved.</strong> Amine Yagoub is named as the natural
+              person operating the beta, in the Legal Information page, Terms §1
+              and Privacy Policy §1, written as
+              <code>أمين يعقوب (Amine Yagoub)</code> so the Arabic and Latin
+              spellings are both on record. Two related calls were made and
+              should be reviewed: -
+              <strong>No postal address is published.</strong> The Legal
+              Information page says it is provided on request. There is no
+              general Algerian obligation to publish one, Art. 11 of Law 18-05
+              does not apply while everything is free, and publishing a private
+              individual's home address is a real cost. This changes at
+              incorporation, when the registered office becomes the address of
+              record. -
+              <strong>No ANPDP declaration status is published.</strong> Art. 32
+              requires telling the data subject who the controller is, the
+              purposes, the recipients and the transfers abroad — all of which
+              the Privacy Policy does. It does not require publishing a
+              declaration receipt number. Saying nothing is not the same as the
+              obligation going away; see item 3.
+            </li>
+            <li>
+              <strong
+                >Registered office address, commercial register number, NIF, and
+                NIS.</strong
+              >
+              _Not applicable at this stage_ and now written as such rather than
+              left as empty brackets — an empty field reads as an oversight, "no
+              company has been formed" reads as a fact. These become blocking
+              again at incorporation.
+            </li>
+            <li>
+              <strong>The ANPDP declaration.</strong> Not yet made, as far as
+              this research can tell. It is a legal precondition to processing
+              (Arts. 12–14), the receipt arrives within 48 hours, and Art. 47
+              attaches a 500,000 DA fine to failing to notify. Art. 14 item 5
+              requires declaring the nature of data transferred abroad — which
+              means the vendor list below must be settled before filing, not
+              after.
+            </li>
+            <li>
+              <strong>The position on transfers abroad.</strong> Every byte of
+              member data sits on infrastructure outside Algeria. Counsel must
+              decide whether to seek ANPDP authorisation under Art. 44, rely on
+              the Art. 45 derogations (express consent and contract necessity),
+              or both.
+              <strong>The published policy now commits to a position</strong>:
+              §5 states that Art. 45 is the basis relied on today, not a prior
+              Art. 44 authorisation, and undertakes to update the section if an
+              authorisation is later granted. That is a drafting decision made
+              to avoid publishing an empty placeholder, and it is the single
+              sentence most in need of a lawyer's confirmation.
+            </li>
+            <li>
+              <strong>The data protection delegate (DPO)</strong> required by
+              Art. 41 bis. A new question at this stage: whether the obligation
+              reaches a sole natural-person controller running a beta, and who
+              the delegate would be if it does. The Legal Information page now
+              names a _contact point_ rather than a designated delegate, and
+              flags the question in an editorial note, because announcing a
+              designation that has not happened is worse than saying nothing.
+              Needs an opinion.
+            </li>
+            <li>
+              <strong>Minimum age.</strong> The drafts say 19, following civil
+              majority. If the product intends to admit students below that, a
+              guardian-consent mechanism is required by Art. 8 and does not
+              exist in the code.
+            </li>
+            <li>
+              <strong>The contact address.</strong> The product currently uses
+              <code>contact@founders.coffee</code> for everything including
+              privacy requests. Confirm whether a separate privacy address is
+              wanted; the drafts assume one address and say so.
+            </li>
+          </ol>
+          <h4>Can be completed later</h4>
+          <ol start="8">
+            <li>
+              <strong>Retention periods.</strong> The drafts state periods that
+              are defensible and that the product can actually honour. They are
+              proposals, not observed behaviour: no retention job exists today
+              beyond the profile-asset sweep. Each period in the Privacy Policy
+              needs an owner and a scheduled job before it is a true statement.
+            </li>
+            <li>
+              <strong>Account deletion.</strong> The schema has
+              <code>account_state</code> values <code>active</code>,
+              <code>closing</code>, <code>deleted</code>, but no code path uses
+              <code>closing</code> or <code>deleted</code>. Until a deletion
+              flow exists, the Privacy Policy's erasure section is a promise
+              fulfilled manually. That is acceptable under Art. 35 — which
+              requires action within 10 days, not a self-service button — but it
+              must be someone's job.
+            </li>
+            <li>
+              <strong>Contesting an attendance mark.</strong> A host records
+              whether a named member attended. The member cannot see or correct
+              that record. Art. 35 gives them the right to rectification, free,
+              within 10 days. The Privacy Policy routes this to the contact
+              address; a product surface would be better.
+            </li>
+            <li>
+              <strong>What the embeddings job processes.</strong>
+              <code>apps/worker-jobs/src/jobs/embeddings.ts</code> sends
+              documents to Workers AI and Vectorize. If those documents are only
+              event titles and descriptions, the Privacy Policy is accurate as
+              drafted. If they ever include profile text or feedback comments,
+              the policy and the ANPDP declaration both change.
+            </li>
+            <li>
+              <strong>Whether the public member profile is indexable.</strong>
+              The route <code>/u/$userId</code> is public. The visibility flags
+              (<code>publish_interests</code>,
+              <code>publish_spoken_languages</code>,
+              <code>publish_professional_link</code>) all default to
+              <code>false</code>, which is the right default and is described as
+              such. Confirm whether search engines are allowed to index these
+              pages.
+            </li>
+            <li>
+              <strong>SMS.</strong> <code>sms_fallback_enabled</code> and
+              <code>sms_consent_at</code> exist, and Twilio is provisioned for
+              same-day cancellation disruption. Confirm whether SMS is live in
+              production; the Privacy Policy describes it as reserved for urgent
+              event disruption and used only with recorded consent.
+            </li>
+            <li>
+              <strong>One cookie is described conditionally.</strong> The Cookie
+              Policy says a short-lived technical cookie "may" be set by the
+              bot-protection layer during sign-in. Cloudflare's edge sets such a
+              cookie in some configurations and not others; nobody verified
+              which applies here. Check the response headers on the deployed
+              sign-in page and make the sentence definite either way.
+            </li>
+            <li>
+              <strong>Payment model.</strong> Nothing in the ticketing policy
+              can be finalised — fees, payout timing, refund windows — until a
+              provider and a business model are chosen, and until the Law 18-05
+              Art. 8 question below is answered. Incorporation now sits ahead of
+              all of it as item 1 of that document's own checklist.
+            </li>
+            <li>
+              <strong
+                >Whether the free beta really falls outside Law 18-05.</strong
+              >
+              The drafting relies on it: the e-commerce regime addresses the
+              _fournisseur électronique_, a commercial supplier transacting for
+              consideration, and no meetup on the platform costs anything. The
+              inference is sound but it is an inference, and it carries the
+              ticketing policy's entire dormancy argument. Confidence:
+              <strong>Needs legal verification.</strong> If it is wrong, Art.
+              8's <code>.com.dz</code> hosting requirement becomes live
+              immediately rather than at the first dinar.
+            </li>
+            <li>
+              <strong>Beta data resets.</strong> Terms §11 now reserves the
+              ability to reset databases during the beta, with prior notice. If
+              no reset is ever intended, the clause should be removed rather
+              than kept as a convenience; if it is intended, the notice it
+              promises needs a channel.
+            </li>
+          </ol>
+          <h4>Confirmed by reading the code — no further input needed</h4>
+          <ul>
+            <li>There is no direct messaging between members.</li>
+            <li>
+              There is no advertising, no advertising cookies, and no
+              third-party analytics script in the browser. Metrics are
+              server-side, through Cloudflare Analytics Engine.
+            </li>
+            <li>
+              Cookies set: the Better Auth session cookie, a language cookie
+              (one year), and a region cookie (one year).
+            </li>
+            <li>Session records store IP address and user agent.</li>
+            <li>Every event is free.</li>
+            <li>
+              Profile visibility is opt-in per field, all defaulting to hidden.
+            </li>
+            <li>
+              The city waitlist stores an email address with no account
+              attached, for one purpose.
+            </li>
+          </ul>
+          <h4>
+            Third-party processors — the list the ANPDP declaration must carry
+          </h4>
+          <p>
+            Confirmed by reading <code>docs/secrets.md</code>, the wrangler
+            configuration and <code>libs/infra</code>. None of these names
+            appear in the public documents; the Privacy Policy describes them by
+            role, which is what Art. 32 requires. Publishing vendor names is a
+            choice, not an obligation, and it should be made once the list is
+            stable.
+          </p>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Provider</th>
+                  <th>Processes</th>
+                  <th>Outside Algeria</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    Application hosting, database, queues, object storage, edge
+                    cache
+                  </td>
+                  <td>
+                    Cloudflare (Workers, D1, R2, KV, Queues, Durable Objects)
+                  </td>
+                  <td>Everything</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>Server-side metrics</td>
+                  <td>Cloudflare Analytics Engine</td>
+                  <td>Aggregated counters</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>Transactional email</td>
+                  <td>Cloudflare Email Routing (<code>send_email</code>)</td>
+                  <td>Email address, message content</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>Bot protection</td>
+                  <td>Cloudflare Turnstile</td>
+                  <td>IP address, challenge token</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>Admin access control</td>
+                  <td>Cloudflare Access</td>
+                  <td>Operator identity</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>Push notifications</td>
+                  <td>Google Firebase Cloud Messaging</td>
+                  <td>Device token, notification content</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>Maps and venue selection</td>
+                  <td>Mapbox</td>
+                  <td>Coordinates, map requests from the host's browser</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>SMS (reserved)</td>
+                  <td>Twilio</td>
+                  <td>Phone number, message content</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>Optional sign-in</td>
+                  <td>Google, GitHub OAuth</td>
+                  <td>Account identifier, email</td>
+                  <td>Yes</td>
+                </tr>
+                <tr>
+                  <td>Semantic search (roadmap)</td>
+                  <td>Cloudflare Workers AI, Vectorize</td>
+                  <td>See item 11 above</td>
+                  <td>Yes</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <hr />
+        </div>
+      </section>
+      <section id="doc-10" class="sec rtl" dir="rtl" lang="ar">
+        <header class="sh">
+          <p class="kicker">الوثيقة 05</p>
+          <h2><span class="num">05</span>شروط الاستخدام</h2>
+        </header>
+        <div class="body">
+          <p class="badge b-draft" dir="rtl" lang="ar">
+            مسوّدة — بانتظار المراجعة القانونية
+          </p>
+          <p class="stamp" dir="rtl" lang="ar">آخر تحديث: 18 سبتمبر 2026</p>
+          <h3>1. من نحن</h3>
+          <p>
+            فاوندرز كوفي منصة رقمية للقاءات المحلية بين مؤسّسي الشركات الناشئة
+            وأصحاب المشاريع والمهتمّين بالمنظومة الريادية. تتيح المنصة اكتشاف
+            اللقاءات في مدينتك، والتسجيل فيها، ونشر لقاء خاص بك إن أردت.
+          </p>
+          <p>
+            المنصة اليوم في <strong>طور تجريبي</strong>: نختبر الفكرة في السوق
+            الجزائرية قبل التوسّع فيها. ولم تُؤسَّس بعد شركة تشغّلها، فيتولّى
+            تشغيلها <strong>أمين يعقوب (Amine Yagoub)</strong> بصفته الشخصية،
+            وبياناته في صفحة <a href="#doc-60">المعلومات القانونية</a>. وحيثما
+            ورد في هذه الوثيقة ضمير المتكلّم فالمقصود به هذا المشغِّل.
+          </p>
+          <p>
+            نقول هذا صراحةً لأنك تستحقّ أن تعرف مع من تتعاقد. وغياب الشركة لا
+            يُنقص ممّا نلتزم به هنا تجاهك: الالتزامات الواردة في هذه الوثيقة وفي
+            <a href="#doc-20">سياسة الخصوصية</a> يتحمّلها المشغِّل شخصياً.
+          </p>
+          <p>
+            هذه الشروط اتفاق بينك وبيننا. باستخدامك المنصة أو إنشائك حساباً
+            فيها، فإنك توافق عليها. إن لم توافق، لا تستخدم المنصة.
+          </p>
+          <p>
+            جميع اللقاءات على المنصة اليوم مجانية، ولا تُباع فيها تذاكر ولا
+            تُحصَّل رسوم. إن أدخلنا لاحقاً لقاءات مدفوعة، فستسري عليها وثيقة
+            منفصلة هي <a href="#doc-70">سياسة التذاكر والإلغاء والاسترجاع</a>،
+            ولن تسري قبل الإعلان عنها صراحةً.
+          </p>
+          <h3>2. دورنا في اللقاءات</h3>
+          <p>هذا أهم ما ينبغي أن تعرفه قبل بقية الوثيقة.</p>
+          <p>
+            عندما ينشر أحد الأعضاء لقاءً، فهو <strong>منظّم ذلك اللقاء</strong>،
+            هو أو الجهة التي يمثّلها. نحن نوفّر المساحة الرقمية التي يُنشَر فيها
+            اللقاء ويُكتشَف ويُسجَّل فيه الحضور. لسنا منظّمي اللقاء، ولا مشغّلي
+            المكان الذي يُعقد فيه، ولا طرفاً في الترتيبات بين المنظّم والحاضرين،
+            ولا نتحمّل ما يقوله المنظّم أو يَعِد به.
+          </p>
+          <p>
+            يستوي في ذلك أن يكون اللقاء في مقهى أو في فضاء عمل مشترك أو في أي
+            مكان آخر: المكان يخصّ صاحبه، والترتيب يخصّ المنظّم.
+          </p>
+          <p>
+            الاستثناء الوحيد هو اللقاءات التي نعلن صراحةً أنها
+            <strong>لقاءات رسمية من فاوندرز كوفي</strong>. تُوسَم هذه اللقاءات
+            على صفحتها، وحينها نكون نحن المنظّم وتقع علينا مسؤوليات المنظّم
+            الواردة في <a href="#doc-40">شروط منظّمي الفعاليات</a>.
+          </p>
+          <p>
+            ما لا نستطيع التحقّق منه مسبقاً هو مضمون كل لقاء يُنشر. نراجع ما
+            يُبلَّغ عنه ونتصرّف بشأنه، لكننا لا نراجع كل لقاء قبل نشره، ولا نضمن
+            أن اللقاء سيُعقد في موعده أو أن ما ورد في وصفه دقيق.
+          </p>
+          <h3>3. الحساب</h3>
+          <p>
+            <strong>من يستطيع إنشاء حساب.</strong> يُشترط أن تكون بالغاً سنّ
+            الرشد المدني في الجزائر، أي
+            <strong>تسعة عشر (19) سنة كاملة</strong>، لأن استخدام المنصة ينشئ
+            التزاماً تعاقدياً. إن علمنا أن حساباً يعود إلى قاصر، أوقفناه.
+          </p>
+          <p>
+            <strong>التسجيل.</strong> تُنشئ حسابك برمز يُرسَل إلى بريدك
+            الإلكتروني، أو عبر حساب Google أو GitHub إن اخترت ذلك. لا نطلب كلمة
+            سرّ ولا نحتفظ بواحدة.
+          </p>
+          <p>
+            <strong>صحّة المعلومات.</strong> استخدم اسمك الحقيقي وبيانات صحيحة.
+            هذه منصة مهنية تقوم على أن يعرف الناس من يقابلون؛ الأسماء المستعارة
+            والصفات غير الصحيحة والانتحال تُفسد ذلك، وهي محظورة بموجب
+            <a href="#doc-30">إرشادات المجتمع</a>.
+          </p>
+          <p>
+            <strong>مسؤوليتك عن حسابك.</strong> الحساب شخصي ولا يُشارَك. أبلغنا
+            فوراً إن لاحظت استخداماً لم تأذن به.
+          </p>
+          <p>
+            <strong>إغلاق الحساب.</strong> يمكنك طلب إغلاق حسابك في أي وقت
+            بمراسلتنا. ما يحدث لبياناتك بعد ذلك موضَّح في
+            <a href="#doc-20">سياسة الخصوصية</a>.
+          </p>
+          <h3>4. ما تنشره على المنصة</h3>
+          <p>
+            يشمل ذلك ما تكتبه في ملفك الشخصي، ووصف اللقاءات التي تنشرها، والصور
+            التي ترفعها، والملاحظات التي تكتبها بعد لقاء حضرته.
+          </p>
+          <p>
+            <strong>ما تنشره يبقى لك.</strong> لا نطالب بملكية نصوصك ولا صورك.
+          </p>
+          <p>
+            <strong>ما تمنحنا إياه.</strong> بنشرك محتوى على المنصة تمنحنا
+            ترخيصاً غير حصري ومجانياً لعرضه داخل المنصة وفي الصفحات العامة
+            المرتبطة به ونتائج البحث عنه، ولإجراء المعالجة التقنية اللازمة
+            لتشغيل الخدمة مثل تغيير أبعاد الصور وتخزينها. لا يتجاوز هذا الترخيص
+            تشغيل المنصة، ولا نستعمل محتواك في إعلانات، وينتهي مفعوله بحذف
+            المحتوى عدا النُّسخ التقنية المؤقتة والنسخ التي يلزمنا القانون
+            بحفظها.
+          </p>
+          <p>
+            <strong>ما تضمنه لنا.</strong> أنك تملك ما تنشره أو تملك الحق في
+            نشره، وأنه لا ينتهك حقوق غيرك.
+          </p>
+          <p>
+            <strong>ما قد نفعله به.</strong> يجوز لنا إخفاء محتوى أو حذفه إن
+            خالف هذه الشروط أو إرشادات المجتمع أو القانون. نُعلمك عند حذف محتواك
+            ما لم يمنعنا مانع قانوني.
+          </p>
+          <h3>5. نشر لقاء وحضوره</h3>
+          <p>
+            <strong>إن نشرت لقاءً</strong> فأنت منظّمه، وتسري عليك
+            <a href="#doc-40">شروط منظّمي الفعاليات</a> إضافةً إلى هذه الشروط.
+          </p>
+          <p>
+            <strong>إن سجّلت في لقاء</strong> فأنت تُعلن نيّة الحضور، لا أكثر.
+            التسجيل مجاني ويمكنك إلغاؤه. غير أن اللقاءات هنا صغيرة وغير رسمية،
+            ومنظّمها شخص يرتّب مكاناً وموعداً على حسابه: إن تغيّر رأيك، ألغِ
+            تسجيلك بدل أن تتخلّف دون إشعار.
+          </p>
+          <p>
+            <strong>قبل أن تحضر.</strong> المعلومات المنشورة تأتي من المنظّم.
+            تحقّق من المكان والتوقيت، واحكم بنفسك على ملاءمة اللقاء لك. أنت من
+            يقرّر الذهاب، وتتحمّل تبعة هذا القرار كما تتحمّلها في أي موعد مهني
+            آخر.
+          </p>
+          <p>
+            <strong>إلغاء اللقاء.</strong> قد يُلغي المنظّم لقاءه أو يؤجّله.
+            نُشعِر المسجَّلين حين يحدث ذلك عبر القنوات التي فعّلتها، لكن الإلغاء
+            قراره لا قرارنا، ولا نعوّض عمّا تكبّدته من تنقّل أو وقت.
+          </p>
+          <h3>6. سجلّ الحضور</h3>
+          <p>
+            بعد انتهاء اللقاء، يستطيع المنظّم أن يسجّل من حضر فعلاً ومن لم يحضر
+            من المسجَّلين.
+          </p>
+          <p>
+            نذكر ذلك صراحةً لأنه يعني أن عضواً آخر يدوّن واقعة تخصّك. نستعمل هذا
+            السجلّ لفهم ما إذا كانت اللقاءات تُعقَد فعلاً، ولحماية المجتمع من
+            اللقاءات الوهمية، ولا نعرضه علناً على ملفك الشخصي.
+          </p>
+          <p>
+            إن سُجِّل حضورك على نحو غير صحيح، راسلنا وسنصحّح السجلّ. تفاصيل هذا
+            الحق ومهلته في <a href="#doc-20">سياسة الخصوصية</a>.
+          </p>
+          <h3>7. قواعد السلوك داخل المجتمع</h3>
+          <p>
+            القواعد التفصيلية في <a href="#doc-30">إرشادات المجتمع</a>، وهي جزء
+            من هذا الاتفاق. وباختصار شديد: لا رسائل ترويجية غير مطلوبة، ولا
+            لقاءات وهمية، ولا ملفات مُنتحَلة، ولا ادّعاءات استثمارية مضلّلة، ولا
+            جمع لبيانات الأعضاء، ولا تحرّش ولا تمييز.
+          </p>
+          <h3>8. الإبلاغ عن مخالفة</h3>
+          <p>
+            إن رأيت لقاءً أو ملفاً أو محتوى يخالف القواعد أو القانون، أو ينتهك
+            حقاً من حقوقك، راسلنا على
+            <strong>contact@founders.coffee</strong> واذكر رابط المحتوى وما تراه
+            فيه.
+          </p>
+          <p>
+            نراجع ما يصلنا ونتصرّف بما يناسب. إن كان البلاغ يتعلّق بانتهاك حق
+            مؤلّف أو علامة، اذكر ما يثبت صفتك ووصف العمل المحمي.
+          </p>
+          <h3>9. التقييد وإنهاء الحساب</h3>
+          <p>
+            يجوز لنا إخفاء محتوى، أو إلغاء نشر لقاء، أو تقييد ميزة، أو تعليق
+            حساب، أو إنهاءه نهائياً، إذا خولفت هذه الشروط أو إرشادات المجتمع أو
+            القانون.
+          </p>
+          <p>
+            نُفضّل التنبيه أولاً في الحالات البسيطة، ونصحّح ما يمكن تصحيحه
+            بالحوار. لكننا لا نلتزم بترتيب ثابت: في الحالات الخطيرة (الاحتيال،
+            انتحال الصفة، ما يهدّد سلامة الناس) نتصرّف فوراً ودون تنبيه سابق.
+          </p>
+          <p>إن أُنهي حسابك ورأيت أن ذلك وقع خطأً، راسلنا وسنعيد النظر.</p>
+          <p>يمكنك أنت أيضاً إنهاء الاتفاق في أي وقت بإغلاق حسابك.</p>
+          <h3>10. الملكية الفكرية</h3>
+          <p>
+            اسم فاوندرز كوفي وشعاره وتصميم المنصة وبرمجيّتها ملك لنا، ولا يجوز
+            استعمالها دون إذن كتابي.
+          </p>
+          <p>
+            نحترم حقوق المؤلّف والحقوق المجاورة كما ينظّمها الأمر رقم 03-05
+            المؤرخ في 19 يوليو 2003، ونتوقّع منك المثل. لا ترفع صوراً أو نصوصاً
+            أو شعارات لا تملك حق استعمالها.
+          </p>
+          <h3>11. توفّر الخدمة وتغيّرها</h3>
+          <p>
+            المنصة في طور تجريبي، وهذا ليس تفصيلاً شكلياً. معناه العملي أن
+            الميزات قد تُضاف وتُغيَّر وتُسحب، وأن الخدمة تُقدَّم بحالتها الراهنة
+            دون ضمان نتيجة، وأنها قد تتوقّف لأعمال صيانة أو لعُطل خارج عن
+            إرادتنا. ومعناه كذلك أننا قد نضطرّ، في هذه المرحلة وحدها، إلى إعادة
+            تهيئة قواعد البيانات إن اقتضى التطوير ذلك.
+          </p>
+          <p>
+            لذلك لا نَعِد ببقاء ما تنشره محفوظاً إلى الأبد، ولا بأن يظلّ سجلّ
+            حضورك متاحاً مهما طال الزمن. وما نلتزم به هو ألّا يقع شيء من ذلك في
+            صمت: نُشعِرك قبل أي إعادة تهيئة تمسّ حسابك أو ما نشرته، بوقت يكفي
+            لاسترجاع ما يخصّك.
+          </p>
+          <p>
+            وإن أوقفنا الخدمة كلياً، أشعرناك قبل ذلك بوقت معقول لتتمكّن من
+            استرجاع ما يخصّك، ثمّ مُحيت المعطيات وفق ما هو مبيَّن في
+            <a href="#doc-20">سياسة الخصوصية</a>.
+          </p>
+          <h3>12. حدود مسؤوليتنا</h3>
+          <p>
+            نتحمّل مسؤولية أخطائنا نحن: تشغيل المنصة، وحفظ بياناتك، والوفاء بما
+            تنصّ عليه هذه الوثائق.
+          </p>
+          <p>ولا نتحمّل ما يقع خارج ذلك، وتحديداً:</p>
+          <ul>
+            <li>ما يجري في اللقاء نفسه، وما يقوله الحاضرون أو يفعلونه فيه؛</li>
+            <li>
+              دقّة ما ينشره الأعضاء من معلومات عن أنفسهم أو عن مشاريعهم أو عن
+              لقاءاتهم؛
+            </li>
+            <li>
+              الاتفاقات والصفقات والشراكات التي تنشأ بين الأعضاء بعد أن يلتقوا؛
+            </li>
+            <li>إلغاء لقاء أو تأجيله أو تغيّر مكانه.</li>
+          </ul>
+          <p>
+            ولا نسعى إلى استبعاد مسؤولية لا يُجيز القانون استبعادها، ومنها
+            المسؤولية عن الضرر الجسدي وعن الغشّ والخطأ الجسيم.
+          </p>
+          <p>
+            هذه المنصة أداة للتعارف المهني. ما يُبنى على هذا التعارف من علاقات
+            عمل أو استثمار أو شراكة شأن يخصّ أطرافه، ومن الحكمة أن يُتحقَّق من
+            كل طرف بالوسائل المعتادة قبل الالتزام معه.
+          </p>
+          <h3>13. تعديل هذه الشروط</h3>
+          <p>قد نعدّل هذه الشروط حين تتغيّر المنصة أو يتغيّر القانون.</p>
+          <p>
+            نُحدّث تاريخ «آخر تحديث» أعلى الصفحة في كل تعديل. وإن كان التعديل
+            جوهرياً، أي يمسّ حقوقك أو التزاماتك بصورة ملموسة، أشعرناك به عبر
+            بريدك الإلكتروني أو داخل المنصة قبل سريانه بوقت معقول. استمرارك في
+            الاستخدام بعد السريان يعني قبولك للنص الجديد.
+          </p>
+          <h3>14. القانون المطبَّق وتسوية النزاعات</h3>
+          <p>يسري على هذه الشروط القانون الجزائري.</p>
+          <p>
+            وإن نشأ خلاف، نُفضّل أن يُحلّ بالمراسلة أولاً؛ نلتزم بالردّ على أي
+            شكوى جدّية. فإن تعذّر الحلّ الودّي، تختصّ به
+            <strong
+              >الجهة القضائية المختصة إقليمياً وفق قواعد الاختصاص المقرّرة في
+              القانون الجزائري</strong
+            >.
+          </p>
+          <p>
+            ولا يمسّ هذا الشرط بحقّك في اللجوء إلى الجهات الرقابية المختصة، ولا
+            بحقّك في تقديم شكوى إلى السلطة الوطنية لحماية المعطيات ذات الطابع
+            الشخصي في كل ما يتعلّق ببياناتك.
+          </p>
+          <h3>15. إن تأسّست الشركة</h3>
+          <p>
+            الغاية من هذا الطور التجريبي أن نعرف هل للفكرة مكان في السوق
+            الجزائرية. فإن ثبت ذلك، سنؤسّس الكيان القانوني الذي يشغّل المنصة.
+          </p>
+          <p>
+            عند تأسيسه تنتقل إليه هذه الشروط بما فيها من حقوق والتزامات، ويحلّ
+            محلّ المشغِّل الحالي طرفاً في الاتفاق معك. نُشعِرك بذلك قبل سريانه،
+            ونحدّث صفحة <a href="#doc-60">المعلومات القانونية</a> ببيانات
+            الشركة. ولا يترتّب على هذا الانتقال تغيّر في ما تنشره ولا في حسابك
+            ولا في سجلّ حضورك.
+          </p>
+          <p>
+            وللانتقال وجه يخصّ بياناتك تحديداً: يتغيّر معه
+            <strong>المسؤول عن المعالجة</strong>، وهو تغيّر جوهري نلتزم بإشعارك
+            به مسبقاً وفق <a href="#doc-20">سياسة الخصوصية</a>، لا بإدراجه في
+            تحديث صامت.
+          </p>
+          <p>
+            فإن لم يُرضِك أن تنتقل علاقتك إلى الكيان الجديد، فلك أن تغلق حسابك
+            قبل سريان الانتقال.
+          </p>
+          <h3>16. كيف تتواصل معنا</h3>
+          <p>
+            للأسئلة والشكاوى والبلاغات: <strong>contact@founders.coffee</strong>
+          </p>
+          <p>
+            بيانات المشغِّل القانونية في صفحة
+            <a href="#doc-60">المعلومات القانونية</a>.
+          </p>
+        </div>
+      </section>
+      <section id="doc-20" class="sec rtl" dir="rtl" lang="ar">
+        <header class="sh">
+          <p class="kicker">الوثيقة 06</p>
+          <h2><span class="num">06</span>سياسة الخصوصية</h2>
+        </header>
+        <div class="body">
+          <p class="badge b-draft" dir="rtl" lang="ar">
+            مسوّدة — بانتظار المراجعة القانونية
+          </p>
+          <p class="stamp" dir="rtl" lang="ar">آخر تحديث: 18 سبتمبر 2026</p>
+          <h3>1. نطاق هذه السياسة</h3>
+          <p>
+            تشرح هذه الوثيقة ما تجمعه منصة فاوندرز كوفي من معطيات شخصية، ولأيّ
+            غرض، ومن يطّلع عليها، وكم تبقى، وما تملكه أنت حيالها.
+          </p>
+          <p>
+            <strong>المسؤول عن المعالجة</strong> هو
+            <strong>أمين يعقوب (Amine Yagoub)</strong>، شخص طبيعي. لم تُؤسَّس
+            بعد شركة تشغّل المنصة، فالمنصة في طور تجريبي مجاني، وتعريف القانون
+            للمسؤول عن المعالجة يشمل الشخص الطبيعي كما يشمل الشخص المعنوي:
+            التزاماته تجاه معطياتك هي نفسها في الحالتين. وللتواصل في كل ما
+            يتعلّق بمعطياتك: <strong>contact@founders.coffee</strong>.
+          </p>
+          <p>
+            وإن تأسّست الشركة لاحقاً، انتقلت إليها صفة المسؤول عن المعالجة. وهو
+            تغيّر في هوية من يحوز بياناتك، لا تفصيل إداري، فنُشعِرك به قبل
+            سريانه كما هو مبيَّن في القسم 12.
+          </p>
+          <p>
+            تُعالَج بياناتك وفق القانون رقم 18-07 المؤرخ في 10 يونيو 2018
+            المتعلق بحماية الأشخاص الطبيعيين في مجال معالجة المعطيات ذات الطابع
+            الشخصي، المعدَّل والمتمَّم بالقانون رقم 25-11 المؤرخ في 24 يوليو
+            2025.
+          </p>
+          <h3>2. ما نجمعه ولماذا</h3>
+          <p>
+            لا نجمع شيئاً «لتحسين تجربتك» على وجه العموم. لكل صنف من البيانات
+            أدناه سبب محدّد يمكن تتبّعه إلى ميزة قائمة في المنصة.
+          </p>
+          <h4>2.1 بيانات الحساب</h4>
+          <p>
+            اسمك، وبريدك الإلكتروني، وحالة التحقّق منه، وصورة الحساب إن وُجدت،
+            واللغة التي تختارها للواجهة، وتاريخ الإنشاء.
+          </p>
+          <p>
+            نجمعها لإنشاء الحساب، ولإرسال رمز الدخول إليك في كل مرة تسجّل
+            الدخول، ولعرض اسمك لمن تلتقيهم، ولمراسلتك في ما يخصّ اللقاءات التي
+            سجّلت فيها. لا نستعمل كلمات سرّ ولا نحتفظ بأيّ منها؛ الدخول يتمّ
+            برمز مؤقّت يُرسَل إلى بريدك.
+          </p>
+          <p>
+            إن اخترت الدخول عبر Google أو GitHub، نتلقّى منهما معرّفك لديهما
+            وبريدك الإلكتروني، ولا نتلقّى كلمة سرّك.
+          </p>
+          <p>
+            <strong>ما هو إلزامي وما هو اختياري:</strong> البريد الإلكتروني
+            والاسم لازمان لإنشاء الحساب، إذ لا سبيل إلى إرسال رمز الدخول ولا إلى
+            تعريفك بمن تلتقيهم بدونهما، وامتناعك عن تقديمهما يعني تعذّر إنشاء
+            الحساب. وما عدا ذلك في هذه الوثيقة اختياري، ولا يترتّب على عدم
+            تقديمه سوى تعطّل الميزة المرتبطة به وحدها.
+          </p>
+          <p>
+            <strong>رقم الهاتف</strong> حقل اختياري. لا نطلبه عند التسجيل، ولا
+            نستعمله إلّا إن فعّلت بنفسك تنبيهات الرسائل القصيرة، ونسجّل حينها
+            تاريخ موافقتك عليها.
+          </p>
+          <h4>2.2 الملف الشخصي</h4>
+          <p>
+            تعريف مختصر بك، ومجالات اهتمامك، واللغات التي تتحدّثها، ورابط مهني،
+            وصورة.
+          </p>
+          <p>
+            هذه الحقول اختيارية كلها. والأهم:
+            <strong>كلٌّ منها مخفيّ إلى أن تُظهره أنت</strong>. لكل حقل مفتاح
+            ظهور مستقلّ، وقيمته الابتدائية «غير منشور». اسمك وصورتك يظهران لمن
+            تشاركهم لقاءً؛ ما عدا ذلك لا يظهر إلّا بقرار منك.
+          </p>
+          <p>
+            ما تختار نشره يصبح ظاهراً في صفحتك العامة على المنصة، ويمكن أن تصل
+            إليه محرّكات البحث.
+          </p>
+          <h4>2.3 اللقاءات والتسجيل فيها</h4>
+          <p>
+            إن نشرت لقاءً: عنوانه ووصفه واسم المكان وعنوانه وإحداثياته وتوقيته
+            ولغته. هذه معلومات عامة بطبيعتها؛ اللقاء يُنشر ليُكتشَف.
+          </p>
+          <p>
+            وإن سجّلت في لقاء: نحفظ تسجيلك وحالته وتاريخه. يرى منظّم اللقاء
+            <strong>اسمك وحده</strong> ضمن قائمة المسجَّلين، لأنه يحتاج أن يعرف
+            من ينتظر ويحجز المكان على هذا الأساس.
+            <strong>لا يرى بريدك الإلكتروني ولا رقم هاتفك</strong>، ولا تتيح له
+            المنصة وسيلة لمراسلتك مباشرةً.
+          </p>
+          <h4>2.4 الحضور والتقييم بعد اللقاء</h4>
+          <p>
+            بعد انتهاء اللقاء يسجّل المنظّم من حضر فعلاً ومن لم يحضر، ويسجّل عدد
+            من جاء دون تسجيل مسبق، وملاحظة خاصة به عن سير اللقاء.
+          </p>
+          <p>
+            ويمكنك أنت، إن حضرت، أن تترك تقييماً: قيمة ما استفدته، وما إذا كنت
+            ستعود، وتعليقاً مكتوباً إن شئت. نحفظ مع تعليقك اللغة التي كُتب بها،
+            لأننا نعرضه كما كتبتَه ولا نترجمه.
+          </p>
+          <p>
+            نستعمل هذه السجلّات لنعرف ما إذا كانت اللقاءات تُعقَد فعلاً وتفيد من
+            يحضرها، ولنكتشف اللقاءات الوهمية والمنظّمين الذين لا يظهرون في
+            لقاءاتهم.
+          </p>
+          <p>
+            وتقييمك سرّي. ما يراه المنظّم حصيلة مجمّعة عن لقائه، بلا أسماء ولا
+            تعليقات. <strong>والتعليقات مستبعَدة من هذه الحصيلة عن قصد</strong>:
+            في لقاء حضره أربعة أشخاص، عرضُ ثلاثة تعليقات يكشف كاتبيها ولو لم
+            تُذكر أسماؤهم. ولا يظهر التقييم على صفحة اللقاء العامة.
+          </p>
+          <h4>2.5 التفضيلات والإشعارات</h4>
+          <p>
+            اختياراتك بشأن ما تريد أن يصلك (تذكيرات اللقاءات، تغييراتها، إشعارات
+            التسجيل لمن ينظّم)، والقناة التي تريدها لكل نوع.
+          </p>
+          <p>
+            إن فعّلت الإشعارات الفورية، نحفظ رمز الجهاز الذي يتيح إرسالها ونوع
+            المنصة التي يعمل عليها. الرمز معرّف تقني للجهاز، لا يُقرأ منه محتوى
+            ولا موقع.
+          </p>
+          <h4>2.6 البيانات التقنية وسجلّات الأمان</h4>
+          <p>
+            مع كل جلسة دخول نحفظ <strong>عنوان IP</strong> ووصف المتصفّح، ومدّة
+            صلاحية الجلسة. ونحتفظ بسجلّات تشغيل تقنية للطلبات الواردة إلى
+            الخادم.
+          </p>
+          <p>
+            الغرض محصور في ثلاثة أمور: إبقاؤك مسجَّل الدخول، وكشف محاولات الدخول
+            غير المشروعة وإساءة الاستعمال، وتشخيص الأعطال.
+          </p>
+          <p>
+            كما نستعمل خدمة تحقّق من كون الزائر إنساناً عند تسجيل الدخول وعند
+            الانضمام إلى قائمة انتظار مدينة، وهي تتلقّى عنوان IP الخاص بك لهذا
+            الغرض وحده.
+          </p>
+          <p>
+            نقيس استعمال المنصة بعدّادات مجمّعة على الخادم (عدد الطلبات، عدد
+            اللقاءات المنشورة، معدّلات الفشل)، ولا تُنسَب هذه العدّادات إلى شخص.
+            <strong
+              >لا نستعمل أدوات تحليلات في المتصفّح، ولا أدوات تتبّع إعلاني، ولا
+              نبيع بيانات لأحد.</strong
+            >
+          </p>
+          <h4>2.7 المراسلات والبلاغات</h4>
+          <p>
+            ما ترسله إلينا من رسائل دعم أو شكاوى أو بلاغات عن محتوى، وما نردّ
+            به. نحفظه لنتابع الطلب ولنوثّق قرارات الإشراف.
+          </p>
+          <h4>2.8 قائمة انتظار المدن</h4>
+          <p>
+            إن بحثت عن مدينة لا لقاءات فيها بعد، يمكنك ترك بريدك الإلكتروني
+            لنُعلمك عند انطلاق أول لقاء فيها. نحفظ البريد والمدينة واللغة وتاريخ
+            الطلب، ولا نطلب حساباً.
+          </p>
+          <p>
+            هذا البريد يُستعمل لهذا الغرض وحده: إشعار واحد عند انطلاق المدينة.
+            لا يُضاف إلى قائمة تسويقية ولا يُستعمل في غير ما طلبتَه.
+          </p>
+          <h3>3. الأساس القانوني للمعالجة</h3>
+          <p>
+            تقوم كل معالجة على أساس من الأسس التي حدّدتها المادة 7 من القانون
+            18-07:
+          </p>
+          <ul>
+            <li>
+              <strong>تنفيذ العقد القائم بيننا</strong>: الحساب، ونشر اللقاءات،
+              والتسجيل فيها، وإرسال التذكيرات والتنبيهات المتعلقة بلقاء سجّلت
+              فيه. هذه ليست خدمات إضافية بل جوهر ما اشتركت من أجله.
+            </li>
+            <li>
+              <strong>موافقتك الصريحة</strong>: نشر حقول ملفك الشخصي، وتفعيل
+              الإشعارات الفورية أو الرسائل القصيرة، والانضمام إلى قائمة انتظار
+              مدينة. ويمكنك سحب الموافقة في أي وقت، ولا يمسّ السحب مشروعية ما
+              تمّ قبله.
+            </li>
+            <li>
+              <strong>المصلحة المشروعة</strong>: أمن المنصة، ومنع إساءة
+              الاستعمال، وسجلّات الحضور بوصفها وسيلة لحماية المجتمع من اللقاءات
+              الوهمية. وقد وازنّا هذه المصلحة مع حقوقك، ولذلك لا نعرض هذه
+              السجلّات علناً ونتيح لك تصحيحها.
+            </li>
+            <li>
+              <strong>الالتزام القانوني</strong>: حين يُلزمنا نصّ قانوني بحفظ
+              معطى أو تقديمه.
+            </li>
+          </ul>
+          <p>
+            <strong>نحن لا نمارس التسويق المباشر.</strong> الرسائل التي تصلك
+            اليوم كلها متّصلة بلقاء أو بحسابك. وإن قرّرنا مستقبلاً إرسال نشرة أو
+            رسائل ترويجية، فلن يكون ذلك إلّا بموافقة مسبقة منك، مع وسيلة إلغاء
+            مجانية في كل رسالة، ونعمل على طلب الإلغاء
+            <strong>خلال أربع وعشرين (24) ساعة</strong> كما توجب المادة 32 من
+            القانون 18-05.
+          </p>
+          <h3>4. من يطّلع على بياناتك</h3>
+          <p>
+            <strong>الأعضاء الآخرون</strong> يرون اسمك وصورتك وما اخترت نشره من
+            ملفك، ويرونك ضمن قائمة المسجَّلين في اللقاء الذي تشاركهم إياه.
+          </p>
+          <p>
+            <strong>منظّم اللقاء</strong> يرى اسمك في قائمة المسجَّلين، ويسجّل
+            حضورك من عدمه. وهو ملزَم بموجب
+            <a href="#doc-40">شروط منظّمي الفعاليات</a> باستعمال هذه القائمة
+            لتنظيم لقائه لا لغيره؛ استعمالها لإرسال عروض أو لبناء قاعدة بيانات
+            مخالفةٌ تستوجب إيقاف الحساب.
+          </p>
+          <p>
+            <strong>مزوّدو الخدمات التقنية</strong> الذين نستعين بهم، كلٌّ في
+            حدود مهمّته: استضافة التطبيق وقاعدة البيانات، وإرسال البريد
+            الإلكتروني، وإرسال الإشعارات الفورية، وعرض الخرائط عند اختيار مكان
+            اللقاء، والحماية من الاستعمال الآلي، وإرسال الرسائل القصيرة عند
+            الحاجة. يعالج هؤلاء البيانات بناءً على تعليماتنا ولحسابنا، ولا
+            يملكون استعمالها لأغراضهم.
+          </p>
+          <p>
+            <strong>السلطات المختصة</strong> حين يُطلب منّا ذلك بموجب القانون.
+            نتحقّق من صفة الطالب ومن أن الطلب في حدود ما يخوّله له النص، ونقتصر
+            على المطلوب.
+          </p>
+          <p>
+            <strong>لا نبيع بياناتك ولا نؤجّرها ولا نتبادلها مع معلنين.</strong>
+          </p>
+          <h3>5. نقل البيانات خارج الجزائر</h3>
+          <p>
+            هذه نقطة نذكرها صراحةً لأن المادة 32 من القانون 18-07 توجب ذكرها،
+            ولأنها تخصّك.
+          </p>
+          <p>
+            تعمل المنصة على بنية سحابية موزّعة، ويقع مزوّدو الخدمات المذكورون في
+            القسم السابق خارج الجزائر. وعليه فإن
+            <strong>بياناتك تُعالَج وتُخزَّن خارج التراب الوطني</strong>.
+          </p>
+          <p>
+            نستند في ذلك إلى المادة 45 من القانون 18-07، التي تجيز النقل إلى
+            دولة أجنبية في حالتين تنطبقان هنا: <strong>موافقتك الصريحة</strong>،
+            و<strong>ضرورة النقل لتنفيذ العقد المبرم بينك وبيننا</strong>، إذ لا
+            يمكن تشغيل حسابك ولا إرسال إشعار إليك دون أن تمرّ البيانات بهذه
+            البنية.
+          </p>
+          <p>
+            ونتّخذ في المقابل ما يلزم: التعاقد مع مزوّدين يلتزمون بمعايير حماية
+            معترف بها، وتشفير الاتصالات، وحصر ما يصل كل مزوّد في الحدّ الذي
+            تقتضيه مهمّته.
+          </p>
+          <p>
+            وهذا هو الأساس الذي نعتمده اليوم: المادة 45، لا الترخيص المسبق
+            المنصوص عليه في المادة 44. وإن صدر لاحقاً ترخيص من السلطة الوطنية
+            لحماية المعطيات ذات الطابع الشخصي بخصوص هذا النقل، حدّثنا هذا القسم
+            وأشرنا إليه.
+          </p>
+          <p>
+            إن كان هذا النقل غير مقبول بالنسبة إليك، فلك أن تسحب موافقتك وتطلب
+            إغلاق حسابك، وسننفّذ الطلب.
+          </p>
+          <h3>6. مدّة الاحتفاظ</h3>
+          <p>
+            نحتفظ بالمعطيات للمدّة اللازمة للغرض الذي جُمعت من أجله، ثم نحذفها
+            أو نجرّدها من كل ما يدلّ على صاحبها.
+          </p>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>الصنف</th>
+                  <th>المدّة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>بيانات الحساب والملف الشخصي</td>
+                  <td>
+                    طوال بقاء الحساب، ثم تُحذف خلال
+                    <strong>ثلاثين (30) يوماً</strong> من إغلاقه
+                  </td>
+                </tr>
+                <tr>
+                  <td>سجلّات الجلسات (عنوان IP، المتصفّح)</td>
+                  <td>
+                    تُحذف خلال <strong>تسعين (90) يوماً</strong> من انتهاء
+                    الجلسة
+                  </td>
+                </tr>
+                <tr>
+                  <td>اللقاءات المنشورة</td>
+                  <td>
+                    تبقى جزءاً من سجلّ المدينة العام، ويُفصَل ارتباطها باسم
+                    المنظّم عند إغلاق حسابه
+                  </td>
+                </tr>
+                <tr>
+                  <td>التسجيل في اللقاءات وسجلّ الحضور</td>
+                  <td>
+                    <strong>أربعة وعشرون (24) شهراً</strong> من تاريخ اللقاء
+                  </td>
+                </tr>
+                <tr>
+                  <td>التقييمات بعد اللقاء</td>
+                  <td>
+                    يبقى التعليق منسوباً إلى صاحبه
+                    <strong>اثني عشر (12) شهراً</strong>، ثم يُحتفظ بالتقييم
+                    مجرّداً من هويته
+                  </td>
+                </tr>
+                <tr>
+                  <td>رموز الإشعارات الفورية</td>
+                  <td>إلى أن تُعطّل الإشعارات أو يصبح الرمز غير صالح</td>
+                </tr>
+                <tr>
+                  <td>بريد قائمة انتظار المدن</td>
+                  <td>
+                    إلى حين إرسال إشعار انطلاق المدينة، ثم
+                    <strong>اثنا عشر (12) شهراً</strong>، أو فور طلبك الحذف
+                  </td>
+                </tr>
+                <tr>
+                  <td>المراسلات وبلاغات الإشراف</td>
+                  <td>
+                    <strong>أربعة وعشرون (24) شهراً</strong> من إغلاق الطلب
+                  </td>
+                </tr>
+                <tr>
+                  <td>ما يُلزمنا القانون بحفظه</td>
+                  <td>المدّة التي يحدّدها النصّ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>7. حقوقك وكيف تمارسها</h3>
+          <p>يمنحك القانون 18-07 حقوقاً نلتزم بها:</p>
+          <ul>
+            <li>
+              <strong>حقّ الإعلام</strong> (المادة 32): أن تعرف من يعالج بياناتك
+              ولأيّ غرض ومن يتلقّاها وما إذا كانت تُنقل إلى الخارج. هذه الوثيقة
+              هي وفاؤنا بهذا الحق.
+            </li>
+            <li>
+              <strong>حقّ الاطّلاع</strong> (المادة 34): أن تحصل على تأكيد
+              بمعالجة بياناتك، وعلى الأغراض وأصناف المعطيات والمرسَل إليهم، وعلى
+              نسخة منها في صيغة مفهومة، وعلى ما هو متاح عن مصدرها. ويجيز لنا
+              القانون ردّ الطلبات المفرطة بيّنةَ التعسّف (لكثرتها أو تكرارها)،
+              وعبء إثبات ذلك يقع علينا نحن لا عليك.
+            </li>
+            <li>
+              <strong>حقّ التصحيح</strong> (المادة 35): أن تُحدَّث بياناتك أو
+              تُصحَّح أو تُمحى أو تُقفل إن كانت ناقصة أو غير دقيقة أو كانت
+              معالجتها مخالفة للقانون.
+              <strong>يُنفَّذ هذا مجاناً وخلال عشرة (10) أيام</strong> من تاريخ
+              طلبك. وإن كنّا قد أبلغنا بياناتك إلى غيرنا، أبلغناهم بالتصحيح.
+            </li>
+            <li>
+              <strong>حقّ الاعتراض</strong> (المادة 36): أن تعترض لأسباب مشروعة
+              على معالجة تخصّك، ولك أن تعترض على استعمال بياناتك في الاستقطاب
+              دون حاجة إلى تبرير.
+            </li>
+            <li>
+              <strong>سحب الموافقة</strong> (المادة 7): في أي وقت، وفي كل ما
+              بُني على موافقتك.
+            </li>
+          </ul>
+          <p>
+            <strong>كيف تمارسها.</strong> بعض هذه الحقوق متاح مباشرةً في المنصة:
+            تعديل ملفك ومفاتيح الظهور من صفحة الملف الشخصي، وتفضيلات الإشعارات
+            من صفحة التفضيلات. لما عدا ذلك (ومنه الاطّلاع على نسخة من بياناتك،
+            وتصحيح سجلّ حضور، وإغلاق الحساب) راسلنا على
+            <strong>contact@founders.coffee</strong> من البريد المسجَّل في
+            حسابك، واذكر ما تطلبه بوضوح.
+          </p>
+          <p>
+            <strong>تصحيح سجلّ الحضور</strong> يستحقّ ذكراً خاصاً: إن سجّل منظّم
+            أنك لم تحضر لقاءً حضرتَه، أو العكس، فذلك معطى شخصي يخصّك ولك حقّ
+            تصحيحه ضمن المهلة نفسها. راسلنا وسنراجع السجلّ.
+          </p>
+          <h3>8. أمن البيانات</h3>
+          <p>
+            الاتصال بالمنصة مشفّر بالكامل. الدخول برمز مؤقّت ينتهي سريعاً، فلا
+            توجد كلمة سرّ يمكن تسريبها. الوصول الإداري إلى بيانات الإنتاج محصور
+            في عدد محدود من الأشخاص خلف طبقة تحقّق مستقلّة، ويُسجَّل ما يُجرى من
+            عمليات إشراف.
+          </p>
+          <p>
+            ويلتزم كل من يطّلع على المعطيات بحكم وظيفته بالسرّ المهني، ولو بعد
+            انتهاء علاقته بنا، وفق المادة 40 من القانون 18-07.
+          </p>
+          <p>
+            ومع ذلك لا يوجد نظام بلا خطر. إن لاحظت ثغرة أو سلوكاً مريباً، راسلنا
+            وسنتعامل مع البلاغ بجدّية وامتنان.
+          </p>
+          <h3>9. ما نفعله عند وقوع خرق</h3>
+          <p>
+            إن وقع خرق يمسّ معطياتك الشخصية، نُبلغ السلطة الوطنية لحماية
+            المعطيات ذات الطابع الشخصي دون تأخير ووفق ما تقتضيه المادة 43 من
+            القانون 18-07، وفي مدّة أقصاها خمسة (5) أيام من علمنا به.
+          </p>
+          <p>
+            ونُبلغك أنت مباشرةً إن كان الخرق قد يمسّ حياتك الخاصة، بلغة واضحة
+            نذكر فيها ما وقع وما قد يترتّب عليه وما اتّخذناه من إجراءات.
+          </p>
+          <p>ونحتفظ بسجلّ داخلي لكل خرق وما اتُّخذ بشأنه.</p>
+          <h3>10. ملفات تعريف الارتباط</h3>
+          <p>
+            نستعمل عدداً محدوداً من ملفات تعريف الارتباط، ولا نستعمل أيّاً منها
+            في الإعلان أو التتبّع. التفصيل في
+            <a href="#doc-50">سياسة ملفات تعريف الارتباط</a>.
+          </p>
+          <h3>11. القاصرون</h3>
+          <p>
+            المنصة مخصّصة لمن بلغ <strong>تسعة عشر (19) سنة</strong>، وهي سنّ
+            الرشد المدني في الجزائر. لا نجمع بيانات القاصرين عن قصد. وإن تبيّن
+            لنا أن حساباً يعود إلى قاصر، أوقفناه وحذفنا ما يتّصل به.
+          </p>
+          <p>
+            وإن كنت وليّاً وتعتقد أن قاصراً تحت رعايتك أنشأ حساباً، راسلنا
+            وسنتصرّف.
+          </p>
+          <h3>12. تعديل هذه السياسة</h3>
+          <p>
+            قد نعدّل هذه السياسة إذا تغيّرت المنصة أو تغيّر القانون. نُحدّث
+            تاريخ «آخر تحديث» في كل مرة، ونُشعِرك مسبقاً بأيّ تغيير جوهري في ما
+            نجمعه أو في الغرض منه أو في من يتلقّاه.
+          </p>
+          <p>
+            وتغيُّر المسؤول عن المعالجة، أي انتقال المنصة من المشغِّل الحالي إلى
+            الشركة عند تأسيسها، تغييرٌ جوهري بهذا المعنى. نُشعِرك به على بريدك
+            الإلكتروني قبل سريانه، مع بيان هوية الشركة، ويبقى لك أن تغلق حسابك
+            قبل ذلك إن لم يناسبك الانتقال.
+          </p>
+          <h3>13. التواصل والشكاوى</h3>
+          <p>
+            للاستفسارات وطلبات ممارسة الحقوق:
+            <strong>contact@founders.coffee</strong>
+          </p>
+          <p>
+            وإن لم يُرضِك ردّنا، فمن حقّك تقديم شكوى إلى
+            <strong
+              >السلطة الوطنية لحماية المعطيات ذات الطابع الشخصي (ANPDP)</strong
+            >، وهي الجهة المختصة بالرقابة في الجزائر.
+          </p>
+        </div>
+      </section>
+      <section id="doc-30" class="sec rtl" dir="rtl" lang="ar">
+        <header class="sh">
+          <p class="kicker">الوثيقة 07</p>
+          <h2><span class="num">07</span>إرشادات المجتمع</h2>
+        </header>
+        <div class="body">
+          <p class="badge b-draft" dir="rtl" lang="ar">
+            مسوّدة — بانتظار المراجعة القانونية
+          </p>
+          <p class="stamp" dir="rtl" lang="ar">آخر تحديث: 18 سبتمبر 2026</p>
+          <h3>لماذا هذه الوثيقة</h3>
+          <p>
+            فاوندرز كوفي مبنيّة على فكرة بسيطة: أن يجلس أصحاب المشاريع في مدينة
+            واحدة حول طاولة ويتحدّثوا بصدق عمّا يشتغلون عليه. كل ما يُفسد هذه
+            الجلسة تمنعه هذه الإرشادات.
+          </p>
+          <p>
+            وهي ليست قائمة محظورات عامة منقولة عن شبكة اجتماعية. المشكلات التي
+            تصيب مجتمعاً كهذا معروفة ومحدّدة: من يأتي ليبيع بدل أن يشارك، ومن
+            ينشر لقاءً لا ينوي عقده، ومن يبالغ في وصف شركته حتى يصير الوصف
+            كذباً، ومن يجمع أرقام الحاضرين ليضيفها إلى قائمة. عن هذه تحديداً
+            نتحدّث.
+          </p>
+          <p>
+            هذه الإرشادات جزء من <a href="#doc-10">شروط الاستخدام</a>، وتسري على
+            كل ما يظهر على المنصة: الملفات الشخصية، وصفحات اللقاءات، والتقييمات،
+            والمراسلات التي تصلنا.
+          </p>
+          <hr />
+          <h3>ما نتوقّعه</h3>
+          <p>
+            <strong>كن من تقول إنك أنت.</strong> اسم حقيقي، ووصف صادق لما تعمل
+            عليه. مشروع في بدايته يُقال عنه إنه في بدايته؛ لا ضير في ذلك،
+            والمجتمع كله كان هناك.
+          </p>
+          <p>
+            <strong>احضر إن سجّلت، وألغِ إن لم تستطع.</strong> المنظّم يحجز
+            طاولة على أساس رقم يراه. تخلّفك دون إشعار يُكلّفه شيئاً حقيقياً.
+          </p>
+          <p>
+            <strong>اسأل قبل أن تعرض.</strong> الفرق بين محادثة مفيدة ومضايقة هو
+            أن الطرف الآخر طلبها.
+          </p>
+          <hr />
+          <h3>ما هو ممنوع</h3>
+          <h4>الترويج غير المطلوب</h4>
+          <p>
+            لا ترسل عروضاً تجارية أو خدمات إلى أعضاء لم يطلبوها. لا تحوّل وصف
+            لقائك إلى إعلان لشركتك. لا تنشر اللقاء نفسه مرّات متكرّرة لتبقيه في
+            أعلى القائمة.
+          </p>
+          <p>
+            الحديث عن مشروعك أثناء لقاء هو سبب وجود المنصة أصلاً. الممنوع هو
+            استعمال المنصة قناةً للإرسال الجماعي.
+          </p>
+          <h4>اللقاءات غير الجادّة</h4>
+          <p>
+            لا تنشر لقاءً لا تنوي عقده، ولا لقاءً بمكان أو توقيت تعرف أنهما غير
+            صحيحين، ولا لقاءً غرضه الحقيقي غير المعلَن في وصفه.
+          </p>
+          <p>
+            اللقاء الذي يُنشر ولا يُعقد يُضعف ثقة الناس بكل لقاء بعده. ونحن نرصد
+            ذلك: بعد كل لقاء يُسأل المنظّم عمّا إذا كان قد انعقد فعلاً، ومن
+            يتكرّر منه نشر لقاءات لا تُعقد يفقد إمكانية النشر.
+          </p>
+          <h4>الملفات المزيّفة وانتحال الصفة</h4>
+          <p>
+            لا تنشئ حساباً باسم شخص آخر أو باسم شركة لا تمثّلها. لا تنسب إلى
+            نفسك منصباً أو شراكة أو انتماءً إلى جهة معروفة دون أساس. لا تُنشئ
+            حسابات متعدّدة للتحايل على قرار إشرافي.
+          </p>
+          <h4>الادّعاءات المالية والاستثمارية المضلّلة</h4>
+          <p>
+            لا تدّعِ أنك جمعت تمويلاً لم تجمعه، ولا أنك مدعوم من صندوق أو مسرّعة
+            دون أن يكون ذلك صحيحاً، ولا أنك تمثّل مستثمراً وأنت لا تمثّله.
+          </p>
+          <p>
+            ولا تَعِد بعائد مضمون، ولا تدعُ إلى جمع أموال من الحاضرين في لقاء،
+            ولا تستعمل المنصة للترويج لمخطّطات استثمار أو عملات أو فرص ربح سريع.
+            هذا النوع من الادّعاء لا يضرّ السمعة وحدها؛ قد يُكلّف شخصاً
+            مدّخراته.
+          </p>
+          <h4>احتيال التوظيف</h4>
+          <p>
+            لا تنشر فرص عمل غير حقيقية، ولا تطلب من متقدّم مبلغاً مقابل تدريب أو
+            معالجة ملف أو ضمان وظيفة، ولا تجمع وثائق شخصية بحجّة التوظيف.
+          </p>
+          <h4>جمع بيانات الأعضاء ونشرها</h4>
+          <p>
+            قائمة المسجَّلين في لقاء تُعطى للمنظّم لغرض واحد: أن ينظّم لقاءه.
+            نسخها أو تصديرها أو إضافتها إلى قائمة مراسلات أو بيعها مخالفة صريحة.
+          </p>
+          <p>ولا يجوز استعمال برامج آلية لاستخراج بيانات الأعضاء من المنصة.</p>
+          <p>
+            ولا تنشر معلومات شخصية عن عضو آخر (رقم هاتفه، عنوانه، مكان عمله،
+            صورته) دون إذنه، سواء على المنصة أو خارجها.
+          </p>
+          <h4>التحرّش والتمييز والتهديد</h4>
+          <p>
+            لا تحرّش، ولا تهدّد، ولا تُهِن. ولا يُقبل التمييز أو الإساءة على
+            أساس الجنس أو الأصل أو اللغة أو الدين أو الإعاقة أو أي أساس آخر.
+          </p>
+          <p>
+            وما يقع في اللقاء نفسه يعنينا كما يعنينا ما يُكتب على المنصة. إن
+            تعرّضتَ لسلوك كهذا في لقاء نُشر عندنا، أبلغنا.
+          </p>
+          <h4>المحتوى والخدمات غير المشروعة</h4>
+          <p>
+            لا يُنشر على المنصة ما يخالف القانون الجزائري، ولا ما يتعلّق ببيع
+            سلع أو خدمات محظورة، ولا روابط خبيثة أو صفحات تصيّد.
+          </p>
+          <h4>حقوق الغير</h4>
+          <p>
+            لا ترفع شعاراً أو صورة أو نصاً لا تملك حق استعماله. من كتب أو صوّر
+            له حقّ على ما أنتج، وهو حقّ يحميه القانون.
+          </p>
+          <hr />
+          <h3>المنظّمون</h3>
+          <p>
+            لمن ينشر لقاءً مسؤوليات إضافية (دقّة المعلومات، والتراخيص إن لزمت،
+            والتواصل مع المسجَّلين عند التغيير أو الإلغاء)، وهي مفصّلة في
+            <a href="#doc-40">شروط منظّمي الفعاليات</a>.
+          </p>
+          <hr />
+          <h3>كيف نطبّق هذه الإرشادات</h3>
+          <p>
+            حين يصلنا بلاغ أو نرصد مخالفة، ننظر في الحالة ونختار ما يناسبها من:
+          </p>
+          <ul>
+            <li><strong>تنبيه</strong> يوضّح ما وقع وما نتوقّعه؛</li>
+            <li><strong>حذف المحتوى المخالف</strong> أو إخفاؤه؛</li>
+            <li><strong>إلغاء نشر لقاء</strong>؛</li>
+            <li>
+              <strong>تقييد ميزة</strong> لمدّة محدّدة، كمنع نشر لقاءات جديدة؛
+            </li>
+            <li><strong>تعليق الحساب</strong>؛</li>
+            <li><strong>إنهاء الحساب نهائياً</strong>.</li>
+          </ul>
+          <p>
+            <strong>ولا نلتزم بترتيب ثابت.</strong> في المخالفات البسيطة أو التي
+            يبدو أنها وقعت عن سهو، نبدأ بالتنبيه لأنه يكفي غالباً. أما الاحتيال،
+            وانتحال الصفة، والتهديد، وما يمسّ سلامة الناس، فنتصرّف فيه فوراً
+            ودون تنبيه سابق. الوعد بتدرّج ثابت في مثل هذه الحالات وعدٌ لا ينبغي
+            قطعه.
+          </p>
+          <p>
+            وننظر في السياق: هل تكرّر السلوك؟ هل أضرّ بأحد فعلاً؟ هل صُحّح بعد
+            التنبيه؟
+          </p>
+          <hr />
+          <h3>كيف تُبلغ</h3>
+          <p>
+            راسلنا على <strong>contact@founders.coffee</strong> واذكر رابط
+            اللقاء أو الملف أو المحتوى، وما رأيتَه فيه. الوصف الدقيق يختصر وقت
+            المراجعة.
+          </p>
+          <p>البلاغات تُعامَل بسرّية. ولا نكشف هوية المبلّغ لمن بُلِّغ عنه.</p>
+          <p>
+            وإن كان الأمر يتعلّق بخطر مباشر على شخص، فاتّصل بالجهات المختصة
+            أولاً؛ نحن منصة رقمية ولا نملك وسيلة تدخّل ميداني.
+          </p>
+          <hr />
+          <h3>إن اتُّخذ قرار تراه خاطئاً</h3>
+          <p>
+            راسلنا واشرح. نراجع القرارات، ونصحّح ما نتبيّن أنه وقع في غير محلّه.
+            الإشراف عمل بشري، ويخطئ أحياناً.
+          </p>
+        </div>
+      </section>
+      <section id="doc-40" class="sec rtl" dir="rtl" lang="ar">
+        <header class="sh">
+          <p class="kicker">الوثيقة 08</p>
+          <h2><span class="num">08</span>شروط منظّمي الفعاليات</h2>
+        </header>
+        <div class="body">
+          <p class="badge b-draft" dir="rtl" lang="ar">
+            مسوّدة — بانتظار المراجعة القانونية
+          </p>
+          <p class="stamp" dir="rtl" lang="ar">آخر تحديث: 18 سبتمبر 2026</p>
+          <h3>1. متى تسري هذه الشروط</h3>
+          <p>
+            تسري عليك من اللحظة التي تنشر فيها لقاءً على فاوندرز كوفي، وتُضاف
+            إلى <a href="#doc-10">شروط الاستخدام</a> و<a href="#doc-30"
+              >إرشادات المجتمع</a
+            >
+            دون أن تلغيهما.
+          </p>
+          <p>
+            ليست هذه الشروط عقد امتياز ولا التزامات ثقيلة. تنظيم لقاء هنا فعل
+            بسيط: تختار مقهى، وتحدّد ساعة، وتكتب عمّا ستتحدّثون فيه. ما يلي هو
+            ما يترتّب على ذلك من مسؤولية، لا أكثر.
+          </p>
+          <h3>2. أنت منظّم لقائك</h3>
+          <p>
+            حين تنشر لقاءً تصبح <strong>منظّمه</strong>، أنت أو الجهة التي تنشر
+            باسمها. نحن نوفّر المنصة التي يُنشر فيها اللقاء ويُكتشَف ويُسجَّل
+            فيه الحضور؛ ولا نشارك في تنظيمه، ولا نمثّلك أمام الحاضرين، ولا
+            نتحمّل ما تعد به.
+          </p>
+          <p>
+            وعليه، فالعلاقة التي تنشأ بينك وبين من سجّل في لقائك علاقتك أنت.
+          </p>
+          <h3>3. دقّة معلومات اللقاء</h3>
+          <p>
+            ما تنشره يجب أن يكون صحيحاً وقت نشره: عنوان اللقاء، وموضوعه، والمكان
+            واسمه وعنوانه، والتاريخ والساعة، ولغة النقاش.
+          </p>
+          <p>
+            وإن تغيّر شيء من ذلك، عدّله في صفحة اللقاء بأسرع ما تستطيع.
+            المسجَّلون يبنون تنقّلهم على ما يقرؤونه.
+          </p>
+          <p>
+            وإن كان اللقاء موجّهاً إلى فئة بعينها (مؤسّسون في مجال محدّد، مرحلة
+            معيّنة من المشروع، لغة واحدة) فاذكر ذلك في الوصف بوضوح. تحديد
+            الجمهور بشفافية مقبول؛ إخفاء الغرض الحقيقي للقاء ليس كذلك.
+          </p>
+          <h3>4. المكان والتراخيص</h3>
+          <p>
+            اختيار المكان مسؤوليتك، والتفاهم مع صاحبه كذلك. تأكّد أنك تملك حق
+            استعماله لهذا الغرض في هذا التوقيت، وأن عدد الحاضرين المتوقَّع مقبول
+            لديه.
+          </p>
+          <p>
+            والتزم بقواعد المكان وبتعليمات القائمين عليه، وأبلغ الحاضرين بما
+            يلزمهم منها.
+          </p>
+          <p>
+            وإن كان لقاؤك من النوع الذي يستوجب رخصة أو إخطاراً مسبقاً بموجب
+            التنظيم الجزائري (لطبيعة النشاط أو لحجمه أو لمكانه) فالحصول على ذلك
+            يقع عليك وحدك. اللقاءات المعتادة على المنصة جلسات صغيرة في أماكن
+            عامة، ولا تستدعي ذلك في الغالب؛ لكن الحكم في الأخير حكمك وأنت الأدرى
+            بلقائك.
+          </p>
+          <h3>5. سلامة الحاضرين</h3>
+          <p>
+            أنت من يدير الجلسة. إن وقع في لقائك سلوك مسيء أو خطر، تصرّف: نبّه،
+            أو اطلب من صاحبه المغادرة، أو أنهِ اللقاء إن لزم. وإن كان الأمر
+            جسيماً، اتّصل بالجهات المختصة.
+          </p>
+          <p>ثم أبلغنا، لنتّخذ ما يلزم على مستوى الحساب.</p>
+          <h3>6. قائمة المسجَّلين</h3>
+          <p>نعرض لك أسماء من سجّلوا في لقائك، لأنك تحتاج أن تعرف من ينتظر.</p>
+          <p>
+            <strong>هذه القائمة لتنظيم هذا اللقاء، ولا شيء غير ذلك.</strong> لا
+            تنسخها، ولا تُصدّرها، ولا تضيف أصحابها إلى قائمة مراسلات أو قاعدة
+            بيانات، ولا تشاركها مع أحد، ولا تستعملها للتواصل بعد اللقاء في غير
+            ما يتّصل به.
+          </p>
+          <p>
+            وإن أردت جمع أي معلومة إضافية من الحاضرين في اللقاء نفسه (بريد، رقم،
+            بطاقة تعريف) فقل لهم صراحةً إنك <strong>أنت</strong> من يجمعها ولأيّ
+            غرض، وإن ذلك ليس جزءاً من المنصة. حين تفعل ذلك تصبح أنت المسؤول عن
+            تلك المعطيات أمام القانون، وتسري عليك أحكام القانون رقم 18-07.
+          </p>
+          <p>
+            مخالفة هذا البند من أخطر ما يمكن أن يقع على المنصة، ونعاملها على هذا
+            الأساس.
+          </p>
+          <h3>7. تسجيل الحضور بعد اللقاء</h3>
+          <p>
+            بعد انتهاء اللقاء نطلب منك أن تُخبرنا هل انعقد فعلاً، وأن تسجّل من
+            حضر من المسجَّلين ومن لم يحضر، وأن تذكر عدد من جاء دون تسجيل مسبق.
+          </p>
+          <p>
+            سجّل ما وقع فعلاً. هذه بيانات تخصّ أشخاصاً حقيقيين، ولهم حقّ في
+            تصحيحها إن كانت خاطئة، وهي عندنا أساس نميّز به اللقاء الذي انعقد من
+            اللقاء الذي لم ينعقد.
+          </p>
+          <p>
+            الملاحظة التي تكتبها عن سير اللقاء ملاحظة خاصة بك؛ لا تظهر للأعضاء.
+          </p>
+          <h3>8. التواصل مع المسجَّلين</h3>
+          <p>
+            نرسل نحن الإشعارات المرتبطة باللقاء إلى المسجَّلين: التأكيد،
+            والتذكير، والتغيير، والإلغاء. هذه رسائل بصيغة موحّدة تصدر عن المنصة،
+            ولا تتيح لك المنصة كتابة نصّ خاص فيها ولا إرسال رسالة جماعية إلى
+            المسجَّلين.
+          </p>
+          <p>
+            فإن أردت إيصال شيء إلى من سجّل، فمكانه وصف اللقاء نفسه، لأنه ما
+            يقرؤه المسجَّلون وما يُبنى عليه التذكير.
+          </p>
+          <p>
+            ولا يجوز بحال استعمال قنوات اللقاء (وصفاً كان أو تواصلاً خارج المنصة
+            بناءً على قائمة المسجَّلين) في عرض خدمات أو منتجات. ذلك استقطاب
+            مباشر يحظره القانون دون موافقة مسبقة من المتلقّي.
+          </p>
+          <h3>9. التعديل والتأجيل والإلغاء</h3>
+          <p>
+            <strong>التعديل:</strong> عدّل صفحة اللقاء فور تغيّر أي معلومة،
+            ونُشعِر نحن المسجَّلين.
+          </p>
+          <p>
+            <strong>التأجيل:</strong> إن أجّلت اللقاء إلى موعد جديد، أعلن الموعد
+            الجديد في صفحة اللقاء. وإن لم يكن لديك موعد بديل، فالأنسب أن تُلغي
+            وتنشر لقاءً جديداً لاحقاً بدل أن تُبقي المسجَّلين في انتظار مفتوح.
+          </p>
+          <p>
+            <strong>الإلغاء:</strong> ألغِ اللقاء على المنصة بمجرّد أن تعرف أنه
+            لن ينعقد، واذكر السبب باختصار. الإلغاء المبكر تصرّف سليم؛ الصمت ليس
+            كذلك.
+          </p>
+          <p>
+            ولأن اللقاءات مجانية، لا تنشأ عن الإلغاء التزامات مالية. غير أن
+            الناس يكونون قد رتّبوا وقتهم وتنقّلهم، وتكرار الإلغاء في اللحظة
+            الأخيرة يُفقد اللقاءات قيمتها ويُفقدك إمكانية النشر.
+          </p>
+          <h3>10. ما ترفعه من محتوى</h3>
+          <p>
+            النصوص والصور والشعارات التي تضعها في صفحة اللقاء يجب أن تكون لك أو
+            أن تملك حق استعمالها.
+          </p>
+          <p>
+            وباستعمال المنصة تمنحنا ترخيصاً محدوداً لعرض هذا المحتوى في صفحة
+            اللقاء وفي صفحات الاكتشاف المرتبطة به، بالقدر اللازم لتشغيل الخدمة.
+          </p>
+          <h3>11. التصوير في اللقاء</h3>
+          <p>
+            إن كنت تنوي التصوير أو التسجيل خلال اللقاء، فاذكر ذلك في الوصف،
+            وأخبر الحاضرين عند البداية، واحترم من يطلب ألّا يظهر.
+          </p>
+          <p>نشر صورة شخص دون رضاه مسألة حقوقية، لا مسألة ذوق.</p>
+          <h3>12. لقاءات لا تُقبل على المنصة</h3>
+          <p>
+            لا يُنشر على فاوندرز كوفي لقاء يخالف القانون الجزائري، ولا لقاء
+            غرضه:
+          </p>
+          <ul>
+            <li>
+              جمع أموال من الحاضرين أو الترويج لمخطّطات استثمار أو عملات أو
+              عوائد مضمونة؛
+            </li>
+            <li>بيع سلع أو خدمات يمنع التنظيم تسويقها؛</li>
+            <li>التوظيف مقابل رسوم يدفعها المترشّح؛</li>
+            <li>عرض تجاري مغلَّف في صورة لقاء مجتمعي؛</li>
+            <li>ما يمسّ النظام العام أو الآداب العامة.</li>
+          </ul>
+          <h3>13. اللقاءات المدفوعة</h3>
+          <p>
+            جميع اللقاءات على المنصة اليوم مجانية، ولا توجد وسيلة لتحصيل مقابل
+            من خلالها. لا تطلب من المسجَّلين دفع مبلغ خارج المنصة مقابل الحضور.
+          </p>
+          <p>
+            وإن أُتيحت لاحقاً لقاءات مدفوعة، سرت عليها
+            <a href="#doc-70">سياسة التذاكر والإلغاء والاسترجاع</a> بعد الإعلان
+            عن دخولها حيّز التنفيذ.
+          </p>
+          <h3>14. حين تواجه مشكلة</h3>
+          <p>
+            راسلنا على <strong>contact@founders.coffee</strong>: عضو مسيء، شكّ
+            في لقاء منشور، خلاف مع مكان، أو أي أمر تحتاج فيه تدخّلنا. نجيب عن
+            رسائل المنظّمين ونأخذها على محمل الجدّ.
+          </p>
+          <h3>15. ما قد نفعله</h3>
+          <p>
+            يجوز لنا إلغاء نشر لقاء، أو تقييد إمكانية نشر لقاءات جديدة، أو تعليق
+            الحساب، إذا خولفت هذه الشروط أو إرشادات المجتمع أو القانون.
+          </p>
+          <p>
+            ونتّخذ هذه القرارات على مستوى السوق الذي وقعت فيه المخالفة: تقييد في
+            مدينة أو بلد لا يعني تقييداً في غيره.
+          </p>
+          <p>وإن رأيت أن قراراً وقع في غير محلّه، راسلنا وسنعيد النظر فيه.</p>
+        </div>
+      </section>
+      <section id="doc-50" class="sec rtl" dir="rtl" lang="ar">
+        <header class="sh">
+          <p class="kicker">الوثيقة 09</p>
+          <h2><span class="num">09</span>سياسة ملفات تعريف الارتباط</h2>
+        </header>
+        <div class="body">
+          <p class="badge b-draft" dir="rtl" lang="ar">
+            مسوّدة — بانتظار المراجعة القانونية
+          </p>
+          <p class="stamp" dir="rtl" lang="ar">آخر تحديث: 18 سبتمبر 2026</p>
+          <h3>خلاصة قصيرة</h3>
+          <p>
+            نستعمل ثلاثة ملفات تعريف ارتباط: واحد يُبقيك مسجَّل الدخول، وواحد
+            يتذكّر لغة الواجهة، وواحد يتذكّر البلد الذي تتصفّح منه.
+          </p>
+          <p>
+            <strong
+              >لا نستعمل ملفات تحليلات، ولا ملفات إعلانية، ولا أدوات تتبّع عبر
+              المواقع.</strong
+            >
+            لا يوجد على المنصة نصّ برمجي لطرف ثالث يراقب تصفّحك، ولا بكسل
+            إعلاني، ولا ملفّ يُبنى عليه ملفّ اهتمامات لأغراض تسويقية.
+          </p>
+          <p>
+            لهذا السبب لن ترى عندنا نافذة موافقة على التتبّع: ليس هناك تتبّع
+            يُوافَق عليه.
+          </p>
+          <hr />
+          <h3>ما هو ملف تعريف الارتباط</h3>
+          <p>
+            نصّ صغير يحفظه المتصفّح على جهازك بطلب من الموقع، ويُعاد إرساله إلى
+            الموقع في كل زيارة. يُستعمل عادةً لتذكّر شيء بين صفحة وأخرى: أنك
+            سجّلت الدخول، أو أنك تفضّل العربية.
+          </p>
+          <hr />
+          <h3>الملفات التي نضعها</h3>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>الملف</th>
+                  <th>النوع</th>
+                  <th>ما يفعله</th>
+                  <th>المدّة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>better-auth.session_token</code></td>
+                  <td>ضروري</td>
+                  <td>
+                    يحمل معرّف جلستك ليبقى دخولك سارياً بين الصفحات والزيارات.
+                    ملف محميّ لا تستطيع نصوص الصفحة قراءته، ولا يُرسَل إلّا عبر
+                    اتصال مشفّر.
+                  </td>
+                  <td>مدّة صلاحية الجلسة</td>
+                </tr>
+                <tr>
+                  <td><code>PARAGLIDE_LOCALE</code></td>
+                  <td>تفضيل</td>
+                  <td>
+                    يحفظ اللغة التي اخترتها للواجهة: العربية أو الفرنسية أو
+                    الإنجليزية.
+                  </td>
+                  <td>سنة واحدة</td>
+                </tr>
+                <tr>
+                  <td><code>fc_geo</code></td>
+                  <td>تفضيل</td>
+                  <td>
+                    يحفظ البلد الذي وُجّهت إليه عند أول زيارة، فلا تُعاد التوجيه
+                    في كل مرة.
+                  </td>
+                  <td>سنة واحدة</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            وقد تضع خدمة الحماية من الاستعمال الآلي ملفاً تقنياً قصير الأجل عند
+            تسجيل الدخول أو عند الانضمام إلى قائمة انتظار مدينة، غرضه التمييز
+            بين الزائر والبرنامج الآلي. لا يُستعمل هذا الملف في التتبّع، ولا
+            نقرأ منه شيئاً يخصّك.
+          </p>
+          <hr />
+          <h3>أنواع لا نستعملها</h3>
+          <p>
+            <strong>ملفات التحليلات.</strong> لا نستعمل أدوات قياس في المتصفّح.
+            نقيس استعمال المنصة بعدّادات مجمّعة على الخادم (كم طلباً ورد، كم
+            لقاءً نُشر، أين تقع الأعطال)، وهذه العدّادات لا تُنسَب إلى شخص ولا
+            تحتاج ملفاً على جهازك.
+          </p>
+          <p>
+            <strong>ملفات التسويق والإعلان.</strong> المنصة لا تعرض إعلانات ولا
+            تبيع مساحات إعلانية، فلا وجود لهذه الملفات.
+          </p>
+          <p>
+            <strong>ملفات التتبّع عبر المواقع.</strong> لا نشارك أحداً في شبكات
+            تتبّع، ولا نضع عندك ما يتيح لغيرنا معرفة أنك زرتنا.
+          </p>
+          <hr />
+          <h3>التخزين على جهازك خارج ملفات الارتباط</h3>
+          <p>
+            المنصة تطبيق ويب قابل للتثبيت. إن ثبّته على هاتفك، يحفظ المتصفّح
+            نسخة من ملفات الواجهة لتعمل بسرعة ولو ضعف الاتصال. وقد تُحفَظ محلياً
+            بعض اختياراتك في العرض.
+          </p>
+          <p>
+            هذا تخزين تقني على جهازك، لا يصلنا منه شيء، ويزول بحذف بيانات الموقع
+            من المتصفّح أو بإزالة التطبيق المثبَّت.
+          </p>
+          <p>
+            وإن فعّلت الإشعارات الفورية، يُنشئ المتصفّح رمزاً للجهاز ونحفظه
+            عندنا لإرسال الإشعارات إليك. هذا ليس ملف ارتباط، وتفصيله في
+            <a href="#doc-20">سياسة الخصوصية</a>.
+          </p>
+          <hr />
+          <h3>كيف تتحكّم فيها</h3>
+          <p>
+            يمكنك حذف ملفات تعريف الارتباط أو منعها من إعدادات متصفّحك في أي
+            وقت.
+          </p>
+          <p>
+            خذ في الحسبان أثر ذلك: حذف ملف الجلسة يعني خروجك من الحساب، ومنع
+            الملفات كلياً يجعل تسجيل الدخول متعذّراً، لأن الجلسة لا تُحفَظ بغير
+            هذه الوسيلة.
+          </p>
+          <p>
+            أمّا ملفّا اللغة والبلد فحذفهما لا يمنع شيئاً؛ سيُسألان من جديد.
+          </p>
+          <hr />
+          <h3>إن تغيّر هذا</h3>
+          <p>
+            إن أضفنا يوماً أداة قياس أو أيّ ملفّ يتجاوز ما ذُكر أعلاه، حدّثنا
+            هذه الصفحة قبل ذلك، وطلبنا موافقتك حين يقتضي القانون طلبها.
+          </p>
+          <p>للاستفسار: <strong>contact@founders.coffee</strong></p>
+        </div>
+      </section>
+      <section id="doc-60" class="sec rtl" dir="rtl" lang="ar">
+        <header class="sh">
+          <p class="kicker">الوثيقة 10</p>
+          <h2><span class="num">10</span>المعلومات القانونية</h2>
+        </header>
+        <div class="body">
+          <p class="badge b-draft" dir="rtl" lang="ar">
+            منشورة — بانتظار المراجعة القانونية
+          </p>
+          <p class="stamp" dir="rtl" lang="ar">آخر تحديث: 18 سبتمبر 2026</p>
+          <blockquote class="warn">
+            <p>
+              <strong
+                >ملاحظة تحريرية لفريق فاوندرز كوفي — تُحذف قبل النشر.</strong
+              >
+              لم تُؤسَّس شركة بعد، والمنصة تعمل اليوم كنسخة تجريبية مجانية
+              يشغّلها شخص طبيعي. هذه الصفحة مكتوبة على هذا الأساس، لا على أساس
+              شركة يُنتظر تسجيلها. الحقل الوحيد الذي ما يزال ينتظر قراراً هو
+              <strong>اسم المشغِّل وعنوانه</strong>؛ وما عدا ذلك مذكور بوضعه
+              الصحيح. ولا يجوز في أي حال إدراج رقم سجلّ تجاري أو رقم تعريف جبائي
+              لا وجود له.
+            </p>
+          </blockquote>
+          <hr />
+          <h3>من يشغّل المنصة</h3>
+          <p>
+            فاوندرز كوفي اليوم <strong>نسخة تجريبية مجانية</strong> في طور
+            اختبار السوق. لم تُؤسَّس وراءها شركة، ولا يُباع فيها شيء. يشغّلها
+            شخص طبيعي بصفته الشخصية، وهذه بياناته:
+          </p>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>البيان</th>
+                  <th>القيمة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>المشغِّل</td>
+                  <td><strong>أمين يعقوب (Amine Yagoub)</strong></td>
+                </tr>
+                <tr>
+                  <td>الصفة</td>
+                  <td>
+                    شخص طبيعي (لم يُؤسَّس كيان قانوني إلى تاريخ آخر تحديث لهذه
+                    الصفحة)
+                  </td>
+                </tr>
+                <tr>
+                  <td>العنوان البريدي</td>
+                  <td>يُقدَّم عند الطلب على العنوان الإلكتروني أدناه</td>
+                </tr>
+                <tr>
+                  <td>السجلّ التجاري</td>
+                  <td>
+                    لا ينطبق: لا يوجد قيد تجاري، ولا تُمارَس على المنصة أي
+                    معاملة بمقابل
+                  </td>
+                </tr>
+                <tr>
+                  <td>رقم التعريف الجبائي (NIF)</td>
+                  <td>لا ينطبق للسبب نفسه</td>
+                </tr>
+                <tr>
+                  <td>رقم التعريف الإحصائي (NIS)</td>
+                  <td>لا ينطبق للسبب نفسه</td>
+                </tr>
+                <tr>
+                  <td>مدير النشر</td>
+                  <td>المشغِّل نفسه</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            نذكر هذا صراحةً لا استدراكاً: من حقّك أن تعرف مع من تتعاقد حين تُنشئ
+            حساباً. والتزاماتنا تجاهك في
+            <a href="#doc-10">شروط الاستخدام</a> و<a href="#doc-20"
+              >سياسة الخصوصية</a
+            >
+            قائمة كما هي، ويتحمّلها المشغِّل شخصياً.
+          </p>
+          <h3>إن تأسّست الشركة لاحقاً</h3>
+          <p>
+            إن نجحت التجربة، سنؤسّس الكيان القانوني الذي يشغّل المنصة ويفتح
+            فضاءات فاوندرز كوفي. عند ذلك:
+          </p>
+          <ul>
+            <li>تُحدَّث هذه الصفحة ببيانات الشركة الكاملة؛</li>
+            <li>
+              تنتقل العلاقة التعاقدية القائمة بينك وبين المشغِّل إلى الشركة، وفق
+              البند 16 من <a href="#doc-10">شروط الاستخدام</a>؛
+            </li>
+            <li>
+              ينتقل معها وصف <strong>المسؤول عن المعالجة</strong> في
+              <a href="#doc-20">سياسة الخصوصية</a>، ونُشعِرك بذلك قبل سريانه
+              لأنه تغيّر جوهري في هوية من يحوز بياناتك.
+            </li>
+          </ul>
+          <h3>التواصل</h3>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>الغرض</th>
+                  <th>الوسيلة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>الاستفسارات العامة والدعم</td>
+                  <td><strong>contact@founders.coffee</strong></td>
+                </tr>
+                <tr>
+                  <td>طلبات الخصوصية وممارسة الحقوق</td>
+                  <td><strong>contact@founders.coffee</strong></td>
+                </tr>
+                <tr>
+                  <td>البلاغات عن المحتوى والمخالفات</td>
+                  <td><strong>contact@founders.coffee</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>حماية المعطيات ذات الطابع الشخصي</h3>
+          <p>
+            المسؤول عن معالجة معطياتك هو المشغِّل المذكور أعلاه بصفته الشخصية،
+            لا شركة. وعدم وجود شركة لا يُنقص شيئاً من التزاماته بموجب القانون
+            رقم 18-07: تعريف القانون للمسؤول عن المعالجة يشمل الشخص الطبيعي كما
+            يشمل الشخص المعنوي.
+          </p>
+          <p>
+            للتواصل في كل ما يتعلّق بمعطياتك الشخصية، ولممارسة حقوقك في الاطّلاع
+            والتصحيح والاعتراض والحذف: <strong>contact@founders.coffee</strong>.
+          </p>
+          <p>
+            وتُعالَج بياناتك على بنية تقنية خارج الجزائر. تفصيل ذلك والأساس
+            القانوني الذي نستند إليه في <a href="#doc-20">سياسة الخصوصية</a>.
+          </p>
+          <blockquote class="warn">
+            <p>
+              <strong>ملاحظة تحريرية — تُحذف قبل النشر.</strong> المادة 41 مكرّر
+              المضافة بالقانون 25-11 توجب تعيين مندوب لحماية المعطيات. هل تسري
+              على مسؤول معالجة شخص طبيعي يشغّل خدمة تجريبية بمفرده، ومن يكون
+              المندوب حينها؟ مسألة تحتاج رأياً قانونياً. النصّ أعلاه يذكر نقطة
+              تواصل ولا يعلن تعييناً، لأن الإعلان عن تعيين لم يقع أسوأ من السكوت
+              عنه. ولم نُدرج في الصفحة المنشورة سطراً عن وضع التصريح لدى السلطة
+              الوطنية: المادة 32 توجب إعلام الشخص المعني بهوية المسؤول والغرض
+              والمرسَل إليهم والنقل إلى الخارج، ولا توجب نشر رقم وصل التصريح.
+              يبقى إيداع التصريح التزاماً قائماً — راجع القسم 4 من وثيقة البحث.
+            </p>
+          </blockquote>
+          <h3>الاستضافة التقنية</h3>
+          <p>
+            تُستضاف المنصة وتُعالَج بياناتها على بنية سحابية موزّعة يشغّلها
+            مزوّدون خارج الجزائر. ونصف في سياسة الخصوصية دور كل صنف من هؤلاء
+            المزوّدين وما يصله من بيانات.
+          </p>
+          <p>
+            تفصيل ما يترتّب على ذلك من حيث حماية المعطيات، والأساس القانوني الذي
+            نستند إليه، في <a href="#doc-20">سياسة الخصوصية</a>.
+          </p>
+          <h3>الملكية الفكرية</h3>
+          <p>
+            اسم «فاوندرز كوفي» وشعاره وتصميم المنصة وبرمجيّتها محميّة بموجب
+            الأمر رقم 03-05 المتعلق بحقوق المؤلف والحقوق المجاورة، ولا تُستعمل
+            دون إذن كتابي مسبق.
+          </p>
+          <p>
+            أمّا ما ينشره الأعضاء من نصوص وصور فيبقى ملكاً لأصحابه وفق ما هو
+            مبيَّن في <a href="#doc-10">شروط الاستخدام</a>.
+          </p>
+          <h3>الوثائق المرتبطة</h3>
+          <ul>
+            <li><a href="#doc-10">شروط الاستخدام</a></li>
+            <li><a href="#doc-20">سياسة الخصوصية</a></li>
+            <li><a href="#doc-30">إرشادات المجتمع</a></li>
+            <li><a href="#doc-40">شروط منظّمي الفعاليات</a></li>
+            <li><a href="#doc-50">سياسة ملفات تعريف الارتباط</a></li>
+            <li>
+              <a href="#doc-70">سياسة التذاكر والإلغاء والاسترجاع</a> — غير
+              سارية حالياً
+            </li>
+          </ul>
+          <hr />
+          <blockquote class="warn">
+            <p>
+              <strong>ملاحظة تحريرية — تُحذف قبل النشر.</strong> لم يُعثَر في
+              التشريع الجزائري على نصّ عام يوجب نشر «مضمون قانوني» على كل موقع
+              إلكتروني، على غرار ما هو مقرّر في بعض التشريعات المقارنة.
+              الالتزامات القائمة فعلاً هي: <strong>(1)</strong> المادة 32 من
+              القانون 18-07 التي توجب إعلام الشخص المعني بهوية المسؤول عن
+              المعالجة والغرض منها والمرسَل إليهم والنقل إلى الخارج — وهذا محلّه
+              سياسة الخصوصية، ويسري على المشغِّل بصفته شخصاً طبيعياً؛
+              <strong>(2)</strong> المادة 11 من القانون 18-05 التي توجب على
+              المورّد الإلكتروني ذكر رقم التعريف الجبائي والعنوانين المادي
+              والإلكتروني ورقم الهاتف ورقم السجلّ التجاري في العرض التجاري —
+              وهذه لا تسري ما دامت جميع اللقاءات مجانية، ولا يمكن أصلاً الوفاء
+              بها قبل القيد في السجلّ التجاري. نشر هذه الصفحة اليوم اختيار يخدم
+              الثقة، وغداً — مع الكيان واللقاءات المدفوعة — التزام.
+            </p>
+          </blockquote>
+        </div>
+      </section>
+      <section id="doc-70" class="sec rtl" dir="rtl" lang="ar">
+        <header class="sh">
+          <p class="kicker">الوثيقة 11</p>
+          <h2><span class="num">11</span>سياسة التذاكر والإلغاء والاسترجاع</h2>
+        </header>
+        <div class="body">
+          <p class="badge b-dormant" dir="rtl" lang="ar">غير سارية</p>
+          <p class="stamp" dir="rtl" lang="ar">آخر تحديث: 18 سبتمبر 2026</p>
+          <blockquote class="warn">
+            <h3>⚠ هذه الوثيقة غير سارية</h3>
+            <p>
+              جميع اللقاءات على فاوندرز كوفي مجانية اليوم، ولا توجد في المنصة أي
+              وسيلة لتحصيل مبلغ. أُعدّت هذه السياسة مسبقاً لتكون جاهزة إن أُدخلت
+              اللقاءات المدفوعة، ولا يترتّب عليها أي التزام قبل أن نُعلن صراحةً
+              عن دخولها حيّز التنفيذ وتُحدَّد البنود المعلَّقة أدناه.
+            </p>
+            <p>
+              البنود المكتوبة بين قوسين معقوفين تنتظر قراراً في نموذج العمل أو
+              في مزوّد الدفع، ولا يجوز نشر الوثيقة قبل استكمالها.
+            </p>
+          </blockquote>
+          <hr />
+          <blockquote>
+            <h3>تنبيه تنظيمي سابق لكل ما يلي</h3>
+            <p>
+              تشغيل لقاءات مدفوعة في الجزائر ليس مجرّد ربط بوابة دفع. يقتضي
+              القانون رقم 18-05 المؤرخ في 10 مايو 2018 المتعلق بالتجارة
+              الإلكترونية:
+            </p>
+            <ul>
+              <li>
+                <strong>القيد في السجلّ التجاري</strong> ونشر
+                <strong
+                  >موقع أو صفحة مستضافة في الجزائر تحت الامتداد
+                  <code>.com.dz</code></strong
+                >
+                مزوَّدة بأدوات التحقّق من هويتها (المادة 8)؛
+              </li>
+              <li>
+                <strong>إيداع اسم النطاق</strong> لدى المركز الوطني للسجلّ
+                التجاري، الذي يمسك ملفاً وطنياً للمورّدين الإلكترونيين (المادة
+                9)؛
+              </li>
+              <li>
+                <strong>تحصيل المبالغ في حساب مدوَّن في الجزائر</strong> لدى بنك
+                معتمد من بنك الجزائر أو لدى بريد الجزائر (المادتان 7 و27)؛
+              </li>
+              <li>
+                <strong
+                  >عرضاً تجارياً إلكترونياً يسبق كل معاملة وعقداً إلكترونياً
+                  يصادق عليه المشتري</strong
+                >
+                (المادة 10)، يتضمّن رقم التعريف الجبائي والعنوانين المادي
+                والإلكتروني ورقم الهاتف ورقم السجلّ التجاري وطبيعة الخدمة وسعرها
+                (المادة 11).
+              </li>
+            </ul>
+            <p>
+              أي منها غير متحقّق اليوم. والأول ليس غير متحقّق فحسب، بل يتعذّر
+              بلوغه في الوضع الراهن: المنصة يشغّلها شخص طبيعي غير مقيَّد في
+              السجلّ التجاري، والقيد شرط لكل ما بعده — إيداع النطاق يمرّ بالمركز
+              الوطني للسجلّ التجاري، وحساب التحصيل يُفتح للنشاط المقيَّد. فتأسيس
+              الكيان ليس خطوة من خطوات تفعيل هذه الوثيقة، بل شرط سابق عليها
+              جميعاً.
+            </p>
+            <p>
+              القرار بإطلاق اللقاءات المدفوعة إذن قرار يمسّ الكيان القانوني
+              والنطاق والاستضافة والبنك، لا واجهة الدفع وحدها.
+            </p>
+          </blockquote>
+          <hr />
+          <h3>1. نطاق هذه السياسة</h3>
+          <p>
+            تسري — عند تفعيلها — على كل لقاء يُنشر على المنصة بمقابل مالي، وعلى
+            العلاقة بين المشتري والمنظّم وبيننا.
+          </p>
+          <p>
+            أمّا اللقاءات المجانية فتبقى محكومة بـ<a href="#doc-10"
+              >شروط الاستخدام</a
+            >
+            و<a href="#doc-40">شروط منظّمي الفعاليات</a>، ولا شأن لها بهذه
+            الوثيقة.
+          </p>
+          <h3>2. من يبيع ومن يشتري</h3>
+          <p>
+            اللقاء المدفوع خدمة يقدّمها <strong>المنظّم</strong>، والعقد ينعقد
+            بينه وبين المشتري.
+          </p>
+          <p>
+            صفتنا نحن في هذه المعاملة:
+            <strong
+              >[تُحدَّد — وكيل تحصيل لحساب المنظّم، أم بائع باسمنا؟ الفرق جوهري:
+              يترتّب عليه من يصدر الفاتورة، ومن يتحمّل الرسوم والضرائب، ومن
+              يواجه المشتري في المنازعة، ومن يخضع لالتزامات المورّد الإلكتروني
+              في القانون 18-05]</strong
+            >.
+          </p>
+          <h3>3. السعر والرسوم</h3>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>البند</th>
+                  <th>القيمة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>سعر التذكرة</td>
+                  <td>
+                    يحدّده المنظّم، ويُعرض بالدينار الجزائري شاملاً كل ما
+                    يُستحقّ عند الشراء
+                  </td>
+                </tr>
+                <tr>
+                  <td>رسوم الخدمة على المنصة</td>
+                  <td>
+                    <strong
+                      >[تُحدَّد — القيمة، ومن يتحمّلها: المشتري أم
+                      المنظّم]</strong
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>رسوم معالجة الدفع</td>
+                  <td><strong>[تُحدَّد وفق مزوّد الدفع]</strong></td>
+                </tr>
+                <tr>
+                  <td>الرسوم والضرائب المستحقّة</td>
+                  <td><strong>[تُحدَّد بعد استشارة جبائية]</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            يُعرض السعر النهائي قبل التأكيد، بلا مبالغ تظهر في الخطوة الأخيرة.
+          </p>
+          <h3>4. كيف يتمّ الشراء</h3>
+          <p>
+            يُعرض اللقاء وشروطه وسعره قبل الشراء، ويتمّ الشراء بمصادقة المشتري
+            على الطلب، ويتلقّى بعدها تأكيداً إلكترونياً يتضمّن تفاصيل اللقاء
+            والمبلغ المدفوع.
+          </p>
+          <p>
+            وسائل الدفع المقبولة:
+            <strong>[تُحدَّد — بطاقة الذهبية، بطاقة CIB، وسيلة أخرى]</strong>.
+          </p>
+          <h3>5. إلغاء اللقاء من المنظّم</h3>
+          <p>
+            إن ألغى المنظّم اللقاء،
+            <strong>يُستردّ للمشتري كامل المبلغ الذي دفعه</strong>.
+          </p>
+          <p>
+            نُشعِر المشترين بالإلغاء، ويُنفَّذ الاسترجاع خلال
+            <strong
+              >[يُحدَّد — يُقترح خمسة عشر (15) يوماً، وهو الأجل المقرّر في
+              المادتين 22 و23 من القانون 18-05، مع التنبيه إلى أن هاتين المادتين
+              محرَّرتان في شأن السلع لا الخدمات، ويلزم رأي قانوني في مدى
+              انطباقهما هنا]</strong
+            >.
+          </p>
+          <p>
+            مصير رسوم الخدمة ورسوم المعالجة في حالة الإلغاء:
+            <strong>[تُحدَّد]</strong>.
+          </p>
+          <h3>6. تأجيل اللقاء</h3>
+          <p>
+            إن أُجّل اللقاء إلى تاريخ جديد، تبقى التذكرة صالحة للتاريخ الجديد.
+          </p>
+          <p>
+            ومن لا يناسبه الموعد الجديد يطلب الاسترجاع خلال
+            <strong
+              >[تُحدَّد — يُقترح سبعة (7) أيام من الإعلان عن التاريخ
+              الجديد]</strong
+            >.
+          </p>
+          <p>
+            وإن لم يُعلَن تاريخ جديد خلال <strong>[تُحدَّد]</strong>، عُدّ
+            اللقاء ملغى وسرى عليه القسم 5.
+          </p>
+          <h3>7. إلغاء المشتري</h3>
+          <p>
+            <strong>[بند معلَّق بالكامل — يلزم قرار تجاري وقانوني.]</strong>
+          </p>
+          <p>
+            لا يقرّر القانون رقم 18-05 حق عدول عاماً لفائدة المستهلك في الخدمات،
+            خلافاً لبعض التشريعات المقارنة. ولذلك فإن أي مهلة إلغاء نمنحها
+            للمشتري تكون التزاماً تعاقدياً اخترناه، لا تطبيقاً لنصّ.
+          </p>
+          <p>
+            اقتراح للمناقشة: إلغاء مجاني قبل اللقاء بمدّة
+            <strong>[تُحدَّد]</strong>، ولا استرجاع بعدها، على أن يُعرض هذا
+            الشرط بوضوح قبل الشراء لا بعده.
+          </p>
+          <h3>8. عدم الحضور</h3>
+          <p>
+            من اشترى تذكرة ولم يحضر دون إلغاء مسبق لا يُستردّ له المبلغ، ما لم
+            يقرّر المنظّم خلاف ذلك.
+          </p>
+          <h3>9. الاسترجاع</h3>
+          <p>
+            يُعاد المبلغ بالوسيلة نفسها التي دُفع بها، وإلى صاحب وسيلة الدفع
+            نفسه.
+          </p>
+          <p>
+            الجهة التي تُجري الاسترجاع:
+            <strong>[تُحدَّد — المنصة من المبالغ المحتجزة، أم المنظّم؟]</strong
+            >.
+          </p>
+          <p>
+            وإن كان المبلغ قد حُوّل إلى المنظّم قبل نشوء حق الاسترجاع:
+            <strong>[تُحدَّد آلية الاسترداد منه]</strong>.
+          </p>
+          <h3>10. المنازعات والاسترداد البنكي</h3>
+          <p>
+            إن نازع مشترٍ عملية دفع لدى بنكه، تعاونّا مع الأطراف المعنيّة
+            ووفّرنا ما لدينا من سجلّات المعاملة واللقاء.
+          </p>
+          <p>
+            توزيع العبء المالي للمنازعة بين المنصة والمنظّم:
+            <strong>[يُحدَّد]</strong>.
+          </p>
+          <h3>11. تحويل المبالغ إلى المنظّم</h3>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr>
+                  <th>البند</th>
+                  <th>القيمة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>موعد التحويل</td>
+                  <td>
+                    <strong
+                      >[يُحدَّد — يُقترح بعد انعقاد اللقاء بمدّة كافية لتصفية
+                      طلبات الاسترجاع]</strong
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td>الحدّ الأدنى للتحويل</td>
+                  <td><strong>[يُحدَّد]</strong></td>
+                </tr>
+                <tr>
+                  <td>الحساب المستقبِل</td>
+                  <td>
+                    حساب مدوَّن في الجزائر لدى بنك معتمد من بنك الجزائر أو لدى
+                    بريد الجزائر
+                  </td>
+                </tr>
+                <tr>
+                  <td>الوثائق المطلوبة من المنظّم</td>
+                  <td>
+                    <strong
+                      >[تُحدَّد — تتضمّن على الأقل ما يثبت الهوية والقيد التجاري
+                      عند الاقتضاء]</strong
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>12. التزامات المنظّم في اللقاء المدفوع</h3>
+          <p>
+            بيع تذكرة يرفع مستوى المسؤولية عمّا هو مقرّر في
+            <a href="#doc-40">شروط منظّمي الفعاليات</a>:
+          </p>
+          <ul>
+            <li>
+              تقديم اللقاء كما وُصف: الموضوع والمدّة والمكان والمتحدّثون إن
+              ذُكروا؛
+            </li>
+            <li>استيفاء ما يلزم من تراخيص لنشاط بمقابل؛</li>
+            <li>استيفاء ما يترتّب عليه من التزامات جبائية؛</li>
+            <li>الردّ على استفسارات المشترين وشكاواهم؛</li>
+            <li>الإعلان عن أي تغيير جوهري فور وقوعه.</li>
+          </ul>
+          <p>
+            والمنظّم الذي يبيع تذاكر للقاء لا ينوي عقده يرتكب فعلاً تنطبق عليه
+            أحكام القانون الجزائري في الاحتيال، فضلاً عن إنهاء حسابه نهائياً.
+          </p>
+          <h3>13. مسؤولية المنصة</h3>
+          <p>
+            نحن مسؤولون عن تشغيل وسيلة الدفع والتسجيل ودقّة ما نعرضه من مبالغ،
+            وعن تنفيذ ما تقرّره هذه السياسة من استرجاع في الحالات التي نتولّاه
+            فيها.
+          </p>
+          <p>
+            ولسنا مسؤولين عن جودة اللقاء نفسه ولا عن وفاء المنظّم بما وعد به،
+            ضمن الحدود المبيَّنة في القسم 12 من
+            <a href="#doc-10">شروط الاستخدام</a> وفي حدود ما يجيزه القانون.
+          </p>
+          <h3>14. ما يجب حسمه قبل تفعيل هذه الوثيقة</h3>
+          <ol start="1">
+            <li>
+              <strong>تأسيس الكيان القانوني وقيده في السجلّ التجاري.</strong>
+              شرط سابق على كل ما يليه، لا بند من بنوده: لا يستطيع شخص طبيعي غير
+              مقيَّد أن يستوفي ما يفرضه القانون 18-05 على المورّد الإلكتروني.
+            </li>
+            <li>
+              استيفاء بقية شروط القانون 18-05: الاستضافة في الجزائر تحت
+              <code>.com.dz</code>، إيداع النطاق لدى المركز الوطني للسجلّ
+              التجاري، والحساب البنكي المدوَّن في الجزائر.
+            </li>
+            <li>تحديد صفة المنصة في المعاملة (القسم 2).</li>
+            <li>اختيار مزوّد الدفع وتحديد الرسوم ومن يتحمّلها.</li>
+            <li>
+              رأي جبائي في الرسوم والضرائب المستحقّة وفي من يُصدر الفاتورة.
+            </li>
+            <li>
+              تحديد آجال الإلغاء والاسترجاع والتحويل، بعد رأي قانوني في مدى
+              انطباق آجال القانون 18-05 على الخدمات.
+            </li>
+            <li>
+              تحديث <a href="#doc-60">المعلومات القانونية</a> بالبيانات التي
+              تفرضها المادة 11 من القانون 18-05.
+            </li>
+            <li>
+              تحديث <a href="#doc-20">سياسة الخصوصية</a> بصنف جديد للمعطيات:
+              بيانات المعاملة وسجلّاتها، مع مدّة حفظها — علماً أن المادة 25 من
+              القانون 18-05 توجب حفظ سجلّات المعاملات وإرسالها إلكترونياً إلى
+              المركز الوطني للسجلّ التجاري.
+            </li>
+          </ol>
+        </div>
+      </section>
+      <section id="s12" class="sec">
+        <header class="sh">
+          <p class="kicker">Analysis</p>
+          <h2>
+            <span class="num">12</span>Final risks requiring professional review
+          </h2>
+        </header>
+        <div class="body">
+          <ol start="1">
+            <li>
+              <strong>Transfers abroad are the central legal exposure.</strong>
+              The architecture is entirely foreign-hosted and Art. 44 makes
+              authorisation the default route. The Art. 45 derogations are
+              available but neither is free: express consent can be withdrawn at
+              any time under Art. 7, and "necessary for performance of the
+              contract" is a defensible but untested characterisation of running
+              a meetup platform on a global edge network. This needs a decision
+              by a lawyer, in writing, before the ANPDP declaration is filed.
+            </li>
+            <li>
+              <strong>No hosting safe harbour was found.</strong> Drafting has
+              been conservative: we commit to acting on notice and we do not
+              assert immunity. If counsel locates an Algerian basis for
+              intermediary protection, the Terms can be strengthened. If not,
+              the moderation commitments in the Community Guidelines are
+              load-bearing and must be resourced.
+            </li>
+            <li>
+              <strong>Broad liability exclusions are unlikely to hold.</strong>
+              The US-style "AS IS, no liability whatsoever" clause used by every
+              platform reviewed does not translate. The drafts limit liability
+              proportionately and expressly do not attempt to exclude liability
+              for personal injury or for the platform's own serious fault. A
+              lawyer should confirm the limits against the Civil Code.
+            </li>
+            <li>
+              <strong
+                >The attendance record is the most legally awkward feature in
+                the product.</strong
+              >
+              One member creates a factual assertion about another member's
+              conduct, it is retained, it feeds trust signals, and the subject
+              cannot see or correct it. Art. 35 applies to it squarely. Both a
+              policy answer (drafted) and a product answer (not built) are
+              needed.
+            </li>
+            <li>
+              <strong
+                >Paid events require an Algerian entity, an Algerian-hosted
+                <code>.com.dz</code> site, CNRC registration and domain deposit,
+                and settlement into an Algerian bank or Algérie Poste
+                account</strong
+              >
+              (Law 18-05 Arts. 8, 9, 27). This is not a payments integration; it
+              is a second deployment target and possibly a second legal entity.
+              The roadmap should be replanned around it, and the ticketing
+              policy stays dormant until it is.
+            </li>
+            <li>
+              <strong>The 5-day breach rule needs a scope opinion.</strong> Our
+              reading of the _Journal Officiel_ places Art. 45 bis 8 inside the
+              law-enforcement title, against the grain of most published
+              commentary. If commentary is right and we are wrong, nothing
+              breaks — we adopt 5 days internally either way. If we are right
+              and someone drafts to the commentary, they will misstate the law.
+              Get the opinion.
+            </li>
+            <li>
+              <strong>Cookie consent is unresolved in Algerian law.</strong> We
+              sidestep it by running no analytics or advertising cookies. The
+              moment a product analytics tool is added, the question becomes
+              live and a consent mechanism is needed, with no local guidance on
+              what it must look like.
+            </li>
+            <li>
+              <strong
+                >Operating without an entity puts personal assets behind every
+                clause.</strong
+              >
+              This is a business risk more than a drafting one, and it is the
+              reason the non-responsibility clauses matter so much: an incident
+              at an independent meetup, a defamatory profile, a fraudulent
+              fundraising claim posted by a member — each lands on a natural
+              person with no corporate veil. Nothing in the documents can change
+              that; only incorporation can. Worth weighing against how long the
+              beta is expected to run.
+            </li>
+            <li>
+              <strong>The controller will change hands.</strong> When the entity
+              is formed, the controller changes from a person to a company. The
+              Terms §15 and the Privacy Policy §12 now commit to advance notice
+              and to preserving the right to close an account before the
+              transfer. That commitment has to be honoured in the product when
+              the time comes — a silent update would be exactly the kind of
+              change Art. 32 exists to prevent.
+            </li>
+            <li>
+              <strong
+                >The Arabic documents have not been reviewed by an Algerian
+                lawyer.</strong
+              >
+              They were drafted from the primary texts and from the product's
+              actual behaviour, and they were edited for register. That is not
+              the same as legal review.
+            </li>
+          </ol>
+          <hr />
+        </div>
+      </section>
+      <section id="s13" class="sec">
+        <header class="sh">
+          <p class="kicker">Analysis</p>
+          <h2><span class="num">13</span>Quality-control review</h2>
+        </header>
+        <div class="body">
+          <p>
+            Three review passes were run over the Arabic drafts before they were
+            handed over. Problems found were fixed in the documents rather than
+            listed as caveats; this section records what changed so a reviewer
+            knows where the drafts were weakest.
+          </p>
+          <h4>Reviewer 1 — Algerian legal reviewer</h4>
+          <ul>
+            <li>
+              <strong
+                >The Art. 32 "obligation to reply and its consequences" element
+                was missing.</strong
+              >
+              The Privacy Policy described what is collected but never said
+              which fields are mandatory or what follows from declining. A short
+              passage was added to §2.1 stating that name and email are required
+              to create an account, that without them no account can exist, and
+              that everything else is optional with no consequence beyond the
+              one feature it powers.
+            </li>
+            <li>
+              <strong
+                >The right of access was stated more generously than the
+                law.</strong
+              >
+              Art. 34 lets a controller refuse manifestly abusive requests, with
+              the burden of proof on the controller. The draft omitted both
+              halves. §7 now states the limit _and_ states that the burden falls
+              on us, which is the part a member needs to know.
+            </li>
+            <li>
+              <strong
+                >The breach clause was checked against the primary text rather
+                than the commentary.</strong
+              >
+              It commits to Art. 43 ("without delay") and separately adopts five
+              days as a ceiling, without attributing the five days to an article
+              that, on our reading of JO 48/2025, addresses law-enforcement
+              processing. The wording survives either outcome of the scope
+              question in §3.1.
+            </li>
+          </ul>
+          <h4>Reviewer 2 — Product lawyer</h4>
+          <p>
+            Three statements did not match what the code does. All three were
+            corrected against the source.
+          </p>
+          <ul>
+            <li>
+              <strong>"Organizers write the notification text."</strong> They do
+              not. Notification templates are fixed and there is no
+              custom-message field anywhere in the product. The Organizer Terms
+              said otherwise, which would have promised a capability that does
+              not exist and implied a bulk-message channel that is deliberately
+              absent. §8 was rewritten: the platform sends standard notices, the
+              organizer's channel to attendees is the event description, and
+              using the roster to reach people off-platform is prospecting.
+            </li>
+            <li>
+              <strong>"The organizer sees your name in the roster."</strong>
+              True but incomplete, and the incompleteness was the interesting
+              part. <code>listCloseoutRoster</code> selects
+              <code>userId</code> and <code>name</code> only. The Privacy Policy
+              now states positively that the organizer sees the name
+              <strong>and not</strong> the email or phone, and that the product
+              gives them no way to message a member directly.
+            </li>
+            <li>
+              <strong>"We do not show your feedback attributed to you."</strong>
+              Understated. <code>feedbackTally</code> excludes comments from the
+              host projection on purpose, because on a four-person meetup three
+              comments identify their authors. That reasoning is now in the
+              policy in plain words. It is a real privacy decision already made
+              in the code and it deserved to be visible.
+            </li>
+          </ul>
+          <h4>Reviewer 3 — Arabic legal editor</h4>
+          <ul>
+            <li>
+              Checked for the standard machine-translation tells and the filler
+              the brief called out. <code>بشكل</code>, <code>يرجى</code>,
+              <code>نحن نسعى</code>, <code>عبر الإنترنت</code> and
+              <code>نحترم خصوصيتك</code> appear zero times across the seven
+              documents; <code>من خلال</code> appears once.
+            </li>
+            <li>
+              Kept the statutory term
+              <code>المعطيات ذات الطابع الشخصي</code> wherever the text refers
+              to the law, and the ordinary <code>بيانات</code> in explanatory
+              prose, rather than forcing one register throughout.
+            </li>
+            <li>
+              Rewrote openings that had settled into the same shape. The
+              Community Guidelines now open on what the product is for rather
+              than on a definition, and the Privacy Policy's §2 opens by
+              refusing the "to improve your experience" formula explicitly
+              instead of using it.
+            </li>
+            <li>
+              Left sentence lengths deliberately uneven. Legal Arabic that is
+              uniformly long reads as translation; uniformly short reads as a
+              checklist.
+            </li>
+          </ul>
+        </div>
+      </section>
+      <footer class="end">
+        <p>
+          Source files live in <code>docs/legal/</code> in the repository. The
+          Arabic documents are ready to move into
+          <code>apps/ui/src/content/company/</code>, which already carries a
+          <code>showLegalDraftNotice</code> flag on the Terms, Privacy and
+          Cookies routes.
+        </p>
+        <p>
+          Primary sources read directly:
+          <a
+            href="https://www.joradp.dz/FTP/jo-francais/2018/F2018034.pdf"
+            target="_blank"
+            rel="noopener"
+            >JO 34/2018</a
+          >
+          (Law 18-07) and
+          <a
+            href="https://www.joradp.dz/FTP/jo-francais/2025/F2025048.pdf"
+            target="_blank"
+            rel="noopener"
+            >JO 48/2025</a
+          >
+          (Law 25-11), plus
+          <a
+            href="https://www.mpt.gov.dz/wp-content/uploads/2023/11/Loi-n%C2%B0-18-05-du-10-mai-2018.-fr_0_0.pdf"
+            target="_blank"
+            rel="noopener"
+            >Law 18-05</a
+          >
+          on electronic commerce.
+        </p>
+      </footer>
+    </main>
+  </div>
+</div>

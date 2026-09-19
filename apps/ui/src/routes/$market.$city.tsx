@@ -1,4 +1,10 @@
-import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
+import {
+  Outlet,
+  createFileRoute,
+  notFound,
+  redirect,
+  useChildMatches,
+} from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
 import { detectLocale, isLocale, type Locale } from '@founders-coffee/i18n';
@@ -13,11 +19,11 @@ import { CompanyPage } from '../components/company/CompanyPage';
 import { CityLanding } from '../components/landing/CityLanding';
 import { MarketLanding } from '../components/landing/MarketLanding';
 import {
-  aboutContent,
-  contactContent,
-  cookiesContent,
-  privacyContent,
-  termsContent,
+  COMPANY_PAGES,
+  companyPageContent,
+  isCompanyPageKey,
+  type CompanyPageEntry,
+  type CompanyPageKey,
 } from '../content/company';
 import { readCookieHeader } from '../lib/cookies';
 import {
@@ -33,16 +39,6 @@ import {
   marketPageHead,
 } from '../lib/seo';
 import { companyPageHead } from '../lib/seo-company';
-
-const companyPages = {
-  about: aboutContent,
-  contact: contactContent,
-  cookies: cookiesContent,
-  privacy: privacyContent,
-  terms: termsContent,
-} as const;
-
-type CompanyPageKey = keyof typeof companyPages;
 
 type LocalizedMarket = MarketWithCities & {
   readonly kind: 'market';
@@ -63,9 +59,6 @@ type LocalizedCompany = {
 };
 
 type RouteData = LocalizedMarket | LocalizedCity | LocalizedCompany;
-
-const isCompanyPage = (value: string): value is CompanyPageKey =>
-  value in companyPages;
 
 const landingSearchSchema = publicPaginationSearchSchema;
 
@@ -99,7 +92,10 @@ export const Route = createFileRoute('/$market/$city')({
     afterId: search.afterId,
   }),
   component: () => {
+    const childMatches = useChildMatches();
     const data = Route.useLoaderData();
+    if (childMatches.length > 0) return <Outlet />;
+
     if (data.kind === 'market') {
       return (
         <MarketLanding
@@ -128,11 +124,17 @@ export const Route = createFileRoute('/$market/$city')({
       );
     }
     if (data.kind === 'company') {
+      const entry: CompanyPageEntry = COMPANY_PAGES[data.page];
+      const arabicSource = entry.kind === 'arabic';
       return (
         <CompanyPage
           locale={data.locale}
-          content={companyPages[data.page][data.locale]}
-          showEmailActions={data.page === 'contact'}
+          content={companyPageContent(data.page, data.locale)}
+          related={entry.related}
+          showEmailActions={
+            entry.kind === 'localized' && entry.emailActions === true
+          }
+          arabicSource={arabicSource}
         />
       );
     }
@@ -148,7 +150,7 @@ export const Route = createFileRoute('/$market/$city')({
   },
   loader: async ({ params, deps }): Promise<RouteData> => {
     if (isLocale(params.market)) {
-      if (isCompanyPage(params.city)) {
+      if (isCompanyPageKey(params.city)) {
         return { kind: 'company', locale: params.market, page: params.city };
       }
       return localizedMarket(params.market, params.city, deps);
@@ -209,13 +211,19 @@ export const Route = createFileRoute('/$market/$city')({
       });
     }
     if (loaderData.kind === 'company') {
-      const content = companyPages[loaderData.page][loaderData.locale];
+      const content = companyPageContent(loaderData.page, loaderData.locale);
+      const entry: CompanyPageEntry = COMPANY_PAGES[loaderData.page];
       return companyPageHead({
         locale: loaderData.locale,
         path: `/${loaderData.page}`,
         canonicalLocale: loaderData.locale,
+        soleLocale: entry.kind === 'arabic' ? 'ar' : undefined,
         title: content.title,
         description: content.description,
+        faq:
+          entry.kind === 'localized' && entry.faq === true
+            ? content
+            : undefined,
       });
     }
     const cityName =

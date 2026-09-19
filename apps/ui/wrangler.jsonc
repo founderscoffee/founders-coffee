@@ -6,6 +6,15 @@
   "main": "src/server.ts",
   "observability": { "enabled": true },
 
+  // The company pages are prerendered to `<locale>/<page>/index.html`, and Workers Assets' default
+  // `auto-trailing-slash` answers `/ar/terms` with a 307 to `/ar/terms/` — while the page's own
+  // canonical link and its entry in the sitemap both name `/ar/terms`. So the URL we publish was
+  // the one URL that never answered 200: every crawler and every footer link paid a redirect to
+  // reach a page that then told them to index the address they had just been moved off. Dropping
+  // the slash serves the prerendered file at the canonical address and redirects the other way.
+  // `directory` is supplied by the Vite plugin, which merges what is here.
+  "assets": { "html_handling": "drop-trailing-slash" },
+
   // Durable Objects must be SQLite-backed: key-value backed namespaces can no longer be created
   // (Cloudflare changelog 2026-07-09) and the Workers Free plan never supported them. Both classes
   // only use the `ctx.storage.get/put` KV API, which SQLite-backed objects implement natively.

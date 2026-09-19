@@ -68,7 +68,11 @@ describe('HostCreatePage EC-07 flow', () => {
 
   it('asks an anonymous host to sign in without leaving the wizard, and publishes once they do', async () => {
     hostCreateMocks.isAuthenticated = false;
-    window.history.replaceState({}, '', '/algeria/host/create?city=1&state=16');
+    window.history.replaceState(
+      {},
+      '',
+      '/ar/algeria/host/create?city=1&state=16',
+    );
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
@@ -79,7 +83,7 @@ describe('HostCreatePage EC-07 flow', () => {
     );
     expect(
       screen.getByRole('heading', {
-        name: 'One last step, sign in to publish',
+        name: 'One last step: sign in to publish',
       }),
     ).toBeTruthy();
     const stored = window.sessionStorage.getItem('fc:event-draft:DZ');
@@ -128,7 +132,7 @@ describe('HostCreatePage EC-07 flow', () => {
 
     expect(
       screen.queryByRole('heading', {
-        name: 'One last step, sign in to publish',
+        name: 'One last step: sign in to publish',
       }),
     ).toBeNull();
   });

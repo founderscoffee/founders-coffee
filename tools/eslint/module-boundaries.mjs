@@ -1,7 +1,8 @@
 /**
  * The module-boundary contract (AGENTS.md §4, implementation-plan §5).
  *
- * Every project is tagged `type:app|lib`, `layer:ui|server|domain|data|shared`, `domain:<name>`.
+ * Every project is tagged `type:app|lib`, `layer:app-ui|ui|server|domain|data|shared`,
+ * `domain:<name>`.
  * The layer constraints below enforce the one-directional data flow:
  *
  *   Component -> hook -> api -> server-fn -> domain -> db -> D1
@@ -12,8 +13,9 @@
  * `features/<domain>/api.ts` and route loaders call server functions, which is the designed path — while
  * `libs/ui` must never do so, and one tag cannot be both strict and permissive because constraints
  * are combined, not overridden. Splitting them keeps the design system locked down and makes an
- * application's reach an explicit list rather than the absence of a tag. The file-level half of the
- * rule, that only `api.ts` may hold those imports, is `local/no-server-fns-in-components`.
+ * application's reach an explicit list rather than the absence of a tag. Within guarded component,
+ * lib, and feature paths, the file-level half of the rule — that only `api.ts` may hold those imports —
+ * is `local/no-server-fns-in-components`; route loaders remain an explicit server-side exception.
  *
  * `apps/worker-jobs` carries `layer:server` because that is what it is: a queue and cron consumer
  * with no UI. It therefore cannot import `libs/ui` or any application code, which nothing asserted

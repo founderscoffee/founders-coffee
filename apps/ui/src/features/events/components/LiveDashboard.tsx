@@ -4,7 +4,6 @@ import {
   live_at_venue,
   live_cancel,
   live_confirm,
-  live_connected,
   live_eta_minutes,
   live_eta_ph,
   live_host_here,
@@ -12,6 +11,7 @@ import {
   live_no_attendees,
   live_not_arrived,
   live_running_late,
+  live_status_connected,
   live_table_n,
   live_title,
   live_walking_in,
@@ -76,7 +76,7 @@ export const LiveDashboard = ({
               className={`badge badge-sm ${connectionBadge(connectionState)}`}
             >
               {connectionState === 'connected'
-                ? live_connected({}, { locale })
+                ? live_status_connected({}, { locale })
                 : connectionLabel(connectionState, locale)}
             </span>
             {host?.arrived && (

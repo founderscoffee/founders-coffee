@@ -12,6 +12,7 @@ import {
   getMarketByCode,
   isVisibleIdentity,
   listUpcomingEvents,
+  listPublicEventHosts,
   type Db,
   type Event,
   type NewEvent,
@@ -21,7 +22,10 @@ import { reportError } from '@founders-coffee/observability';
 import { attendHostOwnEvent } from './host-attendance.js';
 import { locatePoint, type LocatedPoint } from '../maps/locate.js';
 import type { MapProvider } from '../maps/provider.js';
-import { type EventAttendance } from './attendance.js';
+import { attachCityNames, type EventFeedItemBase } from './feed.js';
+
+export { attachCityNames } from './feed.js';
+export type { EventFeedItem, EventFeedItemBase } from './feed.js';
 
 /**
  * Where this event is, and the address to publish with it.
@@ -213,32 +217,6 @@ export const resolveEvent = async (
   return ok(event);
 };
 
-export type EventFeedItemBase = Event & {
-  readonly cityName: string;
-  readonly cityNameAr: string;
-  readonly citySlug: string | null;
-};
-
-export type EventFeedItem = EventFeedItemBase & Partial<EventAttendance>;
-
-/**
- * Attach the display names and the slug the city route is keyed by.
- *
- * The slug is not the city code: `/{market}/{city}` resolves through `findCityBySlug`, so linking
- * with a code produces a 404. Carrying it on the payload is what lets a component link back to a
- * city without reaching into the domain itself.
- */
-export const attachCityNames = (rows: readonly Event[]): EventFeedItemBase[] =>
-  rows.map((e) => {
-    const city = geo.findCity(e.marketCode, e.cityCode);
-    return {
-      ...e,
-      cityName: city?.name ?? e.cityCode,
-      cityNameAr: city?.nameAr ?? city?.name ?? e.cityCode,
-      citySlug: city?.slug ?? null,
-    };
-  });
-
 export interface EventFeedPage {
   readonly items: readonly EventFeedItemBase[];
   readonly nextCursor: {
@@ -272,7 +250,13 @@ export const listEvents = async (
     afterId: opts.afterId,
     limit: limit + 1,
   });
-  const items = attachCityNames(rows.slice(0, limit));
+  const pageRows = rows.slice(0, limit);
+  const hostRows = await listPublicEventHosts(
+    db,
+    pageRows.map((row) => row.hostId),
+  );
+  const hostMap = new Map(hostRows.map((host) => [host.userId, host]));
+  const items = attachCityNames(pageRows, hostMap);
   const hasMore = rows.length > limit;
   const last = items[items.length - 1];
   return {

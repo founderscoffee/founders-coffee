@@ -1,4 +1,5 @@
 export { getPublicAuthConfig } from './auth-config.js';
+export { hasAuthSession } from './auth-session.js';
 export { getFirebaseConfig, getMapboxToken } from './config.js';
 export { getGeoCountry } from './geo.js';
 export {
@@ -35,6 +36,7 @@ export {
   updateMyPreferences,
   updateMyProfile,
   updateMyDisplayName,
+  updateMyAccountLocale,
 } from './profile.js';
 export type {
   AccountPreferencesView,
@@ -46,6 +48,7 @@ export type {
   UpdateProfileRequest,
   UpdateDisplayNameRequest,
   UpdatePreferencesRequest,
+  UpdateAccountLocaleRequest,
 } from './profile.js';
 export {
   checkPermission,

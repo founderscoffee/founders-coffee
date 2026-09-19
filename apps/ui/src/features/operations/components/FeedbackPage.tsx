@@ -19,10 +19,9 @@ import {
   feedback_title,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Turnstile } from '@founders-coffee/ui';
+import { Button } from '@founders-coffee/ui';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
-import { usePublicAuthConfig } from '../../auth/hooks';
 import {
   canSubmitFeedback,
   draftFromFeedback,
@@ -56,23 +55,14 @@ export const FeedbackPage = ({
 }) => {
   const query = useFeedback(eventId);
   const save = useSubmitFeedback(eventId);
-  const authConfig = usePublicAuthConfig();
   const [draft, setDraft] = useState<FeedbackDraft | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [resetKey, setResetKey] = useState(0);
   const errorRef = useRef<HTMLParagraphElement>(null);
-  const bypassed = authConfig.data?.isTurnstileBypassed === true;
-  const verified = bypassed || token !== null;
 
   useEffect(() => {
     if (query.data) setDraft(draftFromFeedback(query.data));
   }, [query.data]);
   useEffect(() => {
-    if (save.isError) {
-      setToken(null);
-      setResetKey((value) => value + 1);
-      errorRef.current?.focus();
-    }
+    if (save.isError) errorRef.current?.focus();
   }, [save.isError]);
 
   if (!query.userId && !query.isAuthLoading)
@@ -104,11 +94,8 @@ export const FeedbackPage = ({
 
   const closed = query.data.status === 'window_closed';
   const onSubmit = () => {
-    if (!canSubmitFeedback(draft) || !verified || closed) return;
-    save.mutate({
-      ...toFeedbackRequest(eventId, draft),
-      turnstileToken: token ?? undefined,
-    });
+    if (!canSubmitFeedback(draft) || closed) return;
+    save.mutate(toFeedbackRequest(eventId, draft));
   };
 
   return (
@@ -158,15 +145,6 @@ export const FeedbackPage = ({
               )
             }
           />
-          {authConfig.data?.turnstileSiteKey && !bypassed && (
-            <Turnstile
-              sitekey={authConfig.data.turnstileSiteKey}
-              action="submit_feedback"
-              appearance="interaction-only"
-              resetKey={resetKey}
-              onToken={setToken}
-            />
-          )}
           {save.isError && (
             <p
               className="text-body-sm text-error"
@@ -179,7 +157,7 @@ export const FeedbackPage = ({
           )}
           <Button
             type="button"
-            disabled={!canSubmitFeedback(draft) || !verified || save.isPending}
+            disabled={!canSubmitFeedback(draft) || save.isPending}
             onClick={onSubmit}
           >
             {save.isPending

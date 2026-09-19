@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#270F00" />
+    <title>لا يوجد اتصال - Founders Coffee</title>
+    <style>
+      :root {
+        --paper: #fffcf7;
+        --linen: #f3ebdd;
+        --sand: #e6dccb;
+        --roast: #270f00;
+        --mocha: #6b5b50;
+        --clay: #9a4423;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: var(--paper);
+        color: var(--roast);
+        font-family:
+          'Tajawal',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        line-height: 1.7;
+      }
+      main {
+        width: 100%;
+        max-width: 30rem;
+      }
+      .mark {
+        display: block;
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--clay);
+        margin-bottom: 28px;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.3;
+      }
+      p {
+        margin: 0 0 12px;
+        color: var(--mocha);
+      }
+      .retry {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 10px 20px;
+        border-radius: 999px;
+        background: var(--roast);
+        color: var(--paper);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .retry:focus-visible {
+        outline: 2px solid var(--clay);
+        outline-offset: 2px;
+      }
+      .also {
+        margin-top: 32px;
+        padding-top: 20px;
+        border-top: 1px solid var(--sand);
+      }
+      .also p {
+        margin: 0 0 8px;
+        font-size: 0.875rem;
+      }
+      .sign {
+        margin-top: 28px;
+        font-size: 0.8125rem;
+        color: var(--mocha);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="mark" aria-hidden="true"></span>
+      <h1>لا يوجد اتصال بالإنترنت</h1>
+      <p>
+        تعذّر فتح هذه الصفحة الآن. الصفحات التي فتحتها من قبل ما زالت متاحة بلا
+        اتصال.
+      </p>
+      <p>تحقّق من اتصالك ثم أعد المحاولة.</p>
+      <a class="retry" href="/">أعد المحاولة</a>
+
+      <div class="also">
+        <p lang="fr" dir="ltr">
+          Pas de connexion. Cette page n’est pas disponible hors ligne. Les
+          pages déjà ouvertes le restent.
+        </p>
+        <p lang="en" dir="ltr">
+          You’re offline. This page isn’t available offline. Pages you have
+          already opened still are.
+        </p>
+      </div>
+
+      <p class="sign">صُنع على طاولة مقهى</p>
+    </main>
+  </body>
+</html>

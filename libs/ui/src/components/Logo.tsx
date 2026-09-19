@@ -1,61 +1,29 @@
-import type { SVGProps } from 'react';
+import type { ImgHTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn.js';
 
-type LogoTone = 'default' | 'reversed' | 'mono' | 'muted' | 'sand';
-
-const TABLE_FILL: Record<LogoTone, string> = {
-  default: 'var(--color-base-content)',
-  reversed: 'var(--color-base-100)',
-  mono: 'var(--color-base-content)',
-  muted: 'var(--color-base-200)',
-  sand: 'var(--color-base-300)',
-};
-
-type LogoSymbolProps = Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> & {
+type LogoSymbolProps = Omit<
+  ImgHTMLAttributes<HTMLImageElement>,
+  'alt' | 'height' | 'src' | 'width'
+> & {
   size?: number;
-  tone?: LogoTone;
-  hasLettering?: boolean;
 };
 
 export const LogoSymbol = ({
-  size = 28,
-  tone = 'default',
-  hasLettering = false,
+  size = 55,
+  className,
   ...props
 }: LogoSymbolProps) => {
-  const table = TABLE_FILL[tone];
   return (
-    <svg
-      viewBox="0 0 100 100"
+    <img
+      src="/branding/pwa-logo.png"
+      alt=""
       width={size}
       height={size}
-      aria-hidden="true"
-      focusable="false"
+      aria-hidden
+      className={cn('object-contain', className)}
       {...props}
-    >
-      <circle cx="46" cy="46" r="34" fill={table} />
-      {hasLettering ? (
-        <text
-          x="46"
-          y="59"
-          textAnchor="middle"
-          fontFamily="var(--font-display)"
-          fontWeight="600"
-          fontSize="38"
-          letterSpacing="-2"
-          fill="var(--color-base-100)"
-        >
-          f.c
-        </text>
-      ) : null}
-      <circle
-        cx="80"
-        cy="80"
-        r="12"
-        fill={tone === 'mono' ? table : 'var(--color-secondary)'}
-      />
-    </svg>
+    />
   );
 };
 
@@ -65,17 +33,22 @@ export const LogoWordmark = ({ className }: { className?: string }) => (
     lang="en"
     className={cn('font-display font-semibold tracking-tight', className)}
   >
-    founders<span className="text-secondary">.</span>coffee
+    Founders Coffee
   </span>
 );
 
-type LogoProps = { symbolSize?: number; textClassName?: string };
+type LogoProps = {
+  symbolSize?: number;
+  textClassName?: string;
+  className?: string;
+};
 
 export const Logo = ({
-  symbolSize = 28,
-  textClassName = 'text-lg',
+  symbolSize = 55,
+  textClassName = 'text-xl',
+  className,
 }: LogoProps) => (
-  <span className="inline-flex items-center gap-[0.32em]">
+  <span className={cn('inline-flex items-center gap-[0.32em]', className)}>
     <LogoSymbol size={symbolSize} />
     <LogoWordmark className={textClassName} />
   </span>

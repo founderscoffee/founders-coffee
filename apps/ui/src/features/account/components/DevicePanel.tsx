@@ -13,10 +13,10 @@ import {
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
-import { providerLabel } from '../account-labels';
 import { contactErrorMessage } from '../contact-errors';
 import { useMyDevices, useRevokeDevice, useUnlinkProvider } from '../hooks';
 import { AccountRow } from './AccountRow';
+import { ProviderIdentity } from './ProviderIdentity';
 
 export const DevicePanel = ({ locale }: { locale: Locale }) => {
   const devices = useMyDevices();
@@ -43,7 +43,7 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
         <AccountRow
           key={provider}
           locale={locale}
-          label={providerLabel(provider, locale)}
+          label={<ProviderIdentity locale={locale} provider={provider} />}
           note={providers_keep_one({}, { locale })}
           status={
             <Button

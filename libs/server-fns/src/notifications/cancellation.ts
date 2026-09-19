@@ -14,7 +14,8 @@ import {
   type NotificationPayload,
 } from './producer.js';
 import { armNotificationSchedule } from './schedule.js';
-import { emailPayloadFor, pushPayloadFor, smsBodyFor } from './templates.js';
+import { pushPayloadFor, smsBodyFor } from './templates.js';
+import { emailPayloadFor } from './email-templates.js';
 
 const SAME_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -114,11 +115,11 @@ export const enqueueEventCancellationNotices = async (
       ...pushPayload,
       ...(plan.primary === 'email' || fallback === 'email'
         ? {
-            ...emailPayloadFor(
+            ...(await emailPayloadFor(
               templateKey,
               valuesFor(basePayload, context, true, reason),
               context.locale,
-            ),
+            )),
           }
         : {}),
       ...(fallback === 'sms' ? { smsBody } : {}),

@@ -5,10 +5,16 @@ import { discoveryFailures } from './discovery-contract.mjs';
 import { inspectGeoDocument } from './geo-contract.mjs';
 import { fetchSmoke } from './http.mjs';
 import { privateRouteFailures } from './private-contract.mjs';
+import {
+  classifyPath,
+  COMPANY_PAGES,
+  defaultAlternateHref,
+  soleAlternateLocale,
+  withLocale,
+} from './routes.mjs';
 
 const DEFAULT_ORIGIN = 'https://staging.founders.coffee';
 const LOCALES = ['ar', 'fr', 'en'];
-const COMPANY_PAGES = ['about', 'contact', 'cookies', 'privacy', 'terms'];
 const PRIVATE_PATHS = [
   '/account',
   '/profile',
@@ -60,18 +66,6 @@ const linksFromHtml = (html) => {
   return [...links];
 };
 
-const classifyPath = (path) => {
-  const segments = path.split('/').filter(Boolean);
-  if (segments.length < 2 || !LOCALES.includes(segments[0])) return null;
-  if (COMPANY_PAGES.includes(segments[1])) return 'company';
-  if (segments[1] === 'host' && segments[2] === 'create') return 'utility';
-  if (segments.length === 2) return 'market';
-  if (segments[2] === 'e' && segments.length === 4) return 'event';
-  if (segments.length === 3) return 'city';
-  if (segments.length === 4 && segments[3] === 'host') return 'utility';
-  return null;
-};
-
 const routeEntry = (path, type, response, body, failures) => {
   const contentType = response.headers.get('content-type') ?? '';
   const robots = response.headers.get('x-robots-tag');
@@ -82,7 +76,14 @@ const routeEntry = (path, type, response, body, failures) => {
   const canonical = canonicalTags[0]
     ? readAttribute(canonicalTags[0][0], 'href')
     : null;
-  const expectedCanonical = new URL(path, `${canonicalOrigin}/`).toString();
+  const documentLocale = soleAlternateLocale(body);
+  const canonicalPath = documentLocale
+    ? withLocale(path, documentLocale)
+    : path;
+  const expectedCanonical = new URL(
+    canonicalPath,
+    `${canonicalOrigin}/`,
+  ).toString();
   if (response.status !== 200)
     failures.push(`${path}: expected 200, got ${response.status}`);
   if (!contentType.toLowerCase().includes(HTML_CONTENT_TYPE))
@@ -97,6 +98,13 @@ const routeEntry = (path, type, response, body, failures) => {
     failures.push(
       `${path}: canonical ${canonical ?? 'missing'} != ${expectedCanonical}`,
     );
+  if (documentLocale) {
+    const fallback = defaultAlternateHref(body);
+    if (fallback !== expectedCanonical)
+      failures.push(
+        `${path}: single-language document sends x-default to ${fallback ?? 'nowhere'}, not ${expectedCanonical}`,
+      );
+  }
   for (const failure of inspectGeoDocument({
     path,
     type,

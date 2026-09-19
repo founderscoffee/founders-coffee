@@ -6,11 +6,35 @@ import {
   IGNORED,
   JS_FILES,
   MAX_LINES_EXEMPT,
+  PRODUCT_COPY_FILES,
   TS_FILES,
   UNTYPED_FILES,
 } from './tools/eslint/file-globs.mjs';
 import { depConstraints } from './tools/eslint/module-boundaries.mjs';
 import { localPlugin } from './tools/eslint/plugin.mjs';
+
+const ARROW_FUNCTIONS_ONLY = [
+  {
+    selector: 'FunctionDeclaration:not([generator=true])',
+    message:
+      'Use an arrow function (`const f = () => …`). (AGENTS.md §5 — arrow functions only; generators excepted.)',
+  },
+  {
+    selector:
+      "FunctionExpression:not([generator=true]):not(MethodDefinition[kind='constructor'] > FunctionExpression)",
+    message:
+      'Use an arrow function — object/class methods as arrow fields. (AGENTS.md §5 — constructors & generators excepted.)',
+  },
+];
+
+const EM_DASH =
+  'Product copy carries no em dash: use a full stop, a colon, or "·".';
+
+const NO_EM_DASH_IN_COPY = [
+  { selector: 'Literal[value=/\u2014/]', message: EM_DASH },
+  { selector: 'TemplateElement[value.raw=/\u2014/]', message: EM_DASH },
+  { selector: 'JSXText[value=/\u2014/]', message: EM_DASH },
+];
 
 export default [
   ...nx.configs['flat/base'],
@@ -34,20 +58,7 @@ export default [
     files: ALL_FILES,
     plugins: { local: localPlugin },
     rules: {
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'FunctionDeclaration:not([generator=true])',
-          message:
-            'Use an arrow function (`const f = () => …`). (AGENTS.md §5 — arrow functions only; generators excepted.)',
-        },
-        {
-          selector:
-            "FunctionExpression:not([generator=true]):not(MethodDefinition[kind='constructor'] > FunctionExpression)",
-          message:
-            'Use an arrow function — object/class methods as arrow fields. (AGENTS.md §5 — constructors & generators excepted.)',
-        },
-      ],
+      'no-restricted-syntax': ['error', ...ARROW_FUNCTIONS_ONLY],
       'local/no-server-fns-in-components': 'error',
       'max-lines': [
         'error',
@@ -74,6 +85,17 @@ export default [
   {
     files: MAX_LINES_EXEMPT,
     rules: { 'max-lines': 'off' },
+  },
+  {
+    files: PRODUCT_COPY_FILES,
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...ARROW_FUNCTIONS_ONLY,
+        ...NO_EM_DASH_IN_COPY,
+      ],
+    },
   },
   {
     files: TS_FILES,

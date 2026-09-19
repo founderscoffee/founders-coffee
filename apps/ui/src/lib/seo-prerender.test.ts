@@ -8,9 +8,23 @@ describe('SEO prerender inventory', () => {
 
     expect(paths).toHaveLength(15);
     expect(paths).toContain('/ar/about');
-    expect(paths).toContain('/fr/privacy');
-    expect(paths).toContain('/en/terms');
+    expect(paths).toContain('/en/faq');
+    expect(paths).toContain('/fr/about');
+    expect(paths).toContain('/ar/terms');
+    expect(paths).toContain('/ar/community');
+    expect(paths).toContain('/ar/organizers');
+    expect(paths).toContain('/ar/legal');
     expect(paths.some((path) => path.includes('/login'))).toBe(false);
+  });
+
+  it('omits the non-canonical locale copies of Arabic-only documents', () => {
+    const paths = seoPrerenderPages.map(({ path }) => path);
+
+    for (const page of ['terms', 'privacy', 'cookies']) {
+      expect(paths).toContain(`/ar/${page}`);
+      expect(paths).not.toContain(`/fr/${page}`);
+      expect(paths).not.toContain(`/en/${page}`);
+    }
   });
 
   it('filters discovered links to the explicit indexable inventory', () => {

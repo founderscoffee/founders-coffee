@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 
 import {
-  cookieName,
   prefs_conflict_error,
   prefs_discard,
   prefs_loading,
+  prefs_reload,
   prefs_save,
   prefs_save_error,
   prefs_saved,
   prefs_saving,
   prefs_sms_consent_error,
-  prefs_title,
+  notifications_title,
   prefs_unavailable,
   prefs_unsaved,
   type Locale,
@@ -21,15 +21,19 @@ import { appErrorCode } from '@founders-coffee/core';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { ProfileSectionNav } from '../../account/components/ProfileSectionNav';
 import type { AccountPreferencesView } from '../api';
+import { marketCodeFor } from '../device-location';
 import {
   draftFrom,
   hasChanges,
-  localeChanged,
   toInput,
   type PreferencesDraft,
 } from '../draft';
-import { useMyPreferences, useSavePreferences } from '../hooks';
-import { CategoryGroup, LanguageGroup } from './PreferenceGroups';
+import {
+  useDevicePushState,
+  useMyPreferences,
+  useSavePreferences,
+} from '../hooks';
+import { CategoryGroup } from './PreferenceGroups';
 
 const saveErrorFor = (error: unknown, locale: Locale): string => {
   const code = appErrorCode(error);
@@ -42,12 +46,15 @@ const saveErrorFor = (error: unknown, locale: Locale): string => {
 
 const PreferencesForm = ({
   locale,
+  marketCode,
   view,
 }: {
   locale: Locale;
+  marketCode: string;
   view: AccountPreferencesView;
 }) => {
   const [draft, setDraft] = useState<PreferencesDraft>(() => draftFrom(view));
+  const push = useDevicePushState(marketCode);
   const save = useSavePreferences();
 
   useEffect(() => setDraft(draftFrom(view)), [view]);
@@ -56,28 +63,20 @@ const PreferencesForm = ({
   const change = (changes: Partial<PreferencesDraft>) =>
     setDraft((current) => ({ ...current, ...changes }));
 
-  const submit = () => {
-    const willReload = localeChanged(draft, view);
-    save.mutate(toInput(draft, view.revision), {
-      onSuccess: () => {
-        if (!willReload) return;
-        document.cookie = `${cookieName}=${draft.locale}; path=/; max-age=31536000; samesite=lax`;
-        window.location.reload();
-      },
-    });
-  };
+  const submit = () => save.mutate(toInput(draft, view.revision));
 
   return (
     <div className="space-y-6">
-      <LanguageGroup
+      <CategoryGroup
         locale={locale}
-        value={draft.locale}
-        onChange={(next) => change({ locale: next })}
+        draft={draft}
+        pushState={push.state}
+        isEnabling={push.isEnabling}
+        onEnablePush={push.enable}
+        onChange={change}
       />
 
-      <CategoryGroup locale={locale} draft={draft} onChange={change} />
-
-      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100 p-4">
+      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 bg-base-100 p-4">
         <p
           className="text-body-sm text-neutral"
           role="status"
@@ -115,7 +114,13 @@ const PreferencesForm = ({
   );
 };
 
-export const PreferencesPage = ({ locale }: { locale: Locale }) => {
+export const PreferencesPage = ({
+  locale,
+  markets,
+}: {
+  locale: Locale;
+  markets: readonly { code: string; slug: string }[];
+}) => {
   const query = useMyPreferences();
   const isLoading =
     query.isAuthLoading ||
@@ -125,14 +130,30 @@ export const PreferencesPage = ({ locale }: { locale: Locale }) => {
     <section className="mx-auto max-w-5xl px-5 py-12 lg:grid lg:grid-cols-[184px_minmax(0,1fr)] lg:gap-12">
       <ProfileSectionNav locale={locale} />
       <div className="min-w-0">
-        <h1 className="sr-only">{prefs_title({}, { locale })}</h1>
+        <h1 className="mb-6 font-display text-h3">
+          {notifications_title({}, { locale })}
+        </h1>
 
         {query.data ? (
-          <PreferencesForm locale={locale} view={query.data} />
+          <PreferencesForm
+            locale={locale}
+            marketCode={marketCodeFor(markets)}
+            view={query.data}
+          />
         ) : query.isError && query.userId ? (
-          <p role="alert" className="text-body-sm text-error">
-            {prefs_unavailable({}, { locale })}
-          </p>
+          <div className="rounded-box border border-error/30 bg-error/5 p-6">
+            <p role="alert" className="text-body-sm text-error">
+              {prefs_unavailable({}, { locale })}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void query.refetch()}
+            >
+              {prefs_reload({}, { locale })}
+            </Button>
+          </div>
         ) : isLoading ? (
           <p role="status">{prefs_loading({}, { locale })}</p>
         ) : (
@@ -140,7 +161,7 @@ export const PreferencesPage = ({ locale }: { locale: Locale }) => {
             locale={locale}
             isLoading={false}
             isAnonymous={!query.userId}
-            returnPath="/preferences"
+            returnPath="/profile/notifications"
             onRetry={() => void query.refetch()}
           />
         )}

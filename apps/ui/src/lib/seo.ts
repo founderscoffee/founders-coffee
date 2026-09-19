@@ -3,7 +3,6 @@ import {
   city_empty_body,
   LOCALES,
   market_hero_desc,
-  market_hero_title,
   social_image_alt,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -17,6 +16,7 @@ import {
 } from './seo-structured-data';
 
 export const SITE_ORIGIN = PRODUCTION_ORIGIN;
+export const SITE_NAME = 'Founders Coffee';
 export const DEFAULT_SOCIAL_IMAGE_PATH = '/social/founders-coffee-default.webp';
 
 export type CanonicalRoute =
@@ -70,14 +70,16 @@ export const canonicalUrl = (route: CanonicalRoute): string =>
 
 export const localeAlternates = (
   route: CanonicalRoute,
+  locales: readonly Locale[] = LOCALES,
 ): Array<{
   readonly rel: 'alternate';
   readonly hrefLang: string;
   readonly href: string;
 }> => {
   const baseRoute = { ...route, locale: undefined } as CanonicalRoute;
+  const soleLocale = locales.length === 1 ? locales[0] : undefined;
   return [
-    ...LOCALES.map((locale) => ({
+    ...locales.map((locale) => ({
       rel: 'alternate' as const,
       hrefLang: locale,
       href: canonicalUrl({ ...baseRoute, locale }),
@@ -85,7 +87,9 @@ export const localeAlternates = (
     {
       rel: 'alternate' as const,
       hrefLang: 'x-default',
-      href: canonicalUrl(baseRoute),
+      href: canonicalUrl(
+        soleLocale ? { ...baseRoute, locale: soleLocale } : baseRoute,
+      ),
     },
   ];
 };
@@ -114,12 +118,17 @@ const normalizeText = (value: string, maxLength: number): string => {
   return `${codePoints.slice(0, maxLength - 1).join('')}…`;
 };
 
-const brandedTitle = (title: string): string => {
-  const normalized = normalizeText(title, MAX_TITLE_LENGTH);
-  if (normalized.toLocaleLowerCase().includes('founders.coffee')) {
-    return normalized;
-  }
-  return normalizeText(`${normalized} - founders.coffee`, MAX_TITLE_LENGTH);
+export const buildPageTitle = (title: string): string => {
+  const pageTitle = normalizeText(title, MAX_TITLE_LENGTH)
+    .replace(/founders(?:\.coffee| coffee)/giu, '')
+    .replace(/\s+/gu, ' ')
+    .replace(/^\s*[-–—·:]\s*/u, '')
+    .replace(/\s*[-–—·:]\s*$/u, '')
+    .trim();
+  return normalizeText(
+    pageTitle ? `${SITE_NAME} - ${pageTitle}` : SITE_NAME,
+    MAX_TITLE_LENGTH,
+  );
 };
 
 const localeOpenGraph = (locale: Locale): string =>
@@ -132,6 +141,7 @@ export type PageMetadataInput = {
   readonly route: CanonicalRoute;
   readonly robots?: string;
   readonly openGraphType?: 'website' | 'event';
+  readonly alternateLocales?: readonly Locale[];
 };
 
 export const buildPageMetadata = ({
@@ -141,8 +151,9 @@ export const buildPageMetadata = ({
   route,
   robots = 'index,follow',
   openGraphType = 'website',
+  alternateLocales = LOCALES,
 }: PageMetadataInput) => {
-  const fullTitle = brandedTitle(title);
+  const fullTitle = buildPageTitle(title);
   const normalizedDescription = normalizeText(
     description,
     MAX_DESCRIPTION_LENGTH,
@@ -156,7 +167,7 @@ export const buildPageMetadata = ({
       { name: 'description', content: normalizedDescription },
       { name: 'robots', content: robots },
       { property: 'og:type', content: openGraphType },
-      { property: 'og:site_name', content: 'founders.coffee' },
+      { property: 'og:site_name', content: 'Founders Coffee' },
       { property: 'og:title', content: fullTitle },
       { property: 'og:description', content: normalizedDescription },
       { property: 'og:url', content: url },
@@ -165,19 +176,22 @@ export const buildPageMetadata = ({
       { property: 'og:image:width', content: '1200' },
       { property: 'og:image:height', content: '630' },
       { property: 'og:image:alt', content: socialImageAlt },
-      ...LOCALES.filter((alternate) => alternate !== locale).map(
-        (alternate) => ({
+      ...alternateLocales
+        .filter((alternate) => alternate !== locale)
+        .map((alternate) => ({
           property: 'og:locale:alternate',
           content: localeOpenGraph(alternate),
-        }),
-      ),
+        })),
       { name: 'twitter:card', content: 'summary' },
       { name: 'twitter:title', content: fullTitle },
       { name: 'twitter:description', content: normalizedDescription },
       { name: 'twitter:image', content: socialImage },
       { name: 'twitter:image:alt', content: socialImageAlt },
     ],
-    links: [{ rel: 'canonical', href: url }, ...localeAlternates(route)],
+    links: [
+      { rel: 'canonical', href: url },
+      ...localeAlternates(route, alternateLocales),
+    ],
   };
 };
 
@@ -196,8 +210,8 @@ export const marketPageHead = ({
 }: MarketHeadInput) => {
   const metadata = buildPageMetadata({
     locale,
-    title: market_hero_title({ market: marketName }, { locale }),
-    description: market_hero_desc({}, { locale }),
+    title: marketName,
+    description: market_hero_desc({ market: marketName }, { locale }),
     route,
   });
   return {
@@ -208,7 +222,7 @@ export const marketPageHead = ({
         children: JSON.stringify(
           collectionPageJsonLd({
             name: marketName,
-            description: market_hero_desc({}, { locale }),
+            description: market_hero_desc({ market: marketName }, { locale }),
             url: canonicalUrl(route),
             locale,
             items: events,
@@ -247,7 +261,7 @@ export const cityPageHead = ({
     robots: isEmpty ? 'noindex,follow' : 'index,follow',
   });
   const breadcrumbs: StructuredListItem[] = [
-    { name: 'founders.coffee', url: canonicalUrl({ type: 'root', locale }) },
+    { name: 'Founders Coffee', url: canonicalUrl({ type: 'root', locale }) },
     {
       name: marketName,
       url: canonicalUrl({

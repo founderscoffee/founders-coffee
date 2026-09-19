@@ -80,6 +80,13 @@ describe('geo lookups', () => {
     expect(results.some((r) => r.city.code === ALGIERS.code)).toBe(true);
   });
 
+  it('names the capital apart from the country and the wilaya that share its word', () => {
+    const city = findCity('DZ', ALGIERS.code);
+    const wilaya = findState('DZ', ALGIERS.stateCode);
+    expect(city?.nameAr).toBe('الجزائر العاصمة');
+    expect(city?.nameAr).not.toBe(wilaya?.nameAr);
+  });
+
   it('honours the result limit', () => {
     expect(searchLocations('DZ', 'a', 5)).toHaveLength(5);
     expect(searchLocations('DZ', 'a').length).toBeLessThanOrEqual(20);

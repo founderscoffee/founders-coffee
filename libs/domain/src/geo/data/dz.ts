@@ -4489,7 +4489,7 @@ export const DZ_CITIES: readonly GeoCity[] = [
   {
     code: '556',
     name: 'Algiers',
-    nameAr: 'الجزائر',
+    nameAr: 'الجزائر العاصمة',
     slug: 'algiers',
     stateCode: '16',
     featured: true,

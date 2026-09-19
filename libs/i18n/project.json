@@ -6,6 +6,13 @@
   "targets": {
     "generate-i18n": {
       "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/messages/**/*.json",
+        "{projectRoot}/project.inlang/**/*",
+        "{workspaceRoot}/package-lock.json"
+      ],
+      "outputs": ["{projectRoot}/src/paraglide"],
       "options": {
         "command": "paraglide-js compile --project libs/i18n/project.inlang --outdir libs/i18n/src/paraglide --strategy cookie baseLocale --emit-ts-declarations"
       }

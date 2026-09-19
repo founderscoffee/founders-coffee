@@ -17,25 +17,23 @@ import {
 import {
   CONTACT_CHANGE_LIMIT,
   CONTACT_CODE_LIMIT,
+  emptyProfileRequestSchema,
   emailChangeRequestSchema,
   phoneCodeRequestSchema,
   phoneConfirmRequestSchema,
-  reservePhotoRequestSchema,
 } from './schemas.js';
 
 /**
- * Hand Better Auth the caller's own cookie and challenge, and nothing else.
+ * Hand Better Auth the caller's own session cookie and nothing else.
  *
- * The adapters build their own request to the auth handler, so the two things that identify this
- * caller have to travel explicitly: the session cookie, and the Turnstile token the member solved
- * in the browser. Reading them here rather than inside the adapter keeps the adapter testable
- * without a request context.
+ * The adapter builds its own request to the auth handler, so the cookie that identifies this caller
+ * has to travel explicitly. Reading it here rather than inside the adapter keeps the adapter
+ * testable without a request context.
  */
-const authForwardHeaders = (turnstileToken?: string): Headers => {
+const authForwardHeaders = (): Headers => {
   const forwarded = new Headers();
   const cookie = getRequest().headers.get('cookie');
   if (cookie) forwarded.set('cookie', cookie);
-  if (turnstileToken) forwarded.set('x-captcha-response', turnstileToken);
   return forwarded;
 };
 
@@ -62,15 +60,15 @@ export const sendMyEmailChangeCode = createServerFn({
   strict: false,
 })
   .middleware(contactCodeProtection)
-  .validator(appValidator(reservePhotoRequestSchema))
-  .handler(({ context, data }) => {
+  .validator(appValidator(emptyProfileRequestSchema))
+  .handler(({ context }) => {
     privateNoStore();
     const session = requireAuth(context.session);
     return handleResult(
       sendCurrentEmailCode(
         session.user.id,
         session.user.email,
-        authForwardHeaders(data.turnstileToken),
+        authForwardHeaders(),
       ),
     );
   });
@@ -87,7 +85,7 @@ export const requestMyEmailChange = createServerFn({
       requestEmailChange(
         requireAuth(context.session).user.id,
         { newEmail: data.newEmail, otp: data.otp },
-        authForwardHeaders(data.turnstileToken),
+        authForwardHeaders(),
       ),
     );
   });
@@ -104,7 +102,7 @@ export const confirmMyEmailChange = createServerFn({
       confirmEmailChange(
         requireAuth(context.session).user.id,
         { newEmail: data.newEmail, otp: data.otp },
-        authForwardHeaders(data.turnstileToken),
+        authForwardHeaders(),
       ),
     );
   });
@@ -118,7 +116,7 @@ export const sendMyPhoneCode = createServerFn({ method: 'POST', strict: false })
       sendPhoneCode(
         requireAuth(context.session).user.id,
         data.phoneNumber,
-        authForwardHeaders(data.turnstileToken),
+        authForwardHeaders(),
       ),
     );
   });
@@ -135,7 +133,7 @@ export const confirmMyPhoneNumber = createServerFn({
       confirmPhoneNumber(
         requireAuth(context.session).user.id,
         { phoneNumber: data.phoneNumber, otp: data.otp },
-        authForwardHeaders(data.turnstileToken),
+        authForwardHeaders(),
       ),
     );
   });

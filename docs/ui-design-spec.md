@@ -301,8 +301,8 @@ Going state is a success chip carrying **both** an icon and text. Failures rende
 ## 6. Where this lives
 
 - **Tokens/theme** → `libs/ui/src/styles.css` (single source of truth).
-- **Logo** → `libs/ui/src/components/Logo.tsx` (`Logo`, `LogoSymbol`, `LogoWordmark`; `tone` scales
-  the mark from default to reversed, mono or muted).
+- **Logo** → `libs/ui/src/components/Logo.tsx` (`Logo`, `LogoSymbol`, `LogoWordmark`; all use the
+  shared `/branding/pwa-logo.png` source asset).
 - **Shared components** → `apps/ui/src/components/` (PascalCase, file name = component name).
 - **Route files** → thin: `createFileRoute` + loader + `<Component />`.
 - **Copy** → `libs/i18n/messages/{en,fr,ar}.json`. Never hardcode a user-facing string.
@@ -338,7 +338,7 @@ places. All are fixed and verified on staging with Playwright at 1200 and 390, i
 
 | Surface            | Was                                                                                | Design                                                                                                             |
 | ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| City tiles         | sand border on the active tiles, LogoSymbol dot on the empty ones, fixed 2/4 grid  | `border-color` = the tile's own background (so no visible border in either state), no dot, `auto-fill` from 160px  |
+| City tiles         | sand border on the active tiles, legacy mark on the empty ones, fixed 2/4 grid     | `border-color` = the tile's own background (so no visible border in either state), no mark, `auto-fill` from 160px |
 | Feed grids         | `md:grid-cols-2`                                                                   | `auto-fill` from 320px — three columns at desktop                                                                  |
 | Card date block    | `.eyebrow` (uppercase, 0.08em tracking)                                            | `.datechip-line` — same 11px/600, no transform, no tracking                                                        |
 | Card + detail time | start only                                                                         | `starts_at–ends_at`, wrapped in `dir="ltr"` so RTL does not reverse it                                             |

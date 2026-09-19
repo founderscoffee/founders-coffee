@@ -96,14 +96,14 @@ describe('structured discovery data', () => {
 
   it('builds breadcrumb positions without private profile data', () => {
     const schema = breadcrumbJsonLd([
-      { name: 'founders.coffee', url: 'https://founders.coffee/en' },
+      { name: 'Founders Coffee', url: 'https://founders.coffee/en' },
       { name: 'Algeria', url: 'https://founders.coffee/en/algeria' },
     ]);
 
     expect(schema).toMatchObject({
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { position: 1, name: 'founders.coffee' },
+        { position: 1, name: 'Founders Coffee' },
         { position: 2, name: 'Algeria' },
       ],
     });

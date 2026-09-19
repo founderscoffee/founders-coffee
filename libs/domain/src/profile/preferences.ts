@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import {
   accountStateSchema as coreAccountStateSchema,
-  localeSchema,
   NOTIFICATION_PREFERENCE_CHANNELS,
   notificationPreferenceChannelSchema,
 } from '@founders-coffee/core';
@@ -45,8 +44,12 @@ export const notificationPreferencesSchema = z.strictObject({
   eventRemindersChannels: notificationChannelsSchema.default([
     ...DEFAULT_NOTIFICATION_CHANNELS,
   ]),
-  hostUpdates: z.boolean().default(true),
-  hostUpdatesChannels: notificationChannelsSchema.default([
+  hostRsvpReceived: z.boolean().default(true),
+  hostRsvpReceivedChannels: notificationChannelsSchema.default([
+    ...DEFAULT_NOTIFICATION_CHANNELS,
+  ]),
+  hostRsvpCancelled: z.boolean().default(true),
+  hostRsvpCancelledChannels: notificationChannelsSchema.default([
     ...DEFAULT_NOTIFICATION_CHANNELS,
   ]),
   followUpPrompts: z.boolean().default(false),
@@ -60,12 +63,10 @@ export const notificationPreferencesSchema = z.strictObject({
 export const updateAccountPreferencesSchema = notificationPreferencesSchema
   .omit({ pushEnabled: true })
   .extend({
-    locale: localeSchema.nullable(),
     expectedRevision: profileRevisionSchema,
   });
 
 export const accountPreferencesViewSchema = z.strictObject({
-  locale: localeSchema.nullable(),
   revision: profileRevisionSchema,
   preferences: notificationPreferencesSchema,
   smsAvailable: z.boolean(),

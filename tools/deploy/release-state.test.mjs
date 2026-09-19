@@ -19,7 +19,7 @@ const releaseState = (overrides = {}) => ({
   capturedAt: '2026-09-16T07:00:00.000Z',
   commitSha: 'b'.repeat(40),
   environment: 'staging',
-  migrationHead: '0029_activate_launch_markets',
+  migrationHead: '0030_white_vindicator',
   database: {
     name: ENVIRONMENT_CONFIG.staging.database,
     bookmark,
@@ -148,7 +148,7 @@ describe('release state validation', () => {
       latestMigration(
         fileURLToPath(new URL('../../libs/db/migrations', import.meta.url)),
       ),
-    ).toBe('0029_activate_launch_markets');
+    ).toBe('0030_white_vindicator');
   });
 });
 

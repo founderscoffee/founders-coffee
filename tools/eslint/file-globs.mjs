@@ -25,6 +25,27 @@ export const MAX_LINES_EXEMPT = [
 ];
 
 /**
+ * Where product copy is written by hand rather than read out of the message catalogue: page
+ * content, the components that render it, and the email templates. The catalogue, the web app
+ * manifests, `offline.html` and the rendered emails each have their own em-dash guard in a test;
+ * this glob is what the lint rule watches, because a string a component builds at runtime —
+ * joining a label to a value, say — never passes through any of them.
+ *
+ * Tests are excluded: an `it('...')` description is not copy.
+ */
+export const PRODUCT_COPY_FILES = [
+  'apps/ui/src/components/**/*.ts',
+  'apps/ui/src/components/**/*.tsx',
+  'apps/ui/src/features/**/*.ts',
+  'apps/ui/src/features/**/*.tsx',
+  'apps/ui/src/content/**/*.ts',
+  'libs/ui/src/**/*.ts',
+  'libs/ui/src/**/*.tsx',
+  'libs/email/src/templates/**/*.ts',
+  'libs/email/src/templates/**/*.tsx',
+];
+
+/**
  * Mirrors what the project tsconfigs exclude. Type-aware rules need a file to belong to a TS
  * project, and tests, fixtures, config and setup files deliberately sit outside them.
  */

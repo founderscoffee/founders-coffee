@@ -88,16 +88,16 @@ a profile residence field or a canonical-URL input.
 
 ## 3. Public URL inventory
 
-| URL class                                                      | Index policy                                                    | Required representation                                               |
-| -------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Locale market landing                                          | Index when market is visible and enabled                        | `WebPage`/`CollectionPage`, localized metadata, canonical, OG/Twitter |
-| Locale city landing                                            | Index when it has events or an approved community landing state | `CollectionPage` plus `ItemList`                                      |
-| Locale event detail                                            | Index while public and discoverable                             | `Event` JSON-LD, canonical, date/location/host metadata, social card  |
-| Company pages                                                  | Index                                                           | `WebPage`, canonical, localized content, OG/Twitter                   |
-| Public host profile                                            | Noindex under current plan                                      | `X-Robots-Tag`, no sitemap entry, no private fields in metadata       |
-| Login/onboarding/account/profile/preferences/activity/closeout | Noindex                                                         | Route and response-header directives                                  |
-| Host creation wizard                                           | Noindex                                                         | Route directive; workflow queries are not public URLs                 |
-| 404 and error documents                                        | Noindex                                                         | Dedicated title; no canonical to a valid page                         |
+| URL class                           | Index policy                                                    | Required representation                                               |
+| ----------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Locale market landing               | Index when market is visible and enabled                        | `WebPage`/`CollectionPage`, localized metadata, canonical, OG/Twitter |
+| Locale city landing                 | Index when it has events or an approved community landing state | `CollectionPage` plus `ItemList`                                      |
+| Locale event detail                 | Index while public and discoverable                             | `Event` JSON-LD, canonical, date/location/host metadata, social card  |
+| Company pages                       | Index                                                           | `WebPage`, canonical, localized content, OG/Twitter                   |
+| Public host profile                 | Noindex under current plan                                      | `X-Robots-Tag`, no sitemap entry, no private fields in metadata       |
+| Login/onboarding/profile/*/closeout | Noindex                                                         | Route and response-header directives                                  |
+| Host creation wizard                | Noindex                                                         | Route directive; workflow queries are not public URLs                 |
+| 404 and error documents             | Noindex                                                         | Dedicated title; no canonical to a valid page                         |
 
 ## 4. Work breakdown
 

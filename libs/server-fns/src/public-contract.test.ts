@@ -58,6 +58,8 @@ const PUBLIC_EVENT_FIELDS = [
   'cityNameAr',
   'citySlug',
   'goingCount',
+  'hostName',
+  'hostPhotoAssetId',
   'viewerRsvp',
 ] as const;
 
@@ -160,7 +162,14 @@ describe('public response contract', () => {
     if (!result.ok) throw result.error;
 
     expect(sorted(Object.keys(result.data))).toEqual(
-      sorted(['email', 'phone', 'providers', 'sessionCount', 'userId']),
+      sorted([
+        'email',
+        'locale',
+        'phone',
+        'providers',
+        'sessionCount',
+        'userId',
+      ]),
     );
     expect(sorted(Object.keys(result.data.email))).toEqual(
       sorted(['masked', 'verified']),

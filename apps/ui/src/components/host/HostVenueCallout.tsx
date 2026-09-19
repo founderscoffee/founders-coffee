@@ -42,7 +42,7 @@ export const HostVenueCallout = ({
       {venue.address}
     </p>
     {showHint && (
-      <p className="mt-1.5 text-body-sm text-taupe">
+      <p className="mt-1.5 text-body-sm text-neutral">
         {host_pin_hint({}, { locale })}
       </p>
     )}
