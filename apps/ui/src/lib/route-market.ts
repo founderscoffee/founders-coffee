@@ -20,3 +20,20 @@ export const routeMarketSlug = (params: {
   readonly city?: string;
 }): string | undefined =>
   isLocale(params.market) ? params.city : params.market;
+
+/**
+ * Whether a market route is the page being rendered, rather than a parent of a city route.
+ *
+ * `/$market/$city` matches `/en/algeria`, and its loader also runs for `/en/algeria/algiers`,
+ * where the city route below it is what the reader asked for. Anything the market loader does
+ * unconditionally therefore happens on city pages too: sending a stale cursor back to the clean
+ * URL from here would answer a city request with the market page and drop the city.
+ *
+ * The depth to compare against is not fixed, because the locale prefix is optional: the market
+ * sits at segment two under `/en/algeria` and at segment one under `/algeria`. Counting to a
+ * constant reads the unprefixed city path as a market page.
+ */
+export const isMarketLeaf = (pathname: string): boolean => {
+  const segments = pathname.split('/').filter(Boolean);
+  return segments.length <= (isLocale(segments[0]) ? 2 : 1);
+};

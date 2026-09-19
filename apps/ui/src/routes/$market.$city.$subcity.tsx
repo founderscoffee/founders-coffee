@@ -67,6 +67,17 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
           search: deps,
         });
       }
+      if (!data.cursorValid) {
+        throw redirect({
+          to: '/$market/$city/$subcity',
+          params: {
+            market: params.market,
+            city: data.market.slug,
+            subcity: data.city.slug,
+          },
+          search: {},
+        });
+      }
       return {
         ...data,
         ...deps,

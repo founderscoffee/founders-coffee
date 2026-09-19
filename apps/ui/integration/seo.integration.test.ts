@@ -81,6 +81,35 @@ describe('public Worker SEO contract', () => {
     expect(sitemapBody).not.toContain('<url>');
   });
 
+  it('sends a cursor that names nothing back to the clean URL', async () => {
+    const cases = [
+      [
+        '/en/algeria?afterStartsAt=1700000000000&afterId=no-such-event',
+        '/en/algeria',
+      ],
+      ['/en/algeria?afterStartsAt=9999999999999&afterId=nope', '/en/algeria'],
+      [
+        '/en/algeria/algiers?afterStartsAt=1700000000000&afterId=nope',
+        '/en/algeria/algiers',
+      ],
+    ] as const;
+
+    for (const [path, destination] of cases) {
+      const response = await fetchDocument(path);
+
+      expect(
+        response.status,
+        `${path} answered instead of redirecting: a cursor naming no row is not page two, it is a second address for page one, and a crawler can mint unlimited ones`,
+      ).toBe(307);
+      expect(
+        new URL(response.headers.get('location') ?? '', ORIGIN).pathname.concat(
+          new URL(response.headers.get('location') ?? '', ORIGIN).search,
+        ),
+        `${path} redirected somewhere other than its own clean URL`,
+      ).toBe(destination);
+    }
+  });
+
   it('serves a staging-safe llms guide and a production discovery guide', async () => {
     const staging = await worker.fetch(
       new Request(`${ORIGIN}/llms.txt`),

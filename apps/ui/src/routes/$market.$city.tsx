@@ -36,6 +36,7 @@ import {
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
 } from '../lib/public-pagination';
+import { isMarketLeaf } from '../lib/route-market';
 import {
   canonicalUrl,
   cityPageHead,
@@ -70,6 +71,7 @@ const localizedMarket = async (
   locale: Locale,
   marketKey: string,
   pagination: PublicPaginationSearch,
+  isLeaf: boolean,
 ): Promise<LocalizedMarket> => {
   try {
     const data = await getMarketLanding({
@@ -80,6 +82,13 @@ const localizedMarket = async (
         to: '/$market/$city',
         params: { market: locale, city: data.market.slug },
         search: pagination,
+      });
+    }
+    if (isLeaf && !data.cursorValid) {
+      throw redirect({
+        to: '/$market/$city',
+        params: { market: locale, city: data.market.slug },
+        search: {},
       });
     }
     return { kind: 'market', locale, pagination, ...data };
@@ -140,12 +149,17 @@ export const Route = createFileRoute('/$market/$city')({
       />
     );
   },
-  loader: async ({ params, deps }): Promise<RouteData> => {
+  loader: async ({ params, deps, location }): Promise<RouteData> => {
     if (isLocale(params.market)) {
       if (isCompanyPageKey(params.city)) {
         return { kind: 'company', locale: params.market, page: params.city };
       }
-      return localizedMarket(params.market, params.city, deps);
+      return localizedMarket(
+        params.market,
+        params.city,
+        deps,
+        isMarketLeaf(location.pathname),
+      );
     }
 
     try {

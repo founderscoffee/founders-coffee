@@ -5,6 +5,7 @@ export * from './db.js';
 export * from './atomic.js';
 export * from './orders.js';
 export * from './events.js';
+export * from './events-cursor.js';
 export * from './events-discovery.js';
 export * from './events-joined.js';
 export * from './markets.js';
