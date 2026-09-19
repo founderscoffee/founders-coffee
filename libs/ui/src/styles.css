@@ -290,3 +290,28 @@
   }
 }
 
+/* The hero artwork is lossy WebP with no alpha channel, so it carries its own background:
+   #f1e8d9 at the top edge and #f2e9da at the bottom, against the section's #f3ebdd. Two to
+   four levels per channel is nothing on a photograph and plainly visible as a step across a
+   flat wash, which is what the hero is. On a wide screen the art sits on the section's floor
+   and only its top edge meets that wash, low enough to read as the horizon; on a phone it sits
+   in the flow between the subtitle and the search field, and both edges show.
+
+   Fading the edges to transparent removes the step without touching the asset. The stops are
+   lengths rather than percentages because the three markets no longer share one aspect ratio:
+   Algeria is 828x234, Egypt 828x190, Saudi 828x277, so the same percentage would mean a
+   different number of pixels in each. Every mobile asset was cropped to keep at least 31px of
+   empty sky and 15px of empty water, which is 12.0px and 5.8px once scaled to a 320px viewport,
+   the narrowest we support. Both fades finish inside that margin, so neither erases anything
+   drawn. */
+@media (width < 48rem) {
+  .hero-art {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 10px,
+      #000 calc(100% - 4px),
+      transparent 100%
+    );
+  }
+}
