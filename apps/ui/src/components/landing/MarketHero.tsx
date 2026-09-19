@@ -83,15 +83,13 @@ export const MarketHero = ({
       aria-labelledby="market-hero-title"
       className="relative isolate flex min-h-[calc(min(100vw,2172px)/2.99)] items-center bg-base-200"
     >
-      <div className="hero-stack mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-9 text-center md:px-8 md:pt-14 md:pb-14">
-        <div className="@container w-full">
-          <h1
-            id="market-hero-title"
-            className="font-display text-display-fit font-semibold text-base-content"
-          >
-            {hero_tagline({}, { locale })}
-          </h1>
-        </div>
+      <div className="hero-stack @container mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-9 text-center md:px-8 md:pt-14 md:pb-14">
+        <h1
+          id="market-hero-title"
+          className="font-display text-display-fit font-semibold text-base-content"
+        >
+          {hero_tagline({}, { locale })}
+        </h1>
         <p className="hero-subtitle mx-auto mt-4 max-w-prose text-body-lg text-balance text-neutral">
           {hero_subtitle({}, { locale })}
         </p>
