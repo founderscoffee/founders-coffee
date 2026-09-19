@@ -17,6 +17,7 @@ import {
 import { logger, reportError } from '@founders-coffee/observability';
 
 import { EmptyState } from './components/landing/EmptyState';
+import { RouteTransition } from './components/shell/RouteTransition';
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { routeTree } from './routeTree.gen';
@@ -29,6 +30,8 @@ const useLocale = (): Locale =>
           { locale?: Locale } | undefined
       )?.locale ?? 'ar',
   }) as Locale;
+
+const DefaultPendingComponent = () => <RouteTransition locale={useLocale()} />;
 
 const DefaultErrorComponent = ({ error }: { error: unknown }) => {
   useEffect(() => {
@@ -77,6 +80,7 @@ export const getRouter = () => {
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: DefaultErrorComponent,
+    defaultPendingComponent: DefaultPendingComponent,
     defaultNotFoundComponent: DefaultNotFoundComponent,
     parseSearch,
     stringifySearch,
