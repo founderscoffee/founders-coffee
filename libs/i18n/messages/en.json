@@ -118,7 +118,11 @@
   "hero_search_cta": "Explore meetups",
   "hero_social_proof": [
     {
-      "declarations": ["input count", "local countPlural = count: plural"],
+      "declarations": [
+        "input count",
+        "input city",
+        "local countPlural = count: plural"
+      ],
       "selectors": ["countPlural"],
       "match": {
         "countPlural=one": "{count} casual meetup this week in {city}",

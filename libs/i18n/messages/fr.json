@@ -118,7 +118,11 @@
   "hero_search_cta": "Explorer les rencontres",
   "hero_social_proof": [
     {
-      "declarations": ["input count", "local countPlural = count: plural"],
+      "declarations": [
+        "input count",
+        "input city",
+        "local countPlural = count: plural"
+      ],
       "selectors": ["countPlural"],
       "match": {
         "countPlural=one": "{count} rencontre cette semaine à {city}",

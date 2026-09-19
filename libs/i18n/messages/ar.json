@@ -118,7 +118,11 @@
   "hero_search_cta": "استكشف اللقاءات",
   "hero_social_proof": [
     {
-      "declarations": ["input count", "local countPlural = count: plural"],
+      "declarations": [
+        "input count",
+        "input city",
+        "local countPlural = count: plural"
+      ],
       "selectors": ["countPlural"],
       "match": {
         "countPlural=zero": "{count} لقاءات هذا الأسبوع في {city}",
