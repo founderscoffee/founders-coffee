@@ -138,6 +138,7 @@
   "hero_waitlist_invalid_email": "Please enter a valid email",
   "host_in_your_city": "Host in your city",
   "cities_in": "Partnerships and meetups starting now in {market} cities",
+  "market_cities": "Cities",
   "next_page": "Next page",
   "going_count": "+{count} going",
   "no_events_yet": "No events yet. Be the first to host",

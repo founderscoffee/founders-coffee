@@ -5,6 +5,7 @@ import type { Market } from '@founders-coffee/db';
 import {
   city_empty_cta,
   host_in_your_city,
+  market_cities,
   this_week_n,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -31,7 +32,13 @@ export const TrendingStates = ({
     .slice(0, CITY_CARD_COUNT);
 
   return (
-    <section className="mx-auto max-w-content px-4 pt-10 pb-2 md:px-8 md:pt-14">
+    <section
+      aria-labelledby="market-cities-title"
+      className="mx-auto max-w-content px-4 pt-10 pb-2 md:px-8 md:pt-14"
+    >
+      <h2 id="market-cities-title" className="sr-only">
+        {market_cities({}, { locale })}
+      </h2>
       <ul
         aria-label={marketName}
         className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"

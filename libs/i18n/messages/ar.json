@@ -142,6 +142,7 @@
   "hero_waitlist_invalid_email": "يرجى إدخال بريد إلكتروني صحيح",
   "host_in_your_city": "استضف في مدينتك",
   "cities_in": "شراكات ولقاءات تبدأ الآن في مدن {market}",
+  "market_cities": "المدن",
   "next_page": "الصفحة التالية",
   "going_count": [
     {

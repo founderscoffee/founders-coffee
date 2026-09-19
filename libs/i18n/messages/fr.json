@@ -138,6 +138,7 @@
   "hero_waitlist_invalid_email": "Veuillez entrer un email valide",
   "host_in_your_city": "Hébergez dans votre ville",
   "cities_in": "Partenariats et rencontres qui commencent maintenant dans les villes de {market}",
+  "market_cities": "Villes",
   "next_page": "Page suivante",
   "going_count": [
     {
