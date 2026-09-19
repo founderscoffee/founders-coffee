@@ -16,7 +16,7 @@ export const LogoSymbol = ({
 }: LogoSymbolProps) => {
   return (
     <img
-      src="/branding/pwa-logo.png"
+      src="/branding/pwa-logo-165.webp"
       alt=""
       width={size}
       height={size}
