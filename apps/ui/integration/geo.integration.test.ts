@@ -43,6 +43,11 @@ const jsonLd = (body: string): Record<string, unknown>[] =>
 const headingLevels = (body: string): string[] =>
   [...body.matchAll(/<h([1-6])\b/giu)].map((match) => match[1]);
 
+const firstHeading = (body: string): string =>
+  (/<h1\b[^>]*>([\s\S]*?)<\/h1>/iu.exec(body)?.[1] ?? '')
+    .replaceAll(/<[^>]+>/gu, '')
+    .trim();
+
 const eventRows = LOCALES.map((locale) => ({
   id: `evt_geo05_${locale}`,
   title: `GEO-05 ${locale} meetup`,
@@ -94,14 +99,16 @@ describe('public GEO contract', () => {
           path: `/${locale}/algeria`,
           canonical: `${PRODUCTION_ORIGIN}/${locale}/algeria`,
           schemaType: 'CollectionPage',
-          visibleText: locale === 'ar' ? 'الجزائر' : 'Algeria',
+          visibleText: { ar: 'الجزائر', fr: 'Algérie', en: 'Algeria' }[locale],
         },
         {
           type: 'city',
           path: `/${locale}/algeria/algiers`,
           canonical: `${PRODUCTION_ORIGIN}/${locale}/algeria/algiers`,
           schemaType: 'CollectionPage',
-          visibleText: locale === 'ar' ? 'الجزائر العاصمة' : 'Algiers',
+          visibleText: { ar: 'الجزائر العاصمة', fr: 'Alger', en: 'Algiers' }[
+            locale
+          ],
         },
         {
           type: 'event',
@@ -163,6 +170,23 @@ describe('public GEO contract', () => {
           expect(body, page.path).toContain('GEO-05 Host');
         }
       }
+    }
+  });
+
+  it('heads the city page with the name that language calls the city', async () => {
+    const expected = { ar: 'الجزائر العاصمة', fr: 'Alger', en: 'Algiers' };
+
+    for (const locale of LOCALES) {
+      const response = await fetchDocument(
+        PRODUCTION_ORIGIN,
+        `/${locale}/algeria/algiers`,
+        productionEnv,
+      );
+
+      expect(
+        firstHeading(await response.text()),
+        `the ${locale} city page is headed in another language (FC-28)`,
+      ).toBe(expected[locale]);
     }
   });
 

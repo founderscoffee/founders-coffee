@@ -1,6 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { localizedName, type Locale } from '@founders-coffee/i18n';
+import {
+  localizedName,
+  matchesLocalizedName,
+  type Locale,
+} from '@founders-coffee/i18n';
 import type { geo } from '@founders-coffee/domain';
 
 type CitySearchComboboxProps = {
@@ -36,11 +40,7 @@ export const CitySearchCombobox = ({
   const filteredCities = useMemo(
     () =>
       citySearch
-        ? cities.filter(
-            (c) =>
-              c.name.toLowerCase().includes(citySearch.toLowerCase()) ||
-              c.nameAr.includes(citySearch),
-          )
+        ? cities.filter((c) => matchesLocalizedName(c, citySearch))
         : cities,
     [cities, citySearch],
   );

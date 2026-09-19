@@ -149,39 +149,31 @@ export const HeroCitySearch = ({
               {noMatchText.replace('{query}', query)}
             </li>
           ) : (
-            results.map(
-              (
-                r: {
-                  city: geo.GeoCity;
-                  state: { name: string; nameAr: string };
-                },
-                i: number,
-              ) => (
-                <li
-                  key={`${r.city.stateCode}-${r.city.code}`}
-                  id={`hero-city-option-${i}`}
-                  role="option"
-                  aria-selected={selected?.code === r.city.code}
+            results.map((r: geo.CitySearchResult, i: number) => (
+              <li
+                key={`${r.city.stateCode}-${r.city.code}`}
+                id={`hero-city-option-${i}`}
+                role="option"
+                aria-selected={selected?.code === r.city.code}
+              >
+                <button
+                  type="button"
+                  className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-body-sm ${
+                    i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
+                  }`}
+                  tabIndex={-1}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    choose(r.city);
+                  }}
                 >
-                  <button
-                    type="button"
-                    className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-body-sm ${
-                      i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
-                    }`}
-                    tabIndex={-1}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      choose(r.city);
-                    }}
-                  >
-                    <span>{localizedName(r.city, locale)}</span>
-                    <span className="text-caption text-neutral">
-                      {localizedName(r.state, locale)}
-                    </span>
-                  </button>
-                </li>
-              ),
-            )
+                  <span>{localizedName(r.city, locale)}</span>
+                  <span className="text-caption text-neutral">
+                    {localizedName(r.state, locale)}
+                  </span>
+                </button>
+              </li>
+            ))
           )}
         </ul>
       )}

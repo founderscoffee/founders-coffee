@@ -29,3 +29,25 @@ export interface LocalizedNames {
 export const localizedName = (named: LocalizedNames, locale: Locale): string =>
   (locale === 'ar' ? named.nameAr : locale === 'fr' ? named.nameFr : null) ??
   named.name;
+
+/**
+ * Whether `query` matches any of the names a place answers to, rather than only the one the
+ * reader is being shown.
+ *
+ * Searching a single locale's name is wrong in both directions: a French visitor pastes `Alger`
+ * out of a message written in Arabic, and someone reading in Arabic types `Bejaia` off a road
+ * sign (FC-28). Latin names compare case-insensitively; Arabic has no case, so `nameAr` is
+ * compared as written. Neither is accent-folded, which costs nothing today because a place whose
+ * French name carries accents keeps the bare spelling in `name`.
+ */
+export const matchesLocalizedName = (
+  named: LocalizedNames,
+  query: string,
+): boolean => {
+  const lowered = query.toLowerCase();
+  return (
+    named.name.toLowerCase().includes(lowered) ||
+    (named.nameAr?.includes(query) ?? false) ||
+    (named.nameFr?.toLowerCase().includes(lowered) ?? false)
+  );
+};

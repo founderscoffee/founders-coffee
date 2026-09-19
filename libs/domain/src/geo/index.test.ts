@@ -98,3 +98,56 @@ describe('geo lookups', () => {
     }
   });
 });
+
+describe('French place names', () => {
+  const everyPlace = (country: string) => [
+    ...getStates(country),
+    ...getStates(country).flatMap((state) => getCities(country, state.code)),
+  ];
+
+  it('calls the Algerian capital Alger, the way the French pages have to', () => {
+    expect(findCity('DZ', ALGIERS.code)?.nameFr).toBe('Alger');
+    expect(
+      findCity('EG', findCityBySlug('EG', 'cairo')?.code ?? '')?.nameFr,
+    ).toBe('Le Caire');
+  });
+
+  it('finds a place under the name only French calls it', () => {
+    const city = searchLocations('EG', 'Charm el-Cheikh');
+    expect(
+      city.some((r) => r.city.name === 'Sharm El-Shaikh'),
+      'a French reader typing back the city name they were just shown finds nothing',
+    ).toBe(true);
+
+    const governorate = searchLocations('EG', 'Mer Rouge');
+    expect(
+      governorate.length,
+      'a French reader searching the governorate by its French name finds nothing',
+    ).toBeGreaterThan(0);
+    expect(governorate.every((r) => r.state.name === 'Red Sea')).toBe(true);
+  });
+
+  it('gives a featured Algerian city the French its own wilaya already carried', () => {
+    for (const city of getFeaturedCities('DZ')) {
+      const wilaya = findState('DZ', city.stateCode);
+      const differs = wilaya !== undefined && wilaya.name !== city.name;
+      expect(
+        city.nameFr,
+        `${city.name} sits in wilaya ${wilaya?.name}, which DZ_STATES already spells in French`,
+      ).toBe(differs ? wilaya.name : undefined);
+    }
+  });
+
+  it('carries a French name only where French has a different word', () => {
+    for (const country of ['DZ', 'EG', 'SA']) {
+      for (const place of everyPlace(country)) {
+        if (place.nameFr === undefined) continue;
+        expect(place.nameFr.trim(), `${country} ${place.name}`).not.toBe('');
+        expect(
+          place.nameFr,
+          `${country} ${place.name} repeats itself in nameFr, where absent says the same thing`,
+        ).not.toBe(place.name);
+      }
+    }
+  });
+});

@@ -1,3 +1,5 @@
+import { matchesLocalizedName } from '@founders-coffee/core';
+
 import { ISO_STATE_CODES } from './admin-codes.js';
 import { DZ_CITIES, DZ_STATES } from './data/dz.js';
 import { EG_CITIES, EG_STATES } from './data/eg.js';
@@ -73,8 +75,8 @@ export const findState = (
   (STATES[country] ?? []).find((s) => s.code === stateCode);
 
 /**
- * Search a country's cities by free-text query, matching the city name (LTR `name` or `nameAr`) OR
- * the parent state name. Returns up to `limit` results ranked: city-name hits first (more specific),
+ * Search a country's cities by free-text query, matching any name the city carries or any name its
+ * parent state carries. Returns up to `limit` results ranked: city-name hits first (more specific),
  * then featured (capitals), then alphabetical. Each result carries the parent state so the UI can
  * show "City, State" for disambiguation (city names repeat across states). Used by the hero
  * typeahead — the full dataset (thousands of cities) stays server-side; only matches are returned.
@@ -86,17 +88,14 @@ export const searchLocations = (
 ): readonly CitySearchResult[] => {
   const q = query.trim();
   if (!q) return [];
-  const qLower = q.toLowerCase();
   const stateByCode = new Map((STATES[country] ?? []).map((s) => [s.code, s]));
 
   const scored: { city: GeoCity; state: GeoState; rank: number }[] = [];
   for (const city of CITIES[country] ?? []) {
     const state = stateByCode.get(city.stateCode);
     if (!state) continue;
-    const cityHit =
-      city.name.toLowerCase().includes(qLower) || city.nameAr.includes(q);
-    const stateHit =
-      state.name.toLowerCase().includes(qLower) || state.nameAr.includes(q);
+    const cityHit = matchesLocalizedName(city, q);
+    const stateHit = matchesLocalizedName(state, q);
     if (cityHit || stateHit) {
       scored.push({ city, state, rank: cityHit ? 0 : 1 });
     }
