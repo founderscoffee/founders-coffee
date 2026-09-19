@@ -96,7 +96,13 @@ describe('public Worker SEO contract', () => {
     expect(stagingBody).toContain(
       'This staging environment is not for public discovery.',
     );
-    expect(stagingBody).not.toContain('https://founders.coffee');
+    expect(
+      stagingBody.split('\n').filter((line) => line.startsWith('- ')),
+      'staging may point at the public site and nothing else (#33)',
+    ).toEqual(['- [Founders Coffee](https://founders.coffee)']);
+    expect(stagingBody).not.toContain('/sitemap.xml');
+    expect(stagingBody).not.toContain('/events.json');
+    expect(stagingBody).not.toContain('/e/');
 
     const production = await worker.fetch(
       new Request('https://founders.coffee/llms.txt'),
