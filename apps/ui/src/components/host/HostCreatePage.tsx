@@ -13,6 +13,7 @@ import {
   host_step_progress,
   host_venue_rate_limited,
   host_venue_search_error,
+  localizedName,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -82,9 +83,8 @@ export const HostCreatePage = ({
   const listCenter = mapCenter ??
     wizard.venue ??
     mapContext.data?.center ?? { latitude: 0, longitude: 0 };
-  const marketName =
-    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
-  const cityName = city ? (locale === 'ar' ? city.nameAr : city.name) : '';
+  const marketName = localizedName(market, locale);
+  const cityName = city ? localizedName(city, locale) : '';
   const stepHeading = (
     <div className="mb-6">
       <h1 className="sr-only">{host_page_title({}, { locale })}</h1>

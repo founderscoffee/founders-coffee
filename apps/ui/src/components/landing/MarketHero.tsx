@@ -9,6 +9,7 @@ import {
   hero_search_placeholder,
   hero_subtitle,
   hero_tagline,
+  localizedName,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -74,9 +75,7 @@ export const MarketHero = ({
   const heroArtDesktop = HERO_ART_DESKTOP[market.code];
   const heroArtMobile = HERO_ART_MOBILE[market.code];
   const cityDisplayName = selectedCity
-    ? locale === 'ar'
-      ? selectedCity.nameAr
-      : selectedCity.name
+    ? localizedName(selectedCity, locale)
     : '';
 
   return (

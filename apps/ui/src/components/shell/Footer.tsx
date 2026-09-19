@@ -22,6 +22,7 @@ import {
   footer_privacy,
   footer_tagline,
   footer_terms,
+  localizedName,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Logo } from '@founders-coffee/ui';
@@ -52,11 +53,6 @@ type FooterNavGroupProps = {
   title: string;
   children: ReactNode;
 };
-
-const marketLabel = (
-  market: Pick<FooterMarket, 'name' | 'nameAr'>,
-  locale: Locale,
-) => (locale === 'ar' ? (market.nameAr ?? market.name) : market.name);
 
 const linkClass =
   'inline-flex min-h-11 items-center text-body-sm text-neutral transition-colors hover:text-base-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
@@ -105,7 +101,7 @@ const FooterNavGroup = ({ id, title, children }: FooterNavGroupProps) => (
 export const Footer = ({ locale, markets, market }: FooterProps) => {
   const primaryMarket = market ?? markets[0];
   const primaryMarketLabel = primaryMarket
-    ? marketLabel(primaryMarket, locale)
+    ? localizedName(primaryMarket, locale)
     : '';
 
   return (

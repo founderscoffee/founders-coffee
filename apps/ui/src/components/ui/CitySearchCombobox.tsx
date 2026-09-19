@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import type { Locale } from '@founders-coffee/i18n';
+import { localizedName, type Locale } from '@founders-coffee/i18n';
 import type { geo } from '@founders-coffee/domain';
 
 type CitySearchComboboxProps = {
@@ -48,7 +48,9 @@ export const CitySearchCombobox = ({
   const visibleCities = filteredCities.slice(0, MAX_VISIBLE);
   const selected = cities.find((c) => c.code === value);
   const inputValue = value
-    ? ((locale === 'ar' ? selected?.nameAr : selected?.name) ?? citySearch)
+    ? selected
+      ? localizedName(selected, locale)
+      : citySearch
     : citySearch;
 
   const selectCity = useCallback(
@@ -200,7 +202,7 @@ export const CitySearchCombobox = ({
                     selectCity(c.code);
                   }}
                 >
-                  <span>{locale === 'ar' ? c.nameAr : c.name}</span>
+                  <span>{localizedName(c, locale)}</span>
                 </button>
               </li>
             ))

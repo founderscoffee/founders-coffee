@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { isLocale, type Locale } from '@founders-coffee/i18n';
+import { isLocale, localizedName, type Locale } from '@founders-coffee/i18n';
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
@@ -94,16 +94,10 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
   },
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [], links: [], scripts: [] };
-    const cityName =
-      loaderData.locale === 'ar'
-        ? (loaderData.city.nameAr ?? loaderData.city.name)
-        : loaderData.city.name;
+    const cityName = localizedName(loaderData.city, loaderData.locale);
     return cityPageHead({
       locale: loaderData.locale,
-      marketName:
-        loaderData.locale === 'ar'
-          ? (loaderData.market.nameAr ?? loaderData.market.name)
-          : loaderData.market.name,
+      marketName: localizedName(loaderData.market, loaderData.locale),
       cityName,
       isEmpty: loaderData.events.length === 0,
       events: loaderData.events.map((event) => ({

@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { isLocale, type Locale } from '@founders-coffee/i18n';
+import { isLocale, localizedName, type Locale } from '@founders-coffee/i18n';
 import {
   getEvent,
   getMarket,
@@ -116,10 +116,7 @@ export const Route = createFileRoute('/$market/$city/e/$slug')({
       locale: loaderData.locale,
     });
     const citySlug = loaderData.event.citySlug ?? loaderData.event.cityCode;
-    const marketName =
-      loaderData.locale === 'ar'
-        ? (loaderData.market.nameAr ?? loaderData.market.name)
-        : loaderData.market.name;
+    const marketName = localizedName(loaderData.market, loaderData.locale);
     return eventPageHead({
       locale: loaderData.locale,
       title: loaderData.event.title,

@@ -10,6 +10,7 @@ import {
   city_upcoming_title,
   clear_city_filters,
   host_meetup_here,
+  localizedName,
   no_filter_match,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -42,9 +43,6 @@ type CityLandingProps = {
 
 const PAGE_SIZE = 20;
 
-const marketDisplayName = (market: Market, locale: Locale) =>
-  locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
-
 export const CityLanding = ({
   locale,
   market,
@@ -55,8 +53,8 @@ export const CityLanding = ({
   nextPageHref,
   nextCursor,
 }: CityLandingProps) => {
-  const cityDisplayName = locale === 'ar' ? city.nameAr : city.name;
-  const marketName = marketDisplayName(market, locale);
+  const cityDisplayName = localizedName(city, locale);
+  const marketName = localizedName(market, locale);
   const [filters, setFilters] = useState<readonly CityFilterKey[]>([]);
 
   const toggleFilter = (key: CityFilterKey) =>

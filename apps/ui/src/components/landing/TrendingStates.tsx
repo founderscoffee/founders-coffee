@@ -5,6 +5,7 @@ import type { Market } from '@founders-coffee/db';
 import {
   city_empty_cta,
   host_in_your_city,
+  localizedName,
   market_cities,
   this_week_n,
   type Locale,
@@ -25,8 +26,7 @@ export const TrendingStates = ({
   market,
   trending,
 }: TrendingStatesProps) => {
-  const marketName =
-    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
+  const marketName = localizedName(market, locale);
   const cities = trending.groups
     .flatMap((group) => group.cities)
     .slice(0, CITY_CARD_COUNT);
@@ -69,7 +69,7 @@ export const TrendingStates = ({
                       id={headingId}
                       className="font-display text-body-lg font-semibold leading-tight tracking-tight"
                     >
-                      {locale === 'ar' ? city.nameAr : city.name}
+                      {localizedName(city, locale)}
                     </h3>
                     <span className="flex shrink-0 items-center gap-1 text-accent">
                       <UsersRound className="size-4" aria-hidden="true" />

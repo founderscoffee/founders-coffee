@@ -1,5 +1,10 @@
 import type { Market } from '@founders-coffee/db';
-import { cities_in, no_events_yet, type Locale } from '@founders-coffee/i18n';
+import {
+  cities_in,
+  localizedName,
+  no_events_yet,
+  type Locale,
+} from '@founders-coffee/i18n';
 import type { EventFeedItem, EventFeedPage } from '@founders-coffee/server-fns';
 
 import { useUpcomingEvents } from '../../features/events/hooks';
@@ -44,8 +49,7 @@ export const DiscoverFeed = ({
     events,
   );
   const items = pagination.items;
-  const marketName =
-    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
+  const marketName = localizedName(market, locale);
 
   return (
     <section
