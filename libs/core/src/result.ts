@@ -52,3 +52,20 @@ export const appErrorCode = (error: unknown): string => {
   }
   return 'unknown';
 };
+
+const NOT_FOUND_CODE = /(^|_)not_found$/u;
+
+/**
+ * True when `code` names something the request asked for and the system could not find: an unknown
+ * market slug, a deleted event, a root-level file request falling through to `$market/$city`.
+ * Nothing broke in any of them, so whatever logs or alerts on an error should treat these as
+ * routine (FC-13 — routine 404s reported at `error` bury the real errors in production).
+ *
+ * The contract is the `_not_found` suffix rather than a registry, so a `venue_not_found` written
+ * next year is covered without anyone remembering to register it. Name a new code to match.
+ *
+ * Deliberately narrow. `forbidden`, `unauthenticated` and `rate_limited` are just as expected in
+ * the sense that the system behaved correctly, but a burst of those is a signal worth keeping loud.
+ */
+export const isNotFoundCode = (code: string): boolean =>
+  NOT_FOUND_CODE.test(code);
