@@ -217,3 +217,41 @@
     letter-spacing: 0;
   }
 }
+
+/* A control sized for a mouse is a smaller thing than a control sized for a thumb: Apple asks
+   44pt and Android 48dp, and daisyUI's `btn-md` lands at 40px while `btn-sm` lands at 32. Both
+   standards measure the area that responds to a tap rather than the paint, so the gap closes
+   without redrawing a single button: a transparent `::after`, centred on the control, grows
+   whichever axis falls short and leaves the rest alone. `max(100%, 44px)` is what says "only
+   the short side" — a 95px-wide pill keeps its 95px and gains height only.
+
+   The pseudo-element belongs to the control, so a tap that lands on it is a tap on the control
+   and needs no handler of its own. It also paints nothing, so the fix is invisible on the page
+   and identical on a desktop, where `pointer: coarse` never matches and the rule never applies.
+
+   `position: relative` is what the pseudo-element anchors to. No `.btn` in this product sets a
+   position of its own or holds an absolutely positioned descendant, so claiming the containing
+   block here costs nothing; a button that later needs `absolute` has to opt out of this rule.
+
+   `.tap-target` is the opt-in for controls built out of `inline-flex` rather than `.btn`. Text
+   links in a list do not want it: their hit areas would grow into each other, and a link that
+   already carries `min-h-11` is at the target anyway. */
+@layer utilities {
+  @media (pointer: coarse) {
+    .btn,
+    .tap-target {
+      position: relative;
+    }
+    .btn::after,
+    .tap-target::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, 44px);
+      height: max(100%, 44px);
+      translate: -50% -50%;
+    }
+  }
+}
+

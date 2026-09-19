@@ -11,7 +11,7 @@ import { localizedHostCreate } from '../../lib/locale-routing';
 type NavbarProps = { locale: Locale; marketSlug?: string };
 
 const hostClass =
-  'inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 text-body font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
+  'tap-target inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 text-body font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
 
 export const Navbar = ({ locale, marketSlug }: NavbarProps) => {
   return (

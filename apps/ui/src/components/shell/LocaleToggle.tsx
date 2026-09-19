@@ -27,7 +27,7 @@ export const LocaleToggle = ({ locale }: LocaleToggleProps) => {
           lang={option}
           aria-pressed={option === locale}
           onClick={() => change(option)}
-          className={`h-7 rounded-full px-3 text-label font-medium transition-colors ${
+          className={`tap-target h-7 rounded-full px-3 text-label font-medium transition-colors ${
             option === locale
               ? 'bg-base-100 text-base-content'
               : 'text-neutral hover:text-base-content'
