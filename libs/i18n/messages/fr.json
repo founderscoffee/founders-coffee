@@ -106,7 +106,7 @@
   "llms_purpose": "La version actuelle se concentre sur les rencontres locales gratuites, la participation régulière, les hôtes et la confiance au sein de la communauté.",
   "llms_locales": "Langues prises en charge",
   "llms_public_surfaces": "Surfaces publiques de découverte",
-  "llms_event_inventory": "Les détails des rencontres publiques sont listés dans le sitemap canonique.",
+  "llms_event_inventory": "Inventaire des rencontres",
   "llms_sitemap": "Sitemap canonique",
   "llms_robots": "Consignes pour les robots",
   "llms_event_feed": "Flux de rencontres lisible par machine",

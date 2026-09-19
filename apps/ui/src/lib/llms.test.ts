@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { LOCALES } from '@founders-coffee/i18n';
 import type { SitemapData } from '@founders-coffee/server-fns';
 
 import { llmsText, stagingLlmsText } from './llms';
@@ -53,6 +54,22 @@ describe('llms discovery guide', () => {
       expect(bullet, `${bullet} is not a markdown link`).toMatch(
         /^- \[[^\]]+\]\(https:\/\/[^)]+\)$/u,
       );
+    }
+  });
+
+  it('titles every section with a label rather than a sentence', () => {
+    for (const locale of LOCALES) {
+      const headings = llmsText('https://founders.coffee', data, locale)
+        .split('\n')
+        .filter((line) => line.startsWith('## '));
+
+      expect(headings.length).toBeGreaterThan(2);
+      for (const heading of headings) {
+        expect(
+          heading,
+          `${locale}: "${heading}" reads as a sentence, not a heading`,
+        ).not.toMatch(/[.!?\u061F]\s*$/u);
+      }
     }
   });
 
