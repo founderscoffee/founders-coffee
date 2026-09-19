@@ -9,7 +9,6 @@ import {
   login_email_placeholder,
   login_help,
   login_or,
-  login_send_code,
   login_email_continue,
   login_send_error,
   login_welcome,
