@@ -277,16 +277,21 @@
    is no floor, because a floor is precisely what wraps the line on a narrow one. */
 @layer utilities {
   .text-display-fit {
-    font-size: min(7.56cqw, var(--text-display-max));
+    --display-fit-share: 7.56cqw;
+    --display-fit-scale: 1;
+    font-size: calc(
+      min(var(--display-fit-share), var(--text-display-max)) *
+        var(--display-fit-scale)
+    );
     line-height: var(--text-display--line-height);
     letter-spacing: var(--text-display--letter-spacing);
     white-space: nowrap;
   }
   :lang(fr) .text-display-fit {
-    font-size: min(9.53cqw, var(--text-display-max));
+    --display-fit-share: 9.53cqw;
   }
   :lang(ar) .text-display-fit {
-    font-size: min(11.67cqw, var(--text-display-max));
+    --display-fit-share: 11.67cqw;
   }
 }
 
@@ -304,6 +309,32 @@
    empty sky and 15px of empty water, which is 12.0px and 5.8px once scaled to a 320px viewport,
    the narrowest we support. Both fades finish inside that margin, so neither erases anything
    drawn. */
+/* Tablet, meaning 768px up to the desktop breakpoint. The hero is sized for the two ends of
+   the range: on a phone it is already compact, and on a desktop the headline is the page's
+   anchor and has the width to be it. Between them the three stacked elements crowd, so the
+   headline steps down to 55% of its fitted size, the subtitle to 75% of its own, and the
+   search field drops 50px clear of them.
+
+   The headline reduction is a multiplier on the fitted size rather than a size of its own, so
+   it composes with the machinery above instead of replacing it: the per-language shares stay
+   the single place a measured headline is recorded, `min()` still applies the 5.5rem ceiling,
+   and the one-line guarantee survives because the multiplier only ever makes the line shorter.
+   Both line-heights are unitless, so they follow their font-size down without a rule here.
+
+   The search field's offset is written as its own margin plus 50px, so it tracks the `md:mt-6`
+   the element carries; change that utility and this number has to change with it. */
+@media (48rem <= width < 64rem) {
+  .text-display-fit {
+    --display-fit-scale: 0.55;
+  }
+  .hero-subtitle {
+    font-size: calc(var(--text-body-lg) * 0.75);
+  }
+  .hero-search {
+    margin-top: calc(1.5rem + 50px);
+  }
+}
+
 @media (width < 48rem) {
   .hero-art {
     mask-image: linear-gradient(

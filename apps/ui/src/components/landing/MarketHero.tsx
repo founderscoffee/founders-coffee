@@ -92,7 +92,7 @@ export const MarketHero = ({
             {hero_tagline({}, { locale })}
           </h1>
         </div>
-        <p className="mx-auto mt-4 max-w-prose text-body-lg text-balance text-neutral">
+        <p className="hero-subtitle mx-auto mt-4 max-w-prose text-body-lg text-balance text-neutral">
           {hero_subtitle({}, { locale })}
         </p>
 
@@ -120,7 +120,7 @@ export const MarketHero = ({
 
         <div
           role="search"
-          className="mt-1 flex h-12 w-full max-w-lg items-center rounded-full border border-base-300 bg-base-100 ps-2 pe-1.5 focus-within:border-secondary md:mt-6 md:h-13"
+          className="hero-search mt-1 flex h-12 w-full max-w-lg items-center rounded-full border border-base-300 bg-base-100 ps-2 pe-1.5 focus-within:border-secondary md:mt-6 md:h-13"
         >
           <HeroCitySearch
             marketCode={market.code}
