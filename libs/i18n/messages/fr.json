@@ -635,7 +635,8 @@
   "share_event_host": "Partager la rencontre",
   "share_event_invite": "Inviter un fondateur",
   "share_event_text": "Rejoignez-moi à {title}",
-  "share_on_whatsapp": "Partager sur WhatsApp",
   "share_copy_link": "Copier le lien",
-  "share_copied": "Lien copié"
+  "share_copied": "Lien copié",
+  "share_email": "E-mail",
+  "share_close": "Fermer le partage"
 }

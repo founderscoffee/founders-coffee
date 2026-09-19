@@ -66,14 +66,3 @@ export const copyLink = async (url: string): Promise<boolean> => {
     return false;
   }
 };
-
-/**
- * A WhatsApp draft carrying the invitation and the link.
- *
- * `wa.me` is the fallback that works everywhere the share sheet does not, including desktop
- * Firefox and Chrome on Linux, and it is the channel hosts in this market actually promote on.
- * The whole message is encoded as one parameter, so the text may contain Arabic and punctuation
- * without splitting the link off the end of it.
- */
-export const whatsappShareUrl = (text: string, url: string): string =>
-  `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;

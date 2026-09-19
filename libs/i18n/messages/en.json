@@ -617,7 +617,8 @@
   "share_event_host": "Share this meetup",
   "share_event_invite": "Invite a founder",
   "share_event_text": "Join me at {title}",
-  "share_on_whatsapp": "Share on WhatsApp",
   "share_copy_link": "Copy link",
-  "share_copied": "Link copied"
+  "share_copied": "Link copied",
+  "share_email": "Email",
+  "share_close": "Close sharing options"
 }

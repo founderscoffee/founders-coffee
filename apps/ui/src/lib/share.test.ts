@@ -1,11 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  copyLink,
-  currentShareUrl,
-  shareNatively,
-  whatsappShareUrl,
-} from './share';
+import { copyLink, currentShareUrl, shareNatively } from './share';
 
 const EVENT = {
   title: 'Coffee + Code',
@@ -117,24 +112,5 @@ describe('copyLink', () => {
     });
 
     expect(await copyLink(EVENT.url)).toBe(false);
-  });
-});
-
-describe('whatsappShareUrl', () => {
-  it('keeps the message and the link together in one parameter', () => {
-    const url = whatsappShareUrl('Join us', EVENT.url);
-    expect(url.startsWith('https://wa.me/?text=')).toBe(true);
-    expect(decodeURIComponent(url.slice('https://wa.me/?text='.length))).toBe(
-      `Join us ${EVENT.url}`,
-    );
-  });
-
-  it('encodes Arabic and the link without splitting them', () => {
-    const url = whatsappShareUrl('انضم إلينا', EVENT.url);
-    expect(
-      url,
-      'an unencoded space ends the text parameter and drops the link',
-    ).not.toMatch(/ /);
-    expect(decodeURIComponent(url)).toContain(`انضم إلينا ${EVENT.url}`);
   });
 });

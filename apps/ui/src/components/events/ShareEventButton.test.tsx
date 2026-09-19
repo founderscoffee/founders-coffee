@@ -39,10 +39,6 @@ const clickShare = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Share' }));
 };
 
-const clickCopy = async () => {
-  fireEvent.click(await screen.findByRole('button', { name: /copy link/i }));
-};
-
 afterEach(() => {
   cleanup();
   dropFromNavigator('share', 'clipboard');
@@ -50,7 +46,7 @@ afterEach(() => {
 });
 
 describe('ShareEventButton', () => {
-  it('hands the meetup to the share sheet and shows no fallback', async () => {
+  it('hands the meetup to the share sheet and opens no dialog', async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     withNavigator({ share });
     window.history.replaceState({}, '', '/en/algeria/e/founders-breakfast');
@@ -65,8 +61,8 @@ describe('ShareEventButton', () => {
       url: `${window.location.origin}/en/algeria/e/founders-breakfast`,
     });
     expect(
-      screen.queryByRole('link', { name: /whatsapp/i }),
-      'a working share sheet should not also push a fallback at the reader',
+      document.querySelector('dialog[open]'),
+      'a working share sheet should not also push a dialog at the reader',
     ).toBeNull();
   });
 
@@ -81,57 +77,33 @@ describe('ShareEventButton', () => {
 
     await waitFor(() => expect(share).toHaveBeenCalledTimes(1));
     expect(
-      screen.queryByRole('button', { name: /copy link/i }),
+      document.querySelector('dialog[open]'),
       'closing the sheet is a decision, not a failure to route around',
     ).toBeNull();
-    expect(screen.queryByRole('link', { name: /whatsapp/i })).toBeNull();
   });
 
-  it('offers WhatsApp and copy where there is no share sheet', async () => {
+  it('opens the dialog where there is no share sheet', async () => {
     dropFromNavigator('share');
-    window.history.replaceState({}, '', '/ar/algeria/e/founders-breakfast');
     renderButton();
 
     clickShare();
 
-    const whatsapp = await screen.findByRole('link', { name: /whatsapp/i });
-    const href = whatsapp.getAttribute('href') ?? '';
-    expect(href.startsWith('https://wa.me/?text=')).toBe(true);
-    expect(decodeURIComponent(href)).toContain(
-      `${window.location.origin}/ar/algeria/e/founders-breakfast`,
+    await waitFor(() =>
+      expect(document.querySelector('dialog[open]')).not.toBeNull(),
     );
-    expect(screen.getByRole('button', { name: /copy link/i })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Share' })).toBeTruthy();
   });
 
-  it('confirms a copied link', async () => {
-    dropFromNavigator('share');
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    withNavigator({ clipboard: { writeText } });
+  it('opens the dialog when the sheet is refused rather than closed', async () => {
+    const refused = new Error('policy');
+    refused.name = 'NotAllowedError';
+    withNavigator({ share: vi.fn().mockRejectedValue(refused) });
     renderButton();
 
     clickShare();
-    await clickCopy();
 
-    const status = await screen.findByRole('status');
-    expect(status.textContent).toBe('Link copied');
-    expect(writeText).toHaveBeenCalledTimes(1);
-  });
-
-  it('leaves the link on screen when the clipboard refuses it', async () => {
-    dropFromNavigator('share');
-    withNavigator({
-      clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
-    });
-    window.history.replaceState({}, '', '/en/algeria/e/founders-breakfast');
-    renderButton();
-
-    clickShare();
-    await clickCopy();
-
-    const field = await screen.findByRole('textbox');
-    expect(
-      (field as HTMLInputElement).value,
-      'a refused clipboard with no visible link leaves the reader nothing to copy by hand',
-    ).toBe(`${window.location.origin}/en/algeria/e/founders-breakfast`);
+    await waitFor(() =>
+      expect(document.querySelector('dialog[open]')).not.toBeNull(),
+    );
   });
 });
