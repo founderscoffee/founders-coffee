@@ -106,13 +106,15 @@ export const MarketHero = ({
         </picture>
       )}
       <div className="mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-[calc(33.4vw+1rem)] text-center md:px-8 md:pt-14 md:pb-14">
-        <h1
-          id="market-hero-title"
-          className="font-display text-display leading-tight font-semibold tracking-tight text-balance text-base-content"
-        >
-          {hero_tagline({}, { locale })}
-        </h1>
-        <p className="mx-auto mt-4 max-w-prose text-body-lg text-neutral">
+        <div className="@container w-full">
+          <h1
+            id="market-hero-title"
+            className="font-display text-display-fit font-semibold text-base-content"
+          >
+            {hero_tagline({}, { locale })}
+          </h1>
+        </div>
+        <p className="mx-auto mt-4 max-w-prose text-body-lg text-balance text-neutral">
           {hero_subtitle({}, { locale })}
         </p>
 

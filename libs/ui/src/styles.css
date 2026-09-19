@@ -64,6 +64,7 @@
   --font-arabic: 'Tajawal', 'Inter Variable', system-ui, sans-serif;
 
   --text-display: clamp(2.75rem, 7vw, 5.5rem);
+  --text-display-max: 5.5rem;
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.03em;
   --text-h1: 2.5rem;
@@ -252,6 +253,40 @@
       height: max(100%, 44px);
       translate: -50% -50%;
     }
+  }
+}
+
+/* The hero headline must hold one line at every width, and the three translations are not the
+   same length: twenty-three characters of French against thirty of English. A single size
+   cannot serve all of them, so each language gets its own, expressed as a share of the
+   container rather than of the viewport. The hero is capped at `--container-content`, so past
+   1184px the viewport keeps growing while the space for the headline does not, and a `vw` rule
+   would carry on enlarging the text until it broke the line it was meant to keep.
+
+   Each share is the width the string occupies at a known size, inverted: measured at 100px,
+   Arabic runs 831px, French 1017px and English 1283px, which makes the fitting size
+   `100 x container / that width`, and `1cqw` is one hundredth of the container. Three percent
+   is held back so a font that loads slightly wider than it measured still lands inside.
+
+   The unprefixed rule carries the English share because it is the tightest of the three, which
+   makes it the safer thing for a fourth language to inherit before anyone measures it. Adding
+   a locale means measuring its headline and giving it a line here.
+
+   `min()` keeps the old ceiling: a headline stops growing at 5.5rem even where the line would
+   allow more, which is what holds the Arabic hero at its intended size on a wide screen. There
+   is no floor, because a floor is precisely what wraps the line on a narrow one. */
+@layer utilities {
+  .text-display-fit {
+    font-size: min(7.56cqw, var(--text-display-max));
+    line-height: var(--text-display--line-height);
+    letter-spacing: var(--text-display--letter-spacing);
+    white-space: nowrap;
+  }
+  :lang(fr) .text-display-fit {
+    font-size: min(9.53cqw, var(--text-display-max));
+  }
+  :lang(ar) .text-display-fit {
+    font-size: min(11.67cqw, var(--text-display-max));
   }
 }
 

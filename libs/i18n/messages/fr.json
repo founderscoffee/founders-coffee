@@ -111,8 +111,8 @@
   "llms_event_feed": "Flux de rencontres lisible par machine",
   "llms_staging": "Cet environnement de staging n'est pas destiné à la découverte publique.",
   "market_hero_desc": "Nous réunissons les entrepreneurs à {market} pour créer des liens, découvrir des opportunités de partenariat et grandir ensemble autour d’un café.",
-  "hero_tagline": "Les partenariats commencent autour d'un café",
-  "hero_subtitle": "Nous réunissons les entrepreneurs pour tisser des relations, découvrir des opportunités de partenariat et grandir ensemble",
+  "hero_tagline": "Un café, un partenariat",
+  "hero_subtitle": "Nous réunissons les fondateurs pour créer des liens et grandir",
   "hero_search_placeholder": "Votre ville…",
   "hero_search_cta": "Explorer les rencontres",
   "hero_social_proof": [
