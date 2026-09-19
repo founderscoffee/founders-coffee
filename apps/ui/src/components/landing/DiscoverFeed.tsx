@@ -60,7 +60,7 @@ export const DiscoverFeed = ({
         <>
           <h2
             id="market-events-title"
-            className="mb-8 font-display text-h3 font-semibold tracking-tight text-balance md:mb-10 md:text-h2"
+            className="discover-title mb-8 font-display text-h3 font-semibold tracking-tight text-balance md:mb-10 md:text-h2"
           >
             {cities_in({ market: marketName }, { locale })}
           </h2>

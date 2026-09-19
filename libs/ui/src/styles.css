@@ -366,6 +366,29 @@
   }
 }
 
+/* The upcoming-events heading holds one line on a phone, where two lines of a 24px display face
+   pushed the first event card under the fold.
+
+   The size is the width the line has divided by the width the string wants, so it follows the
+   viewport instead of being a number that happens to work on one device. `1cqw` is no use here:
+   the heading is not inside a container, so the share is taken from the viewport less the 2rem
+   the section spends on its own padding.
+
+   The divisor is the Arabic string measured at 100px and inverted, taken for the longest market
+   rather than the one that has events today: `السعودية` runs 1918px against `الجزائر` 1767px and
+   `مصر` 1689px, and sizing for Algeria would make this rule quietly false the day Saudi seeds an
+   event. Three per cent is held back for a font that loads wider than it measured, which is where
+   19.8 comes from. Adding a market means measuring its heading and, if it is longer, raising this.
+
+   French and English are not on one line here and cannot be: they want 9.8px and 14px at 360px,
+   which is smaller than the body copy around them. They wrap, and the cap keeps them legible. */
+@media (width < 48rem) {
+  .discover-title {
+    font-size: min(var(--text-h4), calc((100vw - 2rem) / 19.8));
+    line-height: var(--text-h4--line-height);
+  }
+}
+
 @media (width < 48rem) {
   .hero-art {
     mask-image: linear-gradient(

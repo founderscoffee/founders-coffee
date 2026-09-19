@@ -53,6 +53,17 @@ describe('libs/db seed (real D1 via Miniflare)', () => {
     }
   });
 
+  it('keeps the longest Arabic market name the one the discover heading was measured against', () => {
+    const longest = [...SEED_MARKETS]
+      .map((market) => market.nameAr ?? '')
+      .sort((a, b) => b.length - a.length)[0];
+
+    expect(
+      longest,
+      'the phone discover heading holds one line by dividing the available width by 19.8, which is the Arabic string measured with \u0627\u0644\u0633\u0639\u0648\u062f\u064a\u0629 in it. A longer market name makes that heading wrap again, so re-measure it in libs/ui/src/styles.css before adding one',
+    ).toBe('\u0627\u0644\u0633\u0639\u0648\u062f\u064a\u0629');
+  });
+
   it('is idempotent — re-running neither duplicates nor overwrites', async () => {
     await seed(db);
     await seed(db);
