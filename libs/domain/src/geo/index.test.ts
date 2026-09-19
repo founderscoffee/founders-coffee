@@ -1,3 +1,4 @@
+import { localizedName } from '@founders-coffee/core';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -48,7 +49,7 @@ describe('geo lookups', () => {
     expect(city?.slug).toBe(ALGIERS.slug);
     expect(city).toBeDefined();
     if (!city) return;
-    expect(findState('DZ', city.stateCode)?.name).toBe('Alger');
+    expect(findState('DZ', city.stateCode)?.name).toBe('Algiers');
   });
 
   it('resolves a legacy city slug through its alias', () => {
@@ -127,14 +128,28 @@ describe('French place names', () => {
     expect(governorate.every((r) => r.state.name === 'Red Sea')).toBe(true);
   });
 
+  it('names the wilaya in the language of the reader, not only in French', () => {
+    const wilaya = findState('DZ', ALGIERS.stateCode);
+    expect(wilaya).toBeDefined();
+    if (!wilaya) return;
+
+    expect(
+      localizedName(wilaya, 'en'),
+      'the English combobox labels the capital "Algiers \u2014 Alger": DZ_STATES holds the French spelling in `name`, which is the field English falls back to',
+    ).toBe('Algiers');
+    expect(localizedName(wilaya, 'fr')).toBe('Alger');
+    expect(localizedName(wilaya, 'ar')).toBe(wilaya.nameAr);
+  });
+
   it('gives a featured Algerian city the French its own wilaya already carried', () => {
     for (const city of getFeaturedCities('DZ')) {
       const wilaya = findState('DZ', city.stateCode);
-      const differs = wilaya !== undefined && wilaya.name !== city.name;
+      const wilayaFr = wilaya?.nameFr ?? wilaya?.name;
+      const differs = wilayaFr !== undefined && wilayaFr !== city.name;
       expect(
         city.nameFr,
         `${city.name} sits in wilaya ${wilaya?.name}, which DZ_STATES already spells in French`,
-      ).toBe(differs ? wilaya.name : undefined);
+      ).toBe(differs ? wilayaFr : undefined);
     }
   });
 

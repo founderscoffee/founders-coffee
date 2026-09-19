@@ -16,7 +16,7 @@ export const DZ_STATES: readonly GeoState[] = [
   { code: '13', name: 'Tlemcen', nameAr: 'تلمسان' },
   { code: '14', name: 'Tiaret', nameAr: 'تيارت' },
   { code: '15', name: 'Tizi Ouzou', nameAr: 'تيزي وزو' },
-  { code: '16', name: 'Alger', nameAr: 'الجزائر' },
+  { code: '16', name: 'Algiers', nameAr: 'الجزائر', nameFr: 'Alger' },
   { code: '17', name: 'Djelfa', nameAr: 'الجلفة' },
   { code: '18', name: 'Jijel', nameAr: 'جيجل' },
   { code: '19', name: 'Sétif', nameAr: 'سطيف' },
