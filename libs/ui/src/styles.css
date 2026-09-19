@@ -389,6 +389,32 @@
   }
 }
 
+/* A control that is invisible until a keyboard reaches it, for skip links and the like.
+
+   Tailwind's own pair for this, `sr-only focus:not-sr-only`, cannot be used here.
+   `timepicker-ui/dist/css/main.css` is imported unlayered by the app and defines `.sr-only`
+   twice — `.sr-only, .tp-ui .sr-only` and `.sr-only, .timepicker-announcer, .tp-ui .sr-only` —
+   and an unlayered declaration beats anything in `@layer utilities` whatever its specificity,
+   so the vendor's `clip` and `position` outrank `focus:not-sr-only` and the control stays a
+   1x1 point even while it holds focus. FC-16 was this bug in the skip link; the feed's next-page
+   link was the second one to ship with it.
+
+   Hiding through `:not(:focus)` rather than reverting each property on focus means a focused
+   control simply has no rule applied to it, so it lays out exactly as its own classes say. The
+   rule is unlayered so that a vendor sheet imported the same way cannot outrank it, and it is
+   two selectors deep, so it also wins on specificity against a bare `.sr-only`. */
+.focus-reveal:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 @media (width < 48rem) {
   .hero-art {
     mask-image: linear-gradient(

@@ -45,7 +45,7 @@ export const LoadMoreEvents = ({
       {nextPageHref && (
         <a
           href={nextPageHref}
-          className="sr-only rounded px-3 py-2 text-body-sm font-medium text-secondary underline-offset-4 focus:not-sr-only focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+          className="focus-reveal rounded px-3 py-2 text-body-sm font-medium text-secondary underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
         >
           {next_page({}, { locale })}
         </a>
