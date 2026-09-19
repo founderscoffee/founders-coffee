@@ -15,7 +15,6 @@ import { LoadMoreEvents } from '../../../components/events/LoadMoreEvents';
 import { useHostedEvents } from '../../events/hooks';
 import { useEventPages } from '../../events/useEventPages';
 import { initials } from '../../../lib/utils';
-import { hostedPaginationQuery } from '../../../lib/public-pagination';
 import { profilePhotoUrl } from '../photo-url';
 import { localeLabel, topicLabel } from '../profile-labels';
 import type { EventFeedItem } from '../../events/api';
@@ -190,15 +189,7 @@ export const PublicProfilePage = ({
                 );
               })}
             </ul>
-            <LoadMoreEvents
-              locale={locale}
-              pagination={pagination}
-              nextPageHref={
-                eventsNextCursor
-                  ? `/u/${encodeURIComponent(profile.userId)}?${hostedPaginationQuery(eventsNextCursor)}`
-                  : undefined
-              }
-            />
+            <LoadMoreEvents locale={locale} pagination={pagination} />
           </>
         )}
       </section>

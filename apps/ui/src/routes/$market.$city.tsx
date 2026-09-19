@@ -33,7 +33,6 @@ import {
 import { readCookieHeader } from '../lib/cookies';
 import {
   paginationQuery,
-  paginationSearch,
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
 } from '../lib/public-pagination';
@@ -112,18 +111,6 @@ export const Route = createFileRoute('/$market/$city')({
           afterStartsAt={data.pagination.afterStartsAt}
           afterId={data.pagination.afterId}
           nextCursor={data.eventsNextCursor}
-          nextPageHref={
-            data.eventsNextCursor
-              ? canonicalUrl({
-                  type: 'market',
-                  market: data.market.slug,
-                  locale: data.locale,
-                  query: paginationQuery(
-                    paginationSearch(data.eventsNextCursor),
-                  ),
-                })
-              : undefined
-          }
           trending={data.trending}
         />
       );

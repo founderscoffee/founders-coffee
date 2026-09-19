@@ -7,7 +7,6 @@ import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 import { CityLanding } from '../components/landing/CityLanding';
 import {
   paginationQuery,
-  paginationSearch,
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
 } from '../lib/public-pagination';
@@ -38,17 +37,6 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
         afterStartsAt={afterStartsAt}
         afterId={afterId}
         nextCursor={eventsNextCursor}
-        nextPageHref={
-          eventsNextCursor
-            ? canonicalUrl({
-                type: 'city',
-                market: market.slug,
-                city: city.slug,
-                locale,
-                query: paginationQuery(paginationSearch(eventsNextCursor)),
-              })
-            : undefined
-        }
       />
     );
   },

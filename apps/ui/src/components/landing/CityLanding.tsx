@@ -37,7 +37,6 @@ type CityLandingProps = {
   events: readonly EventFeedItem[];
   afterStartsAt?: number;
   afterId?: string;
-  nextPageHref?: string;
   nextCursor?: EventFeedPage['nextCursor'];
 };
 
@@ -50,7 +49,6 @@ export const CityLanding = ({
   events,
   afterStartsAt,
   afterId,
-  nextPageHref,
   nextCursor,
 }: CityLandingProps) => {
   const cityDisplayName = localizedName(city, locale);
@@ -211,11 +209,7 @@ export const CityLanding = ({
         )}
       </section>
 
-      <LoadMoreEvents
-        locale={locale}
-        pagination={pagination}
-        nextPageHref={nextPageHref}
-      />
+      <LoadMoreEvents locale={locale} pagination={pagination} />
     </section>
   );
 };

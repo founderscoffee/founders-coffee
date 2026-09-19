@@ -16,7 +16,7 @@ const sourceFiles = (dir: string): string[] =>
 describe('controls that reveal themselves on focus', () => {
   it('never reaches for the sr-only pair a vendor sheet overrides', () => {
     const offenders = sourceFiles(srcRoot)
-      .filter((path) => !path.endsWith('focus-reveal.test.ts'))
+      .filter((path) => !path.endsWith('sr-only-focus.test.ts'))
       .filter((path) =>
         /\bfocus:not-sr-only\b/u.test(readFileSync(path, 'utf8')),
       )
@@ -24,7 +24,7 @@ describe('controls that reveal themselves on focus', () => {
 
     expect(
       offenders,
-      'timepicker-ui is imported unlayered and defines .sr-only, and an unlayered rule beats @layer utilities at any specificity, so focus:not-sr-only never fires and the control stays a 1x1 point while it holds focus. Use the .focus-reveal class instead',
+      'timepicker-ui/dist/css/main.css is imported unlayered by apps/ui/src/styles.css and defines .sr-only twice. An unlayered declaration beats anything in @layer utilities whatever its specificity, so focus:not-sr-only never fires and the control stays a 1x1 point while it holds focus. FC-16 was this in the skip link and the feed next-page link was the second. Write an app-owned rule that hides through :not(:focus), unlayered so no vendor sheet can outrank it',
     ).toEqual([]);
   });
 });

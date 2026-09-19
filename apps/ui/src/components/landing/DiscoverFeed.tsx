@@ -21,7 +21,6 @@ type DiscoverFeedProps = {
   events: readonly EventFeedItem[];
   afterStartsAt?: number;
   afterId?: string;
-  nextPageHref?: string;
   nextCursor?: EventFeedPage['nextCursor'];
 };
 
@@ -31,7 +30,6 @@ export const DiscoverFeed = ({
   events,
   afterStartsAt,
   afterId,
-  nextPageHref,
   nextCursor,
 }: DiscoverFeedProps) => {
   const pagination = useEventPages(
@@ -80,11 +78,7 @@ export const DiscoverFeed = ({
             ))}
           </ul>
 
-          <LoadMoreEvents
-            locale={locale}
-            pagination={pagination}
-            nextPageHref={nextPageHref}
-          />
+          <LoadMoreEvents locale={locale} pagination={pagination} />
         </>
       ) : (
         <EmptyState title={no_events_yet({}, { locale })} />
