@@ -73,6 +73,7 @@ const PUBLIC_MARKET_FIELDS = [
   'featureFlags',
   'name',
   'nameAr',
+  'nameFr',
   'slug',
   'state',
   'timezone',

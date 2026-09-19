@@ -21,9 +21,10 @@ export interface LocalizedNames {
  * and it is frozen into the venue snapshots as an address. Renaming it to read better somewhere
  * breaks both, so a language that wants a different word gets its own field here.
  *
- * `nameFr` is read but nothing sets it yet, so French falls through to `name` exactly as it did
- * before this existed (FC-28). That is the whole of the French gap: one absent field, not a
- * missing branch at each of the places that render a name.
+ * `nameFr` is sparse on purpose (FC-28). Most Algerian place names in `name` already are the
+ * French spelling, so a row only carries one where French has a genuinely different word for the
+ * place — `Alger` for `Algiers`, `Algérie` for `Algeria`. Everything else falling through to
+ * `name` is the correct answer rather than a gap waiting to be filled.
  */
 export const localizedName = (named: LocalizedNames, locale: Locale): string =>
   (locale === 'ar' ? named.nameAr : locale === 'fr' ? named.nameFr : null) ??

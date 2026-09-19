@@ -24,6 +24,7 @@ import {
   footer_terms,
   localizedName,
   type Locale,
+  type LocalizedNames,
 } from '@founders-coffee/i18n';
 import { Logo } from '@founders-coffee/ui';
 
@@ -41,11 +42,9 @@ type FooterProps = {
   market?: FooterMarket;
 };
 
-type FooterMarket = {
+type FooterMarket = LocalizedNames & {
   readonly code: string;
   readonly slug: string;
-  readonly name: string;
-  readonly nameAr: string | null;
 };
 
 type FooterNavGroupProps = {
