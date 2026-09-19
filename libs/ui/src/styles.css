@@ -349,10 +349,20 @@
   }
   .hero-stack {
     padding-top: 112px;
-    padding-bottom: 10.2px;
   }
   .hero-search {
     margin-top: 50.5px;
+  }
+}
+
+/* The search field is the last thing in the hero below the desktop breakpoint, so this padding
+   is literally the space under it. Phone and tablet share the one value: the phone carried 36px
+   against the tablet's 10.2px, which read as a gap the tablet composition does not have. The
+   phone keeps its own padding-top, because there the artwork is still in flow between the
+   subtitle and the search field and the headline needs no room made for it. */
+@media (width < 64rem) {
+  .hero-stack {
+    padding-bottom: 10.2px;
   }
 }
 
