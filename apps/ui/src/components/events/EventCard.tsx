@@ -132,6 +132,8 @@ export const EventCard = ({
                             alt=""
                             width="28"
                             height="28"
+                            loading="lazy"
+                            decoding="async"
                             className="size-full rounded-full object-cover"
                           />
                         ) : (
@@ -157,6 +159,8 @@ export const EventCard = ({
                           alt=""
                           width="28"
                           height="28"
+                          loading="lazy"
+                          decoding="async"
                           className="size-full rounded-full object-cover"
                         />
                       ) : (

@@ -1,5 +1,10 @@
 import type { Market } from '@founders-coffee/db';
-import { cities_in, no_events_yet, type Locale } from '@founders-coffee/i18n';
+import {
+  cities_in,
+  localizedName,
+  no_events_yet,
+  type Locale,
+} from '@founders-coffee/i18n';
 import type { EventFeedItem, EventFeedPage } from '@founders-coffee/server-fns';
 
 import { useUpcomingEvents } from '../../features/events/hooks';
@@ -16,7 +21,6 @@ type DiscoverFeedProps = {
   events: readonly EventFeedItem[];
   afterStartsAt?: number;
   afterId?: string;
-  nextPageHref?: string;
   nextCursor?: EventFeedPage['nextCursor'];
 };
 
@@ -26,7 +30,6 @@ export const DiscoverFeed = ({
   events,
   afterStartsAt,
   afterId,
-  nextPageHref,
   nextCursor,
 }: DiscoverFeedProps) => {
   const pagination = useEventPages(
@@ -44,8 +47,7 @@ export const DiscoverFeed = ({
     events,
   );
   const items = pagination.items;
-  const marketName =
-    locale === 'ar' ? (market.nameAr ?? market.name) : market.name;
+  const marketName = localizedName(market, locale);
 
   return (
     <section
@@ -56,7 +58,7 @@ export const DiscoverFeed = ({
         <>
           <h2
             id="market-events-title"
-            className="mb-8 font-display text-h3 font-semibold tracking-tight text-balance md:mb-10 md:text-h2"
+            className="discover-title mb-8 font-display text-h3 font-semibold tracking-tight text-balance md:mb-10 md:text-h2"
           >
             {cities_in({ market: marketName }, { locale })}
           </h2>
@@ -76,11 +78,7 @@ export const DiscoverFeed = ({
             ))}
           </ul>
 
-          <LoadMoreEvents
-            locale={locale}
-            pagination={pagination}
-            nextPageHref={nextPageHref}
-          />
+          <LoadMoreEvents locale={locale} pagination={pagination} />
         </>
       ) : (
         <EmptyState title={no_events_yet({}, { locale })} />

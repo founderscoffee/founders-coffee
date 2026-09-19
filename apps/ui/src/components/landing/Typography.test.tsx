@@ -55,6 +55,7 @@ const market: Market = {
   code: 'DZ',
   name: 'Algeria',
   nameAr: 'الجزائر',
+  nameFr: 'Algérie',
   slug: 'algeria',
   defaultLocale: 'ar',
   defaultCurrency: 'DZD',
@@ -251,7 +252,7 @@ describe('P1-002 landing typography', () => {
         'text-body-sm',
       );
       expect(view.container.querySelectorAll('a.aura')).toHaveLength(1);
-      expect(view.container.querySelectorAll('a.aura-dual')).toHaveLength(1);
+      expect(view.container.querySelectorAll('a.aura-glow')).toHaveLength(1);
       expect(view.container.querySelectorAll('a.hover-3d')).toHaveLength(0);
       expect(view.container.querySelectorAll('article')).toHaveLength(3);
       expect(view.container.querySelectorAll('data')).toHaveLength(2);

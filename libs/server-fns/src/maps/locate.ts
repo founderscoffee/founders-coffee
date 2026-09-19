@@ -47,7 +47,9 @@ const cityInState = (
     .find(
       (candidate) =>
         normalize(candidate.name) === wanted ||
-        normalize(candidate.nameAr) === wanted,
+        normalize(candidate.nameAr) === wanted ||
+        (candidate.nameFr !== undefined &&
+          normalize(candidate.nameFr) === wanted),
     );
   return city?.code;
 };

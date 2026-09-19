@@ -269,6 +269,7 @@ export class DevPushProvider implements PushProvider {
 
   send = async (args: SendPushArgs): Promise<Result<SendPushResult>> => {
     this.sent.push(args);
+    // eslint-disable-next-line no-console -- dev payload: not for the log pipeline
     console.log(
       `[DevPushProvider] Push to ${args.token.slice(0, 20)}...: ${args.title} — ${args.body}`,
     );

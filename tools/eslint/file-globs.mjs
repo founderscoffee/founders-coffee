@@ -25,6 +25,27 @@ export const MAX_LINES_EXEMPT = [
 ];
 
 /**
+ * Where `console` is the output rather than a stray debug print, so `no-console` cannot apply.
+ *
+ * `tools/` holds one-shot CLI scripts: what they print IS their interface, and they run on Node
+ * outside any Worker, where the structured logger has no transport bound. `transports.ts` is the
+ * logger's own console sink — the rule cannot ban the call it redirects everything to. A test
+ * prints only through a fake it built itself, and ships nowhere.
+ *
+ * Product code says things through the structured logger (AGENTS.md §5). The dev-only OTP, SMS and
+ * push providers are the deliberate exception and carry an inline justification at each call
+ * instead of a glob here: they print a secret that must never enter the log pipeline, because
+ * `sanitize` would redact it and Logpush would keep whatever survived.
+ */
+export const CONSOLE_ALLOWED = [
+  'tools/**/*.mjs',
+  'tools/**/*.ts',
+  'libs/observability/src/transports.ts',
+  '**/*.test.ts',
+  '**/*.test.tsx',
+];
+
+/**
  * Where product copy is written by hand rather than read out of the message catalogue: page
  * content, the components that render it, and the email templates. The catalogue, the web app
  * manifests, `offline.html` and the rendered emails each have their own em-dash guard in a test;
@@ -66,6 +87,7 @@ export const IGNORED = [
   '**/dist',
   '**/out-tsc',
   '**/coverage',
+  '**/.e2e',
   'libs/i18n/src/paraglide/**',
   '**/worker-configuration.d.ts',
 ];

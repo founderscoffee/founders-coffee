@@ -16,7 +16,7 @@ export const marketsApi = {
 
 export type RootMarket = Pick<
   Market,
-  'code' | 'slug' | 'name' | 'nameAr' | 'timezone'
+  'code' | 'slug' | 'name' | 'nameAr' | 'nameFr' | 'timezone'
 >;
 
 /**
@@ -36,6 +36,7 @@ export const toRootMarket = (market: Market): RootMarket => ({
   slug: market.slug,
   name: market.name,
   nameAr: market.nameAr,
+  nameFr: market.nameFr,
   timezone: market.timezone,
 });
 

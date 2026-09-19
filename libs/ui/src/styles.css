@@ -64,6 +64,7 @@
   --font-arabic: 'Tajawal', 'Inter Variable', system-ui, sans-serif;
 
   --text-display: clamp(2.75rem, 7vw, 5.5rem);
+  --text-display-max: 5.5rem;
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.03em;
   --text-h1: 2.5rem;
@@ -215,5 +216,204 @@
   :lang(ar).font-display {
     font-family: var(--font-arabic);
     letter-spacing: 0;
+  }
+}
+
+/* A control sized for a mouse is a smaller thing than a control sized for a thumb: Apple asks
+   44pt and Android 48dp, and daisyUI's `btn-md` lands at 40px while `btn-sm` lands at 32. Both
+   standards measure the area that responds to a tap rather than the paint, so the gap closes
+   without redrawing a single button: a transparent `::after`, centred on the control, grows
+   whichever axis falls short and leaves the rest alone. `max(100%, 44px)` is what says "only
+   the short side" — a 95px-wide pill keeps its 95px and gains height only.
+
+   The pseudo-element belongs to the control, so a tap that lands on it is a tap on the control
+   and needs no handler of its own. It also paints nothing, so the fix is invisible on the page
+   and identical on a desktop, where `pointer: coarse` never matches and the rule never applies.
+
+   `position: relative` is what the pseudo-element anchors to. No `.btn` in this product sets a
+   position of its own or holds an absolutely positioned descendant, so claiming the containing
+   block here costs nothing; a button that later needs `absolute` has to opt out of this rule.
+
+   `.tap-target` is the opt-in for controls built out of `inline-flex` rather than `.btn`. Text
+   links in a list do not want it: their hit areas would grow into each other, and a link that
+   already carries `min-h-11` is at the target anyway. */
+@layer utilities {
+  @media (pointer: coarse) {
+    .btn,
+    .tap-target {
+      position: relative;
+    }
+    .btn::after,
+    .tap-target::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, 44px);
+      height: max(100%, 44px);
+      translate: -50% -50%;
+    }
+  }
+}
+
+/* The hero headline must hold one line at every width, and the three translations are not the
+   same length: twenty-three characters of French against thirty of English. A single size
+   cannot serve all of them, so each language gets its own, expressed as a share of the
+   container rather than of the viewport. The hero is capped at `--container-content`, so past
+   1184px the viewport keeps growing while the space for the headline does not, and a `vw` rule
+   would carry on enlarging the text until it broke the line it was meant to keep.
+
+   Each share is the width the string occupies at a known size, inverted: measured at 100px,
+   Arabic runs 831px, French 1017px and English 1283px, which makes the fitting size
+   `100 x container / that width`, and `1cqw` is one hundredth of the container. Three percent
+   is held back so a font that loads slightly wider than it measured still lands inside.
+
+   The unprefixed rule carries the English share because it is the tightest of the three, which
+   makes it the safer thing for a fourth language to inherit before anyone measures it. Adding
+   a locale means measuring its headline and giving it a line here.
+
+   `min()` keeps the old ceiling: a headline stops growing at 5.5rem even where the line would
+   allow more, which is what holds the Arabic hero at its intended size on a wide screen. There
+   is no floor, because a floor is precisely what wraps the line on a narrow one. */
+@layer utilities {
+  .text-display-fit {
+    --display-fit-share: 7.56cqw;
+    --display-fit-scale: 1;
+    font-size: calc(
+      min(var(--display-fit-share), var(--text-display-max)) *
+        var(--display-fit-scale)
+    );
+    line-height: var(--text-display--line-height);
+    letter-spacing: var(--text-display--letter-spacing);
+    white-space: nowrap;
+  }
+  :lang(fr) .text-display-fit {
+    --display-fit-share: 9.53cqw;
+  }
+  :lang(ar) .text-display-fit {
+    --display-fit-share: 11.67cqw;
+  }
+}
+
+/* The hero artwork is lossy WebP with no alpha channel, so it carries its own background:
+   #f1e8d9 at the top edge and #f2e9da at the bottom, against the section's #f3ebdd. Two to
+   four levels per channel is nothing on a photograph and plainly visible as a step across a
+   flat wash, which is what the hero is. On a wide screen the art sits on the section's floor
+   and only its top edge meets that wash, low enough to read as the horizon; on a phone it sits
+   in the flow between the subtitle and the search field, and both edges show.
+
+   Fading the edges to transparent removes the step without touching the asset. The stops are
+   lengths rather than percentages because the three markets no longer share one aspect ratio:
+   Algeria is 828x234, Egypt 828x190, Saudi 828x277, so the same percentage would mean a
+   different number of pixels in each. Every mobile asset was cropped to keep at least 31px of
+   empty sky and 15px of empty water, which is 12.0px and 5.8px once scaled to a 320px viewport,
+   the narrowest we support. Both fades finish inside that margin, so neither erases anything
+   drawn. */
+/* Tablet, meaning 768px up to the desktop breakpoint. The hero is composed for the two ends of
+   the range — a phone, where it is already compact, and a desktop, where the headline is the
+   page's anchor and has the width to be it — and between them the three stacked elements
+   crowd. These numbers come from matching a reference composition measured at 986px: the
+   headline and subtitle sit clear in the sky, and the search field drops onto the waterline of
+   the artwork behind it. Every value below was read off that comparison rather than chosen, so
+   changing one in isolation will pull the composition apart.
+
+   The headline reduction is a multiplier on the fitted size rather than a size of its own, so
+   it composes with the machinery above instead of replacing it: the per-language shares stay
+   the single place a measured headline is recorded, `min()` still applies the 5.5rem ceiling,
+   and the one-line guarantee survives because a multiplier below one only ever shortens the
+   line. Both line-heights are unitless, so they follow their font-size down on their own.
+
+   Arabic takes a larger subtitle than the Latin locales, not a smaller one. The reduction that
+   suits French and English makes Arabic too light to read against the artwork, because the
+   script carries its meaning in strokes that thin out faster as the size drops.
+
+   The padding and margins here are absolute because the section's own `min-height` is within a
+   pixel or two of the content height at this width: a proportional value would let the content
+   fall under the minimum, at which point `items-center` starts centring it and the offsets stop
+   meaning what they say.
+
+   The wrapper is `hero-stack`, not `hero-content`: DaisyUI ships a `.hero-content` component
+   that sets `gap: 1rem`, and borrowing the name added 16px between every child of this element
+   at every width — 48px on a phone, where the artwork is still in flow. */
+@media (48rem <= width < 64rem) {
+  .text-display-fit {
+    --display-fit-scale: 0.686;
+  }
+  .hero-subtitle {
+    --hero-sub-scale: 0.75;
+    margin-top: 15.5px;
+    font-size: calc(var(--text-body-lg) * var(--hero-sub-scale));
+  }
+  :lang(ar) .hero-subtitle {
+    --hero-sub-scale: 1.09;
+  }
+  .hero-stack {
+    padding-top: 112px;
+  }
+  .hero-search {
+    margin-top: 50.5px;
+  }
+}
+
+/* The search field is the last thing in the hero below the desktop breakpoint, so this padding
+   is literally the space under it. Phone and tablet share the one value: the phone carried 36px
+   against the tablet's 10.2px, which read as a gap the tablet composition does not have. The
+   phone keeps its own padding-top, because there the artwork is still in flow between the
+   subtitle and the search field and the headline needs no room made for it. */
+@media (width < 64rem) {
+  .hero-stack {
+    padding-bottom: 10.2px;
+  }
+}
+
+/* The subtitle carries the one line under a headline nearly five times its size, and at the 18px
+   it shares with body copy it read as a caption rather than the sentence the hero is making. A
+   quarter more gives it the weight to sit against the artwork without competing with the
+   headline.
+
+   All three locales take the same step. The tablet block splits them because the reduction there
+   takes Arabic below the size its strokes survive; nothing is reduced here, so there is nothing
+   for Arabic to be spared.
+
+   `--text-body-lg--line-height` is a ratio rather than a length, so the line box grows with the
+   text and the margin above it still means what it says. */
+@media (width >= 64rem) {
+  .hero-subtitle {
+    font-size: calc(var(--text-body-lg) * 1.25);
+  }
+}
+
+/* The upcoming-events heading holds one line on a phone, where two lines of a 24px display face
+   pushed the first event card under the fold.
+
+   The size is the width the line has divided by the width the string wants, so it follows the
+   viewport instead of being a number that happens to work on one device. `1cqw` is no use here:
+   the heading is not inside a container, so the share is taken from the viewport less the 2rem
+   the section spends on its own padding.
+
+   The divisor is the Arabic string measured at 100px and inverted, taken for the longest market
+   rather than the one that has events today: `السعودية` runs 1918px against `الجزائر` 1767px and
+   `مصر` 1689px, and sizing for Algeria would make this rule quietly false the day Saudi seeds an
+   event. Three per cent is held back for a font that loads wider than it measured, which is where
+   19.8 comes from. Adding a market means measuring its heading and, if it is longer, raising this.
+
+   French and English are not on one line here and cannot be: they want 9.8px and 14px at 360px,
+   which is smaller than the body copy around them. They wrap, and the cap keeps them legible. */
+@media (width < 48rem) {
+  .discover-title {
+    font-size: min(var(--text-h4), calc((100vw - 2rem) / 19.8));
+    line-height: var(--text-h4--line-height);
+  }
+}
+
+@media (width < 48rem) {
+  .hero-art {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 10px,
+      #000 calc(100% - 4px),
+      transparent 100%
+    );
   }
 }

@@ -80,6 +80,34 @@ describe('locatePoint', () => {
     if (!result.ok) expect(result.error.code).toBe('map_provider_unavailable');
   });
 
+  it('recognises the city under the French name the provider answers in', async () => {
+    const located = (placeName: string) =>
+      locatePoint(
+        providerWith(async () =>
+          ok({
+            address: `Une rue à ${placeName}`,
+            admin: { isoRegionCode: 'DZ-34', placeName },
+          }),
+        ),
+        {
+          marketCode: 'DZ',
+          locale: 'fr',
+          latitude: 36.0731,
+          longitude: 4.7608,
+        },
+      );
+
+    const french = await located('Bordj Bou Arreridj');
+    expect(french.ok).toBe(true);
+    if (french.ok) expect(french.data.cityCode).toBe('1166');
+
+    const unknown = await located('Nowhere At All');
+    expect(
+      unknown.ok,
+      'this wilaya has no snapshotted venue to fall back to, so the French name is the only thing that resolved the city above',
+    ).toBe(false);
+  });
+
   it('falls back to the nearest snapshotted city when no place name matches', async () => {
     const result = await locatePoint(
       providerWith(async () =>

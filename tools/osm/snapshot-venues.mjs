@@ -13,6 +13,8 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { readGeoRecords } from '../geo/geo-records.mjs';
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT_DIR = `${ROOT}/.osm-snapshot`;
 /*
@@ -44,21 +46,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const readCities = (market) => {
   const file = `${ROOT}/libs/domain/src/geo/data/${market.toLowerCase()}.ts`;
-  const src = readFileSync(file, 'utf8');
-  const cities = [];
-  const re =
-    /\{\s*code:\s*'([^']+)',\s*name:\s*'([^']*)',\s*nameAr:\s*'([^']*)',\s*slug:\s*'([^']+)',\s*stateCode:\s*'([^']+)',\s*featured:\s*(true|false),?\s*\}/g;
-  for (const m of src.matchAll(re)) {
-    if (m[6] === 'true')
-      cities.push({
-        code: m[1],
-        name: m[2],
-        nameAr: m[3],
-        slug: m[4],
-        stateCode: m[5],
-      });
-  }
-  return cities;
+  const source = readFileSync(file, 'utf8');
+  return readGeoRecords(source, `${market.toUpperCase()}_CITIES`).filter(
+    (city) => city.featured,
+  );
 };
 
 const resolveCity = async (market, city) => {

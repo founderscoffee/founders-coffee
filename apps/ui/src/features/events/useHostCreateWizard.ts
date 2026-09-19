@@ -6,6 +6,7 @@ import {
   host_time_invalid,
   host_time_nonexistent,
   host_time_zone_error,
+  localizedName,
   type Locale,
   type ZonedDateTimeError,
 } from '@founders-coffee/i18n';
@@ -50,9 +51,8 @@ export const useHostCreateWizard = ({
   isAuthenticated: boolean;
   isAuthLoading: boolean;
 }) => {
-  const named = city ?? { name: market.name, nameAr: market.nameAr };
   const { user } = useAuth();
-  const cityName = (locale === 'ar' ? named.nameAr : named.name) ?? market.name;
+  const cityName = localizedName(city ?? market, locale);
   const [step, setStep] = useState(1);
   const [venue, setVenue] = useState<VenueSelection | null>(null);
   const [venueName, setVenueName] = useState('');

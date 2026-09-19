@@ -218,6 +218,13 @@
       "when": 1789579878841,
       "tag": "0030_white_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1789828091610,
+      "tag": "0031_market_name_fr",
+      "breakpoints": true
     }
   ]
 }

@@ -81,6 +81,35 @@ describe('public Worker SEO contract', () => {
     expect(sitemapBody).not.toContain('<url>');
   });
 
+  it('sends a cursor that names nothing back to the clean URL', async () => {
+    const cases = [
+      [
+        '/en/algeria?afterStartsAt=1700000000000&afterId=no-such-event',
+        '/en/algeria',
+      ],
+      ['/en/algeria?afterStartsAt=9999999999999&afterId=nope', '/en/algeria'],
+      [
+        '/en/algeria/algiers?afterStartsAt=1700000000000&afterId=nope',
+        '/en/algeria/algiers',
+      ],
+    ] as const;
+
+    for (const [path, destination] of cases) {
+      const response = await fetchDocument(path);
+
+      expect(
+        response.status,
+        `${path} answered instead of redirecting: a cursor naming no row is not page two, it is a second address for page one, and a crawler can mint unlimited ones`,
+      ).toBe(307);
+      expect(
+        new URL(response.headers.get('location') ?? '', ORIGIN).pathname.concat(
+          new URL(response.headers.get('location') ?? '', ORIGIN).search,
+        ),
+        `${path} redirected somewhere other than its own clean URL`,
+      ).toBe(destination);
+    }
+  });
+
   it('serves a staging-safe llms guide and a production discovery guide', async () => {
     const staging = await worker.fetch(
       new Request(`${ORIGIN}/llms.txt`),
@@ -96,7 +125,17 @@ describe('public Worker SEO contract', () => {
     expect(stagingBody).toContain(
       'This staging environment is not for public discovery.',
     );
-    expect(stagingBody).not.toContain('https://founders.coffee');
+    expect(
+      stagingBody.split('\n').filter((line) => line.startsWith('- ')),
+      'staging carries one link, to itself: enough for the audit (#33), and not a production URL',
+    ).toEqual([`- [Founders Coffee](${ORIGIN})`]);
+    expect(
+      stagingBody,
+      'tools/seo/discovery-contract.mjs fails the deploy on this, and it only runs after the Worker is already live',
+    ).not.toContain('https://founders.coffee');
+    expect(stagingBody).not.toContain('/sitemap.xml');
+    expect(stagingBody).not.toContain('/events.json');
+    expect(stagingBody).not.toContain('/e/');
 
     const production = await worker.fetch(
       new Request('https://founders.coffee/llms.txt'),

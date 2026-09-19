@@ -1,6 +1,7 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import {
   countUpcomingByCity,
+  feedCursorAnchorExists,
   getMarketByCode,
   getMarketBySlug,
   listMarkets,
@@ -31,6 +32,7 @@ export interface MarketWithCities {
   readonly eventsNextCursor: EventFeedCursor | null;
   readonly cityEventCounts: Record<string, number>;
   readonly trending: TrendingSection;
+  readonly cursorValid: boolean;
 }
 
 export interface MarketCity {
@@ -38,6 +40,7 @@ export interface MarketCity {
   readonly city: geo.GeoCity;
   readonly events: readonly EventFeedItem[];
   readonly eventsNextCursor: EventFeedCursor | null;
+  readonly cursorValid: boolean;
 }
 
 /**
@@ -85,6 +88,28 @@ export const listVisibleMarkets = (db: Db): Promise<Market[]> =>
   listMarkets(db, { states: markets.VISIBLE_STATES });
 
 /**
+ * Whether the cursor in a landing request names a real position in that landing's feed.
+ *
+ * No cursor is a valid request for page one, so absence reads as valid. A cursor that names
+ * nothing is not paging — it is a URL that happens to render page one, and the loaders send it to
+ * the clean URL rather than serving that content under a second address.
+ */
+const cursorNamesAPosition = async (
+  db: Db,
+  scope: { readonly marketCode: string; readonly cityCode?: string },
+  pagination: { readonly afterStartsAt?: number; readonly afterId?: string },
+): Promise<boolean> => {
+  if (pagination.afterStartsAt === undefined || !pagination.afterId)
+    return true;
+  return feedCursorAnchorExists(db, {
+    startsAt: new Date(pagination.afterStartsAt),
+    id: pagination.afterId,
+    marketCode: scope.marketCode,
+    cityCode: scope.cityCode,
+  });
+};
+
+/**
  * Resolve a visible market + its featured cities (state capitals) by slug-or-code. Cities come from
  * the domain geo TS data (server-side, NOT D1 — the `cities` table is dropped). Dark/unknown →
  * `market_not_found` (no leak). The country-landing loader calls this + canonicalizes the URL.
@@ -107,6 +132,7 @@ export const resolveMarketLanding = async (
     { items: events, nextCursor: eventsNextCursor },
     cityEventCounts,
     trending,
+    cursorValid,
   ] = await Promise.all([
     listEvents(db, {
       marketCode: market.code,
@@ -116,6 +142,7 @@ export const resolveMarketLanding = async (
     }),
     countUpcomingByCity(db, market.code),
     resolveTrendingStates(db, market.code),
+    cursorNamesAPosition(db, { marketCode: market.code }, pagination),
   ]);
   const eventsWithAttendance = await attachAttendance(db, events);
   return ok({
@@ -125,6 +152,7 @@ export const resolveMarketLanding = async (
     eventsNextCursor,
     cityEventCounts,
     trending,
+    cursorValid,
   });
 };
 
@@ -152,18 +180,27 @@ export const resolveCityLanding = async (
       new AppError('city_not_found', `No city ${citySlug} in ${market.code}`),
     );
   }
-  const { items: events, nextCursor: eventsNextCursor } = await listEvents(db, {
-    marketCode: market.code,
-    cityCode: city.code,
-    afterStartsAt: pagination.afterStartsAt,
-    afterId: pagination.afterId,
-    limit: 20,
-  });
+  const [cursorValid, { items: events, nextCursor: eventsNextCursor }] =
+    await Promise.all([
+      cursorNamesAPosition(
+        db,
+        { marketCode: market.code, cityCode: city.code },
+        pagination,
+      ),
+      listEvents(db, {
+        marketCode: market.code,
+        cityCode: city.code,
+        afterStartsAt: pagination.afterStartsAt,
+        afterId: pagination.afterId,
+        limit: 20,
+      }),
+    ]);
   const eventsWithAttendance = await attachAttendance(db, events);
   return ok({
     market,
     city,
     events: eventsWithAttendance,
     eventsNextCursor,
+    cursorValid,
   });
 };

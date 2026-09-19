@@ -19,7 +19,6 @@ type MarketLandingProps = {
   events: readonly EventFeedItem[];
   afterStartsAt?: number;
   afterId?: string;
-  nextPageHref?: string;
   nextCursor?: EventFeedPage['nextCursor'];
   trending: TrendingSection;
 };
@@ -31,7 +30,6 @@ export const MarketLanding = ({
   events,
   afterStartsAt,
   afterId,
-  nextPageHref,
   nextCursor,
   trending,
 }: MarketLandingProps) => (
@@ -48,7 +46,6 @@ export const MarketLanding = ({
       events={events}
       afterStartsAt={afterStartsAt}
       afterId={afterId}
-      nextPageHref={nextPageHref}
       nextCursor={nextCursor}
     />
   </>

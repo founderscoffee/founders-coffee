@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { AppError, appErrorCode, err, handleResult, ok } from './result.js';
+import {
+  AppError,
+  appErrorCode,
+  err,
+  handleResult,
+  isNotFoundCode,
+  ok,
+} from './result.js';
 
 describe('Result envelope', () => {
   it('ok builds a success result', () => {
@@ -47,5 +54,48 @@ describe('appErrorCode', () => {
     expect(appErrorCode({ code: 42 })).toBe('unknown');
     expect(appErrorCode(null)).toBe('unknown');
     expect(appErrorCode('string error')).toBe('unknown');
+  });
+});
+
+describe('isNotFoundCode', () => {
+  it('accepts every not-found code the product raises today', () => {
+    for (const code of [
+      'not_found',
+      'event_not_found',
+      'market_not_found',
+      'city_not_found',
+      'map_city_not_found',
+      'rsvp_not_found',
+      'order_not_found',
+    ]) {
+      expect(isNotFoundCode(code), code).toBe(true);
+    }
+  });
+
+  it('rejects the codes that mean something went wrong', () => {
+    for (const code of [
+      'validation_failed',
+      'forbidden',
+      'unauthenticated',
+      'rate_limited',
+      'event_full',
+      'already_rsvpd',
+      'rsvp_closed',
+      'env_missing',
+      'email_send_failed',
+      'reconcile_failed',
+      'queue_unroutable',
+      'unknown',
+      'TypeError',
+    ]) {
+      expect(isNotFoundCode(code), code).toBe(false);
+    }
+  });
+
+  it('matches on the whole trailing word, not a substring', () => {
+    expect(isNotFoundCode('event_not_host')).toBe(false);
+    expect(isNotFoundCode('event_not_available')).toBe(false);
+    expect(isNotFoundCode('not_found_page_failed')).toBe(false);
+    expect(isNotFoundCode('cannot_found')).toBe(false);
   });
 });

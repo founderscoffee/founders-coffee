@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { AppError } from '@founders-coffee/core';
 import { setLogger, type Logger } from '@founders-coffee/observability';
 import { getRequestContext } from '@founders-coffee/observability/context';
 
@@ -46,6 +47,25 @@ describe('withRequestContext', () => {
     ).rejects.toThrow('boom');
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
+  });
+
+  it('reports a not-found miss at info rather than error', async () => {
+    const error = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    await expect(
+      withRequestContext(async () => {
+        throw new AppError(
+          'market_not_found',
+          'No visible market for sw-push.js',
+        );
+      }),
+    ).rejects.toThrow('No visible market for sw-push.js');
+    expect(info).toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
+    info.mockRestore();
+    error.mockRestore();
   });
 
   it('uses a fresh requestId per call', async () => {

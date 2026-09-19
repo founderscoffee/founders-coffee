@@ -48,6 +48,7 @@ const markets: readonly RootMarket[] = [
     slug: 'algeria',
     name: 'Algeria',
     nameAr: 'الجزائر',
+    nameFr: 'Algérie',
     timezone: 'Africa/Algiers',
   },
 ];

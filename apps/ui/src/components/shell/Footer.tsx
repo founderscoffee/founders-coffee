@@ -22,7 +22,9 @@ import {
   footer_privacy,
   footer_tagline,
   footer_terms,
+  localizedName,
   type Locale,
+  type LocalizedNames,
 } from '@founders-coffee/i18n';
 import { Logo } from '@founders-coffee/ui';
 
@@ -40,11 +42,9 @@ type FooterProps = {
   market?: FooterMarket;
 };
 
-type FooterMarket = {
+type FooterMarket = LocalizedNames & {
   readonly code: string;
   readonly slug: string;
-  readonly name: string;
-  readonly nameAr: string | null;
 };
 
 type FooterNavGroupProps = {
@@ -52,11 +52,6 @@ type FooterNavGroupProps = {
   title: string;
   children: ReactNode;
 };
-
-const marketLabel = (
-  market: Pick<FooterMarket, 'name' | 'nameAr'>,
-  locale: Locale,
-) => (locale === 'ar' ? (market.nameAr ?? market.name) : market.name);
 
 const linkClass =
   'inline-flex min-h-11 items-center text-body-sm text-neutral transition-colors hover:text-base-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
@@ -105,14 +100,14 @@ const FooterNavGroup = ({ id, title, children }: FooterNavGroupProps) => (
 export const Footer = ({ locale, markets, market }: FooterProps) => {
   const primaryMarket = market ?? markets[0];
   const primaryMarketLabel = primaryMarket
-    ? marketLabel(primaryMarket, locale)
+    ? localizedName(primaryMarket, locale)
     : '';
 
   return (
     <footer className="mt-16 bg-base-200">
       <div className="mx-auto max-w-content px-4 py-12 md:px-8 md:py-14">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[minmax(15rem,1.4fr)_repeat(3,minmax(0,1fr))]">
-          <div className="flex flex-col items-start gap-4 md:col-span-2 lg:col-span-1">
+        <div className="grid gap-10 md:grid-cols-3 lg:grid-cols-[minmax(15rem,1.4fr)_repeat(3,minmax(0,1fr))]">
+          <div className="flex flex-col items-start gap-4 md:col-span-3 lg:col-span-1">
             <Link
               to="/"
               aria-label={brand({}, { locale })}
@@ -206,8 +201,8 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
         </div>
 
         <div className="mt-10 border-t border-base-300 pt-6">
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-caption text-neutral">
+          <div className="flex flex-col items-center gap-5 md:flex-row md:justify-between">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-caption text-neutral md:justify-start">
               <span>{footer_copyright_brand({}, { locale })}</span>
               <span>{footer_copyright_made({}, { locale })}</span>
             </div>

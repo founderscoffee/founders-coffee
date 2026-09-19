@@ -8,6 +8,8 @@ import { readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { readGeoRecords } from '../geo/geo-records.mjs';
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const IN_DIR = `${ROOT}/.osm-snapshot`;
 const OUT_DIR = `${ROOT}/libs/domain/src/venues/data`;
@@ -22,14 +24,14 @@ const MARKETS = ['DZ', 'EG', 'SA'];
  * and most OSM venue names in these markets are Latin anyway.
  */
 const cityNames = (market) => {
-  const src = readFileSync(
+  const source = readFileSync(
     `${ROOT}/libs/domain/src/geo/data/${market.toLowerCase()}.ts`,
     'utf8',
   );
   const names = {};
-  const re =
-    /\{\s*code:\s*'([^']+)',\s*name:\s*'([^']*)',\s*nameAr:\s*'([^']*)'/g;
-  for (const m of src.matchAll(re)) names[m[1]] = { name: m[2], nameAr: m[3] };
+  for (const city of readGeoRecords(source, `${market.toUpperCase()}_CITIES`)) {
+    names[city.code] = { name: city.name, nameAr: city.nameAr };
+  }
   return names;
 };
 

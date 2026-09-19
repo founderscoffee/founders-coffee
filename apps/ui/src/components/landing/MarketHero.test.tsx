@@ -32,6 +32,7 @@ const market: Market = {
   code: 'DZ',
   name: 'Algeria',
   nameAr: 'الجزائر',
+  nameFr: 'Algérie',
   slug: 'algeria',
   defaultLocale: 'ar',
   defaultCurrency: 'DZD',

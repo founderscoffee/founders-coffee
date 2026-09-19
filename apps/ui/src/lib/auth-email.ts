@@ -39,7 +39,7 @@ export const createOtpEmailProvider = (
     const { html, text } = await renderEmail(OtpEmail, {
       locale: 'ar',
       preview: `رمز التحقق: ${otp}`,
-      greeting: 'مرحبًا بك في Founders Coffee',
+      greeting: 'مرحبًا بك',
       codeLabel: 'استخدم الرمز التالي للمتابعة.',
       code: otp,
       expiry: 'تنتهي صلاحيته خلال 30 دقيقة.',

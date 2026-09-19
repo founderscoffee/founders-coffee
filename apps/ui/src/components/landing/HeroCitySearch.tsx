@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-import type { Locale } from '@founders-coffee/i18n';
+import { localizedName, type Locale } from '@founders-coffee/i18n';
 import type { geo } from '@founders-coffee/domain';
 
 import { useCitySearch } from '../../features/geo/hooks';
@@ -39,11 +39,7 @@ export const HeroCitySearch = ({
     query.trim().length > 0 && !isFetching && results.length === 0;
   const showList = open && (results.length > 0 || showNoMatch);
 
-  const inputValue = selected
-    ? locale === 'ar'
-      ? selected.nameAr
-      : selected.name
-    : query;
+  const inputValue = selected ? localizedName(selected, locale) : query;
 
   const choose = (city: geo.GeoCity) => {
     onSelect(city);
@@ -153,39 +149,31 @@ export const HeroCitySearch = ({
               {noMatchText.replace('{query}', query)}
             </li>
           ) : (
-            results.map(
-              (
-                r: {
-                  city: geo.GeoCity;
-                  state: { name: string; nameAr: string };
-                },
-                i: number,
-              ) => (
-                <li
-                  key={`${r.city.stateCode}-${r.city.code}`}
-                  id={`hero-city-option-${i}`}
-                  role="option"
-                  aria-selected={selected?.code === r.city.code}
+            results.map((r: geo.CitySearchResult, i: number) => (
+              <li
+                key={`${r.city.stateCode}-${r.city.code}`}
+                id={`hero-city-option-${i}`}
+                role="option"
+                aria-selected={selected?.code === r.city.code}
+              >
+                <button
+                  type="button"
+                  className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-body-sm ${
+                    i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
+                  }`}
+                  tabIndex={-1}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    choose(r.city);
+                  }}
                 >
-                  <button
-                    type="button"
-                    className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-body-sm ${
-                      i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
-                    }`}
-                    tabIndex={-1}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      choose(r.city);
-                    }}
-                  >
-                    <span>{locale === 'ar' ? r.city.nameAr : r.city.name}</span>
-                    <span className="text-caption text-neutral">
-                      {locale === 'ar' ? r.state.nameAr : r.state.name}
-                    </span>
-                  </button>
-                </li>
-              ),
-            )
+                  <span>{localizedName(r.city, locale)}</span>
+                  <span className="text-caption text-neutral">
+                    {localizedName(r.state, locale)}
+                  </span>
+                </button>
+              </li>
+            ))
           )}
         </ul>
       )}

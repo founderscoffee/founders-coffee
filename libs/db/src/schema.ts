@@ -81,6 +81,7 @@ export const markets = sqliteTable('markets', {
   code: text('code').primaryKey(),
   name: text('name').notNull(),
   nameAr: text('name_ar'),
+  nameFr: text('name_fr'),
   slug: text('slug').notNull().unique(),
   defaultLocale: text('default_locale', { enum: [...LOCALES] }).notNull(),
   defaultCurrency: text('default_currency', {

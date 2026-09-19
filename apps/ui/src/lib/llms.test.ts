@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { LOCALES } from '@founders-coffee/i18n';
 import type { SitemapData } from '@founders-coffee/server-fns';
 
 import { llmsText, stagingLlmsText } from './llms';
+
+const STAGING_ORIGIN = 'https://staging.founders.coffee';
+const PREVIEW_ORIGIN =
+  'https://founders-coffee-ui-staging.yagoub-2-amine.workers.dev';
 
 const data: SitemapData = {
   markets: [{ slug: 'algeria' }],
@@ -36,14 +41,82 @@ describe('llms discovery guide', () => {
     expect(text).not.toContain('staging.founders.coffee');
   });
 
+  it('satisfies the three checks the llms.txt audit runs', () => {
+    const text = llmsText('https://founders.coffee', data, 'en');
+
+    expect(text, 'needs an H1').toMatch(/^\s*#\s+.+/mu);
+    expect(text, 'needs a markdown hyperlink').toMatch(/\[.+\]\(.+\)/u);
+    expect(text.length, 'must not be suspiciously short').toBeGreaterThan(49);
+  });
+
+  it('writes every list entry as a markdown hyperlink', () => {
+    const text = llmsText('https://founders.coffee', data, 'en');
+    const bullets = text.split('\n').filter((line) => line.startsWith('- '));
+
+    expect(bullets.length).toBeGreaterThan(5);
+    for (const bullet of bullets) {
+      expect(bullet, `${bullet} is not a markdown link`).toMatch(
+        /^- \[[^\]]+\]\(https:\/\/[^)]+\)$/u,
+      );
+    }
+  });
+
+  it('titles every section with a label rather than a sentence', () => {
+    for (const locale of LOCALES) {
+      const headings = llmsText('https://founders.coffee', data, locale)
+        .split('\n')
+        .filter((line) => line.startsWith('## '));
+
+      expect(headings.length).toBeGreaterThan(2);
+      for (const heading of headings) {
+        expect(
+          heading,
+          `${locale}: "${heading}" reads as a sentence, not a heading`,
+        ).not.toMatch(/[.!?\u061F]\s*$/u);
+      }
+    }
+  });
+
   it('keeps staging output free of production inventory', () => {
-    const text = stagingLlmsText('en');
+    const text = stagingLlmsText(STAGING_ORIGIN, 'en');
+    const bullets = text.split('\n').filter((line) => line.startsWith('- '));
 
     expect(text).toContain(
       'This staging environment is not for public discovery.',
     );
-    expect(text).not.toContain('https://');
+    expect(bullets).toEqual([`- [Founders Coffee](${STAGING_ORIGIN})`]);
     expect(text).not.toContain('/sitemap.xml');
+    expect(text).not.toContain('/events.json');
+    expect(text).not.toContain('/e/');
+  });
+
+  it('names no production URL, the contract the deploy smoke holds it to', () => {
+    for (const origin of [STAGING_ORIGIN, PREVIEW_ORIGIN]) {
+      expect(
+        stagingLlmsText(origin, 'en'),
+        'discoveryFailures fails the deploy when staging llms.txt carries the production origin, and a link added for the audit is still a production URL',
+      ).not.toContain('https://founders.coffee');
+    }
+  });
+
+  it('links the host being read, so the guide follows the environment', () => {
+    expect(stagingLlmsText(PREVIEW_ORIGIN, 'en')).toContain(
+      `(${PREVIEW_ORIGIN})`,
+    );
+    expect(stagingLlmsText(STAGING_ORIGIN, 'en')).toContain(
+      `(${STAGING_ORIGIN})`,
+    );
+  });
+
+  it('puts staging through the same three audit checks as production', () => {
+    const text = stagingLlmsText(STAGING_ORIGIN, 'en');
+
+    expect(text, 'needs an H1').toMatch(/^\s*#\s+.+/mu);
+    expect(text, 'needs a markdown hyperlink').toMatch(/\[.+\]\(.+\)/u);
+    expect(text, 'the audit link must be absolute').toMatch(
+      /\[.+\]\(https:\/\/.+\)/u,
+    );
+    expect(text.length, 'must not be suspiciously short').toBeGreaterThan(49);
   });
 
   it('localizes guide copy without changing canonical locale entry points', () => {

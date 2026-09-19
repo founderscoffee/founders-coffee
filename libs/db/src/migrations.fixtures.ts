@@ -1,10 +1,10 @@
 import { applyD1Migrations } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
+import { getTableColumns, type Column } from 'drizzle-orm';
 import { expect } from 'vitest';
 
-import { createDb } from './db.js';
-import { seed } from './seed.js';
-import type { NewUser } from './schema.js';
+import { SEED_MARKETS } from './seed.js';
+import { markets, type NewUser } from './schema.js';
 
 export const priorHost: NewUser = {
   id: 'usr_prior_schema_host',
@@ -94,6 +94,38 @@ const insertPriorEvent = async (event: PriorEvent): Promise<void> => {
 };
 
 /**
+ * Seed the launch markets with raw SQL, naming only the columns the prior schema declares.
+ *
+ * `seed` builds its insert from the *current* Drizzle schema, which breaks on both sides of a
+ * change: a dropped column leaves it naming something gone, and a column added after the migration
+ * under test leaves it naming something not there yet. `markets.name_fr` was the first of the
+ * second kind and broke all twenty migration tests at once. The column list and the values still
+ * come from the schema and from `SEED_MARKETS`, through `mapToDriverValue` so JSON and boolean
+ * columns are encoded the way Drizzle would encode them — the database only decides which of them
+ * to keep.
+ */
+const insertPriorMarkets = async (): Promise<void> => {
+  const declared: Record<string, Column> = getTableColumns(markets);
+  const present = new Set(await columnNames('markets'));
+  for (const market of SEED_MARKETS) {
+    const row = Object.entries(market)
+      .map(([field, value]) => ({ column: declared[field], value }))
+      .filter(({ column }) => column !== undefined && present.has(column.name))
+      .map(({ column, value }) => ({
+        name: column?.name ?? '',
+        driverValue: column?.mapToDriverValue(value) ?? null,
+      }));
+    await env.PRIOR_DB.prepare(
+      `INSERT INTO markets (${row.map((c) => c.name).join(', ')})
+       VALUES (${row.map(() => '?').join(', ')})
+       ON CONFLICT (code) DO NOTHING`,
+    )
+      .bind(...row.map((c) => c.driverValue))
+      .run();
+  }
+};
+
+/**
  * Apply every migration before `name` and seed the prior schema with real rows, returning the
  * fixture ids and a callback that applies the migration under test.
  *
@@ -106,8 +138,7 @@ export const atMigration = async (name: string) => {
   const suffix = `m${++tag}`;
 
   await applyD1Migrations(env.PRIOR_DB, env.TEST_MIGRATIONS.slice(0, index));
-  const db = createDb(env.PRIOR_DB);
-  await seed(db);
+  await insertPriorMarkets();
   await env.PRIOR_DB.prepare(
     'INSERT INTO user (id, name, email, email_verified, role) VALUES (?, ?, ?, 0, ?) ON CONFLICT (id) DO NOTHING',
   )

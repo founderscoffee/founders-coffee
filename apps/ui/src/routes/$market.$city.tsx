@@ -7,7 +7,12 @@ import {
 } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { detectLocale, isLocale, type Locale } from '@founders-coffee/i18n';
+import {
+  detectLocale,
+  isLocale,
+  localizedName,
+  type Locale,
+} from '@founders-coffee/i18n';
 import {
   getCityLanding,
   getMarketLanding,
@@ -28,10 +33,10 @@ import {
 import { readCookieHeader } from '../lib/cookies';
 import {
   paginationQuery,
-  paginationSearch,
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
 } from '../lib/public-pagination';
+import { isMarketLeaf } from '../lib/route-market';
 import {
   canonicalUrl,
   cityPageHead,
@@ -66,6 +71,7 @@ const localizedMarket = async (
   locale: Locale,
   marketKey: string,
   pagination: PublicPaginationSearch,
+  isLeaf: boolean,
 ): Promise<LocalizedMarket> => {
   try {
     const data = await getMarketLanding({
@@ -76,6 +82,13 @@ const localizedMarket = async (
         to: '/$market/$city',
         params: { market: locale, city: data.market.slug },
         search: pagination,
+      });
+    }
+    if (isLeaf && !data.cursorValid) {
+      throw redirect({
+        to: '/$market/$city',
+        params: { market: locale, city: data.market.slug },
+        search: {},
       });
     }
     return { kind: 'market', locale, pagination, ...data };
@@ -107,18 +120,6 @@ export const Route = createFileRoute('/$market/$city')({
           afterStartsAt={data.pagination.afterStartsAt}
           afterId={data.pagination.afterId}
           nextCursor={data.eventsNextCursor}
-          nextPageHref={
-            data.eventsNextCursor
-              ? canonicalUrl({
-                  type: 'market',
-                  market: data.market.slug,
-                  locale: data.locale,
-                  query: paginationQuery(
-                    paginationSearch(data.eventsNextCursor),
-                  ),
-                })
-              : undefined
-          }
           trending={data.trending}
         />
       );
@@ -148,12 +149,17 @@ export const Route = createFileRoute('/$market/$city')({
       />
     );
   },
-  loader: async ({ params, deps }): Promise<RouteData> => {
+  loader: async ({ params, deps, location }): Promise<RouteData> => {
     if (isLocale(params.market)) {
       if (isCompanyPageKey(params.city)) {
         return { kind: 'company', locale: params.market, page: params.city };
       }
-      return localizedMarket(params.market, params.city, deps);
+      return localizedMarket(
+        params.market,
+        params.city,
+        deps,
+        isMarketLeaf(location.pathname),
+      );
     }
 
     try {
@@ -189,10 +195,7 @@ export const Route = createFileRoute('/$market/$city')({
     if (loaderData.kind === 'market') {
       return marketPageHead({
         locale: loaderData.locale,
-        marketName:
-          loaderData.locale === 'ar'
-            ? (loaderData.market.nameAr ?? loaderData.market.name)
-            : loaderData.market.name,
+        marketName: localizedName(loaderData.market, loaderData.locale),
         events: loaderData.events.map((event) => ({
           name: event.title,
           url: canonicalUrl({
@@ -226,16 +229,10 @@ export const Route = createFileRoute('/$market/$city')({
             : undefined,
       });
     }
-    const cityName =
-      loaderData.locale === 'ar'
-        ? (loaderData.city.nameAr ?? loaderData.city.name)
-        : loaderData.city.name;
+    const cityName = localizedName(loaderData.city, loaderData.locale);
     return cityPageHead({
       locale: loaderData.locale,
-      marketName:
-        loaderData.locale === 'ar'
-          ? (loaderData.market.nameAr ?? loaderData.market.name)
-          : loaderData.market.name,
+      marketName: localizedName(loaderData.market, loaderData.locale),
       cityName,
       isEmpty: loaderData.events.length === 0,
       events: loaderData.events.map((event) => ({

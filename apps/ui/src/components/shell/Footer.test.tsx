@@ -24,6 +24,8 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }));
 
+import { footer_tagline } from '@founders-coffee/i18n';
+
 import { Footer } from './Footer';
 
 const MARKET = {
@@ -31,6 +33,7 @@ const MARKET = {
   slug: 'algeria',
   name: 'Algeria',
   nameAr: 'الجزائر',
+  nameFr: 'Algérie',
 };
 
 const hrefs = () =>
@@ -90,5 +93,18 @@ describe('the footer', () => {
     renderFooter('fr');
     expect(hrefs()).toContain('/fr/algeria/host/create');
     expect(hrefs()).not.toContain('/algeria/host/create');
+  });
+
+  it.each<['ar' | 'fr' | 'en', string]>([
+    ['ar', 'الجزائر'],
+    ['fr', 'Algérie'],
+    ['en', 'Algeria'],
+  ])('calls the market by its %s name in the tagline', (locale, name) => {
+    renderFooter(locale);
+
+    expect(
+      screen.getByText(footer_tagline({ market: name }, { locale })),
+      `the ${locale} footer calls the market something other than ${name}`,
+    ).toBeTruthy();
   });
 });

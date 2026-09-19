@@ -1,23 +1,23 @@
-import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import {
   brand,
   login_change_email,
   login_code_sent,
+  login_account_note,
   login_email_label,
   login_email_placeholder,
   login_help,
   login_or,
-  login_send_code,
+  login_email_continue,
   login_send_error,
-  login_title,
+  login_welcome,
   login_verify,
   login_wrong_code,
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, LogoSymbol, Turnstile } from '@founders-coffee/ui';
+import { Button, Input, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
@@ -142,15 +142,9 @@ export const LoginPage = ({
           className="flex flex-col gap-4"
         >
           <div className="flex flex-col items-center gap-3 text-center">
-            <Link
-              to="/"
-              aria-label={brand({}, { locale })}
-              className="rounded-full"
-            >
-              <LogoSymbol size={55} />
-            </Link>
             <h1 className="font-display text-h3 font-semibold">
-              {login_title({}, { locale })}
+              <span className="block">{login_welcome({}, { locale })}</span>
+              <span className="block">{brand({}, { locale })}</span>
             </h1>
           </div>
 
@@ -191,9 +185,12 @@ export const LoginPage = ({
                     aria-hidden="true"
                   />
                 ) : null}
-                {login_send_code({}, { locale })}
+                {login_email_continue({}, { locale })}
               </Button>
               <LegalNotice locale={locale} className="mt-1" />
+              <p className="text-center text-body-sm font-medium text-base-content">
+                {login_account_note({}, { locale })}
+              </p>
               {hasSocial && (
                 <>
                   <div className="divider text-caption text-neutral">

@@ -8,11 +8,6 @@ import { getMarket } from '@founders-coffee/server-fns';
 import { readCookieHeader } from '../../lib/cookies';
 
 export const Route = createFileRoute('/$market/')({
-  pendingComponent: () => (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <span className="loading loading-dots loading-lg text-primary" />
-    </div>
-  ),
   component: () => null,
   loader: async ({ params }) => {
     if (isLocale(params.market)) {

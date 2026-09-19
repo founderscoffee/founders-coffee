@@ -19,12 +19,14 @@ import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
+import { SkipLink } from '../components/shell/SkipLink';
 import { AppProviders } from '../lib/app-providers';
 import { readCookieHeader } from '../lib/cookies';
 import {
   NO_INDEX_VALUE,
   PUBLIC_DOCUMENT_CACHE_CONTROL,
 } from '../lib/indexation';
+import { routeMarketSlug } from '../lib/route-market';
 import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd } from '../lib/seo-company';
 import { errorPageHead } from '../lib/seo-error';
@@ -81,8 +83,11 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
       </head>
       <body className="flex flex-col bg-base-100 text-base-content">
         <AppProviders>
+          <SkipLink locale={locale} />
           <Navbar locale={locale} marketSlug={activeMarket?.slug} />
-          <main className="flex-1">{children}</main>
+          <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+            {children}
+          </main>
           <Footer locale={locale} markets={markets} market={activeMarket} />
         </AppProviders>
         <Scripts />
@@ -93,13 +98,15 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
 
 export const Route = createRootRoute({
   beforeLoad: async ({ params }) => {
-    const routeParams = params as { readonly market?: string };
+    const routeParams = params as {
+      readonly market?: string;
+      readonly city?: string;
+    };
     const { locale, dir } = detectActiveLocale(routeParams.market);
     const markets = ((await getVisibleMarkets()) ?? []).map(toRootMarket);
+    const slug = routeMarketSlug(routeParams);
     const activeMarket =
-      markets.find(
-        (market: RootMarket) => market.slug === routeParams.market,
-      ) ?? markets[0];
+      markets.find((market: RootMarket) => market.slug === slug) ?? markets[0];
     return { locale, dir, markets, activeMarket };
   },
   headers: ({ matches }) => {

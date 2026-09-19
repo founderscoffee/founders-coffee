@@ -10,6 +10,8 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { readGeoRecords } from './geo-records.mjs';
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = `${ROOT}/libs/domain/src/geo/admin-codes.ts`;
 const MARKETS = ['DZ', 'EG', 'SA'];
@@ -25,17 +27,11 @@ if (!token) throw new Error('MAPBOX_TOKEN missing from apps/ui/.dev.vars');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const readStates = (market) => {
-  const src = readFileSync(
+  const source = readFileSync(
     `${ROOT}/libs/domain/src/geo/data/${market.toLowerCase()}.ts`,
     'utf8',
   );
-  const head = src.slice(0, src.indexOf('_CITIES'));
-  /* Names are single- or double-quoted: "M'Sila" carries an apostrophe. */
-  return [
-    ...head.matchAll(
-      /\{ code: '([^']+)', name: (?:'([^']*)'|"([^"]*)"), nameAr:/g,
-    ),
-  ].map((m) => ({ code: m[1], name: m[2] ?? m[3] }));
+  return readGeoRecords(source, `${market.toUpperCase()}_STATES`);
 };
 
 const probe = async (market, state) => {
