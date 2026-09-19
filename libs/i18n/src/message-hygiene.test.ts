@@ -59,4 +59,19 @@ describe('message catalogue hygiene', () => {
       expect(text, `${locale}:${key} contains an em dash`).not.toMatch(/—/);
     }
   });
+
+  it('holds the hero subtitle to the same shape in every locale', () => {
+    const subtitles = everyText().filter(([, key]) => key === 'hero_subtitle');
+    expect(subtitles).toHaveLength(3);
+    for (const [locale, , text] of subtitles) {
+      expect(
+        text,
+        `${locale} hero subtitle ends in punctuation the others dropped`,
+      ).not.toMatch(/[.!?\u061F]$/u);
+      expect(
+        text,
+        `${locale} hero subtitle carries a third clause, so the hero runs taller there`,
+      ).not.toMatch(/[,\u060C]/u);
+    }
+  });
 });
