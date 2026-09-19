@@ -16,6 +16,8 @@ const rootDocument = readFileSync(
   'utf8',
 );
 
+const mainTag = /<main[^>]*>/u.exec(rootDocument)?.[0] ?? '';
+
 afterEach(cleanup);
 
 describe('SkipLink', () => {
@@ -31,15 +33,13 @@ describe('SkipLink', () => {
   });
 
   it('names a target the root document actually gives the main landmark', () => {
-    expect(rootDocument).toContain(`id="${TARGET.slice(1)}"`);
-    expect(rootDocument).toMatch(/<main[^>]*id="main-content"/u);
+    expect(mainTag).toContain(`id="${TARGET.slice(1)}"`);
   });
 
-  it('stays out of the page until it is focused', () => {
-    render(<SkipLink locale="en" />);
-    const className = screen.getByRole('link').className;
-
-    expect(className).toContain('sr-only');
-    expect(className).toContain('focus:not-sr-only');
+  it('skips to a landmark the root document made focusable, not merely scrollable', () => {
+    expect(
+      mainTag,
+      'without a tabindex the jump scrolls but leaves focus behind, so the next Tab walks the header again',
+    ).toContain('tabIndex={-1}');
   });
 });

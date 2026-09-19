@@ -84,7 +84,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
         <AppProviders>
           <SkipLink locale={locale} />
           <Navbar locale={locale} marketSlug={activeMarket?.slug} />
-          <main id="main-content" className="flex-1">
+          <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>
           <Footer locale={locale} markets={markets} market={activeMarket} />
