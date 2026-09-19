@@ -60,6 +60,29 @@ describe('message catalogue hygiene', () => {
     }
   });
 
+  it('keeps the promise to grow together in every locale, not only in Arabic', () => {
+    const together: Record<string, string> = {
+      ar: '\u0645\u0639\u064b\u0627',
+      fr: 'ensemble',
+      en: 'together',
+    };
+    const subtitles = everyText().filter(([, key]) => key === 'hero_subtitle');
+    expect(subtitles).toHaveLength(3);
+
+    for (const [locale, , text] of subtitles) {
+      const word = together[locale];
+      expect(
+        word,
+        `${locale} is a new locale with no word recorded for "together" — decide it before shipping the hero`,
+      ).toBeDefined();
+      if (word === undefined) continue;
+      expect(
+        text.trimEnd().endsWith(word),
+        `the ${locale} hero subtitle stops at growing: Arabic promises founders they grow ${together['ar'] ?? ''}, and a translation that drops the last word makes a quieter promise than the original`,
+      ).toBe(true);
+    }
+  });
+
   it('holds the hero subtitle to the same shape in every locale', () => {
     const subtitles = everyText().filter(([, key]) => key === 'hero_subtitle');
     expect(subtitles).toHaveLength(3);
