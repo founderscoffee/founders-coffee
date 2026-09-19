@@ -127,8 +127,12 @@ describe('public Worker SEO contract', () => {
     );
     expect(
       stagingBody.split('\n').filter((line) => line.startsWith('- ')),
-      'staging may point at the public site and nothing else (#33)',
-    ).toEqual(['- [Founders Coffee](https://founders.coffee)']);
+      'staging carries one link, to itself: enough for the audit (#33), and not a production URL',
+    ).toEqual([`- [Founders Coffee](${ORIGIN})`]);
+    expect(
+      stagingBody,
+      'tools/seo/discovery-contract.mjs fails the deploy on this, and it only runs after the Worker is already live',
+    ).not.toContain('https://founders.coffee');
     expect(stagingBody).not.toContain('/sitemap.xml');
     expect(stagingBody).not.toContain('/events.json');
     expect(stagingBody).not.toContain('/e/');

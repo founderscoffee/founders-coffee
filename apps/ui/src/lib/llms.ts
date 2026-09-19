@@ -14,7 +14,6 @@ import {
 } from '@founders-coffee/i18n';
 import type { SitemapData } from '@founders-coffee/server-fns';
 
-import { PRODUCTION_ORIGIN } from './indexation';
 import { sitemapItems } from './sitemap';
 
 const MAX_EVENT_LINKS = 100;
@@ -74,17 +73,26 @@ export const llmsText = (
 ): string => productionLines(origin, data, locale).join('\n');
 
 /**
- * Staging's guide. It lists no inventory on purpose, and carries exactly one link: the production
- * site. That link gives a crawler nothing staging was hiding, and it keeps staging green against
- * the Lighthouse llms.txt audit, whose `hasLink` check a title-and-blockquote file fails. A red
- * result there now means a real regression rather than the deliberate one.
+ * Staging's guide. It lists no inventory on purpose, and carries exactly one link: staging's own
+ * root.
+ *
+ * The link is there for the Lighthouse llms.txt audit, whose `hasLink` check a file of title and
+ * blockquote fails, leaving staging permanently red and a real regression indistinguishable from
+ * the deliberate one. It points at the host being read rather than at production, because
+ * `discoveryFailures` holds staging to emitting no production URL at all, and a guide that names
+ * production is a guide that hands a crawler the canonical site from a host that is `noindex,
+ * nofollow` and `no-store`. Absolute rather than relative so the audit's link check cannot turn
+ * on how it resolves a path.
  */
-export const stagingLlmsText = (locale: Locale = 'en'): string =>
+export const stagingLlmsText = (
+  origin: string,
+  locale: Locale = 'en',
+): string =>
   [
     `# ${brand({}, { locale })}`,
     '',
     `> ${llms_staging({}, { locale })}`,
     '',
-    link(brand({}, { locale }), PRODUCTION_ORIGIN),
+    link(brand({}, { locale }), origin),
     '',
   ].join('\n');

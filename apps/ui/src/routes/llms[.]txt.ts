@@ -10,7 +10,7 @@ const llmsResponse = async (request: Request): Promise<Response> => {
   const isProduction = origin === PRODUCTION_ORIGIN;
   const body = isProduction
     ? llmsText(PRODUCTION_ORIGIN, await getSitemapData())
-    : stagingLlmsText();
+    : stagingLlmsText(origin);
   return new Response(body, {
     headers: {
       'cache-control': isProduction
