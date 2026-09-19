@@ -55,7 +55,7 @@ export const TrendingStates = ({
                   subcity: city.slug,
                 }}
                 aria-labelledby={headingId}
-                className={`inline-block h-full min-h-20 sm:min-h-24 w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ${count > 0 ? 'aura aura-dual text-accent' : ''}`}
+                className={`inline-block h-full min-h-20 sm:min-h-24 w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ${count > 0 ? 'aura aura-glow text-accent' : ''}`}
               >
                 <article
                   className={`card flex h-full min-h-20 sm:min-h-24 flex-col gap-2 rounded-box px-4 py-3 text-base-content transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none ${
