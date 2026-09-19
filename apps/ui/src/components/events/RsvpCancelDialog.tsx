@@ -3,8 +3,8 @@ import { useEffect, useRef } from 'react';
 import {
   cancel_body,
   cancel_title,
-  free_chair,
-  keep_chair,
+  free_seat,
+  keep_seat,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -45,7 +45,7 @@ export const RsvpCancelDialog = ({
         </p>
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" className="btn btn-ghost" onClick={onKeep}>
-            {keep_chair({}, { locale })}
+            {keep_seat({}, { locale })}
           </button>
           <button
             type="button"
@@ -59,12 +59,12 @@ export const RsvpCancelDialog = ({
                 aria-hidden="true"
               />
             ) : null}
-            {free_chair({}, { locale })}
+            {free_seat({}, { locale })}
           </button>
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button type="submit">{keep_chair({}, { locale })}</button>
+        <button type="submit">{keep_seat({}, { locale })}</button>
       </form>
     </dialog>
   );
