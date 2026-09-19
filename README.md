@@ -30,9 +30,12 @@ and public member/host profiles; the anonymous-to-authenticated event creation w
 venue selection; event listing and detail; RSVP; live attendance over Durable Object WebSockets;
 city waitlists; an installable Serwist PWA; and Arabic, French and English with Arabic-first RTL.
 
-The post-event loop — host closeout, attendance evidence, the attendee feedback pulse, reminder
-delivery through push with SMS fallback, and the admin operations workspace — is planned and not yet
-built. Status lives in the [implementation plan](./docs/implementation-plan.md), never here.
+The post-event loop is built and routed behind the `communityOperations` market flag: host
+closeout, attendance evidence, the attendee feedback pulse, and reminder scheduling on Durable
+Object alarms with push first and email fallback. What remains is operational rather than written:
+production still runs a scheduler predating the current notification policy, and the admin
+operations workspace — event operations, corrections, host trust and audit — is not built. Status
+lives in the [implementation plan](./docs/implementation-plan.md), never here.
 
 ## Repository layout
 
