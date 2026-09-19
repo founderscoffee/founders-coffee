@@ -3,6 +3,7 @@ import nx from '@nx/eslint-plugin';
 import {
   ALL_FILES,
   CONFIG_FILES,
+  CONSOLE_ALLOWED,
   IGNORED,
   JS_FILES,
   MAX_LINES_EXEMPT,
@@ -60,6 +61,7 @@ export default [
     rules: {
       'no-restricted-syntax': ['error', ...ARROW_FUNCTIONS_ONLY],
       'local/no-server-fns-in-components': 'error',
+      'no-console': 'error',
       'max-lines': [
         'error',
         { max: 300, skipBlankLines: false, skipComments: false },
@@ -67,8 +69,15 @@ export default [
     },
   },
   {
+    files: CONSOLE_ALLOWED,
+    rules: { 'no-console': 'off' },
+  },
+  {
     files: TS_FILES,
-    rules: { 'local/comment-policy': 'error' },
+    rules: {
+      'local/comment-policy': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
   },
   {
     files: JS_FILES,

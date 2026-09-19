@@ -110,6 +110,7 @@ export class DevNotificationSmsProvider implements NotificationSmsProvider {
     args: SendNotificationSmsArgs,
   ): Promise<Result<SendNotificationSmsResult>> => {
     this.sent.push(args);
+    // eslint-disable-next-line no-console -- dev payload: not for the log pipeline
     console.log(`[DevNotificationSmsProvider] SMS to ${args.to}: ${args.body}`);
     return ok({ sid: `dev_sms_${Date.now()}`, segments: 1 });
   };

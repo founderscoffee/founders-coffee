@@ -14,9 +14,10 @@ const consoleFor: Record<LogLevel, (line: string) => void> = {
 };
 
 /**
- * Server transport — the ONLY sanctioned `console.*` in the repo (AGENTS.md §5/§13).
- * Emits one JSON line per entry so Workers Observability / Logpush ingest it as a
- * structured log.
+ * Server transport — where everything the product logs ends up (AGENTS.md §5/§13). `no-console`
+ * allows `console.*` here, in `tools/` CLI scripts, and at the dev-only OTP/SMS/push providers,
+ * which deliberately print a secret this pipeline would redact. Emits one JSON line per entry so
+ * Workers Observability / Logpush ingest it as a structured log.
  */
 export const consoleTransport: LogTransport = (entry) => {
   consoleFor[entry.level](JSON.stringify(entry));

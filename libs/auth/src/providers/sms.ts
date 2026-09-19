@@ -19,6 +19,7 @@ export class DevSmsProvider implements SmsProvider {
 
   sendOtp = async (args: SendSmsOtpArgs): Promise<void> => {
     this.sent.push(args);
+    // eslint-disable-next-line no-console -- dev OTP: sanitize would redact it
     console.log(
       `[DevSmsProvider] SMS-OTP for ${args.phoneNumber}: ${args.code}`,
     );
