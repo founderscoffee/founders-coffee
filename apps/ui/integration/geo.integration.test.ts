@@ -1,5 +1,6 @@
 import { createDb, events, seed, user } from '@founders-coffee/db';
 import { LOCALES } from '@founders-coffee/core/locale';
+import { footer_tagline } from '@founders-coffee/i18n';
 import {
   createExecutionContext,
   env,
@@ -47,6 +48,14 @@ const firstHeading = (body: string): string =>
   (/<h1\b[^>]*>([\s\S]*?)<\/h1>/iu.exec(body)?.[1] ?? '')
     .replaceAll(/<[^>]+>/gu, '')
     .trim();
+
+/**
+ * The shell footer, which is the last one in the document — every event card renders a `<footer>`
+ * of its own, so taking the first match reads a card instead of the page chrome.
+ */
+const shellFooter = (body: string): string =>
+  [...body.matchAll(/<footer\b[^>]*>([\s\S]*?)<\/footer>/giu)].at(-1)?.[1] ??
+  '';
 
 const eventRows = LOCALES.map((locale) => ({
   id: `evt_geo05_${locale}`,
@@ -187,6 +196,29 @@ describe('public GEO contract', () => {
         firstHeading(await response.text()),
         `the ${locale} city page is headed in another language (FC-28)`,
       ).toBe(expected[locale]);
+    }
+  });
+
+  it('tells the reader which market they are in, in the footer', async () => {
+    const marketPages = [
+      { slug: 'algeria', en: 'Algeria', fr: 'Algérie' },
+      { slug: 'egypt', en: 'Egypt', fr: 'Égypte' },
+      { slug: 'saudi-arabia', en: 'Saudi Arabia', fr: 'Arabie saoudite' },
+    ] as const;
+
+    for (const market of marketPages) {
+      for (const locale of ['en', 'fr'] as const) {
+        const response = await fetchDocument(
+          PRODUCTION_ORIGIN,
+          `/${locale}/${market.slug}`,
+          productionEnv,
+        );
+
+        expect(
+          shellFooter(await response.text()),
+          `the footer of /${locale}/${market.slug} invites the reader to meet founders in a country they are not browsing`,
+        ).toContain(footer_tagline({ market: market[locale] }, { locale }));
+      }
     }
   });
 
