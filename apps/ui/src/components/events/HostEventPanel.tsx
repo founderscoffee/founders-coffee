@@ -8,6 +8,7 @@ import {
   host_hosting_help,
   host_you_are_hosting,
   live_window_closed,
+  share_event_host,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
@@ -19,6 +20,7 @@ import {
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { CancelEventDialog } from './CancelEventDialog';
 import { RepeatHostLink } from './RepeatHostLink';
+import { ShareEventButton } from './ShareEventButton';
 import { HostLiveActions } from './HostLiveActions';
 
 type HostEventPanelProps = {
@@ -74,6 +76,15 @@ export const HostEventPanel = ({
       <p className="text-body-sm text-neutral">
         {host_hosting_help({}, { locale })}
       </p>
+
+      {!isCancelled && (
+        <ShareEventButton
+          locale={locale}
+          title={event.title}
+          label={share_event_host({}, { locale })}
+          variant="panel"
+        />
+      )}
 
       {!isCancelled &&
         (isWindowOpen && live ? (

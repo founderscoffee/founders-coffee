@@ -646,5 +646,12 @@
   "activity_cancelled": "أُلغي",
   "activity_more": "عرض المزيد",
   "activity_loading": "جارٍ تحميل لقاءاتك…",
-  "activity_unavailable": "تعذّر تحميل لقاءاتك."
+  "activity_unavailable": "تعذّر تحميل لقاءاتك.",
+  "share_event": "مشاركة",
+  "share_event_host": "شارك اللقاء",
+  "share_event_invite": "ادعُ مؤسسًا",
+  "share_event_text": "انضم إلينا في {title}",
+  "share_on_whatsapp": "المشاركة عبر واتساب",
+  "share_copy_link": "نسخ الرابط",
+  "share_copied": "نُسخ الرابط"
 }

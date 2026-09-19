@@ -102,3 +102,26 @@ describe('RsvpSection when the host has called the meetup off', () => {
     expect(screen.queryByRole('button', { name: 'Cancel RSVP' })).toBeNull();
   });
 });
+
+describe('RsvpSection invites a founder once the seat is taken', () => {
+  it('offers the invite only after the reader has said yes', () => {
+    show(event);
+    expect(
+      screen.queryByRole('button', { name: 'Invite a founder' }),
+      'there is nothing to invite anyone to until the reader is going themselves',
+    ).toBeNull();
+
+    cleanup();
+    show({ ...event, viewerRsvp: 'going' });
+    expect(
+      screen.getByRole('button', { name: 'Invite a founder' }),
+    ).toBeTruthy();
+  });
+
+  it('does not ask anyone to promote a meetup that is off', () => {
+    show({ ...cancelled, viewerRsvp: 'going' });
+    expect(
+      screen.queryByRole('button', { name: 'Invite a founder' }),
+    ).toBeNull();
+  });
+});

@@ -18,6 +18,7 @@ import {
   ntf_cancel_reason,
   profile_link,
   role_host,
+  share_event,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
@@ -29,6 +30,7 @@ import type {
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { EventLocationMap } from './EventLocationMap';
 import { RsvpSection } from './RsvpSection';
+import { ShareEventButton } from './ShareEventButton';
 
 type EventDetailProps = {
   locale: Locale;
@@ -164,6 +166,14 @@ export const EventDetail = ({
               {going_count({ count: event.goingCount }, { locale })}
             </span>
           ) : null}
+          {isCancelled ? null : (
+            <ShareEventButton
+              locale={locale}
+              title={event.title}
+              label={share_event({}, { locale })}
+              variant="chip"
+            />
+          )}
         </div>
       </header>
 

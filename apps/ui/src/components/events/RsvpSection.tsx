@@ -14,6 +14,7 @@ import {
   rsvp_error,
   rsvp_help,
   rsvp_saving,
+  share_event_invite,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
@@ -24,6 +25,7 @@ import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
 import { useAuth } from '../../lib/app-providers';
 import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
+import { ShareEventButton } from './ShareEventButton';
 
 export type RsvpSectionProps = {
   event: EventWithAttendance;
@@ -135,6 +137,12 @@ export const RsvpSection = ({
           <p className="text-body-sm text-neutral">
             {rsvp_confirmed_help({}, { locale })}
           </p>
+          <ShareEventButton
+            locale={locale}
+            title={event.title}
+            label={share_event_invite({}, { locale })}
+            variant="panel"
+          />
           <button
             type="button"
             className="btn btn-ghost btn-sm w-fit text-neutral"
