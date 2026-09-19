@@ -117,7 +117,7 @@ export const ShareDialog = ({
           />
           <button
             type="button"
-            className="btn btn-secondary btn-sm shrink-0 rounded-full"
+            className={`btn btn-sm shrink-0 rounded-full ${copied ? 'btn-success' : 'btn-secondary'}`}
             onClick={() => void copyLink(url).then(setCopied)}
           >
             {copied

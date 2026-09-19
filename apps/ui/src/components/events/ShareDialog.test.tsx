@@ -97,12 +97,34 @@ describe('ShareDialog', () => {
     });
     show();
 
+    const copy = screen.getByRole('button', { name: 'نسخ الرابط' });
+    expect(copy.classList.contains('btn-secondary')).toBe(true);
+    fireEvent.click(copy);
+
+    const copied = await screen.findByRole('button', { name: 'نُسخ الرابط' });
+    expect(
+      copied.classList.contains('btn-success'),
+      'the word changes but the button stays the same colour, so nothing signals the copy landed',
+    ).toBe(true);
+    expect(copied.classList.contains('btn-secondary')).toBe(false);
+    expect(writeText).toHaveBeenCalledWith(URL_UNDER_TEST);
+  });
+
+  it('leaves the button its usual colour when the clipboard refuses', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
+      configurable: true,
+      writable: true,
+    });
+    show();
+
     fireEvent.click(screen.getByRole('button', { name: 'نسخ الرابط' }));
 
+    const copy = await screen.findByRole('button', { name: 'نسخ الرابط' });
     expect(
-      await screen.findByRole('button', { name: 'نُسخ الرابط' }),
-    ).toBeTruthy();
-    expect(writeText).toHaveBeenCalledWith(URL_UNDER_TEST);
+      copy.classList.contains('btn-success'),
+      'going green on a refused copy tells the reader they have a link they do not',
+    ).toBe(false);
   });
 
   it('closes on the close button in its header', () => {
