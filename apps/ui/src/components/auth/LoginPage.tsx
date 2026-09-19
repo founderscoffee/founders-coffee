@@ -10,6 +10,7 @@ import {
   login_help,
   login_or,
   login_send_code,
+  login_email_continue,
   login_send_error,
   login_welcome,
   login_verify,
@@ -185,7 +186,7 @@ export const LoginPage = ({
                     aria-hidden="true"
                   />
                 ) : null}
-                {login_send_code({}, { locale })}
+                {login_email_continue({}, { locale })}
               </Button>
               <LegalNotice locale={locale} className="mt-1" />
               <p className="text-center text-body-sm font-medium text-base-content">
