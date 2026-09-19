@@ -21,6 +21,8 @@ const MAX_EVENT_LINKS = 100;
 const absolute = (origin: string, path: string): string =>
   `${origin.replace(/\/$/u, '')}${path}`;
 
+const link = (text: string, url: string): string => `- [${text}](${url})`;
+
 const eventPath = (path: string): boolean => /\/e\//u.test(path);
 
 const productionLines = (
@@ -33,8 +35,11 @@ const productionLines = (
   const discoveryItems = items.filter((item) => !eventPath(item.path));
   const eventLinks = eventItems
     .slice(0, MAX_EVENT_LINKS)
-    .map((item) => `- ${absolute(origin, item.path)}`);
-  const inventoryLink = `- ${llms_sitemap({}, { locale })}: ${absolute(origin, '/sitemap.xml')}`;
+    .map((item) => link(item.path, absolute(origin, item.path)));
+  const inventoryLink = link(
+    llms_sitemap({}, { locale }),
+    absolute(origin, '/sitemap.xml'),
+  );
 
   return [
     `# ${brand({}, { locale })}`,
@@ -44,13 +49,15 @@ const productionLines = (
     `> ${llms_purpose({}, { locale })}`,
     '',
     `## ${llms_locales({}, { locale })}`,
-    ...LOCALES.map((entry) => `- ${entry}: ${absolute(origin, `/${entry}`)}`),
+    ...LOCALES.map((entry) => link(entry, absolute(origin, `/${entry}`))),
     '',
     `## ${llms_public_surfaces({}, { locale })}`,
     inventoryLink,
-    `- ${llms_robots({}, { locale })}: ${absolute(origin, '/robots.txt')}`,
-    `- ${llms_event_feed({}, { locale })}: ${absolute(origin, '/events.json')}`,
-    ...discoveryItems.map((item) => `- ${absolute(origin, item.path)}`),
+    link(llms_robots({}, { locale }), absolute(origin, '/robots.txt')),
+    link(llms_event_feed({}, { locale }), absolute(origin, '/events.json')),
+    ...discoveryItems.map((item) =>
+      link(item.path, absolute(origin, item.path)),
+    ),
     '',
     `## ${llms_event_inventory({}, { locale })}`,
     ...eventLinks,

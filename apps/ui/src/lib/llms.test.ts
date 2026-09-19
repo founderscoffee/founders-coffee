@@ -36,6 +36,26 @@ describe('llms discovery guide', () => {
     expect(text).not.toContain('staging.founders.coffee');
   });
 
+  it('satisfies the three checks the llms.txt audit runs', () => {
+    const text = llmsText('https://founders.coffee', data, 'en');
+
+    expect(text, 'needs an H1').toMatch(/^\s*#\s+.+/mu);
+    expect(text, 'needs a markdown hyperlink').toMatch(/\[.+\]\(.+\)/u);
+    expect(text.length, 'must not be suspiciously short').toBeGreaterThan(49);
+  });
+
+  it('writes every list entry as a markdown hyperlink', () => {
+    const text = llmsText('https://founders.coffee', data, 'en');
+    const bullets = text.split('\n').filter((line) => line.startsWith('- '));
+
+    expect(bullets.length).toBeGreaterThan(5);
+    for (const bullet of bullets) {
+      expect(bullet, `${bullet} is not a markdown link`).toMatch(
+        /^- \[[^\]]+\]\(https:\/\/[^)]+\)$/u,
+      );
+    }
+  });
+
   it('keeps staging output free of production inventory', () => {
     const text = stagingLlmsText('en');
 
