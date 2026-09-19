@@ -75,12 +75,23 @@ describe('llms discovery guide', () => {
 
   it('keeps staging output free of production inventory', () => {
     const text = stagingLlmsText('en');
+    const bullets = text.split('\n').filter((line) => line.startsWith('- '));
 
     expect(text).toContain(
       'This staging environment is not for public discovery.',
     );
-    expect(text).not.toContain('https://');
+    expect(bullets).toEqual(['- [Founders Coffee](https://founders.coffee)']);
     expect(text).not.toContain('/sitemap.xml');
+    expect(text).not.toContain('/events.json');
+    expect(text).not.toContain('/e/');
+  });
+
+  it('puts staging through the same three audit checks as production', () => {
+    const text = stagingLlmsText('en');
+
+    expect(text, 'needs an H1').toMatch(/^\s*#\s+.+/mu);
+    expect(text, 'needs a markdown hyperlink').toMatch(/\[.+\]\(.+\)/u);
+    expect(text.length, 'must not be suspiciously short').toBeGreaterThan(49);
   });
 
   it('localizes guide copy without changing canonical locale entry points', () => {

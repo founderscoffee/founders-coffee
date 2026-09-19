@@ -14,6 +14,7 @@ import {
 } from '@founders-coffee/i18n';
 import type { SitemapData } from '@founders-coffee/server-fns';
 
+import { PRODUCTION_ORIGIN } from './indexation';
 import { sitemapItems } from './sitemap';
 
 const MAX_EVENT_LINKS = 100;
@@ -72,10 +73,18 @@ export const llmsText = (
   locale: Locale = 'en',
 ): string => productionLines(origin, data, locale).join('\n');
 
+/**
+ * Staging's guide. It lists no inventory on purpose, and carries exactly one link: the production
+ * site. That link gives a crawler nothing staging was hiding, and it keeps staging green against
+ * the Lighthouse llms.txt audit, whose `hasLink` check a title-and-blockquote file fails. A red
+ * result there now means a real regression rather than the deliberate one.
+ */
 export const stagingLlmsText = (locale: Locale = 'en'): string =>
   [
     `# ${brand({}, { locale })}`,
     '',
     `> ${llms_staging({}, { locale })}`,
+    '',
+    link(brand({}, { locale }), PRODUCTION_ORIGIN),
     '',
   ].join('\n');
