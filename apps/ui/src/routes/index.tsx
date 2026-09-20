@@ -9,6 +9,7 @@ const DEFAULT_MARKET_SLUG = 'algeria';
 const GEO_COOKIE = 'fc_geo';
 
 export const Route = createFileRoute('/')({
+  preload: false,
   headers: () => ({ 'Cache-Control': 'private, no-store' }),
   beforeLoad: async ({ params }) => {
     const routeParams = params as { readonly market?: string };
