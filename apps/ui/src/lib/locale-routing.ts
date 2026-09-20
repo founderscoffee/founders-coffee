@@ -78,6 +78,29 @@ export const localizedHostCreate = (locale: Locale, marketSlug: string) => ({
 });
 
 /**
+ * The closeout screen, addressed in the language its prompt was written in.
+ *
+ * These two are private, authenticated pages with nothing in them for a crawler, so the prefix is
+ * not here to serve a canonical. It is here because a link in a notification has to carry its own
+ * language: the unprefixed `/closeout/$eventId` settles from the reader's cookie, so a host
+ * prompted in French closed out in Arabic on any browser that had not visited the site before.
+ *
+ * Nothing had to be taught to read it. The root derives the locale from the first path segment
+ * already, so a prefixed address resolves the same way every public page does, and the unprefixed
+ * form answers 307 to this one for the notifications that are already in flight.
+ */
+export const localizedCloseout = (locale: Locale, eventId: string) => ({
+  to: '/$market/closeout/$eventId' as const,
+  params: { market: locale, eventId },
+});
+
+/** The feedback screen, on the same terms as {@link localizedCloseout}. */
+export const localizedFeedback = (locale: Locale, eventId: string) => ({
+  to: '/$market/feedback/$eventId' as const,
+  params: { market: locale, eventId },
+});
+
+/**
  * Home, addressed as the reader's own market rather than as `/`.
  *
  * `/` is a redirect stub. It resolves a market and answers 307, and on a client navigation that

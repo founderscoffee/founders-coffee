@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { createDb, markets, seed, user, type Db } from '@founders-coffee/db';
 
 import {
+  closeoutUrlFor,
   eventUrlFor,
+  feedbackUrlFor,
   notificationBaseUrl,
   resolveNotificationContext,
 } from './context.js';
@@ -112,6 +114,33 @@ describe('notification base url follows the deployment', () => {
       '`/$market/e/$slug` loads the market and the event, throws both away and answers 307 to the four-segment form',
     ).toHaveLength(4);
     expect(segments[2]).toBe('e');
+  });
+});
+
+describe('the private screens open in the language of the notification', () => {
+  it('sends a host to the closeout screen in French', async () => {
+    const db = await setupDb();
+    const context = await resolveNotificationContext(db, {
+      preferred: 'fr',
+      marketCode: 'DZ',
+    });
+
+    expect(
+      new URL(closeoutUrlFor(context.locale, 'evt_close')).pathname,
+      'the unprefixed screen settles its language from the reader cookie, so a host prompted in French closed out in Arabic on a browser that had not visited yet',
+    ).toBe('/fr/closeout/evt_close');
+  });
+
+  it('sends an attendee to the feedback screen in French', async () => {
+    const db = await setupDb();
+    const context = await resolveNotificationContext(db, {
+      preferred: 'fr',
+      marketCode: 'DZ',
+    });
+
+    expect(
+      new URL(feedbackUrlFor(context.locale, 'evt_feedback')).pathname,
+    ).toBe('/fr/feedback/evt_feedback');
   });
 });
 

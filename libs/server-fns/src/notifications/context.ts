@@ -84,14 +84,20 @@ export const eventUrlFor = (opts: {
   `${notificationBaseUrl()}/${opts.locale}/${opts.marketSlug}/e/${opts.eventSlug}`;
 
 /**
- * The private screen where a host closes a gathering out.
+ * The private screen where a host closes a gathering out, in the language of the prompt.
  *
  * Not `eventUrlFor`. That points at the public event page, which says nothing about a closeout and
  * would leave a host who tapped the prompt exactly where they started — the failure that made every
  * reminder link to a 404 until it was measured.
+ *
+ * The locale leads for the same reason it leads on an event link. These screens are private and a
+ * crawler will never see one, so the prefix is not serving a canonical; it is the only way the link
+ * can carry its own language. Unprefixed, the page settles from the reader's cookie, so a host
+ * prompted in French closed out in Arabic on any browser that had not visited the site before.
  */
-export const closeoutUrlFor = (eventId: string): string =>
-  `${notificationBaseUrl()}/closeout/${eventId}`;
+export const closeoutUrlFor = (locale: Locale, eventId: string): string =>
+  `${notificationBaseUrl()}/${locale}/closeout/${eventId}`;
 
-export const feedbackUrlFor = (eventId: string): string =>
-  `${notificationBaseUrl()}/feedback/${eventId}`;
+/** The screen where an attendee leaves feedback, on the same terms as `closeoutUrlFor`. */
+export const feedbackUrlFor = (locale: Locale, eventId: string): string =>
+  `${notificationBaseUrl()}/${locale}/feedback/${eventId}`;

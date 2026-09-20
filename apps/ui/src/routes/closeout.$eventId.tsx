@@ -1,21 +1,20 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { closeout_title } from '@founders-coffee/i18n';
+import { detectLocale } from '@founders-coffee/i18n';
 
-import { CloseoutPage } from '../features/operations/components/CloseoutPage';
+import { readCookieHeader } from '../lib/cookies';
 import { NO_INDEX_VALUE } from '../lib/indexation';
-import { privatePageHead } from '../lib/seo-private';
+import { localizedCloseout } from '../lib/locale-routing';
 
 export const Route = createFileRoute('/closeout/$eventId')({
+  preload: false,
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,
   }),
-  component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    const { eventId } = Route.useParams();
-    return <CloseoutPage locale={locale} eventId={eventId} markets={markets} />;
+  beforeLoad: ({ params }) => {
+    throw redirect(
+      localizedCloseout(detectLocale(readCookieHeader()), params.eventId),
+    );
   },
-  head: ({ match }) =>
-    privatePageHead(closeout_title({}, { locale: match.context.locale })),
 });

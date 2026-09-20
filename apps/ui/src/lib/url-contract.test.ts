@@ -4,7 +4,9 @@ import { LOCALES, type Locale } from '@founders-coffee/i18n';
 
 import {
   localizedCity,
+  localizedCloseout,
   localizedEvent,
+  localizedFeedback,
   localizedHome,
   localizedHostCreate,
   localizedLanding,
@@ -83,6 +85,8 @@ describe('the template never addresses a redirect stub', () => {
       localizedEvent(locale, 'algeria', 'coffee-code'),
       localizedHostCreate(locale, 'algeria'),
       localizedHome(locale, 'algeria'),
+      localizedCloseout(locale, 'evt_1'),
+      localizedFeedback(locale, 'evt_1'),
     ];
 
     for (const target of targets)

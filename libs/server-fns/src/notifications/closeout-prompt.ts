@@ -73,7 +73,7 @@ export const enqueueCloseoutPrompt = async (
     marketCode: event.marketCode,
   });
 
-  const url = closeoutUrlFor(event.id);
+  const url = closeoutUrlFor(context.locale, event.id);
   const values = {
     title: event.title,
     venue: event.venue,
