@@ -57,6 +57,28 @@ describe('public Worker SEO contract', () => {
       .run();
   });
 
+  it('answers the well-known disclosure contact as plain text', async () => {
+    const response = await worker.fetch(
+      new Request(`${ORIGIN}/.well-known/security.txt`),
+      env,
+      createExecutionContext(),
+    );
+    const body = await response.text();
+
+    expect(
+      response.status,
+      'RFC 9116 requires the file at /.well-known/, which is where a scanner looks',
+    ).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/plain');
+    expect(response.headers.get('content-type')).toContain('utf-8');
+    expect(body).toContain('Contact: mailto:');
+    expect(body).toContain('Expires: ');
+    expect(
+      body,
+      'Canonical names where this copy is served, so a staging deployment describes itself',
+    ).toContain(`Canonical: ${ORIGIN}/.well-known/security.txt`);
+  });
+
   it('serves staging robots and an empty staging sitemap', async () => {
     const robots = await worker.fetch(
       new Request(`${ORIGIN}/robots.txt`),
