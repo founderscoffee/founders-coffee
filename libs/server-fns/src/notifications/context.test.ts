@@ -36,11 +36,12 @@ describe('notification base url follows the deployment', () => {
 
   it('builds an event url on that origin', () => {
     const url = eventUrlFor({
+      locale: 'ar',
       marketSlug: 'algeria',
       eventSlug: 'coffee-code',
     });
     expect(url.startsWith(notificationBaseUrl())).toBe(true);
-    expect(url.endsWith('/algeria/e/coffee-code')).toBe(true);
+    expect(url.endsWith('/ar/algeria/e/coffee-code')).toBe(true);
   });
 
   it('addresses the market by slug, because the route resolves nothing else', async () => {
@@ -48,6 +49,7 @@ describe('notification base url follows the deployment', () => {
     const context = await resolveNotificationContext(db, { marketCode: 'DZ' });
 
     const url = eventUrlFor({
+      locale: context.locale,
       marketSlug: context.marketSlug,
       eventSlug: 'coffee-code',
     });
@@ -64,8 +66,52 @@ describe('notification base url follows the deployment', () => {
 
     expect(context.marketSlug).toBe('ZZ');
     expect(
-      eventUrlFor({ marketSlug: context.marketSlug, eventSlug: 'x' }),
+      eventUrlFor({
+        locale: context.locale,
+        marketSlug: context.marketSlug,
+        eventSlug: 'x',
+      }),
     ).toContain('/ZZ/e/x');
+  });
+
+  it('opens the page in the language the notification was written in', async () => {
+    const db = await setupDb();
+    const context = await resolveNotificationContext(db, {
+      preferred: 'fr',
+      marketCode: 'DZ',
+    });
+
+    const url = eventUrlFor({
+      locale: context.locale,
+      marketSlug: context.marketSlug,
+      eventSlug: 'coffee-code',
+    });
+
+    expect(
+      new URL(url).pathname,
+      'the unprefixed form settles its language from the reader cookie, so a member written to in French opened the page in Arabic',
+    ).toBe('/fr/algeria/e/coffee-code');
+  });
+
+  it('does not send a member through the redirect stub to reach the event', async () => {
+    const db = await setupDb();
+    const context = await resolveNotificationContext(db, { marketCode: 'DZ' });
+
+    const segments = new URL(
+      eventUrlFor({
+        locale: context.locale,
+        marketSlug: context.marketSlug,
+        eventSlug: 'coffee-code',
+      }),
+    ).pathname
+      .split('/')
+      .filter(Boolean);
+
+    expect(
+      segments,
+      '`/$market/e/$slug` loads the market and the event, throws both away and answers 307 to the four-segment form',
+    ).toHaveLength(4);
+    expect(segments[2]).toBe('e');
   });
 });
 

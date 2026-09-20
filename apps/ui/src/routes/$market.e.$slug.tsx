@@ -15,6 +15,7 @@ import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
+import { localizedEvent } from '../lib/locale-routing';
 import { readCookieHeader } from '../lib/cookies';
 
 type EventDetailLoaderData = {
@@ -74,10 +75,7 @@ export const Route = createFileRoute('/$market/e/$slug')({
     }
     const locale = detectLocale(readCookieHeader());
     if (params.market !== market.slug) {
-      throw redirect({
-        to: '/$market/$city/e/$slug',
-        params: { market: locale, city: market.slug, slug: params.slug },
-      });
+      throw redirect(localizedEvent(locale, market.slug, params.slug));
     }
 
     let event: EventDetailItem;
@@ -90,12 +88,7 @@ export const Route = createFileRoute('/$market/e/$slug')({
       throw error;
     }
 
-    throw redirect({
-      to: '/$market/$city/e/$slug',
-      params: { market: locale, city: market.slug, slug: event.slug },
-    });
-
-    return { market, event, host: null };
+    throw redirect(localizedEvent(locale, market.slug, event.slug));
   },
   head: () => ({ meta: [], links: [] }),
 });

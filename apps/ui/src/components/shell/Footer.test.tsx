@@ -45,7 +45,7 @@ const hrefs = () =>
 const renderFooter = (locale: 'ar' | 'fr' | 'en' = 'fr') =>
   render(<Footer locale={locale} markets={[MARKET]} market={MARKET} />);
 
-const UNPREFIXED = ['/', '/profile/activity'];
+const UNPREFIXED = ['/profile/activity'];
 
 const timesLinked = (href: string) =>
   screen
@@ -74,9 +74,12 @@ describe('the footer', () => {
     expect(hrefs()).not.toContain('/about');
   });
 
-  it('points at the market once, not from two headings at the same time', () => {
+  it('sends nobody through the root redirect to reach home', () => {
     renderFooter('fr');
-    expect(timesLinked('/fr/algeria')).toBe(1);
+    expect(
+      hrefs(),
+      'linking the brand mark at `/` spends a geo lookup, a market lookup and a 307 to arrive where the footer was already able to name',
+    ).not.toContain('/');
   });
 
   it('still renders each nav link at both breakpoints', () => {

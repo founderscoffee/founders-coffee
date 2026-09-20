@@ -62,18 +62,26 @@ export const notificationBaseUrl = (): string =>
   );
 
 /**
- * The canonical page for an event, which is keyed on the market slug and not its code.
+ * The canonical page for an event, in the language the notification itself is written in.
  *
- * `/$market/e/$slug` resolves its first segment with `getMarket({ slug })`, so a code lands on
- * `market_not_found` and the route's own canonicalising redirect is never reached. Every reminder
- * this product has ever written carried `/DZ/e/...` and would have sent a member to a not-found
- * page — invisible until now because no push provider has been configured anywhere, so nobody has
- * received one to tap.
+ * Three segments, and each one was wrong at some point. The market is addressed by *slug* and not
+ * by code, because the route resolves it with `getMarket({ slug })` and a code lands on
+ * `market_not_found`. The locale leads, because `/$market/e/$slug` is a redirect stub: it loads the
+ * market and the event, discards both and answers 307 to this address, so the unprefixed form spent
+ * two server calls and two document loads before the reader saw anything.
+ *
+ * And the locale is the one `resolveNotificationContext` already resolved from the member's stored
+ * preference, which is the part that was visible to members. That stub picks its language from the
+ * reader's cookie, so a member written to in French opened the link in Arabic on any browser that
+ * had not visited the site before — the language of the mail and the language of the page it opened
+ * disagreed, decided by a cookie neither of them knew about.
  */
 export const eventUrlFor = (opts: {
+  locale: Locale;
   marketSlug: string;
   eventSlug: string;
-}): string => `${notificationBaseUrl()}/${opts.marketSlug}/e/${opts.eventSlug}`;
+}): string =>
+  `${notificationBaseUrl()}/${opts.locale}/${opts.marketSlug}/e/${opts.eventSlug}`;
 
 /**
  * The private screen where a host closes a gathering out.

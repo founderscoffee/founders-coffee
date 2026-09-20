@@ -32,6 +32,23 @@ export const localizedLanding = (locale: Locale, key: string) => ({
 });
 
 /**
+ * A city page inside a market, addressed in the reader's language.
+ *
+ * Three segments, and the locale is the first: `/ar/algeria/algiers`. The two-segment
+ * `/algeria/algiers` is the same page unprefixed, and it is the expensive form — `/$market/$city`
+ * loads the city, throws the result away and answers 307, so an unprefixed link pays
+ * `getCityLanding` twice and two document loads to reach what this one names outright.
+ */
+export const localizedCity = (
+  locale: Locale,
+  marketSlug: string,
+  citySlug: string,
+) => ({
+  to: '/$market/$city/$subcity' as const,
+  params: { market: locale, city: marketSlug, subcity: citySlug },
+});
+
+/**
  * An event page, addressed in the reader's language.
  *
  * The unprefixed `/$market/e/$slug` route still exists and still works; it is the form an

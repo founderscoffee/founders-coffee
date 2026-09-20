@@ -4,6 +4,7 @@ import { detectLocale, isLocale } from '@founders-coffee/i18n';
 
 import { homeMarketSlug } from '../features/markets/api';
 import { readCookieHeader, readCookies } from '../lib/cookies';
+import { localizedLanding } from '../lib/locale-routing';
 
 const DEFAULT_MARKET_SLUG = 'algeria';
 const GEO_COOKIE = 'fc_geo';
@@ -20,8 +21,7 @@ export const Route = createFileRoute('/')({
       ? routeParams.market
       : detectLocale(readCookieHeader());
     throw redirect({
-      to: '/$market/$city',
-      params: { market: locale, city: target },
+      ...localizedLanding(locale, target),
       headers: {
         'Set-Cookie': `${GEO_COOKIE}=${target}; Path=/; Max-Age=31536000; SameSite=Lax`,
       },

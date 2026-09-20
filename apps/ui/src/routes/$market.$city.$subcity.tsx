@@ -5,6 +5,7 @@ import { isLocale, localizedName, type Locale } from '@founders-coffee/i18n';
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
+import { localizedCity } from '../lib/locale-routing';
 import {
   cursorPairOnly,
   paginationQuery,
@@ -64,23 +65,13 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
       });
       if (params.city !== data.market.slug) {
         throw redirect({
-          to: '/$market/$city/$subcity',
-          params: {
-            market: params.market,
-            city: data.market.slug,
-            subcity: data.city.slug,
-          },
+          ...localizedCity(params.market, data.market.slug, data.city.slug),
           search: pagination,
         });
       }
       if (!data.cursorValid) {
         throw redirect({
-          to: '/$market/$city/$subcity',
-          params: {
-            market: params.market,
-            city: data.market.slug,
-            subcity: data.city.slug,
-          },
+          ...localizedCity(params.market, data.market.slug, data.city.slug),
           search: {},
         });
       }

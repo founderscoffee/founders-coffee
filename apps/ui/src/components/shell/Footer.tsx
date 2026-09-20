@@ -110,7 +110,7 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
         <div className="grid gap-10 md:grid-cols-3 lg:grid-cols-[minmax(15rem,1.4fr)_repeat(3,minmax(0,1fr))]">
           <div className="flex flex-col items-start gap-4 md:col-span-3 lg:col-span-1">
             <Link
-              to="/"
+              {...localizedHome(locale, primaryMarket?.slug)}
               aria-label={brand({}, { locale })}
               className="w-fit rounded-field"
             >

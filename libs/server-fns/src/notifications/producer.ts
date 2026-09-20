@@ -85,6 +85,7 @@ export const valuesFor = (
   venue: payload.venue,
   date: dateFor(payload.startsAt, context, withTime),
   url: eventUrlFor({
+    locale: context.locale,
     marketSlug: context.marketSlug,
     eventSlug: payload.eventSlug,
   }),

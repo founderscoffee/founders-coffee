@@ -37,6 +37,7 @@ import {
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
 } from '../lib/public-pagination';
+import { localizedCity, localizedLanding } from '../lib/locale-routing';
 import { isMarketLeaf } from '../lib/route-market';
 import {
   canonicalUrl,
@@ -80,15 +81,13 @@ const localizedMarket = async (
     });
     if (marketKey !== data.market.slug) {
       throw redirect({
-        to: '/$market/$city',
-        params: { market: locale, city: data.market.slug },
+        ...localizedLanding(locale, data.market.slug),
         search: pagination,
       });
     }
     if (isLeaf && !data.cursorValid) {
       throw redirect({
-        to: '/$market/$city',
-        params: { market: locale, city: data.market.slug },
+        ...localizedLanding(locale, data.market.slug),
         search: {},
       });
     }
@@ -173,12 +172,11 @@ export const Route = createFileRoute('/$market/$city')({
         },
       });
       throw redirect({
-        to: '/$market/$city/$subcity',
-        params: {
-          market: detectLocale(readCookieHeader()),
-          city: data.market.slug,
-          subcity: data.city.slug,
-        },
+        ...localizedCity(
+          detectLocale(readCookieHeader()),
+          data.market.slug,
+          data.city.slug,
+        ),
         search: pagination,
       });
     } catch (error) {
