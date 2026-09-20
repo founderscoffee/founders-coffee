@@ -12,9 +12,11 @@ import {
   logger,
   reportError,
 } from '@founders-coffee/observability';
-import { getVisibleMarkets } from '@founders-coffee/server-fns';
-
-import { toRootMarket, type RootMarket } from '../features/markets/api';
+import {
+  toRootMarket,
+  visibleMarkets,
+  type RootMarket,
+} from '../features/markets/api';
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
@@ -103,7 +105,7 @@ export const Route = createRootRoute({
       readonly city?: string;
     };
     const { locale, dir } = detectActiveLocale(routeParams.market);
-    const markets = ((await getVisibleMarkets()) ?? []).map(toRootMarket);
+    const markets = (await visibleMarkets()).map(toRootMarket);
     const slug = routeMarketSlug(routeParams);
     const activeMarket =
       markets.find((market: RootMarket) => market.slug === slug) ?? markets[0];
