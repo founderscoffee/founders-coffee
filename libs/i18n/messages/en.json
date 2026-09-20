@@ -620,5 +620,14 @@
   "share_copy_link": "Copy link",
   "share_copied": "Link copied",
   "share_email": "Email",
-  "share_close": "Close sharing options"
+  "share_close": "Close sharing options",
+  "how_title": "How a meetup happens",
+  "how_step1_title": "Pick any café",
+  "how_step1_body": "A café or restaurant you like, at a time that suits you.",
+  "how_step2_title": "Tell your city",
+  "how_step2_body": "It appears on your city page, and founders nearby sign up.",
+  "how_step3_title": "Meet over coffee",
+  "how_step3_body": "One table, a few founders, a real conversation.",
+  "how_cta_host": "Host a meetup",
+  "how_cta_faq": "Common questions"
 }
