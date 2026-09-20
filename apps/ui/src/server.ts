@@ -16,6 +16,7 @@ export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
 import {
+  PRIVATE_DOCUMENT_CACHE_CONTROL,
   robotsBody,
   siteOriginFromEnv,
   withPrivateRouteHeaders,
@@ -39,6 +40,31 @@ export interface UiEnv extends HandlerEnv {
 }
 
 const CSP_REPORT_PATH = '/csp-report';
+
+/**
+ * Keep failures out of the shared cache.
+ *
+ * `__root.tsx` asks for `no-store` when a match reports an error, but that only catches some of
+ * them: in production a `notFound()` thrown from a loader (`/ar/algeria/not-a-real-city`) and a
+ * rejected search parameter both answered with the public `s-maxage=60`, so a single crawler could
+ * pin a 404 or a 500 at the edge for every later visitor, while only the global 404 got `no-store`.
+ * Status is the one signal every response here carries — documents, assets, server functions and
+ * the auth handler alike — so the guard belongs at the entry rather than in the router. It is a
+ * floor, not an override: a route that already answered `no-store` keeps the exact value it chose,
+ * because `/events.json` publishes its own.
+ */
+const withoutErrorCaching = (response: Response): Response => {
+  const cacheControl = response.headers.get('Cache-Control');
+  if (response.status < 400 || cacheControl?.includes('no-store'))
+    return response;
+  const headers = new Headers(response.headers);
+  headers.set('Cache-Control', PRIVATE_DOCUMENT_CACHE_CONTROL);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
 
 /**
  * Build the Better Auth handler with the OTP email provider wired (prod). Dev (localhost) keeps the
@@ -73,13 +99,15 @@ export default {
     const url = new URL(request.url);
     const nonce = createCspNonce();
     const secure = (response: Response): Response =>
-      withIndexationHeaders(
-        withSecurityHeaders(response, {
-          enforceCsp: env.CSP_ENFORCED === 'true',
-          reportPath: CSP_REPORT_PATH,
-          nonce,
-        }),
-        env,
+      withoutErrorCaching(
+        withIndexationHeaders(
+          withSecurityHeaders(response, {
+            enforceCsp: env.CSP_ENFORCED === 'true',
+            reportPath: CSP_REPORT_PATH,
+            nonce,
+          }),
+          env,
+        ),
       );
 
     if (url.pathname === CSP_REPORT_PATH && request.method === 'POST') {

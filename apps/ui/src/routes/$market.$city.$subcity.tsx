@@ -6,6 +6,7 @@ import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
 import {
+  cursorPairOnly,
   paginationQuery,
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
@@ -52,9 +53,14 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
     }
   > => {
     if (!isLocale(params.market)) throw notFound();
+    const pagination = cursorPairOnly(deps);
     try {
       const data = await getCityLanding({
-        data: { marketKey: params.city, citySlug: params.subcity, ...deps },
+        data: {
+          marketKey: params.city,
+          citySlug: params.subcity,
+          ...pagination,
+        },
       });
       if (params.city !== data.market.slug) {
         throw redirect({
@@ -64,7 +70,7 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
             city: data.market.slug,
             subcity: data.city.slug,
           },
-          search: deps,
+          search: pagination,
         });
       }
       if (!data.cursorValid) {
@@ -80,9 +86,9 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
       }
       return {
         ...data,
-        ...deps,
+        ...pagination,
         locale: params.market,
-        pagination: deps,
+        pagination,
       };
     } catch (error) {
       const code = appErrorCode(error);
