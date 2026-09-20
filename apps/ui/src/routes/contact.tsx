@@ -8,6 +8,7 @@ import { readCookieHeader } from '../lib/cookies';
 import { companyPageHead } from '../lib/seo-company';
 
 export const Route = createFileRoute('/contact')({
+  preload: false,
   headers: () => ({ 'Cache-Control': 'private, no-store' }),
   beforeLoad: () => {
     throw redirect({

@@ -11,7 +11,7 @@ vi.mock('@founders-coffee/server-fns', () => ({
   getMarketLanding: (args: unknown) => getMarketLanding(args),
 }));
 
-const { geoMarketSlug } = await import('./api');
+const { geoMarketSlug, homeMarketSlug } = await import('./api');
 
 const freshApi = async () => {
   vi.resetModules();
@@ -104,5 +104,44 @@ describe('visibleMarkets', () => {
     const { visibleMarkets } = await freshApi();
 
     await expect(visibleMarkets()).resolves.toEqual([]);
+  });
+});
+
+describe('homeMarketSlug', () => {
+  const known = [{ slug: 'algeria' }, { slug: 'tunisia' }];
+
+  it('trusts a remembered market the context already lists, without asking the server', async () => {
+    await expect(homeMarketSlug(known, 'tunisia')).resolves.toBe('tunisia');
+
+    expect(
+      getGeoCountry,
+      'the cookie holds a slug this application issued and the context already lists it, so confirming it over the network is a round-trip spent re-deriving something known',
+    ).not.toHaveBeenCalled();
+    expect(getMarketLanding).not.toHaveBeenCalled();
+  });
+
+  it('falls back to geo when the cookie names a market that is no longer listed', async () => {
+    getGeoCountry.mockResolvedValue('DZ');
+    getMarketLanding.mockResolvedValue({ market: { slug: 'algeria' } });
+
+    await expect(homeMarketSlug(known, 'atlantis')).resolves.toBe('algeria');
+    expect(getGeoCountry).not.toHaveBeenCalled();
+    expect(getMarketLanding).toHaveBeenCalledWith({
+      data: { key: 'atlantis' },
+    });
+  });
+
+  it('detects geo for a visitor arriving without a cookie', async () => {
+    getGeoCountry.mockResolvedValue('DZ');
+    getMarketLanding.mockResolvedValue({ market: { slug: 'algeria' } });
+
+    await expect(homeMarketSlug(known, undefined)).resolves.toBe('algeria');
+    expect(getGeoCountry).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives the caller its default when nothing can be resolved', async () => {
+    getGeoCountry.mockResolvedValue(null);
+
+    await expect(homeMarketSlug([], undefined)).resolves.toBeNull();
   });
 });

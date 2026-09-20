@@ -40,6 +40,30 @@ export const geoMarketSlug = async (
   }
 };
 
+/**
+ * The market `/` should send this visitor to, preferring whatever is already in hand.
+ *
+ * The root route has the visible markets in context by the time this runs, and the `fc_geo` cookie
+ * holds a slug this application wrote itself on the visitor's last redirect. When those two agree
+ * the answer needs no server at all — asking `getMarketLanding` to confirm a slug we issued, and
+ * `getGeoCountry` to name a country the cookie already settled, were two round-trips spent
+ * re-deriving something known.
+ *
+ * Geo detection stays for the visitor who has no cookie yet. That visitor arrives by SSR, where
+ * reading `cf-ipcountry` is a header lookup on a request already in flight rather than a fetch.
+ */
+export const homeMarketSlug = async (
+  known: readonly { readonly slug: string }[],
+  remembered: string | undefined,
+): Promise<string | null> => {
+  if (
+    remembered !== undefined &&
+    known.some((market) => market.slug === remembered)
+  )
+    return remembered;
+  return geoMarketSlug(remembered);
+};
+
 let clientMarkets: Promise<readonly Market[]> | null = null;
 
 const fetchVisibleMarkets = async (): Promise<readonly Market[]> =>

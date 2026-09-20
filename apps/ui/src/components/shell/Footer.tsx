@@ -31,6 +31,7 @@ import { Logo } from '@founders-coffee/ui';
 import { LEGAL_PAGE_KEYS, type LegalPageKey } from '../../content/company';
 import {
   localizedHostCreate,
+  localizedHome,
   localizedLanding,
 } from '../../lib/locale-routing';
 
@@ -118,21 +119,12 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
             <p className="max-w-xs text-body-sm leading-relaxed text-neutral">
               {footer_tagline({ market: primaryMarketLabel }, { locale })}
             </p>
-            {primaryMarket ? (
-              <Link
-                {...localizedLanding(locale, primaryMarket.slug)}
-                className="btn btn-primary h-11 min-h-11 rounded-full border-0 px-5 text-body-sm shadow-none"
-              >
-                {footer_cta({}, { locale })}
-              </Link>
-            ) : (
-              <Link
-                to="/"
-                className="btn btn-primary h-11 min-h-11 rounded-full border-0 px-5 text-body-sm shadow-none"
-              >
-                {footer_cta({}, { locale })}
-              </Link>
-            )}
+            <Link
+              {...localizedHome(locale, primaryMarket?.slug)}
+              className="btn btn-primary h-11 min-h-11 rounded-full border-0 px-5 text-body-sm shadow-none"
+            >
+              {footer_cta({}, { locale })}
+            </Link>
           </div>
 
           <FooterNavGroup

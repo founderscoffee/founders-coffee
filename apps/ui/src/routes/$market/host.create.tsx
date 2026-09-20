@@ -9,6 +9,7 @@ import { readCookieHeader } from '../../lib/cookies';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
 
 export const Route = createFileRoute('/$market/host/create')({
+  preload: false,
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,

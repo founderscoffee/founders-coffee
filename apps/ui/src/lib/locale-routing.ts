@@ -59,3 +59,24 @@ export const localizedHostCreate = (locale: Locale, marketSlug: string) => ({
   to: '/$market/$city/host/create' as const,
   params: { market: locale, city: marketSlug },
 });
+
+/**
+ * Home, addressed as the reader's own market rather than as `/`.
+ *
+ * `/` is a redirect stub. It resolves a market and answers 307, and on a client navigation that
+ * costs a geo lookup and a market lookup to arrive somewhere the caller could already have named —
+ * the header brand alone was making eight server-function requests per click that way, which is
+ * what put readers into the edge rate limiter. Every brand mark and home affordance links straight
+ * at the market landing instead.
+ *
+ * The fallback to `/` is for the one case that cannot name a market: the market list itself did not
+ * load. That is precisely when the redirect's own detection is worth paying for, so `/` keeps
+ * earning its place for a bare-domain visit, where the geo read is a request header and free.
+ */
+export const localizedHome = (
+  locale: Locale,
+  marketSlug: string | undefined,
+) =>
+  marketSlug === undefined
+    ? ({ to: '/' } as const)
+    : localizedLanding(locale, marketSlug);
