@@ -6,15 +6,13 @@ import { detectLocale, isLocale } from '@founders-coffee/i18n';
 import { getMarket } from '@founders-coffee/server-fns';
 
 import { readCookieHeader } from '../../lib/cookies';
+import { localizedLanding } from '../../lib/locale-routing';
 
 export const Route = createFileRoute('/$market/')({
   component: () => null,
   loader: async ({ params }) => {
     if (isLocale(params.market)) {
-      throw redirect({
-        to: '/$market/$city',
-        params: { market: params.market, city: 'algeria' },
-      });
+      throw redirect(localizedLanding(params.market, 'algeria'));
     }
     let market: Market;
     try {
@@ -28,13 +26,9 @@ export const Route = createFileRoute('/$market/')({
         throw byCode;
       }
     }
-    throw redirect({
-      to: '/$market/$city',
-      params: {
-        market: detectLocale(readCookieHeader()),
-        city: market.slug,
-      },
-    });
+    throw redirect(
+      localizedLanding(detectLocale(readCookieHeader()), market.slug),
+    );
   },
   head: () => ({ meta: [], links: [], scripts: [] }),
 });

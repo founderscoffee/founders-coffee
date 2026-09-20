@@ -15,7 +15,7 @@ import { Button } from '@founders-coffee/ui';
 
 import type { CloseoutStateView } from '../../operations/api';
 import { RepeatHostLink } from '../../../components/events/RepeatHostLink';
-import { localizedEvent } from '../../../lib/locale-routing';
+import { localizedCloseout, localizedEvent } from '../../../lib/locale-routing';
 
 export interface ActivityItem {
   readonly id: string;
@@ -48,8 +48,7 @@ const CloseoutLine = ({
   return (
     <Link
       className="mt-1 inline-block text-caption underline"
-      params={{ eventId }}
-      to="/closeout/$eventId"
+      {...localizedCloseout(locale, eventId)}
     >
       {closeout_link({}, { locale })}
     </Link>

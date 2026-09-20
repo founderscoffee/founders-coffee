@@ -5,7 +5,9 @@ import { isLocale, localizedName, type Locale } from '@founders-coffee/i18n';
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
+import { localizedCity } from '../lib/locale-routing';
 import {
+  cursorPairOnly,
   paginationQuery,
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
@@ -52,37 +54,32 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
     }
   > => {
     if (!isLocale(params.market)) throw notFound();
+    const pagination = cursorPairOnly(deps);
     try {
       const data = await getCityLanding({
-        data: { marketKey: params.city, citySlug: params.subcity, ...deps },
+        data: {
+          marketKey: params.city,
+          citySlug: params.subcity,
+          ...pagination,
+        },
       });
       if (params.city !== data.market.slug) {
         throw redirect({
-          to: '/$market/$city/$subcity',
-          params: {
-            market: params.market,
-            city: data.market.slug,
-            subcity: data.city.slug,
-          },
-          search: deps,
+          ...localizedCity(params.market, data.market.slug, data.city.slug),
+          search: pagination,
         });
       }
       if (!data.cursorValid) {
         throw redirect({
-          to: '/$market/$city/$subcity',
-          params: {
-            market: params.market,
-            city: data.market.slug,
-            subcity: data.city.slug,
-          },
+          ...localizedCity(params.market, data.market.slug, data.city.slug),
           search: {},
         });
       }
       return {
         ...data,
-        ...deps,
+        ...pagination,
         locale: params.market,
-        pagination: deps,
+        pagination,
       };
     } catch (error) {
       const code = appErrorCode(error);

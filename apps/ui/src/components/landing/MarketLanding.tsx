@@ -8,6 +8,7 @@ import type {
 } from '@founders-coffee/server-fns';
 
 import { DiscoverFeed } from './DiscoverFeed';
+import { HowItWorks } from './HowItWorks';
 import { MarketHero } from './MarketHero';
 import { TrendingStates } from './TrendingStates';
 
@@ -48,5 +49,6 @@ export const MarketLanding = ({
       afterId={afterId}
       nextCursor={nextCursor}
     />
+    <HowItWorks locale={locale} marketSlug={market.slug} />
   </>
 );

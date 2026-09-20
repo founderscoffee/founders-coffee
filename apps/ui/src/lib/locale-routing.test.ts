@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   localizedEvent,
+  localizedHome,
   localizedHostCreate,
   localizedLanding,
   withLocale,
@@ -60,5 +61,21 @@ describe('addressing a page in the language the reader is in', () => {
       to: '/$market/$city/e/$slug',
       params: { market: 'en', city: 'algeria', slug: 'coffee-and-code' },
     });
+  });
+});
+
+describe('localizedHome', () => {
+  it('sends a brand mark straight at the market landing', () => {
+    expect(localizedHome('fr', 'algeria')).toEqual({
+      to: '/$market/$city',
+      params: { market: 'fr', city: 'algeria' },
+    });
+  });
+
+  it('falls back to the redirect stub only when no market is known', () => {
+    expect(
+      localizedHome('fr', undefined),
+      'without a market there is nothing to name, and that is the one case where the redirect earns its geo lookup',
+    ).toEqual({ to: '/' });
   });
 });

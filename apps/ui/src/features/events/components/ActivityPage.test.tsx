@@ -191,7 +191,8 @@ describe('the gatherings screen', () => {
 
     expect(
       screen.getByRole('link', { name: /Close it out/i }).getAttribute('href'),
-    ).toBe('/closeout/evt_1');
+      'the unprefixed screen settles its language from the cookie and answers 307 to this address anyway',
+    ).toBe('/en/closeout/evt_1');
   });
 
   it('offers nothing for a past gathering the server did not answer for', () => {

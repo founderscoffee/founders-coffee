@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
@@ -22,6 +23,7 @@ import {
 import { Button } from '@founders-coffee/ui';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
+import { localizedCity, localizedEvent } from '../../../lib/locale-routing';
 import {
   canSubmitFeedback,
   draftFromFeedback,
@@ -119,19 +121,27 @@ export const FeedbackPage = ({
             {feedback_saved({}, { locale })}
           </p>
           {query.data.nextEvent ? (
-            <a
+            <Link
               className="link link-primary"
-              href={`/${query.data.marketSlug}/e/${query.data.nextEvent.slug}`}
+              {...localizedEvent(
+                locale,
+                query.data.marketSlug,
+                query.data.nextEvent.slug,
+              )}
             >
               {feedback_next_event({}, { locale })}
-            </a>
+            </Link>
           ) : query.data.citySlug ? (
-            <a
+            <Link
               className="link link-primary"
-              href={`/${query.data.marketSlug}/${query.data.citySlug}`}
+              {...localizedCity(
+                locale,
+                query.data.marketSlug,
+                query.data.citySlug,
+              )}
             >
               {feedback_city_discovery({}, { locale })}
-            </a>
+            </Link>
           ) : null}
         </div>
       ) : (

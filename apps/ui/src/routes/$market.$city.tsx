@@ -32,10 +32,12 @@ import {
 } from '../content/company';
 import { readCookieHeader } from '../lib/cookies';
 import {
+  cursorPairOnly,
   paginationQuery,
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
 } from '../lib/public-pagination';
+import { localizedCity, localizedLanding } from '../lib/locale-routing';
 import { isMarketLeaf } from '../lib/route-market';
 import {
   canonicalUrl,
@@ -79,15 +81,13 @@ const localizedMarket = async (
     });
     if (marketKey !== data.market.slug) {
       throw redirect({
-        to: '/$market/$city',
-        params: { market: locale, city: data.market.slug },
+        ...localizedLanding(locale, data.market.slug),
         search: pagination,
       });
     }
     if (isLeaf && !data.cursorValid) {
       throw redirect({
-        to: '/$market/$city',
-        params: { market: locale, city: data.market.slug },
+        ...localizedLanding(locale, data.market.slug),
         search: {},
       });
     }
@@ -150,6 +150,7 @@ export const Route = createFileRoute('/$market/$city')({
     );
   },
   loader: async ({ params, deps, location }): Promise<RouteData> => {
+    const pagination = cursorPairOnly(deps);
     if (isLocale(params.market)) {
       if (isCompanyPageKey(params.city)) {
         return { kind: 'company', locale: params.market, page: params.city };
@@ -157,7 +158,7 @@ export const Route = createFileRoute('/$market/$city')({
       return localizedMarket(
         params.market,
         params.city,
-        deps,
+        pagination,
         isMarketLeaf(location.pathname),
       );
     }
@@ -167,17 +168,16 @@ export const Route = createFileRoute('/$market/$city')({
         data: {
           marketKey: params.market,
           citySlug: params.city,
-          ...deps,
+          ...pagination,
         },
       });
       throw redirect({
-        to: '/$market/$city/$subcity',
-        params: {
-          market: detectLocale(readCookieHeader()),
-          city: data.market.slug,
-          subcity: data.city.slug,
-        },
-        search: deps,
+        ...localizedCity(
+          detectLocale(readCookieHeader()),
+          data.market.slug,
+          data.city.slug,
+        ),
+        search: pagination,
       });
     } catch (error) {
       const code = appErrorCode(error);

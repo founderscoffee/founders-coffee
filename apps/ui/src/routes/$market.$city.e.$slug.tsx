@@ -16,6 +16,7 @@ import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
+import { localizedEvent } from '../lib/locale-routing';
 import { canonicalUrl, getSiteOrigin } from '../lib/seo';
 import { eventPageHead } from '../lib/seo-event';
 
@@ -75,14 +76,7 @@ export const Route = createFileRoute('/$market/$city/e/$slug')({
       }
     }
     if (params.city !== market.slug) {
-      throw redirect({
-        to: '/$market/$city/e/$slug',
-        params: {
-          market: params.market,
-          city: market.slug,
-          slug: params.slug,
-        },
-      });
+      throw redirect(localizedEvent(params.market, market.slug, params.slug));
     }
 
     let event: EventDetailItem;

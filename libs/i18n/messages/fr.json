@@ -638,5 +638,14 @@
   "share_copy_link": "Copier le lien",
   "share_copied": "Lien copié",
   "share_email": "E-mail",
-  "share_close": "Fermer le partage"
+  "share_close": "Fermer le partage",
+  "how_title": "Comment se passe une rencontre",
+  "how_step1_title": "Choisissez n’importe quel café",
+  "how_step1_body": "Un café ou un restaurant qui vous plaît, à l’heure qui vous arrange.",
+  "how_step2_title": "Dites-le à votre ville",
+  "how_step2_body": "Elle paraît sur la page de votre ville, et les fondateurs proches s’inscrivent.",
+  "how_step3_title": "Retrouvez-vous autour d’un café",
+  "how_step3_body": "Une table, quelques fondateurs, une vraie conversation.",
+  "how_cta_host": "Organiser une rencontre",
+  "how_cta_faq": "Questions fréquentes"
 }

@@ -32,6 +32,23 @@ export const localizedLanding = (locale: Locale, key: string) => ({
 });
 
 /**
+ * A city page inside a market, addressed in the reader's language.
+ *
+ * Three segments, and the locale is the first: `/ar/algeria/algiers`. The two-segment
+ * `/algeria/algiers` is the same page unprefixed, and it is the expensive form — `/$market/$city`
+ * loads the city, throws the result away and answers 307, so an unprefixed link pays
+ * `getCityLanding` twice and two document loads to reach what this one names outright.
+ */
+export const localizedCity = (
+  locale: Locale,
+  marketSlug: string,
+  citySlug: string,
+) => ({
+  to: '/$market/$city/$subcity' as const,
+  params: { market: locale, city: marketSlug, subcity: citySlug },
+});
+
+/**
  * An event page, addressed in the reader's language.
  *
  * The unprefixed `/$market/e/$slug` route still exists and still works; it is the form an
@@ -59,3 +76,47 @@ export const localizedHostCreate = (locale: Locale, marketSlug: string) => ({
   to: '/$market/$city/host/create' as const,
   params: { market: locale, city: marketSlug },
 });
+
+/**
+ * The closeout screen, addressed in the language its prompt was written in.
+ *
+ * These two are private, authenticated pages with nothing in them for a crawler, so the prefix is
+ * not here to serve a canonical. It is here because a link in a notification has to carry its own
+ * language: the unprefixed `/closeout/$eventId` settles from the reader's cookie, so a host
+ * prompted in French closed out in Arabic on any browser that had not visited the site before.
+ *
+ * Nothing had to be taught to read it. The root derives the locale from the first path segment
+ * already, so a prefixed address resolves the same way every public page does, and the unprefixed
+ * form answers 307 to this one for the notifications that are already in flight.
+ */
+export const localizedCloseout = (locale: Locale, eventId: string) => ({
+  to: '/$market/closeout/$eventId' as const,
+  params: { market: locale, eventId },
+});
+
+/** The feedback screen, on the same terms as {@link localizedCloseout}. */
+export const localizedFeedback = (locale: Locale, eventId: string) => ({
+  to: '/$market/feedback/$eventId' as const,
+  params: { market: locale, eventId },
+});
+
+/**
+ * Home, addressed as the reader's own market rather than as `/`.
+ *
+ * `/` is a redirect stub. It resolves a market and answers 307, and on a client navigation that
+ * costs a geo lookup and a market lookup to arrive somewhere the caller could already have named —
+ * the header brand alone was making eight server-function requests per click that way, which is
+ * what put readers into the edge rate limiter. Every brand mark and home affordance links straight
+ * at the market landing instead.
+ *
+ * The fallback to `/` is for the one case that cannot name a market: the market list itself did not
+ * load. That is precisely when the redirect's own detection is worth paying for, so `/` keeps
+ * earning its place for a bare-domain visit, where the geo read is a request header and free.
+ */
+export const localizedHome = (
+  locale: Locale,
+  marketSlug: string | undefined,
+) =>
+  marketSlug === undefined
+    ? ({ to: '/' } as const)
+    : localizedLanding(locale, marketSlug);

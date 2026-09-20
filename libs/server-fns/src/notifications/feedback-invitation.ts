@@ -64,7 +64,7 @@ export const enqueueFeedbackInvitations = async (
         month: 'long',
         day: 'numeric',
       }),
-      url: feedbackUrlFor(event.id),
+      url: feedbackUrlFor(context.locale, event.id),
     };
     const payload = {
       email: contact.email,

@@ -10,6 +10,7 @@ import type { geo } from '@founders-coffee/domain';
 import { HostCreatePage } from '../components/host/HostCreatePage';
 import { eventsApi, type RepeatEventTemplate } from '../features/events/api';
 import { readCookieHeader } from '../lib/cookies';
+import { localizedHostCreate } from '../lib/locale-routing';
 import { NO_INDEX_VALUE } from '../lib/indexation';
 import { privatePageHead } from '../lib/seo-private';
 
@@ -90,13 +91,12 @@ export const Route = createFileRoute('/$market/$city/host/create')({
     }
     if (!isLocale(params.market) || params.city !== market.slug) {
       throw redirect({
-        to: '/$market/$city/host/create',
-        params: {
-          market: isLocale(params.market)
+        ...localizedHostCreate(
+          isLocale(params.market)
             ? params.market
             : detectLocale(readCookieHeader()),
-          city: market.slug,
-        },
+          market.slug,
+        ),
         search: deps,
       });
     }

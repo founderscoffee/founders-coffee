@@ -26,7 +26,7 @@ import heroEgyptMobile from '../../assets/hero-egypt-mobile.webp';
 import heroSaudi from '../../assets/hero-saudi.webp';
 import heroSaudiDesktop from '../../assets/hero-saudi-desktop.webp';
 import heroSaudiMobile from '../../assets/hero-saudi-mobile.webp';
-import { localizedHostCreate } from '../../lib/locale-routing';
+import { localizedCity, localizedHostCreate } from '../../lib/locale-routing';
 
 const EVENTS_ANCHOR = 'market-events';
 
@@ -140,14 +140,7 @@ export const MarketHero = ({
                       state: selectedCity.stateCode,
                     },
                   }
-                : {
-                    to: '/$market/$city/$subcity',
-                    params: {
-                      market: locale,
-                      city: market.slug,
-                      subcity: selectedCity.slug,
-                    },
-                  })}
+                : localizedCity(locale, market.slug, selectedCity.slug))}
               className={CTA_CLASS}
             >
               {hero_search_cta({}, { locale })}

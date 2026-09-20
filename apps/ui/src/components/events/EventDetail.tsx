@@ -28,6 +28,7 @@ import type {
 } from '@founders-coffee/server-fns';
 
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
+import { localizedCity } from '../../lib/locale-routing';
 import { EventLocationMap } from './EventLocationMap';
 import { RsvpSection } from './RsvpSection';
 import { ShareEventButton } from './ShareEventButton';
@@ -101,12 +102,7 @@ export const EventDetail = ({
     <article className="mx-auto max-w-5xl px-4 py-6 sm:py-8 md:px-8 md:py-10">
       {event.citySlug && (
         <Link
-          to="/$market/$city/$subcity"
-          params={{
-            market: locale,
-            city: market.slug,
-            subcity: event.citySlug,
-          }}
+          {...localizedCity(locale, market.slug, event.citySlug)}
           className="mb-4 inline-flex min-h-6 items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
         >
           {back_to_city({ city: cityName }, { locale })}

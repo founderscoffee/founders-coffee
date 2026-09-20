@@ -31,6 +31,7 @@ import { Logo } from '@founders-coffee/ui';
 import { LEGAL_PAGE_KEYS, type LegalPageKey } from '../../content/company';
 import {
   localizedHostCreate,
+  localizedHome,
   localizedLanding,
 } from '../../lib/locale-routing';
 
@@ -109,7 +110,7 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
         <div className="grid gap-10 md:grid-cols-3 lg:grid-cols-[minmax(15rem,1.4fr)_repeat(3,minmax(0,1fr))]">
           <div className="flex flex-col items-start gap-4 md:col-span-3 lg:col-span-1">
             <Link
-              to="/"
+              {...localizedHome(locale, primaryMarket?.slug)}
               aria-label={brand({}, { locale })}
               className="w-fit rounded-field"
             >
@@ -118,21 +119,12 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
             <p className="max-w-xs text-body-sm leading-relaxed text-neutral">
               {footer_tagline({ market: primaryMarketLabel }, { locale })}
             </p>
-            {primaryMarket ? (
-              <Link
-                {...localizedLanding(locale, primaryMarket.slug)}
-                className="btn btn-primary h-11 min-h-11 rounded-full border-0 px-5 text-body-sm shadow-none"
-              >
-                {footer_cta({}, { locale })}
-              </Link>
-            ) : (
-              <Link
-                to="/"
-                className="btn btn-primary h-11 min-h-11 rounded-full border-0 px-5 text-body-sm shadow-none"
-              >
-                {footer_cta({}, { locale })}
-              </Link>
-            )}
+            <Link
+              {...localizedHome(locale, primaryMarket?.slug)}
+              className="btn btn-primary h-11 min-h-11 rounded-full border-0 px-5 text-body-sm shadow-none"
+            >
+              {footer_cta({}, { locale })}
+            </Link>
           </div>
 
           <FooterNavGroup

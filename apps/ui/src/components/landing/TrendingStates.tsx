@@ -11,7 +11,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 import type { TrendingSection } from '@founders-coffee/server-fns';
-import { localizedHostCreate } from '../../lib/locale-routing';
+import { localizedCity, localizedHostCreate } from '../../lib/locale-routing';
 
 const CITY_CARD_COUNT = 11;
 
@@ -48,12 +48,7 @@ export const TrendingStates = ({
           return (
             <li key={city.code} className="h-full">
               <Link
-                to="/$market/$city/$subcity"
-                params={{
-                  market: locale,
-                  city: market.slug,
-                  subcity: city.slug,
-                }}
+                {...localizedCity(locale, market.slug, city.slug)}
                 aria-labelledby={headingId}
                 className={`inline-block h-full min-h-20 sm:min-h-24 w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ${count > 0 ? 'aura aura-glow text-accent' : ''}`}
               >

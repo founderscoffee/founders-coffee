@@ -129,8 +129,19 @@ describe('enqueued notification content is localized (AR-07)', () => {
     const base = (env as unknown as { APP_URL: string }).APP_URL;
     const mail = payloads.find((p) => typeof p.text === 'string');
 
-    expect(mail?.text as string).toContain(`${base}/algeria/e/`);
+    expect(mail?.text as string).toContain(`${base}/en/algeria/e/`);
     expect(mail?.text as string).not.toContain('https://founders.coffee');
+  });
+
+  it('links a French member at the French page, not at a stranger cookie', async () => {
+    const db = await setupDb();
+    const payloads = await enqueueFor(db, 'fr');
+    const mail = payloads.find((p) => typeof p.text === 'string');
+
+    expect(
+      mail?.text as string,
+      'the unprefixed /$market/e/$slug settles its language from the reader cookie, so a mail written in French opened an Arabic page on any browser that had not visited the site yet',
+    ).toContain('/fr/algeria/e/');
   });
 
   /** 2099-01-15T23:30Z is Thursday in UTC and Friday in Africa/Algiers. */

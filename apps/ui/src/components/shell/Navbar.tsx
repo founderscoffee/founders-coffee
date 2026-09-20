@@ -6,7 +6,7 @@ import { Logo, LogoSymbol } from '@founders-coffee/ui';
 import { OfflineNotice } from './OfflineNotice';
 import { SessionNav } from './SessionNav';
 import { ProfileMenuDrawer } from './ProfileMenuDrawer';
-import { localizedHostCreate } from '../../lib/locale-routing';
+import { localizedHome, localizedHostCreate } from '../../lib/locale-routing';
 
 type NavbarProps = { locale: Locale; marketSlug?: string };
 
@@ -23,7 +23,7 @@ export const Navbar = ({ locale, marketSlug }: NavbarProps) => {
         <div className="flex items-center gap-2">
           <ProfileMenuDrawer locale={locale} />
           <Link
-            to="/"
+            {...localizedHome(locale, marketSlug)}
             aria-label={brand({}, { locale })}
             className="flex items-center rounded-field"
           >
