@@ -7,6 +7,7 @@ import { SITEMAP_COMPANY_PATHS } from '../../lib/sitemap-contract';
 import {
   COMPANY_PAGES,
   LEGAL_PAGE_KEYS,
+  companyLinkKey,
   companyPageContent,
   isCompanyPageKey,
 } from './pages';
@@ -56,8 +57,23 @@ describe('company pages', () => {
 
     expect(links.length).toBeGreaterThan(0);
     for (const [, href] of links) {
-      expect(isCompanyPageKey(href.slice(1))).toBe(true);
+      expect(
+        companyLinkKey(href),
+        `${href} is linked in the published text but the renderer cannot place it, so a reader would be shown the raw markdown`,
+      ).not.toBeNull();
     }
+  });
+
+  it('links exactly the pages the router recognises', () => {
+    for (const key of KEYS) {
+      expect(isCompanyPageKey(key)).toBe(true);
+      expect(
+        companyLinkKey(`/${key}`),
+        `/${key} routes through $market/$city but the renderer will not link it`,
+      ).toBe(key);
+    }
+
+    expect(companyLinkKey('/not-a-company-page')).toBeNull();
   });
 
   it('leaves no unresolved bracket placeholders in published text', () => {

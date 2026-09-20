@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 
 import type { Locale } from '@founders-coffee/i18n';
 
+import { companyLinkKey } from '../../content/company';
 import { localizedLanding } from '../../lib/locale-routing';
 
 type RichTextProps = {
@@ -9,16 +10,8 @@ type RichTextProps = {
   locale: Locale;
 };
 
-const LEGAL_PATHS: readonly string[] = [
-  '/terms',
-  '/privacy',
-  '/cookies',
-  '/community',
-  '/organizers',
-  '/legal',
-];
-
 const TOKEN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`)/g;
+const LINK = /^\[([^\]]+)\]\(([^)]+)\)$/u;
 
 export const RichText = ({ value, locale }: RichTextProps) => (
   <>
@@ -48,20 +41,21 @@ export const RichText = ({ value, locale }: RichTextProps) => (
           );
         }
 
-        const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
-        if (link && LEGAL_PATHS.includes(link[2])) {
-          return (
-            <Link
-              key={key}
-              {...localizedLanding(locale, link[2].slice(1))}
-              className="font-medium text-base-content underline underline-offset-2 hover:text-primary"
-            >
-              {link[1]}
-            </Link>
-          );
-        }
+        const link = LINK.exec(part);
+        if (!link) return <span key={key}>{part}</span>;
 
-        return <span key={key}>{part}</span>;
+        const page = companyLinkKey(link[2]);
+        if (!page) return <span key={key}>{link[1]}</span>;
+
+        return (
+          <Link
+            key={key}
+            {...localizedLanding(locale, page)}
+            className="font-medium text-base-content underline underline-offset-2 hover:text-primary"
+          >
+            {link[1]}
+          </Link>
+        );
       })}
   </>
 );

@@ -1,6 +1,7 @@
 export { aboutContent } from './about';
 export {
   COMPANY_PAGES,
+  companyLinkKey,
   companyPageContent,
   isCompanyPageKey,
   LEGAL_PAGE_KEYS,
