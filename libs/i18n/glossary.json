@@ -28,7 +28,7 @@
     },
     {
       "canonical": null,
-      "decide": "#56 settled the noun/imperative half: مشاركة is the dialog heading (share_event) and شارك is the button (share_event_action, share_event_host). What is left is footer_participate, which still uses شارك for Participate — a different meaning on a surface the reader moves between. Give that one its own word, انضم or احضر, and this entry can gain a canonical and start being enforced.",
+      "decide": "#56 settled the noun/imperative half: مشاركة is the dialog heading (share_event) and شارك is the button (share_event_action). What is left is footer_participate, which still uses شارك for Participate — a different meaning on a surface the reader moves between. Give that one its own word, انضم or احضر, and this entry can gain a canonical and start being enforced.",
       "banned": ["شارك"],
       "why": "#56 — one word, two meanings, on surfaces a reader moves between.",
       "allow": {}

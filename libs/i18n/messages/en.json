@@ -623,7 +623,6 @@
   "activity_loading": "Loading your gatherings…",
   "activity_unavailable": "Your gatherings could not be loaded.",
   "share_event": "Share",
-  "share_event_host": "Share this meetup",
   "share_event_action": "Share",
   "share_event_text": "Join me at {title}",
   "share_copy_link": "Copy link",

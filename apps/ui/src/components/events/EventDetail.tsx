@@ -167,7 +167,6 @@ export const EventDetail = ({
               locale={locale}
               title={event.title}
               label={share_event_action({}, { locale })}
-              variant="chip"
             />
           )}
         </div>

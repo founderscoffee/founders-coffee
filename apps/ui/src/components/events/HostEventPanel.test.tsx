@@ -84,19 +84,19 @@ const show = (item: EventWithAttendance) =>
 
 afterEach(() => cleanup());
 
-describe('HostEventPanel gives the host something to promote with', () => {
-  it('offers the share the host is expected to put on WhatsApp', () => {
+describe('HostEventPanel leaves promoting to the page it sits on', () => {
+  it('offers no share button of its own', () => {
     show(event);
     expect(
-      screen.getByRole('button', { name: 'Share this meetup' }),
-    ).toBeTruthy();
+      screen.queryByRole('button', { name: 'Share this meetup' }),
+      "the header chip already shares this page, and the host's own button was the same component, handler and URL a second time",
+    ).toBeNull();
   });
 
-  it('stops offering it once the host has called the meetup off', () => {
+  it('offers none on a cancelled meetup either', () => {
     show(cancelled);
     expect(
       screen.queryByRole('button', { name: 'Share this meetup' }),
-      'promoting a cancelled meetup sends people to a room nobody will be in',
     ).toBeNull();
   });
 });

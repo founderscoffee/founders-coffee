@@ -641,7 +641,6 @@
   "activity_loading": "Chargement de vos rencontres…",
   "activity_unavailable": "Vos rencontres n'ont pas pu être chargées.",
   "share_event": "Partager",
-  "share_event_host": "Partager la rencontre",
   "share_event_action": "Partager",
   "share_event_text": "Rejoignez-moi à {title}",
   "share_copy_link": "Copier le lien",

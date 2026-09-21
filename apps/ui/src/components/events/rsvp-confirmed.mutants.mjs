@@ -66,7 +66,25 @@ export default {
           file: 'apps/ui/src/components/events/RsvpSection.tsx',
           find: '          <p className="text-body-sm text-neutral">\n            {rsvp_confirmed_help({}, { locale })}\n          </p>\n        </>',
           replace:
-            '          <p className="text-body-sm text-neutral">\n            {rsvp_confirmed_help({}, { locale })}\n          </p>\n          <ShareEventButton\n            locale={locale}\n            title={event.title}\n            label="Share"\n            variant="panel"\n          />\n        </>',
+            '          <p className="text-body-sm text-neutral">\n            {rsvp_confirmed_help({}, { locale })}\n          </p>\n          <ShareEventButton\n            locale={locale}\n            title={event.title}\n            label="Share"\n          />\n        </>',
+        },
+      ],
+    },
+    {
+      name: 'the host panel grows a share button again, duplicating the header chip',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'apps/ui/src/components/events/HostEventPanel.tsx',
+          find: "import { HostLiveActions } from './HostLiveActions';",
+          replace:
+            "import { HostLiveActions } from './HostLiveActions';\nimport { ShareEventButton } from './ShareEventButton';",
+        },
+        {
+          file: 'apps/ui/src/components/events/HostEventPanel.tsx',
+          find: '      <p className="text-body-sm text-neutral">\n        {host_hosting_help({}, { locale })}\n      </p>',
+          replace:
+            '      <p className="text-body-sm text-neutral">\n        {host_hosting_help({}, { locale })}\n      </p>\n      {!isCancelled && (\n        <ShareEventButton\n          locale={locale}\n          title={event.title}\n          label="Share this meetup"\n        />\n      )}',
         },
       ],
     },
