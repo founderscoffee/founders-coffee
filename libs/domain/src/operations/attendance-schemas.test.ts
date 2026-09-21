@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { id } from '@founders-coffee/core';
 
+import { anAccountId } from './accounts.fixtures.js';
+
 import {
   correctAttendanceSchema,
   operationsVersionSchema,
@@ -12,7 +14,7 @@ import {
 } from './schemas.js';
 
 const EVENT = id('evt');
-const MEMBER = id('usr');
+const MEMBER = anAccountId();
 
 describe('recordAttendanceSchema', () => {
   it('takes an event, a member and an outcome', () => {
@@ -64,7 +66,7 @@ describe('recordAttendanceBatchSchema', () => {
     expect(
       recordAttendanceBatchSchema.safeParse({
         eventId: EVENT,
-        outcomes: [outcome, { userId: id('usr'), outcome: 'no_show' }],
+        outcomes: [outcome, { userId: anAccountId(1), outcome: 'no_show' }],
       }).success,
     ).toBe(true);
   });

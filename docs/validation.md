@@ -8,7 +8,7 @@ Zod is the **single source of truth** for input shapes across founders.coffee (A
 
 ## Where schemas live
 
-- **Shared primitives → `libs/core/src/validation.ts`** (client-accessible): `moneySchema` (+ `currencySchema`), `idSchema`, `marketCodeSchema`, `paginationSchema`. Reuse these; don't redefine Money / id shapes.
+- **Shared primitives → `libs/core/src/validation.ts`** (client-accessible): `moneySchema` (+ `currencySchema`), `idSchema`, `userIdSchema`, `marketCodeSchema`, `paginationSchema`. Reuse these; don't redefine Money / id shapes.
 - **Per-domain entity/command schemas → `libs/domain/src/<domain>/schemas.ts`** (created with each domain). These compose the primitives and are the contract for that domain's server-fns + forms.
 
 ## Server-function input validation
@@ -54,5 +54,15 @@ useful, not a mandatory dependency.
 - **Coercion:** form inputs arrive as strings (`FormData`) — coerce inside the domain schema with `z.coerce.number()` / `z.coerce.date()` so the same schema accepts both serialized form data and typed API calls where practical.
 - **Money:** always `moneySchema` → `{ amount_minor: int, currency }`. Never accept a bare number for money.
 - **IDs:** `idSchema` (or a prefix-specific refinement) — never a free-form string for an entity id.
+- **User ids:** `userIdSchema` — trimmed, non-empty, capped at 128 characters, and deliberately no
+  format. An entity id comes from the `libs/core` factory and `idSchema` describes it exactly. An
+  account id does not: Better Auth mints it, so its shape is that library's configuration.
+  `defaultGenerateId` currently returns 32 characters of `a-zA-Z0-9` with no prefix and no
+  underscore, while `advanced.database.generateId` also accepts `'uuid'`, `'serial'` and an
+  arbitrary function — and ids minted under one setting outlive a change to another. Asserting a
+  format on an identifier another system owns fails closed on real accounts: `recordAttendanceSchema`,
+  `recordAttendanceBatchSchema`, `correctAttendanceSchema`, `updateHostTrustSchema` and
+  `recordReviewSchema` each validated `userId` with `idSchema`, which no account has ever matched.
+  Whether an id names a real account is the foreign key's job, not the schema's.
 - **Defaults + bounds:** list endpoints use `paginationSchema` (caps `pageSize` at 100).
 - **Error messages:** Zod messages are developer-facing (logged); user-facing copy comes from i18n keyed by the field/code — never surface raw Zod messages to users.

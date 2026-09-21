@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { attendanceOutcomeSchema } from '@founders-coffee/core';
+import { attendanceOutcomeSchema, userIdSchema } from '@founders-coffee/core';
 import { operations } from '@founders-coffee/domain';
 
 export const closeoutViewRequestSchema = z.strictObject({
@@ -16,7 +16,7 @@ export const submitCloseoutRequestSchema = z.strictObject({
   attendance: z
     .array(
       z.strictObject({
-        userId: z.string().min(1),
+        userId: userIdSchema,
         outcome: attendanceOutcomeSchema,
       }),
     )

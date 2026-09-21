@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { idSchema } from '@founders-coffee/core';
+import { idSchema, userIdSchema } from '@founders-coffee/core';
 
 export const SPOKEN_LANGUAGES = ['ar', 'fr', 'en', 'es', 'de', 'ber'] as const;
 export const spokenLanguageSchema = z.enum(SPOKEN_LANGUAGES);
@@ -24,7 +24,7 @@ export const PROFILE_INTERESTS = [
 export const profileInterestSchema = z.enum(PROFILE_INTERESTS);
 export type ProfileInterest = z.infer<typeof profileInterestSchema>;
 
-export const profileIdentitySchema = z.string().trim().min(1).max(128);
+export const profileIdentitySchema = userIdSchema;
 export const profileRevisionSchema = z
   .number()
   .int()

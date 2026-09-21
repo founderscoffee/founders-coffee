@@ -4,6 +4,7 @@ import {
   idSchema,
   localeSchema,
   marketCodeSchema,
+  userIdSchema,
 } from '@founders-coffee/core';
 
 import {
@@ -102,7 +103,7 @@ export const correctCloseoutSchema = z
 
 export const recordAttendanceSchema = z.strictObject({
   eventId: idSchema,
-  userId: idSchema,
+  userId: userIdSchema,
   outcome: attendanceOutcomeSchema,
 });
 
@@ -110,7 +111,10 @@ export const recordAttendanceBatchSchema = z.strictObject({
   eventId: idSchema,
   outcomes: z
     .array(
-      z.strictObject({ userId: idSchema, outcome: attendanceOutcomeSchema }),
+      z.strictObject({
+        userId: userIdSchema,
+        outcome: attendanceOutcomeSchema,
+      }),
     )
     .min(1)
     .max(200),
@@ -165,7 +169,7 @@ export const submitFeedbackSchema = z
 export const updateHostTrustSchema = z
   .strictObject({
     marketCode: marketCodeSchema,
-    userId: idSchema,
+    userId: userIdSchema,
     status: hostTrustStatusSchema,
     reason: operationReasonSchema.nullable().default(null),
   })
@@ -196,7 +200,7 @@ export const recordReviewSchema = z
     windowEnd: z.number().int().positive(),
     bottleneck: reviewBottleneckSchema,
     intervention: z.string().trim().min(1).max(REVIEW_TEXT_MAX_LENGTH),
-    ownerUserId: idSchema,
+    ownerUserId: userIdSchema,
     dueAt: z.number().int().positive(),
   })
   .superRefine((input, context) => {
