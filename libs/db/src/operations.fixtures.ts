@@ -34,8 +34,11 @@ const HOUR = 60 * 60 * 1000;
  * The accounts are reset with them: the users are upserted `ON CONFLICT DO NOTHING`, so a test that
  * suppresses the host to prove a visibility rule would otherwise leave it suppressed for every test
  * that ran after it — which reads as a broken query rather than a dirty fixture.
- * The fixture's own events go too: an attention query that lists every event needing attention will
- * otherwise accumulate one per test and pass on the wrong row.
+ * The fixture's own events go too, selected by the host that owns them: an attention query that
+ * lists every event needing attention will otherwise accumulate one per test and pass on the wrong
+ * row. Ownership is the selector because it survives a change of id scheme — this was once
+ * `LIKE 'evt_ops%'`, which stopped matching anything the moment the ids came from the `libs/core`
+ * factory (AGENTS.md §6) and left every fixture event behind without failing here.
  */
 export const setupDb = async (): Promise<Db> => {
   const db = createDb(env.DB);
@@ -66,7 +69,10 @@ export const setupDb = async (): Promise<Db> => {
   await db.delete(hostTrust).run();
   await db.delete(operationsReviews).run();
   await db.delete(communityMetricSnapshots).run();
-  await db.run(sql`DELETE FROM events WHERE id LIKE 'evt_ops%'`);
+  await db
+    .delete(events)
+    .where(inArray(events.hostId, [HOST_ID, MEMBER_ID, OTHER_ID]))
+    .run();
   return db;
 };
 
@@ -93,15 +99,16 @@ export const pastEvent = async (
     attendees?: readonly string[];
   } = {},
 ): Promise<string> => {
-  const eventId = `evt_ops${String(++counter).padStart(3, '0')}`;
+  const n = ++counter;
+  const eventId = id('evt');
   await createEvent(db, {
     id: eventId,
-    slug: `ops-fixture-${counter}`,
+    slug: `ops-fixture-${n}`,
     hostId: options.hostId ?? HOST_ID,
     marketCode: 'DZ',
     stateCode: '16',
     cityCode: '1',
-    title: `Ops fixture ${counter}`,
+    title: `Ops fixture ${n}`,
     description: 'An event used to exercise the operations schema.',
     venue: 'Café des Délices, Hydra',
     startsAt: new Date(Date.now() + 48 * HOUR),
@@ -130,15 +137,16 @@ export const futureEvent = async (
   db: Db,
   options: { attendees?: readonly string[] } = {},
 ): Promise<string> => {
-  const eventId = `evt_ops${String(++counter).padStart(3, '0')}`;
+  const n = ++counter;
+  const eventId = id('evt');
   await createEvent(db, {
     id: eventId,
-    slug: `ops-future-${counter}`,
+    slug: `ops-future-${n}`,
     hostId: HOST_ID,
     marketCode: 'DZ',
     stateCode: '16',
     cityCode: '1',
-    title: `Ops future ${counter}`,
+    title: `Ops future ${n}`,
     description: 'An event that has not happened yet.',
     venue: 'Café des Délices, Hydra',
     startsAt: new Date(Date.now() + 48 * HOUR),

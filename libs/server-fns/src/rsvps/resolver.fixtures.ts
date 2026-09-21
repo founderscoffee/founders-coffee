@@ -1,5 +1,6 @@
 import { env } from 'cloudflare:workers';
 
+import { id } from '@founders-coffee/core';
 import {
   createDb,
   createEvent,
@@ -53,9 +54,9 @@ export const seedEvent = async (
   overrides: { status?: 'published' | 'draft' } = {},
 ): Promise<string> => {
   const n = ++counter;
-  const id = `evt_rr${String(n).padStart(3, '0')}`;
+  const eventId = id('evt');
   await createEvent(db, {
-    id,
+    id: eventId,
     slug: `resolver-rsvp-${n}`,
     hostId: HOST_ID,
     marketCode: 'DZ',
@@ -68,5 +69,5 @@ export const seedEvent = async (
     language: 'fr',
     status: overrides.status ?? 'published',
   });
-  return id;
+  return eventId;
 };
