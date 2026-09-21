@@ -27,8 +27,9 @@ import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { RepeatHostLink } from '../../../components/events/RepeatHostLink';
 import { useRepeatEventTemplate } from '../../events/hooks';
 import { canSubmit, draftFrom, toRequest, type CloseoutDraft } from '../draft';
-import { useCloseout, useSubmitCloseout } from '../hooks';
+import { useCloseout, useFeedbackTally, useSubmitCloseout } from '../hooks';
 import { CloseoutForm } from './CloseoutForm';
+import { FeedbackTally } from './FeedbackTally';
 
 const messageFor = (error: unknown, locale: Locale): string => {
   const code = appErrorCode(error);
@@ -71,6 +72,10 @@ export const CloseoutPage = ({
   const repeatMarketSlug = repeat.data
     ? markets.find((market) => market.code === repeat.data?.marketCode)?.slug
     : undefined;
+  const tally = useFeedbackTally(
+    eventId,
+    !save.isSuccess && (query.data?.outcome ?? null) !== null,
+  );
 
   useEffect(() => {
     if (query.data) setDraft(draftFrom(query.data));
@@ -131,7 +136,12 @@ export const CloseoutPage = ({
           ) : null}
         </div>
       ) : query.data.outcome !== null ? (
-        <p role="status">{closeout_already_done({}, { locale })}</p>
+        <div className="space-y-6">
+          <p role="status">{closeout_already_done({}, { locale })}</p>
+          {tally.data ? (
+            <FeedbackTally locale={locale} tally={tally.data} />
+          ) : null}
+        </div>
       ) : (
         <div className="space-y-6">
           <CloseoutForm

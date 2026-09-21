@@ -12,6 +12,7 @@ const state = vi.hoisted(() => ({
 vi.mock('../hooks', () => ({
   useCloseout: () => state.query,
   useSubmitCloseout: () => state.save,
+  useFeedbackTally: () => ({ data: undefined }),
 }));
 vi.mock('../../events/hooks', () => ({
   useRepeatEventTemplate: () => ({ data: null }),

@@ -23,11 +23,14 @@ import {
 export const HOST_ID = 'usr_ops_host';
 export const MEMBER_ID = 'usr_ops_member';
 export const OTHER_ID = 'usr_ops_other';
+export const EXTRA_MEMBER_IDS = ['usr_ops_m1', 'usr_ops_m2', 'usr_ops_m3'];
+
+const CAST = [HOST_ID, MEMBER_ID, OTHER_ID, ...EXTRA_MEMBER_IDS];
 
 const HOUR = 60 * 60 * 1000;
 
 /**
- * A market, three people, and a clean operations slate.
+ * A market, a cast of six, and a clean operations slate.
  *
  * The tables are emptied rather than the database recreated, because these suites share one
  * Miniflare D1 and a leftover closeout would make an idempotency test pass for the wrong reason.
@@ -39,6 +42,12 @@ const HOUR = 60 * 60 * 1000;
  * row. Ownership is the selector because it survives a change of id scheme — this was once
  * `LIKE 'evt_ops%'`, which stopped matching anything the moment the ids came from the `libs/core`
  * factory (AGENTS.md §6) and left every fixture event behind without failing here.
+ *
+ * Three of the six exist only to clear a small-n threshold. The feedback tally is withheld below
+ * three responses, so proving it is *shown* needs three people who are not the host, which
+ * `MEMBER_ID` and `OTHER_ID` cannot supply between them. They are seeded here rather than inserted
+ * by the suite that wants them so that they are reset with everybody else: a leftover row would
+ * make one suite's threshold depend on whether another had run first.
  */
 export const setupDb = async (): Promise<Db> => {
   const db = createDb(env.DB);
@@ -54,13 +63,18 @@ export const setupDb = async (): Promise<Db> => {
       },
       { id: MEMBER_ID, name: 'Ops Member', email: 'ops-member@test.coffee' },
       { id: OTHER_ID, name: 'Ops Other', email: 'ops-other@test.coffee' },
+      ...EXTRA_MEMBER_IDS.map((memberId, index) => ({
+        id: memberId,
+        name: `Ops Extra ${index + 1}`,
+        email: `ops-extra-${index + 1}@test.coffee`,
+      })),
     ])
     .onConflictDoNothing()
     .run();
   await db
     .update(user)
     .set({ accountState: 'active', localePref: null })
-    .where(inArray(user.id, [HOST_ID, MEMBER_ID, OTHER_ID]))
+    .where(inArray(user.id, CAST))
     .run();
   await db.delete(eventFeedback).run();
   await db.delete(eventAttendance).run();
@@ -69,10 +83,7 @@ export const setupDb = async (): Promise<Db> => {
   await db.delete(hostTrust).run();
   await db.delete(operationsReviews).run();
   await db.delete(communityMetricSnapshots).run();
-  await db
-    .delete(events)
-    .where(inArray(events.hostId, [HOST_ID, MEMBER_ID, OTHER_ID]))
-    .run();
+  await db.delete(events).where(inArray(events.hostId, CAST)).run();
   return db;
 };
 

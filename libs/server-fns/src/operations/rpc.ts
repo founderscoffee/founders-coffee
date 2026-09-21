@@ -10,9 +10,11 @@ import { privateNoStore } from '../response-cache.js';
 import { readCloseoutStates } from './closeout-state.js';
 import { readCloseout, submitCloseoutResolver } from './closeout.js';
 import { readFeedback, submitFeedbackResolver } from './feedback.js';
+import { readFeedbackTally } from './tally.js';
 import {
   closeoutStatesRequestSchema,
   closeoutViewRequestSchema,
+  feedbackTallyRequestSchema,
   submitCloseoutRequestSchema,
   feedbackViewRequestSchema,
   submitFeedbackRequestSchema,
@@ -116,6 +118,27 @@ export const submitFeedback = createServerFn({ method: 'POST', strict: false })
       submitFeedbackResolver(getDb(), {
         userId: requireAuth(context.session).user.id,
         input: data.feedback,
+      }),
+    );
+  });
+
+/**
+ * How the attendees found one of the caller's own past gatherings.
+ *
+ * Owner-only by construction, and `privateNoStore` for the reason the projection exists at all: a
+ * pulse on a gathering of six is close enough to individual that a shared cache holding it would
+ * undo the anonymity the resolver spends a floor to protect.
+ */
+export const getFeedbackTally = createServerFn({ method: 'GET', strict: false })
+  .middleware([authMiddleware])
+  .validator(appValidator(feedbackTallyRequestSchema))
+  .handler(async ({ context, data }) => {
+    const session = requireAuth(context.session);
+    privateNoStore();
+    return handleResult(
+      readFeedbackTally(getDb(), {
+        eventId: data.eventId,
+        actorId: session.user.id,
       }),
     );
   });

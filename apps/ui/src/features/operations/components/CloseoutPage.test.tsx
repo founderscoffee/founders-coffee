@@ -7,12 +7,14 @@ const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
   save: {} as Record<string, unknown>,
   repeat: {} as Record<string, unknown>,
+  tally: {} as Record<string, unknown>,
   sent: [] as unknown[],
 }));
 
 vi.mock('../hooks', () => ({
   useCloseout: () => state.query,
   useSubmitCloseout: () => state.save,
+  useFeedbackTally: () => state.tally,
 }));
 vi.mock('../../events/hooks', () => ({
   useRepeatEventTemplate: () => state.repeat,
@@ -51,6 +53,7 @@ const first = <T,>(items: readonly T[]): T => {
 
 beforeEach(() => {
   state.sent = [];
+  state.tally = { data: undefined };
   state.query = {
     data: view(),
     isError: false,

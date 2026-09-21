@@ -4,7 +4,15 @@ import type { Db } from './db.js';
 import { eventFeedback, events } from './schema.js';
 
 /**
- * The aggregate a host or an operator may see, which never includes who said what.
+ * The aggregate a host may see about their own gathering, which never includes who said what.
+ *
+ * It says a host and not an operator on purpose. The line here read "a host or an operator may
+ * see" from the day it was written, in the present indicative, while this projection had no caller
+ * anywhere — not in the public app, not in the operations console, which has no feedback surface of
+ * any kind (#76). `readFeedbackTally` is now the one reader, and it answers the event's host alone.
+ * When an operator surface exists this sentence can grow again; until then it describes what is
+ * built, because a doc-block that promises a reader is how the gap survived review for as long as
+ * it did.
  *
  * §5.7 keeps individual feedback private by default and out of public event pages entirely. The
  * comments are deliberately absent from this projection: a host reading three comments on a meetup
