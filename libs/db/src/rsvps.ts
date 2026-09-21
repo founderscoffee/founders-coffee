@@ -49,7 +49,7 @@ const eventExists = (eventId: string) => sql`id = ${eventId}`;
 /**
  * The event exists and has not started, decided by the database's own clock.
  *
- * §5.17 freezes RSVP intent at `startsAt` so that the going set used for attendance eligibility
+ * RSVP intent freezes at `startsAt` so that the going set used for attendance eligibility
  * cannot be edited after the fact — someone who did not turn up must not be able to erase having
  * said they would. The comparison is `unixepoch()` inside the statement rather than a timestamp
  * passed in, because a caller's clock is an input and this is the boundary the whole eligibility

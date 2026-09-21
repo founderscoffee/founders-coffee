@@ -48,7 +48,7 @@ const heldEventWith = async (db: Db, attendees: readonly string[]) => {
   return eventId;
 };
 
-describe('retention (§5.21)', () => {
+describe('retention', () => {
   let db: Db;
 
   beforeEach(async () => {

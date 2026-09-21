@@ -28,7 +28,7 @@ export const authMiddleware = createMiddleware({ type: 'function' }).server(
  * Server-function middleware factory: require an authenticated session whose role is granted
  * `action` on `resource` (throws `AppError('unauthenticated'|'forbidden')` otherwise). Compose on the
  * data-boundary server-fn — `createServerFn().middleware([requirePermission('event', 'create')])` —
- * the data boundary itself, not just a route guard (AGENTS §11.2). Depends on {@link authMiddleware}
+ * the data boundary itself, not just a route guard (AGENTS.md §10). Depends on {@link authMiddleware}
  * for `context.session`.
  */
 export const requirePermission = (

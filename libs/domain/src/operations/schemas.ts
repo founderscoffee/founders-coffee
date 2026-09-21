@@ -30,7 +30,7 @@ export const walkInCountSchema = z.number().int().min(0).max(WALK_IN_MAX);
  * What a host submits when an event is over.
  *
  * `wouldHostAgain` is nullable rather than defaulted: "did not answer" and "no" are different
- * facts, and §6 reports host-again intent as a share of pulses that were actually submitted. A
+ * facts, and host-again intent is reported as a share of pulses that were actually submitted. A
  * default would quietly enrol every silent host in one answer or the other.
  *
  * The walk-in tally is bounded on both ends. Non-negative because a negative attendance is not a
@@ -44,8 +44,8 @@ export const walkInCountSchema = z.number().int().min(0).max(WALK_IN_MAX);
  *
  * The correction schema below is the same shape plus `expectedVersion` and a required `reason`:
  * a correction is conditional on the version the corrector was looking at, so two admins editing
- * the same closeout produce one winner rather than a silent overwrite, and §5.22 treats an
- * unexplained correction as indistinguishable from a mistake in the audit stream.
+ * the same closeout produce one winner rather than a silent overwrite, and an unexplained
+ * correction is indistinguishable from a mistake in the audit stream.
  */
 export const submitCloseoutSchema = z
   .strictObject({
@@ -127,12 +127,11 @@ export const correctAttendanceSchema = recordAttendanceSchema.extend({
 /**
  * The attendee pulse: three questions, one of them optional.
  *
- * Attendance itself carries no name and no way to add one: §5.4 scopes it to members who held a
+ * Attendance itself carries no name and no way to add one: it is scoped to members who held a
  * valid `going` RSVP, the repository enforces that in the same statement that writes the row, and
  * anonymous turnout stays the aggregate on the closeout without creating an identity.
  *
- * A comment carries its authored language because §5.23 renders it as written and never translates
- * it — a comment whose language is unknown either gets guessed at or gets rendered with the wrong
+ * A comment carries its authored language because it is rendered as written and never translated — a comment whose language is unknown either gets guessed at or gets rendered with the wrong
  * typography and direction, and both are worse than asking. The pair is enforced together: a
  * language without a comment is as meaningless as a comment without one.
  */
@@ -188,7 +187,7 @@ export const updateHostTrustSchema = z
  *
  * The evidence window is explicit rather than implied by the row's creation time, because a review
  * held late still describes the week it was about. `intervention` and `followUpResult` are bounded
- * operational text with no member PII — §5.14 keeps names, contacts and comments out of anything
+ * operational text with no member PII: names, contacts and comments stay out of anything
  * that leaves D1, and this record is read by the dashboard.
  */
 export const recordReviewSchema = z

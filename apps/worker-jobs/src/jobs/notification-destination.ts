@@ -38,7 +38,7 @@ export type DestinationResult =
  * Every other refusal here is a statement about the recipient — no address, no device, a category
  * switched off — and none of those resolve by waiting, so the row is failed permanently and the
  * budget is not spent retrying. A market flag is different in kind: it is a statement about the
- * deployment, it is expected to change, and §5 asks that an intent stay recoverable while it is off.
+ * deployment, it is expected to change, and an intent must stay recoverable while it is off.
  * Retiring the row would make "recoverable" mean "recoverable until it comes due".
  */
 const held = (reason: string): DestinationResult => ({
@@ -91,9 +91,8 @@ const unreachable = (reason: string, account = false): DestinationResult => ({
  * cancellation notices under `event_updates`, RSVP confirmations and cancellations under their
  * respective host preferences, and feedback invitations under `follow_up_prompts`.
  *
- * The market flag is enforced here rather than in the producer, and rather than in the sweep loop.
- * §5 gates prompt delivery, and this is the one place every channel already passes through before a
- * send — a market that switches operations off between the intent being written and the prompt
+ * The market flag is enforced here rather than in the producer, and rather than in the sweep loop:
+ * this is the one place every channel already passes through before a send — a market that switches operations off between the intent being written and the prompt
  * coming due refuses here, and one that switches them on later delivers without needing the intent
  * to have been rewritten. The sweep already wraps this call against exceptions, which a gate bolted
  * into its claimed-row loop would not have been.

@@ -14,7 +14,7 @@ import { eventFeedback, events } from './schema.js';
  * built, because a doc-block that promises a reader is how the gap survived review for as long as
  * it did.
  *
- * §5.7 keeps individual feedback private by default and out of public event pages entirely. The
+ * Individual feedback stays private by default and out of public event pages entirely. The
  * comments are deliberately absent from this projection: a host reading three comments on a meetup
  * of four people has effectively been told who wrote them.
  *

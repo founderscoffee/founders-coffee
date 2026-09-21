@@ -23,8 +23,7 @@ export type OperationMatrix = Readonly<
  * that asserts nothing, and a table of expected error codes is not. `operations-matrix.test.ts`
  * builds the event for each phase, calls the operation as each actor, and compares.
  *
- * `no_end` is a phase of its own because §5.24 treats a missing end as real data rather than a
- * mistake. An event with no end cannot be shown to have finished, so `after_end`'s refusal cannot
+ * `no_end` is a phase of its own because a missing end is real data rather than a mistake. An event with no end cannot be shown to have finished, so `after_end`'s refusal cannot
  * apply to it and the cell says `ok` deliberately. Every event the product creates has an end —
  * `createEventSchema` requires one — so this is the shape of legacy and fixture rows, and writing
  * it down is what stops someone reading the `after_end` row and assuming it covers everything.

@@ -20,8 +20,8 @@ export type EventTiming = {
 /**
  * Whether an event is far enough past its end to be closed out at all.
  *
- * `endsAt === null` is not "closeable now" and not an error either: §5.24 excludes those legacy
- * rows from closeout, attendance, feedback and every completed-event metric, and they surface in an
+ * `endsAt === null` is not "closeable now" and not an error either: those legacy rows are excluded
+ * from closeout, attendance, feedback and every completed-event metric, and they surface in an
  * admin attention state instead. Inferring a duration from `startsAt` would manufacture the exact
  * evidence this plan exists to stop manufacturing.
  *
@@ -52,7 +52,7 @@ export const isCloseoutOverdue = (
 /**
  * Whether a closeout is early enough to invite anyone to give feedback.
  *
- * §5.20 fixes this at seven days after the event ended. The rule exists because a pulse asked three
+ * This is fixed at seven days after the event ended. The rule exists because a pulse asked three
  * weeks late measures memory rather than experience, and because inviting on a late closeout would
  * let the invitation window be reopened at will by simply closing out later.
  *
@@ -73,7 +73,7 @@ export const invitesFeedback = (
  *
  * Fourteen days after the event ended, measured from the event and never from the invitation, so a
  * closeout submitted on day six and one submitted on day one close the window at the same moment.
- * §5.20 is explicit that a late closeout does not reopen it — which is only true if the deadline
+ * A late closeout does not reopen it — which is only true if the deadline
  * is anchored to `endsAt`, as it is here.
  */
 export const feedbackWindowOpen = (
@@ -84,7 +84,7 @@ export const feedbackWindowOpen = (
 /**
  * The month a completed event is counted in, in the market's own timezone.
  *
- * §6 groups completed events by the calendar month containing `endsAt` in the market timezone, not
+ * Completed events are grouped by the calendar month containing `endsAt` in the market timezone, not
  * in UTC. For Algiers that is UTC+1 all year, so an event ending at 23:30 on the last day of a
  * month is counted in the following month by a UTC reading and in the correct one by this. The
  * difference is small and it is the difference between a density gate that is met and one that is

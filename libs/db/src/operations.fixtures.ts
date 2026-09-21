@@ -92,13 +92,13 @@ let counter = 0;
 /**
  * An event that has already finished, with whoever said they were coming.
  *
- * Built forwards and then moved backwards, which is the only order that works now that §5.17 freezes
- * RSVP intent at `startsAt`: an RSVP created against an event that has already started is refused,
+ * Built forwards and then moved backwards, which is the only order that works now that RSVP intent
+ * freezes at `startsAt`: an RSVP created against an event that has already started is refused,
  * so the attendees have to join while the event is still ahead of them. The times are then rewritten
  * so the operations guards — which read the database's clock rather than a passed-in time — see a
  * genuinely elapsed event.
  *
- * `withEndsAt: false` leaves the end null, which §5.24 makes a first-class case rather than bad data.
+ * `withEndsAt: false` leaves the end null, which is a first-class case rather than bad data.
  */
 export const pastEvent = async (
   db: Db,

@@ -33,8 +33,8 @@ export interface AuditEntry {
  * `source` is the table that predicate reads: `events` for anything about a meetup, `markets` for a
  * decision about a person or a week, which belongs to a market and to no single event.
  *
- * Every operations write pairs with one of these in a single `db.batch()`. §7 requires the audit to
- * be written in the same atomic batch as the change, so the stream and the mutable rows can never
+ * Every operations write pairs with one of these in a single `db.batch()`. The audit is written in
+ * the same atomic batch as the change, so the stream and the mutable rows can never
  * disagree about what occurred: D1 applies both or neither.
  */
 export const auditStatement = (

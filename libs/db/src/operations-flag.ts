@@ -6,7 +6,7 @@ import { markets } from './schema.js';
 /**
  * Whether community operations are switched on for this market.
  *
- * §5.26 requires the rollback to exist before the exposure does, so the flag defaults off and is
+ * The rollback exists before the exposure does, so the flag defaults off and is
  * read here rather than in each surface. An absent key means off: a market row written before this
  * flag existed, or a JSON blob that lost it, resolves to disabled instead of to whatever
  * `undefined` happens to coerce to at the call site.
@@ -15,7 +15,7 @@ import { markets } from './schema.js';
  * is the only answer that cannot expose an unfinished surface.
  *
  * The flag gates closeout, feedback, repeat-host, operations and metrics entry points. Moderation
- * and host trust are deliberately not gated — §5.26 keeps the safety controls available even when
+ * and host trust are deliberately not gated — the safety controls stay available even when
  * the feature they oversee is switched off, because the reason to switch it off may be the reason
  * they are needed.
  */

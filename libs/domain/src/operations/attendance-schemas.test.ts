@@ -37,7 +37,7 @@ describe('recordAttendanceSchema', () => {
     ).toBe(false);
   });
 
-  it('offers no way to name a walk-in, because §5.4 forbids inventing one', () => {
+  it('offers no way to name a walk-in, because attendance cannot invent one', () => {
     expect(
       recordAttendanceSchema.safeParse({
         eventId: EVENT,

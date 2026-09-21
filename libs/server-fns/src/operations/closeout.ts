@@ -52,7 +52,7 @@ const CLOSEOUT_REFUSALS: Record<string, [string, string]> = {
 /**
  * Refuse when the market has not turned community operations on.
  *
- * §5 gates every closeout surface, mutation and prompt on `communityOperations`, and the gate lives
+ * Every closeout surface, mutation and prompt is gated on `communityOperations`, and the gate lives
  * on the server rather than on whether a screen was rendered: a flag that only hides a button is not
  * a flag, it is a layout choice. `communityOperationsEnabled` is CO-03's reader and already treats
  * an absent key and an unknown market as off.
@@ -80,7 +80,7 @@ const requireOperationsEnabled = async (
  * evaluates them in the same statement. This exists so the form can be built from the real roster and show
  * existing marks, not so it can pre-authorise anything.
  *
- * The two totals are derived here and never accepted from a client. §5.5 makes every closeout count
+ * The two totals are derived here and never accepted from a client. Every closeout count is
  * derived, so `registeredAttended` is counted from the rows and `totalAttended` adds the walk-ins —
  * a host cannot submit a number that disagrees with the outcomes recorded, because no number is
  * submitted.

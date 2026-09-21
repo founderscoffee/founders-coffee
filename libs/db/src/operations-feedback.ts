@@ -25,7 +25,7 @@ const FOURTEEN_DAYS = 14 * 24 * 60 * 60;
 /**
  * This member attended, the closeout invited them, and the window is still open.
  *
- * All three parts of §5.20 in one predicate, evaluated against the database's clock:
+ * All three parts of the feedback window in one predicate, evaluated against the database's clock:
  *
  * - the closeout says `held` and was submitted within seven days of the end, which is what creates
  *   the invitation at all;
@@ -58,13 +58,13 @@ const feedbackAllowed = (eventId: string, userId: string) =>
 /**
  * Save the pulse, or update the one this member already left.
  *
- * `ON CONFLICT (event_id, user_id) DO UPDATE` gives §5.7's "one updateable pulse" without a read:
+ * `ON CONFLICT (event_id, user_id) DO UPDATE` gives one updateable pulse per member without a read:
  * a member changing their mind inside the window edits their row, and outside it the guard has
  * already refused the insert so there is nothing to update.
  *
  * The comment and its language move together. The schema permits a null pair and a complete pair;
  * the domain schema rejects the halves, and this write carries whatever it is given as a unit, so
- * a comment can never arrive stripped of the language §5.23 renders it in.
+ * a comment can never arrive stripped of the language it is rendered in.
  */
 export const saveFeedback = async (
   db: Db,

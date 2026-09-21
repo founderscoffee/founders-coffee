@@ -125,7 +125,7 @@ export const ACCOUNT_ROWS = [
  *
  * `dev-closeout-ready` has ended and holds RSVPs, which is the combination the closeout and
  * feedback commands require and the one no seeded row used to satisfy. `dev-rsvp-open` is still
- * ahead, because §5.17 freezes RSVP intent at `startsAt` and an elapsed event refuses a new one.
+ * ahead, because RSVP intent freezes at `startsAt` and an elapsed event refuses a new one.
  * `dev-cairo-upcoming` sits in a second market so a query that silently crosses markets has
  * something to get wrong.
  *

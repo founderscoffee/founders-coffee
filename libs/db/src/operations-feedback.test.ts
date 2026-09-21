@@ -178,7 +178,7 @@ describe('saveFeedback', () => {
   });
 });
 
-describe('the feedback window (§5.20)', () => {
+describe('the feedback window', () => {
   let db: Db;
 
   beforeEach(async () => {

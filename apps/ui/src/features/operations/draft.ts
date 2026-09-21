@@ -44,7 +44,7 @@ export const draftFrom = (view: CloseoutView): CloseoutDraft => ({
 /**
  * The two counts the host is about to commit to, worked out the same way the server will.
  *
- * Shown before submission because §5.5 derives them rather than accepting them: a host who cannot
+ * Shown before submission because the server derives them rather than accepting them: a host who cannot
  * see the number they are producing has no way to notice it is wrong, and the first place that
  * number is visible should not be a report weeks later.
  *

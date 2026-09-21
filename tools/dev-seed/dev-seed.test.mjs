@@ -130,7 +130,7 @@ describe('the dev seed against a database the migrations built', () => {
 
     expect(
       upcoming.length,
-      'every seeded event has started, and §5.17 freezes RSVP intent at startsAt, so the RSVP path cannot be exercised',
+      'every seeded event has started, and RSVP intent freezes at startsAt, so the RSVP path cannot be exercised',
     ).toBeGreaterThan(0);
   });
 

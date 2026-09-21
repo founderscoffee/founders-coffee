@@ -32,7 +32,7 @@ export type FeedbackTallyView =
  *
  * `TALLY_FLOOR` is three because the host knows who was in the room. With two responses a host who
  * can guess one answer — the friend who said it was great on the way out — derives the other
- * exactly, which turns the aggregate back into the individual disclosure §5.7 forbids; three leaves
+ * exactly, which turns the aggregate back into an individual disclosure; three leaves
  * two unresolved. It is a floor and not a guarantee, and the difference is worth stating plainly:
  * unanimity discloses every answer at any size, so `3 valuable of 3` tells a host what each of
  * those three said. No threshold fixes that — it is inherent to publishing an aggregate — and

@@ -25,8 +25,8 @@ import {
  * Set what a market has decided about a host, creating the row on first decision.
  *
  * Upserted on `(market_code, user_id)`, which is what keeps the decision market-local: the same
- * person restricted in Algiers is `unreviewed` in a market that has never looked at them, and
- * §5.19 says that is correct rather than an oversight.
+ * person restricted in Algiers is `unreviewed` in a market that has never looked at them, and that
+ * is correct rather than an oversight.
  *
  * `reviewed_by` and `reviewed_at` are set from the actor and the database clock, never from the
  * caller — a trust decision that could be backdated or attributed to someone else is not evidence.
@@ -138,7 +138,7 @@ export const listHostsByTrust = (
     .orderBy(desc(hostTrust.updatedAt))
     .limit(opts.limit);
 
-/** Write one weekly decision, with the audit entry that says who took it (§5.25). */
+/** Write one weekly decision, with the audit entry that says who took it. */
 export const recordReview = async (
   db: Db,
   input: {
@@ -230,7 +230,7 @@ export const listReviews = (
  *
  * The unique key is the whole identity of the measurement — market, scope, scope code, month,
  * metric — so recomputing August's no-show rate overwrites August's no-show rate and cannot leave
- * two rows disagreeing. §5.21 keeps these indefinitely while the rows behind them are retired at
+ * two rows disagreeing. These are kept indefinitely while the rows behind them are retired at
  * twenty-four months, which only works if each one is authoritative.
  */
 export const upsertMetricSnapshot = async (

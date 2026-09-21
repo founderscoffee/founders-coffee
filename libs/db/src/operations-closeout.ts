@@ -30,10 +30,10 @@ export interface SubmitCloseoutRow {
 /**
  * The event is over, was not cancelled, and knows when it ended.
  *
- * Evaluated inside the write rather than read first. §5.6 forbids read-decide-write on D1 entirely,
+ * Evaluated inside the write rather than read first. AGENTS.md §11 forbids read-decide-write on D1,
  * and the reason bites here: between reading an event and inserting its closeout, the host could
  * cancel it, and a closeout on a cancelled event double-counts the same outcome in reliability
- * reporting. `ends_at IS NOT NULL` is the §5.24 rule in the same predicate — a legacy event with no
+ * reporting. `ends_at IS NOT NULL` puts the legacy-event rule in the same predicate — an event with no
  * recorded end is excluded from closeout rather than given an inferred one.
  */
 /**
@@ -96,7 +96,7 @@ const refusalFor = async (
  * Record what happened, copying the event's geography rather than trusting the caller's.
  *
  * The insert selects from `events`, so market, state and city come from the row being closed out
- * and cannot be nominated by a client. §5.19 scopes every operations record to a market, and a
+ * and cannot be nominated by a client. Every operations record is scoped to a market, and a
  * market code supplied alongside an event id is one typo away from filing a Chlef meetup under
  * Algiers — the join is what makes that impossible rather than merely discouraged.
  *
@@ -183,7 +183,7 @@ export const submitCloseout = async (
  * the other's judgement about what happened at a meetup neither of them attended.
  *
  * The audit entry carries the reason and the before/after outcome, and is written in the same
- * batch. §7 requires the audit stream to reconstruct who changed what and why; a correction that
+ * batch. The audit stream must reconstruct who changed what and why; a correction that
  * could land without one would leave the mutable row as the only account of itself.
  *
  * It is the *first* statement in the batch, and the order is load-bearing. D1 applies a batch in

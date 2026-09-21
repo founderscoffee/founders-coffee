@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { id } from '@founders-coffee/core';
@@ -6,7 +6,7 @@ import { id } from '@founders-coffee/core';
 import type { Db } from './db.js';
 import { createEvent } from './events.js';
 import { listCitiesWithUpcomingEvents } from './events-sitemap.js';
-import { events, user } from './schema.js';
+import { user } from './schema.js';
 import { HOST_ID, setupDb } from './operations.fixtures.js';
 
 const HOUR = 60 * 60 * 1000;

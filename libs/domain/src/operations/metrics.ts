@@ -18,7 +18,7 @@ export interface Ratio {
 /**
  * A share, with the numbers it came from and an honest `null` when there are none.
  *
- * Every §6 metric is reported with its numerator, denominator and window, so the ratio type carries
+ * Every operations metric is reported with its numerator, denominator and window, so the ratio type carries
  * all three rather than a bare percentage. `value` is `null` on a zero denominator and never `0`:
  * "nobody was asked" and "everybody said no" are opposite facts, and a dashboard that renders both
  * as 0% invites exactly the wrong intervention.
@@ -39,8 +39,8 @@ export interface AttendanceTally {
  *
  * Walk-ins are absent from both sides on purpose. They are an aggregate with no RSVP behind them,
  * so counting them in the numerator would compare people who signed up against people who did not,
- * and the resulting rate could exceed 1 — §6 restricts this to "closeouts with at least one
- * recorded RSVP outcome" for that reason.
+ * and the resulting rate could exceed 1, so this is restricted to closeouts with at least one
+ * recorded RSVP outcome.
  */
 export const rsvpToAttendance = (tally: AttendanceTally): Ratio =>
   ratio(tally.attended, tally.attended + tally.noShow);
@@ -51,7 +51,7 @@ export const noShowRate = (tally: AttendanceTally): Ratio =>
 /**
  * Total turnout: the members we can name, plus the ones we counted.
  *
- * §5.5 makes this derived and never submitted, so a client cannot report a total that disagrees
+ * This is derived and never submitted, so a client cannot report a total that disagrees
  * with the attendance rows behind it.
  */
 export const totalAttendance = (
@@ -81,7 +81,7 @@ export const recurringHosts = (
 /**
  * Of the hosts who have had time to come back, the share that did.
  *
- * The denominator is the subtlety and §6 states it precisely: hosts whose *first* completed event
+ * The denominator is the subtlety, and it is precise: hosts whose *first* completed event
  * is at least sixty days old. A host who ran their first meetup last week has not failed to return
  * — they have not had the chance — and counting them would make retention fall every time the
  * community recruited someone, which is the opposite of what the number is for.
@@ -143,7 +143,7 @@ export const hostAgainIntent = (pulse: PulseTally): Ratio =>
  *
  * Compared against the operating target rather than reported bare, because the number on its own
  * says nothing: eight events is healthy for a market running one a week and thin for one running
- * three. `onTarget` uses the §6 target of roughly eight completed events per month, scaled to the
+ * three. `onTarget` uses the operating target of roughly eight completed events per month, scaled to the
  * twenty-eight day window.
  */
 export const fourWeekCover = (
