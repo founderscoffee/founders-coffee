@@ -18,7 +18,7 @@ import {
   ntf_cancel_reason,
   profile_link,
   role_host,
-  share_event,
+  share_event_action,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
@@ -166,7 +166,7 @@ export const EventDetail = ({
             <ShareEventButton
               locale={locale}
               title={event.title}
-              label={share_event({}, { locale })}
+              label={share_event_action({}, { locale })}
               variant="chip"
             />
           )}

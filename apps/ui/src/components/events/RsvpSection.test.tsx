@@ -57,13 +57,13 @@ const cancelled = {
   cancelledAt: new Date('2026-09-10T00:00:00Z'),
 } satisfies EventWithAttendance;
 
-const show = (item: EventWithAttendance) =>
+const show = (item: EventWithAttendance, locale: 'ar' | 'en' = 'en') =>
   render(
     <RsvpSection
       event={item}
       hostName="Amine"
       marketSlug="algeria"
-      locale="en"
+      locale={locale}
       isHost={false}
       live={null}
       isWindowOpen={true}
@@ -103,25 +103,62 @@ describe('RsvpSection when the host has called the meetup off', () => {
   });
 });
 
-describe('RsvpSection invites a founder once the seat is taken', () => {
-  it('offers the invite only after the reader has said yes', () => {
-    show(event);
-    expect(
-      screen.queryByRole('button', { name: 'Invite a founder' }),
-      'there is nothing to invite anyone to until the reader is going themselves',
-    ).toBeNull();
-
-    cleanup();
+describe('RsvpSection leaves sharing to the page it sits on', () => {
+  it('offers no share button of its own once the seat is taken', () => {
     show({ ...event, viewerRsvp: 'going' });
+
     expect(
-      screen.getByRole('button', { name: 'Invite a founder' }),
-    ).toBeTruthy();
+      screen.queryByRole('button', { name: 'Share' }),
+      'the event page already carries one share chip, and a second identical button beside it is the same offer twice',
+    ).toBeNull();
   });
 
-  it('does not ask anyone to promote a meetup that is off', () => {
-    show({ ...cancelled, viewerRsvp: 'going' });
+  it('offers none before the reader has said yes either', () => {
+    show(event);
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull();
+  });
+});
+
+describe('what a confirmed attendee reads in Arabic', () => {
+  it('confirms attendance in the words the rest of the flow uses', () => {
+    show({ ...event, viewerRsvp: 'going' }, 'ar');
+
+    expect(screen.getByText('حضورك مؤكَّد')).toBeTruthy();
+    expect(screen.queryByText('أنت قادم')).toBeNull();
+  });
+
+  it('states the confirmation was sent, rather than appearing to demand it', () => {
+    show({ ...event, viewerRsvp: 'going' }, 'ar');
+
+    expect(screen.getByText('تم إرسال التأكيد. سنذكّرك قبل يوم.')).toBeTruthy();
+  });
+});
+
+describe('where the undo for a confirmed seat sits', () => {
+  it('puts cancel in the status row, beside the thing it undoes', () => {
+    show({ ...event, viewerRsvp: 'going' });
+
+    const cancel = screen.getByRole('button', { name: 'Cancel RSVP' });
+    const pill = screen.getByText("You're going");
+
     expect(
-      screen.queryByRole('button', { name: 'Invite a founder' }),
-    ).toBeNull();
+      cancel.parentElement?.contains(pill),
+      "cancel is the status's own undo and belongs on the same row as the status",
+    ).toBe(true);
+  });
+
+  it('keeps the help line after the undo, not between it and the status', () => {
+    show({ ...event, viewerRsvp: 'going' });
+
+    const cancel = screen.getByRole('button', { name: 'Cancel RSVP' });
+    const help = screen.getByText(
+      'Confirmation sent. We’ll remind you the day before.',
+    );
+
+    expect(
+      Boolean(
+        cancel.compareDocumentPosition(help) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
   });
 });

@@ -21,16 +21,14 @@
       "banned": ["قادم"],
       "why": "#56 — the status and its undo should share a root. إلغاء الحضور is the undo, so the status it undoes is about حضور, not about قادم. Note the bare form only: القادمة and قادمًا mean upcoming and are a different word in use.",
       "allow": {
-        "rsvp_already": "#56 open — still أنت قادم, pending the agreed حضورك مؤكَّد. Delete this line with the rename.",
         "activity_joined_empty": "#56 — reads لا لقاء قادم, 'no upcoming meetup'. This is the upcoming sense, not the RSVP status. Keep.",
         "feedback_next_event": "#56 — اللقاء القادم, 'the next meetup'. Upcoming sense. Keep.",
-        "ntf_push_rsvp_received_title": "#56 open — شخص قادم إلى {title}, 'Someone is coming'. Same RSVP sense as rsvp_already and part of the same rename. Delete this line with it.",
         "activity_upcoming": "#56 — the Upcoming tab label. Genuine upcoming sense, and the reason the rename matters: today قادم is both this tab and the RSVP status two screens away. Renaming the status leaves this one unambiguous. Keep."
       }
     },
     {
       "canonical": null,
-      "decide": "شارك currently carries two meanings. footer_participate uses it for Participate; share_event_host uses شارك اللقاء for Share this meetup. Both are correct Arabic and the reader cannot tell them apart from the word alone. Pick which meaning keeps شارك and give the other its own word — انضم or احضر for participate, or keep مشاركة for the noun and شارك for the imperative.",
+      "decide": "#56 settled the noun/imperative half: مشاركة is the dialog heading (share_event) and شارك is the button (share_event_action, share_event_host). What is left is footer_participate, which still uses شارك for Participate — a different meaning on a surface the reader moves between. Give that one its own word, انضم or احضر, and this entry can gain a canonical and start being enforced.",
       "banned": ["شارك"],
       "why": "#56 — one word, two meanings, on surfaces a reader moves between.",
       "allow": {}

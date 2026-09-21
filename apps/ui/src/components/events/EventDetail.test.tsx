@@ -100,10 +100,10 @@ const cancelled = {
   cancellationReason: 'The café closed without warning.',
 } satisfies EventDetailItem;
 
-const show = (item: EventDetailItem) =>
+const show = (item: EventDetailItem, locale: 'ar' | 'en' = 'en') =>
   render(
     <EventDetail
-      locale="en"
+      locale={locale}
       market={market}
       event={item}
       host={null}
@@ -133,5 +133,29 @@ describe('EventDetail once the host has called the meetup off', () => {
   it('still has a place to address whoever had said they were coming', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
     expect(screen.getByRole('heading', { name: 'Your seat' })).toBeTruthy();
+  });
+});
+
+describe('the share chip in the event header', () => {
+  it('reads as an imperative, because it is a button and not a heading', () => {
+    show(event, 'ar');
+
+    expect(screen.getByRole('button', { name: 'شارك' })).toBeTruthy();
+    expect(
+      screen.queryByRole('button', { name: 'مشاركة' }),
+      'مشاركة is the verbal noun and belongs to the dialog heading, not to a control the reader presses',
+    ).toBeNull();
+  });
+
+  it("is the page's single share affordance", () => {
+    show(event, 'ar');
+
+    expect(screen.getAllByRole('button', { name: 'شارك' })).toHaveLength(1);
+  });
+
+  it('does not offer to promote a meetup that is off', () => {
+    show(cancelled, 'ar');
+
+    expect(screen.queryByRole('button', { name: 'شارك' })).toBeNull();
   });
 });
