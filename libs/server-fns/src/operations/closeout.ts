@@ -8,6 +8,7 @@ import {
   type Result,
 } from '@founders-coffee/core';
 import {
+  cancelNotificationsByTemplate,
   communityOperationsEnabled,
   getCloseout,
   getEvent,
@@ -173,6 +174,23 @@ const resumesTheSameCloseout = async (
  * A throw from inside the loop is deliberately not caught. Swallowing it would answer `ok` with a
  * roster that was never written, telling the host the work is done; letting it out means the host
  * sees a failure and the retry completes what is missing.
+ *
+ * The queued `closeout_prompt` is retired here, and where it sits is the point. It is scheduled at
+ * `endsAt + 30 minutes` while the window to close out opens at `endsAt`, so a host who does exactly
+ * what the product asks is, half an hour later, nudged to do the thing they have already done — the
+ * happy path, not an edge case. The cancel is placed **after** the closeout is durable and
+ * **before** either fan-out: after, because a prompt withdrawn for a closeout that then failed to
+ * write would lose the only reminder; before, because both exits queue messages of their own and
+ * `did_not_happen` returns early, so a cancel below would miss that arm entirely.
+ *
+ * It names `closeout_prompt` rather than calling `cancelNotificationsByEvent`, which the cancel
+ * path next door uses. That one retires every pending row for the event, which is right when the
+ * gathering is called off and wrong here — and the reason is the resume path above rather than the
+ * fan-out below. A resubmission reaches this line with the previous submission's feedback
+ * invitations already pending, and those carry a derived id re-enqueued `ON CONFLICT DO NOTHING`;
+ * an unscoped cancel would retire them and the re-enqueue would decline to bring them back, so
+ * finishing an interrupted closeout would permanently silence the invitations the first attempt had
+ * correctly sent. Naming the template is what stops a repair from destroying the thing it repairs.
  */
 export const submitCloseoutResolver = async (
   db: Db,
@@ -215,6 +233,11 @@ export const submitCloseoutResolver = async (
       return err(new AppError(code, message));
     }
   }
+
+  await cancelNotificationsByTemplate(db, {
+    eventId: opts.input.eventId,
+    templateKeys: ['closeout_prompt'],
+  });
 
   if (opts.input.outcome === 'did_not_happen') {
     await enqueueDidNotHappenNotices(db, {

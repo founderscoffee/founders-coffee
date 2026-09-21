@@ -54,10 +54,6 @@ const TRANSITIONS: readonly Transition[] = [
       }),
     drops: ['closeout_prompt'],
     keeps: ['feedback_invitation'],
-    open: {
-      closeout_prompt:
-        '#80 — submitCloseoutResolver cancels nothing, so the prompt scheduled at endsAt + 30min still fires at a host who has already closed out',
-    },
   },
 ];
 
