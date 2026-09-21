@@ -91,5 +91,16 @@ export default {
         },
       ],
     },
+    {
+      name: 'the waiting label borrows the socket word back',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'libs/i18n/messages/ar.json',
+          find: '  "live_not_arrived": "بانتظار الوصول",',
+          replace: '  "live_not_arrived": "متصل",',
+        },
+      ],
+    },
   ],
 };

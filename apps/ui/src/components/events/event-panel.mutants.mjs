@@ -100,9 +100,9 @@ export default {
         },
         {
           file: 'src/features/events/components/LiveDashboard.tsx',
-          find: '        </div>\n      </div>\n    </div>\n  );\n};',
+          find: '        />\n      </div>\n    </div>\n  );\n};',
           replace:
-            '        </div>\n        <button className="btn btn-success btn-sm">\n          {live_walking_in({}, { locale })}\n        </button>\n      </div>\n    </div>\n  );\n};',
+            '        />\n        <button className="btn btn-success btn-sm">\n          {live_walking_in({}, { locale })}\n        </button>\n      </div>\n    </div>\n  );\n};',
         },
       ],
     },
@@ -181,6 +181,34 @@ export default {
           find: '          isHost && host?.arrived ? findingThem(host, locale) : null;',
           replace:
             '          isHost && host ? findingThem(host, locale) : null;',
+        },
+      ],
+    },
+    {
+      name: 'a waiting attendee is called connected again, as the socket badge is',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/live-badges.ts',
+          find: '  live_not_arrived,\n  live_running_late,',
+          replace:
+            '  live_not_arrived,\n  live_running_late,\n  live_status_connected,',
+        },
+        {
+          file: 'src/features/events/components/live-badges.ts',
+          find: '      return live_not_arrived({}, { locale });',
+          replace: '      return live_status_connected({}, { locale });',
+        },
+      ],
+    },
+    {
+      name: 'the heading forgets how full the room is',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/LiveDashboard.tsx',
+          find: '            <span className="font-normal text-neutral">\n              {\' · \'}\n              {live_in_the_room(\n                { arrived: arrivedCount, total: totalCount },\n                { locale },\n              )}\n            </span>\n',
+          replace: '',
         },
       ],
     },

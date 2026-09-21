@@ -368,6 +368,7 @@
   "live_cue_ph": "Visual cue, e.g. wearing a green cap",
   "live_new_table_ph": "New table number",
   "live_status_connected": "Connected",
+  "live_not_arrived": "Not here yet",
   "live_eta_ph": "ETA in minutes",
   "live_confirm": "Confirm",
   "live_cancel": "Cancel",

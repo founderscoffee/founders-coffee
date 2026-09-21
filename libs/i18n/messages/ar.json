@@ -402,6 +402,7 @@
   "live_cue_ph": "علامة مميزة، مثلًا قبعة خضراء",
   "live_new_table_ph": "رقم طاولة جديد",
   "live_status_connected": "متصل",
+  "live_not_arrived": "بانتظار الوصول",
   "live_eta_ph": "الوصول خلال (دقائق)",
   "live_confirm": "تأكيد",
   "live_cancel": "إلغاء",

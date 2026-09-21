@@ -377,6 +377,7 @@
   "live_cue_ph": "Repère visuel, ex. casquette verte",
   "live_new_table_ph": "Nouveau numéro de table",
   "live_status_connected": "Connecté",
+  "live_not_arrived": "Pas encore là",
   "live_eta_ph": "Arrivée dans (minutes)",
   "live_confirm": "Confirmer",
   "live_cancel": "Annuler",

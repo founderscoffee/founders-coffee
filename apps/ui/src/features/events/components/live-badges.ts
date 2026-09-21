@@ -4,9 +4,9 @@ import {
   live_error_connection,
   live_error_session_expired,
   live_error_unknown,
+  live_not_arrived,
   live_running_late,
   live_status_authenticating,
-  live_status_connected,
   live_status_connecting,
   live_status_disconnected,
   live_status_error,
@@ -32,7 +32,7 @@ export const statusLabel = (
     case 'running_late':
       return live_running_late({}, { locale });
     case 'connected':
-      return live_status_connected({}, { locale });
+      return live_not_arrived({}, { locale });
   }
 };
 

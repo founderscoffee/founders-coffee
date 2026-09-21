@@ -35,6 +35,13 @@ export const LiveDashboard = ({
         <div className="flex items-center justify-between">
           <h2 className="card-title font-display text-body-lg font-semibold">
             {live_title({}, { locale })}
+            <span className="font-normal text-neutral">
+              {' · '}
+              {live_in_the_room(
+                { arrived: arrivedCount, total: totalCount },
+                { locale },
+              )}
+            </span>
           </h2>
           <div className="flex items-center gap-2">
             <span
@@ -53,22 +60,12 @@ export const LiveDashboard = ({
           </div>
         )}
 
-        <div>
-          <p className="text-body-sm font-medium text-neutral">
-            {live_in_the_room(
-              { arrived: arrivedCount, total: totalCount },
-              { locale },
-            )}
-          </p>
-          <div className="mt-3">
-            <RosterList
-              roster={roster}
-              host={host}
-              currentUserId={currentUserId}
-              locale={locale}
-            />
-          </div>
-        </div>
+        <RosterList
+          roster={roster}
+          host={host}
+          currentUserId={currentUserId}
+          locale={locale}
+        />
       </div>
     </div>
   );

@@ -60,4 +60,19 @@ describe('what the live section is for', () => {
     ).toBeTruthy();
     expect(screen.queryByText('أمشي نحو المكان')).toBeNull();
   });
+
+  it('says what the room is and how full it is in one heading', () => {
+    show();
+
+    const heading = screen.getByRole('heading');
+    expect(heading.textContent).toContain('مباشر');
+    expect(heading.textContent).toContain('في المكان (1/2)');
+  });
+
+  it('keeps متصل for the socket alone, not for a person', () => {
+    show();
+
+    const rows = screen.getAllByRole('listitem');
+    expect(rows.some((r) => r.textContent?.includes('متصل'))).toBe(false);
+  });
 });
