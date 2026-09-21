@@ -5,12 +5,15 @@
 ## 0. Authoritative references (in order)
 
 1. **This file** — _how_ we build (rules).
-2. [`docs/srs.md`](docs/srs.md) — _what_ we build (requirements, `FR-*`/`NFR-*`).
-3. [`docs/release-strategy.md`](docs/release-strategy.md) — _what ships now_ (community-building release boundary and future-work gate).
-4. [`docs/implementation-plan.md`](docs/implementation-plan.md) — _when_ we build it (phases, tickets).
-5. Parent `~/CLAUDE.md` — repo tooling (code-review-graph MCP: use graph tools before grep/glob).
+2. [`docs/implementation-plan.md`](docs/implementation-plan.md) — _what_ ships and _when_ (phases, tickets, current platform state).
+3. Parent `~/CLAUDE.md` — repo tooling (code-review-graph MCP: use graph tools before grep/glob).
 
-Every code change maps to a ticket ID in the plan, which maps to `FR-*`/`NFR-*` in the SRS. No orphan work.
+Every code change maps to a ticket ID in the plan. No orphan work.
+
+The `FR-*`/`NFR-*` requirements register and the standalone plans it fed (SRS, release
+strategy, validation, and the per-feature remediation plans) were consolidated away; they are
+readable in history at `964f514`. Nothing in the source tree cites an `FR-*` or `NFR-*` ID, so
+the plan above is the only live specification — if it does not say it, it is not decided.
 
 The current release is community-building only. Free local events, repeat participation, hosts,
 trust, and the supporting PWA operations are current scope. Challenges, sponsorship products,
@@ -146,7 +149,7 @@ If you need data in a component that the current hook doesn't provide → add/ex
 ## 6. Domain modeling rules
 
 - **Money:** ALWAYS the `Money` value object from `libs/core` — `{ amount_minor: number (integer), currency: string (ISO 4217) }`. **Never** a bare number. **Never** floating-point math on money. All arithmetic in integer minor units.
-- **Schemas first:** define a Zod schema for every entity/command; infer TS types (`z.infer`). Shared primitives (Money, id, pagination, market code) live in [`libs/core/src/validation.ts`](libs/core/src/validation.ts); per-domain schemas live in `libs/domain/src/<domain>/schemas.ts`. The schema is the single contract shared by `api.ts`, server functions, and forms (DRY). Server functions validate input via `createServerFn().validator(appValidator(schema))` — invalid input throws `AppError('validation_failed')` (the §7 throw boundary). See [`docs/validation.md`](docs/validation.md).
+- **Schemas first:** define a Zod schema for every entity/command; infer TS types (`z.infer`). Shared primitives (Money, id, pagination, market code) live in [`libs/core/src/validation.ts`](libs/core/src/validation.ts); per-domain schemas live in `libs/domain/src/<domain>/schemas.ts`. The schema is the single contract shared by `api.ts`, server functions, and forms (DRY). Server functions validate input via `createServerFn().validator(appValidator(schema))` — invalid input throws `AppError('validation_failed')` (the §7 throw boundary).
 - **Geo/market scoping:** market-facing records carry `market_code` and, where geographic, `state_code`/`city_code` from creation. The global user identity and its profile/account preferences are location-free under FR-A1/FR-A3; never infer or require residence. Events, activity, notifications and host trust retain their actual market/geographic scope. `market_code` references D1; state/city codes reference the versioned server-side geography datasets. No global activity queries that silently cross markets.
 - **Time:** store UTC; render in the city/market timezone via `libs/i18n`. Never store localized times.
 - **IDs:** from the `libs/core` id factory — consistent format, no ad-hoc UUIDs in different styles.
@@ -331,7 +334,6 @@ These are non-negotiable platform-specific rules; several correct common mistake
 
 ## 18. When in doubt
 
-- **Ambiguity about _what_ to build** → check `docs/srs.md`. Still unclear → ask.
-- **Ambiguity about _when_ or sequencing** → check `docs/implementation-plan.md`.
+- **Ambiguity about _what_ to build, _when_, or in what order** → check `docs/implementation-plan.md`. Still unclear → ask. Do not infer a requirement from history; the plan is the only live specification.
 - **Tempted to add a library/service/integration** → stop and ask (§1.8).
 - **Tempted to skip a rule "just this once"** → don't. The rules exist because the team chose them deliberately. Raise it in a ticket instead.

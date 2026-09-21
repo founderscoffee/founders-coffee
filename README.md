@@ -10,7 +10,7 @@ café and coworking meetups, hosting, RSVP, repeat participation, and trusted lo
 
 Hackathons, sponsorship, talent workflows, payments, and market expansion are documented roadmap
 options, not current scope. They begin only after the community shows durable density and repeat
-participation — see the [release strategy](./docs/release-strategy.md).
+participation.
 
 ## What works today
 
@@ -105,7 +105,7 @@ npm run ui:dev
 ```
 
 The public app runs at `http://localhost:3000`. Copy the relevant `.dev.vars.example` before
-exercising authentication, maps, or external providers — see [`docs/secrets.md`](./docs/secrets.md).
+exercising authentication, maps, or external providers.
 
 `seed:local` fills the local database with the three launch markets, three accounts and three
 events, and is safe to re-run — every row yields to whatever is already there, so it never
@@ -149,18 +149,13 @@ While the major is `0`, a breaking change is a minor bump, a `feat` is a minor b
 else is a patch. Tags are created **after** a successful production deploy, so a version that exists
 is a version that reached production.
 
-See [`docs/ci.md`](./docs/ci.md), [`docs/provisioning.md`](./docs/provisioning.md), and
-[`docs/deployment-evidence.md`](./docs/deployment-evidence.md).
-
 ## Documentation
 
 Read these in order before changing code:
 
 1. [`AGENTS.md`](./AGENTS.md) — binding engineering rules.
-2. [`docs/srs.md`](./docs/srs.md) — approved product and architecture requirements.
-3. [`docs/release-strategy.md`](./docs/release-strategy.md) — the community-only release boundary.
-4. [`docs/implementation-plan.md`](./docs/implementation-plan.md) — delivery status and sequencing.
+2. [`docs/implementation-plan.md`](./docs/implementation-plan.md) — what ships, in what order, and
+   what is already done.
 
-Active plans: [event creation](./docs/event-creation-remediation-plan.md),
-[audit remediation](./docs/audit-remediation-plan.md),
-[community operations](./docs/community-operations-implementation-plan.md).
+These two are the whole specification. Everything else was consolidated into the plan or retired;
+earlier documents remain readable in git history.
