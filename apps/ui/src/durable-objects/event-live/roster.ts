@@ -54,6 +54,14 @@ export class EventRoster {
     await this.persist();
   };
 
+  /**
+   * Records that the host is at the venue, on both records that describe them.
+   *
+   * The host is an attendee like anyone else, so their roster entry moves to `arrived` alongside
+   * the host state. Updating only the host state left them reading `connected` in the roster for
+   * the rest of the meetup, and kept them out of the arrived count, which is drawn from the
+   * roster and so reported one fewer person in the room than were in it.
+   */
   markHostArrived = async (details: {
     tableNumber?: number;
     visualCue?: string;
@@ -65,6 +73,8 @@ export class EventRoster {
       tableNumber: details.tableNumber ?? this.host.tableNumber,
       visualCue: details.visualCue ?? this.host.visualCue,
     };
+    const attendee = this.attendees.get(this.host.userId);
+    if (attendee) attendee.status = 'arrived';
     await this.persist();
     return true;
   };

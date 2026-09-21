@@ -2,12 +2,27 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { RosterList } from './RosterList';
-import type { RosterUser } from '../useEventLive';
+import type { HostState, RosterUser } from '../useEventLive';
 
-const show = (roster: RosterUser[], currentUserId = 'usr_me') =>
+const show = (
+  roster: RosterUser[],
+  host: HostState | null = null,
+  currentUserId = 'usr_me',
+) =>
   render(
-    <RosterList roster={roster} currentUserId={currentUserId} locale="ar" />,
+    <RosterList
+      roster={roster}
+      host={host}
+      currentUserId={currentUserId}
+      locale="ar"
+    />,
   );
+
+const hostOf = (overrides: Partial<HostState> = {}): HostState => ({
+  userId: 'usr_1',
+  arrived: false,
+  ...overrides,
+});
 
 const amina = {
   userId: 'usr_1',
@@ -69,5 +84,43 @@ describe('an empty room', () => {
 
     expect(screen.getByText('لا يوجد مشاركون متصلون')).toBeTruthy();
     expect(screen.queryByRole('list')).toBeNull();
+  });
+});
+
+describe('the host in the room', () => {
+  it('stands in the list with everyone else, wearing the badge', () => {
+    show([amina, me], hostOf());
+
+    const rows = screen.getAllByRole('listitem');
+    expect(rows[0]?.textContent).toContain('مضيف');
+    expect(
+      rows[1]?.textContent,
+      'only the host wears it, or the badge says nothing',
+    ).not.toContain('مضيف');
+  });
+
+  it('says where to find them once they are at the venue', () => {
+    show(
+      [amina],
+      hostOf({ arrived: true, tableNumber: 4, visualCue: 'سترة حمراء' }),
+    );
+
+    expect(screen.getByText('طاولة 4 · سترة حمراء')).toBeTruthy();
+  });
+
+  it('says nothing about a table for a host who has not turned up', () => {
+    show([amina], hostOf({ tableNumber: 4, visualCue: 'سترة حمراء' }));
+
+    expect(
+      screen.queryByText(/طاولة 4/),
+      'a table they are not sitting at yet sends people to an empty chair',
+    ).toBeNull();
+  });
+
+  it('shows their status from the roster like anyone else', () => {
+    show([{ ...amina, status: 'arrived' }], hostOf({ arrived: true }));
+
+    const row = screen.getAllByRole('listitem')[0];
+    expect(row?.textContent).toContain('في المكان');
   });
 });

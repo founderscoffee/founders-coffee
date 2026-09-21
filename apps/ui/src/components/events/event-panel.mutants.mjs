@@ -134,7 +134,7 @@ export default {
       edits: [
         {
           file: 'src/features/events/components/RosterList.tsx',
-          find: '            {user.userId === currentUserId && (',
+          find: '                {user.userId === currentUserId && (',
           replace: '            {false && (',
         },
       ],
@@ -145,7 +145,7 @@ export default {
       edits: [
         {
           file: 'src/features/events/components/RosterList.tsx',
-          find: '            {user.etaMinutes\n              ? ` · ${live_eta_minutes({ n: user.etaMinutes }, { locale })}`\n              : null}',
+          find: '              {user.etaMinutes\n                ? ` · ${live_eta_minutes({ n: user.etaMinutes }, { locale })}`\n                : null}',
           replace: '            {null}',
         },
       ],
@@ -156,8 +156,31 @@ export default {
       edits: [
         {
           file: 'src/features/events/components/RosterList.tsx',
-          find: '            {statusLabel(user.status, locale)}',
+          find: '              {statusLabel(user.status, locale)}',
           replace: '            {null}',
+        },
+      ],
+    },
+    {
+      name: 'the host loses the badge that tells them apart in the list',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/RosterList.tsx',
+          find: '                {isHost && (',
+          replace: '                {false && (',
+        },
+      ],
+    },
+    {
+      name: 'the table is advertised before the host is sitting at it',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/RosterList.tsx',
+          find: '          isHost && host?.arrived ? findingThem(host, locale) : null;',
+          replace:
+            '          isHost && host ? findingThem(host, locale) : null;',
         },
       ],
     },

@@ -25,6 +25,10 @@ export const handleLiveAction = async (args: {
           type: 'host_update',
           host: roster.getHost() ?? undefined,
         });
+        connections.broadcast({
+          type: 'roster_update',
+          roster: roster.toRoster(),
+        });
       } else if (await roster.setAttendeeStatus(connection.userId, 'arrived')) {
         connections.broadcast({
           type: 'roster_update',
