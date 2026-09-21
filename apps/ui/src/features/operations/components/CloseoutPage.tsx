@@ -113,8 +113,6 @@ export const CloseoutPage = ({
 
       {!query.data || !draft ? (
         <p role="status">{closeout_loading({}, { locale })}</p>
-      ) : query.data.outcome !== null ? (
-        <p role="status">{closeout_already_done({}, { locale })}</p>
       ) : save.isSuccess ? (
         <div className="space-y-3">
           <p role="status">{closeout_done({}, { locale })}</p>
@@ -132,6 +130,8 @@ export const CloseoutPage = ({
             />
           ) : null}
         </div>
+      ) : query.data.outcome !== null ? (
+        <p role="status">{closeout_already_done({}, { locale })}</p>
       ) : (
         <div className="space-y-6">
           <CloseoutForm
