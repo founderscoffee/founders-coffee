@@ -25,6 +25,7 @@
   "feedback_error_not_attended": "هذا الرأي متاح للحاضرين فقط.",
   "feedback_error_not_invited": "لا يتوفر رأي لهذا اللقاء.",
   "feedback_error_window_closed": "انتهت مهلة إرسال الرأي لهذا اللقاء.",
+  "feedback_error_is_host": "أنت مضيف هذا اللقاء، والرأي للحاضرين.",
   "feedback_error_disabled": "غير متاح في منطقتك بعد.",
   "feedback_error_not_found": "لم يعد هذا اللقاء موجودًا.",
   "feedback_error_generic": "تعذّر حفظ رأيك. حاول مرة أخرى.",

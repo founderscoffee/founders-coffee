@@ -5,7 +5,8 @@ import { id } from '@founders-coffee/core';
 import type { Db } from './db.js';
 import { recordAttendance } from './operations-attendance.js';
 import { submitCloseout } from './operations-closeout.js';
-import { feedbackTally, saveFeedback } from './operations-feedback.js';
+import { saveFeedback } from './operations-feedback.js';
+import { feedbackTally } from './operations-feedback-tally.js';
 import {
   HOST_ID,
   MEMBER_ID,

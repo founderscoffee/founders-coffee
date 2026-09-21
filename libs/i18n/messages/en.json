@@ -25,6 +25,7 @@
   "feedback_error_not_attended": "Feedback is available to attendees only.",
   "feedback_error_not_invited": "Feedback is not available for this meetup.",
   "feedback_error_window_closed": "The feedback window has closed.",
+  "feedback_error_is_host": "You are the host of this meetup. Feedback is for the attendees.",
   "feedback_error_disabled": "This feature is not available in your region yet.",
   "feedback_error_not_found": "This meetup no longer exists.",
   "feedback_error_generic": "We could not save your feedback. Try again.",

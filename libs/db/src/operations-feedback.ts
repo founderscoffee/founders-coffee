@@ -32,7 +32,11 @@ const FOURTEEN_DAYS = 14 * 24 * 60 * 60;
  * - the member has an `attended` row, because a pulse from someone who did not come measures
  *   nothing;
  * - now is within fourteen days of `ends_at` — anchored to the event and not to the closeout, which
- *   is precisely what stops a late closeout reopening a window that has expired.
+ *   is precisely what stops a late closeout reopening a window that has expired;
+ * - the member does not host the event, because a pulse is a reading taken *of* the host and one
+ *   they cast themselves is not an attendee pulse. The host satisfies every other clause reliably —
+ *   `attendHostOwnEvent` enrols them at creation and the closeout roster lists them — so without
+ *   this clause the organiser rates their own meetup.
  *
  * Written as one conditional insert rather than three reads: a window that closes between checking
  * and writing has to close the write too, and on D1 that means the check and the write are the same
@@ -44,6 +48,7 @@ const feedbackAllowed = (eventId: string, userId: string) =>
       AND events.ends_at IS NOT NULL
       AND event_closeouts.submitted_at - events.ends_at <= ${SEVEN_DAYS}
       AND unixepoch() - events.ends_at <= ${FOURTEEN_DAYS}
+      AND events.host_id <> ${userId}
       AND EXISTS (
         SELECT 1 FROM event_attendance
         WHERE event_id = ${eventId}
@@ -126,11 +131,34 @@ export const saveFeedback = async (
   return { outcome: 'saved', row: rows[0] };
 };
 
+/**
+ * Does this member host the event they are asking about?
+ *
+ * Asked before attendance, deliberately. The host is enrolled in their own meetup at creation by
+ * `attendHostOwnEvent` and marks themselves on the closeout roster, so they satisfy the attendance
+ * clause reliably; asking about attendance first would answer a host `not_attended`, which is false
+ * about them and names an obstacle they cannot fix. The reason they are refused is that it is their
+ * meetup, and that is the reason they are given.
+ */
+const hostsEvent = async (
+  db: Db,
+  eventId: string,
+  userId: string,
+): Promise<boolean> => {
+  const rows = await db
+    .select({ hostId: events.hostId })
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+  return rows[0]?.hostId === userId;
+};
+
 const refusalFor = async (
   db: Db,
   eventId: string,
   userId: string,
 ): Promise<FeedbackOutcome> => {
+  if (await hostsEvent(db, eventId, userId)) return 'is_host';
   const attended = await db
     .select({ id: eventAttendance.id })
     .from(eventAttendance)
@@ -184,6 +212,7 @@ export const getFeedbackEligibility = async (
   db: Db,
   opts: { eventId: string; userId: string; now?: Date },
 ): Promise<FeedbackEligibility> => {
+  if (await hostsEvent(db, opts.eventId, opts.userId)) return 'is_host';
   const attended = await db
     .select({ id: eventAttendance.id })
     .from(eventAttendance)
@@ -228,52 +257,4 @@ export const findNextEvent = async (
     now: opts.now,
   });
   return rows[0];
-};
-
-/**
- * The aggregate a host or an operator may see, which never includes who said what.
- *
- * §5.7 keeps individual feedback private by default and out of public event pages entirely. The
- * comments are deliberately absent from this projection: a host reading three comments on a meetup
- * of four people has effectively been told who wrote them.
- */
-export const feedbackTally = async (
-  db: Db,
-  eventId: string,
-): Promise<{
-  responses: number;
-  wouldReturn: number;
-  valuable: number;
-  okay: number;
-  notValuable: number;
-}> => {
-  const rows = await db
-    .select({
-      responses: sql<number>`count(*)`.as('responses'),
-      wouldReturn:
-        sql<number>`sum(case when would_return = 1 then 1 else 0 end)`.as(
-          'would_return',
-        ),
-      valuable:
-        sql<number>`sum(case when value_rating = 'valuable' then 1 else 0 end)`.as(
-          'valuable',
-        ),
-      okay: sql<number>`sum(case when value_rating = 'okay' then 1 else 0 end)`.as(
-        'okay',
-      ),
-      notValuable:
-        sql<number>`sum(case when value_rating = 'not_valuable' then 1 else 0 end)`.as(
-          'not_valuable',
-        ),
-    })
-    .from(eventFeedback)
-    .where(eq(eventFeedback.eventId, eventId));
-  const row = rows[0];
-  return {
-    responses: row?.responses ?? 0,
-    wouldReturn: row?.wouldReturn ?? 0,
-    valuable: row?.valuable ?? 0,
-    okay: row?.okay ?? 0,
-    notValuable: row?.notValuable ?? 0,
-  };
 };

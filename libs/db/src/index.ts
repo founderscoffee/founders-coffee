@@ -18,6 +18,7 @@ export * from './operations-audit.js';
 export * from './operations-closeout.js';
 export * from './operations-closeout-state.js';
 export * from './operations-feedback.js';
+export * from './operations-feedback-tally.js';
 export * from './operations-errors.js';
 export * from './operations-flag.js';
 export * from './operations-retention.js';

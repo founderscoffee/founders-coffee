@@ -56,6 +56,7 @@ export const FEEDBACK_SUBMISSION_OUTCOMES = [
   'not_attended',
   'window_closed',
   'not_invited',
+  'is_host',
 ] as const;
 export type FeedbackSubmissionOutcome =
   (typeof FEEDBACK_SUBMISSION_OUTCOMES)[number];
@@ -68,6 +69,7 @@ export const FEEDBACK_ELIGIBILITY_STATUSES = [
   'not_attended',
   'not_invited',
   'window_closed',
+  'is_host',
 ] as const;
 export type FeedbackEligibilityStatus =
   (typeof FEEDBACK_ELIGIBILITY_STATUSES)[number];
@@ -103,6 +105,7 @@ export const OPERATIONS_ERROR_CODES = [
   'feedback_not_attended',
   'feedback_not_invited',
   'feedback_window_closed',
+  'feedback_is_host',
   'operations_disabled',
 ] as const;
 export type OperationsErrorCode = (typeof OPERATIONS_ERROR_CODES)[number];

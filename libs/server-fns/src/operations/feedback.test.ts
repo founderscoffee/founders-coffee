@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { id } from '@founders-coffee/core';
 import {
   eventCloseouts,
+  eventFeedback,
   recordAttendance,
   submitCloseout,
   type Db,
@@ -114,5 +115,89 @@ describe('CO-06 feedback server flow', () => {
     const view = await readFeedback(db, { eventId, userId: MEMBER_ID });
     expect(view.ok).toBe(true);
     if (view.ok) expect(view.data.status).toBe('window_closed');
+  });
+});
+
+describe('a host asked to rate their own meetup', () => {
+  let db: Db;
+  let eventId: string;
+
+  beforeEach(async () => {
+    db = await setupDb();
+    eventId = await pastEvent(db, { attendees: [HOST_ID, MEMBER_ID] });
+    await submitCloseout(db, {
+      eventId,
+      actorId: HOST_ID,
+      outcome: 'held',
+      walkInCount: 0,
+      wouldHostAgain: true,
+      hostFriction: [],
+      auditId: id('aud'),
+    });
+    for (const userId of [HOST_ID, MEMBER_ID])
+      await recordAttendance(db, {
+        eventId,
+        userId,
+        hostId: HOST_ID,
+        outcome: 'attended',
+        rowId: id('att'),
+        auditId: id('aud'),
+      });
+  });
+
+  it('is refused the view, so the form is never rendered to them', async () => {
+    const result = await readFeedback(db, { eventId, userId: HOST_ID });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('feedback_is_host');
+  });
+
+  it('is refused the write with the same reason the view gave', async () => {
+    const result = await submitFeedbackResolver(db, {
+      userId: HOST_ID,
+      input: {
+        eventId,
+        rating: 'valuable',
+        wouldReturn: true,
+        comment: undefined,
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok)
+      expect(
+        result.error.code,
+        'feedback_not_attended would state something false: the host is marked attended and still may not rate',
+      ).toBe('feedback_is_host');
+  });
+
+  it('is refused even when a self-rating from before the guard is already stored', async () => {
+    await db
+      .insert(eventFeedback)
+      .values({
+        id: id('fbk'),
+        eventId,
+        userId: HOST_ID,
+        marketCode: 'DZ',
+        stateCode: '16',
+        cityCode: '1',
+        valueRating: 'valuable',
+        wouldReturn: true,
+      })
+      .run();
+
+    const result = await readFeedback(db, { eventId, userId: HOST_ID });
+
+    expect(
+      result.ok,
+      'an existing row must not buy the host a view of the form; the eligibility answer decides before the stored pulse is consulted',
+    ).toBe(false);
+  });
+
+  it('still lets the attendee through', async () => {
+    const result = await readFeedback(db, { eventId, userId: MEMBER_ID });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.status).toBe('ready');
   });
 });
