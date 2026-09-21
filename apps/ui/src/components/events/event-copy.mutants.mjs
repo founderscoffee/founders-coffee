@@ -80,5 +80,16 @@ export default {
         },
       ],
     },
+    {
+      name: 'the Arabic ETA drops its number and goes back to naming itself',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'libs/i18n/messages/ar.json',
+          find: '        "nPlural=many": "{n} دقيقة",',
+          replace: '        "nPlural=many": "الوقت المتبقي بالدقائق",',
+        },
+      ],
+    },
   ],
 };

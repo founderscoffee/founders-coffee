@@ -1,9 +1,7 @@
 import {
   live_at_venue,
-  live_eta_minutes,
   live_host_here,
   live_in_the_room,
-  live_no_attendees,
   live_not_arrived,
   live_status_connected,
   live_table_n,
@@ -17,9 +15,8 @@ import {
   connectionBadge,
   connectionLabel,
   liveErrorMessage,
-  statusColor,
-  statusLabel,
 } from './live-badges';
+import { RosterList } from './RosterList';
 
 export interface LiveDashboardProps {
   live: UseEventLiveResult;
@@ -97,30 +94,12 @@ export const LiveDashboard = ({
               { locale },
             )}
           </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {roster.map((user) => (
-              <div
-                key={user.userId}
-                className={`badge badge-lg ${statusColor(user.status)} ${
-                  user.userId === currentUserId ? 'badge-outline' : ''
-                }`}
-              >
-                {user.name}
-                {user.status !== 'connected' && (
-                  <span className="ms-1 text-xs">
-                    {statusLabel(user.status, locale)}
-                    {user.etaMinutes
-                      ? ` (${live_eta_minutes({ n: user.etaMinutes }, { locale })})`
-                      : null}
-                  </span>
-                )}
-              </div>
-            ))}
-            {roster.length === 0 && (
-              <p className="text-body-sm text-neutral">
-                {live_no_attendees({}, { locale })}
-              </p>
-            )}
+          <div className="mt-3">
+            <RosterList
+              roster={roster}
+              currentUserId={currentUserId}
+              locale={locale}
+            />
           </div>
         </div>
       </div>

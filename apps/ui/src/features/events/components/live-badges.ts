@@ -36,16 +36,24 @@ export const statusLabel = (
   }
 };
 
-export const statusColor = (status: RosterUser['status']): string => {
+/**
+ * The dot beside a roster status.
+ *
+ * It is decorative and carries `aria-hidden`: the status is written out next to it, so the colour
+ * repeats the label rather than replacing it. Amber and red at this size are not distinguishable
+ * for every reader, and a roster that only coloured its chips said nothing to those who cannot
+ * tell them apart.
+ */
+export const statusDot = (status: RosterUser['status']): string => {
   switch (status) {
     case 'arrived':
-      return 'badge-success';
+      return 'bg-success';
     case 'walking_in':
-      return 'badge-warning';
+      return 'bg-warning';
     case 'running_late':
-      return 'badge-error';
+      return 'bg-error';
     case 'connected':
-      return 'badge-ghost';
+      return 'bg-base-300';
   }
 };
 

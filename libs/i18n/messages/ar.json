@@ -343,7 +343,20 @@
   "live_running_late_cta": "سأتأخر",
   "live_at_venue": "في المكان",
   "live_update_table": "تحديث الطاولة",
-  "live_eta_minutes": "الوقت المتبقي بالدقائق",
+  "live_eta_minutes": [
+    {
+      "declarations": ["input n", "local nPlural = n: plural"],
+      "selectors": ["nPlural"],
+      "match": {
+        "nPlural=zero": "{n} دقيقة",
+        "nPlural=one": "{n} دقيقة",
+        "nPlural=two": "{n} دقيقتان",
+        "nPlural=few": "{n} دقائق",
+        "nPlural=many": "{n} دقيقة",
+        "nPlural=*": "{n} دقيقة"
+      }
+    }
+  ],
   "host_publish_error": "تعذّر النشر. حاول مرة أخرى.",
   "host_error_signed_out": "انتهت جلستك. سجّل الدخول مرة أخرى للنشر. مسودتك محفوظة.",
   "host_error_forbidden": "هذا الحساب غير مسموح له بنشر اللقاءات.",
@@ -384,8 +397,8 @@
   "live_title": "مباشر",
   "live_host_here": "المضيف هنا",
   "live_table_n": "طاولة {n}",
+  "live_you": "أنت",
   "live_in_the_room": "في المكان ({arrived}/{total})",
-  "live_your_status": "حالتك",
   "live_arrived_cta": "لقد وصلت",
   "live_table_ph": "رقم الطاولة (اختياري)",
   "live_cue_ph": "علامة مميزة، مثلًا قبعة خضراء",

@@ -1,6 +1,6 @@
 export default {
   command:
-    'npx vitest run src/components/events src/features/events/components/LiveDashboard.test.tsx',
+    'npx vitest run src/components/events src/features/events/components',
   cwd: 'apps/ui',
   mutants: [
     {
@@ -125,6 +125,39 @@ export default {
           file: 'src/components/events/RsvpSection.tsx',
           find: '          {live && isWindowOpen && !live.notAttending && (',
           replace: '          {live && isWindowOpen && (',
+        },
+      ],
+    },
+    {
+      name: 'the roster stops marking which row is the reader',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/RosterList.tsx',
+          find: '            {user.userId === currentUserId && (',
+          replace: '            {false && (',
+        },
+      ],
+    },
+    {
+      name: 'the minutes a latecomer entered go unrendered again',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/RosterList.tsx',
+          find: '            {user.etaMinutes\n              ? ` · ${live_eta_minutes({ n: user.etaMinutes }, { locale })}`\n              : null}',
+          replace: '            {null}',
+        },
+      ],
+    },
+    {
+      name: 'the status word goes, leaving the colour of the dot to say it alone',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/RosterList.tsx',
+          find: '            {statusLabel(user.status, locale)}',
+          replace: '            {null}',
         },
       ],
     },
