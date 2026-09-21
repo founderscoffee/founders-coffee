@@ -4,8 +4,8 @@ import {
   live_cancel,
   live_confirm,
   live_eta_ph,
-  live_running_late,
-  live_walking_in,
+  live_running_late_cta,
+  live_walking_in_cta,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -39,7 +39,7 @@ export const AttendeeLiveActions = ({
           className="btn btn-success btn-sm"
           onClick={onWalkingIn}
         >
-          {live_walking_in({}, { locale })}
+          {live_walking_in_cta({}, { locale })}
         </button>
         {!showRunningLate && (
           <button
@@ -47,7 +47,7 @@ export const AttendeeLiveActions = ({
             className="btn btn-error btn-outline btn-sm"
             onClick={() => setShowRunningLate(true)}
           >
-            {live_running_late({}, { locale })}
+            {live_running_late_cta({}, { locale })}
           </button>
         )}
       </div>

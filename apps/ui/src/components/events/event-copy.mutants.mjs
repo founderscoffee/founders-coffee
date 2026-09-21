@@ -37,6 +37,39 @@ export default {
       ],
     },
     {
+      name: 'the walking button drops back to the badge wording and stops speaking as the reader',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'libs/i18n/messages/ar.json',
+          find: '  "live_walking_in_cta": "أمشي نحو المكان",',
+          replace: '  "live_walking_in_cta": "في الطريق",',
+        },
+      ],
+    },
+    {
+      name: 'the late button goes back to the masculine adjective with no person in it',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'libs/i18n/messages/ar.json',
+          find: '  "live_running_late_cta": "سأتأخر",',
+          replace: '  "live_running_late_cta": "متأخر",',
+        },
+      ],
+    },
+    {
+      name: 'the roster badge speaks as the person it is labelling',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'libs/i18n/messages/ar.json',
+          find: '  "live_walking_in": "في الطريق",',
+          replace: '  "live_walking_in": "أمشي نحو المكان",',
+        },
+      ],
+    },
+    {
       name: 'the French button label changes, which no test speaks to',
       expect: 'pass',
       edits: [

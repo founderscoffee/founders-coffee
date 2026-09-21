@@ -318,6 +318,8 @@
   "live_no_attendees": "No attendees connected yet",
   "live_walking_in": "Walking In",
   "live_running_late": "Running Late",
+  "live_walking_in_cta": "I’m walking in",
+  "live_running_late_cta": "I’m running late",
   "live_at_venue": "At the venue",
   "live_update_table": "Update Table",
   "live_eta_minutes": "ETA in minutes",

@@ -199,7 +199,7 @@ describe('telling the room you are on your way', () => {
     expect(
       screen.getByRole('button', { name: 'أمشي نحو المكان' }),
     ).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'متأخر' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'سأتأخر' })).toBeTruthy();
   });
 
   it('offers nothing before the room opens, when there is no one to tell', () => {
