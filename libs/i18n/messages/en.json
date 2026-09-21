@@ -412,6 +412,7 @@
   "host_cancel_confirm": "Yes, cancel it",
   "host_cancel_keep": "Keep the meetup",
   "host_cancel_error": "The meetup could not be cancelled. Try again.",
+  "host_cancel_ended_error": "This meetup has already ended, so it can no longer be cancelled.",
   "host_cancelling": "Cancelling…",
   "live_window_closed": "The room opens an hour before the meetup starts.",
   "live_status_connecting": "Connecting…",

@@ -421,6 +421,7 @@
   "host_cancel_confirm": "Oui, annuler",
   "host_cancel_keep": "Garder la rencontre",
   "host_cancel_error": "La rencontre n’a pas pu être annulée. Réessayez.",
+  "host_cancel_ended_error": "La rencontre est terminée : elle ne peut plus être annulée.",
   "host_cancelling": "Annulation…",
   "live_window_closed": "La salle ouvre une heure avant le début.",
   "live_status_connecting": "Connexion…",

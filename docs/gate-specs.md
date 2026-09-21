@@ -349,14 +349,21 @@ decision, it does not make one.
 
 ---
 
-## G8 — Lifecycle and actor preconditions are declared, not assumed
+## G8 — Lifecycle and actor preconditions are declared, not assumed — **BUILT (first row)**
 
 **Invariant.** Every state-changing operation has a checked-in row stating its expected outcome for
 each lifecycle phase of the event and each class of actor. An operation with no row fails the build.
 
-**Home.** `libs/server-fns/src/operations-matrix.test.ts`, driven by a table beside it. The fixtures
-already exist — `closeout.test.ts:131` uses `pastEvent(db, { endedHoursAgo })`, which is exactly the
-constructor this needs.
+**Home.** `libs/server-fns/src/operations-matrix.test.ts`, driven by `operations-matrix.ts` beside
+it. The fixtures already existed — `pastEvent(db, { endedHoursAgo })` builds every phase, including
+`in_progress` from a negative offset and `no_end` from `withEndsAt: false`.
+
+**Built.** The `cancelEvent` row, all five phases × three actors, fifteen cells. `submitFeedback`
+(#77) is the next row. A fifth phase joined the sketch: `no_end`, because §5.24 treats a missing end
+as real data and `after_end`'s refusal cannot speak for it — leaving it unstated would have let a
+reader assume otherwise. `cancelled` is deliberately an event that has _also_ ended, which is what
+pins the order of the guards: an already-cancelled meetup answers as a no-op before the end-time
+refusal is reached, so cancelling twice never becomes an error.
 
 **Implementation.**
 
@@ -383,17 +390,23 @@ expected error codes is not.
 out to people who attended and permanently blocks the closeout, the feedback and the repeat template.
 #77 — the host submitting attendee feedback on their own event.
 
-**Falsify.** Delete the `after_end` guard from `cancelEventResolver`. Gate must fail, naming the cell.
-Then add a new mutating operation with no row at all — gate must also fail, which is what stops the
-table going stale.
+**Falsify.** `node tools/mutants/run-mutants.mjs libs/server-fns/src/operations-matrix.mutants.mjs`
+— nine mutants, including both clauses this spec asked for: deleting the `after_end` guard, and
+adding a mutating operation with no row at all. Also covered: the guard moved above the cancelled
+check, the guard reading `startsAt` instead of `endsAt`, a missing end treated as elapsed, a phase
+dropped from the row, and a control that must pass. The interface half is separate —
+`node tools/mutants/run-mutants.mjs apps/ui/src/components/events/host-cancel.mutants.mjs`, five
+mutants over `HostEventPanel.test.tsx`.
 
 **Cost.** High. This is the most expensive of the eleven and the only one that catches a
 launch-blocker. Land `cancelEvent` and `submitFeedback` first and grow the table; a partial table that
 blocks is worth more than a complete one that does not exist.
 
-**Limitation, state it in the file.** The matrix proves the server refuses. It says nothing about
-whether the UI still offers the action — #74 is a defect in both layers, and only the server half is
-gateable this way. The client half belongs to G2's e2e companion or to a component test.
+**Limitation, stated in the file.** The matrix proves the server refuses. It says nothing about
+whether the UI still offers the action — #74 was a defect in both layers, and only the server half
+is gateable this way. The client half went to `HostEventPanel.test.tsx`, which asserts the cancel
+button is offered before the start, during the meetup and for an event with no end, and withdrawn
+once it has ended.
 
 ---
 

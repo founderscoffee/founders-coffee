@@ -31,6 +31,16 @@ import { enqueueEventCancellationNotices } from '../notifications/cancellation.j
  * it published to preserve an all-or-nothing story would put people in a café for an event the host
  * has already walked away from. The failure is reported instead, and the outcome says how many
  * people were reached so a caller can tell "nobody to tell" from "could not tell anyone".
+ *
+ * A meetup that has finished cannot be called off, because calling it off is a claim about the
+ * future and there is no future left to change. The flip would tell everyone who came that it was
+ * cancelled, and then refuse the closeout, the feedback and the repeat template for good — the
+ * whole record of an evening that happened, destroyed by one tap with no way back. Cancelling
+ * *during* the meetup stays allowed: one that collapses in its first ten minutes is a real thing a
+ * host needs to say. An event with no end is not refused, because it cannot be shown to have
+ * finished; `createEventSchema` requires an end, so that is legacy and fixture data rather than
+ * anything the product makes. The order matters too — an already-cancelled event answers as the
+ * no-op it is before this guard is reached, so cancelling twice never turns into an error.
  */
 export const cancelEventResolver = async (
   db: Db,
@@ -51,6 +61,11 @@ export const cancelEventResolver = async (
   }
   if (event.status === 'cancelled') {
     return ok({ event, notified: 0 });
+  }
+  if (event.endsAt !== null && event.endsAt.getTime() <= Date.now()) {
+    return err(
+      new AppError('event_already_ended', 'This meetup has already ended'),
+    );
   }
 
   const reason = opts.reason?.trim() || undefined;

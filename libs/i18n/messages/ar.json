@@ -433,6 +433,7 @@
   "host_cancel_confirm": "نعم، ألغِ اللقاء",
   "host_cancel_keep": "احتفظ باللقاء",
   "host_cancel_error": "تعذّر إلغاء اللقاء. حاول مجددًا.",
+  "host_cancel_ended_error": "انتهى اللقاء، ولم يعد من الممكن إلغاؤه.",
   "host_cancelling": "جارٍ الإلغاء…",
   "live_window_closed": "تُفتح غرفة اللقاء قبل ساعة من موعده.",
   "live_status_connecting": "جارٍ الاتصال…",
