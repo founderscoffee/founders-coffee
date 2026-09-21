@@ -60,6 +60,7 @@ export interface OutboundMessage {
     | 'auth_ok'
     | 'auth_required'
     | 'auth_expired'
+    | 'not_attending'
     | 'heartbeat_ack'
     | 'error'
     | 'event_cancelled';

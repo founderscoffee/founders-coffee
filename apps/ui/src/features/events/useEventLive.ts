@@ -27,6 +27,7 @@ export interface UseEventLiveResult {
   host: HostState | null;
   connectionState: ConnectionState;
   error: LiveErrorCode | null;
+  notAttending: boolean;
   sendArrived: (tableNumber?: number, visualCue?: string) => void;
   sendWalkingIn: () => void;
   sendRunningLate: (etaMinutes?: number) => void;
@@ -58,6 +59,11 @@ const INITIAL_RECONNECT_DELAY = 1_000;
  * nothing to join, and connecting anyway would hold a Durable Object open for every visitor
  * reading a page about next week. Flipping it false closes the socket and reports `disconnected`.
  *
+ * `notAttending` is deliberately neither a connection state nor an error. A signed-in member who
+ * has not joined is not broken and has nothing to fix, so the room reports the fact and the page
+ * shows them what an anonymous reader sees. Telling them their session had ended was the whole of
+ * #36: false about their account, and a remedy that does nothing.
+ *
  * Failures surface as `LiveErrorCode` rather than sentences. The room is reached from an
  * Arabic-first page, so the words a reader sees have to come from the message catalogue; a string
  * built here would arrive in English whatever their locale. Server `error` frames collapse to
@@ -74,6 +80,7 @@ export const useEventLive = (
   const [connectionState, setConnectionState] =
     useState<ConnectionState>('disconnected');
   const [error, setError] = useState<LiveErrorCode | null>(null);
+  const [notAttending, setNotAttending] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
@@ -97,6 +104,7 @@ export const useEventLive = (
 
     setConnectionState('connecting');
     setError(null);
+    setNotAttending(false);
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const url = `${protocol}//${window.location.host}/api/live/${eventId}`;
@@ -123,6 +131,12 @@ export const useEventLive = (
           case 'auth_ok':
             setConnectionState('connected');
             reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+            break;
+          case 'not_attending':
+            setNotAttending(true);
+            setConnectionState('disconnected');
+            intentionalCloseRef.current = true;
+            ws.close(4003, 'not_attending');
             break;
           case 'auth_expired':
             setConnectionState('error');
@@ -213,6 +227,7 @@ export const useEventLive = (
     host,
     connectionState,
     error,
+    notAttending,
     sendArrived: useCallback(
       (tableNumber?: number, visualCue?: string) =>
         send({ type: 'arrived', tableNumber, visualCue }),

@@ -10,6 +10,7 @@ import { clientMessage, type ClientMessage } from './event-live/protocol.js';
 import { revalidateConnection } from './event-live/revalidate.js';
 import { EventRoster } from './event-live/roster.js';
 import {
+  refusalFor,
   verifyEventSession,
   verifyEventSessionFromCookie,
   type DoEnv,
@@ -154,21 +155,10 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     result: VerifyResult,
   ): Promise<void> => {
     if (!result.ok) {
-      if (result.reason === 'db_error') {
-        this.connections.send(serverWs, {
-          type: 'error',
-          message: 'Temporary auth error, please retry',
-        });
-        return;
-      }
-      this.connections.send(serverWs, {
-        type: 'auth_expired',
-        message:
-          result.reason === 'not_allowed'
-            ? 'Not invited to this event'
-            : 'Session expired',
-      });
-      serverWs.close(4001, 'auth_expired');
+      const refusal = refusalFor(result.reason);
+      this.connections.send(serverWs, refusal.message);
+      if (refusal.close)
+        serverWs.close(refusal.close.code, refusal.close.reason);
       return;
     }
 
