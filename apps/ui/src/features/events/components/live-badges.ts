@@ -57,17 +57,25 @@ export const statusDot = (status: RosterUser['status']): string => {
   }
 };
 
-export const connectionBadge = (state: ConnectionState): string => {
+/**
+ * daisyUI presence classes for the navbar avatar.
+ *
+ * The component offers only online and offline, so the two states in between borrow the online
+ * dot and recolour it. The dot is never the only account of itself: the avatar carries the same
+ * state in words for anyone who cannot read a colour, and a socket that has actually failed
+ * raises a written alert in the live card rather than relying on this at all.
+ */
+export const presenceClass = (state: ConnectionState): string => {
   switch (state) {
     case 'connected':
-      return 'badge-success';
+      return 'avatar-online';
     case 'connecting':
     case 'authenticating':
-      return 'badge-warning';
+      return 'avatar-online before:!bg-warning';
     case 'disconnected':
-      return 'badge-ghost';
+      return 'avatar-offline';
     case 'error':
-      return 'badge-error';
+      return 'avatar-online before:!bg-error';
   }
 };
 

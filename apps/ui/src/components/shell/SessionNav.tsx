@@ -7,6 +7,7 @@ import {
   nav_signed_in_as,
   profile_loading,
   profile_title,
+  live_status_connected,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -14,6 +15,11 @@ import { useMyProfile } from '../../features/profile/hooks';
 import { profilePhotoUrl } from '../../features/profile/photo-url';
 
 import { useAuth } from '../../lib/app-providers';
+import {
+  connectionLabel,
+  presenceClass,
+} from '../../features/events/components/live-badges';
+import { useLivePresence } from '../../features/events/live-presence';
 import { authClient } from '../../lib/auth';
 import { useBoundedPending } from '../../lib/network-status';
 import { ProfileIcon, SignOutIcon } from './SessionIcon';
@@ -59,6 +65,14 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
 
   if (!isAuthenticated || !user) return <LoginLink locale={locale} />;
 
+  const presence = useLivePresence();
+  const presenceLabel =
+    presence === null
+      ? null
+      : presence === 'connected'
+        ? live_status_connected({}, { locale })
+        : connectionLabel(presence, locale);
+
   const photoAssetId =
     profile?.userId === user.id ? profile.photoAssetId : null;
 
@@ -66,8 +80,9 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
     <details ref={ref} className="dropdown dropdown-end">
       <summary
         aria-label={profile_title({}, { locale })}
-        className="flex size-8 cursor-pointer list-none items-center justify-center rounded-full bg-base-200 text-xs font-semibold text-base-content"
+        className={`avatar ${presence ? presenceClass(presence) : ''} flex size-8 cursor-pointer list-none items-center justify-center rounded-full bg-base-200 text-xs font-semibold text-base-content`}
       >
+        {presenceLabel && <span className="sr-only">{presenceLabel}</span>}
         {photoAssetId && photoAssetId !== failedPhoto ? (
           <img
             key={photoAssetId}

@@ -1,16 +1,12 @@
 import {
   live_in_the_room,
-  live_status_connected,
   live_title,
   type Locale,
 } from '@founders-coffee/i18n';
 
 import type { UseEventLiveResult } from '../useEventLive';
-import {
-  connectionBadge,
-  connectionLabel,
-  liveErrorMessage,
-} from './live-badges';
+import { usePublishLivePresenceWhileMounted } from '../live-presence';
+import { liveErrorMessage } from './live-badges';
 import { RosterList } from './RosterList';
 
 export interface LiveDashboardProps {
@@ -26,33 +22,24 @@ export const LiveDashboard = ({
 }: LiveDashboardProps) => {
   const { roster, host, connectionState, error } = live;
 
+  usePublishLivePresenceWhileMounted(connectionState);
+
   const arrivedCount = roster.filter((r) => r.status === 'arrived').length;
   const totalCount = roster.length;
 
   return (
     <div className="card bg-base-100 shadow-md">
       <div className="card-body gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="card-title font-display text-body-lg font-semibold">
-            {live_title({}, { locale })}
-            <span className="font-normal text-neutral">
-              {' · '}
-              {live_in_the_room(
-                { arrived: arrivedCount, total: totalCount },
-                { locale },
-              )}
-            </span>
-          </h2>
-          <div className="flex items-center gap-2">
-            <span
-              className={`badge badge-sm ${connectionBadge(connectionState)}`}
-            >
-              {connectionState === 'connected'
-                ? live_status_connected({}, { locale })
-                : connectionLabel(connectionState, locale)}
-            </span>
-          </div>
-        </div>
+        <h2 className="card-title font-display text-body-lg font-semibold">
+          {live_title({}, { locale })}
+          <span className="font-normal text-neutral">
+            {' · '}
+            {live_in_the_room(
+              { arrived: arrivedCount, total: totalCount },
+              { locale },
+            )}
+          </span>
+        </h2>
 
         {error && (
           <div className="alert alert-error alert-sm" role="alert">

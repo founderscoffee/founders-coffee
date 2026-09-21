@@ -1,6 +1,6 @@
 export default {
   command:
-    'npx vitest run src/components/events src/features/events/components',
+    'npx vitest run src/components/events src/components/shell src/features/events',
   cwd: 'apps/ui',
   mutants: [
     {
@@ -95,8 +95,8 @@ export default {
       edits: [
         {
           file: 'src/features/events/components/LiveDashboard.tsx',
-          find: '  live_status_connected,',
-          replace: '  live_status_connected,\n  live_walking_in,',
+          find: '  live_title,',
+          replace: '  live_title,\n  live_walking_in,',
         },
         {
           file: 'src/features/events/components/LiveDashboard.tsx',
@@ -207,8 +207,41 @@ export default {
       edits: [
         {
           file: 'src/features/events/components/LiveDashboard.tsx',
-          find: '            <span className="font-normal text-neutral">\n              {\' · \'}\n              {live_in_the_room(\n                { arrived: arrivedCount, total: totalCount },\n                { locale },\n              )}\n            </span>\n',
+          find: '          <span className="font-normal text-neutral">\n            {\' \u00b7 \'}\n            {live_in_the_room(\n              { arrived: arrivedCount, total: totalCount },\n              { locale },\n            )}\n          </span>\n',
           replace: '',
+        },
+      ],
+    },
+    {
+      name: 'the dot is left behind when the reader leaves the live room',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/live-presence.tsx',
+          find: '    publish(state);\n    return () => publish(null);',
+          replace: '    publish(state);',
+        },
+      ],
+    },
+    {
+      name: 'the presence state loses its name and becomes a colour alone',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/components/shell/SessionNav.tsx',
+          find: '        {presenceLabel && <span className="sr-only">{presenceLabel}</span>}',
+          replace: '',
+        },
+      ],
+    },
+    {
+      name: 'a dropped socket wears the same dot as a live one',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/live-badges.ts',
+          find: "    case 'disconnected':\n      return 'avatar-offline';",
+          replace: "    case 'disconnected':\n      return 'avatar-online';",
         },
       ],
     },
