@@ -21,7 +21,7 @@ export const notificationChannelsSchema = z
 export const DEFAULT_NOTIFICATION_CHANNELS = [
   ...NOTIFICATION_CHANNELS,
 ] as const;
-export const DEFAULT_FOLLOW_UP_CHANNELS = [] as const;
+export const DEFAULT_FOLLOW_UP_CHANNELS = ['email'] as const;
 
 export const channelsToMask = (
   channels: readonly NotificationChannel[],
@@ -52,7 +52,7 @@ export const notificationPreferencesSchema = z.strictObject({
   hostRsvpCancelledChannels: notificationChannelsSchema.default([
     ...DEFAULT_NOTIFICATION_CHANNELS,
   ]),
-  followUpPrompts: z.boolean().default(false),
+  followUpPrompts: z.boolean().default(true),
   followUpPromptsChannels: notificationChannelsSchema.default([
     ...DEFAULT_FOLLOW_UP_CHANNELS,
   ]),

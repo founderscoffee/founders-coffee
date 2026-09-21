@@ -18,7 +18,7 @@ import {
 } from './account-summary.js';
 
 describe('account preferences', () => {
-  it('defaults channels and optional follow-up prompts off', () => {
+  it('defaults every category on, with follow-up prompts on email only', () => {
     for (const state of ['active', 'closing', 'deleted']) {
       expect(accountStateSchema.parse(state)).toBe(state);
     }
@@ -32,8 +32,8 @@ describe('account preferences', () => {
       hostRsvpReceivedChannels: ['push', 'email'],
       hostRsvpCancelled: true,
       hostRsvpCancelledChannels: ['push', 'email'],
-      followUpPrompts: false,
-      followUpPromptsChannels: [],
+      followUpPrompts: true,
+      followUpPromptsChannels: ['email'],
       pushEnabled: false,
       smsFallbackEnabled: false,
     });
@@ -69,8 +69,8 @@ describe('account preferences', () => {
       hostRsvpReceivedChannels: ['push', 'email'],
       hostRsvpCancelled: true,
       hostRsvpCancelledChannels: ['push', 'email'],
-      followUpPrompts: false,
-      followUpPromptsChannels: [],
+      followUpPrompts: true,
+      followUpPromptsChannels: ['email'],
       smsFallbackEnabled: false,
       expectedRevision: 0,
     });

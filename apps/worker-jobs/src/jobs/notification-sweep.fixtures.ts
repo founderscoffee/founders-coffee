@@ -107,7 +107,7 @@ export const setupDb = async (): Promise<Db> => {
     eventReminders: true,
     hostRsvpReceived: true,
     hostRsvpCancelled: true,
-    followUpPrompts: false,
+    followUpPromptsChannels: 4,
     pushEnabled: true,
     smsFallbackEnabled: true,
   });

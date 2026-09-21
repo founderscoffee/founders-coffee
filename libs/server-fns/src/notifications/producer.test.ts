@@ -178,6 +178,7 @@ const rowsFor = async (
     eventRemindersChannels?: number;
     hostRsvpReceivedChannels?: number;
     hostRsvpCancelledChannels?: number;
+    followUpPromptsChannels?: number;
   },
 ) => {
   const event = await seedEvent(db);
@@ -193,20 +194,14 @@ const rowsFor = async (
     })
     .onConflictDoNothing()
     .run();
-  if (
-    opts.eventUpdatesChannels !== undefined ||
-    opts.eventRemindersChannels !== undefined ||
-    opts.hostRsvpReceivedChannels !== undefined ||
-    opts.hostRsvpCancelledChannels !== undefined
-  ) {
-    await db.insert(accountPreferences).values({
-      userId: memberId,
-      eventUpdatesChannels: opts.eventUpdatesChannels ?? 5,
-      eventRemindersChannels: opts.eventRemindersChannels ?? 5,
-      hostRsvpReceivedChannels: opts.hostRsvpReceivedChannels ?? 5,
-      hostRsvpCancelledChannels: opts.hostRsvpCancelledChannels ?? 5,
-    });
-  }
+  await db.insert(accountPreferences).values({
+    userId: memberId,
+    eventUpdatesChannels: opts.eventUpdatesChannels ?? 5,
+    eventRemindersChannels: opts.eventRemindersChannels ?? 5,
+    hostRsvpReceivedChannels: opts.hostRsvpReceivedChannels ?? 5,
+    hostRsvpCancelledChannels: opts.hostRsvpCancelledChannels ?? 5,
+    followUpPromptsChannels: opts.followUpPromptsChannels ?? 4,
+  });
 
   await enqueueRsvpNotifications(db, {
     eventId: event.id,
@@ -271,6 +266,7 @@ describe('what sits behind push for an RSVP (ND-07)', () => {
       eventRemindersChannels: 1,
       hostRsvpReceivedChannels: 1,
       hostRsvpCancelledChannels: 1,
+      followUpPromptsChannels: 1,
     });
 
     expect(rows.length).toBeGreaterThan(0);

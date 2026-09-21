@@ -594,10 +594,10 @@ export const accountPreferences = sqliteTable('account_preferences', {
     .default(5),
   followUpPrompts: integer('follow_up_prompts', { mode: 'boolean' })
     .notNull()
-    .default(false),
+    .default(true),
   followUpPromptsChannels: integer('follow_up_prompts_channels')
     .notNull()
-    .default(0),
+    .default(4),
   pushEnabled: integer('push_enabled', { mode: 'boolean' })
     .notNull()
     .default(false),
