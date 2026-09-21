@@ -1,11 +1,10 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { CalendarOff, Check } from 'lucide-react';
+import { CalendarOff } from 'lucide-react';
 import { useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
 import {
   retry,
-  rsvp_already,
   rsvp_cancel,
   rsvp_cancelled_going,
   rsvp_cancelled_going_help,
@@ -128,19 +127,13 @@ export const RsvpSection = ({
         ) : null
       ) : isGoing ? (
         <>
-          <div className="flex w-fit flex-wrap items-center gap-2">
-            <p className="inline-flex w-fit items-center gap-2 rounded-full bg-success-tint px-3 py-1.5 text-body-sm font-medium text-success">
-              <Check className="size-4" aria-hidden="true" />
-              {rsvp_already({}, { locale })}
-            </p>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm text-neutral"
-              onClick={() => setIsCancelOpen(true)}
-            >
-              {rsvp_cancel({}, { locale })}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm w-fit text-neutral"
+            onClick={() => setIsCancelOpen(true)}
+          >
+            {rsvp_cancel({}, { locale })}
+          </button>
           <p className="text-body-sm text-neutral">
             {rsvp_confirmed_help({}, { locale })}
           </p>

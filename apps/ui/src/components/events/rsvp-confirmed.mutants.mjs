@@ -89,14 +89,37 @@ export default {
       ],
     },
     {
-      name: 'cancel drops out of the status row and trails the help line instead',
+      name: 'cancel stops leading the panel and trails the help line instead',
       expect: 'fail',
       edits: [
         {
           file: 'apps/ui/src/components/events/RsvpSection.tsx',
-          find: '            <button\n              type="button"\n              className="btn btn-ghost btn-sm text-neutral"\n              onClick={() => setIsCancelOpen(true)}\n            >\n              {rsvp_cancel({}, { locale })}\n            </button>\n          </div>\n          <p className="text-body-sm text-neutral">\n            {rsvp_confirmed_help({}, { locale })}\n          </p>',
+          find: '          <button\n            type="button"\n            className="btn btn-ghost btn-sm w-fit text-neutral"\n            onClick={() => setIsCancelOpen(true)}\n          >\n            {rsvp_cancel({}, { locale })}\n          </button>\n          <p className="text-body-sm text-neutral">\n            {rsvp_confirmed_help({}, { locale })}\n          </p>',
           replace:
-            '          </div>\n          <p className="text-body-sm text-neutral">\n            {rsvp_confirmed_help({}, { locale })}\n          </p>\n          <button\n            type="button"\n            className="btn btn-ghost btn-sm w-fit text-neutral"\n            onClick={() => setIsCancelOpen(true)}\n          >\n            {rsvp_cancel({}, { locale })}\n          </button>',
+            '          <p className="text-body-sm text-neutral">\n            {rsvp_confirmed_help({}, { locale })}\n          </p>\n          <button\n            type="button"\n            className="btn btn-ghost btn-sm w-fit text-neutral"\n            onClick={() => setIsCancelOpen(true)}\n          >\n            {rsvp_cancel({}, { locale })}\n          </button>',
+        },
+      ],
+    },
+    {
+      name: 'the box heading stops noticing the seat is already taken',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'apps/ui/src/components/events/EventDetail.tsx',
+          find: "  const isConfirmed = !isHost && !isCancelled && event.viewerRsvp === 'going';",
+          replace: '  const isConfirmed = false;',
+        },
+      ],
+    },
+    {
+      name: 'the heading claims a confirmed seat at a meetup that is off',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'apps/ui/src/components/events/EventDetail.tsx',
+          find: "  const isConfirmed = !isHost && !isCancelled && event.viewerRsvp === 'going';",
+          replace:
+            "  const isConfirmed = !isHost && event.viewerRsvp === 'going';",
         },
       ],
     },

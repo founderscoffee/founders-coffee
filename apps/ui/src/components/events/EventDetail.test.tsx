@@ -159,3 +159,29 @@ describe('the share chip in the event header', () => {
     expect(screen.queryByRole('button', { name: 'شارك' })).toBeNull();
   });
 });
+
+describe('what the seat box calls itself', () => {
+  it('names the status once the reader is going, not the action they already took', () => {
+    show({ ...event, viewerRsvp: 'going' }, 'ar');
+
+    expect(screen.getByRole('heading', { name: 'حضورك مؤكَّد' })).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', { name: 'احجز مقعدك' }),
+      'telling someone to book a seat directly above the confirmation that they booked it is the box arguing with itself',
+    ).toBeNull();
+  });
+
+  it('still asks for the booking from a reader who has not made one', () => {
+    show(event, 'ar');
+
+    expect(screen.getByRole('heading', { name: 'احجز مقعدك' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
+  });
+
+  it('does not claim a confirmed seat at a meetup that is off', () => {
+    show({ ...cancelled, viewerRsvp: 'going' }, 'ar');
+
+    expect(screen.getByRole('heading', { name: 'مقعدك' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
+  });
+});

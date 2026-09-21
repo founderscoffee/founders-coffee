@@ -120,13 +120,6 @@ describe('RsvpSection leaves sharing to the page it sits on', () => {
 });
 
 describe('what a confirmed attendee reads in Arabic', () => {
-  it('confirms attendance in the words the rest of the flow uses', () => {
-    show({ ...event, viewerRsvp: 'going' }, 'ar');
-
-    expect(screen.getByText('حضورك مؤكَّد')).toBeTruthy();
-    expect(screen.queryByText('أنت قادم')).toBeNull();
-  });
-
   it('states the confirmation was sent, rather than appearing to demand it', () => {
     show({ ...event, viewerRsvp: 'going' }, 'ar');
 
@@ -135,16 +128,21 @@ describe('what a confirmed attendee reads in Arabic', () => {
 });
 
 describe('where the undo for a confirmed seat sits', () => {
-  it('puts cancel in the status row, beside the thing it undoes', () => {
+  it('states the seat is taken once, in the heading the panel sits under', () => {
+    show({ ...event, viewerRsvp: 'going' }, 'ar');
+
+    expect(
+      screen.queryByText('حضورك مؤكَّد'),
+      'the status is the section heading now, and repeating it inside the panel is the same sentence twice',
+    ).toBeNull();
+  });
+
+  it('leads with the undo, so nothing stands between it and the status above', () => {
     show({ ...event, viewerRsvp: 'going' });
 
     const cancel = screen.getByRole('button', { name: 'Cancel RSVP' });
-    const pill = screen.getByText("You're going");
 
-    expect(
-      cancel.parentElement?.contains(pill),
-      "cancel is the status's own undo and belongs on the same row as the status",
-    ).toBe(true);
+    expect(cancel.previousElementSibling).toBeNull();
   });
 
   it('keeps the help line after the undo, not between it and the status', () => {

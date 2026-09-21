@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { CalendarDays, MapPin, Users } from 'lucide-react';
+import { CalendarDays, Check, MapPin, Users } from 'lucide-react';
 
 import {
   back_to_city,
@@ -18,6 +18,7 @@ import {
   ntf_cancel_reason,
   profile_link,
   role_host,
+  rsvp_already,
   share_event_action,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -97,6 +98,7 @@ export const EventDetail = ({
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
   const isCancelled = event.status === 'cancelled';
   const hasRsvpBox = isHost || !isCancelled || event.viewerRsvp === 'going';
+  const isConfirmed = !isHost && !isCancelled && event.viewerRsvp === 'going';
 
   return (
     <article className="mx-auto max-w-5xl px-4 py-6 sm:py-8 md:px-8 md:py-10">
@@ -261,13 +263,24 @@ export const EventDetail = ({
             >
               <h2
                 id="event-rsvp-title"
-                className="mb-4 font-display text-h4 font-semibold"
+                className={
+                  isConfirmed
+                    ? 'mb-4 inline-flex items-center gap-2 font-display text-h4 font-semibold text-success'
+                    : 'mb-4 font-display text-h4 font-semibold'
+                }
               >
-                {isHost
-                  ? event_host({}, { locale })
-                  : isCancelled
-                    ? rsvp_box_cancelled({}, { locale })
-                    : rsvp_box_title({}, { locale })}
+                {isConfirmed ? (
+                  <>
+                    <Check className="size-5" aria-hidden="true" />
+                    {rsvp_already({}, { locale })}
+                  </>
+                ) : isHost ? (
+                  event_host({}, { locale })
+                ) : isCancelled ? (
+                  rsvp_box_cancelled({}, { locale })
+                ) : (
+                  rsvp_box_title({}, { locale })
+                )}
               </h2>
               <div className="mt-auto">
                 <RsvpSection
