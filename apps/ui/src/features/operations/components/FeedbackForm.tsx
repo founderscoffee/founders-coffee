@@ -32,7 +32,12 @@ export const FeedbackForm = ({
       </legend>
       <div className="grid gap-2 sm:grid-cols-3">
         {ratings.map((rating) => (
-          <label className="btn btn-outline justify-start" key={rating}>
+          <label
+            className={`btn justify-start ${
+              draft.rating === rating ? 'btn-primary' : 'btn-outline'
+            }`}
+            key={rating}
+          >
             <input
               className="sr-only"
               type="radio"

@@ -27,6 +27,12 @@ the mutation had silently not applied — the same shape as the assertion G9b is
 in the tooling. A disagreeing mutant is re-run before it is believed, and two runs that disagree with
 each other are reported as unstable rather than as a verdict.
 
+A harness error is **not** retried, deliberately. It means the tool could not do its job — the edit
+did not land, or something rewrote the file mid-run — and that is a thing to look at rather than
+paper over. One has been seen once, during a batch of four specs run back to back, and did not
+recur in three consecutive runs afterwards. It was reported as a harness error rather than as a
+surviving mutant, which is the distinction the tool exists to draw.
+
 Ordered by confidence: G5, G6, G7, G1, G9a, G10 and G11 are structural and will not flap. G2, G3b and
 G4 need tuning before they can block a merge. G8 and G9b are the expensive pair and the two that
 reach the post-event lifecycle.
@@ -446,71 +452,98 @@ tautological is the work. Start with the ones matching on a shared word — `Tha
 
 ---
 
-## G10 — No pending notification survives a transition that contradicts it
+## G10 — No pending notification survives a transition that contradicts it — **BUILT**
 
-**Invariant.** For every terminal event transition, a checked-in list names the template keys that
-must no longer be `pending` afterwards — **and** the keys that must survive.
+**Invariant.** For every terminal event transition, a checked-in table names the template keys it
+must retire — **and** the ones it must leave alone.
 
-**Home.** `libs/server-fns/src/notifications/lifecycle.test.ts`.
+**Home.** `libs/server-fns/src/notifications/lifecycle.test.ts`, on real D1 through
+`@founders-coffee/db/operations-fixtures`, no mocked bindings.
 
-**Implementation.**
+**Implementation as built.** Seed one pending row per key the transition has an opinion about, run
+the transition, read the rows back by id. Seeded rather than produced: how a row got there is each
+producer's business and each has its own suite, and driving five producers would make the answer
+depend on five channel plans and five sets of contact preferences. Asserting by seeded id also
+keeps the question clean where a transition writes new rows of the same key — cancelling retires
+the pending `event_cancelled` and then enqueues its own.
 
-```ts
-const RETIRES = {
-  cancelEvent: { drops: ['reminder_72h', 'reminder_24h', 'closeout_prompt', 'feedback_invitation'], keeps: [] },
-  submitCloseout: {
-    drops: ['closeout_prompt'], // ← #80
-    keeps: ['feedback_invitation'],
-  },
-};
-```
+**The `keeps` half is the point.** Retiring is done with `cancelNotificationsByEvent`, which takes
+every pending row for the event. So a transition that also enqueues messages has to cancel before
+it writes. `submitCloseoutResolver` writes the feedback invitations, and the natural fix for #80 in
+the natural place — after the fan-out — would retire the ones it had just created. The mutant table
+below has that exact fix in it, and the gate catches it.
 
-Enqueue every key, run the operation, assert each `drops` key is no longer pending and each `keeps`
-key still is. **The `keeps` half is what makes this more than a rubber stamp**: the obvious fix for
-#80 is to call `cancelNotificationsByEvent`, and placing that call after `enqueueFeedbackInvitations`
-would retire the invitations the closeout just wrote. Only the complement assertion catches that.
+**Today's ledger.** Cancelling retires `reminder_72h`, `reminder_24h`, `closeout_prompt` and
+`feedback_invitation`, and that is live and enforced. Closing out must retire `closeout_prompt` and
+must keep `feedback_invitation`; the keep is enforced, and the retire is parked against **#80** with
+the same self-clearing rule G5 and G7 use — a parked entry that has quietly started working fails,
+telling whoever fixed it to delete the line so the real assertion takes over.
 
-**Catches.** #80 — closing out does not cancel the `closeout_prompt` scheduled at `endsAt + 30min`,
-so a host who closes out promptly is nudged up to half an hour later to do what they just did.
+**Catches.** #80.
 
-**Falsify.** Remove `cancelNotificationsByEvent` from `cancelEventResolver` — the `drops` half must
-fail. Then make that call unscoped and move it after the fan-out — the `keeps` half must fail.
+**Falsify.** `node tools/mutants/run-mutants.mjs libs/server-fns/src/notifications/lifecycle.mutants.mjs`
+— seven mutants, 7/7:
 
-**Cost.** Low. The DB helpers and notification fixtures already exist.
+| mutant                                                      | expected | got  |
+| ----------------------------------------------------------- | -------- | ---- |
+| the cancel path stops retiring anything                     | fail     | fail |
+| #80 fixed with an unscoped cancel, placed after the fan-out | fail     | fail |
+| #80 fixed properly, with the parked entry left behind       | fail     | fail |
+| a parked defect with no issue number                        | fail     | fail |
+| a parked key the transition never claimed to retire         | fail     | fail |
+| a transition that declares it retires nothing               | fail     | fail |
+| a rename inside the cancel path that changes no behaviour   | **pass** | pass |
+
+The last one proves specificity: the gate is not simply "any edit to `cancel.ts` fails".
+
+**Cost.** Low. The fixtures and the DB helpers already existed.
 
 ---
 
-## G11 — A chosen option looks chosen
+## G11 — A chosen option looks chosen — **BUILT**
 
-**Invariant.** For every radiogroup or segmented control whose input is visually hidden, the rendered
-markup of an option differs between selected and unselected — at the **visible** element, not only at
-the hidden input.
+**Invariant.** Two parts. Every control that hides its own radio or checkbox behind `sr-only` is
+listed with the test that covers it, and that test compares the **visible** markup of two different
+selections.
 
-**Home.** Component tests beside each control.
+**Home.** `apps/ui/src/lib/visible-selection.test.ts` for the discovery half,
+`apps/ui/src/lib/visible-selection.ts` for the comparison helper, and the comparison itself beside
+each control — today `FeedbackForm.test.tsx`.
 
-**Implementation.** Render twice with different selections, compare the visible option's class list:
+**Why the helper strips `sr-only` before comparing.** The hidden input's `checked` changes whether
+or not anything visible does, so a naive markup diff passes on the input alone. Removing the
+`sr-only` subtree leaves exactly what a sighted reader has to go on. That deletion _is_ the gate;
+one of the mutants below removes it and the suite must fail.
 
-```tsx
-const classOf = (draft) => render(<FeedbackForm draft={draft} .../>)
-  .getByText('Valuable').closest('label').className;
+**`type="file"` is excluded deliberately.** A hidden file input behind a styled button is the
+ordinary way to do that and has no selected state to render. `ProfilePhotoField` is the one in this
+repo, and it is correctly out of scope.
 
-expect(classOf({ ...d, rating: 'valuable' }))
-  .not.toEqual(classOf({ ...d, rating: 'okay' }));
-```
+**Today's ledger.** One control in scope, `FeedbackForm`'s rating group — and #79 is **fixed** in
+the same commit rather than parked, because a gate whose only instance is parked has no live
+assertion. The chosen option now takes `btn-primary` against `btn-outline`, following the ternary
+pattern `CityFilters.tsx` already uses. The discovery half is what earns its keep going forward:
+control number two cannot be added without a test.
 
-**Catches.** #79 — the feedback rating's `<input className="sr-only">` sits inside a label with a
-static `btn btn-outline justify-start`, so the attendee cannot see which of the three they picked on
-the primary question of the form. `FeedbackForm.test.tsx` exists but only ever renders
-`rating: null`, so the selected and unselected states are never compared.
+**Catches.** #79 — and holds it fixed.
 
-**Falsify.** Apply the fix, then revert the label to a static className — gate must fail. Then make
-only the hidden `<input>`'s attributes vary, which is today's behaviour — gate must **still** fail,
-proving it reads the visible element.
+**Falsify.** `node tools/mutants/run-mutants.mjs apps/ui/src/lib/visible-selection.mutants.mjs`
+— seven mutants, 7/7:
 
-**Cost.** Low. One helper, reused per control.
+| mutant                                                       | expected | got  |
+| ------------------------------------------------------------ | -------- | ---- |
+| #79 reverted — the chosen rating styled like the others      | fail     | fail |
+| only the hidden input varies, which is what #79 actually was | fail     | fail |
+| a new hidden radio with nothing covering it                  | fail     | fail |
+| the covering test named but not making the comparison        | fail     | fail |
+| an entry for a control that no longer hides its input        | fail     | fail |
+| the comparison helper made blind to the visible class        | fail     | fail |
+| a styling change that still distinguishes the chosen option  | **pass** | pass |
 
 **Limitation.** It proves a difference exists, not that the difference is legible. Contrast is G2's
-territory, and the two should not be confused for each other.
+territory and the two should not be confused for each other.
+
+**Cost.** Low.
 
 ---
 
@@ -527,8 +560,8 @@ territory, and the two should not be confused for each other.
 | G2 axe SSR                 | job 2                      | report-only one week, then blocking                    |
 | G2 axe e2e                 | `e2e` target               | after the SSR backlog clears                           |
 | G9a dead exports           | job 1 (`lint`)             | report-only until the backlog clears, then immediately |
-| G10 notification lifecycle | job 1 (`test`)             | immediately                                            |
-| G11 selected state         | job 1 (`test`)             | immediately                                            |
+| G10 notification lifecycle | job 1 (`test`)             | **live** — already in job 1                            |
+| G11 selected state         | job 1 (`test`)             | **live** — already in job 1                            |
 | G9b success-state shape    | job 1 (`test`)             | as each tautological assertion is rewritten            |
 | G8 lifecycle matrix        | job 1 (`test`)             | `cancelEvent` and `submitFeedback` first, then grow    |
 
