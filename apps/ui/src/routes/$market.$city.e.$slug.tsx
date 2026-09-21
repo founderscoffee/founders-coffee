@@ -52,12 +52,7 @@ export const Route = createFileRoute('/$market/$city/e/$slug')({
           isWindowOpen={isWindowOpen}
         />
         {user && isWindowOpen && isAttending && !live.notAttending && (
-          <LiveDashboard
-            live={live}
-            currentUserId={user.id}
-            isHost={isHost}
-            locale={locale}
-          />
+          <LiveDashboard live={live} currentUserId={user.id} locale={locale} />
         )}
       </>
     );

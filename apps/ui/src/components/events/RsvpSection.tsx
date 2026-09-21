@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { appErrorCode } from '@founders-coffee/core';
 import {
   retry,
+  rsvp_already,
   rsvp_cancel,
   rsvp_cancelled_going,
   rsvp_cancelled_going_help,
@@ -21,6 +22,7 @@ import { PushPermissionPrompt } from '../../features/events/components/PushPermi
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
 import { useAuth } from '../../lib/app-providers';
+import { AttendeeLiveActions } from './AttendeeLiveActions';
 import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
 
@@ -137,6 +139,13 @@ export const RsvpSection = ({
           <p className="text-body-sm text-neutral">
             {rsvp_confirmed_help({}, { locale })}
           </p>
+          {live && isWindowOpen && !live.notAttending && (
+            <AttendeeLiveActions
+              locale={locale}
+              onWalkingIn={live.sendWalkingIn}
+              onRunningLate={live.sendRunningLate}
+            />
+          )}
         </>
       ) : (
         <>

@@ -57,6 +57,21 @@ const cancelled = {
   cancelledAt: new Date('2026-09-10T00:00:00Z'),
 } satisfies EventWithAttendance;
 
+const liveRoom = (overrides: Record<string, unknown> = {}) =>
+  ({
+    roster: [],
+    host: null,
+    connectionState: 'connected',
+    error: null,
+    notAttending: false,
+    sendArrived: vi.fn(),
+    sendWalkingIn: vi.fn(),
+    sendRunningLate: vi.fn(),
+    sendTablePin: vi.fn(),
+    disconnect: vi.fn(),
+    ...overrides,
+  }) as unknown as Parameters<typeof RsvpSection>[0]['live'];
+
 const show = (item: EventWithAttendance, locale: 'ar' | 'en' = 'en') =>
   render(
     <RsvpSection
@@ -158,5 +173,64 @@ describe('where the undo for a confirmed seat sits', () => {
         cancel.compareDocumentPosition(help) & Node.DOCUMENT_POSITION_FOLLOWING,
       ),
     ).toBe(true);
+  });
+});
+
+describe('telling the room you are on your way', () => {
+  const showLive = (
+    live: Parameters<typeof RsvpSection>[0]['live'],
+    isWindowOpen: boolean,
+  ) =>
+    render(
+      <RsvpSection
+        event={{ ...event, viewerRsvp: 'going' }}
+        hostName="Amine"
+        marketSlug="algeria"
+        locale="ar"
+        isHost={false}
+        live={live}
+        isWindowOpen={isWindowOpen}
+      />,
+    );
+
+  it('offers it in the panel, where the seat it belongs to already is', () => {
+    showLive(liveRoom(), true);
+
+    expect(
+      screen.getByRole('button', { name: 'أمشي نحو المكان' }),
+    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'متأخر' })).toBeTruthy();
+  });
+
+  it('offers nothing before the room opens, when there is no one to tell', () => {
+    showLive(liveRoom(), false);
+
+    expect(
+      screen.queryByRole('button', { name: 'أمشي نحو المكان' }),
+    ).toBeNull();
+  });
+
+  it('offers nothing to a reader the room has refused', () => {
+    showLive(liveRoom({ notAttending: true }), true);
+
+    expect(
+      screen.queryByRole('button', { name: 'أمشي نحو المكان' }),
+    ).toBeNull();
+  });
+
+  it('keeps the undo away from the live actions, behind a separator', () => {
+    showLive(liveRoom(), true);
+
+    const cancel = screen.getByRole('button', { name: 'إلغاء الحضور' });
+    const walking = screen.getByRole('button', { name: 'أمشي نحو المكان' });
+
+    expect(
+      Boolean(
+        cancel.compareDocumentPosition(walking) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+      'cancel is destructive and must not sit next to the button a reader taps while walking',
+    ).toBe(true);
+    expect(cancel.nextElementSibling?.contains(walking)).toBe(false);
   });
 });

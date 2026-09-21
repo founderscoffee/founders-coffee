@@ -1,21 +1,13 @@
-import { useState } from 'react';
-
 import {
   live_at_venue,
-  live_cancel,
-  live_confirm,
   live_eta_minutes,
-  live_eta_ph,
   live_host_here,
   live_in_the_room,
   live_no_attendees,
   live_not_arrived,
-  live_running_late,
   live_status_connected,
   live_table_n,
   live_title,
-  live_walking_in,
-  live_your_status,
   role_host,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -32,37 +24,18 @@ import {
 export interface LiveDashboardProps {
   live: UseEventLiveResult;
   currentUserId: string;
-  isHost: boolean;
   locale: Locale;
 }
 
 export const LiveDashboard = ({
   live,
   currentUserId,
-  isHost,
   locale,
 }: LiveDashboardProps) => {
-  const {
-    roster,
-    host,
-    connectionState,
-    error,
-    sendWalkingIn,
-    sendRunningLate,
-  } = live;
-
-  const [runningLateEta, setRunningLateEta] = useState<string>('');
-  const [showRunningLate, setShowRunningLate] = useState(false);
+  const { roster, host, connectionState, error } = live;
 
   const arrivedCount = roster.filter((r) => r.status === 'arrived').length;
   const totalCount = roster.length;
-
-  const handleRunningLate = () => {
-    const eta = runningLateEta ? parseInt(runningLateEta, 10) : undefined;
-    sendRunningLate(eta);
-    setShowRunningLate(false);
-    setRunningLateEta('');
-  };
 
   return (
     <div className="card bg-base-100 shadow-md">
@@ -150,51 +123,6 @@ export const LiveDashboard = ({
             )}
           </div>
         </div>
-
-        {!isHost && (
-          <>
-            <div className="divider">{live_your_status({}, { locale })}</div>
-            <div className="flex gap-2">
-              <button
-                className="btn btn-success btn-sm"
-                onClick={sendWalkingIn}
-              >
-                {live_walking_in({}, { locale })}
-              </button>
-              {!showRunningLate && (
-                <button
-                  className="btn btn-error btn-outline btn-sm"
-                  onClick={() => setShowRunningLate(true)}
-                >
-                  {live_running_late({}, { locale })}
-                </button>
-              )}
-            </div>
-            {showRunningLate && (
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  className="input input-bordered input-sm flex-1"
-                  placeholder={live_eta_ph({}, { locale })}
-                  value={runningLateEta}
-                  onChange={(e) => setRunningLateEta(e.target.value)}
-                />
-                <button
-                  className="btn btn-error btn-sm"
-                  onClick={handleRunningLate}
-                >
-                  {live_confirm({}, { locale })}
-                </button>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => setShowRunningLate(false)}
-                >
-                  {live_cancel({}, { locale })}
-                </button>
-              </div>
-            )}
-          </>
-        )}
       </div>
     </div>
   );

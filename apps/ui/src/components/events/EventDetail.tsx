@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { CalendarDays, Check, MapPin, Users } from 'lucide-react';
+import { CalendarDays, MapPin, Users } from 'lucide-react';
 
 import {
   back_to_city,
@@ -7,8 +7,6 @@ import {
   event_cancelled_title,
   event_details_title,
   event_host,
-  rsvp_box_cancelled,
-  rsvp_box_title,
   event_when,
   event_where,
   formatDate,
@@ -18,7 +16,6 @@ import {
   ntf_cancel_reason,
   profile_link,
   role_host,
-  rsvp_already,
   share_event_action,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -31,6 +28,7 @@ import type {
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { localizedCity } from '../../lib/locale-routing';
 import { EventLocationMap } from './EventLocationMap';
+import { RsvpBoxHeading } from './RsvpBoxHeading';
 import { RsvpSection } from './RsvpSection';
 import { ShareEventButton } from './ShareEventButton';
 
@@ -98,7 +96,6 @@ export const EventDetail = ({
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
   const isCancelled = event.status === 'cancelled';
   const hasRsvpBox = isHost || !isCancelled || event.viewerRsvp === 'going';
-  const isConfirmed = !isHost && !isCancelled && event.viewerRsvp === 'going';
 
   return (
     <article className="mx-auto max-w-5xl px-4 py-6 sm:py-8 md:px-8 md:py-10">
@@ -261,27 +258,12 @@ export const EventDetail = ({
               aria-labelledby="event-rsvp-title"
               className="flex flex-1 flex-col rounded-box border-2 border-secondary bg-base-100 p-5 shadow-[var(--shadow-2)]"
             >
-              <h2
-                id="event-rsvp-title"
-                className={
-                  isConfirmed
-                    ? 'mb-4 inline-flex items-center gap-2 font-display text-h4 font-semibold text-success'
-                    : 'mb-4 font-display text-h4 font-semibold'
-                }
-              >
-                {isConfirmed ? (
-                  <>
-                    <Check className="size-5" aria-hidden="true" />
-                    {rsvp_already({}, { locale })}
-                  </>
-                ) : isHost ? (
-                  event_host({}, { locale })
-                ) : isCancelled ? (
-                  rsvp_box_cancelled({}, { locale })
-                ) : (
-                  rsvp_box_title({}, { locale })
-                )}
-              </h2>
+              <RsvpBoxHeading
+                locale={locale}
+                isHost={isHost}
+                isCancelled={isCancelled}
+                isGoing={event.viewerRsvp === 'going'}
+              />
               <div className="mt-auto">
                 <RsvpSection
                   event={event}
