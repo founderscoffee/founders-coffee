@@ -134,3 +134,28 @@ describe('the host in the room', () => {
     expect(row?.textContent).toContain('في المكان');
   });
 });
+
+describe('the dot on a roster avatar', () => {
+  it('says how far along someone is, in the same shape the navbar uses', () => {
+    const { container } = show([amina, { ...me, status: 'walking_in' }]);
+
+    const avatars = container.querySelectorAll('li > span:first-child');
+    expect(avatars[0]?.className).toContain('avatar-online');
+    expect(avatars[1]?.className).toContain('before:!bg-warning');
+  });
+
+  it('leaves the dot grey for someone who has not turned up', () => {
+    const { container } = show([{ ...amina, status: 'connected' }]);
+
+    expect(
+      container.querySelector('li > span:first-child')?.className,
+      'grey is nobody here yet; it is not a claim about their connection, which the roster does not track',
+    ).toContain('avatar-offline');
+  });
+
+  it('carries only one dot per row, on the avatar', () => {
+    const { container } = show([amina]);
+
+    expect(container.querySelectorAll('.size-2')).toHaveLength(0);
+  });
+});

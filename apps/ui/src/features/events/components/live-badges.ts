@@ -44,16 +44,27 @@ export const statusLabel = (
  * for every reader, and a roster that only coloured its chips said nothing to those who cannot
  * tell them apart.
  */
-export const statusDot = (status: RosterUser['status']): string => {
+/**
+ * daisyUI presence classes for a roster avatar.
+ *
+ * The dot says how far along someone is, not whether their socket is up: the roster never drops
+ * an attendee, so it has no idea who is still holding a connection, and at an in-person meetup a
+ * locked phone would report offline beside someone sitting at the table. Grey is nobody here yet,
+ * green is here, and the two colours between are on their way.
+ *
+ * It stays decorative. The same status is written beside it, because amber and red at dot size
+ * are not a distinction every reader can make.
+ */
+export const statusPresenceClass = (status: RosterUser['status']): string => {
   switch (status) {
     case 'arrived':
-      return 'bg-success';
+      return 'avatar-online';
     case 'walking_in':
-      return 'bg-warning';
+      return 'avatar-online before:!bg-warning';
     case 'running_late':
-      return 'bg-error';
+      return 'avatar-online before:!bg-error';
     case 'connected':
-      return 'bg-base-300';
+      return 'avatar-offline';
   }
 };
 

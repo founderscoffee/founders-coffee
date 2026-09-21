@@ -9,7 +9,7 @@ import {
 
 import { initials } from '../../../lib/utils';
 import type { HostState, RosterUser } from '../useEventLive';
-import { statusDot, statusLabel } from './live-badges';
+import { statusLabel, statusPresenceClass } from './live-badges';
 
 type RosterListProps = {
   roster: readonly RosterUser[];
@@ -49,7 +49,7 @@ export const RosterList = ({
         return (
           <li key={user.userId} className="flex items-center gap-3">
             <span
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold"
+              className={`avatar ${statusPresenceClass(user.status)} flex size-9 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold`}
               aria-hidden="true"
             >
               {initials(user.name)}
@@ -80,10 +80,6 @@ export const RosterList = ({
               )}
             </span>
             <span className="inline-flex shrink-0 items-center gap-1.5 text-body-sm text-neutral">
-              <span
-                className={`size-2 rounded-full ${statusDot(user.status)}`}
-                aria-hidden="true"
-              />
               {statusLabel(user.status, locale)}
               {user.etaMinutes
                 ? ` · ${live_eta_minutes({ n: user.etaMinutes }, { locale })}`

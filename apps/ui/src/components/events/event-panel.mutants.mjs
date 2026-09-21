@@ -245,5 +245,28 @@ export default {
         },
       ],
     },
+    {
+      name: 'a roster avatar loses its dot entirely',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/RosterList.tsx',
+          find: '              className={`avatar ${statusPresenceClass(user.status)} flex size-9 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold`}',
+          replace:
+            '              className={`avatar flex size-9 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold`}',
+        },
+      ],
+    },
+    {
+      name: 'someone who has not turned up wears the dot of someone who has',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/features/events/components/live-badges.ts',
+          find: "    case 'connected':\n      return 'avatar-offline';",
+          replace: "    case 'connected':\n      return 'avatar-online';",
+        },
+      ],
+    },
   ],
 };
