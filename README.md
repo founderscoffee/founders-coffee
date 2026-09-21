@@ -111,11 +111,22 @@ Node.js 22.
 ```sh
 npm ci
 npm run migrate:local
+npm run seed:local
 npm run ui:dev
 ```
 
 The public app runs at `http://localhost:3000`. Copy the relevant `.dev.vars.example` before
 exercising authentication, maps, or external providers — see [`docs/secrets.md`](./docs/secrets.md).
+
+`seed:local` fills the local database with the three launch markets, three accounts and three
+events, and is safe to re-run — every row yields to whatever is already there, so it never
+overwrites something you changed by hand. The events exist so that each operations path has
+something to run against: one has already ended and holds RSVPs, which is what the closeout and
+feedback commands require; one is still ahead, because RSVP intent freezes at `startsAt`; one sits
+in a second market. Sign in as `dev-host@dev.invalid`, `dev-member@dev.invalid` or
+`dev-member-two@dev.invalid` — the addresses are unroutable, so the one-time code is written to the
+dev server log rather than sent. The seed only ever writes to the local database and refuses
+`--remote` and `--env`.
 
 ## Quality gates
 
