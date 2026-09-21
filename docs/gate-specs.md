@@ -157,36 +157,66 @@ a value-equality test would have passed throughout.
 
 ---
 
-## G5 — Locale contract: every route prefixed, or exempt with a reason
+## G5 — Locale contract: every route prefixed, or exempt with a reason — **BUILT**
 
-**Invariant.** Every route in the generated tree is either locale-prefixed or listed in a checked-in
-exemption set carrying a written reason.
+**Invariant.** Every route in the generated tree is locale-prefixed, or carries an entry saying what
+kind of exception it is and why.
 
-**Home.** Extend `apps/ui/src/lib/url-contract.test.ts`, which already resolves `localized*` helpers
-against `canonicalPath` and owns this concern.
+**Home.** `apps/ui/src/lib/route-contract.test.ts`. This section originally said to extend
+`url-contract.test.ts`; that file asserts over pure functions and runs with no I/O, and bolting a
+parse of an 896-line generated file onto it would have made two unrelated concerns fail as one. The
+two are complements and sit side by side: `url-contract` checks that the **helpers** produce
+prefixed paths, from a hand-written list of seven; this checks the **tree**, all 39 of them, which
+is the half a hand-written list cannot keep up with.
 
-**Implementation.**
+**Implementation as built.** Read `routeTree.gen.ts` as text rather than importing it — importing
+pulls in every route module and everything they render, to answer a question about addresses, and
+the generated file already states the answer. Pair each `fullPath` with the file it came from via
+the generator's own import block, then classify:
 
 ```ts
-const LOCALE_EXEMPT = {
-  '/events.json': 'machine-readable feed, locale-independent',
-  '/robots.txt': 'protocol file',
-  // '/login': ← absent on purpose; see #58
-} as const;
+type Kind = 'protocol' | 'redirect' | 'unresolved' | 'root';
 ```
 
-Walk the generated `routeTree`, assert each route is prefixed or has an entry. A new route fails the
-build until someone writes the reason.
+`protocol` is a machine-readable file with no reader to serve a language to. `redirect` is a 307
+stub for an address already sitting in somebody's inbox. `root` is `/` alone. `unresolved` is a page
+that really does render in the cookie's language — a defect, not a decision.
 
-**Catches.** #58 — `/login`, `/profile/*` and `/u/:id` unprefixed while closeout and feedback were
-converted the same day. It also prevents the recurrence described in #72: `localizedHostCreate`'s doc
-comment records that the host wizard "had no prefixed form at all" and a French member could not share
-a French link. That bug was found by a person; this gate finds the next one.
+Five assertions. The three that make the map more than a comment:
 
-**Falsify.** Add a route without prefixing and without an exemption. Gate must fail. Then add the
-exemption — it must pass. The point is to make omission impossible and exemption deliberate.
+- an `unresolved` entry whose reason names no `#issue` fails, so a defect cannot be parked as a
+  preference;
+- an entry for a route that no longer exists fails, the same stale-exclusion rule G7 uses;
+- a `redirect` entry whose route file declares a `component`, or has lost its `beforeLoad`, fails —
+  a stub that grew a body stopped being a stub, and that is how `8f59f74` would come back quietly.
 
-**Cost.** Low. Highest value-to-effort ratio of the seven.
+**Today's ledger.** 39 routes: 10 prefixed, 6 protocol, 14 redirect stubs, 1 root, and **8 open**.
+The eight are `/login`, `/onboarding`, `/profile`, `/profile/`, `/profile/account`,
+`/profile/activity`, `/profile/notifications` and `/u/$userId`.
+
+**Catches.** #58 — and it found an instance the audit never named. #58 lists `/login`, `/profile/*`
+and `/u/:id`; `/onboarding` is the same defect, a rendered page behind `requireSession` with no
+locale in its path, and nobody had written it down. It also prevents the recurrence described in
+#72.
+
+**Falsify.** Seven mutants, all run:
+
+| mutant                                                  | expected | got  |
+| ------------------------------------------------------- | -------- | ---- |
+| a new unprefixed route with no entry                    | fail     | fail |
+| `/login`'s entry deleted while the route stands         | fail     | fail |
+| an entry for a route that does not exist                | fail     | fail |
+| an `unresolved` entry with no issue number              | fail     | fail |
+| a redirect stub given a `component`                     | fail     | fail |
+| a redirect stub stripped of its `beforeLoad`            | fail     | fail |
+| the generated tree mangled so the parse returns nothing | fail     | fail |
+
+The last one earns its place. With the parse empty, three of the five assertions pass **vacuously** —
+there is nothing to iterate, so nothing can be wrong. Only the guard asserting the parse found
+something stands between a broken reader and a green gate. Every gate in this document that reads a
+generated or external file needs that assertion, and G3a, G3b, G6 and G9a all do.
+
+**Cost.** Low, as predicted — about an hour including the mutants.
 
 ---
 
@@ -480,7 +510,7 @@ territory, and the two should not be confused for each other.
 
 | gate                       | CI job                     | blocking from                                          |
 | -------------------------- | -------------------------- | ------------------------------------------------------ |
-| G5 locale contract         | job 1 (`test`)             | immediately                                            |
+| G5 locale contract         | job 1 (`test`)             | **live** — already in job 1                            |
 | G6 link shape              | job 2 (`integration-test`) | immediately                                            |
 | G7 terminology             | job 1 (`test`)             | **live** — `179045a`, already in job 1                 |
 | G1 bundle budget           | job 2, after `build`       | immediately, budgets set at today's measured values    |
