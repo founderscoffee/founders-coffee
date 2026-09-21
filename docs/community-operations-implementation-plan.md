@@ -108,19 +108,19 @@ Drizzle, domain internals, or server functions from a component.
 
 ## 4. Current baseline and gaps (reviewed 2026-09-14)
 
-| Area                      | Current evidence                                                                                                                                                                    | Required result                                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Event creation            | EC-01 through EC-10 signed off; staging 18/18, production release/DNS/WAF evidence, and the authorized production smoke are recorded                                                | Preserve the dated handoff trace; no additional creation smoke is required for CO work                  |
-| RSVP                      | Immediate flow exists; full-capacity atomicity and duplicate handling are fixed by AR-04/CO-02. RSVP is session-bound and uses authz plus rate limiting without a browser challenge | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                      |
-| Notifications             | Historical one-minute D1 polling and parallel channel scheduling were replaced by CO-02; staging push/email delivery is proven and production policy parity remains open            | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                       |
-| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                                                            | Explicit held/did-not-happen closeout separate from publication status                                  |
-| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                                                         | Attendance outcome remains separate from RSVP intent and is recorded safely                             |
-| Feedback                  | No post-event participant or host pulse                                                                                                                                             | One small, optional, localized pulse per eligible person                                                |
-| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                                                        | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract   |
-| Admin app                 | Access JWT guard and the CO-04 operations shell are implemented; Access/Better Auth correlation and the operator role are verified in staging and production under P0-004/P1-017    | Access + Better Auth/RBAC, i18n, Query wiring, operations features, loading/error/empty states          |
-| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                                                       | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence        |
-| Metrics                   | Analytics Engine binding and the first `events_created` write are verified; the account-side dashboard and remaining community metrics are not complete                             | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard |
-| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                                               | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning            |
+| Area                      | Current evidence                                                                                                                                                                    | Required result                                                                                                |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Event creation            | EC-01 through EC-10 signed off; staging 18/18, production release/DNS/WAF evidence, and the authorized production smoke are recorded                                                | Preserve the dated handoff trace; no additional creation smoke is required for CO work                         |
+| RSVP                      | Immediate flow exists; full-capacity atomicity and duplicate handling are fixed by AR-04/CO-02. RSVP is session-bound and uses authz plus rate limiting without a browser challenge | Race-safe, idempotent RSVP/cancellation before attendance relies on the going list                             |
+| Notifications             | Historical one-minute D1 polling and parallel channel scheduling were replaced by CO-02; staging push/email delivery is proven and production policy parity remains open            | DO alarms -> Queue -> push-first/email-fallback before post-event prompts (ND-07)                              |
+| Event lifecycle           | `published` and `cancelled` only; an elapsed end time does not prove the meetup happened                                                                                            | Explicit held/did-not-happen closeout separate from publication status                                         |
+| Attendance                | RSVP intent and denormalized going count exist; actual attendance/no-show evidence does not                                                                                         | Attendance outcome remains separate from RSVP intent and is recorded safely                                    |
+| Feedback                  | No post-event participant or host pulse                                                                                                                                             | One small, optional, localized pulse per eligible person                                                       |
+| Repeat hosting            | Hosts must recreate every event from scratch                                                                                                                                        | Safe “host another like this” path that reuses allowed values and revalidates through the EC contract          |
+| Admin app                 | Access JWT guard and the CO-04 operations shell are implemented; Access/Better Auth correlation and the operator role are verified in staging and production under P0-004/P1-017    | Access + Better Auth/RBAC, Arabic-only RTL copy, Query wiring, operations features, loading/error/empty states |
+| Moderation and host trust | RBAC role names and Better Auth ban fields exist; no operational workflow or audit repository                                                                                       | Central permissions, trust state, event/user actions, reason codes, and immutable audit evidence               |
+| Metrics                   | Analytics Engine binding and the first `events_created` write are verified; the account-side dashboard and remaining community metrics are not complete                             | Stable metric definitions, D1 truth queries, Analytics event telemetry, and denominator-aware dashboard        |
+| Human operating practice  | Product strategy defines the gate; no executable weekly community cadence is recorded                                                                                               | Named weekly cadence for hosts, calendar coverage, event follow-up, exceptions, and learning                   |
 
 ## 5. Locked product and data decisions
 
@@ -166,8 +166,9 @@ Drizzle, domain internals, or server functions from a component.
 14. **Analytics contains no PII or free text.** D1 remains the source of truth. Analytics Engine
     receives event names, market/city, locale, and aggregate numeric values—never names, emails,
     phone numbers, comments, venue free text, or raw identifiers.
-15. **All operational UI is localized and accessible.** `ar`, `fr`, and `en` are complete; Arabic
-    RTL and French/English LTR meet WCAG 2.1 AA. Internal status codes stay stable and untranslated.
+15. **Public operational surfaces are multilingual and accessible.** `apps/ui` keeps complete `ar`,
+    `fr`, and `en` coverage with Arabic RTL and French/English LTR. `apps/admin` is Arabic-only and
+    RTL; internal status codes stay stable and untranslated.
 16. **No speculative CRM.** Host recruiting, personal outreach, café negotiation, and event coaching
     remain human practices. Admin features are added only for safety, trustworthy measurement, or a
     recurring operational burden demonstrated during the Algiers launch.
@@ -577,9 +578,10 @@ now sits beside it and the doc comment says which to use.
 **Slice 4 landed 2026-09-11 — the application.** The placeholder is gone. `/` is an authenticated
 operator-status screen: the account, the role, and the permissions **derived from the same
 `roleAllows` the server asks when an action is attempted**, so the screen cannot drift from what the
-product permits. Sign-out, a not-found boundary, Query, and a locale toggle sit around it. Copy is in
-`ar`, `fr` and `en`, the document carries `lang`/`dir`, and the Turnstile widget moved to `libs/ui`
-so the admin login uses the same widget the public one does rather than a second copy.
+product permits. Sign-out, a not-found boundary, Query, and the shared auth wiring sit around it.
+Admin copy is Arabic-only, the document carries `lang="ar" dir="rtl"`, and the Turnstile widget
+moved to `libs/ui` so the admin login uses the same widget the public one does rather than a second
+copy. The public PWA remains the multilingual `ar`/`fr`/`en` surface.
 
 Audit of that slice found two blockers and one fixed defect:
 
@@ -589,9 +591,8 @@ captcha_unconfigured` on `send-verification-otp` when `TURNSTILE_SECRET_KEY` is 
    the thing that makes the login respond at all.
 2. **`TURNSTILE_SITE_KEY` is equally required** — without it the page renders no widget, sends no
    token, and the server refuses anyway.
-3. **Fixed: the admin app would have rendered Arabic RTL for everyone, permanently.** `detectLocale`
-   reads the Paraglide cookie and falls back to `ar`, cookies are host-scoped, and nothing on the
-   admin origin could ever set one. A locale toggle now can.
+3. **Product decision: the admin app is intentionally Arabic-only.** `detectLocale` must resolve
+   `ar` on the admin origin, the document must remain RTL, and no admin locale toggle is required.
 
 **Still open in this ticket:** DO/WAF rate limiting on sign-in. The `RATE_LIMITER` Durable Object
 lives in the `ui` script and reaching it needs a per-environment cross-script binding. Its marginal
@@ -632,8 +633,8 @@ Work:
   loading/error/empty states using `libs/ui` tokens. Create `operations`, `moderation`, `hosts`, and
   `metrics` feature folders only in the CO package that supplies their real end-to-end behavior;
   empty files and future-facing placeholders are forbidden.
-- Localize all copy in `ar`, `fr`, and `en`; support Arabic RTL and French/English LTR with keyboard
-  and focus behavior at WCAG 2.1 AA.
+- Localize all admin copy in `ar` only; support Arabic RTL with keyboard and focus behavior at WCAG
+  2.1 AA. Public `apps/ui` copy remains complete in `ar`, `fr`, and `en`.
 - Apply managed Turnstile plus DO/WAF protection to the public admin sign-in flow. CO-08 and CO-09
   protect authenticated operations/moderation mutations with session authorization, DO limiting,
   and applicable WAF controls without rendering a browser challenge.
@@ -647,8 +648,8 @@ Verification:
   data.
 - Tests prove a valid Access identity paired with a different valid Better Auth account is rejected,
   and audit context contains both correlated identity keys.
-- Admin component tests cover navigation, all data states, permission errors, RTL/LTR, keyboard
-  operation, and responsive layouts.
+- Admin component tests cover navigation, all data states, permission errors, Arabic RTL, keyboard
+  operation, and responsive layouts. Public locale tests remain in the `apps/ui` suites.
 - The admin app gains real typecheck, lint, test, and build coverage; no production placeholder page
   remains.
 
@@ -937,7 +938,8 @@ Verification:
 - Transition-direction tests prove notification, feedback eligibility, audit, and metrics remain
   consistent when an authorized admin corrects the closeout outcome.
 - Component and Miniflare tests cover filters, large lists, empty/error/loading states, permissions,
-  closeout correction, and localized RTL/LTR behavior.
+  closeout correction, and Arabic RTL admin behavior. Public `apps/ui` locale coverage remains
+  `ar`/`fr`/`en` with RTL/LTR verification.
 
 ### CO-09 — Implement host trust, moderation, and audit
 
@@ -1028,8 +1030,8 @@ Work:
   completion endpoint, or fabricated production outcome.
 - In local tests, use an injected clock/fake timers around domain and scheduling boundaries while
   Miniflare still supplies real D1, Durable Objects, and Queues.
-- Exercise `ar`, `fr`, and `en`; RTL/LTR; mobile member/host surfaces; desktop/tablet admin surfaces;
-  keyboard/focus; and failure/retry states.
+- Exercise `ar`, `fr`, and `en` with RTL/LTR on member/host surfaces; exercise Arabic RTL on desktop
+  and tablet admin surfaces; include keyboard/focus and failure/retry states.
 - Keep Playwright outside CI under the current decision, but require the critical local/staging flows
   as release evidence.
 - Conduct one dry-run weekly operations review using the dashboard and record the intervention chosen
@@ -1085,7 +1087,7 @@ good events, returning participants, and recurring hosts with decreasing founder
 | Repository/D1            | Fresh/upgrade migrations; frozen RSVP eligibility; batched attendance; idempotency; append-only audit; weekly reviews; indexes; market scoping; legacy null end times |
 | Server functions         | Correlated Access/Auth identity; authz; feature flag; public Turnstile boundary; DO limit; WAF evidence; host/admin ownership; typed errors; no leakage               |
 | `apps/ui` components     | Closeout, long attendance list, feedback, return action, repeat hosting, loading/error/empty, all locales/directions/widths                                           |
-| `apps/admin` components  | Secure shell, operations table/detail, trust/moderation, metrics, audit, permissions, filters, large lists, all locales/directions                                    |
+| `apps/admin` components  | Secure shell, operations table/detail, trust/moderation, metrics, audit, permissions, filters, large lists, Arabic RTL                                                |
 | Worker/Queues            | Post-event alarms, host/member prompts, closeout/feedback windows, push success, email fallback, retry, DLQ, idempotency, recovery sweep                              |
 | Playwright local/staging | Three-checkpoint create/reminder -> RSVP freeze -> real end -> closeout -> feedback -> repeat host -> admin correction/review -> metrics; auth rejection; no errors   |
 | Operations               | Weekly D1 review record, real evidence interpretation, manual intervention, access revocation, alert response, feature-flag rollback                                  |
@@ -1172,8 +1174,9 @@ stubs/placeholders.
 - [ ] `communityOperations` gates every intended UI/server entry point, is enabled for all configured
       markets, rolls back without data loss, and never disables moderation or host-trust safety controls.
 - [ ] No PII, feedback comments, raw identifiers, or venue free text enters logs or Analytics Engine.
-- [ ] All screens and notifications are complete in `ar`, `fr`, and `en`; RTL/LTR, WCAG 2.1 AA,
-      loading/error/empty states, keyboard/focus, and responsive behavior are verified.
+- [ ] Public screens and notifications are complete in `ar`, `fr`, and `en`; admin screens and
+      notifications are Arabic-only RTL. WCAG 2.1 AA, loading/error/empty states, keyboard/focus,
+      and responsive behavior are verified for both surfaces.
 - [ ] Format, sync, typecheck, lint/boundaries, unit/integration, test, and build gates pass.
 - [ ] The complete Playwright operations loop passes locally and across three real-time staging
       checkpoints while remaining outside CI; no deployed fake clock or completion endpoint exists.

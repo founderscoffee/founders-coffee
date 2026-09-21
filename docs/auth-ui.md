@@ -50,9 +50,9 @@ The UI app adapts the auth-specific OTP interface to the general Cloudflare Emai
 
 - `apps/ui`: member and host authentication, onboarding, profile, and event participation.
 - `apps/dashboard`: future sponsor-only application; it remains outside the community release.
-- `apps/admin`: internal operations; Cloudflare Access, correlated Better Auth/RBAC session wiring
-  and the operations shell are implemented and verified in staging and production under CO-04,
-  P0-004, and P1-017.
+- `apps/admin`: Arabic-only RTL internal operations; Cloudflare Access, correlated Better Auth/RBAC
+  session wiring and the operations shell are implemented and verified in staging and production
+  under CO-04, P0-004, and P1-017.
 
 Onboarding in `apps/ui` now collects display-name completion only. Event market, state and city are
 selected in the event flow and remain canonical geographic values; they are never copied into a

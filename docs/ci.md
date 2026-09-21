@@ -342,8 +342,8 @@ gitignored directory. `i18n`'s own `typecheck`, `build` and `test` targets decla
 `dependsOn: ["generate-i18n"]`, but the app `deploy:*` targets did not — so the staging deploy failed
 with `UNRESOLVED_IMPORT` on a fresh checkout while passing locally, where the directory lingered from
 an earlier run. `public`'s `typecheck` and both `deploy` targets now depend on `i18n:generate-i18n`
-explicitly. `apps/dashboard` and `apps/admin` import no i18n, directly or transitively, so they are
-deliberately left out. Reproduce with:
+explicitly. `apps/dashboard` imports no i18n. `apps/admin` has an Arabic-only i18n surface and must
+keep its generated Arabic message dependency aligned with its build target. Reproduce with:
 
 ```sh
 rm -rf libs/i18n/src/paraglide && npx nx run public:deploy:staging

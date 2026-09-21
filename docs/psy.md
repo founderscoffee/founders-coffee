@@ -46,13 +46,14 @@ urgency. Email also remains the authentication channel.
 - Keep future sponsorship absent from the community release; if later activated, disclose it and
   keep it separate from community identity.
 - Make error, loading, and empty states preserve user agency.
-- Test every important screen in RTL `ar` and LTR `fr` and `en`.
+- Test every important public screen in RTL `ar` and LTR `fr` and `en`; test the internal admin
+  console in Arabic RTL only.
 - Keep accessibility and keyboard operation at WCAG 2.1 AA.
 
 ## App ownership
 
 - `apps/ui`: members, hosts, city discovery, events, profiles, and the PWA.
 - `apps/dashboard`: future sponsors and commercial challenge clients; not part of the first release.
-- `apps/admin`: current moderation/trust/operations; future payment confirmation stays dormant.
+- `apps/admin`: current Arabic-only RTL moderation/trust/operations; future payment confirmation stays dormant.
 
 This ownership prevents host/community flows from inheriting the more formal mental model of a commercial dashboard.

@@ -23,7 +23,8 @@ React Native/Expo is not committed scope.
   and aligns existing environments with the three active markets.
 - `/` geo-routes to a visible market and falls back to `/algeria`.
 - Canonical market URLs use slugs (`/algeria`); code aliases redirect (`/dz` → `/algeria`).
-- Locale resolution is preference/cookie → market default → `ar`. Supported locales are `ar`, `fr`, and `en`.
+- `apps/ui` locale resolution is preference/cookie → market default → `ar`, with supported locales
+  `ar`, `fr`, and `en`. `apps/admin` is Arabic-only RTL and has no locale switcher.
 - Any authenticated member may host a free event in a visible market.
 - RSVP is immediate and idempotent before event start. Create, cancel, and restore stop when trusted
   server time reaches `startsAt`, freezing the going set for attendance; there is no seat-hold or

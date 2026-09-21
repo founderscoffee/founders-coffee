@@ -38,7 +38,8 @@ The community-building release includes only the capabilities needed for the fre
 - PWA web push as the primary notification channel and email as the default fallback; SMS is
   reserved for same-day cancellation disruption;
 - lightweight host trust, event moderation, safety, abuse prevention, and operational tooling;
-- Arabic, French, and English, with Arabic-first RTL support;
+- Arabic, French, and English public PWA experiences, with Arabic-first RTL support; the internal
+  admin console is Arabic-only RTL;
 - accessibility, performance, observability, deployment, and release verification required to run
   the community reliably.
 

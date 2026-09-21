@@ -6,7 +6,7 @@ sponsor, challenge, talent, payment, or expansion work.
 
 The P0-012 → **P1-017** linchpin connects a TanStack Start router to (a) global middleware, (b) the
 Cloudflare Worker `env`, (c) i18n locale detection, (d) Better Auth, and (e) the client→server log
-stream. **Phase A + B + C are complete for `apps/ui`.** `apps/admin`'s D1, i18n, observability,
+stream. **Phase A + B + C are complete for `apps/ui`.** `apps/admin`'s Arabic-only i18n, D1, observability,
 admin-origin Better Auth and correlated Access identity wiring are implemented and verified in both
 staging and production under CO-04/P0-004. The public Worker's `ANALYTICS` binding and first `events_created` metric were
 verified during EC-10; broader product dashboards remain planned.
