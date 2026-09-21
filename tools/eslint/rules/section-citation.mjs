@@ -10,17 +10,20 @@ import { readFileSync } from 'node:fs';
  * than throwing out of the plugin and taking every lint run down with it. That is the failure this
  * rule exists for: the documents these citations point at have been deleted once already.
  */
-const headingsOf = (relative) => {
-  let text = '';
+const read = (relative) => {
   try {
-    text = readFileSync(new URL(relative, import.meta.url), 'utf8');
+    return readFileSync(new URL(relative, import.meta.url), 'utf8');
   } catch {
-    return new Set();
+    return '';
   }
-  return new Set(
-    [...text.matchAll(/^#{2,4}\s*(\d+(?:\.\d+)*)\.?\s+\S/gm)].map((m) => m[1]),
-  );
 };
+
+const headingsOf = (relative) =>
+  new Set(
+    [...read(relative).matchAll(/^#{2,4}\s*(\d+(?:\.\d+)*)\.?\s+\S/gm)].map(
+      (m) => m[1],
+    ),
+  );
 
 const DOCUMENTS = {
   'AGENTS.md': headingsOf('../../../AGENTS.md'),
