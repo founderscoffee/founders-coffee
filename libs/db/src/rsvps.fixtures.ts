@@ -1,6 +1,8 @@
 import { env } from 'cloudflare:workers';
 import { eq, sql } from 'drizzle-orm';
 
+import { id } from '@founders-coffee/core';
+
 import { createEvent, getEvent } from './events.js';
 import { createDb, seed, user, type Db, type NewUser } from './index.js';
 import { createRsvp } from './rsvps.js';
@@ -43,9 +45,9 @@ export const seedEvent = async (
   startsAt: Date = new Date('2099-01-15T18:00:00Z'),
 ): Promise<string> => {
   const n = ++counter;
-  const id = `evt_rsvp${String(n).padStart(3, '0')}`;
+  const eventId = id('evt');
   await createEvent(db, {
-    id,
+    id: eventId,
     slug: `rsvp-fixture-${n}`,
     hostId: HOST_ID,
     marketCode: 'DZ',
@@ -58,7 +60,7 @@ export const seedEvent = async (
     language: 'fr',
     status: 'published',
   });
-  return id;
+  return eventId;
 };
 
 /**
@@ -98,7 +100,7 @@ export const fill = async (
 ): Promise<void> => {
   for (let i = 0; i < howMany; i++) {
     await createRsvp(db, {
-      id: `rsvp_${eventId}_${i}`,
+      id: id('rsv'),
       eventId,
       userId: members[i].id,
     });

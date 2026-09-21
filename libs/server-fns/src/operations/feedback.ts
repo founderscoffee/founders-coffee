@@ -36,6 +36,11 @@ export interface FeedbackView {
 }
 
 const feedbackError = (status: FeedbackEligibilityStatus): AppError => {
+  if (status === 'is_host')
+    return new AppError(
+      'feedback_is_host',
+      'A host cannot rate their own meetup',
+    );
   if (status === 'not_attended')
     return new AppError(
       'feedback_not_attended',
@@ -66,6 +71,7 @@ export const readFeedback = async (
       ),
     );
   const status = await getFeedbackEligibility(db, opts);
+  if (status === 'is_host') return err(feedbackError(status));
   const feedback = await getFeedback(db, opts);
   if (status !== 'ready' && !feedback) return err(feedbackError(status));
   const viewStatus = status === 'ready' ? 'ready' : 'window_closed';

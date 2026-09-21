@@ -77,7 +77,7 @@ export const ADMIN_APP_PERMISSION = { operations: ['read'] } as const;
 /**
  * Whether this role may take this action, asked of the central table and nowhere else.
  *
- * §5.12 forbids ad hoc role comparisons in components and server functions, and the reason is the
+ * AGENTS.md §10 forbids ad hoc role comparisons in components and server functions, and the reason is the
  * one every access bug has in common: a comparison written twice drifts once. `role === 'admin'`
  * scattered through a codebase is a policy nobody can read in one place and nobody can change in
  * one place.

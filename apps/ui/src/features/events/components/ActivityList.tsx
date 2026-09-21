@@ -41,9 +41,12 @@ const CloseoutLine = ({
   if (state === undefined) return null;
   if (state.closed)
     return (
-      <span className="mt-1 inline-block text-caption text-neutral">
+      <Link
+        className="mt-1 inline-block text-caption text-neutral underline"
+        {...localizedCloseout(locale, eventId)}
+      >
         {activity_closed_out({}, { locale })}
-      </span>
+      </Link>
     );
   return (
     <Link

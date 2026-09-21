@@ -6,15 +6,21 @@ import type { Locale } from '@founders-coffee/i18n';
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
   save: {} as Record<string, unknown>,
+  repeat: {} as Record<string, unknown>,
+  tally: {} as Record<string, unknown>,
   sent: [] as unknown[],
 }));
 
 vi.mock('../hooks', () => ({
   useCloseout: () => state.query,
   useSubmitCloseout: () => state.save,
+  useFeedbackTally: () => state.tally,
 }));
 vi.mock('../../events/hooks', () => ({
-  useRepeatEventTemplate: () => ({ data: null }),
+  useRepeatEventTemplate: () => state.repeat,
+}));
+vi.mock('../../../components/events/RepeatHostLink', () => ({
+  RepeatHostLink: () => <a href="/host">Host it again</a>,
 }));
 vi.mock('../../profile/components/ProfileAccess', () => ({
   ProfileAccess: () => <div data-testid="access-recovery" />,
@@ -47,6 +53,7 @@ const first = <T,>(items: readonly T[]): T => {
 
 beforeEach(() => {
   state.sent = [];
+  state.tally = { data: undefined };
   state.query = {
     data: view(),
     isError: false,
@@ -55,6 +62,7 @@ beforeEach(() => {
     isAuthLoading: false,
     refetch: vi.fn(),
   };
+  state.repeat = { data: null };
   state.save = {
     mutate: (input: unknown) => state.sent.push(input),
     isPending: false,
@@ -210,6 +218,78 @@ describe('a submission the server refused', () => {
     rerender(<CloseoutPage locale="en" eventId="evt_1" />);
 
     expect(screen.queryByRole('alert')).toBeNull();
-    expect(screen.getByRole('status').textContent).toMatch(/Thank you/i);
+    expect(
+      screen.getByRole('status').textContent,
+      'both confirmations end in "Thank you", so matching that alone agreed with the page whichever one it showed',
+    ).toContain('Recorded');
+  });
+});
+
+const landed = (refusedMarks: string[] = []) => {
+  state.save = { ...state.save, isSuccess: true, data: { refusedMarks } };
+  state.query = { ...state.query, data: view({ outcome: 'held' }) };
+};
+
+describe('the closeout the host just submitted', () => {
+  it('confirms what was recorded instead of saying it was already done', () => {
+    const { rerender } = show();
+    markOnePersonAndSubmit();
+
+    landed();
+    rerender(<CloseoutPage locale="en" eventId="evt_1" />);
+
+    expect(
+      screen.getByRole('status').textContent,
+      'submitting invalidates the view, so the refetch lands with an outcome and the already-closed arm wins the race. The host is told their submission was a no-op at the moment it succeeded',
+    ).toContain('Recorded');
+  });
+
+  it('warns when some names could not be recorded', () => {
+    const { rerender } = show();
+    markOnePersonAndSubmit();
+
+    landed(['usr_b']);
+    rerender(<CloseoutPage locale="en" eventId="evt_1" />);
+
+    expect(
+      screen.queryByRole('alert')?.textContent,
+      'attendance gates attendee feedback, so a mark the server refused is silent data loss and this warning can never fire from behind the already-closed arm',
+    ).toContain('could not be recorded');
+  });
+
+  it('offers hosting it again, at the moment the host said they would', () => {
+    state.repeat = { data: { marketCode: 'DZ', cityCode: '556' } };
+    const { rerender } = render(
+      <CloseoutPage
+        locale="en"
+        eventId="evt_1"
+        markets={[{ code: 'DZ', slug: 'algeria' }]}
+      />,
+    );
+    markOnePersonAndSubmit();
+
+    landed();
+    rerender(
+      <CloseoutPage
+        locale="en"
+        eventId="evt_1"
+        markets={[{ code: 'DZ', slug: 'algeria' }]}
+      />,
+    );
+
+    expect(
+      screen.queryByRole('link', { name: /Host it again/i }),
+      'the repeat template is fetched on success and was then discarded, losing the compounding loop at its highest-intent moment',
+    ).toBeTruthy();
+  });
+
+  it('still says already closed to a host who did not just submit', () => {
+    state.query = { ...state.query, data: view({ outcome: 'held' }) };
+    show();
+
+    expect(
+      screen.getByRole('status').textContent,
+      'the already-closed arm is for arriving at a closeout someone has already submitted; reordering must not delete it',
+    ).toContain('Already closed out');
   });
 });

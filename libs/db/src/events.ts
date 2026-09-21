@@ -83,25 +83,6 @@ export const getEventBySlug = async (
   return rows[0];
 };
 
-export type PublicEventSitemapRow = Pick<
-  Event,
-  'marketCode' | 'cityCode' | 'slug' | 'updatedAt'
->;
-
-export const listPublicEventSitemapRows = async (
-  db: Db,
-): Promise<PublicEventSitemapRow[]> =>
-  db
-    .select({
-      marketCode: events.marketCode,
-      cityCode: events.cityCode,
-      slug: events.slug,
-      updatedAt: events.updatedAt,
-    })
-    .from(events)
-    .where(and(eq(events.status, 'published'), visibleIdentity(events.hostId)))
-    .orderBy(events.updatedAt, events.id);
-
 /**
  * List upcoming published events, optionally scoped to a market and/or city. Cursor-based with a
  * **composite `(startsAt, id)` cursor** so events sharing a `startsAt` are never skipped: ordered

@@ -12,7 +12,7 @@ const OPERATOR_ACTIONS = [
   { audit: ['read'] },
 ] as const;
 
-describe('the seven operations actions §5.12 requires', () => {
+describe('the seven operations actions the permission table defines', () => {
   it('gives an admin every one of them', () => {
     for (const action of [...OPERATOR_ACTIONS, { closeout: ['override'] }])
       expect(roleAllows('admin', action)).toBe(true);

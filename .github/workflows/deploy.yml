@@ -3,7 +3,7 @@ name: Deploy
 # A push to develop deploys staging; a push to main deploys production, then tags the commit and
 # publishes a GitHub release for it. CI is called as a required gate before deployment. Merging to
 # main IS the production approval gate: GitHub's required-reviewer protection rule would be the
-# better mechanism, but it needs GitHub Pro/Team on a private repository — see docs/ci.md.
+# better mechanism, but it needs GitHub Pro/Team while the repository stays private.
 on:
   push:
     branches: [develop, main]

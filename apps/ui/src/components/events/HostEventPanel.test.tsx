@@ -18,6 +18,9 @@ vi.mock('./HostLiveActions', () => ({ HostLiveActions: () => null }));
 
 const { HostEventPanel } = await import('./HostEventPanel');
 
+const HOUR = 60 * 60 * 1000;
+const at = (offset: number) => new Date(Date.now() + offset);
+
 const event = {
   id: 'evt_1',
   hostId: 'usr_1',
@@ -27,8 +30,8 @@ const event = {
   title: 'Founders breakfast',
   description: 'A local founder meetup.',
   venue: 'Café Atlas',
-  startsAt: new Date('2026-09-20T10:00:00Z'),
-  endsAt: new Date('2026-09-20T12:00:00Z'),
+  startsAt: at(24 * HOUR),
+  endsAt: at(26 * HOUR),
   rsvps: 3,
   language: 'en',
   latitude: null,
@@ -47,7 +50,25 @@ const event = {
 const cancelled = {
   ...event,
   status: 'cancelled',
-  cancelledAt: new Date('2026-09-10T00:00:00Z'),
+  cancelledAt: at(-10 * HOUR),
+} satisfies EventWithAttendance;
+
+const inProgress = {
+  ...event,
+  startsAt: at(-HOUR),
+  endsAt: at(HOUR),
+} satisfies EventWithAttendance;
+
+const ended = {
+  ...event,
+  startsAt: at(-4 * HOUR),
+  endsAt: at(-2 * HOUR),
+} satisfies EventWithAttendance;
+
+const endless = {
+  ...event,
+  startsAt: at(-4 * HOUR),
+  endsAt: null,
 } satisfies EventWithAttendance;
 
 const show = (item: EventWithAttendance) =>
@@ -77,5 +98,41 @@ describe('HostEventPanel gives the host something to promote with', () => {
       screen.queryByRole('button', { name: 'Share this meetup' }),
       'promoting a cancelled meetup sends people to a room nobody will be in',
     ).toBeNull();
+  });
+});
+
+describe('HostEventPanel offers cancelling only while there is something to cancel', () => {
+  const cancelButton = () =>
+    screen.queryByRole('button', { name: 'Cancel this meetup' });
+
+  it('offers it while the meetup is still ahead', () => {
+    show(event);
+    expect(cancelButton()).toBeTruthy();
+  });
+
+  it('still offers it while the meetup is under way', () => {
+    show(inProgress);
+    expect(
+      cancelButton(),
+      'a meetup can collapse in its first ten minutes, and the host needs to be able to say so',
+    ).toBeTruthy();
+  });
+
+  it('stops offering it once the meetup has ended', () => {
+    show(ended);
+    expect(
+      cancelButton(),
+      'cancelling a meetup that already happened tells everyone who came that it was cancelled, and then blocks the closeout, the feedback and the repeat template for good, with no way back',
+    ).toBeNull();
+  });
+
+  it('offers it for a meetup with no end, which cannot be shown to have finished', () => {
+    show(endless);
+    expect(cancelButton()).toBeTruthy();
+  });
+
+  it('stops offering it once the host has called the meetup off', () => {
+    show(cancelled);
+    expect(cancelButton()).toBeNull();
   });
 });

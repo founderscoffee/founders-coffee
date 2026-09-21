@@ -648,7 +648,7 @@ export type AccountPreferencesRow = typeof accountPreferences.$inferSelect;
  *
  * Keyed by `event_id` rather than a generated id: an event has exactly one outcome, and a surrogate
  * key would permit two rows that disagree. Publication status stays where it is and keeps deciding
- * visibility — §5.2 separates the two deliberately, so a cancelled event and one that quietly did
+ * visibility — outcome and publication are separate fields deliberately, so a cancelled event and one that quietly did
  * not happen remain distinguishable.
  *
  * `version` is what makes a correction conditional. Two admins correcting the same closeout without
@@ -699,7 +699,7 @@ export const eventCloseouts = sqliteTable(
  * One member's outcome for one event: they came, or they did not.
  *
  * `UNIQUE(event_id, user_id)` is the idempotency: a host marking the same person twice updates one
- * row rather than inflating a count. §5.3 keeps this separate from the RSVP so cancellation and
+ * row rather than inflating a count. Attendance is kept separate from the RSVP so cancellation and
  * waitlist semantics stay intact — an attendance row is evidence about the past and an RSVP is
  * intent about the future, and overloading one with the other loses both.
  */
@@ -741,8 +741,8 @@ export const eventAttendance = sqliteTable(
 /**
  * The attendee pulse: one per member per event, updateable inside its window.
  *
- * `comment_language` is required alongside a comment and null without one — §5.23 renders member
- * text as authored and never translates it, which is only possible if the language travelled with
+ * `comment_language` is required alongside a comment and null without one. Member text is rendered
+ * as authored and never translated, which is only possible if the language travelled with
  * it. The column is not a preference; it describes this string and nothing else.
  */
 export const eventFeedback = sqliteTable(
@@ -785,7 +785,7 @@ export const eventFeedback = sqliteTable(
 /**
  * What a market has decided about one host.
  *
- * Unique per `(market_code, user_id)` and never global. §5.19 is explicit: a host restricted in one
+ * Unique per `(market_code, user_id)` and never global: a host restricted in one
  * market has not been restricted everywhere, and a global row would make that decision by accident
  * the first time the product opened a second market.
  */
@@ -823,11 +823,11 @@ export const hostTrust = sqliteTable(
  *
  * Nothing updates or deletes a row here; the mutable tables serve reads and this stream explains
  * how they got that way. `access_subject` carries the verified Cloudflare Access subject and is
- * required for admin actions (§5.18), so an operator's product session and their Access identity
+ * required for admin actions, so an operator's product session and their Access identity
  * are recorded together rather than either standing alone.
  *
- * `metadata` holds stable before/after values and no member PII — §5.14 keeps names, contacts and
- * free text out of anything that is read for analysis.
+ * `metadata` holds stable before/after values and no member PII: names, contacts and free text stay
+ * out of anything that is read for analysis.
  */
 export const operationsAudit = sqliteTable(
   'operations_audit',
@@ -861,7 +861,7 @@ export const operationsAudit = sqliteTable(
   ],
 );
 
-/** One weekly decision, with the evidence window it was taken from (§5.25). */
+/** One weekly decision, with the evidence window it was taken from. */
 export const operationsReviews = sqliteTable(
   'operations_reviews',
   {
@@ -905,7 +905,7 @@ export const operationsReviews = sqliteTable(
 /**
  * Monthly non-PII aggregates, which outlive the rows they were computed from.
  *
- * §5.21 retires closeouts, attendance and feedback after twenty-four months and keeps these
+ * Closeouts, attendance and feedback retire after twenty-four months while these are kept
  * indefinitely, so the community's history survives its own retention policy. The unique key is the
  * whole identity of a measurement — market, scope, month, metric — so recomputing one overwrites
  * rather than accumulating a second answer for the same question.

@@ -37,7 +37,7 @@ export const didNotHappenNoticeId = (eventId: string, userId: string): string =>
 /**
  * Tell everyone who said they were coming that it did not take place.
  *
- * The frozen going set is the audience: §5.17 freezes RSVP intent at `startsAt`, so this reaches the
+ * The frozen going set is the audience: RSVP intent freezes at `startsAt`, so this reaches the
  * people who were expecting to be there and not whoever happens to hold an RSVP now.
  *
  * The message states what happened and asks for nothing. It must not invite feedback — there is

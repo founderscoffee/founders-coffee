@@ -22,6 +22,8 @@ export const idSchema = z
   .string()
   .regex(/^[a-z]{2,8}_[0-9a-f]{32}$/, 'Invalid id');
 
+export const userIdSchema = z.string().trim().min(1).max(128);
+
 export const marketCodeSchema = z
   .string()
   .regex(/^[A-Z]{2}$/, 'Invalid market code');

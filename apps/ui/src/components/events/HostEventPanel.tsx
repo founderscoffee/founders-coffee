@@ -1,8 +1,10 @@
+import { appErrorCode } from '@founders-coffee/core';
 import { useRouter } from '@tanstack/react-router';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
 
 import {
+  host_cancel_ended_error,
   host_cancel_error,
   host_cancel_event,
   host_hosting_help,
@@ -40,10 +42,9 @@ export const HostEventPanel = ({
 }: HostEventPanelProps) => {
   const router = useRouter();
   const cancelEvent = useCancelEvent();
-  const repeat = useRepeatEventTemplate(
-    event.id,
-    event.endsAt !== null && new Date(event.endsAt).getTime() <= Date.now(),
-  );
+  const hasEnded =
+    event.endsAt !== null && new Date(event.endsAt).getTime() <= Date.now();
+  const repeat = useRepeatEventTemplate(event.id, hasEnded);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -59,9 +60,13 @@ export const HostEventPanel = ({
           setIsDialogOpen(false);
           void router.invalidate();
         },
-        onError: () => {
+        onError: (cause) => {
           setIsDialogOpen(false);
-          setError(host_cancel_error({}, { locale }));
+          setError(
+            appErrorCode(cause) === 'event_already_ended'
+              ? host_cancel_ended_error({}, { locale })
+              : host_cancel_error({}, { locale }),
+          );
         },
       },
     );
@@ -100,7 +105,7 @@ export const HostEventPanel = ({
           </p>
         ))}
 
-      {!isCancelled && (
+      {!isCancelled && !hasEnded && (
         <button
           type="button"
           className="btn btn-ghost btn-sm w-fit text-error"

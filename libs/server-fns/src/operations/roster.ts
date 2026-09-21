@@ -17,8 +17,8 @@ export interface RosterMember {
 /**
  * The people a host may mark, and what they were marked as.
  *
- * Built from the RSVP table rather than from anything the browser sends. §5.4 scopes registered
- * attendance to members who said they were coming, and the form that collects it must be built from
+ * Built from the RSVP table rather than from anything the browser sends. Registered attendance is
+ * scoped to members who said they were coming, and the form that collects it must be built from
  * the same set the write will accept — otherwise a host is offered a name the guard will refuse, or
  * a forged list arrives and is only caught one row at a time.
  *

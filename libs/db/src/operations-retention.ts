@@ -31,7 +31,7 @@ const cutoff = (now: Date, days: number) =>
 /**
  * Clear comment text at twelve months while the structured pulse survives to twenty-four.
  *
- * §5.21 gives comments the shorter period because they are the only member-authored prose in the
+ * Comments get the shorter period because they are the only member-authored prose in the
  * operations schema — a rating is a category and a sentence is a person writing. The row is kept
  * and blanked rather than deleted, so the return-intent and value-rating aggregates computed from
  * it do not silently shrink when the text ages out.
@@ -59,13 +59,13 @@ export const clearAgedComments = async (
 /**
  * Retire the operations rows that have passed twenty-four months, in bounded batches.
  *
- * Market-scoped and limited because §5.21 requires it to be safe to run repeatedly: a single
+ * Market-scoped and limited so it is safe to run repeatedly: a single
  * unbounded DELETE across every market is the kind of maintenance job that times out halfway and
  * leaves nobody sure what it did. Each call removes at most `limit` rows per table and reports what
  * it removed, so a caller can loop until the report is empty.
  *
- * The monthly aggregate snapshots are deliberately untouched. They carry no PII and §5.21 keeps
- * them indefinitely — they are what lets the community's history outlive the rows it came from.
+ * The monthly aggregate snapshots are deliberately untouched. They carry no PII and are kept
+ * indefinitely — they are what lets the community's history outlive the rows it came from.
  *
  * Every delete is a typed builder over a bounded subselect rather than assembled SQL. Market codes
  * come from our own catalogue today, which is exactly the reasoning that puts a concatenated value
@@ -181,8 +181,8 @@ export const retireAgedOperations = async (
  * So their feedback text and their attendance rows go, and the closeout — which counts people
  * rather than naming them — stays.
  *
- * §5.21 calls this "removes or anonymizes member-linked data while retaining lawful aggregate
- * evidence", and PF-10 orchestrates it. Offered here so the operations schema owns its own
+ * This removes or anonymizes member-linked data while retaining lawful aggregate evidence, and
+ * PF-10 orchestrates it. Offered here so the operations schema owns its own
  * deletion semantics rather than having them written a second time from the account lane.
  */
 export const withdrawMemberOperations = async (
@@ -206,8 +206,8 @@ export const withdrawMemberOperations = async (
 /**
  * Trust rows for accounts that closed more than twenty-four months ago.
  *
- * Listed rather than deleted: §5.21 keeps current host trust for the account lifetime plus twenty-
- * four months, and whether an individual row has passed that is a judgement about a specific person
+ * Listed rather than deleted: current host trust is kept for the account lifetime plus twenty-four
+ * months, and whether an individual row has passed that is a judgement about a specific person
  * that CO-09 should make deliberately rather than a sweep make silently.
  */
 export const listExpiredHostTrust = (
@@ -236,7 +236,7 @@ export const listExpiredHostTrust = (
     )
     .limit(opts.limit);
 
-/** Completed events per host, for the recurring-host and retention definitions in §6. */
+/** Completed events per host, for the recurring-host and retention definitions. */
 export const listHostCompletionHistory = (
   db: Db,
   opts: { marketCode: string; since: Date },
@@ -257,7 +257,7 @@ export const listHostCompletionHistory = (
       ),
     );
 
-/** Attended events per member, for the repeat-participation definition in §6. */
+/** Attended events per member, for the repeat-participation definition. */
 export const listAttendeeHistory = (
   db: Db,
   opts: { marketCode: string; since: Date },

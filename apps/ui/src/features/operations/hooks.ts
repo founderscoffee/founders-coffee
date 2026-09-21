@@ -74,3 +74,22 @@ export const useSubmitFeedback = (eventId: string) => {
       void cache.invalidateQueries({ queryKey: ['feedback', eventId] }),
   });
 };
+
+/**
+ * How the attendees found a gathering, for its host.
+ *
+ * Asked only once the host is looking at a closeout that exists, because there is nothing to
+ * summarise before one does and an enabled query would put a refusal in the cache for every past
+ * event on the way past. Cached normally rather than `staleTime: 0`: unlike the closeout itself
+ * this is not a value the same host is about to write, so a refetch on every mount buys nothing.
+ */
+export const useFeedbackTally = (eventId: string, enabled: boolean) => {
+  const auth = authClient.useSession();
+  const userId = auth.data?.user.id;
+  return useQuery({
+    queryKey: ['feedback-tally', eventId, userId],
+    queryFn: () => operationsApi.getFeedbackTally(eventId),
+    enabled: enabled && !!userId && eventId.length > 0,
+    retry: false,
+  });
+};

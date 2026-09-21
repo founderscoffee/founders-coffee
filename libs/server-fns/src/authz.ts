@@ -23,7 +23,7 @@ const authorize = (role: Role, request: AuthorizeRequest): boolean => {
 
 /**
  * Whether `role` is granted `action` on `resource`, via the RBAC role map. Pure —
- * the single source of truth for authz decisions (AGENTS.md §11.2). Uses better-auth's
+ * the single source of truth for authz decisions (AGENTS.md §10). Uses better-auth's
  * `authorize` so admin wildcards are honored (not a naive statement lookup).
  */
 export const checkPermission = (

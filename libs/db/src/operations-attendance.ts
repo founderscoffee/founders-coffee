@@ -16,11 +16,11 @@ export type AttendanceOutcome = AttendanceRecordingOutcome;
 /**
  * The member held a going RSVP for this event, and the caller hosts it.
  *
- * §5.4 scopes registered attendance to members who said they were coming: a host may record an
+ * Registered attendance is scoped to members who said they were coming: a host may record an
  * outcome for someone on their own going list and for nobody else. Enforced inside the write, so an
  * ineligible member produces no row rather than a row the caller has to remember to reject.
  *
- * The RSVP is checked as it stands now, which is safe precisely because §5.17 froze it at
+ * The RSVP is checked as it stands now, which is safe precisely because intent froze at
  * `startsAt`. Without that freeze this predicate would be a race — someone could cancel their RSVP
  * after the meetup and erase their own no-show — and the two rules only work as a pair.
  *
@@ -108,7 +108,7 @@ const refusalFor = async (
  * says which.
  *
  * Geography is copied from the event in the same statement, never accepted from the caller, for
- * the reason §5.19 exists: an operations row filed under the wrong market is invisible to the
+ * the reason market scope is never client-supplied: an operations row filed under the wrong market is invisible to the
  * market it belongs to and inflates one it does not.
  */
 export const recordAttendance = async (
@@ -204,9 +204,9 @@ export const listAttendance = (
   db.select().from(eventAttendance).where(eq(eventAttendance.eventId, eventId));
 
 /**
- * The counts §6 divides, taken from the rows rather than from anything a client sent.
+ * The counts the participation metrics divide, taken from the rows rather than from anything a client sent.
  *
- * §5.5 makes every closeout count derived. A host cannot submit a total that disagrees with the
+ * Every closeout count is derived. A host cannot submit a total that disagrees with the
  * outcomes recorded, because no total is submitted: the walk-in aggregate is added to this at read
  * time and the two are never stored as one number.
  */

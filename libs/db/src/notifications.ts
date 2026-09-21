@@ -141,6 +141,41 @@ export const cancelNotificationsByUserEvent = async (
 };
 
 /**
+ * Retire the pending messages of particular kinds for an event, leaving the rest alone.
+ *
+ * The narrow sibling of {@link cancelNotificationsByEvent}, and the narrowness is the whole reason
+ * it exists. Closing a gathering out has to retire the `closeout_prompt` that is still queued to
+ * ask the host to do it — but the closeout also *writes* notifications on its way out, the feedback
+ * invitations and the did-not-happen notices, and an unscoped cancel placed after that fan-out
+ * would delete the rows the same call had just created. Naming the templates makes the two
+ * impossible to confuse, in either order.
+ *
+ * `cancelled` is terminal and distinct from `failed`, so an operator reading the table can still
+ * tell a message that was withdrawn from one that could not be delivered.
+ */
+export const cancelNotificationsByTemplate = async (
+  db: Db,
+  opts: {
+    eventId: string;
+    templateKeys: readonly (typeof NOTIFICATION_TEMPLATE_KEYS)[number][];
+  },
+): Promise<number> => {
+  if (opts.templateKeys.length === 0) return 0;
+  const result = await db
+    .update(scheduledNotifications)
+    .set({ status: 'cancelled', updatedAt: new Date() })
+    .where(
+      and(
+        eq(scheduledNotifications.eventId, opts.eventId),
+        eq(scheduledNotifications.status, 'pending'),
+        inArray(scheduledNotifications.templateKey, [...opts.templateKeys]),
+      ),
+    );
+
+  return (result.meta?.changes ?? 0) as number;
+};
+
+/**
  * Check if a pending notification already exists for a user+event+template.
  * Prevents duplicate enqueues on re-RSVP.
  */

@@ -44,7 +44,7 @@ export const requireRole = (
 /**
  * Require that whoever is signed in may take this action.
  *
- * The check every admin server function is meant to make (§5.12): the question is what the role may
+ * The check every admin server function is meant to make (AGENTS.md §10): the question is what the role may
  * do, asked once of the central table, and never which role it happens to be. A role added later
  * that carries the permission passes here without this call site being touched, which is the whole
  * argument for a permission table over a role comparison.

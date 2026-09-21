@@ -19,7 +19,7 @@ const isLocale = (value: unknown): value is Locale =>
  * then `ar` (AGENTS.md §9). The previous fallback was `en`, which inverted it — a member with no
  * stored preference in an Arabic-default market was written to in English.
  *
- * The time zone comes from the market for the same reason §6 gives: timestamps are stored in UTC
+ * The time zone comes from the market for the usual reason: timestamps are stored in UTC
  * and rendered where the event happens. Reminders previously formatted with no zone at all, so they
  * rendered in the Worker's UTC and could name the wrong day for an evening event in Algiers.
  *

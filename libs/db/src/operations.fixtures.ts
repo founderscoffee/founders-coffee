@@ -23,19 +23,31 @@ import {
 export const HOST_ID = 'usr_ops_host';
 export const MEMBER_ID = 'usr_ops_member';
 export const OTHER_ID = 'usr_ops_other';
+export const EXTRA_MEMBER_IDS = ['usr_ops_m1', 'usr_ops_m2', 'usr_ops_m3'];
+
+const CAST = [HOST_ID, MEMBER_ID, OTHER_ID, ...EXTRA_MEMBER_IDS];
 
 const HOUR = 60 * 60 * 1000;
 
 /**
- * A market, three people, and a clean operations slate.
+ * A market, a cast of six, and a clean operations slate.
  *
  * The tables are emptied rather than the database recreated, because these suites share one
  * Miniflare D1 and a leftover closeout would make an idempotency test pass for the wrong reason.
  * The accounts are reset with them: the users are upserted `ON CONFLICT DO NOTHING`, so a test that
  * suppresses the host to prove a visibility rule would otherwise leave it suppressed for every test
  * that ran after it — which reads as a broken query rather than a dirty fixture.
- * The fixture's own events go too: an attention query that lists every event needing attention will
- * otherwise accumulate one per test and pass on the wrong row.
+ * The fixture's own events go too, selected by the host that owns them: an attention query that
+ * lists every event needing attention will otherwise accumulate one per test and pass on the wrong
+ * row. Ownership is the selector because it survives a change of id scheme — this was once
+ * `LIKE 'evt_ops%'`, which stopped matching anything the moment the ids came from the `libs/core`
+ * factory (AGENTS.md §6) and left every fixture event behind without failing here.
+ *
+ * Three of the six exist only to clear a small-n threshold. The feedback tally is withheld below
+ * three responses, so proving it is *shown* needs three people who are not the host, which
+ * `MEMBER_ID` and `OTHER_ID` cannot supply between them. They are seeded here rather than inserted
+ * by the suite that wants them so that they are reset with everybody else: a leftover row would
+ * make one suite's threshold depend on whether another had run first.
  */
 export const setupDb = async (): Promise<Db> => {
   const db = createDb(env.DB);
@@ -51,13 +63,18 @@ export const setupDb = async (): Promise<Db> => {
       },
       { id: MEMBER_ID, name: 'Ops Member', email: 'ops-member@test.coffee' },
       { id: OTHER_ID, name: 'Ops Other', email: 'ops-other@test.coffee' },
+      ...EXTRA_MEMBER_IDS.map((memberId, index) => ({
+        id: memberId,
+        name: `Ops Extra ${index + 1}`,
+        email: `ops-extra-${index + 1}@test.coffee`,
+      })),
     ])
     .onConflictDoNothing()
     .run();
   await db
     .update(user)
     .set({ accountState: 'active', localePref: null })
-    .where(inArray(user.id, [HOST_ID, MEMBER_ID, OTHER_ID]))
+    .where(inArray(user.id, CAST))
     .run();
   await db.delete(eventFeedback).run();
   await db.delete(eventAttendance).run();
@@ -66,7 +83,7 @@ export const setupDb = async (): Promise<Db> => {
   await db.delete(hostTrust).run();
   await db.delete(operationsReviews).run();
   await db.delete(communityMetricSnapshots).run();
-  await db.run(sql`DELETE FROM events WHERE id LIKE 'evt_ops%'`);
+  await db.delete(events).where(inArray(events.hostId, CAST)).run();
   return db;
 };
 
@@ -75,13 +92,13 @@ let counter = 0;
 /**
  * An event that has already finished, with whoever said they were coming.
  *
- * Built forwards and then moved backwards, which is the only order that works now that §5.17 freezes
- * RSVP intent at `startsAt`: an RSVP created against an event that has already started is refused,
+ * Built forwards and then moved backwards, which is the only order that works now that RSVP intent
+ * freezes at `startsAt`: an RSVP created against an event that has already started is refused,
  * so the attendees have to join while the event is still ahead of them. The times are then rewritten
  * so the operations guards — which read the database's clock rather than a passed-in time — see a
  * genuinely elapsed event.
  *
- * `withEndsAt: false` leaves the end null, which §5.24 makes a first-class case rather than bad data.
+ * `withEndsAt: false` leaves the end null, which is a first-class case rather than bad data.
  */
 export const pastEvent = async (
   db: Db,
@@ -93,15 +110,16 @@ export const pastEvent = async (
     attendees?: readonly string[];
   } = {},
 ): Promise<string> => {
-  const eventId = `evt_ops${String(++counter).padStart(3, '0')}`;
+  const n = ++counter;
+  const eventId = id('evt');
   await createEvent(db, {
     id: eventId,
-    slug: `ops-fixture-${counter}`,
+    slug: `ops-fixture-${n}`,
     hostId: options.hostId ?? HOST_ID,
     marketCode: 'DZ',
     stateCode: '16',
     cityCode: '1',
-    title: `Ops fixture ${counter}`,
+    title: `Ops fixture ${n}`,
     description: 'An event used to exercise the operations schema.',
     venue: 'Café des Délices, Hydra',
     startsAt: new Date(Date.now() + 48 * HOUR),
@@ -130,15 +148,16 @@ export const futureEvent = async (
   db: Db,
   options: { attendees?: readonly string[] } = {},
 ): Promise<string> => {
-  const eventId = `evt_ops${String(++counter).padStart(3, '0')}`;
+  const n = ++counter;
+  const eventId = id('evt');
   await createEvent(db, {
     id: eventId,
-    slug: `ops-future-${counter}`,
+    slug: `ops-future-${n}`,
     hostId: HOST_ID,
     marketCode: 'DZ',
     stateCode: '16',
     cityCode: '1',
-    title: `Ops future ${counter}`,
+    title: `Ops future ${n}`,
     description: 'An event that has not happened yet.',
     venue: 'Café des Délices, Hydra',
     startsAt: new Date(Date.now() + 48 * HOUR),

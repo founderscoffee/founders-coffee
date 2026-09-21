@@ -123,8 +123,8 @@ export const createRsvpResolver = async (
  * Withdraw an RSVP, while withdrawing is still something a member may do.
  *
  * The row existed a moment ago — the lookup above says so — and the conditional delete still wrote
- * nothing, which leaves exactly one explanation: the gathering started in between, and §5.17 freezes
- * intent there. Reporting that as `rsvp_closed` rather than as a missing RSVP matters, because the
+ * nothing, which leaves exactly one explanation: the gathering started in between, and intent
+ * freezes there. Reporting that as `rsvp_closed` rather than as a missing RSVP matters, because the
  * member is looking at a seat they can see and being told it is not theirs would be a lie.
  */
 export const cancelRsvpResolver = async (

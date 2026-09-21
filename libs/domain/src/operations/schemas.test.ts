@@ -11,9 +11,10 @@ import {
   WALK_IN_MAX,
 } from './schemas.js';
 import { hostFrictionListSchema } from './enum-schemas.js';
+import { anAccountId } from './accounts.fixtures.js';
 
 const EVENT = id('evt');
-const MEMBER = id('usr');
+const MEMBER = anAccountId();
 
 const closeout = (overrides: Record<string, unknown> = {}) => ({
   eventId: EVENT,

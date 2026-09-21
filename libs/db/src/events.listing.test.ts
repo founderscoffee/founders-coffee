@@ -5,10 +5,10 @@ import {
   countEventsByStatus,
   createEvent,
   getEvent,
-  listPublicEventSitemapRows,
   listUpcomingEvents,
   transitionEventStatus,
 } from './events.js';
+import { listPublicEventSitemapRows } from './events-sitemap.js';
 import { user } from './schema.js';
 import {
   OTHER_HOST_ID,

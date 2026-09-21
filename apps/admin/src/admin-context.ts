@@ -69,7 +69,7 @@ const sameEmail = (a: string, b: string): boolean =>
  *
  * The role is read from the session rather than from Access, because Access has no notion of one and
  * a claim it does not make cannot be trusted from the token. What that role may do is asked of the
- * central table, never compared here: §5.12 forbids ad hoc role comparisons, and this function used
+ * central table, never compared here: AGENTS.md §10 forbids ad hoc role comparisons, and this function used
  * to contain one.
  */
 export const resolveAdminContext = async (

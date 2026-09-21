@@ -47,7 +47,7 @@ export const formatNumber = (
 ): string => numberFormatter(locale, options).format(value);
 
 /**
- * Format a date/time in the given IANA timezone per locale (SRS FR-L4 + §6 Time).
+ * Format a date/time in the given IANA timezone per locale.
  * Pass the event's market/city timezone, not the viewer's.
  */
 export const formatDate = (

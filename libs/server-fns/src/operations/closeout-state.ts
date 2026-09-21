@@ -24,7 +24,7 @@ export interface CloseoutStateView {
  * apart would be back to guessing.
  *
  * The flag is evaluated once per distinct market rather than once per event: a page of twenty
- * gatherings in one market is one read, and §5's gate still decides every row. Markets are read from
+ * gatherings in one market is one read, and the gate still decides every row. Markets are read from
  * the rows the database returned, never from anything the caller sent.
  */
 export const readCloseoutStates = async (

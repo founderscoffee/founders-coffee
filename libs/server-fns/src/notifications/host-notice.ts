@@ -34,7 +34,7 @@ export const HOST_NOTICE_DELAY_MS = 15 * 60 * 1000;
  * confidently wrong is not.
  *
  * The delay is clamped to the start time. Somebody can RSVP a minute before the gathering begins —
- * §5.17 freezes intent at `startsAt` and not before — and a host told a quarter of an hour later
+ * intent freezes at `startsAt` and not before — and a host told a quarter of an hour later
  * that a guest is on the way is being told about a room they are already sitting in.
  *
  * The host's own RSVP is not news to the host. The separate confirmation and cancellation

@@ -6,6 +6,7 @@ import {
   feedback_city_discovery,
   feedback_error_disabled,
   feedback_error_generic,
+  feedback_error_is_host,
   feedback_error_not_attended,
   feedback_error_not_found,
   feedback_error_not_invited,
@@ -35,6 +36,8 @@ import { FeedbackForm } from './FeedbackForm';
 
 const messageFor = (error: unknown, locale: Locale): string => {
   const code = appErrorCode(error);
+  if (code === 'feedback_is_host')
+    return feedback_error_is_host({}, { locale });
   if (code === 'feedback_not_attended')
     return feedback_error_not_attended({}, { locale });
   if (code === 'feedback_not_invited')

@@ -61,6 +61,7 @@ export default [
     rules: {
       'no-restricted-syntax': ['error', ...ARROW_FUNCTIONS_ONLY],
       'local/no-server-fns-in-components': 'error',
+      'local/section-citation': 'error',
       'no-console': 'error',
       'max-lines': [
         'error',

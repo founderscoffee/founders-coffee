@@ -1,0 +1,41 @@
+{
+  "ar": [
+    {
+      "canonical": "لقاء",
+      "banned": ["جلسة عمل", "جلسة"],
+      "why": "#49 — one word for the unit of the product. The catalogue says لقاء 106 times; جلسة عمل is the older term and reads as a corporate working session rather than a coffee between founders.",
+      "allow": {
+        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename."
+      }
+    },
+    {
+      "canonical": "لقاءاتك",
+      "banned": ["نشاطي"],
+      "why": "#66 — the footer link and the page it opens must name the same thing. Four keys already say لقاءاتك; one says نشاطي. Only the bare نشاطي is banned: account_export_note says بياناتك ونشاطك, 'your data and your activity', which is the ordinary sense of the word and not a name for the gatherings page.",
+      "allow": {
+        "footer_activity": "#66 open — footer still says نشاطي while activity_title says لقاءاتك. Delete this line with the rename."
+      }
+    },
+    {
+      "canonical": "حضور",
+      "banned": ["قادم"],
+      "why": "#56 — the status and its undo should share a root. إلغاء الحضور is the undo, so the status it undoes is about حضور, not about قادم. Note the bare form only: القادمة and قادمًا mean upcoming and are a different word in use.",
+      "allow": {
+        "rsvp_already": "#56 open — still أنت قادم, pending the agreed حضورك مؤكَّد. Delete this line with the rename.",
+        "activity_joined_empty": "#56 — reads لا لقاء قادم, 'no upcoming meetup'. This is the upcoming sense, not the RSVP status. Keep.",
+        "feedback_next_event": "#56 — اللقاء القادم, 'the next meetup'. Upcoming sense. Keep.",
+        "ntf_push_rsvp_received_title": "#56 open — شخص قادم إلى {title}, 'Someone is coming'. Same RSVP sense as rsvp_already and part of the same rename. Delete this line with it.",
+        "activity_upcoming": "#56 — the Upcoming tab label. Genuine upcoming sense, and the reason the rename matters: today قادم is both this tab and the RSVP status two screens away. Renaming the status leaves this one unambiguous. Keep."
+      }
+    },
+    {
+      "canonical": null,
+      "decide": "شارك currently carries two meanings. footer_participate uses it for Participate; share_event_host uses شارك اللقاء for Share this meetup. Both are correct Arabic and the reader cannot tell them apart from the word alone. Pick which meaning keeps شارك and give the other its own word — انضم or احضر for participate, or keep مشاركة for the noun and شارك for the imperative.",
+      "banned": ["شارك"],
+      "why": "#56 — one word, two meanings, on surfaces a reader moves between.",
+      "allow": {}
+    }
+  ],
+  "fr": [],
+  "en": []
+}
