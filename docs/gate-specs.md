@@ -16,6 +16,9 @@ Eleven new gates follow. Each names the invariant, where it lives in this repo's
 it would have caught, and — in this team's own idiom — **how to falsify it**, because a gate nobody
 proved can fail is a gate that passes for the wrong reason.
 
+**G7 is built and blocking** as of `179045a`; its section records what the sketch here got wrong
+once it met real Arabic, which is the kind of correction the rest of these should expect too.
+
 Ordered by confidence: G5, G6, G7, G1, G9a, G10 and G11 are structural and will not flap. G2, G3b and
 G4 need tuning before they can block a merge. G8 and G9b are the expensive pair and the two that
 reach the post-event lifecycle.
@@ -215,34 +218,90 @@ each costing a full document load, two server calls, a 307, and a second documen
 
 ---
 
-## G7 — Terminology lint against a glossary
+## G7 — Terminology lint against a glossary — **BUILT**
 
-**Invariant.** No message in `libs/i18n/messages/*.json` uses a banned synonym for a canonical term.
+**Invariant.** No message in `libs/i18n/messages/*.json` uses a banned synonym for a canonical term,
+unless the glossary excuses that key and says why.
 
-**Home.** Unit test over the catalogues, driven by a checked-in `libs/i18n/glossary.json`.
+**Home.** `libs/i18n/src/glossary.test.ts`, driven by a checked-in `libs/i18n/glossary.json`. It runs
+in CI job 1 already — `nx run-many -t typecheck lint test` includes `i18n:test` — so there was no
+wiring step. Shipped in `179045a`.
 
-**Implementation.**
+**What the first draft of this section got wrong.** It sketched a substring match. That does not
+work in Arabic, and the numbers are not close. Measured on `ar.json` as it stands:
+
+| banned as a substring | strings hit                 | actually the banned sense                                |
+| --------------------- | --------------------------- | -------------------------------------------------------- |
+| `قادم`                | 9, across 6 surface forms   | **3** — the rest are `القادمة` and `قادمًا`, _upcoming_  |
+| `شارك`                | 18, across 11 surface forms | **2** — the rest are `مشارك` and `مشاركة`, _participant_ |
+
+Those false positives share a root with the banned word and are not the banned word. A rule with a
+67% and an 89% false-positive rate gets switched off in its first week.
+
+**Implementation as built.** A token is normalised — harakat, tatweel, markup and placeholders
+removed, alif written one way — then compared for **exact equality** after Arabic's glued-on
+particles come off the front:
+
+```ts
+const PREFIXES = ['وال', 'فال', 'بال', 'كال', 'لل', 'ال', 'و', 'ف', 'ب', 'ك', 'ل'];
+```
+
+`م` is deliberately absent. It is what forms `مشارك` from `شارك`, and stripping it is precisely the
+over-reach that produced those sixteen. An entry whose banned term contains a space is matched as a
+phrase instead.
+
+The entry shape carries a decision, a reason, and its own backlog:
 
 ```json
 {
-  "ar": {
-    "لقاء": { "banned": ["جلسة عمل"], "why": "#49 — one word for the unit" },
-    "حضور": { "banned": ["قادم"], "why": "#56 — status and its undo share a root" }
+  "canonical": "حضور",
+  "banned": ["قادم"],
+  "why": "#56 — the status and its undo should share a root.",
+  "allow": {
+    "rsvp_already": "#56 open — still أنت قادم. Delete this line with the rename.",
+    "activity_upcoming": "#56 — the Upcoming tab label. Genuine upcoming sense. Keep."
   }
 }
 ```
 
-**The glossary is yours to author, not mine.** You are the Algerian founder; I can scaffold the
-mechanism and seed it from the findings, but which word wins is a call only you should make. The
-`شارك` collision is the clearest example — it currently means "share" on event pages and "participate"
-in the footer, and both readings are defensible in Arabic.
+`canonical: null` marks a term nobody has decided yet; the entry then has to carry a `decide` note
+naming the question, and the gate does not enforce it. That is how `شارك` is recorded — _share_ on
+event pages, _participate_ in the footer, both defensible Arabic, and not a call for whoever writes
+the gate.
 
-**Catches.** #49 (`جلسة عمل` vs `لقاء`), #66 (`نشاطي` vs `لقاءاتك`), #56, and the `شارك` ambiguity.
+**Three of the four seeded entries are open defects, not protections.** #49 still says
+`استضف جلسة عمل`, #66 still says `نشاطي` in the footer while the page it opens says `لقاءاتك`, and
+#56 still says `أنت قادم`. Each sits in its entry's `allow` map with its issue number, so the gate
+passes today and blocks _new_ instances while the backlog is worked off. This is the same
+land-it-green-then-clear-the-backlog shape G2 and G9a need.
 
-**Falsify.** Reintroduce `استضف جلسة عمل`. Gate must fail, naming the key and the canonical term.
+**The half that makes the backlog shrink** is a second test: an `allow` line whose key no longer
+contains any banned term **fails**. An exclusion outlives its reason silently and re-opens the hole
+it was cut for, so the person renaming a string is told to delete the excuse in the same run, by the
+same failure.
 
-**Cost.** Low mechanically. The glossary is an afternoon of your judgement, and it is the part that
-carries the value.
+**Catches.** #49, #66, #56, and the `شارك` ambiguity as a recorded open question. Writing it also
+turned up a second instance of #56 the audit had missed: `ntf_push_rsvp_received_title` reads
+`شخص قادم إلى {title}` — the same RSVP sense as `rsvp_already`, on the notification that reaches a
+host.
+
+**Falsify.** Six mutants, all run:
+
+| mutant                                               | expected | got  |
+| ---------------------------------------------------- | -------- | ---- |
+| `جلسة عمل` reintroduced on an unexcused key          | fail     | fail |
+| `host_page_title` excuse dropped, violation standing | fail     | fail |
+| that violation fixed, excuse left behind             | fail     | fail |
+| a canonical term banned by its own entry             | fail     | fail |
+| an undecided entry stripped of its `decide` note     | fail     | fail |
+| `اللقاءات القادمة والمشاركون` added                  | **pass** | pass |
+
+The last one is the gate's real test. Three legitimate words carrying two banned roots — the case a
+substring search gets wrong.
+
+**Cost.** Low, as predicted, and under an hour. The glossary's _content_ remains an afternoon of the
+founder's judgement, and that is still the part that carries the value: the mechanism enforces a
+decision, it does not make one.
 
 ---
 
@@ -423,7 +482,7 @@ territory, and the two should not be confused for each other.
 | -------------------------- | -------------------------- | ------------------------------------------------------ |
 | G5 locale contract         | job 1 (`test`)             | immediately                                            |
 | G6 link shape              | job 2 (`integration-test`) | immediately                                            |
-| G7 terminology             | job 1 (`test`)             | once the glossary exists                               |
+| G7 terminology             | job 1 (`test`)             | **live** — `179045a`, already in job 1                 |
 | G1 bundle budget           | job 2, after `build`       | immediately, budgets set at today's measured values    |
 | G3a IANA strings           | job 2                      | immediately                                            |
 | G3b place names            | job 2                      | after the catalogue accessor                           |
