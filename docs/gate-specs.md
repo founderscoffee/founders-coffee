@@ -19,6 +19,14 @@ proved can fail is a gate that passes for the wrong reason.
 **G7 is built and blocking** as of `179045a`; its section records what the sketch here got wrong
 once it met real Arabic, which is the kind of correction the rest of these should expect too.
 
+**The Falsify clauses are runnable.** Each built gate has a `*.mutants.mjs` beside it, and
+`tools/mutants/run-mutants.mjs` applies each mutant, checks it actually reached the file, runs the
+gate, checks the file is still mutated, restores it and checks the restore was byte-exact. It exists
+because the first attempt at these clauses was a shell loop that reported a mutant as surviving when
+the mutation had silently not applied — the same shape as the assertion G9b is about, one level up
+in the tooling. A disagreeing mutant is re-run before it is believed, and two runs that disagree with
+each other are reported as unstable rather than as a verdict.
+
 Ordered by confidence: G5, G6, G7, G1, G9a, G10 and G11 are structural and will not flap. G2, G3b and
 G4 need tuning before they can block a merge. G8 and G9b are the expensive pair and the two that
 reach the post-event lifecycle.
@@ -199,7 +207,7 @@ and `/u/:id`; `/onboarding` is the same defect, a rendered page behind `requireS
 locale in its path, and nobody had written it down. It also prevents the recurrence described in
 #72.
 
-**Falsify.** Seven mutants, all run:
+**Falsify.** `node tools/mutants/run-mutants.mjs apps/ui/src/lib/route-contract.mutants.mjs` — seven mutants, 7/7:
 
 | mutant                                                  | expected | got  |
 | ------------------------------------------------------- | -------- | ---- |
@@ -315,7 +323,7 @@ turned up a second instance of #56 the audit had missed: `ntf_push_rsvp_received
 `شخص قادم إلى {title}` — the same RSVP sense as `rsvp_already`, on the notification that reaches a
 host.
 
-**Falsify.** Six mutants, all run:
+**Falsify.** `node tools/mutants/run-mutants.mjs libs/i18n/src/glossary.mutants.mjs` — six mutants, 6/6:
 
 | mutant                                               | expected | got  |
 | ---------------------------------------------------- | -------- | ---- |
