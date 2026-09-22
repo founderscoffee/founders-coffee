@@ -1,5 +1,6 @@
-import { cookieName, LOCALES, type Locale } from '@founders-coffee/i18n';
+import { LOCALES, type Locale } from '@founders-coffee/i18n';
 
+import { storeLocale } from '../../features/preferences/locale-cookie';
 import { withLocale } from '../../lib/locale-routing';
 
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -12,7 +13,7 @@ type LocaleToggleProps = { locale: Locale };
 
 export const LocaleToggle = ({ locale }: LocaleToggleProps) => {
   const change = (next: Locale) => {
-    document.cookie = `${cookieName}=${next}; path=/; max-age=31536000; samesite=lax`;
+    storeLocale(next);
     const { pathname, search, hash } = window.location;
     const target = withLocale(pathname, next);
     if (target === pathname) window.location.reload();

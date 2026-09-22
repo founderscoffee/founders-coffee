@@ -17,6 +17,7 @@ import {
   visibleMarkets,
   type RootMarket,
 } from '../features/markets/api';
+import { usePathLocale } from '../features/preferences/use-path-locale';
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
@@ -78,6 +79,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
   useClientObservability();
   useServiceWorker();
   useStoredLocale(locale);
+  usePathLocale();
 
   return (
     <html lang={locale} dir={dir} data-auth-slot="out" suppressHydrationWarning>

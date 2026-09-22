@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 import {
   baseLocale,
-  cookieName,
   account_contacts_note,
   account_contacts_title,
   account_data_title,
@@ -31,6 +30,7 @@ import {
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
+import { storeLocale } from '../../preferences/locale-cookie';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { useMyAccount, useUpdateAccountLocale } from '../hooks';
 import type { AccountSummary } from '../api';
@@ -213,7 +213,7 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
               onSave={() =>
                 updateLocale.mutate(language, {
                   onSuccess: () => {
-                    document.cookie = `${cookieName}=${language}; path=/; max-age=31536000; samesite=lax`;
+                    storeLocale(language);
                     window.location.reload();
                   },
                 })
