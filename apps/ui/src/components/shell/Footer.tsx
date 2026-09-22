@@ -74,12 +74,12 @@ export const LEGAL_LINKS = LEGAL_PAGE_KEYS.map((key) => ({
 const FooterNavGroup = ({ id, title, children }: FooterNavGroupProps) => (
   <>
     <nav aria-labelledby={`${id}-desktop`} className="hidden md:block">
-      <h2
+      <p
         id={`${id}-desktop`}
         className="mb-4 text-label font-semibold uppercase tracking-[0.08em] text-base-content"
       >
         {title}
-      </h2>
+      </p>
       <ul className="flex flex-col items-start gap-1">{children}</ul>
     </nav>
     <details className="border-b border-base-300 py-3 md:hidden">

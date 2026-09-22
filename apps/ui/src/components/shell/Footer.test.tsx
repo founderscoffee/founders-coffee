@@ -26,6 +26,13 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }));
 
+vi.mock('../../lib/app-providers', () => ({
+  useAuth: () => ({ isAuthenticated: false }),
+}));
+vi.mock('../../features/account/hooks', () => ({
+  useUpdateAccountLocale: () => ({ mutateAsync: () => Promise.resolve() }),
+}));
+
 import { footer_tagline } from '@founders-coffee/i18n';
 
 import { Footer } from './Footer';
@@ -126,5 +133,33 @@ describe('the footer', () => {
       screen.getByText(footer_tagline({ market: name }, { locale })),
       `the ${locale} footer calls the market something other than ${name}`,
     ).toBeTruthy();
+  });
+
+  it('keeps its column labels out of the page outline', () => {
+    renderFooter('ar');
+
+    expect(
+      screen.queryAllByRole('heading').map((node) => node.textContent),
+      "the footer renders under every page, so a heading here joins somebody else's outline: a reader moving by headings leaves the article and lands in the site map without being told they have",
+    ).toEqual([]);
+  });
+
+  it('still gives each column group a name to be announced by', () => {
+    const view = renderFooter('ar');
+    const groups = [...view.container.querySelectorAll('nav[aria-labelledby]')];
+
+    expect(
+      groups.length,
+      'no labelled group was found, so the assertion below reads nothing',
+    ).toBeGreaterThan(0);
+    for (const group of groups) {
+      const label = view.container.querySelector(
+        `#${group.getAttribute('aria-labelledby') ?? ''}`,
+      );
+      expect(
+        label?.textContent?.trim(),
+        'dropping the heading has to cost the group nothing: the element it is named by still has to exist and still has to say something',
+      ).toBeTruthy();
+    }
   });
 });

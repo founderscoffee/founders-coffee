@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import {
-  profile_discard,
+  discard_changes,
   profile_link_invalid,
   profile_name_invalid,
   profile_photo_card_subtitle,
@@ -179,7 +179,7 @@ export const ProfileForm = ({
               disabled={mutation.isPending}
               onClick={() => adopt(base)}
             >
-              {profile_discard({}, { locale })}
+              {discard_changes({}, { locale })}
             </Button>
           )}
           {error && (

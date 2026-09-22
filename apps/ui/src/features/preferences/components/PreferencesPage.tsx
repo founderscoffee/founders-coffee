@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import {
   prefs_conflict_error,
-  prefs_discard,
+  discard_changes,
   prefs_loading,
   prefs_reload,
   prefs_save,
@@ -97,7 +97,7 @@ const PreferencesForm = ({
             disabled={!dirty || save.isPending}
             onClick={() => setDraft(draftFrom(view))}
           >
-            {prefs_discard({}, { locale })}
+            {discard_changes({}, { locale })}
           </Button>
           <Button
             type="button"
