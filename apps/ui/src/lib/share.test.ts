@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { copyLink, currentShareUrl, shareNatively } from './share';
+import { copyLink, eventShareUrl, shareNatively } from './share';
 
 const EVENT = {
   title: 'Coffee + Code',
@@ -29,15 +29,44 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('currentShareUrl', () => {
-  it('hands out the address without the query it was reached by', () => {
+const ARABIC_EVENT_PATH =
+  '/ar/algeria/e/\u0644\u0642\u0627\u0621-\u0642\u0647\u0648\u0629-\u0644\u0644\u0645\u0624\u0633\u0633\u064a\u0646-25b03363854e4768887f4f96641e6667';
+
+describe('eventShareUrl', () => {
+  it('hands out a short ASCII link, not the address being read', () => {
+    window.history.replaceState({}, '', ARABIC_EVENT_PATH);
+
+    const url = eventShareUrl('ar', 'evt_25b03363854e4768887f4f96641e6667');
+
+    expect(url).toBe(
+      `${window.location.origin}/ar/e/25b03363854e4768887f4f96641e6667`,
+    );
+    expect(
+      url,
+      'the encoded form is what a messenger pastes, and that is the whole complaint',
+    ).toBe(encodeURI(url));
+    expect(url.length).toBeLessThan(
+      `${window.location.origin}${encodeURI(ARABIC_EVENT_PATH)}`.length / 2,
+    );
+  });
+
+  it('passes on nothing of the address it was shared from', () => {
     window.history.replaceState(
       {},
       '',
-      '/ar/algeria/e/coffee-code?afterId=feed-seed-17&utm_source=x#map',
+      `${ARABIC_EVENT_PATH}?afterId=feed-seed-17&utm_source=x#map`,
     );
-    expect(currentShareUrl()).toBe(
-      `${window.location.origin}/ar/algeria/e/coffee-code`,
+
+    const url = eventShareUrl('ar', 'evt_25b03363854e4768887f4f96641e6667');
+
+    expect(url).not.toContain('utm_source');
+    expect(url).not.toContain('afterId');
+    expect(url).not.toContain('#');
+  });
+
+  it('carries the language, so a link written in French opens in French', () => {
+    expect(eventShareUrl('fr', 'evt_25b03363854e4768887f4f96641e6667')).toBe(
+      `${window.location.origin}/fr/e/25b03363854e4768887f4f96641e6667`,
     );
   });
 });

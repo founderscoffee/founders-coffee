@@ -166,6 +166,7 @@ export const EventDetail = ({
           {isCancelled ? null : (
             <ShareEventButton
               locale={locale}
+              eventId={event.id}
               title={event.title}
               label={share_event_action({}, { locale })}
             />

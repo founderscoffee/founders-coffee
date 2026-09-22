@@ -1,3 +1,5 @@
+import type { Locale } from '@founders-coffee/i18n';
+
 export type ShareText = {
   readonly title: string;
   readonly text: string;
@@ -7,16 +9,26 @@ export type ShareText = {
 export type ShareOutcome = 'shared' | 'dismissed' | 'unavailable';
 
 /**
- * The address to hand out for the page being read.
+ * The address to hand out for an event, which is not the address being read.
  *
- * Built from `window.location` rather than from `canonicalUrl`, so it is right on every origin
- * without dragging the request-context module into a client bundle. The path is already canonical
- * by the time a reader sees it: the market and city loaders redirect anything else. Search and
- * hash are dropped, so a cursor or a campaign tag picked up on the way in is not passed on to
+ * An Arabic slug percent-encodes to around 167 characters, and the encoded form is what a
+ * messenger pastes: a wall of `%D9%82%D9%87%D9%88%D8%A9` reads as spam on WhatsApp, which is how
+ * this product is passed around. This form is ASCII and a fixed length whatever the title says,
+ * and the route it names answers a redirect to the canonical page, so the Arabic slug stays the
+ * address search engines index and the one the reader's address bar shows once they arrive.
+ *
+ * The id travels without its `evt_` prefix, the same way the slug's own suffix carries it.
+ *
+ * The locale is in the link rather than left to the recipient's cookie, so a link written in
+ * French opens in French on a device that has never been here.
+ *
+ * Built from `window.location.origin` rather than `canonicalUrl`, so it is right on every origin
+ * without dragging the request-context module into a client bundle. Nothing of the current
+ * address survives, so a cursor or a campaign tag picked up on the way in is not passed on to
  * everyone the link reaches.
  */
-export const currentShareUrl = (): string =>
-  `${window.location.origin}${window.location.pathname}`;
+export const eventShareUrl = (locale: Locale, eventId: string): string =>
+  `${window.location.origin}/${locale}/e/${eventId.replace(/^evt_/, '')}`;
 
 /**
  * Offer a page to the operating system's share sheet.
