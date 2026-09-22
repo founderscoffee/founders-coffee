@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 
 import {
   brand,
@@ -60,7 +60,7 @@ export const LoginPage = ({
   const [resendToken, setResendToken] = useState<string | null>(null);
   const [resendNonce, setResendNonce] = useState(0);
   const cooldown = useResendCooldown();
-  const stepHeight = useStepHeightLock();
+  const stepHeight = useStepHeightLock<HTMLFormElement>();
 
   const emailValid = /.+@.+\..+/.test(email);
 
@@ -131,15 +131,21 @@ export const LoginPage = ({
       newUserCallbackURL: onboardingRedirectPath(redirect),
     });
 
+  const submitStep = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void (step === 'email' ? sendCode() : verify());
+  };
+
   useOtpAutofill(step === 'otp', setOtp);
 
   return (
     <div className="mx-auto flex max-w-sm flex-col px-4 py-12">
       <div>
-        <div
+        <form
           ref={stepHeight.ref}
           style={{ minHeight: stepHeight.minHeight }}
           className="flex flex-col gap-4"
+          onSubmit={submitStep}
         >
           <div className="flex flex-col items-center gap-3 text-center">
             <h1 className="font-display text-h3 font-semibold">
@@ -173,7 +179,7 @@ export const LoginPage = ({
                 </p>
               )}
               <Button
-                onClick={sendCode}
+                type="submit"
                 disabled={
                   !emailValid || (!isTurnstileBypassed && !token) || busy
                 }
@@ -237,7 +243,7 @@ export const LoginPage = ({
                 </p>
               )}
               <Button
-                onClick={verify}
+                type="submit"
                 disabled={otp.length !== OTP_LENGTH || busy}
                 isFullWidth
               >
@@ -274,7 +280,7 @@ export const LoginPage = ({
               </Button>
             </>
           )}
-        </div>
+        </form>
       </div>
     </div>
   );

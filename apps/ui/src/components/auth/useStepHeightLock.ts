@@ -12,13 +12,13 @@ import { useCallback, useRef, useState, type RefObject } from 'react';
  * `release` drops the floor when the card returns to its first step, so a later error line is
  * measured from scratch rather than against a stale lock.
  */
-export const useStepHeightLock = (): {
-  ref: RefObject<HTMLDivElement | null>;
+export const useStepHeightLock = <T extends HTMLElement>(): {
+  ref: RefObject<T | null>;
   minHeight: number | undefined;
   lock: () => void;
   release: () => void;
 } => {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<T>(null);
   const [minHeight, setMinHeight] = useState<number | undefined>(undefined);
 
   const lock = useCallback(() => {
