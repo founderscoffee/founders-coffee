@@ -51,6 +51,7 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
   const { ref, close } = useDismissableDetails();
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
+  const presence = useLivePresence();
 
   if (!isMounted || isLoading || (isAuthenticated && isProfilePending))
     return (
@@ -65,7 +66,6 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
 
   if (!isAuthenticated || !user) return <LoginLink locale={locale} />;
 
-  const presence = useLivePresence();
   const presenceLabel =
     presence === null
       ? null
