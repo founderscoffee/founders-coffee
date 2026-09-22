@@ -276,7 +276,7 @@
   "host_time_to": "End",
   "host_next": "Next",
   "host_back": "Back",
-  "host_venue_search_ph": "Search for a café in {city}…",
+  "host_venue_search_ph": "Search for a café or coworking space in {city}…",
   "host_venue_search_label": "Search cafés and coworking venues",
   "host_venue_search_loading": "Searching nearby venues…",
   "host_venue_search_error": "Venue search is unavailable right now.",

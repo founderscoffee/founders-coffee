@@ -24,6 +24,8 @@ import { VenueSearch } from './VenueSearch';
 
 const SEARCH_DELAY_MS = 350;
 
+const VENUE_LIST_ID = 'venue-results';
+
 type HostVenueStepProps = {
   locale: Locale;
   cityName: string;
@@ -133,6 +135,8 @@ export const HostVenueStep = ({
         locale={locale}
         cityName={cityName}
         value={searchValue}
+        listId={VENUE_LIST_ID}
+        hasResults={rows.length > 0}
         isDisabled={isDisabled}
         isLoading={isSearching && search.isFetching}
         errorMessage={searchError}
@@ -151,6 +155,7 @@ export const HostVenueStep = ({
         {rows.length > 0 ? (
           <HostVenueList
             locale={locale}
+            id={VENUE_LIST_ID}
             label={listLabel}
             venues={rows}
             selectedProviderId={venue?.providerId}

@@ -146,18 +146,31 @@ export const toAdmin = (feature: MapboxFeature): VenueAdmin | undefined => {
     : undefined;
 };
 
+/**
+ * A provider feature as a venue the host can be offered.
+ *
+ * The address is where the two kinds part company. A street is named by its name, so `Rue Yousfi`
+ * with `Algiers, Algeria` after it is the whole address and the name alone is not. A point of
+ * interest is not: the row already shows `Café des Fondateurs` on its own line, and prefixing the
+ * name again produced `Café des Fondateurs, Kouinine, El Oued` underneath it. Sighted readers saw
+ * one line in bold and one in grey; a screen reader announced the cafe twice with nothing to tell
+ * the two apart.
+ *
+ * Only the fallback branch had this problem, which is why it survived: every feature carrying
+ * `full_address` skips it, and both fixtures here carried one.
+ */
 export const toVenue = (feature: MapboxFeature): VenueCandidate => {
   const [longitude, latitude] = feature.geometry.coordinates;
   const formatted = feature.properties.place_formatted;
+  const kind = venueKind(feature);
+  const named = kind === 'poi' ? '' : `${feature.properties.name}, `;
   return {
     providerId: feature.properties.mapbox_id,
-    kind: venueKind(feature),
+    kind,
     name: feature.properties.name,
     address:
       feature.properties.full_address ??
-      (formatted
-        ? `${feature.properties.name}, ${formatted}`
-        : feature.properties.name),
+      (formatted ? `${named}${formatted}` : feature.properties.name),
     latitude,
     longitude,
     admin: toAdmin(feature),

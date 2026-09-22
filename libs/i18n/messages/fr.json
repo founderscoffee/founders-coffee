@@ -285,7 +285,7 @@
   "host_time_to": "Fin",
   "host_next": "Suivant",
   "host_back": "Retour",
-  "host_venue_search_ph": "Rechercher un café à {city}…",
+  "host_venue_search_ph": "Rechercher un café ou espace de coworking à {city}…",
   "host_venue_search_label": "Rechercher des cafés et espaces de coworking",
   "host_venue_search_loading": "Recherche des lieux à proximité…",
   "host_venue_search_error": "La recherche de lieux est momentanément indisponible.",

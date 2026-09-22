@@ -93,21 +93,20 @@ describe('searching the venues the market ships with', () => {
 });
 
 describe('keeping the same cafe from being offered twice', () => {
-  const known = [
-    {
-      providerId: 'osm:node/1',
-      kind: 'poi' as const,
-      name: 'مقهى الشرق',
-      address: 'شارع ديدوش مراد',
-      latitude: 36.365,
-      longitude: 6.6147,
-    },
-  ];
+  const stored = {
+    providerId: 'osm:node/1',
+    kind: 'poi' as const,
+    name: 'مقهى الشرق',
+    address: 'شارع ديدوش مراد',
+    latitude: 36.365,
+    longitude: 6.6147,
+  };
+  const known = [stored];
 
   it('drops a provider result that is the same place under another id', () => {
     expect(
       withoutSnapshotDuplicates(known, [
-        { ...known[0]!, providerId: 'mapbox.123', latitude: 36.3651 },
+        { ...stored, providerId: 'mapbox.123', latitude: 36.3651 },
       ]),
       'the two sources give the same cafe different ids, so comparing ids finds no duplicate and the reader is offered it twice',
     ).toEqual([]);
@@ -117,7 +116,7 @@ describe('keeping the same cafe from being offered twice', () => {
     expect(
       withoutSnapshotDuplicates(known, [
         {
-          ...known[0]!,
+          ...stored,
           providerId: 'mapbox.123',
           latitude: 36.5,
           longitude: 6.9,
@@ -130,7 +129,7 @@ describe('keeping the same cafe from being offered twice', () => {
   it('keeps a different cafe at the same address', () => {
     expect(
       withoutSnapshotDuplicates(known, [
-        { ...known[0]!, providerId: 'mapbox.123', name: 'مقهى النصر' },
+        { ...stored, providerId: 'mapbox.123', name: 'مقهى النصر' },
       ]).length,
     ).toBe(1);
   });
