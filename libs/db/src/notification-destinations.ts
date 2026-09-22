@@ -67,8 +67,8 @@ export const getNotificationContact = async (
       hostRsvpReceived: sql<number>`case when coalesce(${accountPreferences.hostRsvpReceivedChannels}, 5) != 0 then 1 else 0 end`,
       hostRsvpCancelledChannels: sql<number>`coalesce(${accountPreferences.hostRsvpCancelledChannels}, 5)`,
       hostRsvpCancelled: sql<number>`case when coalesce(${accountPreferences.hostRsvpCancelledChannels}, 5) != 0 then 1 else 0 end`,
-      followUpPromptsChannels: sql<number>`coalesce(${accountPreferences.followUpPromptsChannels}, 0)`,
-      followUpPrompts: sql<number>`case when coalesce(${accountPreferences.followUpPromptsChannels}, 0) != 0 then 1 else 0 end`,
+      followUpPromptsChannels: sql<number>`coalesce(${accountPreferences.followUpPromptsChannels}, 4)`,
+      followUpPrompts: sql<number>`case when coalesce(${accountPreferences.followUpPromptsChannels}, 4) != 0 then 1 else 0 end`,
       pushEnabled: sql<number>`coalesce(${accountPreferences.pushEnabled}, 0)`,
       smsFallbackEnabled: sql<number>`coalesce(${accountPreferences.smsFallbackEnabled}, 0)`,
     })

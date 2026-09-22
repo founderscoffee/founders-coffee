@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { LivePresenceProvider } from '../features/events/live-presence';
 import { authClient } from './auth';
 import { useBoundedPending } from './network-status';
 import { createQueryClient } from './query-client';
@@ -89,7 +90,9 @@ export const AppProviders = ({ children }: { children: ReactNode }) => {
 
   return (
     <QueryClientProvider client={client}>
-      <AuthProvider client={client}>{children}</AuthProvider>
+      <AuthProvider client={client}>
+        <LivePresenceProvider>{children}</LivePresenceProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

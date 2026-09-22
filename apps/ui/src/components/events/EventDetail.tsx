@@ -7,8 +7,6 @@ import {
   event_cancelled_title,
   event_details_title,
   event_host,
-  rsvp_box_cancelled,
-  rsvp_box_title,
   event_when,
   event_where,
   formatDate,
@@ -18,7 +16,7 @@ import {
   ntf_cancel_reason,
   profile_link,
   role_host,
-  share_event,
+  share_event_action,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
@@ -30,6 +28,7 @@ import type {
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { localizedCity } from '../../lib/locale-routing';
 import { EventLocationMap } from './EventLocationMap';
+import { RsvpBoxHeading } from './RsvpBoxHeading';
 import { RsvpSection } from './RsvpSection';
 import { ShareEventButton } from './ShareEventButton';
 
@@ -166,8 +165,7 @@ export const EventDetail = ({
             <ShareEventButton
               locale={locale}
               title={event.title}
-              label={share_event({}, { locale })}
-              variant="chip"
+              label={share_event_action({}, { locale })}
             />
           )}
         </div>
@@ -260,16 +258,12 @@ export const EventDetail = ({
               aria-labelledby="event-rsvp-title"
               className="flex flex-1 flex-col rounded-box border-2 border-secondary bg-base-100 p-5 shadow-[var(--shadow-2)]"
             >
-              <h2
-                id="event-rsvp-title"
-                className="mb-4 font-display text-h4 font-semibold"
-              >
-                {isHost
-                  ? event_host({}, { locale })
-                  : isCancelled
-                    ? rsvp_box_cancelled({}, { locale })
-                    : rsvp_box_title({}, { locale })}
-              </h2>
+              <RsvpBoxHeading
+                locale={locale}
+                isHost={isHost}
+                isCancelled={isCancelled}
+                isGoing={event.viewerRsvp === 'going'}
+              />
               <div className="mt-auto">
                 <RsvpSection
                   event={event}

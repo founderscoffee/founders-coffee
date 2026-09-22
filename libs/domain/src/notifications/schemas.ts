@@ -12,6 +12,7 @@ const notificationBase = z.object({
   marketCode: z.string().min(2).max(8),
   startsAt: z.string().min(1),
   venue: z.string().min(1).max(300),
+  venueAddress: z.string().max(500).optional(),
   locale: localeSchema,
   phoneNumber: z.string().min(1).max(32).optional(),
   email: z.string().email().max(254).optional(),

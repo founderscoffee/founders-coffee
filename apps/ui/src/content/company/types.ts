@@ -12,6 +12,7 @@ export type CompanyBlock =
 
 export type CompanySection = {
   readonly heading: string;
+  readonly anchor?: string;
   readonly blocks: readonly CompanyBlock[];
 };
 

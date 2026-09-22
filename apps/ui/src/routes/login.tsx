@@ -7,6 +7,7 @@ import { LoginPage } from '../components/auth/LoginPage';
 import { authApi } from '../features/auth/api';
 import { NO_INDEX_VALUE } from '../lib/indexation';
 import { authReturnPathSchema } from '../lib/redirect';
+import { redirectWhenSignedIn } from '../features/auth/require-session';
 import { privatePageHead } from '../lib/seo-private';
 
 export const Route = createFileRoute('/login')({
@@ -17,6 +18,7 @@ export const Route = createFileRoute('/login')({
   validateSearch: z.object({
     redirect: authReturnPathSchema.catch('/').optional().default('/'),
   }),
+  beforeLoad: ({ search }) => redirectWhenSignedIn(search.redirect),
   component: () => {
     const { locale } = Route.useRouteContext();
     const { turnstileSiteKey, isTurnstileBypassed, hasSocial } =

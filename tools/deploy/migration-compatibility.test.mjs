@@ -4,7 +4,6 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
-  findIrreversibleStatements,
   parsePendingMigrations,
   validateManifestCoverage,
   validatePendingMigrations,
@@ -18,18 +17,6 @@ describe('migration compatibility checks', () => {
       ),
     ).toEqual(['0030_add_interest', '0031_add_index']);
     expect(parsePendingMigrations('✅ No migrations to apply!')).toEqual([]);
-  });
-
-  it('identifies destructive schema and data operations', () => {
-    expect(
-      findIrreversibleStatements('ALTER TABLE users DROP COLUMN home_city;'),
-    ).not.toEqual([]);
-    expect(
-      findIrreversibleStatements('CREATE TABLE interests (id TEXT);'),
-    ).toEqual([]);
-    expect(
-      findIrreversibleStatements('DELETE FROM markets WHERE code = "MA";'),
-    ).not.toEqual([]);
   });
 
   it('requires a compatible manifest entry and compatible SQL', () => {

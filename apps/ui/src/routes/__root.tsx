@@ -21,6 +21,7 @@ import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
+import { authSlotScript } from '../features/auth/session-hint';
 import { SkipLink } from '../components/shell/SkipLink';
 import { AppProviders } from '../lib/app-providers';
 import { readCookieHeader } from '../lib/cookies';
@@ -79,7 +80,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
   useStoredLocale(locale);
 
   return (
-    <html lang={locale} dir={dir}>
+    <html lang={locale} dir={dir} data-auth-slot="out" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -152,8 +153,11 @@ export const Route = createRootRoute({
         { rel: 'manifest', href: manifestHref(locale) },
         ...(pageHead?.links ?? []),
       ],
-      scripts: pageHead?.scripts ?? [
-        { type: 'application/ld+json', children: organizationJsonLd() },
+      scripts: [
+        { children: authSlotScript() },
+        ...(pageHead?.scripts ?? [
+          { type: 'application/ld+json', children: organizationJsonLd() },
+        ]),
       ],
     };
   },

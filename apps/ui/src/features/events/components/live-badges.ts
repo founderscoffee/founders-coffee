@@ -4,9 +4,9 @@ import {
   live_error_connection,
   live_error_session_expired,
   live_error_unknown,
+  live_not_arrived,
   live_running_late,
   live_status_authenticating,
-  live_status_connected,
   live_status_connecting,
   live_status_disconnected,
   live_status_error,
@@ -32,34 +32,61 @@ export const statusLabel = (
     case 'running_late':
       return live_running_late({}, { locale });
     case 'connected':
-      return live_status_connected({}, { locale });
+      return live_not_arrived({}, { locale });
   }
 };
 
-export const statusColor = (status: RosterUser['status']): string => {
+/**
+ * The dot beside a roster status.
+ *
+ * It is decorative and carries `aria-hidden`: the status is written out next to it, so the colour
+ * repeats the label rather than replacing it. Amber and red at this size are not distinguishable
+ * for every reader, and a roster that only coloured its chips said nothing to those who cannot
+ * tell them apart.
+ */
+/**
+ * daisyUI presence classes for a roster avatar.
+ *
+ * The dot says how far along someone is, not whether their socket is up: the roster never drops
+ * an attendee, so it has no idea who is still holding a connection, and at an in-person meetup a
+ * locked phone would report offline beside someone sitting at the table. Grey is nobody here yet,
+ * green is here, and the two colours between are on their way.
+ *
+ * It stays decorative. The same status is written beside it, because amber and red at dot size
+ * are not a distinction every reader can make.
+ */
+export const statusPresenceClass = (status: RosterUser['status']): string => {
   switch (status) {
     case 'arrived':
-      return 'badge-success';
+      return 'avatar-online';
     case 'walking_in':
-      return 'badge-warning';
+      return 'avatar-online before:!bg-warning';
     case 'running_late':
-      return 'badge-error';
+      return 'avatar-online before:!bg-error';
     case 'connected':
-      return 'badge-ghost';
+      return 'avatar-offline';
   }
 };
 
-export const connectionBadge = (state: ConnectionState): string => {
+/**
+ * daisyUI presence classes for the navbar avatar.
+ *
+ * The component offers only online and offline, so the two states in between borrow the online
+ * dot and recolour it. The dot is never the only account of itself: the avatar carries the same
+ * state in words for anyone who cannot read a colour, and a socket that has actually failed
+ * raises a written alert in the live card rather than relying on this at all.
+ */
+export const presenceClass = (state: ConnectionState): string => {
   switch (state) {
     case 'connected':
-      return 'badge-success';
+      return 'avatar-online';
     case 'connecting':
     case 'authenticating':
-      return 'badge-warning';
+      return 'avatar-online before:!bg-warning';
     case 'disconnected':
-      return 'badge-ghost';
+      return 'avatar-offline';
     case 'error':
-      return 'badge-error';
+      return 'avatar-online before:!bg-error';
   }
 };
 

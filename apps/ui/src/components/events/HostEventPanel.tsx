@@ -1,5 +1,5 @@
 import { appErrorCode } from '@founders-coffee/core';
-import { useRouter } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
 
@@ -7,14 +7,15 @@ import {
   host_cancel_ended_error,
   host_cancel_error,
   host_cancel_event,
+  host_edit_open,
   host_hosting_help,
   host_you_are_hosting,
   live_window_closed,
-  share_event_host,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import { localizedEventEdit } from '../../lib/locale-routing';
 import {
   useCancelEvent,
   useRepeatEventTemplate,
@@ -22,7 +23,6 @@ import {
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { CancelEventDialog } from './CancelEventDialog';
 import { RepeatHostLink } from './RepeatHostLink';
-import { ShareEventButton } from './ShareEventButton';
 import { HostLiveActions } from './HostLiveActions';
 
 type HostEventPanelProps = {
@@ -82,15 +82,6 @@ export const HostEventPanel = ({
         {host_hosting_help({}, { locale })}
       </p>
 
-      {!isCancelled && (
-        <ShareEventButton
-          locale={locale}
-          title={event.title}
-          label={share_event_host({}, { locale })}
-          variant="panel"
-        />
-      )}
-
       {!isCancelled &&
         (isWindowOpen && live ? (
           <HostLiveActions
@@ -106,13 +97,21 @@ export const HostEventPanel = ({
         ))}
 
       {!isCancelled && !hasEnded && (
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm w-fit text-error"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          {host_cancel_event({}, { locale })}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            className="btn btn-outline btn-sm w-fit"
+            {...localizedEventEdit(locale, event.id)}
+          >
+            {host_edit_open({}, { locale })}
+          </Link>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm w-fit text-error"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            {host_cancel_event({}, { locale })}
+          </button>
+        </div>
       )}
 
       {repeat.data ? (

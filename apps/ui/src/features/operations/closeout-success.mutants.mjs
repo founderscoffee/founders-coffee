@@ -55,7 +55,7 @@ export default {
       edits: [
         {
           file: 'src/features/operations/components/CloseoutPage.tsx',
-          find: '      ) : query.data.outcome !== null ? (\n        <p role="status">{closeout_already_done({}, { locale })}</p>\n',
+          find: '      ) : query.data.outcome !== null ? (\n        <div className="space-y-6">\n          <p role="status">{closeout_already_done({}, { locale })}</p>\n          {tally.data ? (\n            <FeedbackTally locale={locale} tally={tally.data} />\n          ) : null}\n        </div>\n',
           replace: '',
         },
       ],

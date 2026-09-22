@@ -68,7 +68,7 @@ export default {
       edits: [
         {
           file: '../db/src/operations.fixtures.ts',
-          find: '  await db\n    .delete(events)\n    .where(inArray(events.hostId, [HOST_ID, MEMBER_ID, OTHER_ID]))\n    .run();',
+          find: '  await db.delete(events).where(inArray(events.hostId, CAST)).run();',
           replace:
             "  await db.run(sql`DELETE FROM events WHERE id LIKE 'evt_ops%'`);",
         },

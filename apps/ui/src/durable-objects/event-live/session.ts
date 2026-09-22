@@ -1,3 +1,5 @@
+import type { OutboundMessage } from './protocol.js';
+
 interface D1PreparedStatement {
   bind: (...args: unknown[]) => D1PreparedStatement;
   first: <T = Record<string, unknown>>() => Promise<T | null>;
@@ -101,4 +103,37 @@ export const verifyEventSessionFromCookie = async (
     }
   }
   return { ok: false, reason: 'no_session' };
+};
+
+/**
+ * What the browser is told when a connection is refused, and whether the socket closes behind it.
+ *
+ * `not_allowed` and `no_session` used to share one `auth_expired` frame, so a signed-in member who
+ * simply had not joined yet was told their session had ended and asked to refresh. That was false
+ * about their account and the remedy did nothing, at the moment they were deciding whether to come
+ * (#36). They are separate frames now, and the expiry copy belongs to an expiry alone.
+ *
+ * A database failure closes nothing. It is the one refusal that may not be true a second later, so
+ * the socket stays open and the client is free to retry rather than being told a verdict.
+ */
+export const refusalFor = (
+  reason: 'no_session' | 'not_allowed' | 'db_error',
+): {
+  message: OutboundMessage;
+  close: { code: number; reason: string } | null;
+} => {
+  if (reason === 'db_error')
+    return {
+      message: { type: 'error', message: 'Temporary auth error, please retry' },
+      close: null,
+    };
+  if (reason === 'not_allowed')
+    return {
+      message: { type: 'not_attending', message: 'Not attending this event' },
+      close: { code: 4003, reason: 'not_attending' },
+    };
+  return {
+    message: { type: 'auth_expired', message: 'Session expired' },
+    close: { code: 4001, reason: 'auth_expired' },
+  };
 };

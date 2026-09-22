@@ -225,6 +225,20 @@
       "when": 1789828091610,
       "tag": "0031_market_name_fr",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1790003043394,
+      "tag": "0032_follow_up_prompts_default_on",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1790055942160,
+      "tag": "0033_familiar_frog_thor",
+      "breakpoints": true
     }
   ]
 }

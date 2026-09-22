@@ -5,7 +5,7 @@ import { Link } from '@tanstack/react-router';
 import {
   brand,
   footer_about,
-  footer_activity,
+  footer_report,
   footer_company,
   footer_contact,
   footer_community,
@@ -142,8 +142,12 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
               </li>
             ) : null}
             <li>
-              <Link to="/profile/activity" className={linkClass}>
-                {footer_activity({}, { locale })}
+              <Link
+                {...localizedLanding(locale, 'contact')}
+                hash="report"
+                className={linkClass}
+              >
+                {footer_report({}, { locale })}
               </Link>
             </li>
           </FooterNavGroup>

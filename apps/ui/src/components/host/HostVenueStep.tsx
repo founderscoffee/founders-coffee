@@ -34,6 +34,8 @@ type HostVenueStepProps = {
   venue: VenueSelection | null;
   venueName: string;
   nameError?: string;
+  hideNameField?: boolean;
+  boundedList?: boolean;
   isDisabled: boolean;
   unavailableReason?: string;
   onSearchChange: (value: string) => void;
@@ -51,6 +53,8 @@ export const HostVenueStep = ({
   venue,
   venueName,
   nameError,
+  hideNameField = false,
+  boundedList = false,
   isDisabled,
   unavailableReason,
   onSearchChange,
@@ -140,7 +144,9 @@ export const HostVenueStep = ({
           {unavailableReason}
         </p>
       ) : null}
-      <div>
+      <div
+        className={boundedList ? 'max-h-72 overflow-y-auto pe-1' : undefined}
+      >
         <p className="mb-1.5 text-caption text-neutral">{listLabel}</p>
         {rows.length > 0 ? (
           <HostVenueList
@@ -159,7 +165,7 @@ export const HostVenueStep = ({
           )
         )}
       </div>
-      {venue?.kind === 'address' && (
+      {venue?.kind === 'address' && !hideNameField && (
         <label className="form-control" htmlFor="host-venue-name">
           <span className="mb-1 text-body-sm text-neutral">
             {host_venue_name_label({}, { locale })}

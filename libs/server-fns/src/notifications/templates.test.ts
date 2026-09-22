@@ -12,6 +12,7 @@ import { emailPayloadFor } from './email-templates.js';
 const VALUES = {
   title: 'Coffee + Code',
   venue: 'Café des Délices',
+  address: '12 Rue des Entrepreneurs, Alger',
   date: 'Friday, Jan 15',
   url: 'https://staging.founders.coffee/algeria/e/coffee-code',
 };
@@ -33,6 +34,23 @@ const HOST_AND_OPERATIONS_KEYS: NotificationTemplateKey[] = [
 const ALL_KEYS = [...KEYS, ...HOST_AND_OPERATIONS_KEYS];
 
 const ARABIC = /[؀-ۿ]/;
+
+const EVERY_KEY: NotificationTemplateKey[] = [
+  ...ALL_KEYS,
+  'event_cancelled',
+  'event_rescheduled',
+  'event_relocated',
+];
+
+const AUTHORED_FIELDS = [
+  'title',
+  'venue',
+  'address',
+  'date',
+  'reason',
+] as const;
+
+const HOSTILE = '<img src=x onerror="alert(1)">';
 
 const combos = LOCALES.flatMap((locale) =>
   KEYS.map((key) => [locale, key] as const),
@@ -124,6 +142,26 @@ describe('notification templates render in every locale', () => {
       expect((await emailPayloadFor(key, VALUES, 'fr')).subject).not.toBe(
         (await emailPayloadFor(key, VALUES, 'en')).subject,
       );
+    },
+  );
+
+  it.each(EVERY_KEY)(
+    'escapes every user-authored field of %s before it reaches the html',
+    async (key) => {
+      const survived: string[] = [];
+      for (const field of AUTHORED_FIELDS) {
+        const email = await emailPayloadFor(
+          key,
+          { ...VALUES, [field]: HOSTILE },
+          'en' as Locale,
+        );
+        if (email.html.includes('<img src=x')) survived.push(field);
+      }
+
+      expect(
+        survived,
+        `${key} interpolates ${survived.join(' and ')} into its html without escaping. The html messages carry markup, so Paraglide hands the template a string that is parsed as html — every value reaching a _html message has to come from escapeValues, and the subject and text variants take the raw ones`,
+      ).toEqual([]);
     },
   );
 

@@ -34,8 +34,9 @@ export const Route = createFileRoute('/$market/e/$slug')({
     const isWindowOpen =
       event.status !== 'cancelled' &&
       isLiveWindowOpen(event.startsAt, event.endsAt);
+    const isAttending = isHost || event.viewerRsvp === 'going';
     const live = useEventLive(event.id, {
-      enabled: Boolean(user) && isWindowOpen,
+      enabled: Boolean(user) && isWindowOpen && isAttending,
     });
 
     return (
@@ -49,13 +50,8 @@ export const Route = createFileRoute('/$market/e/$slug')({
           live={user ? live : null}
           isWindowOpen={isWindowOpen}
         />
-        {user && isWindowOpen && (
-          <LiveDashboard
-            live={live}
-            currentUserId={user.id}
-            isHost={isHost}
-            locale={locale}
-          />
+        {user && isWindowOpen && isAttending && !live.notAttending && (
+          <LiveDashboard live={live} currentUserId={user.id} locale={locale} />
         )}
       </>
     );

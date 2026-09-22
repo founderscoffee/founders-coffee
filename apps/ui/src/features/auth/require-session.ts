@@ -27,3 +27,26 @@ export const requireSession = async (returnPath: string): Promise<void> => {
     search: { redirect: safeAuthReturnPath(returnPath) },
   });
 };
+
+/**
+ * Send a signed-in visitor away from the sign-in page, before it renders.
+ *
+ * Signing in is not something a signed-in reader can do, so the page has nothing to offer them: it
+ * asks for an address they have already proved and offers a button that starts a flow ending where
+ * they already are. Reaching it is an accident — a bookmark, browser back after signing in, a tab
+ * left open in another window — and the useful answer to an accident is the page they meant.
+ *
+ * They go to the return path directly rather than through `/onboarding`, which is where a fresh
+ * sign-in goes. That route renders the profile-completion form unconditionally, so handing an
+ * already-onboarded reader to it would ask them to finish something they finished.
+ *
+ * The path is normalised here rather than trusted to the route's own parser, for the reason
+ * `requireSession` normalises: `authReturnPathSchema` rejects `/login`, so a crafted
+ * `?redirect=/login` cannot bounce a reader between this guard and the page it guards.
+ */
+export const redirectWhenSignedIn = async (
+  returnPath: string,
+): Promise<void> => {
+  if (!(await authApi.hasAuthSession())) return;
+  throw redirect({ href: safeAuthReturnPath(returnPath) });
+};

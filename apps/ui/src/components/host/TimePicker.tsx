@@ -114,8 +114,9 @@ export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
       id="host-schedule"
       type="text"
       readOnly
+      dir="ltr"
       defaultValue={`${from} - ${to}`}
-      className="input input-bordered w-full cursor-pointer text-center text-base font-semibold"
+      className="input input-bordered w-full cursor-pointer text-center text-base font-semibold tabular-nums"
       aria-label={host_time({}, { locale })}
     />
   );

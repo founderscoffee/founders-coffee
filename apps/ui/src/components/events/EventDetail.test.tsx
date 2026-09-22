@@ -59,6 +59,7 @@ const event = {
   venueAddress: null,
   slug: 'founders-breakfast',
   status: 'published',
+  version: 1,
   createdAt: new Date('2026-09-01T00:00:00Z'),
   updatedAt: new Date('2026-09-01T00:00:00Z'),
   cancelledAt: null,
@@ -100,10 +101,10 @@ const cancelled = {
   cancellationReason: 'The café closed without warning.',
 } satisfies EventDetailItem;
 
-const show = (item: EventDetailItem) =>
+const show = (item: EventDetailItem, locale: 'ar' | 'en' = 'en') =>
   render(
     <EventDetail
-      locale="en"
+      locale={locale}
       market={market}
       event={item}
       host={null}
@@ -133,5 +134,55 @@ describe('EventDetail once the host has called the meetup off', () => {
   it('still has a place to address whoever had said they were coming', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
     expect(screen.getByRole('heading', { name: 'Your seat' })).toBeTruthy();
+  });
+});
+
+describe('the share chip in the event header', () => {
+  it('reads as an imperative, because it is a button and not a heading', () => {
+    show(event, 'ar');
+
+    expect(screen.getByRole('button', { name: 'شارك' })).toBeTruthy();
+    expect(
+      screen.queryByRole('button', { name: 'مشاركة' }),
+      'مشاركة is the verbal noun and belongs to the dialog heading, not to a control the reader presses',
+    ).toBeNull();
+  });
+
+  it("is the page's single share affordance", () => {
+    show(event, 'ar');
+
+    expect(screen.getAllByRole('button', { name: 'شارك' })).toHaveLength(1);
+  });
+
+  it('does not offer to promote a meetup that is off', () => {
+    show(cancelled, 'ar');
+
+    expect(screen.queryByRole('button', { name: 'شارك' })).toBeNull();
+  });
+});
+
+describe('what the seat box calls itself', () => {
+  it('names the status once the reader is going, not the action they already took', () => {
+    show({ ...event, viewerRsvp: 'going' }, 'ar');
+
+    expect(screen.getByRole('heading', { name: 'حضورك مؤكَّد' })).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', { name: 'احجز مقعدك' }),
+      'telling someone to book a seat directly above the confirmation that they booked it is the box arguing with itself',
+    ).toBeNull();
+  });
+
+  it('still asks for the booking from a reader who has not made one', () => {
+    show(event, 'ar');
+
+    expect(screen.getByRole('heading', { name: 'احجز مقعدك' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
+  });
+
+  it('does not claim a confirmed seat at a meetup that is off', () => {
+    show({ ...cancelled, viewerRsvp: 'going' }, 'ar');
+
+    expect(screen.getByRole('heading', { name: 'مقعدك' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
   });
 });

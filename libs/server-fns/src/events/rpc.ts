@@ -23,10 +23,12 @@ import { listJoinedEventPage } from './joined.js';
 import { readPublicEventFeed } from './public-feed.js';
 import { readRepeatEventTemplate } from './repeat.js';
 import { createEventWithTelemetry } from './create.js';
+import { updateEventResolver } from './update.js';
 import { listEvents, resolveEvent } from './resolver.js';
 import {
   eventCancelRequestSchema,
   eventCreateRequestSchema,
+  eventUpdateRequestSchema,
   hostedEventsRequestSchema,
   joinedEventsRequestSchema,
   publicEventFeedRequestSchema,
@@ -84,6 +86,32 @@ export const createEvent = createServerFn({ method: 'POST', strict: false })
         session.user.id,
         data.event,
       ),
+    );
+  });
+
+/**
+ * Change a meetup that is already published (#14). Host-only, enforced in the resolver rather than
+ * by a permission: `event:create` says a member may host, not that they may edit this one.
+ *
+ * Rate-limited more tightly than creation. Each save that moves the time notifies every attendee,
+ * so a host nudging the start repeatedly is a source of messages to other people's phones rather
+ * than a cost to themselves — the limit is the only thing standing between a fidgety afternoon and
+ * a dozen notifications about a meetup that never actually moved.
+ */
+export const updateEvent = createServerFn({ method: 'POST', strict: false })
+  .middleware([
+    requirePermission('event', 'create'),
+    rateLimit('update_event', 10, 600_000),
+  ])
+  .validator(appValidator(eventUpdateRequestSchema))
+  .handler(async ({ context, data }) => {
+    const session = requireAuth(context.session);
+    return handleResult(
+      updateEventResolver(getDb(), getMapProvider(), {
+        eventId: data.eventId,
+        actorId: session.user.id,
+        input: data.event,
+      }),
     );
   });
 

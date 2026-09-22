@@ -10,8 +10,17 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
     title: 'Contact',
     description:
       'Reach the Founders Coffee team for support, privacy requests, or partnerships.',
-    updated: '8 August 2026',
+    updated: '22 September 2026',
     sections: [
+      {
+        heading: 'Report a problem',
+        anchor: 'report',
+        blocks: textBlocks(
+          `Email ${CONTACT_EMAIL} with what you saw: the link to the meetup, the profile or the content if you are reporting conduct, or the page and what you were trying to do if it is a technical fault. A precise description shortens the review.`,
+          'Reports are confidential, and we do not reveal who sent one to the person it names. What we do once a report arrives is set out in the [community guidelines](/community).',
+          'If someone is in immediate danger, contact the emergency services first. We are a digital platform and cannot intervene in person.',
+        ),
+      },
       {
         heading: 'General support',
         blocks: textBlocks(
@@ -37,8 +46,17 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
     title: 'تواصل معنا',
     description:
       'تواصل مع فريق Founders Coffee للدعم أو طلبات الخصوصية أو الشراكات.',
-    updated: '8 أغسطس 2026',
+    updated: '22 سبتمبر 2026',
     sections: [
+      {
+        heading: 'الإبلاغ عن مشكلة',
+        anchor: 'report',
+        blocks: textBlocks(
+          `راسلنا على ${CONTACT_EMAIL} واذكر ما رأيتَه: رابط اللقاء أو الملف أو المحتوى إن كان البلاغ عن سلوك، أو الصفحة وما كنت تحاول فعله إن كان خللًا تقنيًا. الوصف الدقيق يختصر وقت المراجعة.`,
+          'البلاغات تُعامَل بسرّية، ولا نكشف هوية المبلّغ لمن بُلِّغ عنه. وما نفعله بعد وصول البلاغ مفصّل في [إرشادات المجتمع](/community).',
+          'وإن كان الأمر يتعلّق بخطر مباشر على شخص، فاتّصل بالجهات المختصة أولًا؛ نحن منصة رقمية ولا نملك وسيلة تدخّل ميداني.',
+        ),
+      },
       {
         heading: 'الدعم العام',
         blocks: textBlocks(
@@ -64,8 +82,17 @@ export const contactContent: Record<Locale, CompanyPageContent> = {
     title: 'Contact',
     description:
       'Contactez l’équipe Founders Coffee pour le support, les demandes de confidentialité ou les partenariats.',
-    updated: '8 août 2026',
+    updated: '22 septembre 2026',
     sections: [
+      {
+        heading: 'Signaler un problème',
+        anchor: 'report',
+        blocks: textBlocks(
+          `Écrivez à ${CONTACT_EMAIL} en indiquant ce que vous avez vu : le lien de la rencontre, du profil ou du contenu s’il s’agit d’un comportement, ou la page et ce que vous tentiez de faire s’il s’agit d’un défaut technique. Une description précise raccourcit l’examen.`,
+          'Les signalements sont confidentiels, et nous ne révélons pas qui les envoie à la personne qu’ils nomment. Ce que nous faisons une fois un signalement reçu est détaillé dans les [règles de la communauté](/community).',
+          'En cas de danger immédiat pour une personne, contactez d’abord les services d’urgence. Nous sommes une plateforme numérique et ne pouvons pas intervenir sur le terrain.',
+        ),
+      },
       {
         heading: 'Support général',
         blocks: textBlocks(

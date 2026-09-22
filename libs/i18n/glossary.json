@@ -3,34 +3,31 @@
     {
       "canonical": "لقاء",
       "banned": ["جلسة عمل", "جلسة"],
-      "why": "#49 — one word for the unit of the product. The catalogue says لقاء 106 times; جلسة عمل is the older term and reads as a corporate working session rather than a coffee between founders.",
+      "why": "#49 — one word for the unit of the product. The catalogue says لقاء 106 times; جلسة عمل is the older term and reads as a corporate working session rather than a coffee between founders. Note the sense, not only the word: جلسة standing in for لقاء is what is banned, and جلسة meaning people sitting together is a different word in use.",
       "allow": {
-        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename."
+        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename.",
+        "how_step3_title": "#49 — reads جلسة رواد أعمال, a sitting of founders. It names what happens at the table, not the unit a host creates and a member joins, and the section around it calls that unit لقاء twice. A product decision, not a leftover: delete this line only if the card is renamed, not to close #49."
       }
     },
     {
-      "canonical": "لقاءاتك",
-      "banned": ["نشاطي"],
-      "why": "#66 — the footer link and the page it opens must name the same thing. Four keys already say لقاءاتك; one says نشاطي. Only the bare نشاطي is banned: account_export_note says بياناتك ونشاطك, 'your data and your activity', which is the ordinary sense of the word and not a name for the gatherings page.",
-      "allow": {
-        "footer_activity": "#66 open — footer still says نشاطي while activity_title says لقاءاتك. Delete this line with the rename."
-      }
+      "canonical": "نشاطي",
+      "banned": ["لقاءاتك"],
+      "why": "#66 — the footer link and the page it opens must name the same thing. Settled the other way round from how this entry first read: the destination is نشاطي, and the footer, the profile section nav and the page heading now all say it. The earlier direction would have renamed the one footer key to match the four page keys, on the grounds that four beat one; the count was the weaker argument. نشاطي names a place the reader owns, and it is the label they click. The possessive form is what is banned here, not the word: the tabs still say لقاءات انضممت إليها, and لقاء remains the canonical word for the unit of the product one entry above. The page's prose stays in the second person — a page called نشاطي still says ما انضممت إليه وما استضفته, the same way My Account talks about your data.",
+      "allow": {}
     },
     {
       "canonical": "حضور",
       "banned": ["قادم"],
       "why": "#56 — the status and its undo should share a root. إلغاء الحضور is the undo, so the status it undoes is about حضور, not about قادم. Note the bare form only: القادمة and قادمًا mean upcoming and are a different word in use.",
       "allow": {
-        "rsvp_already": "#56 open — still أنت قادم, pending the agreed حضورك مؤكَّد. Delete this line with the rename.",
         "activity_joined_empty": "#56 — reads لا لقاء قادم, 'no upcoming meetup'. This is the upcoming sense, not the RSVP status. Keep.",
         "feedback_next_event": "#56 — اللقاء القادم, 'the next meetup'. Upcoming sense. Keep.",
-        "ntf_push_rsvp_received_title": "#56 open — شخص قادم إلى {title}, 'Someone is coming'. Same RSVP sense as rsvp_already and part of the same rename. Delete this line with it.",
         "activity_upcoming": "#56 — the Upcoming tab label. Genuine upcoming sense, and the reason the rename matters: today قادم is both this tab and the RSVP status two screens away. Renaming the status leaves this one unambiguous. Keep."
       }
     },
     {
       "canonical": null,
-      "decide": "شارك currently carries two meanings. footer_participate uses it for Participate; share_event_host uses شارك اللقاء for Share this meetup. Both are correct Arabic and the reader cannot tell them apart from the word alone. Pick which meaning keeps شارك and give the other its own word — انضم or احضر for participate, or keep مشاركة for the noun and شارك for the imperative.",
+      "decide": "#56 settled the noun/imperative half: مشاركة is the dialog heading (share_event) and شارك is the button (share_event_action). What is left is footer_participate, which still uses شارك for Participate — a different meaning on a surface the reader moves between. Give that one its own word, انضم or احضر, and this entry can gain a canonical and start being enforced.",
       "banned": ["شارك"],
       "why": "#56 — one word, two meanings, on surfaces a reader moves between.",
       "allow": {}

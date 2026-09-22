@@ -1,12 +1,21 @@
 import { z } from 'zod';
 
-import { eventCreateSchema } from '@founders-coffee/domain';
+import { eventCreateSchema, eventUpdateSchema } from '@founders-coffee/domain';
 
 export const eventCreateRequestSchema = z
   .object({ event: eventCreateSchema })
   .strict();
 
 export type EventCreateRequestInput = z.infer<typeof eventCreateRequestSchema>;
+
+export const eventUpdateRequestSchema = z
+  .object({
+    eventId: z.string().min(1).max(64),
+    event: eventUpdateSchema,
+  })
+  .strict();
+
+export type EventUpdateRequestInput = z.infer<typeof eventUpdateRequestSchema>;
 
 export const EVENT_CANCEL_REASON_MAX_LENGTH = 280;
 

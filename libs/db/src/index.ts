@@ -9,6 +9,7 @@ export * from './events-sitemap.js';
 export * from './events-cursor.js';
 export * from './events-discovery.js';
 export * from './events-joined.js';
+export * from './events-update.js';
 export * from './markets.js';
 export * from './rsvps.js';
 export * from './waitlist.js';

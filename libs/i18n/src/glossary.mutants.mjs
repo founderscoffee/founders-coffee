@@ -8,8 +8,19 @@ export default {
       edits: [
         {
           file: 'messages/ar.json',
-          find: '"activity_title": "لقاءاتك",',
+          find: '"activity_title": "نشاطي",',
           replace: '"activity_title": "جلسة عمل",',
+        },
+      ],
+    },
+    {
+      name: 'the retired name of the activity page brought back',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'messages/ar.json',
+          find: '"activity_nav": "نشاطي",',
+          replace: '"activity_nav": "لقاءاتك",',
         },
       ],
     },
@@ -19,8 +30,8 @@ export default {
       edits: [
         {
           file: 'glossary.json',
-          find: '      "allow": {\n        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename."\n      }',
-          replace: '      "allow": {}',
+          find: '        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename.",\n',
+          replace: '',
         },
       ],
     },
@@ -59,7 +70,7 @@ export default {
       edits: [
         {
           file: 'messages/ar.json',
-          find: '"activity_title": "لقاءاتك",',
+          find: '"activity_title": "نشاطي",',
           replace: '"activity_title": "اللقاءات القادمة والمشاركون",',
         },
       ],

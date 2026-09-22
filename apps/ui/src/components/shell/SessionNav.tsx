@@ -1,12 +1,14 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 import {
+  activity_nav,
   nav_login,
   nav_logout,
   nav_signed_in_as,
   profile_loading,
   profile_title,
+  live_status_connected,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -14,9 +16,15 @@ import { useMyProfile } from '../../features/profile/hooks';
 import { profilePhotoUrl } from '../../features/profile/photo-url';
 
 import { useAuth } from '../../lib/app-providers';
+import {
+  connectionLabel,
+  presenceClass,
+} from '../../features/events/components/live-badges';
+import { useLivePresence } from '../../features/events/live-presence';
 import { authClient } from '../../lib/auth';
 import { useBoundedPending } from '../../lib/network-status';
-import { ProfileIcon, SignOutIcon } from './SessionIcon';
+import { writeAuthSlot } from '../../features/auth/session-hint';
+import { ActivityIcon, ProfileIcon, SignOutIcon } from './SessionIcon';
 import { useDismissableDetails } from './useDismissableDetails';
 
 const initials = (name: string, email: string) => {
@@ -29,7 +37,7 @@ const initials = (name: string, email: string) => {
 const LoginLink = ({ locale }: { locale: Locale }) => (
   <Link
     to="/login"
-    className="btn btn-secondary h-9 min-h-9 shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap shadow-none"
+    className="btn btn-ghost h-9 min-h-9 w-full shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200"
   >
     {nav_login({}, { locale })}
   </Link>
@@ -45,6 +53,14 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
   const { ref, close } = useDismissableDetails();
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
+  useEffect(() => {
+    if (isLoading) return;
+    const slot = isAuthenticated ? 'in' : 'out';
+    writeAuthSlot(slot);
+    document.documentElement.dataset.authSlot = slot;
+  }, [isAuthenticated, isLoading]);
+  const presence = useLivePresence();
+  const pathname = useLocation({ select: (location) => location.pathname });
 
   if (!isMounted || isLoading || (isAuthenticated && isProfilePending))
     return (
@@ -57,7 +73,15 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
       </div>
     );
 
-  if (!isAuthenticated || !user) return <LoginLink locale={locale} />;
+  if (!isAuthenticated || !user)
+    return pathname === '/login' ? null : <LoginLink locale={locale} />;
+
+  const presenceLabel =
+    presence === null
+      ? null
+      : presence === 'connected'
+        ? live_status_connected({}, { locale })
+        : connectionLabel(presence, locale);
 
   const photoAssetId =
     profile?.userId === user.id ? profile.photoAssetId : null;
@@ -66,8 +90,9 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
     <details ref={ref} className="dropdown dropdown-end">
       <summary
         aria-label={profile_title({}, { locale })}
-        className="flex size-8 cursor-pointer list-none items-center justify-center rounded-full bg-base-200 text-xs font-semibold text-base-content"
+        className={`avatar ${presence ? presenceClass(presence) : ''} flex size-8 cursor-pointer list-none items-center justify-center rounded-full bg-base-200 text-xs font-semibold text-base-content`}
       >
+        {presenceLabel && <span className="sr-only">{presenceLabel}</span>}
         {photoAssetId && photoAssetId !== failedPhoto ? (
           <img
             key={photoAssetId}
@@ -95,6 +120,12 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
             <Link to="/profile">
               <ProfileIcon />
               {profile_title({}, { locale })}
+            </Link>
+          </li>
+          <li>
+            <Link to="/profile/activity">
+              <ActivityIcon />
+              {activity_nav({}, { locale })}
             </Link>
           </li>
           <li>

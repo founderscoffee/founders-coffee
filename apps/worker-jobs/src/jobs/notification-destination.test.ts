@@ -10,6 +10,8 @@ import {
 } from '@founders-coffee/db';
 import { env } from 'cloudflare:workers';
 
+import { enableOperations } from '@founders-coffee/db/operations-fixtures';
+
 import { sweepNotifications } from './notification-sweep.js';
 import {
   MEMBER_ID,
@@ -257,5 +259,37 @@ describe('PF-07a — the guard cannot be skipped', () => {
       expect(row?.status, channel).toBe('failed');
       expect(row?.lastError, channel).toContain('unreachable: account_closing');
     }
+  });
+});
+
+describe('the post-event prompt a new account receives', () => {
+  it('reaches a member who never opened settings, because the prompt is on by default', async () => {
+    const db = await setupDb();
+    await enableOperations(db);
+    const rowId = await enqueue(db, {
+      channel: 'email',
+      templateKey: 'feedback_invitation',
+    });
+
+    await sweepNotifications(db, providers(), NOW);
+
+    const row = await rowById(db, rowId);
+    expect(row?.lastError ?? '').not.toContain('operations_disabled');
+    expect(row?.status).toBe('sent');
+  });
+
+  it('still refuses push, because the default mask is email and nothing else', async () => {
+    const db = await setupDb();
+    await enableOperations(db);
+    const push = countingPush();
+    const rowId = await enqueue(db, {
+      channel: 'push',
+      templateKey: 'feedback_invitation',
+    });
+
+    await sweepNotifications(db, providers({ push: push.provider }), NOW);
+
+    expect(push.sends).toEqual([]);
+    expect((await rowById(db, rowId))?.lastError).toContain('push_disabled');
   });
 });

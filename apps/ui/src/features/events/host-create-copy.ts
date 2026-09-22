@@ -36,5 +36,6 @@ export const hostCreateViewCopy = () => ({
     titleMax: events.EVENT_TITLE_MAX_LENGTH,
     descriptionMin: events.EVENT_DESCRIPTION_MIN_LENGTH,
     descriptionMax: events.EVENT_DESCRIPTION_MAX_LENGTH,
+    venueNameMax: events.EVENT_VENUE_NAME_MAX_LENGTH,
   },
 });

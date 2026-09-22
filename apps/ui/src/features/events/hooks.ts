@@ -14,6 +14,7 @@ import {
 import {
   eventsApi,
   type CancelEventInput,
+  type UpdateEventInput,
   type CreatedEvent,
   type CreateEventInput,
   type EventFeedPage,
@@ -131,6 +132,14 @@ export const useEvent = (slug: string) =>
     queryFn: () => eventsApi.getEvent({ data: { slug } }),
   });
 
+export const useEventById = (eventId: string) =>
+  useQuery({
+    queryKey: ['event', 'id', eventId],
+    queryFn: () => eventsApi.getEvent({ data: { id: eventId } }),
+    staleTime: 0,
+    gcTime: 0,
+  });
+
 export const useMapboxToken = (enabled = true) =>
   useQuery<string>({
     queryKey: ['events', 'mapbox-token'],
@@ -230,4 +239,9 @@ export const useCancelRsvp = () =>
 export const useCancelEvent = () =>
   useMutation({
     mutationFn: (input: CancelEventInput) => eventsApi.cancelEvent(input),
+  });
+
+export const useUpdateEvent = () =>
+  useMutation({
+    mutationFn: (input: UpdateEventInput) => eventsApi.updateEvent(input),
   });

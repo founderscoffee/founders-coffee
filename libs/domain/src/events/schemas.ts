@@ -103,6 +103,53 @@ export const eventCreateSchema = z
   .strict()
   .superRefine(addScheduleIssues);
 
+/**
+ * Hold an edit to the schedule rules, and to naming a point completely or not at all.
+ *
+ * The location group is optional because an edit that does not offer relocation must not have to
+ * invent one. Most rows predate venue coordinates and carry none; a form obliged to send a number
+ * would send a placeholder, and a placeholder is indistinguishable from a host dragging the pin
+ * into the sea. Sending neither means the point is unchanged, which is the truth.
+ */
+const addUpdateIssues = (
+  input: {
+    startsAt: number;
+    endsAt: number;
+    latitude?: number;
+    longitude?: number;
+  },
+  context: z.RefinementCtx,
+) => {
+  addScheduleIssues(input, context);
+  const half =
+    (input.latitude === undefined) !== (input.longitude === undefined);
+  if (half)
+    context.addIssue({
+      code: 'custom',
+      message: 'A venue point needs both a latitude and a longitude',
+      path: ['latitude'],
+    });
+};
+
+export const eventUpdateSchema = z
+  .object({
+    expectedVersion: z.number().int().nonnegative(),
+    title: eventTitleSchema,
+    description: eventDescriptionSchema,
+    venueName: eventVenueNameSchema,
+    venueAddress: eventVenueAddressSchema.optional(),
+    venueProviderId: z.string().trim().min(1).max(120).optional(),
+    latitude: z.number().finite().min(-90).max(90).optional(),
+    longitude: z.number().finite().min(-180).max(180).optional(),
+    startsAt: z.number().int().positive(),
+    endsAt: z.number().int().positive(),
+    language: localeSchema,
+  })
+  .strict()
+  .superRefine(addUpdateIssues);
+
+export type EventUpdateInput = z.infer<typeof eventUpdateSchema>;
+
 export const publicEventDiscoverySchema = z.strictObject({
   market: z.string().trim().min(1).max(80),
   city: z.string().trim().min(1).max(80),

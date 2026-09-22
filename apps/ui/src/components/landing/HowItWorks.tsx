@@ -9,6 +9,7 @@ import {
   how_step2_title,
   how_step3_body,
   how_step3_title,
+  how_subtitle,
   how_title,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -26,20 +27,41 @@ const STEPS = [
   { image: 'how-step3', title: how_step3_title, body: how_step3_body },
 ] as const;
 
+const VARIANT_WIDTHS = [192, 384, 672] as const;
+const SOURCE_WIDTH = 1254;
+
+const srcSetFor = (image: string): string =>
+  [
+    ...VARIANT_WIDTHS.map(
+      (width) => `/images/${image}-${width}.webp ${width}w`,
+    ),
+    `/images/${image}.webp ${SOURCE_WIDTH}w`,
+  ].join(', ');
+
+const IMAGE_SIZES = [
+  '(min-width: 1120px) 336px',
+  '(min-width: 768px) calc((100vw - 112px) / 3)',
+  '(min-width: 640px) calc((100vw - 80px) / 3)',
+  '96px',
+].join(', ');
+
 const ctaClass =
   'inline-flex min-h-11 items-center rounded-full px-5 text-body-sm font-semibold transition-colors duration-[var(--duration-fast)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary motion-reduce:transition-none';
 
 export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
   <section
     aria-labelledby="how-it-works-title"
-    className="mx-auto max-w-content px-4 pt-12 pb-2 md:px-8 md:pt-16"
+    className="mx-auto max-w-content px-4 pt-2 pb-2 md:px-8 md:pt-4"
   >
     <h2
       id="how-it-works-title"
-      className="font-display text-h4 font-semibold text-base-content"
+      className="font-display text-h3 font-semibold tracking-tight text-balance text-base-content md:text-h2"
     >
       {how_title({}, { locale })}
     </h2>
+    <p className="mt-2 text-body-sm text-neutral">
+      {how_subtitle({}, { locale })}
+    </p>
 
     <ol className="mt-6 grid list-none grid-cols-1 gap-6 sm:grid-cols-3">
       {STEPS.map((step) => (
@@ -49,9 +71,11 @@ export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
         >
           <img
             src={`/images/${step.image}.webp`}
+            srcSet={srcSetFor(step.image)}
+            sizes={IMAGE_SIZES}
             alt=""
-            width={1254}
-            height={1254}
+            width={SOURCE_WIDTH}
+            height={SOURCE_WIDTH}
             loading="lazy"
             decoding="async"
             className="w-24 shrink-0 rounded-box border border-base-300 sm:w-full"
@@ -68,10 +92,10 @@ export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
       ))}
     </ol>
 
-    <div className="mt-8 flex flex-wrap items-center gap-3">
+    <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
       <Link
         {...localizedHostCreate(locale, marketSlug)}
-        className={`${ctaClass} bg-primary text-primary-content hover:bg-primary/90`}
+        className={`${ctaClass} min-w-64 justify-center bg-primary text-primary-content hover:bg-primary/90`}
       >
         {how_cta_host({}, { locale })}
       </Link>

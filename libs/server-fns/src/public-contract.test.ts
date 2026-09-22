@@ -50,6 +50,7 @@ const EVENT_COLUMNS = [
   'updatedAt',
   'venue',
   'venueAddress',
+  'version',
 ] as const;
 
 const PUBLIC_EVENT_FIELDS = [

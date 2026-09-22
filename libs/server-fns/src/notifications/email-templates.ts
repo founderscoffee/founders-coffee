@@ -13,6 +13,12 @@ import {
   ntf_email_event_cancelled_html,
   ntf_email_event_cancelled_subject,
   ntf_email_event_cancelled_text,
+  ntf_email_event_relocated_html,
+  ntf_email_event_relocated_subject,
+  ntf_email_event_relocated_text,
+  ntf_email_event_rescheduled_html,
+  ntf_email_event_rescheduled_subject,
+  ntf_email_event_rescheduled_text,
   ntf_email_feedback_invitation_html,
   ntf_email_feedback_invitation_subject,
   ntf_email_feedback_invitation_text,
@@ -128,6 +134,20 @@ export const emailPayloadFor = async (
           values.reason,
           locale,
         ),
+      );
+    case 'event_rescheduled':
+      return renderNotificationEmail(
+        locale,
+        ntf_email_event_rescheduled_subject(values, options),
+        ntf_email_event_rescheduled_html(safe, options),
+        ntf_email_event_rescheduled_text(values, options),
+      );
+    case 'event_relocated':
+      return renderNotificationEmail(
+        locale,
+        ntf_email_event_relocated_subject(values, options),
+        ntf_email_event_relocated_html(safe, options),
+        ntf_email_event_relocated_text(values, options),
       );
   }
 };

@@ -40,6 +40,8 @@ export const notificationCategoryForTemplate = (
 ): NotificationCategory | null => {
   switch (templateKey) {
     case 'event_cancelled':
+    case 'event_rescheduled':
+    case 'event_relocated':
     case 'event_did_not_happen':
       return 'eventUpdatesChannels';
     case 'reminder_72h':

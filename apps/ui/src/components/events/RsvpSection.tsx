@@ -1,5 +1,5 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { CalendarOff, Check } from 'lucide-react';
+import { CalendarOff } from 'lucide-react';
 import { useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
@@ -14,7 +14,6 @@ import {
   rsvp_error,
   rsvp_help,
   rsvp_saving,
-  share_event_invite,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
@@ -23,9 +22,9 @@ import { PushPermissionPrompt } from '../../features/events/components/PushPermi
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
 import { useAuth } from '../../lib/app-providers';
+import { AttendeeLiveActions } from './AttendeeLiveActions';
 import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
-import { ShareEventButton } from './ShareEventButton';
 
 export type RsvpSectionProps = {
   event: EventWithAttendance;
@@ -130,19 +129,6 @@ export const RsvpSection = ({
         ) : null
       ) : isGoing ? (
         <>
-          <p className="inline-flex w-fit items-center gap-2 rounded-full bg-success-tint px-3 py-1.5 text-body-sm font-medium text-success">
-            <Check className="size-4" aria-hidden="true" />
-            {rsvp_already({}, { locale })}
-          </p>
-          <p className="text-body-sm text-neutral">
-            {rsvp_confirmed_help({}, { locale })}
-          </p>
-          <ShareEventButton
-            locale={locale}
-            title={event.title}
-            label={share_event_invite({}, { locale })}
-            variant="panel"
-          />
           <button
             type="button"
             className="btn btn-ghost btn-sm w-fit text-neutral"
@@ -150,6 +136,16 @@ export const RsvpSection = ({
           >
             {rsvp_cancel({}, { locale })}
           </button>
+          <p className="text-body-sm text-neutral">
+            {rsvp_confirmed_help({}, { locale })}
+          </p>
+          {live && isWindowOpen && !live.notAttending && (
+            <AttendeeLiveActions
+              locale={locale}
+              onWalkingIn={live.sendWalkingIn}
+              onRunningLate={live.sendRunningLate}
+            />
+          )}
         </>
       ) : (
         <>

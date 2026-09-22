@@ -24,8 +24,8 @@ const DEFAULTS = {
   hostRsvpReceivedChannels: ['push', 'email'] as ('push' | 'email')[],
   hostRsvpCancelled: true,
   hostRsvpCancelledChannels: ['push', 'email'] as ('push' | 'email')[],
-  followUpPrompts: false,
-  followUpPromptsChannels: [] as ('push' | 'email')[],
+  followUpPrompts: true,
+  followUpPromptsChannels: ['email'] as ('push' | 'email')[],
   smsFallbackEnabled: false,
 };
 

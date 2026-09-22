@@ -80,6 +80,7 @@ export const enqueueDidNotHappenNotices = async (
     const values = {
       title: event.title,
       venue: event.venue,
+      address: event.venue,
       date: formatDate(event.startsAt, context.locale, {
         timeZone: context.timeZone,
         weekday: 'long',

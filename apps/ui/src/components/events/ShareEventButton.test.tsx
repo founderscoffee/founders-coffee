@@ -26,14 +26,7 @@ const dropFromNavigator = (...keys: string[]) => {
 };
 
 const renderButton = () =>
-  render(
-    <ShareEventButton
-      locale="en"
-      title={TITLE}
-      label="Share"
-      variant="panel"
-    />,
-  );
+  render(<ShareEventButton locale="en" title={TITLE} label="Share" />);
 
 const clickShare = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Share' }));

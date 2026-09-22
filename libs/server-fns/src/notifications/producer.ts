@@ -34,6 +34,7 @@ export interface NotificationPayload {
   marketCode: string;
   startsAt: string;
   venue: string;
+  venueAddress?: string;
   locale: Locale;
   rsvpCount?: number;
   capacity?: number;
@@ -75,6 +76,14 @@ export const validPayload = (
   return payload;
 };
 
+/**
+ * The values every template interpolates, from the payload a notification was queued with.
+ *
+ * `address` falls back to the venue's name because a message that has to say where to go cannot
+ * render an empty gap. Most rows carry no address at all — it is derived from a point, and most
+ * meetups never had one — and the relocation notice is the one message whose whole content is the
+ * new place. Naming the café is a worse answer than the street, and a far better one than nothing.
+ */
 export const valuesFor = (
   payload: NotificationPayload,
   context: NotificationContext,
@@ -83,6 +92,7 @@ export const valuesFor = (
 ): TemplateValues => ({
   title: payload.eventTitle,
   venue: payload.venue,
+  address: payload.venueAddress?.trim() || payload.venue,
   date: dateFor(payload.startsAt, context, withTime),
   url: eventUrlFor({
     locale: context.locale,
@@ -123,6 +133,12 @@ export const valuesFor = (
  * cannot occur through the front door — it is kept as a guard, not as a designed outcome.
  *
  * Skips if a pending notification already exists, so re-RSVPing does not duplicate anything.
+ *
+ * `remindersOnly` leaves the confirmation out, for the one caller that is not a new RSVP: a host
+ * moving the start has to rewrite the reminders around the new time, and the people it rewrites
+ * them for booked weeks ago. Confirming a booking they already made, on the day somebody changed
+ * the plan, reads as a second thing happening — and the reschedule notice is already telling them
+ * the one thing that did.
  */
 export const enqueueRsvpNotifications = async (
   db: Db,
@@ -137,6 +153,7 @@ export const enqueueRsvpNotifications = async (
     phoneNumber?: string | null;
     email?: string;
     locale?: string | null;
+    remindersOnly?: boolean;
   },
 ): Promise<void> => {
   const contact = await getNotificationContact(db, opts.userId);
@@ -207,7 +224,8 @@ export const enqueueRsvpNotifications = async (
     if (!earliest || sendAt < earliest) earliest = sendAt;
   };
 
-  await enqueueNotificationFor('rsvp_confirmation', new Date());
+  if (!opts.remindersOnly)
+    await enqueueNotificationFor('rsvp_confirmation', new Date());
 
   if (startsAtMs - now > SEVENTY_TWO_HOURS_MS)
     await enqueueNotificationFor(

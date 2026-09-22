@@ -100,6 +100,12 @@ export const localizedFeedback = (locale: Locale, eventId: string) => ({
   params: { market: locale, eventId },
 });
 
+/** The host's edit screen for a published meetup, on the same terms as {@link localizedCloseout}. */
+export const localizedEventEdit = (locale: Locale, eventId: string) => ({
+  to: '/$market/edit/$eventId' as const,
+  params: { market: locale, eventId },
+});
+
 /**
  * Home, addressed as the reader's own market rather than as `/`.
  *
