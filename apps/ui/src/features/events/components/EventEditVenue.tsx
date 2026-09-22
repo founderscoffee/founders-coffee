@@ -54,22 +54,6 @@ export const EventEditVenue = ({
 
   return (
     <div className="grid gap-3">
-      <HostVenueStep
-        locale={locale}
-        cityName={cityName}
-        cityCode={event.cityCode}
-        marketCode={event.marketCode}
-        center={listCenter}
-        searchValue={searchValue}
-        venue={venue}
-        venueName={event.venue}
-        hideNameField
-        isDisabled={!mapContext.data}
-        unavailableReason={mapContextError}
-        onSearchChange={onSearchChange}
-        onVenueNameChange={() => undefined}
-        onVenueSelect={onVenueSelect}
-      />
       <div className="h-72 overflow-hidden rounded-box border border-base-300">
         <HostMapPanel
           locale={locale}
@@ -89,6 +73,23 @@ export const EventEditVenue = ({
       <p className="text-caption text-neutral">
         {host_edit_venue_hint({}, { locale })}
       </p>
+      <HostVenueStep
+        locale={locale}
+        cityName={cityName}
+        cityCode={event.cityCode}
+        marketCode={event.marketCode}
+        center={listCenter}
+        searchValue={searchValue}
+        venue={venue}
+        venueName={event.venue}
+        hideNameField
+        boundedList
+        isDisabled={!mapContext.data}
+        unavailableReason={mapContextError}
+        onSearchChange={onSearchChange}
+        onVenueNameChange={() => undefined}
+        onVenueSelect={onVenueSelect}
+      />
     </div>
   );
 };
