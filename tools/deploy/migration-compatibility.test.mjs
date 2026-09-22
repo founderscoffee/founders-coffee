@@ -4,7 +4,9 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  listMigrationNames,
   parsePendingMigrations,
+  resolveAppliedMigrations,
   validateManifestCoverage,
   validatePendingMigrations,
 } from './migration-compatibility.mjs';
@@ -49,6 +51,36 @@ describe('migration compatibility checks', () => {
         manifest,
       }),
     ).toThrow('irreversible SQL detected');
+  });
+
+  it('reads the applied set as every committed migration Wrangler did not list', () => {
+    const directory = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'migration-applied-'),
+    );
+    for (const name of [
+      '0030_add_interest',
+      '0031_add_index',
+      '0032_add_flag',
+    ]) {
+      fs.writeFileSync(path.join(directory, `${name}.sql`), '');
+    }
+    expect(listMigrationNames(directory)).toEqual([
+      '0030_add_interest',
+      '0031_add_index',
+      '0032_add_flag',
+    ]);
+    expect(
+      resolveAppliedMigrations({
+        output: 'Migrations to be applied:\n0032_add_flag.sql',
+        migrationsDirectory: directory,
+      }),
+    ).toEqual(['0030_add_interest', '0031_add_index']);
+    expect(
+      resolveAppliedMigrations({
+        output: '✅ No migrations to apply!',
+        migrationsDirectory: directory,
+      }),
+    ).toEqual(['0030_add_interest', '0031_add_index', '0032_add_flag']);
   });
 
   it('requires one manifest entry for every migration file', () => {

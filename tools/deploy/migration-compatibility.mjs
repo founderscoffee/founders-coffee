@@ -20,16 +20,35 @@ export const parsePendingMigrations = (output) => [
 export const loadCompatibilityManifest = (file = manifestPath) =>
   JSON.parse(fs.readFileSync(file, 'utf8'));
 
+export const listMigrationNames = (migrationsDirectory = migrationDirectory) =>
+  fs
+    .readdirSync(migrationsDirectory)
+    .filter((file) => /^\d{4}_.+\.sql$/u.test(file))
+    .map((file) => file.replace(/\.sql$/u, ''))
+    .sort();
+
+/*
+ * `wrangler d1 migrations list` reports what a database has NOT run yet, so the set it has
+ * run is every committed migration minus that list. The deploy captures this before applying
+ * anything, which makes it the schema the Workers of that moment were built against.
+ */
+export const resolveAppliedMigrations = ({
+  output,
+  migrationsDirectory = migrationDirectory,
+}) => {
+  const pending = new Set(parsePendingMigrations(output));
+  return listMigrationNames(migrationsDirectory).filter(
+    (name) => !pending.has(name),
+  );
+};
+
 export const validateManifestCoverage = ({
   migrationsDirectory = migrationDirectory,
   manifest = loadCompatibilityManifest(
     path.join(migrationsDirectory, 'compatibility.json'),
   ),
 }) => {
-  const migrationNames = fs
-    .readdirSync(migrationsDirectory)
-    .filter((file) => /^\d{4}_.+\.sql$/u.test(file))
-    .map((file) => file.replace(/\.sql$/u, ''));
+  const migrationNames = listMigrationNames(migrationsDirectory);
   const missing = migrationNames.filter(
     (name) => !Object.hasOwn(manifest, name),
   );
@@ -88,7 +107,10 @@ export const validatePendingMigrations = ({
   return { pending, compatible: true };
 };
 
-const runWrangler = async (environment) => {
+export const listRemoteMigrations = async (environment) => {
+  if (!['staging', 'production'].includes(environment)) {
+    throw new Error(`Unsupported environment: ${environment}`);
+  }
   const database = `founders-coffee-db-${environment}`;
   const { stdout, stderr } = await execFileAsync(
     'npx',
@@ -115,10 +137,9 @@ const runWrangler = async (environment) => {
 };
 
 export const checkRemoteMigrations = async ({ environment }) => {
-  if (!['staging', 'production'].includes(environment)) {
-    throw new Error(`Unsupported environment: ${environment}`);
-  }
-  const pending = parsePendingMigrations(await runWrangler(environment));
+  const pending = parsePendingMigrations(
+    await listRemoteMigrations(environment),
+  );
   const result = validatePendingMigrations({ pending });
   process.stdout.write(
     result.pending.length === 0

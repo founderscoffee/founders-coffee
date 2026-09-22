@@ -98,6 +98,33 @@ describe('rollback workflow contract', () => {
     expect(stagingDrill).not.toContain('time-travel restore');
   });
 
+  it('reads the migration list the deploy captured before it migrated', () => {
+    expect(deployWorkflow).toContain('tools/deploy/release-state.mjs capture');
+    expect(rollbackWorkflow).toContain('rollback_state_run_id');
+    expect(rollbackWorkflow).toContain('rollback-state-$TARGET_ENV-$head_sha');
+    expect(deployWorkflow).toContain(
+      'rollback-state-${{ env.TARGET_ENV }}-${{ github.sha }}',
+    );
+    expect(rollbackWorkflow).toContain('actions: read');
+  });
+
+  it('clears the target versions against the manifest before any Worker rollback', () => {
+    expect(rollbackWorkflow).toContain(
+      'tools/deploy/rollback-compatibility.mjs check',
+    );
+    expect(rollbackWorkflow).toContain('acknowledge_migration_risk');
+    expect(
+      rollbackWorkflow.indexOf('rollback-compatibility.mjs check'),
+    ).toBeLessThan(rollbackWorkflow.indexOf('Roll back UI Worker'));
+  });
+
+  it('makes the staging drill exercise that gate on both of its paths', () => {
+    expect(stagingDrill).toContain("['rollback_state_run_id', deployRun]");
+    expect(stagingDrill).toContain(
+      "'tools/deploy/rollback-compatibility.mjs',",
+    );
+  });
+
   it('runs smoke verification only after every Worker rollback', () => {
     expect(rollbackWorkflow).toContain('Roll back worker-jobs Worker');
     expect(rollbackWorkflow).toContain('Run SEO route smoke');
