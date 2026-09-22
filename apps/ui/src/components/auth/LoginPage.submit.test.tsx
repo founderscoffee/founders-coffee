@@ -131,4 +131,18 @@ describe('the bot challenge on the sign-in card', () => {
       );
     },
   );
+
+  it('lets a password manager fill the one field everybody fills', () => {
+    show();
+    const email = screen.getByLabelText(/./u, { selector: '#login-email' });
+
+    expect(
+      email.getAttribute('autocomplete'),
+      'an empty autocomplete on a sign-in email means browsers and password managers will not reliably offer the saved address, on the only field this page has',
+    ).toBe('email');
+    expect(
+      email.getAttribute('dir'),
+      'an address is left to right; inheriting rtl from the Arabic page puts the caret on the wrong side',
+    ).toBe('ltr');
+  });
 });

@@ -161,6 +161,7 @@ export const HostSignInGate = ({
               </span>
               <Input
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={login_email_placeholder({}, { locale })}

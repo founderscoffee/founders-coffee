@@ -123,4 +123,18 @@ describe('WaitlistForm bot protection (AR-06)', () => {
       );
     },
   );
+
+  it('lets a saved address be offered, and reads it left to right', () => {
+    renderForm();
+    const email = screen.getByRole('textbox');
+
+    expect(
+      email.getAttribute('autocomplete'),
+      'this is the one field the hero asks for, and an empty autocomplete stops a password manager offering the address it already holds',
+    ).toBe('email');
+    expect(
+      email.getAttribute('dir'),
+      'a raw input does not go through the shared Input, so it does not inherit the left-to-right default and has to say so itself',
+    ).toBe('ltr');
+  });
 });

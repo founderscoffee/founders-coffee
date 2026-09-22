@@ -5,9 +5,6 @@ import {
   login_change_email,
   login_code_sent,
   login_account_note,
-  login_email_label,
-  login_email_placeholder,
-  login_help,
   login_or,
   login_email_continue,
   login_send_error,
@@ -17,9 +14,10 @@ import {
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, Turnstile } from '@founders-coffee/ui';
+import { Button, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
+import { LoginEmailField } from './LoginEmailField';
 import { authClient } from '../../lib/auth';
 import { onboardingRedirectPath } from '../../lib/redirect';
 import { OtpField, OTP_LENGTH } from './OtpField';
@@ -156,28 +154,11 @@ export const LoginPage = ({
 
           {step === 'email' ? (
             <>
-              <div className="form-control">
-                <label
-                  className="mb-1 block text-label text-neutral"
-                  htmlFor="login-email"
-                >
-                  {login_email_label({}, { locale })}
-                </label>
-                <Input
-                  id="login-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={login_email_placeholder({}, { locale })}
-                  aria-describedby="login-email-help"
-                />
-                <span
-                  id="login-email-help"
-                  className="mt-1.5 block text-body-sm text-neutral"
-                >
-                  {login_help({}, { locale })}
-                </span>
-              </div>
+              <LoginEmailField
+                locale={locale}
+                value={email}
+                onChange={setEmail}
+              />
               {turnstileSiteKey && !isTurnstileBypassed && (
                 <Turnstile
                   sitekey={turnstileSiteKey}

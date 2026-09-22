@@ -94,6 +94,8 @@ export const WaitlistForm = ({
         <input
           type="email"
           inputMode="email"
+          autoComplete="email"
+          dir="ltr"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
