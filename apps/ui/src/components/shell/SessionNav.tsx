@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 import {
+  activity_nav,
   nav_login,
   nav_logout,
   nav_signed_in_as,
@@ -22,7 +23,7 @@ import {
 import { useLivePresence } from '../../features/events/live-presence';
 import { authClient } from '../../lib/auth';
 import { useBoundedPending } from '../../lib/network-status';
-import { ProfileIcon, SignOutIcon } from './SessionIcon';
+import { ActivityIcon, ProfileIcon, SignOutIcon } from './SessionIcon';
 import { useDismissableDetails } from './useDismissableDetails';
 
 const initials = (name: string, email: string) => {
@@ -110,6 +111,12 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
             <Link to="/profile">
               <ProfileIcon />
               {profile_title({}, { locale })}
+            </Link>
+          </li>
+          <li>
+            <Link to="/profile/activity">
+              <ActivityIcon />
+              {activity_nav({}, { locale })}
             </Link>
           </li>
           <li>

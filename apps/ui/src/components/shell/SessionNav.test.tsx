@@ -107,6 +107,29 @@ describe('session avatar', () => {
   });
 });
 
+describe('what the session menu offers', () => {
+  it('reaches the activity page from behind the avatar', () => {
+    signedIn();
+    const { container } = render(<SessionNav locale="en" />);
+
+    const targets = Array.from(container.querySelectorAll('a')).map((link) =>
+      link.getAttribute('href'),
+    );
+
+    expect(
+      targets,
+      'this is the only entry point left since the footer dropped it, and a signed-in destination belongs where only a signed-in reader sees it',
+    ).toContain('/profile/activity');
+  });
+
+  it('offers nothing behind an avatar nobody is signed in to', () => {
+    const { container } = render(<SessionNav locale="en" />);
+
+    expect(container.querySelector('a')?.getAttribute('href')).toBe('/login');
+    expect(container.querySelector('details')).toBeNull();
+  });
+});
+
 describe('session loading', () => {
   it('renders a skeleton rather than a login link before hydration', () => {
     const html = renderToString(<SessionNav locale="en" />);

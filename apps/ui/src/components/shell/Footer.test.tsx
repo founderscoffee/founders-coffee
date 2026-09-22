@@ -47,8 +47,6 @@ const hrefs = () =>
 const renderFooter = (locale: 'ar' | 'fr' | 'en' = 'fr') =>
   render(<Footer locale={locale} markets={[MARKET]} market={MARKET} />);
 
-const UNPREFIXED = ['/profile/activity'];
-
 const timesLinked = (href: string) =>
   screen
     .getAllByRole('link')
@@ -57,11 +55,15 @@ const timesLinked = (href: string) =>
 afterEach(cleanup);
 
 describe('the footer', () => {
-  it('carries the reader a language on every link that has one', () => {
+  it('carries the reader a language on every link it has', () => {
     renderFooter('fr');
-    const public_ = hrefs().filter((href) => !UNPREFIXED.includes(href));
-    expect(public_.length).toBeGreaterThan(0);
-    for (const href of public_) expect(href).toMatch(/^\/fr\//u);
+    const links = hrefs();
+    expect(links.length).toBeGreaterThan(0);
+    for (const href of links)
+      expect(
+        href,
+        'every destination the footer names has a localized form now that the activity link has moved to the session menu, so there is nothing left to excuse',
+      ).toMatch(/^\/fr\//u);
   });
 
   it('follows the reader into Arabic', () => {
@@ -89,15 +91,19 @@ describe('the footer', () => {
     expect(timesLinked('/fr/terms')).toBe(2);
   });
 
-  it('leaves the routes that have no localized form unprefixed', () => {
-    renderFooter('fr');
-    expect(hrefs()).toContain('/profile/activity');
-  });
-
   it('sends a French reader to the French host wizard', () => {
     renderFooter('fr');
     expect(hrefs()).toContain('/fr/algeria/host/create');
     expect(hrefs()).not.toContain('/algeria/host/create');
+  });
+
+  it('leaves the signed-in destinations to the session menu', () => {
+    renderFooter('fr');
+
+    expect(
+      hrefs(),
+      'the activity page bounces a signed-out reader to login, and the footer is on every public page — it belongs behind the avatar, where only somebody with a session sees it',
+    ).not.toContain('/profile/activity');
   });
 
   it('opens the contact page on the reporting section, not at its top', () => {

@@ -19,6 +19,13 @@ export const ProfileIcon = () => (
   </svg>
 );
 
+export const ActivityIcon = () => (
+  <svg {...iconProps}>
+    <rect x="2.75" y="4.25" width="14.5" height="13" rx="2" />
+    <path d="M13.25 2.75v3M6.75 2.75v3M2.75 8.5h14.5" />
+  </svg>
+);
+
 export const SignOutIcon = ({ locale }: { locale: Locale }) => (
   <svg {...iconProps}>
     <g
