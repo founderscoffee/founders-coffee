@@ -27,6 +27,24 @@ const STEPS = [
   { image: 'how-step3', title: how_step3_title, body: how_step3_body },
 ] as const;
 
+const VARIANT_WIDTHS = [192, 384, 672] as const;
+const SOURCE_WIDTH = 1254;
+
+const srcSetFor = (image: string): string =>
+  [
+    ...VARIANT_WIDTHS.map(
+      (width) => `/images/${image}-${width}.webp ${width}w`,
+    ),
+    `/images/${image}.webp ${SOURCE_WIDTH}w`,
+  ].join(', ');
+
+const IMAGE_SIZES = [
+  '(min-width: 1120px) 336px',
+  '(min-width: 768px) calc((100vw - 112px) / 3)',
+  '(min-width: 640px) calc((100vw - 80px) / 3)',
+  '96px',
+].join(', ');
+
 const ctaClass =
   'inline-flex min-h-11 items-center rounded-full px-5 text-body-sm font-semibold transition-colors duration-[var(--duration-fast)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary motion-reduce:transition-none';
 
@@ -53,9 +71,11 @@ export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
         >
           <img
             src={`/images/${step.image}.webp`}
+            srcSet={srcSetFor(step.image)}
+            sizes={IMAGE_SIZES}
             alt=""
-            width={1254}
-            height={1254}
+            width={SOURCE_WIDTH}
+            height={SOURCE_WIDTH}
             loading="lazy"
             decoding="async"
             className="w-24 shrink-0 rounded-box border border-base-300 sm:w-full"
