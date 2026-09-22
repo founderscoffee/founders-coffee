@@ -17,6 +17,7 @@ import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import { requireEventCreateWafRule } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
+import { readEventCard } from './card.js';
 import { cancelEventResolver } from './cancel.js';
 import { listHostedEventPage } from './hosted.js';
 import { listJoinedEventPage } from './joined.js';
@@ -141,6 +142,22 @@ export const getEvent = createServerFn({ strict: false })
       citySlug: city?.slug ?? null,
     };
   });
+
+/**
+ * The fields a shared meetup's social card draws.
+ *
+ * Deliberately not `getEvent`. That one answers for a reader — it resolves the session, attaches
+ * whether they are going, and marks the response `private, no-store`, all three of which are wrong
+ * here: the card is rendered for a link scraper, must be identical for everyone, and is the one
+ * response on this site that wants to be cached hard and shared.
+ *
+ * It answers for a published meetup only. A draft or a cancelled one has no card, and the caller
+ * falls back to the site's default image rather than publishing a preview of something nobody can
+ * turn up to.
+ */
+export const getEventCardData = createServerFn({ strict: false })
+  .validator(z.object({ id: z.string() }))
+  .handler(({ data }) => readEventCard(getDb(), data.id));
 
 /**
  * List upcoming published events (composite cursor). Public. Pass `afterStartsAt` (a startsAt epoch

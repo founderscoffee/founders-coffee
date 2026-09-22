@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
-import { appErrorCode } from '@founders-coffee/core';
+import { appErrorCode, prefixedId } from '@founders-coffee/core';
 import { detectLocale, isLocale } from '@founders-coffee/i18n';
 import { getEvent, getMarket } from '@founders-coffee/server-fns';
 import type { Market } from '@founders-coffee/db';
@@ -15,7 +15,9 @@ export const Route = createFileRoute('/$market/e/$slug')({
     if (isLocale(params.market)) {
       let event;
       try {
-        event = await getEvent({ data: { id: `evt_${params.slug}` } });
+        event = await getEvent({
+          data: { id: prefixedId('evt', params.slug) },
+        });
       } catch (error) {
         if (appErrorCode(error) === 'event_not_found') throw notFound();
         throw error;

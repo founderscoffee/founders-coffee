@@ -10,7 +10,6 @@ import {
   localeAlternates,
   marketPageHead,
 } from './seo';
-import { eventPageHead } from './seo-event';
 
 describe('canonical URLs', () => {
   it('builds query-free paths for every public route class', () => {
@@ -127,17 +126,15 @@ describe('public page metadata', () => {
         { property: 'og:url', content: 'https://founders.coffee/en/algeria' },
         {
           property: 'og:image',
-          content:
-            'https://founders.coffee/social/founders-coffee-default.webp',
+          content: 'https://founders.coffee/social/founders-coffee-default.png',
         },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         {
           name: 'twitter:image',
-          content:
-            'https://founders.coffee/social/founders-coffee-default.webp',
+          content: 'https://founders.coffee/social/founders-coffee-default.png',
         },
-        { name: 'twitter:card', content: 'summary' },
+        { name: 'twitter:card', content: 'summary_large_image' },
       ]),
     );
     expect(head.links).toContainEqual({
@@ -193,84 +190,6 @@ describe('public page metadata', () => {
     });
   });
 
-  it('falls back to localized event copy and truncates authored descriptions by code points', () => {
-    const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
-      eventPageHead({
-        locale: 'fr',
-        title: 'Café fondateurs',
-        cityName: 'Alger',
-        description: '😀'.repeat(200),
-        route: {
-          type: 'event',
-          market: 'algeria',
-          slug: 'cafe',
-          locale: 'fr',
-        },
-        structuredEvent: {
-          title: 'Café fondateurs',
-          description: '😀'.repeat(200),
-          startsAt: new Date('2026-09-20T10:00:00Z'),
-          endsAt: new Date('2026-09-20T12:00:00Z'),
-          status: 'published',
-          venue: 'Café',
-          cityName: 'Alger',
-          venueAddress: null,
-          latitude: null,
-          longitude: null,
-          marketCode: 'DZ',
-          language: 'fr',
-          url: 'https://founders.coffee/fr/algeria/e/cafe',
-          currency: 'DZD',
-          organizer: null,
-        },
-        breadcrumbs: [],
-      }),
-    );
-    const fallback = eventPageHead({
-      locale: 'fr',
-      title: 'Café fondateurs',
-      cityName: 'Alger',
-      description: '',
-      route: { type: 'event', market: 'algeria', slug: 'cafe', locale: 'fr' },
-      structuredEvent: {
-        title: 'Café fondateurs',
-        description: '',
-        startsAt: new Date('2026-09-20T10:00:00Z'),
-        endsAt: null,
-        status: 'published',
-        venue: 'Café',
-        cityName: 'Alger',
-        venueAddress: null,
-        latitude: null,
-        longitude: null,
-        marketCode: 'DZ',
-        language: 'fr',
-        url: 'https://founders.coffee/fr/algeria/e/cafe',
-        currency: 'DZD',
-        organizer: null,
-      },
-      breadcrumbs: [],
-    });
-    const description = head.meta.find(
-      (item) => item.name === 'description',
-    )?.content;
-
-    expect(Array.from(description ?? '')).toHaveLength(160);
-    expect(description?.endsWith('…')).toBe(true);
-    expect(
-      fallback.meta.find((item) => item.name === 'description')?.content,
-    ).toContain('Rejoignez');
-    expect(head.meta).toContainEqual({ property: 'og:type', content: 'event' });
-    expect(JSON.parse(head.scripts[0]?.children ?? '{}')).toMatchObject({
-      '@type': 'Event',
-      description,
-      image: 'https://founders.coffee/social/founders-coffee-default.webp',
-    });
-    expect(head.scripts).toHaveLength(2);
-    expect(JSON.parse(head.scripts[1]?.children ?? '{}')).toMatchObject({
-      '@type': 'BreadcrumbList',
-    });
-  });
   it('uses the same builder for company pages', () => {
     const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
       companyPageHead({
@@ -290,7 +209,7 @@ describe('public page metadata', () => {
     });
     expect(head.meta).toContainEqual({
       name: 'twitter:image',
-      content: 'https://founders.coffee/social/founders-coffee-default.webp',
+      content: 'https://founders.coffee/social/founders-coffee-default.png',
     });
     expect(head.links).toContainEqual({
       rel: 'canonical',

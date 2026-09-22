@@ -14,6 +14,10 @@ const UNPREFIXED: Readonly<Record<string, Exemption>> = {
   },
 
   '/events.json': { kind: 'protocol', why: 'machine-readable feed' },
+  '/og/e/$id': {
+    kind: 'protocol',
+    why: 'an image for link scrapers, which have no language of their own to prefix for; the card is drawn in the language the `l` parameter names, set by the page that publishes the address',
+  },
   '/llms.txt': { kind: 'protocol', why: 'protocol file' },
   '/robots.txt': { kind: 'protocol', why: 'protocol file' },
   '/sitemap.xml': {
