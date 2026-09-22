@@ -9,12 +9,10 @@
       }
     },
     {
-      "canonical": "لقاءاتك",
-      "banned": ["نشاطي"],
-      "why": "#66 — the footer link and the page it opens must name the same thing. Four keys already say لقاءاتك; one says نشاطي. Only the bare نشاطي is banned: account_export_note says بياناتك ونشاطك, 'your data and your activity', which is the ordinary sense of the word and not a name for the gatherings page.",
-      "allow": {
-        "footer_activity": "#66 open — footer still says نشاطي while activity_title says لقاءاتك. Delete this line with the rename."
-      }
+      "canonical": "نشاطي",
+      "banned": ["لقاءاتك"],
+      "why": "#66 — the footer link and the page it opens must name the same thing. Settled the other way round from how this entry first read: the destination is نشاطي, and the footer, the profile section nav and the page heading now all say it. The earlier direction would have renamed the one footer key to match the four page keys, on the grounds that four beat one; the count was the weaker argument. نشاطي names a place the reader owns, and it is the label they click. The possessive form is what is banned here, not the word: the tabs still say لقاءات انضممت إليها, and لقاء remains the canonical word for the unit of the product one entry above. The page's prose stays in the second person — a page called نشاطي may still say أنت وحدك من يراه, the same way My Account talks about your data.",
+      "allow": {}
     },
     {
       "canonical": "حضور",

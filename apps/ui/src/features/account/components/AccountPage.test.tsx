@@ -202,7 +202,7 @@ describe('the account and security screen', () => {
     }
     expect(links.map((link) => link.textContent)).toEqual([
       'Profile',
-      'Your gatherings',
+      'My activity',
       'Notifications',
       'Account & security',
     ]);

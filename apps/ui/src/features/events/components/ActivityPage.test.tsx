@@ -293,8 +293,6 @@ describe('states the member can land in', () => {
   it('renders in the member locale', () => {
     show('ar');
 
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
-      'لقاءاتك',
-    );
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('نشاطي');
   });
 });
