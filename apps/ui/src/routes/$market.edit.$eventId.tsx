@@ -3,6 +3,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { detectLocale, host_edit_title, isLocale } from '@founders-coffee/i18n';
 
 import { EventEditPage } from '../features/events/components/EventEditPage';
+import { eventsApi } from '../features/events/api';
 import { readCookieHeader } from '../lib/cookies';
 import { NO_INDEX_VALUE } from '../lib/indexation';
 import { localizedEventEdit } from '../lib/locale-routing';
@@ -20,11 +21,20 @@ export const Route = createFileRoute('/$market/edit/$eventId')({
         localizedEventEdit(detectLocale(readCookieHeader()), params.eventId),
       );
   },
+  loader: async (): Promise<{ mapboxToken: string }> => ({
+    mapboxToken: await eventsApi.getMapboxToken(),
+  }),
   component: () => {
     const { locale, markets } = Route.useRouteContext();
     const { eventId } = Route.useParams();
+    const { mapboxToken } = Route.useLoaderData();
     return (
-      <EventEditPage locale={locale} eventId={eventId} markets={markets} />
+      <EventEditPage
+        locale={locale}
+        eventId={eventId}
+        mapboxToken={mapboxToken}
+        markets={markets}
+      />
     );
   },
   head: ({ match }) =>

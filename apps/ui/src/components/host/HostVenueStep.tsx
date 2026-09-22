@@ -34,6 +34,7 @@ type HostVenueStepProps = {
   venue: VenueSelection | null;
   venueName: string;
   nameError?: string;
+  hideNameField?: boolean;
   isDisabled: boolean;
   unavailableReason?: string;
   onSearchChange: (value: string) => void;
@@ -51,6 +52,7 @@ export const HostVenueStep = ({
   venue,
   venueName,
   nameError,
+  hideNameField = false,
   isDisabled,
   unavailableReason,
   onSearchChange,
@@ -159,7 +161,7 @@ export const HostVenueStep = ({
           )
         )}
       </div>
-      {venue?.kind === 'address' && (
+      {venue?.kind === 'address' && !hideNameField && (
         <label className="form-control" htmlFor="host-venue-name">
           <span className="mb-1 text-body-sm text-neutral">
             {host_venue_name_label({}, { locale })}

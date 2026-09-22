@@ -8,3 +8,4 @@ export * from './enums.js';
 export * from './outcomes.js';
 export * from './validation.js';
 export * from './security-headers.js';
+export * from './geo.js';

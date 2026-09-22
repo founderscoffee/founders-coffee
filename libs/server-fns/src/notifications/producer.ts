@@ -34,6 +34,7 @@ export interface NotificationPayload {
   marketCode: string;
   startsAt: string;
   venue: string;
+  venueAddress?: string;
   locale: Locale;
   rsvpCount?: number;
   capacity?: number;
@@ -75,6 +76,14 @@ export const validPayload = (
   return payload;
 };
 
+/**
+ * The values every template interpolates, from the payload a notification was queued with.
+ *
+ * `address` falls back to the venue's name because a message that has to say where to go cannot
+ * render an empty gap. Most rows carry no address at all — it is derived from a point, and most
+ * meetups never had one — and the relocation notice is the one message whose whole content is the
+ * new place. Naming the café is a worse answer than the street, and a far better one than nothing.
+ */
 export const valuesFor = (
   payload: NotificationPayload,
   context: NotificationContext,
@@ -83,6 +92,7 @@ export const valuesFor = (
 ): TemplateValues => ({
   title: payload.eventTitle,
   venue: payload.venue,
+  address: payload.venueAddress?.trim() || payload.venue,
   date: dateFor(payload.startsAt, context, withTime),
   url: eventUrlFor({
     locale: context.locale,

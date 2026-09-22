@@ -444,7 +444,7 @@
   "ntf_email_event_rescheduled_html": "<p>غيّر المضيف موعد <strong>{title}</strong>. الموعد الجديد {date} في {venue}.</p><p><a href=\"{url}\">عرض اللقاء</a></p>",
   "ntf_email_event_rescheduled_text": "غيّر المضيف موعد «{title}». الموعد الجديد {date} في {venue}.\n{url}",
   "ntf_push_event_rescheduled_title": "تغيّر موعد: {title}",
-  "ntf_push_event_rescheduled_body": "الموعد الجديد {date}.",
+  "ntf_push_event_rescheduled_body": "الموعد الجديد {date} في {venue}.",
   "ntf_cancel_reason": "من المضيف: {reason}",
   "event_cancelled_title": "أُلغي هذا اللقاء",
   "event_cancelled_body": "ألغاه المضيف. لا داعي للحضور.",
@@ -718,5 +718,40 @@
   "how_step3_title": "التقوا على قهوة",
   "how_step3_body": "طاولة واحدة، بضعة مؤسسين، وحديث حقيقي.",
   "how_cta_host": "نظّم لقاءً",
-  "how_cta_faq": "أسئلة شائعة"
+  "how_cta_faq": "أسئلة شائعة",
+  "ntf_push_event_relocated_title": "تغيّر المكان: {title}",
+  "ntf_push_event_relocated_body": "المكان الآن {address}. الموعد كما هو.",
+  "ntf_email_event_relocated_subject": "تغيّر المكان: {title}",
+  "ntf_email_event_relocated_html": "<p>غيّر المضيف مكان <strong>{title}</strong>. المكان الآن {address}.</p><p>الموعد {date} كما هو.</p><p><a href=\"{url}\">عرض اللقاء</a></p>",
+  "ntf_email_event_relocated_text": "غيّر المضيف مكان «{title}». المكان الآن {address}. الموعد {date} كما هو.\n{url}",
+  "host_edit_where": "المكان",
+  "host_edit_venue_hint": "انقر على الخريطة أو ابحث لتغيير المكان.",
+  "host_edit_notice_venue": [
+    {
+      "declarations": ["input n", "local nPlural = n: plural"],
+      "selectors": ["nPlural"],
+      "match": {
+        "nPlural=zero": "تغيير المكان سيُخطر {n} من الحاضرين.",
+        "nPlural=one": "تغيير المكان سيُخطر حاضرًا واحدًا.",
+        "nPlural=two": "تغيير المكان سيُخطر حاضرَين.",
+        "nPlural=few": "تغيير المكان سيُخطر {n} حاضرين.",
+        "nPlural=many": "تغيير المكان سيُخطر {n} حاضرًا.",
+        "nPlural=*": "تغيير المكان سيُخطر {n} من الحاضرين."
+      }
+    }
+  ],
+  "host_edit_notice_both": [
+    {
+      "declarations": ["input n", "local nPlural = n: plural"],
+      "selectors": ["nPlural"],
+      "match": {
+        "nPlural=zero": "تغيير الموعد والمكان سيُخطر {n} من الحاضرين.",
+        "nPlural=one": "تغيير الموعد والمكان سيُخطر حاضرًا واحدًا.",
+        "nPlural=two": "تغيير الموعد والمكان سيُخطر حاضرَين.",
+        "nPlural=few": "تغيير الموعد والمكان سيُخطر {n} حاضرين.",
+        "nPlural=many": "تغيير الموعد والمكان سيُخطر {n} حاضرًا.",
+        "nPlural=*": "تغيير الموعد والمكان سيُخطر {n} من الحاضرين."
+      }
+    }
+  ]
 }

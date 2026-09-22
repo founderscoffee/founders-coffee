@@ -75,6 +75,7 @@ const show = (event: EventDetailItem) => {
     <EventEditPage
       locale="en"
       eventId={event.id}
+      mapboxToken="pk.test"
       markets={[{ code: 'DZ', slug: 'algeria', timezone: 'Africa/Algiers' }]}
     />,
   );

@@ -17,12 +17,21 @@ import { armNotificationSchedule } from './schedule.js';
 import { pushPayloadFor } from './templates.js';
 import { emailPayloadFor } from './email-templates.js';
 
+export type EventChangeTemplateKey = 'event_rescheduled' | 'event_relocated';
+
 /**
- * Tell everyone still going that the host moved the meetup.
+ * Tell everyone still going that the host changed the plan.
  *
- * `startsAt` is the *new* start: the notice exists to replace a time in somebody's head, so it has
- * to carry the one that is now true rather than the one they already had. The caller re-arms the
- * reminders before calling this, so nothing queued against the old start can land afterwards and
+ * One notice per save, never two. An edit that moves the start and the café at once is a single
+ * change of plan from the reader's side, and `event_rescheduled` already carries both the new time
+ * and the new venue, so the caller picks the one key that describes what happened rather than
+ * queueing a message per field. `event_relocated` exists for the case the time notice cannot
+ * honestly cover: the hour is untouched and only the place moved, where a push headed "new time"
+ * would send people looking for a change that is not there.
+ *
+ * `startsAt` is the start as it now stands, true for either key — the relocation copy restates it
+ * precisely so a reader who half-remembers the evening is not left checking. The caller re-arms the
+ * reminders before calling this, so nothing queued against an older plan can land afterwards and
  * contradict it.
  *
  * Each attendee is told in their own language, which is why the roster carries `localePref` rather
@@ -30,12 +39,13 @@ import { emailPayloadFor } from './email-templates.js';
  *
  * There is no SMS path here, unlike cancellation. ND-07 narrows SMS to a single case — stopping
  * somebody who is about to set off for a gathering that is not happening — and a meetup that is
- * still happening, at a different hour, is not it. Push with email beneath it is the whole plan.
+ * still happening, at a different hour or a different address, is not it. Push with email beneath
+ * it is the whole plan.
  *
- * Sent immediately: a time change has no useful later moment. The host is skipped — they hold a
+ * Sent immediately: a changed plan has no useful later moment. The host is skipped — they hold a
  * `going` RSVP on their own event since creation, and do not need to be told what they just did.
  */
-export const enqueueEventRescheduleNotices = async (
+export const enqueueEventChangeNotices = async (
   db: Db,
   opts: {
     eventId: string;
@@ -45,10 +55,12 @@ export const enqueueEventRescheduleNotices = async (
     marketCode: string;
     startsAt: Date;
     venue: string;
+    venueAddress: string | null;
+    templateKey: EventChangeTemplateKey;
   },
 ): Promise<number> => {
   const attendees = await listGoingAttendees(db, opts.eventId);
-  const templateKey = 'event_rescheduled' as const;
+  const templateKey = opts.templateKey;
   let sent = 0;
 
   for (const attendee of attendees) {
@@ -71,6 +83,7 @@ export const enqueueEventRescheduleNotices = async (
       marketCode: opts.marketCode,
       startsAt: opts.startsAt.toISOString(),
       venue: opts.venue,
+      venueAddress: opts.venueAddress ?? undefined,
       locale: context.locale,
     };
     const values = valuesFor(basePayload, context, true);

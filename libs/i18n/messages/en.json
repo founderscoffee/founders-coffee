@@ -410,7 +410,7 @@
   "ntf_email_event_rescheduled_html": "<p>The host has moved <strong>{title}</strong>. It now starts {date} at {venue}.</p><p><a href=\"{url}\">See the event page</a></p>",
   "ntf_email_event_rescheduled_text": "The host has moved \"{title}\". It now starts {date} at {venue}.\n{url}",
   "ntf_push_event_rescheduled_title": "New time: {title}",
-  "ntf_push_event_rescheduled_body": "Now {date}.",
+  "ntf_push_event_rescheduled_body": "Now {date} at {venue}.",
   "ntf_cancel_reason": "From the host: {reason}",
   "event_cancelled_title": "This meetup was cancelled",
   "event_cancelled_body": "The host called it off. There is no need to go.",
@@ -667,5 +667,32 @@
   "how_step3_title": "Meet over coffee",
   "how_step3_body": "One table, a few founders, a real conversation.",
   "how_cta_host": "Host a meetup",
-  "how_cta_faq": "Common questions"
+  "how_cta_faq": "Common questions",
+  "ntf_push_event_relocated_title": "New place: {title}",
+  "ntf_push_event_relocated_body": "Now at {address}. The time is unchanged.",
+  "ntf_email_event_relocated_subject": "New place: {title}",
+  "ntf_email_event_relocated_html": "<p>The host has moved <strong>{title}</strong>. It is now at {address}.</p><p>It still starts {date}.</p><p><a href=\"{url}\">See the event page</a></p>",
+  "ntf_email_event_relocated_text": "The host has moved \"{title}\". It is now at {address}. It still starts {date}.\n{url}",
+  "host_edit_where": "Where",
+  "host_edit_venue_hint": "Click the map or search to change the place.",
+  "host_edit_notice_venue": [
+    {
+      "declarations": ["input n", "local nPlural = n: plural"],
+      "selectors": ["nPlural"],
+      "match": {
+        "nPlural=one": "Changing the place will notify 1 attendee.",
+        "nPlural=*": "Changing the place will notify {n} attendees."
+      }
+    }
+  ],
+  "host_edit_notice_both": [
+    {
+      "declarations": ["input n", "local nPlural = n: plural"],
+      "selectors": ["nPlural"],
+      "match": {
+        "nPlural=one": "Changing the time and place will notify 1 attendee.",
+        "nPlural=*": "Changing the time and place will notify {n} attendees."
+      }
+    }
+  ]
 }

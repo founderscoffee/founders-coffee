@@ -4,6 +4,8 @@ import {
   ntf_push_confirmation_title,
   ntf_push_event_cancelled_body,
   ntf_push_event_cancelled_title,
+  ntf_push_event_relocated_body,
+  ntf_push_event_relocated_title,
   ntf_push_event_rescheduled_body,
   ntf_push_event_rescheduled_title,
   ntf_push_reminder_24h_body,
@@ -34,6 +36,7 @@ export type { NotificationTemplateKey } from '@founders-coffee/core';
 export interface TemplateValues {
   readonly title: string;
   readonly venue: string;
+  readonly address: string;
   readonly date: string;
   readonly url: string;
   readonly reason?: string;
@@ -58,6 +61,7 @@ const escapeHtml = (value: string): string =>
 export const escapeValues = (values: TemplateValues): TemplateValues => ({
   title: escapeHtml(values.title),
   venue: escapeHtml(values.venue),
+  address: escapeHtml(values.address),
   date: escapeHtml(values.date),
   url: escapeHtml(values.url),
   reason: values.reason ? escapeHtml(values.reason) : undefined,
@@ -87,8 +91,9 @@ export const withReason = (
  * nor a host being asked how it went is that. Asking for an SMS body this product has decided not to
  * write should not compile.
  *
- * `event_rescheduled` is excluded on the same grounds. A meetup that moved is still happening, so
- * the reader is not somebody to stop at their front door; push with email beneath it carries it.
+ * `event_rescheduled` and `event_relocated` are excluded on the same grounds. A meetup that moved,
+ * in time or across town, is still happening, so the reader is not somebody to stop at their front
+ * door; push with email beneath it carries both.
  */
 export const smsBodyFor = (
   templateKey: Exclude<
@@ -98,6 +103,7 @@ export const smsBodyFor = (
     | 'closeout_prompt'
     | 'event_did_not_happen'
     | 'event_rescheduled'
+    | 'event_relocated'
     | 'feedback_invitation'
   >,
   values: TemplateValues,
@@ -182,6 +188,13 @@ export const pushPayloadFor = (
     return {
       pushTitle: ntf_push_event_rescheduled_title(values, options),
       pushBody: ntf_push_event_rescheduled_body(values, options),
+      pushUrl,
+    };
+  }
+  if (templateKey === 'event_relocated') {
+    return {
+      pushTitle: ntf_push_event_relocated_title(values, options),
+      pushBody: ntf_push_event_relocated_body(values, options),
       pushUrl,
     };
   }

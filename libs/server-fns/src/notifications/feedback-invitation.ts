@@ -58,6 +58,7 @@ export const enqueueFeedbackInvitations = async (
     const values = {
       title: event.title,
       venue: event.venue,
+      address: event.venue,
       date: formatDate(event.endsAt, context.locale, {
         timeZone: context.timeZone,
         weekday: 'long',

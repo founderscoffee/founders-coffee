@@ -1,11 +1,14 @@
 import { useState } from 'react';
 
 import {
+  host_edit_notice_both,
   host_edit_notice_going,
   host_edit_notice_none,
+  host_edit_notice_venue,
   host_edit_save,
   host_edit_saving,
   host_edit_when,
+  host_edit_where,
   host_venue_name_label,
   host_venue_name_ph,
   host_time_invalid,
@@ -18,31 +21,15 @@ import { Button } from '@founders-coffee/ui';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 import { hostCreateViewCopy } from '../host-create-copy';
+import {
+  hasPlaceMoved,
+  hasScheduleMoved,
+  nameFor,
+  type EventEditDraft,
+} from '../event-edit-draft';
 import { DatetimePicker } from '../../../components/host/DatetimePicker';
 import { HostDetailsStep } from '../../../components/host/HostDetailsStep';
-
-export type EventEditDraft = {
-  title: string;
-  description: string;
-  venueName: string;
-  startsAt: number | null;
-  endsAt: number | null;
-};
-
-export const draftFromEvent = (event: EventDetailItem): EventEditDraft => ({
-  title: event.title,
-  description: event.description,
-  venueName: event.venue,
-  startsAt: new Date(event.startsAt).getTime(),
-  endsAt: event.endsAt ? new Date(event.endsAt).getTime() : null,
-});
-
-export const hasScheduleMoved = (
-  event: EventDetailItem,
-  draft: EventEditDraft,
-): boolean =>
-  new Date(event.startsAt).getTime() !== draft.startsAt ||
-  (event.endsAt ? new Date(event.endsAt).getTime() : null) !== draft.endsAt;
+import { EventEditVenue } from './EventEditVenue';
 
 const scheduleMessage = (error: ZonedDateTimeError, locale: Locale): string => {
   if (error === 'nonexistent_time')
@@ -52,12 +39,26 @@ const scheduleMessage = (error: ZonedDateTimeError, locale: Locale): string => {
   return host_time_invalid({}, { locale });
 };
 
+const noticeFor = (
+  locale: Locale,
+  n: number,
+  timeMoved: boolean,
+  placeMoved: boolean,
+): string => {
+  if (n === 0 || (!timeMoved && !placeMoved))
+    return host_edit_notice_none({}, { locale });
+  if (timeMoved && placeMoved) return host_edit_notice_both({ n }, { locale });
+  if (timeMoved) return host_edit_notice_going({ n }, { locale });
+  return host_edit_notice_venue({ n }, { locale });
+};
+
 const { constraints } = hostCreateViewCopy();
 
 export const EventEditForm = ({
   locale,
   event,
   timezone,
+  mapboxToken,
   draft,
   onDraftChange,
   onSubmit,
@@ -66,6 +67,7 @@ export const EventEditForm = ({
   locale: Locale;
   event: EventDetailItem;
   timezone: string;
+  mapboxToken: string;
   draft: EventEditDraft;
   onDraftChange: (draft: EventEditDraft) => void;
   onSubmit: () => void;
@@ -74,9 +76,10 @@ export const EventEditForm = ({
   const [scheduleError, setScheduleError] = useState<ZonedDateTimeError | null>(
     null,
   );
-  const moved = hasScheduleMoved(event, draft);
+  const timeMoved = hasScheduleMoved(event, draft);
+  const placeMoved = hasPlaceMoved(event, draft);
   const others = Math.max(0, event.goingCount - 1);
-  const willNotify = moved && others > 0;
+  const willNotify = (timeMoved || placeMoved) && others > 0;
   const patch = (next: Partial<EventEditDraft>) =>
     onDraftChange({ ...draft, ...next });
 
@@ -98,20 +101,37 @@ export const EventEditForm = ({
         onDescriptionChange={(description) => patch({ description })}
       />
 
-      <label className="form-control" htmlFor="edit-venue-name">
-        <span className="mb-1 text-body-sm text-neutral">
-          {host_venue_name_label({}, { locale })}
-        </span>
-        <input
-          id="edit-venue-name"
-          className="input input-bordered w-full"
-          dir="auto"
-          value={draft.venueName}
-          maxLength={constraints.venueNameMax}
-          placeholder={host_venue_name_ph({}, { locale })}
-          onChange={(changed) => patch({ venueName: changed.target.value })}
+      <fieldset className="grid gap-3">
+        <legend className="mb-1 font-display text-body-lg font-semibold">
+          {host_edit_where({}, { locale })}
+        </legend>
+        <label className="form-control" htmlFor="edit-venue-name">
+          <span className="mb-1 text-body-sm text-neutral">
+            {host_venue_name_label({}, { locale })}
+          </span>
+          <input
+            id="edit-venue-name"
+            className="input input-bordered w-full"
+            dir="auto"
+            value={draft.venueName}
+            maxLength={constraints.venueNameMax}
+            placeholder={host_venue_name_ph({}, { locale })}
+            onChange={(changed) => patch({ venueName: changed.target.value })}
+          />
+        </label>
+        <EventEditVenue
+          locale={locale}
+          event={event}
+          mapboxToken={mapboxToken}
+          venue={draft.venue}
+          searchValue={draft.venueSearch}
+          onSearchChange={(venueSearch) => patch({ venueSearch })}
+          onVenueSelect={(picked) =>
+            patch({ venue: picked, venueName: nameFor(draft, picked) })
+          }
+          onVenueInvalidate={() => patch({ venue: null })}
         />
-      </label>
+      </fieldset>
 
       <fieldset className="grid gap-2">
         <legend className="mb-1 font-display text-body-lg font-semibold">
@@ -136,9 +156,7 @@ export const EventEditForm = ({
         className={`text-body-sm ${willNotify ? 'text-warning' : 'text-neutral'}`}
         aria-live="polite"
       >
-        {willNotify
-          ? host_edit_notice_going({ n: others }, { locale })
-          : host_edit_notice_none({}, { locale })}
+        {noticeFor(locale, others, timeMoved, placeMoved)}
       </p>
 
       <Button

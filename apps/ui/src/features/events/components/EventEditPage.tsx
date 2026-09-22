@@ -20,9 +20,10 @@ import { localizedEvent } from '../../../lib/locale-routing';
 import { useEventById, useUpdateEvent } from '../hooks';
 import {
   draftFromEvent,
-  EventEditForm,
+  locationPatch,
   type EventEditDraft,
-} from './EventEditForm';
+} from '../event-edit-draft';
+import { EventEditForm } from './EventEditForm';
 
 const messageFor = (error: unknown, locale: Locale): string => {
   const code = appErrorCode(error);
@@ -40,10 +41,12 @@ const messageFor = (error: unknown, locale: Locale): string => {
 export const EventEditPage = ({
   locale,
   eventId,
+  mapboxToken,
   markets = [],
 }: {
   locale: Locale;
   eventId: string;
+  mapboxToken: string;
   markets?: readonly { code: string; slug: string; timezone: string }[];
 }) => {
   const router = useRouter();
@@ -84,6 +87,7 @@ export const EventEditPage = ({
             title: current.title.trim(),
             description: current.description.trim(),
             venueName: current.venueName.trim(),
+            ...(locationPatch(event, current) ?? {}),
             startsAt: current.startsAt,
             endsAt: current.endsAt,
             language: event.language,
@@ -134,6 +138,7 @@ export const EventEditPage = ({
             locale={locale}
             event={event}
             timezone={market?.timezone ?? 'UTC'}
+            mapboxToken={mapboxToken}
             draft={current}
             onDraftChange={setDraft}
             onSubmit={submit}
