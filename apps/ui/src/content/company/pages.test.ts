@@ -50,6 +50,16 @@ describe('company pages', () => {
     }
   });
 
+  it('anchors the reporting section the same way in every locale', () => {
+    for (const locale of LOCALES) {
+      const sections = companyPageContent('contact', locale).sections;
+      expect(
+        sections.filter((section) => section.anchor === 'report').length,
+        `contact:${locale} has no section anchored at #report, and the footer link points there — a generated id is built from the translated heading, so it differs per locale and shifts when a section is inserted above it`,
+      ).toBe(1);
+    }
+  });
+
   it('only links to company pages that exist', () => {
     const links = LOCALES.flatMap((locale) =>
       KEYS.flatMap((key) => allText(key, locale)),

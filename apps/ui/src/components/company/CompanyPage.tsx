@@ -66,7 +66,7 @@ export const CompanyPage = ({
   const textLocale: Locale = arabicSource ? 'ar' : locale;
   const sections = content.sections.map((section, index) => ({
     ...section,
-    id: sectionDomId(section.heading, index),
+    id: section.anchor ?? sectionDomId(section.heading, index),
   }));
 
   const copyEmail = async () => {

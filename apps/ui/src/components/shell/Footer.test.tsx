@@ -5,18 +5,20 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({
     to,
     params,
+    hash,
     children,
     ...rest
   }: {
     to: string;
     params?: Record<string, string>;
+    hash?: string;
     children: React.ReactNode;
   }) => (
     <a
-      href={Object.entries(params ?? {}).reduce(
+      href={`${Object.entries(params ?? {}).reduce(
         (path, [key, value]) => path.replace(`$${key}`, value),
         to,
-      )}
+      )}${hash ? `#${hash}` : ''}`}
       {...rest}
     >
       {children}
@@ -96,6 +98,15 @@ describe('the footer', () => {
     renderFooter('fr');
     expect(hrefs()).toContain('/fr/algeria/host/create');
     expect(hrefs()).not.toContain('/algeria/host/create');
+  });
+
+  it('opens the contact page on the reporting section, not at its top', () => {
+    renderFooter('fr');
+
+    expect(
+      hrefs(),
+      'a reader who clicks report a problem and lands on general support has to hunt for the part they came for, and the generated section ids are built from the translated heading so only a declared anchor survives the locale',
+    ).toContain('/fr/contact#report');
   });
 
   it.each<['ar' | 'fr' | 'en', string]>([
