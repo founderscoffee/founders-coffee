@@ -317,6 +317,8 @@
   "host_retry": "إعادة المحاولة",
   "host_title_label": "العنوان",
   "host_desc_label": "الوصف",
+  "host_language_label": "لغة اللقاء",
+  "host_language_hint": "اللغة التي سيدور بها الحديث، وليست لغة قراءتك للموقع.",
   "event_when": "متى",
   "event_timezone": "توقيت {market}",
   "event_where": "أين",

@@ -24,6 +24,7 @@ const draft: HostCreateDraft = {
   endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
   title: 'Founder meetup',
   description: 'A complete founder meetup description.',
+  language: 'ar',
 };
 
 describe('host create draft', () => {
@@ -33,6 +34,25 @@ describe('host create draft', () => {
     writeHostCreateDraft('DZ', draft);
     expect(readHostCreateDraft('DZ')).toEqual(draft);
     expect(readHostCreateDraft('EG')).toBeNull();
+  });
+
+  it('keeps the language the host chose, not the one they are reading in', () => {
+    writeHostCreateDraft('DZ', { ...draft, language: 'fr' });
+    expect(readHostCreateDraft('DZ')?.language).toBe('fr');
+  });
+
+  it('drops a draft naming a language the site does not speak', () => {
+    window.sessionStorage.setItem(
+      'fc:event-draft:DZ',
+      JSON.stringify({
+        version: 5,
+        savedAt: Date.now(),
+        marketCode: 'DZ',
+        ...draft,
+        language: 'de',
+      }),
+    );
+    expect(readHostCreateDraft('DZ')).toBeNull();
   });
 
   it('rejects malformed persisted state', () => {
@@ -72,6 +92,7 @@ describe('AR: a draft this module wrote is always readable', () => {
     endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
     title: 'Protected meetup',
     description: 'A complete protected meetup for founders.',
+    language: 'ar' as const,
   };
 
   it('survives a venue search value longer than the schema allows', () => {

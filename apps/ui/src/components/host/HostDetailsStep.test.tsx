@@ -9,6 +9,7 @@ const show = (title = '', description = '') =>
       locale="en"
       title={title}
       description={description}
+      language="en"
       constraints={{
         titleMin: 3,
         titleMax: 120,
@@ -18,6 +19,7 @@ const show = (title = '', description = '') =>
       errors={{}}
       onTitleChange={vi.fn()}
       onDescriptionChange={vi.fn()}
+      onLanguageChange={vi.fn()}
     />,
   );
 

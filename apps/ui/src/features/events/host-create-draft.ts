@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
-import { venueKindSchema } from '@founders-coffee/core';
+import { localeSchema, venueKindSchema } from '@founders-coffee/core';
 import { events } from '@founders-coffee/domain';
+import type { Locale } from '@founders-coffee/i18n';
 
 import { VENUE_SEARCH_MAX_LENGTH, type VenueSelection } from './types';
 
-const DRAFT_VERSION = 4;
+const DRAFT_VERSION = 5;
 const DRAFT_MAX_AGE_MS = 24 * 60 * 60_000;
 
 const venueSelectionSchema = z.object({
@@ -29,6 +30,7 @@ const hostCreateDraftSchema = z.object({
   endsAt: z.number().int().positive().nullable(),
   title: z.string().max(events.EVENT_TITLE_MAX_LENGTH),
   description: z.string().max(events.EVENT_DESCRIPTION_MAX_LENGTH),
+  language: localeSchema,
 });
 
 export type HostCreateDraft = {
@@ -40,6 +42,7 @@ export type HostCreateDraft = {
   endsAt: number | null;
   title: string;
   description: string;
+  language: Locale;
 };
 
 const draftKey = (marketCode: string): string => `fc:event-draft:${marketCode}`;
@@ -69,6 +72,7 @@ export const readHostCreateDraft = (
       endsAt: parsed.data.endsAt,
       title: parsed.data.title,
       description: parsed.data.description,
+      language: parsed.data.language,
     };
   } catch {
     return null;

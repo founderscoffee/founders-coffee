@@ -13,6 +13,7 @@ const template: RepeatEventTemplate = {
   venueAddress: '12 Rue des Entrepreneurs, Alger',
   latitude: 36.7538,
   longitude: 3.0588,
+  language: 'ar',
 };
 
 describe('repeatDraftFrom', () => {
@@ -33,7 +34,14 @@ describe('repeatDraftFrom', () => {
       endsAt: null,
       title: 'Founders breakfast',
       description: 'A relaxed breakfast for local founders.',
+      language: 'ar',
     });
+  });
+
+  it('holds the meetup in the language the last one was held in', () => {
+    expect(repeatDraftFrom({ ...template, language: 'fr' }).language).toBe(
+      'fr',
+    );
   });
 
   it('leaves the venue empty when the source has no complete location', () => {

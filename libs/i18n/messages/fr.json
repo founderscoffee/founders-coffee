@@ -305,6 +305,8 @@
   "host_retry": "Réessayer",
   "host_title_label": "Titre",
   "host_desc_label": "Description",
+  "host_language_label": "Langue",
+  "host_language_hint": "La langue de la conversation, pas celle dans laquelle vous lisez le site.",
   "event_when": "Quand",
   "event_timezone": "Heure d’{market}",
   "event_where": "Où",

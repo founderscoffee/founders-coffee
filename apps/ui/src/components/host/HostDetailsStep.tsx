@@ -9,20 +9,24 @@ import {
 } from '@founders-coffee/i18n';
 import { Input } from '@founders-coffee/ui';
 
+import { EventLanguageField } from '../events/EventLanguageField';
 import type { HostCreateFieldErrors } from '../../features/events/host-create-validation';
 
 export const HostDetailsStep = ({
   locale,
   title,
   description,
+  language,
   constraints,
   errors,
   onTitleChange,
   onDescriptionChange,
+  onLanguageChange,
 }: {
   locale: Locale;
   title: string;
   description: string;
+  language: Locale;
   constraints: {
     titleMin: number;
     titleMax: number;
@@ -32,6 +36,7 @@ export const HostDetailsStep = ({
   errors: HostCreateFieldErrors;
   onTitleChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
+  onLanguageChange: (value: Locale) => void;
 }) => (
   <div className="grid gap-5">
     <div className="form-control">
@@ -110,5 +115,12 @@ export const HostDetailsStep = ({
         </span>
       )}
     </div>
+
+    <EventLanguageField
+      id="host-language"
+      locale={locale}
+      value={language}
+      onChange={onLanguageChange}
+    />
   </div>
 );

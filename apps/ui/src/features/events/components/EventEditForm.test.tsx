@@ -196,3 +196,44 @@ describe('the two things a host can do from the bottom of the form', () => {
     ).toBe(back.parentElement);
   });
 });
+
+describe('correcting the language a meetup was filed under', () => {
+  it('starts on the language the meetup is already filed under', () => {
+    show();
+
+    expect(
+      (screen.getByLabelText(/^Language/) as unknown as HTMLSelectElement)
+        .value,
+    ).toBe('en');
+  });
+
+  it('offers every language the site speaks', () => {
+    show();
+
+    expect(
+      [
+        ...(screen.getByLabelText(/^Language/) as unknown as HTMLSelectElement)
+          .options,
+      ].map((option) => option.value),
+    ).toEqual(['ar', 'en', 'fr']);
+  });
+
+  it('shows the correction the host is part way through making', () => {
+    show({ ...draftFromEvent(event), language: 'ar' });
+
+    expect(
+      (screen.getByLabelText(/^Language/) as unknown as HTMLSelectElement)
+        .value,
+      'a host who picked Arabic and then moved the pin should not find English again',
+    ).toBe('ar');
+  });
+
+  it('tells nobody, because what language it is in was always what it is in', () => {
+    show({ ...draftFromEvent(event), language: 'ar' });
+
+    expect(
+      notice(),
+      'the meetup did not move and did not change its hour; correcting how it is filed is not news an attendee has to act on',
+    ).toBe('');
+  });
+});

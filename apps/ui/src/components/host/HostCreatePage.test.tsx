@@ -176,3 +176,53 @@ describe('HostCreatePage EC-07 flow', () => {
     );
   });
 });
+
+describe('the language a meetup is held in', () => {
+  afterEach(resetHostCreateFixtures);
+
+  it('publishes the language the host chose, not the one they read in', async () => {
+    renderHostCreateWizard('en');
+    await goToHostDetails();
+    fillHostDetails();
+    fireEvent.change(screen.getByLabelText(/^Language/), {
+      target: { value: 'ar' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Confirm and publish' }),
+    );
+
+    await waitFor(() =>
+      expect(hostCreateMocks.mutateAsync).toHaveBeenCalledOnce(),
+    );
+    expect(hostCreateMocks.mutateAsync).toHaveBeenCalledWith({
+      data: { event: expect.objectContaining({ language: 'ar' }) },
+    });
+  });
+
+  it('offers every language the site speaks', async () => {
+    renderHostCreateWizard('en');
+    await goToHostDetails();
+    const choice = screen.getByLabelText(
+      /^Language/,
+    ) as unknown as HTMLSelectElement;
+    expect([...choice.options].map((option) => option.value)).toEqual([
+      'ar',
+      'en',
+      'fr',
+    ]);
+  });
+
+  it('keeps the choice when the host steps back and forward again', async () => {
+    renderHostCreateWizard('en');
+    await goToHostDetails();
+    fireEvent.change(screen.getByLabelText(/^Language/), {
+      target: { value: 'ar' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(
+      (screen.getByLabelText(/^Language/) as unknown as HTMLSelectElement)
+        .value,
+    ).toBe('ar');
+  });
+});

@@ -296,6 +296,8 @@
   "host_retry": "Retry",
   "host_title_label": "Title",
   "host_desc_label": "Description",
+  "host_language_label": "Language",
+  "host_language_hint": "The language the conversation will be in, not the one you are reading the site in.",
   "event_when": "When",
   "event_timezone": "{market} time",
   "event_where": "Where",
