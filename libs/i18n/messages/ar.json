@@ -413,6 +413,7 @@
   "filter_today": "اليوم",
   "filter_weekend": "نهاية الأسبوع",
   "filter_ar": "بالعربية",
+  "filter_en": "بالإنجليزية",
   "filter_fr": "بالفرنسية",
   "back_to_city": "العودة إلى {city}",
   "profile_link": "الملف الشخصي",

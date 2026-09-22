@@ -1,6 +1,7 @@
 import {
   city_filters_label,
   filter_ar,
+  filter_en,
   filter_fr,
   filter_today,
   filter_weekend,
@@ -13,8 +14,9 @@ const LABELS = {
   today: filter_today,
   weekend: filter_weekend,
   ar: filter_ar,
+  en: filter_en,
   fr: filter_fr,
-} as const;
+} satisfies Record<CityFilterKey, typeof filter_today>;
 
 type CityFiltersProps = {
   locale: Locale;
