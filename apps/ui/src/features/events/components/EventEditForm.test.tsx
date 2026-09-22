@@ -64,6 +64,7 @@ const LATER = new Date('2099-09-20T11:00:00Z').getTime();
 const show = (
   draft: EventEditDraft = draftFromEvent(event),
   over: Partial<EventDetailItem> = {},
+  backLink?: React.ReactNode,
 ) =>
   render(
     <EventEditForm
@@ -75,28 +76,31 @@ const show = (
       onDraftChange={() => undefined}
       onSubmit={() => undefined}
       isPending={false}
+      backLink={backLink}
     />,
   );
+
+const NOTICE = 'A change notification will be sent to all attendees.';
+
+const notice = (): string =>
+  document.querySelector('p[aria-live="polite"]')?.textContent ?? 'no region';
 
 afterEach(() => cleanup());
 
 describe('what the host is told a save will do', () => {
-  it('promises silence while nothing that matters has changed', () => {
+  it('says nothing at all while nothing that matters has changed', () => {
     show();
 
     expect(
-      screen.getByText('No one will be notified of this edit.'),
-      'a host fixing a typo should not be warned about messaging four people',
-    ).toBeTruthy();
+      notice(),
+      'a host fixing a typo is told nothing, because nothing is sent; a line promising silence is a sentence about an absence',
+    ).toBe('');
   });
 
-  it('warns with a count as soon as the start moves', () => {
+  it('warns as soon as the start moves', () => {
     show({ ...draftFromEvent(event), startsAt: LATER });
 
-    expect(
-      screen.getByText('Changing the time will notify 3 attendees.'),
-      'the host holds an RSVP on their own event and is not notified, so the count they see must exclude them',
-    ).toBeTruthy();
+    expect(notice()).toBe(NOTICE);
   });
 
   it('warns when only the end moves, because that is still a change of plan', () => {
@@ -105,24 +109,22 @@ describe('what the host is told a save will do', () => {
       endsAt: new Date('2099-09-20T14:00:00Z').getTime(),
     });
 
-    expect(screen.getByText(/will notify/)).toBeTruthy();
+    expect(notice()).toBe(NOTICE);
   });
 
-  it('warns when the café moves, even though the hour is untouched', () => {
+  it('warns when the cafe moves, even though the hour is untouched', () => {
     show({ ...draftFromEvent(event), venue: ACROSS_TOWN });
 
     expect(
-      screen.getByText('Changing the place will notify 3 attendees.'),
-      'somebody walking to the old address has to be told, and telling them the time changed would be a lie',
-    ).toBeTruthy();
+      notice(),
+      'somebody walking to the old address has to be told, so the warning cannot be reserved for the clock',
+    ).toBe(NOTICE);
   });
 
-  it('names both when the host moves the hour and the café at once', () => {
+  it('warns once, not twice, when the hour and the cafe both move', () => {
     show({ ...draftFromEvent(event), venue: ACROSS_TOWN, startsAt: LATER });
 
-    expect(
-      screen.getByText('Changing the time and place will notify 3 attendees.'),
-    ).toBeTruthy();
+    expect(notice()).toBe(NOTICE);
   });
 
   it('stays quiet about a pin nudged onto the right doorway', () => {
@@ -132,18 +134,27 @@ describe('what the host is told a save will do', () => {
     });
 
     expect(
-      screen.getByText('No one will be notified of this edit.'),
-      'the picker makes small adjustments easy, and a stray click must not message four people',
-    ).toBeTruthy();
+      notice(),
+      'the picker makes small adjustments easy, and a stray click must not promise four people a message',
+    ).toBe('');
   });
 
-  it('says nobody is affected when the host is the only one going', () => {
+  it('stays quiet when the host is the only one going', () => {
     show({ ...draftFromEvent(event), startsAt: LATER }, { goingCount: 1 });
 
     expect(
-      screen.getByText('No one will be notified of this edit.'),
-      'a host whose meetup nobody has joined should not be warned about notifying 0 attendees',
-    ).toBeTruthy();
+      notice(),
+      'there is nobody to notify, so promising a notification would be untrue',
+    ).toBe('');
+  });
+
+  it('keeps the live region in place while it has nothing to say', () => {
+    show();
+
+    expect(
+      notice(),
+      'a region that is removed and recreated announces nothing when the warning finally appears',
+    ).not.toBe('no region');
   });
 });
 
@@ -169,5 +180,19 @@ describe('the draft the form starts from', () => {
     show();
 
     expect(screen.getByTestId('edit-venue')).toBeTruthy();
+  });
+});
+
+describe('the two things a host can do from the bottom of the form', () => {
+  it('sits the way out beside the way to save, in one row', () => {
+    show(draftFromEvent(event), {}, <a href="/back">Back to the meetup</a>);
+
+    const save = screen.getByRole('button', { name: 'Save changes' });
+    const back = screen.getByRole('link', { name: 'Back to the meetup' });
+
+    expect(
+      save.parentElement,
+      'leaving the form to find the way back below it reads as a footnote rather than a choice',
+    ).toBe(back.parentElement);
   });
 });

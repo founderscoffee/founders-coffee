@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useRouter } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
@@ -143,16 +144,21 @@ export const EventEditPage = ({
             onDraftChange={setDraft}
             onSubmit={submit}
             isPending={save.isPending}
+            backLink={
+              market ? (
+                <Link
+                  className="btn btn-outline w-fit"
+                  {...localizedEvent(locale, market.slug, event.slug)}
+                >
+                  <ArrowLeft
+                    className="size-4 rtl:rotate-180"
+                    aria-hidden="true"
+                  />
+                  {host_edit_back_to_event({}, { locale })}
+                </Link>
+              ) : null
+            }
           />
-
-          {market ? (
-            <Link
-              className="link w-fit text-body-sm"
-              {...localizedEvent(locale, market.slug, event.slug)}
-            >
-              {host_edit_back_to_event({}, { locale })}
-            </Link>
-          ) : null}
         </div>
       )}
     </section>

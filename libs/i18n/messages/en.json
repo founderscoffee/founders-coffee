@@ -428,17 +428,6 @@
   "host_edit_saved": "Changes saved",
   "host_edit_loading": "Loading the meetup…",
   "host_edit_back_to_event": "Back to the meetup",
-  "host_edit_notice_none": "No one will be notified of this edit.",
-  "host_edit_notice_going": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=one": "Changing the time will notify 1 attendee.",
-        "nPlural=*": "Changing the time will notify {n} attendees."
-      }
-    }
-  ],
   "host_edit_error_conflict": "This meetup changed while you were editing it. Reload and try again.",
   "host_edit_error_ended": "This meetup has ended and can no longer be edited.",
   "host_edit_error_cancelled": "This meetup was cancelled and can no longer be edited.",
@@ -675,24 +664,5 @@
   "ntf_email_event_relocated_text": "The host has moved \"{title}\". It is now at {address}. It still starts {date}.\n{url}",
   "host_edit_where": "Where",
   "host_edit_venue_hint": "Click the map or search to change the place.",
-  "host_edit_notice_venue": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=one": "Changing the place will notify 1 attendee.",
-        "nPlural=*": "Changing the place will notify {n} attendees."
-      }
-    }
-  ],
-  "host_edit_notice_both": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=one": "Changing the time and place will notify 1 attendee.",
-        "nPlural=*": "Changing the time and place will notify {n} attendees."
-      }
-    }
-  ]
+  "host_edit_notice_change": "A change notification will be sent to all attendees."
 }

@@ -1,10 +1,7 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import {
-  host_edit_notice_both,
-  host_edit_notice_going,
-  host_edit_notice_none,
-  host_edit_notice_venue,
+  host_edit_notice_change,
   host_edit_save,
   host_edit_saving,
   host_edit_when,
@@ -39,19 +36,6 @@ const scheduleMessage = (error: ZonedDateTimeError, locale: Locale): string => {
   return host_time_invalid({}, { locale });
 };
 
-const noticeFor = (
-  locale: Locale,
-  n: number,
-  timeMoved: boolean,
-  placeMoved: boolean,
-): string => {
-  if (n === 0 || (!timeMoved && !placeMoved))
-    return host_edit_notice_none({}, { locale });
-  if (timeMoved && placeMoved) return host_edit_notice_both({ n }, { locale });
-  if (timeMoved) return host_edit_notice_going({ n }, { locale });
-  return host_edit_notice_venue({ n }, { locale });
-};
-
 const { constraints } = hostCreateViewCopy();
 
 export const EventEditForm = ({
@@ -63,6 +47,7 @@ export const EventEditForm = ({
   onDraftChange,
   onSubmit,
   isPending,
+  backLink,
 }: {
   locale: Locale;
   event: EventDetailItem;
@@ -72,6 +57,7 @@ export const EventEditForm = ({
   onDraftChange: (draft: EventEditDraft) => void;
   onSubmit: () => void;
   isPending: boolean;
+  backLink?: ReactNode;
 }) => {
   const [scheduleError, setScheduleError] = useState<ZonedDateTimeError | null>(
     null,
@@ -152,22 +138,23 @@ export const EventEditForm = ({
         )}
       </fieldset>
 
-      <p
-        className={`text-body-sm ${willNotify ? 'text-warning' : 'text-neutral'}`}
-        aria-live="polite"
-      >
-        {noticeFor(locale, others, timeMoved, placeMoved)}
+      <p className="text-body-sm text-warning empty:hidden" aria-live="polite">
+        {willNotify ? host_edit_notice_change({}, { locale }) : ''}
       </p>
 
-      <Button
-        type="submit"
-        className="btn btn-primary w-fit"
-        disabled={isPending || scheduleError !== null}
-      >
-        {isPending
-          ? host_edit_saving({}, { locale })
-          : host_edit_save({}, { locale })}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          type="submit"
+          variant="outline"
+          className="w-fit"
+          disabled={isPending || scheduleError !== null}
+        >
+          {isPending
+            ? host_edit_saving({}, { locale })
+            : host_edit_save({}, { locale })}
+        </Button>
+        {backLink}
+      </div>
     </form>
   );
 };

@@ -437,17 +437,6 @@
   "host_edit_saved": "Modifications enregistrées",
   "host_edit_loading": "Chargement de la rencontre…",
   "host_edit_back_to_event": "Retour à la rencontre",
-  "host_edit_notice_none": "Personne ne sera prévenu de cette modification.",
-  "host_edit_notice_going": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=one": "Changer l’horaire préviendra 1 participant.",
-        "nPlural=*": "Changer l’horaire préviendra {n} participants."
-      }
-    }
-  ],
   "host_edit_error_conflict": "Cette rencontre a changé pendant votre modification. Rechargez puis réessayez.",
   "host_edit_error_ended": "Cette rencontre est terminée et ne peut plus être modifiée.",
   "host_edit_error_cancelled": "Cette rencontre a été annulée et ne peut plus être modifiée.",
@@ -693,24 +682,5 @@
   "ntf_email_event_relocated_text": "L’hôte a déplacé « {title} ». C’est maintenant à {address}. Cela commence toujours le {date}.\n{url}",
   "host_edit_where": "Où",
   "host_edit_venue_hint": "Cliquez sur la carte ou recherchez pour changer de lieu.",
-  "host_edit_notice_venue": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=one": "Changer le lieu préviendra 1 participant.",
-        "nPlural=*": "Changer le lieu préviendra {n} participants."
-      }
-    }
-  ],
-  "host_edit_notice_both": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=one": "Changer l’horaire et le lieu préviendra 1 participant.",
-        "nPlural=*": "Changer l’horaire et le lieu préviendra {n} participants."
-      }
-    }
-  ]
+  "host_edit_notice_change": "Une notification de changement sera envoyée à tous les participants."
 }

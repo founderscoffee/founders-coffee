@@ -462,21 +462,6 @@
   "host_edit_saved": "حُفظت التغييرات",
   "host_edit_loading": "جارٍ تحميل اللقاء…",
   "host_edit_back_to_event": "العودة إلى اللقاء",
-  "host_edit_notice_none": "لن يُخطر أحد بهذا التعديل.",
-  "host_edit_notice_going": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=zero": "تغيير الموعد سيُخطر {n} من الحاضرين.",
-        "nPlural=one": "تغيير الموعد سيُخطر حاضرًا واحدًا.",
-        "nPlural=two": "تغيير الموعد سيُخطر حاضرَين.",
-        "nPlural=few": "تغيير الموعد سيُخطر {n} حاضرين.",
-        "nPlural=many": "تغيير الموعد سيُخطر {n} حاضرًا.",
-        "nPlural=*": "تغيير الموعد سيُخطر {n} من الحاضرين."
-      }
-    }
-  ],
   "host_edit_error_conflict": "تغيّر هذا اللقاء أثناء تعديلك له. أعد تحميل الصفحة ثم حاول مجددًا.",
   "host_edit_error_ended": "انتهى هذا اللقاء، ولم يعد من الممكن تعديله.",
   "host_edit_error_cancelled": "أُلغي هذا اللقاء، ولم يعد من الممكن تعديله.",
@@ -726,32 +711,5 @@
   "ntf_email_event_relocated_text": "غيّر المضيف مكان «{title}». المكان الآن {address}. الموعد {date} كما هو.\n{url}",
   "host_edit_where": "المكان",
   "host_edit_venue_hint": "انقر على الخريطة أو ابحث لتغيير المكان.",
-  "host_edit_notice_venue": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=zero": "تغيير المكان سيُخطر {n} من الحاضرين.",
-        "nPlural=one": "تغيير المكان سيُخطر حاضرًا واحدًا.",
-        "nPlural=two": "تغيير المكان سيُخطر حاضرَين.",
-        "nPlural=few": "تغيير المكان سيُخطر {n} حاضرين.",
-        "nPlural=many": "تغيير المكان سيُخطر {n} حاضرًا.",
-        "nPlural=*": "تغيير المكان سيُخطر {n} من الحاضرين."
-      }
-    }
-  ],
-  "host_edit_notice_both": [
-    {
-      "declarations": ["input n", "local nPlural = n: plural"],
-      "selectors": ["nPlural"],
-      "match": {
-        "nPlural=zero": "تغيير الموعد والمكان سيُخطر {n} من الحاضرين.",
-        "nPlural=one": "تغيير الموعد والمكان سيُخطر حاضرًا واحدًا.",
-        "nPlural=two": "تغيير الموعد والمكان سيُخطر حاضرَين.",
-        "nPlural=few": "تغيير الموعد والمكان سيُخطر {n} حاضرين.",
-        "nPlural=many": "تغيير الموعد والمكان سيُخطر {n} حاضرًا.",
-        "nPlural=*": "تغيير الموعد والمكان سيُخطر {n} من الحاضرين."
-      }
-    }
-  ]
+  "host_edit_notice_change": "سيتم إرسال إشعار تغيير لجميع الحاضرين."
 }
