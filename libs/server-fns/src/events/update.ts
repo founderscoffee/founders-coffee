@@ -72,11 +72,13 @@ const rearmReminders = async (
  * edit but a different meetup wearing the same RSVPs. A venue whose coordinates resolve to another
  * city is refused for that reason rather than silently relocating everyone.
  *
- * The point is only geocoded again when it actually moves. Re-deriving it on every save would cost
- * a provider call to fix a typo, and it would also overrule the host: creation lets them name the
- * city themselves on the confirmation step, and a derived city need not agree with the one they
- * chose. An edit that leaves the coordinates alone keeps the city and the address exactly as they
- * were, so correcting a title cannot quietly relabel where the meetup is.
+ * The point is only geocoded again when the caller sends one and it differs from the stored one.
+ * Re-deriving it on every save would cost a provider call to fix a typo, and it would also overrule
+ * the host: creation lets them name the city themselves on the confirmation step, and a derived
+ * city need not agree with the one they chose. An edit that sends no point keeps the city and the
+ * address exactly as they were, so correcting a title cannot quietly relabel where the meetup is —
+ * which matters because most rows carry no coordinates at all, and a form forced to send a number
+ * would send a placeholder the resolver could not tell from a real move.
  *
  * The slug is never regenerated. It was derived from the title once, at creation, and every link
  * already pasted into a WhatsApp thread points at it; rebuilding it from a corrected title would
@@ -123,16 +125,24 @@ export const updateEventResolver = async (
       new AppError('event_already_ended', 'This meetup has already ended'),
     );
 
+  const point =
+    opts.input.latitude !== undefined && opts.input.longitude !== undefined
+      ? { latitude: opts.input.latitude, longitude: opts.input.longitude }
+      : null;
   const relocated =
-    event.latitude !== opts.input.latitude ||
-    event.longitude !== opts.input.longitude;
+    point !== null &&
+    (event.latitude !== point.latitude || event.longitude !== point.longitude);
   let venueAddress = event.venueAddress;
-  if (relocated) {
+  let latitude = event.latitude;
+  let longitude = event.longitude;
+  if (relocated && point) {
+    latitude = point.latitude;
+    longitude = point.longitude;
     const located = await locatePoint(mapProvider, {
       marketCode: event.marketCode,
       locale: opts.input.language,
-      latitude: opts.input.latitude,
-      longitude: opts.input.longitude,
+      latitude: point.latitude,
+      longitude: point.longitude,
       snapshotProviderId: opts.input.venueProviderId,
       fallbackAddress: opts.input.venueAddress,
     });
@@ -160,8 +170,8 @@ export const updateEventResolver = async (
       description: opts.input.description,
       venue: opts.input.venueName,
       venueAddress,
-      latitude: opts.input.latitude,
-      longitude: opts.input.longitude,
+      latitude,
+      longitude,
       startsAt,
       endsAt,
       language: opts.input.language,
@@ -188,8 +198,8 @@ export const updateEventResolver = async (
     description: opts.input.description,
     venue: opts.input.venueName,
     venueAddress,
-    latitude: opts.input.latitude,
-    longitude: opts.input.longitude,
+    latitude,
+    longitude,
     startsAt,
     endsAt,
     language: opts.input.language,
