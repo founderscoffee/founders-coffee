@@ -145,7 +145,7 @@ export const EventEditForm = ({
       <div className="flex flex-wrap items-center gap-3">
         <Button
           type="submit"
-          variant="outline"
+          variant="primary"
           className="w-fit"
           disabled={isPending || scheduleError !== null}
         >
