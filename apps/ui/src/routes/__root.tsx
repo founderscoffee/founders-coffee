@@ -82,7 +82,6 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
   return (
     <html lang={locale} dir={dir} data-auth-slot="out" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: AUTH_SLOT_SCRIPT }} />
         <HeadContent />
       </head>
       <body className="flex flex-col bg-base-100 text-base-content">
@@ -154,8 +153,11 @@ export const Route = createRootRoute({
         { rel: 'manifest', href: manifestHref(locale) },
         ...(pageHead?.links ?? []),
       ],
-      scripts: pageHead?.scripts ?? [
-        { type: 'application/ld+json', children: organizationJsonLd() },
+      scripts: [
+        { children: AUTH_SLOT_SCRIPT },
+        ...(pageHead?.scripts ?? [
+          { type: 'application/ld+json', children: organizationJsonLd() },
+        ]),
       ],
     };
   },
