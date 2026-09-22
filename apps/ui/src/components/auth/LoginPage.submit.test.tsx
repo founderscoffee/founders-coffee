@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { type Locale } from '@founders-coffee/i18n';
+
 const state = vi.hoisted(() => ({
   sent: [] as unknown[],
 }));
@@ -24,6 +26,13 @@ vi.mock('../company/LegalNotice', () => ({
   LegalNotice: () => <p data-testid="legal-notice" />,
 }));
 
+vi.mock('@founders-coffee/ui', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  Turnstile: ({ language }: { language: string }) => (
+    <div data-testid="login-turnstile" data-language={language} />
+  ),
+}));
+
 const { LoginPage } = await import('./LoginPage');
 
 const show = () =>
@@ -32,6 +41,17 @@ const show = () =>
       locale="en"
       turnstileSiteKey={null}
       isTurnstileBypassed
+      hasSocial={false}
+      redirect="/"
+    />,
+  );
+
+const showChallenged = (locale: Locale) =>
+  render(
+    <LoginPage
+      locale={locale}
+      turnstileSiteKey="site-key"
+      isTurnstileBypassed={false}
       hasSocial={false}
       redirect="/"
     />,
@@ -98,4 +118,17 @@ describe('the sign-in card as a form', () => {
         ?.textContent,
     ).toBe('We\u2019ll send a 6-digit code.');
   });
+});
+
+describe('the bot challenge on the sign-in card', () => {
+  it.each(['ar', 'fr'] as const)(
+    'challenges in %s, the locale the page is in rather than the browser\u2019s',
+    (locale) => {
+      showChallenged(locale);
+
+      expect(screen.getByTestId('login-turnstile').dataset.language).toBe(
+        locale,
+      );
+    },
+  );
 });

@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { type Locale } from '@founders-coffee/i18n';
+
 const mocks = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
   config: { turnstileSiteKey: 'site-key', isTurnstileBypassed: false } as {
@@ -23,8 +25,18 @@ vi.mock('../../auth/hooks', () => ({
 
 vi.mock('@founders-coffee/ui', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
-  Turnstile: ({ onToken }: { onToken: (token: string) => void }) => (
-    <button data-testid="waitlist-turnstile" onClick={() => onToken('tok')}>
+  Turnstile: ({
+    language,
+    onToken,
+  }: {
+    language: string;
+    onToken: (token: string) => void;
+  }) => (
+    <button
+      data-testid="waitlist-turnstile"
+      data-language={language}
+      onClick={() => onToken('tok')}
+    >
       verify
     </button>
   ),
@@ -36,10 +48,10 @@ vi.mock('../../../components/company/LegalNotice', () => ({
 
 import { WaitlistForm } from './WaitlistForm';
 
-const renderForm = () =>
+const renderForm = (locale: Locale = 'en') =>
   render(
     <WaitlistForm
-      locale="en"
+      locale={locale}
       marketCode="DZ"
       cityCode="1"
       cityName="Algiers"
@@ -100,4 +112,15 @@ describe('WaitlistForm bot protection (AR-06)', () => {
     fireEvent.submit(screen.getByRole('textbox').closest('form') as Element);
     expect(mocks.mutateAsync).toHaveBeenCalledTimes(1);
   });
+
+  it.each(['ar', 'fr'] as const)(
+    'challenges in %s, the locale the page is in rather than the browser\u2019s',
+    (locale) => {
+      renderForm(locale);
+
+      expect(screen.getByTestId('waitlist-turnstile').dataset.language).toBe(
+        locale,
+      );
+    },
+  );
 });

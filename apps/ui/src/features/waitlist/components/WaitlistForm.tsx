@@ -121,6 +121,7 @@ export const WaitlistForm = ({
           sitekey={sitekey}
           action="join_waitlist"
           appearance="interaction-only"
+          language={locale}
           resetKey={turnstileResetKey}
           onToken={setTurnstileToken}
         />

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 
+import { type Locale } from '@founders-coffee/core';
+
 interface TurnstileApi {
   render: (
     el: HTMLElement,
@@ -7,6 +9,7 @@ interface TurnstileApi {
       sitekey: string;
       action?: string;
       appearance?: 'always' | 'execute' | 'interaction-only';
+      language: Locale;
       size?: 'normal' | 'flexible' | 'compact';
       callback: (token: string) => void;
       'error-callback': () => void;
@@ -55,12 +58,14 @@ export const Turnstile = ({
   sitekey,
   action,
   appearance = 'always',
+  language,
   resetKey = 0,
   onToken,
 }: {
   sitekey: string;
   action?: string;
   appearance?: 'always' | 'execute' | 'interaction-only';
+  language: Locale;
   resetKey?: number;
   onToken: (token: string | null) => void;
 }) => {
@@ -83,6 +88,7 @@ export const Turnstile = ({
         sitekey,
         action,
         appearance,
+        language,
         size: 'flexible',
         callback: (token) => onTokenRef.current(token),
         'error-callback': resetWidget,
@@ -95,7 +101,7 @@ export const Turnstile = ({
       const api = getTurnstile();
       if (widgetId.current && api) api.remove(widgetId.current);
     };
-  }, [action, appearance, resetKey, sitekey]);
+  }, [action, appearance, language, resetKey, sitekey]);
 
   return (
     <div

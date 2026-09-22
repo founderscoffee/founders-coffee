@@ -167,7 +167,11 @@ export const HostSignInGate = ({
               />
             </label>
             {turnstileSiteKey && (
-              <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
+              <Turnstile
+                sitekey={turnstileSiteKey}
+                language={locale}
+                onToken={setToken}
+              />
             )}
             {error && (
               <p role="alert" className="text-body-sm text-error">
@@ -250,6 +254,7 @@ export const HostSignInGate = ({
               <Turnstile
                 sitekey={turnstileSiteKey}
                 appearance="interaction-only"
+                language={locale}
                 resetKey={resendNonce}
                 onToken={setResendToken}
               />
