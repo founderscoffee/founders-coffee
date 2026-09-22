@@ -418,6 +418,7 @@
   "event_meta_description": "Join {title}, a Founders Coffee gathering in {city}.",
   "host_you_are_hosting": "You're hosting",
   "host_hosting_help": "You are counted as attending. Guests see you in the room when the meetup starts.",
+  "host_event_ended": "This meetup has ended.",
   "host_cancel_event": "Cancel this meetup",
   "host_cancel_title": "Cancel this meetup?",
   "host_edit_title": "Edit meetup",

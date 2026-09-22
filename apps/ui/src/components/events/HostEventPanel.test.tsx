@@ -69,6 +69,12 @@ const ended = {
   endsAt: at(-2 * HOUR),
 } satisfies EventWithAttendance;
 
+const cancelledAndPast = {
+  ...ended,
+  status: 'cancelled',
+  cancelledAt: at(-10 * HOUR),
+} satisfies EventWithAttendance;
+
 const endless = {
   ...event,
   startsAt: at(-4 * HOUR),
@@ -163,5 +169,56 @@ describe('HostEventPanel offers cancelling only while there is something to canc
   it('stops offering it once the host has called the meetup off', () => {
     show(cancelled);
     expect(cancelButton()).toBeNull();
+  });
+});
+
+describe('HostEventPanel stops describing a meetup that is over as one to come', () => {
+  it('says the meetup has ended instead of who will see the host in the room', () => {
+    show(ended);
+    expect(
+      screen.queryByText(/Guests see you in the room/i),
+      'the line is about a room that opens before a start that has already passed',
+    ).toBeNull();
+    expect(screen.getByText('This meetup has ended.')).toBeTruthy();
+  });
+
+  it('stops explaining when the room opens, once it has opened and closed', () => {
+    show(ended);
+    expect(
+      screen.queryByText(/The room opens an hour before/i),
+      'one string cannot describe both not yet open and already over',
+    ).toBeNull();
+  });
+
+  it('still explains the room while the meetup is ahead', () => {
+    show(event);
+    expect(screen.getByText(/The room opens an hour before/i)).toBeTruthy();
+    expect(screen.queryByText('This meetup has ended.')).toBeNull();
+  });
+
+  it('offers the closeout once the meetup has ended', () => {
+    show(ended);
+    expect(
+      screen.queryByRole('link', { name: 'Close it out' }),
+      'the event page is where a host who just finished looks, and it was reachable only from the activity page',
+    ).toBeTruthy();
+  });
+
+  it('offers no closeout while the meetup is still ahead', () => {
+    show(event);
+    expect(screen.queryByRole('link', { name: 'Close it out' })).toBeNull();
+  });
+
+  it('offers no closeout for a meetup the host called off, once its hour has passed', () => {
+    show(cancelledAndPast);
+    expect(
+      screen.queryByRole('link', { name: 'Close it out' }),
+      'a cancelled gathering cannot be closed out, so the link would lead to a refusal',
+    ).toBeNull();
+  });
+
+  it('treats a meetup with no recorded end as one still to come', () => {
+    show(endless);
+    expect(screen.queryByText('This meetup has ended.')).toBeNull();
   });
 });

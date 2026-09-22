@@ -4,10 +4,12 @@ import { Check } from 'lucide-react';
 import { useState } from 'react';
 
 import {
+  closeout_link,
   host_cancel_ended_error,
   host_cancel_error,
   host_cancel_event,
   host_edit_open,
+  host_event_ended,
   host_hosting_help,
   host_you_are_hosting,
   live_window_closed,
@@ -15,7 +17,10 @@ import {
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
-import { localizedEventEdit } from '../../lib/locale-routing';
+import {
+  localizedCloseout,
+  localizedEventEdit,
+} from '../../lib/locale-routing';
 import {
   useCancelEvent,
   useRepeatEventTemplate,
@@ -79,10 +84,13 @@ export const HostEventPanel = ({
         {host_you_are_hosting({}, { locale })}
       </p>
       <p className="text-body-sm text-neutral">
-        {host_hosting_help({}, { locale })}
+        {hasEnded
+          ? host_event_ended({}, { locale })
+          : host_hosting_help({}, { locale })}
       </p>
 
       {!isCancelled &&
+        !hasEnded &&
         (isWindowOpen && live ? (
           <HostLiveActions
             locale={locale}
@@ -95,6 +103,15 @@ export const HostEventPanel = ({
             {live_window_closed({}, { locale })}
           </p>
         ))}
+
+      {!isCancelled && hasEnded && (
+        <Link
+          className="btn btn-outline btn-sm w-fit"
+          {...localizedCloseout(locale, event.id)}
+        >
+          {closeout_link({}, { locale })}
+        </Link>
+      )}
 
       {!isCancelled && !hasEnded && (
         <div className="flex flex-wrap items-center gap-2">

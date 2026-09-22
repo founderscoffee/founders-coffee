@@ -427,6 +427,7 @@
   "event_meta_description": "Rejoignez « {title} », une rencontre Founders Coffee à {city}.",
   "host_you_are_hosting": "Vous organisez",
   "host_hosting_help": "Vous comptez parmi les participants. Les invités vous voient dans la salle au début de la rencontre.",
+  "host_event_ended": "Cette rencontre est terminée.",
   "host_cancel_event": "Annuler la rencontre",
   "host_cancel_title": "Annuler la rencontre ?",
   "host_edit_title": "Modifier la rencontre",

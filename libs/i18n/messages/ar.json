@@ -452,6 +452,7 @@
   "event_meta_description": "انضم إلى «{title}»، لقاء من Founders Coffee في {city}.",
   "host_you_are_hosting": "أنت المضيف",
   "host_hosting_help": "أنت محسوب ضمن الحضور. يراك الحاضرون في غرفة اللقاء عند بدايته.",
+  "host_event_ended": "انتهى هذا اللقاء.",
   "host_cancel_event": "إلغاء اللقاء",
   "host_cancel_title": "إلغاء اللقاء؟",
   "host_edit_title": "تعديل اللقاء",
