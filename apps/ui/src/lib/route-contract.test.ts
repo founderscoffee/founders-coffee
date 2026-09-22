@@ -58,6 +58,10 @@ const UNPREFIXED: Readonly<Record<string, Exemption>> = {
     kind: 'redirect',
     why: '8f59f74 — notifications already enqueued carry this address',
   },
+  '/edit/$eventId': {
+    kind: 'redirect',
+    why: '#14 — renders nothing; it answers the locale-free address with the prefixed one',
+  },
 
   '/login': {
     kind: 'unresolved',

@@ -217,6 +217,12 @@ export type NewVerification = typeof verification.$inferInsert;
  * message sent about a change nobody made. The counter is incremented by the conditional update
  * itself, which is what makes the guard exact rather than probable.
  *
+ * The counter is published with the event rather than held back. A host editing a meetup has to
+ * send the version they were looking at, and the page they were looking at is the ordinary event
+ * response — so withholding it would mean a second request whose only job is to fetch a number. It
+ * carries no personal content: the most it tells a reader is how many times this gathering has been
+ * corrected.
+ *
  * `slug` is deliberately not derived again after creation. It is generated from the title once,
  * and every link a host has already shared points at it, so a retitled meetup keeps its address
  * rather than 404ing the message sitting in somebody's WhatsApp thread.
