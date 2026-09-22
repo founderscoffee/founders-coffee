@@ -13,6 +13,10 @@ import type {
   VenueReverseInput,
   VenueSearchInput,
 } from './schemas.js';
+import {
+  searchSnapshotVenues,
+  withoutSnapshotDuplicates,
+} from './snapshot-search.js';
 
 /**
  * Attach the canonical city to a provider call, when the caller named one.
@@ -79,18 +83,40 @@ export const getHostMapContextResolver = async (
   return result;
 };
 
+/**
+ * The venues a host can pick from, this market's own first and the provider's after them.
+ *
+ * The snapshot answers what the provider cannot: it holds the cafes of these cities under the names
+ * they are known by locally, including Arabic ones, which the provider indexes almost none of. It
+ * also answers without a request, so the common query is free.
+ *
+ * A provider failure is only fatal when the snapshot found nothing. Telling a host that the map is
+ * unavailable, while holding the cafe they just typed the name of, would be reporting our own
+ * dependency as their problem.
+ */
 export const searchEventVenuesResolver = async (
   provider: MapProvider,
   input: VenueSearchInput,
 ): Promise<Result<readonly VenueCandidate[]>> => {
   const location = resolveLocation(input);
   if (!location.ok) return location;
+  const known = searchSnapshotVenues(
+    input.marketCode,
+    input.cityCode,
+    input.query,
+  );
   const result = await provider.searchVenues({
     ...location.data,
     query: input.query,
   });
-  if (!result.ok) recordFailure(provider, 'venue_search', input, result.error);
-  return result;
+  if (!result.ok) {
+    recordFailure(provider, 'venue_search', input, result.error);
+    return known.length > 0 ? { ok: true, data: known } : result;
+  }
+  return {
+    ok: true,
+    data: [...known, ...withoutSnapshotDuplicates(known, result.data)],
+  };
 };
 
 export const reverseEventVenueResolver = async (
