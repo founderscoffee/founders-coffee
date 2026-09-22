@@ -4,6 +4,8 @@ import {
   ntf_push_confirmation_title,
   ntf_push_event_cancelled_body,
   ntf_push_event_cancelled_title,
+  ntf_push_event_rescheduled_body,
+  ntf_push_event_rescheduled_title,
   ntf_push_reminder_24h_body,
   ntf_push_reminder_24h_title,
   ntf_push_reminder_72h_body,
@@ -84,6 +86,9 @@ export const withReason = (
  * unread email means somebody sets off anyway — and neither a host learning that a guest is coming
  * nor a host being asked how it went is that. Asking for an SMS body this product has decided not to
  * write should not compile.
+ *
+ * `event_rescheduled` is excluded on the same grounds. A meetup that moved is still happening, so
+ * the reader is not somebody to stop at their front door; push with email beneath it carries it.
  */
 export const smsBodyFor = (
   templateKey: Exclude<
@@ -92,6 +97,7 @@ export const smsBodyFor = (
     | 'rsvp_cancelled'
     | 'closeout_prompt'
     | 'event_did_not_happen'
+    | 'event_rescheduled'
     | 'feedback_invitation'
   >,
   values: TemplateValues,
@@ -169,6 +175,13 @@ export const pushPayloadFor = (
     return {
       pushTitle: ntf_push_event_cancelled_title(values, options),
       pushBody: ntf_push_event_cancelled_body(values, options),
+      pushUrl,
+    };
+  }
+  if (templateKey === 'event_rescheduled') {
+    return {
+      pushTitle: ntf_push_event_rescheduled_title(values, options),
+      pushBody: ntf_push_event_rescheduled_body(values, options),
       pushUrl,
     };
   }

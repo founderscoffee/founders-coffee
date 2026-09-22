@@ -146,6 +146,7 @@ export const DatetimePicker = ({
         showOutsideDays
         timeZone={timeZone}
         today={today}
+        defaultMonth={selectedDate}
         selected={selectedDate}
         onSelect={handleDate}
         disabled={{ before: today }}

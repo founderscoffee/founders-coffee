@@ -1,5 +1,5 @@
 import { appErrorCode } from '@founders-coffee/core';
-import { useRouter } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
 
@@ -7,6 +7,7 @@ import {
   host_cancel_ended_error,
   host_cancel_error,
   host_cancel_event,
+  host_edit_open,
   host_hosting_help,
   host_you_are_hosting,
   live_window_closed,
@@ -14,6 +15,7 @@ import {
 } from '@founders-coffee/i18n';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import { localizedEventEdit } from '../../lib/locale-routing';
 import {
   useCancelEvent,
   useRepeatEventTemplate,
@@ -95,13 +97,21 @@ export const HostEventPanel = ({
         ))}
 
       {!isCancelled && !hasEnded && (
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm w-fit text-error"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          {host_cancel_event({}, { locale })}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            className="btn btn-outline btn-sm w-fit"
+            {...localizedEventEdit(locale, event.id)}
+          >
+            {host_edit_open({}, { locale })}
+          </Link>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm w-fit text-error"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            {host_cancel_event({}, { locale })}
+          </button>
+        </div>
       )}
 
       {repeat.data ? (

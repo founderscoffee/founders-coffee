@@ -16,8 +16,10 @@ import {
   listNearbyVenues,
   reverseEventVenue,
   searchEventVenues,
+  updateEvent,
   type EventCancelRequestInput,
   type EventCreateRequestInput,
+  type EventUpdateRequestInput,
   type EventFeedItem,
   type EventFeedPage,
   type HostedEventPage,
@@ -32,6 +34,7 @@ import type { Locale } from '@founders-coffee/core';
 export const eventsApi = {
   getUpcomingEvents,
   createEvent,
+  updateEvent,
   getEvent,
   getHostedEvents,
   getMyJoinedEvents,
@@ -52,6 +55,7 @@ export const eventsApi = {
 export type {
   EventCancelRequestInput,
   EventCreateRequestInput,
+  EventUpdateRequestInput,
   EventFeedItem,
   EventFeedPage,
   HostedEventPage,
@@ -64,6 +68,7 @@ export type CreateEventInput = { data: EventCreateRequestInput };
 export type CreatedEvent = Event;
 export type RsvpInput = { data: { eventId: string } };
 export type CancelEventInput = { data: EventCancelRequestInput };
+export type UpdateEventInput = { data: EventUpdateRequestInput };
 export type HostMapLocationInput = {
   marketCode: string;
   cityCode?: string;

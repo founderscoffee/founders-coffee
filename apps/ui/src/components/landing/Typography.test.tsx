@@ -90,6 +90,7 @@ const event: EventFeedItem = {
   longitude: null,
   venueAddress: null,
   status: 'published',
+  version: 1,
   createdAt: new Date(0),
   updatedAt: new Date(0),
   cancelledAt: null,

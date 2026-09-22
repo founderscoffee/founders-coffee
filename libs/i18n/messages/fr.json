@@ -415,6 +415,11 @@
   "ntf_email_event_cancelled_text": "L’hôte a annulé « {title} », prévu le {date} à {venue}. Inutile de vous déplacer.\n{url}",
   "ntf_push_event_cancelled_title": "Annulé : {title}",
   "ntf_push_event_cancelled_body": "{date}. L’hôte a tout annulé.",
+  "ntf_email_event_rescheduled_subject": "Nouvel horaire : {title}",
+  "ntf_email_event_rescheduled_html": "<p>L’hôte a déplacé <strong>{title}</strong>. C’est maintenant le {date} à {venue}.</p><p><a href=\"{url}\">Voir la page de la rencontre</a></p>",
+  "ntf_email_event_rescheduled_text": "L’hôte a déplacé « {title} ». C’est maintenant le {date} à {venue}.\n{url}",
+  "ntf_push_event_rescheduled_title": "Nouvel horaire : {title}",
+  "ntf_push_event_rescheduled_body": "Maintenant le {date}.",
   "ntf_cancel_reason": "De l’hôte : {reason}",
   "event_cancelled_title": "Cette rencontre a été annulée",
   "event_cancelled_body": "L’hôte a tout annulé. Inutile de vous déplacer.",
@@ -424,6 +429,30 @@
   "host_hosting_help": "Vous comptez parmi les participants. Les invités vous voient dans la salle au début de la rencontre.",
   "host_cancel_event": "Annuler la rencontre",
   "host_cancel_title": "Annuler la rencontre ?",
+  "host_edit_title": "Modifier la rencontre",
+  "host_edit_open": "Modifier",
+  "host_edit_when": "Quand",
+  "host_edit_save": "Enregistrer les modifications",
+  "host_edit_saving": "Enregistrement…",
+  "host_edit_saved": "Modifications enregistrées",
+  "host_edit_loading": "Chargement de la rencontre…",
+  "host_edit_back_to_event": "Retour à la rencontre",
+  "host_edit_notice_none": "Personne ne sera prévenu de cette modification.",
+  "host_edit_notice_going": [
+    {
+      "declarations": ["input n", "local nPlural = n: plural"],
+      "selectors": ["nPlural"],
+      "match": {
+        "nPlural=one": "Changer l’horaire préviendra 1 participant.",
+        "nPlural=*": "Changer l’horaire préviendra {n} participants."
+      }
+    }
+  ],
+  "host_edit_error_conflict": "Cette rencontre a changé pendant votre modification. Rechargez puis réessayez.",
+  "host_edit_error_ended": "Cette rencontre est terminée et ne peut plus être modifiée.",
+  "host_edit_error_cancelled": "Cette rencontre a été annulée et ne peut plus être modifiée.",
+  "host_edit_error_not_host": "Seul l’hôte peut modifier cette rencontre.",
+  "host_edit_error_generic": "Impossible d’enregistrer vos modifications. Réessayez.",
   "host_cancel_body": "Toutes les personnes inscrites seront prévenues et leurs rappels s’arrêteront. C’est irréversible.",
   "host_cancel_reason_label": "Dites-leur pourquoi (facultatif)",
   "host_cancel_reason_placeholder": "Un imprévu au café…",

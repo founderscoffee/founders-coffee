@@ -123,6 +123,12 @@ export const valuesFor = (
  * cannot occur through the front door — it is kept as a guard, not as a designed outcome.
  *
  * Skips if a pending notification already exists, so re-RSVPing does not duplicate anything.
+ *
+ * `remindersOnly` leaves the confirmation out, for the one caller that is not a new RSVP: a host
+ * moving the start has to rewrite the reminders around the new time, and the people it rewrites
+ * them for booked weeks ago. Confirming a booking they already made, on the day somebody changed
+ * the plan, reads as a second thing happening — and the reschedule notice is already telling them
+ * the one thing that did.
  */
 export const enqueueRsvpNotifications = async (
   db: Db,
@@ -137,6 +143,7 @@ export const enqueueRsvpNotifications = async (
     phoneNumber?: string | null;
     email?: string;
     locale?: string | null;
+    remindersOnly?: boolean;
   },
 ): Promise<void> => {
   const contact = await getNotificationContact(db, opts.userId);
@@ -207,7 +214,8 @@ export const enqueueRsvpNotifications = async (
     if (!earliest || sendAt < earliest) earliest = sendAt;
   };
 
-  await enqueueNotificationFor('rsvp_confirmation', new Date());
+  if (!opts.remindersOnly)
+    await enqueueNotificationFor('rsvp_confirmation', new Date());
 
   if (startsAtMs - now > SEVENTY_TWO_HOURS_MS)
     await enqueueNotificationFor(

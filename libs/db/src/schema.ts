@@ -207,7 +207,20 @@ export const verification = sqliteTable('verification', {
 export type Verification = typeof verification.$inferSelect;
 export type NewVerification = typeof verification.$inferInsert;
 
-/** Event — a free local meetup created by a host (FR-E1). Every event is free (FR-E2). */
+/**
+ * Event — a free local meetup created by a host (FR-E1). Every event is free (FR-E2).
+ *
+ * `version` exists so an edit can refuse to land on a row that moved underneath it. `updated_at`
+ * looks like it would do the same job and does not: it is second-resolution, so two saves inside
+ * one second both match a timestamp guard and the later one silently wins. An edit here is not a
+ * private document — changing the time notifies everyone who booked — so a lost update is a
+ * message sent about a change nobody made. The counter is incremented by the conditional update
+ * itself, which is what makes the guard exact rather than probable.
+ *
+ * `slug` is deliberately not derived again after creation. It is generated from the title once,
+ * and every link a host has already shared points at it, so a retitled meetup keeps its address
+ * rather than 404ing the message sitting in somebody's WhatsApp thread.
+ */
 export const events = sqliteTable(
   'events',
   {
@@ -234,6 +247,7 @@ export const events = sqliteTable(
     status: text('status', { enum: [...EVENT_STATUSES] })
       .notNull()
       .default('published'),
+    version: integer('version').notNull().default(1),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),

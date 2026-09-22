@@ -406,6 +406,11 @@
   "ntf_email_event_cancelled_text": "The host has cancelled \"{title}\", which was set for {date} at {venue}. There is no need to go.\n{url}",
   "ntf_push_event_cancelled_title": "Cancelled: {title}",
   "ntf_push_event_cancelled_body": "{date}. The host called it off.",
+  "ntf_email_event_rescheduled_subject": "New time: {title}",
+  "ntf_email_event_rescheduled_html": "<p>The host has moved <strong>{title}</strong>. It now starts {date} at {venue}.</p><p><a href=\"{url}\">See the event page</a></p>",
+  "ntf_email_event_rescheduled_text": "The host has moved \"{title}\". It now starts {date} at {venue}.\n{url}",
+  "ntf_push_event_rescheduled_title": "New time: {title}",
+  "ntf_push_event_rescheduled_body": "Now {date}.",
   "ntf_cancel_reason": "From the host: {reason}",
   "event_cancelled_title": "This meetup was cancelled",
   "event_cancelled_body": "The host called it off. There is no need to go.",
@@ -415,6 +420,30 @@
   "host_hosting_help": "You are counted as attending. Guests see you in the room when the meetup starts.",
   "host_cancel_event": "Cancel this meetup",
   "host_cancel_title": "Cancel this meetup?",
+  "host_edit_title": "Edit meetup",
+  "host_edit_open": "Edit",
+  "host_edit_when": "When",
+  "host_edit_save": "Save changes",
+  "host_edit_saving": "Saving…",
+  "host_edit_saved": "Changes saved",
+  "host_edit_loading": "Loading the meetup…",
+  "host_edit_back_to_event": "Back to the meetup",
+  "host_edit_notice_none": "No one will be notified of this edit.",
+  "host_edit_notice_going": [
+    {
+      "declarations": ["input n", "local nPlural = n: plural"],
+      "selectors": ["nPlural"],
+      "match": {
+        "nPlural=one": "Changing the time will notify 1 attendee.",
+        "nPlural=*": "Changing the time will notify {n} attendees."
+      }
+    }
+  ],
+  "host_edit_error_conflict": "This meetup changed while you were editing it. Reload and try again.",
+  "host_edit_error_ended": "This meetup has ended and can no longer be edited.",
+  "host_edit_error_cancelled": "This meetup was cancelled and can no longer be edited.",
+  "host_edit_error_not_host": "Only the host can edit this meetup.",
+  "host_edit_error_generic": "Could not save your changes. Please try again.",
   "host_cancel_body": "Everyone who said yes will be told, and their reminders stop. This cannot be undone.",
   "host_cancel_reason_label": "Tell them why (optional)",
   "host_cancel_reason_placeholder": "Something came up at the café…",

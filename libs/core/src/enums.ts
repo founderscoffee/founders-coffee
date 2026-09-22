@@ -85,6 +85,7 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'reminder_72h',
   'reminder_24h',
   'event_cancelled',
+  'event_rescheduled',
   'rsvp_received',
   'rsvp_cancelled',
   'closeout_prompt',
@@ -100,6 +101,7 @@ export const RSVP_LIFECYCLE_TEMPLATE_KEYS = [
   'reminder_72h',
   'reminder_24h',
   'event_cancelled',
+  'event_rescheduled',
 ] as const satisfies readonly NotificationTemplateKey[];
 
 export const PUSH_PLATFORMS = ['ios', 'android', 'web'] as const;

@@ -103,6 +103,25 @@ export const eventCreateSchema = z
   .strict()
   .superRefine(addScheduleIssues);
 
+export const eventUpdateSchema = z
+  .object({
+    expectedVersion: z.number().int().nonnegative(),
+    title: eventTitleSchema,
+    description: eventDescriptionSchema,
+    venueName: eventVenueNameSchema,
+    venueAddress: eventVenueAddressSchema,
+    venueProviderId: z.string().trim().min(1).max(120).optional(),
+    latitude: z.number().finite().min(-90).max(90),
+    longitude: z.number().finite().min(-180).max(180),
+    startsAt: z.number().int().positive(),
+    endsAt: z.number().int().positive(),
+    language: localeSchema,
+  })
+  .strict()
+  .superRefine(addScheduleIssues);
+
+export type EventUpdateInput = z.infer<typeof eventUpdateSchema>;
+
 export const publicEventDiscoverySchema = z.strictObject({
   market: z.string().trim().min(1).max(80),
   city: z.string().trim().min(1).max(80),

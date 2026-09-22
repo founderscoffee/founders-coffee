@@ -5,6 +5,9 @@ import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ invalidate: vi.fn() }),
+  Link: ({ children }: { children: React.ReactNode }) => (
+    <a href="/">{children}</a>
+  ),
 }));
 
 vi.mock('../../features/events/hooks', () => ({
@@ -39,6 +42,7 @@ const event = {
   venueAddress: null,
   slug: 'founders-breakfast',
   status: 'published',
+  version: 1,
   createdAt: new Date('2026-09-01T00:00:00Z'),
   updatedAt: new Date('2026-09-01T00:00:00Z'),
   cancelledAt: null,
@@ -98,6 +102,31 @@ describe('HostEventPanel leaves promoting to the page it sits on', () => {
     expect(
       screen.queryByRole('button', { name: 'Share this meetup' }),
     ).toBeNull();
+  });
+});
+
+describe('HostEventPanel offers editing instead of only cancelling', () => {
+  const editLink = () => screen.queryByRole('link', { name: 'Edit' });
+
+  it('offers it while the meetup is still ahead', () => {
+    show(event);
+    expect(
+      editLink(),
+      'without it a host who mistypes the time can only cancel, which releases every booking (#14)',
+    ).toBeTruthy();
+  });
+
+  it('stops offering it once the meetup has ended', () => {
+    show(ended);
+    expect(
+      editLink(),
+      'an edit is a claim about the future, and there is none left to change',
+    ).toBeNull();
+  });
+
+  it('stops offering it once the host has called the meetup off', () => {
+    show(cancelled);
+    expect(editLink()).toBeNull();
   });
 });
 

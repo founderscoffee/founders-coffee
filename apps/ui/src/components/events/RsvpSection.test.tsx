@@ -43,6 +43,7 @@ const event = {
   venueAddress: null,
   slug: 'founders-breakfast',
   status: 'published',
+  version: 1,
   createdAt: new Date('2026-09-01T00:00:00Z'),
   updatedAt: new Date('2026-09-01T00:00:00Z'),
   cancelledAt: null,

@@ -10,10 +10,14 @@ export type {
   EventFeedItemBase,
   EventFeedPage,
 } from './resolver.js';
-export type { EventCreateInput } from '@founders-coffee/domain';
+export type {
+  EventCreateInput,
+  EventUpdateInput,
+} from '@founders-coffee/domain';
 export type {
   EventCancelRequestInput,
   EventCreateRequestInput,
+  EventUpdateRequestInput,
   PublicEventFeedRequestInput,
   RepeatEventRequestInput,
 } from './schemas.js';
@@ -27,6 +31,7 @@ export {
   getPublicEventFeed,
   getRepeatEventTemplate,
   getUpcomingEvents,
+  updateEvent,
 } from './rpc.js';
 export type { HostedEventPage } from './hosted.js';
 export type { PublicEventFeedPage } from './public-feed.js';

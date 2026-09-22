@@ -20,9 +20,11 @@ export {
   eventDescriptionSchema,
   eventScheduleSchema,
   eventTitleSchema,
+  eventUpdateSchema,
   eventVenueAddressSchema,
   eventVenueNameSchema,
   publicEventDiscoverySchema,
   type EventCreateInput,
+  type EventUpdateInput,
   type PublicEventDiscovery,
 } from './schemas.js';
