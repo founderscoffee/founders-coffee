@@ -9,6 +9,7 @@ import {
   how_step2_title,
   how_step3_body,
   how_step3_title,
+  how_subtitle,
   how_title,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -32,14 +33,17 @@ const ctaClass =
 export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
   <section
     aria-labelledby="how-it-works-title"
-    className="mx-auto max-w-content px-4 pt-12 pb-2 md:px-8 md:pt-16"
+    className="mx-auto max-w-content px-4 pt-2 pb-2 md:px-8 md:pt-4"
   >
     <h2
       id="how-it-works-title"
-      className="font-display text-h4 font-semibold text-base-content"
+      className="font-display text-h3 font-semibold tracking-tight text-balance text-base-content md:text-h2"
     >
       {how_title({}, { locale })}
     </h2>
+    <p className="mt-2 text-body-sm text-neutral">
+      {how_subtitle({}, { locale })}
+    </p>
 
     <ol className="mt-6 grid list-none grid-cols-1 gap-6 sm:grid-cols-3">
       {STEPS.map((step) => (
@@ -68,10 +72,10 @@ export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
       ))}
     </ol>
 
-    <div className="mt-8 flex flex-wrap items-center gap-3">
+    <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
       <Link
         {...localizedHostCreate(locale, marketSlug)}
-        className={`${ctaClass} bg-primary text-primary-content hover:bg-primary/90`}
+        className={`${ctaClass} min-w-64 justify-center bg-primary text-primary-content hover:bg-primary/90`}
       >
         {how_cta_host({}, { locale })}
       </Link>

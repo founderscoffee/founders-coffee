@@ -3,9 +3,10 @@
     {
       "canonical": "لقاء",
       "banned": ["جلسة عمل", "جلسة"],
-      "why": "#49 — one word for the unit of the product. The catalogue says لقاء 106 times; جلسة عمل is the older term and reads as a corporate working session rather than a coffee between founders.",
+      "why": "#49 — one word for the unit of the product. The catalogue says لقاء 106 times; جلسة عمل is the older term and reads as a corporate working session rather than a coffee between founders. Note the sense, not only the word: جلسة standing in for لقاء is what is banned, and جلسة meaning people sitting together is a different word in use.",
       "allow": {
-        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename."
+        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename.",
+        "how_step3_title": "#49 — reads جلسة رواد أعمال, a sitting of founders. It names what happens at the table, not the unit a host creates and a member joins, and the section around it calls that unit لقاء twice. A product decision, not a leftover: delete this line only if the card is renamed, not to close #49."
       }
     },
     {

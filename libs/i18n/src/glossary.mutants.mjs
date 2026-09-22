@@ -30,8 +30,8 @@ export default {
       edits: [
         {
           file: 'glossary.json',
-          find: '      "allow": {\n        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename."\n      }',
-          replace: '      "allow": {}',
+          find: '        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename.",\n',
+          replace: '',
         },
       ],
     },
