@@ -50,25 +50,26 @@ export default {
       ],
     },
     {
-      name: 'a parked defect with no issue number',
+      name: 'a defect parked with no issue number to close it against',
       expect: 'fail',
       edits: [
         {
           file: 'src/notifications/lifecycle.test.ts',
-          find: "        '#80 — submitCloseoutResolver cancels nothing",
-          replace: "        'submitCloseoutResolver cancels nothing",
+          find: "    drops: ['closeout_prompt'],\n    keeps: ['feedback_invitation'],",
+          replace:
+            "    drops: ['closeout_prompt'],\n    keeps: ['feedback_invitation'],\n    open: { closeout_prompt: 'parked for now' },",
         },
       ],
     },
     {
-      name: 'a parked key the transition never claimed to retire',
+      name: 'a key parked as open that the transition never claimed to retire',
       expect: 'fail',
       edits: [
         {
           file: 'src/notifications/lifecycle.test.ts',
-          find: '      closeout_prompt:\n',
+          find: "    drops: ['closeout_prompt'],\n    keeps: ['feedback_invitation'],",
           replace:
-            "      rsvp_confirmation: '#80 parked by mistake',\n      closeout_prompt:\n",
+            "    drops: ['closeout_prompt'],\n    keeps: ['feedback_invitation'],\n    open: { feedback_invitation: '#80 — parked by mistake' },",
         },
       ],
     },

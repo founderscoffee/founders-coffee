@@ -49,14 +49,13 @@ export default {
       ],
     },
     {
-      name: 'the share button rule changed, which the cancel rule does not share',
+      name: 'the edit link restyled, which the cancel rule does not share',
       expect: 'pass',
       edits: [
         {
           file: 'src/components/events/HostEventPanel.tsx',
-          find: '      {!isCancelled && (\n        <ShareEventButton',
-          replace:
-            '      {!isCancelled && !hasEnded && (\n        <ShareEventButton',
+          find: '            className="btn btn-outline btn-sm w-fit"',
+          replace: '            className="btn btn-ghost btn-sm w-fit"',
         },
       ],
     },
