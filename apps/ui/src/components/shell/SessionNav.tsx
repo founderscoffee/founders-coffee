@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 import {
@@ -36,7 +36,7 @@ const initials = (name: string, email: string) => {
 const LoginLink = ({ locale }: { locale: Locale }) => (
   <Link
     to="/login"
-    className="btn btn-secondary h-9 min-h-9 shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap shadow-none"
+    className="btn btn-ghost h-9 min-h-9 shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200"
   >
     {nav_login({}, { locale })}
   </Link>
@@ -53,6 +53,7 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
   const presence = useLivePresence();
+  const pathname = useLocation({ select: (location) => location.pathname });
 
   if (!isMounted || isLoading || (isAuthenticated && isProfilePending))
     return (
@@ -65,7 +66,8 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
       </div>
     );
 
-  if (!isAuthenticated || !user) return <LoginLink locale={locale} />;
+  if (!isAuthenticated || !user)
+    return pathname === '/login' ? null : <LoginLink locale={locale} />;
 
   const presenceLabel =
     presence === null

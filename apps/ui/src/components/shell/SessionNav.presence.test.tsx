@@ -31,6 +31,8 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
   ),
+  useLocation: ({ select }: { select: (l: { pathname: string }) => string }) =>
+    select({ pathname: '/' }),
 }));
 
 const InARoom = ({ live }: { live: ConnectionState }) => {

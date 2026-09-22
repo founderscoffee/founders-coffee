@@ -28,6 +28,7 @@ const state = vi.hoisted(() => ({
     data: null as { userId: string; photoAssetId: string | null } | null,
     isPending: false,
   },
+  pathname: '/',
 }));
 
 vi.mock('../../features/profile/hooks', () => ({
@@ -38,9 +39,20 @@ vi.mock('../../lib/auth', () => ({
   authClient: { signOut: state.signOut },
 }));
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
+  Link: ({
+    children,
+    to,
+    ...rest
+  }: {
+    children: React.ReactNode;
+    to: string;
+  }) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
   ),
+  useLocation: ({ select }: { select: (l: { pathname: string }) => string }) =>
+    select({ pathname: state.pathname }),
 }));
 
 const signedIn = (email = 'amina@example.dz') => {
@@ -55,6 +67,7 @@ afterEach(() => {
   cleanup();
   state.auth = { user: null, isAuthenticated: false, isLoading: false };
   state.profile = { data: null, isPending: false };
+  state.pathname = '/';
 });
 
 describe('session avatar', () => {
@@ -135,7 +148,10 @@ describe('session loading', () => {
     const html = renderToString(<SessionNav locale="en" />);
 
     expect(html).toContain('skeleton');
-    expect(html).not.toContain('href="/login"');
+    expect(
+      html,
+      'public documents go out as public, s-maxage=60, stale-while-revalidate=300, so whatever this renders on the server is handed to every reader the shared cache serves for the next minute. A signed-in header cached from one visitor and replayed to the next is worse than a placeholder, which is why the session is resolved in the browser and this stays empty until it is',
+    ).not.toContain('href="/login"');
     expect(html).not.toContain('<details');
   });
 
@@ -185,6 +201,27 @@ describe('session dropdown', () => {
 
     expect(screen.getByRole('link').getAttribute('href')).toBe('/login');
     expect(screen.queryByText('Signed in as')).toBeNull();
+  });
+
+  it('does not offer sign-in to someone already on the sign-in page', () => {
+    state.pathname = '/login';
+    render(<SessionNav locale="en" />);
+
+    expect(
+      screen.queryByRole('link'),
+      'the header pointed at /login from /login, so the one visible affordance on the page a signed-out reader lands on was a link back to where they already were',
+    ).toBeNull();
+  });
+
+  it('leaves the filled treatment to hosting', () => {
+    render(<SessionNav locale="en" />);
+    const className = screen.getByRole('link').className;
+
+    expect(
+      className,
+      'sign-in wore btn-secondary, the clay accent, beside a host CTA in roast. Two filled buttons side by side, and the warmer one was the way back into an account you already have rather than the thing the product needs you to do',
+    ).not.toContain('btn-secondary');
+    expect(className).toContain('btn-ghost');
   });
 
   it('names the account it is signed into, above the actions', () => {
