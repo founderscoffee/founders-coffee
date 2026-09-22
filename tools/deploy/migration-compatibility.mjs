@@ -4,26 +4,18 @@ import { execFile } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
+import { findIncompatibleStatements } from './migration-rebuild.mjs';
+
 const execFileAsync = promisify(execFile);
 const migrationDirectory = path.join('libs', 'db', 'migrations');
 const manifestPath = path.join(migrationDirectory, 'compatibility.json');
 const migrationNamePattern = /\b(\d{4}_[a-z0-9_]+)(?:\.sql)?\b/giu;
-const irreversiblePatterns = [
-  /\bDROP\s+(?:TABLE|COLUMN|INDEX)\b/iu,
-  /\bDELETE\s+FROM\b/iu,
-  /\bALTER\s+TABLE\b[^;]*\bRENAME\b/iu,
-];
 
 export const parsePendingMigrations = (output) => [
   ...new Set(
     [...output.matchAll(migrationNamePattern)].map((match) => match[1]),
   ),
 ];
-
-export const findIrreversibleStatements = (sql) =>
-  irreversiblePatterns
-    .filter((pattern) => pattern.test(sql))
-    .map((pattern) => pattern.source);
 
 export const loadCompatibilityManifest = (file = manifestPath) =>
   JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -70,16 +62,22 @@ export const validatePendingMigrations = ({
     const file = path.join(migrationsDirectory, `${migration}.sql`);
     if (mode !== 'compatible') {
       failures.push(
-        `${migration}: manifest mode is ${mode ?? 'missing'}; automatic rollback is not allowed`,
+        `${migration}: manifest mode is ${mode ?? 'missing'}; the deploy is refused because a Worker rollback could not follow it`,
       );
     }
     if (!fs.existsSync(file)) {
       failures.push(`${migration}: migration file is missing`);
       continue;
     }
-    const reasons = findIrreversibleStatements(fs.readFileSync(file, 'utf8'));
-    if (reasons.length > 0) {
-      failures.push(`${migration}: irreversible SQL detected`);
+    const statements = findIncompatibleStatements({
+      sql: fs.readFileSync(file, 'utf8'),
+      migration,
+      migrationsDirectory,
+    });
+    if (statements.length > 0) {
+      failures.push(
+        `${migration}: irreversible SQL detected outside a column-preserving table rebuild`,
+      );
     }
   }
   if (failures.length > 0) {

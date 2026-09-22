@@ -31,6 +31,6 @@
   "0029_activate_launch_markets": "irreversible",
   "0030_white_vindicator": "compatible",
   "0031_market_name_fr": "compatible",
-  "0032_follow_up_prompts_default_on": "irreversible",
+  "0032_follow_up_prompts_default_on": "compatible",
   "0033_familiar_frog_thor": "compatible"
 }

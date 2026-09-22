@@ -158,6 +158,7 @@ jobs:
           echo "canonical_origin=https://staging.founders.coffee" >> "$GITHUB_OUTPUT"
 
       - name: Run SEO route smoke
+        id: seo-smoke
         env:
           REPORT_DIR: ${{ runner.temp }}/seo
         run: |
@@ -168,8 +169,10 @@ jobs:
             --output "$REPORT_DIR/seo-route-report.json" \
             --sitemap-output "$REPORT_DIR/sitemap.xml"
 
+      # Only once the smoke has actually run: on a deploy that failed earlier there is no
+      # report to upload, and `error` would add a second, misleading failure to the first.
       - name: Upload SEO smoke artifacts
-        if: always()
+        if: always() && steps.seo-smoke.conclusion != 'skipped'
         uses: actions/upload-artifact@v7
         with:
           name: seo-${{ env.TARGET_ENV }}-${{ github.sha }}
