@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { LOCALES, login_title } from '@founders-coffee/i18n';
+
 import { privatePageHead } from './seo-private';
 
 describe('private page metadata', () => {
@@ -11,4 +13,15 @@ describe('private page metadata', () => {
       ],
     });
   });
+
+  it.each(LOCALES)(
+    'leaves the sign-in title a whole phrase in %s, not a preposition with nothing after it',
+    (locale) => {
+      const [{ title }] = privatePageHead(login_title({}, { locale })).meta;
+
+      expect(title).not.toMatch(/(?:to|à|إلى)$/u);
+      expect(title?.startsWith('Founders Coffee - ')).toBe(true);
+      expect(title?.replace('Founders Coffee - ', '')).not.toBe('');
+    },
+  );
 });
