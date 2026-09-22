@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   AUTH_SLOT_KEY,
-  AUTH_SLOT_SCRIPT,
+  authSlotScript,
   readAuthSlot,
   writeAuthSlot,
 } from './session-hint';
@@ -43,24 +43,24 @@ describe('what the header remembers about its own width', () => {
   });
 
   it('reads nothing but its own key', () => {
-    expect(AUTH_SLOT_SCRIPT).toContain(AUTH_SLOT_KEY);
+    expect(authSlotScript()).toContain(AUTH_SLOT_KEY);
     expect(
-      AUTH_SLOT_SCRIPT.match(/localStorage/g)?.length,
+      authSlotScript().match(/localStorage/g)?.length,
       'this runs before anything else on every page load, so it touches one key and does nothing else',
     ).toBe(1);
   });
 
   it('cannot break the document if storage throws inside it', () => {
     expect(
-      AUTH_SLOT_SCRIPT.startsWith('try{'),
+      authSlotScript().startsWith('try{'),
       'an uncaught throw in a synchronous head script stops the parser, so this one is wrapped',
     ).toBe(true);
-    expect(AUTH_SLOT_SCRIPT).toContain('catch');
+    expect(authSlotScript()).toContain('catch');
   });
 
   it('writes a value the stylesheet can act on, and only that', () => {
     const html = { dataset: {} as Record<string, string> };
-    new Function('document', AUTH_SLOT_SCRIPT)({ documentElement: html });
+    new Function('document', authSlotScript())({ documentElement: html });
 
     expect(html.dataset.authSlot).toBe('out');
   });

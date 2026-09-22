@@ -21,7 +21,7 @@ import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
-import { AUTH_SLOT_SCRIPT } from '../features/auth/session-hint';
+import { authSlotScript } from '../features/auth/session-hint';
 import { SkipLink } from '../components/shell/SkipLink';
 import { AppProviders } from '../lib/app-providers';
 import { readCookieHeader } from '../lib/cookies';
@@ -154,7 +154,7 @@ export const Route = createRootRoute({
         ...(pageHead?.links ?? []),
       ],
       scripts: [
-        { children: AUTH_SLOT_SCRIPT },
+        { children: authSlotScript() },
         ...(pageHead?.scripts ?? [
           { type: 'application/ld+json', children: organizationJsonLd() },
         ]),

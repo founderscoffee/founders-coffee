@@ -1,5 +1,9 @@
 const KEY = 'fc_auth_slot';
 
+export type AuthSlot = 'in' | 'out';
+
+export const AUTH_SLOT_KEY = KEY;
+
 /**
  * A boolean this browser remembers so the header can size its auth control before it knows who
  * you are.
@@ -24,10 +28,6 @@ const KEY = 'fc_auth_slot';
  * buys back the alternative: a reserved width with a 32px avatar in it, leaving a hole in the
  * corner for the rest of the visit. From the next page load the hint is right and neither happens.
  */
-export type AuthSlot = 'in' | 'out';
-
-export const AUTH_SLOT_KEY = KEY;
-
 export const readAuthSlot = (): AuthSlot => {
   try {
     return window.localStorage.getItem(KEY) === 'in' ? 'in' : 'out';
@@ -59,4 +59,5 @@ export const writeAuthSlot = (slot: AuthSlot): void => {
  * the document outside React's tree sidesteps that: the stylesheet has the answer before the first
  * frame, and React never sees the attribute at all.
  */
-export const AUTH_SLOT_SCRIPT = `try{document.documentElement.dataset.authSlot=localStorage.getItem('${KEY}')==='in'?'in':'out'}catch(e){document.documentElement.dataset.authSlot='out'}`;
+export const authSlotScript = (): string =>
+  `try{document.documentElement.dataset.authSlot=localStorage.getItem('${KEY}')==='in'?'in':'out'}catch(e){document.documentElement.dataset.authSlot='out'}`;
