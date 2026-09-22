@@ -297,6 +297,7 @@
   "host_title_label": "Title",
   "host_desc_label": "Description",
   "event_when": "When",
+  "event_timezone": "{market} time",
   "event_where": "Where",
   "event_host": "Hosted by",
   "event_map_label": "Map showing {venue}",

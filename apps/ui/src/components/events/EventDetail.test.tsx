@@ -2,6 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Market } from '@founders-coffee/db';
+import { type Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 vi.mock('@tanstack/react-router', () => ({
@@ -101,7 +102,7 @@ const cancelled = {
   cancellationReason: 'The café closed without warning.',
 } satisfies EventDetailItem;
 
-const show = (item: EventDetailItem, locale: 'ar' | 'en' = 'en') =>
+const show = (item: EventDetailItem, locale: Locale = 'en') =>
   render(
     <EventDetail
       locale={locale}
@@ -184,5 +185,24 @@ describe('what the seat box calls itself', () => {
 
     expect(screen.getByRole('heading', { name: 'مقعدك' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
+  });
+});
+
+describe('whose clock the When block says the time is on', () => {
+  it.each([
+    [
+      'ar',
+      '\u062a\u0648\u0642\u064a\u062a \u0627\u0644\u062c\u0632\u0627\u0626\u0631',
+    ],
+    ['en', 'Algeria time'],
+    ['fr', 'Heure d\u2019Alg\u00e9rie'],
+  ] as const)('names the market in %s', (locale, label) => {
+    show(event, locale);
+
+    expect(screen.getByText(label)).toBeTruthy();
+    expect(
+      screen.queryByText(market.timezone),
+      'an IANA identifier is a developer string that no locale translates',
+    ).toBeNull();
   });
 });

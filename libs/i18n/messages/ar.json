@@ -318,6 +318,7 @@
   "host_title_label": "العنوان",
   "host_desc_label": "الوصف",
   "event_when": "متى",
+  "event_timezone": "توقيت {market}",
   "event_where": "أين",
   "event_host": "باستضافة",
   "event_map_label": "خريطة توضح {venue}",

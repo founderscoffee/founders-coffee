@@ -306,6 +306,7 @@
   "host_title_label": "Titre",
   "host_desc_label": "Description",
   "event_when": "Quand",
+  "event_timezone": "Heure d’{market}",
   "event_where": "Où",
   "event_host": "Animé par",
   "event_map_label": "Carte indiquant {venue}",

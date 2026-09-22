@@ -7,9 +7,11 @@ import {
   event_cancelled_title,
   event_details_title,
   event_host,
+  event_timezone,
   event_when,
   event_where,
   formatDate,
+  localizedName,
   going_count,
   host_time_from,
   host_time_to,
@@ -202,7 +204,10 @@ export const EventDetail = ({
                 </time>
               </dd>
               <dd className="mt-0.5 text-body-sm text-neutral">
-                {market.timezone}
+                {event_timezone(
+                  { market: localizedName(market, locale) },
+                  { locale },
+                )}
               </dd>
             </div>
             <div className="rounded-box border border-base-300 bg-base-100 p-4">
