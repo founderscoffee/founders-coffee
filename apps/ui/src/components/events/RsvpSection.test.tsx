@@ -1,16 +1,22 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+const mocks = vi.hoisted(() => ({
+  invalidate: vi.fn(),
+  createRsvp: vi.fn(),
+  cancelRsvp: vi.fn(),
+}));
+
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
-  useRouter: () => ({ invalidate: vi.fn() }),
+  useRouter: () => ({ invalidate: mocks.invalidate }),
 }));
 
 vi.mock('../../features/events/hooks', () => ({
-  useCreateRsvp: () => ({ mutate: vi.fn(), isPending: false }),
-  useCancelRsvp: () => ({ mutate: vi.fn(), isPending: false }),
+  useCreateRsvp: () => ({ mutate: mocks.createRsvp, isPending: false }),
+  useCancelRsvp: () => ({ mutate: mocks.cancelRsvp, isPending: false }),
 }));
 
 vi.mock('../../lib/app-providers', () => ({
@@ -18,7 +24,20 @@ vi.mock('../../lib/app-providers', () => ({
 }));
 
 vi.mock('./HostEventPanel', () => ({ HostEventPanel: () => null }));
-vi.mock('./RsvpCancelDialog', () => ({ RsvpCancelDialog: () => null }));
+vi.mock('./RsvpCancelDialog', () => ({
+  RsvpCancelDialog: ({
+    isOpen,
+    onConfirm,
+  }: {
+    isOpen: boolean;
+    onConfirm: () => void;
+  }) =>
+    isOpen ? (
+      <button type="button" onClick={onConfirm}>
+        confirm-cancel
+      </button>
+    ) : null,
+}));
 vi.mock('../../features/events/components/PushPermissionPrompt', () => ({
   PushPermissionPrompt: () => null,
 }));
@@ -86,7 +105,15 @@ const show = (item: EventWithAttendance, locale: 'ar' | 'en' = 'en') =>
     />,
   );
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+type MutateHandlers = { onSuccess?: () => void };
+
+const handlersOf = (spy: { mock: { calls: unknown[][] } }): MutateHandlers =>
+  (spy.mock.calls[0]?.[1] ?? {}) as MutateHandlers;
 
 describe('RsvpSection when the host has called the meetup off', () => {
   it('offers the seat while the meetup is still on', () => {
@@ -233,5 +260,41 @@ describe('telling the room you are on your way', () => {
       'cancel is destructive and must not sit next to the button a reader taps while walking',
     ).toBe(true);
     expect(cancel.nextElementSibling?.contains(walking)).toBe(false);
+  });
+});
+
+describe('what a settled RSVP asks the page to do next', () => {
+  it('refetches the route after joining, which is what reopens the live room', () => {
+    show(event);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Join the meetup' }));
+    expect(mocks.createRsvp).toHaveBeenCalledTimes(1);
+
+    const { onSuccess } = handlersOf(mocks.createRsvp);
+    expect(
+      typeof onSuccess,
+      'the mutation is fired with no success handler at all, so nothing below can run',
+    ).toBe('function');
+    onSuccess?.();
+
+    expect(
+      mocks.invalidate,
+      'joining does not reopen the live room by itself: the room is gated on the loader’s viewerRsvp, and only this refetch flips it. Without it the member sits on the pre-join view until they reload by hand, which is the third symptom #36 was filed for',
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches the route after cancelling, so the page stops saying they are coming', () => {
+    show({ ...event, viewerRsvp: 'going' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel RSVP' }));
+    fireEvent.click(screen.getByRole('button', { name: 'confirm-cancel' }));
+    expect(mocks.cancelRsvp).toHaveBeenCalledTimes(1);
+
+    handlersOf(mocks.cancelRsvp).onSuccess?.();
+
+    expect(
+      mocks.invalidate,
+      'the seat is released on the server but the page still renders from the loader it was given, so without this refetch it keeps offering to cancel an RSVP that no longer exists',
+    ).toHaveBeenCalledTimes(1);
   });
 });

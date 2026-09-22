@@ -1,8 +1,20 @@
 export default {
   command:
-    'npx vitest run src/durable-objects/event-live/session.test.ts src/features/events/useEventLive.test.ts',
+    'npx vitest run src/durable-objects/event-live/session.test.ts src/features/events/useEventLive.test.ts src/components/events/RsvpSection.test.tsx',
   cwd: 'apps/ui',
   mutants: [
+    {
+      name: 'joining stops refetching the route, so the room stays shut until a manual reload',
+      expect: 'fail',
+      edits: [
+        {
+          file: 'src/components/events/RsvpSection.tsx',
+          find: '        onSuccess: () => {\n          void router.invalidate();\n          setIsPushPromptOpen(true);\n        },',
+          replace:
+            '        onSuccess: () => {\n          setIsPushPromptOpen(true);\n        },',
+        },
+      ],
+    },
     {
       name: 'a non-attendee is called an expired session again, which is #36 itself',
       expect: 'fail',
