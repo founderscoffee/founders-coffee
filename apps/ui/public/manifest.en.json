@@ -5,7 +5,7 @@
   "description": "A community for local founder meetups over coffee.",
   "lang": "en",
   "dir": "ltr",
-  "start_url": "/",
+  "start_url": "/en",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -42,7 +42,7 @@
   "shortcuts": [
     {
       "name": "Host a meetup",
-      "url": "/algeria/host/create"
+      "url": "/en/algeria/host/create"
     },
     {
       "name": "Find a meetup",

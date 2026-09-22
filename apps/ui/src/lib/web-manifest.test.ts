@@ -73,12 +73,18 @@ const everyImage = (manifest: WebManifest): readonly ImageResource[] => [
   ...manifest.screenshots,
 ];
 
-/** The fields that make two manifests the same installed app rather than two. */
+/**
+ * The fields that make two manifests the same installed app rather than two.
+ *
+ * `start_url` is not one of them. It used to be listed here, back when all three opened `/`, which
+ * read as though identity depended on it. It does not: `id` is what names an installed app, and it
+ * is `/` in all three, so a member who installs from a French page and one who installs from an
+ * Arabic page still hold the same app while opening it in different languages.
+ */
 const identity = (manifest: WebManifest) => ({
   id: manifest.id,
   name: manifest.name,
   short_name: manifest.short_name,
-  start_url: manifest.start_url,
   scope: manifest.scope,
   display: manifest.display,
   orientation: manifest.orientation,
@@ -108,6 +114,26 @@ describe('web app manifest', () => {
       ).toEqual(identity(first));
     }
     expect(first.id).toBe('/');
+  });
+
+  it('opens each installed app in the language it was installed from', () => {
+    for (const [locale, manifest] of MANIFESTS) {
+      expect(
+        manifest.start_url,
+        `${locale} launches somewhere that names no language`,
+      ).toBe(`/${locale}`);
+    }
+  });
+
+  it('names the language in every shortcut too, so none of them drops back to Arabic', () => {
+    for (const [locale, manifest] of MANIFESTS) {
+      for (const shortcut of manifest.shortcuts) {
+        expect(
+          shortcut.url.startsWith(`/${locale}/`),
+          `${locale}: ${shortcut.url} is unprefixed`,
+        ).toBe(true);
+      }
+    }
   });
 
   it('writes each manifest in its own locale', () => {

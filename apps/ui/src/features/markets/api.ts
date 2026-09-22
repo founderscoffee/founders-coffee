@@ -64,6 +64,25 @@ export const homeMarketSlug = async (
   return geoMarketSlug(remembered);
 };
 
+export const GEO_COOKIE = 'fc_geo';
+
+const DEFAULT_MARKET_SLUG = 'algeria';
+
+/**
+ * The market an arrival that names no city should land on.
+ *
+ * `/` and `/fr` are the same arrival, one of them naming a language, so they have to choose the
+ * same market. They did not: `/` asked `homeMarketSlug` while `/fr` sent everyone to Algeria, and
+ * nothing showed it up while Algeria was the only place anyone arrived from. Pointing the installed
+ * app at `/fr` is what would have made it visible, by routing every launch through the branch that
+ * ignores where the visitor is.
+ */
+export const landingMarketSlug = async (
+  known: readonly { readonly slug: string }[],
+  remembered: string | undefined,
+): Promise<string> =>
+  (await homeMarketSlug(known, remembered)) ?? DEFAULT_MARKET_SLUG;
+
 let clientMarkets: Promise<readonly Market[]> | null = null;
 
 const fetchVisibleMarkets = async (): Promise<readonly Market[]> =>

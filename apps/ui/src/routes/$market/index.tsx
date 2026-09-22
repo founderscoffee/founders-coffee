@@ -5,14 +5,20 @@ import type { Market } from '@founders-coffee/db';
 import { detectLocale, isLocale } from '@founders-coffee/i18n';
 import { getMarket } from '@founders-coffee/server-fns';
 
-import { readCookieHeader } from '../../lib/cookies';
+import { GEO_COOKIE, landingMarketSlug } from '../../features/markets/api';
+import { readCookieHeader, readCookies } from '../../lib/cookies';
 import { localizedLanding } from '../../lib/locale-routing';
 
 export const Route = createFileRoute('/$market/')({
   component: () => null,
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     if (isLocale(params.market)) {
-      throw redirect(localizedLanding(params.market, 'algeria'));
+      throw redirect(
+        localizedLanding(
+          params.market,
+          await landingMarketSlug(context.markets, readCookies()[GEO_COOKIE]),
+        ),
+      );
     }
     let market: Market;
     try {

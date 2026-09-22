@@ -5,7 +5,7 @@
   "description": "Une communauté de rencontres locales entre fondateurs autour d'un café.",
   "lang": "fr",
   "dir": "ltr",
-  "start_url": "/",
+  "start_url": "/fr",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -42,7 +42,7 @@
   "shortcuts": [
     {
       "name": "Organiser une rencontre",
-      "url": "/algeria/host/create"
+      "url": "/fr/algeria/host/create"
     },
     {
       "name": "Trouver une rencontre",
