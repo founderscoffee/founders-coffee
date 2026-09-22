@@ -156,20 +156,28 @@ export const LoginPage = ({
 
           {step === 'email' ? (
             <>
-              <label className="form-control">
-                <span className="mb-1 block text-label text-neutral">
+              <div className="form-control">
+                <label
+                  className="mb-1 block text-label text-neutral"
+                  htmlFor="login-email"
+                >
                   {login_email_label({}, { locale })}
-                </span>
+                </label>
                 <Input
+                  id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={login_email_placeholder({}, { locale })}
+                  aria-describedby="login-email-help"
                 />
-                <span className="mt-1.5 block text-body-sm text-neutral">
+                <span
+                  id="login-email-help"
+                  className="mt-1.5 block text-body-sm text-neutral"
+                >
                   {login_help({}, { locale })}
                 </span>
-              </label>
+              </div>
               {turnstileSiteKey && !isTurnstileBypassed && (
                 <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
               )}

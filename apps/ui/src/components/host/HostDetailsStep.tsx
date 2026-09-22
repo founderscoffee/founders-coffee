@@ -34,10 +34,10 @@ export const HostDetailsStep = ({
   onDescriptionChange: (value: string) => void;
 }) => (
   <div className="grid gap-5">
-    <label className="form-control" htmlFor="host-title">
+    <div className="form-control">
       <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
-        <span>{host_title_label({}, { locale })}</span>
-        <span className="text-caption text-neutral">
+        <label htmlFor="host-title">{host_title_label({}, { locale })}</label>
+        <span aria-hidden="true" className="text-caption text-neutral">
           {host_required({}, { locale })}
         </span>
       </span>
@@ -66,12 +66,14 @@ export const HostDetailsStep = ({
           {errors.title}
         </span>
       )}
-    </label>
+    </div>
 
-    <label className="form-control" htmlFor="host-description">
+    <div className="form-control">
       <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
-        <span>{host_desc_label({}, { locale })}</span>
-        <span className="text-caption text-neutral">
+        <label htmlFor="host-description">
+          {host_desc_label({}, { locale })}
+        </label>
+        <span aria-hidden="true" className="text-caption text-neutral">
           {host_required({}, { locale })}
         </span>
       </span>
@@ -107,6 +109,6 @@ export const HostDetailsStep = ({
           {errors.description}
         </span>
       )}
-    </label>
+    </div>
   </div>
 );

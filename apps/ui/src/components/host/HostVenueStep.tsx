@@ -166,10 +166,13 @@ export const HostVenueStep = ({
         )}
       </div>
       {venue?.kind === 'address' && !hideNameField && (
-        <label className="form-control" htmlFor="host-venue-name">
-          <span className="mb-1 text-body-sm text-neutral">
+        <div className="form-control">
+          <label
+            className="mb-1 text-body-sm text-neutral"
+            htmlFor="host-venue-name"
+          >
             {host_venue_name_label({}, { locale })}
-          </span>
+          </label>
           <Input
             id="host-venue-name"
             value={venueName}
@@ -193,7 +196,7 @@ export const HostVenueStep = ({
               {nameError}
             </span>
           )}
-        </label>
+        </div>
       )}
       {isPinned && (
         <button

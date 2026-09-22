@@ -86,4 +86,16 @@ describe('the sign-in card as a form', () => {
 
     expect(others.every((button) => button.type === 'button')).toBe(true);
   });
+
+  it('calls the email field Email, without reading the hint into its name', () => {
+    show();
+
+    const field = screen.getByLabelText('Email');
+
+    expect(field.closest('label')).toBeNull();
+    expect(
+      document.getElementById(field.getAttribute('aria-describedby') ?? '')
+        ?.textContent,
+    ).toBe('We\u2019ll send a 6-digit code.');
+  });
 });
