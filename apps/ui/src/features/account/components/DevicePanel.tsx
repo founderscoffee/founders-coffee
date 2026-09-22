@@ -42,7 +42,6 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
       {devices.data.providers.map((provider) => (
         <AccountRow
           key={provider}
-          locale={locale}
           label={<ProviderIdentity locale={locale} provider={provider} />}
           note={providers_keep_one({}, { locale })}
           status={
@@ -64,7 +63,6 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
       {devices.data.sessions.map((row) => (
         <AccountRow
           key={row.id}
-          locale={locale}
           label={row.userAgent ?? devices_unknown({}, { locale })}
           note={row.isCurrent ? devices_this_one({}, { locale }) : undefined}
           status={

@@ -1,7 +1,13 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Locale } from '@founders-coffee/i18n';
+import {
+  account_data_request,
+  LOCALES,
+  type Locale,
+} from '@founders-coffee/i18n';
+
+import { CONTACT_EMAIL } from '../../../content/company/contact';
 
 import type { AccountSummary } from '../api';
 
@@ -93,13 +99,16 @@ describe('the account and security screen', () => {
     expect(screen.getByText('Email code only')).toBeTruthy();
   });
 
-  it('offers an action only where the capability has shipped', () => {
+  it('offers an action on every row, in the form that row supports', () => {
     show({ data: summary() });
 
     expect(screen.getByRole('button', { name: 'Change' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Add' })).toBeTruthy();
     expect(screen.getByText('Download your information')).toBeTruthy();
-    expect(screen.getAllByText('Changes not available yet')).toHaveLength(2);
+    expect(
+      screen.getAllByRole('link', { name: CONTACT_EMAIL }),
+      'the contact rows are changed in the product and the two data rights are exercised by email; both are actions, and the page used to offer the second pair none',
+    ).toHaveLength(2);
   });
 
   it('opens the change dialog on the row that was pressed', () => {
@@ -222,4 +231,48 @@ describe('the account and security screen', () => {
       '/profile/account',
     ]);
   });
+});
+
+describe('what the data section offers', () => {
+  it.each<Locale>([...LOCALES])(
+    'gives each data right a way to be exercised, in %s',
+    (locale) => {
+      const view = show({ data: summary() }, locale);
+      const requests = [
+        ...view.container.querySelectorAll('a[href^="mailto:"]'),
+      ];
+
+      expect(
+        requests.length,
+        'the page named a right to a copy of your data and a right to close your account, then offered no next step for either, so the reader who came to do one of them stopped here',
+      ).toBe(2);
+      expect(
+        requests.every((link) =>
+          link.getAttribute('href')?.startsWith(`mailto:${CONTACT_EMAIL}`),
+        ),
+        'a request sent anywhere but the address the privacy policy documents is one nobody is watching for',
+      ).toBe(true);
+      expect(
+        requests.every((link) => link.textContent?.includes(CONTACT_EMAIL)),
+        'the address has to be readable on the row, because a phone with no mail client set up opens nothing',
+      ).toBe(true);
+
+      const subjects = requests.map(
+        (link) => link.getAttribute('href')?.split('?subject=')[1] ?? '',
+      );
+      expect(
+        new Set(subjects).size,
+        'both rows opened the same message, so whoever reads the mailbox cannot tell a request for a copy from a request to close the account',
+      ).toBe(2);
+      expect(
+        subjects.every((subject) => subject !== ''),
+        'an unlabelled compose window asks the reader to write the request themselves, which is most of the dead end again',
+      ).toBe(true);
+
+      expect(
+        view.container.textContent,
+        'the policy only accepts a request sent from the address on the account, so a row that does not say so sends people from whichever mailbox is open',
+      ).toContain(account_data_request({}, { locale }));
+    },
+  );
 });
