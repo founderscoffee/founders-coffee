@@ -9,6 +9,7 @@ import { localizedEvent } from '../lib/locale-routing';
 import { readCookieHeader } from '../lib/cookies';
 
 export const Route = createFileRoute('/$market/e/$slug')({
+  preload: false,
   headers: () => ({ 'Cache-Control': 'private, no-store' }),
   component: () => null,
   loader: async ({ params }): Promise<never> => {

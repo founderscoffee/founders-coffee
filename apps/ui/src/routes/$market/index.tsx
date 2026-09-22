@@ -10,6 +10,7 @@ import { readCookieHeader, readCookies } from '../../lib/cookies';
 import { localizedLanding } from '../../lib/locale-routing';
 
 export const Route = createFileRoute('/$market/')({
+  preload: false,
   component: () => null,
   loader: async ({ params, context }) => {
     if (isLocale(params.market)) {

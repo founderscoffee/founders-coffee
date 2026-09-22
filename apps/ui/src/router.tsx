@@ -68,6 +68,8 @@ const DefaultNotFoundComponent = () => {
   );
 };
 
+const PRELOAD_STALE_TIME_MS = 30_000;
+
 const parseSearch = parseSearchWith((val: string) => val);
 const stringifySearch = stringifySearchWith(JSON.stringify, () => {
   throw 0;
@@ -78,7 +80,7 @@ export const getRouter = () => {
     routeTree,
     scrollRestoration: true,
     defaultPreload: 'intent',
-    defaultPreloadStaleTime: 0,
+    defaultPreloadStaleTime: PRELOAD_STALE_TIME_MS,
     defaultErrorComponent: DefaultErrorComponent,
     defaultPendingComponent: DefaultPendingComponent,
     defaultNotFoundComponent: DefaultNotFoundComponent,
