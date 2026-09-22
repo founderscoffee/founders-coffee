@@ -68,6 +68,8 @@ afterEach(() => {
   state.auth = { user: null, isAuthenticated: false, isLoading: false };
   state.profile = { data: null, isPending: false };
   state.pathname = '/';
+  window.localStorage.clear();
+  delete document.documentElement.dataset.authSlot;
 });
 
 describe('session avatar', () => {
@@ -201,6 +203,24 @@ describe('session dropdown', () => {
 
     expect(screen.getByRole('link').getAttribute('href')).toBe('/login');
     expect(screen.queryByText('Signed in as')).toBeNull();
+  });
+
+  it('records what this browser needed, so the next load reserves the right width', () => {
+    signedIn();
+    render(<SessionNav locale="en" />);
+
+    expect(window.localStorage.getItem('fc_auth_slot')).toBe('in');
+    expect(
+      document.documentElement.dataset.authSlot,
+      'the pre-paint script sizes the slot from the stored value, and correcting the attribute here is what stops a wrong guess leaving a hole in the corner for the rest of the visit',
+    ).toBe('in');
+  });
+
+  it('records the anonymous case too, rather than only the signed-in one', () => {
+    render(<SessionNav locale="en" />);
+
+    expect(window.localStorage.getItem('fc_auth_slot')).toBe('out');
+    expect(document.documentElement.dataset.authSlot).toBe('out');
   });
 
   it('does not offer sign-in to someone already on the sign-in page', () => {

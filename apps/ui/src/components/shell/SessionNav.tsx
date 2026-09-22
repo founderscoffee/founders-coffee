@@ -23,6 +23,7 @@ import {
 import { useLivePresence } from '../../features/events/live-presence';
 import { authClient } from '../../lib/auth';
 import { useBoundedPending } from '../../lib/network-status';
+import { writeAuthSlot } from '../../features/auth/session-hint';
 import { ActivityIcon, ProfileIcon, SignOutIcon } from './SessionIcon';
 import { useDismissableDetails } from './useDismissableDetails';
 
@@ -36,7 +37,7 @@ const initials = (name: string, email: string) => {
 const LoginLink = ({ locale }: { locale: Locale }) => (
   <Link
     to="/login"
-    className="btn btn-ghost h-9 min-h-9 shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200"
+    className="btn btn-ghost h-9 min-h-9 w-full shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200"
   >
     {nav_login({}, { locale })}
   </Link>
@@ -52,6 +53,12 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
   const { ref, close } = useDismissableDetails();
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
+  useEffect(() => {
+    if (isLoading) return;
+    const slot = isAuthenticated ? 'in' : 'out';
+    writeAuthSlot(slot);
+    document.documentElement.dataset.authSlot = slot;
+  }, [isAuthenticated, isLoading]);
   const presence = useLivePresence();
   const pathname = useLocation({ select: (location) => location.pathname });
 

@@ -41,7 +41,9 @@ export const Navbar = ({ locale, marketSlug }: NavbarProps) => {
               {nav_host({}, { locale })}
             </Link>
           ) : null}
-          <SessionNav locale={locale} />
+          <div className="auth-slot">
+            <SessionNav locale={locale} />
+          </div>
         </div>
       </nav>
       <OfflineNotice locale={locale} />

@@ -417,3 +417,23 @@
     );
   }
 }
+
+/* The header's auth control is a sign-in button when signed out and a 32px avatar when signed in,
+   and which one it will be is not known until a fetch resolves after hydration — the document is
+   shared-cached, so it cannot carry the answer. In Arabic the two differ by 105px, so whichever
+   width the slot holds while it waits, something moves when the answer arrives.
+
+   `data-auth-slot` is set on the document before the first paint from what this browser needed
+   last time, so the slot holds the right width from the first frame and nothing moves at all. A
+   first visit, or a browser that refuses storage, gets `out` — which is what a first visit is.
+
+   8.75rem is the Arabic label, the longest of the three; the button fills the slot rather than
+   sitting in it, so French and English render a slightly wider button instead of a gap. */
+.auth-slot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+:root[data-auth-slot='out'] .auth-slot {
+  min-width: 8.75rem;
+}

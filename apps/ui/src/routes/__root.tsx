@@ -21,6 +21,7 @@ import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
+import { AUTH_SLOT_SCRIPT } from '../features/auth/session-hint';
 import { SkipLink } from '../components/shell/SkipLink';
 import { AppProviders } from '../lib/app-providers';
 import { readCookieHeader } from '../lib/cookies';
@@ -79,8 +80,9 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
   useStoredLocale(locale);
 
   return (
-    <html lang={locale} dir={dir}>
+    <html lang={locale} dir={dir} data-auth-slot="out" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: AUTH_SLOT_SCRIPT }} />
         <HeadContent />
       </head>
       <body className="flex flex-col bg-base-100 text-base-content">
