@@ -7,6 +7,7 @@ import {
   extractBookmark,
   hasVersionId,
   latestMigration,
+  RELEASE_STATE_VERSION,
   validateReleaseState,
   validateRollbackRequest,
 } from './release-state.mjs';
@@ -15,11 +16,12 @@ const version = 'a'.repeat(32);
 const bookmark = 'bookmark-v1:example';
 
 const releaseState = (overrides = {}) => ({
-  schemaVersion: 1,
+  schemaVersion: RELEASE_STATE_VERSION,
   capturedAt: '2026-09-16T07:00:00.000Z',
   commitSha: 'b'.repeat(40),
   environment: 'staging',
   migrationHead: '0030_white_vindicator',
+  appliedMigrations: ['0029_activate_launch_markets', '0030_white_vindicator'],
   database: {
     name: ENVIRONMENT_CONFIG.staging.database,
     bookmark,
@@ -141,6 +143,23 @@ describe('release state validation', () => {
         }),
       ),
     ).toThrow('Worker does not match');
+  });
+
+  it('rejects a snapshot that does not say which migrations were applied', () => {
+    const { appliedMigrations, ...withoutMigrations } = releaseState();
+    expect(appliedMigrations).toHaveLength(2);
+    expect(() => validateReleaseState(withoutMigrations)).toThrow(
+      'appliedMigrations must list applied migration names',
+    );
+    expect(() =>
+      validateReleaseState(releaseState({ appliedMigrations: ['head'] })),
+    ).toThrow('appliedMigrations must list applied migration names');
+  });
+
+  it('refuses an artifact captured before the applied-migration list existed', () => {
+    expect(() =>
+      validateReleaseState(releaseState({ schemaVersion: 1 })),
+    ).toThrow('Unsupported release-state schema: 1');
   });
 
   it('records the current migration head from the committed migration directory', () => {

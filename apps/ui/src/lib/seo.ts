@@ -9,6 +9,7 @@ import {
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { PRODUCTION_ORIGIN } from './indexation';
+import { xDefaultLocale } from './seo-alternates';
 import {
   breadcrumbJsonLd,
   collectionPageJsonLd,
@@ -17,7 +18,7 @@ import {
 
 export const SITE_ORIGIN = PRODUCTION_ORIGIN;
 export const SITE_NAME = 'Founders Coffee';
-export const DEFAULT_SOCIAL_IMAGE_PATH = '/social/founders-coffee-default.webp';
+export const DEFAULT_SOCIAL_IMAGE_PATH = '/social/founders-coffee-default.png';
 
 export type CanonicalRoute =
   | { readonly type: 'root'; readonly locale?: Locale; readonly query?: string }
@@ -77,7 +78,6 @@ export const localeAlternates = (
   readonly href: string;
 }> => {
   const baseRoute = { ...route, locale: undefined } as CanonicalRoute;
-  const soleLocale = locales.length === 1 ? locales[0] : undefined;
   return [
     ...locales.map((locale) => ({
       rel: 'alternate' as const,
@@ -87,9 +87,7 @@ export const localeAlternates = (
     {
       rel: 'alternate' as const,
       hrefLang: 'x-default',
-      href: canonicalUrl(
-        soleLocale ? { ...baseRoute, locale: soleLocale } : baseRoute,
-      ),
+      href: canonicalUrl({ ...baseRoute, locale: xDefaultLocale(locales) }),
     },
   ];
 };
@@ -142,6 +140,7 @@ export type PageMetadataInput = {
   readonly robots?: string;
   readonly openGraphType?: 'website' | 'event';
   readonly alternateLocales?: readonly Locale[];
+  readonly socialImage?: { readonly url: string; readonly alt: string };
 };
 
 export const buildPageMetadata = ({
@@ -152,6 +151,7 @@ export const buildPageMetadata = ({
   robots = 'index,follow',
   openGraphType = 'website',
   alternateLocales = LOCALES,
+  socialImage: card,
 }: PageMetadataInput) => {
   const fullTitle = buildPageTitle(title);
   const normalizedDescription = normalizeText(
@@ -159,8 +159,9 @@ export const buildPageMetadata = ({
     MAX_DESCRIPTION_LENGTH,
   );
   const url = canonicalUrl(route);
-  const socialImage = `${getSiteOrigin()}${DEFAULT_SOCIAL_IMAGE_PATH}`;
-  const socialImageAlt = social_image_alt({}, { locale });
+  const socialImage =
+    card?.url ?? `${getSiteOrigin()}${DEFAULT_SOCIAL_IMAGE_PATH}`;
+  const socialImageAlt = card?.alt ?? social_image_alt({}, { locale });
   return {
     meta: [
       { title: fullTitle },
@@ -182,7 +183,7 @@ export const buildPageMetadata = ({
           property: 'og:locale:alternate',
           content: localeOpenGraph(alternate),
         })),
-      { name: 'twitter:card', content: 'summary' },
+      { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: fullTitle },
       { name: 'twitter:description', content: normalizedDescription },
       { name: 'twitter:image', content: socialImage },

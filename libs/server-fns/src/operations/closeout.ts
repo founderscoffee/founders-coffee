@@ -49,6 +49,14 @@ const CLOSEOUT_REFUSALS: Record<string, [string, string]> = {
   ],
 };
 
+const refusal = (reason: string): AppError => {
+  const [code, message] = CLOSEOUT_REFUSALS[reason] ?? [
+    'closeout_failed',
+    'This gathering could not be closed out',
+  ];
+  return new AppError(code, message);
+};
+
 /**
  * Refuse when the market has not turned community operations on.
  *
@@ -71,14 +79,20 @@ const requireOperationsEnabled = async (
 /**
  * What the host needs to close a gathering out, and what they already recorded.
  *
- * One refusal is made here as well as in the write, and deliberately: an event with no recorded
- * `ends_at` can never be closed out, and letting the form render for it means a host fills in a
- * roster, walk-ins and friction, submits, and is told to try again — advice that can never succeed.
- * A permanent no belongs before the work, not after it.
+ * Three refusals are made here as well as in the write, and deliberately. A cancelled gathering can
+ * never be closed out; one with no recorded `ends_at` can never be closed out; one that has not
+ * finished yet cannot be closed out now. Letting the form render for any of them means a host marks
+ * every attendee present or absent, counts the walk-ins, submits, and is told it cannot be accepted
+ * — work asked for and then thrown away. A no that is already knowable belongs before the work, not
+ * after it.
  *
- * Otherwise this reads rather than decides: the refusals that matter are enforced by the write, which
- * evaluates them in the same statement. This exists so the form can be built from the real roster and show
- * existing marks, not so it can pre-authorise anything.
+ * None of the three can hide a record that exists, because none of those states can hold one:
+ * cancelling is refused once a meetup has ended and a closeout is refused until it has, so a
+ * cancelled or unfinished event has no closeout to show.
+ *
+ * Otherwise this reads rather than decides: the refusals that matter to the write are enforced by the
+ * write, which evaluates them in the same statement. This exists so the form can be built from the
+ * real roster and show existing marks, not so it can pre-authorise anything.
  *
  * The two totals are derived here and never accepted from a client. Every closeout count is
  * derived, so `registeredAttended` is counted from the rows and `totalAttended` adds the walk-ins —
@@ -91,24 +105,14 @@ export const readCloseout = async (
 ): Promise<Result<CloseoutView>> => {
   const event = await getEvent(db, opts.eventId);
   if (!event) return err(new AppError('event_not_found', 'Event not found'));
-  if (event.hostId !== opts.actorId)
-    return err(
-      new AppError(
-        'closeout_not_host',
-        'Only the host may close this gathering',
-      ),
-    );
+  if (event.hostId !== opts.actorId) return err(refusal('not_host'));
 
   const disabled = await requireOperationsEnabled(db, event.marketCode);
   if (disabled) return err(disabled);
 
-  if (!event.endsAt)
-    return err(
-      new AppError(
-        'closeout_no_end_time',
-        'This gathering has no recorded end time',
-      ),
-    );
+  if (event.status === 'cancelled') return err(refusal('event_cancelled'));
+  if (!event.endsAt) return err(refusal('no_end_time'));
+  if (event.endsAt.getTime() > Date.now()) return err(refusal('not_ended'));
 
   const closeout = await getCloseout(db, opts.eventId);
   const roster = await listCloseoutRoster(db, { eventId: opts.eventId });
@@ -226,11 +230,7 @@ export const submitCloseoutResolver = async (
         opts.input.outcome,
       ));
     if (!resuming) {
-      const [code, message] = CLOSEOUT_REFUSALS[result.outcome] ?? [
-        'closeout_failed',
-        'This gathering could not be closed out',
-      ];
-      return err(new AppError(code, message));
+      return err(refusal(result.outcome));
     }
   }
 

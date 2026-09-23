@@ -65,6 +65,39 @@ describe('reading a closeout', () => {
     if (!result.ok) expect(result.error.code).toBe('closeout_no_end_time');
   });
 
+  it('refuses a cancelled gathering, so the host is not asked to certify an evening they called off', async () => {
+    const eventId = await pastEvent(db, { status: 'cancelled' });
+
+    const result = await readCloseout(db, { eventId, actorId: HOST_ID });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('closeout_event_cancelled');
+  });
+
+  it('refuses a gathering that has not finished, before the roster is marked', async () => {
+    const eventId = await pastEvent(db, { endedHoursAgo: -4 });
+
+    const result = await readCloseout(db, { eventId, actorId: HOST_ID });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('closeout_not_ended');
+  });
+
+  it('answers with the same code the write would have, so the page reads one refusal', async () => {
+    const eventId = await pastEvent(db, { endedHoursAgo: -4 });
+
+    const read = await readCloseout(db, { eventId, actorId: HOST_ID });
+    const write = await submitCloseoutResolver(db, {
+      actorId: HOST_ID,
+      input: { ...held, eventId },
+      attendance: [],
+    });
+
+    expect(read.ok).toBe(false);
+    expect(write.ok).toBe(false);
+    if (!read.ok && !write.ok) expect(read.error.code).toBe(write.error.code);
+  });
+
   it('refuses an event that does not exist rather than answering emptily', async () => {
     const result = await readCloseout(db, {
       eventId: 'evt_nothing',

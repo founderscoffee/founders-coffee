@@ -1,6 +1,13 @@
 import { Link } from '@tanstack/react-router';
 
 import {
+  localizedProfile,
+  localizedProfileAccount,
+  localizedProfileActivity,
+  localizedProfileNotifications,
+} from '../../../lib/locale-routing';
+
+import {
   account_nav_account,
   account_nav_profile,
   account_sections,
@@ -52,21 +59,26 @@ const Icon = ({ name }: { name: keyof typeof GLYPHS }) => (
 );
 
 const SECTIONS = [
-  { to: '/profile', name: 'profile', label: account_nav_profile, exact: true },
   {
-    to: '/profile/activity',
+    at: localizedProfile,
+    name: 'profile',
+    label: account_nav_profile,
+    exact: true,
+  },
+  {
+    at: localizedProfileActivity,
     name: 'activity',
     label: activity_nav,
     exact: false,
   },
   {
-    to: '/profile/notifications',
+    at: localizedProfileNotifications,
     name: 'notifications',
     label: notifications_nav,
     exact: false,
   },
   {
-    to: '/profile/account',
+    at: localizedProfileAccount,
     name: 'account',
     label: account_nav_account,
     exact: false,
@@ -92,9 +104,9 @@ export const ProfileSectionNav = ({
   >
     <ul className="menu w-full gap-1.5 p-0">
       {SECTIONS.map((section) => (
-        <li key={section.to}>
+        <li key={section.name}>
           <Link
-            to={section.to}
+            {...section.at(locale)}
             activeOptions={{ exact: section.exact }}
             className="gap-3 text-body-sm"
             onClick={onNavigate}

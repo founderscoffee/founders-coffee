@@ -222,7 +222,7 @@ describe('PF-04b optional fields', () => {
     fireEvent.change(intro(), { target: { value: 'A draft nobody kept.' } });
     fireEvent.click(screen.getByRole('button', { name: 'Design' }));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
 
     expect((intro() as HTMLTextAreaElement).value).toBe('');
     expect(

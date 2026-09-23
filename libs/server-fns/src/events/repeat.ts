@@ -1,4 +1,10 @@
-import { AppError, err, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  ok,
+  type Locale,
+  type Result,
+} from '@founders-coffee/core';
 import {
   communityOperationsEnabled,
   getCloseout,
@@ -16,6 +22,7 @@ export interface RepeatEventTemplate {
   readonly venueAddress: string | null;
   readonly latitude: number | null;
   readonly longitude: number | null;
+  readonly language: Locale;
 }
 
 const ineligible = (): Result<RepeatEventTemplate> =>
@@ -68,5 +75,6 @@ export const readRepeatEventTemplate = async (
     venueAddress: event.venueAddress,
     latitude: event.latitude,
     longitude: event.longitude,
+    language: event.language,
   });
 };

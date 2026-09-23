@@ -35,6 +35,7 @@ const renderList = (selectedProviderId?: string) => {
   render(
     <HostVenueList
       locale="en"
+      id="venue-results"
       label="Cafés nearby"
       venues={rows}
       selectedProviderId={selectedProviderId}
@@ -48,11 +49,11 @@ const renderList = (selectedProviderId?: string) => {
 describe('HostVenueList', () => {
   afterEach(cleanup);
 
-  it('exposes one radio per venue and checks only the selected one', () => {
+  it('exposes one option per venue and selects only the chosen one', () => {
     renderList('osm:node/2');
-    const radios = screen.getAllByRole('radio');
+    const radios = screen.getAllByRole('option');
     expect(radios).toHaveLength(3);
-    expect(radios.map((r) => r.getAttribute('aria-checked'))).toEqual([
+    expect(radios.map((r) => r.getAttribute('aria-selected'))).toEqual([
       'false',
       'true',
       'false',
@@ -78,7 +79,7 @@ describe('HostVenueList', () => {
 
   it('moves between eligible venues with the arrow keys, skipping the ineligible one', () => {
     const onSelect = renderList('osm:node/2');
-    fireEvent.keyDown(screen.getAllByRole('radio')[1], { key: 'ArrowDown' });
+    fireEvent.keyDown(screen.getAllByRole('option')[1], { key: 'ArrowDown' });
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({ providerId: 'osm:node/1' }),
     );
@@ -87,7 +88,7 @@ describe('HostVenueList', () => {
   it('keeps exactly one row in the tab order', () => {
     renderList('osm:node/2');
     const tabbable = screen
-      .getAllByRole('radio')
+      .getAllByRole('option')
       .filter((r) => r.getAttribute('tabindex') === '0');
     expect(tabbable).toHaveLength(1);
     expect(tabbable[0].getAttribute('data-venue')).toBe('osm:node/2');
@@ -98,6 +99,7 @@ describe('HostVenueList', () => {
     render(
       <HostVenueList
         locale="en"
+        id="venue-results"
         label="Search results"
         venues={[
           row({ providerId: 'mapbox-1', name: 'Sofitel', category: undefined }),
@@ -107,7 +109,9 @@ describe('HostVenueList', () => {
         onSelect={onSelect}
       />,
     );
-    expect(screen.getByRole('radio').getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('option').getAttribute('aria-selected')).toBe(
+      'true',
+    );
     expect(screen.getByText('Selected')).toBeTruthy();
   });
 
@@ -115,6 +119,7 @@ describe('HostVenueList', () => {
     render(
       <HostVenueList
         locale="en"
+        id="venue-results"
         label="Search results"
         venues={[
           row({
@@ -133,5 +138,16 @@ describe('HostVenueList', () => {
   it('credits OpenStreetMap when showing snapshot data', () => {
     renderList();
     expect(screen.getByText('© OpenStreetMap contributors')).toBeTruthy();
+  });
+
+  it('is the list the search box says it controls', () => {
+    renderList();
+    const list = screen.getByRole('listbox');
+
+    expect(
+      list.getAttribute('id'),
+      'the search input names this id in aria-controls, so a combobox pointing at nothing is what a renamed or re-roled container leaves behind',
+    ).toBe('venue-results');
+    expect(list.getAttribute('aria-label')).toBe('Cafés nearby');
   });
 });

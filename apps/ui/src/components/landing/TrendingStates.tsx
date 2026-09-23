@@ -66,15 +66,17 @@ export const TrendingStates = ({
                     >
                       {localizedName(city, locale)}
                     </h3>
-                    <span className="flex shrink-0 items-center gap-1 text-accent">
-                      <UsersRound className="size-4" aria-hidden="true" />
-                      <data
-                        value={count}
-                        className="font-display text-body-lg font-semibold leading-none"
-                      >
-                        {count > 99 ? '+99' : count}
-                      </data>
-                    </span>
+                    {count > 0 ? (
+                      <span className="flex shrink-0 items-center gap-1 text-accent">
+                        <UsersRound className="size-4" aria-hidden="true" />
+                        <data
+                          value={count}
+                          className="font-display text-body-lg font-semibold leading-none"
+                        >
+                          {count > 99 ? '+99' : count}
+                        </data>
+                      </span>
+                    ) : null}
                   </header>
                   <p
                     className={`mt-auto text-body-sm font-medium ${count > 0 ? 'text-neutral' : 'text-accent'}`}

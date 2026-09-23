@@ -178,9 +178,9 @@ export const EventCard = ({
               </span>
             ) : null}
 
-            {event.goingCount != null && !hasHost ? (
+            {attendeeCount > 0 && !hasHost ? (
               <span className="inline-flex items-center gap-2 text-body-sm text-neutral">
-                {going_count({ count: event.goingCount }, { locale })}
+                {going_count({ count: attendeeCount }, { locale })}
               </span>
             ) : null}
 

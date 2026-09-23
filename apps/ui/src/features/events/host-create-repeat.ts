@@ -44,5 +44,6 @@ export const repeatDraftFrom = (
     endsAt: null,
     title: template.title,
     description: template.description,
+    language: template.language,
   };
 };

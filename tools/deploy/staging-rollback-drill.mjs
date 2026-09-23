@@ -153,7 +153,8 @@ const downloadState = async (runId) => {
     '--dir',
     directory,
   ]);
-  return JSON.parse(fs.readFileSync(findStateFile(directory), 'utf8'));
+  const file = findStateFile(directory);
+  return { state: JSON.parse(fs.readFileSync(file, 'utf8')), file };
 };
 
 const rollbackFields = (state) =>
@@ -168,21 +169,33 @@ const rollbackWorkflowUnavailable = (error) =>
     error.message,
   );
 
-const verifyLocalRollbackTargets = async (state) => {
+const versionFlags = (state) =>
+  rollbackFields(state).flatMap(([key, value]) => [
+    `--${key.replaceAll('_', '-')}`,
+    value,
+  ]);
+
+const verifyLocalRollbackTargets = async (state, stateFile) => {
   await runCommand('node', [
     'tools/deploy/release-state.mjs',
     'verify-targets',
     '--environment',
     'staging',
-    ...rollbackFields(state).flatMap(([key, value]) => [
-      `--${key.replaceAll('_', '-')}`,
-      value,
-    ]),
+    ...versionFlags(state),
+  ]);
+  await runCommand('node', [
+    'tools/deploy/rollback-compatibility.mjs',
+    'check',
+    '--environment',
+    'staging',
+    ...versionFlags(state),
+    '--state-file',
+    stateFile,
   ]);
 };
 
-const rollbackWorkersLocally = async (state) => {
-  await verifyLocalRollbackTargets(state);
+const rollbackWorkersLocally = async (state, stateFile) => {
+  await verifyLocalRollbackTargets(state, stateFile);
   for (const key of workerKeys) {
     const worker = state.workers[key];
     await runCommand('npx', [
@@ -214,10 +227,11 @@ const rollbackWorkersLocally = async (state) => {
   ]);
 };
 
-const rollbackStaging = async (state) => {
+const rollbackStaging = async ({ state, stateFile, deployRun }) => {
   try {
     await dispatchAndWatch('rollback.yml', [
       ['environment', 'staging'],
+      ['rollback_state_run_id', deployRun],
       ...rollbackFields(state),
     ]);
   } catch (error) {
@@ -228,7 +242,7 @@ const rollbackStaging = async (state) => {
     process.stdout.write(
       'rollback.yml is not on the default branch; using the explicitly requested local Wrangler staging fallback\n',
     );
-    await rollbackWorkersLocally(state);
+    await rollbackWorkersLocally(state, stateFile);
   }
 };
 
@@ -240,12 +254,12 @@ const main = async () => {
   const deployRun = await dispatchAndWatch('deploy.yml', [
     ['environment', 'staging'],
   ]);
-  const state = await downloadState(deployRun);
+  const { state, file } = await downloadState(deployRun);
   validateReleaseState(state);
   process.stdout.write(
     'Captured rollback state is valid; rollback will leave D1 untouched\n',
   );
-  await rollbackStaging(state);
+  await rollbackStaging({ state, stateFile: file, deployRun });
   process.stdout.write(
     'Staging rollback drill passed; restoring latest code\n',
   );

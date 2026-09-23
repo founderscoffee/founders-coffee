@@ -3,11 +3,12 @@ import { useState } from 'react';
 
 import { share_event_text, type Locale } from '@founders-coffee/i18n';
 
-import { currentShareUrl, shareNatively } from '../../lib/share';
+import { eventShareUrl, shareNatively } from '../../lib/share';
 import { ShareDialog } from './ShareDialog';
 
 type ShareEventButtonProps = {
   locale: Locale;
+  eventId: string;
   title: string;
   label: string;
 };
@@ -17,6 +18,7 @@ const TRIGGER_CLASS =
 
 export const ShareEventButton = ({
   locale,
+  eventId,
   title,
   label,
 }: ShareEventButtonProps) => {
@@ -26,7 +28,7 @@ export const ShareEventButton = ({
   const text = share_event_text({ title }, { locale });
 
   const handleShare = () => {
-    const here = currentShareUrl();
+    const here = eventShareUrl(locale, eventId);
     setUrl(here);
     void shareNatively({ title, text, url: here }).then((outcome) => {
       if (outcome === 'unavailable') setIsDialogOpen(true);

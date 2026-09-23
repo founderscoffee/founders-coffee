@@ -2,11 +2,27 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Market } from '@founders-coffee/db';
+import { type Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children }: { children: React.ReactNode }) => (
-    <a href="/">{children}</a>
+  Link: ({
+    children,
+    to,
+    params,
+  }: {
+    children: React.ReactNode;
+    to?: string;
+    params?: Record<string, string>;
+  }) => (
+    <a
+      href={Object.entries(params ?? {}).reduce(
+        (path, [name, value]) => path.replace(`$${name}`, value),
+        to ?? '/',
+      )}
+    >
+      {children}
+    </a>
   ),
 }));
 
@@ -101,14 +117,14 @@ const cancelled = {
   cancellationReason: 'The café closed without warning.',
 } satisfies EventDetailItem;
 
-const show = (item: EventDetailItem, locale: 'ar' | 'en' = 'en') =>
+const show = (item: EventDetailItem, locale: Locale = 'en', isHost = false) =>
   render(
     <EventDetail
       locale={locale}
       market={market}
       event={item}
       host={null}
-      isHost={false}
+      isHost={isHost}
       live={null}
       isWindowOpen={false}
     />,
@@ -185,4 +201,81 @@ describe('what the seat box calls itself', () => {
     expect(screen.getByRole('heading', { name: 'مقعدك' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
   });
+});
+
+describe('whose clock the When block says the time is on', () => {
+  it.each([
+    [
+      'ar',
+      '\u062a\u0648\u0642\u064a\u062a \u0627\u0644\u062c\u0632\u0627\u0626\u0631',
+    ],
+    ['en', 'Algeria time'],
+    ['fr', 'Heure d\u2019Alg\u00e9rie'],
+  ] as const)('names the market in %s', (locale, label) => {
+    show(event, locale);
+
+    expect(screen.getByText(label)).toBeTruthy();
+    expect(
+      screen.queryByText(market.timezone),
+      'an IANA identifier is a developer string that no locale translates',
+    ).toBeNull();
+  });
+});
+
+const saysHostedBy = (view: ReturnType<typeof show>) =>
+  view.container.textContent?.match(/Hosted by/gu)?.length ?? 0;
+
+describe('how often the event page says who is hosting', () => {
+  it('names the host once, even when the host is the one reading', () => {
+    const view = show(event, 'en', true);
+
+    expect(
+      saysHostedBy(view),
+      'the card is labelled Hosted by, and the aside reused those words for its own heading, so the page said it twice with a different thing under each',
+    ).toBe(1);
+    expect(
+      screen.getByRole('heading', { name: 'Your meetup' }),
+      'the aside still needs a heading, and what it holds is the meetup the reader is running',
+    ).toBeTruthy();
+  });
+
+  it('leaves the label on the card for a reader who is not the host', () => {
+    const view = show(event);
+
+    expect(saysHostedBy(view)).toBe(1);
+    expect(screen.queryByRole('heading', { name: 'Your meetup' })).toBeNull();
+  });
+});
+
+describe('where the host card sends a reader', () => {
+  const host = {
+    userId: 'usr_1',
+    displayName: 'Yacine',
+  } as Parameters<typeof EventDetail>[0]['host'];
+
+  const withHost = (locale: Locale) =>
+    render(
+      <EventDetail
+        locale={locale}
+        market={market}
+        event={event}
+        host={host}
+        isHost={false}
+        live={null}
+        isWindowOpen={false}
+      />,
+    );
+
+  it.each<Locale>(['ar', 'en', 'fr'])(
+    'names the profile in the language the page is in, in %s',
+    (locale) => {
+      const view = withHost(locale);
+      const link = view.container.querySelector('a[href*="/u/"]');
+
+      expect(
+        link?.getAttribute('href'),
+        'the profile is reached from a page written in one language, and it opens in whatever the reader last stored unless the address says otherwise',
+      ).toBe(`/${locale}/u/usr_1`);
+    },
+  );
 });

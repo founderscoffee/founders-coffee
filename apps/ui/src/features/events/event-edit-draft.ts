@@ -1,4 +1,5 @@
 import { hasVenueMoved } from '@founders-coffee/core';
+import type { Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 import type { VenueSelection } from './types';
@@ -14,6 +15,7 @@ export type EventEditDraft = {
   venueSearch: string;
   startsAt: number | null;
   endsAt: number | null;
+  language: Locale;
 };
 
 export type EventLocationPatch = {
@@ -54,6 +56,7 @@ export const draftFromEvent = (event: EventDetailItem): EventEditDraft => ({
   venueSearch: '',
   startsAt: new Date(event.startsAt).getTime(),
   endsAt: event.endsAt ? new Date(event.endsAt).getTime() : null,
+  language: event.language,
 });
 
 /**

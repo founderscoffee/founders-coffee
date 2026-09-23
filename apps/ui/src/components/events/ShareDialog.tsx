@@ -1,5 +1,5 @@
 import { Mail, X as Close } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import {
   share_close,
@@ -39,6 +39,7 @@ export const ShareDialog = ({
   onClose,
 }: ShareDialogProps) => {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -55,10 +56,15 @@ export const ShareDialog = ({
   const targets = shareTargetsFor({ title, text, url });
 
   return (
-    <dialog ref={ref} className="modal" onClose={onClose}>
+    <dialog
+      ref={ref}
+      className="modal"
+      aria-labelledby={titleId}
+      onClose={onClose}
+    >
       <div className="modal-box max-w-md rounded-box border border-base-300 bg-base-100">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="font-display text-h4 font-semibold">
+          <h2 id={titleId} className="font-display text-h4 font-semibold">
             {share_event({}, { locale })}
           </h2>
           <button
@@ -127,7 +133,9 @@ export const ShareDialog = ({
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button type="submit">{share_close({}, { locale })}</button>
+        <button type="submit" tabIndex={-1} aria-hidden="true">
+          {share_close({}, { locale })}
+        </button>
       </form>
     </dialog>
   );

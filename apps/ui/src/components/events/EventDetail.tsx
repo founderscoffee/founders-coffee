@@ -7,9 +7,11 @@ import {
   event_cancelled_title,
   event_details_title,
   event_host,
+  event_timezone,
   event_when,
   event_where,
   formatDate,
+  localizedName,
   going_count,
   host_time_from,
   host_time_to,
@@ -26,7 +28,10 @@ import type {
 } from '@founders-coffee/server-fns';
 
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
-import { localizedCity } from '../../lib/locale-routing';
+import {
+  localizedCity,
+  localizedPublicProfile,
+} from '../../lib/locale-routing';
 import { EventLocationMap } from './EventLocationMap';
 import { RsvpBoxHeading } from './RsvpBoxHeading';
 import { RsvpSection } from './RsvpSection';
@@ -164,6 +169,7 @@ export const EventDetail = ({
           {isCancelled ? null : (
             <ShareEventButton
               locale={locale}
+              eventId={event.id}
               title={event.title}
               label={share_event_action({}, { locale })}
             />
@@ -202,7 +208,10 @@ export const EventDetail = ({
                 </time>
               </dd>
               <dd className="mt-0.5 text-body-sm text-neutral">
-                {market.timezone}
+                {event_timezone(
+                  { market: localizedName(market, locale) },
+                  { locale },
+                )}
               </dd>
             </div>
             <div className="rounded-box border border-base-300 bg-base-100 p-4">
@@ -241,8 +250,7 @@ export const EventDetail = ({
               </span>
               {host ? (
                 <Link
-                  to="/u/$userId"
-                  params={{ userId: host.userId }}
+                  {...localizedPublicProfile(locale, host.userId)}
                   className="btn btn-outline btn-sm h-9 min-h-9 px-4"
                 >
                   {profile_link({}, { locale })}

@@ -94,6 +94,8 @@ export const WaitlistForm = ({
         <input
           type="email"
           inputMode="email"
+          autoComplete="email"
+          dir="ltr"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -121,6 +123,7 @@ export const WaitlistForm = ({
           sitekey={sitekey}
           action="join_waitlist"
           appearance="interaction-only"
+          language={locale}
           resetKey={turnstileResetKey}
           onToken={setTurnstileToken}
         />

@@ -26,6 +26,7 @@ export {
   cancelEvent,
   createEvent,
   getEvent,
+  getEventCardData,
   getHostedEvents,
   getMyJoinedEvents,
   getPublicEventFeed,

@@ -36,7 +36,7 @@ export const AttendeeLiveActions = ({
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="btn btn-success btn-sm"
+          className="btn btn-secondary btn-sm"
           onClick={onWalkingIn}
         >
           {live_walking_in_cta({}, { locale })}
@@ -44,7 +44,7 @@ export const AttendeeLiveActions = ({
         {!showRunningLate && (
           <button
             type="button"
-            className="btn btn-error btn-outline btn-sm"
+            className="btn btn-outline btn-sm"
             onClick={() => setShowRunningLate(true)}
           >
             {live_running_late_cta({}, { locale })}
@@ -62,7 +62,7 @@ export const AttendeeLiveActions = ({
           />
           <button
             type="button"
-            className="btn btn-error btn-sm"
+            className="btn btn-outline btn-sm"
             onClick={handleRunningLate}
           >
             {live_confirm({}, { locale })}

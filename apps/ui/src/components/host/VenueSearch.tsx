@@ -14,6 +14,8 @@ type VenueSearchProps = {
   locale: Locale;
   cityName: string;
   value: string;
+  listId: string;
+  hasResults: boolean;
   isDisabled?: boolean;
   isLoading: boolean;
   errorMessage?: string;
@@ -25,6 +27,8 @@ export const VenueSearch = ({
   locale,
   cityName,
   value,
+  listId,
+  hasResults,
   isDisabled = false,
   isLoading,
   errorMessage,
@@ -39,6 +43,10 @@ export const VenueSearch = ({
       id="venue-search"
       maxLength={VENUE_SEARCH_MAX_LENGTH}
       type="search"
+      role="combobox"
+      aria-expanded={hasResults}
+      aria-controls={listId}
+      aria-autocomplete="list"
       className="input input-bordered h-12 w-full rounded-xl bg-base-100 text-body md:h-13"
       placeholder={host_venue_search_ph({ city: cityName }, { locale })}
       value={value}

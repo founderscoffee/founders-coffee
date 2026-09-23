@@ -24,6 +24,8 @@ import { VenueSearch } from './VenueSearch';
 
 const SEARCH_DELAY_MS = 350;
 
+const VENUE_LIST_ID = 'venue-results';
+
 type HostVenueStepProps = {
   locale: Locale;
   cityName: string;
@@ -133,6 +135,8 @@ export const HostVenueStep = ({
         locale={locale}
         cityName={cityName}
         value={searchValue}
+        listId={VENUE_LIST_ID}
+        hasResults={rows.length > 0}
         isDisabled={isDisabled}
         isLoading={isSearching && search.isFetching}
         errorMessage={searchError}
@@ -151,6 +155,7 @@ export const HostVenueStep = ({
         {rows.length > 0 ? (
           <HostVenueList
             locale={locale}
+            id={VENUE_LIST_ID}
             label={listLabel}
             venues={rows}
             selectedProviderId={venue?.providerId}
@@ -166,10 +171,13 @@ export const HostVenueStep = ({
         )}
       </div>
       {venue?.kind === 'address' && !hideNameField && (
-        <label className="form-control" htmlFor="host-venue-name">
-          <span className="mb-1 text-body-sm text-neutral">
+        <div className="form-control">
+          <label
+            className="mb-1 text-body-sm text-neutral"
+            htmlFor="host-venue-name"
+          >
             {host_venue_name_label({}, { locale })}
-          </span>
+          </label>
           <Input
             id="host-venue-name"
             value={venueName}
@@ -193,7 +201,7 @@ export const HostVenueStep = ({
               {nameError}
             </span>
           )}
-        </label>
+        </div>
       )}
       {isPinned && (
         <button

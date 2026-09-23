@@ -1,22 +1,20 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { notifications_title } from '@founders-coffee/i18n';
+import { detectLocale } from '@founders-coffee/i18n';
 
-import { PreferencesPage } from '../../features/preferences/components/PreferencesPage';
+import { readCookieHeader } from '../../lib/cookies';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
-import { requireSession } from '../../features/auth/require-session';
-import { privatePageHead } from '../../lib/seo-private';
+import { localizedProfileNotifications } from '../../lib/locale-routing';
 
 export const Route = createFileRoute('/profile/notifications')({
-  beforeLoad: ({ location }) => requireSession(location.href),
+  preload: false,
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,
   }),
-  component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    return <PreferencesPage locale={locale} markets={markets} />;
+  beforeLoad: () => {
+    throw redirect(
+      localizedProfileNotifications(detectLocale(readCookieHeader())),
+    );
   },
-  head: ({ match }) =>
-    privatePageHead(notifications_title({}, { locale: match.context.locale })),
 });

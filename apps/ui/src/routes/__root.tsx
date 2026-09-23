@@ -17,6 +17,7 @@ import {
   visibleMarkets,
   type RootMarket,
 } from '../features/markets/api';
+import { usePathLocale } from '../features/preferences/use-path-locale';
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
@@ -29,10 +30,10 @@ import {
   NO_INDEX_VALUE,
   PUBLIC_DOCUMENT_CACHE_CONTROL,
 } from '../lib/indexation';
-import { routeMarketSlug } from '../lib/route-market';
 import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd } from '../lib/seo-company';
 import { errorPageHead } from '../lib/seo-error';
+import { installedAppMeta } from '../lib/installed-app-head';
 import { manifestHref } from '../lib/web-manifest';
 
 import appCss from '../styles.css?url';
@@ -78,6 +79,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
   useClientObservability();
   useServiceWorker();
   useStoredLocale(locale);
+  usePathLocale();
 
   return (
     <html lang={locale} dir={dir} data-auth-slot="out" suppressHydrationWarning>
@@ -102,14 +104,15 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
 export const Route = createRootRoute({
   beforeLoad: async ({ params }) => {
     const routeParams = params as {
+      readonly locale?: string;
       readonly market?: string;
-      readonly city?: string;
     };
-    const { locale, dir } = detectActiveLocale(routeParams.market);
+    const { locale, dir } = detectActiveLocale(routeParams.locale);
     const markets = (await visibleMarkets()).map(toRootMarket);
-    const slug = routeMarketSlug(routeParams);
     const activeMarket =
-      markets.find((market: RootMarket) => market.slug === slug) ?? markets[0];
+      markets.find(
+        (market: RootMarket) => market.slug === routeParams.market,
+      ) ?? markets[0];
     return { locale, dir, markets, activeMarket };
   },
   headers: ({ matches }) => {
@@ -142,7 +145,7 @@ export const Route = createRootRoute({
       meta: [
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'theme-color', content: '#270F00' },
+        ...installedAppMeta(),
         ...(pageHead?.meta ?? []),
       ],
       links: [

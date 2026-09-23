@@ -144,6 +144,22 @@ describe('states the host can land in', () => {
     expect(screen.getByRole('alert').textContent).toMatch(/not finished/i);
   });
 
+  it('explains a gathering the host called off, and shows no form to fill in', () => {
+    state.query = {
+      ...state.query,
+      data: undefined,
+      isError: true,
+      error: Object.assign(new Error('x'), {
+        code: 'closeout_event_cancelled',
+      }),
+    };
+    show();
+
+    expect(screen.getByRole('alert').textContent).toMatch(/cancelled/i);
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Submit/i })).toBeNull();
+  });
+
   it('says plainly when some names could not be recorded', () => {
     state.save = {
       ...state.save,

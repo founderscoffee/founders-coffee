@@ -80,7 +80,7 @@ export const CompanyPage = ({
   };
 
   return (
-    <article className="mx-auto max-w-3xl px-4 py-12 md:py-16">
+    <article className="mx-auto max-w-xl px-4 py-12 md:py-16">
       {translated ? (
         <p
           role="note"
@@ -100,7 +100,7 @@ export const CompanyPage = ({
           <h1 className="font-display text-h2 font-semibold text-balance md:text-h1">
             {content.title}
           </h1>
-          <p className="mt-3 max-w-2xl text-body-lg leading-8 text-neutral">
+          <p className="mt-3 text-body-lg leading-8 text-neutral">
             {content.description}
           </p>
           <p className="mt-4 text-body-sm text-neutral">

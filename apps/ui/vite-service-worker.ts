@@ -25,9 +25,14 @@ const OFFLINE_DOCUMENT_FILE = 'offline.html';
  *
  * The offline document is excluded here and added back by {@link offlinePrecacheEntry} under the URL
  * it is actually served at.
+ *
+ * The social images are excluded because nobody who installs the app will ever see them. They are
+ * the pictures a link previews as, fetched once by whatever scraper is building the preview, and
+ * precaching the default one put a hundred kilobytes on every install to no end.
  */
 export const precacheIgnores = (): string[] => [
   '**/mapbox-gl*',
+  '**/social/**',
   `**/${OFFLINE_DOCUMENT_FILE}`,
 ];
 

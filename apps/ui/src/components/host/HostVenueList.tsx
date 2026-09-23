@@ -26,6 +26,7 @@ export type VenueRow = VenueSelection & {
 
 type HostVenueListProps = {
   locale: Locale;
+  id: string;
   label: string;
   venues: readonly VenueRow[];
   selectedProviderId?: string;
@@ -35,6 +36,7 @@ type HostVenueListProps = {
 
 export const HostVenueList = ({
   locale,
+  id,
   label,
   venues,
   selectedProviderId,
@@ -62,7 +64,12 @@ export const HostVenueList = ({
 
   return (
     <div ref={listRef}>
-      <div role="radiogroup" aria-label={label} className="flex flex-col gap-1">
+      <div
+        id={id}
+        role="listbox"
+        aria-label={label}
+        className="flex flex-col gap-1"
+      >
         {venues.map((venue) => {
           const checked = venue.providerId === selectedProviderId;
           const category = venue.category
@@ -72,8 +79,8 @@ export const HostVenueList = ({
             <div
               key={venue.providerId}
               data-venue={venue.providerId}
-              role="radio"
-              aria-checked={checked}
+              role="option"
+              aria-selected={checked}
               aria-disabled={venue.eligible ? undefined : true}
               tabIndex={venue.providerId === focusedId ? 0 : -1}
               onClick={() => venue.eligible && onSelect(venue)}
@@ -108,7 +115,6 @@ export const HostVenueList = ({
             >
               <span
                 aria-hidden="true"
-                aria-checked={checked}
                 className={`radio radio-primary mt-0.5 shrink-0 ${
                   venue.eligible ? '' : 'opacity-40'
                 }`}

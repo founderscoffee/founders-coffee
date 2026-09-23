@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 
 import {
   gate_back,
@@ -58,7 +58,12 @@ export const HostSignInGate = ({
   const [resendNonce, setResendNonce] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const cooldown = useResendCooldown();
-  const stepHeight = useStepHeightLock();
+  const stepHeight = useStepHeightLock<HTMLFormElement>();
+
+  const submitStep = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void (step === 'email' ? sendCode() : verify());
+  };
 
   useRevealOnMount(rootRef);
 
@@ -142,10 +147,11 @@ export const HostSignInGate = ({
         {gate_title({}, { locale })}
       </h3>
 
-      <div
+      <form
         ref={stepHeight.ref}
         style={{ minHeight: stepHeight.minHeight }}
         className="mt-5 flex max-w-sm flex-col gap-4"
+        onSubmit={submitStep}
       >
         {step === 'email' ? (
           <>
@@ -155,13 +161,18 @@ export const HostSignInGate = ({
               </span>
               <Input
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={login_email_placeholder({}, { locale })}
               />
             </label>
             {turnstileSiteKey && (
-              <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
+              <Turnstile
+                sitekey={turnstileSiteKey}
+                language={locale}
+                onToken={setToken}
+              />
             )}
             {error && (
               <p role="alert" className="text-body-sm text-error">
@@ -169,7 +180,7 @@ export const HostSignInGate = ({
               </p>
             )}
             <Button
-              onClick={() => void sendCode()}
+              type="submit"
               disabled={!emailValid || !token || busy}
               isFullWidth
             >
@@ -228,7 +239,7 @@ export const HostSignInGate = ({
               </p>
             )}
             <Button
-              onClick={() => void verify()}
+              type="submit"
               disabled={otp.length !== OTP_LENGTH || busy}
               isFullWidth
             >
@@ -244,6 +255,7 @@ export const HostSignInGate = ({
               <Turnstile
                 sitekey={turnstileSiteKey}
                 appearance="interaction-only"
+                language={locale}
                 resetKey={resendNonce}
                 onToken={setResendToken}
               />
@@ -268,7 +280,7 @@ export const HostSignInGate = ({
           <BackArrow locale={locale} />
           {gate_back({}, { locale })}
         </Button>
-      </div>
+      </form>
     </div>
   );
 };

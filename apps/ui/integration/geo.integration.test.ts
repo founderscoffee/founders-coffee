@@ -1,6 +1,6 @@
 import { createDb, events, seed, user } from '@founders-coffee/db';
 import { LOCALES } from '@founders-coffee/core/locale';
-import { footer_tagline } from '@founders-coffee/i18n';
+import { city_empty_title, footer_tagline } from '@founders-coffee/i18n';
 import {
   createExecutionContext,
   env,
@@ -48,6 +48,11 @@ const firstHeading = (body: string): string =>
   (/<h1\b[^>]*>([\s\S]*?)<\/h1>/iu.exec(body)?.[1] ?? '')
     .replaceAll(/<[^>]+>/gu, '')
     .trim();
+
+const sectionHeadings = (body: string): string[] =>
+  [...body.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/giu)].map((match) =>
+    match[1].replaceAll(/<[^>]+>/gu, '').trim(),
+  );
 
 /**
  * The shell footer, which is the last one in the document — every event card renders a `<footer>`
@@ -196,6 +201,36 @@ describe('public GEO contract', () => {
         firstHeading(await response.text()),
         `the ${locale} city page is headed in another language (FC-28)`,
       ).toBe(expected[locale]);
+    }
+  });
+
+  it('heads a city with nothing on by its name, and invites a host in a section beneath it', async () => {
+    const oran = { ar: 'وهران', fr: 'Oran', en: 'Oran' };
+
+    for (const locale of LOCALES) {
+      const path = `/${locale}/algeria/oran`;
+      const response = await fetchDocument(
+        PRODUCTION_ORIGIN,
+        path,
+        productionEnv,
+      );
+      const body = await response.text();
+      const headings = headingLevels(body);
+
+      expect(response.status, path).toBe(200);
+      expect(
+        firstHeading(body),
+        `${path} is headed by its invitation, where a city with meetups is headed by its name`,
+      ).toBe(oran[locale]);
+      expect(headings[0], path).toBe('1');
+      expect(
+        headings.filter((level) => level === '1'),
+        path,
+      ).toHaveLength(1);
+      expect(
+        sectionHeadings(body),
+        `${path} has no h2 of its own; the GEO smoke refuses the page, and the footer no longer lends it three`,
+      ).toContain(city_empty_title({ city: oran[locale] }, { locale }));
     }
   });
 

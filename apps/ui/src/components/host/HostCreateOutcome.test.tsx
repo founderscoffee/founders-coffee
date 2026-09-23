@@ -27,8 +27,8 @@ describe('HostCreatePage EC-08 outcomes', () => {
 
     await waitFor(() =>
       expect(hostCreateMocks.navigate).toHaveBeenCalledWith({
-        to: '/$market/$city/e/$slug',
-        params: { market: 'en', city: 'algeria', slug: CREATED_EVENT.slug },
+        to: '/$locale/$market/e/$slug',
+        params: { locale: 'en', market: 'algeria', slug: CREATED_EVENT.slug },
       }),
     );
     expect(hostCreateMocks.invalidateCreatedEvent).toHaveBeenCalledWith({

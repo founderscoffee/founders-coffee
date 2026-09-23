@@ -24,7 +24,7 @@ export const HostIdentityGate = (props: {
     <div className="space-y-4">
       <ProfileCompletion
         locale={props.locale}
-        returnPath="/profile"
+        returnPath={`/${props.locale}/profile`}
         onComplete={props.onAuthenticated}
       />
       <button type="button" className="btn btn-ghost" onClick={props.onCancel}>

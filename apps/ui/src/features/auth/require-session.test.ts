@@ -1,6 +1,8 @@
 import { isRedirect } from '@tanstack/react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { Locale } from '@founders-coffee/i18n';
+
 import { redirectWhenSignedIn, requireSession } from './require-session';
 
 const state = vi.hoisted(() => ({ hasSession: false }));
@@ -12,12 +14,16 @@ vi.mock('./api', () => ({
 type RedirectOptions = {
   to?: string;
   href?: string;
+  params?: { locale?: string };
   search?: { redirect?: string };
 };
 
-const redirectFrom = async (path: string): Promise<RedirectOptions> => {
+const redirectFrom = async (
+  path: string,
+  locale: Locale = 'ar',
+): Promise<RedirectOptions> => {
   try {
-    await requireSession(path);
+    await requireSession(locale, path);
   } catch (thrown) {
     if (!isRedirect(thrown)) throw thrown;
     return (thrown as unknown as { options: RedirectOptions }).options;
@@ -46,14 +52,21 @@ afterEach(() => {
 describe('requiring a session before a private page renders', () => {
   it('lets a signed-in visitor through', async () => {
     state.hasSession = true;
-    await expect(requireSession('/profile')).resolves.toBeUndefined();
+    await expect(requireSession('ar', '/profile')).resolves.toBeUndefined();
   });
 
-  it('sends a signed-out visitor to sign in, and back again afterwards', async () => {
-    const options = await redirectFrom('/profile/account');
-    expect(options.to).toBe('/login');
-    expect(options.search?.redirect).toBe('/profile/account');
-  });
+  it.each(['ar', 'en', 'fr'] as const)(
+    'sends a signed-out %s reader to sign in, and back again afterwards',
+    async (locale) => {
+      const options = await redirectFrom('/profile/account', locale);
+      expect(options.to).toBe('/$locale/login');
+      expect(
+        options.params?.locale,
+        'they sign in in the language they were reading, not the default one',
+      ).toBe(locale);
+      expect(options.search?.redirect).toBe('/profile/account');
+    },
+  );
 
   it('keeps the query string, which is where a tab selection lives', async () => {
     const options = await redirectFrom('/profile/activity?tab=past');

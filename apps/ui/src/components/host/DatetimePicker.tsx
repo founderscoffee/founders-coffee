@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { DayPicker, TZDate } from 'react-day-picker';
-import { arDZ, enUS, fr } from 'react-day-picker/locale';
 
 import {
   getZonedWallClock,
@@ -10,9 +9,9 @@ import {
   type ZonedDateTimeError,
 } from '@founders-coffee/i18n';
 
+import { DAYPICKER_LOCALE } from './daypicker-locale';
 import { TimePicker } from './TimePicker';
 
-const DAYPICKER_LOCALE = { ar: arDZ, en: enUS, fr } as const;
 const DAYPICKER_DIR = { ar: 'rtl', en: 'ltr', fr: 'ltr' } as const;
 
 const pad = (n: number) => String(n).padStart(2, '0');

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const RELEASE_STATE_VERSION = 1;
+export const RELEASE_STATE_VERSION = 2;
 
 export const ENVIRONMENT_CONFIG = {
   staging: {
@@ -57,6 +57,22 @@ const requireBookmark = (value) => {
     hasControlCharacter
   ) {
     throw new Error('database bookmark must be a non-empty opaque value');
+  }
+  return value;
+};
+
+/*
+ * Which migrations the database had already run when this state was captured. The capture step
+ * runs before the deploy applies anything, so this is the schema the Workers named alongside it
+ * were serving - the pairing a rollback needs to tell whether the schema has since moved past
+ * the code it is being asked to restore.
+ */
+const requireAppliedMigrations = (value) => {
+  if (
+    !Array.isArray(value) ||
+    value.some((name) => typeof name !== 'string' || !/^\d{4}_.+$/u.test(name))
+  ) {
+    throw new Error('appliedMigrations must list applied migration names');
   }
   return value;
 };
@@ -187,6 +203,7 @@ export const validateReleaseState = (state) => {
   ) {
     throw new Error('migrationHead is required');
   }
+  requireAppliedMigrations(state?.appliedMigrations);
   if (state?.database?.name !== ENVIRONMENT_CONFIG[environment].database) {
     throw new Error('database does not match the environment');
   }

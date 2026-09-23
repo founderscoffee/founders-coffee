@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Locale } from '@founders-coffee/i18n';
 
+import { copy } from './closeout-copy.fixtures';
+
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
   save: {} as Record<string, unknown>,
@@ -86,11 +88,11 @@ describe('what a host learns when they come back to a closed-out gathering', () 
 
     const text = screen.getByRole('heading', { level: 2 }).parentElement
       ?.textContent;
-    expect(text).toMatch(/4 responses/);
-    expect(text).toMatch(/Very valuable: 2/);
-    expect(text).toMatch(/Somewhat valuable: 1/);
-    expect(text).toMatch(/Not valuable: 1/);
-    expect(text).toMatch(/Would return to a similar meetup: 3/);
+    expect(text).toContain(copy.responses(4));
+    expect(text).toContain(copy.valuable(2));
+    expect(text).toContain(copy.okay(1));
+    expect(text).toContain(copy.notValuable(1));
+    expect(text).toContain(copy.wouldReturn(3));
   });
 
   it('says why there is no summary yet instead of showing an empty one', () => {
@@ -101,10 +103,11 @@ describe('what a host learns when they come back to a closed-out gathering', () 
 
     const text = document.body.textContent ?? '';
     expect(text).toMatch(/Not enough responses yet/i);
-    expect(
-      text,
-      'a suppressed summary must not print the counts it is suppressing',
-    ).not.toMatch(/responses:|Very valuable:/i);
+    for (const line of copy.ratingLabels)
+      expect(
+        text,
+        'a suppressed summary must not print the counts it is suppressing',
+      ).not.toContain(line);
   });
 
   it('keeps saying the gathering is already closed out', () => {

@@ -84,6 +84,13 @@ export default defineConfig(({ command }) => ({
         environment: 'client',
       },
       {
+        find: /^harfbuzzjs$/,
+        replacement: fileURLToPath(
+          new URL('./src/lib/og-harfbuzz.ts', import.meta.url),
+        ),
+        environment: 'ssr',
+      },
+      {
         find: /^zod$/,
         replacement: fileURLToPath(
           new URL('./src/zod-jitless-shim.ts', import.meta.url),

@@ -103,7 +103,11 @@ export const AdminLogin = ({
             onChange={(event) => setEmail(event.target.value)}
           />
           {needsToken && (
-            <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
+            <Turnstile
+              sitekey={turnstileSiteKey}
+              language={locale}
+              onToken={setToken}
+            />
           )}
           {needsToken && !token && (
             <p className="text-caption text-neutral" role="status">

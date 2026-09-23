@@ -7,7 +7,6 @@ type EmptyStateProps = {
   headingLevel?: 'h1' | 'h2';
   body?: string;
   action?: ReactNode;
-  secondary?: ReactNode;
 };
 
 export const EmptyState = ({
@@ -15,7 +14,6 @@ export const EmptyState = ({
   headingLevel = 'h2',
   body,
   action,
-  secondary,
 }: EmptyStateProps) => (
   <section className="mx-auto flex max-w-[460px] flex-col items-center gap-2.5 px-6 py-12 text-center">
     <LogoSymbol size={55} />
@@ -30,6 +28,5 @@ export const EmptyState = ({
       </p>
     ) : null}
     {action ? <div className="mt-1.5">{action}</div> : null}
-    {secondary}
   </section>
 );

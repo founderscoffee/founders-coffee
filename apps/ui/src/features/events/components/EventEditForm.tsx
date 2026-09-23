@@ -81,10 +81,12 @@ export const EventEditForm = ({
         locale={locale}
         title={draft.title}
         description={draft.description}
+        language={draft.language}
         constraints={constraints}
         errors={{}}
         onTitleChange={(title) => patch({ title })}
         onDescriptionChange={(description) => patch({ description })}
+        onLanguageChange={(language) => patch({ language })}
       />
 
       <fieldset className="grid gap-3">

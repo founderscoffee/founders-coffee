@@ -1,13 +1,10 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 
 import {
   brand,
   login_change_email,
   login_code_sent,
   login_account_note,
-  login_email_label,
-  login_email_placeholder,
-  login_help,
   login_or,
   login_email_continue,
   login_send_error,
@@ -17,9 +14,10 @@ import {
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, Turnstile } from '@founders-coffee/ui';
+import { Button, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
+import { LoginEmailField } from './LoginEmailField';
 import { authClient } from '../../lib/auth';
 import { onboardingRedirectPath } from '../../lib/redirect';
 import { OtpField, OTP_LENGTH } from './OtpField';
@@ -60,7 +58,7 @@ export const LoginPage = ({
   const [resendToken, setResendToken] = useState<string | null>(null);
   const [resendNonce, setResendNonce] = useState(0);
   const cooldown = useResendCooldown();
-  const stepHeight = useStepHeightLock();
+  const stepHeight = useStepHeightLock<HTMLFormElement>();
 
   const emailValid = /.+@.+\..+/.test(email);
 
@@ -113,7 +111,7 @@ export const LoginPage = ({
       setError(login_wrong_code({}, { locale }));
       return;
     }
-    window.location.href = onboardingRedirectPath(redirect);
+    window.location.href = onboardingRedirectPath(locale, redirect);
   };
 
   const changeEmail = () => {
@@ -127,19 +125,25 @@ export const LoginPage = ({
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
     authClient.signIn.social({
       provider,
-      callbackURL: onboardingRedirectPath(redirect),
-      newUserCallbackURL: onboardingRedirectPath(redirect),
+      callbackURL: onboardingRedirectPath(locale, redirect),
+      newUserCallbackURL: onboardingRedirectPath(locale, redirect),
     });
+
+  const submitStep = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void (step === 'email' ? sendCode() : verify());
+  };
 
   useOtpAutofill(step === 'otp', setOtp);
 
   return (
     <div className="mx-auto flex max-w-sm flex-col px-4 py-12">
       <div>
-        <div
+        <form
           ref={stepHeight.ref}
           style={{ minHeight: stepHeight.minHeight }}
           className="flex flex-col gap-4"
+          onSubmit={submitStep}
         >
           <div className="flex flex-col items-center gap-3 text-center">
             <h1 className="font-display text-h3 font-semibold">
@@ -150,22 +154,17 @@ export const LoginPage = ({
 
           {step === 'email' ? (
             <>
-              <label className="form-control">
-                <span className="mb-1 block text-label text-neutral">
-                  {login_email_label({}, { locale })}
-                </span>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={login_email_placeholder({}, { locale })}
-                />
-                <span className="mt-1.5 block text-body-sm text-neutral">
-                  {login_help({}, { locale })}
-                </span>
-              </label>
+              <LoginEmailField
+                locale={locale}
+                value={email}
+                onChange={setEmail}
+              />
               {turnstileSiteKey && !isTurnstileBypassed && (
-                <Turnstile sitekey={turnstileSiteKey} onToken={setToken} />
+                <Turnstile
+                  sitekey={turnstileSiteKey}
+                  language={locale}
+                  onToken={setToken}
+                />
               )}
               {error && (
                 <p role="alert" className="text-body-sm text-error">
@@ -173,7 +172,7 @@ export const LoginPage = ({
                 </p>
               )}
               <Button
-                onClick={sendCode}
+                type="submit"
                 disabled={
                   !emailValid || (!isTurnstileBypassed && !token) || busy
                 }
@@ -237,7 +236,7 @@ export const LoginPage = ({
                 </p>
               )}
               <Button
-                onClick={verify}
+                type="submit"
                 disabled={otp.length !== OTP_LENGTH || busy}
                 isFullWidth
               >
@@ -254,6 +253,7 @@ export const LoginPage = ({
                 <Turnstile
                   sitekey={turnstileSiteKey}
                   appearance="interaction-only"
+                  language={locale}
                   resetKey={resendNonce}
                   onToken={setResendToken}
                 />
@@ -274,7 +274,7 @@ export const LoginPage = ({
               </Button>
             </>
           )}
-        </div>
+        </form>
       </div>
     </div>
   );

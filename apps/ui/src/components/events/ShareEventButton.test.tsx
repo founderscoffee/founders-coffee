@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ShareEventButton } from './ShareEventButton';
 
 const TITLE = 'Founders breakfast';
+const EVENT_ID = 'evt_25b03363854e4768887f4f96641e6667';
 
 const withNavigator = (patch: Record<string, unknown>) => {
   for (const [key, value] of Object.entries(patch)) {
@@ -26,7 +27,14 @@ const dropFromNavigator = (...keys: string[]) => {
 };
 
 const renderButton = () =>
-  render(<ShareEventButton locale="en" title={TITLE} label="Share" />);
+  render(
+    <ShareEventButton
+      locale="en"
+      eventId={EVENT_ID}
+      title={TITLE}
+      label="Share"
+    />,
+  );
 
 const clickShare = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Share' }));
@@ -51,7 +59,7 @@ describe('ShareEventButton', () => {
     expect(share.mock.calls[0]?.[0]).toEqual({
       title: TITLE,
       text: `Join me at ${TITLE}`,
-      url: `${window.location.origin}/en/algeria/e/founders-breakfast`,
+      url: `${window.location.origin}/en/e/25b03363854e4768887f4f96641e6667`,
     });
     expect(
       document.querySelector('dialog[open]'),

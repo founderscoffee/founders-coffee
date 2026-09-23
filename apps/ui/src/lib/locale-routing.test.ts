@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   localizedEvent,
   localizedHome,
+  localizedProfile,
   localizedHostCreate,
   localizedLanding,
   withLocale,
@@ -36,39 +37,39 @@ describe('switching the language of the page in view', () => {
 
 describe('addressing a page in the language the reader is in', () => {
   it('puts the locale where the router expects it, which is the market slot', () => {
-    expect(localizedLanding('fr', 'algeria')).toEqual({
-      to: '/$market/$city',
-      params: { market: 'fr', city: 'algeria' },
+    expect(localizedLanding('fr', 'algeria')).toMatchObject({
+      to: '/$locale/$market',
+      params: { locale: 'fr', market: 'algeria' },
     });
   });
 
   it('addresses a company page through the same route as a market', () => {
     expect(localizedLanding('ar', 'terms').params).toEqual({
-      market: 'ar',
-      city: 'terms',
+      locale: 'ar',
+      market: 'terms',
     });
   });
 
   it('pushes the market down a level for the host wizard too', () => {
     expect(localizedHostCreate('fr', 'algeria')).toEqual({
-      to: '/$market/$city/host/create',
-      params: { market: 'fr', city: 'algeria' },
+      to: '/$locale/$market/host/create',
+      params: { locale: 'fr', market: 'algeria' },
     });
   });
 
   it('pushes the market down a level for an event', () => {
     expect(localizedEvent('en', 'algeria', 'coffee-and-code')).toEqual({
-      to: '/$market/$city/e/$slug',
-      params: { market: 'en', city: 'algeria', slug: 'coffee-and-code' },
+      to: '/$locale/$market/e/$slug',
+      params: { locale: 'en', market: 'algeria', slug: 'coffee-and-code' },
     });
   });
 });
 
 describe('localizedHome', () => {
   it('sends a brand mark straight at the market landing', () => {
-    expect(localizedHome('fr', 'algeria')).toEqual({
-      to: '/$market/$city',
-      params: { market: 'fr', city: 'algeria' },
+    expect(localizedHome('fr', 'algeria')).toMatchObject({
+      to: '/$locale/$market',
+      params: { locale: 'fr', market: 'algeria' },
     });
   });
 
@@ -77,5 +78,18 @@ describe('localizedHome', () => {
       localizedHome('fr', undefined),
       'without a market there is nothing to name, and that is the one case where the redirect earns its geo lookup',
     ).toEqual({ to: '/' });
+  });
+});
+
+describe('which link tells a screen reader it is the page being read', () => {
+  it.each([
+    ['a market landing', localizedLanding('fr', 'algeria')],
+    ['home', localizedHome('fr', 'algeria')],
+    ['the reader\u2019s own profile', localizedProfile('fr')],
+  ])('marks %s current only on its own address', (_name, target) => {
+    expect(
+      (target as { activeOptions?: { exact?: boolean } }).activeOptions?.exact,
+      'a link is active by path prefix unless told otherwise, and each of these is the prefix of every page beneath it',
+    ).toBe(true);
   });
 });

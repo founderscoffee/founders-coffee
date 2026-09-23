@@ -30,12 +30,12 @@ describe('sameOriginPathSchema', () => {
 
   it('builds a safe onboarding path for a new authenticated user', () => {
     expect(
-      onboardingRedirectPath('/algeria/host/create?city=556&state=16'),
+      onboardingRedirectPath('ar', '/algeria/host/create?city=556&state=16'),
     ).toBe(
-      '/onboarding?redirect=%2Falgeria%2Fhost%2Fcreate%3Fcity%3D556%26state%3D16',
+      '/ar/onboarding?redirect=%2Falgeria%2Fhost%2Fcreate%3Fcity%3D556%26state%3D16',
     );
-    expect(onboardingRedirectPath('//attacker.example/steal')).toBe(
-      '/onboarding?redirect=%2F',
+    expect(onboardingRedirectPath('ar', '//attacker.example/steal')).toBe(
+      '/ar/onboarding?redirect=%2F',
     );
   });
 });

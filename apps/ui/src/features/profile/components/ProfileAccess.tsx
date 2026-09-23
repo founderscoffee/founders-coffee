@@ -8,6 +8,8 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
+import { localizedLogin } from '../../../lib/locale-routing';
+
 export const ProfileAccess = ({
   locale,
   isLoading,
@@ -27,7 +29,7 @@ export const ProfileAccess = ({
     ) : isAnonymous ? (
       <Link
         className="btn btn-primary"
-        to="/login"
+        {...localizedLogin(locale)}
         search={{ redirect: returnPath }}
       >
         {login_title({}, { locale })}

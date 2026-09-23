@@ -1,9 +1,6 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
 import { describe, expect, it } from 'vitest';
 
-type Kind = 'protocol' | 'redirect' | 'unresolved' | 'root';
+type Kind = 'protocol' | 'redirect' | 'unresolved' | 'root' | 'layout';
 
 type Exemption = { readonly kind: Kind; readonly why: string };
 
@@ -14,6 +11,10 @@ const UNPREFIXED: Readonly<Record<string, Exemption>> = {
   },
 
   '/events.json': { kind: 'protocol', why: 'machine-readable feed' },
+  '/og/e/$id': {
+    kind: 'protocol',
+    why: 'an image for link scrapers, which have no language of their own to prefix for; the card is drawn in the language the `l` parameter names, set by the page that publishes the address',
+  },
   '/llms.txt': { kind: 'protocol', why: 'protocol file' },
   '/robots.txt': { kind: 'protocol', why: 'protocol file' },
   '/sitemap.xml': {
@@ -64,65 +65,37 @@ const UNPREFIXED: Readonly<Record<string, Exemption>> = {
   },
 
   '/login': {
-    kind: 'unresolved',
-    why: '#58 — renders in the cookie language, so a French reader following a French link signs in in Arabic',
+    kind: 'redirect',
+    why: '#58 — the sign-in page is /{locale}/login; this address answers 307 to it',
   },
   '/onboarding': {
-    kind: 'unresolved',
+    kind: 'redirect',
     why: '#58 — same as /login, behind requireSession',
   },
-  '/profile': { kind: 'unresolved', why: '#58' },
-  '/profile/': { kind: 'unresolved', why: '#58' },
-  '/profile/account': { kind: 'unresolved', why: '#58' },
-  '/profile/activity': { kind: 'unresolved', why: '#58' },
-  '/profile/notifications': { kind: 'unresolved', why: '#58' },
+  '/profile': {
+    kind: 'layout',
+    why: 'groups the four private screens and renders none of them; each address beneath it carries the language',
+  },
+  '/profile/': { kind: 'redirect', why: '#58 — now /{locale}/profile' },
+  '/profile/account': {
+    kind: 'redirect',
+    why: '#58 — now /{locale}/profile/account',
+  },
+  '/profile/activity': {
+    kind: 'redirect',
+    why: '#58 — now /{locale}/profile/activity',
+  },
+  '/profile/notifications': {
+    kind: 'redirect',
+    why: '#58 — now /{locale}/profile/notifications',
+  },
   '/u/$userId': {
-    kind: 'unresolved',
-    why: '#58 — a public profile, so this one is also a crawler-visible address with no locale',
+    kind: 'redirect',
+    why: '#58 — the profile is /{locale}/u/$userId; a shared link opens in the language it was shared in',
   },
 };
 
-const read = (relative: string): string =>
-  readFileSync(fileURLToPath(new URL(relative, import.meta.url)), 'utf8');
-
-/**
- * Every route the generator declared, paired with the file it came from.
- *
- * Read out of `routeTree.gen.ts` as text rather than by importing it. Importing would pull in every
- * route module and everything they render, to answer a question about addresses; the generated file
- * already states the answer, and it is regenerated and committed by `nx sync`, so reading it is
- * reading the same source of truth the router uses.
- */
-const declaredRoutes = (): { fullPath: string; file: string }[] => {
-  const source = read('../routeTree.gen.ts');
-  const imports = new Map(
-    [
-      ...source.matchAll(/import \{ Route as (\w+) \} from '\.\/([^']+)'/gu),
-    ].map((match) => [match[1] as string, match[2] as string]),
-  );
-
-  const declarations = source.slice(
-    source.indexOf('interface FileRoutesByPath {'),
-  );
-  return [
-    ...declarations.matchAll(
-      /fullPath: '([^']*)'\s*preLoaderRoute: typeof (\w+)/gu,
-    ),
-  ].map((match) => ({
-    fullPath: match[1] as string,
-    file: imports.get(match[2] as string) ?? '',
-  }));
-};
-
-const sourceOf = (file: string): string => {
-  for (const extension of ['.tsx', '.ts'])
-    try {
-      return read(`../${file}${extension}`);
-    } catch {
-      continue;
-    }
-  return '';
-};
+import { declaredRoutes, sourceOf } from './route-contract.fixtures';
 
 /**
  * The routes that carry no locale, which are the only ones `UNPREFIXED` has anything to say about.
@@ -136,7 +109,7 @@ const sourceOf = (file: string): string => {
  * until it is fixed.
  */
 const unprefixed = () =>
-  declaredRoutes().filter(({ fullPath }) => !fullPath.startsWith('/$market'));
+  declaredRoutes().filter(({ fullPath }) => !fullPath.startsWith('/$locale'));
 
 describe('the locale contract', () => {
   it('reads the generated tree', () => {
@@ -153,7 +126,7 @@ describe('the locale contract', () => {
       .filter(({ fullPath }) => !(fullPath in UNPREFIXED))
       .map(
         ({ fullPath, file }) =>
-          `${fullPath} (${file}) carries no locale and is not in UNPREFIXED — prefix it with /$market, or add an entry saying why it cannot be`,
+          `${fullPath} (${file}) carries no locale and is not in UNPREFIXED — prefix it with /$locale, or add an entry saying why it cannot be`,
       );
 
     expect(undeclared, undeclared.join('\n')).toEqual([]);
@@ -189,6 +162,29 @@ describe('the locale contract', () => {
    * the cookie's language. Rendering anything here would reintroduce `8f59f74` quietly, on a route
    * nobody is looking at, so the shape is asserted rather than trusted.
    */
+  /**
+   * A layout that grew a page of its own stopped being a layout.
+   *
+   * `layout` is the one kind that renders something, so it is the one an unprefixed page could
+   * hide behind. It earns the exemption only by having nothing of its own to say: no data, no
+   * head, and nothing in the tree but the child whose address carries the language.
+   */
+  it('keeps every layout exemption a layout', () => {
+    for (const { fullPath, file } of unprefixed()) {
+      if (UNPREFIXED[fullPath]?.kind !== 'layout') continue;
+      const body = sourceOf(file);
+      expect(body, `${fullPath}: could not read ${file}`).not.toBe('');
+      expect(
+        body,
+        `${fullPath} is exempted as a layout but renders something other than its children`,
+      ).toMatch(/component: \(\) => <Outlet \/>/u);
+      expect(
+        body,
+        `${fullPath} is exempted as a layout but loads or titles something of its own`,
+      ).not.toMatch(/\b(loader|head):/u);
+    }
+  });
+
   it('keeps every redirect stub a redirect', () => {
     for (const { fullPath, file } of unprefixed()) {
       if (UNPREFIXED[fullPath]?.kind !== 'redirect') continue;

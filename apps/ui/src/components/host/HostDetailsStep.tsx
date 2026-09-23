@@ -9,20 +9,24 @@ import {
 } from '@founders-coffee/i18n';
 import { Input } from '@founders-coffee/ui';
 
+import { EventLanguageField } from '../events/EventLanguageField';
 import type { HostCreateFieldErrors } from '../../features/events/host-create-validation';
 
 export const HostDetailsStep = ({
   locale,
   title,
   description,
+  language,
   constraints,
   errors,
   onTitleChange,
   onDescriptionChange,
+  onLanguageChange,
 }: {
   locale: Locale;
   title: string;
   description: string;
+  language: Locale;
   constraints: {
     titleMin: number;
     titleMax: number;
@@ -32,12 +36,13 @@ export const HostDetailsStep = ({
   errors: HostCreateFieldErrors;
   onTitleChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
+  onLanguageChange: (value: Locale) => void;
 }) => (
   <div className="grid gap-5">
-    <label className="form-control" htmlFor="host-title">
+    <div className="form-control">
       <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
-        <span>{host_title_label({}, { locale })}</span>
-        <span className="text-caption text-neutral">
+        <label htmlFor="host-title">{host_title_label({}, { locale })}</label>
+        <span aria-hidden="true" className="text-caption text-neutral">
           {host_required({}, { locale })}
         </span>
       </span>
@@ -66,12 +71,14 @@ export const HostDetailsStep = ({
           {errors.title}
         </span>
       )}
-    </label>
+    </div>
 
-    <label className="form-control" htmlFor="host-description">
+    <div className="form-control">
       <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
-        <span>{host_desc_label({}, { locale })}</span>
-        <span className="text-caption text-neutral">
+        <label htmlFor="host-description">
+          {host_desc_label({}, { locale })}
+        </label>
+        <span aria-hidden="true" className="text-caption text-neutral">
           {host_required({}, { locale })}
         </span>
       </span>
@@ -107,6 +114,13 @@ export const HostDetailsStep = ({
           {errors.description}
         </span>
       )}
-    </label>
+    </div>
+
+    <EventLanguageField
+      id="host-language"
+      locale={locale}
+      value={language}
+      onChange={onLanguageChange}
+    />
   </div>
 );

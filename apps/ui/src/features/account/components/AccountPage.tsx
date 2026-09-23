@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react';
 
 import {
   baseLocale,
-  cookieName,
   account_contacts_note,
   account_contacts_title,
+  account_data_request,
   account_data_title,
   account_delete,
   account_delete_note,
+  account_delete_subject,
   account_devices_title,
   account_email,
   account_export,
   account_export_note,
+  account_export_subject,
   account_heading,
   account_loading,
   account_note,
@@ -31,8 +33,10 @@ import {
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
 
+import { storeLocale } from '../../preferences/locale-cookie';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { useMyAccount, useUpdateAccountLocale } from '../hooks';
+import { CONTACT_EMAIL } from '../../../content/company/contact';
 import type { AccountSummary } from '../api';
 import type { ContactKind } from '../contact-flow';
 import { AccountRow } from './AccountRow';
@@ -56,6 +60,15 @@ const Group = ({
     {note && <p className="mt-1 text-body-sm text-neutral">{note}</p>}
     <div className="mt-4">{children}</div>
   </section>
+);
+
+const RequestLink = ({ subject }: { subject: string }) => (
+  <a
+    href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}`}
+    className="link link-hover font-medium text-secondary"
+  >
+    {CONTACT_EMAIL}
+  </a>
 );
 
 const VerifiedChip = ({
@@ -89,7 +102,6 @@ const AccountSections = ({
       note={account_contacts_note({}, { locale })}
     >
       <AccountRow
-        locale={locale}
         label={account_email({}, { locale })}
         value={account.email.masked}
         status={
@@ -108,7 +120,6 @@ const AccountSections = ({
         }
       />
       <AccountRow
-        locale={locale}
         label={account_phone({}, { locale })}
         value={account.phone.masked ?? account_phone_empty({}, { locale })}
         status={
@@ -137,7 +148,6 @@ const AccountSections = ({
 
     <Group title={account_devices_title({}, { locale })}>
       <AccountRow
-        locale={locale}
         label={account_providers({}, { locale })}
         value={
           <ProviderIdentityList
@@ -148,7 +158,6 @@ const AccountSections = ({
         }
       />
       <AccountRow
-        locale={locale}
         label={account_sessions({}, { locale })}
         value={account_sessions_count(
           { count: account.sessionCount },
@@ -158,18 +167,19 @@ const AccountSections = ({
       <DevicePanel locale={locale} />
     </Group>
 
-    <Group title={account_data_title({}, { locale })}>
+    <Group
+      title={account_data_title({}, { locale })}
+      note={account_data_request({}, { locale })}
+    >
       <AccountRow
-        locale={locale}
         label={account_export({}, { locale })}
         note={account_export_note({}, { locale })}
-        isPending
+        value={<RequestLink subject={account_export_subject({}, { locale })} />}
       />
       <AccountRow
-        locale={locale}
         label={account_delete({}, { locale })}
         note={account_delete_note({}, { locale })}
-        isPending
+        value={<RequestLink subject={account_delete_subject({}, { locale })} />}
       />
     </Group>
   </div>
@@ -213,7 +223,7 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
               onSave={() =>
                 updateLocale.mutate(language, {
                   onSuccess: () => {
-                    document.cookie = `${cookieName}=${language}; path=/; max-age=31536000; samesite=lax`;
+                    storeLocale(language);
                     window.location.reload();
                   },
                 })
@@ -240,7 +250,7 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
             locale={locale}
             isLoading={false}
             isAnonymous
-            returnPath="/profile/account"
+            returnPath={`/${locale}/profile/account`}
             onRetry={() => void query.refetch()}
           />
         )}

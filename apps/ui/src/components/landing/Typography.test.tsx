@@ -256,8 +256,11 @@ describe('P1-002 landing typography', () => {
       expect(view.container.querySelectorAll('a.aura-glow')).toHaveLength(1);
       expect(view.container.querySelectorAll('a.hover-3d')).toHaveLength(0);
       expect(view.container.querySelectorAll('article')).toHaveLength(3);
-      expect(view.container.querySelectorAll('data')).toHaveLength(2);
-      expect(view.container.querySelector('data[value="0"]')).toBeTruthy();
+      expect(view.container.querySelectorAll('data')).toHaveLength(1);
+      expect(
+        view.container.querySelector('data[value="0"]'),
+        'a city with nothing on says so in words below; the number is left off',
+      ).toBeNull();
       expect(
         screen.getByRole('heading', {
           level: 3,
@@ -268,13 +271,13 @@ describe('P1-002 landing typography', () => {
         name: new RegExp(locale === 'ar' ? 'الجزائر' : 'Algiers'),
       });
       expect(cityLink.getAttribute('data-route')).toBe(
-        '/$market/$city/$subcity',
+        '/$locale/$market/$city',
       );
       expect(cityLink.getAttribute('data-route-params')).toBe(
         JSON.stringify({
-          market: locale,
-          city: market.slug,
-          subcity: 'algiers',
+          locale,
+          market: market.slug,
+          city: 'algiers',
         }),
       );
     },

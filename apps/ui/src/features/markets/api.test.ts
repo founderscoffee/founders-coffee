@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getGeoCountry = vi.fn();
@@ -11,7 +15,8 @@ vi.mock('@founders-coffee/server-fns', () => ({
   getMarketLanding: (args: unknown) => getMarketLanding(args),
 }));
 
-const { geoMarketSlug, homeMarketSlug } = await import('./api');
+const { geoMarketSlug, homeMarketSlug, landingMarketSlug } =
+  await import('./api');
 
 const freshApi = async () => {
   vi.resetModules();
@@ -143,5 +148,43 @@ describe('homeMarketSlug', () => {
     getGeoCountry.mockResolvedValue(null);
 
     await expect(homeMarketSlug([], undefined)).resolves.toBeNull();
+  });
+});
+
+describe('landingMarketSlug', () => {
+  const known = [{ slug: 'algeria' }, { slug: 'egypt' }];
+
+  it('lands a visitor in the market they came from', async () => {
+    await expect(landingMarketSlug(known, 'egypt')).resolves.toBe('egypt');
+  });
+
+  it('falls back to Algeria only once nothing else can name a market', async () => {
+    getGeoCountry.mockResolvedValue(null);
+
+    await expect(landingMarketSlug(known, undefined)).resolves.toBe('algeria');
+  });
+});
+
+const routeSource = (route: string): string =>
+  readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '../../routes', route),
+    'utf8',
+  );
+
+describe('the two arrivals that name no city', () => {
+  it.each(['index.tsx', '$locale/index.tsx'])(
+    '%s chooses its market the same way, so naming a language does not move it',
+    (route) => {
+      expect(routeSource(route)).toContain('landingMarketSlug(');
+    },
+  );
+
+  it('leaves no route picking a market by writing the default out by hand', () => {
+    for (const route of ['index.tsx', '$locale/index.tsx']) {
+      expect(
+        routeSource(route),
+        `${route} hardcodes a market instead of resolving one`,
+      ).not.toMatch(/'algeria'/);
+    }
   });
 });

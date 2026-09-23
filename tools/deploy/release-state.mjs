@@ -5,6 +5,10 @@ import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 import {
+  listRemoteMigrations,
+  resolveAppliedMigrations,
+} from './migration-compatibility.mjs';
+import {
   ENVIRONMENT_CONFIG,
   extractActiveVersion,
   extractBookmark,
@@ -67,12 +71,20 @@ export const captureReleaseState = async ({
   if (typeof output !== 'string' || output.length === 0)
     throw new Error('output is required');
   const config = ENVIRONMENT_CONFIG[environment];
-  const [databasePayload, ...deploymentPayloads] = await Promise.all([
-    runWrangler(['d1', 'time-travel', 'info', config.database, '--json']),
-    ...Object.values(config.workers).map((name) =>
-      runWrangler(['deployments', 'list', '--name', name, '--json']),
-    ),
-  ]);
+  const migrationsDirectory = path.join(
+    rootDirectory,
+    'libs',
+    'db',
+    'migrations',
+  );
+  const [databasePayload, migrationOutput, ...deploymentPayloads] =
+    await Promise.all([
+      runWrangler(['d1', 'time-travel', 'info', config.database, '--json']),
+      listRemoteMigrations(environment),
+      ...Object.values(config.workers).map((name) =>
+        runWrangler(['deployments', 'list', '--name', name, '--json']),
+      ),
+    ]);
   const workers = Object.fromEntries(
     Object.entries(config.workers).map(([key, name], index) => [
       key,
@@ -84,9 +96,11 @@ export const captureReleaseState = async ({
     capturedAt: new Date().toISOString(),
     commitSha: process.env.GITHUB_SHA ?? null,
     environment,
-    migrationHead: latestMigration(
-      path.join(rootDirectory, 'libs', 'db', 'migrations'),
-    ),
+    migrationHead: latestMigration(migrationsDirectory),
+    appliedMigrations: resolveAppliedMigrations({
+      output: migrationOutput,
+      migrationsDirectory,
+    }),
     database: {
       name: config.database,
       bookmark: extractBookmark(databasePayload),

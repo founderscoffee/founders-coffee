@@ -1,9 +1,9 @@
 import { Check } from 'lucide-react';
 
 import {
-  event_host,
   rsvp_already,
   rsvp_box_cancelled,
+  rsvp_box_host,
   rsvp_box_title,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -39,7 +39,7 @@ export const RsvpBoxHeading = ({
   return (
     <h2 id="event-rsvp-title" className={BASE_CLASS}>
       {isHost
-        ? event_host({}, { locale })
+        ? rsvp_box_host({}, { locale })
         : isCancelled
           ? rsvp_box_cancelled({}, { locale })
           : rsvp_box_title({}, { locale })}

@@ -8,11 +8,12 @@ import { locales, type Locale } from '@founders-coffee/i18n';
  * same defect the English-only description was. `id` is `/` in all three, so a member who installs
  * from a French page and one who installs from an Arabic page hold the same app rather than two.
  *
- * Arabic keeps the conventional `/manifest.json` because it is the default locale and the address
- * every crawler and audit tool guesses at.
+ * Arabic holds the unsuffixed name because it is the default locale and the address every crawler
+ * and audit tool guesses at. All three use `.webmanifest`, the extension the spec reserves; a
+ * probe for it used to get a 404 served as HTML.
  */
 export const manifestHref = (locale: Locale): string =>
-  locale === 'ar' ? '/manifest.json' : `/manifest.${locale}.json`;
+  locale === 'ar' ? '/manifest.webmanifest' : `/manifest.${locale}.webmanifest`;
 
 /** Every manifest the build ships, in locale order. */
 export const manifestHrefs = (): readonly string[] =>

@@ -1,12 +1,15 @@
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { LOCALES, type Locale } from '@founders-coffee/core';
+
 import { Turnstile } from './Turnstile';
 
 type RenderOptions = {
   sitekey: string;
   action?: string;
   appearance?: 'always' | 'execute' | 'interaction-only';
+  language: Locale;
   callback: (token: string) => void;
   'error-callback': () => void;
   'expired-callback': () => void;
@@ -48,6 +51,7 @@ describe('Turnstile', () => {
         sitekey="site-key"
         action="join_waitlist"
         appearance="interaction-only"
+        language="ar"
         onToken={onToken}
       />,
     );
@@ -72,7 +76,7 @@ describe('Turnstile', () => {
     async (callbackName) => {
       const onToken = vi.fn();
 
-      render(<Turnstile sitekey="site-key" onToken={onToken} />);
+      render(<Turnstile sitekey="site-key" language="ar" onToken={onToken} />);
 
       await waitFor(() => expect(turnstile.render).toHaveBeenCalledOnce());
       const options = turnstile.render.mock.calls[0]?.[1];
@@ -86,15 +90,55 @@ describe('Turnstile', () => {
   it('removes and reissues the widget when the reset key changes', async () => {
     const onToken = vi.fn();
     const view = render(
-      <Turnstile sitekey="site-key" resetKey={0} onToken={onToken} />,
+      <Turnstile
+        sitekey="site-key"
+        language="ar"
+        resetKey={0}
+        onToken={onToken}
+      />,
     );
     await waitFor(() => expect(turnstile.render).toHaveBeenCalledOnce());
 
     view.rerender(
-      <Turnstile sitekey="site-key" resetKey={1} onToken={onToken} />,
+      <Turnstile
+        sitekey="site-key"
+        language="ar"
+        resetKey={1}
+        onToken={onToken}
+      />,
     );
 
     await waitFor(() => expect(turnstile.render).toHaveBeenCalledTimes(2));
     expect(turnstile.remove).toHaveBeenCalledWith('widget-1');
+  });
+
+  it.each(LOCALES)(
+    'asks for the challenge in %s, the locale the page is in rather than the browser\u2019s',
+    async (language) => {
+      render(
+        <Turnstile sitekey="site-key" language={language} onToken={vi.fn()} />,
+      );
+
+      await waitFor(() => expect(turnstile.render).toHaveBeenCalledOnce());
+      expect(turnstile.render.mock.calls[0]?.[1]).toMatchObject({ language });
+    },
+  );
+
+  it('reissues the widget in the new language when the reader switches locale', async () => {
+    const onToken = vi.fn();
+    const view = render(
+      <Turnstile sitekey="site-key" language="en" onToken={onToken} />,
+    );
+    await waitFor(() => expect(turnstile.render).toHaveBeenCalledOnce());
+
+    view.rerender(
+      <Turnstile sitekey="site-key" language="ar" onToken={onToken} />,
+    );
+
+    await waitFor(() => expect(turnstile.render).toHaveBeenCalledTimes(2));
+    expect(turnstile.remove).toHaveBeenCalledWith('widget-1');
+    expect(turnstile.render.mock.calls[1]?.[1]).toMatchObject({
+      language: 'ar',
+    });
   });
 });

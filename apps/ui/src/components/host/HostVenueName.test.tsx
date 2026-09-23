@@ -25,7 +25,7 @@ describe('venue naming when only an address is verified', () => {
     await chooseAddress();
 
     const field = screen.getByLabelText(
-      /^What is this place called\?/,
+      'What is this place called?',
     ) as unknown as HTMLInputElement;
     expect(field.value).toBe('');
     expect(
@@ -37,7 +37,7 @@ describe('venue naming when only an address is verified', () => {
     renderHostCreateWizard();
     await chooseVenue();
 
-    expect(screen.queryByLabelText(/^What is this place called\?/)).toBeNull();
+    expect(screen.queryByLabelText('What is this place called?')).toBeNull();
   });
 
   it('collapses the nearby list so the name field follows the pin, and offers a way back', async () => {
@@ -56,7 +56,7 @@ describe('venue naming when only an address is verified', () => {
     await chooseAddress();
 
     expect(screen.queryByText('Hamou')).toBeNull();
-    expect(screen.getByLabelText(/^What is this place called\?/)).toBeTruthy();
+    expect(screen.getByLabelText('What is this place called?')).toBeTruthy();
 
     fireEvent.click(
       screen.getByRole('button', { name: 'Browse nearby venues' }),
@@ -79,7 +79,7 @@ describe('venue naming when only an address is verified', () => {
   it('advances once named, and publishes the host name with the verified address', async () => {
     renderHostCreateWizard();
     await chooseAddress();
-    fireEvent.change(screen.getByLabelText(/^What is this place called\?/), {
+    fireEvent.change(screen.getByLabelText('What is this place called?'), {
       target: { value: 'Café des Délices' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));

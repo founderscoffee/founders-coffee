@@ -9,6 +9,7 @@ import {
   closeout_link,
   activity_upcoming,
   formatDate,
+  localizedName,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
@@ -27,6 +28,7 @@ export interface ActivityItem {
   readonly startsAt: Date | string | number;
   readonly cityCode?: string;
   readonly cityName?: string | null;
+  readonly cityNameAr?: string | null;
 }
 
 const CloseoutLine = ({
@@ -57,6 +59,14 @@ const CloseoutLine = ({
     </Link>
   );
 };
+
+const cityLabel = (item: ActivityItem, locale: Locale): string =>
+  item.cityName
+    ? localizedName(
+        { name: item.cityName, nameAr: item.cityNameAr || undefined },
+        locale,
+      )
+    : '';
 
 const Badge = ({ item, locale }: { item: ActivityItem; locale: Locale }) => {
   if (item.status === 'cancelled')
@@ -133,7 +143,9 @@ export const ActivityList = ({
                     month: 'short',
                     day: 'numeric',
                   })}
-                  {item.cityName ? ` · ${item.cityName}` : ''}
+                  {cityLabel(item, locale)
+                    ? ` · ${cityLabel(item, locale)}`
+                    : ''}
                 </span>
               </span>
               <Badge item={item} locale={locale} />

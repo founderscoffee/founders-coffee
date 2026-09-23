@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Locale } from '@founders-coffee/i18n';
 
+import { copy } from './closeout-copy.fixtures';
+
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
   save: {} as Record<string, unknown>,
@@ -101,20 +103,20 @@ describe('closing a gathering out', () => {
 
     fireEvent.click(first(screen.getAllByRole('radio', { name: /^Came$/i })));
 
-    expect(screen.getByText(/1 of the people who said/i)).toBeTruthy();
-    expect(screen.getByText(/1 in the room altogether/i)).toBeTruthy();
+    expect(screen.getByText(copy.registered(1))).toBeTruthy();
+    expect(screen.getByText(copy.total(1))).toBeTruthy();
   });
 
   it('adds walk-ins to the room but not to the registered count', () => {
     show();
     fireEvent.click(screen.getByRole('radio', { name: /It happened/i }));
     fireEvent.click(first(screen.getAllByRole('radio', { name: /^Came$/i })));
-    fireEvent.change(screen.getByLabelText(/without saying so/i), {
+    fireEvent.change(screen.getByLabelText(copy.walkIns), {
       target: { value: '2' },
     });
 
-    expect(screen.getByText(/1 of the people who said/i)).toBeTruthy();
-    expect(screen.getByText(/3 in the room altogether/i)).toBeTruthy();
+    expect(screen.getByText(copy.registered(1))).toBeTruthy();
+    expect(screen.getByText(copy.total(3))).toBeTruthy();
   });
 
   it('sends the marks alongside the outcome', () => {
@@ -140,7 +142,7 @@ describe('closing a gathering out', () => {
         .disabled,
     ).toBe(true);
 
-    fireEvent.change(screen.getByLabelText(/Tell us what else/i), {
+    fireEvent.change(screen.getByLabelText(copy.privateNote), {
       target: { value: 'the café closed' },
     });
 
@@ -155,7 +157,7 @@ describe('closing a gathering out', () => {
     fireEvent.click(screen.getByRole('radio', { name: /It did not happen/i }));
 
     expect(screen.queryByText('Amina')).toBeNull();
-    expect(screen.queryByLabelText(/without saying so/i)).toBeNull();
+    expect(screen.queryByLabelText(copy.walkIns)).toBeNull();
   });
 });
 
@@ -221,7 +223,7 @@ describe('a submission the server refused', () => {
     expect(
       screen.getByRole('status').textContent,
       'both confirmations end in "Thank you", so matching that alone agreed with the page whichever one it showed',
-    ).toContain('Recorded');
+    ).toContain(copy.done);
   });
 });
 
@@ -241,7 +243,7 @@ describe('the closeout the host just submitted', () => {
     expect(
       screen.getByRole('status').textContent,
       'submitting invalidates the view, so the refetch lands with an outcome and the already-closed arm wins the race. The host is told their submission was a no-op at the moment it succeeded',
-    ).toContain('Recorded');
+    ).toContain(copy.done);
   });
 
   it('warns when some names could not be recorded', () => {
@@ -290,6 +292,6 @@ describe('the closeout the host just submitted', () => {
     expect(
       screen.getByRole('status').textContent,
       'the already-closed arm is for arriving at a closeout someone has already submitted; reordering must not delete it',
-    ).toContain('Already closed out');
+    ).toContain(copy.alreadyDone);
   });
 });

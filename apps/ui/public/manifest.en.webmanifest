@@ -1,0 +1,52 @@
+{
+  "id": "/",
+  "name": "Founders Coffee",
+  "short_name": "Founders",
+  "description": "A community for local founder meetups over coffee.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/en",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#270F00",
+  "background_color": "#FFFCF7",
+  "categories": ["social", "lifestyle"],
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home-en-narrow.png",
+      "sizes": "412x824",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Upcoming founder meetups across Algerian cities"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Host a meetup",
+      "url": "/en/algeria/host/create"
+    },
+    {
+      "name": "Find a meetup",
+      "url": "/en/algeria"
+    }
+  ]
+}

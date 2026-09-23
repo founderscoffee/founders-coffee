@@ -13,12 +13,12 @@ import {
   closeout_error_not_found,
   closeout_error_rate_limited,
   closeout_error_not_host,
-  closeout_loading,
   closeout_note,
   closeout_refused_marks,
-  closeout_submit,
   closeout_submitting,
   closeout_title,
+  loading,
+  submit,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
@@ -117,7 +117,7 @@ export const CloseoutPage = ({
       </p>
 
       {!query.data || !draft ? (
-        <p role="status">{closeout_loading({}, { locale })}</p>
+        <p role="status">{loading({}, { locale })}</p>
       ) : save.isSuccess ? (
         <div className="space-y-3">
           <p role="status">{closeout_done({}, { locale })}</p>
@@ -173,7 +173,7 @@ export const CloseoutPage = ({
           >
             {save.isPending
               ? closeout_submitting({}, { locale })
-              : closeout_submit({}, { locale })}
+              : submit({}, { locale })}
           </Button>
         </div>
       )}

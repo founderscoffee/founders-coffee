@@ -1,4 +1,4 @@
-import { route_loading, type Locale } from '@founders-coffee/i18n';
+import { loading, type Locale } from '@founders-coffee/i18n';
 
 import logoDraw from '../../assets/logo-draw.webp';
 
@@ -23,6 +23,6 @@ export const RouteTransition = ({ locale }: RouteTransitionProps) => (
         className="size-24 object-contain"
       />
     </picture>
-    <span className="sr-only">{route_loading({}, { locale })}</span>
+    <span className="sr-only">{loading({}, { locale })}</span>
   </div>
 );

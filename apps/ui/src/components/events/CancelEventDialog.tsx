@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 import {
   host_cancel_body,
@@ -33,6 +33,7 @@ export const CancelEventDialog = ({
   onConfirm,
 }: CancelEventDialogProps) => {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -42,9 +43,14 @@ export const CancelEventDialog = ({
   }, [isOpen]);
 
   return (
-    <dialog ref={ref} className="modal" onClose={onKeep}>
+    <dialog
+      ref={ref}
+      className="modal"
+      aria-labelledby={titleId}
+      onClose={onKeep}
+    >
       <div className="modal-box max-w-md rounded-box border border-base-300 bg-base-100">
-        <h2 className="font-display text-h4 font-semibold">
+        <h2 id={titleId} className="font-display text-h4 font-semibold">
           {host_cancel_title({}, { locale })}
         </h2>
         <p className="mt-2 text-body-sm leading-relaxed text-neutral">
@@ -94,7 +100,9 @@ export const CancelEventDialog = ({
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button type="submit">{host_cancel_keep({}, { locale })}</button>
+        <button type="submit" tabIndex={-1} aria-hidden="true">
+          {host_cancel_keep({}, { locale })}
+        </button>
       </form>
     </dialog>
   );

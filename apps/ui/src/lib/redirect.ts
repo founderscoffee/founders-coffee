@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+import type { Locale } from '@founders-coffee/i18n';
+
+import { withoutLocale } from './locale-routing';
+
 const REDIRECT_ORIGIN = 'https://founders.coffee';
 
 /**
@@ -37,15 +41,20 @@ export const safeRedirectPath = (value: unknown): string => {
   return parsed.success ? parsed.data : '/';
 };
 
-export const onboardingRedirectPath = (redirect: unknown): string =>
-  `/onboarding?redirect=${encodeURIComponent(safeAuthReturnPath(redirect))}`;
+export const onboardingRedirectPath = (
+  locale: Locale,
+  redirect: unknown,
+): string =>
+  `/${locale}/onboarding?redirect=${encodeURIComponent(safeAuthReturnPath(redirect))}`;
+
+const AUTH_PAGES = ['/login', '/onboarding'];
 
 export const authReturnPathSchema = sameOriginPathSchema.refine((path) => {
   try {
     const pathname = decodeURIComponent(
       new URL(path, REDIRECT_ORIGIN).pathname,
     ).replace(/\/+$/, '');
-    return !['/login', '/onboarding'].includes(pathname);
+    return !AUTH_PAGES.includes(withoutLocale(pathname));
   } catch {
     return false;
   }

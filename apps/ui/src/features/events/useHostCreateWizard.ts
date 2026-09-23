@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
@@ -13,16 +13,11 @@ import {
 
 import { hostCreateStepCopy, hostCreateViewCopy } from './host-create-copy';
 import { hostScheduleSummary } from './host-create-schedule';
-import { repeatDraftFrom } from './host-create-repeat';
-import {
-  readHostCreateDraft,
-  writeHostCreateDraft,
-  type HostCreateDraft,
-} from './host-create-draft';
+import { writeHostCreateDraft } from './host-create-draft';
+import { useHostCreateDraftState } from './useHostCreateDraftState';
 import {
   firstInvalidField,
   focusInvalidField,
-  restoredDraftStep,
   validateDetailsStep,
   validateScheduleStep,
   validateVenueStep,
@@ -53,30 +48,28 @@ export const useHostCreateWizard = ({
 }) => {
   const { user } = useAuth();
   const cityName = localizedName(city ?? market, locale);
-  const [step, setStep] = useState(1);
-  const [venue, setVenue] = useState<VenueSelection | null>(null);
-  const [venueName, setVenueName] = useState('');
-  const [searchValue, setSearchValue] = useState('');
-  const [startsAt, setStartsAt] = useState<number | null>(null);
-  const [endsAt, setEndsAt] = useState<number | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});
-  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
-  const [isRepeat, setIsRepeat] = useState(false);
   const [isAuthGateOpen, setIsAuthGateOpen] = useState(false);
   const [needsReauthentication, setNeedsReauthentication] = useState(false);
-
-  const draft: HostCreateDraft = {
-    step,
-    venue,
-    venueName,
-    searchValue,
-    startsAt,
-    endsAt,
-    title,
-    description,
-  };
+  const {
+    draft,
+    isRepeat,
+    setStep,
+    setVenue,
+    setVenueName,
+    setSearchValue,
+    setStartsAt,
+    setEndsAt,
+    setTitle,
+    setDescription,
+    setLanguage,
+  } = useHostCreateDraftState({
+    locale,
+    marketCode: market.code,
+    repeatTemplate,
+  });
+  const { step, venue, venueName, startsAt, endsAt, title, description } =
+    draft;
   const {
     publishing,
     publishError,
@@ -91,58 +84,6 @@ export const useHostCreateWizard = ({
       setIsAuthGateOpen(true);
     },
   });
-  useEffect(() => {
-    const isMatchingRepeat = repeatTemplate?.marketCode === market.code;
-    setIsRepeat(isMatchingRepeat);
-    const restored = isMatchingRepeat ? null : readHostCreateDraft(market.code);
-    if (restored) {
-      setStep(restoredDraftStep(restored, locale));
-      setVenue(restored.venue);
-      setVenueName(restored.venueName);
-      setSearchValue(restored.searchValue);
-      setStartsAt(restored.startsAt);
-      setEndsAt(restored.endsAt);
-      setTitle(restored.title);
-      setDescription(restored.description);
-    } else if (repeatTemplate?.marketCode === market.code) {
-      const repeated = repeatDraftFrom(repeatTemplate);
-      setStep(repeated.step);
-      setVenue(repeated.venue);
-      setVenueName(repeated.venueName);
-      setSearchValue(repeated.searchValue);
-      setStartsAt(repeated.startsAt);
-      setEndsAt(repeated.endsAt);
-      setTitle(repeated.title);
-      setDescription(repeated.description);
-    }
-    setHasRestoredDraft(true);
-  }, [market.code, locale, repeatTemplate]);
-
-  useEffect(() => {
-    if (!hasRestoredDraft) return;
-    writeHostCreateDraft(market.code, {
-      step,
-      venue,
-      venueName,
-      searchValue,
-      startsAt,
-      endsAt,
-      title,
-      description,
-    });
-  }, [
-    hasRestoredDraft,
-    market.code,
-    step,
-    venue,
-    venueName,
-    searchValue,
-    startsAt,
-    endsAt,
-    title,
-    description,
-  ]);
-
   /**
    * Take a venue the server verified, and decide who names it.
    *
@@ -207,7 +148,7 @@ export const useHostCreateWizard = ({
       cityCode: city?.code,
       title,
       description,
-      language: locale,
+      language: draft.language,
       venueName,
       venueProviderId: venue.providerId,
       venueAddress: venue.address,
@@ -281,6 +222,7 @@ export const useHostCreateWizard = ({
       setVenueName(value);
       setFieldErrors((current) => ({ ...current, venueName: undefined }));
     },
+    setLanguage,
     setTitle: (value: string) => {
       setTitle(value);
       setFieldErrors((current) => ({ ...current, title: undefined }));

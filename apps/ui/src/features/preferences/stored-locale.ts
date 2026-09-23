@@ -1,4 +1,6 @@
-import { cookieName, isLocale, type Locale } from '@founders-coffee/i18n';
+import { isLocale, type Locale } from '@founders-coffee/i18n';
+
+import { storeLocale } from './locale-cookie';
 
 const SENTINEL = 'fc_locale_reconciled';
 
@@ -44,7 +46,7 @@ export const adoptStoredLocale = (
   } catch {
     return false;
   }
-  document.cookie = `${cookieName}=${stored}; path=/; max-age=31536000; samesite=lax`;
+  storeLocale(stored);
   reload();
   return true;
 };

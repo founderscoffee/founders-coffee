@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { useLocation } from '@tanstack/react-router';
 
@@ -10,6 +10,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { ProfileSectionNav } from '../../features/account/components/ProfileSectionNav';
+import { withoutLocale } from '../../lib/locale-routing';
 
 const MenuIcon = () => (
   <svg
@@ -39,12 +40,20 @@ const CloseIcon = () => (
   </svg>
 );
 
-const isProfileRoute = (pathname: string) =>
-  pathname === '/profile' || pathname.startsWith('/profile/');
+const isProfileRoute = (pathname: string) => {
+  const bare = withoutLocale(pathname);
+  return bare === '/profile' || bare.startsWith('/profile/');
+};
 
 export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
   const pathname = useLocation({ select: (location) => location.pathname });
   const [isOpen, setIsOpen] = useState(false);
+  const titleId = useId();
+  const ref = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (isOpen) ref.current?.showModal();
+  }, [isOpen]);
 
   if (!isProfileRoute(pathname)) return null;
 
@@ -61,24 +70,27 @@ export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
       </button>
       {isOpen ? (
         <dialog
-          open
-          className="fixed inset-0 z-[60] m-0 h-full w-full max-w-none bg-transparent p-0 lg:hidden"
+          ref={ref}
+          aria-labelledby={titleId}
+          className="fixed inset-0 z-[60] m-0 h-full w-full max-w-none bg-transparent p-0"
           onKeyDown={(event) => {
             if (event.key === 'Escape') setIsOpen(false);
           }}
+          onClose={() => setIsOpen(false)}
         >
           <button
             type="button"
+            tabIndex={-1}
+            aria-hidden="true"
             className="absolute inset-0 cursor-default bg-neutral/25"
-            aria-label={profile_menu_close({}, { locale })}
             onClick={() => setIsOpen(false)}
           />
-          <aside
-            className="absolute inset-y-0 end-0 flex w-[min(20rem,85vw)] flex-col bg-base-100 p-5 shadow-[var(--shadow-2)]"
-            aria-label={account_sections({}, { locale })}
-          >
+          <aside className="absolute inset-y-0 end-0 flex w-[min(20rem,85vw)] flex-col bg-base-100 p-5 shadow-[var(--shadow-2)]">
             <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-body font-semibold text-base-content">
+              <h2
+                id={titleId}
+                className="text-body font-semibold text-base-content"
+              >
                 {account_sections({}, { locale })}
               </h2>
               <button

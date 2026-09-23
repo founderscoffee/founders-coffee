@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { direction, locales, type Locale } from '@founders-coffee/i18n';
 
+import { installedAppMeta } from './installed-app-head';
 import { manifestHref, manifestHrefs } from './web-manifest';
 
 type ImageResource = {
@@ -73,12 +74,18 @@ const everyImage = (manifest: WebManifest): readonly ImageResource[] => [
   ...manifest.screenshots,
 ];
 
-/** The fields that make two manifests the same installed app rather than two. */
+/**
+ * The fields that make two manifests the same installed app rather than two.
+ *
+ * `start_url` is not one of them. It used to be listed here, back when all three opened `/`, which
+ * read as though identity depended on it. It does not: `id` is what names an installed app, and it
+ * is `/` in all three, so a member who installs from a French page and one who installs from an
+ * Arabic page still hold the same app while opening it in different languages.
+ */
 const identity = (manifest: WebManifest) => ({
   id: manifest.id,
   name: manifest.name,
   short_name: manifest.short_name,
-  start_url: manifest.start_url,
   scope: manifest.scope,
   display: manifest.display,
   orientation: manifest.orientation,
@@ -91,7 +98,7 @@ const identity = (manifest: WebManifest) => ({
 describe('web app manifest', () => {
   it('ships one manifest per locale', () => {
     expect(MANIFESTS).toHaveLength(locales.length);
-    expect(manifestHrefs()).toContain('/manifest.json');
+    expect(manifestHrefs()).toContain('/manifest.webmanifest');
     for (const href of manifestHrefs()) {
       expect(existsSync(publicFile(href)), `${href} is not in public/`).toBe(
         true,
@@ -108,6 +115,26 @@ describe('web app manifest', () => {
       ).toEqual(identity(first));
     }
     expect(first.id).toBe('/');
+  });
+
+  it('opens each installed app in the language it was installed from', () => {
+    for (const [locale, manifest] of MANIFESTS) {
+      expect(
+        manifest.start_url,
+        `${locale} launches somewhere that names no language`,
+      ).toBe(`/${locale}`);
+    }
+  });
+
+  it('names the language in every shortcut too, so none of them drops back to Arabic', () => {
+    for (const [locale, manifest] of MANIFESTS) {
+      for (const shortcut of manifest.shortcuts) {
+        expect(
+          shortcut.url.startsWith(`/${locale}/`),
+          `${locale}: ${shortcut.url} is unprefixed`,
+        ).toBe(true);
+      }
+    }
   });
 
   it('writes each manifest in its own locale', () => {
@@ -182,5 +209,50 @@ describe('web app manifest', () => {
       readFileSync(publicFile('/offline.html'), 'utf-8'),
       'offline.html',
     ).not.toMatch(/—/);
+  });
+});
+
+const metaContent = (name: string) =>
+  installedAppMeta().find((entry) => entry.name === name)?.content;
+
+describe('what the shell says about itself before the manifest is read', () => {
+  it('asks for a standalone window in the two spellings phones look for', () => {
+    expect(metaContent('mobile-web-app-capable')).toBe('yes');
+    expect(
+      metaContent('apple-mobile-web-app-capable'),
+      'the manifest carries this on a modern iPhone, and these tags are what an older one has instead',
+    ).toBe('yes');
+  });
+
+  it('says outright how dark the status bar is, rather than leaving iOS to infer it', () => {
+    expect(metaContent('apple-mobile-web-app-status-bar-style')).toBe('black');
+  });
+
+  it('puts the same name under the icon that the manifest does', () => {
+    for (const [locale, manifest] of MANIFESTS) {
+      expect(
+        metaContent('apple-mobile-web-app-title'),
+        `${locale} would land on the home screen under a different name`,
+      ).toBe(manifest.short_name);
+    }
+  });
+
+  it('paints the same colour the manifest asks for', () => {
+    for (const [locale, manifest] of MANIFESTS) {
+      expect(metaContent('theme-color'), `${locale} drifted`).toBe(
+        manifest.theme_color,
+      );
+    }
+  });
+});
+
+describe('where the manifests live', () => {
+  it('serves every one of them at the extension the web reserves for them', () => {
+    for (const href of manifestHrefs()) {
+      expect(
+        href.endsWith('.webmanifest'),
+        `${href} is not at the conventional path, so anything probing for one gets a 404 served as HTML`,
+      ).toBe(true);
+    }
   });
 });
