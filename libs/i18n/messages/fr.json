@@ -309,6 +309,7 @@
   "event_where": "Où",
   "event_host": "Animé par",
   "event_map_label": "Carte indiquant {venue}",
+  "event_map_loading": "Chargement de la carte…",
   "rsvp_box_title": "Réservez votre place",
   "rsvp_box_cancelled": "Votre place",
   "rsvp_box_host": "Votre rencontre",

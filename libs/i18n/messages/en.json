@@ -300,6 +300,7 @@
   "event_where": "Where",
   "event_host": "Hosted by",
   "event_map_label": "Map showing {venue}",
+  "event_map_loading": "Loading the map…",
   "rsvp_box_title": "Save your seat",
   "rsvp_box_cancelled": "Your seat",
   "rsvp_box_host": "Your meetup",
