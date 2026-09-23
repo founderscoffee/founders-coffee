@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Locale } from '@founders-coffee/i18n';
+import { closeout_already_done, type Locale } from '@founders-coffee/i18n';
 
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
@@ -290,6 +290,6 @@ describe('the closeout the host just submitted', () => {
     expect(
       screen.getByRole('status').textContent,
       'the already-closed arm is for arriving at a closeout someone has already submitted; reordering must not delete it',
-    ).toContain('Already closed out');
+    ).toContain(closeout_already_done({}, { locale: 'en' }));
   });
 });
