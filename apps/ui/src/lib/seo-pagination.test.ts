@@ -35,8 +35,9 @@ describe('pagination SEO URLs', () => {
     expect(alternates[0]?.href).toBe(
       'https://founders.coffee/ar/algeria?afterStartsAt=42&afterId=evt_1',
     );
-    expect(alternates.at(-1)?.href).toBe(
-      'https://founders.coffee/algeria?afterStartsAt=42&afterId=evt_1',
-    );
+    expect(
+      alternates.at(-1)?.href,
+      'x-default names a language now, so it carries the cursor like the rest of them',
+    ).toBe('https://founders.coffee/ar/algeria?afterStartsAt=42&afterId=evt_1');
   });
 });

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { runWithContext } from '@founders-coffee/observability/context';
 
+import type { Locale } from '@founders-coffee/i18n';
+
 import { companyPageHead } from './seo-company';
 import {
   canonicalPath,
@@ -65,7 +67,7 @@ describe('canonical URLs', () => {
     ).toBe('/en/algeria/e/meetup');
   });
 
-  it('returns reciprocal localized alternates and a locale-neutral default', () => {
+  it('returns reciprocal localized alternates and names one of them the default', () => {
     const alternates = runWithContext(
       { siteOrigin: 'https://founders.coffee' },
       () =>
@@ -95,9 +97,49 @@ describe('canonical URLs', () => {
       {
         rel: 'alternate',
         hrefLang: 'x-default',
-        href: 'https://founders.coffee/about',
+        href: 'https://founders.coffee/ar/about',
       },
     ]);
+  });
+
+  it('points x-default at an address that answers rather than one that redirects', () => {
+    const alternates = runWithContext(
+      { siteOrigin: 'https://founders.coffee' },
+      () =>
+        localeAlternates({
+          type: 'city',
+          market: 'algeria',
+          city: 'algiers',
+          locale: 'en',
+        }),
+    );
+    const fallback = alternates.find(
+      (link) => link.hrefLang === 'x-default',
+    )?.href;
+
+    expect(
+      alternates
+        .filter((link) => link.hrefLang !== 'x-default')
+        .map((link) => link.href),
+      'the prefix-free address answers 307 to the base locale, and an hreflang target that redirects is one a crawler is told not to follow',
+    ).toContain(fallback);
+  });
+
+  it('names the same default whatever language the reader is in', () => {
+    const fallbackFor = (locale: Locale) =>
+      runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
+        localeAlternates({
+          type: 'city',
+          market: 'algeria',
+          city: 'algiers',
+          locale,
+        }),
+      ).find((link) => link.hrefLang === 'x-default')?.href;
+
+    expect(
+      [fallbackFor('ar'), fallbackFor('en'), fallbackFor('fr')],
+      'hreflang has to be reciprocal, and three copies of one page each naming their own reader as the default is three pages telling a crawler different things',
+    ).toEqual(Array(3).fill('https://founders.coffee/ar/algeria/algiers'));
   });
 });
 describe('public page metadata', () => {

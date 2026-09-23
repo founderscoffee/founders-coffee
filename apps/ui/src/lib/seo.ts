@@ -9,6 +9,7 @@ import {
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { PRODUCTION_ORIGIN } from './indexation';
+import { xDefaultLocale } from './seo-alternates';
 import {
   breadcrumbJsonLd,
   collectionPageJsonLd,
@@ -77,7 +78,6 @@ export const localeAlternates = (
   readonly href: string;
 }> => {
   const baseRoute = { ...route, locale: undefined } as CanonicalRoute;
-  const soleLocale = locales.length === 1 ? locales[0] : undefined;
   return [
     ...locales.map((locale) => ({
       rel: 'alternate' as const,
@@ -87,9 +87,7 @@ export const localeAlternates = (
     {
       rel: 'alternate' as const,
       hrefLang: 'x-default',
-      href: canonicalUrl(
-        soleLocale ? { ...baseRoute, locale: soleLocale } : baseRoute,
-      ),
+      href: canonicalUrl({ ...baseRoute, locale: xDefaultLocale(locales) }),
     },
   ];
 };
