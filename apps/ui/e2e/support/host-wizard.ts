@@ -61,22 +61,40 @@ export const HOST_VENUE_NAME = 'Café des Fondateurs';
  * street instead, naming the place themselves. A category query would pass only in a market with
  * POI coverage, making this gate green everywhere except the market it exists to protect.
  *
+ * The box is a combobox whose list already offers nearby cafés before anything is typed, so the
+ * first option on the page is not a match. The pick waits for the list to be named as search
+ * results, which is the list a host who typed the street is reading, and then for the option to
+ * report itself selected.
+ *
  * The field stays disabled until the server has returned the city viewport, so the wait is on the
  * control being enabled rather than on a fixed delay — a timing assumption here would make the
- * whole suite flaky on a cold Worker. Where only an address could be verified the wizard asks for
- * a name, and this fills it, mirroring what a host does.
+ * whole suite flaky on a cold Worker. It is also rendered disabled on the server, so it cannot be
+ * enabled before React has hydrated it and a single fill reaches the component; the hero search,
+ * rendered enabled, has to type again until one does. Where only an address could be verified the
+ * wizard asks for a name, and this fills it, mirroring what a host does.
  */
 export const selectVenue = async (
   page: Page,
+  locale: E2eLocale,
   query: string,
 ): Promise<string> => {
-  const search = page.locator('#venue-search');
+  const search = page.getByRole('combobox', {
+    name: t(locale, 'host_venue_search_label'),
+    exact: true,
+  });
   await expect(search).toBeEnabled({ timeout: 30_000 });
   await search.fill(query);
-  const firstResult = page.locator('[role="radio"]').first();
+  const firstResult = page
+    .getByRole('listbox', {
+      name: t(locale, 'host_search_results'),
+      exact: true,
+    })
+    .getByRole('option')
+    .first();
   await expect(firstResult).toBeVisible({ timeout: 30_000 });
   const providerName = (await firstResult.innerText()).split('\n')[0].trim();
   await firstResult.click();
+  await expect(firstResult).toHaveAttribute('aria-selected', 'true');
 
   const nameField = page.locator('#host-venue-name');
   if (await nameField.isVisible()) {
@@ -110,18 +128,23 @@ export const fillDetails = async (
   await page.locator('#host-description').fill(details.description);
 };
 
-/** Walk venue → schedule → details → confirmation, leaving the wizard on its final step. */
+/**
+ * Walk venue → schedule → details, leaving the wizard on its final step.
+ *
+ * The details step is the last of three, so the confirmation lives on it: its primary action reads
+ * `host_continue_login` to an anonymous host and `host_confirm_publish` once signed in, and there
+ * is no `host_next` after the details are filled.
+ */
 export const completeWizardToConfirmation = async (
   page: Page,
   locale: E2eLocale,
   details: EventDetails,
   venueQuery: string,
 ): Promise<string> => {
-  const venueName = await selectVenue(page, venueQuery);
+  const venueName = await selectVenue(page, locale, venueQuery);
   await nextButton(page, locale).click();
   await selectSchedule(page);
   await nextButton(page, locale).click();
   await fillDetails(page, details);
-  await nextButton(page, locale).click();
   return venueName;
 };

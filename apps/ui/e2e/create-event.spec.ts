@@ -65,9 +65,10 @@ test.describe('create event', () => {
       VENUE_QUERY,
     );
 
-    await expect(page.getByText(title)).toBeVisible();
-    await expect(page.getByText(details.description)).toBeVisible();
-    await expect(page.getByText(venueName).first()).toBeVisible();
+    await expect(page.locator('#host-title')).toHaveValue(title);
+    await expect(page.locator('#host-description')).toHaveValue(
+      details.description,
+    );
 
     await continueToLoginButton(page, locale).click();
     await signIn(page, locale, email);
