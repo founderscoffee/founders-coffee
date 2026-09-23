@@ -46,7 +46,7 @@ describe('libs/db seed (real D1 via Miniflare)', () => {
       expect(market.nameFr, `${market.code} has no French name`).toBeTruthy();
       expect(
         market.nameFr,
-        `${market.code}: fr.json writes "dans les villes d’{market}" and "en {market}". Both only read as French in front of a feminine, vowel-initial, singular country name. "Maroc" needs "du Maroc" and "au Maroc"; "Tunisie" needs "de Tunisie"; "Émirats arabes unis" needs "des Émirats" and "aux Émirats". Whichever it is, rewrite market_hero_desc, cities_in, footer_tagline and back_to_market before adding the market — this check only catches the consonant case`,
+        `${market.code}: fr.json writes "dans les villes d’{market}" and "en {market}". Both only read as French in front of a feminine, vowel-initial, singular country name. "Maroc" needs "du Maroc" and "au Maroc"; "Tunisie" needs "de Tunisie"; "Émirats arabes unis" needs "des Émirats" and "aux Émirats". Whichever it is, rewrite market_hero_desc, cities_in, footer_tagline, back_to_market, event_timezone, host_step1_helper_market and host_venue_search_ph_market before adding the market — this check only catches the consonant case`,
       ).toMatch(
         /^[AEIOU\u00C0\u00C2\u00C9\u00C8\u00CA\u00CE\u00D4\u00D9\u00DB]/u,
       );

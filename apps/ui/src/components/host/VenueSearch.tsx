@@ -1,18 +1,23 @@
 import { RefreshCw } from 'lucide-react';
 
 import {
+  cityInputs,
   host_retry,
   host_venue_search_label,
   host_venue_search_loading,
   host_venue_search_ph,
+  host_venue_search_ph_market,
   type Locale,
 } from '@founders-coffee/i18n';
 
-import { VENUE_SEARCH_MAX_LENGTH } from '../../features/events/types';
+import {
+  VENUE_SEARCH_MAX_LENGTH,
+  type VenueArea,
+} from '../../features/events/types';
 
 type VenueSearchProps = {
   locale: Locale;
-  cityName: string;
+  area: VenueArea;
   value: string;
   listId: string;
   hasResults: boolean;
@@ -25,7 +30,7 @@ type VenueSearchProps = {
 
 export const VenueSearch = ({
   locale,
-  cityName,
+  area,
   value,
   listId,
   hasResults,
@@ -48,7 +53,11 @@ export const VenueSearch = ({
       aria-controls={listId}
       aria-autocomplete="list"
       className="input input-bordered h-12 w-full rounded-xl bg-base-100 text-body md:h-13"
-      placeholder={host_venue_search_ph({ city: cityName }, { locale })}
+      placeholder={
+        area.kind === 'city'
+          ? host_venue_search_ph(cityInputs(area.name), { locale })
+          : host_venue_search_ph_market({ market: area.name }, { locale })
+      }
       value={value}
       disabled={isDisabled}
       autoComplete="off"

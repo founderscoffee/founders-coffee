@@ -5,6 +5,7 @@ import { type Locale } from '@founders-coffee/i18n';
 
 const mocks = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
+  isSuccess: false,
   config: { turnstileSiteKey: 'site-key', isTurnstileBypassed: false } as {
     turnstileSiteKey: string | null;
     isTurnstileBypassed: boolean;
@@ -15,7 +16,7 @@ vi.mock('../hooks', () => ({
   useJoinWaitlist: () => ({
     mutateAsync: mocks.mutateAsync,
     isPending: false,
-    isSuccess: false,
+    isSuccess: mocks.isSuccess,
   }),
 }));
 
@@ -48,13 +49,13 @@ vi.mock('../../../components/company/LegalNotice', () => ({
 
 import { WaitlistForm } from './WaitlistForm';
 
-const renderForm = (locale: Locale = 'en') =>
+const renderForm = (locale: Locale = 'en', cityName = 'Algiers') =>
   render(
     <WaitlistForm
       locale={locale}
       marketCode="DZ"
       cityCode="1"
-      cityName="Algiers"
+      cityName={cityName}
     />,
   );
 
@@ -67,6 +68,7 @@ describe('WaitlistForm bot protection (AR-06)', () => {
   afterEach(() => {
     cleanup();
     mocks.config = { turnstileSiteKey: 'site-key', isTurnstileBypassed: false };
+    mocks.isSuccess = false;
     vi.clearAllMocks();
   });
 
@@ -136,5 +138,21 @@ describe('WaitlistForm bot protection (AR-06)', () => {
       email.getAttribute('dir'),
       'a raw input does not go through the shared Input, so it does not inherit the left-to-right default and has to say so itself',
     ).toBe('ltr');
+  });
+});
+
+describe('WaitlistForm confirmation', () => {
+  afterEach(() => {
+    cleanup();
+    mocks.isSuccess = false;
+  });
+
+  it('promises the first meetup au Caire once the address is on the list', () => {
+    mocks.isSuccess = true;
+    renderForm('fr', 'Le Caire');
+
+    expect(screen.getByText(/Vous êtes sur la liste/u).textContent).toBe(
+      '✓ Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre au Caire.',
+    );
   });
 });

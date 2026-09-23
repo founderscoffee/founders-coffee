@@ -24,7 +24,7 @@ import {
   type HostCreateFieldErrors,
 } from './host-create-validation';
 import type { RepeatEventTemplate } from './api';
-import type { VenueSelection } from './types';
+import type { VenueArea, VenueSelection } from './types';
 import { useHostPublish } from './useHostPublish';
 import { useAuth } from '../../lib/app-providers';
 import { hasProfileName } from '../profile/name-validation';
@@ -47,7 +47,9 @@ export const useHostCreateWizard = ({
   isAuthLoading: boolean;
 }) => {
   const { user } = useAuth();
-  const cityName = localizedName(city ?? market, locale);
+  const venueArea: VenueArea = city
+    ? { kind: 'city', name: localizedName(city, locale) }
+    : { kind: 'market', name: localizedName(market, locale) };
   const [fieldErrors, setFieldErrors] = useState<HostCreateFieldErrors>({});
   const [isAuthGateOpen, setIsAuthGateOpen] = useState(false);
   const [needsReauthentication, setNeedsReauthentication] = useState(false);
@@ -188,7 +190,7 @@ export const useHostCreateWizard = ({
     setStep(target);
   };
   const prev = () => goToStep(Math.max(1, step - 1));
-  const stepCopy = hostCreateStepCopy(locale, cityName);
+  const stepCopy = hostCreateStepCopy(locale, venueArea);
   const schedule = hostScheduleSummary(
     startsAt,
     endsAt,
@@ -206,6 +208,7 @@ export const useHostCreateWizard = ({
     stepLabels: stepCopy.labels,
     stepTitle: stepCopy.titles[step - 1] ?? stepCopy.titles[0],
     stepSub: stepCopy.descriptions[step - 1] ?? null,
+    venueArea,
     view: hostCreateViewCopy(),
     isAuthGateOpen,
     needsReauthentication,

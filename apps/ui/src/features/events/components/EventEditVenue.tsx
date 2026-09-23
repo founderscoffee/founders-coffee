@@ -75,7 +75,7 @@ export const EventEditVenue = ({
       </p>
       <HostVenueStep
         locale={locale}
-        cityName={cityName}
+        area={{ kind: 'city', name: cityName }}
         cityCode={event.cityCode}
         marketCode={event.marketCode}
         center={listCenter}

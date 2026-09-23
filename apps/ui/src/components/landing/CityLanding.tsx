@@ -8,6 +8,7 @@ import {
   city_empty_title,
   city_loaded_count,
   city_upcoming_title,
+  cityInputs,
   host_meetup_here,
   localizedName,
   type Locale,
@@ -52,6 +53,7 @@ export const CityLanding = ({
   nextCursor,
 }: CityLandingProps) => {
   const cityDisplayName = localizedName(city, locale);
+  const cityNameInputs = cityInputs(cityDisplayName);
   const marketName = localizedName(market, locale);
   const [filters, setFilters] = useState<readonly CityFilterKey[]>([]);
 
@@ -104,7 +106,7 @@ export const CityLanding = ({
           </h1>
           {hasEvents && (
             <p className="mt-2 max-w-prose text-body text-neutral">
-              {city_events_description({ city: cityDisplayName }, { locale })}
+              {city_events_description(cityNameInputs, { locale })}
             </p>
           )}
         </div>
@@ -129,7 +131,7 @@ export const CityLanding = ({
       >
         {pageHeader}
         <EmptyState
-          title={city_empty_title({ city: cityDisplayName }, { locale })}
+          title={city_empty_title(cityNameInputs, { locale })}
           action={
             <Link
               {...localizedHostCreate(locale, market.slug)}
@@ -160,7 +162,7 @@ export const CityLanding = ({
               id="city-events-title"
               className="font-display text-h4 font-semibold"
             >
-              {city_upcoming_title({ city: cityDisplayName }, { locale })}
+              {city_upcoming_title(cityNameInputs, { locale })}
             </h2>
             <p aria-live="polite" className="mt-1 text-body-sm text-neutral">
               {city_loaded_count({ count: visible.length }, { locale })}

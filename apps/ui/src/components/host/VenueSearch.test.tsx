@@ -7,7 +7,7 @@ const renderSearch = (over: Record<string, unknown> = {}) =>
   render(
     <VenueSearch
       locale="en"
-      cityName="Constantine"
+      area={{ kind: 'city', name: 'Constantine' }}
       value="cafe"
       listId="venue-results"
       hasResults={false}
@@ -49,5 +49,22 @@ describe('the venue search box', () => {
       label.getAttribute('placeholder'),
       'the label offered cafes and coworking spaces and the placeholder offered only a cafe, so the box contradicted its own name',
     ).toMatch(/coworking/iu);
+  });
+
+  it('searches au Caire in French, where the article of Le Caire merges into à', () => {
+    renderSearch({ locale: 'fr', area: { kind: 'city', name: 'Le Caire' } });
+
+    expect(screen.getByRole('combobox').getAttribute('placeholder')).toBe(
+      'Rechercher un café ou espace de coworking au Caire…',
+    );
+  });
+
+  it('searches the country with en when the host has not picked a city', () => {
+    renderSearch({ locale: 'fr', area: { kind: 'market', name: 'Égypte' } });
+
+    expect(
+      screen.getByRole('combobox').getAttribute('placeholder'),
+      'the wizard opened from the navbar put the country where the city goes, "à Égypte"',
+    ).toBe('Rechercher un café ou espace de coworking en Égypte…');
   });
 });

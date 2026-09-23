@@ -2,12 +2,15 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { Market } from '@founders-coffee/db';
+import type { geo } from '@founders-coffee/domain';
 import {
   back_to_market,
   city_empty_cta,
   city_empty_title,
   city_events_description,
   city_upcoming_title,
+  cityInputs,
   clear_city_filters,
   filter_today,
   host_meetup_here,
@@ -39,6 +42,27 @@ vi.mock('../../features/events/hooks', () => ({
 
 const event = meetup();
 
+const cairo: geo.GeoCity = {
+  code: '397',
+  name: 'Cairo',
+  nameAr: 'القاهرة',
+  nameFr: 'Le Caire',
+  slug: 'cairo',
+  stateCode: '1',
+  featured: true,
+};
+
+const egypt: Market = {
+  ...market,
+  code: 'EG',
+  name: 'Egypt',
+  nameAr: 'مصر',
+  nameFr: 'Égypte',
+  slug: 'egypt',
+  defaultCurrency: 'EGP',
+  timezone: 'Africa/Cairo',
+};
+
 afterEach(cleanup);
 
 describe('city page', () => {
@@ -52,10 +76,37 @@ describe('city page', () => {
 
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(city);
       expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(
-        city_empty_title({ city }, { locale }),
+        city_empty_title(cityInputs(city), { locale }),
       );
     },
   );
+
+  it('writes au Caire in French, where the article of Le Caire merges into à', () => {
+    const { unmount } = render(
+      <CityLanding locale="fr" market={egypt} city={cairo} events={[]} />,
+    );
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(
+      'Soyez le premier à organiser une rencontre pro au Caire',
+    );
+    unmount();
+
+    render(
+      <CityLanding
+        locale="fr"
+        market={egypt}
+        city={cairo}
+        events={[{ ...event, marketCode: 'EG', cityCode: cairo.code }]}
+      />,
+    );
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(
+      'Prochaines rencontres au Caire',
+    );
+    expect(
+      screen.getByText(
+        'Découvrez les prochaines rencontres de fondateurs et communautés au Caire.',
+      ),
+    ).toBeTruthy();
+  });
 
   it('gives a city with nothing on one way to host and one way back', () => {
     render(<CityLanding locale="en" market={market} city={oran} events={[]} />);
@@ -77,7 +128,7 @@ describe('city page', () => {
     ).toHaveLength(1);
     expect(
       screen.queryByText(
-        city_events_description({ city: 'Oran' }, { locale: 'en' }),
+        city_events_description(cityInputs('Oran'), { locale: 'en' }),
       ),
     ).toBeNull();
   });
@@ -89,11 +140,11 @@ describe('city page', () => {
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Oran');
     expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(
-      city_upcoming_title({ city: 'Oran' }, { locale: 'en' }),
+      city_upcoming_title(cityInputs('Oran'), { locale: 'en' }),
     );
     expect(
       screen.getByText(
-        city_events_description({ city: 'Oran' }, { locale: 'en' }),
+        city_events_description(cityInputs('Oran'), { locale: 'en' }),
       ),
     ).toBeTruthy();
     expect(
@@ -107,7 +158,9 @@ describe('city page', () => {
     'says nothing matches when the chips leave no meetup, until they are cleared, in %s',
     (locale) => {
       const meetups = {
-        name: city_upcoming_title({ city: oranByLocale[locale] }, { locale }),
+        name: city_upcoming_title(cityInputs(oranByLocale[locale]), {
+          locale,
+        }),
       };
       const nothingMatches = {
         level: 2,

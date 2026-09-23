@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { cityInputs } from './city-inputs.js';
 import {
   account_sessions_count,
   city_loaded_count,
@@ -45,7 +46,7 @@ describe('Arabic number agreement', () => {
 
   it('declines the meetup noun in the city hero', () => {
     const render = (count: number) =>
-      hero_social_proof({ count, city: 'وهران' }, { locale: 'ar' });
+      hero_social_proof({ count, ...cityInputs('وهران') }, { locale: 'ar' });
     expect(arabicForms(render)).toEqual({
       zero: '0 لقاءات هذا الأسبوع في وهران',
       one: '1 لقاء هذا الأسبوع في وهران',

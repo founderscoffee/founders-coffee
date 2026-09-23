@@ -1,4 +1,5 @@
 import { localizedName } from '@founders-coffee/core';
+import { cityInputs, hero_empty_city } from '@founders-coffee/i18n';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -151,6 +152,23 @@ describe('French place names', () => {
         `${city.name} sits in wilaya ${wilaya?.name}, which DZ_STATES already spells in French`,
       ).toBe(differs ? wilayaFr : undefined);
     }
+  });
+
+  it('puts à in front of every place the way French contracts it', () => {
+    const uncontracted = ['DZ', 'EG', 'SA'].flatMap((country) =>
+      everyPlace(country)
+        .map((place) =>
+          hero_empty_city(cityInputs(localizedName(place, 'fr')), {
+            locale: 'fr',
+          }),
+        )
+        .filter((sentence) => /(?:^|\s)à Les? /u.test(sentence)),
+    );
+
+    expect(
+      uncontracted,
+      'French writes "au Caire" and "aux Eucalyptus". A name that starts with Le or Les needs the preposition merged into its article',
+    ).toEqual([]);
   });
 
   it('carries a French name only where French has a different word', () => {

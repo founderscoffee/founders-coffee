@@ -1,5 +1,6 @@
 import { appErrorCode } from '@founders-coffee/core';
 import {
+  cityInputs,
   hero_waitlist_already,
   hero_waitlist_error,
   hero_waitlist_invalid_email,
@@ -83,7 +84,7 @@ export const WaitlistForm = ({
   if (joinWaitlist.isSuccess && !localError) {
     return (
       <p className="mt-3 text-center text-sm text-success">
-        ✓ {hero_waitlist_success({ city: cityName }, { locale })}
+        ✓ {hero_waitlist_success(cityInputs(cityName), { locale })}
       </p>
     );
   }

@@ -18,7 +18,7 @@ import {
 import { Input } from '@founders-coffee/ui';
 
 import { useNearbyVenues, useVenueSearch } from '../../features/events/hooks';
-import type { VenueSelection } from '../../features/events/types';
+import type { VenueArea, VenueSelection } from '../../features/events/types';
 import { HostVenueList, type VenueRow } from './HostVenueList';
 import { VenueSearch } from './VenueSearch';
 
@@ -28,7 +28,7 @@ const VENUE_LIST_ID = 'venue-results';
 
 type HostVenueStepProps = {
   locale: Locale;
-  cityName: string;
+  area: VenueArea;
   cityCode?: string;
   marketCode: string;
   center: { latitude: number; longitude: number };
@@ -47,7 +47,7 @@ type HostVenueStepProps = {
 
 export const HostVenueStep = ({
   locale,
-  cityName,
+  area,
   cityCode,
   marketCode,
   center,
@@ -133,7 +133,7 @@ export const HostVenueStep = ({
     <div className="flex flex-col gap-3">
       <VenueSearch
         locale={locale}
-        cityName={cityName}
+        area={area}
         value={searchValue}
         listId={VENUE_LIST_ID}
         hasResults={rows.length > 0}

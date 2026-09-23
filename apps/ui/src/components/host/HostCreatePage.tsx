@@ -84,7 +84,6 @@ export const HostCreatePage = ({
     wizard.venue ??
     mapContext.data?.center ?? { latitude: 0, longitude: 0 };
   const marketName = localizedName(market, locale);
-  const cityName = city ? localizedName(city, locale) : '';
   const stepHeading = (
     <div className="mb-6">
       <h1 className="sr-only">{host_page_title({}, { locale })}</h1>
@@ -174,7 +173,7 @@ export const HostCreatePage = ({
                 <>
                   <HostVenueStep
                     locale={locale}
-                    cityName={cityName || marketName}
+                    area={wizard.venueArea}
                     cityCode={city?.code}
                     center={listCenter}
                     marketCode={market.code}

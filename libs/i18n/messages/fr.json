@@ -126,16 +126,36 @@
       "declarations": [
         "input count",
         "input city",
+        "input cityArticle",
+        "input cityAfterArticle",
         "local countPlural = count: plural"
       ],
-      "selectors": ["countPlural"],
+      "selectors": ["countPlural", "cityArticle"],
       "match": {
-        "countPlural=one": "{count} rencontre cette semaine à {city}",
-        "countPlural=*": "{count} rencontres cette semaine à {city}"
+        "countPlural=one, cityArticle=le": "{count} rencontre cette semaine au {cityAfterArticle}",
+        "countPlural=one, cityArticle=les": "{count} rencontre cette semaine aux {cityAfterArticle}",
+        "countPlural=one, cityArticle=*": "{count} rencontre cette semaine à {city}",
+        "countPlural=*, cityArticle=le": "{count} rencontres cette semaine au {cityAfterArticle}",
+        "countPlural=*, cityArticle=les": "{count} rencontres cette semaine aux {cityAfterArticle}",
+        "countPlural=*, cityArticle=*": "{count} rencontres cette semaine à {city}"
       }
     }
   ],
-  "hero_empty_city": "Pas de rencontres à {city} pour le moment",
+  "hero_empty_city": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Pas de rencontres au {cityAfterArticle} pour le moment",
+        "cityArticle=les": "Pas de rencontres aux {cityAfterArticle} pour le moment",
+        "cityArticle=*": "Pas de rencontres à {city} pour le moment"
+      }
+    }
+  ],
   "hero_empty_subtitle": "Soyez le premier à lancer une communauté de fondateurs dans votre ville.",
   "hero_empty_cta": "Organiser la première rencontre",
   "hero_search_no_match": "Aucune ville ne correspond à « {query} »",
@@ -143,7 +163,21 @@
   "hero_waitlist_placeholder": "Votre email",
   "hero_waitlist_submit": "Notifiez-moi",
   "hero_waitlist_submitting": "Envoi…",
-  "hero_waitlist_success": "Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre à {city}.",
+  "hero_waitlist_success": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre au {cityAfterArticle}.",
+        "cityArticle=les": "Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre aux {cityAfterArticle}.",
+        "cityArticle=*": "Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre à {city}."
+      }
+    }
+  ],
   "hero_waitlist_already": "Vous êtes déjà sur la liste pour {city} !",
   "hero_waitlist_invalid_email": "Veuillez entrer un email valide",
   "host_in_your_city": "Hébergez dans votre ville",
@@ -160,10 +194,66 @@
     }
   ],
   "no_events_yet": "Pas encore de rencontres. Soyez le premier à héberger",
-  "city_empty_title": "Soyez le premier à organiser une rencontre pro à {city}",
-  "city_empty_body": "Soyez le premier à organiser une rencontre pro à {city}.",
-  "city_upcoming_title": "Prochaines rencontres à {city}",
-  "city_events_description": "Découvrez les prochaines rencontres de fondateurs et communautés à {city}.",
+  "city_empty_title": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Soyez le premier à organiser une rencontre pro au {cityAfterArticle}",
+        "cityArticle=les": "Soyez le premier à organiser une rencontre pro aux {cityAfterArticle}",
+        "cityArticle=*": "Soyez le premier à organiser une rencontre pro à {city}"
+      }
+    }
+  ],
+  "city_empty_body": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Soyez le premier à organiser une rencontre pro au {cityAfterArticle}.",
+        "cityArticle=les": "Soyez le premier à organiser une rencontre pro aux {cityAfterArticle}.",
+        "cityArticle=*": "Soyez le premier à organiser une rencontre pro à {city}."
+      }
+    }
+  ],
+  "city_upcoming_title": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Prochaines rencontres au {cityAfterArticle}",
+        "cityArticle=les": "Prochaines rencontres aux {cityAfterArticle}",
+        "cityArticle=*": "Prochaines rencontres à {city}"
+      }
+    }
+  ],
+  "city_events_description": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Découvrez les prochaines rencontres de fondateurs et communautés au {cityAfterArticle}.",
+        "cityArticle=les": "Découvrez les prochaines rencontres de fondateurs et communautés aux {cityAfterArticle}.",
+        "cityArticle=*": "Découvrez les prochaines rencontres de fondateurs et communautés à {city}."
+      }
+    }
+  ],
   "city_filters_label": "Filtrer les rencontres",
   "city_loaded_count": [
     {
@@ -262,7 +352,22 @@
   "host_title_constraints": "Saisissez entre {min} et {max} caractères.",
   "host_desc_constraints": "Saisissez entre {min} et {max} caractères.",
   "host_character_count": "{current} caractères sur {max}",
-  "host_step1_helper": "Cafés et espaces de coworking à {city}.",
+  "host_step1_helper": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Cafés et espaces de coworking au {cityAfterArticle}.",
+        "cityArticle=les": "Cafés et espaces de coworking aux {cityAfterArticle}.",
+        "cityArticle=*": "Cafés et espaces de coworking à {city}."
+      }
+    }
+  ],
+  "host_step1_helper_market": "Cafés et espaces de coworking en {market}.",
   "host_selected_location": "Emplacement sélectionné",
   "host_locate_me": "Me localiser",
   "host_title_ph": "Café et discussion d'idée de projet",
@@ -282,7 +387,22 @@
   "host_time_to": "Fin",
   "host_next": "Suivant",
   "host_back": "Retour",
-  "host_venue_search_ph": "Rechercher un café ou espace de coworking à {city}…",
+  "host_venue_search_ph": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Rechercher un café ou espace de coworking au {cityAfterArticle}…",
+        "cityArticle=les": "Rechercher un café ou espace de coworking aux {cityAfterArticle}…",
+        "cityArticle=*": "Rechercher un café ou espace de coworking à {city}…"
+      }
+    }
+  ],
+  "host_venue_search_ph_market": "Rechercher un café ou espace de coworking en {market}…",
   "host_venue_search_label": "Rechercher des cafés et espaces de coworking",
   "host_venue_search_loading": "Recherche des lieux à proximité…",
   "host_venue_search_error": "La recherche de lieux est momentanément indisponible.",
@@ -402,7 +522,21 @@
   "filter_ar": "Arabe",
   "filter_en": "Anglais",
   "filter_fr": "Français",
-  "back_to_city": "Retour à {city}",
+  "back_to_city": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Retour au {cityAfterArticle}",
+        "cityArticle=les": "Retour aux {cityAfterArticle}",
+        "cityArticle=*": "Retour à {city}"
+      }
+    }
+  ],
   "profile_link": "Profil",
   "gate_title": "Dernière étape : connectez-vous pour publier",
   "gate_back": "Retour au formulaire",
@@ -438,7 +572,22 @@
   "event_cancelled_title": "Cette rencontre a été annulée",
   "event_cancelled_body": "L’hôte a tout annulé. Inutile de vous déplacer.",
   "event_details_title": "Détails de la rencontre",
-  "event_meta_description": "Rejoignez « {title} », une rencontre Founders Coffee à {city}.",
+  "event_meta_description": [
+    {
+      "declarations": [
+        "input title",
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Rejoignez « {title} », une rencontre Founders Coffee au {cityAfterArticle}.",
+        "cityArticle=les": "Rejoignez « {title} », une rencontre Founders Coffee aux {cityAfterArticle}.",
+        "cityArticle=*": "Rejoignez « {title} », une rencontre Founders Coffee à {city}."
+      }
+    }
+  ],
   "host_you_are_hosting": "Vous organisez",
   "host_hosting_help": "Vous comptez parmi les participants. Les invités vous voient dans la salle au début de la rencontre.",
   "host_event_ended": "Cette rencontre est terminée.",

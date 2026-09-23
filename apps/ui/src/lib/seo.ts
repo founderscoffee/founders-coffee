@@ -1,6 +1,7 @@
 import {
   city_events_description,
   city_empty_body,
+  cityInputs,
   LOCALES,
   market_hero_desc,
   social_image_alt,
@@ -252,8 +253,8 @@ export const cityPageHead = ({
   events = [],
 }: CityHeadInput) => {
   const description = isEmpty
-    ? city_empty_body({ city: cityName }, { locale })
-    : city_events_description({ city: cityName }, { locale });
+    ? city_empty_body(cityInputs(cityName), { locale })
+    : city_events_description(cityInputs(cityName), { locale });
   const metadata = buildPageMetadata({
     locale,
     title: `${cityName} · ${marketName}`,

@@ -3,6 +3,7 @@ import { CalendarDays, MapPin, Users } from 'lucide-react';
 
 import {
   back_to_city,
+  cityInputs,
   event_cancelled_body,
   event_cancelled_title,
   event_details_title,
@@ -109,7 +110,7 @@ export const EventDetail = ({
           {...localizedCity(locale, market.slug, event.citySlug)}
           className="mb-4 inline-flex min-h-6 items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
         >
-          {back_to_city({ city: cityName }, { locale })}
+          {back_to_city(cityInputs(cityName), { locale })}
         </Link>
       )}
 
