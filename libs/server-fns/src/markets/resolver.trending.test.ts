@@ -1,10 +1,13 @@
 import { env } from 'cloudflare:workers';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  countUpcomingByCity,
   createDb,
   createEvent,
+  events,
   seed,
   user,
+  type Db,
   type NewUser,
 } from '@founders-coffee/db';
 import { geo } from '@founders-coffee/domain';
@@ -18,6 +21,39 @@ describe('resolveTrendingStates (cold vs warm)', () => {
     email: 'trend-host@test.coffee',
     emailVerified: false,
     role: 'host',
+  };
+
+  beforeEach(async () => {
+    await createDb(env.DB).delete(events).run();
+  });
+
+  const dzCity = (slug: string): geo.GeoCity => {
+    const city = geo.findCityBySlug('DZ', slug);
+    if (!city) throw new Error(`No DZ city with the slug ${slug}`);
+    return city;
+  };
+
+  const seedMeetups = async (
+    db: Db,
+    meetups: readonly (readonly [geo.GeoCity, number])[],
+  ): Promise<void> => {
+    await db.insert(user).values(host).onConflictDoNothing().run();
+    for (const [city, count] of meetups)
+      for (let i = 0; i < count; i += 1)
+        await createEvent(db, {
+          id: `evt_trend_${city.code}_${i}`,
+          slug: `trend-${city.slug}-${i}`,
+          hostId: host.id,
+          marketCode: 'DZ',
+          stateCode: city.stateCode,
+          cityCode: city.code,
+          title: `${city.name} founders coffee`,
+          description: 'A meetup that puts its city on the landing grid.',
+          venue: 'Café Test',
+          startsAt: new Date('2099-03-01T18:00:00Z'),
+          language: 'fr',
+          status: 'published',
+        });
   };
 
   it('cold markets return 11 ordered landing cities for DZ/EG/SA', async () => {
@@ -109,7 +145,6 @@ describe('resolveTrendingStates (cold vs warm)', () => {
 
     const stateGroups = trending.groups.filter((g) => g.state !== null);
 
-    expect(stateGroups.length).toBeLessThanOrEqual(3);
     expect(stateGroups.flatMap((g) => g.cities).every((c) => c.count > 0)).toBe(
       true,
     );
@@ -176,5 +211,75 @@ describe('resolveTrendingStates (cold vs warm)', () => {
     expect(pioneer.cities.some((c) => c.city.code === algiers.code)).toBe(
       false,
     );
+  });
+
+  it('leads with a city that has meetups however far down its state ranks', async () => {
+    const db = createDb(env.DB);
+    await seed(db);
+    const constantine = dzCity('constantine');
+    await seedMeetups(db, [
+      [dzCity('algiers'), 4],
+      [dzCity('oran'), 3],
+      [dzCity('setif'), 2],
+      [constantine, 1],
+    ]);
+
+    const trending = await resolveTrendingStates(db, 'DZ');
+    const cards = trending.groups.flatMap((group) => group.cities);
+    const upcoming = await countUpcomingByCity(db, 'DZ');
+
+    expect(
+      cards.map((card) => card.count),
+      'every card says what the hero search says about its city',
+    ).toEqual(cards.map((card) => upcoming[card.city.code] ?? 0));
+    expect(
+      trending.groups.find(
+        (group) => group.state?.code === constantine.stateCode,
+      )?.cities,
+      'Constantine leads under its own state, the fourth by meetups',
+    ).toMatchObject([
+      {
+        city: { slug: 'constantine' },
+        count: 1,
+        hosts: [{ name: host.name, photoAssetId: null }],
+        hostCount: 1,
+      },
+    ]);
+    expect(
+      cards.map((card) => card.count),
+      'busiest state first, and every state with meetups ahead of the invitations',
+    ).toEqual([4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it('shows the meetups of a city that eight busier neighbours push among the invitations', async () => {
+    const db = createDb(env.DB);
+    await seed(db);
+    const algiers = dzCity('algiers');
+    const neighbours = geo
+      .getCities('DZ', algiers.stateCode)
+      .filter((city) => !city.featured)
+      .slice(0, 8);
+    await seedMeetups(db, [
+      ...neighbours.map((city) => [city, 2] as const),
+      [algiers, 1],
+    ]);
+
+    const trending = await resolveTrendingStates(db, 'DZ');
+    const cards = trending.groups.flatMap((group) => group.cities);
+    const upcoming = await countUpcomingByCity(db, 'DZ');
+
+    expect(
+      cards.map((card) => card.count),
+      'every card says what the hero search says about its city',
+    ).toEqual(cards.map((card) => upcoming[card.city.code] ?? 0));
+    expect(
+      trending.groups.find((group) => group.state === null)?.cities[0],
+      'Algiers is ninth in its own state, so it comes first among the rest',
+    ).toMatchObject({
+      city: { slug: 'algiers' },
+      count: 1,
+      hosts: [{ name: host.name, photoAssetId: null }],
+      hostCount: 1,
+    });
   });
 });
