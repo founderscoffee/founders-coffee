@@ -11,13 +11,13 @@ import {
   feedback_error_not_found,
   feedback_error_not_invited,
   feedback_error_window_closed,
-  feedback_loading,
   feedback_next_event,
   feedback_note,
   feedback_privacy,
   feedback_saved,
   feedback_submitting,
   feedback_title,
+  loading,
   submit,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -93,7 +93,7 @@ export const FeedbackPage = ({
   if (!query.data || !draft)
     return (
       <section className="mx-auto max-w-2xl px-5 py-12">
-        <p role="status">{feedback_loading({}, { locale })}</p>
+        <p role="status">{loading({}, { locale })}</p>
       </section>
     );
 

@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { route_loading } from '@founders-coffee/i18n';
+import { loading } from '@founders-coffee/i18n';
 
 import { RouteTransition } from './RouteTransition';
 
@@ -12,7 +12,7 @@ describe('route transition', () => {
     render(<RouteTransition locale="ar" />);
 
     expect(screen.getByRole('status').textContent).toBe(
-      route_loading({}, { locale: 'ar' }),
+      loading({}, { locale: 'ar' }),
     );
   });
 
