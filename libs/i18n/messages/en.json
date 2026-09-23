@@ -305,6 +305,7 @@
   "event_map_label": "Map showing {venue}",
   "rsvp_box_title": "Save your seat",
   "rsvp_box_cancelled": "Your seat",
+  "rsvp_box_host": "Your meetup",
   "rsvp_cancelled_going": "You had confirmed you were coming.",
   "rsvp_cancelled_going_help": "There is nothing to cancel, and the reminder we had scheduled will not be sent.",
   "rsvp_cta": "Join the meetup",

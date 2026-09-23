@@ -326,6 +326,7 @@
   "event_map_label": "خريطة توضح {venue}",
   "rsvp_box_title": "احجز مقعدك",
   "rsvp_box_cancelled": "مقعدك",
+  "rsvp_box_host": "لقاؤك",
   "rsvp_cancelled_going": "كنت قد أكّدت حضورك.",
   "rsvp_cancelled_going_help": "لا شيء عليك أن تلغيه، والتذكير الذي كان مبرمجًا لن يصلك.",
   "rsvp_cta": "انضم إلى اللقاء",

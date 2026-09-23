@@ -314,6 +314,7 @@
   "event_map_label": "Carte indiquant {venue}",
   "rsvp_box_title": "Réservez votre place",
   "rsvp_box_cancelled": "Votre place",
+  "rsvp_box_host": "Votre rencontre",
   "rsvp_cancelled_going": "Vous aviez confirmé votre venue.",
   "rsvp_cancelled_going_help": "Vous n'avez rien à annuler, et le rappel prévu ne vous sera pas envoyé.",
   "rsvp_cta": "Rejoindre la rencontre",
