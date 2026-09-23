@@ -12,6 +12,7 @@ import {
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
 import { localizedEvent } from '../../lib/locale-routing';
+import { AvatarGroup } from './AvatarGroup';
 import { HostFace } from './HostFace';
 
 type EventCardProps = {
@@ -80,7 +81,7 @@ export const EventCard = ({
             </h3>
           </header>
           {event.description?.trim() ? (
-            <p dir="auto" className="line-clamp-2 text-body-sm text-neutral">
+            <p dir="auto" className="line-clamp-1 text-body-sm text-neutral">
               {event.description}
             </p>
           ) : null}
@@ -109,38 +110,22 @@ export const EventCard = ({
 
           <footer className="mt-auto flex flex-wrap items-center gap-2 pt-1.5">
             {hasHost ? (
-              <span
-                dir="rtl"
-                className="inline-flex min-w-0 items-center gap-2 text-body-sm text-neutral"
-              >
+              <span className="inline-flex min-w-0 items-center gap-2 text-body-sm text-neutral">
                 {additionalAttendeeCount > 0 ? (
-                  <span
-                    className="avatar-group -space-x-3 shrink-0 overflow-visible rtl:space-x-reverse"
-                    role="img"
-                    aria-label={going_count(
-                      { count: attendeeCount },
-                      { locale },
-                    )}
-                  >
-                    <HostFace
-                      name={event.hostName ?? ''}
-                      photoAssetId={event.hostPhotoAssetId}
-                      className="relative z-10 size-7 ring-2 ring-base-100"
-                    />
-                    <span className="avatar avatar-placeholder relative z-0 size-7 shrink-0 ring-2 ring-base-100">
-                      <span
-                        dir="ltr"
-                        className="flex size-full items-center justify-center rounded-full bg-base-200 text-caption font-semibold text-base-content"
-                      >
-                        +{additionalAttendeeCount}
-                      </span>
-                    </span>
-                  </span>
+                  <AvatarGroup
+                    faces={[
+                      {
+                        name: event.hostName ?? '',
+                        photoAssetId: event.hostPhotoAssetId,
+                      },
+                    ]}
+                    more={additionalAttendeeCount}
+                    label={going_count({ count: attendeeCount }, { locale })}
+                  />
                 ) : (
                   <HostFace
                     name={event.hostName ?? ''}
                     photoAssetId={event.hostPhotoAssetId}
-                    className="size-7"
                   />
                 )}
                 <span className="truncate">

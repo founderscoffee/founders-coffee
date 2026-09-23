@@ -101,6 +101,15 @@ describe('how many people the card says are going', () => {
     ).not.toContain(going_count({ count: 3 }, { locale: 'en' }));
   });
 
+  it('draws the host, then a bubble for everyone else going', () => {
+    const view = show({ goingCount: 3, rsvps: 3, hostName: 'Host Name' });
+    const group = view.container.querySelector('.avatar-group');
+
+    expect(
+      [...(group?.children ?? [])].map((member) => member.textContent),
+    ).toEqual(['H', '+2']);
+  });
+
   it('shows the host alone when they are the only one going', () => {
     const view = show({ goingCount: 1, rsvps: 1, hostName: 'Host Name' });
 
@@ -108,4 +117,35 @@ describe('how many people the card says are going', () => {
     expect(view.container.textContent).toContain('Host Name');
     expect(view.container.textContent).not.toMatch(/\+\s*\d/);
   });
+});
+
+describe('what else the card fits in', () => {
+  it('keeps the description to one line', () => {
+    const view = show({
+      description:
+        'A long founder conversation about pricing, first customers and everything in between.',
+    });
+    const description = view.getByText(/A long founder conversation/);
+
+    expect(
+      description.className
+        .split(' ')
+        .filter((name) => name.startsWith('line-clamp-')),
+    ).toEqual(['line-clamp-1']);
+  });
+
+  it.each<Locale>(['fr', 'en'])(
+    'reads the host line the way the page reads, in %s',
+    (locale) => {
+      const view = show(
+        { goingCount: 3, rsvps: 3, hostName: 'Host Name' },
+        locale,
+      );
+
+      expect(
+        view.container.querySelector('footer [dir="rtl"]'),
+        'forcing right to left puts the name before the face on a left-to-right page',
+      ).toBeNull();
+    },
+  );
 });

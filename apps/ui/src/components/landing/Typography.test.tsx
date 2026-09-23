@@ -178,7 +178,6 @@ describe('P1-002 landing typography', () => {
       expect(
         view.container.querySelector('.avatar-group')?.className,
       ).toContain('overflow-visible');
-      expect(view.container.querySelector('[dir="rtl"]')).toBeTruthy();
       expect(view.container.querySelector('[dir="ltr"]')).toBeTruthy();
       expect(
         view.container

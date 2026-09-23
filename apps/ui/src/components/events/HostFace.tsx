@@ -3,11 +3,10 @@ import { profilePhotoUrl } from '../../features/profile/photo-url';
 type HostFaceProps = {
   name: string;
   photoAssetId: string | null;
-  className: string;
 };
 
-export const HostFace = ({ name, photoAssetId, className }: HostFaceProps) => (
-  <span className={`avatar avatar-placeholder shrink-0 ${className}`}>
+export const HostFace = ({ name, photoAssetId }: HostFaceProps) => (
+  <span className="avatar avatar-placeholder size-8 shrink-0 border-2 border-base-100">
     <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-base-200 text-caption font-semibold text-base-content">
       {photoAssetId ? (
         <img

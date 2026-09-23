@@ -13,10 +13,9 @@ import {
 } from '@founders-coffee/i18n';
 import type { TrendingSection } from '@founders-coffee/server-fns';
 import { localizedCity, localizedHostCreate } from '../../lib/locale-routing';
-import { HostFace } from '../events/HostFace';
+import { AvatarGroup } from '../events/AvatarGroup';
 
 const CITY_CARD_COUNT = 11;
-const HOST_BUBBLE_CAP = 99;
 
 type TrendingStatesProps = {
   locale: Locale;
@@ -48,10 +47,6 @@ export const TrendingStates = ({
       >
         {cities.map(({ city, count, hosts, hostCount }) => {
           const headingId = `market-city-${market.slug}-${city.slug}`;
-          const unseenHosts = Math.min(
-            hostCount - hosts.length,
-            HOST_BUBBLE_CAP,
-          );
           return (
             <li key={city.code} className="h-full">
               <Link
@@ -74,33 +69,14 @@ export const TrendingStates = ({
                       {localizedName(city, locale)}
                     </h3>
                     {hosts.length > 0 ? (
-                      <span
-                        role="img"
-                        aria-label={city_hosts_count(
+                      <AvatarGroup
+                        faces={hosts}
+                        more={hostCount - hosts.length}
+                        label={city_hosts_count(
                           { count: hostCount },
                           { locale },
                         )}
-                        className="avatar-group -space-x-3 shrink-0 overflow-visible"
-                      >
-                        {hosts.map((host, index) => (
-                          <HostFace
-                            key={`host-${index}`}
-                            name={host.name}
-                            photoAssetId={host.photoAssetId}
-                            className="size-8 border-2 border-base-100"
-                          />
-                        ))}
-                        {unseenHosts > 0 ? (
-                          <span className="avatar avatar-placeholder size-8 shrink-0 border-2 border-base-100">
-                            <span
-                              dir="ltr"
-                              className="flex size-full items-center justify-center rounded-full bg-base-200 text-caption font-semibold text-base-content"
-                            >
-                              +{unseenHosts}
-                            </span>
-                          </span>
-                        ) : null}
-                      </span>
+                      />
                     ) : null}
                   </header>
                   <p
