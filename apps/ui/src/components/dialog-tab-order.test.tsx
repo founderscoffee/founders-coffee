@@ -85,6 +85,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe.each(DIALOGS)('the tab order of the dialog for %s', (_what, show) => {
@@ -124,5 +125,14 @@ describe.each(DIALOGS)('the tab order of the dialog for %s', (_what, show) => {
       [form?.getAttribute('method'), backdrop()?.getAttribute('type')],
       'a submit button inside a dialog-method form is how clicking outside closes this dialog; jsdom does not run that submission, so the mechanism is what can be checked here and the behaviour was walked in a browser',
     ).toEqual(['dialog', 'submit']);
+  });
+
+  it('opens in the top layer, which is what holds tab inside it', () => {
+    show(vi.fn());
+
+    expect(
+      document.querySelector('dialog')?.open,
+      'nothing in the markup opens this dialog any more, so it is open here only because showModal was called; an open attribute would render it in the page instead, where tab walks straight out into whatever is behind and Escape does nothing',
+    ).toBe(true);
   });
 });

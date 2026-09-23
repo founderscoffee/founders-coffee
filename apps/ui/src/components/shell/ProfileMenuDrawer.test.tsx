@@ -73,4 +73,13 @@ describe('how the drawer announces itself once it is open', () => {
       'the sheet behind the drawer is a button covering the whole screen, and it carried the same name as the close button in the corner',
     ).toEqual(['إغلاق قائمة الملف الشخصي']);
   });
+
+  it('opens in the top layer, which is what holds tab inside it', () => {
+    fireEvent.click(at('/ar/profile') as HTMLElement);
+
+    expect(
+      document.querySelector('dialog')?.open,
+      'nothing in the markup opens this dialog any more, so it is open here only because showModal was called; an open attribute would render it in the page instead, where tab walks straight out into whatever is behind and Escape does nothing',
+    ).toBe(true);
+  });
 });

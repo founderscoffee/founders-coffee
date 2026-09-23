@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { useLocation } from '@tanstack/react-router';
 
@@ -49,6 +49,11 @@ export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
   const pathname = useLocation({ select: (location) => location.pathname });
   const [isOpen, setIsOpen] = useState(false);
   const titleId = useId();
+  const ref = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (isOpen) ref.current?.showModal();
+  }, [isOpen]);
 
   if (!isProfileRoute(pathname)) return null;
 
@@ -65,12 +70,13 @@ export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
       </button>
       {isOpen ? (
         <dialog
-          open
+          ref={ref}
           aria-labelledby={titleId}
-          className="fixed inset-0 z-[60] m-0 h-full w-full max-w-none bg-transparent p-0 lg:hidden"
+          className="fixed inset-0 z-[60] m-0 h-full w-full max-w-none bg-transparent p-0"
           onKeyDown={(event) => {
             if (event.key === 'Escape') setIsOpen(false);
           }}
+          onClose={() => setIsOpen(false)}
         >
           <button
             type="button"

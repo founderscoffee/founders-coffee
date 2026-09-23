@@ -4,6 +4,8 @@ import { declaredDialogs } from './dialog-contract.fixtures';
 
 const DIALOGS = declaredDialogs();
 
+const OPEN_ATTRIBUTE = /(?:^|\s)open(?=\s|>|=)/u;
+
 const BACKDROP = /className="modal-backdrop"[^>]*>([\s\S]*?)<\/form>/gu;
 
 const NAME_REFERENCE = /aria-labelledby=(?:\{(\w+)\}|"([^"]+)")/u;
@@ -56,5 +58,23 @@ describe('what a screen reader is told about a dialog', () => {
           inside,
           'a backdrop is a button the size of the viewport repeating a name the dialog already offers; it is there to be clicked past, not tabbed to, and hiding it while leaving it in the tab order strands a reader on something with no name at all',
         ).toContain(required);
+  });
+
+  it.each(DIALOGS)('$file opens as a real modal', ({ tag, source }) => {
+    expect(
+      tag,
+      'an open attribute renders a dialog in the page rather than in the top layer: nothing behind it goes inert, focus is not moved into it and Escape does not close it',
+    ).not.toMatch(OPEN_ATTRIBUTE);
+    expect(
+      source,
+      'showModal is what puts a dialog in the top layer and makes the page behind it inert',
+    ).toContain('showModal()');
+  });
+
+  it.each(DIALOGS)('$file hears it when the browser closes it', ({ tag }) => {
+    expect(
+      tag,
+      'a modal dialog can be closed by the browser itself, on Escape, without React being told; one that does not listen for close leaves whatever opened it still believing it is open, and the reader looking at nothing with no way back',
+    ).toMatch(/onClose=/u);
   });
 });

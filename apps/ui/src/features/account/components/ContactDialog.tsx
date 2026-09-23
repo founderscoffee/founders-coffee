@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
 import {
   contact_cancel,
@@ -53,6 +53,11 @@ export const ContactDialog = ({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const titleId = useId();
+  const ref = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    ref.current?.showModal();
+  }, []);
 
   const sendEmailCode = useSendEmailChangeCode();
   const requestEmail = useRequestEmailChange();
@@ -124,7 +129,12 @@ export const ContactDialog = ({
       : contact_phone_title({}, { locale });
 
   return (
-    <dialog open className="modal modal-open" aria-labelledby={titleId}>
+    <dialog
+      ref={ref}
+      className="modal"
+      aria-labelledby={titleId}
+      onClose={onClose}
+    >
       <form
         method="dialog"
         className="modal-box"

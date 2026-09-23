@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from 'react';
+import { useState, useEffect, useId, useRef } from 'react';
 
 import {
   push_prompt_accept,
@@ -39,6 +39,7 @@ export const PushPermissionPrompt = ({
 }: PushPermissionPromptProps) => {
   const [visible, setVisible] = useState(false);
   const titleId = useId();
+  const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     if (wasDismissed()) return;
@@ -50,6 +51,10 @@ export const PushPermissionPrompt = ({
 
     setVisible(true);
   }, []);
+
+  useEffect(() => {
+    if (visible) ref.current?.showModal();
+  }, [visible]);
 
   const handleAccept = () => {
     setVisible(false);
@@ -65,7 +70,12 @@ export const PushPermissionPrompt = ({
   if (!visible) return null;
 
   return (
-    <dialog className="modal modal-open" aria-labelledby={titleId}>
+    <dialog
+      ref={ref}
+      className="modal"
+      aria-labelledby={titleId}
+      onClose={handleDecline}
+    >
       <div className="modal-box max-w-sm rounded-box border border-base-300 bg-base-100">
         <h2 id={titleId} className="font-display text-h4 font-semibold">
           {push_prompt_title({}, { locale })}
