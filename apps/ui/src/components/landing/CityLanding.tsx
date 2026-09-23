@@ -78,6 +78,7 @@ export const CityLanding = ({
     events,
   );
   const items = pagination.items;
+  const hasEvents = items.length > 0;
   const pageHeader = (
     <header className="flex flex-col gap-4">
       <nav aria-label={back_to_market({ market: marketName }, { locale })}>
@@ -99,30 +100,34 @@ export const CityLanding = ({
           >
             {cityDisplayName}
           </h1>
-          <p className="mt-2 max-w-prose text-body text-neutral">
-            {city_events_description({ city: cityDisplayName }, { locale })}
-          </p>
+          {hasEvents && (
+            <p className="mt-2 max-w-prose text-body text-neutral">
+              {city_events_description({ city: cityDisplayName }, { locale })}
+            </p>
+          )}
         </div>
-        <Link
-          {...localizedHostCreate(locale, market.slug)}
-          search={{ city: city.code, state: city.stateCode }}
-          className="btn btn-outline h-10 min-h-10 px-4"
-        >
-          {host_meetup_here({}, { locale })}
-        </Link>
+        {hasEvents && (
+          <Link
+            {...localizedHostCreate(locale, market.slug)}
+            search={{ city: city.code, state: city.stateCode }}
+            className="btn btn-outline h-10 min-h-10 px-4"
+          >
+            {host_meetup_here({}, { locale })}
+          </Link>
+        )}
       </div>
     </header>
   );
 
-  if (items.length === 0) {
+  if (!hasEvents) {
     return (
       <section
-        aria-label={city_empty_title({ city: cityDisplayName }, { locale })}
-        className="mx-auto flex max-w-lg flex-col gap-8 px-4 py-16"
+        aria-labelledby="city-page-title"
+        className="mx-auto flex max-w-content flex-col gap-8 px-4 py-8 md:px-8"
       >
+        {pageHeader}
         <EmptyState
           title={city_empty_title({ city: cityDisplayName }, { locale })}
-          headingLevel="h1"
           action={
             <Link
               {...localizedHostCreate(locale, market.slug)}
@@ -130,14 +135,6 @@ export const CityLanding = ({
               className="btn btn-secondary h-12 px-5"
             >
               {city_empty_cta({}, { locale })}
-            </Link>
-          }
-          secondary={
-            <Link
-              {...localizedLanding(locale, market.slug)}
-              className="mt-2 inline-flex min-h-6 items-center text-label font-medium text-neutral underline decoration-secondary underline-offset-[3px] hover:text-base-content"
-            >
-              {back_to_market({ market: marketName }, { locale })}
             </Link>
           }
         />
