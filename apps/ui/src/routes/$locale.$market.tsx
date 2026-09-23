@@ -10,12 +10,10 @@ import { appErrorCode } from '@founders-coffee/core';
 import { localizedName, type Locale } from '@founders-coffee/i18n';
 import {
   getMarketLanding,
-  type MarketCity,
   type MarketWithCities,
 } from '@founders-coffee/server-fns';
 
 import { CompanyPage } from '../components/company/CompanyPage';
-import { CityLanding } from '../components/landing/CityLanding';
 import { MarketLanding } from '../components/landing/MarketLanding';
 import {
   COMPANY_PAGES,
@@ -32,22 +30,11 @@ import {
 } from '../lib/public-pagination';
 import { localizedLanding } from '../lib/locale-routing';
 import { isMarketLeaf } from '../lib/route-market';
-import {
-  canonicalUrl,
-  cityPageHead,
-  getRequestPath,
-  marketPageHead,
-} from '../lib/seo';
+import { canonicalUrl, getRequestPath, marketPageHead } from '../lib/seo';
 import { companyPageHead } from '../lib/seo-company';
 
 type LocalizedMarket = MarketWithCities & {
   readonly kind: 'market';
-  readonly locale: Locale;
-  readonly pagination: PublicPaginationSearch;
-};
-
-type LocalizedCity = MarketCity & {
-  readonly kind: 'city';
   readonly locale: Locale;
   readonly pagination: PublicPaginationSearch;
 };
@@ -58,7 +45,7 @@ type LocalizedCompany = {
   readonly page: CompanyPageKey;
 };
 
-type RouteData = LocalizedMarket | LocalizedCity | LocalizedCompany;
+type RouteData = LocalizedMarket | LocalizedCompany;
 
 const landingSearchSchema = publicPaginationSearchSchema;
 
@@ -117,28 +104,17 @@ export const Route = createFileRoute('/$locale/$market')({
         />
       );
     }
-    if (data.kind === 'company') {
-      const entry: CompanyPageEntry = COMPANY_PAGES[data.page];
-      const arabicSource = entry.kind === 'arabic';
-      return (
-        <CompanyPage
-          locale={data.locale}
-          content={companyPageContent(data.page, data.locale)}
-          related={entry.related}
-          showEmailActions={
-            entry.kind === 'localized' && entry.emailActions === true
-          }
-          arabicSource={arabicSource}
-        />
-      );
-    }
+    const entry: CompanyPageEntry = COMPANY_PAGES[data.page];
+    const arabicSource = entry.kind === 'arabic';
     return (
-      <CityLanding
+      <CompanyPage
         locale={data.locale}
-        market={data.market}
-        city={data.city}
-        events={data.events}
-        nextCursor={data.eventsNextCursor}
+        content={companyPageContent(data.page, data.locale)}
+        related={entry.related}
+        showEmailActions={
+          entry.kind === 'localized' && entry.emailActions === true
+        }
+        arabicSource={arabicSource}
       />
     );
   },
@@ -180,44 +156,17 @@ export const Route = createFileRoute('/$locale/$market')({
         },
       });
     }
-    if (loaderData.kind === 'company') {
-      const content = companyPageContent(loaderData.page, loaderData.locale);
-      const entry: CompanyPageEntry = COMPANY_PAGES[loaderData.page];
-      return companyPageHead({
-        locale: loaderData.locale,
-        path: `/${loaderData.page}`,
-        canonicalLocale: loaderData.locale,
-        soleLocale: entry.kind === 'arabic' ? 'ar' : undefined,
-        title: content.title,
-        description: content.description,
-        faq:
-          entry.kind === 'localized' && entry.faq === true
-            ? content
-            : undefined,
-      });
-    }
-    const cityName = localizedName(loaderData.city, loaderData.locale);
-    return cityPageHead({
+    const content = companyPageContent(loaderData.page, loaderData.locale);
+    const entry: CompanyPageEntry = COMPANY_PAGES[loaderData.page];
+    return companyPageHead({
       locale: loaderData.locale,
-      marketName: localizedName(loaderData.market, loaderData.locale),
-      cityName,
-      isEmpty: loaderData.events.length === 0,
-      events: loaderData.events.map((event) => ({
-        name: event.title,
-        url: canonicalUrl({
-          type: 'event',
-          market: loaderData.market.slug,
-          slug: event.slug,
-          locale: loaderData.locale,
-        }),
-      })),
-      route: {
-        type: 'city',
-        market: loaderData.market.slug,
-        city: loaderData.city.slug,
-        locale: loaderData.locale,
-        query: paginationQuery(loaderData.pagination),
-      },
+      path: `/${loaderData.page}`,
+      canonicalLocale: loaderData.locale,
+      soleLocale: entry.kind === 'arabic' ? 'ar' : undefined,
+      title: content.title,
+      description: content.description,
+      faq:
+        entry.kind === 'localized' && entry.faq === true ? content : undefined,
     });
   },
 });
