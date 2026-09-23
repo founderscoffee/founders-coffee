@@ -27,6 +27,11 @@ import {
   removeEarlyHintsFromResponse,
   shouldEmitEarlyHints,
 } from './lib/early-hints.js';
+import {
+  LIVE_PLACEMENT_PROBE_PATH,
+  probeLivePlacement,
+  servesPlacementProbe,
+} from './lib/live-placement-probe.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
 
@@ -79,6 +84,18 @@ const authHandler = (env: UiEnv) => {
       : undefined;
   return createAuthHandler(env, emailProvider ? { emailProvider } : {});
 };
+
+/**
+ * The live room for one meetup.
+ *
+ * The location hint counts only the first time a room is reached: Cloudflare places the object
+ * then, and every later `get()` for it ignores the hint (#88). A change to
+ * `DURABLE_OBJECT_LOCATION_HINT` therefore moves only rooms that do not exist yet.
+ */
+const liveRoomStub = (env: UiEnv, eventId: string): DurableObjectStub =>
+  env.EVENT_LIVE.get(env.EVENT_LIVE.idFromName(`event:${eventId}`), {
+    locationHint: DURABLE_OBJECT_LOCATION_HINT,
+  });
 
 export default {
   /**
@@ -141,12 +158,15 @@ export default {
         );
       }
 
-      const doId = env.EVENT_LIVE.idFromName(`event:${eventId}`);
-      const doStub = env.EVENT_LIVE.get(doId, {
-        locationHint: DURABLE_OBJECT_LOCATION_HINT,
-      });
-      return secure(await doStub.fetch(request));
+      return secure(await liveRoomStub(env, eventId).fetch(request));
     }
+
+    if (
+      url.pathname === LIVE_PLACEMENT_PROBE_PATH &&
+      request.method === 'GET' &&
+      servesPlacementProbe(env)
+    )
+      return secure(await probeLivePlacement(request, env));
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
       const body = (await request.json().catch(() => null)) as {
