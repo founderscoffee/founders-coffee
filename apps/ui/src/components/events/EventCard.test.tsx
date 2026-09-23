@@ -42,6 +42,7 @@ const event: EventFeedItem = {
   cancellationReason: null,
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   citySlug: 'algiers',
   goingCount: 0,
   hostName: null,
@@ -148,4 +149,26 @@ describe('what else the card fits in', () => {
       ).toBeNull();
     },
   );
+});
+
+describe('what the card calls the city', () => {
+  const cairo = {
+    cityName: 'Cairo',
+    cityNameAr: 'القاهرة',
+    cityNameFr: 'Le Caire',
+    citySlug: 'cairo',
+  };
+
+  it.each([
+    ['ar', '، القاهرة'],
+    ['en', ', Cairo'],
+    ['fr', ', Le Caire'],
+  ] as const)('names it the way a reader in %s knows it', (locale, place) => {
+    const view = show(cairo, locale);
+
+    expect(
+      view.container.textContent,
+      'a French card said Cairo, the English name, where every French page says Le Caire',
+    ).toContain(place);
+  });
 });

@@ -6,6 +6,7 @@ import type { EventAttendance } from './attendance.js';
 export type EventFeedItemBase = Event & {
   readonly cityName: string;
   readonly cityNameAr: string;
+  readonly cityNameFr: string;
   readonly citySlug: string | null;
   readonly hostName: string | null;
   readonly hostPhotoAssetId: string | null;
@@ -24,6 +25,7 @@ export const attachCityNames = (
       ...event,
       cityName: city?.name ?? event.cityCode,
       cityNameAr: city?.nameAr ?? city?.name ?? event.cityCode,
+      cityNameFr: city?.nameFr ?? city?.name ?? event.cityCode,
       citySlug: city?.slug ?? null,
       hostName: host ? profile.safeProfileDisplayName(host.name) || null : null,
       hostPhotoAssetId: host?.photoAssetId ?? null,

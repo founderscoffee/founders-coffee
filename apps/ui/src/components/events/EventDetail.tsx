@@ -28,6 +28,7 @@ import type {
   PublicProfile,
 } from '@founders-coffee/server-fns';
 
+import { eventCityName } from '../../features/events/event-city-name';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import {
   localizedCity,
@@ -97,8 +98,7 @@ export const EventDetail = ({
       <bdi dir="ltr">{times}</bdi>
     );
 
-  const cityName =
-    locale === 'ar' ? (event.cityNameAr ?? event.cityName) : event.cityName;
+  const cityName = eventCityName(event, locale);
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
   const isCancelled = event.status === 'cancelled';
   const hasRsvpBox = isHost || !isCancelled || event.viewerRsvp === 'going';

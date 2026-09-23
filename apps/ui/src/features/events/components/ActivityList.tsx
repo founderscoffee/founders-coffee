@@ -29,6 +29,7 @@ export interface ActivityItem {
   readonly cityCode?: string;
   readonly cityName?: string | null;
   readonly cityNameAr?: string | null;
+  readonly cityNameFr?: string | null;
 }
 
 const CloseoutLine = ({
@@ -63,7 +64,11 @@ const CloseoutLine = ({
 const cityLabel = (item: ActivityItem, locale: Locale): string =>
   item.cityName
     ? localizedName(
-        { name: item.cityName, nameAr: item.cityNameAr || undefined },
+        {
+          name: item.cityName,
+          nameAr: item.cityNameAr || undefined,
+          nameFr: item.cityNameFr || undefined,
+        },
         locale,
       )
     : '';

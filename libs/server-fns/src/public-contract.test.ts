@@ -58,6 +58,7 @@ const PUBLIC_EVENT_FIELDS = [
   ...EVENT_COLUMNS,
   'cityName',
   'cityNameAr',
+  'cityNameFr',
   'citySlug',
   'goingCount',
   'hostName',

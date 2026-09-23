@@ -84,6 +84,7 @@ const event = {
   viewerRsvp: null,
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   citySlug: 'algiers',
 } satisfies EventDetailItem;
 
@@ -278,4 +279,15 @@ describe('where the host card sends a reader', () => {
       ).toBe(`/${locale}/u/usr_1`);
     },
   );
+});
+
+describe('what the link back to the city says', () => {
+  it('names the city the way a French reader knows it', () => {
+    show({ ...event, cityName: 'Cairo', cityNameFr: 'Le Caire' }, 'fr');
+
+    expect(
+      screen.getByRole('link', { name: 'Retour au Caire' }),
+      'the link named the city in English, Retour à Cairo',
+    ).toBeTruthy();
+  });
 });

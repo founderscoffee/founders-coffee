@@ -9,6 +9,7 @@ export type EventCard = {
   readonly timezone: string;
   readonly cityName: string;
   readonly cityNameAr: string;
+  readonly cityNameFr: string;
 };
 
 /**
@@ -21,7 +22,7 @@ export type EventCard = {
  * them.
  *
  * The city is named from the geo tables rather than stored on the row, which is where every other
- * public read gets it, and both spellings come back because the card is drawn in whichever
+ * public read gets it, and every spelling comes back because the card is drawn in whichever
  * language the link was shared in.
  */
 export const readEventCard = async (
@@ -39,5 +40,6 @@ export const readEventCard = async (
     timezone: card.timezone,
     cityName: city?.name ?? card.cityCode,
     cityNameAr: city?.nameAr ?? city?.name ?? card.cityCode,
+    cityNameFr: city?.nameFr ?? city?.name ?? card.cityCode,
   };
 };

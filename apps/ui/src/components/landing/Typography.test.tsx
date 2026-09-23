@@ -97,6 +97,7 @@ const event: EventFeedItem = {
   cancellationReason: null,
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   citySlug: 'algiers',
   goingCount: 2,
   hostName: 'Host Name',

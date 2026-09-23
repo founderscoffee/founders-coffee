@@ -11,6 +11,7 @@ import {
 } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
+import { eventCityName } from '../../features/events/event-city-name';
 import { localizedEvent } from '../../lib/locale-routing';
 import { AvatarGroup } from './AvatarGroup';
 import { HostFace } from './HostFace';
@@ -42,7 +43,7 @@ export const EventCard = ({
   const clock = { hour: '2-digit', minute: '2-digit' } as const;
   const timeRange =
     end == null ? at(clock) : `${at(clock)}\u2013${on(end, clock)}`;
-  const cityName = locale === 'ar' ? event.cityNameAr : event.cityName;
+  const cityName = eventCityName(event, locale);
   const isGoing = event.viewerRsvp === 'going';
   const hasHost = event.hostName != null && event.hostName.length > 0;
   const attendeeCount = event.goingCount ?? 0;

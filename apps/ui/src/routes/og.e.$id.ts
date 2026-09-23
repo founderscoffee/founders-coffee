@@ -58,7 +58,11 @@ const cardResponse = async (request: Request): Promise<Response> => {
           title: card.title,
           startsAt: new Date(card.startsAt),
           timezone: card.timezone,
-          city: { name: card.cityName, nameAr: card.cityNameAr },
+          city: {
+            name: card.cityName,
+            nameAr: card.cityNameAr,
+            nameFr: card.cityNameFr,
+          },
           hostName: card.hostName,
         }),
       ),

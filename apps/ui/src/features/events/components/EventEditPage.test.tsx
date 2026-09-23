@@ -66,6 +66,7 @@ const base = {
   viewerRsvp: 'going',
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   citySlug: 'algiers',
 } satisfies EventDetailItem;
 

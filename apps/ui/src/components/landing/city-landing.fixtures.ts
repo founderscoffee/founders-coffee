@@ -67,6 +67,7 @@ export const meetup = (
   cancellationReason: null,
   cityName: 'Oran',
   cityNameAr: 'وهران',
+  cityNameFr: 'Oran',
   citySlug: 'oran',
   goingCount: 2,
   hostName: 'Host Name',

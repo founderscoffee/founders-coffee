@@ -61,6 +61,7 @@ const hostedEvent = {
   cityCode: '556',
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   venue: 'Café des Délices',
   startsAt: new Date('2099-04-01T18:00:00Z'),
   endsAt: new Date('2099-04-01T19:00:00Z'),

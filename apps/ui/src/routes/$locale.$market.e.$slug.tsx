@@ -13,6 +13,7 @@ import type { Market } from '@founders-coffee/db';
 
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
+import { eventCityName } from '../features/events/event-city-name';
 import { isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
@@ -94,10 +95,7 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
   },
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [], links: [] };
-    const cityName =
-      loaderData.locale === 'ar'
-        ? loaderData.event.cityNameAr
-        : loaderData.event.cityName;
+    const cityName = eventCityName(loaderData.event, loaderData.locale);
     const eventUrl = canonicalUrl({
       type: 'event',
       market: loaderData.market.slug,

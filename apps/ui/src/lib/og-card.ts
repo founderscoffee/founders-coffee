@@ -212,7 +212,11 @@ type CardFacts = {
   readonly title: string;
   readonly startsAt: Date;
   readonly timezone: string;
-  readonly city: { readonly name: string; readonly nameAr: string | null };
+  readonly city: {
+    readonly name: string;
+    readonly nameAr: string | null;
+    readonly nameFr: string | null;
+  };
   readonly hostName: string;
 };
 
@@ -238,10 +242,7 @@ export const eventCardText = ({
     });
   const day = on({ weekday: 'long', day: 'numeric', month: 'long' });
   const clock = on({ hour: '2-digit', minute: '2-digit' });
-  const place = localizedName(
-    { name: city.name, nameAr: city.nameAr, nameFr: null },
-    locale,
-  );
+  const place = localizedName(city, locale);
   return {
     locale,
     title,

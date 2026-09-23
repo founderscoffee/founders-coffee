@@ -23,7 +23,7 @@ const eventWith = async (
 };
 
 describe('readEventCard', () => {
-  it('draws a published meetup, with its city named both ways', async () => {
+  it('draws a published meetup, with its city named in every language', async () => {
     const db = await setupDb();
     const card = await readEventCard(db, await eventWith(db, 'published'));
     expect(card).toMatchObject({
@@ -32,6 +32,7 @@ describe('readEventCard', () => {
       timezone: 'Africa/Algiers',
       cityName: 'Algiers',
       cityNameAr: 'الجزائر العاصمة',
+      cityNameFr: 'Alger',
     });
   });
 
