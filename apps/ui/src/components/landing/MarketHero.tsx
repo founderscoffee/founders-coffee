@@ -81,7 +81,7 @@ export const MarketHero = ({
   return (
     <section
       aria-labelledby="market-hero-title"
-      className="relative isolate flex min-h-[calc(min(100vw,2172px)/2.99)] items-center bg-base-200"
+      className="relative isolate z-20 flex min-h-[calc(min(100vw,2172px)/2.99)] items-center bg-base-200"
     >
       <div className="hero-stack @container mx-auto flex w-full max-w-content flex-col items-center px-4 pt-10 pb-9 text-center md:px-8 md:pt-14 md:pb-14">
         <h1
