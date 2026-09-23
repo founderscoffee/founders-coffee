@@ -13,6 +13,8 @@ export interface DoEnv {
   DB: D1Db;
 }
 
+export type RefusalReason = 'no_session' | 'not_allowed' | 'db_error';
+
 export type VerifyResult =
   | {
       ok: true;
@@ -21,7 +23,7 @@ export type VerifyResult =
       isHost: boolean;
       sessionToken: string;
     }
-  | { ok: false; reason: 'no_session' | 'not_allowed' | 'db_error' };
+  | { ok: false; reason: RefusalReason };
 
 const decodeCookieValue = (value: string): string => {
   try {
@@ -117,7 +119,7 @@ export const verifyEventSessionFromCookie = async (
  * the socket stays open and the client is free to retry rather than being told a verdict.
  */
 export const refusalFor = (
-  reason: 'no_session' | 'not_allowed' | 'db_error',
+  reason: RefusalReason,
 ): {
   message: OutboundMessage;
   close: { code: number; reason: string } | null;

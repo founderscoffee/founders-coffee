@@ -7,10 +7,12 @@ import {
   HEARTBEAT_TIMEOUT_MS,
 } from './event-live/constants.js';
 import { clientMessage, type ClientMessage } from './event-live/protocol.js';
-import { revalidateConnection } from './event-live/revalidate.js';
+import {
+  refuseConnection,
+  revalidateConnection,
+} from './event-live/revalidate.js';
 import { EventRoster } from './event-live/roster.js';
 import {
-  refusalFor,
   verifyEventSession,
   verifyEventSessionFromCookie,
   type DoEnv,
@@ -19,6 +21,8 @@ import {
 
 const EVENT_ID_KEY = 'eventId';
 const INTERNAL_CANCEL_HEADER = 'x-event-live-internal';
+
+type VerifiedSession = Extract<VerifyResult, { ok: true }>;
 
 export class EventLiveDO extends DurableObject<DoEnv> {
   private connections = new EventConnections();
@@ -127,7 +131,6 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
     this.ctx.acceptWebSocket(serverWs);
     this.connections.register(serverWs, Date.now());
-    await this.armHeartbeat();
 
     await this.authenticateConnection(serverWs, request);
 
@@ -149,33 +152,37 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
   /**
    * Shared outcome of both authentication routes (cookie on upgrade, `auth` frame).
+   *
+   * The alarm is armed once the outcome is known. A refused socket has left the room by then
+   * (#84), so a room that turned away its only visitor keeps no alarm.
    */
   private applyVerifiedSession = async (
     serverWs: WebSocket,
     result: VerifyResult,
   ): Promise<void> => {
-    if (!result.ok) {
-      const refusal = refusalFor(result.reason);
-      this.connections.send(serverWs, refusal.message);
-      if (refusal.close)
-        serverWs.close(refusal.close.code, refusal.close.reason);
-      return;
-    }
+    if (result.ok) await this.admit(serverWs, result);
+    else refuseConnection(this.connections, serverWs, result.reason);
+    await this.armHeartbeat();
+  };
 
+  private admit = async (
+    serverWs: WebSocket,
+    session: VerifiedSession,
+  ): Promise<void> => {
     const attached = this.connections.authenticate(
       serverWs,
       {
-        userId: result.userId,
-        userName: result.userName,
-        isHost: result.isHost,
-        sessionToken: result.sessionToken,
+        userId: session.userId,
+        userName: session.userName,
+        isHost: session.isHost,
+        sessionToken: session.sessionToken,
       },
       Date.now(),
     );
     if (!attached) return;
 
-    if (result.isHost) await this.roster.claimHost(result.userId);
-    await this.roster.admitAttendee(result.userId, result.userName);
+    if (session.isHost) await this.roster.claimHost(session.userId);
+    await this.roster.admitAttendee(session.userId, session.userName);
 
     this.connections.send(serverWs, {
       type: 'auth_ok',

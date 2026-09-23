@@ -1,5 +1,27 @@
 import type { EventConnections } from './connections.js';
-import { verifyEventSession, type D1Db } from './session.js';
+import {
+  refusalFor,
+  verifyEventSession,
+  type D1Db,
+  type RefusalReason,
+} from './session.js';
+
+/**
+ * Tell the browser why its connection is refused, then close it if `refusalFor` says to.
+ *
+ * Closing goes through `EventConnections.close`, which forgets the socket before closing it. A
+ * refusal that closed the socket directly left it in the room's map (#84).
+ */
+export const refuseConnection = (
+  connections: EventConnections,
+  ws: WebSocket,
+  reason: RefusalReason,
+): void => {
+  const refusal = refusalFor(reason);
+  connections.send(ws, refusal.message);
+  if (refusal.close)
+    connections.close(ws, refusal.close.code, refusal.close.reason);
+};
 
 export const revalidateConnection = async (args: {
   db: D1Db;

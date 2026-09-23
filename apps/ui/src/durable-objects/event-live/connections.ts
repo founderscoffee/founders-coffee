@@ -26,9 +26,17 @@ export class EventConnections {
     ws.serializeAttachment(connection);
   };
 
+  /**
+   * Rebuild the map from the sockets the runtime still holds, as the object wakes.
+   *
+   * Only open sockets come back. One the room has closed stays `CLOSING` for as long as its client
+   * never answers the close, and the runtime keeps handing it over (#84). Readmitted, it would keep
+   * the alarm armed in a room nobody is in.
+   */
   restore = (sockets: readonly WebSocket[]): void => {
     this.sockets.clear();
     for (const ws of sockets) {
+      if (ws.readyState !== WebSocket.OPEN) continue;
       const parsed = connectionAttachment.safeParse(ws.deserializeAttachment());
       if (parsed.success) this.sockets.set(ws, parsed.data);
     }

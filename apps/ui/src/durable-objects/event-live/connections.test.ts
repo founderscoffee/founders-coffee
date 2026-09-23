@@ -4,15 +4,20 @@ import type { ConnectionInfo } from './protocol.js';
 import { EventConnections } from './connections.js';
 
 type SocketMock = {
+  readyState: number;
   serializeAttachment: (value: unknown) => void;
   deserializeAttachment: () => unknown;
   send: (value: string) => void;
   close: (code?: number, reason?: string) => void;
 };
 
-const socket = (attachment: unknown = null): WebSocket => {
+const socket = (
+  attachment: unknown = null,
+  readyState: number = WebSocket.OPEN,
+): WebSocket => {
   let stored = attachment;
   const mock: SocketMock = {
+    readyState,
     serializeAttachment: (value) => {
       stored = value;
     },
@@ -62,5 +67,19 @@ describe('EventConnections', () => {
       authenticated: true,
       lastSeenAt: 20,
     });
+  });
+
+  it('does not readmit a socket that is no longer open', () => {
+    const open = socket();
+    const closing = socket(null, WebSocket.CLOSING);
+    const first = new EventConnections();
+    first.register(open, 10);
+    first.register(closing, 10);
+
+    const restored = new EventConnections();
+    restored.restore([open, closing]);
+
+    expect(restored.size()).toBe(1);
+    expect(restored.get(closing)).toBeUndefined();
   });
 });
