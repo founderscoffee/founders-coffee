@@ -36,6 +36,15 @@ afterEach(() => {
 });
 
 describe('ShareDialog', () => {
+  it('is named by its own heading', () => {
+    show();
+
+    expect(
+      screen.getByRole('dialog', { name: 'مشاركة' }),
+      'a screen reader announced an unnamed dialog here; the heading was only ever inside it, never attached to it',
+    ).toBeTruthy();
+  });
+
   it('opens as a modal dialog rather than pushing the page around', () => {
     show();
     const dialog = document.querySelector('dialog');

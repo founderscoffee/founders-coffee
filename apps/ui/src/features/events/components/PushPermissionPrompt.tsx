@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 
 import {
   push_prompt_accept,
@@ -38,6 +38,7 @@ export const PushPermissionPrompt = ({
   onDecline,
 }: PushPermissionPromptProps) => {
   const [visible, setVisible] = useState(false);
+  const titleId = useId();
 
   useEffect(() => {
     if (wasDismissed()) return;
@@ -64,9 +65,9 @@ export const PushPermissionPrompt = ({
   if (!visible) return null;
 
   return (
-    <dialog className="modal modal-open">
+    <dialog className="modal modal-open" aria-labelledby={titleId}>
       <div className="modal-box max-w-sm rounded-box border border-base-300 bg-base-100">
-        <h2 className="font-display text-h4 font-semibold">
+        <h2 id={titleId} className="font-display text-h4 font-semibold">
           {push_prompt_title({}, { locale })}
         </h2>
         <p className="py-4 text-body-sm leading-relaxed text-neutral">

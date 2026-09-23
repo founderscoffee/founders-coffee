@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import { useLocation } from '@tanstack/react-router';
 
@@ -48,6 +48,7 @@ const isProfileRoute = (pathname: string) => {
 export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
   const pathname = useLocation({ select: (location) => location.pathname });
   const [isOpen, setIsOpen] = useState(false);
+  const titleId = useId();
 
   if (!isProfileRoute(pathname)) return null;
 
@@ -65,6 +66,7 @@ export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
       {isOpen ? (
         <dialog
           open
+          aria-labelledby={titleId}
           className="fixed inset-0 z-[60] m-0 h-full w-full max-w-none bg-transparent p-0 lg:hidden"
           onKeyDown={(event) => {
             if (event.key === 'Escape') setIsOpen(false);
@@ -76,12 +78,12 @@ export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
             aria-label={profile_menu_close({}, { locale })}
             onClick={() => setIsOpen(false)}
           />
-          <aside
-            className="absolute inset-y-0 end-0 flex w-[min(20rem,85vw)] flex-col bg-base-100 p-5 shadow-[var(--shadow-2)]"
-            aria-label={account_sections({}, { locale })}
-          >
+          <aside className="absolute inset-y-0 end-0 flex w-[min(20rem,85vw)] flex-col bg-base-100 p-5 shadow-[var(--shadow-2)]">
             <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-body font-semibold text-base-content">
+              <h2
+                id={titleId}
+                className="text-body font-semibold text-base-content"
+              >
                 {account_sections({}, { locale })}
               </h2>
               <button

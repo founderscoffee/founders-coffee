@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const state = { pathname: '/' };
@@ -43,4 +43,17 @@ describe('where the profile drawer offers itself', () => {
       expect(at(pathname)).toBeNull();
     },
   );
+});
+
+describe('how the drawer announces itself once it is open', () => {
+  it('is named by its own heading', () => {
+    const opener = at('/ar/profile');
+    expect(opener).not.toBeNull();
+    fireEvent.click(opener as HTMLElement);
+
+    expect(
+      screen.getByRole('dialog', { name: 'أقسام الملف' }),
+      'the drawer opens over the page and takes the reader out of it, so a screen reader announcing only "dialog" leaves them with no idea where they now are',
+    ).toBeTruthy();
+  });
 });

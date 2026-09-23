@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 
 import {
   contact_cancel,
@@ -52,6 +52,7 @@ export const ContactDialog = ({
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const titleId = useId();
 
   const sendEmailCode = useSendEmailChangeCode();
   const requestEmail = useRequestEmailChange();
@@ -123,13 +124,15 @@ export const ContactDialog = ({
       : contact_phone_title({}, { locale });
 
   return (
-    <dialog open className="modal modal-open" aria-label={title}>
+    <dialog open className="modal modal-open" aria-labelledby={titleId}>
       <form
         method="dialog"
         className="modal-box"
         onSubmit={(event) => void submit(event)}
       >
-        <h3 className="font-display text-h4">{title}</h3>
+        <h3 id={titleId} className="font-display text-h4">
+          {title}
+        </h3>
         <p className="mt-2 text-body-sm text-neutral">
           {prompt({}, { locale })}
         </p>
