@@ -629,6 +629,7 @@
   "error_contact_change_failed": "تعذّر إتمام هذا التغيير.",
   "devices_this_one": "هذا الجهاز",
   "devices_unknown": "جهاز غير معروف",
+  "device_on": "{browser} على {platform}",
   "devices_sign_out": "تسجيل الخروج",
   "devices_sign_out_others": "تسجيل الخروج من كل الأجهزة الأخرى",
   "devices_note": "تسجيل الخروج من جهاز يوقف إشعاراته أيضًا.",

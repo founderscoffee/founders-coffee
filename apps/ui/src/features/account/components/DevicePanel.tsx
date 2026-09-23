@@ -6,7 +6,6 @@ import {
   devices_sign_out,
   devices_sign_out_others,
   devices_this_one,
-  devices_unknown,
   providers_disconnect,
   providers_keep_one,
   type Locale,
@@ -14,6 +13,7 @@ import {
 import { Button } from '@founders-coffee/ui';
 
 import { contactErrorMessage } from '../contact-errors';
+import { describeDevice } from '../device-name';
 import { useMyDevices, useRevokeDevice, useUnlinkProvider } from '../hooks';
 import { AccountRow } from './AccountRow';
 import { ProviderIdentity } from './ProviderIdentity';
@@ -63,7 +63,7 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
       {devices.data.sessions.map((row) => (
         <AccountRow
           key={row.id}
-          label={row.userAgent ?? devices_unknown({}, { locale })}
+          label={describeDevice(row.userAgent, locale)}
           note={row.isCurrent ? devices_this_one({}, { locale }) : undefined}
           status={
             row.isCurrent ? undefined : (

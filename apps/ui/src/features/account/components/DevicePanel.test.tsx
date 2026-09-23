@@ -140,3 +140,46 @@ describe('the devices panel', () => {
     );
   });
 });
+
+const CHROME_ON_MAC =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36';
+
+describe('how a registered device is described', () => {
+  it('names the browser and the machine, not the string the browser sends', () => {
+    show(
+      devices({
+        sessions: [
+          {
+            id: 'ses_1',
+            isCurrent: true,
+            userAgent: CHROME_ON_MAC,
+            startedAt: 1,
+          },
+        ],
+      }),
+    );
+
+    expect(
+      screen.queryByText(CHROME_ON_MAC),
+      'this is the page someone opens to decide whether to sign something out, and it answered with the string a browser sends to a server',
+    ).toBeNull();
+    expect(screen.getByText('Chrome on macOS')).toBeTruthy();
+  });
+
+  it('still says something about a device it cannot place', () => {
+    show(
+      devices({
+        sessions: [
+          {
+            id: 'ses_1',
+            isCurrent: true,
+            userAgent: 'curl/8.4.0',
+            startedAt: 1,
+          },
+        ],
+      }),
+    );
+
+    expect(screen.getByText('Unrecognised device')).toBeTruthy();
+  });
+});

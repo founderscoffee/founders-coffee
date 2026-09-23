@@ -600,6 +600,7 @@
   "error_contact_change_failed": "Cette modification n'a pas pu aboutir.",
   "devices_this_one": "Cet appareil",
   "devices_unknown": "Appareil non identifié",
+  "device_on": "{browser} sur {platform}",
   "devices_sign_out": "Déconnecter",
   "devices_sign_out_others": "Déconnecter tous les autres appareils",
   "devices_note": "Déconnecter un appareil arrête aussi ses notifications.",

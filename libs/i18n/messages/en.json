@@ -582,6 +582,7 @@
   "error_contact_change_failed": "That change could not be completed.",
   "devices_this_one": "This device",
   "devices_unknown": "Unrecognised device",
+  "device_on": "{browser} on {platform}",
   "devices_sign_out": "Sign out",
   "devices_sign_out_others": "Sign out every other device",
   "devices_note": "Signing a device out also stops its notifications.",
