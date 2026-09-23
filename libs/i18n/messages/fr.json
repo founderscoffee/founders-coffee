@@ -370,7 +370,7 @@
       }
     }
   ],
-  "no_filter_match": "Rien ne correspond à ces filtres cette semaine.",
+  "no_filter_match": "Rien ne correspond à ces filtres.",
   "login_help": "Nous enverrons un code à 6 chiffres.",
   "rsvp_help": "Vous recevrez une confirmation et un rappel la veille. Vous pouvez annuler à tout moment.",
   "rsvp_confirmed_help": "Confirmation envoyée. Nous vous rappellerons la veille.",

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -10,8 +10,11 @@ import {
   city_empty_title,
   city_events_description,
   city_upcoming_title,
+  clear_city_filters,
+  filter_today,
   host_meetup_here,
   LOCALES,
+  no_filter_match,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
@@ -166,4 +169,41 @@ describe('city page', () => {
       }),
     ).toHaveLength(1);
   });
+
+  it.each<Locale>(LOCALES)(
+    'says nothing matches when the chips leave no meetup, until they are cleared, in %s',
+    (locale) => {
+      const meetups = {
+        name: city_upcoming_title({ city: oranByLocale[locale] }, { locale }),
+      };
+      const nothingMatches = {
+        level: 2,
+        name: no_filter_match({}, { locale }),
+      };
+      render(
+        <CityLanding
+          locale={locale}
+          market={market}
+          city={oran}
+          events={[event]}
+        />,
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', { name: filter_today({}, { locale }) }),
+      );
+
+      expect(screen.queryByRole('list', meetups)).toBeNull();
+      expect(screen.getByRole('heading', nothingMatches)).toBeTruthy();
+
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: clear_city_filters({}, { locale }),
+        }),
+      );
+
+      expect(screen.getByRole('list', meetups)).toBeTruthy();
+      expect(screen.queryByRole('heading', nothingMatches)).toBeNull();
+    },
+  );
 });

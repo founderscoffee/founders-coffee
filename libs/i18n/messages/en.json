@@ -361,7 +361,7 @@
       }
     }
   ],
-  "no_filter_match": "Nothing matches these filters this week.",
+  "no_filter_match": "Nothing matches these filters.",
   "login_help": "We’ll send a 6-digit code.",
   "rsvp_help": "You’ll get a confirmation and a reminder the day before. You can cancel any time.",
   "rsvp_confirmed_help": "Confirmation sent. We’ll remind you the day before.",
