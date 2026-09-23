@@ -1,3 +1,4 @@
+import { createDb, seed } from '@founders-coffee/db';
 import { env } from 'cloudflare:test';
 
 const WAIT_MS = 5_000;
@@ -9,6 +10,13 @@ export type LiveClient = {
   readonly frames: readonly string[];
   readonly waitFor: (match: (frame: string) => boolean) => Promise<string>;
   readonly waitForClose: () => Promise<Closure>;
+};
+
+export type LiveRoom = {
+  readonly eventId: string;
+  readonly guestId: string;
+  readonly hostToken: string;
+  readonly guestToken: string;
 };
 
 /** The object holding one event's live room, addressed the way `server.ts` addresses it. */
@@ -25,6 +33,57 @@ export const ofType =
       return false;
     }
   };
+
+/**
+ * Seed a published meetup with its host and one member going, each signed in for another hour.
+ *
+ * Every run gets its own identifiers, so the rooms of two tests never meet in the same object.
+ */
+export const seedLiveRoom = async (): Promise<LiveRoom> => {
+  await seed(createDb(env.DB));
+  const run = crypto.randomUUID();
+  const hostId = `usr_live_host_${run}`;
+  const guestId = `usr_live_guest_${run}`;
+  const room = {
+    eventId: `evt_live_${run}`,
+    guestId,
+    hostToken: `tok_host_${run}`,
+    guestToken: `tok_guest_${run}`,
+  };
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.batch([
+    env.DB.prepare(
+      'INSERT INTO user (id, name, email) VALUES (?, ?, ?), (?, ?, ?)',
+    ).bind(
+      hostId,
+      'Host',
+      `${hostId}@example.com`,
+      guestId,
+      'Guest',
+      `${guestId}@example.com`,
+    ),
+    env.DB.prepare(
+      'INSERT INTO session (id, user_id, token, expires_at) VALUES (?, ?, ?, ?), (?, ?, ?, ?)',
+    ).bind(
+      `ses_host_${run}`,
+      hostId,
+      room.hostToken,
+      now + 3600,
+      `ses_guest_${run}`,
+      guestId,
+      room.guestToken,
+      now + 3600,
+    ),
+    env.DB.prepare(
+      `INSERT INTO events (id, host_id, market_code, state_code, city_code, title, description, venue, starts_at, language, slug)
+       VALUES (?, ?, 'DZ', '16', '556', 'Live room', 'Live room', 'Café', ?, 'ar', ?)`,
+    ).bind(room.eventId, hostId, now, `live-${run}`),
+    env.DB.prepare(
+      "INSERT INTO event_rsvps (id, event_id, user_id, status) VALUES (?, ?, ?, 'going')",
+    ).bind(`rsvp_${run}`, room.eventId, guestId),
+  ]);
+  return room;
+};
 
 /**
  * Open a socket to an event's live room the way the browser does: an upgrade carrying the signed

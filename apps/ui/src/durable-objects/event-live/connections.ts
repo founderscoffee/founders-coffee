@@ -7,11 +7,18 @@ const connectionAttachment = z.object({
   isHost: z.boolean(),
   authenticated: z.boolean(),
   sessionToken: z.string(),
-  lastSeenAt: z.number(),
+  registeredAt: z.number(),
 });
+
+type HeartbeatClock = (ws: WebSocket) => Date | null;
 
 export class EventConnections {
   private sockets = new Map<WebSocket, ConnectionInfo>();
+  private lastHeartbeatAt: HeartbeatClock;
+
+  constructor(lastHeartbeatAt: HeartbeatClock) {
+    this.lastHeartbeatAt = lastHeartbeatAt;
+  }
 
   register = (ws: WebSocket, now: number): void => {
     const connection = {
@@ -20,7 +27,7 @@ export class EventConnections {
       isHost: false,
       authenticated: false,
       sessionToken: '',
-      lastSeenAt: now,
+      registeredAt: now,
     };
     this.sockets.set(ws, connection);
     ws.serializeAttachment(connection);
@@ -58,34 +65,42 @@ export class EventConnections {
       isHost: boolean;
       sessionToken: string;
     },
-    now: number,
   ): boolean => {
     const existing = this.sockets.get(ws);
     if (!existing) return false;
-    const connection = {
-      ...existing,
-      ...identity,
-      authenticated: true,
-      lastSeenAt: now,
-    };
+    const connection = { ...existing, ...identity, authenticated: true };
     this.sockets.set(ws, connection);
     ws.serializeAttachment(connection);
     return true;
   };
 
-  touch = (ws: WebSocket, now: number): boolean => {
-    const existing = this.sockets.get(ws);
-    if (!existing) return false;
-    const connection = { ...existing, lastSeenAt: now };
-    this.sockets.set(ws, connection);
-    ws.serializeAttachment(connection);
-    return true;
-  };
+  /**
+   * When a socket last showed it was alive: the runtime's stamp on its latest heartbeat or, until
+   * it has sent one, the moment it was registered.
+   *
+   * The runtime answers a heartbeat without waking the object and stamps the time itself (#85), so
+   * a heartbeat costs neither a wake nor a write. A socket carries no stamp until its first
+   * heartbeat, and one whose client vanished first never will. Its registration is what lets a new
+   * socket live until that heartbeat is due, and a silent one age out after it.
+   */
+  private lastSeenAt = (ws: WebSocket, connection: ConnectionInfo): number =>
+    this.lastHeartbeatAt(ws)?.getTime() ?? connection.registeredAt;
 
   stale = (now: number, timeoutMs: number): readonly WebSocket[] =>
     [...this.sockets.entries()]
-      .filter(([, connection]) => now - connection.lastSeenAt >= timeoutMs)
+      .filter(
+        ([ws, connection]) =>
+          now - this.lastSeenAt(ws, connection) >= timeoutMs,
+      )
       .map(([ws]) => ws);
+
+  /** The earliest moment a socket in the room goes stale, or `null` when the room is empty. */
+  nextDeadline = (timeoutMs: number): number | null => {
+    const deadlines = [...this.sockets.entries()].map(
+      ([ws, connection]) => this.lastSeenAt(ws, connection) + timeoutMs,
+    );
+    return deadlines.length === 0 ? null : Math.min(...deadlines);
+  };
 
   drop = (ws: WebSocket): ConnectionInfo | undefined => {
     const existing = this.sockets.get(ws);

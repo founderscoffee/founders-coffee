@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { HEARTBEAT_INTERVAL_MS } from '../../durable-objects/event-live/constants';
+import {
+  HEARTBEAT_FRAME,
+  HEARTBEAT_INTERVAL_MS,
+} from '../../durable-objects/event-live/constants';
 
 export interface RosterUser {
   userId: string;
@@ -36,13 +39,7 @@ export interface UseEventLiveResult {
 }
 
 interface OutboundMsg {
-  type:
-    | 'auth'
-    | 'arrived'
-    | 'walking_in'
-    | 'running_late'
-    | 'table_pin'
-    | 'heartbeat';
+  type: 'auth' | 'arrived' | 'walking_in' | 'running_late' | 'table_pin';
   sessionToken?: string;
   tableNumber?: number;
   visualCue?: string;
@@ -69,6 +66,10 @@ const INITIAL_RECONNECT_DELAY = 1_000;
  * built here would arrive in English whatever their locale. Server `error` frames collapse to
  * `unknown` on purpose — their text is written by the Durable Object, not translated, and is
  * diagnostic rather than something to show.
+ *
+ * The heartbeat is sent as `HEARTBEAT_FRAME`, the exact text the Durable Object's runtime answers
+ * on the room's behalf, so keeping a socket alive never wakes the room or costs a query (#85). Its
+ * acknowledgement is JSON of a type nothing here handles, so it passes through unremarked.
  */
 export const useEventLive = (
   eventId: string,
@@ -88,12 +89,17 @@ export const useEventLive = (
   const mountedRef = useRef(true);
   const intentionalCloseRef = useRef(false);
 
-  const send = useCallback((msg: OutboundMsg) => {
+  const sendFrame = useCallback((frame: string) => {
     const ws = wsRef.current;
     if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(msg));
+      ws.send(frame);
     }
   }, []);
+
+  const send = useCallback(
+    (msg: OutboundMsg) => sendFrame(JSON.stringify(msg)),
+    [sendFrame],
+  );
 
   const connect = useCallback(() => {
     if (!eventId || !isEnabled) return;
@@ -209,11 +215,11 @@ export const useEventLive = (
   useEffect(() => {
     if (!isEnabled) return;
     const interval = window.setInterval(
-      () => send({ type: 'heartbeat' }),
+      () => sendFrame(HEARTBEAT_FRAME),
       HEARTBEAT_INTERVAL_MS,
     );
     return () => window.clearInterval(interval);
-  }, [isEnabled, send]);
+  }, [isEnabled, sendFrame]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);

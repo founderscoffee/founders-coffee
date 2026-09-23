@@ -11,11 +11,8 @@ type SocketMock = {
   close: (code?: number, reason?: string) => void;
 };
 
-const socket = (
-  attachment: unknown = null,
-  readyState: number = WebSocket.OPEN,
-): WebSocket => {
-  let stored = attachment;
+const socket = (readyState: number = WebSocket.OPEN): WebSocket => {
+  let stored: unknown = null;
   const mock: SocketMock = {
     readyState,
     serializeAttachment: (value) => {
@@ -35,51 +32,84 @@ const identity = {
   sessionToken: 'session-1',
 };
 
+const noHeartbeatYet = (): Date | null => null;
+
 describe('EventConnections', () => {
-  it('persists authenticated identity and last-seen time on the socket', () => {
+  it('persists the authenticated identity and the registration time on the socket', () => {
     const ws = socket();
-    const connections = new EventConnections();
+    const connections = new EventConnections(noHeartbeatYet);
 
     connections.register(ws, 10);
-    expect(connections.authenticate(ws, identity, 20)).toBe(true);
-    connections.touch(ws, 30);
+    expect(connections.authenticate(ws, identity)).toBe(true);
 
     expect(connections.get(ws)).toMatchObject({
       ...identity,
       authenticated: true,
-      lastSeenAt: 30,
+      registeredAt: 10,
     });
-    expect(connections.stale(69, 40)).toEqual([]);
-    expect(connections.stale(70, 40)).toEqual([ws]);
   });
 
   it('rehydrates attachments after a Durable Object restart', () => {
     const ws = socket();
-    const first = new EventConnections();
+    const first = new EventConnections(noHeartbeatYet);
     first.register(ws, 10);
-    first.authenticate(ws, identity, 20);
+    first.authenticate(ws, identity);
 
-    const restored = new EventConnections();
+    const restored = new EventConnections(noHeartbeatYet);
     restored.restore([ws]);
 
     expect(restored.get(ws)).toMatchObject<Partial<ConnectionInfo>>({
       ...identity,
       authenticated: true,
-      lastSeenAt: 20,
+      registeredAt: 10,
     });
   });
 
   it('does not readmit a socket that is no longer open', () => {
     const open = socket();
-    const closing = socket(null, WebSocket.CLOSING);
-    const first = new EventConnections();
+    const closing = socket(WebSocket.CLOSING);
+    const first = new EventConnections(noHeartbeatYet);
     first.register(open, 10);
     first.register(closing, 10);
 
-    const restored = new EventConnections();
+    const restored = new EventConnections(noHeartbeatYet);
     restored.restore([open, closing]);
 
     expect(restored.size()).toBe(1);
     expect(restored.get(closing)).toBeUndefined();
+  });
+});
+
+describe('when a socket goes stale', () => {
+  it('ages a socket that has not sent a heartbeat yet from when it was registered', () => {
+    const ws = socket();
+    const connections = new EventConnections(noHeartbeatYet);
+    connections.register(ws, 10);
+
+    expect(connections.stale(49, 40)).toEqual([]);
+    expect(connections.stale(50, 40)).toEqual([ws]);
+  });
+
+  it('ages a socket from its latest heartbeat, which the runtime stamps', () => {
+    const ws = socket();
+    const connections = new EventConnections(() => new Date(30));
+    connections.register(ws, 10);
+
+    expect(connections.stale(69, 40)).toEqual([]);
+    expect(connections.stale(70, 40)).toEqual([ws]);
+  });
+
+  it('names the earliest deadline in the room, and none for an empty room', () => {
+    const beating = socket();
+    const quiet = socket();
+    const connections = new EventConnections((ws) =>
+      ws === beating ? new Date(30) : null,
+    );
+    expect(connections.nextDeadline(40)).toBeNull();
+
+    connections.register(beating, 20);
+    connections.register(quiet, 25);
+
+    expect(connections.nextDeadline(40)).toBe(65);
   });
 });

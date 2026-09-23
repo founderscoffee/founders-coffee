@@ -10,6 +10,7 @@ const dbFor = (row: Record<string, unknown> | null) => {
   const statement = {
     bind: () => statement,
     first: async <T>() => row as T | null,
+    all: async <T>() => ({ results: (row ? [row] : []) as T[] }),
   };
   return { prepare: () => statement };
 };

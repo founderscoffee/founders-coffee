@@ -1,6 +1,11 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  HEARTBEAT_ACK_FRAME,
+  HEARTBEAT_FRAME,
+  HEARTBEAT_INTERVAL_MS,
+} from '../../durable-objects/event-live/constants';
 import { useEventLive } from './useEventLive';
 
 const sockets: FakeSocket[] = [];
@@ -18,7 +23,11 @@ class FakeSocket {
     sockets.push(this);
   }
 
-  send = () => undefined;
+  sent: string[] = [];
+
+  send = (data: string) => {
+    this.sent.push(data);
+  };
 
   close = (code?: number, reason?: string) => {
     this.closedWith = { code: code ?? 1000, reason: reason ?? '' };
@@ -39,7 +48,10 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
 
 describe('what the room tells a member who has not joined', () => {
   it('reports the fact without calling it an error', () => {
@@ -83,5 +95,28 @@ describe('what the room tells a member who has not joined', () => {
     rerender({ enabled: true });
 
     expect(result.current.notAttending).toBe(false);
+  });
+});
+
+describe('the heartbeat the room keeps a socket alive by', () => {
+  it('is the exact frame the runtime answers, so the room never wakes for it', () => {
+    vi.useFakeTimers();
+    renderHook(() => useEventLive('evt_1'));
+
+    act(() => {
+      vi.advanceTimersByTime(HEARTBEAT_INTERVAL_MS);
+    });
+
+    expect(sockets.at(-1)?.sent).toEqual([HEARTBEAT_FRAME]);
+  });
+
+  it('takes the acknowledgement as nothing to report', () => {
+    const { result } = renderHook(() => useEventLive('evt_1'));
+
+    act(() => {
+      sockets.at(-1)?.onmessage?.({ data: HEARTBEAT_ACK_FRAME });
+    });
+
+    expect(result.current.error).toBeNull();
   });
 });
