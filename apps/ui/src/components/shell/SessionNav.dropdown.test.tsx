@@ -33,12 +33,20 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
     to,
+    params,
     ...rest
   }: {
     children: React.ReactNode;
     to: string;
+    params?: Record<string, string>;
   }) => (
-    <a href={to} {...rest}>
+    <a
+      href={Object.entries(params ?? {}).reduce(
+        (path, [name, value]) => path.replace(`$${name}`, value),
+        to,
+      )}
+      {...rest}
+    >
       {children}
     </a>
   ),
@@ -80,7 +88,7 @@ describe('session dropdown', () => {
   it('offers only a sign-in link to a visitor', () => {
     render(<SessionNav locale="en" />);
 
-    expect(screen.getByRole('link').getAttribute('href')).toBe('/login');
+    expect(screen.getByRole('link').getAttribute('href')).toBe('/en/login');
     expect(screen.queryByText('Signed in as')).toBeNull();
   });
 
@@ -102,15 +110,18 @@ describe('session dropdown', () => {
     expect(document.documentElement.dataset.authSlot).toBe('out');
   });
 
-  it('does not offer sign-in to someone already on the sign-in page', () => {
-    state.pathname = '/login';
-    render(<SessionNav locale="en" />);
+  it.each(['/login', '/en/login', '/fr/login', '/ar/login'])(
+    'does not offer sign-in to someone already on %s',
+    (pathname) => {
+      state.pathname = pathname;
+      render(<SessionNav locale="en" />);
 
-    expect(
-      screen.queryByRole('link'),
-      'the header pointed at /login from /login, so the one visible affordance on the page a signed-out reader lands on was a link back to where they already were',
-    ).toBeNull();
-  });
+      expect(
+        screen.queryByRole('link'),
+        'the header pointed at the sign-in page from the sign-in page, so the one visible affordance on the page a signed-out reader lands on was a link back to where they already were',
+      ).toBeNull();
+    },
+  );
 
   it('leaves the filled treatment to hosting', () => {
     render(<SessionNav locale="en" />);

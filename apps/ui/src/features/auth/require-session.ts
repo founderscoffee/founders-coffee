@@ -1,5 +1,8 @@
 import { redirect } from '@tanstack/react-router';
 
+import type { Locale } from '@founders-coffee/i18n';
+
+import { localizedLogin } from '../../lib/locale-routing';
 import { safeAuthReturnPath } from '../../lib/redirect';
 import { authApi } from './api';
 
@@ -20,10 +23,13 @@ import { authApi } from './api';
  * The path is normalised on the way in rather than trusted to the login route's own parser, so a
  * caller cannot hand a visitor a redirect off this origin.
  */
-export const requireSession = async (returnPath: string): Promise<void> => {
+export const requireSession = async (
+  locale: Locale,
+  returnPath: string,
+): Promise<void> => {
   if (await authApi.hasAuthSession()) return;
   throw redirect({
-    to: '/login',
+    ...localizedLogin(locale),
     search: { redirect: safeAuthReturnPath(returnPath) },
   });
 };

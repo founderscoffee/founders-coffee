@@ -15,6 +15,7 @@ import {
 import { useMyProfile } from '../../features/profile/hooks';
 import { profilePhotoUrl } from '../../features/profile/photo-url';
 
+import { localizedLogin, withoutLocale } from '../../lib/locale-routing';
 import { useAuth } from '../../lib/app-providers';
 import {
   connectionLabel,
@@ -36,7 +37,7 @@ const initials = (name: string, email: string) => {
 
 const LoginLink = ({ locale }: { locale: Locale }) => (
   <Link
-    to="/login"
+    {...localizedLogin(locale)}
     className="btn btn-ghost h-9 min-h-9 w-full shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200"
   >
     {nav_login({}, { locale })}
@@ -74,7 +75,9 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
     );
 
   if (!isAuthenticated || !user)
-    return pathname === '/login' ? null : <LoginLink locale={locale} />;
+    return withoutLocale(pathname) === '/login' ? null : (
+      <LoginLink locale={locale} />
+    );
 
   const presenceLabel =
     presence === null

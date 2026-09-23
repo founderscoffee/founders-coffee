@@ -8,7 +8,8 @@ import { requireSession } from '../../features/auth/require-session';
 import { privatePageHead } from '../../lib/seo-private';
 
 export const Route = createFileRoute('/profile/account')({
-  beforeLoad: ({ location }) => requireSession(location.href),
+  beforeLoad: ({ location, context }) =>
+    requireSession(context.locale, location.href),
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,

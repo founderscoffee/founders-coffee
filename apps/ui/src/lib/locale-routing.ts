@@ -107,6 +107,37 @@ export const localizedEventEdit = (locale: Locale, eventId: string) => ({
 });
 
 /**
+ * The same path with a leading language segment taken off, if it has one.
+ *
+ * Two callers need it and they must agree: the guard that refuses to send a reader back to the
+ * sign-in page, and the header that hides the sign-in link while you are on it. A guard that only
+ * knew how to spell `/login` let a crafted `?redirect=/fr/login` walk straight past it.
+ */
+export const withoutLocale = (pathname: string): string => {
+  const [, first, ...rest] = pathname.split('/');
+  return isLocale(first) ? `/${rest.join('/')}` : pathname;
+};
+
+/**
+ * The sign-in page, addressed in the reader's language.
+ *
+ * Sign-in used to be `/login` and nothing else, so it rendered in whatever the cookie said. A
+ * French reader who arrived on a shared French link and clicked sign in was answered in Arabic:
+ * the prefix that had decided the page they came from had nothing to say about where they went
+ * next. Shared links are how most readers arrive, which made that the common path.
+ */
+export const localizedLogin = (locale: Locale) => ({
+  to: '/$market/login' as const,
+  params: { market: locale },
+});
+
+/** Profile completion after a fresh sign-in, on the same terms as {@link localizedLogin}. */
+export const localizedOnboarding = (locale: Locale) => ({
+  to: '/$market/onboarding' as const,
+  params: { market: locale },
+});
+
+/**
  * Home, addressed as the reader's own market rather than as `/`.
  *
  * `/` is a redirect stub. It resolves a market and answers 307, and on a client navigation that

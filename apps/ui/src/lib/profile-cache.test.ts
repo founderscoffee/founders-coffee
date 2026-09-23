@@ -37,6 +37,9 @@ describe('profile navigation privacy', () => {
   it.each([
     '/login?redirect=/login',
     '/onboarding/',
+    '/ar/login',
+    '/fr/login?redirect=/fr/login',
+    '/en/onboarding/',
     '/%6cogin',
     '/%zz',
     '//evil.test',
@@ -44,7 +47,9 @@ describe('profile navigation privacy', () => {
     'https://evil.test',
   ])('rejects unsafe or looping auth return %s', (path) => {
     expect(safeAuthReturnPath(path)).toBe('/');
-    expect(onboardingRedirectPath(path)).toBe('/onboarding?redirect=%2F');
+    expect(onboardingRedirectPath('ar', path)).toBe(
+      '/ar/onboarding?redirect=%2F',
+    );
   });
   it('sweeps only the private paths when the service worker activates', async () => {
     const deleted: string[] = [];
@@ -74,8 +79,8 @@ describe('profile navigation privacy', () => {
   it('preserves event and wizard return paths without submitting them', () => {
     const path = '/algeria/host/create?city=556#review';
     expect(safeAuthReturnPath(path)).toBe(path);
-    expect(onboardingRedirectPath(path)).toBe(
-      `/onboarding?redirect=${encodeURIComponent(path)}`,
+    expect(onboardingRedirectPath('ar', path)).toBe(
+      `/ar/onboarding?redirect=${encodeURIComponent(path)}`,
     );
   });
 });

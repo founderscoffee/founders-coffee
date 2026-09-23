@@ -68,11 +68,11 @@ const UNPREFIXED: Readonly<Record<string, Exemption>> = {
   },
 
   '/login': {
-    kind: 'unresolved',
-    why: '#58 — renders in the cookie language, so a French reader following a French link signs in in Arabic',
+    kind: 'redirect',
+    why: '#58 — the sign-in page is /{locale}/login; this address answers 307 to it',
   },
   '/onboarding': {
-    kind: 'unresolved',
+    kind: 'redirect',
     why: '#58 — same as /login, behind requireSession',
   },
   '/profile': { kind: 'unresolved', why: '#58' },

@@ -111,7 +111,7 @@ export const LoginPage = ({
       setError(login_wrong_code({}, { locale }));
       return;
     }
-    window.location.href = onboardingRedirectPath(redirect);
+    window.location.href = onboardingRedirectPath(locale, redirect);
   };
 
   const changeEmail = () => {
@@ -125,8 +125,8 @@ export const LoginPage = ({
   const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
     authClient.signIn.social({
       provider,
-      callbackURL: onboardingRedirectPath(redirect),
-      newUserCallbackURL: onboardingRedirectPath(redirect),
+      callbackURL: onboardingRedirectPath(locale, redirect),
+      newUserCallbackURL: onboardingRedirectPath(locale, redirect),
     });
 
   const submitStep = (event: FormEvent<HTMLFormElement>) => {

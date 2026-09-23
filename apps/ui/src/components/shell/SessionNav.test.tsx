@@ -36,12 +36,20 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
     to,
+    params,
     ...rest
   }: {
     children: React.ReactNode;
     to: string;
+    params?: Record<string, string>;
   }) => (
-    <a href={to} {...rest}>
+    <a
+      href={Object.entries(params ?? {}).reduce(
+        (path, [name, value]) => path.replace(`$${name}`, value),
+        to,
+      )}
+      {...rest}
+    >
       {children}
     </a>
   ),
@@ -134,7 +142,9 @@ describe('what the session menu offers', () => {
   it('offers nothing behind an avatar nobody is signed in to', () => {
     const { container } = render(<SessionNav locale="en" />);
 
-    expect(container.querySelector('a')?.getAttribute('href')).toBe('/login');
+    expect(container.querySelector('a')?.getAttribute('href')).toBe(
+      '/en/login',
+    );
     expect(container.querySelector('details')).toBeNull();
   });
 });
@@ -186,7 +196,10 @@ describe('session loading', () => {
       rerender(<SessionNav locale={locale} />);
 
       expect(screen.queryByRole('status')).toBeNull();
-      expect(screen.getByRole('link').getAttribute('href')).toBe('/login');
+      expect(
+        screen.getByRole('link').getAttribute('href'),
+        'the reader signs in in the language they were reading',
+      ).toBe(`/${locale}/login`);
     },
   );
 });

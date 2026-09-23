@@ -22,6 +22,7 @@ import { PushPermissionPrompt } from '../../features/events/components/PushPermi
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
 import { useAuth } from '../../lib/app-providers';
+import { localizedLogin } from '../../lib/locale-routing';
 import { AttendeeLiveActions } from './AttendeeLiveActions';
 import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
@@ -66,7 +67,7 @@ export const RsvpSection = ({
   const handleRsvp = () => {
     if (!isAuthenticated) {
       void navigate({
-        to: '/login',
+        ...localizedLogin(locale),
         search: { redirect: window.location.pathname },
       });
       return;
