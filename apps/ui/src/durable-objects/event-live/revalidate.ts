@@ -12,13 +12,18 @@ import {
  *
  * Closing goes through `EventConnections.close`, which forgets the socket before closing it. A
  * refusal that closed the socket directly left it in the room's map (#84).
+ *
+ * Whether the room has verified the socket is read from the room, not taken from the caller, so no
+ * route can hold a joining socket open with the refusal meant for one already in the room.
  */
 export const refuseConnection = (
   connections: EventConnections,
   ws: WebSocket,
   reason: RefusalReason,
 ): void => {
-  const refusal = refusalFor(reason);
+  const refusal = refusalFor(reason, {
+    isVerified: connections.get(ws)?.authenticated ?? false,
+  });
   connections.send(ws, refusal.message);
   if (refusal.close)
     connections.close(ws, refusal.close.code, refusal.close.reason);

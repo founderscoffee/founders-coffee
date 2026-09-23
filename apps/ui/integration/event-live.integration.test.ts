@@ -2,6 +2,7 @@ import { env, evictDurableObject, runInDurableObject } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
 import type { EventLiveDO } from '../src/durable-objects/EventLiveDO';
+import type { RosterUser } from '../src/durable-objects/event-live/protocol';
 import {
   connect,
   liveRoomOf,
@@ -29,6 +30,17 @@ const admitted = async (
   const client = await connect(eventId, sessionToken);
   await client.waitFor(ofType('auth_ok'));
   return client;
+};
+
+const walkIn = async (client: LiveClient, userId: string): Promise<void> => {
+  client.socket.send(JSON.stringify({ type: 'walking_in' }));
+  await client.waitFor(
+    (frame) =>
+      ofType('roster_update')(frame) &&
+      (JSON.parse(frame) as { roster: RosterUser[] }).roster.some(
+        (entry) => entry.userId === userId && entry.status === 'walking_in',
+      ),
+  );
 };
 
 const cancelMeetup = (eventId: string) =>
@@ -196,5 +208,73 @@ describe('a connection whose session could not be checked', () => {
       await trackedBy(room.eventId),
       'nothing unverified stays behind to hear the room',
     ).toEqual({ tracked: 0, alarm: null });
+  });
+
+  it('is asked to try again, not told its session expired, and let in when it does', async () => {
+    const room = await seedLiveRoom();
+
+    const refused = await whileD1Fails(() =>
+      connect(room.eventId, room.guestToken),
+    );
+
+    expect(await refused.waitForClose()).toEqual({
+      code: 1013,
+      reason: 'try_again_later',
+    });
+    expect(
+      refused.frames.map(typeOf),
+      'no verdict the browser would stop reconnecting for',
+    ).toEqual(['error']);
+    const retried = await connect(room.eventId, room.guestToken);
+    await retried.waitFor(ofType('auth_ok'));
+  });
+});
+
+describe('a connection whose session has ended', () => {
+  it('is still told so as it joins', async () => {
+    const room = await seedLiveRoom();
+    await env.DB.prepare(
+      'UPDATE session SET expires_at = unixepoch() - 1 WHERE token = ?',
+    )
+      .bind(room.guestToken)
+      .run();
+
+    const refused = await connect(room.eventId, room.guestToken);
+
+    await refused.waitFor(ofType('auth_expired'));
+    expect(await refused.waitForClose()).toEqual({
+      code: 4001,
+      reason: 'auth_expired',
+    });
+  });
+});
+
+describe('a verified connection the database cannot answer for', () => {
+  it('stays in the room when a message finds the database down', async () => {
+    const room = await seedLiveRoom();
+    const guest = await admitted(room.eventId, room.guestToken);
+
+    await whileD1Fails(async () => {
+      guest.socket.send(JSON.stringify({ type: 'walking_in' }));
+      await guest.waitFor(ofType('error'));
+    });
+
+    expect((await trackedBy(room.eventId)).tracked).toBe(1);
+    await walkIn(guest, room.guestId);
+  });
+
+  it('stays in the room when an auth frame finds the database down', async () => {
+    const room = await seedLiveRoom();
+    const guest = await admitted(room.eventId, room.guestToken);
+
+    await whileD1Fails(async () => {
+      guest.socket.send(
+        JSON.stringify({ type: 'auth', sessionToken: room.guestToken }),
+      );
+      await guest.waitFor(ofType('error'));
+    });
+
+    expect((await trackedBy(room.eventId)).tracked).toBe(1);
+    await walkIn(guest, room.guestId);
   });
 });

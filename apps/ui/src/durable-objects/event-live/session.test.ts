@@ -86,8 +86,8 @@ describe('verifyEventSessionFromCookie', () => {
 
 describe('how a refusal is told to the browser', () => {
   it('does not call a signed-in non-attendee an expired session', () => {
-    const notAllowed = refusalFor('not_allowed');
-    const noSession = refusalFor('no_session');
+    const notAllowed = refusalFor('not_allowed', { isVerified: false });
+    const noSession = refusalFor('no_session', { isVerified: false });
 
     expect(notAllowed.message.type).toBe('not_attending');
     expect(noSession.message.type).toBe('auth_expired');
@@ -95,14 +95,23 @@ describe('how a refusal is told to the browser', () => {
   });
 
   it('closes both refusals, with a code that says which one it was', () => {
-    expect(refusalFor('not_allowed').close?.code).toBe(4003);
-    expect(refusalFor('no_session').close?.code).toBe(4001);
+    for (const isVerified of [false, true]) {
+      expect(refusalFor('not_allowed', { isVerified }).close?.code).toBe(4003);
+      expect(refusalFor('no_session', { isVerified }).close?.code).toBe(4001);
+    }
   });
 
-  it('leaves a database failure open, because retrying is the right answer', () => {
-    const transient = refusalFor('db_error');
+  it('leaves a verified socket open on a database failure, which says nothing about its session', () => {
+    const transient = refusalFor('db_error', { isVerified: true });
 
     expect(transient.message.type).toBe('error');
     expect(transient.close).toBeNull();
+  });
+
+  it('asks a joining socket to try again on a database failure, rather than hold it unverified', () => {
+    const transient = refusalFor('db_error', { isVerified: false });
+
+    expect(transient.message.type).toBe('error');
+    expect(transient.close).toEqual({ code: 1013, reason: 'try_again_later' });
   });
 });

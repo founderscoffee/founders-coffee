@@ -15,7 +15,7 @@ class FakeSocket {
   readyState = FakeSocket.OPEN;
   onopen: (() => void) | null = null;
   onmessage: ((event: { data: string }) => void) | null = null;
-  onclose: (() => void) | null = null;
+  onclose: ((event: { code: number; reason: string }) => void) | null = null;
   onerror: (() => void) | null = null;
   closedWith: { code: number; reason: string } | null = null;
 
@@ -95,6 +95,25 @@ describe('what the room tells a member who has not joined', () => {
     rerender({ enabled: true });
 
     expect(result.current.notAttending).toBe(false);
+  });
+});
+
+describe('a room that could not check the session', () => {
+  it('is asked again, rather than taken for an expired session', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useEventLive('evt_1'));
+
+    deliver({ type: 'error', message: 'Temporary auth error, please retry' });
+    act(() => {
+      sockets.at(-1)?.onclose?.({ code: 1013, reason: 'try_again_later' });
+    });
+
+    expect(result.current.error).not.toBe('session_expired');
+    expect(result.current.connectionState).toBe('disconnected');
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
+    expect(sockets, 'the reconnect loop opened a new socket').toHaveLength(2);
   });
 });
 

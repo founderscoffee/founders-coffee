@@ -132,6 +132,10 @@ export const verifyEventSessions = async (
  * Try every cookie value as a session token. The browser cannot read its own httpOnly session
  * cookie to send it as a message (L4), so the DO reads the Cookie header on upgrade instead. A
  * `not_allowed` result short-circuits: the token was valid, the membership was not.
+ *
+ * A cookie whose query failed is not taken for "not this cookie". It may have been the session, so
+ * when no other cookie verifies the answer is `db_error`, which the upgrade asks the browser to
+ * retry. Ending in `no_session` told a member whose session was fine that it had expired.
  */
 export const verifyEventSessionFromCookie = async (
   db: D1Db,
@@ -141,6 +145,7 @@ export const verifyEventSessionFromCookie = async (
   const cookieHeader = request.headers.get('Cookie');
   if (!cookieHeader) return { ok: false, reason: 'no_session' };
 
+  let queryFailed = false;
   for (const part of cookieHeader.split(';')) {
     const eq = part.indexOf('=');
     if (eq < 0) continue;
@@ -150,8 +155,9 @@ export const verifyEventSessionFromCookie = async (
     if (result.ok || (!result.ok && result.reason === 'not_allowed')) {
       return result;
     }
+    if (result.reason === 'db_error') queryFailed = true;
   }
-  return { ok: false, reason: 'no_session' };
+  return { ok: false, reason: queryFailed ? 'db_error' : 'no_session' };
 };
 
 /**
@@ -162,8 +168,12 @@ export const verifyEventSessionFromCookie = async (
  * about their account and the remedy did nothing, at the moment they were deciding whether to come
  * (#36). They are separate frames now, and the expiry copy belongs to an expiry alone.
  *
- * A database failure closes nothing. It is the one refusal that may not be true a second later, so
- * the socket stays open and the client is free to retry rather than being told a verdict.
+ * A database failure is the one refusal that may not be true a second later, so it is told as a
+ * transient error, never as a verdict, and whether the socket stays depends on whether the room has
+ * verified it. A verified socket stays open: the failure says nothing about its session, which is
+ * asked again at the next alarm or message. A socket still joining is closed with 1013, Try Again
+ * Later, because left open it would sit in the room unverified with nothing coming to settle it.
+ * The browser stops for neither that frame nor that close, so its reconnect loop joins again.
  *
  * A connection that holds when it joins is asked again at every heartbeat alarm, and before each
  * message that changes the room, but not in between. Heartbeats no longer reach the room (#85), so
@@ -174,6 +184,7 @@ export const verifyEventSessionFromCookie = async (
  */
 export const refusalFor = (
   reason: RefusalReason,
+  { isVerified }: { isVerified: boolean },
 ): {
   message: OutboundMessage;
   close: { code: number; reason: string } | null;
@@ -181,7 +192,7 @@ export const refusalFor = (
   if (reason === 'db_error')
     return {
       message: { type: 'error', message: 'Temporary auth error, please retry' },
-      close: null,
+      close: isVerified ? null : { code: 1013, reason: 'try_again_later' },
     };
   if (reason === 'not_allowed')
     return {
