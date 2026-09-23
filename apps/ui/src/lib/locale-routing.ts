@@ -18,8 +18,15 @@ export const withLocale = (pathname: string, locale: Locale): string => {
   return isLocale(first) ? ['', locale, ...rest].join('/') : pathname;
 };
 
+const ONLY_THIS_PAGE = { exact: true };
+
 /**
  * A market or company landing page, addressed in the reader's language.
+ *
+ * `activeOptions` travels with the address because a link is active by path prefix unless told
+ * otherwise, and a market landing is the prefix of every city and every meetup under it. Four
+ * links on a city page announced themselves as the current page and none of them was it, so a
+ * reader hearing the cue learned nothing from it anywhere.
  *
  * Both sit in the same route: the locale goes in the `market` parameter and the destination — a
  * market slug like `algeria`, or a company page key like `terms` — in `city`. Linking this way
@@ -29,6 +36,7 @@ export const withLocale = (pathname: string, locale: Locale): string => {
 export const localizedLanding = (locale: Locale, key: string) => ({
   to: '/$market/$city' as const,
   params: { market: locale, city: key },
+  activeOptions: ONLY_THIS_PAGE,
 });
 
 /**
@@ -142,6 +150,7 @@ export const localizedLogin = (locale: Locale) => ({
 export const localizedProfile = (locale: Locale) => ({
   to: '/$market/profile' as const,
   params: { market: locale },
+  activeOptions: ONLY_THIS_PAGE,
 });
 
 /** The reader's own activity, on the same terms as {@link localizedProfile}. */

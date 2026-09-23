@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   localizedEvent,
   localizedHome,
+  localizedProfile,
   localizedHostCreate,
   localizedLanding,
   withLocale,
@@ -36,7 +37,7 @@ describe('switching the language of the page in view', () => {
 
 describe('addressing a page in the language the reader is in', () => {
   it('puts the locale where the router expects it, which is the market slot', () => {
-    expect(localizedLanding('fr', 'algeria')).toEqual({
+    expect(localizedLanding('fr', 'algeria')).toMatchObject({
       to: '/$market/$city',
       params: { market: 'fr', city: 'algeria' },
     });
@@ -66,7 +67,7 @@ describe('addressing a page in the language the reader is in', () => {
 
 describe('localizedHome', () => {
   it('sends a brand mark straight at the market landing', () => {
-    expect(localizedHome('fr', 'algeria')).toEqual({
+    expect(localizedHome('fr', 'algeria')).toMatchObject({
       to: '/$market/$city',
       params: { market: 'fr', city: 'algeria' },
     });
@@ -77,5 +78,18 @@ describe('localizedHome', () => {
       localizedHome('fr', undefined),
       'without a market there is nothing to name, and that is the one case where the redirect earns its geo lookup',
     ).toEqual({ to: '/' });
+  });
+});
+
+describe('which link tells a screen reader it is the page being read', () => {
+  it.each([
+    ['a market landing', localizedLanding('fr', 'algeria')],
+    ['home', localizedHome('fr', 'algeria')],
+    ['the reader\u2019s own profile', localizedProfile('fr')],
+  ])('marks %s current only on its own address', (_name, target) => {
+    expect(
+      (target as { activeOptions?: { exact?: boolean } }).activeOptions?.exact,
+      'a link is active by path prefix unless told otherwise, and each of these is the prefix of every page beneath it',
+    ).toBe(true);
   });
 });
