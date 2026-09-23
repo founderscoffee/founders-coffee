@@ -7,7 +7,7 @@
 | Version      | 2.9                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
-| Last updated | 2026-09-16                                                                         |
+| Last updated | 2026-09-23                                                                         |
 | Derived from | [SRS v1.7](./srs.md) and [community-first release strategy](./release-strategy.md) |
 
 This document is the current sequencing and status source. Status is evidence-based:
@@ -159,6 +159,7 @@ owning module.
 | ID      | Status   | Scope                                                                                                         | Evidence                                                                                                                                                                       |
 | ------- | -------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | TOOL-01 | Complete | Keep Nx project-graph evaluation independent of generated i18n output while retaining NodeNext source imports | `apps/ui` config-time sitemap metadata imports the canonical leaf locale contract; clean graph, Nx-wide typecheck/lint, public build, i18n/UI tests, and server-fns tests pass |
+| TOOL-02 | Complete | Keep the format gate independent of generated inlang output while still checking the tracked `settings.json`  | `.prettierignore` mirrors inlang's `.gitignore`; after a clean `generate-i18n` the format gate passes and still fails a misformatted `settings.json`; Nx-wide lint passes      |
 
 ### Remaining work order
 

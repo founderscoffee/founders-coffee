@@ -3,3 +3,5 @@
 /coverage
 /.nx/cache
 /.nx/workspace-data
+/libs/i18n/project.inlang/*
+!/libs/i18n/project.inlang/settings.json
