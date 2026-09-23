@@ -4,6 +4,8 @@ import { declaredDialogs } from './dialog-contract.fixtures';
 
 const DIALOGS = declaredDialogs();
 
+const BACKDROP = /className="modal-backdrop"[^>]*>([\s\S]*?)<\/form>/gu;
+
 const NAME_REFERENCE = /aria-labelledby=(?:\{(\w+)\}|"([^"]+)")/u;
 
 describe('what a screen reader is told about a dialog', () => {
@@ -46,4 +48,13 @@ describe('what a screen reader is told about a dialog', () => {
       ).toContain(expression ? `id={${expression}}` : `id="${literal}"`);
     },
   );
+
+  it.each(DIALOGS)('$file keeps its backdrop out of the way', ({ source }) => {
+    for (const [, inside] of source.matchAll(BACKDROP))
+      for (const required of ['aria-hidden="true"', 'tabIndex={-1}'])
+        expect(
+          inside,
+          'a backdrop is a button the size of the viewport repeating a name the dialog already offers; it is there to be clicked past, not tabbed to, and hiding it while leaving it in the tab order strands a reader on something with no name at all',
+        ).toContain(required);
+  });
 });

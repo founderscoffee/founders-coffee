@@ -70,7 +70,9 @@ export const RsvpCancelDialog = ({
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button type="submit">{keep_seat({}, { locale })}</button>
+        <button type="submit" tabIndex={-1} aria-hidden="true">
+          {keep_seat({}, { locale })}
+        </button>
       </form>
     </dialog>
   );

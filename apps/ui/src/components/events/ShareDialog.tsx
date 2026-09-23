@@ -133,7 +133,9 @@ export const ShareDialog = ({
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button type="submit">{share_close({}, { locale })}</button>
+        <button type="submit" tabIndex={-1} aria-hidden="true">
+          {share_close({}, { locale })}
+        </button>
       </form>
     </dialog>
   );

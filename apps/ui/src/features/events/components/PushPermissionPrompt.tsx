@@ -91,7 +91,12 @@ export const PushPermissionPrompt = ({
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button type="submit" onClick={handleDecline}>
+        <button
+          type="submit"
+          tabIndex={-1}
+          aria-hidden="true"
+          onClick={handleDecline}
+        >
           {push_prompt_decline({}, { locale })}
         </button>
       </form>

@@ -100,7 +100,9 @@ export const CancelEventDialog = ({
         </div>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button type="submit">{host_cancel_keep({}, { locale })}</button>
+        <button type="submit" tabIndex={-1} aria-hidden="true">
+          {host_cancel_keep({}, { locale })}
+        </button>
       </form>
     </dialog>
   );

@@ -56,4 +56,21 @@ describe('how the drawer announces itself once it is open', () => {
       'the drawer opens over the page and takes the reader out of it, so a screen reader announcing only "dialog" leaves them with no idea where they now are',
     ).toBeTruthy();
   });
+
+  it('offers one way out rather than the same one twice', () => {
+    fireEvent.click(at('/ar/profile') as HTMLElement);
+
+    const ways = [...document.querySelectorAll<HTMLElement>('dialog button')]
+      .filter(
+        (button) =>
+          button.tabIndex >= 0 &&
+          button.closest('[aria-hidden="true"]') === null,
+      )
+      .map((button) => button.getAttribute('aria-label'));
+
+    expect(
+      ways,
+      'the sheet behind the drawer is a button covering the whole screen, and it carried the same name as the close button in the corner',
+    ).toEqual(['إغلاق قائمة الملف الشخصي']);
+  });
 });

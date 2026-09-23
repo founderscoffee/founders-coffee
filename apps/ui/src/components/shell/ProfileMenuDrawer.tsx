@@ -74,8 +74,9 @@ export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
         >
           <button
             type="button"
+            tabIndex={-1}
+            aria-hidden="true"
             className="absolute inset-0 cursor-default bg-neutral/25"
-            aria-label={profile_menu_close({}, { locale })}
             onClick={() => setIsOpen(false)}
           />
           <aside className="absolute inset-y-0 end-0 flex w-[min(20rem,85vw)] flex-col bg-base-100 p-5 shadow-[var(--shadow-2)]">
