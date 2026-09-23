@@ -386,6 +386,7 @@
   "live_cancel": "Cancel",
   "nav_host": "Host a meetup",
   "load_more": "Load more",
+  "load_more_error": "More meetups could not be loaded.",
   "host_meetup_here": "Host a meetup here",
   "filter_today": "Today",
   "filter_weekend": "Weekend",

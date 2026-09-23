@@ -64,4 +64,23 @@ describe('useEventPages', () => {
     result.loadMore();
     expect(fetchNextPage).toHaveBeenCalledOnce();
   });
+
+  it('reports a next page that failed to load, and no other failure as one', () => {
+    expect(
+      useEventPages(query({ isError: true, isFetchNextPageError: true }))
+        .hasLoadMoreError,
+    ).toBe(true);
+    expect(useEventPages(query({ isError: true })).hasLoadMoreError).toBe(
+      false,
+    );
+    expect(useEventPages(query()).hasLoadMoreError).toBe(false);
+  });
+
+  it('is idle only while no request is running or waiting to resume', () => {
+    expect(useEventPages(query({ fetchStatus: 'idle' })).isIdle).toBe(true);
+    expect(useEventPages(query({ fetchStatus: 'fetching' })).isIdle).toBe(
+      false,
+    );
+    expect(useEventPages(query({ fetchStatus: 'paused' })).isIdle).toBe(false);
+  });
 });

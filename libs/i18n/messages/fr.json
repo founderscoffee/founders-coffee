@@ -395,6 +395,7 @@
   "live_cancel": "Annuler",
   "nav_host": "Organiser",
   "load_more": "Afficher plus",
+  "load_more_error": "Impossible de charger d’autres rencontres.",
   "host_meetup_here": "Organiser une rencontre ici",
   "filter_today": "Aujourd’hui",
   "filter_weekend": "Week-end",

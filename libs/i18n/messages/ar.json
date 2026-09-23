@@ -437,6 +437,7 @@
   "live_cancel": "إلغاء",
   "nav_host": "نظّم لقاء",
   "load_more": "تحميل المزيد",
+  "load_more_error": "تعذّر تحميل المزيد من اللقاءات.",
   "host_meetup_here": "استضف لقاءً هنا",
   "filter_today": "اليوم",
   "filter_weekend": "نهاية الأسبوع",

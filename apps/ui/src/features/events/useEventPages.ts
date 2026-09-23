@@ -12,6 +12,8 @@ export interface EventPagination {
   readonly total: number | undefined;
   readonly hasMore: boolean;
   readonly isLoadingMore: boolean;
+  readonly isIdle: boolean;
+  readonly hasLoadMoreError: boolean;
   readonly loadMore: () => void;
 }
 
@@ -28,6 +30,13 @@ export interface EventPagination {
  *
  * `total` comes from whichever page carries one — an aggregate over the whole predicate rather than
  * the number of rows fetched so far, so a list showing twenty of thirty can say so.
+ *
+ * `isIdle` is true when no request for the list is running or waiting to resume. A request can wait:
+ * offline, or when a retry falls due in a hidden tab, it is paused rather than failed, and while
+ * paused `isLoadingMore` reads false although a request is still pending.
+ *
+ * `hasLoadMoreError` means the last request for the next page failed, and only that. A first load or
+ * a refetch that failed is the query's own error, which asking for the next page again would not fix.
  */
 export const useEventPages = (
   query: UseInfiniteQueryResult<{ pages: EventPage[] }, unknown>,
@@ -39,6 +48,8 @@ export const useEventPages = (
     total: pages?.find((page) => page.total !== undefined)?.total,
     hasMore: query.hasNextPage === true,
     isLoadingMore: query.isFetchingNextPage,
+    isIdle: query.fetchStatus === 'idle',
+    hasLoadMoreError: query.isFetchNextPageError === true,
     loadMore: () => void query.fetchNextPage(),
   };
 };
