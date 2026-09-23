@@ -14,7 +14,7 @@ vi.mock('./api', () => ({
 type RedirectOptions = {
   to?: string;
   href?: string;
-  params?: { market?: string };
+  params?: { locale?: string };
   search?: { redirect?: string };
 };
 
@@ -59,9 +59,9 @@ describe('requiring a session before a private page renders', () => {
     'sends a signed-out %s reader to sign in, and back again afterwards',
     async (locale) => {
       const options = await redirectFrom('/profile/account', locale);
-      expect(options.to).toBe('/$market/login');
+      expect(options.to).toBe('/$locale/login');
       expect(
-        options.params?.market,
+        options.params?.locale,
         'they sign in in the language they were reading, not the default one',
       ).toBe(locale);
       expect(options.search?.redirect).toBe('/profile/account');

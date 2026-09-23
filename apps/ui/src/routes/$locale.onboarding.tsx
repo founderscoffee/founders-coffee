@@ -1,21 +1,15 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 
-import {
-  detectLocale,
-  isLocale,
-  onboarding_title,
-} from '@founders-coffee/i18n';
+import { onboarding_title } from '@founders-coffee/i18n';
 
 import { OnboardingPage } from '../features/profile/components/OnboardingPage';
-import { readCookieHeader } from '../lib/cookies';
 import { NO_INDEX_VALUE } from '../lib/indexation';
-import { localizedOnboarding } from '../lib/locale-routing';
 import { authReturnPathSchema } from '../lib/redirect';
 import { requireSession } from '../features/auth/require-session';
 import { privatePageHead } from '../lib/seo-private';
 
-export const Route = createFileRoute('/$market/onboarding')({
+export const Route = createFileRoute('/$locale/onboarding')({
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,
@@ -23,12 +17,7 @@ export const Route = createFileRoute('/$market/onboarding')({
   validateSearch: z.object({
     redirect: authReturnPathSchema.catch('/').optional().default('/'),
   }),
-  beforeLoad: async ({ params, search, context }) => {
-    if (!isLocale(params.market))
-      throw redirect({
-        ...localizedOnboarding(detectLocale(readCookieHeader())),
-        search,
-      });
+  beforeLoad: async ({ search, context }) => {
     await requireSession(context.locale, search.redirect);
   },
   component: () => {

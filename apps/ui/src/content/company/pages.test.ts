@@ -79,7 +79,7 @@ describe('company pages', () => {
       expect(isCompanyPageKey(key)).toBe(true);
       expect(
         companyLinkKey(`/${key}`),
-        `/${key} routes through $market/$city but the renderer will not link it`,
+        `/${key} routes through $locale/$market but the renderer will not link it`,
       ).toBe(key);
     }
 

@@ -7,14 +7,8 @@ import {
 } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
+import { localizedName, type Locale } from '@founders-coffee/i18n';
 import {
-  detectLocale,
-  isLocale,
-  localizedName,
-  type Locale,
-} from '@founders-coffee/i18n';
-import {
-  getCityLanding,
   getMarketLanding,
   type MarketCity,
   type MarketWithCities,
@@ -30,14 +24,13 @@ import {
   type CompanyPageEntry,
   type CompanyPageKey,
 } from '../content/company';
-import { readCookieHeader } from '../lib/cookies';
 import {
   cursorPairOnly,
   paginationQuery,
   publicPaginationSearchSchema,
   type PublicPaginationSearch,
 } from '../lib/public-pagination';
-import { localizedCity, localizedLanding } from '../lib/locale-routing';
+import { localizedLanding } from '../lib/locale-routing';
 import { isMarketLeaf } from '../lib/route-market';
 import {
   canonicalUrl,
@@ -98,7 +91,7 @@ const localizedMarket = async (
   }
 };
 
-export const Route = createFileRoute('/$market/$city')({
+export const Route = createFileRoute('/$locale/$market')({
   validateSearch: landingSearchSchema,
   loaderDeps: ({ search }) => ({
     afterStartsAt: search.afterStartsAt,
@@ -149,42 +142,16 @@ export const Route = createFileRoute('/$market/$city')({
       />
     );
   },
-  loader: async ({ params, deps, location }): Promise<RouteData> => {
+  loader: async ({ params, deps, location, context }): Promise<RouteData> => {
     const pagination = cursorPairOnly(deps);
-    if (isLocale(params.market)) {
-      if (isCompanyPageKey(params.city)) {
-        return { kind: 'company', locale: params.market, page: params.city };
-      }
-      return localizedMarket(
-        params.market,
-        params.city,
-        pagination,
-        isMarketLeaf(location.pathname),
-      );
-    }
-
-    try {
-      const data = await getCityLanding({
-        data: {
-          marketKey: params.market,
-          citySlug: params.city,
-          ...pagination,
-        },
-      });
-      throw redirect({
-        ...localizedCity(
-          detectLocale(readCookieHeader()),
-          data.market.slug,
-          data.city.slug,
-        ),
-        search: pagination,
-      });
-    } catch (error) {
-      const code = appErrorCode(error);
-      if (code === 'market_not_found' || code === 'city_not_found')
-        throw notFound();
-      throw error;
-    }
+    if (isCompanyPageKey(params.market))
+      return { kind: 'company', locale: context.locale, page: params.market };
+    return localizedMarket(
+      context.locale,
+      params.market,
+      pagination,
+      isMarketLeaf(location.pathname),
+    );
   },
   head: ({ loaderData }) => {
     const pathSegments = getRequestPath().split('/').filter(Boolean);

@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { isLocale, localizedName, type Locale } from '@founders-coffee/i18n';
+import { localizedName, type Locale } from '@founders-coffee/i18n';
 import { getCityLanding, type MarketCity } from '@founders-coffee/server-fns';
 
 import { CityLanding } from '../components/landing/CityLanding';
@@ -14,7 +14,7 @@ import {
 } from '../lib/public-pagination';
 import { canonicalUrl, cityPageHead } from '../lib/seo';
 
-export const Route = createFileRoute('/$market/$city/$subcity')({
+export const Route = createFileRoute('/$locale/$market/$city')({
   validateSearch: publicPaginationSearchSchema,
   loaderDeps: ({ search }) => ({
     afterStartsAt: search.afterStartsAt,
@@ -45,6 +45,7 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
   loader: async ({
     params,
     deps,
+    context,
   }): Promise<
     MarketCity & {
       locale: Locale;
@@ -53,32 +54,31 @@ export const Route = createFileRoute('/$market/$city/$subcity')({
       afterId?: string;
     }
   > => {
-    if (!isLocale(params.market)) throw notFound();
     const pagination = cursorPairOnly(deps);
     try {
       const data = await getCityLanding({
         data: {
-          marketKey: params.city,
-          citySlug: params.subcity,
+          marketKey: params.market,
+          citySlug: params.city,
           ...pagination,
         },
       });
-      if (params.city !== data.market.slug) {
+      if (params.market !== data.market.slug) {
         throw redirect({
-          ...localizedCity(params.market, data.market.slug, data.city.slug),
+          ...localizedCity(context.locale, data.market.slug, data.city.slug),
           search: pagination,
         });
       }
       if (!data.cursorValid) {
         throw redirect({
-          ...localizedCity(params.market, data.market.slug, data.city.slug),
+          ...localizedCity(context.locale, data.market.slug, data.city.slug),
           search: {},
         });
       }
       return {
         ...data,
         ...pagination,
-        locale: params.market,
+        locale: context.locale,
         pagination,
       };
     } catch (error) {

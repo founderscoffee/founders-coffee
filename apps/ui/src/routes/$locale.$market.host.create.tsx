@@ -3,13 +3,12 @@ import { z } from 'zod';
 
 import { appErrorCode } from '@founders-coffee/core';
 import { getPublicAuthConfig } from '@founders-coffee/server-fns';
-import { detectLocale, host_page_title, isLocale } from '@founders-coffee/i18n';
+import { host_page_title } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 
 import { HostCreatePage } from '../components/host/HostCreatePage';
 import { eventsApi, type RepeatEventTemplate } from '../features/events/api';
-import { readCookieHeader } from '../lib/cookies';
 import { localizedHostCreate } from '../lib/locale-routing';
 import { NO_INDEX_VALUE } from '../lib/indexation';
 import { privatePageHead } from '../lib/seo-private';
@@ -44,7 +43,7 @@ const loadRepeatTemplate = async (
   }
 };
 
-export const Route = createFileRoute('/$market/$city/host/create')({
+export const Route = createFileRoute('/$locale/$market/host/create')({
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,
@@ -81,22 +80,17 @@ export const Route = createFileRoute('/$market/$city/host/create')({
       />
     );
   },
-  loader: async ({ params, deps }): Promise<HostCreateLoaderData> => {
+  loader: async ({ params, deps, context }): Promise<HostCreateLoaderData> => {
     let market: Market;
     try {
-      market = await eventsApi.getMarket({ data: { slug: params.city } });
+      market = await eventsApi.getMarket({ data: { slug: params.market } });
     } catch (error) {
       if (appErrorCode(error) === 'market_not_found') throw notFound();
       throw error;
     }
-    if (!isLocale(params.market) || params.city !== market.slug) {
+    if (params.market !== market.slug) {
       throw redirect({
-        ...localizedHostCreate(
-          isLocale(params.market)
-            ? params.market
-            : detectLocale(readCookieHeader()),
-          market.slug,
-        ),
+        ...localizedHostCreate(context.locale, market.slug),
         search: deps,
       });
     }

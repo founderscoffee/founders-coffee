@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { isLocale, localizedName, type Locale } from '@founders-coffee/i18n';
+import { localizedName, type Locale } from '@founders-coffee/i18n';
 import {
   getEvent,
   getMarket,
@@ -27,7 +27,7 @@ type EventRouteData = {
   readonly host: PublicProfile | null;
 };
 
-export const Route = createFileRoute('/$market/$city/e/$slug')({
+export const Route = createFileRoute('/$locale/$market/e/$slug')({
   component: () => {
     const { locale, market, event, host } = Route.useLoaderData();
     const { user } = useAuth();
@@ -57,22 +57,21 @@ export const Route = createFileRoute('/$market/$city/e/$slug')({
       </>
     );
   },
-  loader: async ({ params }): Promise<EventRouteData> => {
-    if (!isLocale(params.market)) throw notFound();
+  loader: async ({ params, context }): Promise<EventRouteData> => {
     let market: Market;
     try {
-      market = await getMarket({ data: { slug: params.city } });
+      market = await getMarket({ data: { slug: params.market } });
     } catch (error) {
       if (appErrorCode(error) !== 'market_not_found') throw error;
       try {
-        market = await getMarket({ data: { code: params.city } });
+        market = await getMarket({ data: { code: params.market } });
       } catch (byCode) {
         if (appErrorCode(byCode) === 'market_not_found') throw notFound();
         throw byCode;
       }
     }
-    if (params.city !== market.slug) {
-      throw redirect(localizedEvent(params.market, market.slug, params.slug));
+    if (params.market !== market.slug) {
+      throw redirect(localizedEvent(context.locale, market.slug, params.slug));
     }
 
     let event: EventDetailItem;
@@ -91,7 +90,7 @@ export const Route = createFileRoute('/$market/$city/e/$slug')({
       if (appErrorCode(error) === 'not_found') return null;
       throw error;
     });
-    return { locale: params.market, market, event, host };
+    return { locale: context.locale, market, event, host };
   },
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [], links: [] };

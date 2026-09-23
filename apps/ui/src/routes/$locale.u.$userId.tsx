@@ -1,32 +1,20 @@
-import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
+import { createFileRoute, notFound } from '@tanstack/react-router';
 
 import { appErrorCode } from '@founders-coffee/core';
-import { detectLocale, isLocale, profile_title } from '@founders-coffee/i18n';
+import { profile_title } from '@founders-coffee/i18n';
 
 import { eventsApi, type EventFeedItem } from '../features/events/api';
 import { profileApi, type PublicProfile } from '../features/profile/api';
 import { PublicProfilePage } from '../features/profile/components/PublicProfilePage';
-import { readCookieHeader } from '../lib/cookies';
 import { NO_INDEX_VALUE } from '../lib/indexation';
-import { localizedPublicProfile } from '../lib/locale-routing';
 import {
   hostedPaginationSearchSchema,
   type HostedPaginationSearch,
 } from '../lib/public-pagination';
 import { buildPageTitle } from '../lib/seo';
 
-export const Route = createFileRoute('/$market/u/$userId')({
+export const Route = createFileRoute('/$locale/u/$userId')({
   validateSearch: hostedPaginationSearchSchema,
-  beforeLoad: ({ params, search }) => {
-    if (!isLocale(params.market))
-      throw redirect({
-        ...localizedPublicProfile(
-          detectLocale(readCookieHeader()),
-          params.userId,
-        ),
-        search,
-      });
-  },
   loaderDeps: ({ search }) => ({
     beforeStartsAt: search.beforeStartsAt,
     beforeId: search.beforeId,

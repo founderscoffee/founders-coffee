@@ -109,7 +109,7 @@ import { declaredRoutes, sourceOf } from './route-contract.fixtures';
  * until it is fixed.
  */
 const unprefixed = () =>
-  declaredRoutes().filter(({ fullPath }) => !fullPath.startsWith('/$market'));
+  declaredRoutes().filter(({ fullPath }) => !fullPath.startsWith('/$locale'));
 
 describe('the locale contract', () => {
   it('reads the generated tree', () => {
@@ -126,7 +126,7 @@ describe('the locale contract', () => {
       .filter(({ fullPath }) => !(fullPath in UNPREFIXED))
       .map(
         ({ fullPath, file }) =>
-          `${fullPath} (${file}) carries no locale and is not in UNPREFIXED — prefix it with /$market, or add an entry saying why it cannot be`,
+          `${fullPath} (${file}) carries no locale and is not in UNPREFIXED — prefix it with /$locale, or add an entry saying why it cannot be`,
       );
 
     expect(undeclared, undeclared.join('\n')).toEqual([]);

@@ -30,7 +30,6 @@ import {
   NO_INDEX_VALUE,
   PUBLIC_DOCUMENT_CACHE_CONTROL,
 } from '../lib/indexation';
-import { routeMarketSlug } from '../lib/route-market';
 import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd } from '../lib/seo-company';
 import { errorPageHead } from '../lib/seo-error';
@@ -105,14 +104,15 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
 export const Route = createRootRoute({
   beforeLoad: async ({ params }) => {
     const routeParams = params as {
+      readonly locale?: string;
       readonly market?: string;
-      readonly city?: string;
     };
-    const { locale, dir } = detectActiveLocale(routeParams.market);
+    const { locale, dir } = detectActiveLocale(routeParams.locale);
     const markets = (await visibleMarkets()).map(toRootMarket);
-    const slug = routeMarketSlug(routeParams);
     const activeMarket =
-      markets.find((market: RootMarket) => market.slug === slug) ?? markets[0];
+      markets.find(
+        (market: RootMarket) => market.slug === routeParams.market,
+      ) ?? markets[0];
     return { locale, dir, markets, activeMarket };
   },
   headers: ({ matches }) => {

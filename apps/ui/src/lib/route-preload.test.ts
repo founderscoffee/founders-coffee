@@ -55,7 +55,7 @@ describe('the preload contract', () => {
     ).toBe(true);
     expect(
       bodies.some((body) => /\bcomponent: \(\) => null\b/u.test(body)),
-      'nothing matched by rendering null, which is the shape /$market/ and /$market/e/$slug have, and the one a narrowed filter would drop first',
+      'nothing matched by rendering null, which is the shape /$locale/ and /$locale/e/$slug have, and the one a narrowed filter would drop first',
     ).toBe(true);
   });
 

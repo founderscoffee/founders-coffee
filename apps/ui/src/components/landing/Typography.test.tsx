@@ -271,13 +271,13 @@ describe('P1-002 landing typography', () => {
         name: new RegExp(locale === 'ar' ? 'الجزائر' : 'Algiers'),
       });
       expect(cityLink.getAttribute('data-route')).toBe(
-        '/$market/$city/$subcity',
+        '/$locale/$market/$city',
       );
       expect(cityLink.getAttribute('data-route-params')).toBe(
         JSON.stringify({
-          market: locale,
-          city: market.slug,
-          subcity: 'algiers',
+          locale,
+          market: market.slug,
+          city: 'algiers',
         }),
       );
     },

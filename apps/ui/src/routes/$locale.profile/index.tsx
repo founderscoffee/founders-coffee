@@ -1,18 +1,14 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
-import { detectLocale, isLocale, profile_title } from '@founders-coffee/i18n';
+import { profile_title } from '@founders-coffee/i18n';
 
 import { ProfilePage } from '../../features/profile/components/ProfilePage';
-import { readCookieHeader } from '../../lib/cookies';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
-import { localizedProfile } from '../../lib/locale-routing';
 import { requireSession } from '../../features/auth/require-session';
 import { privatePageHead } from '../../lib/seo-private';
 
-export const Route = createFileRoute('/$market/profile/')({
-  beforeLoad: async ({ params, location, context }) => {
-    if (!isLocale(params.market))
-      throw redirect(localizedProfile(detectLocale(readCookieHeader())));
+export const Route = createFileRoute('/$locale/profile/')({
+  beforeLoad: async ({ location, context }) => {
     await requireSession(context.locale, location.href);
   },
   headers: () => ({

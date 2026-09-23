@@ -38,29 +38,29 @@ describe('switching the language of the page in view', () => {
 describe('addressing a page in the language the reader is in', () => {
   it('puts the locale where the router expects it, which is the market slot', () => {
     expect(localizedLanding('fr', 'algeria')).toMatchObject({
-      to: '/$market/$city',
-      params: { market: 'fr', city: 'algeria' },
+      to: '/$locale/$market',
+      params: { locale: 'fr', market: 'algeria' },
     });
   });
 
   it('addresses a company page through the same route as a market', () => {
     expect(localizedLanding('ar', 'terms').params).toEqual({
-      market: 'ar',
-      city: 'terms',
+      locale: 'ar',
+      market: 'terms',
     });
   });
 
   it('pushes the market down a level for the host wizard too', () => {
     expect(localizedHostCreate('fr', 'algeria')).toEqual({
-      to: '/$market/$city/host/create',
-      params: { market: 'fr', city: 'algeria' },
+      to: '/$locale/$market/host/create',
+      params: { locale: 'fr', market: 'algeria' },
     });
   });
 
   it('pushes the market down a level for an event', () => {
     expect(localizedEvent('en', 'algeria', 'coffee-and-code')).toEqual({
-      to: '/$market/$city/e/$slug',
-      params: { market: 'en', city: 'algeria', slug: 'coffee-and-code' },
+      to: '/$locale/$market/e/$slug',
+      params: { locale: 'en', market: 'algeria', slug: 'coffee-and-code' },
     });
   });
 });
@@ -68,8 +68,8 @@ describe('addressing a page in the language the reader is in', () => {
 describe('localizedHome', () => {
   it('sends a brand mark straight at the market landing', () => {
     expect(localizedHome('fr', 'algeria')).toMatchObject({
-      to: '/$market/$city',
-      params: { market: 'fr', city: 'algeria' },
+      to: '/$locale/$market',
+      params: { locale: 'fr', market: 'algeria' },
     });
   });
 

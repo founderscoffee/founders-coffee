@@ -172,7 +172,7 @@ const routeSource = (route: string): string =>
   );
 
 describe('the two arrivals that name no city', () => {
-  it.each(['index.tsx', '$market/index.tsx'])(
+  it.each(['index.tsx', '$locale/index.tsx'])(
     '%s chooses its market the same way, so naming a language does not move it',
     (route) => {
       expect(routeSource(route)).toContain('landingMarketSlug(');
@@ -180,7 +180,7 @@ describe('the two arrivals that name no city', () => {
   );
 
   it('leaves no route picking a market by writing the default out by hand', () => {
-    for (const route of ['index.tsx', '$market/index.tsx']) {
+    for (const route of ['index.tsx', '$locale/index.tsx']) {
       expect(
         routeSource(route),
         `${route} hardcodes a market instead of resolving one`,

@@ -23,10 +23,10 @@ export const storeLocale = (locale: Locale): void => {
 /**
  * The language a path names outright, or `null` for one that names none.
  *
- * `/fr/algeria` and `/algeria/algiers` are the same two-parameter route, told apart only by whether
- * the first segment parses as a locale. That is the same test the root route makes to decide what
- * to render in, so this must keep making it the same way: a path the root reads as prefixed and
- * this reads as bare would render one language and remember another.
+ * This is the same test the root route makes to decide what to render in, and the same one the
+ * `$locale` layout makes to decide whether to answer with a prefixed address at all, so it must
+ * keep being made the same way: a path the root reads as prefixed and this reads as bare would
+ * render one language and remember another.
  */
 export const localeInPath = (pathname: string): Locale | null => {
   const [first] = pathname.split('/').filter(Boolean);

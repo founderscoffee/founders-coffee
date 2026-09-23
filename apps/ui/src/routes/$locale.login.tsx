@@ -1,18 +1,16 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 
-import { detectLocale, isLocale, login_title } from '@founders-coffee/i18n';
+import { login_title } from '@founders-coffee/i18n';
 
 import { LoginPage } from '../components/auth/LoginPage';
 import { authApi } from '../features/auth/api';
-import { readCookieHeader } from '../lib/cookies';
 import { NO_INDEX_VALUE } from '../lib/indexation';
-import { localizedLogin } from '../lib/locale-routing';
 import { authReturnPathSchema } from '../lib/redirect';
 import { redirectWhenSignedIn } from '../features/auth/require-session';
 import { privatePageHead } from '../lib/seo-private';
 
-export const Route = createFileRoute('/$market/login')({
+export const Route = createFileRoute('/$locale/login')({
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,
@@ -20,12 +18,7 @@ export const Route = createFileRoute('/$market/login')({
   validateSearch: z.object({
     redirect: authReturnPathSchema.catch('/').optional().default('/'),
   }),
-  beforeLoad: async ({ params, search }) => {
-    if (!isLocale(params.market))
-      throw redirect({
-        ...localizedLogin(detectLocale(readCookieHeader())),
-        search,
-      });
+  beforeLoad: async ({ search }) => {
     await redirectWhenSignedIn(search.redirect);
   },
   component: () => {
