@@ -16,9 +16,9 @@ import {
   feedback_note,
   feedback_privacy,
   feedback_saved,
-  feedback_submit,
   feedback_submitting,
   feedback_title,
+  submit,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
@@ -175,7 +175,7 @@ export const FeedbackPage = ({
           >
             {save.isPending
               ? feedback_submitting({}, { locale })
-              : feedback_submit({}, { locale })}
+              : submit({}, { locale })}
           </Button>
         </div>
       )}
