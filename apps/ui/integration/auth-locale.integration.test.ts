@@ -95,3 +95,36 @@ describe('signing in, in the language the reader was reading', () => {
     expect(wrong.landed).toContain('/fr/login');
   });
 });
+
+describe('reaching a private screen that needs a session', () => {
+  it.each([
+    ['/ar/profile', '/ar/login'],
+    ['/fr/profile/activity', '/fr/login'],
+    ['/en/profile/account', '/en/login'],
+    ['/ar/profile/notifications', '/ar/login'],
+  ])('sends %s to %s', async (pathname, expected) => {
+    const page = await visit(pathname);
+
+    expect(page.landed).toContain(expected);
+    expect(
+      page.landed,
+      'they come back to the screen they asked for, still in its own language',
+    ).toContain(encodeURIComponent(pathname));
+  });
+
+  it.each([
+    ['/profile', '/fr/profile'],
+    ['/profile/activity', '/fr/profile/activity'],
+    ['/activity', '/fr/profile/activity'],
+    ['/preferences', '/fr/profile/notifications'],
+    ['/account', '/fr/profile/account'],
+    ['/algeria/profile', '/fr/profile'],
+    ['/algeria/profile/activity', '/fr/profile/activity'],
+    ['/algeria/profile/notifications', '/fr/profile/notifications'],
+    ['/algeria/profile/account', '/fr/profile/account'],
+  ])('hands the bare %s on to %s', async (pathname, expected) => {
+    const page = await visit(pathname, 'PARAGLIDE_LOCALE=fr');
+
+    expect(page.landed).toContain(encodeURIComponent(expected));
+  });
+});

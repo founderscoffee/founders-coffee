@@ -136,7 +136,7 @@ describe('what the session menu offers', () => {
     expect(
       targets,
       'this is the only entry point left since the footer dropped it, and a signed-in destination belongs where only a signed-in reader sees it',
-    ).toContain('/profile/activity');
+    ).toContain('/en/profile/activity');
   });
 
   it('offers nothing behind an avatar nobody is signed in to', () => {

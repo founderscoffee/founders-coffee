@@ -161,7 +161,7 @@ export const PreferencesPage = ({
             locale={locale}
             isLoading={false}
             isAnonymous={!query.userId}
-            returnPath="/profile/notifications"
+            returnPath={`/${locale}/profile/notifications`}
             onRetry={() => void query.refetch()}
           />
         )}

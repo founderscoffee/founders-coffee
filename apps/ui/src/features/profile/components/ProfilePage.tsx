@@ -44,7 +44,7 @@ export const ProfilePage = ({ locale }: { locale: Locale }) => {
               query.isAuthLoading || (!!query.userId && query.isPending)
             }
             isAnonymous={!query.userId}
-            returnPath="/profile"
+            returnPath={`/${locale}/profile`}
             onRetry={() => void query.refetch()}
           />
         )}

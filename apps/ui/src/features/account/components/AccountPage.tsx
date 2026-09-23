@@ -250,7 +250,7 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
             locale={locale}
             isLoading={false}
             isAnonymous
-            returnPath="/profile/account"
+            returnPath={`/${locale}/profile/account`}
             onRetry={() => void query.refetch()}
           />
         )}

@@ -91,7 +91,7 @@ export const ActivityPage = ({
             locale={locale}
             isLoading={false}
             isAnonymous
-            returnPath="/profile/activity"
+            returnPath={`/${locale}/profile/activity`}
             onRetry={() => void joined.refetch()}
           />
         ) : isLoading ? (

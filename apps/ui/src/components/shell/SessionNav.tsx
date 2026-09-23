@@ -15,7 +15,12 @@ import {
 import { useMyProfile } from '../../features/profile/hooks';
 import { profilePhotoUrl } from '../../features/profile/photo-url';
 
-import { localizedLogin, withoutLocale } from '../../lib/locale-routing';
+import {
+  localizedLogin,
+  localizedProfile,
+  localizedProfileActivity,
+  withoutLocale,
+} from '../../lib/locale-routing';
 import { useAuth } from '../../lib/app-providers';
 import {
   connectionLabel,
@@ -120,13 +125,13 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
         <div className="divider my-1" role="presentation" />
         <ul className="menu w-full p-0" onClick={close}>
           <li>
-            <Link to="/profile">
+            <Link {...localizedProfile(locale)}>
               <ProfileIcon />
               {profile_title({}, { locale })}
             </Link>
           </li>
           <li>
-            <Link to="/profile/activity">
+            <Link {...localizedProfileActivity(locale)}>
               <ActivityIcon />
               {activity_nav({}, { locale })}
             </Link>

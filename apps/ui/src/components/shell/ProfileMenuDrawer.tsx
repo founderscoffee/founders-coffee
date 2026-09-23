@@ -10,6 +10,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { ProfileSectionNav } from '../../features/account/components/ProfileSectionNav';
+import { withoutLocale } from '../../lib/locale-routing';
 
 const MenuIcon = () => (
   <svg
@@ -39,8 +40,10 @@ const CloseIcon = () => (
   </svg>
 );
 
-const isProfileRoute = (pathname: string) =>
-  pathname === '/profile' || pathname.startsWith('/profile/');
+const isProfileRoute = (pathname: string) => {
+  const bare = withoutLocale(pathname);
+  return bare === '/profile' || bare.startsWith('/profile/');
+};
 
 export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
   const pathname = useLocation({ select: (location) => location.pathname });

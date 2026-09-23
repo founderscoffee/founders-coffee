@@ -192,7 +192,7 @@ describe('session dropdown', () => {
 
     expect(
       screen.getByRole('link', { name: 'Your profile' }).getAttribute('href'),
-    ).toBe('/profile');
+    ).toBe('/en/profile');
     screen.getByRole('button', { name: 'Sign out' }).click();
     expect(state.signOut).toHaveBeenCalledOnce();
   });

@@ -24,8 +24,23 @@ vi.mock('../hooks', () => ({
   useUpdateAccountLocale: () => state.updateLocale,
 }));
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
+  Link: ({
+    children,
+    to,
+    params,
+  }: {
+    children: React.ReactNode;
+    to: string;
+    params?: Record<string, string>;
+  }) => (
+    <a
+      href={Object.entries(params ?? {}).reduce(
+        (path, [name, value]) => path.replace(`$${name}`, value),
+        to,
+      )}
+    >
+      {children}
+    </a>
   ),
 }));
 vi.mock('../../profile/components/ProfileAccess', () => ({
@@ -224,11 +239,14 @@ describe('the account and security screen', () => {
     const links = Array.from(nav.querySelectorAll('a')).map((link) =>
       link.getAttribute('href'),
     );
-    expect(links).toEqual([
-      '/profile',
-      '/profile/activity',
-      '/profile/notifications',
-      '/profile/account',
+    expect(
+      links,
+      'every section of a private area a reader is already reading in one language',
+    ).toEqual([
+      `/${locale}/profile`,
+      `/${locale}/profile/activity`,
+      `/${locale}/profile/notifications`,
+      `/${locale}/profile/account`,
     ]);
   });
 });

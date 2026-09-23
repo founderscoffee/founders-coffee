@@ -131,6 +131,37 @@ export const localizedLogin = (locale: Locale) => ({
   params: { market: locale },
 });
 
+/**
+ * The reader's own profile, and the three screens beside it.
+ *
+ * Four addresses rather than one parameterised route, because they are four routes: the section
+ * nav links straight at each, and a typo in one of these is caught where it is written rather
+ * than at a 404. They are separate for the same reason {@link localizedCloseout} and
+ * {@link localizedFeedback} are.
+ */
+export const localizedProfile = (locale: Locale) => ({
+  to: '/$market/profile' as const,
+  params: { market: locale },
+});
+
+/** The reader's own activity, on the same terms as {@link localizedProfile}. */
+export const localizedProfileActivity = (locale: Locale) => ({
+  to: '/$market/profile/activity' as const,
+  params: { market: locale },
+});
+
+/** The reader's notification settings, on the same terms as {@link localizedProfile}. */
+export const localizedProfileNotifications = (locale: Locale) => ({
+  to: '/$market/profile/notifications' as const,
+  params: { market: locale },
+});
+
+/** The reader's account and security screen, on the same terms as {@link localizedProfile}. */
+export const localizedProfileAccount = (locale: Locale) => ({
+  to: '/$market/profile/account' as const,
+  params: { market: locale },
+});
+
 /** Profile completion after a fresh sign-in, on the same terms as {@link localizedLogin}. */
 export const localizedOnboarding = (locale: Locale) => ({
   to: '/$market/onboarding' as const,
