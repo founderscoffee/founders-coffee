@@ -63,9 +63,11 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       await this.setEventId(eventId);
       await this.roster.ensureRehydrated();
       this.connections.restore(this.ctx.getWebSockets());
-      this.connections.broadcast({ type: 'event_cancelled' });
-      for (const [ws] of this.connections.entries())
-        this.connections.close(ws, 4003, 'event_cancelled');
+      this.connections.closeAll(
+        { type: 'event_cancelled' },
+        4003,
+        'event_cancelled',
+      );
       await this.ctx.storage.deleteAlarm();
       return new Response(null, { status: 204 });
     }

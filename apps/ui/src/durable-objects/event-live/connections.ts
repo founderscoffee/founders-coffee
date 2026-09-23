@@ -116,9 +116,17 @@ export class EventConnections {
     }
   };
 
+  /**
+   * Send a frame to every connection whose session the room has verified.
+   *
+   * A socket joins the map at its upgrade, before D1 has answered for its session, and the room
+   * handles other sockets' messages while it waits. Sending to the whole map sent the roster and the
+   * host's table to whoever had opened a socket, including one about to be refused.
+   */
   broadcast = (msg: OutboundMessage): void => {
     const data = JSON.stringify(msg);
-    for (const [ws] of this.sockets) {
+    for (const [ws, connection] of this.sockets) {
+      if (!connection.authenticated) continue;
       try {
         ws.send(data);
       } catch {
@@ -133,6 +141,20 @@ export class EventConnections {
       ws.close(code, reason);
     } catch {
       return;
+    }
+  };
+
+  /**
+   * Tell every socket in the room why it is closing, then close it.
+   *
+   * Every socket, not only those `broadcast` reaches: one still waiting on its session hears it too.
+   * The frame says no more than the close reason after it, and a browser that is told stops
+   * reconnecting to a room that has closed for good.
+   */
+  closeAll = (msg: OutboundMessage, code: number, reason: string): void => {
+    for (const [ws] of this.entries()) {
+      this.send(ws, msg);
+      this.close(ws, code, reason);
     }
   };
 }
