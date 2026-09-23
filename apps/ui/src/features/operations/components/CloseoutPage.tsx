@@ -16,9 +16,9 @@ import {
   closeout_loading,
   closeout_note,
   closeout_refused_marks,
-  closeout_submit,
   closeout_submitting,
   closeout_title,
+  submit,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
@@ -173,7 +173,7 @@ export const CloseoutPage = ({
           >
             {save.isPending
               ? closeout_submitting({}, { locale })
-              : closeout_submit({}, { locale })}
+              : submit({}, { locale })}
           </Button>
         </div>
       )}
