@@ -350,7 +350,17 @@
   "ntf_push_reminder_72h_body": "Your meetup is in 3 days. Tap to view details.",
   "ntf_push_reminder_24h_title": "Tomorrow: {title}",
   "ntf_push_reminder_24h_body": "Your meetup is tomorrow. Tap to manage your seat.",
-  "this_week_n": "{n} this week",
+  "city_upcoming_count": "{count} upcoming",
+  "city_hosts_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} host",
+        "countPlural=*": "{count} hosts"
+      }
+    }
+  ],
   "no_filter_match": "Nothing matches these filters this week.",
   "login_help": "We’ll send a 6-digit code.",
   "rsvp_help": "You’ll get a confirmation and a reminder the day before. You can cancel any time.",

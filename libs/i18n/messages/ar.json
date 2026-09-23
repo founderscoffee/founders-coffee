@@ -384,7 +384,34 @@
   "ntf_push_reminder_72h_body": "لقاؤك بعد 3 أيام. اضغط لعرض التفاصيل.",
   "ntf_push_reminder_24h_title": "غدًا: {title}",
   "ntf_push_reminder_24h_body": "لقاؤك غدًا. اضغط لإدارة مقعدك.",
-  "this_week_n": "{n} هذا الأسبوع",
+  "city_upcoming_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=zero": "{count} لقاءات قادمة",
+        "countPlural=one": "{count} لقاء قادم",
+        "countPlural=two": "{count} لقاءان قادمان",
+        "countPlural=few": "{count} لقاءات قادمة",
+        "countPlural=many": "{count} لقاءً قادمًا",
+        "countPlural=*": "{count} لقاء قادم"
+      }
+    }
+  ],
+  "city_hosts_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=zero": "{count} مضيفين",
+        "countPlural=one": "{count} مضيف",
+        "countPlural=two": "{count} مضيفان",
+        "countPlural=few": "{count} مضيفين",
+        "countPlural=many": "{count} مضيفًا",
+        "countPlural=*": "{count} مضيف"
+      }
+    }
+  ],
   "no_filter_match": "لا شيء يطابق هذه الفلاتر هذا الأسبوع.",
   "login_help": "سنرسل رمزًا من 6 أرقام.",
   "rsvp_help": "ستصلك رسالة تأكيد وتذكير قبل يوم. يمكنك الإلغاء في أي وقت.",

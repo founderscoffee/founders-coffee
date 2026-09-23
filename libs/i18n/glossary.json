@@ -22,7 +22,8 @@
       "allow": {
         "activity_joined_empty": "#56 — reads لا لقاء قادم, 'no upcoming meetup'. This is the upcoming sense, not the RSVP status. Keep.",
         "feedback_next_event": "#56 — اللقاء القادم, 'the next meetup'. Upcoming sense. Keep.",
-        "activity_upcoming": "#56 — the Upcoming tab label. Genuine upcoming sense, and the reason the rename matters: today قادم is both this tab and the RSVP status two screens away. Renaming the status leaves this one unambiguous. Keep."
+        "activity_upcoming": "#56 — the Upcoming tab label. Genuine upcoming sense, and the reason the rename matters: today قادم is both this tab and the RSVP status two screens away. Renaming the status leaves this one unambiguous. Keep.",
+        "city_upcoming_count": "The city card's meetup count. Its one and other forms (1, and 100 to 102, 200 to 202 and so on) read {count} لقاء قادم, 'N upcoming meetup(s)': the upcoming sense, not the RSVP status. The remaining forms agree as قادمة, قادمان and قادمًا. Keep."
       }
     },
     {

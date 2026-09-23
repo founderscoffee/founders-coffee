@@ -12,6 +12,7 @@ import {
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
 import { localizedEvent } from '../../lib/locale-routing';
+import { HostFace } from './HostFace';
 
 type EventCardProps = {
   event: EventFeedItem;
@@ -20,9 +21,6 @@ type EventCardProps = {
   marketSlug: string;
   trailing?: 'city' | 'language';
 };
-
-const hostPhotoUrl = (assetId: string): string =>
-  `/media/profile/${assetId}/sm`;
 
 export const EventCard = ({
   event,
@@ -124,23 +122,11 @@ export const EventCard = ({
                       { locale },
                     )}
                   >
-                    <span className="avatar avatar-placeholder relative z-10 size-7 shrink-0 ring-2 ring-base-100">
-                      <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-base-200 text-caption font-semibold text-base-content">
-                        {event.hostPhotoAssetId ? (
-                          <img
-                            src={hostPhotoUrl(event.hostPhotoAssetId)}
-                            alt=""
-                            width="28"
-                            height="28"
-                            loading="lazy"
-                            decoding="async"
-                            className="size-full rounded-full object-cover"
-                          />
-                        ) : (
-                          event.hostName?.slice(0, 1)
-                        )}
-                      </span>
-                    </span>
+                    <HostFace
+                      name={event.hostName ?? ''}
+                      photoAssetId={event.hostPhotoAssetId}
+                      className="relative z-10 size-7 ring-2 ring-base-100"
+                    />
                     <span className="avatar avatar-placeholder relative z-0 size-7 shrink-0 ring-2 ring-base-100">
                       <span
                         dir="ltr"
@@ -151,23 +137,11 @@ export const EventCard = ({
                     </span>
                   </span>
                 ) : (
-                  <span className="avatar avatar-placeholder size-7 shrink-0">
-                    <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-base-200 text-caption font-semibold text-base-content">
-                      {event.hostPhotoAssetId ? (
-                        <img
-                          src={hostPhotoUrl(event.hostPhotoAssetId)}
-                          alt=""
-                          width="28"
-                          height="28"
-                          loading="lazy"
-                          decoding="async"
-                          className="size-full rounded-full object-cover"
-                        />
-                      ) : (
-                        event.hostName?.slice(0, 1)
-                      )}
-                    </span>
-                  </span>
+                  <HostFace
+                    name={event.hostName ?? ''}
+                    photoAssetId={event.hostPhotoAssetId}
+                    className="size-7"
+                  />
                 )}
                 <span className="truncate">
                   <span className="sr-only">

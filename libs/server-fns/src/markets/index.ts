@@ -8,6 +8,7 @@ export type {
   MarketWithCities,
   MarketCity,
   TrendingCity,
+  TrendingHost,
   TrendingState,
   TrendingSection,
 } from './resolver.js';

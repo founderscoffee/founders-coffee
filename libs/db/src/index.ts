@@ -8,6 +8,7 @@ export * from './event-card.js';
 export * from './events.js';
 export * from './events-sitemap.js';
 export * from './events-cursor.js';
+export * from './events-city-hosts.js';
 export * from './events-discovery.js';
 export * from './events-joined.js';
 export * from './events-update.js';

@@ -33,6 +33,10 @@ describe('resolveTrendingStates (cold vs warm)', () => {
       const cities = trending.groups[0]?.cities ?? [];
       expect(cities).toHaveLength(11);
       expect(cities.every((c) => c.count === 0)).toBe(true);
+      expect(
+        cities.every((c) => c.hosts.length === 0 && c.hostCount === 0),
+        'a city with nothing on has nobody hosting there',
+      ).toBe(true);
       const featuredCount = geo.getFeaturedCities(code).length;
       expect(cities.filter((c) => c.city.featured)).toHaveLength(
         Math.min(11, featuredCount),
@@ -116,6 +120,16 @@ describe('resolveTrendingStates (cold vs warm)', () => {
         .sort(),
     ).toEqual(['algiers', 'oran'].sort());
     expect(trending.groups.flatMap((group) => group.cities)).toHaveLength(11);
+
+    const cards = trending.groups.flatMap((group) => group.cities);
+    for (const slug of ['algiers', 'oran'])
+      expect(
+        cards.find((card) => card.city.slug === slug),
+        `the ${slug} card shows who hosts its meetups`,
+      ).toMatchObject({
+        hosts: [{ name: host.name, photoAssetId: null }],
+        hostCount: 1,
+      });
   });
 
   it('offers featured cities with no meetups as pioneer entries, never communes', async () => {
@@ -151,6 +165,9 @@ describe('resolveTrendingStates (cold vs warm)', () => {
 
     expect(pioneer.cities.length).toBeGreaterThan(0);
     expect(pioneer.cities.every((c) => c.count === 0)).toBe(true);
+    expect(
+      pioneer.cities.every((c) => c.hosts.length === 0 && c.hostCount === 0),
+    ).toBe(true);
 
     const featured = new Set(
       geo.getFeaturedCities('DZ').map((city) => city.code),

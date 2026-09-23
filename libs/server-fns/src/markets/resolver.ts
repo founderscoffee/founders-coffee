@@ -24,6 +24,7 @@ export type {
   TrendingSection,
   TrendingState,
 } from './trending.js';
+export type { TrendingHost } from './city-hosts.js';
 
 export interface MarketWithCities {
   readonly market: Market;

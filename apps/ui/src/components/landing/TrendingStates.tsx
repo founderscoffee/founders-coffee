@@ -1,19 +1,22 @@
 import { Link } from '@tanstack/react-router';
-import { Plus, UsersRound } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import type { Market } from '@founders-coffee/db';
 import {
   city_empty_cta,
+  city_hosts_count,
+  city_upcoming_count,
   host_in_your_city,
   localizedName,
   market_cities,
-  this_week_n,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { TrendingSection } from '@founders-coffee/server-fns';
 import { localizedCity, localizedHostCreate } from '../../lib/locale-routing';
+import { HostFace } from '../events/HostFace';
 
 const CITY_CARD_COUNT = 11;
+const HOST_BUBBLE_CAP = 99;
 
 type TrendingStatesProps = {
   locale: Locale;
@@ -43,8 +46,12 @@ export const TrendingStates = ({
         aria-label={marketName}
         className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
       >
-        {cities.map(({ city, count }) => {
+        {cities.map(({ city, count, hosts, hostCount }) => {
           const headingId = `market-city-${market.slug}-${city.slug}`;
+          const unseenHosts = Math.min(
+            hostCount - hosts.length,
+            HOST_BUBBLE_CAP,
+          );
           return (
             <li key={city.code} className="h-full">
               <Link
@@ -66,15 +73,33 @@ export const TrendingStates = ({
                     >
                       {localizedName(city, locale)}
                     </h3>
-                    {count > 0 ? (
-                      <span className="flex shrink-0 items-center gap-1 text-accent">
-                        <UsersRound className="size-4" aria-hidden="true" />
-                        <data
-                          value={count}
-                          className="font-display text-body-lg font-semibold leading-none"
-                        >
-                          {count > 99 ? '+99' : count}
-                        </data>
+                    {hosts.length > 0 ? (
+                      <span
+                        role="img"
+                        aria-label={city_hosts_count(
+                          { count: hostCount },
+                          { locale },
+                        )}
+                        className="avatar-group -space-x-3 shrink-0 overflow-visible"
+                      >
+                        {hosts.map((host, index) => (
+                          <HostFace
+                            key={`host-${index}`}
+                            name={host.name}
+                            photoAssetId={host.photoAssetId}
+                            className="size-8 border-2 border-base-100"
+                          />
+                        ))}
+                        {unseenHosts > 0 ? (
+                          <span className="avatar avatar-placeholder size-8 shrink-0 border-2 border-base-100">
+                            <span
+                              dir="ltr"
+                              className="flex size-full items-center justify-center rounded-full bg-base-200 text-caption font-semibold text-base-content"
+                            >
+                              +{unseenHosts}
+                            </span>
+                          </span>
+                        ) : null}
                       </span>
                     ) : null}
                   </header>
@@ -82,7 +107,7 @@ export const TrendingStates = ({
                     className={`mt-auto text-body-sm font-medium ${count > 0 ? 'text-neutral' : 'text-accent'}`}
                   >
                     {count > 0
-                      ? this_week_n({ n: count }, { locale })
+                      ? city_upcoming_count({ count }, { locale })
                       : city_empty_cta({}, { locale })}
                   </p>
                 </article>

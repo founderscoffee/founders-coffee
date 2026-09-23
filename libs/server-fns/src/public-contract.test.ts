@@ -10,6 +10,7 @@ import { profile } from '@founders-coffee/domain';
 import { readAccountSummary } from './profile/account.js';
 import { attachAttendance } from './events/attendance.js';
 import { attachCityNames } from './events/resolver.js';
+import { groupCityHosts } from './markets/city-hosts.js';
 import { ownerProfileProjection } from './profile/projection.js';
 
 const PUBLIC_PROFILE_FIELDS = [
@@ -63,6 +64,8 @@ const PUBLIC_EVENT_FIELDS = [
   'hostPhotoAssetId',
   'viewerRsvp',
 ] as const;
+
+const PUBLIC_CITY_HOST_FIELDS = ['name', 'photoAssetId'] as const;
 
 const PUBLIC_MARKET_FIELDS = [
   'brandOverrides',
@@ -147,6 +150,22 @@ describe('public response contract', () => {
     expect(sorted(Object.keys(item))).toEqual(sorted(PUBLIC_EVENT_FIELDS));
   });
 
+  it('publishes exactly the host fields a city card names', () => {
+    const [face] =
+      groupCityHosts([
+        {
+          cityCode: '1',
+          hostId: 'usr_contract',
+          name: 'Contract',
+          photoAssetId: 'ast_contract',
+        },
+      ]).get('1')?.hosts ?? [];
+
+    expect(sorted(Object.keys(face ?? {}))).toEqual(
+      sorted(PUBLIC_CITY_HOST_FIELDS),
+    );
+  });
+
   it('publishes exactly the market fields the contract names', () => {
     expect(sorted(Object.keys(getTableColumns(markets)))).toEqual(
       sorted(PUBLIC_MARKET_FIELDS),
@@ -205,6 +224,7 @@ describe('public response contract', () => {
       PUBLIC_PROFILE_FIELDS,
       OWNER_PROFILE_FIELDS,
       PUBLIC_EVENT_FIELDS,
+      PUBLIC_CITY_HOST_FIELDS,
       PUBLIC_MARKET_FIELDS,
     ];
 
