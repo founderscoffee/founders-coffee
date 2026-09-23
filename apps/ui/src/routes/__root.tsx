@@ -34,6 +34,7 @@ import { routeMarketSlug } from '../lib/route-market';
 import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd } from '../lib/seo-company';
 import { errorPageHead } from '../lib/seo-error';
+import { installedAppMeta } from '../lib/installed-app-head';
 import { manifestHref } from '../lib/web-manifest';
 
 import appCss from '../styles.css?url';
@@ -144,7 +145,7 @@ export const Route = createRootRoute({
       meta: [
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'theme-color', content: '#270F00' },
+        ...installedAppMeta(),
         ...(pageHead?.meta ?? []),
       ],
       links: [
