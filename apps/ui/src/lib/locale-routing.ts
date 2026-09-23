@@ -169,6 +169,19 @@ export const localizedOnboarding = (locale: Locale) => ({
 });
 
 /**
+ * Somebody else's public profile, addressed in the language it is being shared in.
+ *
+ * This is the one address of the private set that a stranger opens. It is `noindex`, so the
+ * missing prefix cost no search placement, but a profile shared from a French page opened in
+ * whatever language the recipient's cookie happened to hold, which is the same defect as an event
+ * link opening in the wrong one.
+ */
+export const localizedPublicProfile = (locale: Locale, userId: string) => ({
+  to: '/$market/u/$userId' as const,
+  params: { market: locale, userId },
+});
+
+/**
  * Home, addressed as the reader's own market rather than as `/`.
  *
  * `/` is a redirect stub. It resolves a market and answers 307, and on a client navigation that

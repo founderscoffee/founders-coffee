@@ -90,8 +90,8 @@ const UNPREFIXED: Readonly<Record<string, Exemption>> = {
     why: '#58 — now /{locale}/profile/notifications',
   },
   '/u/$userId': {
-    kind: 'unresolved',
-    why: '#58 — a public profile, so this one is also a crawler-visible address with no locale',
+    kind: 'redirect',
+    why: '#58 — the profile is /{locale}/u/$userId; a shared link opens in the language it was shared in',
   },
 };
 

@@ -6,8 +6,23 @@ import { type Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children }: { children: React.ReactNode }) => (
-    <a href="/">{children}</a>
+  Link: ({
+    children,
+    to,
+    params,
+  }: {
+    children: React.ReactNode;
+    to?: string;
+    params?: Record<string, string>;
+  }) => (
+    <a
+      href={Object.entries(params ?? {}).reduce(
+        (path, [name, value]) => path.replace(`$${name}`, value),
+        to ?? '/',
+      )}
+    >
+      {children}
+    </a>
   ),
 }));
 
@@ -230,4 +245,37 @@ describe('how often the event page says who is hosting', () => {
     expect(saysHostedBy(view)).toBe(1);
     expect(screen.queryByRole('heading', { name: 'Your meetup' })).toBeNull();
   });
+});
+
+describe('where the host card sends a reader', () => {
+  const host = {
+    userId: 'usr_1',
+    displayName: 'Yacine',
+  } as Parameters<typeof EventDetail>[0]['host'];
+
+  const withHost = (locale: Locale) =>
+    render(
+      <EventDetail
+        locale={locale}
+        market={market}
+        event={event}
+        host={host}
+        isHost={false}
+        live={null}
+        isWindowOpen={false}
+      />,
+    );
+
+  it.each<Locale>(['ar', 'en', 'fr'])(
+    'names the profile in the language the page is in, in %s',
+    (locale) => {
+      const view = withHost(locale);
+      const link = view.container.querySelector('a[href*="/u/"]');
+
+      expect(
+        link?.getAttribute('href'),
+        'the profile is reached from a page written in one language, and it opens in whatever the reader last stored unless the address says otherwise',
+      ).toBe(`/${locale}/u/usr_1`);
+    },
+  );
 });

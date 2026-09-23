@@ -128,3 +128,37 @@ describe('reaching a private screen that needs a session', () => {
     expect(page.landed).toContain(encodeURIComponent(expected));
   });
 });
+
+describe('a profile shared from a page in one language', () => {
+  const HOST = 'usr_geo_feed';
+
+  it.each(['ar', 'en', 'fr'])(
+    'opens /%s/u at that language',
+    async (locale) => {
+      const page = await visit(`/${locale}/u/${HOST}`);
+
+      expect(page.lang).toBe(locale);
+      expect(page.landed).toBe(`/${locale}/u/${HOST}`);
+    },
+  );
+
+  it.each([
+    [`/u/${HOST}`, 'PARAGLIDE_LOCALE=fr', `/fr/u/${HOST}`],
+    [`/u/${HOST}`, 'PARAGLIDE_LOCALE=en', `/en/u/${HOST}`],
+    [`/algeria/u/${HOST}`, 'PARAGLIDE_LOCALE=fr', `/fr/u/${HOST}`],
+  ])('hands %s under %s to %s', async (pathname, cookie, expected) => {
+    const page = await visit(pathname, cookie);
+
+    expect(page.landed).toBe(expected);
+  });
+
+  it('keeps the page a reader was already on', async () => {
+    const page = await visit(
+      `/u/${HOST}?beforeStartsAt=1790000000&beforeId=evt_x`,
+      'PARAGLIDE_LOCALE=fr',
+    );
+
+    expect(page.landed).toContain('beforeId=evt_x');
+    expect(page.landed).toContain(`/fr/u/${HOST}`);
+  });
+});

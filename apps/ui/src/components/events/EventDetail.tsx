@@ -28,7 +28,10 @@ import type {
 } from '@founders-coffee/server-fns';
 
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
-import { localizedCity } from '../../lib/locale-routing';
+import {
+  localizedCity,
+  localizedPublicProfile,
+} from '../../lib/locale-routing';
 import { EventLocationMap } from './EventLocationMap';
 import { RsvpBoxHeading } from './RsvpBoxHeading';
 import { RsvpSection } from './RsvpSection';
@@ -247,8 +250,7 @@ export const EventDetail = ({
               </span>
               {host ? (
                 <Link
-                  to="/u/$userId"
-                  params={{ userId: host.userId }}
+                  {...localizedPublicProfile(locale, host.userId)}
                   className="btn btn-outline btn-sm h-9 min-h-9 px-4"
                 >
                   {profile_link({}, { locale })}
