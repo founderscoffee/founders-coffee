@@ -79,3 +79,53 @@ describe('where a company section can be linked to', () => {
     ).toContain('#report');
   });
 });
+
+const TAILWIND_REM = {
+  'max-w-xs': 20,
+  'max-w-sm': 24,
+  'max-w-md': 28,
+  'max-w-lg': 32,
+  'max-w-xl': 36,
+  'max-w-2xl': 42,
+  'max-w-3xl': 48,
+  'max-w-4xl': 56,
+  'max-w-5xl': 64,
+};
+const ROOT_FONT_PX = 16;
+const ARABIC_CHARACTER_PX = 7.75;
+const COMFORTABLE = { fewest: 45, most: 75 };
+
+const readingColumn = (): { width: number; gutter: number } => {
+  const article = show(page([])).querySelector('article');
+  const classes = (article?.getAttribute('class') ?? '').split(/\s+/u);
+  const cap = classes.find((name) => name in TAILWIND_REM);
+  const declared = /^px-(\d+)$/u.exec(
+    classes.find((name) => /^px-\d+$/u.test(name)) ?? '',
+  );
+  const gutter = declared ? Number(declared[1]) * 4 : 0;
+  return {
+    width:
+      TAILWIND_REM[cap as keyof typeof TAILWIND_REM] * ROOT_FONT_PX -
+      gutter * 2,
+    gutter,
+  };
+};
+
+describe('how far the eye travels along a line of a legal page', () => {
+  it('keeps a line inside the band a reader can sweep back across', () => {
+    const characters = readingColumn().width / ARABIC_CHARACTER_PX;
+
+    expect(
+      characters,
+      'measured on /ar/terms at 1440px: Tajawal 16px averages 7.75px a character, and a 736px column put roughly 95 of them on a line, where the eye loses its place coming back',
+    ).toBeLessThanOrEqual(COMFORTABLE.most);
+    expect(characters).toBeGreaterThanOrEqual(COMFORTABLE.fewest);
+  });
+
+  it('keeps the words off the edge of a phone', () => {
+    expect(
+      readingColumn().gutter,
+      'below the cap the viewport is what sets the column, and with no gutter the text runs into the bezel',
+    ).toBeGreaterThan(0);
+  });
+});
