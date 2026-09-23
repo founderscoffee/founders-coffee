@@ -24,6 +24,13 @@ export const memberChanged = (
  * and signing in as someone else leaves the previous member's attendance rendered as the new one's
  * until each query happens to refetch.
  *
+ * What no screen is reading is removed, and what a screen is reading is reset and asked for again.
+ * Removing a query that a screen is reading cancels its request without telling the screen, so one
+ * that asked in the same render the session changed waits indefinitely: the host wizard's sign-in
+ * gate, asking for the new member's profile, did exactly that. A reset is not enough for the rest,
+ * because it returns a query to the data it started with, and a feed's first page was rendered for
+ * the member who has just left. What the previous member sent is forgotten with it.
+ *
  * The service-worker caches are swept alongside it. `activate` already does a narrower sweep, but a
  * service worker only activates when a new one is installed, which is not something a sign-out
  * causes.
@@ -32,6 +39,8 @@ export const withdrawMemberCaches = async (
   client: QueryClient,
   storage?: CacheStorage,
 ): Promise<void> => {
-  client.clear();
+  client.getMutationCache().clear();
+  client.removeQueries({ type: 'inactive' });
+  void client.resetQueries({ type: 'active' });
   if (storage) await purgeMemberCacheEntries(storage);
 };
