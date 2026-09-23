@@ -269,10 +269,13 @@ export class EventLiveDO extends DurableObject<DoEnv> {
    * Set the alarm for the earliest moment a socket in the room could go stale, or clear it when the
    * room is empty.
    *
-   * The deadline moves with the heartbeats (#86). While everyone keeps sending them it keeps
-   * moving, and the object wakes when the oldest heartbeat in the room is a timeout old, not on
-   * every heartbeat interval. An alarm already set sooner is kept, so a socket that joins never
-   * delays one that is due first.
+   * That moment is the oldest last sign of life in the room, as it stands when the alarm is armed,
+   * plus `HEARTBEAT_TIMEOUT_MS` (#86). Heartbeats are answered by the runtime and never wake the
+   * room (#85), so the alarm cannot move later as they arrive: it fires at a deadline worked out on
+   * an earlier wake. By then every healthy socket has sent a heartbeat within the last interval, so
+   * the next deadline is 30 to 45 s away, and a healthy room wakes that often rather than every
+   * 15 s. Arming any later would let a socket that went silent outlive the timeout. An alarm
+   * already set sooner is kept, so a socket that joins never delays one that is due first.
    */
   private armHeartbeat = async (): Promise<void> => {
     const next = this.connections.nextDeadline(HEARTBEAT_TIMEOUT_MS);
