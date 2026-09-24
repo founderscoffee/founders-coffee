@@ -26,6 +26,7 @@ export const ownerProfileProjection = (
       interests: row?.publishInterests ?? false,
       spokenLanguages: row?.publishSpokenLanguages ?? false,
       professionalLink: row?.publishProfessionalLink ?? false,
+      attendedCount: row?.publishAttendedCount ?? false,
     },
   });
 
@@ -42,4 +43,5 @@ export const profileChanges = (input: profile.UpdateProfileInput) => ({
   publishInterests: input.visibility.interests,
   publishSpokenLanguages: input.visibility.spokenLanguages,
   publishProfessionalLink: input.visibility.professionalLink,
+  publishAttendedCount: input.visibility.attendedCount,
 });

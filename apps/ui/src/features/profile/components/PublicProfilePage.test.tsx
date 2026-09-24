@@ -43,6 +43,7 @@ const publicProfile: PublicProfile = {
   interests: [],
   spokenLanguages: [],
   professionalLink: null,
+  attendedCount: null,
 };
 
 const markets: readonly RootMarket[] = [

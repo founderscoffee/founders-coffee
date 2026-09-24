@@ -26,13 +26,19 @@ export const publicMemberProfileSchema = z.strictObject({
   interests: z.array(profileInterestSchema).max(5),
   spokenLanguages: z.array(spokenLanguageSchema).max(6),
   professionalLink: professionalLinkSchema,
+  attendedCount: z.number().int().nonnegative().nullable(),
 });
 
 export type PublicMemberProfile = z.infer<typeof publicMemberProfileSchema>;
 
+export type MeetupRecord = {
+  readonly attended: number;
+};
+
 /** Project public identity/avatar and opted-in details; authorization and asset delivery stay server-side. */
 export const projectPublicProfile = (
   profile: OwnerProfile,
+  record: MeetupRecord,
 ): PublicMemberProfile => ({
   userId: profile.userId,
   displayName: profile.displayName,
@@ -48,4 +54,5 @@ export const projectPublicProfile = (
   professionalLink: profile.visibility.professionalLink
     ? profile.professionalLink
     : null,
+  attendedCount: profile.visibility.attendedCount ? record.attended : null,
 });

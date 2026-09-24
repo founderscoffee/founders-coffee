@@ -32,6 +32,8 @@ const OWNER_PROFILE_FIELDS = [
   'visibility',
 ] as const;
 
+const MEETUP_RECORD_FIELDS = ['attendedCount'] as const;
+
 const EVENT_COLUMNS = [
   'cancellationReason',
   'cancelledAt',
@@ -104,10 +106,10 @@ describe('public response contract', () => {
   it('publishes exactly the profile fields the contract names', () => {
     expect(
       sorted(Object.keys(profile.publicMemberProfileSchema.shape)),
-    ).toEqual(sorted(PUBLIC_PROFILE_FIELDS));
+    ).toEqual(sorted([...PUBLIC_PROFILE_FIELDS, ...MEETUP_RECORD_FIELDS]));
   });
 
-  it('keeps the owner projection to the published fields plus its own controls', () => {
+  it('keeps the owner projection to the published fields, less the meetup record, plus its own controls', () => {
     const owner = ownerProfileProjection(
       'usr_contract',
       'Contract',
@@ -118,6 +120,7 @@ describe('public response contract', () => {
     expect(sorted(Object.keys(owner))).toEqual(sorted(OWNER_PROFILE_FIELDS));
     expect(sorted(Object.keys(owner.visibility))).toEqual(
       sorted([
+        'attendedCount',
         'headline',
         'interests',
         'professionalLink',
@@ -142,13 +145,14 @@ describe('public response contract', () => {
         photoAssetId: 'ast_0123456789abcdef0123456789abcdef',
       } as never,
     );
-    const published = profile.projectPublicProfile(owner);
+    const published = profile.projectPublicProfile(owner, { attended: 4 });
 
     expect(sorted(Object.keys(published))).toEqual(
-      sorted(PUBLIC_PROFILE_FIELDS),
+      sorted([...PUBLIC_PROFILE_FIELDS, ...MEETUP_RECORD_FIELDS]),
     );
     expect(published).toMatchObject({
       memberSince: '2026-03',
+      attendedCount: null,
       headline: null,
       stage: null,
       introduction: 'Secret',

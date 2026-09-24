@@ -19,6 +19,7 @@ export const profileChanges: MemberProfileChanges = {
   professionalLink: 'https://example.com',
   publishHeadline: false,
   publishStage: false,
+  publishAttendedCount: false,
   publishInterests: false,
   publishSpokenLanguages: false,
   publishProfessionalLink: false,

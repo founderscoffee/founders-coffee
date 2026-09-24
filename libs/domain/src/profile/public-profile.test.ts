@@ -19,14 +19,18 @@ const owner = ownerProfileSchema.parse({
   spokenLanguages: ['ar', 'fr'],
   professionalLink: 'https://example.com/amina',
 });
+const record = { attended: 11 };
 
 describe('public profile projection', () => {
   it('publishes the uploaded avatar and introduction but never exposes private optional details, auth fields or ownership controls by default', () => {
-    const projected = projectPublicProfile({
-      ...owner,
-      email: 'private@example.com',
-      role: 'admin',
-    } as typeof owner);
+    const projected = projectPublicProfile(
+      {
+        ...owner,
+        email: 'private@example.com',
+        role: 'admin',
+      } as typeof owner,
+      record,
+    );
     expect(projected).toEqual({
       userId: owner.userId,
       displayName: 'Amina',
@@ -38,21 +42,26 @@ describe('public profile projection', () => {
       interests: [],
       spokenLanguages: [],
       professionalLink: null,
+      attendedCount: null,
     });
     expect(publicMemberProfileSchema.parse(projected)).toEqual(projected);
   });
 
   it('publishes each opted-in field through a fixed allowlist', () => {
-    const projected = projectPublicProfile({
-      ...owner,
-      visibility: {
-        headline: true,
-        stage: true,
-        interests: true,
-        spokenLanguages: true,
-        professionalLink: true,
+    const projected = projectPublicProfile(
+      {
+        ...owner,
+        visibility: {
+          headline: true,
+          stage: true,
+          interests: true,
+          spokenLanguages: true,
+          professionalLink: true,
+          attendedCount: true,
+        },
       },
-    });
+      record,
+    );
     expect(projected).toEqual({
       userId: owner.userId,
       displayName: owner.displayName,
@@ -64,24 +73,41 @@ describe('public profile projection', () => {
       interests: ['community'],
       spokenLanguages: ['ar', 'fr'],
       professionalLink: owner.professionalLink,
+      attendedCount: 11,
     });
     expect(projected.interests).not.toBe(owner.interests);
     expect(projected.spokenLanguages).not.toBe(owner.spokenLanguages);
   });
 
   it('does not couple independent visibility choices', () => {
-    const projected = projectPublicProfile({
-      ...owner,
-      visibility: { ...owner.visibility, interests: true },
-    });
+    const projected = projectPublicProfile(
+      {
+        ...owner,
+        visibility: { ...owner.visibility, interests: true },
+      },
+      record,
+    );
     expect(projected.headline).toBeNull();
     expect(projected.stage).toBeNull();
+    expect(projected.attendedCount).toBeNull();
     expect(
-      projectPublicProfile({
-        ...owner,
-        visibility: { ...owner.visibility, stage: true },
-      }),
+      projectPublicProfile(
+        {
+          ...owner,
+          visibility: { ...owner.visibility, stage: true },
+        },
+        record,
+      ),
     ).toMatchObject({ headline: null, stage: 'building' });
+    expect(
+      projectPublicProfile(
+        {
+          ...owner,
+          visibility: { ...owner.visibility, attendedCount: true },
+        },
+        record,
+      ),
+    ).toMatchObject({ interests: [], attendedCount: 11 });
     expect(projected.introduction).toBe(owner.introduction);
     expect(projected.interests).toEqual(owner.interests);
     expect(projected.photoAssetId).toBe(owner.photoAssetId);

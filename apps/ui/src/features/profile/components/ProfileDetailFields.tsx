@@ -1,4 +1,6 @@
 import {
+  profile_attended_hint,
+  profile_attended_label,
   profile_interests_hint,
   profile_interests_label,
   profile_languages_label,
@@ -136,6 +138,29 @@ export const ProfileDetailFields = ({
           onChange={(isPublic) =>
             onChange({
               visibility: { ...draft.visibility, professionalLink: isPublic },
+            })
+          }
+        />
+      </div>
+
+      <div>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <span className="text-label">
+            {profile_attended_label({}, { locale })}
+          </span>
+          <OptionalChip locale={locale} />
+        </div>
+        <p className="text-body-sm text-neutral">
+          {profile_attended_hint({}, { locale })}
+        </p>
+        <PublishToggle
+          locale={locale}
+          isPublic={draft.visibility.attendedCount}
+          isDisabled={isDisabled}
+          fieldLabel={profile_attended_label({}, { locale })}
+          onChange={(isPublic) =>
+            onChange({
+              visibility: { ...draft.visibility, attendedCount: isPublic },
             })
           }
         />

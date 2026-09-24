@@ -146,8 +146,15 @@ the month the account was created, with no toggle, because an account age its ow
 say nothing to the person deciding whether to meet them; the day and time never leave the server
 (#89). Everything else is published only by its own toggle, and every toggle starts off: what the
 member is building, as one line of up to 80 characters, and how far along it is, as `idea`,
-`building`, or `launched` (#89); interests; spoken languages; and a personal website. Clearing a
-field withdraws its publication.
+`building`, or `launched` (#89); interests; spoken languages; a personal website; and how many
+meetups the member attended in the last two years (#90). Clearing a field withdraws its publication.
+
+**The meetup record.** Attendance is counted from what hosts recorded at closeout, only at meetups
+whose closeout says they took place, and a no-show is never counted or shown. It is a count and not
+a list, because a list would publish where someone was; #91's tabs stay deferred for the same
+reason. The window is the operations retention period, 730 days measured on each meetup's start, and
+the profile says "in the last two years": attendance rows are deleted at that age, so a longer claim
+would shrink as they retire.
 
 **What it will not become.** Features that are neutral on a hiring network are not neutral for
 members meeting strangers in DZ, EG, and SA. These boundaries change only through an explicit

@@ -234,6 +234,19 @@
   "stage_building": "Building",
   "stage_launched": "Launched",
   "profile_member_since": "Member since {date}",
+  "profile_attended_label": "Meetups I attended",
+  "profile_attended_hint": "How many meetups a host recorded you at in the last two years. Meetups you missed are never counted or shown.",
+  "profile_record_window": "In the last two years",
+  "profile_record_attended": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "Attended {count} meetup",
+        "countPlural=*": "Attended {count} meetups"
+      }
+    }
+  ],
   "profile_name_invalid": "Enter a display name of 1–80 characters, without contact details.",
   "profile_saved": "Your profile has been saved.",
   "toast_dismiss": "Dismiss notification",

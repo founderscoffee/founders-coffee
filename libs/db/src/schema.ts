@@ -566,6 +566,11 @@ export const memberProfiles = sqliteTable(
     publishStage: integer('publish_stage', { mode: 'boolean' })
       .notNull()
       .default(false),
+    publishAttendedCount: integer('publish_attended_count', {
+      mode: 'boolean',
+    })
+      .notNull()
+      .default(false),
     publishInterests: integer('publish_interests', { mode: 'boolean' })
       .notNull()
       .default(false),

@@ -21,6 +21,7 @@ const saved: UserProfile = {
     interests: false,
     spokenLanguages: false,
     professionalLink: false,
+    attendedCount: false,
   },
 };
 

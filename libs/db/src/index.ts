@@ -35,6 +35,7 @@ export * from './push.js';
 export * from './users.js';
 export * from './seed.js';
 export * from './member-profiles.js';
+export * from './member-record.js';
 export * from './account-preferences.js';
 export * from './account-summary.js';
 export * from './account-sessions.js';

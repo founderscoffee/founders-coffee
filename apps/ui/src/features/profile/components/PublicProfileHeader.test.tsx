@@ -17,6 +17,7 @@ const member: PublicProfile = {
   interests: [],
   spokenLanguages: [],
   professionalLink: null,
+  attendedCount: null,
 };
 
 afterEach(cleanup);

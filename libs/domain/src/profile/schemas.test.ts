@@ -64,6 +64,7 @@ describe('profile contracts', () => {
         interests: false,
         spokenLanguages: false,
         professionalLink: false,
+        attendedCount: false,
       },
     });
   });
@@ -133,6 +134,7 @@ describe('profile contracts', () => {
       interests: true,
       spokenLanguages: true,
       professionalLink: true,
+      attendedCount: true,
     };
     expect(
       updateProfileSchema.parse({ ...minimal, visibility, headline: '  ' })
@@ -143,6 +145,7 @@ describe('profile contracts', () => {
       interests: false,
       spokenLanguages: false,
       professionalLink: false,
+      attendedCount: true,
     });
     const value = updateProfileSchema.parse({
       ...minimal,

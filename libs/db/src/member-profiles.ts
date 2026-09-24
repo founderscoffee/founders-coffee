@@ -23,6 +23,7 @@ export type MemberProfileChanges = Pick<
   | 'publishInterests'
   | 'publishSpokenLanguages'
   | 'publishProfessionalLink'
+  | 'publishAttendedCount'
 >;
 
 /** Read only the identity fields needed to suppress contact fallbacks; never expose this row over RPC. */
@@ -165,6 +166,7 @@ export const updateMemberProfile = async (
         publishInterests: changes.publishInterests,
         publishSpokenLanguages: changes.publishSpokenLanguages,
         publishProfessionalLink: changes.publishProfessionalLink,
+        publishAttendedCount: changes.publishAttendedCount,
         revision: sql`${memberProfiles.revision} + 1`,
         updatedAt: now,
       })

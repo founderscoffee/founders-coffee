@@ -333,6 +333,19 @@
   "stage_building": "En construction",
   "stage_launched": "Lancé",
   "profile_member_since": "Membre depuis {date}",
+  "profile_attended_label": "Rencontres auxquelles j’ai participé",
+  "profile_attended_hint": "Le nombre de rencontres où un hôte a noté votre présence au cours des deux dernières années. Les rencontres manquées ne sont jamais comptées ni affichées.",
+  "profile_record_window": "Au cours des deux dernières années",
+  "profile_record_attended": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "A participé à {count} rencontre",
+        "countPlural=*": "A participé à {count} rencontres"
+      }
+    }
+  ],
   "profile_name_invalid": "Saisissez un nom de 1 à 80 caractères, sans coordonnées personnelles.",
   "profile_saved": "Votre profil a été enregistré.",
   "toast_dismiss": "Fermer la notification",

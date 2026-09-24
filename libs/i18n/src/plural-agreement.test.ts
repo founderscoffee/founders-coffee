@@ -6,6 +6,7 @@ import {
   city_loaded_count,
   going_count,
   hero_social_proof,
+  profile_record_attended,
 } from './paraglide/messages.js';
 
 const CATEGORY_SAMPLE = {
@@ -70,6 +71,21 @@ describe('Arabic number agreement', () => {
     });
   });
 
+  it('counts the meetups a member attended without saying who they are', () => {
+    expect(
+      arabicForms((count) =>
+        profile_record_attended({ count }, { locale: 'ar' }),
+      ),
+    ).toEqual({
+      zero: 'حضور 0 لقاءات',
+      one: 'حضور 1 لقاء',
+      two: 'حضور 2 لقاءين',
+      few: 'حضور 3 لقاءات',
+      many: 'حضور 11 لقاءً',
+      other: 'حضور 100 لقاء',
+    });
+  });
+
   it('declines the signed-in noun on the account page', () => {
     expect(
       arabicForms((count) =>
@@ -126,6 +142,21 @@ describe('French and English number agreement', () => {
     expect(render(3, 'fr')).toBe('3 rencontres à venir à Oran');
     expect(render(1, 'en')).toBe('1 casual meetup coming up in Oran');
     expect(render(3, 'en')).toBe('3 casual meetups coming up in Oran');
+  });
+
+  it('counts attended meetups without a gendered subject', () => {
+    expect(profile_record_attended({ count: 1 }, { locale: 'fr' })).toBe(
+      'A participé à 1 rencontre',
+    );
+    expect(profile_record_attended({ count: 11 }, { locale: 'fr' })).toBe(
+      'A participé à 11 rencontres',
+    );
+    expect(profile_record_attended({ count: 1 }, { locale: 'en' })).toBe(
+      'Attended 1 meetup',
+    );
+    expect(profile_record_attended({ count: 11 }, { locale: 'en' })).toBe(
+      'Attended 11 meetups',
+    );
   });
 
   it('drops the English plural at one only', () => {

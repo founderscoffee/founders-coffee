@@ -91,6 +91,7 @@ export const profileVisibilitySchema = z.strictObject({
   interests: z.boolean().default(false),
   spokenLanguages: z.boolean().default(false),
   professionalLink: z.boolean().default(false),
+  attendedCount: z.boolean().default(false),
 });
 
 export const profileDetailsSchema = z.strictObject({

@@ -1,0 +1,1 @@
+ALTER TABLE `member_profiles` ADD `publish_attended_count` integer DEFAULT false NOT NULL;

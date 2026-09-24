@@ -16,6 +16,7 @@ import type { EventFeedItem } from '../../events/api';
 import type { RootMarket } from '../../markets/api';
 import type { PublicProfile } from '../api';
 import { PublicProfileHeader } from './PublicProfileHeader';
+import { PublicProfileRecord } from './PublicProfileRecord';
 
 const PAGE_SIZE = 12;
 
@@ -71,6 +72,7 @@ export const PublicProfilePage = ({
         <PublicProfileHeader locale={locale} profile={profile} />
 
         <div className="mt-6 flex flex-col gap-4">
+          <PublicProfileRecord locale={locale} profile={profile} />
           {profile.introduction ? (
             <p
               dir="auto"

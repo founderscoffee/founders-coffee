@@ -61,7 +61,7 @@ describe('PF-06 simplified photo card', () => {
       expect(card?.querySelector('p')?.textContent).toBe(
         profile_photo_card_subtitle({}, { locale }),
       );
-      expect(card?.querySelectorAll('input[type="checkbox"]')).toHaveLength(5);
+      expect(card?.querySelectorAll('input[type="checkbox"]')).toHaveLength(6);
       expect(card?.querySelector('img')).not.toBeNull();
       expect(card?.querySelector('#profile-name')).not.toBeNull();
       expect(card?.querySelector('#profile-intro')).not.toBeNull();
