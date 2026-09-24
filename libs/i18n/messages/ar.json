@@ -139,10 +139,10 @@
     }
   ],
   "hero_empty_city": "لا توجد لقاءات في {city} حاليًا",
-  "hero_empty_subtitle": "كن أول من يبدأ مجتمع رواد الأعمال في مدينتك.",
+  "hero_empty_subtitle": "كن أول من يجمع رواد الأعمال في مدينتك.",
   "hero_empty_cta": "استضف أول لقاء",
-  "hero_search_no_match": "لا توجد مدن تطابق \"{query}\"",
-  "hero_search_clear": "مسح المدينة المحددة",
+  "hero_search_no_match": "لا توجد مدن تطابق «{query}».",
+  "hero_search_clear": "إلغاء اختيار المدينة",
   "hero_waitlist_prompt": "أشعرني عند الإطلاق",
   "hero_waitlist_placeholder": "بريدك الإلكتروني",
   "hero_waitlist_submit": "أعلمني",

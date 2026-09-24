@@ -155,10 +155,10 @@
       }
     }
   ],
-  "hero_empty_subtitle": "Soyez le premier à lancer une communauté de fondateurs dans votre ville.",
+  "hero_empty_subtitle": "Soyez le premier à réunir les entrepreneurs de votre ville.",
   "hero_empty_cta": "Organiser la première rencontre",
-  "hero_search_no_match": "Aucune ville ne correspond à « {query} »",
-  "hero_search_clear": "Effacer la ville sélectionnée",
+  "hero_search_no_match": "Aucune ville ne correspond à « {query} ».",
+  "hero_search_clear": "Désélectionner la ville",
   "hero_waitlist_prompt": "Prévenez-moi au lancement",
   "hero_waitlist_placeholder": "Votre email",
   "hero_waitlist_submit": "Notifiez-moi",

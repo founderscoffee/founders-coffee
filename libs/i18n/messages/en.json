@@ -135,10 +135,10 @@
     }
   ],
   "hero_empty_city": "No meetups in {city} yet",
-  "hero_empty_subtitle": "Be the first to start a founder community in your city.",
+  "hero_empty_subtitle": "Be the first to bring entrepreneurs together in your city.",
   "hero_empty_cta": "Host the first meetup",
-  "hero_search_no_match": "No cities match \"{query}\"",
-  "hero_search_clear": "Clear selected city",
+  "hero_search_no_match": "No cities match “{query}”.",
+  "hero_search_clear": "Clear city selection",
   "hero_waitlist_prompt": "Notify me at launch",
   "hero_waitlist_placeholder": "Your email",
   "hero_waitlist_submit": "Notify me",
