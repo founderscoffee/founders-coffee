@@ -7,7 +7,6 @@ import { localizedEvent } from '../lib/locale-routing';
 
 export const Route = createFileRoute('/$locale/e/$slug')({
   preload: false,
-  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   component: () => null,
   loader: async ({ params, context }): Promise<never> => {
     let event;

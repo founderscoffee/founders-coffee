@@ -4,6 +4,5 @@ import { companyRedirect } from '../lib/company-redirect';
 
 export const Route = createFileRoute('/organizers')({
   preload: false,
-  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   beforeLoad: companyRedirect('organizers'),
 });

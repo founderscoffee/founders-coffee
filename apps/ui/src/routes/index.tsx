@@ -8,7 +8,6 @@ import { localizedLanding } from '../lib/locale-routing';
 
 export const Route = createFileRoute('/')({
   preload: false,
-  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   beforeLoad: async ({ params, context }) => {
     const routeParams = params as { readonly market?: string };
     const target = await landingMarketSlug(

@@ -33,6 +33,7 @@ import {
   probeLivePlacement,
   servesPlacementProbe,
 } from './lib/live-placement-probe.js';
+import { withoutRedirectCaching } from './lib/redirect-caching.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
 
@@ -117,14 +118,16 @@ export default {
     const url = new URL(request.url);
     const nonce = createCspNonce();
     const secure = (response: Response): Response =>
-      withoutErrorCaching(
-        withIndexationHeaders(
-          withSecurityHeaders(response, {
-            enforceCsp: env.CSP_ENFORCED === 'true',
-            reportPath: CSP_REPORT_PATH,
-            nonce,
-          }),
-          env,
+      withoutRedirectCaching(
+        withoutErrorCaching(
+          withIndexationHeaders(
+            withSecurityHeaders(response, {
+              enforceCsp: env.CSP_ENFORCED === 'true',
+              reportPath: CSP_REPORT_PATH,
+              nonce,
+            }),
+            env,
+          ),
         ),
       );
 
