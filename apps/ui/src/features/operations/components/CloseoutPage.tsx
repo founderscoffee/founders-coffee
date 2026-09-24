@@ -21,7 +21,7 @@ import {
   submit,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { RepeatHostLink } from '../../../components/events/RepeatHostLink';
@@ -64,7 +64,7 @@ export const CloseoutPage = ({
   const query = useCloseout(eventId);
   const save = useSubmitCloseout(eventId);
   const [draft, setDraft] = useState<CloseoutDraft | null>(null);
-  const refusal = useRef<HTMLParagraphElement>(null);
+  const refusal = useRef<HTMLDivElement>(null);
   const repeat = useRepeatEventTemplate(
     eventId,
     save.isSuccess && draft?.outcome === 'held',
@@ -101,9 +101,9 @@ export const CloseoutPage = ({
   if (query.isError)
     return (
       <section className="mx-auto max-w-2xl px-5 py-12">
-        <p className="text-body-sm text-error" role="alert">
+        <StatusMessage variant="error">
           {messageFor(query.error, locale)}
-        </p>
+        </StatusMessage>
       </section>
     );
 
@@ -117,14 +117,16 @@ export const CloseoutPage = ({
       </p>
 
       {!query.data || !draft ? (
-        <p role="status">{loading({}, { locale })}</p>
+        <LoadingStatus label={loading({}, { locale })} />
       ) : save.isSuccess ? (
         <div className="space-y-3">
-          <p role="status">{closeout_done({}, { locale })}</p>
+          <StatusMessage variant="success">
+            {closeout_done({}, { locale })}
+          </StatusMessage>
           {save.data.refusedMarks.length > 0 && (
-            <p className="text-body-sm text-neutral" role="alert">
+            <StatusMessage variant="warning">
               {closeout_refused_marks({}, { locale })}
-            </p>
+            </StatusMessage>
           )}
           {draft.outcome === 'held' && repeat.data && repeatMarketSlug ? (
             <RepeatHostLink
@@ -137,7 +139,9 @@ export const CloseoutPage = ({
         </div>
       ) : query.data.outcome !== null ? (
         <div className="space-y-6">
-          <p role="status">{closeout_already_done({}, { locale })}</p>
+          <StatusMessage variant="success">
+            {closeout_already_done({}, { locale })}
+          </StatusMessage>
           {tally.data ? (
             <FeedbackTally locale={locale} tally={tally.data} />
           ) : null}
@@ -156,14 +160,9 @@ export const CloseoutPage = ({
           />
 
           {save.isError && (
-            <p
-              className="text-body-sm text-error"
-              ref={refusal}
-              role="alert"
-              tabIndex={-1}
-            >
+            <StatusMessage variant="error" ref={refusal} tabIndex={-1}>
               {messageFor(save.error, locale)}
-            </p>
+            </StatusMessage>
           )}
 
           <Button

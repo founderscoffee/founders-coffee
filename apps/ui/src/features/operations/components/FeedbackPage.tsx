@@ -21,7 +21,7 @@ import {
   submit,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { localizedCity, localizedEvent } from '../../../lib/locale-routing';
@@ -61,7 +61,7 @@ export const FeedbackPage = ({
   const query = useFeedback(eventId);
   const save = useSubmitFeedback(eventId);
   const [draft, setDraft] = useState<FeedbackDraft | null>(null);
-  const errorRef = useRef<HTMLParagraphElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (query.data) setDraft(draftFromFeedback(query.data));
@@ -85,15 +85,15 @@ export const FeedbackPage = ({
   if (query.isError)
     return (
       <section className="mx-auto max-w-2xl px-5 py-12">
-        <p className="text-body-sm text-error" role="alert">
+        <StatusMessage variant="error">
           {messageFor(query.error, locale)}
-        </p>
+        </StatusMessage>
       </section>
     );
   if (!query.data || !draft)
     return (
       <section className="mx-auto max-w-2xl px-5 py-12">
-        <p role="status">{loading({}, { locale })}</p>
+        <LoadingStatus label={loading({}, { locale })} />
       </section>
     );
 
@@ -117,12 +117,14 @@ export const FeedbackPage = ({
         </p>
       </header>
       {closed ? (
-        <p role="status">{feedback_error_window_closed({}, { locale })}</p>
+        <StatusMessage variant="info">
+          {feedback_error_window_closed({}, { locale })}
+        </StatusMessage>
       ) : save.isSuccess ? (
         <div className="space-y-4">
-          <p className="text-success" role="status">
+          <StatusMessage variant="success">
             {feedback_saved({}, { locale })}
-          </p>
+          </StatusMessage>
           {query.data.nextEvent ? (
             <Link
               className="link link-primary"
@@ -159,14 +161,9 @@ export const FeedbackPage = ({
             }
           />
           {save.isError && (
-            <p
-              className="text-body-sm text-error"
-              ref={errorRef}
-              role="alert"
-              tabIndex={-1}
-            >
+            <StatusMessage variant="error" ref={errorRef} tabIndex={-1}>
               {messageFor(save.error, locale)}
-            </p>
+            </StatusMessage>
           )}
           <Button
             type="button"
