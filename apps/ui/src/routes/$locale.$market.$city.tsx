@@ -14,34 +14,36 @@ import {
 } from '../lib/public-pagination';
 import { canonicalUrl, cityPageHead } from '../lib/seo';
 
+const CityRoute = () => {
+  const {
+    locale,
+    market,
+    city,
+    events,
+    eventsNextCursor,
+    afterStartsAt,
+    afterId,
+  } = Route.useLoaderData();
+  return (
+    <CityLanding
+      locale={locale}
+      market={market}
+      city={city}
+      events={events}
+      afterStartsAt={afterStartsAt}
+      afterId={afterId}
+      nextCursor={eventsNextCursor}
+    />
+  );
+};
+
 export const Route = createFileRoute('/$locale/$market/$city')({
   validateSearch: publicPaginationSearchSchema,
   loaderDeps: ({ search }) => ({
     afterStartsAt: search.afterStartsAt,
     afterId: search.afterId,
   }),
-  component: () => {
-    const {
-      locale,
-      market,
-      city,
-      events,
-      eventsNextCursor,
-      afterStartsAt,
-      afterId,
-    } = Route.useLoaderData();
-    return (
-      <CityLanding
-        locale={locale}
-        market={market}
-        city={city}
-        events={events}
-        afterStartsAt={afterStartsAt}
-        afterId={afterId}
-        nextCursor={eventsNextCursor}
-      />
-    );
-  },
+  component: CityRoute,
   loader: async ({
     params,
     deps,

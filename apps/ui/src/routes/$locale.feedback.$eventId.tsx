@@ -6,16 +6,18 @@ import { FeedbackPage } from '../features/operations/components/FeedbackPage';
 import { NO_INDEX_VALUE } from '../lib/indexation';
 import { privatePageHead } from '../lib/seo-private';
 
+const FeedbackRoute = () => {
+  const { locale } = Route.useRouteContext();
+  const { eventId } = Route.useParams();
+  return <FeedbackPage locale={locale} eventId={eventId} />;
+};
+
 export const Route = createFileRoute('/$locale/feedback/$eventId')({
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,
   }),
-  component: () => {
-    const { locale } = Route.useRouteContext();
-    const { eventId } = Route.useParams();
-    return <FeedbackPage locale={locale} eventId={eventId} />;
-  },
+  component: FeedbackRoute,
   head: ({ match }) =>
     privatePageHead(feedback_title({}, { locale: match.context.locale })),
 });

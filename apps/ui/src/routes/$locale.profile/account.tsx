@@ -7,6 +7,11 @@ import { NO_INDEX_VALUE } from '../../lib/indexation';
 import { requireSession } from '../../features/auth/require-session';
 import { privatePageHead } from '../../lib/seo-private';
 
+const AccountRoute = () => {
+  const { locale } = Route.useRouteContext();
+  return <AccountPage locale={locale} />;
+};
+
 export const Route = createFileRoute('/$locale/profile/account')({
   beforeLoad: async ({ location, context }) => {
     await requireSession(context.locale, location.href);
@@ -15,10 +20,7 @@ export const Route = createFileRoute('/$locale/profile/account')({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,
   }),
-  component: () => {
-    const { locale } = Route.useRouteContext();
-    return <AccountPage locale={locale} />;
-  },
+  component: AccountRoute,
   head: ({ match }) =>
     privatePageHead(account_title({}, { locale: match.context.locale })),
 });

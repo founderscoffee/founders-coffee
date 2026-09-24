@@ -10,11 +10,13 @@ const getLoginConfig = createServerFn({ method: 'GET' }).handler(() => ({
     '',
 }));
 
+const LoginRoute = () => {
+  const { locale } = Route.useRouteContext();
+  const { turnstileSiteKey } = Route.useLoaderData();
+  return <AdminLogin locale={locale} turnstileSiteKey={turnstileSiteKey} />;
+};
+
 export const Route = createFileRoute('/login')({
   loader: () => getLoginConfig(),
-  component: () => {
-    const { locale } = Route.useRouteContext();
-    const { turnstileSiteKey } = Route.useLoaderData();
-    return <AdminLogin locale={locale} turnstileSiteKey={turnstileSiteKey} />;
-  },
+  component: LoginRoute,
 });

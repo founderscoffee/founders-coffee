@@ -10,6 +10,22 @@ import { authReturnPathSchema } from '../lib/redirect';
 import { redirectWhenSignedIn } from '../features/auth/require-session';
 import { privatePageHead } from '../lib/seo-private';
 
+const LoginRoute = () => {
+  const { locale } = Route.useRouteContext();
+  const { turnstileSiteKey, isTurnstileBypassed, hasSocial } =
+    Route.useLoaderData();
+  const { redirect: returnPath } = Route.useSearch();
+  return (
+    <LoginPage
+      locale={locale}
+      turnstileSiteKey={turnstileSiteKey}
+      isTurnstileBypassed={isTurnstileBypassed}
+      hasSocial={hasSocial}
+      redirect={returnPath}
+    />
+  );
+};
+
 export const Route = createFileRoute('/$locale/login')({
   headers: () => ({
     'Cache-Control': 'private, no-store',
@@ -21,21 +37,7 @@ export const Route = createFileRoute('/$locale/login')({
   beforeLoad: async ({ search }) => {
     await redirectWhenSignedIn(search.redirect);
   },
-  component: () => {
-    const { locale } = Route.useRouteContext();
-    const { turnstileSiteKey, isTurnstileBypassed, hasSocial } =
-      Route.useLoaderData();
-    const { redirect: returnPath } = Route.useSearch();
-    return (
-      <LoginPage
-        locale={locale}
-        turnstileSiteKey={turnstileSiteKey}
-        isTurnstileBypassed={isTurnstileBypassed}
-        hasSocial={hasSocial}
-        redirect={returnPath}
-      />
-    );
-  },
+  component: LoginRoute,
   loader: () => authApi.getPublicAuthConfig(),
   head: ({ match }) =>
     privatePageHead(login_title({}, { locale: match.context.locale })),

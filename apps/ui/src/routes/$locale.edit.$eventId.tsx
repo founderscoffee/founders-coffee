@@ -7,6 +7,20 @@ import { eventsApi } from '../features/events/api';
 import { NO_INDEX_VALUE } from '../lib/indexation';
 import { privatePageHead } from '../lib/seo-private';
 
+const EventEditRoute = () => {
+  const { locale, markets } = Route.useRouteContext();
+  const { eventId } = Route.useParams();
+  const { mapboxToken } = Route.useLoaderData();
+  return (
+    <EventEditPage
+      locale={locale}
+      eventId={eventId}
+      mapboxToken={mapboxToken}
+      markets={markets}
+    />
+  );
+};
+
 export const Route = createFileRoute('/$locale/edit/$eventId')({
   preload: false,
   headers: () => ({
@@ -16,19 +30,7 @@ export const Route = createFileRoute('/$locale/edit/$eventId')({
   loader: async (): Promise<{ mapboxToken: string }> => ({
     mapboxToken: await eventsApi.getMapboxToken(),
   }),
-  component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    const { eventId } = Route.useParams();
-    const { mapboxToken } = Route.useLoaderData();
-    return (
-      <EventEditPage
-        locale={locale}
-        eventId={eventId}
-        mapboxToken={mapboxToken}
-        markets={markets}
-      />
-    );
-  },
+  component: EventEditRoute,
   head: ({ match }) =>
     privatePageHead(host_edit_title({}, { locale: match.context.locale })),
 });

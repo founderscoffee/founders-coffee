@@ -13,29 +13,31 @@ import {
 } from '../lib/public-pagination';
 import { buildPageTitle } from '../lib/seo';
 
+const PublicProfileRoute = () => {
+  const { locale, markets } = Route.useRouteContext();
+  const { profile, events, eventsNextCursor, eventsTotal, pagination } =
+    Route.useLoaderData();
+  return (
+    <PublicProfilePage
+      locale={locale}
+      profile={profile}
+      events={events}
+      eventsNextCursor={eventsNextCursor}
+      eventsTotal={eventsTotal}
+      beforeStartsAt={pagination.beforeStartsAt}
+      beforeId={pagination.beforeId}
+      markets={markets}
+    />
+  );
+};
+
 export const Route = createFileRoute('/$locale/u/$userId')({
   validateSearch: hostedPaginationSearchSchema,
   loaderDeps: ({ search }) => ({
     beforeStartsAt: search.beforeStartsAt,
     beforeId: search.beforeId,
   }),
-  component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    const { profile, events, eventsNextCursor, eventsTotal, pagination } =
-      Route.useLoaderData();
-    return (
-      <PublicProfilePage
-        locale={locale}
-        profile={profile}
-        events={events}
-        eventsNextCursor={eventsNextCursor}
-        eventsTotal={eventsTotal}
-        beforeStartsAt={pagination.beforeStartsAt}
-        beforeId={pagination.beforeId}
-        markets={markets}
-      />
-    );
-  },
+  component: PublicProfileRoute,
   loader: async ({
     params,
     deps,

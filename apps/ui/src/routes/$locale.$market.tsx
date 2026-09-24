@@ -78,46 +78,48 @@ const localizedMarket = async (
   }
 };
 
+const MarketRoute = () => {
+  const childMatches = useChildMatches();
+  const data = Route.useLoaderData();
+  if (childMatches.length > 0) return <Outlet />;
+
+  if (data.kind === 'market') {
+    return (
+      <MarketLanding
+        locale={data.locale}
+        market={data.market}
+        cities={data.cities}
+        cityEventCounts={data.cityEventCounts}
+        events={data.events}
+        afterStartsAt={data.pagination.afterStartsAt}
+        afterId={data.pagination.afterId}
+        nextCursor={data.eventsNextCursor}
+        trending={data.trending}
+      />
+    );
+  }
+  const entry: CompanyPageEntry = COMPANY_PAGES[data.page];
+  const arabicSource = entry.kind === 'arabic';
+  return (
+    <CompanyPage
+      locale={data.locale}
+      content={companyPageContent(data.page, data.locale)}
+      related={entry.related}
+      showEmailActions={
+        entry.kind === 'localized' && entry.emailActions === true
+      }
+      arabicSource={arabicSource}
+    />
+  );
+};
+
 export const Route = createFileRoute('/$locale/$market')({
   validateSearch: landingSearchSchema,
   loaderDeps: ({ search }) => ({
     afterStartsAt: search.afterStartsAt,
     afterId: search.afterId,
   }),
-  component: () => {
-    const childMatches = useChildMatches();
-    const data = Route.useLoaderData();
-    if (childMatches.length > 0) return <Outlet />;
-
-    if (data.kind === 'market') {
-      return (
-        <MarketLanding
-          locale={data.locale}
-          market={data.market}
-          cities={data.cities}
-          cityEventCounts={data.cityEventCounts}
-          events={data.events}
-          afterStartsAt={data.pagination.afterStartsAt}
-          afterId={data.pagination.afterId}
-          nextCursor={data.eventsNextCursor}
-          trending={data.trending}
-        />
-      );
-    }
-    const entry: CompanyPageEntry = COMPANY_PAGES[data.page];
-    const arabicSource = entry.kind === 'arabic';
-    return (
-      <CompanyPage
-        locale={data.locale}
-        content={companyPageContent(data.page, data.locale)}
-        related={entry.related}
-        showEmailActions={
-          entry.kind === 'localized' && entry.emailActions === true
-        }
-        arabicSource={arabicSource}
-      />
-    );
-  },
+  component: MarketRoute,
   loader: async ({ params, deps, location, context }): Promise<RouteData> => {
     const pagination = cursorPairOnly(deps);
     if (isCompanyPageKey(params.market))
