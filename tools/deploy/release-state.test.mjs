@@ -167,7 +167,7 @@ describe('release state validation', () => {
       latestMigration(
         fileURLToPath(new URL('../../libs/db/migrations', import.meta.url)),
       ),
-    ).toBe('0035_profile_attended_count');
+    ).toBe('0036_event_telegram_groups');
   });
 });
 

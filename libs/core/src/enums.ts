@@ -106,6 +106,10 @@ export const RSVP_LIFECYCLE_TEMPLATE_KEYS = [
   'event_relocated',
 ] as const satisfies readonly NotificationTemplateKey[];
 
+export const TELEGRAM_GROUP_STATUSES = ['pending', 'active', 'closed'] as const;
+export type TelegramGroupStatus = (typeof TELEGRAM_GROUP_STATUSES)[number];
+export const telegramGroupStatusSchema = z.enum(TELEGRAM_GROUP_STATUSES);
+
 export const PUSH_PLATFORMS = ['ios', 'android', 'web'] as const;
 export type PushPlatform = (typeof PUSH_PLATFORMS)[number];
 export const pushPlatformSchema = z.enum(PUSH_PLATFORMS);

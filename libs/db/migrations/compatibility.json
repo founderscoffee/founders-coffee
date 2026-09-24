@@ -34,5 +34,6 @@
   "0032_follow_up_prompts_default_on": "compatible",
   "0033_familiar_frog_thor": "compatible",
   "0034_profile_headline_stage": "compatible",
-  "0035_profile_attended_count": "compatible"
+  "0035_profile_attended_count": "compatible",
+  "0036_event_telegram_groups": "compatible"
 }
