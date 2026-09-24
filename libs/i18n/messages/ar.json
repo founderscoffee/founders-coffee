@@ -106,7 +106,7 @@
   "not_found": "لم نعثر على هذه الصفحة.",
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "brand": "Founders Coffee",
-  "llms_description": "Founders Coffee مجتمع للقاءات المؤسسين المحلية حول القهوة.",
+  "llms_description": "Founders Coffee مجتمع لقاءات محلية لرواد الأعمال حول القهوة.",
   "llms_purpose": "يركز الإصدار الحالي على اللقاءات المحلية المجانية والمشاركة المتكررة والمضيفين وبناء الثقة داخل المجتمع.",
   "llms_locales": "اللغات المدعومة",
   "llms_public_surfaces": "مساحات الاكتشاف العامة",
