@@ -206,10 +206,12 @@ webhook. For each environment, in this order:
    `wrangler secret put TELEGRAM_WEBHOOK_SECRET --env <env>`, the second a random value such as
    `openssl rand -hex 32` (Telegram allows letters, digits, `_` and `-`, up to 256). In
    `apps/worker-jobs`, the same `TELEGRAM_BOT_TOKEN`; without it every group row is refused rather
-   than marked sent. `TELEGRAM_BOT_USERNAME`, without the `@`, goes to `apps/ui` as a var of that
-   environment, since it is public. The username, the webhook secret and the token together switch
-   the feature on; until all three are set, no page offers it.
-3. **Deploy** with migration 0036 applied, worker-jobs before ui.
+   than marked sent. `TELEGRAM_BOT_USERNAME`, without the `@`, goes in that environment's `vars` in
+   `apps/ui/wrangler.jsonc`, since it is public: the deploy runs a plain `wrangler deploy`, which
+   drops a var set only in the dashboard. The username, the webhook secret and the token together
+   switch the feature on; until all three are set, no page offers it.
+3. **Deploy.** A push to `develop` (staging) or `main` (production) applies migration 0036, then
+   deploys worker-jobs before ui.
 4. **Register the webhook** at the environment's own address (`https://founders.coffee` in
    production), from the operator's own machine, with the token read so it is not echoed:
 
@@ -234,6 +236,55 @@ link, and a `chat_join_request` whose link a member was given.
 Not yet known, and part of the staging evidence: whether a basic group accepts the bot's
 join-request links, or Telegram first turns it into a supergroup. The webhook follows a group to its
 new id when it is upgraded, so either way should work, but only a real group will show it.
+
+**Staging run.** This is the evidence P1-025 still owes, run once the four steps above are done on
+staging. It needs two staging accounts, a host and a member; a Telegram account for each, and a
+third for step 4; and a group the host's Telegram account has just created, because a new group
+starts as a basic group. Keep `wrangler tail` open on `founders-coffee-ui-staging` and
+`founders-coffee-worker-jobs-staging`. The first logs `telegram.connect_opened`,
+`telegram.connected`, `telegram.invite_given`, `telegram.join_request` and `telegram.disconnected`;
+the second logs a `notification.sweep` report for each run. Stop on any `telegram.*` warning and
+find out why.
+
+1. **Meetup.** The host creates one starting about 25 hours ahead. The group's reminder, due a day
+   before the start, is queued only if that moment is still ahead when the group connects, so
+   connect within the hour; the reminder then posts about an hour after the meetup was created.
+2. **Connect.** Connect, then Open Telegram within the link's 30 minutes, pick the new group, and
+   keep the three admin rights ticked. The panel names the group as connected, and the bot pins the
+   details. If the bot answers in the group that it lacks a right, grant it in Telegram and open a
+   new link. If Telegram makes the group a supergroup on the way, the pin and every later post land
+   in the supergroup, and the group's `chat_id` turns into a `-100…` id.
+3. **Join.** The member RSVPs, asks for their invite link and opens it. Telegram sends a join
+   request, the bot approves it (`admitted: true`), and the card says the member is in the group.
+4. **A forwarded link.** The third account opens the member's link. The bot declines its request
+   (`admitted: false`), because a link belongs to the first account that used it.
+5. **Reminder.** It posts about an hour after the meetup was created.
+6. **Edits.** An address edit rewrites the pin without a post. A new time or venue is posted, and
+   the pin rewritten.
+7. **Cancelled RSVP.** The member cancels, and the bot takes them out of the group and revokes their
+   link.
+8. **Endings.** On a second meetup, connect a second group and try the other endings in turn,
+   connecting again between them: Disconnect, and the bot revokes its links and leaves while the
+   group stays the host's; removing the bot in Telegram, and the panel offers Connect again; and
+   last, cancelling the meetup, and the bot posts the cancellation, rewrites the pin and leaves. The
+   group has to be a second one, because the bot stays in a chat that another meetup still runs
+   through.
+9. **The day after.** A day after the first meetup ends, the bot posts its thanks with the city's
+   next meetups and leaves. Moving that meetup's start forward after step 5 brings this closer.
+
+Throughout, `getWebhookInfo` should show no `last_error_message`, and the bot should post in the
+meetup's language, with links to staging. A 403 there would mean something at Cloudflare's edge,
+such as Bot Fight Mode or a WAF rule, is turning Telegram away. The groups' rows can be read from
+`apps/worker-jobs`:
+
+```bash
+wrangler d1 execute founders-coffee-db-staging --remote --env staging \
+  --command "SELECT event_id, status, chat_id, chat_title FROM event_telegram_groups"
+```
+
+Record the date, the commit and each step's result under this section. Only the web half of the run
+could be scripted: the Telegram side would mean scripting real Telegram accounts, which section 1
+rules out, and Telegram's test environment would need a new client library in the test harness.
 
 ### Enum contract consolidation
 
