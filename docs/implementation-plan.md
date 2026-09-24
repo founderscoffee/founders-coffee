@@ -197,6 +197,11 @@ decision about member safety, never as a side effect of a growth or SEO ticket (
 6. **No no-show counts, ratios, or reliability scores.** `event_attendance` records no-shows, and
    none of it is published: a profile shows positive counts only, never a denominator.
 7. **Social proof attaches to events, not people.** Nothing rates a person.
+8. **No trust status.** A market's verdict on a host, `host_trust` (`unreviewed`, `verified` or
+   `restricted`), stays an operations decision and never appears on the profile: a verified mark
+   would be a moderator's rating of a person, and a restricted one a public blacklist. What the
+   platform can vouch for is already there, as the hosted count and its tags (decided 2026-09-24,
+   #26).
 
 ### Telegram groups (P1-025)
 
