@@ -1,37 +1,53 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  PRIVATE_SCREENS_IN_EVERY_LANGUAGE,
+  PRIVATE_SCREEN_STUBS,
+  PRIVATE_SCREEN_VARIANTS,
+  PUBLIC_PAGES_NAMING_A_SCREEN,
+} from './private-screens.fixtures';
+import {
   isPrivateProfilePath,
   purgePrivateCacheEntries,
 } from './profile-cache';
 import { safeAuthReturnPath, onboardingRedirectPath } from './redirect';
 
 describe('profile navigation privacy', () => {
+  it.each(PRIVATE_SCREENS_IN_EVERY_LANGUAGE)(
+    'keeps %s, a private screen in its language, out of the service-worker cache',
+    (path) => {
+      expect(isPrivateProfilePath(path)).toBe(true);
+    },
+  );
   it.each([
-    '/profile',
+    ...PRIVATE_SCREEN_STUBS,
+    ...PRIVATE_SCREEN_VARIANTS,
     '/profile/',
-    '/profile/activity',
-    '/profile/notifications',
-    '/profile/account',
-    '/preferences',
-    '/activity',
-    '/account',
-    '/onboarding',
-    '/login',
-    '/u/usr_123',
-    '/_serverFn/123',
-    '/api/auth/get-session',
-  ])('excludes %s from service-worker caching', (path) => {
-    expect(isPrivateProfilePath(path)).toBe(true);
-  });
+    '/en/profile/',
+  ])(
+    'keeps %s out as well, which the router still answers with a private screen',
+    (path) => {
+      expect(isPrivateProfilePath(path)).toBe(true);
+    },
+  );
+  it.each(['/_serverFn/123', '/api/auth/get-session'])(
+    'excludes %s from service-worker caching',
+    (path) => {
+      expect(isPrivateProfilePath(path)).toBe(true);
+    },
+  );
   it.each([
+    ...PUBLIC_PAGES_NAMING_A_SCREEN,
+    '/algeria/e/closeout',
     '/',
     '/algeria',
+    '/ar/algeria',
+    '/fr/algeria/e/coffee-code',
     '/assets/profile.js',
     '/unrelated',
     '/profiles',
     '/activities',
-  ])('keeps unrelated paths %s unchanged', (path) => {
+  ])('lets the service worker keep %s, which is no private screen', (path) => {
     expect(isPrivateProfilePath(path)).toBe(false);
   });
   it.each([
@@ -52,13 +68,16 @@ describe('profile navigation privacy', () => {
     );
   });
   it('sweeps only the private paths when the service worker activates', async () => {
+    const privatePages = ['/profile', ...PRIVATE_SCREENS_IN_EVERY_LANGUAGE];
     const deleted: string[] = [];
     const cache = {
       keys: () =>
         Promise.resolve(
-          ['/profile', '/algeria/e/coffee-code'].map(
-            (path) => new Request(`https://founders.coffee${path}`),
-          ),
+          [
+            ...privatePages,
+            '/algeria/e/coffee-code',
+            ...PUBLIC_PAGES_NAMING_A_SCREEN,
+          ].map((path) => new Request(`https://founders.coffee${path}`)),
         ),
       match: () => Promise.resolve(undefined),
       delete: (request: Request) => {
@@ -73,7 +92,7 @@ describe('profile navigation privacy', () => {
 
     await purgePrivateCacheEntries(storage);
 
-    expect(deleted).toEqual(['/profile']);
+    expect(deleted).toEqual(privatePages);
   });
 
   it('preserves event and wizard return paths without submitting them', () => {

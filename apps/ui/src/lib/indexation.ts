@@ -63,23 +63,33 @@ const HOST_WIZARD = /^\/(?:[^/]+\/){1,2}host\/create(?:\/|$)/iu;
 /**
  * Whether an address leads to a private screen, in any form the router answers it in.
  *
- * A route's own `headers()` reach only a page it renders. TanStack Start returns a redirect before
- * it reads them, so every 307 on the way to a private screen carries what this adds and nothing
- * else. A screen is reached three ways, and each can answer with one: behind a language
- * (`/en/profile`, whose guard sends a signed-out reader to sign in), by its bare name (`/profile`,
- * kept for links already sent), and behind any other segment, which the `$locale` layout drops
- * (`/algeria/profile`). The last two take their target from the reader's cookie.
+ * A screen is reached three ways: behind a language (`/en/profile`, whose guard sends a signed-out
+ * reader to sign in), by its bare name (`/profile`, kept for links already sent), and behind any
+ * other segment, which the `$locale` layout drops (`/algeria/profile`). The last two take their
+ * target from the reader's cookie.
  *
  * So the name counts first or second, never deeper: `/en/algeria/e/feedback` is a meetup whose slug
- * happens to name a screen, and it has to stay indexable. The legacy addresses only ever existed
- * bare, and the host wizard sits under a market. Case is ignored because the router ignores it, so
+ * happens to name a screen, and it has to stay public. The legacy addresses only ever existed bare,
+ * and the host wizard sits under a market. Case is ignored because the router ignores it, so
  * `/en/PROFILE` is the profile screen.
+ *
+ * This is the one list of private screens. The Worker's header floor, the service worker's cache and
+ * the Early Hints policy all read it, so a screen is private to all three or to none. Each of them
+ * used to keep a list of its own, and when the screens moved under a language all three went on
+ * naming the addresses they had left.
  */
-const isPrivatePath = (pathname: string): boolean =>
+export const isPrivatePath = (pathname: string): boolean =>
   PRIVATE_SCREEN.test(pathname) ||
   LEGACY_PRIVATE_ADDRESS.test(pathname) ||
   HOST_WIZARD.test(pathname);
 
+/**
+ * Mark a response on the way to a private screen `private, no-store` and `noindex`.
+ *
+ * A route's own `headers()` reach only a page it renders. TanStack Start returns a redirect before
+ * it reads them, so every 307 on the way to a private screen carries what this adds and nothing
+ * else.
+ */
 export const withPrivateRouteHeaders = (
   response: Response,
   pathname: string,

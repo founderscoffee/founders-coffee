@@ -1,16 +1,21 @@
+import { isPrivatePath } from './indexation';
+
 /**
  * Profile visibility and session responses must never survive in the service-worker cache.
  *
- * Every account section belongs here, not only the ones named `profile`. Serwist's default runtime
- * caching ends in a catch-all `NetworkFirst` that stores any navigation for 24 hours, so a page
- * missing from this list is a signed-in member's screen sitting in a shared browser's cache.
- * The legacy aliases and nested profile routes are all covered, so a service worker update cannot
- * expose a signed-in member's screen from a shared browser cache.
+ * Every private screen belongs here, not only the ones named `profile`. Serwist's default runtime
+ * caching ends in a catch-all `NetworkFirst` that stores any navigation for 24 hours, whatever its
+ * `Cache-Control` says, so a page missing from this list is a signed-in member's screen sitting in
+ * a shared browser's cache. The screens are the ones {@link isPrivatePath} names, the list the
+ * Worker marks `private, no-store` from. The list this module used to keep went on naming
+ * `/profile` and `/login` after both became redirects to `/{locale}/profile` and `/{locale}/login`,
+ * so it kept none of the pages a member actually loads out of the cache. Server-function calls and
+ * the auth API are added here: they are not screens, but they answer with a member's data, and the
+ * service worker would keep them like any other fetch.
  */
 export const isPrivateProfilePath = (pathname: string): boolean =>
-  /^\/(?:profile|account|preferences|activity|onboarding|login|u)(?:\/|$)/.test(
-    pathname,
-  ) || /^\/(?:_serverFn|api\/auth)(?:\/|$)/.test(pathname);
+  isPrivatePath(pathname) ||
+  /^\/(?:_serverFn|api\/auth)(?:\/|$)/.test(pathname);
 
 /** A cached page carries whatever the server rendered for whoever asked for it. */
 export const isCachedDocument = (response: Response | undefined): boolean =>

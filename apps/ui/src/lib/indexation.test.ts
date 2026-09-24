@@ -12,24 +12,16 @@ import {
   withIndexationHeaders,
   withPrivateRouteHeaders,
 } from './indexation';
+import {
+  PRIVATE_SCREENS_IN_EVERY_LANGUAGE,
+  PRIVATE_SCREEN_STUBS,
+  PRIVATE_SCREEN_VARIANTS,
+  PUBLIC_PAGES_NAMING_A_SCREEN,
+} from './private-screens.fixtures';
 import { declaredRoutes, sourceOf } from './route-contract.fixtures';
 
 const PRIVATE = ['private, no-store', 'noindex, nofollow'];
 const UNTOUCHED = [null, null];
-
-const SCREENS = [
-  'login',
-  'onboarding',
-  'profile',
-  'profile/account',
-  'profile/activity',
-  'profile/notifications',
-  'u/usr_1',
-  'closeout/evt_1',
-  'feedback/evt_1',
-  'edit/evt_1',
-  'algeria/host/create',
-];
 
 const floorAt = (pathname: string): (string | null)[] => {
   const response = withPrivateRouteHeaders(
@@ -134,34 +126,21 @@ describe('indexation policy', () => {
 });
 
 describe('the private-route floor', () => {
-  it.each(
-    LOCALES.flatMap((locale) =>
-      SCREENS.map((screen) => `/${locale}/${screen}`),
-    ),
-  )('keeps %s, a private screen in its language, private', (path) => {
-    expect(floorAt(path)).toEqual(PRIVATE);
-  });
+  it.each(PRIVATE_SCREENS_IN_EVERY_LANGUAGE)(
+    'keeps %s, a private screen in its language, private',
+    (path) => {
+      expect(floorAt(path)).toEqual(PRIVATE);
+    },
+  );
 
-  it.each([
-    ...SCREENS.map((screen) => `/${screen}`),
-    '/account',
-    '/activity',
-    '/preferences',
-  ])(
+  it.each(PRIVATE_SCREEN_STUBS)(
     'keeps the stub %s private, because its target follows the cookie',
     (path) => {
       expect(floorAt(path)).toEqual(PRIVATE);
     },
   );
 
-  it.each([
-    '/PROFILE',
-    '/en/PROFILE',
-    '/fr/Feedback/evt_1',
-    '/algeria/profile',
-    '/EN/profile',
-    '/algeria/u/usr_1',
-  ])(
+  it.each(PRIVATE_SCREEN_VARIANTS)(
     'keeps %s private, which the router still answers with a private screen',
     (path) => {
       expect(floorAt(path)).toEqual(PRIVATE);
@@ -169,19 +148,13 @@ describe('the private-route floor', () => {
   );
 
   it.each([
+    ...PUBLIC_PAGES_NAMING_A_SCREEN,
     '/',
     '/ar',
     '/ar/algeria',
     '/en/algeria/algiers',
-    '/ar/algeria/profile',
     '/fr/algeria/e/coffee-code',
-    '/en/algeria/e/feedback',
-    '/en/algeria/e/closeout',
-    '/ar/algeria/e/edit',
-    '/fr/algeria/e/login',
-    '/en/algeria/e/profile',
     '/algeria/e/closeout',
-    '/en/e/feedback',
     '/fr/about',
     '/ar/privacy',
     '/algeria',
