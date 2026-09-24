@@ -32,6 +32,21 @@ export const PRIVATE_SCREEN_VARIANTS = [
   '/algeria/profile',
   '/EN/profile',
   '/algeria/u/usr_1',
+  '/en/%70rofile',
+  '/%70rofile',
+  '/en/%75/usr_1',
+  '/%65n/profile',
+  '/fr/%46eedback/evt_1',
+  '/en/%50ROFILE',
+  '/ar/%6C%6F%67%69%6E',
+  '/algeria/%70rofile',
+  '/%61ccount',
+  '/fr/algeria/host/%63reate',
+  '/algeria%2Fx/profile',
+  '//profile',
+  '//en/profile',
+  '/en//profile',
+  '/en/login%20',
 ];
 
 export const PUBLIC_PAGES_NAMING_A_SCREEN = [
@@ -42,4 +57,8 @@ export const PUBLIC_PAGES_NAMING_A_SCREEN = [
   '/fr/algeria/e/login',
   '/en/algeria/e/profile',
   '/en/e/feedback',
+  '/en/algeria/e/%70rofile',
+  '/fr/algeria/e/%6Cogin',
+  '/ar/algeria/%70rofile',
+  '/en/e/%66eedback',
 ];

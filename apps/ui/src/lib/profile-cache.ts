@@ -1,4 +1,4 @@
-import { isPrivatePath } from './indexation';
+import { isPrivatePath, routedPath } from './indexation';
 
 /**
  * Profile visibility and session responses must never survive in the service-worker cache.
@@ -11,11 +11,12 @@ import { isPrivatePath } from './indexation';
  * `/profile` and `/login` after both became redirects to `/{locale}/profile` and `/{locale}/login`,
  * so it kept none of the pages a member actually loads out of the cache. Server-function calls and
  * the auth API are added here: they are not screens, but they answer with a member's data, and the
- * service worker would keep them like any other fetch.
+ * service worker would keep them like any other fetch. They are read through {@link routedPath}, as
+ * the screens are, because Start answers `/%5FserverFn/{id}` as a server-function call too.
  */
 export const isPrivateProfilePath = (pathname: string): boolean =>
   isPrivatePath(pathname) ||
-  /^\/(?:_serverFn|api\/auth)(?:\/|$)/.test(pathname);
+  /^\/(?:_serverFn|api\/auth)(?:\/|$)/.test(routedPath(pathname));
 
 /** A cached page carries whatever the server rendered for whoever asked for it. */
 export const isCachedDocument = (response: Response | undefined): boolean =>

@@ -30,10 +30,24 @@ describe('profile navigation privacy', () => {
       expect(isPrivateProfilePath(path)).toBe(true);
     },
   );
-  it.each(['/_serverFn/123', '/api/auth/get-session'])(
-    'excludes %s from service-worker caching',
-    (path) => {
-      expect(isPrivateProfilePath(path)).toBe(true);
+  it.each([
+    '/_serverFn/123',
+    '/api/auth/get-session',
+    '/%5FserverFn/123',
+    '/%5fserverFn/123',
+    '//_serverFn/123',
+    '//api/auth/get-session',
+  ])('excludes %s from service-worker caching', (path) => {
+    expect(isPrivateProfilePath(path)).toBe(true);
+  });
+  it.each([
+    ['/%zz', false],
+    ['/en/%E0', false],
+    ['/en/%70rofile/%zz', true],
+  ])(
+    'reads the malformed %s without throwing, as the router reads it',
+    (path, isPrivate) => {
+      expect(isPrivateProfilePath(path)).toBe(isPrivate);
     },
   );
   it.each([
@@ -68,7 +82,11 @@ describe('profile navigation privacy', () => {
     );
   });
   it('sweeps only the private paths when the service worker activates', async () => {
-    const privatePages = ['/profile', ...PRIVATE_SCREENS_IN_EVERY_LANGUAGE];
+    const privatePages = [
+      '/profile',
+      '/en/%75/usr_1',
+      ...PRIVATE_SCREENS_IN_EVERY_LANGUAGE,
+    ];
     const deleted: string[] = [];
     const cache = {
       keys: () =>

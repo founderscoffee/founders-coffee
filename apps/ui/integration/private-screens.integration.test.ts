@@ -109,6 +109,39 @@ describe('a signed-out visitor at a screen a notification links at', () => {
   );
 });
 
+describe('a signed-out visitor at a private screen spelled another way', () => {
+  it.each([
+    ['/en/%70rofile', 307, '/en/login?redirect=%2Fen%2Fprofile'],
+    ['/%70rofile', 307, '/fr/profile'],
+    [
+      `/fr/%66eedback/${EVENT}`,
+      307,
+      `/fr/login?redirect=${encodeURIComponent(`/fr/feedback/${EVENT}`)}`,
+    ],
+    ['/en//profile', 307, '/en/profile'],
+    ['//profile', 308, `${ORIGIN}/profile`],
+    ['/en/login%20', 307, '/en/login?redirect=%2F'],
+  ])(
+    'is sent on from %s with the private-route floor',
+    async (path, status, location) => {
+      const response = await fetchDocument(path, [localeCookie('fr')]);
+
+      expect(response.status).toBe(status);
+      expect(
+        response.headers.get('location'),
+        'Start decodes and tidies an address before the router matches it, so this one leads to a private screen',
+      ).toBe(location);
+      expect(
+        [
+          response.headers.get('Cache-Control'),
+          response.headers.get('X-Robots-Tag'),
+        ],
+        'a redirect carries none of the headers of the screen it leads to, so it is private only if the floor reads the address the way the router does',
+      ).toEqual(['private, no-store', 'noindex, nofollow']);
+    },
+  );
+});
+
 describe('the screens a notification links at carry their own language', () => {
   it('has a member signed in to open the screens as', () => {
     expect(
