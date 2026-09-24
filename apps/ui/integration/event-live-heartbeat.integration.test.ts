@@ -16,6 +16,7 @@ import {
   liveRoomOf,
   ofType,
   seedLiveRoom,
+  whileD1Fails,
   type LiveClient,
 } from './event-live.fixtures';
 
@@ -204,16 +205,9 @@ describe('revalidation, now in the alarm (#87)', () => {
   it('turns nobody out, and tells nobody, when the database cannot answer', async () => {
     const room = await seedLiveRoom();
     const guest = await admitted(room.eventId, room.guestToken);
-    await env.DB.prepare(
-      'ALTER TABLE event_rsvps RENAME TO event_rsvps_away',
-    ).run();
-    try {
-      expect(await runDurableObjectAlarm(liveRoomOf(room.eventId))).toBe(true);
-    } finally {
-      await env.DB.prepare(
-        'ALTER TABLE event_rsvps_away RENAME TO event_rsvps',
-      ).run();
-    }
+    expect(
+      await whileD1Fails(() => runDurableObjectAlarm(liveRoomOf(room.eventId))),
+    ).toBe(true);
     await beat(guest);
 
     expect(
