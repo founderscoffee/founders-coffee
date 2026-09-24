@@ -611,6 +611,8 @@
   "ntf_telegram_cancelled": "L’hôte a annulé « {title} », prévu le {date}. Inutile de vous déplacer.",
   "ntf_telegram_cancelled_pinned": "Annulé : {title}, prévu le {date}.",
   "ntf_telegram_wrap_up": "Merci d’être venus à {title} ! Ce groupe reste désormais à l’hôte, et le bot founders.coffee le quitte. Les prochaines rencontres de la ville : {url}",
+  "ntf_telegram_connect_not_admin": "Seul un administrateur de ce groupe peut le relier à « {title} ».",
+  "ntf_telegram_connect_needs_rights": "Pour relier ce groupe à « {title} », faites du bot founders.coffee un administrateur qui peut inviter des utilisateurs par lien, bannir des utilisateurs et épingler des messages. Rouvrez ensuite le lien depuis la page de la rencontre.",
   "event_cancelled_title": "Cette rencontre a été annulée",
   "event_cancelled_body": "L’hôte a tout annulé. Inutile de vous déplacer.",
   "event_details_title": "Détails de la rencontre",

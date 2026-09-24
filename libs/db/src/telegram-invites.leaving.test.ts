@@ -45,6 +45,7 @@ describe('libs/db — telegram invites as members leave (real D1 via Miniflare)'
       inviteLink,
       chatId: CHAT,
       telegramUserId: ACCOUNT,
+      now: new Date(),
     });
 
     expect(
@@ -58,6 +59,7 @@ describe('libs/db — telegram invites as members leave (real D1 via Miniflare)'
         inviteLink,
         chatId: CHAT,
         telegramUserId: ACCOUNT,
+        now: new Date(),
       }),
     ).toBeUndefined();
   });
@@ -83,6 +85,7 @@ describe('libs/db — telegram invites as members leave (real D1 via Miniflare)'
         inviteLink,
         chatId: CHAT,
         telegramUserId: ACCOUNT,
+        now: new Date(),
       });
     const memberOf = (chatId: number, telegramUserId = ACCOUNT) =>
       isTelegramMemberOfChat(db, { chatId, telegramUserId });
@@ -116,6 +119,7 @@ describe('libs/db — telegram invites as members leave (real D1 via Miniflare)'
       inviteLink,
       chatId: CHAT,
       telegramUserId: ACCOUNT,
+      now: new Date(),
     });
     await takeTelegramInvite(db, { eventId, userId: members[5].id });
     const memberOf = () =>
@@ -126,6 +130,7 @@ describe('libs/db — telegram invites as members leave (real D1 via Miniflare)'
       inviteLink: await invite(eventId, members[5].id),
       chatId: CHAT,
       telegramUserId: ACCOUNT,
+      now: new Date(),
     });
     expect(await memberOf()).toBe(true);
 

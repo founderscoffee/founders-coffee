@@ -529,6 +529,8 @@
   "ntf_telegram_cancelled": "ألغى المضيف «{title}» الذي كان مقررًا يوم {date}. لا داعي للحضور.",
   "ntf_telegram_cancelled_pinned": "أُلغي: «{title}» الذي كان مقررًا يوم {date}.",
   "ntf_telegram_wrap_up": "شكرًا لحضوركم «{title}»! تبقى هذه المجموعة الآن للمضيف، ويغادرها بوت founders.coffee. اللقاءات التالية في المدينة: {url}",
+  "ntf_telegram_connect_not_admin": "لا يستطيع ربط هذه المجموعة بلقاء «{title}» إلا أحد مشرفيها.",
+  "ntf_telegram_connect_needs_rights": "لربط هذه المجموعة بلقاء «{title}»، اجعل بوت founders.coffee مشرفًا يستطيع دعوة المستخدمين عبر رابط، وحظر المستخدمين، وتثبيت الرسائل. ثم افتح الرابط من صفحة اللقاء مرة أخرى.",
   "event_cancelled_title": "أُلغي هذا اللقاء",
   "event_cancelled_body": "ألغاه المضيف. لا داعي للحضور.",
   "event_details_title": "تفاصيل اللقاء",

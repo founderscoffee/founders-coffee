@@ -34,6 +34,7 @@ describe('rate budgets', () => {
       'expensive',
       'otp',
       'read',
+      'telegram',
     ]);
   });
 });

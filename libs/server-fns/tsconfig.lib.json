@@ -13,10 +13,13 @@
   ],
   "references": [
     {
-      "path": "../i18n/tsconfig.lib.json"
+      "path": "../notifications/tsconfig.lib.json"
     },
     {
-      "path": "../observability/tsconfig.lib.json"
+      "path": "../email/tsconfig.lib.json"
+    },
+    {
+      "path": "../i18n/tsconfig.lib.json"
     },
     {
       "path": "../domain/tsconfig.lib.json"
@@ -34,7 +37,7 @@
       "path": "../auth/tsconfig.lib.json"
     },
     {
-      "path": "../email/tsconfig.lib.json"
+      "path": "../observability/tsconfig.lib.json"
     }
   ]
 }

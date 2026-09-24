@@ -6,6 +6,7 @@ import { resolveSession } from '../auth.js';
 import { getDb } from '../db.js';
 import { RATE_BUDGETS } from '../rate-budgets.js';
 import { consumeRateBudget } from '../rate-consume.js';
+import { readBounded } from '../read-bounded.js';
 import { acceptPhotoUpload } from './photo.js';
 import { photoServices } from './photo-runtime.js';
 
@@ -29,40 +30,6 @@ const STATUS_FOR: Record<string, number> = {
   photo_too_small: 422,
   photo_unsupported: 415,
   validation_failed: 422,
-};
-
-/**
- * Read a bounded body without trusting the length the client declared.
- *
- * `Content-Length` is a claim, and a chunked upload need not send one at all, so the cap is applied
- * to the bytes as they arrive. Reading the whole body first and measuring afterwards would let a
- * caller spend the Worker's memory on a request that was always going to be refused.
- */
-const readBounded = async (
-  request: Request,
-  limit: number,
-): Promise<Uint8Array | null> => {
-  const reader = request.body?.getReader();
-  if (!reader) return null;
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.byteLength;
-    if (total > limit) {
-      await reader.cancel();
-      return null;
-    }
-    chunks.push(value);
-  }
-  const body = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    body.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  return body;
 };
 
 /**

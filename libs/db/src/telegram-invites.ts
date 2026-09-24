@@ -1,6 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
+import { ASSUMED_DURATION_SECONDS } from './events.js';
 import {
   eventRsvps,
   eventTelegramGroups,
@@ -8,6 +9,7 @@ import {
   scheduledNotifications,
   type EventTelegramInviteRow,
 } from './schema.js';
+import { TELEGRAM_GROUP_CLOSES_AFTER_SECONDS } from './telegram-groups.js';
 
 export const getTelegramInvite = async (
   db: Db,
@@ -66,14 +68,22 @@ export const saveTelegramInvite = async (
  *
  * The whole admission rule is one statement, so nothing can change between checking it and binding:
  * the link must be one this product issued, its member must still be going, and its meetup must
- * still be published with this chat as its active group. The account is bound on first use and
- * must match after that, so a forwarded link admits nobody but the member who used it first.
- * Answers the invite when the request should be approved.
+ * still be published with this chat as its active group, and not over by more than the day the
+ * group stays open for. That last condition holds even if the bot never managed to close the group,
+ * so a deployment whose worker cannot reach Telegram still stops admitting on time. The account is
+ * bound on first use and must match after that, so a forwarded link admits nobody but the member
+ * who used it first. Answers the invite when the request should be approved.
  */
 export const admitTelegramMember = async (
   db: Db,
-  opts: { inviteLink: string; chatId: number; telegramUserId: number },
+  opts: {
+    inviteLink: string;
+    chatId: number;
+    telegramUserId: number;
+    now: Date;
+  },
 ): Promise<EventTelegramInviteRow | undefined> => {
+  const nowSeconds = Math.floor(opts.now.getTime() / 1000);
   const rows = await db
     .update(eventTelegramInvites)
     .set({ telegramUserId: opts.telegramUserId })
@@ -94,6 +104,8 @@ export const admitTelegramMember = async (
             AND event_telegram_groups.status = 'active'
             AND event_telegram_groups.chat_id = ${opts.chatId}
             AND events.status = 'published'
+            AND COALESCE(events.ends_at, events.starts_at + ${ASSUMED_DURATION_SECONDS})
+              + ${TELEGRAM_GROUP_CLOSES_AFTER_SECONDS} > ${nowSeconds}
         )`,
       ),
     )

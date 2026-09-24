@@ -13,6 +13,8 @@ import {
   type EventTelegramGroupRow,
 } from './schema.js';
 
+export const TELEGRAM_GROUP_CLOSES_AFTER_SECONDS = 24 * 60 * 60;
+
 const changesOf = (result: unknown): number =>
   (result as { meta?: { changes?: number } }).meta?.changes ?? 0;
 

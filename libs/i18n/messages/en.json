@@ -470,6 +470,8 @@
   "ntf_telegram_cancelled": "The host has cancelled {title}, which was set for {date}. There is no need to go.",
   "ntf_telegram_cancelled_pinned": "Cancelled: {title}, which was set for {date}.",
   "ntf_telegram_wrap_up": "Thanks for coming to {title}! This group now stays with the host, and the founders.coffee bot is leaving it. The next meetups in the city: {url}",
+  "ntf_telegram_connect_not_admin": "Only an admin of this group can connect it to {title}.",
+  "ntf_telegram_connect_needs_rights": "To connect this group to {title}, make the founders.coffee bot an admin that can invite users via link, ban users and pin messages. Then open the link from the meetup page again.",
   "event_cancelled_title": "This meetup was cancelled",
   "event_cancelled_body": "The host called it off. There is no need to go.",
   "event_details_title": "Meetup details",

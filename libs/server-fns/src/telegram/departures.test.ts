@@ -82,6 +82,7 @@ describe('members and hosts leaving a Telegram group (real D1 via Miniflare)', (
       inviteLink: 'https://t.me/+withdraw',
       chatId,
       telegramUserId: 7100000001,
+      now: new Date(),
     });
 
     await withdrawTelegramMember(db, { event, userId: MEMBER_IDS[0] });

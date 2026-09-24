@@ -14,6 +14,7 @@ import {
   saveTelegramInvite,
 } from './telegram-invites.js';
 import {
+  endMeetup,
   inviteTo,
   liveMeetupFor,
   nextLink,
@@ -63,6 +64,7 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
       inviteLink,
       chatId: CHAT,
       telegramUserId: ACCOUNT,
+      now: new Date(),
     });
 
     expect(admitted).toMatchObject({ eventId, userId: members[0].id });
@@ -75,6 +77,7 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
         inviteLink,
         chatId: CHAT,
         telegramUserId: ACCOUNT,
+        now: new Date(),
       }),
     ).toBeDefined();
   });
@@ -85,6 +88,7 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
       inviteLink,
       chatId: CHAT,
       telegramUserId: ACCOUNT,
+      now: new Date(),
     });
 
     expect(
@@ -92,6 +96,7 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
         inviteLink,
         chatId: CHAT,
         telegramUserId: OTHER_ACCOUNT,
+        now: new Date(),
       }),
     ).toBeUndefined();
   });
@@ -104,6 +109,7 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
         inviteLink,
         chatId: OTHER_CHAT,
         telegramUserId: ACCOUNT,
+        now: new Date(),
       }),
     ).toBeUndefined();
     expect(
@@ -111,6 +117,7 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
         inviteLink: 'https://t.me/+unknown',
         chatId: CHAT,
         telegramUserId: ACCOUNT,
+        now: new Date(),
       }),
     ).toBeUndefined();
   });
@@ -124,6 +131,7 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
         inviteLink,
         chatId: CHAT,
         telegramUserId: ACCOUNT,
+        now: new Date(),
       }),
     ).toBeUndefined();
   });
@@ -145,6 +153,7 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
         inviteLink,
         chatId: CHAT,
         telegramUserId: ACCOUNT,
+        now: new Date(),
       }),
     ).toBeUndefined();
   });
@@ -166,7 +175,25 @@ describe('libs/db — telegram invites (real D1 via Miniflare)', () => {
           inviteLink,
           chatId: CHAT,
           telegramUserId: ACCOUNT,
+          now: new Date(),
         }),
       ).toBeUndefined();
+  });
+
+  it('keeps admitting for a day after the meetup ends, and not after', async () => {
+    const recent = await liveMeetupWith(members[5].id);
+    const past = await liveMeetupWith(members[5].id);
+    await endMeetup(db, recent.eventId, 23 * 60 * 60, 8 * 60 * 60);
+    await endMeetup(db, past.eventId, 25 * 60 * 60);
+    const admit = (inviteLink: string) =>
+      admitTelegramMember(db, {
+        inviteLink,
+        chatId: CHAT,
+        telegramUserId: ACCOUNT,
+        now: now(),
+      });
+
+    expect(await admit(recent.inviteLink)).toBeDefined();
+    expect(await admit(past.inviteLink)).toBeUndefined();
   });
 });

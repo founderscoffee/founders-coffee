@@ -183,6 +183,7 @@ describe("a meetup's Telegram group closing, and members leaving it (real D1 via
       inviteLink: await invite(still.eventId, MEMBER_ID, 'https://t.me/+kept'),
       chatId: still.chatId,
       telegramUserId: ACCOUNT,
+      now: new Date(),
     });
     const telegram = new DevTelegramProvider();
     await queue(db, cancelled.eventId, 'telegram_member_removed', {

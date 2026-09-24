@@ -3,6 +3,7 @@ import {
   ASSUMED_DURATION_SECONDS,
   cancelNotificationsByTemplate,
   getTelegramGroup,
+  TELEGRAM_GROUP_CLOSES_AFTER_SECONDS,
   type Db,
   type Event,
 } from '@founders-coffee/db';
@@ -37,7 +38,8 @@ export const telegramWrapUpAt = (
 ): Date =>
   new Date(
     (event.endsAt?.getTime() ??
-      event.startsAt.getTime() + ASSUMED_DURATION_SECONDS * 1000) + DAY_MS,
+      event.startsAt.getTime() + ASSUMED_DURATION_SECONDS * 1000) +
+      TELEGRAM_GROUP_CLOSES_AFTER_SECONDS * 1000,
   );
 
 const enqueueTimed = async (

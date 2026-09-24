@@ -45,10 +45,18 @@ export const attend = async (
   await createRsvp(db, { id: id('rsvp'), eventId, userId });
 };
 
-/** Put a meetup's end in the past, relative to the database's own clock. */
-export const endMeetup = async (db: Db, eventId: string): Promise<void> => {
+/**
+ * Put a meetup's end `secondsAgo` in the past, relative to the database's own clock, after it ran
+ * for `lastedSeconds`.
+ */
+export const endMeetup = async (
+  db: Db,
+  eventId: string,
+  secondsAgo = 60,
+  lastedSeconds = 2 * 60 * 60,
+): Promise<void> => {
   await db.run(
-    sql`UPDATE events SET starts_at = unixepoch() - 7200, ends_at = unixepoch() - 60 WHERE id = ${eventId}`,
+    sql`UPDATE events SET starts_at = unixepoch() - ${secondsAgo} - ${lastedSeconds}, ends_at = unixepoch() - ${secondsAgo} WHERE id = ${eventId}`,
   );
 };
 

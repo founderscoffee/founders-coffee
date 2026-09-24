@@ -18,6 +18,14 @@ import {
   type NewEvent,
   type ScheduledNotification,
 } from '@founders-coffee/db';
+import {
+  DevTelegramProvider,
+  type TelegramChatMember,
+} from '@founders-coffee/notifications';
+
+import type { TelegramSetup } from './config.js';
+import { createConnectToken, hashConnectToken } from './token.js';
+import type { TelegramMessage } from './updates.js';
 
 export const HOST_ID = 'usr_telegramhost';
 export const MEMBER_IDS = ['usr_tgm0', 'usr_tgm1', 'usr_tgm2'] as const;
@@ -152,3 +160,46 @@ export interface TelegramPayloadFields {
 export const payloadOf = (
   row: { payload: Record<string, unknown> } | undefined,
 ): TelegramPayloadFields => (row?.payload ?? {}) as TelegramPayloadFields;
+
+export const BOT_USERNAME = 'FoundersCoffeeBot';
+export const WEBHOOK_SECRET = 'webhook-secret-for-tests';
+export const ADMIN_ID = 5100000001;
+
+/** Open a Connect link for a meetup the way the host's panel does, and answer its token. */
+export const openConnect = async (
+  db: Db,
+  event: Event,
+  now: Date = new Date(),
+): Promise<string> => {
+  const token = createConnectToken();
+  await openTelegramConnect(db, {
+    eventId: event.id,
+    tokenHash: await hashConnectToken(token),
+    expiresAt: new Date(now.getTime() + 30 * 60 * 1000),
+    now,
+  });
+  return token;
+};
+
+/** The bot as tests run it: the recording provider, which finds `members` and refuses as told. */
+export const devSetup = (
+  members: ReadonlyMap<number, TelegramChatMember> = new Map(),
+  failures: NonNullable<
+    ConstructorParameters<typeof DevTelegramProvider>[0]
+  >['failures'] = {},
+): TelegramSetup & { provider: DevTelegramProvider } => ({
+  botUsername: BOT_USERNAME,
+  webhookSecret: WEBHOOK_SECRET,
+  provider: new DevTelegramProvider({ members, failures }),
+});
+
+/** A message posted in a supergroup, by the group's admin unless told. */
+export const groupMessage = (
+  chatId: number,
+  text: string,
+  fromId: number = ADMIN_ID,
+): TelegramMessage => ({
+  chat: { id: chatId, type: 'supergroup', title: 'Coffee group' },
+  from: { id: fromId },
+  text,
+});

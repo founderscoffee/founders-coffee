@@ -45,6 +45,18 @@ export const RATE_BUDGETS = {
       windowMs: 10 * MINUTE_MS,
     },
   },
+  telegram: {
+    connectAttempt: {
+      action: 'telegram_connect_attempt',
+      limit: 10,
+      windowMs: 10 * MINUTE_MS,
+    },
+    joinRequest: {
+      action: 'telegram_join_request',
+      limit: 60,
+      windowMs: 10 * MINUTE_MS,
+    },
+  },
 } as const satisfies Record<string, Record<string, RateBudget>>;
 
 export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
@@ -72,6 +84,12 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * roughly twenty-five megabytes of transfer and five transformations in that window — the
  * transformation count is what the free tier meters — and the sweeper reclaims whatever those
  * uploads abandoned. The export budget still arrives with PF-09.
+ *
+ * `telegram` holds what a Telegram chat can spend through the webhook, keyed by chat. The webhook is
+ * authenticated, but what arrives through it is whatever anyone in a group chooses to send: a
+ * connect command makes the bot look people up and answer in the group, and a join request costs a
+ * write and an answer. A connect is a host's one-off step, so ten attempts in ten minutes is plenty;
+ * sixty join requests covers a meetup's whole table arriving at once.
  */
 export const allRateBudgets = (): ReadonlyArray<
   RateBudget & { category: RateBudgetCategory }

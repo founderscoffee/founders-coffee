@@ -26,6 +26,10 @@ export interface WorkerEnv {
   readonly FIREBASE_APP_ID?: string;
   readonly FIREBASE_VAPID_KEY?: string;
 
+  readonly TELEGRAM_BOT_TOKEN?: string;
+  readonly TELEGRAM_BOT_USERNAME?: string;
+  readonly TELEGRAM_WEBHOOK_SECRET?: string;
+
   readonly CSP_ENFORCED?: string;
   readonly OTP_ECHO?: string;
   readonly DEV_GEO?: string;

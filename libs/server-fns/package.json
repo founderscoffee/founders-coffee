@@ -19,6 +19,11 @@
       "types": "./src/profile/photo-http.ts",
       "default": "./src/profile/photo-http.ts"
     },
+    "./telegram-webhook": {
+      "@founders-coffee/source": "./src/telegram/webhook.ts",
+      "types": "./src/telegram/webhook.ts",
+      "default": "./src/telegram/webhook.ts"
+    },
     "./rate-limiter-do": {
       "@founders-coffee/source": "./src/rate-limiter-do.ts",
       "types": "./src/rate-limiter-do.ts",
