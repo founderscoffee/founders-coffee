@@ -106,7 +106,7 @@
   "not_found": "We couldn't find this page.",
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "brand": "Founders Coffee",
-  "llms_description": "Founders Coffee is a community for local entrepreneur meetups over coffee.",
+  "llms_description": "Founders Coffee is a community for local entrepreneur meetups over a cup of coffee.",
   "llms_purpose": "This release focuses on free local meetups, repeat participation, hosts, and building trust in the community.",
   "llms_locales": "Supported locales",
   "llms_public_surfaces": "Public discovery pages",
@@ -149,11 +149,11 @@
   "cities_in": "Partnerships and meetups starting now in {market} cities",
   "market_cities": "Cities",
   "going_count": "+{count} going",
-  "no_events_yet": "No events yet. Be the first to host",
-  "city_empty_title": "Be the first to host a work meetup in {city}",
-  "city_empty_body": "Be the first to host a work meetup in {city}.",
+  "no_events_yet": "No upcoming meetups yet.",
+  "city_empty_title": "Be the first to host an entrepreneur meetup in {city}",
+  "city_empty_body": "Help build the entrepreneur community in {city} by hosting the first meetup.",
   "city_upcoming_title": "Upcoming meetups in {city}",
-  "city_events_description": "Discover upcoming founder meetups and community gatherings in {city}.",
+  "city_events_description": "Discover upcoming entrepreneur meetups and community gatherings in {city}.",
   "city_filters_label": "Filter meetups",
   "city_loaded_count": [
     {
@@ -166,7 +166,7 @@
     }
   ],
   "clear_city_filters": "Clear filters",
-  "social_image_alt": "Founders Coffee local founder communities and meaningful conversations over coffee.",
+  "social_image_alt": "Founders Coffee local entrepreneur communities and meaningful conversations over a cup of coffee.",
   "city_empty_cta": "Host the first meetup",
   "not_found_title": "Page not found",
   "not_found_body": "We couldn't find what you're looking for.",

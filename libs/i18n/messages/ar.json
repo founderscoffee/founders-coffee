@@ -106,7 +106,7 @@
   "not_found": "لم نعثر على هذه الصفحة.",
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "brand": "Founders Coffee",
-  "llms_description": "Founders Coffee مجتمع لقاءات محلية لرواد الأعمال حول القهوة.",
+  "llms_description": "Founders Coffee مجتمع لقاءات محلية لرواد الأعمال حول فنجان قهوة.",
   "llms_purpose": "يركّز هذا الإصدار على اللقاءات المحلية المجانية، والمشاركة المتكررة، والمضيفين، وبناء الثقة داخل المجتمع.",
   "llms_locales": "اللغات المدعومة",
   "llms_public_surfaces": "صفحات الاكتشاف العامة",
@@ -166,11 +166,11 @@
       }
     }
   ],
-  "no_events_yet": "لا لقاءات بعد. كن أول من يستضيف",
-  "city_empty_title": "كن أول من يستضيف لقاء عمل في {city}",
-  "city_empty_body": "كن أول من يستضيف لقاء عمل في {city}.",
+  "no_events_yet": "لا توجد لقاءات قادمة بعد.",
+  "city_empty_title": "كن أول من يستضيف لقاءً لرواد الأعمال في {city}",
+  "city_empty_body": "ساعد في بناء مجتمع رواد الأعمال في {city} باستضافة أول لقاء.",
   "city_upcoming_title": "اللقاءات القادمة في {city}",
-  "city_events_description": "اكتشف لقاءات المؤسسين والمجتمع القادمة في {city}.",
+  "city_events_description": "اكتشف لقاءات رواد الأعمال والمجتمع القادمة في {city}.",
   "city_filters_label": "تصفية اللقاءات",
   "city_loaded_count": [
     {
@@ -186,8 +186,8 @@
       }
     }
   ],
-  "clear_city_filters": "مسح الفلاتر",
-  "social_image_alt": "مجتمعات المؤسسين المحلية ومحادثات هادفة حول القهوة على Founders Coffee.",
+  "clear_city_filters": "إلغاء التصفية",
+  "social_image_alt": "مجتمعات رواد الأعمال المحلية ومحادثات هادفة حول فنجان قهوة على Founders Coffee.",
   "city_empty_cta": "استضف اللقاء الأول",
   "not_found_title": "الصفحة غير موجودة",
   "not_found_body": "لم نتمكن من العثور على ما تبحث عنه.",

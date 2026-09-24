@@ -106,7 +106,7 @@
   "not_found": "Cette page est introuvable.",
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "brand": "Founders Coffee",
-  "llms_description": "Founders Coffee est une communauté de rencontres locales entre entrepreneurs autour d'un café.",
+  "llms_description": "Founders Coffee est une communauté de rencontres locales entre entrepreneurs autour d’une tasse de café.",
   "llms_purpose": "Cette version se concentre sur les rencontres locales gratuites, la participation régulière, les hôtes et la confiance au sein de la communauté.",
   "llms_locales": "Langues prises en charge",
   "llms_public_surfaces": "Pages publiques de découverte",
@@ -192,7 +192,7 @@
       }
     }
   ],
-  "no_events_yet": "Pas encore de rencontres. Soyez le premier à héberger",
+  "no_events_yet": "Pas encore de rencontres à venir.",
   "city_empty_title": [
     {
       "declarations": [
@@ -202,9 +202,9 @@
       ],
       "selectors": ["cityArticle"],
       "match": {
-        "cityArticle=le": "Soyez le premier à organiser une rencontre pro au {cityAfterArticle}",
-        "cityArticle=les": "Soyez le premier à organiser une rencontre pro aux {cityAfterArticle}",
-        "cityArticle=*": "Soyez le premier à organiser une rencontre pro à {city}"
+        "cityArticle=le": "Soyez le premier à organiser une rencontre d’entrepreneurs au {cityAfterArticle}",
+        "cityArticle=les": "Soyez le premier à organiser une rencontre d’entrepreneurs aux {cityAfterArticle}",
+        "cityArticle=*": "Soyez le premier à organiser une rencontre d’entrepreneurs à {city}"
       }
     }
   ],
@@ -217,9 +217,9 @@
       ],
       "selectors": ["cityArticle"],
       "match": {
-        "cityArticle=le": "Soyez le premier à organiser une rencontre pro au {cityAfterArticle}.",
-        "cityArticle=les": "Soyez le premier à organiser une rencontre pro aux {cityAfterArticle}.",
-        "cityArticle=*": "Soyez le premier à organiser une rencontre pro à {city}."
+        "cityArticle=le": "Aidez à créer une communauté d’entrepreneurs au {cityAfterArticle} en organisant la première rencontre.",
+        "cityArticle=les": "Aidez à créer une communauté d’entrepreneurs aux {cityAfterArticle} en organisant la première rencontre.",
+        "cityArticle=*": "Aidez à créer une communauté d’entrepreneurs à {city} en organisant la première rencontre."
       }
     }
   ],
@@ -247,9 +247,9 @@
       ],
       "selectors": ["cityArticle"],
       "match": {
-        "cityArticle=le": "Découvrez les prochaines rencontres de fondateurs et communautés au {cityAfterArticle}.",
-        "cityArticle=les": "Découvrez les prochaines rencontres de fondateurs et communautés aux {cityAfterArticle}.",
-        "cityArticle=*": "Découvrez les prochaines rencontres de fondateurs et communautés à {city}."
+        "cityArticle=le": "Découvrez les prochaines rencontres d’entrepreneurs et de la communauté au {cityAfterArticle}.",
+        "cityArticle=les": "Découvrez les prochaines rencontres d’entrepreneurs et de la communauté aux {cityAfterArticle}.",
+        "cityArticle=*": "Découvrez les prochaines rencontres d’entrepreneurs et de la communauté à {city}."
       }
     }
   ],
@@ -264,8 +264,8 @@
       }
     }
   ],
-  "clear_city_filters": "Effacer les filtres",
-  "social_image_alt": "Communautés locales de fondateurs et conversations autour du café sur Founders Coffee.",
+  "clear_city_filters": "Réinitialiser les filtres",
+  "social_image_alt": "Communautés locales d’entrepreneurs et conversations autour d’une tasse de café sur Founders Coffee.",
   "city_empty_cta": "Animer la première rencontre",
   "not_found_title": "Page introuvable",
   "not_found_body": "Nous n'avons pas trouvé ce que vous cherchez.",
