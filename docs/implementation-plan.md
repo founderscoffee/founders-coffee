@@ -136,12 +136,20 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
 
-### Public profile boundaries (P1-004)
+### Public profile (P1-004)
 
 The public profile answers one question: should I show up to coffee with this person? It is not a
-portfolio. Features that are neutral on a hiring network are not neutral for members meeting
-strangers in DZ, EG, and SA. These boundaries change only through an explicit decision about member
-safety, never as a side effect of a growth or SEO ticket (#92):
+portfolio.
+
+**What it shows.** The display name, photo, and introduction are public whenever they are set.
+Everything else is published only by its own toggle, and every toggle starts off: what the member is
+building, as one line of up to 80 characters, and how far along it is, as `idea`, `building`, or
+`launched` (#89); interests; spoken languages; and a personal website. Clearing a field withdraws
+its publication.
+
+**What it will not become.** Features that are neutral on a hiring network are not neutral for
+members meeting strangers in DZ, EG, and SA. These boundaries change only through an explicit
+decision about member safety, never as a side effect of a growth or SEO ticket (#92):
 
 1. **The profile stays `noindex`.** Public means reachable with the link, not on the open web:
    `/u/$userId` keeps `X-Robots-Tag: noindex` and `Cache-Control: private, no-store`.

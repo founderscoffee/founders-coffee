@@ -2,10 +2,7 @@ import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 import { createDb } from './db.js';
-import {
-  getMemberProfile,
-  initializeMemberProfile,
-} from './member-profiles.js';
+import { initializeMemberProfile } from './member-profiles.js';
 import { atMigration, columnNames, priorHost } from './migrations.fixtures.js';
 
 describe('PF-04 introduction controls contraction on populated D1', () => {
@@ -41,12 +38,7 @@ describe('PF-04 introduction controls contraction on populated D1', () => {
       .bind(priorHost.id)
       .first();
     expect(after).toEqual(expected);
-    expect(await getMemberProfile(db, priorHost.id)).toMatchObject({
-      profile: {
-        introduction,
-        publishInterests: true,
-      },
-    });
+    expect(after).toMatchObject({ introduction, publish_interests: 1 });
     expect(
       (await env.PRIOR_DB.prepare('PRAGMA foreign_key_check').all()).results,
     ).toEqual([]);

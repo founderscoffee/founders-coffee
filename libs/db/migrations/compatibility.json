@@ -32,5 +32,6 @@
   "0030_white_vindicator": "compatible",
   "0031_market_name_fr": "compatible",
   "0032_follow_up_prompts_default_on": "compatible",
-  "0033_familiar_frog_thor": "compatible"
+  "0033_familiar_frog_thor": "compatible",
+  "0034_profile_headline_stage": "compatible"
 }

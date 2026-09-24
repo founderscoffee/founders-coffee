@@ -5,6 +5,9 @@ import {
   spoken_es,
   spoken_de,
   spoken_ber,
+  stage_building,
+  stage_idea,
+  stage_launched,
   topic_investing,
   topic_software_development,
   topic_building_products,
@@ -55,8 +58,18 @@ const LOCALE_MESSAGES = {
   (input: Record<string, never>, options: { locale: Locale }) => string
 >;
 
+const STAGE_MESSAGES = {
+  idea: stage_idea,
+  building: stage_building,
+  launched: stage_launched,
+} as const satisfies Record<
+  profile.ProfileStage,
+  (input: Record<string, never>, options: { locale: Locale }) => string
+>;
+
 export const TOPIC_OPTIONS = profile.PROFILE_INTERESTS;
 export const SPOKEN_LOCALE_OPTIONS = profile.SPOKEN_LANGUAGES;
+export const STAGE_OPTIONS = profile.PROFILE_STAGES;
 
 /** Label each domain interest through an exhaustive localized map. */
 export const topicLabel = (
@@ -69,3 +82,9 @@ export const localeLabel = (
   spoken: (typeof profile.SPOKEN_LANGUAGES)[number],
   locale: Locale,
 ): string => LOCALE_MESSAGES[spoken]({}, { locale });
+
+/** Name how far along a member's project is, from the fixed set of stages. */
+export const stageLabel = (
+  stage: profile.ProfileStage,
+  locale: Locale,
+): string => STAGE_MESSAGES[stage]({}, { locale });

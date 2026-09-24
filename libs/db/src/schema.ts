@@ -33,6 +33,7 @@ import {
   ORDER_STATUSES,
   PROFILE_ASSET_STATUSES,
   PROFILE_PHOTO_MIME_TYPES,
+  PROFILE_STAGES,
   PUSH_PLATFORMS,
   PUSH_SURFACES,
   REVIEW_BOTTLENECKS,
@@ -546,6 +547,8 @@ export const memberProfiles = sqliteTable(
     userId: text('user_id')
       .primaryKey()
       .references(() => user.id, { onDelete: 'cascade' }),
+    headline: text('headline'),
+    stage: text('stage', { enum: [...PROFILE_STAGES] }),
     introduction: text('introduction'),
     interests: text('interests', { mode: 'json' })
       .$type<string[]>()
@@ -557,6 +560,12 @@ export const memberProfiles = sqliteTable(
       .default(sql`'[]'`),
     professionalLink: text('professional_link'),
     photoAssetId: text('photo_asset_id'),
+    publishHeadline: integer('publish_headline', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    publishStage: integer('publish_stage', { mode: 'boolean' })
+      .notNull()
+      .default(false),
     publishInterests: integer('publish_interests', { mode: 'boolean' })
       .notNull()
       .default(false),

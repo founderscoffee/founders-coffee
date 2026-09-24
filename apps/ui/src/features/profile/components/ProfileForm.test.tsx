@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  profile_languages_label,
   profile_photo_card_subtitle,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -60,7 +61,7 @@ describe('PF-06 simplified photo card', () => {
       expect(card?.querySelector('p')?.textContent).toBe(
         profile_photo_card_subtitle({}, { locale }),
       );
-      expect(card?.querySelectorAll('input[type="checkbox"]')).toHaveLength(3);
+      expect(card?.querySelectorAll('input[type="checkbox"]')).toHaveLength(5);
       expect(card?.querySelector('img')).not.toBeNull();
       expect(card?.querySelector('#profile-name')).not.toBeNull();
       expect(card?.querySelector('#profile-intro')).not.toBeNull();
@@ -104,7 +105,7 @@ describe('PF-04b optional fields', () => {
   ] as const)(
     'offers collaboration and learning interests in %s without the language hint',
     (locale, labels) => {
-      const { container } = render(
+      render(
         <ProfileForm
           profile={saved}
           locale={locale}
@@ -116,8 +117,10 @@ describe('PF-04b optional fields', () => {
         fireEvent.click(button);
         expect(button.getAttribute('aria-pressed')).toBe('true');
       }
-      const languageGroup = container.querySelectorAll('[role="group"]')[1];
-      expect(languageGroup?.parentElement?.querySelector('p')).toBeNull();
+      const languageGroup = screen.getByRole('group', {
+        name: profile_languages_label({}, { locale }),
+      });
+      expect(languageGroup.parentElement?.querySelector('p')).toBeNull();
     },
   );
   it('offers investing, development, building and idea interests', () => {

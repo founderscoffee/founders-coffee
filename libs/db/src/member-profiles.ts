@@ -12,10 +12,14 @@ import {
 
 export type MemberProfileChanges = Pick<
   MemberProfileRow,
+  | 'headline'
+  | 'stage'
   | 'introduction'
   | 'interests'
   | 'spokenLanguages'
   | 'professionalLink'
+  | 'publishHeadline'
+  | 'publishStage'
   | 'publishInterests'
   | 'publishSpokenLanguages'
   | 'publishProfessionalLink'
@@ -149,10 +153,14 @@ export const updateMemberProfile = async (
     db
       .update(memberProfiles)
       .set({
+        headline: changes.headline,
+        stage: changes.stage,
         introduction: changes.introduction,
         interests: changes.interests,
         spokenLanguages: changes.spokenLanguages,
         professionalLink: changes.professionalLink,
+        publishHeadline: changes.publishHeadline,
+        publishStage: changes.publishStage,
         publishInterests: changes.publishInterests,
         publishSpokenLanguages: changes.publishSpokenLanguages,
         publishProfessionalLink: changes.publishProfessionalLink,

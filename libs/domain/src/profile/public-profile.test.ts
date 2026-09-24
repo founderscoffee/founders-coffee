@@ -11,6 +11,8 @@ const owner = ownerProfileSchema.parse({
   displayName: 'Amina',
   revision: 2,
   photoAssetId: `pha_${'1'.repeat(32)}`,
+  headline: 'Founder, a bookkeeping app for small shops',
+  stage: 'building',
   introduction: 'Building a community',
   interests: ['community'],
   spokenLanguages: ['ar', 'fr'],
@@ -28,6 +30,8 @@ describe('public profile projection', () => {
       userId: owner.userId,
       displayName: 'Amina',
       photoAssetId: owner.photoAssetId,
+      headline: null,
+      stage: null,
       introduction: owner.introduction,
       interests: [],
       spokenLanguages: [],
@@ -40,6 +44,8 @@ describe('public profile projection', () => {
     const projected = projectPublicProfile({
       ...owner,
       visibility: {
+        headline: true,
+        stage: true,
         interests: true,
         spokenLanguages: true,
         professionalLink: true,
@@ -49,6 +55,8 @@ describe('public profile projection', () => {
       userId: owner.userId,
       displayName: owner.displayName,
       photoAssetId: owner.photoAssetId,
+      headline: 'Founder, a bookkeeping app for small shops',
+      stage: 'building',
       introduction: owner.introduction,
       interests: ['community'],
       spokenLanguages: ['ar', 'fr'],
@@ -63,6 +71,14 @@ describe('public profile projection', () => {
       ...owner,
       visibility: { ...owner.visibility, interests: true },
     });
+    expect(projected.headline).toBeNull();
+    expect(projected.stage).toBeNull();
+    expect(
+      projectPublicProfile({
+        ...owner,
+        visibility: { ...owner.visibility, stage: true },
+      }),
+    ).toMatchObject({ headline: null, stage: 'building' });
     expect(projected.introduction).toBe(owner.introduction);
     expect(projected.interests).toEqual(owner.interests);
     expect(projected.photoAssetId).toBe(owner.photoAssetId);

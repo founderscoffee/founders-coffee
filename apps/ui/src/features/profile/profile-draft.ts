@@ -8,6 +8,8 @@ export type ProfileDraft = Omit<UserProfile, 'userId' | 'revision'>;
 export const draftFrom = (saved: UserProfile): ProfileDraft => ({
   displayName: saved.displayName,
   photoAssetId: saved.photoAssetId,
+  headline: saved.headline,
+  stage: saved.stage,
   introduction: saved.introduction,
   interests: [...saved.interests],
   spokenLanguages: [...saved.spokenLanguages],
@@ -29,6 +31,8 @@ export const isDraftDirty = (
   saved: UserProfile,
 ): boolean =>
   draft.displayName.trim() !== saved.displayName.trim() ||
+  draft.headline !== saved.headline ||
+  draft.stage !== saved.stage ||
   draft.introduction !== saved.introduction ||
   draft.professionalLink !== saved.professionalLink ||
   draft.interests.join() !== saved.interests.join() ||
@@ -55,6 +59,8 @@ export const commandFrom = (
   const parsed = profile.updateProfileSchema.safeParse({
     displayName: draft.displayName,
     expectedRevision,
+    headline: draft.headline,
+    stage: draft.stage,
     introduction: draft.introduction,
     interests: draft.interests,
     spokenLanguages: draft.spokenLanguages,

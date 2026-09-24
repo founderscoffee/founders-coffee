@@ -5,10 +5,12 @@ import { idSchema } from '@founders-coffee/core';
 import {
   spokenLanguageSchema,
   displayNameSchema,
+  headlineSchema,
   introductionSchema,
   profileInterestSchema,
   professionalLinkSchema,
   profileIdentitySchema,
+  profileStageSchema,
   type OwnerProfile,
 } from './schemas.js';
 
@@ -16,6 +18,8 @@ export const publicMemberProfileSchema = z.strictObject({
   userId: profileIdentitySchema,
   displayName: displayNameSchema,
   photoAssetId: idSchema.nullable(),
+  headline: headlineSchema,
+  stage: profileStageSchema.nullable(),
   introduction: introductionSchema,
   interests: z.array(profileInterestSchema).max(5),
   spokenLanguages: z.array(spokenLanguageSchema).max(6),
@@ -31,6 +35,8 @@ export const projectPublicProfile = (
   userId: profile.userId,
   displayName: profile.displayName,
   photoAssetId: profile.photoAssetId,
+  headline: profile.visibility.headline ? profile.headline : null,
+  stage: profile.visibility.stage ? profile.stage : null,
   introduction: profile.introduction,
   interests: profile.visibility.interests ? [...profile.interests] : [],
   spokenLanguages: profile.visibility.spokenLanguages

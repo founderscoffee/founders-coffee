@@ -135,6 +135,10 @@ export const PROFILE_PHOTO_MIME_TYPES = [
 export type ProfilePhotoMimeType = (typeof PROFILE_PHOTO_MIME_TYPES)[number];
 export const profilePhotoMimeSchema = z.enum(PROFILE_PHOTO_MIME_TYPES);
 
+export const PROFILE_STAGES = ['idea', 'building', 'launched'] as const;
+export type ProfileStage = (typeof PROFILE_STAGES)[number];
+export const profileStageSchema = z.enum(PROFILE_STAGES);
+
 export const CLOSEOUT_OUTCOMES = ['held', 'did_not_happen'] as const;
 export type CloseoutOutcome = (typeof CLOSEOUT_OUTCOMES)[number];
 export const closeoutOutcomeSchema = z.enum(CLOSEOUT_OUTCOMES);

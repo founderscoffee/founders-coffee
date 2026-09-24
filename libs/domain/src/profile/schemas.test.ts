@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   displayNameSchema,
+  headlineSchema,
   introductionSchema,
   ownerProfileSchema,
   professionalLinkSchema,
@@ -51,11 +52,15 @@ describe('profile contracts', () => {
     expect(updateProfileSchema.parse(minimal)).toEqual({
       displayName: 'أمينة',
       expectedRevision: 0,
+      headline: null,
+      stage: null,
       introduction: null,
       interests: [],
       spokenLanguages: [],
       professionalLink: null,
       visibility: {
+        headline: false,
+        stage: false,
         interests: false,
         spokenLanguages: false,
         professionalLink: false,
@@ -103,6 +108,8 @@ describe('profile contracts', () => {
       { spokenLanguages: ['ar', 'fr', 'en', 'es', 'de', 'ber', 'it'] },
       { introductionLocale: 'fr' },
       { visibility: { introduction: true } },
+      { stage: 'series_a' },
+      { stage: '' },
     ])
       expect(
         updateProfileSchema.safeParse({ ...minimal, ...changes }).success,
@@ -121,14 +128,18 @@ describe('profile contracts', () => {
 
   it('clears publication flags for emptied fields but retains populated opt-ins', () => {
     const visibility = {
+      headline: true,
+      stage: true,
       interests: true,
       spokenLanguages: true,
       professionalLink: true,
     };
     expect(
-      updateProfileSchema.parse({ ...minimal, visibility }).visibility,
+      updateProfileSchema.parse({ ...minimal, visibility, headline: '  ' })
+        .visibility,
     ).toEqual({
-      ...visibility,
+      headline: false,
+      stage: false,
       interests: false,
       spokenLanguages: false,
       professionalLink: false,
@@ -136,6 +147,8 @@ describe('profile contracts', () => {
     const value = updateProfileSchema.parse({
       ...minimal,
       visibility,
+      headline: 'Founder, a bookkeeping app for small shops',
+      stage: 'building',
       introduction: 'Hello',
       interests: ['product'],
       spokenLanguages: ['ar', 'fr', 'en'],
@@ -152,6 +165,23 @@ describe('profile contracts', () => {
     expect(introductionSchema.safeParse('a'.repeat(301)).success).toBe(false);
     expect(introductionSchema.parse(null)).toBeNull();
     expect(introductionSchema.parse('  ')).toBeNull();
+  });
+
+  it('keeps the headline to one short line, in any script, and empty as absent', () => {
+    expect(headlineSchema.parse('  مؤسس، تطبيق محاسبة للمحلات  ')).toBe(
+      'مؤسس، تطبيق محاسبة للمحلات',
+    );
+    expect(headlineSchema.parse('🙂'.repeat(80))).toHaveLength(160);
+    expect(headlineSchema.safeParse('a'.repeat(81)).success).toBe(false);
+    expect(headlineSchema.parse('   ')).toBeNull();
+    expect(headlineSchema.parse(null)).toBeNull();
+  });
+
+  it('knows a company at exactly three stages, and none is required', () => {
+    for (const stage of ['idea', 'building', 'launched', null])
+      expect(updateProfileSchema.parse({ ...minimal, stage }).stage).toBe(
+        stage,
+      );
   });
 
   it('accepts opaque Better Auth identity IDs but bounds revisions', () => {

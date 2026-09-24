@@ -4,7 +4,6 @@ import {
   profile_languages_label,
   profile_link_label,
   profile_link_placeholder,
-  profile_optional_chip,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Input } from '@founders-coffee/ui';
@@ -17,13 +16,8 @@ import {
 } from '../profile-labels';
 import type { ProfileDraft } from '../profile-draft';
 import { ChipGroup } from './ChipGroup';
+import { OptionalChip } from './OptionalChip';
 import { PublishToggle } from './PublishToggle';
-
-const OptionalChip = ({ locale }: { locale: Locale }) => (
-  <span className="rounded-full bg-base-200 px-2 py-0.5 text-caption text-neutral">
-    {profile_optional_chip({}, { locale })}
-  </span>
-);
 
 export const ProfileDetailFields = ({
   locale,

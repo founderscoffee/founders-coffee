@@ -10,6 +10,7 @@ import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { UserProfile } from '../api';
+import { savedProfile } from '../profile.fixtures';
 import { ProfileCompletion } from './ProfileCompletion';
 import { ProfileNameEditor } from './ProfileNameEditor';
 
@@ -38,21 +39,7 @@ vi.mock('@tanstack/react-router', () => ({
     createElement('a', { href: '/login' }, children),
 }));
 
-const owner: UserProfile = {
-  userId: 'usr_1',
-  displayName: '',
-  revision: 0,
-  photoAssetId: null,
-  introduction: null,
-  interests: [],
-  spokenLanguages: [],
-  professionalLink: null,
-  visibility: {
-    interests: false,
-    spokenLanguages: false,
-    professionalLink: false,
-  },
-};
+const owner: UserProfile = { ...savedProfile, displayName: '', revision: 0 };
 const saveButton = () => screen.getByRole('button', { name: 'Save changes' });
 const input = () => screen.getByRole('textbox', { name: 'Display name' });
 

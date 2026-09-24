@@ -219,4 +219,44 @@ describe('member profiles on real D1', () => {
       professionalLink: null,
     });
   });
+
+  it('keeps what a member is building and its stage, each with its own publication flag', async () => {
+    const { db, userId } = await profileFixture();
+    await updateMemberProfile(db, {
+      userId,
+      displayName: 'Original',
+      expectedRevision: 0,
+      changes: {
+        ...profileChanges,
+        headline: 'مؤسس، تطبيق محاسبة للمحلات',
+        stage: 'launched',
+        publishHeadline: true,
+      },
+    });
+
+    expect((await getMemberProfile(db, userId))?.profile).toMatchObject({
+      revision: 1,
+      headline: 'مؤسس، تطبيق محاسبة للمحلات',
+      stage: 'launched',
+      publishHeadline: true,
+      publishStage: false,
+    });
+
+    await updateMemberProfile(db, {
+      userId,
+      displayName: 'Original',
+      expectedRevision: 1,
+      changes: {
+        ...profileChanges,
+        headline: 'مؤسس، تطبيق محاسبة للمحلات',
+        stage: 'launched',
+        publishStage: true,
+      },
+    });
+    expect((await getMemberProfile(db, userId))?.profile).toMatchObject({
+      revision: 2,
+      publishHeadline: false,
+      publishStage: true,
+    });
+  });
 });

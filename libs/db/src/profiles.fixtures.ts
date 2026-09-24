@@ -11,10 +11,14 @@ import type { AccountPreferenceChanges } from './account-preferences.js';
 import { user, type NewUser } from './schema.js';
 
 export const profileChanges: MemberProfileChanges = {
+  headline: null,
+  stage: null,
   introduction: 'Community first',
   interests: ['community'],
   spokenLanguages: ['ar', 'en'],
   professionalLink: 'https://example.com',
+  publishHeadline: false,
+  publishStage: false,
   publishInterests: false,
   publishSpokenLanguages: false,
   publishProfessionalLink: false,

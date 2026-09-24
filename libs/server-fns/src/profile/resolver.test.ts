@@ -79,6 +79,8 @@ describe('PF-03 profile resolvers against real D1', () => {
         userId,
         displayName: 'أمينة',
         photoAssetId: null,
+        headline: null,
+        stage: null,
         introduction: null,
         interests: [],
         spokenLanguages: [],

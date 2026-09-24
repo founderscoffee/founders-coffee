@@ -2,25 +2,20 @@ import {
   event_past,
   hosted_events,
   profile_interests_label,
-  profile_photo_of,
-  profile_view_link,
   public_no_events,
   type Locale,
 } from '@founders-coffee/i18n';
 import { StatusMessage } from '@founders-coffee/ui';
 
-import { ExternalLink } from 'lucide-react';
-
 import { EventCard } from '../../../components/events/EventCard';
 import { LoadMoreEvents } from '../../../components/events/LoadMoreEvents';
 import { useHostedEvents } from '../../events/hooks';
 import { useEventPages } from '../../events/useEventPages';
-import { initials } from '../../../lib/utils';
-import { profilePhotoUrl } from '../photo-url';
 import { localeLabel, topicLabel } from '../profile-labels';
 import type { EventFeedItem } from '../../events/api';
 import type { RootMarket } from '../../markets/api';
 import type { PublicProfile } from '../api';
+import { PublicProfileHeader } from './PublicProfileHeader';
 
 const PAGE_SIZE = 12;
 
@@ -73,52 +68,7 @@ export const PublicProfilePage = ({
         aria-labelledby="public-profile-title"
         className="rounded-box bg-base-200 p-5 sm:p-8"
       >
-        <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <div
-              className="avatar avatar-placeholder shrink-0"
-              aria-hidden={profile.photoAssetId ? undefined : true}
-            >
-              <div className="w-16 rounded-full bg-neutral text-neutral-content">
-                {profile.photoAssetId ? (
-                  <img
-                    src={profilePhotoUrl(profile.photoAssetId, 'md')}
-                    alt={profile_photo_of(
-                      { name: profile.displayName },
-                      { locale },
-                    )}
-                    width={64}
-                    height={64}
-                    className="rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-h3">
-                    {initials(profile.displayName)}
-                  </span>
-                )}
-              </div>
-            </div>
-            <h1
-              id="public-profile-title"
-              className="font-display text-h2 font-semibold break-words"
-            >
-              <bdi>{profile.displayName}</bdi>
-            </h1>
-          </div>
-          {profile.professionalLink ? (
-            <a
-              href={profile.professionalLink}
-              target="_blank"
-              rel="noreferrer nofollow ugc"
-              dir="ltr"
-              aria-label={`${profile_view_link({}, { locale })}: ${profile.professionalLink}`}
-              className="btn btn-outline h-10 min-h-10 shrink-0 self-start px-3"
-            >
-              <span>{profile_view_link({}, { locale })}</span>
-              <ExternalLink className="size-4" aria-hidden="true" />
-            </a>
-          ) : null}
-        </header>
+        <PublicProfileHeader locale={locale} profile={profile} />
 
         <div className="mt-6 flex flex-col gap-4">
           {profile.introduction ? (

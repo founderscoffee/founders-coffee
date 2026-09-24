@@ -15,11 +15,13 @@ import { ownerProfileProjection } from './profile/projection.js';
 
 const PUBLIC_PROFILE_FIELDS = [
   'displayName',
+  'headline',
   'interests',
   'introduction',
   'photoAssetId',
   'professionalLink',
   'spokenLanguages',
+  'stage',
   'userId',
 ] as const;
 
@@ -109,12 +111,20 @@ describe('public response contract', () => {
 
     expect(sorted(Object.keys(owner))).toEqual(sorted(OWNER_PROFILE_FIELDS));
     expect(sorted(Object.keys(owner.visibility))).toEqual(
-      sorted(['interests', 'professionalLink', 'spokenLanguages']),
+      sorted([
+        'headline',
+        'interests',
+        'professionalLink',
+        'spokenLanguages',
+        'stage',
+      ]),
     );
   });
 
   it('publishes the introduction while withholding opt-in fields', () => {
     const owner = ownerProfileProjection('usr_contract', 'Contract', {
+      headline: 'A bookkeeping app for small shops',
+      stage: 'launched',
       introduction: 'Secret',
       interests: ['bootstrapping'],
       spokenLanguages: ['ar'],
@@ -127,6 +137,8 @@ describe('public response contract', () => {
       sorted(PUBLIC_PROFILE_FIELDS),
     );
     expect(published).toMatchObject({
+      headline: null,
+      stage: null,
       introduction: 'Secret',
       professionalLink: null,
       photoAssetId: owner.photoAssetId,

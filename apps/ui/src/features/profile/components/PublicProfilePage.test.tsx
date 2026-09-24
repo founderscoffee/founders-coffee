@@ -37,6 +37,8 @@ const profile = {
 
 const publicProfile: PublicProfile = {
   ...profile,
+  headline: null,
+  stage: null,
   interests: [],
   spokenLanguages: [],
   professionalLink: null,

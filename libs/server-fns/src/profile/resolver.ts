@@ -121,6 +121,8 @@ export const saveDisplayName = async (
   return saveOwnerProfile(db, userId, {
     displayName: input.displayName,
     expectedRevision: input.expectedRevision,
+    headline: value.headline,
+    stage: value.stage,
     introduction: value.introduction,
     interests: value.interests,
     spokenLanguages: value.spokenLanguages,
