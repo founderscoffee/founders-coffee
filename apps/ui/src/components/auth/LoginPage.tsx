@@ -10,7 +10,7 @@ import {
   login_send_error,
   login_welcome,
   login_verify,
-  login_wrong_code,
+  code_error,
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -108,7 +108,7 @@ export const LoginPage = ({
     });
     setBusy(false);
     if (verifyError) {
-      setError(login_wrong_code({}, { locale }));
+      setError(code_error({}, { locale }));
       return;
     }
     window.location.href = onboardingRedirectPath(locale, redirect);
