@@ -1,10 +1,10 @@
 import { appErrorCode } from '@founders-coffee/core';
 import {
   cityInputs,
+  email_label,
   hero_waitlist_already,
   hero_waitlist_error,
   hero_waitlist_invalid_email,
-  hero_waitlist_placeholder,
   hero_waitlist_submit,
   hero_waitlist_submitting,
   hero_waitlist_success,
@@ -102,8 +102,8 @@ export const WaitlistForm = ({
             setEmail(e.target.value);
             if (localError) setLocalError(null);
           }}
-          placeholder={hero_waitlist_placeholder({}, { locale })}
-          aria-label={hero_waitlist_placeholder({}, { locale })}
+          placeholder={email_label({}, { locale })}
+          aria-label={email_label({}, { locale })}
           aria-invalid={!!localError}
           className="input input-bordered h-10 flex-1 text-sm"
           disabled={joinWaitlist.isPending}

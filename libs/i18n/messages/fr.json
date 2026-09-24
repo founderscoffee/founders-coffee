@@ -160,9 +160,8 @@
   "hero_search_no_match": "Aucune ville ne correspond à « {query} ».",
   "hero_search_clear": "Désélectionner la ville",
   "hero_waitlist_prompt": "Prévenez-moi au lancement",
-  "hero_waitlist_placeholder": "Votre email",
   "hero_waitlist_submit": "Notifiez-moi",
-  "hero_waitlist_submitting": "Envoi…",
+  "hero_waitlist_submitting": "Inscription…",
   "hero_waitlist_success": [
     {
       "declarations": [
@@ -172,13 +171,13 @@
       ],
       "selectors": ["cityArticle"],
       "match": {
-        "cityArticle=le": "Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre au {cityAfterArticle}.",
-        "cityArticle=les": "Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre aux {cityAfterArticle}.",
-        "cityArticle=*": "Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre à {city}."
+        "cityArticle=le": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre au {cityAfterArticle}.",
+        "cityArticle=les": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre aux {cityAfterArticle}.",
+        "cityArticle=*": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre à {city}."
       }
     }
   ],
-  "hero_waitlist_already": "Vous êtes déjà sur la liste pour {city} !",
+  "hero_waitlist_already": "Vous êtes déjà sur la liste d’attente pour {city} !",
   "hero_waitlist_invalid_email": "Veuillez entrer un email valide",
   "host_in_your_city": "Hébergez dans votre ville",
   "cities_in": "Partenariats et rencontres qui commencent maintenant dans les villes d’{market}",
