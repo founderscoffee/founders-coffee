@@ -17,6 +17,7 @@ import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import { requireEventCreateWafRule } from '../turnstile/middleware.js';
 import { attachAttendance } from './attendance.js';
+import { answerEventCalendar } from './calendar.js';
 import { readEventCard } from './card.js';
 import { cancelEventResolver } from './cancel.js';
 import { listHostedEventPage } from './hosted.js';
@@ -27,6 +28,7 @@ import { createEventWithTelemetry } from './create.js';
 import { updateEventResolver } from './update.js';
 import { listEvents, resolveEvent } from './resolver.js';
 import {
+  eventCalendarRequestSchema,
   eventCancelRequestSchema,
   eventCreateRequestSchema,
   eventUpdateRequestSchema,
@@ -159,6 +161,23 @@ export const getEvent = createServerFn({ strict: false })
 export const getEventCardData = createServerFn({ strict: false })
   .validator(z.object({ id: z.string() }))
   .handler(({ data }) => readEventCard(getDb(), data.id));
+
+/**
+ * A meetup as a calendar entry: its `.ics` file, a redirect to Google Calendar's form, or, for a
+ * cancelled meetup, a redirect to the page that says so.
+ *
+ * Public and sessionless, like the social card. What fetches it is a calendar app or a download,
+ * which carries no cookie, so it answers the same for everyone; the entry links back on the origin
+ * that served it.
+ */
+export const getEventCalendarAnswer = createServerFn({ strict: false })
+  .validator(appValidator(eventCalendarRequestSchema))
+  .handler(({ data }) =>
+    answerEventCalendar(getDb(), {
+      ...data,
+      origin: new URL(getRequest().url).origin,
+    }),
+  );
 
 /**
  * List upcoming published events (composite cursor). Public. Pass `afterStartsAt` (a startsAt epoch

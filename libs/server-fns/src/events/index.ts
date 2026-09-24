@@ -14,7 +14,9 @@ export type {
   EventCreateInput,
   EventUpdateInput,
 } from '@founders-coffee/domain';
+export type { EventCalendarAnswer } from './calendar.js';
 export type {
+  EventCalendarRequestInput,
   EventCancelRequestInput,
   EventCreateRequestInput,
   EventUpdateRequestInput,
@@ -26,6 +28,7 @@ export {
   cancelEvent,
   createEvent,
   getEvent,
+  getEventCalendarAnswer,
   getEventCardData,
   getHostedEvents,
   getMyJoinedEvents,
