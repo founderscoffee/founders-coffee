@@ -2,17 +2,17 @@ import { useState } from 'react';
 
 import {
   admin_captcha_wait,
-  admin_checking,
+  checking,
   admin_code_error,
-  admin_code_label,
-  admin_email_label,
-  admin_send_code,
-  admin_send_error,
-  admin_sending,
-  admin_sign_in,
+  code_label,
+  email_label,
+  send_code,
+  send_error,
+  sending,
+  sign_in,
   admin_sign_in_note,
   admin_title,
-  admin_use_other_email,
+  use_other_email,
   type Locale,
 } from '@founders-coffee/i18n';
 import { LoadingStatus, StatusMessage, Turnstile } from '@founders-coffee/ui';
@@ -48,7 +48,7 @@ export const AdminLogin = ({
     );
     setBusy(false);
     if (failed) {
-      setError(admin_send_error({}, { locale }));
+      setError(send_error({}, { locale }));
       return;
     }
     setStep('code');
@@ -90,7 +90,7 @@ export const AdminLogin = ({
           }}
         >
           <label className="text-body-sm" htmlFor="admin-email">
-            {admin_email_label({}, { locale })}
+            {email_label({}, { locale })}
           </label>
           <input
             className="rounded-box border border-base-300 p-2"
@@ -121,8 +121,8 @@ export const AdminLogin = ({
             disabled={busy || !canSend}
           >
             {busy
-              ? admin_sending({}, { locale })
-              : admin_send_code({}, { locale })}
+              ? sending({}, { locale })
+              : send_code({}, { locale })}
           </button>
         </form>
       ) : (
@@ -134,7 +134,7 @@ export const AdminLogin = ({
           }}
         >
           <label className="text-body-sm" htmlFor="admin-code">
-            {admin_code_label({ email }, { locale })}
+            {code_label({ email }, { locale })}
           </label>
           <input
             className="rounded-box border border-base-300 p-2 tracking-widest"
@@ -152,15 +152,15 @@ export const AdminLogin = ({
             disabled={busy || code.length === 0}
           >
             {busy
-              ? admin_checking({}, { locale })
-              : admin_sign_in({}, { locale })}
+              ? checking({}, { locale })
+              : sign_in({}, { locale })}
           </button>
           <button
             className="text-body-sm underline"
             type="button"
             onClick={() => setStep('email')}
           >
-            {admin_use_other_email({}, { locale })}
+            {use_other_email({}, { locale })}
           </button>
         </form>
       )}
