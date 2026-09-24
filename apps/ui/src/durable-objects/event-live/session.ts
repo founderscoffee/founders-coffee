@@ -1,3 +1,5 @@
+import { sessionTokenFromCookie } from '@founders-coffee/auth';
+
 import type { OutboundMessage } from './protocol.js';
 
 interface D1PreparedStatement {
@@ -25,20 +27,6 @@ export type VerifyResult =
       sessionToken: string;
     }
   | { ok: false; reason: RefusalReason };
-
-const decodeCookieValue = (value: string): string => {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-};
-
-const sessionTokenFromCookie = (value: string): string => {
-  const decoded = decodeCookieValue(value);
-  const separator = decoded.lastIndexOf('.');
-  return separator > 0 ? decoded.slice(0, separator) : decoded;
-};
 
 const MEMBERSHIP_QUERY = `SELECT s.token AS token, s.user_id AS user_id, u.name AS name, e.host_id AS host_id,
                 EXISTS(SELECT 1 FROM event_rsvps WHERE event_id = e.id AND user_id = s.user_id AND status = 'going') AS rsvpd
@@ -129,35 +117,26 @@ export const verifyEventSessions = async (
 };
 
 /**
- * Try every cookie value as a session token. The browser cannot read its own httpOnly session
- * cookie to send it as a message (L4), so the DO reads the Cookie header on upgrade instead. A
- * `not_allowed` result short-circuits: the token was valid, the membership was not.
+ * Verify the session in Better Auth's session cookie. The browser cannot read its own httpOnly
+ * session cookie to send it as a message (L4), so the DO reads the Cookie header on upgrade instead.
  *
- * A cookie whose query failed is not taken for "not this cookie". It may have been the session, so
- * when no other cookie verifies the answer is `db_error`, which the upgrade asks the browser to
- * retry. Ending in `no_session` told a member whose session was fine that it had expired.
+ * Only that cookie, so an upgrade costs one query however many cookies it carries, and none when it
+ * carries no session. Anyone can open a socket here. Trying every cookie value in turn let an
+ * upgrade padded with a thousand junk cookies hold the room for a thousand queries.
+ *
+ * A failed query stays `db_error`, which the upgrade asks the browser to retry. It says nothing
+ * about the session, and answered as `no_session` it told a member whose session was fine that it
+ * had expired.
  */
 export const verifyEventSessionFromCookie = async (
   db: D1Db,
   eventId: string | null,
   request: Request,
 ): Promise<VerifyResult> => {
-  const cookieHeader = request.headers.get('Cookie');
-  if (!cookieHeader) return { ok: false, reason: 'no_session' };
+  const sessionToken = sessionTokenFromCookie(request.headers.get('Cookie'));
+  if (!sessionToken) return { ok: false, reason: 'no_session' };
 
-  let queryFailed = false;
-  for (const part of cookieHeader.split(';')) {
-    const eq = part.indexOf('=');
-    if (eq < 0) continue;
-    const value = sessionTokenFromCookie(part.slice(eq + 1).trim());
-    if (!value) continue;
-    const result = await verifyEventSession(db, eventId, value);
-    if (result.ok || (!result.ok && result.reason === 'not_allowed')) {
-      return result;
-    }
-    if (result.reason === 'db_error') queryFailed = true;
-  }
-  return { ok: false, reason: queryFailed ? 'db_error' : 'no_session' };
+  return verifyEventSession(db, eventId, sessionToken);
 };
 
 /**

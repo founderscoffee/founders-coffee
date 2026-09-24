@@ -34,6 +34,29 @@ export const ofType =
     }
   };
 
+/** The `type` of a JSON frame from the room. */
+export const typeOf = (frame: string): unknown =>
+  (JSON.parse(frame) as { type?: unknown }).type;
+
+/**
+ * Run `act` while D1 fails the room's membership query, then give the table back.
+ *
+ * With a table the query reads renamed away, D1 itself refuses the query, as it would in an outage,
+ * and nothing is mocked.
+ */
+export const whileD1Fails = async <T>(act: () => Promise<T>): Promise<T> => {
+  await env.DB.prepare(
+    'ALTER TABLE event_rsvps RENAME TO event_rsvps_offline',
+  ).run();
+  try {
+    return await act();
+  } finally {
+    await env.DB.prepare(
+      'ALTER TABLE event_rsvps_offline RENAME TO event_rsvps',
+    ).run();
+  }
+};
+
 /**
  * Seed a published meetup with its host and one member going, each signed in for another hour.
  *
@@ -85,25 +108,23 @@ export const seedLiveRoom = async (): Promise<LiveRoom> => {
   return room;
 };
 
+/** Better Auth's session cookie as a signed-in browser sends it: the token, then its signature. */
+export const sessionCookie = (sessionToken: string): string =>
+  `__Secure-better-auth.session_token=${sessionToken}.signature`;
+
 /**
- * Open a socket to an event's live room the way the browser does: an upgrade carrying the signed
- * session cookie, when there is one.
+ * Open a socket to an event's live room with an upgrade carrying this Cookie header, or none.
  *
  * The client end is accepted and every frame kept, but nothing answers the server's close. That is
  * the client #84 describes, and the one that leaves a refused socket behind if the room forgets to.
  */
-export const connect = async (
+export const connectWithCookie = async (
   eventId: string,
-  sessionToken?: string,
+  cookie?: string,
 ): Promise<LiveClient> => {
   const response = await liveRoomOf(eventId).fetch(
     new Request(`https://staging.founders.coffee/api/live/${eventId}`, {
-      headers: {
-        Upgrade: 'websocket',
-        ...(sessionToken
-          ? { Cookie: `better-auth.session_token=${sessionToken}.signature` }
-          : {}),
-      },
+      headers: { Upgrade: 'websocket', ...(cookie ? { Cookie: cookie } : {}) },
     }),
   );
   const socket = response.webSocket;
@@ -146,3 +167,16 @@ export const connect = async (
     waitForClose: () => until(() => closure, 'Still open'),
   };
 };
+
+/**
+ * Open a socket to an event's live room the way the browser does: an upgrade carrying the signed
+ * session cookie, when there is one.
+ */
+export const connect = (
+  eventId: string,
+  sessionToken?: string,
+): Promise<LiveClient> =>
+  connectWithCookie(
+    eventId,
+    sessionToken ? sessionCookie(sessionToken) : undefined,
+  );

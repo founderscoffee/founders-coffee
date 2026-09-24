@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { createAuth } from './auth.js';
 import { getSession, requireRole } from './middleware.js';
 import { DevEmailProvider } from './providers/email.js';
+import { sessionTokenFromCookie } from './session-cookie.js';
 
 const authEnv = {
   DB: env.DB,
@@ -110,6 +111,32 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
         headers: new Headers({ cookie: sessionCookie }),
       }),
     ).rejects.toMatchObject({ status: 'FORBIDDEN' });
+  });
+
+  it('sets the one session cookie sessionTokenFromCookie reads, over plain HTTP too', async () => {
+    const emailProvider = new DevEmailProvider();
+    const { auth } = createAuth(authEnv, { emailProvider });
+    const email = 'cookie-reader@example.dz';
+    await auth.handler(
+      post('/email-otp/send-verification-otp', { email, type: 'sign-in' }),
+    );
+    const otp = emailProvider.sent[0]?.otp ?? '';
+    const signIn = await auth.handler(
+      post('/sign-in/email-otp', { email, otp }),
+    );
+    const browserCookie = signIn.headers
+      .getSetCookie()
+      .map((setCookie) => setCookie.split(';')[0])
+      .join('; ');
+
+    const session = await getSession(
+      auth,
+      new Headers({ cookie: browserCookie }),
+    );
+
+    expect(env.APP_URL).toMatch(/^http:\/\//);
+    expect(session?.session.token).toEqual(expect.any(String));
+    expect(sessionTokenFromCookie(browserCookie)).toBe(session?.session.token);
   });
 
   it.each([

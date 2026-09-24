@@ -70,7 +70,8 @@ describe('verifyEventSessionFromCookie', () => {
         'event-1',
         new Request('https://example.com', {
           headers: {
-            cookie: 'better-auth.session_token=session-token.signature',
+            cookie:
+              '__Secure-better-auth.session_token=session-token.signature',
           },
         }),
       ),

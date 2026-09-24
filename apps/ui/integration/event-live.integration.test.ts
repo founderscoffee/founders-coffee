@@ -8,6 +8,8 @@ import {
   liveRoomOf,
   ofType,
   seedLiveRoom,
+  typeOf,
+  whileD1Fails,
   type LiveClient,
 } from './event-live.fixtures';
 
@@ -19,9 +21,6 @@ const trackedBy = (eventId: string) =>
       alarm: await state.storage.getAlarm(),
     }),
   );
-
-const typeOf = (frame: string): unknown =>
-  (JSON.parse(frame) as { type?: unknown }).type;
 
 const admitted = async (
   eventId: string,
@@ -78,25 +77,6 @@ const unverifiedSocketIn = async (
     },
   );
   return heard;
-};
-
-/**
- * Run `act` while D1 fails the room's membership query, then give the table back.
- *
- * With a table the query reads renamed away, D1 itself refuses the query, as it would in an outage,
- * and nothing is mocked.
- */
-const whileD1Fails = async <T>(act: () => Promise<T>): Promise<T> => {
-  await env.DB.prepare(
-    'ALTER TABLE event_rsvps RENAME TO event_rsvps_offline',
-  ).run();
-  try {
-    return await act();
-  } finally {
-    await env.DB.prepare(
-      'ALTER TABLE event_rsvps_offline RENAME TO event_rsvps',
-    ).run();
-  }
 };
 
 describe('EventLiveDO', () => {

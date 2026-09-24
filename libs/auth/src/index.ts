@@ -12,5 +12,6 @@ export {
   ensureAdmin,
   type AuthSession,
 } from './middleware.js';
+export { sessionTokenFromCookie } from './session-cookie.js';
 export { createAuthClient } from './client.js';
 export type { AuthClient } from './client.js';
