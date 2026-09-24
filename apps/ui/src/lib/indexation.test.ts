@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { LOCALES } from '@founders-coffee/i18n';
+
 import {
   PRODUCTION_ORIGIN,
   isIndexableEnvironment,
@@ -10,6 +12,35 @@ import {
   withIndexationHeaders,
   withPrivateRouteHeaders,
 } from './indexation';
+import { declaredRoutes, sourceOf } from './route-contract.fixtures';
+
+const PRIVATE = ['private, no-store', 'noindex, nofollow'];
+const UNTOUCHED = [null, null];
+
+const SCREENS = [
+  'login',
+  'onboarding',
+  'profile',
+  'profile/account',
+  'profile/activity',
+  'profile/notifications',
+  'u/usr_1',
+  'closeout/evt_1',
+  'feedback/evt_1',
+  'edit/evt_1',
+  'algeria/host/create',
+];
+
+const floorAt = (pathname: string): (string | null)[] => {
+  const response = withPrivateRouteHeaders(
+    new Response(null, { status: 307, headers: { location: '/elsewhere' } }),
+    pathname,
+  );
+  return [
+    response.headers.get('cache-control'),
+    response.headers.get('x-robots-tag'),
+  ];
+};
 
 describe('indexation policy', () => {
   it('uses the configured origin and strips paths', () => {
@@ -99,5 +130,87 @@ describe('indexation policy', () => {
     );
     expect(publicResponse.headers.get('cache-control')).toBeNull();
     expect(publicResponse.headers.get('x-robots-tag')).toBeNull();
+  });
+});
+
+describe('the private-route floor', () => {
+  it.each(
+    LOCALES.flatMap((locale) =>
+      SCREENS.map((screen) => `/${locale}/${screen}`),
+    ),
+  )('keeps %s, a private screen in its language, private', (path) => {
+    expect(floorAt(path)).toEqual(PRIVATE);
+  });
+
+  it.each([
+    ...SCREENS.map((screen) => `/${screen}`),
+    '/account',
+    '/activity',
+    '/preferences',
+  ])(
+    'keeps the stub %s private, because its target follows the cookie',
+    (path) => {
+      expect(floorAt(path)).toEqual(PRIVATE);
+    },
+  );
+
+  it.each([
+    '/PROFILE',
+    '/en/PROFILE',
+    '/fr/Feedback/evt_1',
+    '/algeria/profile',
+    '/EN/profile',
+    '/algeria/u/usr_1',
+  ])(
+    'keeps %s private, which the router still answers with a private screen',
+    (path) => {
+      expect(floorAt(path)).toEqual(PRIVATE);
+    },
+  );
+
+  it.each([
+    '/',
+    '/ar',
+    '/ar/algeria',
+    '/en/algeria/algiers',
+    '/ar/algeria/profile',
+    '/fr/algeria/e/coffee-code',
+    '/en/algeria/e/feedback',
+    '/en/algeria/e/closeout',
+    '/ar/algeria/e/edit',
+    '/fr/algeria/e/login',
+    '/en/algeria/e/profile',
+    '/algeria/e/closeout',
+    '/en/e/feedback',
+    '/fr/about',
+    '/ar/privacy',
+    '/algeria',
+    '/about',
+    '/sitemap.xml',
+    '/og/e/evt_1',
+    '/cal/e/evt_1',
+  ])('leaves the public %s alone', (path) => {
+    expect(floorAt(path)).toEqual(UNTOUCHED);
+  });
+
+  it('reaches every route that stamps its own pages noindex, in every language', () => {
+    const selfStamped = declaredRoutes().filter(({ file }) =>
+      sourceOf(file).includes("'X-Robots-Tag': NO_INDEX_VALUE"),
+    );
+    expect(
+      selfStamped.length,
+      'no route parsed as stamping itself, so the loop below is vacuous',
+    ).toBeGreaterThan(8);
+
+    for (const { fullPath } of selfStamped)
+      for (const locale of LOCALES) {
+        const path = fullPath
+          .replace('$locale', locale)
+          .replace(/\$\w+/gu, 'x');
+        expect(
+          floorAt(path),
+          `${fullPath} stamps the pages it renders, but a redirect leaves before it can, so ${path} has only this floor`,
+        ).toEqual(PRIVATE);
+      }
   });
 });

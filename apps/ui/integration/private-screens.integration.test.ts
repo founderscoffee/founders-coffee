@@ -98,6 +98,13 @@ describe('a signed-out visitor at a screen a notification links at', () => {
       ).toBe(
         `/fr/login?redirect=${encodeURIComponent(`/fr/${screen}/${EVENT}`)}`,
       );
+      expect(
+        [
+          response.headers.get('Cache-Control'),
+          response.headers.get('X-Robots-Tag'),
+        ],
+        'the screen stamps only a page it renders, so this redirect has nothing but the private-route floor to keep it out of shared caches and the index',
+      ).toEqual(['private, no-store', 'noindex, nofollow']);
     },
   );
 });

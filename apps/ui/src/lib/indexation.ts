@@ -55,12 +55,30 @@ export const withIndexationHeaders = (
   });
 };
 
+const PRIVATE_SCREEN =
+  /^\/(?:[^/]+\/)?(?:closeout|edit|feedback|login|onboarding|profile|u\/[^/]+)(?:\/|$)/iu;
+const LEGACY_PRIVATE_ADDRESS = /^\/(?:account|activity|preferences)(?:\/|$)/iu;
+const HOST_WIZARD = /^\/(?:[^/]+\/){1,2}host\/create(?:\/|$)/iu;
+
+/**
+ * Whether an address leads to a private screen, in any form the router answers it in.
+ *
+ * A route's own `headers()` reach only a page it renders. TanStack Start returns a redirect before
+ * it reads them, so every 307 on the way to a private screen carries what this adds and nothing
+ * else. A screen is reached three ways, and each can answer with one: behind a language
+ * (`/en/profile`, whose guard sends a signed-out reader to sign in), by its bare name (`/profile`,
+ * kept for links already sent), and behind any other segment, which the `$locale` layout drops
+ * (`/algeria/profile`). The last two take their target from the reader's cookie.
+ *
+ * So the name counts first or second, never deeper: `/en/algeria/e/feedback` is a meetup whose slug
+ * happens to name a screen, and it has to stay indexable. The legacy addresses only ever existed
+ * bare, and the host wizard sits under a market. Case is ignored because the router ignores it, so
+ * `/en/PROFILE` is the profile screen.
+ */
 const isPrivatePath = (pathname: string): boolean =>
-  /^\/(?:login|account|profile|preferences|activity|onboarding)(?:\/|$)/u.test(
-    pathname,
-  ) ||
-  /^\/u\/[^/]+(?:\/|$)/u.test(pathname) ||
-  /\/(?:host\/create|closeout)(?:\/|$)/u.test(pathname);
+  PRIVATE_SCREEN.test(pathname) ||
+  LEGACY_PRIVATE_ADDRESS.test(pathname) ||
+  HOST_WIZARD.test(pathname);
 
 export const withPrivateRouteHeaders = (
   response: Response,

@@ -261,13 +261,19 @@ describe('public Worker SEO contract', () => {
   });
 
   it('keeps utility pages private and noindex', async () => {
-    const response = await fetchDocument('/login');
+    for (const path of ['/login', '/en/login']) {
+      const response = await fetchDocument(path);
 
-    expect(response.status).toBe(307);
-    expect(response.headers.get('location')).toContain('/login');
-    expect(response.headers.get('cache-control')).toBe('private, no-store');
-    expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow');
-    expect(response.headers.get('link')).toBeNull();
+      expect(response.status, path).toBe(307);
+      expect(response.headers.get('location')).toContain('/login');
+      expect(response.headers.get('cache-control'), path).toBe(
+        'private, no-store',
+      );
+      expect(response.headers.get('x-robots-tag'), path).toBe(
+        'noindex, nofollow',
+      );
+      expect(response.headers.get('link')).toBeNull();
+    }
   });
 
   it('preserves one-hop redirects without Early Hints', async () => {
