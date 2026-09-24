@@ -28,11 +28,16 @@ test.describe('Response privacy directives', () => {
   test('private pages refuse every cache and every index', async ({
     request,
   }) => {
-    for (const path of ['/profile', '/u/usr_nobody']) {
+    for (const path of [
+      '/en/profile',
+      '/fr/feedback/evt_nobody',
+      '/ar/login',
+      '/en/u/usr_nobody',
+    ]) {
       const response = await request.get(path, { maxRedirects: 0 });
       const headers = response.headers();
-      expect(headers['cache-control']).toBe('private, no-store');
-      expect(headers['x-robots-tag']).toBe(NO_INDEX);
+      expect(headers['cache-control'], path).toBe('private, no-store');
+      expect(headers['x-robots-tag'], path).toBe(NO_INDEX);
     }
   });
 
