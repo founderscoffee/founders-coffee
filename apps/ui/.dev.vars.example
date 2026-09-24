@@ -26,3 +26,9 @@ DEV_GEO=
 
 # Mapbox public token (client-side — safe to expose). Get one at account.mapbox.com
 MAPBOX_TOKEN=
+
+# Telegram meetup groups (P1-025). A bot username and a webhook secret switch the feature on. With no
+# TELEGRAM_BOT_TOKEN, development runs against the recording provider and nothing reaches Telegram.
+TELEGRAM_BOT_USERNAME=
+TELEGRAM_WEBHOOK_SECRET=
+TELEGRAM_BOT_TOKEN=

@@ -92,6 +92,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | Uploads                | R2 + Images                                                  | PF-06 is deployed with private per-environment R2 buckets and the Images transform binding; the buckets are currently empty. Ongoing free-tier usage and cleanup monitoring remain                                                                                                                                                                                               |
 | Product metrics        | Analytics Engine                                             | Binding is active and the `events_created` metric is verified; community-health dashboards and alerts remain planned                                                                                                                                                                                                                                                             |
 | Admin isolation        | Access + in-Worker JWT verification + no `workers.dev`       | Worker guard complete and `workers_dev: false` verified live on staging (the `workers.dev` URL returns 404). `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are unset in staging, so every admin request fails closed with 403 — correct behaviour, but admin is non-functional there until they are configured                                                                     |
+| Telegram groups        | Bot API webhook; posts through the Notifications Queue       | Built on develop, not configured or deployed anywhere. Each environment needs its own bot, its secrets and a registered webhook; see [Telegram groups](#telegram-groups-p1-025)                                                                                                                                                                                                  |
 
 ## 4. Phase P0 — foundation
 
@@ -147,7 +148,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
-| P1-025 | Planned  | Meetup Telegram groups through the Bot API                           | The host connects a group with a `startgroup` link and the bot manages it as section 1 describes. Needs a bot created in BotFather, its token and webhook secret set as Worker secrets, the webhook registered, and staging evidence with a real group                                                                                                                                                                                                   |
+| P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Built on develop, not deployed: migration 0036, the webhook, the queued posts, pins and removals, the host's panel and the member's card. Remaining: review of the privacy-policy draft (0572ecf) and its date; per environment, a bot set up as [Telegram groups](#telegram-groups-p1-025) lists; then staging evidence with a real group, including whether a basic group takes join-request links                                                     |
 
 ### Public profile (P1-004)
 
@@ -193,6 +194,46 @@ decision about member safety, never as a side effect of a growth or SEO ticket (
 6. **No no-show counts, ratios, or reliability scores.** `event_attendance` records no-shows, and
    none of it is published: a profile shows positive counts only, never a denominator.
 7. **Social proof attaches to events, not people.** Nothing rates a person.
+
+### Telegram groups (P1-025)
+
+Staging and production each run a bot of their own, because Telegram sends a bot's updates to one
+webhook. For each environment, in this order:
+
+1. **Create the bot** in BotFather with `/newbot`, and leave `/setjoingroups` enabled. Privacy mode
+   can stay on: the bot is an admin in its groups, and Telegram sends admins every message.
+2. **Set the secrets.** In `apps/ui`, `wrangler secret put TELEGRAM_BOT_TOKEN --env <env>` and
+   `wrangler secret put TELEGRAM_WEBHOOK_SECRET --env <env>`, the second a random value such as
+   `openssl rand -hex 32` (Telegram allows letters, digits, `_` and `-`, up to 256). In
+   `apps/worker-jobs`, the same `TELEGRAM_BOT_TOKEN`; without it every group row is refused rather
+   than marked sent. `TELEGRAM_BOT_USERNAME`, without the `@`, goes to `apps/ui` as a var of that
+   environment, since it is public. The username, the webhook secret and the token together switch
+   the feature on; until all three are set, no page offers it.
+3. **Deploy** with migration 0036 applied, worker-jobs before ui.
+4. **Register the webhook** at the environment's own address (`https://founders.coffee` in
+   production), from the operator's own machine, with the token read so it is not echoed:
+
+   ```bash
+   read -rs TELEGRAM_BOT_TOKEN && read -rs TELEGRAM_WEBHOOK_SECRET
+   curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+     --data-urlencode "url=https://staging.founders.coffee/api/telegram/webhook" \
+     --data-urlencode "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
+     --data-urlencode 'allowed_updates=["message","my_chat_member","chat_join_request"]' \
+     --data-urlencode "drop_pending_updates=true"
+   ```
+
+   `getWebhookInfo` on the same token should then show the URL, the three update types, and no
+   `last_error_message`. A webhook secret changed later has to be registered again the same way.
+
+Locally, `TELEGRAM_BOT_USERNAME` and `TELEGRAM_WEBHOOK_SECRET` in `apps/ui/.dev.vars`, with no
+token, switch the feature on against the development provider, which records calls instead of
+making them. Updates are then posted by hand to `/api/telegram/webhook` with the
+`X-Telegram-Bot-Api-Secret-Token` header: a `/start@<bot> <token>` message from the host's connect
+link, and a `chat_join_request` whose link a member was given.
+
+Not yet known, and part of the staging evidence: whether a basic group accepts the bot's
+join-request links, or Telegram first turns it into a supergroup. The webhook follows a group to its
+new id when it is upgraded, so either way should work, but only a real group will show it.
 
 ### Enum contract consolidation
 
