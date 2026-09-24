@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { sessionTokenFromCookie } from '@founders-coffee/auth';
 import { LOCALES, type Locale } from '@founders-coffee/i18n';
 
 import { SITEMAP_COMPANY_PATHS } from '../../lib/sitemap-contract';
@@ -109,6 +110,23 @@ describe('company pages', () => {
     expect(LEGAL_PAGE_KEYS).toContain('community');
     expect(LEGAL_PAGE_KEYS).toContain('organizers');
     expect(LEGAL_PAGE_KEYS).toContain('legal');
+  });
+
+  it('names the session cookie by the name the app reads it under', () => {
+    const listed = companyPageContent('cookies', 'ar').sections.flatMap(
+      (section) =>
+        section.blocks.flatMap((block) =>
+          block.kind === 'table'
+            ? block.rows.map(([name = '']) => name.replaceAll('`', ''))
+            : [],
+        ),
+    );
+
+    expect(listed.length).toBeGreaterThan(0);
+    expect(
+      listed.filter((name) => sessionTokenFromCookie(`${name}=tok.sig`)),
+      'the cookie policy lists a session cookie no browser holds: Better Auth sets __Secure-better-auth.session_token, the one name the app reads',
+    ).toHaveLength(1);
   });
 
   it('exposes every company page to crawlers', () => {

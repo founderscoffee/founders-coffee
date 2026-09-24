@@ -40,7 +40,7 @@ export const cookiesContent: CompanyPageContent = {
           columns: ['الملف', 'النوع', 'ما يفعله', 'المدّة'],
           rows: [
             [
-              '`better-auth.session_token`',
+              '`__Secure-better-auth.session_token`',
               'ضروري',
               'يحمل معرّف جلستك ليبقى دخولك ساريًا بين الصفحات والزيارات. ملف محميّ لا تستطيع نصوص الصفحة قراءته، ولا يُرسَل إلّا عبر اتصال مشفّر.',
               'مدّة صلاحية الجلسة',
