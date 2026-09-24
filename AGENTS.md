@@ -45,7 +45,7 @@ explicit Founder / Product decision.
 - **Styling:** **Tailwind CSS v4 + DaisyUI** (shared in `libs/ui`).
 - **Validation:** **Zod** (source of truth for types).
 - **DB:** **Cloudflare D1** + **Drizzle ORM**.
-- **Auth:** **Better Auth** (phone-OTP via Twilio Verify + email-OTP + OAuth; cookie + token).
+- **Auth:** **Better Auth** (phone-OTP via Twilio Verify + email-OTP + OAuth; HttpOnly session cookie).
 - **Cloudflare services:** D1, R2, Images, KV, Queues, Cron, Durable Objects, Workflows, Workers AI, Vectorize, Browser Rendering, Turnstile, Access/Zero Trust, Email (native), Analytics Engine, Web Analytics, Secrets Store, Smart Placement.
 - **Email:** Cloudflare Email (native) + React Email templates.
 - **Mobile:** installable Serwist PWA from `apps/ui`; PWA Builder may package that same PWA for stores. A separate native app is not committed scope.
@@ -201,7 +201,7 @@ without rendering or requiring a browser challenge.
 
 ## 10. Security rules
 
-- **Authn:** Better Auth only. **Sessions in D1 (via Drizzle) — not KV** (KV is eventually consistent; see §11.5). Token strategy ready for future non-web clients.
+- **Authn:** Better Auth only. **Sessions in D1 (via Drizzle) — not KV** (KV is eventually consistent; see §11.5). Sessions travel only in the HttpOnly cookie; Better Auth's bearer plugin stays off until a non-web client is approved, and returns then with `requireSignature: true`.
 - **Authz:** centralized RBAC (`member`, `host`, `moderator`, `admin`; future
   `sponsor_contact`). Permission declared per server function; enforced in one middleware. **Never**
   spread authz checks ad hoc.
