@@ -101,11 +101,14 @@ describe('DevTelegramProvider', () => {
     ).toEqual(['one', 'two']);
   });
 
-  it('spends a queued refusal on one call, then answers normally', async () => {
+  it('spends each queued slot on one call, a refusal or a pass, then answers normally', async () => {
     const telegram = new DevTelegramProvider({
-      failures: { leaveChat: [{ kind: 'unavailable', message: 'down' }] },
+      failures: {
+        leaveChat: [null, { kind: 'unavailable', message: 'down' }],
+      },
     });
 
+    expect((await telegram.leaveChat({ chatId: CHAT })).ok).toBe(true);
     expect((await telegram.leaveChat({ chatId: CHAT })).ok).toBe(false);
     expect((await telegram.leaveChat({ chatId: CHAT })).ok).toBe(true);
   });

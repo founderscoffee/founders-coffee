@@ -1,10 +1,11 @@
-import { and, eq, ne, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
   eventRsvps,
   eventTelegramGroups,
   eventTelegramInvites,
+  scheduledNotifications,
   type EventTelegramInviteRow,
 } from './schema.js';
 
@@ -131,25 +132,27 @@ export const listTelegramInvites = (
     .from(eventTelegramInvites)
     .where(eq(eventTelegramInvites.eventId, eventId));
 
-export const deleteTelegramInvites = async (
+/** Remove every invite of a meetup and hand them back, so their links can still be revoked. */
+export const deleteTelegramInvites = (
   db: Db,
   eventId: string,
-): Promise<number> => {
-  const result = await db
+): Promise<EventTelegramInviteRow[]> =>
+  db
     .delete(eventTelegramInvites)
-    .where(eq(eventTelegramInvites.eventId, eventId));
-  return (result as { meta?: { changes?: number } }).meta?.changes ?? 0;
-};
+    .where(eq(eventTelegramInvites.eventId, eventId))
+    .returning();
 
 /**
- * Whether a Telegram account still belongs in a chat through another meetup.
+ * Whether a Telegram account still belongs in a chat through any going member's invite.
  *
- * A host can run two meetups through one group. Someone who cancels one of them and is still going to
- * the other stays in the group, so removal asks this first.
+ * A host can run two meetups through one group, and someone who cancels one of them and is still
+ * going to the other stays in it. A removal runs after the cancelled invite is gone, so the meetup
+ * it came from counts too: an invite there now is one the member asked for again after coming
+ * back, and they stay for that as well.
  */
-export const isTelegramMemberElsewhere = async (
+export const isTelegramMemberOfChat = async (
   db: Db,
-  opts: { chatId: number; telegramUserId: number; exceptEventId: string },
+  opts: { chatId: number; telegramUserId: number },
 ): Promise<boolean> => {
   const rows = await db
     .select({ eventId: eventTelegramInvites.eventId })
@@ -169,11 +172,28 @@ export const isTelegramMemberElsewhere = async (
     .where(
       and(
         eq(eventTelegramInvites.telegramUserId, opts.telegramUserId),
-        ne(eventTelegramInvites.eventId, opts.exceptEventId),
         eq(eventTelegramGroups.chatId, opts.chatId),
         eq(eventTelegramGroups.status, 'active'),
       ),
     )
     .limit(1);
   return rows.length > 0;
+};
+
+/**
+ * Drop the Telegram account id from a removal once the removal is settled.
+ *
+ * The id is copied onto the row when the invite that held it is deleted, because the removal needs
+ * it; after that it has no use, and the row is kept for the record.
+ */
+export const forgetTelegramAccount = async (
+  db: Db,
+  notificationId: string,
+): Promise<void> => {
+  await db
+    .update(scheduledNotifications)
+    .set({
+      payload: sql`json_remove(${scheduledNotifications.payload}, '$.telegramUserId')`,
+    })
+    .where(eq(scheduledNotifications.id, notificationId));
 };

@@ -10,12 +10,11 @@ import type { Db, ScheduledNotification } from '@founders-coffee/db';
 import { notifications } from '@founders-coffee/domain';
 import { logger } from '@founders-coffee/observability';
 
+import type { DispatchOutcome, Dispatcher } from './dispatch-outcome.js';
 import {
   CHANNEL_SUPPRESSES_DUPLICATES,
   buildDispatchers,
-  type DispatchOutcome,
   type DispatchProviders,
-  type Dispatcher,
 } from './notification-dispatch.js';
 
 const SWEEP_LIMIT = 100;

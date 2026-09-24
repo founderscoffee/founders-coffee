@@ -1,37 +1,25 @@
-import type { NotificationDispatchKind } from '@founders-coffee/core';
 import type { Db, ScheduledNotification } from '@founders-coffee/db';
 import type { notifications } from '@founders-coffee/domain';
 import type { EmailProvider } from '@founders-coffee/email';
 import type {
   NotificationSmsProvider,
   PushProvider,
+  TelegramBotProvider,
 } from '@founders-coffee/notifications';
 
+import type { DispatchOutcome, Dispatcher } from './dispatch-outcome.js';
 import {
   resolveDestination,
   type Destination,
   type PersonalChannel,
 } from './notification-destination.js';
-
-export type DispatchOutcome =
-  | { readonly kind: Extract<NotificationDispatchKind, 'sent'> }
-  | {
-      readonly kind: Extract<NotificationDispatchKind, 'failed'>;
-      readonly permanent: boolean;
-      readonly error: string;
-      readonly unreachable?: boolean;
-      readonly suppressFallback?: boolean;
-    };
-
-export type Dispatcher = (
-  notification: ScheduledNotification,
-  payload: notifications.ParsedNotificationPayload,
-) => Promise<DispatchOutcome>;
+import { telegramDispatcher } from './telegram-dispatch.js';
 
 export interface DispatchProviders {
   readonly sms: NotificationSmsProvider;
   readonly email: EmailProvider;
   readonly push?: PushProvider | null;
+  readonly telegram?: TelegramBotProvider | null;
 }
 
 const PUSH_ICON = '/android-chrome-192x192.png';
@@ -159,8 +147,8 @@ export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
  *
  * A channel with no configured provider is deliberately absent rather than mapped to a no-op: the
  * sweep resolves an unroutable row terminally, which is what keeps it out of every later selection
- * window. Push is the only optional channel — it needs Firebase credentials that a deployment may
- * not have.
+ * window. Push and Telegram are the optional channels: push needs Firebase credentials and Telegram
+ * a bot token, and a deployment may have neither.
  *
  * `CHANNEL_SUPPRESSES_DUPLICATES` above records whether redelivering on a channel is invisible to
  * the recipient, which is the whole basis for the sweep's resend decision after an unconfirmed
@@ -181,4 +169,7 @@ export const buildDispatchers = (
   sms: smsDispatcher(db, providers.sms),
   email: emailDispatcher(db, providers.email),
   ...(providers.push ? { push: pushDispatcher(db, providers.push) } : {}),
+  ...(providers.telegram
+    ? { telegram: telegramDispatcher(db, providers.telegram) }
+    : {}),
 });

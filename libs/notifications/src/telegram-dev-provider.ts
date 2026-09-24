@@ -32,7 +32,7 @@ export class DevTelegramProvider implements TelegramBotProvider {
   readonly calls: TelegramCall[] = [];
   private nextMessageId = 100;
   private readonly members: ReadonlyMap<number, TelegramChatMember>;
-  private readonly failures: Map<TelegramMethod, TelegramFailure[]>;
+  private readonly failures: Map<TelegramMethod, (TelegramFailure | null)[]>;
 
   /**
    * The Telegram provider for local development and tests: no network, a record of every call.
@@ -40,13 +40,13 @@ export class DevTelegramProvider implements TelegramBotProvider {
    * It answers the way the Bot API does when everything is in order. Messages get increasing ids,
    * invite links are unique, and every member lookup finds an administrator with the three rights the
    * bot asks for, unless `members` names someone else. `failures` queues refusals per method, each
-   * spent by one call, so a test can make the third `sendMessage` hit a flood limit and see what
-   * happens next.
+   * spent by one call, and a `null` in the queue lets its call through, so a test can make the third
+   * `sendMessage` hit a flood limit and see what happens next.
    */
   constructor(
     options: {
       members?: ReadonlyMap<number, TelegramChatMember>;
-      failures?: Partial<Record<TelegramMethod, TelegramFailure[]>>;
+      failures?: Partial<Record<TelegramMethod, (TelegramFailure | null)[]>>;
     } = {},
   ) {
     this.members = options.members ?? new Map();

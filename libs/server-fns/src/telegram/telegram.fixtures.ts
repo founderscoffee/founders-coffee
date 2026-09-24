@@ -137,3 +137,18 @@ export const pendingKeys = async (db: Db, eventId: string): Promise<string[]> =>
   (await telegramRows(db, eventId))
     .filter((row) => row.status === 'pending')
     .map((row) => row.templateKey);
+
+export interface TelegramPayloadFields {
+  readonly telegramText?: string;
+  readonly telegramPinnedText?: string;
+  readonly telegramChatId?: number;
+  readonly telegramUserId?: number;
+  readonly telegramInviteLink?: string;
+  readonly telegramInviteLinks?: string[];
+  readonly locale?: string;
+}
+
+/** A group row's payload, read as the Telegram fields it may carry. */
+export const payloadOf = (
+  row: { payload: Record<string, unknown> } | undefined,
+): TelegramPayloadFields => (row?.payload ?? {}) as TelegramPayloadFields;

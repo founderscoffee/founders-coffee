@@ -1,20 +1,14 @@
-import {
-  id,
-  TELEGRAM_TEMPLATE_KEYS,
-  type TelegramTemplateKey,
-} from '@founders-coffee/core';
+import type { TelegramTemplateKey } from '@founders-coffee/core';
 import {
   ASSUMED_DURATION_SECONDS,
   cancelNotificationsByTemplate,
-  enqueueNotification,
   getTelegramGroup,
-  takeTelegramInvite,
   type Db,
   type Event,
 } from '@founders-coffee/db';
 
-import { validPayload } from '../notifications/producer.js';
 import { armNotificationSchedule } from '../notifications/schedule.js';
+import { enqueueTelegram } from './queue.js';
 import {
   telegramCancelledPinnedText,
   telegramCancelledText,
@@ -34,13 +28,6 @@ const RETIMED: readonly TelegramTemplateKey[] = [
   'telegram_wrap_up',
 ];
 
-interface TelegramContent {
-  readonly telegramText?: string;
-  readonly telegramPinnedText?: string;
-  readonly telegramUserId?: number;
-  readonly telegramInviteLink?: string;
-}
-
 /**
  * When the bot says goodbye: a day after the meetup ends, or after it starts plus the two hours the
  * live room assumes when it has no end.
@@ -52,36 +39,6 @@ export const telegramWrapUpAt = (
     (event.endsAt?.getTime() ??
       event.startsAt.getTime() + ASSUMED_DURATION_SECONDS * 1000) + DAY_MS,
   );
-
-/**
- * Queue one thing for the bot to do in a meetup's group.
- *
- * Group posts go through the same table, alarm and sweep as personal notices, so they are retried,
- * claimed and accounted for the same way. The row is attributed to the host, whose group it is,
- * except a removal, which belongs to the member leaving. The text is written now, like every
- * notice's, which is why a change to the meetup rewrites the rows still waiting.
- */
-const enqueueTelegram = async (
-  db: Db,
-  opts: {
-    event: Event;
-    values: TelegramValues;
-    templateKey: TelegramTemplateKey;
-    sendAt: Date;
-    content: TelegramContent;
-    userId?: string;
-  },
-): Promise<void> => {
-  await enqueueNotification(db, {
-    id: id('ntf'),
-    eventId: opts.event.id,
-    userId: opts.userId ?? opts.event.hostId,
-    channel: 'telegram',
-    templateKey: opts.templateKey,
-    payload: validPayload('telegram', { ...opts.values.base, ...opts.content }),
-    sendAt: opts.sendAt,
-  });
-};
 
 const enqueueTimed = async (
   db: Db,
@@ -221,68 +178,6 @@ export const announceTelegramCancellation = async (
     content: {
       telegramText: telegramCancelledText(values, opts.reason),
       telegramPinnedText: telegramCancelledPinnedText(values),
-    },
-  });
-  await armNotificationSchedule(opts.event.id, now);
-};
-
-/**
- * Hand a group back after its host disconnects it from the meetup.
- *
- * Nothing the bot had queued for the group is posted any more. The one row left makes it revoke the
- * meetup's invite links and leave, unless another of the host's meetups still uses the group.
- */
-export const releaseTelegramGroup = async (
-  db: Db,
-  event: Event,
-  now: Date = new Date(),
-): Promise<void> => {
-  await cancelNotificationsByTemplate(db, {
-    eventId: event.id,
-    templateKeys: TELEGRAM_TEMPLATE_KEYS,
-  });
-  const values = await telegramValuesFor(db, event);
-  await enqueueTelegram(db, {
-    event,
-    values,
-    templateKey: 'telegram_disconnected',
-    sendAt: now,
-    content: {},
-  });
-  await armNotificationSchedule(event.id, now);
-};
-
-/**
- * Take a member out of a meetup's group as their RSVP is withdrawn.
- *
- * Their invite is deleted at once, so the link admits nobody from this moment. The row that follows
- * removes the Telegram account that used it, if one did, and revokes the link itself. A member who
- * never asked for an invite, and the host, who holds none, leave nothing to do.
- */
-export const withdrawTelegramMember = async (
-  db: Db,
-  opts: { event: Event; userId: string },
-  now: Date = new Date(),
-): Promise<void> => {
-  const invite = await takeTelegramInvite(db, {
-    eventId: opts.event.id,
-    userId: opts.userId,
-  });
-  if (!invite) return;
-  const group = await getTelegramGroup(db, opts.event.id);
-  if (group?.status !== 'active') return;
-  const values = await telegramValuesFor(db, opts.event);
-  await enqueueTelegram(db, {
-    event: opts.event,
-    values,
-    templateKey: 'telegram_member_removed',
-    sendAt: now,
-    userId: opts.userId,
-    content: {
-      telegramInviteLink: invite.inviteLink,
-      ...(invite.telegramUserId === null
-        ? {}
-        : { telegramUserId: invite.telegramUserId }),
     },
   });
   await armNotificationSchedule(opts.event.id, now);

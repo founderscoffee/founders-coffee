@@ -85,13 +85,17 @@ export const NOTIFICATION_STATUSES = [
 export type NotificationStatus = (typeof NOTIFICATION_STATUSES)[number];
 export const notificationStatusSchema = z.enum(NOTIFICATION_STATUSES);
 
-export const TELEGRAM_TEMPLATE_KEYS = [
+export const TELEGRAM_GROUP_POST_KEYS = [
   'telegram_details',
   'telegram_reminder',
   'telegram_rescheduled',
   'telegram_relocated',
   'telegram_cancelled',
   'telegram_wrap_up',
+] as const;
+export type TelegramGroupPostKey = (typeof TELEGRAM_GROUP_POST_KEYS)[number];
+export const TELEGRAM_TEMPLATE_KEYS = [
+  ...TELEGRAM_GROUP_POST_KEYS,
   'telegram_disconnected',
   'telegram_member_removed',
 ] as const;

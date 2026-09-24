@@ -1,15 +1,25 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import {
+  id,
+  type NotificationDeliveryChannel,
+  type NotificationTemplateKey,
+} from '@founders-coffee/core';
+
 import { transitionEventStatus } from './events.js';
 import type { Db } from './db.js';
-import { seedEvent, setupDb } from './rsvps.fixtures.js';
+import { claimDueNotifications } from './notification-claim.js';
+import { enqueueNotification } from './notification-enqueue.js';
+import { markNotificationSent } from './notification-failure.js';
+import { getNotification } from './notifications.js';
+import { HOST_ID, seedEvent, setupDb } from './rsvps.fixtures.js';
 import {
   closeTelegramGroup,
   closeTelegramGroupsForChat,
   completeTelegramConnect,
   findTelegramConnect,
   getTelegramGroup,
-  hasOtherActiveTelegramGroup,
+  isTelegramChatInUse,
   moveTelegramChat,
   openTelegramConnect,
   setTelegramPinnedMessage,
@@ -174,11 +184,52 @@ describe('libs/db — telegram groups (real D1 via Miniflare)', () => {
     expect((await getTelegramGroup(db, elsewhere))?.status).toBe('active');
   });
 
+  it("withdraws the posts queued for a gone chat's meetups, and only those", async () => {
+    const meetup = await seedEvent(db);
+    const elsewhere = await seedEvent(db);
+    await connectGroup(db, meetup, CHAT, now);
+    await connectGroup(db, elsewhere, OTHER_CHAT, now);
+    const queue = async (
+      eventId: string,
+      templateKey: NotificationTemplateKey,
+      channel: NotificationDeliveryChannel = 'telegram',
+    ) =>
+      (
+        await enqueueNotification(db, {
+          id: id('ntf'),
+          eventId,
+          userId: HOST_ID,
+          channel,
+          templateKey,
+          payload: {},
+          sendAt: now,
+        })
+      ).id;
+    const statusOf = async (notificationId: string) =>
+      (await getNotification(db, notificationId))?.status;
+    const delivered = await queue(meetup, 'telegram_details');
+    await claimDueNotifications(db, { limit: 10, now, eventId: meetup });
+    await markNotificationSent(db, { id: delivered });
+    const reminder = await queue(meetup, 'telegram_reminder');
+    const removal = await queue(meetup, 'telegram_member_removed');
+    const personal = await queue(meetup, 'reminder_24h', 'email');
+    const otherChat = await queue(elsewhere, 'telegram_reminder');
+
+    await closeTelegramGroupsForChat(db, { chatId: CHAT, now });
+
+    expect(await statusOf(reminder)).toBe('cancelled');
+    expect(await statusOf(delivered)).toBe('sent');
+    expect(await statusOf(removal)).toBe('pending');
+    expect(await statusOf(personal)).toBe('pending');
+    expect(await statusOf(otherChat)).toBe('pending');
+  });
+
   it('follows a group to its new id when Telegram upgrades it', async () => {
     const live = await seedEvent(db);
     const past = await seedEvent(db);
     await connectGroup(db, live, CHAT, now);
     await connectGroup(db, past, CHAT, now);
+    await setTelegramPinnedMessage(db, { eventId: live, messageId: 41, now });
     await closeTelegramGroup(db, { eventId: past, now });
 
     const moved = await moveTelegramChat(db, {
@@ -188,30 +239,24 @@ describe('libs/db — telegram groups (real D1 via Miniflare)', () => {
     });
 
     expect(moved).toBe(2);
-    expect((await getTelegramGroup(db, live))?.chatId).toBe(OTHER_CHAT);
+    expect(await getTelegramGroup(db, live)).toMatchObject({
+      chatId: OTHER_CHAT,
+      pinnedMessageId: null,
+    });
     expect((await getTelegramGroup(db, past))?.chatId).toBe(OTHER_CHAT);
   });
 
-  it('knows when another meetup still keeps the bot in a chat', async () => {
+  it('knows whether any meetup still keeps the bot in a chat', async () => {
     const first = await seedEvent(db);
     const second = await seedEvent(db);
     await connectGroup(db, first, CHAT, now);
     await connectGroup(db, second, CHAT, now);
 
-    expect(
-      await hasOtherActiveTelegramGroup(db, {
-        chatId: CHAT,
-        exceptEventId: first,
-      }),
-    ).toBe(true);
+    await closeTelegramGroup(db, { eventId: first, now });
+    expect(await isTelegramChatInUse(db, CHAT)).toBe(true);
 
     await closeTelegramGroup(db, { eventId: second, now });
-
-    expect(
-      await hasOtherActiveTelegramGroup(db, {
-        chatId: CHAT,
-        exceptEventId: first,
-      }),
-    ).toBe(false);
+    expect(await isTelegramChatInUse(db, CHAT)).toBe(false);
+    expect(await isTelegramChatInUse(db, OTHER_CHAT)).toBe(false);
   });
 });

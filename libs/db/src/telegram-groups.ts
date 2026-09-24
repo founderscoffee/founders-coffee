@@ -1,10 +1,14 @@
-import { and, eq, gt, ne, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, ne, sql } from 'drizzle-orm';
 
+import { TELEGRAM_GROUP_POST_KEYS } from '@founders-coffee/core';
+
+import { batch } from './atomic.js';
 import type { Db } from './db.js';
 import { ASSUMED_DURATION_SECONDS } from './events.js';
 import {
   eventTelegramGroups,
   events,
+  scheduledNotifications,
   type Event,
   type EventTelegramGroupRow,
 } from './schema.js';
@@ -168,29 +172,55 @@ export const closeTelegramGroup = async (
   return changesOf(result) > 0;
 };
 
-/** Close every meetup still using a chat the bot has been removed from, and name them. */
+/**
+ * Close every meetup still using a chat the bot has been removed from, and name them.
+ *
+ * The posts the bot had queued for those meetups are withdrawn in the same batch, since none of them
+ * can reach the chat any more; they go first, while the groups still say which meetups were live
+ * there. A removal or a departure names its own chat, and settles a chat that is gone by itself.
+ */
 export const closeTelegramGroupsForChat = async (
   db: Db,
   opts: { chatId: number; now: Date },
 ): Promise<string[]> => {
-  const rows = await db
-    .update(eventTelegramGroups)
-    .set({ status: 'closed', closedAt: opts.now, updatedAt: opts.now })
-    .where(
-      and(
-        eq(eventTelegramGroups.chatId, opts.chatId),
-        eq(eventTelegramGroups.status, 'active'),
+  const liveOnChat = and(
+    eq(eventTelegramGroups.chatId, opts.chatId),
+    eq(eventTelegramGroups.status, 'active'),
+  );
+  const [, closed] = await batch(db, [
+    db
+      .update(scheduledNotifications)
+      .set({ status: 'cancelled', updatedAt: opts.now })
+      .where(
+        and(
+          eq(scheduledNotifications.status, 'pending'),
+          inArray(scheduledNotifications.templateKey, [
+            ...TELEGRAM_GROUP_POST_KEYS,
+          ]),
+          inArray(
+            scheduledNotifications.eventId,
+            db
+              .select({ eventId: eventTelegramGroups.eventId })
+              .from(eventTelegramGroups)
+              .where(liveOnChat),
+          ),
+        ),
       ),
-    )
-    .returning({ eventId: eventTelegramGroups.eventId });
-  return rows.map((row) => row.eventId);
+    db
+      .update(eventTelegramGroups)
+      .set({ status: 'closed', closedAt: opts.now, updatedAt: opts.now })
+      .where(liveOnChat)
+      .returning({ eventId: eventTelegramGroups.eventId }),
+  ]);
+  return (closed as { eventId: string }[]).map((row) => row.eventId);
 };
 
 /**
  * Follow a group Telegram has upgraded to a supergroup, which gives it a new chat id.
  *
  * Every row that pointed at the old id moves, closed ones included, so a later meetup the host
- * connects finds the group under the id it now has.
+ * connects finds the group under the id it now has. The pinned message is forgotten, because message
+ * ids do not survive the upgrade, and the next change to the details posts and pins them afresh.
  */
 export const moveTelegramChat = async (
   db: Db,
@@ -198,24 +228,27 @@ export const moveTelegramChat = async (
 ): Promise<number> => {
   const result = await db
     .update(eventTelegramGroups)
-    .set({ chatId: opts.toChatId, updatedAt: opts.now })
+    .set({
+      chatId: opts.toChatId,
+      pinnedMessageId: null,
+      updatedAt: opts.now,
+    })
     .where(eq(eventTelegramGroups.chatId, opts.fromChatId));
   return changesOf(result);
 };
 
-/** Whether another meetup still has this chat as its active group, so the bot must stay in it. */
-export const hasOtherActiveTelegramGroup = async (
+/** Whether any meetup still has this chat as its live group, so the bot must stay in it. */
+export const isTelegramChatInUse = async (
   db: Db,
-  opts: { chatId: number; exceptEventId: string },
+  chatId: number,
 ): Promise<boolean> => {
   const rows = await db
     .select({ eventId: eventTelegramGroups.eventId })
     .from(eventTelegramGroups)
     .where(
       and(
-        eq(eventTelegramGroups.chatId, opts.chatId),
+        eq(eventTelegramGroups.chatId, chatId),
         eq(eventTelegramGroups.status, 'active'),
-        ne(eventTelegramGroups.eventId, opts.exceptEventId),
       ),
     )
     .limit(1);

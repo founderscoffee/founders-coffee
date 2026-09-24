@@ -49,8 +49,10 @@ export const telegramNotificationPayloadSchema = notificationBase
   .extend({
     telegramText: z.string().min(1).max(4096).optional(),
     telegramPinnedText: z.string().min(1).max(4096).optional(),
+    telegramChatId: z.number().int().optional(),
     telegramUserId: z.number().int().positive().optional(),
     telegramInviteLink: z.url().max(2048).optional(),
+    telegramInviteLinks: z.array(z.url().max(2048)).optional(),
   })
   .passthrough();
 

@@ -5,6 +5,7 @@ import type { Db, Event } from '@founders-coffee/db';
 import { scheduleTelegramGroup, telegramWrapUpAt } from './notices.js';
 import {
   connectMeetup,
+  payloadOf,
   pendingKeys,
   seedMeetup,
   setupDb,
@@ -12,15 +13,6 @@ import {
 } from './telegram.fixtures.js';
 
 const HOUR_MS = 60 * 60 * 1000;
-
-const payloadOf = (row: { payload: Record<string, unknown> } | undefined) =>
-  (row?.payload ?? {}) as {
-    telegramText?: string;
-    telegramPinnedText?: string;
-    telegramUserId?: number;
-    telegramInviteLink?: string;
-    locale?: string;
-  };
 
 describe('Telegram group notices (real D1 via Miniflare)', () => {
   let db: Db;

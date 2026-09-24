@@ -5,11 +5,13 @@ import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { createDb } from '@founders-coffee/db';
 import { R2PhotoStore, resolveQueueKind } from '@founders-coffee/infra';
 import {
+  BotApiTelegramProvider,
   DevNotificationSmsProvider,
   FcmPushProvider,
   TwilioProgrammableSmsProvider,
   type NotificationSmsProvider,
   type PushProvider,
+  type TelegramBotProvider,
 } from '@founders-coffee/notifications';
 
 import type { Env } from './env.js';
@@ -53,6 +55,17 @@ const createPushProvider = (env: Env): PushProvider | null => {
 };
 
 /**
+ * The bot that posts in meetup groups, or `null` without a token (P1-025).
+ *
+ * There is no stand-in here, unlike SMS: a group row marked sent by a provider that posted nothing
+ * would hide a deployment missing its token, where a row refused for want of a provider says so.
+ */
+const createTelegramProvider = (env: Env): TelegramBotProvider | null => {
+  const token = env.TELEGRAM_BOT_TOKEN?.trim();
+  return token ? new BotApiTelegramProvider(token) : null;
+};
+
+/**
  * Route one queue message to its consumer. Returns `Result` — the handler acks on ok, retries on err.
  *
  * The queue name arrives with its environment appended, because each environment has its own queues,
@@ -80,6 +93,7 @@ const dispatch = async (
       email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
       sms: createSmsProvider(env),
       push: createPushProvider(env),
+      telegram: createTelegramProvider(env),
     });
   }
   if (kind === 'embeddings') {
@@ -116,6 +130,7 @@ export default {
         sms: createSmsProvider(env),
         email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
         push: createPushProvider(env),
+        telegram: createTelegramProvider(env),
       });
     }
 
