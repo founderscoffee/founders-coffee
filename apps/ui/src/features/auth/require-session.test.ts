@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Locale } from '@founders-coffee/i18n';
 
+import { stringifySearch } from '../../lib/search-params';
 import { redirectWhenSignedIn, requireSession } from './require-session';
 
 const state = vi.hoisted(() => ({ hasSession: false }));
@@ -13,9 +14,9 @@ vi.mock('./api', () => ({
 
 type RedirectOptions = {
   to?: string;
-  href?: string;
   params?: { locale?: string };
-  search?: { redirect?: string };
+  search?: Record<string, string>;
+  hash?: string;
 };
 
 const redirectFrom = async (
@@ -31,14 +32,20 @@ const redirectFrom = async (
   throw new Error(`requireSession('${path}') let an anonymous visitor through`);
 };
 
+/**
+ * Where the guard sends a signed-in visitor, written out as the address the router builds from it.
+ */
 const destinationFrom = async (path: string): Promise<string> => {
   try {
     await redirectWhenSignedIn(path);
   } catch (thrown) {
     if (!isRedirect(thrown)) throw thrown;
-    return (
-      (thrown as unknown as { options: RedirectOptions }).options.href ?? ''
-    );
+    const {
+      to = '',
+      search = {},
+      hash = '',
+    } = (thrown as unknown as { options: RedirectOptions }).options;
+    return `${to}${stringifySearch(search)}${hash === '' ? '' : `#${hash}`}`;
   }
   throw new Error(
     `redirectWhenSignedIn('${path}') left a signed-in visitor on the sign-in page`,

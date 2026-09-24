@@ -3,7 +3,7 @@ import { redirect } from '@tanstack/react-router';
 import type { Locale } from '@founders-coffee/i18n';
 
 import { localizedLogin } from '../../lib/locale-routing';
-import { safeAuthReturnPath } from '../../lib/redirect';
+import { pathDestination, safeAuthReturnPath } from '../../lib/redirect';
 import { authApi } from './api';
 
 /**
@@ -54,5 +54,5 @@ export const redirectWhenSignedIn = async (
   returnPath: string,
 ): Promise<void> => {
   if (!(await authApi.hasAuthSession())) return;
-  throw redirect({ href: safeAuthReturnPath(returnPath) });
+  throw redirect(pathDestination(safeAuthReturnPath(returnPath)));
 };

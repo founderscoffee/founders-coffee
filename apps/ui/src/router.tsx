@@ -1,5 +1,4 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router';
-import { parseSearchWith, stringifySearchWith } from '@tanstack/router-core';
 
 import {
   RouterError,
@@ -8,14 +7,10 @@ import {
 } from './components/shell/RouterFallbacks';
 import { getRequestContext } from '@founders-coffee/observability/context';
 
+import { parseSearch, stringifySearch } from './lib/search-params';
 import { routeTree } from './routeTree.gen';
 
 const PRELOAD_STALE_TIME_MS = 30_000;
-
-const parseSearch = parseSearchWith((val: string) => val);
-const stringifySearch = stringifySearchWith(JSON.stringify, () => {
-  throw 0;
-});
 
 export const getRouter = () => {
   const router = createTanStackRouter({

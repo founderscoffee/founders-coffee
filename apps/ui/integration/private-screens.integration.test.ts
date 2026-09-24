@@ -142,6 +142,22 @@ describe('a signed-out visitor at a private screen spelled another way', () => {
   );
 });
 
+describe('a signed-in member who reaches the sign-in page', () => {
+  it('is sent on to where they were headed, query and fragment kept', async () => {
+    const destination = `/fr/closeout/${EVENT}?from=push#closeout`;
+    const response = await fetchDocument(
+      `/fr/login?redirect=${encodeURIComponent(destination)}`,
+      [localeCookie('fr'), session],
+    );
+
+    expect(response.status).toBe(307);
+    expect(
+      response.headers.get('location'),
+      'the guard throws a path for the router to build rather than an href to copy, so the address it answers with is the one the router builds',
+    ).toBe(destination);
+  });
+});
+
 describe('the screens a notification links at carry their own language', () => {
   it('has a member signed in to open the screens as', () => {
     expect(
