@@ -9,7 +9,7 @@ import { authApi } from './api';
 /**
  * Send a signed-out visitor to sign in, before a private page renders anything.
  *
- * Without this the five private routes answered an anonymous request with `200` and the whole
+ * Without this the private routes answered an anonymous request with `200` and the whole
  * private shell — the account tabs, the page heading, copy promising that only you can see this —
  * wrapped around a sign-in button. Nothing private was in it, because every one of those pages
  * fetches its own data behind a permission check, but it read as a page belonging to someone who
