@@ -41,6 +41,16 @@ describe('profile navigation privacy', () => {
     expect(isPrivateProfilePath(path)).toBe(true);
   });
   it.each([
+    '/media/profile/pha_01/md',
+    '/media/profile/pha_01/sm',
+    '/api/profile/photo/pha_01',
+  ])(
+    'keeps the member photo %s out, so one taken down stops showing',
+    (path) => {
+      expect(isPrivateProfilePath(path)).toBe(true);
+    },
+  );
+  it.each([
     ['/%zz', false],
     ['/en/%E0', false],
     ['/en/%70rofile/%zz', true],
@@ -85,6 +95,7 @@ describe('profile navigation privacy', () => {
     const privatePages = [
       '/profile',
       '/en/%75/usr_1',
+      '/media/profile/pha_01/md',
       ...PRIVATE_SCREENS_IN_EVERY_LANGUAGE,
     ];
     const deleted: string[] = [];

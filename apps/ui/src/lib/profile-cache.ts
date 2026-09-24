@@ -13,6 +13,11 @@ import { isPrivatePath, routedPath } from './indexation';
  * the auth API are added here: they are not screens, but they answer with a member's data, and the
  * service worker would keep them like any other fetch. They are read through {@link routedPath}, as
  * the screens are, because Start answers `/%5FserverFn/{id}` as a server-function call too.
+ *
+ * Member photos stay out with the screens, on purpose. `/media/profile/{asset}/{size}` and
+ * `/api/profile/photo/{asset}` name `profile` second, as a screen behind a language does. A photo is
+ * served `private, no-cache` so that one taken down stops showing at once, and a copy kept here
+ * would outlive it; revalidating costs a 304 on its ETag.
  */
 export const isPrivateProfilePath = (pathname: string): boolean =>
   isPrivatePath(pathname) ||
