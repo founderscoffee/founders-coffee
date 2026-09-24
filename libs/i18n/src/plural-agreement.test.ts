@@ -48,12 +48,12 @@ describe('Arabic number agreement', () => {
     const render = (count: number) =>
       hero_social_proof({ count, ...cityInputs('وهران') }, { locale: 'ar' });
     expect(arabicForms(render)).toEqual({
-      zero: '0 لقاءات هذا الأسبوع في وهران',
-      one: '1 لقاء هذا الأسبوع في وهران',
-      two: '2 لقاءان هذا الأسبوع في وهران',
-      few: '3 لقاءات هذا الأسبوع في وهران',
-      many: '11 لقاءً هذا الأسبوع في وهران',
-      other: '100 لقاء هذا الأسبوع في وهران',
+      zero: '0 لقاءات قادمة في وهران',
+      one: '1 لقاء قادم في وهران',
+      two: '2 لقاءان قادمان في وهران',
+      few: '3 لقاءات قادمة في وهران',
+      many: '11 لقاءً قادمًا في وهران',
+      other: '100 لقاء قادم في وهران',
     });
   });
 
@@ -117,6 +117,15 @@ describe('French and English number agreement', () => {
     expect(account_sessions_count({ count: 3 }, { locale: 'fr' })).toBe(
       '3 connectés en ce moment',
     );
+  });
+
+  it('counts the city hero meetups as upcoming, not as this week', () => {
+    const render = (count: number, locale: 'en' | 'fr') =>
+      hero_social_proof({ count, ...cityInputs('Oran') }, { locale });
+    expect(render(1, 'fr')).toBe('1 rencontre à venir à Oran');
+    expect(render(3, 'fr')).toBe('3 rencontres à venir à Oran');
+    expect(render(1, 'en')).toBe('1 casual meetup coming up in Oran');
+    expect(render(3, 'en')).toBe('3 casual meetups coming up in Oran');
   });
 
   it('drops the English plural at one only', () => {

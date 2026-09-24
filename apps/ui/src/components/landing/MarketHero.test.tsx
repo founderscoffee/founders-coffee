@@ -113,7 +113,7 @@ describe('the hero names the chosen city the way French does', () => {
       />,
     );
 
-    expect(container.textContent).toBe('2 rencontres cette semaine au Caire');
+    expect(container.textContent).toBe('2 rencontres à venir au Caire');
   });
 
   it('says there are none au Caire yet', () => {

@@ -130,8 +130,8 @@
       ],
       "selectors": ["countPlural"],
       "match": {
-        "countPlural=one": "{count} casual meetup this week in {city}",
-        "countPlural=*": "{count} casual meetups this week in {city}"
+        "countPlural=one": "{count} casual meetup coming up in {city}",
+        "countPlural=*": "{count} casual meetups coming up in {city}"
       }
     }
   ],

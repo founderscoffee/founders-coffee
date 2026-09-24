@@ -132,12 +132,12 @@
       ],
       "selectors": ["countPlural", "cityArticle"],
       "match": {
-        "countPlural=one, cityArticle=le": "{count} rencontre cette semaine au {cityAfterArticle}",
-        "countPlural=one, cityArticle=les": "{count} rencontre cette semaine aux {cityAfterArticle}",
-        "countPlural=one, cityArticle=*": "{count} rencontre cette semaine à {city}",
-        "countPlural=*, cityArticle=le": "{count} rencontres cette semaine au {cityAfterArticle}",
-        "countPlural=*, cityArticle=les": "{count} rencontres cette semaine aux {cityAfterArticle}",
-        "countPlural=*, cityArticle=*": "{count} rencontres cette semaine à {city}"
+        "countPlural=one, cityArticle=le": "{count} rencontre à venir au {cityAfterArticle}",
+        "countPlural=one, cityArticle=les": "{count} rencontre à venir aux {cityAfterArticle}",
+        "countPlural=one, cityArticle=*": "{count} rencontre à venir à {city}",
+        "countPlural=*, cityArticle=le": "{count} rencontres à venir au {cityAfterArticle}",
+        "countPlural=*, cityArticle=les": "{count} rencontres à venir aux {cityAfterArticle}",
+        "countPlural=*, cityArticle=*": "{count} rencontres à venir à {city}"
       }
     }
   ],

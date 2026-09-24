@@ -130,12 +130,12 @@
       ],
       "selectors": ["countPlural"],
       "match": {
-        "countPlural=zero": "{count} لقاءات هذا الأسبوع في {city}",
-        "countPlural=one": "{count} لقاء هذا الأسبوع في {city}",
-        "countPlural=two": "{count} لقاءان هذا الأسبوع في {city}",
-        "countPlural=few": "{count} لقاءات هذا الأسبوع في {city}",
-        "countPlural=many": "{count} لقاءً هذا الأسبوع في {city}",
-        "countPlural=*": "{count} لقاء هذا الأسبوع في {city}"
+        "countPlural=zero": "{count} لقاءات قادمة في {city}",
+        "countPlural=one": "{count} لقاء قادم في {city}",
+        "countPlural=two": "{count} لقاءان قادمان في {city}",
+        "countPlural=few": "{count} لقاءات قادمة في {city}",
+        "countPlural=many": "{count} لقاءً قادمًا في {city}",
+        "countPlural=*": "{count} لقاء قادم في {city}"
       }
     }
   ],

@@ -40,12 +40,12 @@ const SENTENCES: readonly {
   {
     key: 'hero_social_proof, one',
     render: (city) => hero_social_proof({ count: 1, ...cityInputs(city) }, FR),
-    expected: (at) => `1 rencontre cette semaine ${at}`,
+    expected: (at) => `1 rencontre à venir ${at}`,
   },
   {
     key: 'hero_social_proof, other',
     render: (city) => hero_social_proof({ count: 3, ...cityInputs(city) }, FR),
-    expected: (at) => `3 rencontres cette semaine ${at}`,
+    expected: (at) => `3 rencontres à venir ${at}`,
   },
   {
     key: 'hero_empty_city',
