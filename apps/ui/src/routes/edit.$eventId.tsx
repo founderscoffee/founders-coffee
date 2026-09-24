@@ -6,7 +6,6 @@ import { readCookieHeader } from '../lib/cookies';
 import { localizedEventEdit } from '../lib/locale-routing';
 
 export const Route = createFileRoute('/edit/$eventId')({
-  preload: false,
   beforeLoad: ({ params }) => {
     throw redirect(
       localizedEventEdit(detectLocale(readCookieHeader()), params.eventId),

@@ -7,7 +7,6 @@ import { readCookieHeader, readCookies } from '../lib/cookies';
 import { localizedLanding } from '../lib/locale-routing';
 
 export const Route = createFileRoute('/')({
-  preload: false,
   beforeLoad: async ({ params, context }) => {
     const routeParams = params as { readonly market?: string };
     const target = await landingMarketSlug(

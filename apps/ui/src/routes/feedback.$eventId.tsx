@@ -6,7 +6,6 @@ import { readCookieHeader } from '../lib/cookies';
 import { localizedFeedback } from '../lib/locale-routing';
 
 export const Route = createFileRoute('/feedback/$eventId')({
-  preload: false,
   beforeLoad: ({ params }) => {
     throw redirect(
       localizedFeedback(detectLocale(readCookieHeader()), params.eventId),

@@ -7,7 +7,6 @@ import { localizedPublicProfile } from '../lib/locale-routing';
 import { hostedPaginationSearchSchema } from '../lib/public-pagination';
 
 export const Route = createFileRoute('/u/$userId')({
-  preload: false,
   validateSearch: hostedPaginationSearchSchema,
   beforeLoad: ({ params, search }) => {
     throw redirect({

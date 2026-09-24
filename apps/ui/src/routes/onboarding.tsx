@@ -8,7 +8,6 @@ import { localizedOnboarding } from '../lib/locale-routing';
 import { authReturnPathSchema } from '../lib/redirect';
 
 export const Route = createFileRoute('/onboarding')({
-  preload: false,
   validateSearch: z.object({
     redirect: authReturnPathSchema.catch('/').optional().default('/'),
   }),
