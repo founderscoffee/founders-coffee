@@ -9,9 +9,9 @@ import { getDb } from '../db.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import {
+  callerSessionToken,
   readDevices,
   revokeDevices,
-  sessionTokenFromCookie,
   unlinkProvider,
 } from './sessions.js';
 import {
@@ -20,16 +20,6 @@ import {
   revokeDeviceRequestSchema,
   unlinkProviderRequestSchema,
 } from './schemas.js';
-
-/**
- * The caller's own session token, read from the cookie rather than from the payload.
- *
- * The token is what says which device is asking, and a client that could name its own would be
- * able to name somebody else's — keeping a session it does not own while revoking the rest. It is
- * never returned; it only ever travels inward, to be matched against rows the member owns.
- */
-const callerSessionToken = (): string | null =>
-  sessionTokenFromCookie(getRequest().headers.get('cookie'));
 
 const contactChangeProtection = [
   requirePermission('profile', 'update'),
@@ -49,7 +39,7 @@ export const getMyDevices = createServerFn({ strict: false })
       readDevices(
         getDb(),
         requireAuth(context.session).user.id,
-        callerSessionToken(),
+        callerSessionToken(getRequest().headers),
       ),
     );
   });
@@ -64,7 +54,7 @@ export const revokeMyDevice = createServerFn({ method: 'POST', strict: false })
         getDb(),
         requireAuth(context.session).user.id,
         data,
-        callerSessionToken(),
+        callerSessionToken(getRequest().headers),
       ),
     );
   });

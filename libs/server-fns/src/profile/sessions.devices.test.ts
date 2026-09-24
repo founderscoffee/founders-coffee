@@ -12,13 +12,14 @@ import {
   user,
 } from '@founders-coffee/db';
 
-import {
-  readDevices,
-  revokeDevices,
-  sessionTokenFromCookie,
-} from './sessions.js';
+import { callerSessionToken, readDevices, revokeDevices } from './sessions.js';
 
 const LIVE = new Date('2099-01-01T00:00:00Z');
+
+const SESSION_COOKIE = '__Secure-better-auth.session_token';
+
+const cookieHeaders = (...cookies: readonly string[]): Headers =>
+  new Headers({ cookie: cookies.join('; ') });
 
 const setup = async (overrides: Record<string, unknown> = {}) => {
   const db = createDb(env.DB);
@@ -72,29 +73,63 @@ const addDevice = async (
   return subscriptionId;
 };
 
-describe('PF-07d — finding the caller among their own devices', () => {
-  it('drops the signature Better Auth appends to the cookie', () => {
+describe('PF-07d — the device a request comes from', () => {
+  it('is the one its session cookie names, whatever cookie comes first', async () => {
+    const { db, userId } = await setup();
+    const other = await addSession(db, userId, 'Firefox');
+    const mine = await addSession(db, userId, 'Safari');
+    const headers = cookieHeaders(
+      `legacy.session_token=${other.token}.sig`,
+      `${SESSION_COOKIE}=${mine.token}.sig`,
+    );
+
+    const result = await readDevices(db, userId, callerSessionToken(headers));
+    if (!result.ok) throw result.error;
+
     expect(
-      sessionTokenFromCookie(
-        '__Secure-better-auth.session_token=abc.SIGNATURE',
-      ),
-    ).toBe('abc');
-    expect(sessionTokenFromCookie('better-auth.session_token=abc')).toBe('abc');
+      result.data.sessions.filter((row) => row.isCurrent).map((row) => row.id),
+      'another cookie whose name ends in session_token was taken for the caller',
+    ).toEqual([mine.sessionId]);
   });
 
-  it('finds the token beside other cookies, in either order', () => {
+  it('survives signing out every other device, whatever cookie comes first', async () => {
+    const { db, userId } = await setup();
+    const other = await addSession(db, userId, 'Old phone');
+    const mine = await addSession(db, userId, 'Laptop');
+    const headers = cookieHeaders(
+      `legacy.session_token=${other.token}.sig`,
+      `${SESSION_COOKIE}=${mine.token}.sig`,
+    );
+
+    const result = await revokeDevices(
+      db,
+      userId,
+      { othersOnly: true },
+      callerSessionToken(headers),
+    );
+
+    expect(result).toMatchObject({ ok: true, data: { revoked: 1 } });
+    const left = await db
+      .select()
+      .from(session)
+      .where(eq(session.userId, userId));
     expect(
-      sessionTokenFromCookie('theme=dark; better-auth.session_token=xyz.sig'),
-    ).toBe('xyz');
-    expect(
-      sessionTokenFromCookie('better-auth.session_token=xyz.sig; theme=dark'),
-    ).toBe('xyz');
+      left.map((row) => row.id),
+      "the caller's own session was ended and the other device kept",
+    ).toEqual([mine.sessionId]);
   });
 
-  it('answers nothing when there is no session cookie at all', () => {
-    expect(sessionTokenFromCookie(null)).toBeNull();
-    expect(sessionTokenFromCookie('theme=dark')).toBeNull();
-    expect(sessionTokenFromCookie('better-auth.session_token=')).toBeNull();
+  it('is none when only a cookie Better Auth never sets names a session', async () => {
+    const { db, userId } = await setup();
+    const mine = await addSession(db, userId, 'Laptop');
+    const headers = cookieHeaders(
+      `better-auth.session_token=${mine.token}.sig`,
+    );
+
+    const result = await readDevices(db, userId, callerSessionToken(headers));
+    if (!result.ok) throw result.error;
+
+    expect(result.data.sessions.some((row) => row.isCurrent)).toBe(false);
   });
 });
 

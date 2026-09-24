@@ -1,3 +1,4 @@
+import { sessionTokenFromCookie } from '@founders-coffee/auth';
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import {
   getAccountSummary,
@@ -11,21 +12,19 @@ import { profile } from '@founders-coffee/domain';
 import { logger } from '@founders-coffee/observability';
 
 /**
- * The session token inside a cookie header, without the signature Better Auth appends.
+ * The caller's own session token, read from the request's session cookie rather than the payload.
  *
- * The stored row holds the token alone, so the `.signature` suffix has to come off or nothing ever
- * matches and every device looks like somebody else's. Written here rather than inline in the RPC
- * because getting it wrong is invisible — the list still renders, just with no current device
- * marked and revoke-others quietly ending the caller's own session too.
+ * The token is what says which device is asking, and a client that could name its own would be
+ * able to name somebody else's — keeping a session it does not own while revoking the rest. It is
+ * never returned; it only ever travels inward, to be matched against rows the member owns.
+ *
+ * It is read as Better Auth reads it, from the first `__Secure-better-auth.session_token` cookie
+ * alone, so it names the session Better Auth let the request in with, however many other cookies
+ * come with it. Getting it wrong is invisible: the list still renders, but marks another device as
+ * this one, and signing out the others ends the caller's own session.
  */
-export const sessionTokenFromCookie = (
-  cookie: string | null,
-): string | null => {
-  const match = (cookie ?? '').match(/(?:^|;\s*)[^=;]*session_token=([^;]+)/);
-  if (!match) return null;
-  const value = decodeURIComponent(match[1]).split('.')[0];
-  return value === '' ? null : value;
-};
+export const callerSessionToken = (headers: Headers): string | null =>
+  sessionTokenFromCookie(headers.get('cookie'));
 
 export interface SessionSummary {
   readonly id: string;
