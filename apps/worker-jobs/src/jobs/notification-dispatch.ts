@@ -10,6 +10,7 @@ import type {
 import {
   resolveDestination,
   type Destination,
+  type PersonalChannel,
 } from './notification-destination.js';
 
 export type DispatchOutcome =
@@ -60,7 +61,7 @@ const failed = (
 const guarded =
   (
     db: Db,
-    channel: ScheduledNotification['channel'],
+    channel: PersonalChannel,
     send: (
       destination: Destination,
       notification: ScheduledNotification,
@@ -150,6 +151,7 @@ export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
   push: true,
   email: false,
   sms: false,
+  telegram: false,
 };
 
 /**
@@ -169,7 +171,8 @@ export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
  * rejects outright — `E_VALIDATION_ERROR` on every notification, while the OTP path that sets no
  * headers has always worked. The header is gone, Cloudflare assigns its own, and a repeat is a
  * second message in the inbox. Twilio's Messages resource has no idempotency key at all: a second
- * send is a second billed SMS on someone's phone.
+ * send is a second billed SMS on someone's phone. Telegram's Bot API has none either, and a second
+ * `sendMessage` is a second post in front of a whole group.
  */
 export const buildDispatchers = (
   db: Db,

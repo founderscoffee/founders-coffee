@@ -38,7 +38,7 @@ import {
   ntf_email_rsvp_received_text,
   type Locale,
 } from '@founders-coffee/i18n';
-import type { NotificationTemplateKey } from '@founders-coffee/core';
+import type { PersonalTemplateKey } from '@founders-coffee/core';
 
 import {
   escapeValues,
@@ -87,7 +87,7 @@ const renderNotificationEmail = async (
 };
 
 export const emailPayloadFor = async (
-  templateKey: NotificationTemplateKey,
+  templateKey: PersonalTemplateKey,
   values: TemplateValues,
   locale: Locale,
 ): Promise<EmailPayload> => {

@@ -199,6 +199,7 @@ describe('dedupe keys reach the providers', () => {
       push: true,
       email: false,
       sms: false,
+      telegram: false,
     });
   });
 

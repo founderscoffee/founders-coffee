@@ -48,7 +48,12 @@ export const ORDER_STATUSES = [
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const orderStatusSchema = z.enum(ORDER_STATUSES);
 
-export const NOTIFICATION_DELIVERY_CHANNELS = ['sms', 'email', 'push'] as const;
+export const NOTIFICATION_DELIVERY_CHANNELS = [
+  'sms',
+  'email',
+  'push',
+  'telegram',
+] as const;
 export type NotificationDeliveryChannel =
   (typeof NOTIFICATION_DELIVERY_CHANNELS)[number];
 export const notificationDeliveryChannelSchema = z.enum(
@@ -80,6 +85,18 @@ export const NOTIFICATION_STATUSES = [
 export type NotificationStatus = (typeof NOTIFICATION_STATUSES)[number];
 export const notificationStatusSchema = z.enum(NOTIFICATION_STATUSES);
 
+export const TELEGRAM_TEMPLATE_KEYS = [
+  'telegram_details',
+  'telegram_reminder',
+  'telegram_rescheduled',
+  'telegram_relocated',
+  'telegram_cancelled',
+  'telegram_wrap_up',
+  'telegram_disconnected',
+  'telegram_member_removed',
+] as const;
+export type TelegramTemplateKey = (typeof TELEGRAM_TEMPLATE_KEYS)[number];
+
 export const NOTIFICATION_TEMPLATE_KEYS = [
   'rsvp_confirmation',
   'reminder_72h',
@@ -92,9 +109,14 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'closeout_prompt',
   'event_did_not_happen',
   'feedback_invitation',
+  ...TELEGRAM_TEMPLATE_KEYS,
 ] as const;
 export type NotificationTemplateKey =
   (typeof NOTIFICATION_TEMPLATE_KEYS)[number];
+export type PersonalTemplateKey = Exclude<
+  NotificationTemplateKey,
+  TelegramTemplateKey
+>;
 export const notificationTemplateKeySchema = z.enum(NOTIFICATION_TEMPLATE_KEYS);
 
 export const RSVP_LIFECYCLE_TEMPLATE_KEYS = [

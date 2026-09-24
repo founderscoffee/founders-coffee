@@ -1,14 +1,13 @@
 import { and, eq, gt, ne, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
+import { ASSUMED_DURATION_SECONDS } from './events.js';
 import {
   eventTelegramGroups,
   events,
   type Event,
   type EventTelegramGroupRow,
 } from './schema.js';
-
-const DEFAULT_DURATION_SECONDS = 2 * 60 * 60;
 
 const changesOf = (result: unknown): number =>
   (result as { meta?: { changes?: number } }).meta?.changes ?? 0;
@@ -124,7 +123,7 @@ export const completeTelegramConnect = async (
           SELECT 1 FROM events
           WHERE events.id = ${opts.eventId}
             AND events.status = 'published'
-            AND COALESCE(events.ends_at, events.starts_at + ${DEFAULT_DURATION_SECONDS}) > ${nowSeconds}
+            AND COALESCE(events.ends_at, events.starts_at + ${ASSUMED_DURATION_SECONDS}) > ${nowSeconds}
         )`,
       ),
     );

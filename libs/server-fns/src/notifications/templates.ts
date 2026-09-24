@@ -29,7 +29,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
-import type { NotificationTemplateKey } from '@founders-coffee/core';
+import type { PersonalTemplateKey } from '@founders-coffee/core';
 
 export type { NotificationTemplateKey } from '@founders-coffee/core';
 
@@ -110,7 +110,7 @@ export const withReason = (
  */
 export const smsBodyFor = (
   templateKey: Exclude<
-    NotificationTemplateKey,
+    PersonalTemplateKey,
     | 'rsvp_received'
     | 'rsvp_cancelled'
     | 'closeout_prompt'
@@ -149,7 +149,7 @@ export const smsBodyFor = (
  * this only stops throwing it away.
  */
 export const pushPayloadFor = (
-  templateKey: NotificationTemplateKey,
+  templateKey: PersonalTemplateKey,
   values: TemplateValues,
   locale: Locale,
 ): { pushTitle: string; pushBody: string; pushUrl: string } => {
