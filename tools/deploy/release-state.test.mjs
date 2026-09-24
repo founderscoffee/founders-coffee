@@ -167,7 +167,7 @@ describe('release state validation', () => {
       latestMigration(
         fileURLToPath(new URL('../../libs/db/migrations', import.meta.url)),
       ),
-    ).toBe('0033_familiar_frog_thor');
+    ).toBe('0035_profile_attended_count');
   });
 });
 
