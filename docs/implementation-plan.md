@@ -168,11 +168,14 @@ the last two years (#90). Clearing a field withdraws its publication.
 **The meetup record.** Both counts come from closeouts and include only meetups whose closeout says
 they took place. Attendance is what hosts recorded at closeout, and a no-show is never counted or
 shown. A meetup that did not happen is left out rather than counted against anybody, and the record
-never sets a total beside a count, though the list of meetups a host ran still shows its own.
-Attendance is a count and not a list, because a list would publish where someone was; #91's tabs
-stay deferred for the same reason. The window is the operations retention period, 730 days measured
-on each meetup's start, and the profile says "in the last two years": closeouts and attendance are
-deleted at that age, so a longer claim would shrink as they retire.
+never sets a total beside a count, though the list of meetups a host ran still shows its own. In
+that list, every meetup the hosted count includes is tagged as having taken place, so the count is
+the number of tagged meetups. A meetup without the tag is upcoming, was never closed out, was
+reported as not happening, or is older than the window, and nothing says which (#26). Attendance is
+a count and not a list, because a list would publish where someone was; #91's tabs stay deferred for
+the same reason. The window is the operations retention period, 730 days measured on each meetup's
+start, and the profile says "in the last two years": closeouts and attendance are deleted at that
+age, so a longer claim would shrink as they retire.
 
 **What it will not become.** Features that are neutral on a hiring network are not neutral for
 members meeting strangers in DZ, EG, and SA. These boundaries change only through an explicit

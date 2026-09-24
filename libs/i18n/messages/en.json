@@ -567,6 +567,7 @@
   "showing_count": "Showing {shown} of {total}",
   "hosted_events": "Gatherings hosted",
   "event_past": "Past",
+  "event_took_place": "Took place",
   "profile_photo_card_subtitle": "JPEG, PNG or WebP, up to 5 MB.",
   "profile_photo_choose": "Choose a photo",
   "profile_photo_replace": "Replace photo",

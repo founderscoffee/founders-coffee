@@ -1,5 +1,4 @@
 import {
-  event_past,
   hosted_events,
   profile_interests_label,
   public_no_events,
@@ -12,9 +11,10 @@ import { LoadMoreEvents } from '../../../components/events/LoadMoreEvents';
 import { useHostedEvents } from '../../events/hooks';
 import { useEventPages } from '../../events/useEventPages';
 import { localeLabel, topicLabel } from '../profile-labels';
-import type { EventFeedItem } from '../../events/api';
+import type { HostedEventItem } from '../../events/api';
 import type { RootMarket } from '../../markets/api';
 import type { PublicProfile } from '../api';
+import { HostedEventCaption } from './HostedEventCaption';
 import { PublicProfileHeader } from './PublicProfileHeader';
 import { PublicProfileRecord } from './PublicProfileRecord';
 
@@ -32,7 +32,7 @@ export const PublicProfilePage = ({
 }: {
   locale: Locale;
   profile: PublicProfile;
-  events: readonly EventFeedItem[];
+  events: readonly HostedEventItem[];
   eventsNextCursor?: { startsAt: number; id: string } | null;
   eventsTotal: number;
   beforeStartsAt?: number;
@@ -121,17 +121,17 @@ export const PublicProfilePage = ({
           </StatusMessage>
         ) : (
           <>
-            <ul className="grid gap-3">
+            <ul className="grid items-start gap-3">
               {visibleEvents.map((event) => {
                 const market = marketByCode.get(event.marketCode);
                 if (!market) return null;
                 return (
                   <li key={event.id}>
-                    {new Date(event.startsAt).getTime() < now ? (
-                      <p className="mb-1 text-caption text-neutral">
-                        {event_past({}, { locale })}
-                      </p>
-                    ) : null}
+                    <HostedEventCaption
+                      isOnRecord={event.isOnRecord}
+                      isPast={new Date(event.startsAt).getTime() < now}
+                      locale={locale}
+                    />
                     <EventCard
                       event={event}
                       locale={locale}

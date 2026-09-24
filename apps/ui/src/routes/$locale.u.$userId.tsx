@@ -3,7 +3,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 import { appErrorCode } from '@founders-coffee/core';
 import { profile_title } from '@founders-coffee/i18n';
 
-import { eventsApi, type EventFeedItem } from '../features/events/api';
+import { eventsApi, type HostedEventItem } from '../features/events/api';
 import { profileApi, type PublicProfile } from '../features/profile/api';
 import { PublicProfilePage } from '../features/profile/components/PublicProfilePage';
 import { NO_INDEX_VALUE } from '../lib/indexation';
@@ -43,7 +43,7 @@ export const Route = createFileRoute('/$locale/u/$userId')({
     deps,
   }): Promise<{
     profile: PublicProfile;
-    events: readonly EventFeedItem[];
+    events: readonly HostedEventItem[];
     eventsNextCursor: { startsAt: number; id: string } | null;
     eventsTotal: number;
     pagination: HostedPaginationSearch;

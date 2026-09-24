@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import { OPERATIONS_RETENTION_DAYS } from './operations-retention.js';
@@ -17,6 +17,19 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  */
 export const meetupRecordSince = (now: Date): Date =>
   new Date(now.getTime() - OPERATIONS_RETENTION_DAYS * DAY_MS);
+
+/**
+ * What puts a meetup on a public profile's record: its closeout says it was held, and it started
+ * inside the window.
+ *
+ * Both counts and the hosted list's tags go through this one condition, so the figure above a
+ * host's list and the meetups tagged in it cannot disagree about which ones took place.
+ */
+const onRecord = (now: Date) =>
+  and(
+    eq(eventCloseouts.outcome, 'held'),
+    gte(events.startsAt, meetupRecordSince(now)),
+  );
 
 /**
  * How many meetups in the window a member attended, by their hosts' records.
@@ -39,8 +52,7 @@ export const countAttendedMeetups = async (
       and(
         eq(eventAttendance.userId, userId),
         eq(eventAttendance.outcome, 'attended'),
-        eq(eventCloseouts.outcome, 'held'),
-        gte(events.startsAt, meetupRecordSince(now)),
+        onRecord(now),
       ),
     );
   return Number(rows[0]?.total ?? 0);
@@ -62,12 +74,35 @@ export const countHostedMeetups = async (
     .select({ total: sql<number>`count(*)` })
     .from(events)
     .innerJoin(eventCloseouts, eq(eventCloseouts.eventId, events.id))
+    .where(and(eq(events.hostId, hostId), onRecord(now)));
+  return Number(rows[0]?.total ?? 0);
+};
+
+/**
+ * Which of these meetups are on their host's record: the ones {@link countHostedMeetups} counts.
+ *
+ * The public profile tags each of them in the host's list, so the count above the list is the
+ * number of tagged meetups in it. A meetup without the tag is one nobody has confirmed: upcoming,
+ * never closed out, reported as not happening, or older than the window. The tag does not say
+ * which, so a missing tag never reads as a failure.
+ */
+export const hostedMeetupsOnRecord = async (
+  db: Db,
+  hostId: string,
+  eventIds: readonly string[],
+  now: Date,
+): Promise<ReadonlySet<string>> => {
+  if (eventIds.length === 0) return new Set();
+  const rows = await db
+    .select({ id: events.id })
+    .from(events)
+    .innerJoin(eventCloseouts, eq(eventCloseouts.eventId, events.id))
     .where(
       and(
         eq(events.hostId, hostId),
-        eq(eventCloseouts.outcome, 'held'),
-        gte(events.startsAt, meetupRecordSince(now)),
+        inArray(events.id, [...eventIds]),
+        onRecord(now),
       ),
     );
-  return Number(rows[0]?.total ?? 0);
+  return new Set(rows.map((row) => row.id));
 };

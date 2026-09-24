@@ -723,6 +723,7 @@
   "showing_count": "{shown} sur {total}",
   "hosted_events": "Rencontres organisées",
   "event_past": "Passée",
+  "event_took_place": "A eu lieu",
   "profile_photo_card_subtitle": "JPEG, PNG ou WebP, jusqu’à 5 Mo.",
   "profile_photo_choose": "Choisir une photo",
   "profile_photo_replace": "Remplacer la photo",

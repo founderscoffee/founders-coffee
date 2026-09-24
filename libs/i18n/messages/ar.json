@@ -626,6 +626,7 @@
   "showing_count": "{shown} من {total}",
   "hosted_events": "اللقاءات التي استضافها",
   "event_past": "انتهى",
+  "event_took_place": "انعقد",
   "profile_photo_card_subtitle": "JPEG أو PNG أو WebP، حتى 5 ميغابايت.",
   "profile_photo_choose": "اختر صورة",
   "profile_photo_replace": "استبدال الصورة",

@@ -7,6 +7,7 @@ import type { Db } from './db.js';
 import {
   countAttendedMeetups,
   countHostedMeetups,
+  hostedMeetupsOnRecord,
   meetupRecordSince,
 } from './member-record.js';
 import {
@@ -119,5 +120,47 @@ describe('how many meetups a member hosted that took place (#26)', () => {
     await startedDaysAgo(db, old, 731);
 
     expect(await countHostedMeetups(db, HOST_ID, new Date())).toBe(1);
+  });
+});
+
+describe('which of a host’s meetups the profile tags as taking place (#26)', () => {
+  it('tags exactly the meetups the hosted count counts', async () => {
+    const db = await setupDb();
+    const held = await heldMeetup(db, {});
+    const heldAtTheEdge = await heldMeetup(db, {});
+    await startedDaysAgo(db, heldAtTheEdge, 729);
+    const reportedMissing = await pastEvent(db);
+    await closeOut(db, reportedMissing, 'did_not_happen');
+    const neverClosedOut = await pastEvent(db);
+    const tooOld = await heldMeetup(db, {});
+    await startedDaysAgo(db, tooOld, 731);
+    const now = new Date();
+
+    const tagged = await hostedMeetupsOnRecord(
+      db,
+      HOST_ID,
+      [held, heldAtTheEdge, reportedMissing, neverClosedOut, tooOld],
+      now,
+    );
+
+    expect([...tagged].sort()).toEqual([held, heldAtTheEdge].sort());
+    expect(tagged.size).toBe(await countHostedMeetups(db, HOST_ID, now));
+  });
+
+  it('answers only for the meetups it is asked about, and only as their host', async () => {
+    const db = await setupDb();
+    const asked = await heldMeetup(db, {});
+    await heldMeetup(db, {});
+    const now = new Date();
+
+    expect(await hostedMeetupsOnRecord(db, HOST_ID, [asked], now)).toEqual(
+      new Set([asked]),
+    );
+    expect(await hostedMeetupsOnRecord(db, MEMBER_ID, [asked], now)).toEqual(
+      new Set(),
+    );
+    expect(await hostedMeetupsOnRecord(db, HOST_ID, [], now)).toEqual(
+      new Set(),
+    );
   });
 });
