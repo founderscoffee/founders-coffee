@@ -15,6 +15,7 @@ export * from './maps/index.js';
 export * from './rsvps/index.js';
 export * from './waitlist/index.js';
 export * from './push/index.js';
+export * from './telegram/index.js';
 export type { EventFeedPage } from './events/resolver.js';
 export {
   confirmMyEmailChange,

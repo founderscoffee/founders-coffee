@@ -94,10 +94,13 @@ export const TELEGRAM_GROUP_POST_KEYS = [
   'telegram_wrap_up',
 ] as const;
 export type TelegramGroupPostKey = (typeof TELEGRAM_GROUP_POST_KEYS)[number];
-export const TELEGRAM_TEMPLATE_KEYS = [
-  ...TELEGRAM_GROUP_POST_KEYS,
+export const TELEGRAM_DEPARTURE_KEYS = [
   'telegram_disconnected',
   'telegram_member_removed',
+] as const;
+export const TELEGRAM_TEMPLATE_KEYS = [
+  ...TELEGRAM_GROUP_POST_KEYS,
+  ...TELEGRAM_DEPARTURE_KEYS,
 ] as const;
 export type TelegramTemplateKey = (typeof TELEGRAM_TEMPLATE_KEYS)[number];
 

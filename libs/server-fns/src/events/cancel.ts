@@ -9,6 +9,7 @@ import {
 import { logger, reportError } from '@founders-coffee/observability';
 
 import { enqueueEventCancellationNotices } from '../notifications/cancellation.js';
+import { announceTelegramCancellation } from '../telegram/notices.js';
 
 /**
  * Call off a meetup on its host's behalf.
@@ -25,7 +26,9 @@ import { enqueueEventCancellationNotices } from '../notifications/cancellation.j
  * 2. Pending reminders are dropped *before* the notices are queued. A `reminder_24h` still sitting
  *    in the table when the cancellation is announced would land afterwards and tell the same person
  *    to come.
- * 3. The notices go out.
+ * 3. The notices go out, and then the meetup's Telegram group is told, if it has one: the bot
+ *    posts the cancellation, rewrites the pin and leaves. Queued before the withdrawal, that post
+ *    would have been withdrawn along with the group's own reminder.
  *
  * A failure to notify does not roll the cancellation back — the meetup really is off, and leaving
  * it published to preserve an all-or-nothing story would put people in a café for an event the host
@@ -110,13 +113,20 @@ export const cancelEventResolver = async (
     });
   }
 
-  return ok({
-    event: {
-      ...event,
-      status: 'cancelled',
-      cancelledAt: new Date(),
-      cancellationReason: reason ?? null,
-    },
-    notified,
-  });
+  const cancelled: Event = {
+    ...event,
+    status: 'cancelled',
+    cancelledAt: new Date(),
+    cancellationReason: reason ?? null,
+  };
+  try {
+    await announceTelegramCancellation(db, { event: cancelled, reason });
+  } catch (error) {
+    reportError(error, {
+      operation: 'cancel_event_telegram',
+      eventId: event.id,
+    });
+  }
+
+  return ok({ event: cancelled, notified });
 };

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { Db, Event } from '@founders-coffee/db';
 
-import { scheduleTelegramGroup, telegramWrapUpAt } from './notices.js';
+import { scheduleTelegramGroup } from './notices.js';
 import {
   connectMeetup,
   payloadOf,
@@ -86,13 +86,6 @@ describe('Telegram group notices (real D1 via Miniflare)', () => {
       'telegram_details',
       'telegram_wrap_up',
     ]);
-  });
-
-  it('says goodbye two hours plus a day after a start with no end', () => {
-    const startsAt = new Date('2099-01-15T18:00:00Z');
-    expect(telegramWrapUpAt({ startsAt, endsAt: null })).toEqual(
-      new Date('2099-01-16T20:00:00Z'),
-    );
   });
 
   it('links the goodbye to the city, where the next meetups are', async () => {

@@ -1,9 +1,7 @@
 import type { TelegramTemplateKey } from '@founders-coffee/core';
 import {
-  ASSUMED_DURATION_SECONDS,
   cancelNotificationsByTemplate,
   getTelegramGroup,
-  TELEGRAM_GROUP_CLOSES_AFTER_SECONDS,
   type Db,
   type Event,
 } from '@founders-coffee/db';
@@ -21,6 +19,7 @@ import {
   telegramWrapUpText,
   type TelegramValues,
 } from './texts.js';
+import { telegramWrapUpAt } from './window.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -28,19 +27,6 @@ const RETIMED: readonly TelegramTemplateKey[] = [
   'telegram_reminder',
   'telegram_wrap_up',
 ];
-
-/**
- * When the bot says goodbye: a day after the meetup ends, or after it starts plus the two hours the
- * live room assumes when it has no end.
- */
-export const telegramWrapUpAt = (
-  event: Pick<Event, 'startsAt' | 'endsAt'>,
-): Date =>
-  new Date(
-    (event.endsAt?.getTime() ??
-      event.startsAt.getTime() + ASSUMED_DURATION_SECONDS * 1000) +
-      TELEGRAM_GROUP_CLOSES_AFTER_SECONDS * 1000,
-  );
 
 const enqueueTimed = async (
   db: Db,

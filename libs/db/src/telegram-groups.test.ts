@@ -133,13 +133,19 @@ describe('libs/db — telegram groups (real D1 via Miniflare)', () => {
     expect((await getTelegramGroup(db, ended))?.status).toBe('pending');
   });
 
-  it('starts every connection without the previous pin', async () => {
+  it('starts every connection without the previous chat or pin', async () => {
     const eventId = await seedEvent(db);
     await connectGroup(db, eventId, CHAT, now);
     await setTelegramPinnedMessage(db, { eventId, messageId: 41, now });
     await closeTelegramGroup(db, { eventId, now });
 
     await open(eventId, 'reconnect');
+    expect(await getTelegramGroup(db, eventId)).toMatchObject({
+      status: 'pending',
+      chatId: null,
+      chatTitle: null,
+      pinnedMessageId: null,
+    });
     await complete(eventId, 'reconnect', OTHER_CHAT);
 
     expect(await getTelegramGroup(db, eventId)).toMatchObject({
@@ -150,15 +156,21 @@ describe('libs/db — telegram groups (real D1 via Miniflare)', () => {
     });
   });
 
-  it('closes a group once, and withdraws an unused Connect link with it', async () => {
+  it('closes a group once, naming its chat, and withdraws an unused Connect link with it', async () => {
     const live = await seedEvent(db);
     await connectGroup(db, live, CHAT, now);
     const pending = await seedEvent(db);
     await open(pending, 'unused');
 
-    expect(await closeTelegramGroup(db, { eventId: live, now })).toBe(true);
-    expect(await closeTelegramGroup(db, { eventId: live, now })).toBe(false);
-    expect(await closeTelegramGroup(db, { eventId: pending, now })).toBe(true);
+    expect(await closeTelegramGroup(db, { eventId: live, now })).toEqual({
+      chatId: CHAT,
+    });
+    expect(
+      await closeTelegramGroup(db, { eventId: live, now }),
+    ).toBeUndefined();
+    expect(await closeTelegramGroup(db, { eventId: pending, now })).toEqual({
+      chatId: null,
+    });
 
     expect((await getTelegramGroup(db, live))?.status).toBe('closed');
     expect(await getTelegramGroup(db, pending)).toMatchObject({

@@ -37,7 +37,9 @@ export const getTelegramGroup = async (
  *
  * The row goes to `pending` with a fresh token hash whatever it held before, except `active`: a live
  * group is unhooked only by disconnecting it, never by a second tap on Connect. One statement, so
- * two taps cannot interleave a read with a write, and the later token replaces the earlier one.
+ * two taps cannot interleave a read with a write, and the later token replaces the earlier one. A
+ * pending connection has no chat: the one a closed group was in is forgotten here, so only a group
+ * that is running has a chat to release when it closes.
  */
 export const openTelegramConnect = async (
   db: Db,
@@ -57,6 +59,9 @@ export const openTelegramConnect = async (
       target: eventTelegramGroups.eventId,
       set: {
         status: 'pending',
+        chatId: null,
+        chatTitle: null,
+        pinnedMessageId: null,
         connectTokenHash: opts.tokenHash,
         connectTokenExpiresAt: opts.expiresAt,
         updatedAt: opts.now,
@@ -147,16 +152,18 @@ export const setTelegramPinnedMessage = async (
 };
 
 /**
- * End the bot's work for one meetup's group. Answers whether this call closed it.
+ * End the bot's work for one meetup's group, and answer what this call closed.
  *
- * A pending connection closes too, and loses its token, so disconnecting also withdraws a Connect
- * link the host has not used yet.
+ * A running group answers the chat it ran in, for the caller to release. A pending connection
+ * closes too, and loses its token, so disconnecting also withdraws a Connect link the host has not
+ * used yet; it has no chat to answer. `undefined` means there was nothing left to close, so of two
+ * calls racing each other only one is told about the chat.
  */
 export const closeTelegramGroup = async (
   db: Db,
   opts: { eventId: string; now: Date },
-): Promise<boolean> => {
-  const result = await db
+): Promise<{ chatId: number | null } | undefined> => {
+  const rows = await db
     .update(eventTelegramGroups)
     .set({
       status: 'closed',
@@ -170,8 +177,9 @@ export const closeTelegramGroup = async (
         eq(eventTelegramGroups.eventId, opts.eventId),
         ne(eventTelegramGroups.status, 'closed'),
       ),
-    );
-  return changesOf(result) > 0;
+    )
+    .returning({ chatId: eventTelegramGroups.chatId });
+  return rows[0];
 };
 
 /**
