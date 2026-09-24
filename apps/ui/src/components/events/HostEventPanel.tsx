@@ -27,6 +27,7 @@ import {
   useRepeatEventTemplate,
 } from '../../features/events/hooks';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
+import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
 import { AddToCalendar } from './AddToCalendar';
 import { CancelEventDialog } from './CancelEventDialog';
 import { RepeatHostLink } from './RepeatHostLink';
@@ -140,6 +141,8 @@ export const HostEventPanel = ({
           locale={locale}
         />
       )}
+
+      <TelegramGroupCard eventId={event.id} locale={locale} />
 
       {repeat.data ? (
         <RepeatHostLink

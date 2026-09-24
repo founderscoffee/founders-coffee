@@ -22,6 +22,7 @@ import type { EventWithAttendance } from '@founders-coffee/server-fns';
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
+import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
 import { useAuth } from '../../lib/app-providers';
 import { localizedLogin } from '../../lib/locale-routing';
 import { AddToCalendar } from './AddToCalendar';
@@ -154,6 +155,7 @@ export const RsvpSection = ({
             startsAt={event.startsAt}
             locale={locale}
           />
+          <TelegramGroupCard eventId={event.id} locale={locale} />
         </>
       ) : (
         <>
