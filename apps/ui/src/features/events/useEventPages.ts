@@ -37,6 +37,8 @@ export interface EventPagination {
  *
  * `hasLoadMoreError` means the last request for the next page failed, and only that. A first load or
  * a refetch that failed is the query's own error, which asking for the next page again would not fix.
+ * It stays true while the page is asked for again, since a query that has data keeps its error until
+ * the next request settles, so a list that says the page failed waits for `isIdle` as well.
  */
 export const useEventPages = (
   query: UseInfiniteQueryResult<{ pages: EventPage[] }, unknown>,
