@@ -11,6 +11,7 @@ import {
   activity_unavailable,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { useMyCloseoutStates } from '../../operations/hooks';
 import { ProfileSectionNav } from '../../account/components/ProfileSectionNav';
@@ -95,11 +96,11 @@ export const ActivityPage = ({
             onRetry={() => void joined.refetch()}
           />
         ) : isLoading ? (
-          <p role="status">{activity_loading({}, { locale })}</p>
+          <LoadingStatus label={activity_loading({}, { locale })} />
         ) : joined.isError ? (
-          <p role="alert" className="text-body-sm text-error">
+          <StatusMessage variant="error">
             {activity_unavailable({}, { locale })}
-          </p>
+          </StatusMessage>
         ) : (
           <div
             className="tabs tabs-lift tabs-sm w-full md:tabs-md"

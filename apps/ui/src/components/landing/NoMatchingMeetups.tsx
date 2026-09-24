@@ -6,6 +6,7 @@ import {
   retry,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import type { MatchSearch } from '../../features/events/useLoadUntilMatch';
 import { EmptyState } from './EmptyState';
@@ -25,27 +26,29 @@ export const NoMatchingMeetups = ({
 }: NoMatchingMeetupsProps) => {
   if (search === 'searching')
     return (
-      <p
-        role="status"
-        className="flex items-center justify-center gap-2 py-12 text-body-sm text-neutral"
-      >
-        <span
-          className="loading loading-spinner loading-xs"
-          aria-hidden="true"
-        />
-        {loading({}, { locale })}
-      </p>
+      <LoadingStatus
+        label={loading({}, { locale })}
+        className="justify-center py-12"
+      />
     );
 
   if (search === 'failed')
     return (
-      <div className="flex flex-col items-center gap-3 py-12 text-center">
-        <p role="alert" className="text-body-sm text-error">
+      <div className="flex justify-center py-12">
+        <StatusMessage
+          variant="error"
+          action={
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={onRetry}
+            >
+              {retry({}, { locale })}
+            </button>
+          }
+        >
           {load_more_error({}, { locale })}
-        </p>
-        <button type="button" className="btn btn-outline" onClick={onRetry}>
-          {retry({}, { locale })}
-        </button>
+        </StatusMessage>
       </div>
     );
 

@@ -3,6 +3,7 @@ import {
   live_title,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 
 import type { UseEventLiveResult } from '../useEventLive';
 import { usePublishLivePresenceWhileMounted } from '../live-presence';
@@ -42,9 +43,9 @@ export const LiveDashboard = ({
         </h2>
 
         {error && (
-          <div className="alert alert-error alert-sm" role="alert">
-            <span>{liveErrorMessage(error, locale)}</span>
-          </div>
+          <StatusMessage variant="error">
+            {liveErrorMessage(error, locale)}
+          </StatusMessage>
         )}
 
         <RosterList

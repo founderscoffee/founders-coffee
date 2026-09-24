@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 
 import { host_map_error, host_retry, type Locale } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, StatusMessage } from '@founders-coffee/ui';
 
 import type { VenueSelection } from '../../features/events/types';
 import { ClientOnly } from './ClientOnly';
@@ -54,13 +54,17 @@ export const HostMapPanel = ({
           onCenterChange={onCenterChange}
         />
       ) : isError ? (
-        <div className="flex h-full min-h-64 flex-col items-center justify-center gap-4 bg-error-tint p-6 text-center">
-          <p className="text-sm text-error" role="alert">
+        <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">
+          <StatusMessage
+            variant="error"
+            action={
+              <Button variant="outline" size="sm" onClick={onRetry}>
+                {host_retry({}, { locale })}
+              </Button>
+            }
+          >
             {host_map_error({}, { locale })}
-          </p>
-          <Button variant="outline" onClick={onRetry}>
-            {host_retry({}, { locale })}
-          </Button>
+          </StatusMessage>
         </div>
       ) : (
         <HostMapSkeleton locale={locale} />

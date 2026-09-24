@@ -37,7 +37,9 @@ const show = () =>
   );
 
 const skeleton = () =>
-  screen.queryByRole('status', { name: 'جارٍ تحميل الخريطة…' });
+  screen
+    .queryAllByRole('status')
+    .find((region) => region.textContent === 'جارٍ تحميل الخريطة…') ?? null;
 
 afterEach(() => {
   cleanup();

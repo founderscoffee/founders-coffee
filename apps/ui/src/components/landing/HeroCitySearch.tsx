@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 
 import { localizedName, type Locale } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 import type { geo } from '@founders-coffee/domain';
 
 import { useCitySearch } from '../../features/geo/hooks';
@@ -36,8 +37,8 @@ export const HeroCitySearch = ({
   const results = data ?? [];
   const listboxId = 'hero-city-listbox';
   const showNoMatch =
-    query.trim().length > 0 && !isFetching && results.length === 0;
-  const showList = open && (results.length > 0 || showNoMatch);
+    open && query.trim().length > 0 && !isFetching && results.length === 0;
+  const showList = open && results.length > 0;
 
   const inputValue = selected ? localizedName(selected, locale) : query;
 
@@ -130,6 +131,14 @@ export const HeroCitySearch = ({
           ✕
         </button>
       )}
+      {showNoMatch && (
+        <StatusMessage
+          variant="info"
+          className="absolute start-0 top-full z-20 mt-1 w-full shadow-lg"
+        >
+          {noMatchText.replace('{query}', query)}
+        </StatusMessage>
+      )}
       {showList && (
         <ul
           id={listboxId}
@@ -140,41 +149,31 @@ export const HeroCitySearch = ({
             isMouseDown.current = true;
           }}
         >
-          {showNoMatch ? (
+          {results.map((r: geo.CitySearchResult, i: number) => (
             <li
-              className="px-4 py-2.5 text-body-sm text-neutral"
-              role="status"
-              aria-live="polite"
+              key={`${r.city.stateCode}-${r.city.code}`}
+              id={`hero-city-option-${i}`}
+              role="option"
+              aria-selected={selected?.code === r.city.code}
             >
-              {noMatchText.replace('{query}', query)}
-            </li>
-          ) : (
-            results.map((r: geo.CitySearchResult, i: number) => (
-              <li
-                key={`${r.city.stateCode}-${r.city.code}`}
-                id={`hero-city-option-${i}`}
-                role="option"
-                aria-selected={selected?.code === r.city.code}
+              <button
+                type="button"
+                className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-body-sm ${
+                  i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
+                }`}
+                tabIndex={-1}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  choose(r.city);
+                }}
               >
-                <button
-                  type="button"
-                  className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-start text-body-sm ${
-                    i === activeIndex ? 'bg-base-200' : 'hover:bg-base-200'
-                  }`}
-                  tabIndex={-1}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    choose(r.city);
-                  }}
-                >
-                  <span>{localizedName(r.city, locale)}</span>
-                  <span className="text-caption text-neutral">
-                    {localizedName(r.state, locale)}
-                  </span>
-                </button>
-              </li>
-            ))
-          )}
+                <span>{localizedName(r.city, locale)}</span>
+                <span className="text-caption text-neutral">
+                  {localizedName(r.state, locale)}
+                </span>
+              </button>
+            </li>
+          ))}
         </ul>
       )}
     </div>

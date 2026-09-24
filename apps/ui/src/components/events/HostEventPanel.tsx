@@ -15,6 +15,7 @@ import {
   live_window_closed,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 import {
@@ -140,11 +141,7 @@ export const HostEventPanel = ({
         />
       ) : null}
 
-      {error ? (
-        <p role="alert" className="text-body-sm text-error">
-          {error}
-        </p>
-      ) : null}
+      {error ? <StatusMessage variant="error">{error}</StatusMessage> : null}
 
       <CancelEventDialog
         isOpen={isDialogOpen}

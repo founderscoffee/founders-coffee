@@ -84,7 +84,7 @@ const show = (
 const NOTICE = 'A change notification will be sent to all attendees.';
 
 const notice = (): string =>
-  document.querySelector('p[aria-live="polite"]')?.textContent ?? 'no region';
+  screen.queryByRole('alert')?.textContent ?? 'no region';
 
 afterEach(() => cleanup());
 
@@ -102,6 +102,10 @@ describe('what the host is told a save will do', () => {
     show({ ...draftFromEvent(event), startsAt: LATER });
 
     expect(notice()).toBe(NOTICE);
+    expect(
+      screen.getByRole('alert').className,
+      'the notice was amber text, so only its colour said it was a warning',
+    ).toContain('alert-warning');
   });
 
   it('warns when only the end moves, because that is still a change of plan', () => {

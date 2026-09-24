@@ -7,6 +7,7 @@ import {
   profile_reload,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { localizedLogin } from '../../../lib/locale-routing';
 
@@ -25,7 +26,7 @@ export const ProfileAccess = ({
 }) => (
   <div className="space-y-4" aria-live="polite">
     {isLoading ? (
-      <p role="status">{profile_loading({}, { locale })}</p>
+      <LoadingStatus label={profile_loading({}, { locale })} />
     ) : isAnonymous ? (
       <Link
         className="btn btn-primary"
@@ -35,12 +36,20 @@ export const ProfileAccess = ({
         {login_title({}, { locale })}
       </Link>
     ) : (
-      <>
-        <p role="alert">{profile_load_error({}, { locale })}</p>
-        <button type="button" className="btn btn-outline" onClick={onRetry}>
-          {profile_reload({}, { locale })}
-        </button>
-      </>
+      <StatusMessage
+        variant="error"
+        action={
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={onRetry}
+          >
+            {profile_reload({}, { locale })}
+          </button>
+        }
+      >
+        {profile_load_error({}, { locale })}
+      </StatusMessage>
     )}
   </div>
 );

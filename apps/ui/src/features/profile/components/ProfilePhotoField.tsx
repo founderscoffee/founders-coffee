@@ -11,7 +11,7 @@ import {
   profile_photo_uploading,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, type ToastMessage } from '@founders-coffee/ui';
+import { Button, LoadingStatus, type ToastMessage } from '@founders-coffee/ui';
 
 import { initials } from '../../../lib/utils';
 import { photoErrorMessage } from '../errors';
@@ -117,9 +117,10 @@ export const ProfilePhotoField = ({
       />
 
       {upload.isPending && (
-        <p role="status" className="mt-2 text-body-sm text-neutral">
-          {profile_photo_uploading({}, { locale })}
-        </p>
+        <LoadingStatus
+          label={profile_photo_uploading({}, { locale })}
+          className="mt-2"
+        />
       )}
     </div>
   );

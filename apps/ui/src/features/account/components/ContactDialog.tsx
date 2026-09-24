@@ -20,7 +20,7 @@ import {
   contact_step_prove,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input } from '@founders-coffee/ui';
+import { Button, Input, StatusMessage } from '@founders-coffee/ui';
 
 import { contactErrorMessage } from '../contact-errors';
 import {
@@ -152,9 +152,9 @@ export const ContactDialog = ({
           </p>
         )}
         {notice && (
-          <p role="status" className="mt-2 text-body-sm text-neutral">
+          <StatusMessage variant="info" className="mt-2">
             {notice}
-          </p>
+          </StatusMessage>
         )}
 
         {step !== 'done' && (step === 'new-email' || step === 'new-phone') && (
@@ -196,9 +196,9 @@ export const ContactDialog = ({
         )}
 
         {error && (
-          <p role="alert" className="mt-3 text-body-sm text-error">
+          <StatusMessage variant="error" className="mt-3">
             {error}
-          </p>
+          </StatusMessage>
         )}
         {kind === 'email' && step !== 'done' && (
           <p className="mt-3 text-caption text-neutral">

@@ -9,6 +9,7 @@ import {
   host_venue_search_ph_market,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import {
   VENUE_SEARCH_MAX_LENGTH,
@@ -64,32 +65,28 @@ export const VenueSearch = ({
       onChange={(event) => onChange(event.target.value)}
     />
     {isLoading && (
-      <p
-        className="mt-2 flex items-center gap-2 text-caption text-neutral"
-        role="status"
-      >
-        <span
-          className="loading loading-spinner loading-xs"
-          aria-hidden="true"
-        />
-        {host_venue_search_loading({}, { locale })}
-      </p>
+      <LoadingStatus
+        label={host_venue_search_loading({}, { locale })}
+        className="mt-2 text-caption"
+      />
     )}
     {errorMessage && (
-      <p
-        className="mt-2 flex items-center gap-2 text-body-sm text-error"
-        role="alert"
+      <StatusMessage
+        variant="error"
+        className="mt-2"
+        action={
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={onRetry}
+          >
+            <RefreshCw className="size-4" aria-hidden="true" />
+            {host_retry({}, { locale })}
+          </button>
+        }
       >
         {errorMessage}
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          onClick={onRetry}
-        >
-          <RefreshCw className="size-4" aria-hidden="true" />
-          {host_retry({}, { locale })}
-        </button>
-      </p>
+      </StatusMessage>
     )}
   </div>
 );

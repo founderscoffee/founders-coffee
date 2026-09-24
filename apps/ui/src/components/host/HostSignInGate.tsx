@@ -15,7 +15,7 @@ import {
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, Turnstile } from '@founders-coffee/ui';
+import { Button, Input, StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
@@ -174,11 +174,7 @@ export const HostSignInGate = ({
                 onToken={setToken}
               />
             )}
-            {error && (
-              <p role="alert" className="text-body-sm text-error">
-                {error}
-              </p>
-            )}
+            {error && <StatusMessage variant="error">{error}</StatusMessage>}
             <Button
               type="submit"
               disabled={!emailValid || !token || busy}
@@ -233,11 +229,7 @@ export const HostSignInGate = ({
               isDisabled={busy}
               onChange={setOtp}
             />
-            {error && (
-              <p role="alert" className="text-body-sm text-error">
-                {error}
-              </p>
-            )}
+            {error && <StatusMessage variant="error">{error}</StatusMessage>}
             <Button
               type="submit"
               disabled={otp.length !== OTP_LENGTH || busy}

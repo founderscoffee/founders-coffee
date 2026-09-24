@@ -11,6 +11,7 @@ import {
   live_status_connected,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus } from '@founders-coffee/ui';
 
 import { useMyProfile } from '../../features/profile/hooks';
 import { profilePhotoUrl } from '../../features/profile/photo-url';
@@ -70,13 +71,12 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
 
   if (!isMounted || isLoading || (isAuthenticated && isProfilePending))
     return (
-      <div role="status">
+      <LoadingStatus label={profile_loading({}, { locale })} isLabelHidden>
         <span
           aria-hidden="true"
           className="skeleton block size-8 shrink-0 rounded-full motion-reduce:animate-none"
         />
-        <span className="sr-only">{profile_loading({}, { locale })}</span>
-      </div>
+      </LoadingStatus>
     );
 
   if (!isAuthenticated || !user)

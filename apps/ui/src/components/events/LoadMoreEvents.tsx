@@ -5,6 +5,7 @@ import {
   showing_count,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 
 import type { EventPagination } from '../../features/events/useEventPages';
 
@@ -35,9 +36,9 @@ export const LoadMoreEvents = ({
         </p>
       )}
       {hasFailed && (
-        <p role="alert" className="text-center text-body-sm text-error">
+        <StatusMessage variant="error">
           {load_more_error({}, { locale })}
-        </p>
+        </StatusMessage>
       )}
       {hasMore && (
         <button

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { StatusMessage } from '@founders-coffee/ui';
+
 type WizardStepsProps = {
   current: number;
   labels: ReactNode[];
@@ -14,11 +16,9 @@ export const WizardSteps = ({
   statusText,
 }: WizardStepsProps) => (
   <nav className="w-full" aria-label={ariaLabel}>
-    {statusText && (
-      <p className="sr-only" role="status" aria-live="polite">
-        {statusText}
-      </p>
-    )}
+    <StatusMessage variant="info" className="sr-only">
+      {statusText}
+    </StatusMessage>
     <ol className="sr-only">
       {labels.map((label, index) => (
         <li

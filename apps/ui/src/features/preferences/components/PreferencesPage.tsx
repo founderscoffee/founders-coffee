@@ -15,7 +15,7 @@ import {
   prefs_unsaved,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 import { appErrorCode } from '@founders-coffee/core';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
@@ -64,6 +64,13 @@ const PreferencesForm = ({
     setDraft((current) => ({ ...current, ...changes }));
 
   const submit = () => save.mutate(toInput(draft, view.revision));
+  const notice = save.isError
+    ? 'error'
+    : save.isSuccess && !dirty
+      ? 'saved'
+      : dirty
+        ? 'unsaved'
+        : null;
 
   return (
     <div className="space-y-6">
@@ -77,19 +84,17 @@ const PreferencesForm = ({
       />
 
       <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 bg-base-100 p-4">
-        <p
-          className="text-body-sm text-neutral"
-          role="status"
-          aria-live="polite"
-        >
-          {save.isError
-            ? saveErrorFor(save.error, locale)
-            : save.isSuccess && !dirty
-              ? prefs_saved({}, { locale })
-              : dirty
-                ? prefs_unsaved({}, { locale })
-                : ''}
-        </p>
+        <div className="min-w-0">
+          <StatusMessage variant="error">
+            {notice === 'error' ? saveErrorFor(save.error, locale) : null}
+          </StatusMessage>
+          <StatusMessage variant="success">
+            {notice === 'saved' ? prefs_saved({}, { locale }) : null}
+          </StatusMessage>
+          <StatusMessage variant="info">
+            {notice === 'unsaved' ? prefs_unsaved({}, { locale }) : null}
+          </StatusMessage>
+        </div>
         <div className="flex gap-2">
           <Button
             type="button"
@@ -141,21 +146,23 @@ export const PreferencesPage = ({
             view={query.data}
           />
         ) : query.isError && query.userId ? (
-          <div className="rounded-box border border-error/30 bg-error/5 p-6">
-            <p role="alert" className="text-body-sm text-error">
-              {prefs_unavailable({}, { locale })}
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => void query.refetch()}
-            >
-              {prefs_reload({}, { locale })}
-            </Button>
-          </div>
+          <StatusMessage
+            variant="error"
+            action={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void query.refetch()}
+              >
+                {prefs_reload({}, { locale })}
+              </Button>
+            }
+          >
+            {prefs_unavailable({}, { locale })}
+          </StatusMessage>
         ) : isLoading ? (
-          <p role="status">{prefs_loading({}, { locale })}</p>
+          <LoadingStatus label={prefs_loading({}, { locale })} />
         ) : (
           <ProfileAccess
             locale={locale}

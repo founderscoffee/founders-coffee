@@ -15,7 +15,7 @@ import {
   host_venue_search_error,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Input } from '@founders-coffee/ui';
+import { Input, StatusMessage } from '@founders-coffee/ui';
 
 import { useNearbyVenues, useVenueSearch } from '../../features/events/hooks';
 import type { VenueArea, VenueSelection } from '../../features/events/types';
@@ -144,9 +144,7 @@ export const HostVenueStep = ({
         onRetry={() => void search.refetch()}
       />
       {isDisabled && unavailableReason ? (
-        <p className="text-body-sm text-error" role="alert">
-          {unavailableReason}
-        </p>
+        <StatusMessage variant="error">{unavailableReason}</StatusMessage>
       ) : null}
       <div
         className={boundedList ? 'max-h-72 overflow-y-auto pe-1' : undefined}
@@ -164,9 +162,7 @@ export const HostVenueStep = ({
           />
         ) : (
           emptyMessage && (
-            <p className="text-body-sm text-neutral" role="status">
-              {emptyMessage}
-            </p>
+            <StatusMessage variant="info">{emptyMessage}</StatusMessage>
           )
         )}
       </div>

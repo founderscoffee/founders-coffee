@@ -7,6 +7,7 @@ import {
   event_map_loading,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus } from '@founders-coffee/ui';
 
 import { useMapboxToken } from '../../features/events/hooks';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
@@ -16,10 +17,10 @@ const mapLib = loadMapboxCsp();
 
 const MapSkeleton = ({ locale }: { locale: Locale }) => (
   <div className="absolute inset-0 z-20">
-    <div
+    <LoadingStatus
+      label={event_map_loading({}, { locale })}
+      isLabelHidden
       className="skeleton size-full rounded-none motion-reduce:animate-none"
-      role="status"
-      aria-label={event_map_loading({}, { locale })}
     />
   </div>
 );

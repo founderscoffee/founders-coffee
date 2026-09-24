@@ -22,6 +22,7 @@ import {
   share_event_action,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 import type { Market } from '@founders-coffee/db';
 import type {
   EventDetailItem,
@@ -115,25 +116,22 @@ export const EventDetail = ({
       )}
 
       {isCancelled && (
-        <div
-          role="status"
-          className="mb-4 rounded-box border border-error bg-error-tint p-4"
-        >
-          <p className="font-display text-h4 font-semibold text-error">
+        <StatusMessage variant="error" className="mb-4">
+          <p className="font-display text-h4 font-semibold">
             {event_cancelled_title({}, { locale })}
           </p>
-          <p className="mt-1 text-body-sm text-neutral">
+          <p className="mt-1 text-neutral">
             {event_cancelled_body({}, { locale })}
           </p>
           {event.cancellationReason ? (
-            <p className="mt-2 text-body-sm text-base-content">
+            <p className="mt-2 text-base-content">
               {ntf_cancel_reason(
                 { reason: event.cancellationReason },
                 { locale },
               )}
             </p>
           ) : null}
-        </div>
+        </StatusMessage>
       )}
 
       <header className="rounded-box bg-base-200 p-5 sm:p-8">

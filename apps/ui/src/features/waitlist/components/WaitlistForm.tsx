@@ -11,7 +11,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 import { useState } from 'react';
-import { Turnstile } from '@founders-coffee/ui';
+import { StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../../../components/company/LegalNotice';
 import { usePublicAuthConfig } from '../../auth/hooks';
@@ -130,9 +130,7 @@ export const WaitlistForm = ({
         />
       )}
       {localError && (
-        <p className="text-xs text-error" role="alert">
-          {localError}
-        </p>
+        <StatusMessage variant="error">{localError}</StatusMessage>
       )}
       <LegalNotice locale={locale} className="text-start sm:text-center" />
     </div>

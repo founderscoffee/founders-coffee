@@ -10,6 +10,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -151,9 +152,12 @@ describe('city page chips that match nothing loaded so far', () => {
 
     turnOn(filter_fr({}, EN));
 
-    expect((await screen.findByRole('alert')).textContent).toBe(
-      load_more_error({}, EN),
-    );
+    const failure = await screen.findByRole('alert');
+    expect(within(failure).getByText(load_more_error({}, EN))).toBeTruthy();
+    expect(
+      within(failure).getByRole('button', { name: retry({}, EN) }),
+      'the retry sits in the message that says what failed',
+    ).toBeTruthy();
     expect(screen.queryByRole('heading', nothingMatches)).toBeNull();
     expect(
       screen.queryByRole('button', { name: load_more({}, EN) }),

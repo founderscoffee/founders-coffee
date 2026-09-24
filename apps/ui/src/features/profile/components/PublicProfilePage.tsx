@@ -7,6 +7,7 @@ import {
   public_no_events,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 
 import { ExternalLink } from 'lucide-react';
 
@@ -163,9 +164,9 @@ export const PublicProfilePage = ({
           </h2>
         </header>
         {visibleEvents.length === 0 ? (
-          <p role="status" className="text-body-sm text-neutral">
+          <StatusMessage variant="info">
             {public_no_events({}, { locale })}
-          </p>
+          </StatusMessage>
         ) : (
           <>
             <ul className="grid gap-3">

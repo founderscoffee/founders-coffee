@@ -15,7 +15,7 @@ import {
   admin_use_other_email,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Turnstile } from '@founders-coffee/ui';
+import { LoadingStatus, StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { authClient } from '../../lib/auth';
 import { LocaleToggle } from '../shell/LocaleToggle';
@@ -110,9 +110,10 @@ export const AdminLogin = ({
             />
           )}
           {needsToken && !token && (
-            <p className="text-caption text-neutral" role="status">
-              {admin_captcha_wait({}, { locale })}
-            </p>
+            <LoadingStatus
+              label={admin_captcha_wait({}, { locale })}
+              className="text-caption"
+            />
           )}
           <button
             className="btn btn-primary"
@@ -164,11 +165,7 @@ export const AdminLogin = ({
         </form>
       )}
 
-      {error && (
-        <p className="text-body-sm text-error" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <StatusMessage variant="error">{error}</StatusMessage>}
     </main>
   );
 };

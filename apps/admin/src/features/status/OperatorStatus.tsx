@@ -8,6 +8,7 @@ import {
   admin_unavailable,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { authClient } from '../../lib/auth';
 import type { OperatorStatus as Status } from './api';
@@ -23,12 +24,12 @@ export const OperatorStatus = ({
 }) => {
   if (isError)
     return (
-      <p className="text-body-sm text-error" role="alert">
+      <StatusMessage variant="error">
         {admin_unavailable({}, { locale })}
-      </p>
+      </StatusMessage>
     );
 
-  if (!status) return <p role="status">{admin_loading({}, { locale })}</p>;
+  if (!status) return <LoadingStatus label={admin_loading({}, { locale })} />;
 
   return (
     <div className="space-y-6">

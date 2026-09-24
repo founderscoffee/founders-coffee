@@ -139,6 +139,7 @@ describe('EventDetail once the host has called the meetup off', () => {
 
   it('stops advertising an audience for a meetup nobody can attend', () => {
     show(cancelled);
+    expect(screen.getByRole('alert').className).toContain('alert-error');
     expect(screen.queryByText('+3 going')).toBeNull();
   });
 

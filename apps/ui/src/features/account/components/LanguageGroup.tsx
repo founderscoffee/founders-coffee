@@ -9,7 +9,7 @@ import {
   account_language_title,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Select } from '@founders-coffee/ui';
+import { Button, Select, StatusMessage } from '@founders-coffee/ui';
 
 const LOCALE_LABELS: Record<Locale, string> = {
   ar: 'عربية',
@@ -78,16 +78,13 @@ export const LanguageGroup = ({
         </Button>
       </div>
     </div>
-    <p
-      className="mt-3 text-body-sm text-neutral"
-      role="status"
-      aria-live="polite"
-    >
-      {isError
-        ? account_language_error({}, { locale })
-        : isSuccess && !isDirty
-          ? account_language_saved({}, { locale })
-          : ''}
-    </p>
+    <StatusMessage variant="error" className="mt-3">
+      {isError ? account_language_error({}, { locale }) : null}
+    </StatusMessage>
+    <StatusMessage variant="success" className="mt-3">
+      {!isError && isSuccess && !isDirty
+        ? account_language_saved({}, { locale })
+        : null}
+    </StatusMessage>
   </section>
 );

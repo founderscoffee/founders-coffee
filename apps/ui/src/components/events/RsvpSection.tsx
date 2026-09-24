@@ -16,6 +16,7 @@ import {
   rsvp_saving,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
@@ -175,19 +176,20 @@ export const RsvpSection = ({
       )}
 
       {error ? (
-        <p
-          role="alert"
-          className="flex flex-wrap items-center gap-2 text-body-sm text-error"
+        <StatusMessage
+          variant="error"
+          action={
+            <button
+              type="button"
+              className="btn btn-ghost btn-xs"
+              onClick={handleRsvp}
+            >
+              {retry({}, { locale })}
+            </button>
+          }
         >
           {error}
-          <button
-            type="button"
-            className="btn btn-ghost btn-xs"
-            onClick={handleRsvp}
-          >
-            {retry({}, { locale })}
-          </button>
-        </p>
+        </StatusMessage>
       ) : null}
 
       <RsvpCancelDialog

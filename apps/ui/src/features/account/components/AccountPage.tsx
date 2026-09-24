@@ -31,7 +31,7 @@ import {
   contact_change_email,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { storeLocale } from '../../preferences/locale-cookie';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
@@ -238,13 +238,11 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
             </div>
           </>
         ) : query.isError && query.userId ? (
-          <p role="alert" className="text-body-sm text-error">
+          <StatusMessage variant="error">
             {account_unavailable({}, { locale })}
-          </p>
+          </StatusMessage>
         ) : isLoading ? (
-          <p role="status" className="text-body-sm text-neutral">
-            {account_loading({}, { locale })}
-          </p>
+          <LoadingStatus label={account_loading({}, { locale })} />
         ) : (
           <ProfileAccess
             locale={locale}
