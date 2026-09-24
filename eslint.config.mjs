@@ -8,6 +8,7 @@ import {
   JS_FILES,
   MAX_LINES_EXEMPT,
   PRODUCT_COPY_FILES,
+  STATUS_COMPONENTS,
   TS_FILES,
   UNTYPED_FILES,
 } from './tools/eslint/file-globs.mjs';
@@ -61,6 +62,7 @@ export default [
     rules: {
       'no-restricted-syntax': ['error', ...ARROW_FUNCTIONS_ONLY],
       'local/no-server-fns-in-components': 'error',
+      'local/no-bare-status-role': 'error',
       'local/section-citation': 'error',
       'no-console': 'error',
       'max-lines': [
@@ -95,6 +97,10 @@ export default [
   {
     files: MAX_LINES_EXEMPT,
     rules: { 'max-lines': 'off' },
+  },
+  {
+    files: STATUS_COMPONENTS,
+    rules: { 'local/no-bare-status-role': 'off' },
   },
   {
     files: PRODUCT_COPY_FILES,

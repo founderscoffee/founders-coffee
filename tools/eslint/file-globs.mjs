@@ -67,6 +67,17 @@ export const PRODUCT_COPY_FILES = [
 ];
 
 /**
+ * The components that own the status roles. A `role="alert"` or `role="status"` written anywhere
+ * else is a status message built by hand, which is how they came to say their severity in colour
+ * alone; `local/no-bare-status-role` refuses those everywhere but here.
+ */
+export const STATUS_COMPONENTS = [
+  'libs/ui/src/components/LoadingStatus.tsx',
+  'libs/ui/src/components/StatusMessage.tsx',
+  'libs/ui/src/components/Toast.tsx',
+];
+
+/**
  * Mirrors what the project tsconfigs exclude. Type-aware rules need a file to belong to a TS
  * project, and tests, fixtures, config and setup files deliberately sit outside them.
  */
