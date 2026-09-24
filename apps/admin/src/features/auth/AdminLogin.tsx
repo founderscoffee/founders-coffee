@@ -1,17 +1,17 @@
 import { useState } from 'react';
 
 import {
-  admin_captcha_wait,
+  captcha_wait,
   checking,
-  admin_code_error,
+  code_error,
   code_label,
   email_label,
   send_code,
   send_error,
   sending,
   sign_in,
-  admin_sign_in_note,
-  admin_title,
+  sign_in_note,
+  title,
   use_other_email,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -63,7 +63,7 @@ export const AdminLogin = ({
     });
     setBusy(false);
     if (failed) {
-      setError(admin_code_error({}, { locale }));
+      setError(code_error({}, { locale }));
       return;
     }
     window.location.assign('/');
@@ -75,9 +75,9 @@ export const AdminLogin = ({
         <div className="mb-3 flex justify-end">
           <LocaleToggle active={locale} />
         </div>
-        <h1 className="font-display text-h4">{admin_title({}, { locale })}</h1>
+        <h1 className="font-display text-h4">{title({}, { locale })}</h1>
         <p className="mt-1 text-body-sm text-neutral">
-          {admin_sign_in_note({}, { locale })}
+          {sign_in_note({}, { locale })}
         </p>
       </div>
 
@@ -111,7 +111,7 @@ export const AdminLogin = ({
           )}
           {needsToken && !token && (
             <LoadingStatus
-              label={admin_captcha_wait({}, { locale })}
+              label={captcha_wait({}, { locale })}
               className="text-caption"
             />
           )}

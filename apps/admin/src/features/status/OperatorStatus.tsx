@@ -1,11 +1,11 @@
 import {
-  admin_loading,
-  admin_permissions,
-  admin_role,
-  admin_sign_out,
-  admin_signed_in_as,
-  admin_title,
-  admin_unavailable,
+  loading,
+  permissions,
+  role,
+  sign_out,
+  signed_in_as,
+  title,
+  unavailable,
   type Locale,
 } from '@founders-coffee/i18n';
 import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
@@ -25,30 +25,30 @@ export const OperatorStatus = ({
   if (isError)
     return (
       <StatusMessage variant="error">
-        {admin_unavailable({}, { locale })}
+        {unavailable({}, { locale })}
       </StatusMessage>
     );
 
-  if (!status) return <LoadingStatus label={admin_loading({}, { locale })} />;
+  if (!status) return <LoadingStatus label={loading({}, { locale })} />;
 
   return (
     <div className="space-y-6">
       <section className="rounded-box border border-base-300 p-5">
         <h2 className="text-caption text-neutral">
-          {admin_signed_in_as({}, { locale })}
+          {signed_in_as({}, { locale })}
         </h2>
         <p className="mt-1 font-medium" dir="ltr">
           {status.email}
         </p>
         <p className="mt-3 text-caption text-neutral">
-          {admin_role({}, { locale })}
+          {role({}, { locale })}
         </p>
         <p className="mt-1 font-medium">{status.role}</p>
       </section>
 
       <section className="rounded-box border border-base-300 p-5">
         <h2 className="text-caption text-neutral">
-          {admin_permissions({}, { locale })}
+          {permissions({}, { locale })}
         </h2>
         <ul className="mt-2 space-y-1">
           {status.permissions.map((permission) => (
@@ -68,10 +68,10 @@ export const OperatorStatus = ({
             .then(() => window.location.assign('/login'));
         }}
       >
-        {admin_sign_out({}, { locale })}
+        {sign_out({}, { locale })}
       </button>
 
-      <p className="sr-only">{admin_title({}, { locale })}</p>
+      <p className="sr-only">{title({}, { locale })}</p>
     </div>
   );
 };
