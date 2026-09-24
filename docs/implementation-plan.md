@@ -36,6 +36,14 @@ This document is the current sequencing and status source. Status is evidence-ba
 - PWA web push is the primary event-notification channel; email is the default fallback. SMS is
   reserved for same-day cancellations where an unread email could send someone to a venue unnecessarily.
 - Per-entity reminders use Durable Object alarms feeding a Notifications Queue. Cron is recovery-only.
+- A meetup can have a Telegram group, run through the official Telegram Bot API and nothing else:
+  no MTProto client and no userbot, since both run as someone's own Telegram account, which would
+  then carry the product's automation and the risk of that account being limited. A bot cannot
+  create a group, so the host creates one and adds the bot as an admin through a `startgroup` link.
+  The bot pins the meetup's details, posts changes, the cancellation and a 24-hour reminder, admits
+  only members who are going, each through a personal join-request link, and removes a member who
+  cancels. A day after the meetup ends it posts a thank-you, stops admitting and leaves; the group
+  stays with the host, who can connect it to their next meetup (P1-025, #15).
 - TypeScript 6, public base locales `ar`/`fr`/`en`, Arabic-only RTL admin copy, and shared Zod
   validation are canonical.
 - TanStack Form is optional; local React state is acceptable when it reuses the shared Zod contract.
@@ -139,6 +147,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
+| P1-025 | Planned  | Meetup Telegram groups through the Bot API                           | The host connects a group with a `startgroup` link and the bot manages it as section 1 describes. Needs a bot created in BotFather, its token and webhook secret set as Worker secrets, the webhook registered, and staging evidence with a real group                                                                                                                                                                                                   |
 
 ### Public profile (P1-004)
 
@@ -172,8 +181,12 @@ decision about member safety, never as a side effect of a growth or SEO ticket (
    `/u/$userId` keeps `X-Robots-Tag: noindex` and `Cache-Control: private, no-store`.
 2. **No followers or following.** A follower graph publishes who knows whom, which cannot be
    withdrawn once seen, and ranks people by popularity.
-3. **No direct messages.** Messages from a cold profile are a harassment surface. Member-to-member
-   contact, if it is ever needed, goes through a shared event.
+3. **No direct messages.** Messages from a cold profile are a harassment surface, so a profile
+   offers no way to write to its owner. Member-to-member contact goes through a shared event. On
+   2026-09-24 that came to include the meetup's Telegram group (P1-025, #15): people who are going
+   can talk there before and after, and can message each other on Telegram. That was decided
+   knowingly. Joining is each member's choice, the bot admits only people who are going, and it
+   removes anyone who cancels.
 4. **No resume, employers, or verified credentials.** This is not a hiring product.
 5. **No public posts or feed.** Moderating them across three countries and three languages serves no
    part of the core question.
