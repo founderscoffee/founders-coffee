@@ -69,14 +69,19 @@ describe('StatusMessage', () => {
     expect(icon?.querySelector('title')).toBeNull();
   });
 
-  it('keeps its region, empty and unstyled, while it has nothing to say', () => {
+  it('keeps its region on the page, empty and out of the layout, while it has nothing to say', () => {
     const { rerender } = render(
-      <StatusMessage variant="warning">{null}</StatusMessage>,
+      <StatusMessage variant="warning" className="mt-3">
+        {null}
+      </StatusMessage>,
     );
     const region = screen.getByRole('alert');
 
     expect(region.textContent).toBe('');
-    expect(region.getAttribute('class')).toBeNull();
+    expect(
+      region.getAttribute('class'),
+      'an empty region in a grid or a flex row still takes a gap, and its margin still pushes the next thing down',
+    ).toBe('sr-only');
     expect(region.querySelector('svg')).toBeNull();
 
     rerender(<StatusMessage variant="warning">Offline</StatusMessage>);
@@ -92,7 +97,7 @@ describe('StatusMessage', () => {
   it('treats an empty string as nothing to say', () => {
     render(<StatusMessage variant="info">{''}</StatusMessage>);
 
-    expect(screen.getByRole('status').getAttribute('class')).toBeNull();
+    expect(screen.getByRole('status').getAttribute('class')).toBe('sr-only');
   });
 
   it('can take focus, so a refusal can be moved to', () => {

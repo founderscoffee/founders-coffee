@@ -46,7 +46,7 @@ export const StatusMessage = forwardRef<HTMLDivElement, StatusMessageProps>(
         aria-atomic="true"
         className={
           isEmpty
-            ? undefined
+            ? 'sr-only'
             : cn(statusMessageVariants({ variant }), className)
         }
       >
