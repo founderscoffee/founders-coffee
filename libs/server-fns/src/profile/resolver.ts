@@ -52,7 +52,9 @@ export const readOwnerProfile = (
     ]);
     if (!identity) return err(new AppError('not_found', 'Profile not found'));
     const name = profile.safeProfileDisplayName(identity.name, identity.email);
-    return ok(ownerProfileProjection(userId, name, stored?.profile));
+    return ok(
+      ownerProfileProjection(userId, name, identity.createdAt, stored?.profile),
+    );
   });
 
 /** Anonymous reads are intentionally public but contain only the opt-in field projection. */
@@ -106,7 +108,14 @@ export const saveOwnerProfile = (
         ),
       );
     }
-    return ok(ownerProfileProjection(userId, input.displayName, row));
+    return ok(
+      ownerProfileProjection(
+        userId,
+        input.displayName,
+        identity.createdAt,
+        row,
+      ),
+    );
   });
 
 /** Complete or change a name without erasing optional fields saved in the same revision. */

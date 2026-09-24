@@ -61,6 +61,14 @@ export const headlineSchema = z
   .refine((value) => Array.from(value).length <= 80, 'Headline is too long')
   .nullable()
   .transform((value) => value || null);
+export const memberSinceSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Use a year and a month');
+
+/** Reduce when an account was created to its month in UTC, so no day ever reaches a profile. */
+export const memberSinceOf = (createdAt: Date): string =>
+  createdAt.toISOString().slice(0, 7);
+
 export const professionalLinkSchema = z
   .string()
   .trim()
@@ -139,6 +147,7 @@ export const ownerProfileSchema = profileDetailsSchema
     userId: profileIdentitySchema,
     displayName: z.union([displayNameSchema, z.literal('')]),
     photoAssetId: idSchema.nullable(),
+    memberSince: memberSinceSchema,
     revision: profileRevisionSchema,
   })
   .transform(normalizeProfile);

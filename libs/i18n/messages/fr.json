@@ -332,6 +332,7 @@
   "stage_idea": "Idée",
   "stage_building": "En construction",
   "stage_launched": "Lancé",
+  "profile_member_since": "Membre depuis {date}",
   "profile_name_invalid": "Saisissez un nom de 1 à 80 caractères, sans coordonnées personnelles.",
   "profile_saved": "Votre profil a été enregistré.",
   "toast_dismiss": "Fermer la notification",

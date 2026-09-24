@@ -233,6 +233,7 @@
   "stage_idea": "Idea",
   "stage_building": "Building",
   "stage_launched": "Launched",
+  "profile_member_since": "Member since {date}",
   "profile_name_invalid": "Enter a display name of 1–80 characters, without contact details.",
   "profile_saved": "Your profile has been saved.",
   "toast_dismiss": "Dismiss notification",

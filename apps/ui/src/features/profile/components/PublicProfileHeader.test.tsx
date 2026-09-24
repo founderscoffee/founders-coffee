@@ -10,6 +10,7 @@ const member: PublicProfile = {
   userId: 'usr_member',
   displayName: 'Amina',
   photoAssetId: null,
+  memberSince: '2025-11',
   headline: null,
   stage: null,
   introduction: null,
@@ -61,8 +62,27 @@ describe('the public profile says what a member is building (#89)', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: 'Amina' }).nextElementSibling,
-    ).toBeNull();
+      screen.getByRole('heading', { name: 'Amina' }).nextElementSibling
+        ?.textContent,
+    ).toBe('Member since November 2025');
     expect(container.querySelector('dl')).toBeNull();
   });
+
+  it.each([
+    ['ar', 'عضو منذ نوفمبر 2025'],
+    ['fr', 'Membre depuis novembre 2025'],
+    ['en', 'Member since November 2025'],
+  ] as const)(
+    'says since when, to the month, in %s',
+    (locale: Locale, since) => {
+      render(
+        <PublicProfileHeader
+          locale={locale}
+          profile={{ ...member, stage: 'launched' }}
+        />,
+      );
+
+      expect(screen.getByText(since).tagName).toBe('P');
+    },
+  );
 });

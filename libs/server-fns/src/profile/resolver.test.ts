@@ -79,6 +79,7 @@ describe('PF-03 profile resolvers against real D1', () => {
         userId,
         displayName: 'أمينة',
         photoAssetId: null,
+        memberSince: expect.stringMatching(/^\d{4}-\d{2}$/),
         headline: null,
         stage: null,
         introduction: null,

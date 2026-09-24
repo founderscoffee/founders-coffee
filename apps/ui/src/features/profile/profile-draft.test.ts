@@ -8,6 +8,7 @@ const saved: UserProfile = {
   displayName: 'Amina',
   revision: 3,
   photoAssetId: null,
+  memberSince: '2026-03',
   headline: null,
   stage: null,
   introduction: null,

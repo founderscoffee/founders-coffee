@@ -32,6 +32,7 @@ const profile = {
   userId: 'usr_host01',
   displayName: 'Amina Host',
   photoAssetId: null,
+  memberSince: '2025-11',
   introduction: null,
 };
 

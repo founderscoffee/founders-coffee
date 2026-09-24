@@ -5,12 +5,14 @@ import type { MemberProfileRow } from '@founders-coffee/db';
 export const ownerProfileProjection = (
   userId: string,
   displayName: string,
+  joinedAt: Date,
   row?: MemberProfileRow | null,
 ): profile.OwnerProfile =>
   profile.ownerProfileSchema.parse({
     userId,
     displayName,
     photoAssetId: row?.photoAssetId ?? null,
+    memberSince: profile.memberSinceOf(joinedAt),
     revision: row?.revision ?? 0,
     headline: row?.headline ?? null,
     stage: row?.stage ?? null,

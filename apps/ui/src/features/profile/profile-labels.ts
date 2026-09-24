@@ -1,4 +1,5 @@
 import {
+  formatDate,
   locale_ar,
   locale_en,
   locale_fr,
@@ -88,3 +89,11 @@ export const stageLabel = (
   stage: profile.ProfileStage,
   locale: Locale,
 ): string => STAGE_MESSAGES[stage]({}, { locale });
+
+/** Name the month a member joined in the reader's language; the day is never sent. */
+export const memberSinceLabel = (memberSince: string, locale: Locale): string =>
+  formatDate(new Date(`${memberSince}-01T00:00:00Z`), locale, {
+    timeZone: 'UTC',
+    month: 'long',
+    year: 'numeric',
+  });

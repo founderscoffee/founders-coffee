@@ -2,7 +2,10 @@ import { profile } from '@founders-coffee/domain';
 
 import type { UserProfile } from './api';
 
-export type ProfileDraft = Omit<UserProfile, 'userId' | 'revision'>;
+export type ProfileDraft = Omit<
+  UserProfile,
+  'userId' | 'revision' | 'memberSince'
+>;
 
 /** Start a draft from the saved profile, so Discard has something exact to restore. */
 export const draftFrom = (saved: UserProfile): ProfileDraft => ({

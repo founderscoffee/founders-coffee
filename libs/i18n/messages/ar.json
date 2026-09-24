@@ -254,6 +254,7 @@
   "stage_idea": "فكرة",
   "stage_building": "قيد التطوير",
   "stage_launched": "تم الإطلاق",
+  "profile_member_since": "عضو منذ {date}",
   "profile_name_invalid": "أدخل اسمًا من حرف واحد إلى 80 حرفًا، دون بيانات اتصال.",
   "profile_saved": "تم حفظ ملفك الشخصي بنجاح.",
   "toast_dismiss": "إغلاق الإشعار",

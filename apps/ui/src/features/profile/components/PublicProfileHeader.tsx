@@ -1,4 +1,5 @@
 import {
+  profile_member_since,
   profile_photo_of,
   profile_stage_label,
   profile_view_link,
@@ -9,7 +10,7 @@ import { ExternalLink } from 'lucide-react';
 
 import { initials } from '../../../lib/utils';
 import { profilePhotoUrl } from '../photo-url';
-import { stageLabel } from '../profile-labels';
+import { memberSinceLabel, stageLabel } from '../profile-labels';
 import type { PublicProfile } from '../api';
 
 export const PublicProfileHeader = ({
@@ -51,14 +52,22 @@ export const PublicProfileHeader = ({
             <bdi>{profile.headline}</bdi>
           </p>
         ) : null}
-        {profile.stage ? (
-          <dl className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <dt className="sr-only">{profile_stage_label({}, { locale })}</dt>
-            <dd className="rounded-full bg-base-100 px-2.5 py-0.5 text-caption font-medium">
-              {stageLabel(profile.stage, locale)}
-            </dd>
-          </dl>
-        ) : null}
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+          {profile.stage ? (
+            <dl>
+              <dt className="sr-only">{profile_stage_label({}, { locale })}</dt>
+              <dd className="rounded-full bg-base-100 px-2.5 py-0.5 text-caption font-medium">
+                {stageLabel(profile.stage, locale)}
+              </dd>
+            </dl>
+          ) : null}
+          <p className="text-body-sm text-neutral">
+            {profile_member_since(
+              { date: memberSinceLabel(profile.memberSince, locale) },
+              { locale },
+            )}
+          </p>
+        </div>
       </div>
     </div>
     {profile.professionalLink ? (

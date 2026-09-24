@@ -18,6 +18,7 @@ const PUBLIC_PROFILE_FIELDS = [
   'headline',
   'interests',
   'introduction',
+  'memberSince',
   'photoAssetId',
   'professionalLink',
   'spokenLanguages',
@@ -107,7 +108,12 @@ describe('public response contract', () => {
   });
 
   it('keeps the owner projection to the published fields plus its own controls', () => {
-    const owner = ownerProfileProjection('usr_contract', 'Contract', null);
+    const owner = ownerProfileProjection(
+      'usr_contract',
+      'Contract',
+      new Date('2026-03-14T09:30:00Z'),
+      null,
+    );
 
     expect(sorted(Object.keys(owner))).toEqual(sorted(OWNER_PROFILE_FIELDS));
     expect(sorted(Object.keys(owner.visibility))).toEqual(
@@ -122,21 +128,27 @@ describe('public response contract', () => {
   });
 
   it('publishes the introduction while withholding opt-in fields', () => {
-    const owner = ownerProfileProjection('usr_contract', 'Contract', {
-      headline: 'A bookkeeping app for small shops',
-      stage: 'launched',
-      introduction: 'Secret',
-      interests: ['bootstrapping'],
-      spokenLanguages: ['ar'],
-      professionalLink: 'https://example.dz',
-      photoAssetId: 'ast_0123456789abcdef0123456789abcdef',
-    } as never);
+    const owner = ownerProfileProjection(
+      'usr_contract',
+      'Contract',
+      new Date('2026-03-14T09:30:00Z'),
+      {
+        headline: 'A bookkeeping app for small shops',
+        stage: 'launched',
+        introduction: 'Secret',
+        interests: ['bootstrapping'],
+        spokenLanguages: ['ar'],
+        professionalLink: 'https://example.dz',
+        photoAssetId: 'ast_0123456789abcdef0123456789abcdef',
+      } as never,
+    );
     const published = profile.projectPublicProfile(owner);
 
     expect(sorted(Object.keys(published))).toEqual(
       sorted(PUBLIC_PROFILE_FIELDS),
     );
     expect(published).toMatchObject({
+      memberSince: '2026-03',
       headline: null,
       stage: null,
       introduction: 'Secret',

@@ -202,6 +202,7 @@ describe('profile contracts', () => {
       displayName: 'Amina',
       revision: 0,
       photoAssetId: null,
+      memberSince: '2026-03',
     });
     expect(value.visibility).not.toHaveProperty('photo');
     expect(

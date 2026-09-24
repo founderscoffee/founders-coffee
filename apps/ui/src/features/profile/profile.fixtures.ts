@@ -5,6 +5,7 @@ export const savedProfile: UserProfile = {
   displayName: 'Amina',
   revision: 4,
   photoAssetId: null,
+  memberSince: '2026-03',
   headline: null,
   stage: null,
   introduction: null,
