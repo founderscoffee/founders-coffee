@@ -76,6 +76,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "jsdom": "^29.1.1",
     "nx": "23.1.1",
     "prettier": "~3.9.4",

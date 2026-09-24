@@ -1,4 +1,5 @@
 import nx from '@nx/eslint-plugin';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 import {
   ALL_FILES,
@@ -8,6 +9,7 @@ import {
   JS_FILES,
   MAX_LINES_EXEMPT,
   PRODUCT_COPY_FILES,
+  REACT_SOURCE_FILES,
   STATUS_COMPONENTS,
   TS_FILES,
   UNTYPED_FILES,
@@ -101,6 +103,11 @@ export default [
   {
     files: STATUS_COMPONENTS,
     rules: { 'local/no-bare-status-role': 'off' },
+  },
+  {
+    files: REACT_SOURCE_FILES,
+    plugins: { 'react-hooks': reactHooks },
+    rules: { 'react-hooks/rules-of-hooks': 'error' },
   },
   {
     files: PRODUCT_COPY_FILES,
