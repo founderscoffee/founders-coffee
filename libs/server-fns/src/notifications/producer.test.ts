@@ -3,68 +3,26 @@ import { describe, expect, it } from 'vitest';
 
 import {
   accountPreferences,
-  createDb,
-  createEvent,
   eq,
   scheduledNotifications,
-  seed,
   user,
   type Db,
 } from '@founders-coffee/db';
 
 import { enqueueRsvpNotifications } from './producer.js';
+import { seedEvent, setupDb } from './producer.fixtures.js';
 
 const ARABIC = /[؀-ۿ]/;
 const FRENCH_MARKERS = /confirmé|rappel|Demain|événement/i;
 
 let seq = 0;
 
-const setupDb = async (): Promise<Db> => {
-  const db = createDb((env as unknown as { DB: D1Database }).DB);
-  await seed(db);
-  await db
-    .insert(user)
-    .values({
-      id: 'usr_prod_host',
-      name: 'Producer Host',
-      email: 'host@producer.test',
-      emailVerified: false,
-      role: 'host',
-    })
-    .onConflictDoNothing()
-    .run();
-  return db;
-};
-
-const seedEvent = async (db: Db): Promise<{ id: string; slug: string }> => {
-  const n = ++seq;
-  const id = `evt_prod${String(n).padStart(3, '0')}`;
-  const slug = `producer-event-${n}`;
-  await createEvent(db, {
-    id,
-    slug,
-    hostId: 'usr_prod_host',
-    marketCode: 'DZ',
-    stateCode: '16',
-    cityCode: '1',
-    title: 'Coffee + Code',
-    description: 'Producer localization fixture.',
-    venue: 'Café des Délices, Hydra',
-    startsAt: new Date('2099-01-15T23:30:00Z'),
-    capacity: 30,
-    language: 'fr',
-    category: 'coffee-meetup',
-    status: 'published',
-  });
-  return { id, slug };
-};
-
 const enqueueFor = async (
   db: Db,
   locale: string | null,
 ): Promise<Record<string, unknown>[]> => {
   const event = await seedEvent(db);
-  const memberId = `usr_prod_m${seq}`;
+  const memberId = `usr_prod_m${++seq}`;
   await db
     .insert(user)
     .values({

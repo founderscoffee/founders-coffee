@@ -343,6 +343,8 @@
   "ntf_email_confirmation_subject": "You're in! {title}",
   "ntf_email_confirmation_html": "<p>You're confirmed for <strong>{title}</strong> on {date} at {venue}.</p><p><a href=\"{url}\">View event</a></p>",
   "ntf_email_confirmation_text": "You're confirmed for {title} on {date} at {venue}. {url}",
+  "ntf_email_calendar_html": "<p>Add the meetup to your calendar: <a href=\"{google}\">Google Calendar</a> · <a href=\"{ics}\">Apple, Outlook and others</a></p>",
+  "ntf_email_calendar_text": "Add the meetup to your calendar:\nGoogle Calendar: {google}\nApple, Outlook and others: {ics}",
   "ntf_email_reminder_72h_subject": "Reminder: {title} in 3 days",
   "ntf_email_reminder_72h_html": "<p><strong>{title}</strong> is in 3 days on {date}.</p><p><a href=\"{url}\">View event</a></p>",
   "ntf_email_reminder_72h_text": "{title} is in 3 days on {date}. {url}",

@@ -1,7 +1,10 @@
 import { env } from 'cloudflare:workers';
 
+import { eventCalendarPath } from '@founders-coffee/core';
 import { getMarketByCode, type Db } from '@founders-coffee/db';
 import { LOCALES, type Locale } from '@founders-coffee/i18n';
+
+import type { CalendarLinks } from './templates.js';
 
 export interface NotificationContext {
   readonly locale: Locale;
@@ -101,3 +104,19 @@ export const closeoutUrlFor = (locale: Locale, eventId: string): string =>
 /** The screen where an attendee leaves feedback, on the same terms as `closeoutUrlFor`. */
 export const feedbackUrlFor = (locale: Locale, eventId: string): string =>
   `${notificationBaseUrl()}/${locale}/feedback/${eventId}`;
+
+/**
+ * The two addresses that add a meetup to a calendar, in the language of the message carrying them:
+ * a hand-off to Google Calendar, and the `.ics` file for everything else. The entry they produce
+ * links back to the meetup in that language too.
+ *
+ * Built from `eventCalendarPath`, the one definition the event page and the route that answers it
+ * share, so the email cannot drift from the address that works.
+ */
+export const calendarLinksFor = (
+  locale: Locale,
+  eventId: string,
+): CalendarLinks => ({
+  google: `${notificationBaseUrl()}${eventCalendarPath(locale, eventId, 'google')}`,
+  ics: `${notificationBaseUrl()}${eventCalendarPath(locale, eventId, 'ics')}`,
+});

@@ -33,6 +33,11 @@ import type { NotificationTemplateKey } from '@founders-coffee/core';
 
 export type { NotificationTemplateKey } from '@founders-coffee/core';
 
+export interface CalendarLinks {
+  readonly google: string;
+  readonly ics: string;
+}
+
 export interface TemplateValues {
   readonly title: string;
   readonly venue: string;
@@ -40,6 +45,7 @@ export interface TemplateValues {
   readonly date: string;
   readonly url: string;
   readonly reason?: string;
+  readonly calendar?: CalendarLinks;
 }
 
 const escapeHtml = (value: string): string =>
@@ -56,7 +62,8 @@ const escapeHtml = (value: string): string =>
  *
  * Paraglide substitutes placeholders verbatim, so a message containing markup interpolates whatever
  * it is handed. The title and venue are user-authored and the URL carries a slug, so all of them are
- * escaped for the HTML variants and left alone for the plain-text and SMS ones.
+ * escaped for the HTML variants and left alone for the plain-text and SMS ones. The calendar links
+ * join them for their query strings, whose `&` an attribute has to carry as `&amp;`.
  */
 export const escapeValues = (values: TemplateValues): TemplateValues => ({
   title: escapeHtml(values.title),
@@ -65,6 +72,12 @@ export const escapeValues = (values: TemplateValues): TemplateValues => ({
   date: escapeHtml(values.date),
   url: escapeHtml(values.url),
   reason: values.reason ? escapeHtml(values.reason) : undefined,
+  calendar: values.calendar
+    ? {
+        google: escapeHtml(values.calendar.google),
+        ics: escapeHtml(values.calendar.ics),
+      }
+    : undefined,
 });
 
 /**

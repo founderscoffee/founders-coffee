@@ -470,6 +470,8 @@
   "ntf_email_confirmation_subject": "C'est confirmé ! {title}",
   "ntf_email_confirmation_html": "<p>Votre place est confirmée pour <strong>{title}</strong>, le {date} à {venue}.</p><p><a href=\"{url}\">Voir la rencontre</a></p>",
   "ntf_email_confirmation_text": "Votre place est confirmée pour {title}, le {date} à {venue}. {url}",
+  "ntf_email_calendar_html": "<p>Ajoutez la rencontre à votre agenda : <a href=\"{google}\">Google Agenda</a> · <a href=\"{ics}\">Apple, Outlook et autres</a></p>",
+  "ntf_email_calendar_text": "Ajoutez la rencontre à votre agenda :\nGoogle Agenda : {google}\nApple, Outlook et autres : {ics}",
   "ntf_email_reminder_72h_subject": "Rappel : {title} dans 3 jours",
   "ntf_email_reminder_72h_html": "<p><strong>{title}</strong>, c'est dans 3 jours, le {date}.</p><p><a href=\"{url}\">Voir la rencontre</a></p>",
   "ntf_email_reminder_72h_text": "{title}, c'est dans 3 jours, le {date}. {url}",

@@ -179,3 +179,55 @@ describe('notification templates render in every locale', () => {
     expect(smsBodyFor('rsvp_confirmation', hostile, 'en')).toContain('<img');
   });
 });
+
+const CALENDAR = {
+  google: 'https://staging.founders.coffee/cal/e/0a1b2c?l=fr&to=google',
+  ics: 'https://staging.founders.coffee/cal/e/0a1b2c?l=fr',
+};
+
+describe('the confirmation email offers the meetup to a calendar (#21)', () => {
+  it.each(LOCALES)(
+    '%s links both calendars under the confirmation',
+    async (locale) => {
+      const email = await emailPayloadFor(
+        'rsvp_confirmation',
+        { ...VALUES, calendar: CALENDAR },
+        locale,
+      );
+
+      expect(
+        email.html,
+        'an attribute carries a query string with its & escaped',
+      ).toContain(
+        'href="https://staging.founders.coffee/cal/e/0a1b2c?l=fr&amp;to=google"',
+      );
+      expect(email.html).toContain(`href="${CALENDAR.ics}"`);
+      expect(email.text).toContain(`\n\n`);
+      expect(email.text).toContain(`${CALENDAR.google}\n`);
+      expect(email.text.endsWith(CALENDAR.ics)).toBe(true);
+      for (const part of [email.html, email.text])
+        expect(part).not.toContain('{');
+    },
+  );
+
+  it('writes the confirmation as before when it is given no links', async () => {
+    const email = await emailPayloadFor('rsvp_confirmation', VALUES, 'en');
+
+    expect(email.html).not.toContain('Google Calendar');
+    expect(email.text).not.toContain('\n');
+  });
+
+  it.each([...REMINDERS, 'rsvp_received'] as const)(
+    'leaves them out of %s even when the values carry them',
+    async (key) => {
+      const email = await emailPayloadFor(
+        key,
+        { ...VALUES, calendar: CALENDAR },
+        'en',
+      );
+
+      expect(email.html).not.toContain('/cal/e/');
+      expect(email.text).not.toContain('/cal/e/');
+    },
+  );
+});
