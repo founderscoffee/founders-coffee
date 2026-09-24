@@ -136,6 +136,26 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
 
+### Public profile boundaries (P1-004)
+
+The public profile answers one question: should I show up to coffee with this person? It is not a
+portfolio. Features that are neutral on a hiring network are not neutral for members meeting
+strangers in DZ, EG, and SA. These boundaries change only through an explicit decision about member
+safety, never as a side effect of a growth or SEO ticket (#92):
+
+1. **The profile stays `noindex`.** Public means reachable with the link, not on the open web:
+   `/u/$userId` keeps `X-Robots-Tag: noindex` and `Cache-Control: private, no-store`.
+2. **No followers or following.** A follower graph publishes who knows whom, which cannot be
+   withdrawn once seen, and ranks people by popularity.
+3. **No direct messages.** Messages from a cold profile are a harassment surface. Member-to-member
+   contact, if it is ever needed, goes through a shared event.
+4. **No resume, employers, or verified credentials.** This is not a hiring product.
+5. **No public posts or feed.** Moderating them across three countries and three languages serves no
+   part of the core question.
+6. **No no-show counts, ratios, or reliability scores.** `event_attendance` records no-shows, and
+   none of it is published: a profile shows positive counts only, never a denominator.
+7. **Social proof attaches to events, not people.** Nothing rates a person.
+
 ### Enum contract consolidation
 
 The enum audit identified repeated finite-value declarations across the core, database, domain,
