@@ -3,13 +3,13 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  type AnyRoute,
 } from '@tanstack/react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Route as LocaleIndexStub } from '../routes/$locale/index';
 import { Route as HomeStub } from '../routes/index';
 import { declaredRoutes, read, sourceOf } from './route-contract.fixtures';
+import { hang } from './route-tree.fixtures';
 
 const lookups = vi.hoisted(() => ({
   made: [] as string[],
@@ -90,25 +90,6 @@ const preloadWindowMs = (): number => {
 };
 
 const hops: string[] = [];
-
-/**
- * Hang one of the app's own routes under a stand-in parent, the way `routeTree.gen.ts` does.
- *
- * The generated tree calls `update({ id, path, getParentRoute })`, and `update` is an
- * `Object.assign` onto the route's options, so this is the same act without its `as any`.
- */
-const hang = <TRoute extends AnyRoute>(
-  route: TRoute,
-  path: string,
-  parent: AnyRoute,
-): TRoute => {
-  Object.assign(route.options, {
-    id: path,
-    path,
-    getParentRoute: () => parent,
-  });
-  return route;
-};
 
 const rootRoute = createRootRoute({
   beforeLoad: ({ location }) => {
