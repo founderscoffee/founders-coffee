@@ -29,6 +29,10 @@ This document is the current sequencing and status source. Status is evidence-ba
 - `apps/ui` owns member and host workflows; `apps/dashboard` is sponsor-only; `apps/admin` is an
   Arabic-only RTL internal operations console.
 - The installable Serwist PWA is the committed mobile surface. React Native/Expo is research only.
+- A session travels only in Better Auth's HttpOnly cookie, so its bearer plugin is off. Left on, it
+  took the bare session token, which sits in D1 and which `get-session` returns to page scripts, as
+  a login from anywhere. A non-web client, once approved, brings it back with
+  `requireSignature: true`, and the device controls learn to read the header in the same change.
 - PWA web push is the primary event-notification channel; email is the default fallback. SMS is
   reserved for same-day cancellations where an unread email could send someone to a venue unnecessarily.
 - Per-entity reminders use Durable Object alarms feeding a Notifications Queue. Cron is recovery-only.
