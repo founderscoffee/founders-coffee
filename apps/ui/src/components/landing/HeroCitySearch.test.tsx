@@ -1,5 +1,9 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { geo } from '@founders-coffee/domain';
+import { hero_search_clear, type Locale } from '@founders-coffee/i18n';
 
 const search = vi.hoisted(() => ({
   data: [] as unknown[],
@@ -35,6 +39,21 @@ const show = () =>
       onClear={vi.fn()}
     />,
   );
+
+const Chooser = ({ locale }: { locale: Locale }) => {
+  const [selected, setSelected] = useState<geo.GeoCity>();
+  return (
+    <HeroCitySearch
+      marketCode="DZ"
+      locale={locale}
+      placeholder="Find your city"
+      noMatchText={'No city matches "{query}"'}
+      selected={selected}
+      onSelect={setSelected}
+      onClear={() => setSelected(undefined)}
+    />
+  );
+};
 
 const type = (text: string) => {
   const box = screen.getByRole('combobox');
@@ -74,4 +93,20 @@ describe('HeroCitySearch', () => {
     expect(box.getAttribute('aria-expanded')).toBe('true');
     expect(screen.queryByRole('status')).toBeNull();
   });
+
+  it.each<Locale>(['ar', 'fr', 'en'])(
+    'names the button that clears a chosen city in %s',
+    (locale) => {
+      search.data = [ORAN];
+      render(<Chooser locale={locale} />);
+      const box = type('Ora') as HTMLInputElement;
+      fireEvent.keyDown(box, { key: 'Enter' });
+
+      fireEvent.click(
+        screen.getByRole('button', { name: hero_search_clear({}, { locale }) }),
+      );
+
+      expect(box.value).toBe('');
+    },
+  );
 });

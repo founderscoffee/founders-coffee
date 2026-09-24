@@ -1,6 +1,10 @@
 import { useRef, useState } from 'react';
 
-import { localizedName, type Locale } from '@founders-coffee/i18n';
+import {
+  hero_search_clear,
+  localizedName,
+  type Locale,
+} from '@founders-coffee/i18n';
 import { StatusMessage } from '@founders-coffee/ui';
 import type { geo } from '@founders-coffee/domain';
 
@@ -125,7 +129,7 @@ export const HeroCitySearch = ({
         <button
           type="button"
           onClick={clear}
-          aria-label="Clear selection"
+          aria-label={hero_search_clear({}, { locale })}
           className="absolute end-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-taupe hover:bg-base-200 hover:text-base-content"
         >
           ✕
