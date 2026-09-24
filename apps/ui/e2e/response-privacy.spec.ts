@@ -40,15 +40,18 @@ test.describe('Response privacy directives', () => {
     request,
   }) => {
     for (const path of [
-      '/profile',
-      '/profile/account',
-      '/profile/activity',
-      '/profile/notifications',
+      '/en/profile',
+      '/fr/profile/activity',
+      '/ar/profile/account',
+      '/en/profile/notifications',
+      '/en/closeout/evt_nobody',
+      '/en/feedback/evt_nobody',
     ]) {
+      const locale = path.split('/')[1];
       const response = await request.get(path, { maxRedirects: 0 });
-      expect(response.status()).toBe(307);
+      expect(response.status(), path).toBe(307);
       expect(response.headers()['location']).toBe(
-        `/login?redirect=${encodeURIComponent(path)}`,
+        `/${locale}/login?redirect=${encodeURIComponent(path)}`,
       );
     }
   });
