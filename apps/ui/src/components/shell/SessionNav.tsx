@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 
 import {
   activity_nav,
-  nav_login,
-  nav_logout,
+  sign_in,
+  sign_out,
   nav_signed_in_as,
   profile_loading,
   profile_title,
@@ -46,7 +46,7 @@ const LoginLink = ({ locale }: { locale: Locale }) => (
     {...localizedLogin(locale)}
     className="btn btn-ghost h-9 min-h-9 w-full shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200"
   >
-    {nav_login({}, { locale })}
+    {sign_in({}, { locale })}
   </Link>
 );
 
@@ -139,7 +139,7 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
           <li>
             <button type="button" onClick={() => authClient.signOut()}>
               <SignOutIcon locale={locale} />
-              {nav_logout({}, { locale })}
+              {sign_out({}, { locale })}
             </button>
           </li>
         </ul>

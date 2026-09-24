@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 
-import { login_title } from '@founders-coffee/i18n';
+import { sign_in } from '@founders-coffee/i18n';
 
 import { LoginPage } from '../components/auth/LoginPage';
 import { authApi } from '../features/auth/api';
@@ -40,5 +40,5 @@ export const Route = createFileRoute('/$locale/login')({
   component: LoginRoute,
   loader: () => authApi.getPublicAuthConfig(),
   head: ({ match }) =>
-    privatePageHead(login_title({}, { locale: match.context.locale })),
+    privatePageHead(sign_in({}, { locale: match.context.locale })),
 });

@@ -9,7 +9,7 @@ import {
   feedback_saved,
   loading,
   LOCALES,
-  login_title,
+  sign_in,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -167,7 +167,7 @@ describe('a session that ends while the form is open', () => {
       show(locale);
 
       const signIn = screen.getByRole('link', {
-        name: login_title({}, { locale }),
+        name: sign_in({}, { locale }),
       });
       expect(
         new URL(

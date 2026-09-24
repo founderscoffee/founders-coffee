@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { LOCALES, login_title, type Locale } from '@founders-coffee/i18n';
+import { LOCALES, sign_in, type Locale } from '@founders-coffee/i18n';
 
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
@@ -198,7 +198,7 @@ describe('states the host can land in', () => {
     show();
 
     expect(
-      screen.getByRole('link', { name: login_title({}, { locale: 'en' }) }),
+      screen.getByRole('link', { name: sign_in({}, { locale: 'en' }) }),
     ).toBeTruthy();
   });
 
@@ -209,7 +209,7 @@ describe('states the host can land in', () => {
       show(locale);
 
       const signIn = screen.getByRole('link', {
-        name: login_title({}, { locale }),
+        name: sign_in({}, { locale }),
       });
       expect(
         new URL(

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 
 import {
-  login_title,
+  sign_in,
   profile_loading,
   profile_load_error,
   profile_reload,
@@ -33,7 +33,7 @@ export const ProfileAccess = ({
         {...localizedLogin(locale)}
         search={{ redirect: returnPath }}
       >
-        {login_title({}, { locale })}
+        {sign_in({}, { locale })}
       </Link>
     ) : (
       <StatusMessage
