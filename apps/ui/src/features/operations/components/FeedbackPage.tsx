@@ -77,7 +77,7 @@ export const FeedbackPage = ({
           locale={locale}
           isLoading={false}
           isAnonymous
-          returnPath={`/feedback/${eventId}`}
+          returnPath={`/${locale}/feedback/${eventId}`}
           onRetry={() => void query.refetch()}
         />
       </section>

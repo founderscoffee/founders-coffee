@@ -1,7 +1,8 @@
 import { cleanup, render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Locale } from '@founders-coffee/i18n';
+import { LOCALES, login_title, type Locale } from '@founders-coffee/i18n';
 
 const state = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
@@ -17,8 +18,27 @@ vi.mock('../hooks', () => ({
 vi.mock('../../events/hooks', () => ({
   useRepeatEventTemplate: () => ({ data: null }),
 }));
-vi.mock('../../profile/components/ProfileAccess', () => ({
-  ProfileAccess: () => <div data-testid="access-recovery" />,
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    children,
+    to,
+    params,
+    search,
+  }: {
+    children: ReactNode;
+    to: string;
+    params?: Record<string, string>;
+    search?: Record<string, string>;
+  }) => (
+    <a
+      href={`${Object.entries(params ?? {}).reduce(
+        (path, [key, value]) => path.replace(`$${key}`, value),
+        to,
+      )}${search ? `?${new URLSearchParams(search).toString()}` : ''}`}
+    >
+      {children}
+    </a>
+  ),
 }));
 
 const { CloseoutPage } = await import('./CloseoutPage');
@@ -177,8 +197,29 @@ describe('states the host can land in', () => {
     state.query = { ...state.query, userId: undefined, isAuthLoading: false };
     show();
 
-    expect(screen.getByTestId('access-recovery')).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: login_title({}, { locale: 'en' }) }),
+    ).toBeTruthy();
   });
+
+  it.each<Locale>([...LOCALES])(
+    'brings a host who signs in again back to this closeout, in %s',
+    (locale) => {
+      state.query = { ...state.query, userId: undefined, isAuthLoading: false };
+      show(locale);
+
+      const signIn = screen.getByRole('link', {
+        name: login_title({}, { locale }),
+      });
+      expect(
+        new URL(
+          signIn.getAttribute('href') ?? '',
+          'http://localhost',
+        ).searchParams.get('redirect'),
+        'an unprefixed return path goes through the legacy /closeout stub, which takes its language from the cookie at that moment rather than from the link the host was reading',
+      ).toBe(`/${locale}/closeout/evt_1`);
+    },
+  );
 
   it('renders in the host’s language', () => {
     show('ar');

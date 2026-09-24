@@ -8,6 +8,9 @@ import {
   feedback_error_window_closed,
   feedback_saved,
   loading,
+  LOCALES,
+  login_title,
+  type Locale,
 } from '@founders-coffee/i18n';
 
 const state = vi.hoisted(() => ({
@@ -20,10 +23,26 @@ vi.mock('../hooks', () => ({
   useSubmitFeedback: () => state.save,
 }));
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
-}));
-vi.mock('../../profile/components/ProfileAccess', () => ({
-  ProfileAccess: () => <div data-testid="access-recovery" />,
+  Link: ({
+    children,
+    to,
+    params,
+    search,
+  }: {
+    children: ReactNode;
+    to: string;
+    params?: Record<string, string>;
+    search?: Record<string, string>;
+  }) => (
+    <a
+      href={`${Object.entries(params ?? {}).reduce(
+        (path, [key, value]) => path.replace(`$${key}`, value),
+        to,
+      )}${search ? `?${new URLSearchParams(search).toString()}` : ''}`}
+    >
+      {children}
+    </a>
+  ),
 }));
 
 const { FeedbackPage } = await import('./FeedbackPage');
@@ -45,7 +64,8 @@ const view = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const show = () => render(<FeedbackPage locale="en" eventId="evt_1" />);
+const show = (locale: Locale = 'en') =>
+  render(<FeedbackPage locale={locale} eventId="evt_1" />);
 
 const iconIn = (element: HTMLElement) => element.querySelector('svg');
 
@@ -137,4 +157,25 @@ describe('the end of the feedback flow', () => {
     expect(waiting.textContent).toBe(loading({}, EN));
     expect(waiting.querySelector('.loading-spinner')).not.toBeNull();
   });
+});
+
+describe('a session that ends while the form is open', () => {
+  it.each<Locale>([...LOCALES])(
+    'brings a guest who signs in again back to this form, in %s',
+    (locale) => {
+      state.query = { ...state.query, userId: undefined, isAuthLoading: false };
+      show(locale);
+
+      const signIn = screen.getByRole('link', {
+        name: login_title({}, { locale }),
+      });
+      expect(
+        new URL(
+          signIn.getAttribute('href') ?? '',
+          'http://localhost',
+        ).searchParams.get('redirect'),
+        'an unprefixed return path goes through the legacy /feedback stub, which takes its language from the cookie at that moment rather than from the link the guest was reading',
+      ).toBe(`/${locale}/feedback/evt_1`);
+    },
+  );
 });

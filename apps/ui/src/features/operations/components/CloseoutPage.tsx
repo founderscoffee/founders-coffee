@@ -92,7 +92,7 @@ export const CloseoutPage = ({
           locale={locale}
           isLoading={false}
           isAnonymous
-          returnPath={`/closeout/${eventId}`}
+          returnPath={`/${locale}/closeout/${eventId}`}
           onRetry={() => void query.refetch()}
         />
       </section>
