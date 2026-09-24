@@ -45,3 +45,29 @@ export const countAttendedMeetups = async (
     );
   return Number(rows[0]?.total ?? 0);
 };
+
+/**
+ * How many meetups in the window a member hosted that took place, by their closeouts.
+ *
+ * A meetup counts once its closeout says it was held. One reported as not happening is left out
+ * rather than counted against anybody, and no total of what was scheduled is ever set beside this,
+ * because the profile publishes what happened, never a rate (#92).
+ */
+export const countHostedMeetups = async (
+  db: Db,
+  hostId: string,
+  now: Date,
+): Promise<number> => {
+  const rows = await db
+    .select({ total: sql<number>`count(*)` })
+    .from(events)
+    .innerJoin(eventCloseouts, eq(eventCloseouts.eventId, events.id))
+    .where(
+      and(
+        eq(events.hostId, hostId),
+        eq(eventCloseouts.outcome, 'held'),
+        gte(events.startsAt, meetupRecordSince(now)),
+      ),
+    );
+  return Number(rows[0]?.total ?? 0);
+};

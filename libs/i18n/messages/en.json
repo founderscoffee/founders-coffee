@@ -237,6 +237,16 @@
   "profile_attended_label": "Meetups I attended",
   "profile_attended_hint": "How many meetups a host recorded you at in the last two years. Meetups you missed are never counted or shown.",
   "profile_record_window": "In the last two years",
+  "profile_record_hosted": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "Hosted {count} meetup",
+        "countPlural=*": "Hosted {count} meetups"
+      }
+    }
+  ],
   "profile_record_attended": [
     {
       "declarations": ["input count", "local countPlural = count: plural"],

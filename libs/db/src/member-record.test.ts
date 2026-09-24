@@ -4,7 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { id } from '@founders-coffee/core';
 
 import type { Db } from './db.js';
-import { countAttendedMeetups, meetupRecordSince } from './member-record.js';
+import {
+  countAttendedMeetups,
+  countHostedMeetups,
+  meetupRecordSince,
+} from './member-record.js';
 import {
   HOST_ID,
   MEMBER_ID,
@@ -91,5 +95,29 @@ describe('how many meetups a member attended (#90)', () => {
     expect(
       Math.round((Date.now() - meetupRecordSince(new Date()).getTime()) / DAY),
     ).toBe(730);
+  });
+});
+
+describe('how many meetups a member hosted that took place (#26)', () => {
+  it('counts the meetups whose closeout says they were held', async () => {
+    const db = await setupDb();
+    await heldMeetup(db, { [MEMBER_ID]: 'attended' });
+    await heldMeetup(db, { [MEMBER_ID]: 'no_show' });
+    const reportedMissing = await pastEvent(db);
+    await closeOut(db, reportedMissing, 'did_not_happen');
+    await pastEvent(db);
+
+    expect(await countHostedMeetups(db, HOST_ID, new Date())).toBe(2);
+    expect(await countHostedMeetups(db, MEMBER_ID, new Date())).toBe(0);
+  });
+
+  it('counts over the same window as attendance', async () => {
+    const db = await setupDb();
+    const recent = await heldMeetup(db, {});
+    const old = await heldMeetup(db, {});
+    await startedDaysAgo(db, recent, 729);
+    await startedDaysAgo(db, old, 731);
+
+    expect(await countHostedMeetups(db, HOST_ID, new Date())).toBe(1);
   });
 });

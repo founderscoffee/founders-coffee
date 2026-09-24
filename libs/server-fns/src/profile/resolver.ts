@@ -1,6 +1,7 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import {
   countAttendedMeetups,
+  countHostedMeetups,
   getMemberProfile,
   getProfileIdentity,
   initializeMemberProfile,
@@ -68,10 +69,14 @@ export const readPublicProfile = (
     if (!result.ok) return result;
     if (!result.data.displayName)
       return err(new AppError('not_found', 'Profile not found'));
-    const attended = await countAttendedMeetups(db, userId, new Date());
+    const now = new Date();
+    const [hosted, attended] = await Promise.all([
+      countHostedMeetups(db, userId, now),
+      countAttendedMeetups(db, userId, now),
+    ]);
     return ok(
       profile.publicMemberProfileSchema.parse(
-        profile.projectPublicProfile(result.data, { attended }),
+        profile.projectPublicProfile(result.data, { hosted, attended }),
       ),
     );
   });

@@ -2,6 +2,7 @@ import { useId } from 'react';
 
 import {
   profile_record_attended,
+  profile_record_hosted,
   profile_record_window,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -16,9 +17,10 @@ export const PublicProfileRecord = ({
   profile: PublicProfile;
 }) => {
   const windowId = useId();
+  const hosted = profile.hostedCount;
   const attended = profile.attendedCount ?? 0;
 
-  if (attended === 0) return null;
+  if (hosted === 0 && attended === 0) return null;
 
   return (
     <div>
@@ -29,7 +31,12 @@ export const PublicProfileRecord = ({
         aria-labelledby={windowId}
         className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-body font-medium"
       >
-        <li>{profile_record_attended({ count: attended }, { locale })}</li>
+        {hosted > 0 ? (
+          <li>{profile_record_hosted({ count: hosted }, { locale })}</li>
+        ) : null}
+        {attended > 0 ? (
+          <li>{profile_record_attended({ count: attended }, { locale })}</li>
+        ) : null}
       </ul>
     </div>
   );

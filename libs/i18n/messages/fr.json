@@ -336,6 +336,16 @@
   "profile_attended_label": "Rencontres auxquelles j’ai participé",
   "profile_attended_hint": "Le nombre de rencontres où un hôte a noté votre présence au cours des deux dernières années. Les rencontres manquées ne sont jamais comptées ni affichées.",
   "profile_record_window": "Au cours des deux dernières années",
+  "profile_record_hosted": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "A organisé {count} rencontre",
+        "countPlural=*": "A organisé {count} rencontres"
+      }
+    }
+  ],
   "profile_record_attended": [
     {
       "declarations": ["input count", "local countPlural = count: plural"],

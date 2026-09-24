@@ -7,6 +7,7 @@ import {
   going_count,
   hero_social_proof,
   profile_record_attended,
+  profile_record_hosted,
 } from './paraglide/messages.js';
 
 const CATEGORY_SAMPLE = {
@@ -86,6 +87,21 @@ describe('Arabic number agreement', () => {
     });
   });
 
+  it('counts the meetups a member hosted the same way', () => {
+    expect(
+      arabicForms((count) =>
+        profile_record_hosted({ count }, { locale: 'ar' }),
+      ),
+    ).toEqual({
+      zero: 'استضافة 0 لقاءات',
+      one: 'استضافة 1 لقاء',
+      two: 'استضافة 2 لقاءين',
+      few: 'استضافة 3 لقاءات',
+      many: 'استضافة 11 لقاءً',
+      other: 'استضافة 100 لقاء',
+    });
+  });
+
   it('declines the signed-in noun on the account page', () => {
     expect(
       arabicForms((count) =>
@@ -144,7 +160,7 @@ describe('French and English number agreement', () => {
     expect(render(3, 'en')).toBe('3 casual meetups coming up in Oran');
   });
 
-  it('counts attended meetups without a gendered subject', () => {
+  it('counts hosted and attended meetups without a gendered subject', () => {
     expect(profile_record_attended({ count: 1 }, { locale: 'fr' })).toBe(
       'A participé à 1 rencontre',
     );
@@ -156,6 +172,18 @@ describe('French and English number agreement', () => {
     );
     expect(profile_record_attended({ count: 11 }, { locale: 'en' })).toBe(
       'Attended 11 meetups',
+    );
+    expect(profile_record_hosted({ count: 1 }, { locale: 'fr' })).toBe(
+      'A organisé 1 rencontre',
+    );
+    expect(profile_record_hosted({ count: 6 }, { locale: 'fr' })).toBe(
+      'A organisé 6 rencontres',
+    );
+    expect(profile_record_hosted({ count: 1 }, { locale: 'en' })).toBe(
+      'Hosted 1 meetup',
+    );
+    expect(profile_record_hosted({ count: 6 }, { locale: 'en' })).toBe(
+      'Hosted 6 meetups',
     );
   });
 

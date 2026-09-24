@@ -32,7 +32,7 @@ const OWNER_PROFILE_FIELDS = [
   'visibility',
 ] as const;
 
-const MEETUP_RECORD_FIELDS = ['attendedCount'] as const;
+const MEETUP_RECORD_FIELDS = ['attendedCount', 'hostedCount'] as const;
 
 const EVENT_COLUMNS = [
   'cancellationReason',
@@ -145,13 +145,17 @@ describe('public response contract', () => {
         photoAssetId: 'ast_0123456789abcdef0123456789abcdef',
       } as never,
     );
-    const published = profile.projectPublicProfile(owner, { attended: 4 });
+    const published = profile.projectPublicProfile(owner, {
+      hosted: 3,
+      attended: 4,
+    });
 
     expect(sorted(Object.keys(published))).toEqual(
       sorted([...PUBLIC_PROFILE_FIELDS, ...MEETUP_RECORD_FIELDS]),
     );
     expect(published).toMatchObject({
       memberSince: '2026-03',
+      hostedCount: 3,
       attendedCount: null,
       headline: null,
       stage: null,

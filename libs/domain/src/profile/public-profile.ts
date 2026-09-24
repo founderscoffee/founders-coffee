@@ -26,12 +26,14 @@ export const publicMemberProfileSchema = z.strictObject({
   interests: z.array(profileInterestSchema).max(5),
   spokenLanguages: z.array(spokenLanguageSchema).max(6),
   professionalLink: professionalLinkSchema,
+  hostedCount: z.number().int().nonnegative(),
   attendedCount: z.number().int().nonnegative().nullable(),
 });
 
 export type PublicMemberProfile = z.infer<typeof publicMemberProfileSchema>;
 
 export type MeetupRecord = {
+  readonly hosted: number;
   readonly attended: number;
 };
 
@@ -54,5 +56,6 @@ export const projectPublicProfile = (
   professionalLink: profile.visibility.professionalLink
     ? profile.professionalLink
     : null,
+  hostedCount: record.hosted,
   attendedCount: profile.visibility.attendedCount ? record.attended : null,
 });

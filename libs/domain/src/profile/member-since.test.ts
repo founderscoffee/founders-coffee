@@ -37,7 +37,10 @@ describe('member since (#89)', () => {
       memberSince: '2026-03',
     });
 
-    const published = projectPublicProfile(owner, { attended: 0 });
+    const published = projectPublicProfile(owner, {
+      hosted: 0,
+      attended: 0,
+    });
 
     expect(published.memberSince).toBe('2026-03');
     expect(publicMemberProfileSchema.parse(published)).toEqual(published);

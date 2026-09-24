@@ -111,4 +111,17 @@ describe('meetups a member attended, on their public profile (#90)', () => {
 
     expect(await attendedCount(db, MEMBER_ID)).toBe(0);
   });
+
+  it('says how many meetups a host ran that took place, with no toggle and no total beside it (#26)', async () => {
+    await closeOut(db, 'held', [{ userId: MEMBER_ID, outcome: 'attended' }]);
+    await closeOut(db, 'held', [{ userId: MEMBER_ID, outcome: 'no_show' }]);
+    await closeOut(db, 'did_not_happen', [
+      { userId: MEMBER_ID, outcome: 'attended' },
+    ]);
+
+    const host = await readPublicProfile(db, HOST_ID);
+
+    expect(host).toMatchObject({ ok: true, data: { hostedCount: 2 } });
+    expect(JSON.stringify(host)).not.toMatch(/did_not_happen|scheduled|total/i);
+  });
 });

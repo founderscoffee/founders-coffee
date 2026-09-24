@@ -17,6 +17,7 @@ const member: PublicProfile = {
   interests: [],
   spokenLanguages: [],
   professionalLink: null,
+  hostedCount: 0,
   attendedCount: null,
 };
 

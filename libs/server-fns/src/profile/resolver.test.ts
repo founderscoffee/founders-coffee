@@ -86,6 +86,7 @@ describe('PF-03 profile resolvers against real D1', () => {
         interests: [],
         spokenLanguages: [],
         professionalLink: null,
+        hostedCount: 0,
         attendedCount: null,
       },
     });

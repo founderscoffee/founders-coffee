@@ -19,7 +19,7 @@ const owner = ownerProfileSchema.parse({
   spokenLanguages: ['ar', 'fr'],
   professionalLink: 'https://example.com/amina',
 });
-const record = { attended: 11 };
+const record = { hosted: 6, attended: 11 };
 
 describe('public profile projection', () => {
   it('publishes the uploaded avatar and introduction but never exposes private optional details, auth fields or ownership controls by default', () => {
@@ -42,6 +42,7 @@ describe('public profile projection', () => {
       interests: [],
       spokenLanguages: [],
       professionalLink: null,
+      hostedCount: 6,
       attendedCount: null,
     });
     expect(publicMemberProfileSchema.parse(projected)).toEqual(projected);
@@ -73,6 +74,7 @@ describe('public profile projection', () => {
       interests: ['community'],
       spokenLanguages: ['ar', 'fr'],
       professionalLink: owner.professionalLink,
+      hostedCount: 6,
       attendedCount: 11,
     });
     expect(projected.interests).not.toBe(owner.interests);
@@ -117,5 +119,16 @@ describe('public profile projection', () => {
         email: 'private@example.com',
       }).success,
     ).toBe(false);
+  });
+
+  it('publishes the hosted count whatever the member chose, and never a negative or fractional one', () => {
+    const hidden = projectPublicProfile(owner, record);
+
+    expect(hidden.hostedCount).toBe(6);
+    for (const hostedCount of [-1, 1.5]) {
+      expect(
+        publicMemberProfileSchema.safeParse({ ...hidden, hostedCount }).success,
+      ).toBe(false);
+    }
   });
 });
