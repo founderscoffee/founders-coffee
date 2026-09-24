@@ -27,6 +27,7 @@ import {
   useRepeatEventTemplate,
 } from '../../features/events/hooks';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
+import { AddToCalendar } from './AddToCalendar';
 import { CancelEventDialog } from './CancelEventDialog';
 import { RepeatHostLink } from './RepeatHostLink';
 import { HostLiveActions } from './HostLiveActions';
@@ -130,6 +131,14 @@ export const HostEventPanel = ({
             {host_cancel_event({}, { locale })}
           </button>
         </div>
+      )}
+
+      {!isCancelled && (
+        <AddToCalendar
+          eventId={event.id}
+          startsAt={event.startsAt}
+          locale={locale}
+        />
       )}
 
       {repeat.data ? (

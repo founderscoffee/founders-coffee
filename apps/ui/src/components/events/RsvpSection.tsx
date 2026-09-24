@@ -24,6 +24,7 @@ import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
 import { useAuth } from '../../lib/app-providers';
 import { localizedLogin } from '../../lib/locale-routing';
+import { AddToCalendar } from './AddToCalendar';
 import { AttendeeLiveActions } from './AttendeeLiveActions';
 import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
@@ -148,6 +149,11 @@ export const RsvpSection = ({
               onRunningLate={live.sendRunningLate}
             />
           )}
+          <AddToCalendar
+            eventId={event.id}
+            startsAt={event.startsAt}
+            locale={locale}
+          />
         </>
       ) : (
         <>

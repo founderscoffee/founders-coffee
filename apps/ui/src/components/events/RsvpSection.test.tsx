@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import { rsvpEvent as event } from './RsvpSection.fixtures';
+
 const mocks = vi.hoisted(() => ({
   invalidate: vi.fn(),
   createRsvp: vi.fn(),
@@ -43,33 +45,6 @@ vi.mock('../../features/events/components/PushPermissionPrompt', () => ({
 }));
 
 const { RsvpSection } = await import('./RsvpSection');
-
-const event = {
-  id: 'evt_1',
-  hostId: 'usr_1',
-  marketCode: 'DZ',
-  stateCode: '16',
-  cityCode: 'algiers',
-  title: 'Founders breakfast',
-  description: 'A local founder meetup.',
-  venue: 'Café Atlas',
-  startsAt: new Date('2026-09-20T10:00:00Z'),
-  endsAt: new Date('2026-09-20T12:00:00Z'),
-  rsvps: 3,
-  language: 'en',
-  latitude: null,
-  longitude: null,
-  venueAddress: null,
-  slug: 'founders-breakfast',
-  status: 'published',
-  version: 1,
-  createdAt: new Date('2026-09-01T00:00:00Z'),
-  updatedAt: new Date('2026-09-01T00:00:00Z'),
-  cancelledAt: null,
-  cancellationReason: null,
-  goingCount: 3,
-  viewerRsvp: null,
-} satisfies EventWithAttendance;
 
 const cancelled = {
   ...event,
