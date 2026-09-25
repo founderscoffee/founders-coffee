@@ -405,7 +405,7 @@
   "live_eta_ph": "How many minutes until you arrive?",
   "nav_host": "Host a meetup",
   "load_more": "Load more",
-  "load_more_error": "More meetups could not be loaded.",
+  "load_more_error": "Could not load more meetups.",
   "host_meetup_here": "Host a meetup here",
   "filter_today": "Today",
   "filter_weekend": "Weekend",
