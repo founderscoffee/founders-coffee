@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
 import {
-  live_cancel,
-  live_confirm,
+  cancel,
+  confirm,
   live_eta_ph,
   live_running_late_cta,
   live_walking_in_cta,
@@ -65,14 +65,14 @@ export const AttendeeLiveActions = ({
             className="btn btn-outline btn-sm"
             onClick={handleRunningLate}
           >
-            {live_confirm({}, { locale })}
+            {confirm({}, { locale })}
           </button>
           <button
             type="button"
             className="btn btn-ghost btn-sm"
             onClick={() => setShowRunningLate(false)}
           >
-            {live_cancel({}, { locale })}
+            {cancel({}, { locale })}
           </button>
         </div>
       )}

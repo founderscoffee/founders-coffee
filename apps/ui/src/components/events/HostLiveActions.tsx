@@ -2,8 +2,8 @@ import { useState } from 'react';
 
 import {
   live_arrived_cta,
-  live_cancel,
-  live_confirm,
+  cancel,
+  confirm,
   live_cue_ph,
   live_new_table_ph,
   live_table_ph,
@@ -95,14 +95,14 @@ export const HostLiveActions = ({
           className="btn btn-primary btn-sm"
           onClick={confirmArrival}
         >
-          {live_confirm({}, { locale })}
+          {confirm({}, { locale })}
         </button>
         <button
           type="button"
           className="btn btn-ghost btn-sm"
           onClick={() => setIsFormOpen(false)}
         >
-          {live_cancel({}, { locale })}
+          {cancel({}, { locale })}
         </button>
       </div>
     </div>
