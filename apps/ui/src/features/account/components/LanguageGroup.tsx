@@ -2,9 +2,9 @@ import {
   LOCALES,
   account_language_error,
   account_language_note,
-  account_language_reset,
   account_language_save,
   account_language_saved,
+  discard_changes,
   saving,
   account_language_title,
   type Locale,
@@ -69,7 +69,7 @@ export const LanguageGroup = ({
           disabled={!isDirty || isPending}
           onClick={onReset}
         >
-          {account_language_reset({}, { locale })}
+          {discard_changes({}, { locale })}
         </Button>
         <Button type="button" disabled={!isDirty || isPending} onClick={onSave}>
           {isPending
