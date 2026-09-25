@@ -9,7 +9,7 @@ import {
   ntf_push_event_rescheduled_body,
   ntf_push_event_rescheduled_title,
   ntf_push_reminder_24h_body,
-  ntf_push_reminder_24h_title,
+  ntf_reminder_24h_title,
   ntf_push_reminder_72h_body,
   ntf_push_reminder_72h_title,
   ntf_push_did_not_happen_body,
@@ -225,7 +225,7 @@ export const pushPayloadFor = (
         pushUrl,
       }
     : {
-        pushTitle: ntf_push_reminder_24h_title(values, options),
+        pushTitle: ntf_reminder_24h_title(values, options),
         pushBody: ntf_push_reminder_24h_body({}, options),
         pushUrl,
       };

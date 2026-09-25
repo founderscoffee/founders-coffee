@@ -25,7 +25,7 @@ import {
   ntf_email_feedback_invitation_subject,
   ntf_email_feedback_invitation_text,
   ntf_email_reminder_24h_html,
-  ntf_email_reminder_24h_subject,
+  ntf_reminder_24h_title,
   ntf_email_reminder_24h_text,
   ntf_email_reminder_72h_html,
   ntf_email_reminder_72h_subject,
@@ -154,7 +154,7 @@ export const emailPayloadFor = async (
     case 'reminder_24h':
       return renderNotificationEmail(
         locale,
-        ntf_email_reminder_24h_subject(values, options),
+        ntf_reminder_24h_title(values, options),
         ntf_email_reminder_24h_html(safe, options),
         ntf_email_reminder_24h_text(values, options),
       );

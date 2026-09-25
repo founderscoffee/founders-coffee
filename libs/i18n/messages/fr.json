@@ -500,12 +500,11 @@
   "ntf_email_reminder_72h_subject": "Rappel : {title} dans 3 jours",
   "ntf_email_reminder_72h_html": "<p><strong>{title}</strong>, c'est dans 3 jours, le {date}.</p><p><a href=\"{url}\">Voir la rencontre</a></p>",
   "ntf_email_reminder_72h_text": "{title}, c'est dans 3 jours, le {date}. {url}",
-  "ntf_email_reminder_24h_subject": "Demain : {title}",
+  "ntf_reminder_24h_title": "Demain : {title}",
   "ntf_email_reminder_24h_html": "<p>N'oubliez pas ! <strong>{title}</strong>, c'est demain à {venue}.</p><p><a href=\"{url}\">Voir la rencontre</a></p>",
   "ntf_email_reminder_24h_text": "N'oubliez pas ! {title}, c'est demain à {venue}. {url}",
   "ntf_push_reminder_72h_title": "Rappel : {title}",
   "ntf_push_reminder_72h_body": "Votre rencontre est dans 3 jours. Touchez pour voir les détails.",
-  "ntf_push_reminder_24h_title": "Demain : {title}",
   "ntf_push_reminder_24h_body": "Votre rencontre est demain. Touchez pour gérer votre place.",
   "city_upcoming_count": "{count} à venir",
   "city_hosts_count": [
