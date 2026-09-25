@@ -19,8 +19,7 @@ export const telegramErrorFor = (cause: unknown, locale: Locale): string => {
   const code = appErrorCode(cause);
   if (code === 'telegram_unavailable')
     return telegram_error_unavailable({}, { locale });
-  if (code === 'rate_limited')
-    return rate_limited({}, { locale });
+  if (code === 'rate_limited') return rate_limited({}, { locale });
   if (CLOSED_CODES.has(code)) return telegram_error_closed({}, { locale });
   return telegram_error_generic({}, { locale });
 };

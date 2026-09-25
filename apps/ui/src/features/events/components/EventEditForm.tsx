@@ -151,9 +151,7 @@ export const EventEditForm = ({
           className="w-fit"
           disabled={isPending || scheduleError !== null}
         >
-          {isPending
-            ? saving({}, { locale })
-            : host_edit_save({}, { locale })}
+          {isPending ? saving({}, { locale }) : host_edit_save({}, { locale })}
         </Button>
         {backLink}
       </div>

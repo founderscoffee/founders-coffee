@@ -120,9 +120,7 @@ export const AdminLogin = ({
             type="submit"
             disabled={busy || !canSend}
           >
-            {busy
-              ? sending({}, { locale })
-              : send_code({}, { locale })}
+            {busy ? sending({}, { locale }) : send_code({}, { locale })}
           </button>
         </form>
       ) : (
@@ -151,9 +149,7 @@ export const AdminLogin = ({
             type="submit"
             disabled={busy || code.length === 0}
           >
-            {busy
-              ? checking({}, { locale })
-              : sign_in({}, { locale })}
+            {busy ? checking({}, { locale }) : sign_in({}, { locale })}
           </button>
           <button
             className="text-body-sm underline"

@@ -213,7 +213,7 @@ export const ContactDialog = ({
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={onClose}>
-              {cancel({}, { locale })}
+            {cancel({}, { locale })}
           </Button>
         </div>
       </form>

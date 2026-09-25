@@ -40,9 +40,7 @@ export const OperatorStatus = ({
         <p className="mt-1 font-medium" dir="ltr">
           {status.email}
         </p>
-        <p className="mt-3 text-caption text-neutral">
-          {role({}, { locale })}
-        </p>
+        <p className="mt-3 text-caption text-neutral">{role({}, { locale })}</p>
         <p className="mt-1 font-medium">{status.role}</p>
       </section>
 

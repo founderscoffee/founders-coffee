@@ -67,9 +67,7 @@ export const FeedbackForm = ({
               checked={draft.wouldReturn === answer}
               onChange={() => onChange({ wouldReturn: answer })}
             />
-            {answer
-              ? yes({}, { locale })
-              : no({}, { locale })}
+            {answer ? yes({}, { locale }) : no({}, { locale })}
           </label>
         ))}
       </div>

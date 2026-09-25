@@ -37,9 +37,7 @@ const NotFound = () => {
   const { locale } = Route.useRouteContext();
   return (
     <main className="mx-auto max-w-xl p-8">
-      <StatusMessage variant="error">
-        {not_found({}, { locale })}
-      </StatusMessage>
+      <StatusMessage variant="error">{not_found({}, { locale })}</StatusMessage>
       <a className="mt-4 inline-block underline" href="/">
         {title({}, { locale })}
       </a>

@@ -128,11 +128,7 @@ export const CloseoutForm = ({
                 onChange={() => onChange({ wouldHostAgain: answer })}
                 type="radio"
               />
-              <span>
-                {answer
-                  ? yes({}, { locale })
-                  : no({}, { locale })}
-              </span>
+              <span>{answer ? yes({}, { locale }) : no({}, { locale })}</span>
             </label>
           ))}
         </div>

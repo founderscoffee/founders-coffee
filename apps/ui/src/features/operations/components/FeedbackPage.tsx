@@ -170,9 +170,7 @@ export const FeedbackPage = ({
             disabled={!canSubmitFeedback(draft) || save.isPending}
             onClick={onSubmit}
           >
-            {save.isPending
-              ? sending({}, { locale })
-              : submit({}, { locale })}
+            {save.isPending ? sending({}, { locale }) : submit({}, { locale })}
           </Button>
         </div>
       )}

@@ -47,8 +47,7 @@ const messageFor = (error: unknown, locale: Locale): string => {
     return closeout_error_no_end_time({}, { locale });
   if (code === 'event_not_found')
     return closeout_error_not_found({}, { locale });
-  if (code === 'rate_limited')
-    return rate_limited({}, { locale });
+  if (code === 'rate_limited') return rate_limited({}, { locale });
   return closeout_error_generic({}, { locale });
 };
 
