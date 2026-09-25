@@ -28,11 +28,6 @@ import {
   removeEarlyHintsFromResponse,
   shouldEmitEarlyHints,
 } from './lib/early-hints.js';
-import {
-  LIVE_PLACEMENT_PROBE_PATH,
-  probeLivePlacement,
-  servesPlacementProbe,
-} from './lib/live-placement-probe.js';
 import { withoutRedirectCaching } from './lib/redirect-caching.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
@@ -89,6 +84,12 @@ const authHandler = (env: UiEnv) => {
 
 /**
  * The live room for one meetup.
+ *
+ * Every room is placed under `weur`, in every market, on purpose (#88). Measured from Algeria on
+ * 2026-09-24 through Cloudflare's Madrid edge, an awake room answered that edge in a median 20 ms
+ * under `weur`, 19.5 ms under `afr` and 39 ms under `me`, on top of the member's own 44 ms round
+ * trip to the edge. Africa gains Algeria nothing and the Middle East costs it 20 ms a round trip.
+ * Egypt and Saudi Arabia were not measured; a hint of their own needs their figures, not a map.
  *
  * The location hint counts only the first time a room is reached: Cloudflare places the object
  * then, and every later `get()` for it ignores the hint (#88). A change to
@@ -164,13 +165,6 @@ export default {
 
       return secure(await liveRoomStub(env, eventId).fetch(request));
     }
-
-    if (
-      url.pathname === LIVE_PLACEMENT_PROBE_PATH &&
-      request.method === 'GET' &&
-      servesPlacementProbe(env)
-    )
-      return secure(await probeLivePlacement(request, env));
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
       const body = (await request.json().catch(() => null)) as {
