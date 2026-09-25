@@ -640,18 +640,18 @@
   "account_devices_title": "تسجيل الدخول والأجهزة",
   "account_providers": "طرق تسجيل الدخول المرتبطة",
   "account_providers_empty": "تسجيل الدخول برمز البريد الإلكتروني فقط",
-  "account_sessions": "الأجهزة المسجّلة",
+  "account_sessions": "الأجهزة المسجّل دخولها",
   "account_sessions_count": [
     {
       "declarations": ["input count", "local countPlural = count: plural"],
       "selectors": ["countPlural"],
       "match": {
-        "countPlural=zero": "{count} مسجّلين الآن",
-        "countPlural=one": "{count} مسجّل الآن",
-        "countPlural=two": "{count} مسجّلان الآن",
-        "countPlural=few": "{count} مسجّلين الآن",
-        "countPlural=many": "{count} مسجّلًا الآن",
-        "countPlural=*": "{count} مسجّل الآن"
+        "countPlural=zero": "لا توجد أجهزة مسجّلة",
+        "countPlural=one": "جهاز واحد مسجّل",
+        "countPlural=two": "جهازان مسجّلان",
+        "countPlural=few": "{count} أجهزة مسجّلة",
+        "countPlural=many": "{count} جهازًا مسجّلًا",
+        "countPlural=*": "{count} جهاز مسجّل"
       }
     }
   ],
@@ -659,8 +659,8 @@
   "account_export": "تنزيل معلوماتك",
   "account_export_note": "نسخة خاصة من ملفك ونشاطك.",
   "account_delete": "حذف الحساب",
-  "account_delete_note": "ما الذي يُحذف وما سجلات اللقاءات التي تبقى.",
-  "account_data_request": "راسلنا من البريد المسجَّل في حسابك، واذكر ما تطلبه بوضوح.",
+  "account_delete_note": "ما سيُحذف وما سيبقى من سجلات اللقاءات.",
+  "account_data_request": "راسلنا من البريد المسجّل في حسابك، ووضّح طلبك.",
   "account_export_subject": "طلب نسخة من بياناتي",
   "account_delete_subject": "طلب حذف حسابي",
   "account_loading": "جارٍ تحميل حسابك…",

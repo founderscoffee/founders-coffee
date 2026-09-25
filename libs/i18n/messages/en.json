@@ -582,13 +582,22 @@
   "account_providers": "Connected sign-in methods",
   "account_providers_empty": "Sign in with email code only",
   "account_sessions": "Signed-in devices",
-  "account_sessions_count": "{count} signed in right now",
+  "account_sessions_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "1 device signed in",
+        "countPlural=*": "{count} devices signed in"
+      }
+    }
+  ],
   "account_data_title": "Your data",
   "account_export": "Download your information",
   "account_export_note": "A private copy of your profile and your activity.",
   "account_delete": "Delete account",
-  "account_delete_note": "What is removed, and which event records are kept.",
-  "account_data_request": "Write to us from the email address registered on your account, and say clearly what you are asking for.",
+  "account_delete_note": "What will be removed and which event records will remain.",
+  "account_data_request": "Email us from the address on your account and clearly state your request.",
   "account_export_subject": "Request a copy of my data",
   "account_delete_subject": "Request to delete my account",
   "account_loading": "Loading your account…",
