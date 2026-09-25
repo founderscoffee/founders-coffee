@@ -6,7 +6,7 @@ import {
   profile_name_invalid,
   profile_saved,
   profile_save,
-  profile_cancel,
+  cancel,
   profile_reload,
   profile_load_error,
   type Locale,
@@ -139,7 +139,7 @@ export const ProfileNameEditor = ({
             disabled={mutation.isPending}
             onClick={revert}
           >
-            {profile_cancel({}, { locale })}
+            {cancel({}, { locale })}
           </Button>
         )}
         {error && (
