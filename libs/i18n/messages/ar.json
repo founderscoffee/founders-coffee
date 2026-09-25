@@ -353,7 +353,7 @@
   "rsvp_box_title": "احجز مكانك",
   "rsvp_box_cancelled": "حضورك",
   "rsvp_box_host": "لقاؤك",
-  "rsvp_cancelled_going": "كنت قد أكّدت حضورك.",
+  "rsvp_cancelled_going": "سبق أن أكّدت حضورك.",
   "rsvp_cancelled_going_help": "لا تحتاج إلى إلغاء شيء، ولن يصلك التذكير.",
   "rsvp_cta": "انضم إلى اللقاء",
   "rsvp_cancel": "إلغاء الحضور",

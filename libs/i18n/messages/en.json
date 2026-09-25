@@ -324,7 +324,7 @@
   "rsvp_box_title": "Save your place",
   "rsvp_box_cancelled": "Your attendance",
   "rsvp_box_host": "Your meetup",
-  "rsvp_cancelled_going": "You had confirmed you were coming.",
+  "rsvp_cancelled_going": "You had confirmed your attendance.",
   "rsvp_cancelled_going_help": "You do not need to cancel anything, and you will not receive the reminder.",
   "rsvp_cta": "Join the meetup",
   "rsvp_cancel": "Cancel RSVP",
