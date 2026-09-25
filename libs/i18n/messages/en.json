@@ -389,7 +389,7 @@
   "rsvp_saving": "Saving your seat…",
   "retry": "Retry",
   "cancel_title": "Do you want to give up your seat?",
-  "cancel_body": "{host} books the table for the number coming. If plans changed, giving up your seat lets someone else attend.",
+  "cancel_body": "{host} books the table based on who is coming. If your plans changed, giving up your seat lets someone else attend.",
   "keep_seat": "Keep my seat",
   "free_seat": "Give up my seat",
   "live_title": "Live",

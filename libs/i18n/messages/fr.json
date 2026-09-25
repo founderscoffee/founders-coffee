@@ -516,7 +516,7 @@
   "rsvp_saving": "Nous réservons votre place…",
   "retry": "Réessayer",
   "cancel_title": "Voulez-vous libérer votre place ?",
-  "cancel_body": "{host} réserve la table selon le nombre de personnes attendues. Si vos plans ont changé, libérer votre place permet à quelqu’un d’autre de participer.",
+  "cancel_body": "{host} réserve la table selon le nombre de personnes attendues. Si vos plans changent, libérer votre place permet à quelqu’un d’autre de participer.",
   "keep_seat": "Garder ma place",
   "free_seat": "Renoncer à ma place",
   "live_title": "En direct",
