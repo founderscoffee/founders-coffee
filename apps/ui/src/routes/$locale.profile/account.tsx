@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { account_title } from '@founders-coffee/i18n';
+import { account } from '@founders-coffee/i18n';
 
 import { AccountPage } from '../../features/account/components/AccountPage';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
@@ -22,5 +22,5 @@ export const Route = createFileRoute('/$locale/profile/account')({
   }),
   component: AccountRoute,
   head: ({ match }) =>
-    privatePageHead(account_title({}, { locale: match.context.locale })),
+    privatePageHead(account({}, { locale: match.context.locale })),
 });

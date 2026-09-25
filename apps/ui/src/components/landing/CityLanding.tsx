@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   back_to_market,
   city_events_description,
-  city_empty_cta,
+  hero_empty_cta,
   city_empty_title,
   city_loaded_count,
   city_upcoming_title,
@@ -138,7 +138,7 @@ export const CityLanding = ({
               search={{ city: city.code, state: city.stateCode }}
               className="btn btn-secondary h-12 px-5"
             >
-              {city_empty_cta({}, { locale })}
+              {hero_empty_cta({}, { locale })}
             </Link>
           }
         />

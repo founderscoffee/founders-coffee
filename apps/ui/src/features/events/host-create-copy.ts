@@ -6,8 +6,8 @@ import {
   host_step1_helper_market,
   host_step2,
   host_step2_sub,
-  host_step1_short,
-  host_step2_short,
+  event_when,
+  event_where,
   host_step3,
   host_step3_short,
   host_step3_sub,
@@ -18,8 +18,8 @@ import type { VenueArea } from './types';
 
 export const hostCreateStepCopy = (locale: Locale, area: VenueArea) => ({
   labels: [
-    host_step1_short({}, { locale }),
-    host_step2_short({}, { locale }),
+    event_where({}, { locale }),
+    event_when({}, { locale }),
     host_step3_short({}, { locale }),
   ],
   titles: [

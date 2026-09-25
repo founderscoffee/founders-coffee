@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { notifications_title } from '@founders-coffee/i18n';
+import { notifications } from '@founders-coffee/i18n';
 
 import { PreferencesPage } from '../../features/preferences/components/PreferencesPage';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
@@ -22,5 +22,5 @@ export const Route = createFileRoute('/$locale/profile/notifications')({
   }),
   component: NotificationsRoute,
   head: ({ match }) =>
-    privatePageHead(notifications_title({}, { locale: match.context.locale })),
+    privatePageHead(notifications({}, { locale: match.context.locale })),
 });

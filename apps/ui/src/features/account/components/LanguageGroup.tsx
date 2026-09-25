@@ -5,7 +5,7 @@ import {
   account_language_reset,
   account_language_save,
   account_language_saved,
-  account_language_saving,
+  saving,
   account_language_title,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -73,7 +73,7 @@ export const LanguageGroup = ({
         </Button>
         <Button type="button" disabled={!isDirty || isPending} onClick={onSave}>
           {isPending
-            ? account_language_saving({}, { locale })
+            ? saving({}, { locale })
             : account_language_save({}, { locale })}
         </Button>
       </div>

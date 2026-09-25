@@ -9,7 +9,7 @@ import {
   host_locate_me,
   host_map_error,
   host_map_label,
-  host_retry,
+  retry,
   host_venue_unsupported,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -153,7 +153,7 @@ export const HostMap = ({
               }}
             >
               <RefreshCw className="size-4" aria-hidden="true" />
-              {host_retry({}, { locale })}
+              {retry({}, { locale })}
             </button>
           }
         >

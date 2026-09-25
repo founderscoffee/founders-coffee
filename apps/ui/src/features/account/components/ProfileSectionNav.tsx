@@ -8,11 +8,11 @@ import {
 } from '../../../lib/locale-routing';
 
 import {
-  account_nav_account,
-  account_nav_profile,
+  account,
   account_sections,
-  activity_nav,
-  notifications_nav,
+  activity,
+  notifications,
+  profile_link,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -62,25 +62,25 @@ const SECTIONS = [
   {
     at: localizedProfile,
     name: 'profile',
-    label: account_nav_profile,
+    label: profile_link,
     exact: true,
   },
   {
     at: localizedProfileActivity,
     name: 'activity',
-    label: activity_nav,
+    label: activity,
     exact: false,
   },
   {
     at: localizedProfileNotifications,
     name: 'notifications',
-    label: notifications_nav,
+    label: notifications,
     exact: false,
   },
   {
     at: localizedProfileAccount,
     name: 'account',
-    label: account_nav_account,
+    label: account,
     exact: false,
   },
 ] as const;

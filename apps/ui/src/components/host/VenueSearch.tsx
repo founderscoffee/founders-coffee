@@ -2,7 +2,7 @@ import { RefreshCw } from 'lucide-react';
 
 import {
   cityInputs,
-  host_retry,
+  retry,
   host_venue_search_label,
   host_venue_search_loading,
   host_venue_search_ph,
@@ -81,7 +81,7 @@ export const VenueSearch = ({
             onClick={onRetry}
           >
             <RefreshCw className="size-4" aria-hidden="true" />
-            {host_retry({}, { locale })}
+            {retry({}, { locale })}
           </button>
         }
       >

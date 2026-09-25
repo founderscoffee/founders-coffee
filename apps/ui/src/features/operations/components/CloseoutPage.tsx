@@ -6,12 +6,12 @@ import {
   closeout_done,
   closeout_error_already_closed,
   closeout_error_cancelled,
-  closeout_error_disabled,
+  feature_unavailable_region,
   closeout_error_generic,
   closeout_error_no_end_time,
   closeout_error_not_ended,
   closeout_error_not_found,
-  closeout_error_rate_limited,
+  rate_limited,
   closeout_error_not_host,
   closeout_note,
   closeout_refused_marks,
@@ -42,13 +42,13 @@ const messageFor = (error: unknown, locale: Locale): string => {
   if (code === 'closeout_event_cancelled')
     return closeout_error_cancelled({}, { locale });
   if (code === 'operations_disabled')
-    return closeout_error_disabled({}, { locale });
+    return feature_unavailable_region({}, { locale });
   if (code === 'closeout_no_end_time')
     return closeout_error_no_end_time({}, { locale });
   if (code === 'event_not_found')
     return closeout_error_not_found({}, { locale });
   if (code === 'rate_limited')
-    return closeout_error_rate_limited({}, { locale });
+    return rate_limited({}, { locale });
   return closeout_error_generic({}, { locale });
 };
 

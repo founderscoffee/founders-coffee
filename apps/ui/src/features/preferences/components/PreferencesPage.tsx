@@ -8,11 +8,11 @@ import {
   prefs_save,
   prefs_save_error,
   prefs_saved,
-  prefs_saving,
+  saving,
   prefs_sms_consent_error,
-  notifications_title,
+  notifications,
   prefs_unavailable,
-  prefs_unsaved,
+  unsaved_changes,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button, LoadingStatus, StatusMessage } from '@founders-coffee/ui';
@@ -92,7 +92,7 @@ const PreferencesForm = ({
             {notice === 'saved' ? prefs_saved({}, { locale }) : null}
           </StatusMessage>
           <StatusMessage variant="info">
-            {notice === 'unsaved' ? prefs_unsaved({}, { locale }) : null}
+            {notice === 'unsaved' ? unsaved_changes({}, { locale }) : null}
           </StatusMessage>
         </div>
         <div className="flex gap-2">
@@ -110,7 +110,7 @@ const PreferencesForm = ({
             onClick={submit}
           >
             {save.isPending
-              ? prefs_saving({}, { locale })
+              ? saving({}, { locale })
               : prefs_save({}, { locale })}
           </Button>
         </div>
@@ -136,7 +136,7 @@ export const PreferencesPage = ({
       <ProfileSectionNav locale={locale} />
       <div className="min-w-0">
         <h1 className="mb-6 font-display text-h3">
-          {notifications_title({}, { locale })}
+          {notifications({}, { locale })}
         </h1>
 
         {query.data ? (

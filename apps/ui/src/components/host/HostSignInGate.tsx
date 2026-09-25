@@ -5,7 +5,7 @@ import {
   gate_title,
   login_change_email,
   login_code_sent,
-  login_email_label,
+  email_label,
   login_email_placeholder,
   login_or,
   send_code,
@@ -157,7 +157,7 @@ export const HostSignInGate = ({
           <>
             <label className="form-control">
               <span className="mb-1 block text-label text-neutral">
-                {login_email_label({}, { locale })}
+                {email_label({}, { locale })}
               </span>
               <Input
                 type="email"

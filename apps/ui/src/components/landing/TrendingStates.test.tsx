@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Market } from '@founders-coffee/db';
 import {
-  city_empty_cta,
+  hero_empty_cta,
   city_hosts_count,
   city_upcoming_count,
   LOCALES,
@@ -166,7 +166,7 @@ describe('who a city card says hosts there', () => {
 
       expect(groups(view)).toEqual([]);
       expect(view.container.textContent).toContain(
-        city_empty_cta({}, { locale }),
+        hero_empty_cta({}, { locale }),
       );
     },
   );

@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 
 import type { Market } from '@founders-coffee/db';
 import {
-  city_empty_cta,
+  hero_empty_cta,
   city_hosts_count,
   city_upcoming_count,
   host_in_your_city,
@@ -84,7 +84,7 @@ export const TrendingStates = ({
                   >
                     {count > 0
                       ? city_upcoming_count({ count }, { locale })
-                      : city_empty_cta({}, { locale })}
+                      : hero_empty_cta({}, { locale })}
                   </p>
                 </article>
               </Link>

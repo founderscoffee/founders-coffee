@@ -1,5 +1,5 @@
 import {
-  host_retry,
+  retry,
   host_venue_resolving,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -39,7 +39,7 @@ export const HostMapToasts = ({
                 className="btn btn-primary btn-sm"
                 onClick={onRetry}
               >
-                {host_retry({}, { locale })}
+                {retry({}, { locale })}
               </button>
             )
           }

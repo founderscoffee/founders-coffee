@@ -3,19 +3,19 @@ import {
   ntf_push_confirmation_body,
   ntf_push_confirmation_title,
   ntf_push_event_cancelled_body,
-  ntf_push_event_cancelled_title,
+  ntf_event_cancelled_title,
   ntf_push_event_relocated_body,
-  ntf_push_event_relocated_title,
+  ntf_event_relocated_title,
   ntf_push_event_rescheduled_body,
-  ntf_push_event_rescheduled_title,
+  ntf_event_rescheduled_title,
   ntf_push_reminder_24h_body,
   ntf_reminder_24h_title,
   ntf_push_reminder_72h_body,
   ntf_push_reminder_72h_title,
   ntf_push_did_not_happen_body,
-  ntf_push_did_not_happen_title,
+  ntf_did_not_happen_title,
   ntf_push_closeout_prompt_body,
-  ntf_push_closeout_prompt_title,
+  ntf_closeout_prompt_title,
   ntf_push_rsvp_received_body,
   ntf_push_rsvp_received_title,
   ntf_push_rsvp_cancelled_body,
@@ -157,7 +157,7 @@ export const pushPayloadFor = (
   const pushUrl = values.url;
   if (templateKey === 'event_did_not_happen') {
     return {
-      pushTitle: ntf_push_did_not_happen_title(values, options),
+      pushTitle: ntf_did_not_happen_title(values, options),
       pushBody: ntf_push_did_not_happen_body({}, options),
       pushUrl,
     };
@@ -171,7 +171,7 @@ export const pushPayloadFor = (
   }
   if (templateKey === 'closeout_prompt') {
     return {
-      pushTitle: ntf_push_closeout_prompt_title(values, options),
+      pushTitle: ntf_closeout_prompt_title(values, options),
       pushBody: ntf_push_closeout_prompt_body({}, options),
       pushUrl,
     };
@@ -192,21 +192,21 @@ export const pushPayloadFor = (
   }
   if (templateKey === 'event_cancelled') {
     return {
-      pushTitle: ntf_push_event_cancelled_title(values, options),
+      pushTitle: ntf_event_cancelled_title(values, options),
       pushBody: ntf_push_event_cancelled_body(values, options),
       pushUrl,
     };
   }
   if (templateKey === 'event_rescheduled') {
     return {
-      pushTitle: ntf_push_event_rescheduled_title(values, options),
+      pushTitle: ntf_event_rescheduled_title(values, options),
       pushBody: ntf_push_event_rescheduled_body(values, options),
       pushUrl,
     };
   }
   if (templateKey === 'event_relocated') {
     return {
-      pushTitle: ntf_push_event_relocated_title(values, options),
+      pushTitle: ntf_event_relocated_title(values, options),
       pushBody: ntf_push_event_relocated_body(values, options),
       pushUrl,
     };

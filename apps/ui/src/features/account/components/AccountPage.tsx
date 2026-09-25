@@ -23,7 +23,7 @@ import {
   account_providers_empty,
   account_sessions,
   account_sessions_count,
-  account_title,
+  account as accountLabel,
   account_unavailable,
   account_unverified,
   account_verified,
@@ -203,7 +203,7 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
       <ProfileSectionNav locale={locale} />
       <div className="min-w-0">
         <h1 className="mb-1 font-display text-h3">
-          {account_title({}, { locale })}
+          {accountLabel({}, { locale })}
         </h1>
         <p className="mb-6 text-body-sm text-neutral">
           {account_heading({}, { locale })} {account_note({}, { locale })}

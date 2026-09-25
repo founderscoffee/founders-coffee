@@ -1,5 +1,5 @@
 import {
-  prefs_email,
+  email_label,
   prefs_event_reminders,
   prefs_event_reminders_note,
   prefs_event_updates,
@@ -7,9 +7,8 @@ import {
   prefs_follow_up,
   prefs_follow_up_note,
   prefs_host_rsvp_cancelled,
-  prefs_host_rsvp_cancelled_note,
   prefs_host_rsvp_received,
-  prefs_host_rsvp_received_note,
+  prefs_host_rsvp_note,
   prefs_push,
   prefs_push_checking,
   prefs_push_denied,
@@ -66,13 +65,13 @@ const CATEGORIES: readonly CategoryDefinition[] = [
     enabledField: 'hostRsvpReceived',
     channelsField: 'hostRsvpReceivedChannels',
     label: (locale) => prefs_host_rsvp_received({}, { locale }),
-    note: (locale) => prefs_host_rsvp_received_note({}, { locale }),
+    note: (locale) => prefs_host_rsvp_note({}, { locale }),
   },
   {
     enabledField: 'hostRsvpCancelled',
     channelsField: 'hostRsvpCancelledChannels',
     label: (locale) => prefs_host_rsvp_cancelled({}, { locale }),
-    note: (locale) => prefs_host_rsvp_cancelled_note({}, { locale }),
+    note: (locale) => prefs_host_rsvp_note({}, { locale }),
   },
   {
     enabledField: 'followUpPrompts',
@@ -95,7 +94,7 @@ const PUSH_EXPLANATION: Partial<Record<PushState, (locale: Locale) => string>> =
   };
 
 const channelLabel = (channel: NotificationChannel, locale: Locale): string =>
-  channel === 'push' ? prefs_push({}, { locale }) : prefs_email({}, { locale });
+  channel === 'push' ? prefs_push({}, { locale }) : email_label({}, { locale });
 
 const channelAccessibleLabel = (
   category: CategoryDefinition,
@@ -187,7 +186,7 @@ export const NotificationChannelGrid = ({
       <div className="hidden border-b border-base-200 pb-3 text-caption font-medium text-neutral md:grid md:grid-cols-[minmax(0,1fr)_7rem_7rem] md:items-center md:gap-3">
         <span />
         <span className="text-center">{prefs_push({}, { locale })}</span>
-        <span className="text-center">{prefs_email({}, { locale })}</span>
+        <span className="text-center">{email_label({}, { locale })}</span>
       </div>
       {CATEGORIES.map((category) => {
         const selected = selectedChannels(draft, category, showPush);

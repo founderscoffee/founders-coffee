@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { appErrorCode } from '@founders-coffee/core';
 import {
   feedback_city_discovery,
-  feedback_error_disabled,
+  feature_unavailable_region,
   feedback_error_generic,
   feedback_error_is_host,
   feedback_error_not_attended,
@@ -15,7 +15,7 @@ import {
   feedback_note,
   feedback_privacy,
   feedback_saved,
-  feedback_submitting,
+  sending,
   feedback_title,
   loading,
   submit,
@@ -45,7 +45,7 @@ const messageFor = (error: unknown, locale: Locale): string => {
   if (code === 'feedback_window_closed')
     return feedback_error_window_closed({}, { locale });
   if (code === 'operations_disabled')
-    return feedback_error_disabled({}, { locale });
+    return feature_unavailable_region({}, { locale });
   if (code === 'event_not_found')
     return feedback_error_not_found({}, { locale });
   return feedback_error_generic({}, { locale });
@@ -171,7 +171,7 @@ export const FeedbackPage = ({
             onClick={onSubmit}
           >
             {save.isPending
-              ? feedback_submitting({}, { locale })
+              ? sending({}, { locale })
               : submit({}, { locale })}
           </Button>
         </div>

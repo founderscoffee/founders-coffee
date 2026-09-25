@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { activity_title } from '@founders-coffee/i18n';
+import { activity } from '@founders-coffee/i18n';
 
 import { ActivityPage } from '../../features/events/components/ActivityPage';
 import { NO_INDEX_VALUE } from '../../lib/indexation';
@@ -22,5 +22,5 @@ export const Route = createFileRoute('/$locale/profile/activity')({
   }),
   component: ActivityRoute,
   head: ({ match }) =>
-    privatePageHead(activity_title({}, { locale: match.context.locale })),
+    privatePageHead(activity({}, { locale: match.context.locale })),
 });

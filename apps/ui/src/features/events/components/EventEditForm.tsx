@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import {
   host_edit_notice_change,
   host_edit_save,
-  host_edit_saving,
+  saving,
   host_edit_when,
   host_edit_where,
   host_venue_name_label,
@@ -152,7 +152,7 @@ export const EventEditForm = ({
           disabled={isPending || scheduleError !== null}
         >
           {isPending
-            ? host_edit_saving({}, { locale })
+            ? saving({}, { locale })
             : host_edit_save({}, { locale })}
         </Button>
         {backLink}

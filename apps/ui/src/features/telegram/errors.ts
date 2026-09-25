@@ -2,7 +2,7 @@ import { appErrorCode } from '@founders-coffee/core';
 import {
   telegram_error_closed,
   telegram_error_generic,
-  telegram_error_rate_limited,
+  rate_limited,
   telegram_error_unavailable,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -20,7 +20,7 @@ export const telegramErrorFor = (cause: unknown, locale: Locale): string => {
   if (code === 'telegram_unavailable')
     return telegram_error_unavailable({}, { locale });
   if (code === 'rate_limited')
-    return telegram_error_rate_limited({}, { locale });
+    return rate_limited({}, { locale });
   if (CLOSED_CODES.has(code)) return telegram_error_closed({}, { locale });
   return telegram_error_generic({}, { locale });
 };

@@ -7,7 +7,7 @@ import {
   activity_joined_empty,
   activity_loading,
   activity_note,
-  activity_title,
+  activity,
   activity_unavailable,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -81,7 +81,7 @@ export const ActivityPage = ({
       <ProfileSectionNav locale={locale} />
       <div className="min-w-0">
         <h1 className="mb-1 font-display text-h3">
-          {activity_title({}, { locale })}
+          {activity({}, { locale })}
         </h1>
         <p className="mb-6 text-body-sm text-neutral">
           {activity_note({}, { locale })}
@@ -105,7 +105,7 @@ export const ActivityPage = ({
           <div
             className="tabs tabs-lift tabs-sm w-full md:tabs-md"
             role="tablist"
-            aria-label={activity_title({}, { locale })}
+            aria-label={activity({}, { locale })}
           >
             <button
               id={joinedTabId}

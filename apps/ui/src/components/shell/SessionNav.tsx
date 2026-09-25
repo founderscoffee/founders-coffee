@@ -2,7 +2,7 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 import {
-  activity_nav,
+  activity,
   sign_in,
   sign_out,
   nav_signed_in_as,
@@ -133,7 +133,7 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
           <li>
             <Link {...localizedProfileActivity(locale)}>
               <ActivityIcon />
-              {activity_nav({}, { locale })}
+              {activity({}, { locale })}
             </Link>
           </li>
           <li>

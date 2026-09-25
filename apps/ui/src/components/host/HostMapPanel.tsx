@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 
-import { host_map_error, host_retry, type Locale } from '@founders-coffee/i18n';
+import { host_map_error, retry, type Locale } from '@founders-coffee/i18n';
 import { Button, StatusMessage } from '@founders-coffee/ui';
 
 import type { VenueSelection } from '../../features/events/types';
@@ -59,7 +59,7 @@ export const HostMapPanel = ({
             variant="error"
             action={
               <Button variant="outline" size="sm" onClick={onRetry}>
-                {host_retry({}, { locale })}
+                {retry({}, { locale })}
               </Button>
             }
           >

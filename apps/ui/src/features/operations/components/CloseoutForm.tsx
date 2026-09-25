@@ -2,7 +2,7 @@ import {
   closeout_did_not_happen,
   closeout_friction,
   closeout_held,
-  closeout_no,
+  no,
   closeout_outcome,
   closeout_private_note,
   closeout_review,
@@ -11,7 +11,7 @@ import {
   closeout_roster,
   closeout_walk_ins,
   closeout_would_host_again,
-  closeout_yes,
+  yes,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -130,8 +130,8 @@ export const CloseoutForm = ({
               />
               <span>
                 {answer
-                  ? closeout_yes({}, { locale })
-                  : closeout_no({}, { locale })}
+                  ? yes({}, { locale })
+                  : no({}, { locale })}
               </span>
             </label>
           ))}

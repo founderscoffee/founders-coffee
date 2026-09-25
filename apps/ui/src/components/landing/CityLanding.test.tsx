@@ -6,7 +6,7 @@ import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import {
   back_to_market,
-  city_empty_cta,
+  hero_empty_cta,
   city_empty_title,
   city_events_description,
   city_upcoming_title,
@@ -113,7 +113,7 @@ describe('city page', () => {
 
     expect(
       screen.getAllByRole('link', {
-        name: city_empty_cta({}, { locale: 'en' }),
+        name: hero_empty_cta({}, { locale: 'en' }),
       }),
     ).toHaveLength(1);
     expect(

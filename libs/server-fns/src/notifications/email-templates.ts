@@ -2,7 +2,7 @@ import { renderEmail } from '@founders-coffee/email';
 import { NotificationEmail } from '@founders-coffee/email/templates';
 import {
   ntf_email_closeout_prompt_html,
-  ntf_email_closeout_prompt_subject,
+  ntf_closeout_prompt_title,
   ntf_email_closeout_prompt_text,
   ntf_email_calendar_html,
   ntf_email_calendar_text,
@@ -10,16 +10,16 @@ import {
   ntf_email_confirmation_subject,
   ntf_email_confirmation_text,
   ntf_email_did_not_happen_html,
-  ntf_email_did_not_happen_subject,
+  ntf_did_not_happen_title,
   ntf_email_did_not_happen_text,
   ntf_email_event_cancelled_html,
-  ntf_email_event_cancelled_subject,
+  ntf_event_cancelled_title,
   ntf_email_event_cancelled_text,
   ntf_email_event_relocated_html,
-  ntf_email_event_relocated_subject,
+  ntf_event_relocated_title,
   ntf_email_event_relocated_text,
   ntf_email_event_rescheduled_html,
-  ntf_email_event_rescheduled_subject,
+  ntf_event_rescheduled_title,
   ntf_email_event_rescheduled_text,
   ntf_email_feedback_invitation_html,
   ntf_email_feedback_invitation_subject,
@@ -97,7 +97,7 @@ export const emailPayloadFor = async (
     case 'event_did_not_happen':
       return renderNotificationEmail(
         locale,
-        ntf_email_did_not_happen_subject(values, options),
+        ntf_did_not_happen_title(values, options),
         ntf_email_did_not_happen_html(safe, options),
         ntf_email_did_not_happen_text(values, options),
       );
@@ -111,7 +111,7 @@ export const emailPayloadFor = async (
     case 'closeout_prompt':
       return renderNotificationEmail(
         locale,
-        ntf_email_closeout_prompt_subject(values, options),
+        ntf_closeout_prompt_title(values, options),
         ntf_email_closeout_prompt_html(safe, options),
         ntf_email_closeout_prompt_text(values, options),
       );
@@ -161,7 +161,7 @@ export const emailPayloadFor = async (
     case 'event_cancelled':
       return renderNotificationEmail(
         locale,
-        ntf_email_event_cancelled_subject(values, options),
+        ntf_event_cancelled_title(values, options),
         withReason(
           ntf_email_event_cancelled_html(safe, options),
           safe.reason,
@@ -176,14 +176,14 @@ export const emailPayloadFor = async (
     case 'event_rescheduled':
       return renderNotificationEmail(
         locale,
-        ntf_email_event_rescheduled_subject(values, options),
+        ntf_event_rescheduled_title(values, options),
         ntf_email_event_rescheduled_html(safe, options),
         ntf_email_event_rescheduled_text(values, options),
       );
     case 'event_relocated':
       return renderNotificationEmail(
         locale,
-        ntf_email_event_relocated_subject(values, options),
+        ntf_event_relocated_title(values, options),
         ntf_email_event_relocated_html(safe, options),
         ntf_email_event_relocated_text(values, options),
       );
