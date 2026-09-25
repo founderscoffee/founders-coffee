@@ -405,7 +405,7 @@
   "live_in_the_room": "In the room ({arrived}/{total})",
   "live_arrived_cta": "I’ve arrived",
   "live_table_ph": "Table number (optional)",
-  "live_cue_ph": "Visual cue, e.g. wearing a green cap",
+  "live_cue_ph": "Visual cue, such as a green cap",
   "live_new_table_ph": "New table number",
   "live_status_connected": "Connected",
   "live_not_arrived": "Not here yet",
