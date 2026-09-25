@@ -8,7 +8,7 @@ import {
   login_email_label,
   login_email_placeholder,
   login_or,
-  login_send_code,
+  send_code,
   login_send_error,
   login_verify,
   code_error,
@@ -186,7 +186,7 @@ export const HostSignInGate = ({
                   aria-hidden="true"
                 />
               ) : null}
-              {login_send_code({}, { locale })}
+              {send_code({}, { locale })}
             </Button>
             <LegalNotice locale={locale} />
             {hasSocial && (

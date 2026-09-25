@@ -6,7 +6,7 @@ import { t, type E2eLocale } from './messages';
 /**
  * Authenticate a disposable member through the real local OTP provider and D1 session.
  *
- * The host wizard's sign-in step asks for the code with `login_send_code`; the standalone login
+ * The host wizard's sign-in step asks for the code with `send_code`; the standalone login
  * page says `login_email_continue`. Everything after that button is the same on both.
  *
  * The address is typed again until the button takes it. The login page is server-rendered, and an
@@ -17,7 +17,7 @@ export const signIn = async (
   page: Page,
   locale: E2eLocale,
   email: string,
-  sendKey: 'login_send_code' | 'login_email_continue' = 'login_send_code',
+  sendKey: 'send_code' | 'login_email_continue' = 'send_code',
 ) => {
   const field = page.locator('input[type="email"]');
   const send = page.getByRole('button', {
