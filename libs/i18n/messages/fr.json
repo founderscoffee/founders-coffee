@@ -883,5 +883,5 @@
   "ntf_email_event_relocated_text": "L’hôte a déplacé « {title} » vers un nouveau lieu : {address}. L’horaire reste le même : {date}.\n{url}",
   "host_edit_where": "Où",
   "host_edit_venue_hint": "Appuyez sur la carte ou recherchez pour changer de lieu.",
-  "host_edit_notice_change": "Tous les participants recevront une notification de changement."
+  "host_edit_notice_change": "Tous les participants seront informés du changement."
 }

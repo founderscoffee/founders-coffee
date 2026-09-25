@@ -790,5 +790,5 @@
   "ntf_email_event_relocated_text": "غيّر المضيف مكان «{title}». المكان الجديد: {address}. موعد اللقاء {date} كما هو.\n{url}",
   "host_edit_where": "المكان",
   "host_edit_venue_hint": "اضغط على الخريطة أو ابحث لتغيير المكان.",
-  "host_edit_notice_change": "سيصل إشعار بالتغيير إلى جميع الحاضرين."
+  "host_edit_notice_change": "سيتلقى جميع الحاضرين إشعارًا بالتغيير."
 }

@@ -727,5 +727,5 @@
   "ntf_email_event_relocated_text": "The host moved \"{title}\" to a new place: {address}. The event time remains {date}.\n{url}",
   "host_edit_where": "Where",
   "host_edit_venue_hint": "Click the map or search to change the place.",
-  "host_edit_notice_change": "All attendees will receive a change notification."
+  "host_edit_notice_change": "All attendees will be notified of the change."
 }
