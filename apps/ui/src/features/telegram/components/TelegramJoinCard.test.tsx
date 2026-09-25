@@ -43,7 +43,7 @@ describe('TelegramJoinCard', () => {
 
     expect(
       screen.getByText(
-        'Everyone in the group can see your Telegram profile and message you there. Whether they see your phone number depends on your Telegram privacy settings.',
+        'Everyone in the group can see your Telegram profile and message you. Whether they see your phone number depends on your Telegram privacy settings.',
       ),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Get my invite link' }));
@@ -116,7 +116,7 @@ describe('TelegramJoinCard', () => {
 
   it.each([
     ['fr', 'Rejoindre dans Telegram'],
-    ['ar', 'انضمّ عبر تيليغرام'],
+    ['ar', 'انضم عبر تيليغرام'],
   ] as const)('reads in %s', (locale, label) => {
     show({ role: 'attendee', inviteLink: INVITE, hasJoined: false }, locale);
 

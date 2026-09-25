@@ -86,7 +86,7 @@ describe('city page', () => {
       <CityLanding locale="fr" market={egypt} city={cairo} events={[]} />,
     );
     expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(
-      'Soyez le premier à organiser une rencontre pro au Caire',
+      'Soyez le premier à organiser une rencontre d’entrepreneurs au Caire',
     );
     unmount();
 
@@ -103,7 +103,7 @@ describe('city page', () => {
     );
     expect(
       screen.getByText(
-        'Découvrez les prochaines rencontres de fondateurs et communautés au Caire.',
+        'Découvrez les prochaines rencontres d’entrepreneurs et de la communauté au Caire.',
       ),
     ).toBeTruthy();
   });

@@ -110,16 +110,16 @@ describe('PublicProfilePage', () => {
 
     expect(screen.getByRole('heading', { name: 'Amina Host' })).toBeTruthy();
     expect(document.querySelector('.stat-value')).toBeNull();
-    expect(screen.getByText(/No events hosted yet/i)).toBeTruthy();
+    expect(screen.getByText(/No meetups hosted yet/i)).toBeTruthy();
   });
 
   it('lists hosted events under a heading that does not promise they are upcoming', () => {
     renderProfile([hostedEvent]);
 
-    expect(screen.getByText('Gatherings hosted')).toBeTruthy();
+    expect(screen.getByText('Hosted meetups')).toBeTruthy();
     expect(screen.getByText('Coffee and Code')).toBeTruthy();
     expect(screen.getByText('Showing 1 of 1')).toBeTruthy();
-    expect(screen.queryByText(/No events hosted yet/i)).toBeNull();
+    expect(screen.queryByText(/No meetups hosted yet/i)).toBeNull();
   });
 
   it('tags each meetup on the host’s record, and leaves the others as they were', () => {
@@ -129,7 +129,7 @@ describe('PublicProfilePage', () => {
       pastMeetup('evt_unconfirmed', false),
     ]);
 
-    const [upcoming, held, unconfirmed] = hostedItems('Gatherings hosted');
+    const [upcoming, held, unconfirmed] = hostedItems('Hosted meetups');
     expect(upcoming?.textContent).not.toMatch(/Took place|Past/);
     expect(within(held as HTMLElement).getByText('Took place')).toBeTruthy();
     expect(held?.textContent).not.toContain('Past');
@@ -140,7 +140,7 @@ describe('PublicProfilePage', () => {
   it('tags a meetup on the record in Arabic', () => {
     renderProfile([pastMeetup('evt_held', true)], 'ar');
 
-    const [held] = hostedItems('اللقاءات التي استضافها');
+    const [held] = hostedItems('اللقاءات المستضافة');
     expect(within(held as HTMLElement).getByText('انعقد')).toBeTruthy();
   });
 

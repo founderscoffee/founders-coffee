@@ -131,7 +131,7 @@ describe('connecting a Telegram group to a meetup (real D1 via Miniflare)', () =
 
     expect(setup.provider.callsTo('sendMessage')[0]?.args).toEqual({
       chatId,
-      text: `Seul un administrateur de ce groupe peut le relier à « ${event.title} ».`,
+      text: `Seul un administrateur du groupe peut le relier à « ${event.title} ».`,
     });
     expect((await getTelegramGroup(db, event.id))?.status).toBe('pending');
   });
@@ -162,7 +162,7 @@ describe('connecting a Telegram group to a meetup (real D1 via Miniflare)', () =
       );
 
       expect(setup.provider.callsTo('sendMessage')[0]?.args.text).toContain(
-        'invite users via link, ban users and pin messages',
+        'invite users by link, ban them, and pin messages',
       );
       expect((await getTelegramGroup(db, event.id))?.status).toBe('pending');
     },

@@ -47,7 +47,9 @@ describe('where the host wizard says it looks for venues', () => {
     renderInFrench(cairo);
 
     expect(
-      screen.getByText('Cafés et espaces de coworking au Caire.'),
+      screen.getByText(
+        'Choisissez parmi les cafés et espaces de coworking au Caire.',
+      ),
     ).toBeTruthy();
   });
 
@@ -55,7 +57,9 @@ describe('where the host wizard says it looks for venues', () => {
     renderInFrench(null);
 
     expect(
-      screen.getByText('Cafés et espaces de coworking en Égypte.'),
+      screen.getByText(
+        'Choisissez parmi les cafés et espaces de coworking en Égypte.',
+      ),
       'the country went where the city goes, after the à a city takes: "à Égypte"',
     ).toBeTruthy();
   });

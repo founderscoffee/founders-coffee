@@ -130,8 +130,6 @@ describe('the how-it-works section', () => {
   it('names the section for a reader skipping by heading', () => {
     show('en');
 
-    expect(
-      screen.getByRole('region', { name: /how a meetup happens/iu }),
-    ).toBeTruthy();
+    expect(screen.getByRole('region', { name: /how it works/iu })).toBeTruthy();
   });
 });

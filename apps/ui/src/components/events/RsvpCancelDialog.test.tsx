@@ -22,7 +22,7 @@ describe('how the cancel dialog announces itself', () => {
     show();
 
     expect(
-      screen.getByRole('dialog', { name: 'تريد التخلّي عن مقعدك؟' }),
+      screen.getByRole('dialog', { name: 'هل تريد التخلّي عن مقعدك؟' }),
       'the heading sits inside the dialog, which names nothing on its own; only aria-labelledby carries it to the dialog, and only if the id it points at is really on the heading',
     ).toBeTruthy();
   });
@@ -32,7 +32,7 @@ describe('how the cancel dialog announces itself', () => {
     show();
 
     expect(
-      screen.getAllByRole('dialog', { name: 'تريد التخلّي عن مقعدك؟' }),
+      screen.getAllByRole('dialog', { name: 'هل تريد التخلّي عن مقعدك؟' }),
       'a hardcoded id would collide the moment a page rendered a second one, and every dialog would answer to the first heading',
     ).toHaveLength(2);
     const ids = screen

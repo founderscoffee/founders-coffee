@@ -110,10 +110,10 @@ describe('RsvpSection when the host has called the meetup off', () => {
 
   it('tells whoever had said yes that they are off the hook', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
-    expect(screen.getByText('You had confirmed you were coming.')).toBeTruthy();
+    expect(screen.getByText('You had confirmed your attendance.')).toBeTruthy();
     expect(
       screen.getByText(
-        'There is nothing to cancel, and the reminder we had scheduled will not be sent.',
+        'You do not need to cancel, and you will not receive the reminder.',
       ),
     ).toBeTruthy();
   });
@@ -159,7 +159,9 @@ describe('what a confirmed attendee reads in Arabic', () => {
   it('states the confirmation was sent, rather than appearing to demand it', () => {
     show({ ...event, viewerRsvp: 'going' }, 'ar');
 
-    expect(screen.getByText('تم إرسال التأكيد. سنذكّرك قبل يوم.')).toBeTruthy();
+    expect(
+      screen.getByText('تم إرسال التأكيد. سنذكّرك قبل يوم من اللقاء.'),
+    ).toBeTruthy();
   });
 });
 
@@ -186,7 +188,7 @@ describe('where the undo for a confirmed seat sits', () => {
 
     const cancel = screen.getByRole('button', { name: 'Cancel RSVP' });
     const help = screen.getByText(
-      'Confirmation sent. We’ll remind you the day before.',
+      'Confirmation sent. We’ll remind you the day before the meetup.',
     );
 
     expect(
@@ -217,33 +219,27 @@ describe('telling the room you are on your way', () => {
   it('offers it in the panel, where the seat it belongs to already is', () => {
     showLive(liveRoom(), true);
 
-    expect(
-      screen.getByRole('button', { name: 'أمشي نحو المكان' }),
-    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'أنا في الطريق' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'سأتأخر' })).toBeTruthy();
   });
 
   it('offers nothing before the room opens, when there is no one to tell', () => {
     showLive(liveRoom(), false);
 
-    expect(
-      screen.queryByRole('button', { name: 'أمشي نحو المكان' }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'أنا في الطريق' })).toBeNull();
   });
 
   it('offers nothing to a reader the room has refused', () => {
     showLive(liveRoom({ notAttending: true }), true);
 
-    expect(
-      screen.queryByRole('button', { name: 'أمشي نحو المكان' }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'أنا في الطريق' })).toBeNull();
   });
 
   it('keeps the undo away from the live actions, behind a separator', () => {
     showLive(liveRoom(), true);
 
     const cancel = screen.getByRole('button', { name: 'إلغاء الحضور' });
-    const walking = screen.getByRole('button', { name: 'أمشي نحو المكان' });
+    const walking = screen.getByRole('button', { name: 'أنا في الطريق' });
 
     expect(
       Boolean(

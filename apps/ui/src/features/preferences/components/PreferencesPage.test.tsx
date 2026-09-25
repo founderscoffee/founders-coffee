@@ -111,10 +111,10 @@ describe('the preferences screen', () => {
     expect(container.querySelector('#prefs-language')).toBeNull();
   });
 
-  it('keeps delivery copy focused on in-app notifications', () => {
+  it('keeps delivery copy focused on push notifications', () => {
     show({ data: view() });
 
-    expect(screen.getAllByText('In app').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Push notifications').length).toBeGreaterThan(0);
     expect(screen.queryByText(/Event details stay in the app/i)).toBeNull();
     expect(screen.queryByText(/How we reach you/i)).toBeNull();
     expect(screen.queryByText(/What we send you/i)).toBeNull();
@@ -125,7 +125,7 @@ describe('the preferences screen', () => {
 
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: /Reminders before a gathering: In app/i,
+        name: /Reminders before a gathering: Push notifications/i,
       }),
     );
     fireEvent.click(
@@ -160,7 +160,7 @@ describe('the preferences screen', () => {
 
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: /Reminders before a gathering: In app/i,
+        name: /Reminders before a gathering: Push notifications/i,
       }),
     );
     fireEvent.click(reminders);
@@ -230,7 +230,7 @@ describe('states the design spec requires', () => {
     show({ data: view() });
 
     expect(screen.getByRole('alert').textContent).toMatch(
-      /Verify a phone number/i,
+      /Verify your phone number/i,
     );
   });
 

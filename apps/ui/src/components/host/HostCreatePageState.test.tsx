@@ -37,11 +37,15 @@ describe('HostCreatePage EC-07 state', () => {
     expect(screen.getByRole('button', { name: 'Set schedule' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(
-      (screen.getByLabelText(/^Title/) as unknown as HTMLInputElement).value,
+      (screen.getByLabelText(/^Meetup title/) as unknown as HTMLInputElement)
+        .value,
     ).toBe('Protected meetup');
     expect(
-      (screen.getByLabelText(/^Description/) as unknown as HTMLTextAreaElement)
-        .value,
+      (
+        screen.getByLabelText(
+          /^Meetup description/,
+        ) as unknown as HTMLTextAreaElement
+      ).value,
     ).toBe('A complete protected meetup for founders.');
   });
 
@@ -53,17 +57,18 @@ describe('HostCreatePage EC-07 state', () => {
     );
     await goToHostDetails();
 
-    expect((screen.getByLabelText(/^Title/) as HTMLInputElement).value).toBe(
-      'Previous founders breakfast',
-    );
     expect(
-      (screen.getByLabelText(/^Description/) as HTMLTextAreaElement).value,
+      (screen.getByLabelText(/^Meetup title/) as HTMLInputElement).value,
+    ).toBe('Previous founders breakfast');
+    expect(
+      (screen.getByLabelText(/^Meetup description/) as HTMLTextAreaElement)
+        .value,
     ).toBe('A relaxed breakfast for local founders.');
   });
 
   it('keeps the stepper and the map in place, and stops the map selecting after step 1', async () => {
     renderHostCreateWizard();
-    const progress = () => screen.getByLabelText('Event creation progress');
+    const progress = () => screen.getByLabelText('Meetup creation steps');
     const map = () => screen.getByTestId('host-map');
 
     expect(progress()).toBeTruthy();
@@ -90,7 +95,7 @@ describe('HostCreatePage EC-07 state', () => {
     await goToHostDetails();
     fillHostDetails();
     const publish = screen.getByRole('button', {
-      name: 'Confirm and publish',
+      name: 'Confirm and publish the meetup',
     }) as HTMLButtonElement;
     fireEvent.click(publish);
     fireEvent.click(publish);

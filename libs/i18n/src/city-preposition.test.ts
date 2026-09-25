@@ -56,17 +56,19 @@ const SENTENCES: readonly {
     key: 'hero_waitlist_success',
     render: (city) => hero_waitlist_success(cityInputs(city), FR),
     expected: (at) =>
-      `Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre ${at}.`,
+      `Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre ${at}.`,
   },
   {
     key: 'city_empty_title',
     render: (city) => city_empty_title(cityInputs(city), FR),
-    expected: (at) => `Soyez le premier à organiser une rencontre pro ${at}`,
+    expected: (at) =>
+      `Soyez le premier à organiser une rencontre d’entrepreneurs ${at}`,
   },
   {
     key: 'city_empty_body',
     render: (city) => city_empty_body(cityInputs(city), FR),
-    expected: (at) => `Soyez le premier à organiser une rencontre pro ${at}.`,
+    expected: (at) =>
+      `Aidez à créer une communauté d’entrepreneurs ${at} en organisant la première rencontre.`,
   },
   {
     key: 'city_upcoming_title',
@@ -77,17 +79,18 @@ const SENTENCES: readonly {
     key: 'city_events_description',
     render: (city) => city_events_description(cityInputs(city), FR),
     expected: (at) =>
-      `Découvrez les prochaines rencontres de fondateurs et communautés ${at}.`,
+      `Découvrez les prochaines rencontres d’entrepreneurs et de la communauté ${at}.`,
   },
   {
     key: 'host_step1_helper',
     render: (city) => host_step1_helper(cityInputs(city), FR),
-    expected: (at) => `Cafés et espaces de coworking ${at}.`,
+    expected: (at) =>
+      `Choisissez parmi les cafés et espaces de coworking ${at}.`,
   },
   {
     key: 'host_venue_search_ph',
     render: (city) => host_venue_search_ph(cityInputs(city), FR),
-    expected: (at) => `Rechercher un café ou espace de coworking ${at}…`,
+    expected: (at) => `Rechercher un café ou un espace de coworking ${at}…`,
   },
   {
     key: 'back_to_city',
@@ -188,16 +191,16 @@ describe('French prepositions in front of a city', () => {
 describe('French prepositions in front of a country', () => {
   it('places the venues in the country with en when the host has not picked a city', () => {
     expect(host_step1_helper_market({ market: 'Égypte' }, FR)).toBe(
-      'Cafés et espaces de coworking en Égypte.',
+      'Choisissez parmi les cafés et espaces de coworking en Égypte.',
     );
     expect(host_venue_search_ph_market({ market: 'Algérie' }, FR)).toBe(
-      'Rechercher un café ou espace de coworking en Algérie…',
+      'Rechercher un café ou un espace de coworking en Algérie…',
     );
     expect(
       host_step1_helper_market({ market: 'Egypt' }, { locale: 'en' }),
-    ).toBe('Cafés and coworking spaces in Egypt.');
+    ).toBe('Choose from cafés and coworking spaces in Egypt.');
     expect(
       host_venue_search_ph_market({ market: 'مصر' }, { locale: 'ar' }),
-    ).toBe('ابحث عن مقهى أو مساحة عمل في مصر…');
+    ).toBe('ابحث عن مقهى أو مساحة عمل مشتركة في مصر…');
   });
 });

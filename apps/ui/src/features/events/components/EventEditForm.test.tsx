@@ -81,7 +81,7 @@ const show = (
     />,
   );
 
-const NOTICE = 'A change notification will be sent to all attendees.';
+const NOTICE = 'All attendees will be notified of the change.';
 
 const notice = (): string =>
   screen.queryByRole('alert')?.textContent ?? 'no region';

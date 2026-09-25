@@ -72,7 +72,7 @@ describe('the French pages put à in front of a place the way French does', () =
     const body = await documentAt('/fr/algeria/les-eucalyptus');
 
     expect(body).toContain(
-      'Soyez le premier à organiser une rencontre pro aux Eucalyptus',
+      'Soyez le premier à organiser une rencontre d’entrepreneurs aux Eucalyptus',
     );
     expect(body).not.toMatch(/à Les Eucalyptus/u);
   });

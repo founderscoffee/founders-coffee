@@ -63,7 +63,7 @@ describe('who is in the room', () => {
   it('does not call a waiting attendee connected, which is a fact about a socket', () => {
     show([{ ...amina, status: 'connected' }]);
 
-    expect(screen.getByText(/بانتظار الوصول/)).toBeTruthy();
+    expect(screen.getByText(/لم يصل بعد/)).toBeTruthy();
     expect(
       screen.queryByText(/^متصل$/),
       'متصل is the reader\u2019s own socket badge; a person in the room is either here or not yet',

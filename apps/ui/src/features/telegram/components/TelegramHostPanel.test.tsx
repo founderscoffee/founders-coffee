@@ -159,7 +159,7 @@ describe('TelegramHostPanel with a group connected', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
     expect(mocks.disconnect).not.toHaveBeenCalled();
-    const keep = screen.getByRole('button', { name: 'Keep it' });
+    const keep = screen.getByRole('button', { name: 'Keep connection' });
     expect(document.activeElement).toBe(keep);
     fireEvent.click(keep);
     expect(document.activeElement).toBe(

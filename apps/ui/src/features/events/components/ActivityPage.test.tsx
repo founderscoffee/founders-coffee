@@ -126,7 +126,7 @@ describe('the gatherings screen', () => {
 
   it('says plainly when a member has joined nothing', () => {
     show();
-    expect(screen.getByText(/have not joined a gathering yet/i)).toBeTruthy();
+    expect(screen.getByText(/haven't joined a gathering yet/i)).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: 'Gatherings you hosted' }));
     expect(screen.getByText(/have not hosted a gathering yet/i)).toBeTruthy();
   });
@@ -149,7 +149,7 @@ describe('the gatherings screen', () => {
 
     show();
 
-    expect(screen.getByText('17 in total')).toBeTruthy();
+    expect(screen.getByText('Total: 17')).toBeTruthy();
   });
 
   it('labels an elapsed gathering past, never completed', () => {
@@ -245,7 +245,7 @@ describe('the gatherings screen', () => {
 
     show();
 
-    fireEvent.click(screen.getByRole('button', { name: /Show more/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Load more/i }));
     expect(
       (state.joined as { fetchNextPage: ReturnType<typeof vi.fn> })
         .fetchNextPage,
@@ -257,7 +257,7 @@ describe('the gatherings screen', () => {
 
     show();
 
-    expect(screen.queryByRole('button', { name: /Show more/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Load more/i })).toBeNull();
   });
 });
 
@@ -268,7 +268,7 @@ describe('states the member can land in', () => {
     show();
 
     expect(screen.getByTestId('access-recovery')).toBeTruthy();
-    expect(screen.queryByText(/have not joined/i)).toBeNull();
+    expect(screen.queryByText(/haven't joined/i)).toBeNull();
   });
 
   it('shows a loading state while the session is still resolving', () => {

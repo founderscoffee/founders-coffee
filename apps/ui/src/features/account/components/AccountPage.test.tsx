@@ -91,13 +91,13 @@ describe('the account and security screen', () => {
     expect(screen.getByText('am•••@example.dz')).toBeTruthy();
     expect(screen.getByText('+213 •••• 42')).toBeTruthy();
     expect(screen.getByText('Google')).toBeTruthy();
-    expect(screen.getByText('2 signed in right now')).toBeTruthy();
+    expect(screen.getByText('2 devices signed in')).toBeTruthy();
   });
 
   it('says a phone is missing in words rather than in dots', () => {
     show({ data: summary() });
 
-    expect(screen.getByText('Not added')).toBeTruthy();
+    expect(screen.getByText('Not added yet')).toBeTruthy();
     expect(screen.queryByText('Verified')).toBeTruthy();
   });
 
@@ -111,7 +111,7 @@ describe('the account and security screen', () => {
   it('explains an account signed in with no linked provider', () => {
     show({ data: summary({ providers: [] }) });
 
-    expect(screen.getByText('Email code only')).toBeTruthy();
+    expect(screen.getByText('Sign in with email code only')).toBeTruthy();
   });
 
   it('offers an action on every row, in the form that row supports', () => {
@@ -144,8 +144,8 @@ describe('the account and security screen', () => {
       name: 'Change your email address',
     });
 
-    expect(dialog.textContent).toContain('confirm the address we already have');
-    expect(dialog.textContent).toContain('keeps working until the new one');
+    expect(dialog.textContent).toContain('confirm your current email');
+    expect(dialog.textContent).toContain('stays active until the new one');
   });
 
   it('offers a way out when the address on file is unreachable', () => {
@@ -167,7 +167,7 @@ describe('the account and security screen', () => {
         .map((node) => node.textContent),
     ).toEqual([
       'Interface language',
-      'Private contacts',
+      'Contact details',
       'Sign-in and devices',
       'Your data',
     ]);
@@ -184,7 +184,7 @@ describe('the account and security screen', () => {
       ).value,
     ).toBe('fr');
     expect(
-      screen.getByText('Choose the language used across Founders Coffee.'),
+      screen.getByText('Choose Founders Coffee’s interface language.'),
     ).toBeTruthy();
   });
 
@@ -203,9 +203,9 @@ describe('the account and security screen', () => {
     show({ isError: true });
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'Your account details could not be loaded.',
+      'Your account could not be loaded.',
     );
-    expect(screen.queryByText('Private contacts')).toBeNull();
+    expect(screen.queryByText('Contact details')).toBeNull();
   });
 
   it('sends a signed-out visitor to the shared recovery screen', () => {

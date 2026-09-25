@@ -26,7 +26,7 @@ describe('host create copy', () => {
     expect(
       hostCreateStepCopy('fr', { kind: 'city', name: 'Le Caire' })
         .descriptions[0],
-    ).toBe('Cafés et espaces de coworking au Caire.');
+    ).toBe('Choisissez parmi les cafés et espaces de coworking au Caire.');
   });
 
   it('places the venues in the country with en when the host has not picked a city', () => {
@@ -34,11 +34,11 @@ describe('host create copy', () => {
       hostCreateStepCopy('fr', { kind: 'market', name: 'Égypte' })
         .descriptions[0],
       'the wizard opened from the navbar put the country where the city goes, "à Égypte"',
-    ).toBe('Cafés et espaces de coworking en Égypte.');
+    ).toBe('Choisissez parmi les cafés et espaces de coworking en Égypte.');
     expect(
       hostCreateStepCopy('en', { kind: 'market', name: 'Egypt' })
         .descriptions[0],
-    ).toBe('Cafés and coworking spaces in Egypt.');
+    ).toBe('Choose from cafés and coworking spaces in Egypt.');
   });
 
   it('carries the schema-owned constraints the details step enforces', () => {

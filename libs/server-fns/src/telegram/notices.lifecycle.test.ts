@@ -118,8 +118,10 @@ describe("Telegram group notices through a meetup's life (real D1 via Miniflare)
 
     const [row] = await telegramRows(db, event.id);
     expect(row?.templateKey).toBe('telegram_cancelled');
-    expect(payloadOf(row).telegramText).toContain('The host has cancelled');
-    expect(payloadOf(row).telegramText).toContain('From the host: Café closed');
+    expect(payloadOf(row).telegramText).toContain('The host cancelled');
+    expect(payloadOf(row).telegramText).toContain(
+      'Cancellation reason: Café closed',
+    );
     expect(payloadOf(row).telegramPinnedText).toMatch(/^Cancelled: /);
   });
 });

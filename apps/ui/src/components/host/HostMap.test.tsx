@@ -200,7 +200,7 @@ describe('HostMap', () => {
     const callout = screen.getByTestId('map-callout').textContent ?? '';
     expect(callout).toContain(selectedVenue.name);
     expect(callout).toContain(selectedVenue.address);
-    expect(callout).toContain('Drag the pin to the exact door.');
+    expect(callout).toContain('Drag the pin to the entrance.');
   });
 
   it('covers the map with a skeleton until Mapbox reports it is loaded', () => {

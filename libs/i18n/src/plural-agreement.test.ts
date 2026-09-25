@@ -102,18 +102,18 @@ describe('Arabic number agreement', () => {
     });
   });
 
-  it('declines the signed-in noun on the account page', () => {
+  it('declines the registered-device noun on the account page', () => {
     expect(
       arabicForms((count) =>
         account_sessions_count({ count }, { locale: 'ar' }),
       ),
     ).toEqual({
-      zero: '0 مسجّلين الآن',
-      one: '1 مسجّل الآن',
-      two: '2 مسجّلان الآن',
-      few: '3 مسجّلين الآن',
-      many: '11 مسجّلًا الآن',
-      other: '100 مسجّل الآن',
+      zero: 'لا توجد أجهزة مسجّلة',
+      one: 'جهاز واحد مسجّل',
+      two: 'جهازان مسجّلان',
+      few: '3 أجهزة مسجّلة',
+      many: '11 جهازًا مسجّلًا',
+      other: '100 جهاز مسجّل',
     });
   });
 
@@ -144,10 +144,10 @@ describe('French and English number agreement', () => {
       '4 rencontres affichées',
     );
     expect(account_sessions_count({ count: 1 }, { locale: 'fr' })).toBe(
-      '1 connecté en ce moment',
+      '1 appareil connecté',
     );
     expect(account_sessions_count({ count: 3 }, { locale: 'fr' })).toBe(
-      '3 connectés en ce moment',
+      '3 appareils connectés',
     );
   });
 

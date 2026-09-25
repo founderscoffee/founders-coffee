@@ -152,7 +152,7 @@ describe('WaitlistForm confirmation', () => {
     renderForm('fr', 'Le Caire');
 
     expect(screen.getByText(/Vous êtes sur la liste/u).textContent).toBe(
-      '✓ Vous êtes sur la liste ! Nous vous enverrons un email dès la première rencontre au Caire.',
+      '✓ Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre au Caire.',
     );
   });
 });

@@ -55,7 +55,7 @@ describe('the venue search box', () => {
     renderSearch({ locale: 'fr', area: { kind: 'city', name: 'Le Caire' } });
 
     expect(screen.getByRole('combobox').getAttribute('placeholder')).toBe(
-      'Rechercher un café ou espace de coworking au Caire…',
+      'Rechercher un café ou un espace de coworking au Caire…',
     );
   });
 
@@ -65,6 +65,6 @@ describe('the venue search box', () => {
     expect(
       screen.getByRole('combobox').getAttribute('placeholder'),
       'the wizard opened from the navbar put the country where the city goes, "à Égypte"',
-    ).toBe('Rechercher un café ou espace de coworking en Égypte…');
+    ).toBe('Rechercher un café ou un espace de coworking en Égypte…');
   });
 });

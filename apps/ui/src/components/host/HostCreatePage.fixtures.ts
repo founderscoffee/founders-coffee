@@ -269,10 +269,10 @@ export const goToHostDetails = async () => {
 };
 
 export const fillHostDetails = () => {
-  fireEvent.change(screen.getByLabelText(/^Title/), {
+  fireEvent.change(screen.getByLabelText(/^Meetup title/), {
     target: { value: 'Protected meetup' },
   });
-  fireEvent.change(screen.getByLabelText(/^Description/), {
+  fireEvent.change(screen.getByLabelText(/^Meetup description/), {
     target: { value: 'A complete protected meetup for founders.' },
   });
 };
@@ -290,5 +290,7 @@ export const resetHostCreateFixtures = () => {
 export const publishHostEvent = async () => {
   await goToHostDetails();
   fillHostDetails();
-  fireEvent.click(screen.getByRole('button', { name: 'Confirm and publish' }));
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
+  );
 };

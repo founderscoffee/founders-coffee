@@ -72,7 +72,7 @@ describe('the devices panel', () => {
     show(devices());
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Sign out every other device' }),
+      screen.getByRole('button', { name: 'Sign out other devices' }),
     );
 
     await waitFor(() =>
@@ -91,7 +91,7 @@ describe('the devices panel', () => {
 
     expect(screen.getByText('No other device is signed in.')).toBeTruthy();
     expect(
-      screen.queryByRole('button', { name: 'Sign out every other device' }),
+      screen.queryByRole('button', { name: 'Sign out other devices' }),
     ).toBeNull();
   });
 
@@ -115,10 +115,10 @@ describe('the devices panel', () => {
     ).toBeTruthy();
   });
 
-  it('disconnects a sign-in method', async () => {
+  it('unlinks a sign-in method', async () => {
     show(devices());
 
-    fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Unlink' }));
 
     await waitFor(() =>
       expect(state.unlink).toHaveBeenCalledWith({ providerId: 'google' }),
@@ -131,7 +131,7 @@ describe('the devices panel', () => {
     );
     show(devices());
 
-    fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Unlink' }));
 
     await waitFor(() =>
       expect(screen.getByRole('alert').textContent).toContain(

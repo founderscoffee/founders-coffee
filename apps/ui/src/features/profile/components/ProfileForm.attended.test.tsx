@@ -37,7 +37,7 @@ describe('the profile form offers the attended count, off (#90)', () => {
     expect(toggle().checked).toBe(false);
     expect(toggle().disabled).toBe(false);
     expect(
-      screen.getByText(/Meetups you missed are never counted or shown\./),
+      screen.getByText(/Meetups you missed are not counted or shown\./),
     ).toBeTruthy();
 
     fireEvent.click(toggle());

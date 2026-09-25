@@ -145,13 +145,17 @@ describe('EventDetail once the host has called the meetup off', () => {
 
   it('does not invite a stranger to save a spot at it', () => {
     show(cancelled);
-    expect(screen.queryByText('Save your seat')).toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Your seat' })).toBeNull();
+    expect(screen.queryByText('Save your place')).toBeNull();
+    expect(
+      screen.queryByRole('heading', { name: 'Your attendance' }),
+    ).toBeNull();
   });
 
   it('still has a place to address whoever had said they were coming', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
-    expect(screen.getByRole('heading', { name: 'Your seat' })).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Your attendance' }),
+    ).toBeTruthy();
   });
 });
 
@@ -185,22 +189,22 @@ describe('what the seat box calls itself', () => {
 
     expect(screen.getByRole('heading', { name: 'حضورك مؤكَّد' })).toBeTruthy();
     expect(
-      screen.queryByRole('heading', { name: 'احجز مقعدك' }),
-      'telling someone to book a seat directly above the confirmation that they booked it is the box arguing with itself',
+      screen.queryByRole('heading', { name: 'احجز مكانك' }),
+      'telling someone to book a place directly above the confirmation that they booked it is the box arguing with itself',
     ).toBeNull();
   });
 
   it('still asks for the booking from a reader who has not made one', () => {
     show(event, 'ar');
 
-    expect(screen.getByRole('heading', { name: 'احجز مقعدك' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'احجز مكانك' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
   });
 
   it('does not claim a confirmed seat at a meetup that is off', () => {
     show({ ...cancelled, viewerRsvp: 'going' }, 'ar');
 
-    expect(screen.getByRole('heading', { name: 'مقعدك' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'حضورك' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
   });
 });
@@ -209,10 +213,10 @@ describe('whose clock the When block says the time is on', () => {
   it.each([
     [
       'ar',
-      '\u062a\u0648\u0642\u064a\u062a \u0627\u0644\u062c\u0632\u0627\u0626\u0631',
+      '\u0627\u0644\u062a\u0648\u0642\u064a\u062a \u0627\u0644\u0645\u062d\u0644\u064a \u0641\u064a \u0627\u0644\u062c\u0632\u0627\u0626\u0631',
     ],
-    ['en', 'Algeria time'],
-    ['fr', 'Heure d\u2019Alg\u00e9rie'],
+    ['en', 'Local time in Algeria'],
+    ['fr', 'Heure locale d\u2019Alg\u00e9rie'],
   ] as const)('names the market in %s', (locale, label) => {
     show(event, locale);
 
@@ -224,16 +228,16 @@ describe('whose clock the When block says the time is on', () => {
   });
 });
 
-const saysHostedBy = (view: ReturnType<typeof show>) =>
-  view.container.textContent?.match(/Hosted by/gu)?.length ?? 0;
+const hostHeadings = (view: ReturnType<typeof show>) =>
+  view.queryAllByRole('heading', { name: 'Host' }).length;
 
 describe('how often the event page says who is hosting', () => {
   it('names the host once, even when the host is the one reading', () => {
     const view = show(event, 'en', true);
 
     expect(
-      saysHostedBy(view),
-      'the card is labelled Hosted by, and the aside reused those words for its own heading, so the page said it twice with a different thing under each',
+      hostHeadings(view),
+      'the card is labelled Host, and the aside reused that word for its own heading, so the page said it twice with a different thing under each',
     ).toBe(1);
     expect(
       screen.getByRole('heading', { name: 'Your meetup' }),
@@ -244,7 +248,7 @@ describe('how often the event page says who is hosting', () => {
   it('leaves the label on the card for a reader who is not the host', () => {
     const view = show(event);
 
-    expect(saysHostedBy(view)).toBe(1);
+    expect(hostHeadings(view)).toBe(1);
     expect(screen.queryByRole('heading', { name: 'Your meetup' })).toBeNull();
   });
 });

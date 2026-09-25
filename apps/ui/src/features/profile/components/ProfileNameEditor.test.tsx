@@ -134,7 +134,9 @@ describe('PF-03 name editor', () => {
     );
     expect((input() as HTMLInputElement).value).toBe('Unsaved');
     state.refetch.mockResolvedValue(newer);
-    fireEvent.click(screen.getByRole('button', { name: 'Reload profile' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Reload your profile' }),
+    );
     await waitFor(() =>
       expect((input() as HTMLInputElement).value).toBe('Other tab'),
     );
