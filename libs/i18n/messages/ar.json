@@ -681,7 +681,7 @@
   "contact_add_phone": "إضافة",
   "contact_email_title": "تغيير بريدك الإلكتروني",
   "contact_phone_title": "إضافة رقم هاتف",
-  "contact_step_prove": "أولًا، أكّد العنوان الموجود لدينا. أرسلنا رمزًا إليه.",
+  "contact_step_prove": "أولًا، أكّد بريدك الإلكتروني الحالي. أرسلنا إليه رمزًا.",
   "contact_step_new_email": "إلى أين نتواصل معك بدلًا من ذلك؟",
   "contact_step_confirm_email": "أدخل الرمز الذي أرسلناه إلى العنوان الجديد.",
   "contact_step_phone": "أدخل رقمًا يمكننا إرسال رمز إليه.",

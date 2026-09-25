@@ -618,7 +618,7 @@
   "contact_add_phone": "Add",
   "contact_email_title": "Change your email address",
   "contact_phone_title": "Add a phone number",
-  "contact_step_prove": "First, confirm the address we already have. We sent a code to it.",
+  "contact_step_prove": "First, confirm your current email. We sent a code to it.",
   "contact_step_new_email": "Where should we reach you instead?",
   "contact_step_confirm_email": "Enter the code we sent to the new address.",
   "contact_step_phone": "Enter a number we can send a code to.",
