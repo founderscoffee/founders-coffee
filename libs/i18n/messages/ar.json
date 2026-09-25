@@ -364,7 +364,7 @@
   "push_prompt_title": "لا تفوّت موعد اللقاء",
   "push_prompt_body": "سنرسل لك تذكيرات باللقاء وتنبيهات عند إلغائه أو عدم انعقاده. لن نرسل رسائل تسويقية.",
   "push_prompt_accept": "فعّل الإشعارات",
-  "push_prompt_decline": "ليس الآن، يكفيني البريد.",
+  "push_prompt_decline": "ليس الآن، يكفيني البريد الإلكتروني.",
   "live_no_attendees": "لا يوجد مشاركون متصلون",
   "live_walking_in": "في الطريق",
   "live_running_late": "متأخر",
@@ -378,8 +378,8 @@
       "selectors": ["nPlural"],
       "match": {
         "nPlural=zero": "{n} دقيقة",
-        "nPlural=one": "{n} دقيقة",
-        "nPlural=two": "{n} دقيقتان",
+        "nPlural=one": "دقيقة واحدة",
+        "nPlural=two": "دقيقتان",
         "nPlural=few": "{n} دقائق",
         "nPlural=many": "{n} دقيقة",
         "nPlural=*": "{n} دقيقة"
