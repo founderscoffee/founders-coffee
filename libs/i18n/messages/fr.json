@@ -572,7 +572,7 @@
   "cat_venue_restaurant": "Restaurant",
   "host_step_counter": "Étape {current} sur {total}",
   "host_search_results": "Résultats de recherche",
-  "ntf_sms_event_cancelled": "« {title} » du {date} a été annulé par l’hôte.",
+  "ntf_sms_event_cancelled": "L’hôte a annulé « {title} » prévu le {date}.",
   "ntf_event_cancelled_title": "Annulé : {title}",
   "ntf_email_event_cancelled_html": "<p>L’hôte a annulé <strong>{title}</strong>, prévu le {date} à {venue}.</p><p>Inutile de vous déplacer.</p><p><a href=\"{url}\">Voir la page de la rencontre</a></p>",
   "ntf_email_event_cancelled_text": "L’hôte a annulé « {title} », prévu le {date} à {venue}. Inutile de vous déplacer.\n{url}",
