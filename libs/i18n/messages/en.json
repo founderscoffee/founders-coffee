@@ -299,7 +299,7 @@
   "host_venue_search_loading": "Searching venues…",
   "host_venue_search_error": "Could not search venues right now.",
   "host_venue_rate_limited": "You have searched for venues too often. Wait a moment, then try again.",
-  "host_venue_no_results": "We found no supported cafés or coworking spaces here.",
+  "host_venue_no_results": "No cafés or coworking spaces found here.",
   "host_map_label": "Venue map",
   "host_map_loading": "Loading the venue map…",
   "host_map_error": "Could not load the venue map.",

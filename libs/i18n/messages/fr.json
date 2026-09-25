@@ -426,7 +426,7 @@
   "host_venue_search_loading": "Recherche de lieux…",
   "host_venue_search_error": "Impossible de rechercher des lieux pour le moment.",
   "host_venue_rate_limited": "Vous avez effectué trop de recherches de lieux. Patientez un instant, puis réessayez.",
-  "host_venue_no_results": "Nous n’avons trouvé aucun café ni espace de coworking pris en charge ici.",
+  "host_venue_no_results": "Aucun café ni espace de coworking trouvé ici.",
   "host_map_label": "Carte des lieux",
   "host_map_loading": "Chargement de la carte des lieux…",
   "host_map_error": "Impossible de charger la carte des lieux.",
