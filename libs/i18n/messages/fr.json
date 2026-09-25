@@ -615,8 +615,8 @@
   "telegram_error_closed": "Le groupe de cette rencontre n’accepte plus de nouveaux membres.",
   "telegram_error_generic": "Cela n’a pas fonctionné. Réessayez.",
   "telegram_load_error": "Impossible de charger le groupe Telegram.",
-  "event_cancelled_title": "Cette rencontre a été annulée",
-  "event_cancelled_body": "L’hôte a tout annulé. Inutile de vous déplacer.",
+  "event_cancelled_title": "Rencontre annulée",
+  "event_cancelled_body": "L’hôte a annulé la rencontre. Inutile de vous déplacer.",
   "event_details_title": "Détails de la rencontre",
   "event_meta_description": [
     {
@@ -635,7 +635,7 @@
     }
   ],
   "host_you_are_hosting": "Vous organisez",
-  "host_hosting_help": "Vous comptez parmi les participants. Les invités vous voient dans la salle au début de la rencontre.",
+  "host_hosting_help": "Vous faites partie des participants. Les invités vous voient dans la salle au début de la rencontre.",
   "host_event_ended": "Cette rencontre est terminée.",
   "host_cancel_event": "Annuler la rencontre",
   "host_cancel_title": "Annuler la rencontre ?",
