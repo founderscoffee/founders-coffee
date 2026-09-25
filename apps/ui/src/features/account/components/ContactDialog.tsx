@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
 import {
-  contact_cancel,
+  cancel,
   contact_code_label,
   contact_continue,
   contact_email_done,
@@ -213,7 +213,7 @@ export const ContactDialog = ({
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={onClose}>
-            {contact_cancel({}, { locale })}
+              {cancel({}, { locale })}
           </Button>
         </div>
       </form>
