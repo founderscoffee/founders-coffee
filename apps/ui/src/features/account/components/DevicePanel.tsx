@@ -3,11 +3,11 @@ import { useState } from 'react';
 import {
   devices_empty,
   devices_note,
-  devices_sign_out,
   devices_sign_out_others,
   devices_this_one,
   providers_disconnect,
   providers_keep_one,
+  sign_out,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button, StatusMessage } from '@founders-coffee/ui';
@@ -76,7 +76,7 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
                   void run(() => revoke.mutateAsync({ sessionId: row.id }))
                 }
               >
-                {devices_sign_out({}, { locale })}
+                {sign_out({}, { locale })}
               </Button>
             )
           }
