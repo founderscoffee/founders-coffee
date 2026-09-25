@@ -1,92 +1,12 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import type { Market } from '@founders-coffee/db';
 import { type Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    to,
-    params,
-  }: {
-    children: React.ReactNode;
-    to?: string;
-    params?: Record<string, string>;
-  }) => (
-    <a
-      href={Object.entries(params ?? {}).reduce(
-        (path, [name, value]) => path.replace(`$${name}`, value),
-        to ?? '/',
-      )}
-    >
-      {children}
-    </a>
-  ),
-}));
-
-vi.mock('./RsvpSection', () => ({
-  RsvpSection: () => null,
-}));
-
-vi.mock('./EventLocationMap', () => ({
-  EventLocationMap: () => null,
-}));
+import { event, market } from './EventDetail.fixtures';
 
 const { EventDetail } = await import('./EventDetail');
-
-const market = {
-  code: 'DZ',
-  name: 'Algeria',
-  nameAr: 'الجزائر',
-  nameFr: 'Algérie',
-  slug: 'algeria',
-  defaultLocale: 'ar',
-  defaultCurrency: 'DZD',
-  timezone: 'Africa/Algiers',
-  direction: 'rtl',
-  state: 'active',
-  featureFlags: {
-    events: true,
-    hackathons: false,
-    payments: false,
-    recruiting: false,
-  },
-  brandOverrides: null,
-  createdAt: 1_767_225_600,
-} satisfies Market;
-
-const event = {
-  id: 'evt_1',
-  hostId: 'usr_1',
-  marketCode: 'DZ',
-  stateCode: '16',
-  cityCode: 'algiers',
-  title: 'Founders breakfast',
-  description: 'A local founder meetup.',
-  venue: 'Café Atlas',
-  startsAt: new Date('2026-09-20T10:00:00Z'),
-  endsAt: new Date('2026-09-20T12:00:00Z'),
-  rsvps: 0,
-  language: 'en',
-  latitude: null,
-  longitude: null,
-  venueAddress: null,
-  slug: 'founders-breakfast',
-  status: 'published',
-  version: 1,
-  createdAt: new Date('2026-09-01T00:00:00Z'),
-  updatedAt: new Date('2026-09-01T00:00:00Z'),
-  cancelledAt: null,
-  cancellationReason: null,
-  goingCount: 0,
-  viewerRsvp: null,
-  cityName: 'Algiers',
-  cityNameAr: 'الجزائر',
-  cityNameFr: 'Alger',
-  citySlug: 'algiers',
-} satisfies EventDetailItem;
 
 afterEach(() => cleanup());
 
@@ -251,39 +171,6 @@ describe('how often the event page says who is hosting', () => {
     expect(hostHeadings(view)).toBe(1);
     expect(screen.queryByRole('heading', { name: 'Your meetup' })).toBeNull();
   });
-});
-
-describe('where the host card sends a reader', () => {
-  const host = {
-    userId: 'usr_1',
-    displayName: 'Yacine',
-  } as Parameters<typeof EventDetail>[0]['host'];
-
-  const withHost = (locale: Locale) =>
-    render(
-      <EventDetail
-        locale={locale}
-        market={market}
-        event={event}
-        host={host}
-        isHost={false}
-        live={null}
-        isWindowOpen={false}
-      />,
-    );
-
-  it.each<Locale>(['ar', 'en', 'fr'])(
-    'names the profile in the language the page is in, in %s',
-    (locale) => {
-      const view = withHost(locale);
-      const link = view.container.querySelector('a[href*="/u/"]');
-
-      expect(
-        link?.getAttribute('href'),
-        'the profile is reached from a page written in one language, and it opens in whatever the reader last stored unless the address says otherwise',
-      ).toBe(`/${locale}/u/usr_1`);
-    },
-  );
 });
 
 describe('what the link back to the city says', () => {

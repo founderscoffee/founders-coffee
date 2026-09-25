@@ -236,15 +236,20 @@ export const EventDetail = ({
           <section className="mt-6 rounded-box border border-base-300 bg-base-100 p-4">
             <h3 className="eyebrow">{event_host({}, { locale })}</h3>
             <div className="mt-3 flex items-center gap-3.5">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold">
-                {initials(hostName)}
+              <span
+                aria-hidden="true"
+                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold"
+              >
+                {initials(host?.displayName ?? '')}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-display font-semibold">
-                  {hostName}
-                </span>
+                {host ? (
+                  <span className="block font-display font-semibold">
+                    {host.displayName}
+                  </span>
+                ) : null}
                 <span className="block text-body-sm text-neutral" dir="auto">
-                  {role_host({}, { locale })} · {cityName}
+                  {cityName}
                 </span>
               </span>
               {host ? (
