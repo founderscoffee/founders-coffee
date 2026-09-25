@@ -10,7 +10,6 @@ import {
   account_delete_note,
   account_delete_subject,
   account_devices_title,
-  account_email,
   account_export,
   account_export_note,
   account_export_subject,
@@ -29,6 +28,7 @@ import {
   account_verified,
   contact_add_phone,
   contact_change_email,
+  email_label,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button, LoadingStatus, StatusMessage } from '@founders-coffee/ui';
@@ -102,7 +102,7 @@ const AccountSections = ({
       note={account_contacts_note({}, { locale })}
     >
       <AccountRow
-        label={account_email({}, { locale })}
+        label={email_label({}, { locale })}
         value={account.email.masked}
         status={
           <>
