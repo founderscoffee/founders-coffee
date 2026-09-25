@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 
 import {
+  cancel,
   telegram_group_title,
   telegram_host_connect,
   telegram_host_connected,
@@ -13,7 +14,6 @@ import {
   telegram_host_open,
   telegram_host_open_help,
   telegram_host_waiting,
-  telegram_host_withdraw,
   type Locale,
 } from '@founders-coffee/i18n';
 import { StatusMessage } from '@founders-coffee/ui';
@@ -77,7 +77,7 @@ export const TelegramHostPanel = ({
       onClick={letGo}
       disabled={disconnect.isPending}
     >
-      {telegram_host_withdraw({}, { locale })}
+      {cancel({}, { locale })}
     </button>
   );
 
