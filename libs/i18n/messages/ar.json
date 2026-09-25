@@ -552,16 +552,16 @@
   "host_edit_back_to_event": "العودة إلى اللقاء",
   "host_edit_error_conflict": "تغيّر اللقاء أثناء تعديله. أعد تحميل الصفحة وحاول مجددًا.",
   "host_edit_error_ended": "انتهى اللقاء، ولا يمكن تعديله.",
-  "host_edit_error_cancelled": "أُلغي هذا اللقاء، ولم يعد من الممكن تعديله.",
+  "host_edit_error_cancelled": "أُلغي اللقاء، ولا يمكن تعديله.",
   "host_edit_error_not_host": "المضيف وحده يمكنه تعديل هذا اللقاء.",
   "host_edit_error_generic": "تعذّر حفظ التغييرات. حاول مرة أخرى.",
-  "host_cancel_body": "سنُخبر كل من سجّل حضوره وتتوقف تذكيراتهم. لا يمكن التراجع.",
+  "host_cancel_body": "سنُخبر كل من سجّلوا حضورهم، وستتوقف تذكيراتهم. لا يمكن التراجع.",
   "host_cancel_reason_label": "اذكر السبب (اختياري)",
   "host_cancel_reason_placeholder": "طرأ أمر في المقهى…",
   "host_cancel_confirm": "نعم، ألغِ اللقاء",
   "host_cancel_keep": "احتفظ باللقاء",
   "host_cancel_error": "تعذّر إلغاء اللقاء. حاول مجددًا.",
-  "host_cancel_ended_error": "انتهى اللقاء، ولم يعد من الممكن إلغاؤه.",
+  "host_cancel_ended_error": "انتهى اللقاء، ولا يمكن إلغاؤه.",
   "host_cancelling": "جارٍ الإلغاء…",
   "live_window_closed": "تُفتح غرفة اللقاء قبل ساعة من موعده.",
   "live_status_connecting": "جارٍ الاتصال…",
@@ -795,5 +795,5 @@
   "ntf_email_event_relocated_text": "غيّر المضيف مكان «{title}». المكان الآن {address}. الموعد {date} كما هو.\n{url}",
   "host_edit_where": "المكان",
   "host_edit_venue_hint": "انقر على الخريطة أو ابحث لتغيير المكان.",
-  "host_edit_notice_change": "سيتم إرسال إشعار تغيير لجميع الحاضرين."
+  "host_edit_notice_change": "سيصل إشعار بالتغيير إلى جميع الحاضرين."
 }

@@ -493,16 +493,16 @@
   "host_edit_back_to_event": "Back to the meetup",
   "host_edit_error_conflict": "This meetup changed while you were editing it. Reload the page and try again.",
   "host_edit_error_ended": "The meetup has ended and cannot be edited.",
-  "host_edit_error_cancelled": "This meetup was cancelled and can no longer be edited.",
+  "host_edit_error_cancelled": "The meetup was cancelled and cannot be edited.",
   "host_edit_error_not_host": "Only the host can edit this meetup.",
   "host_edit_error_generic": "Could not save your changes. Please try again.",
-  "host_cancel_body": "Everyone who said yes will be told, and their reminders stop. This cannot be undone.",
+  "host_cancel_body": "Everyone who registered will be notified, and their reminders will stop. This cannot be undone.",
   "host_cancel_reason_label": "Tell them why (optional)",
   "host_cancel_reason_placeholder": "Something came up at the café…",
   "host_cancel_confirm": "Yes, cancel it",
   "host_cancel_keep": "Keep the meetup",
   "host_cancel_error": "The meetup could not be cancelled. Try again.",
-  "host_cancel_ended_error": "This meetup has already ended, so it can no longer be cancelled.",
+  "host_cancel_ended_error": "The meetup has ended and cannot be cancelled.",
   "host_cancelling": "Cancelling…",
   "live_window_closed": "The room opens an hour before the meetup starts.",
   "live_status_connecting": "Connecting…",
@@ -723,5 +723,5 @@
   "ntf_email_event_relocated_text": "The host has moved \"{title}\". It is now at {address}. It still starts {date}.\n{url}",
   "host_edit_where": "Where",
   "host_edit_venue_hint": "Click the map or search to change the place.",
-  "host_edit_notice_change": "A change notification will be sent to all attendees."
+  "host_edit_notice_change": "All attendees will receive a change notification."
 }

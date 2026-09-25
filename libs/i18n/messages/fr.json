@@ -649,7 +649,7 @@
   "host_edit_back_to_event": "Retour à la rencontre",
   "host_edit_error_conflict": "La rencontre a changé pendant sa modification. Rechargez la page et réessayez.",
   "host_edit_error_ended": "La rencontre est terminée et ne peut pas être modifiée.",
-  "host_edit_error_cancelled": "Cette rencontre a été annulée et ne peut plus être modifiée.",
+  "host_edit_error_cancelled": "La rencontre a été annulée et ne peut pas être modifiée.",
   "host_edit_error_not_host": "Seul l’hôte peut modifier cette rencontre.",
   "host_edit_error_generic": "Impossible d’enregistrer vos modifications. Réessayez.",
   "host_cancel_body": "Toutes les personnes inscrites seront prévenues et leurs rappels s’arrêteront. C’est irréversible.",
@@ -658,7 +658,7 @@
   "host_cancel_confirm": "Oui, annuler",
   "host_cancel_keep": "Garder la rencontre",
   "host_cancel_error": "La rencontre n’a pas pu être annulée. Réessayez.",
-  "host_cancel_ended_error": "La rencontre est terminée : elle ne peut plus être annulée.",
+  "host_cancel_ended_error": "La rencontre est terminée et ne peut pas être annulée.",
   "host_cancelling": "Annulation…",
   "live_window_closed": "La salle ouvre une heure avant le début.",
   "live_status_connecting": "Connexion…",
@@ -888,5 +888,5 @@
   "ntf_email_event_relocated_text": "L’hôte a déplacé « {title} ». C’est maintenant à {address}. Cela commence toujours le {date}.\n{url}",
   "host_edit_where": "Où",
   "host_edit_venue_hint": "Cliquez sur la carte ou recherchez pour changer de lieu.",
-  "host_edit_notice_change": "Une notification de changement sera envoyée à tous les participants."
+  "host_edit_notice_change": "Tous les participants recevront une notification de changement."
 }
