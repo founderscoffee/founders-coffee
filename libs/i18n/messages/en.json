@@ -551,7 +551,7 @@
   "profile_photo_saved": "Photo saved",
   "profile_photo_alt": "Your profile photo",
   "profile_photo_of": "Photo of {name}",
-  "photo_too_large": "That photo is too large. Choose one under 5 MB.",
+  "photo_too_large": "The photo is too large. Choose a smaller photo under 5 MB.",
   "photo_too_small": "That photo is too small. Use one at least 64 pixels wide.",
   "photo_unsupported": "Use a JPEG, PNG or WebP photo.",
   "photo_reservation_expired": "That took too long. Choose the photo again.",

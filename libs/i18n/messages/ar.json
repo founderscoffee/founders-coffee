@@ -610,7 +610,7 @@
   "profile_photo_saved": "تم حفظ الصورة",
   "profile_photo_alt": "صورة ملفك الشخصي",
   "profile_photo_of": "صورة {name}",
-  "photo_too_large": "هذه الصورة كبيرة جدًا. اختر واحدة أقل من 5 ميغابايت.",
+  "photo_too_large": "الصورة كبيرة جدًا. اختر صورة أصغر من 5 ميغابايت.",
   "photo_too_small": "هذه الصورة صغيرة جدًا. استخدم واحدة بعرض 64 بكسل على الأقل.",
   "photo_unsupported": "استخدم صورة بصيغة JPEG أو PNG أو WebP.",
   "photo_reservation_expired": "استغرق ذلك وقتًا طويلًا. اختر الصورة مرة أخرى.",

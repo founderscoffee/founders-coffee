@@ -707,7 +707,7 @@
   "profile_photo_saved": "Photo enregistrée",
   "profile_photo_alt": "Votre photo de profil",
   "profile_photo_of": "Photo de {name}",
-  "photo_too_large": "Cette photo est trop lourde. Choisissez-en une de moins de 5 Mo.",
+  "photo_too_large": "La photo est trop volumineuse. Choisissez-en une de moins de 5 Mo.",
   "photo_too_small": "Cette photo est trop petite. Utilisez-en une d'au moins 64 pixels de large.",
   "photo_unsupported": "Utilisez une photo JPEG, PNG ou WebP.",
   "photo_reservation_expired": "Cela a pris trop de temps. Choisissez à nouveau la photo.",
