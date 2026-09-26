@@ -15,7 +15,7 @@ type NavbarProps = {
 };
 
 const hostClass =
-  'tap-target inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 text-body font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
+  'tap-target my-1 inline-flex min-h-9 items-center rounded-full bg-primary px-3 py-1 text-center text-body-sm leading-tight font-semibold text-balance text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none sm:h-9 sm:shrink-0 sm:px-4 sm:py-0 sm:text-body sm:whitespace-nowrap';
 
 export const Navbar = ({
   locale,
@@ -30,9 +30,9 @@ export const Navbar = ({
     >
       <nav
         aria-label={brand({}, { locale })}
-        className="mx-auto flex h-14 max-w-content items-center justify-between px-4 md:h-16 md:px-8"
+        className="mx-auto flex min-h-14 max-w-content items-center justify-between gap-3 px-4 md:min-h-16 md:px-8"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <ProfileMenuDrawer locale={locale} />
           <Link
             {...localizedHome(locale, marketSlug)}
@@ -44,7 +44,7 @@ export const Navbar = ({
           </Link>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 items-center gap-1.5">
           {marketSlug ? (
             <Link
               {...localizedHostCreate(locale, marketSlug)}

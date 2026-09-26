@@ -44,7 +44,7 @@ const initials = (name: string, email: string) => {
 const LoginLink = ({ locale }: { locale: Locale }) => (
   <Link
     {...localizedLogin(locale)}
-    className="btn btn-ghost h-9 min-h-9 w-full shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200"
+    className="btn btn-ghost h-9 min-h-9 w-full shrink-0 rounded-full border-0 px-3 text-body-sm font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200 sm:px-4 sm:text-body"
   >
     {sign_in({}, { locale })}
   </Link>

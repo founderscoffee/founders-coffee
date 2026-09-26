@@ -428,12 +428,20 @@
    first visit, or a browser that refuses storage, gets `out` — which is what a first visit is.
 
    8.75rem is the Arabic label, the longest of the three; the button fills the slot rather than
-   sitting in it, so French and English render a slightly wider button instead of a gap. */
+   sitting in it, so French and English render a slightly wider button instead of a gap. Below
+   `sm` the button drops to the small type size, and 7.5rem holds the same label, which leaves a
+   phone's header the width for the host button next to the logo. */
 .auth-slot {
   display: flex;
   justify-content: flex-end;
 }
 
 :root[data-auth-slot='out'] .auth-slot {
-  min-width: 8.75rem;
+  min-width: 7.5rem;
+}
+
+@media (width >= 40rem) {
+  :root[data-auth-slot='out'] .auth-slot {
+    min-width: 8.75rem;
+  }
 }
