@@ -75,6 +75,57 @@ test.describe('Site header on a phone', () => {
   }
 });
 
+test.describe('Site header sign-in slot', () => {
+  for (const locale of LOCALES) {
+    for (const width of [390, 1280] as const) {
+      test(`reserves the width of its own label, no more (${locale}, ${width}px)`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width, height: 800 });
+        await page.goto(`/${locale}/algeria`);
+
+        const nav = page.getByRole('navigation', { name: t(locale, 'brand') });
+        const signIn = nav.getByRole('link', { name: t(locale, 'sign_in') });
+        await expect(signIn).toBeVisible();
+        await expect(page.locator('html')).toHaveAttribute(
+          'data-auth-slot',
+          'out',
+        );
+        await page.evaluate(() => document.fonts.ready);
+
+        const { reserved, label } = await signIn.evaluate(
+          (link: HTMLElement) => {
+            const slot = link.closest('.auth-slot');
+            if (!slot) throw new Error('expected sign-in inside the slot');
+            const text = document.createRange();
+            text.selectNodeContents(link);
+            const style = getComputedStyle(link);
+            const edges = [
+              style.paddingLeft,
+              style.paddingRight,
+              style.borderLeftWidth,
+              style.borderRightWidth,
+            ].reduce((sum, edge) => sum + parseFloat(edge), 0);
+            return {
+              reserved: parseFloat(getComputedStyle(slot).minWidth),
+              label: text.getBoundingClientRect().width + edges,
+            };
+          },
+        );
+
+        expect(
+          reserved,
+          'the slot is held open before the session is known; held narrower than the button, the host button jumps when sign-in appears',
+        ).toBeGreaterThanOrEqual(label);
+        expect(
+          reserved - label,
+          'the button fills the slot, so a hold sized for a longer language stretches its outline past its own label',
+        ).toBeLessThanOrEqual(6);
+      });
+    }
+  }
+});
+
 test.describe('Site header when signed in', () => {
   for (const locale of ['ar', 'en'] as const) {
     test(`ends the row with the avatar, after the host button (${locale})`, async ({

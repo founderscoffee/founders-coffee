@@ -428,9 +428,11 @@
    first visit, or a browser that refuses storage, gets `out` — which is what a first visit is.
 
    8.75rem is the Arabic label, the longest of the three; the button fills the slot rather than
-   sitting in it, so French and English render a slightly wider button instead of a gap. Below
-   `sm` the button drops to the small type size, and 7.5rem holds the same label, which leaves a
-   phone's header the width for the host button next to the logo.
+   sitting in it, so French, a few pixels shorter, renders a slightly wider button instead of a gap.
+   Below `sm` the button drops to the small type size, and 7.5rem holds the same label, which leaves
+   a phone's header the width for the host button next to the logo. English "Sign in" is half as
+   long: a slot sized for Arabic stretched its outline into a pill twice the width of "Host" beside
+   it, so English reserves its own label, 4.75rem and 5.625rem from `sm`.
 
    Signed out, the outlined sign-in comes before the filled host button, which ends the row. Signed
    in, the avatar ends it instead, where an account menu is looked for. The markup keeps the
@@ -449,8 +451,16 @@
   min-width: 7.5rem;
 }
 
+:root[data-auth-slot='out']:lang(en) .auth-slot {
+  min-width: 4.75rem;
+}
+
 @media (width >= 40rem) {
   :root[data-auth-slot='out'] .auth-slot {
     min-width: 8.75rem;
+  }
+
+  :root[data-auth-slot='out']:lang(en) .auth-slot {
+    min-width: 5.625rem;
   }
 }
