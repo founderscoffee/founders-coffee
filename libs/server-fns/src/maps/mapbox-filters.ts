@@ -1,4 +1,4 @@
-import { geo } from '@founders-coffee/domain';
+import type { geo } from '@founders-coffee/domain';
 
 import type {
   HostMapContext,
@@ -78,25 +78,6 @@ export const matchesCity = (
             withoutArticles(candidate) === withoutArticles(name)),
       ),
     );
-};
-
-/**
- * Whether a provider feature lies in the state of the city the host selected.
- *
- * The fallback for a town whose name the provider spells another way: the lookup already asked for
- * that town by name, so a place it returns inside the town's own wilaya is the town under another
- * spelling far more often than it is a neighbour. The region comes back as an ISO 3166-2 code, and
- * our state codes are not ISO, so the reviewed table in the geography makes the comparison.
- */
-export const isInCityState = (
-  feature: MapboxFeature,
-  input: MapProviderLocation & { readonly city: geo.GeoCity },
-): boolean => {
-  const isoRegion = feature.properties.context.region?.region_code_full;
-  return (
-    isoRegion !== undefined &&
-    geo.stateCodeForIso(input.marketCode, isoRegion) === input.city.stateCode
-  );
 };
 
 export const isWithinBounds = (

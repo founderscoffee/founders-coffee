@@ -5,7 +5,6 @@ import {
   distanceMeters,
   featureCountry,
   isAddressableLocation,
-  isInCityState,
   isSupportedVenue,
   isWithinBounds,
   matchesCity,
@@ -70,9 +69,9 @@ export const createMapboxProvider = (
   /**
    * The provider's own record of a city: its centre and bounds.
    *
-   * A place named like the city wins. Failing that, a place the lookup returned inside the city's
-   * own state is taken, since the lookup asked for the city by name (see `isInCityState`). Nothing
-   * in either is `map_city_not_found`, which callers treat as "search wider", not as a failure.
+   * Only a place named like the city is taken. Anything else, even a place in the city's own state,
+   * is `map_city_not_found`, which callers treat as "look wider" rather than as a failure: the map
+   * opens on the state or the market, never on a town the host did not choose.
    */
   const resolveCity = async (
     input: MapProviderLocation & { readonly city: geo.GeoCity },
@@ -88,9 +87,7 @@ export const createMapboxProvider = (
     const inMarket = result.data.filter(
       (candidate) => featureCountry(candidate) === input.marketCode,
     );
-    const feature =
-      inMarket.find((candidate) => matchesCity(candidate, input)) ??
-      inMarket.find((candidate) => isInCityState(candidate, input));
+    const feature = inMarket.find((candidate) => matchesCity(candidate, input));
     const bounds = feature?.bbox ?? feature?.properties.bbox;
     if (!feature || !bounds) {
       return err(

@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { geo } from '@founders-coffee/domain';
+import { geo, venues } from '@founders-coffee/domain';
 
 import { createMapboxProvider } from './mapbox-provider.js';
 import { cafeFeature, queuedFetcher } from './mapbox-provider.fixtures.js';
 import type { MapProviderLocation } from './provider.js';
+import { getHostMapContextResolver } from './resolver.js';
 
 const KSAR_EL_BOUKHARI = '929';
+const MEDEA_STATE = '26';
 
 const ksarElBoukhari = (): MapProviderLocation => {
   const city = geo.findCity('DZ', KSAR_EL_BOUKHARI);
@@ -58,10 +60,25 @@ describe('where the map opens for a town the provider spells its own way', () =>
     });
   });
 
-  it('takes the place the lookup found in the town’s own wilaya when no spelling lines up', async () => {
+  it('refuses a place of another name, even in the town’s own wilaya', async () => {
     const result = await viewportOf([place('Boughari', 'DZ-26')]);
 
-    expect(result.ok).toBe(true);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('map_city_not_found');
+  });
+
+  it('opens the wizard on the wilaya when Mapbox names another town', async () => {
+    const { fetcher } = queuedFetcher([[place('Boughari', 'DZ-26')]]);
+
+    const result = await getHostMapContextResolver(
+      createMapboxProvider('test-token', fetcher),
+      { marketCode: 'DZ', cityCode: KSAR_EL_BOUKHARI, locale: 'ar' },
+    );
+
+    expect(
+      result,
+      'a town Mapbox does not name as ours opens on its wilaya, never on a town the host did not ask for',
+    ).toEqual({ ok: true, data: venues.getStateViewport('DZ', MEDEA_STATE) });
   });
 
   it('prefers a place named like the town over another in its wilaya', async () => {
