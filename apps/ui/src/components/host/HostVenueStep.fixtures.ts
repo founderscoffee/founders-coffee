@@ -33,9 +33,15 @@ const lookups = vi.hoisted(() => ({
   search: null as unknown as ReturnType<typeof idle>,
 }));
 
+const cities = vi.hoisted(() => ({ list: [] as unknown[] }));
+
 vi.mock('../../features/events/hooks', () => ({
   useNearbyVenues: () => lookups.nearby,
   useVenueSearch: () => lookups.search,
+}));
+
+vi.mock('../../features/geo/hooks', () => ({
+  useCitySuggestions: () => ({ data: cities.list }),
 }));
 
 lookups.nearby = idle();
@@ -45,6 +51,11 @@ lookups.search = idle();
  * The nearby and search lookups the mocked hooks answer with, for a test to set before rendering.
  */
 export const getVenueLookups = () => lookups;
+
+/**
+ * The city suggestions the mocked hook answers with.
+ */
+export const getCitySuggestions = () => cities;
 
 type StepProps = Partial<ComponentProps<typeof HostVenueStep>>;
 
@@ -107,4 +118,5 @@ export const resetVenueStep = () => {
   cleanup();
   lookups.nearby = idle();
   lookups.search = idle();
+  cities.list = [];
 };

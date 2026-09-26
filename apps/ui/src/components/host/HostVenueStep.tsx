@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import type { geo } from '@founders-coffee/domain';
 import {
   host_nearby_venues,
   host_search_results,
@@ -11,7 +12,12 @@ import {
 } from '@founders-coffee/i18n';
 
 import { useNearbyVenues, useVenueSearch } from '../../features/events/hooks';
-import type { VenueArea, VenueSelection } from '../../features/events/types';
+import {
+  VENUE_SEARCH_INPUT_ID,
+  type VenueArea,
+  type VenueSelection,
+} from '../../features/events/types';
+import { CitySuggestions } from './CitySuggestions';
 import { HostVenueList, type VenueRow } from './HostVenueList';
 import { HostVenueNameField } from './HostVenueNameField';
 import { useVenueNotices, type VenueError } from './useVenueNotices';
@@ -47,6 +53,7 @@ type HostVenueStepProps = {
   onSearchChange: (value: string) => void;
   onVenueNameChange: (value: string) => void;
   onVenueSelect: (venue: VenueSelection) => void;
+  onCitySelect?: (city: geo.GeoCity) => void;
 };
 
 export const HostVenueStep = ({
@@ -67,6 +74,7 @@ export const HostVenueStep = ({
   onSearchChange,
   onVenueNameChange,
   onVenueSelect,
+  onCitySelect,
 }: HostVenueStepProps) => {
   const [query, setQuery] = useState('');
 
@@ -131,8 +139,22 @@ export const HostVenueStep = ({
         ? undefined
         : host_venue_empty({}, { locale });
 
+  const chooseCity = (city: geo.GeoCity) => {
+    onCitySelect?.(city);
+    document.getElementById(VENUE_SEARCH_INPUT_ID)?.focus();
+  };
+
   const results = (
     <>
+      {onCitySelect && isSearching && (
+        <CitySuggestions
+          locale={locale}
+          marketCode={marketCode}
+          query={query}
+          currentCityCode={cityCode}
+          onSelect={chooseCity}
+        />
+      )}
       {rows.length > 0 && (
         <div>
           {!overlay && (

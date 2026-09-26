@@ -491,6 +491,7 @@
   "cat_venue_restaurant": "مطعم",
   "host_step_counter": "الخطوة {current} من {total}",
   "host_search_results": "نتائج البحث",
+  "host_city_suggestions": "المدن",
   "ntf_sms_event_cancelled": "ألغى المضيف «{title}» المقرر يوم {date}.",
   "ntf_event_cancelled_title": "أُلغي: {title}",
   "ntf_email_event_cancelled_html": "<p>ألغى المضيف <strong>{title}</strong> المقرر يوم {date} في {venue}.</p><p>لا داعي للحضور.</p><p><a href=\"{url}\">صفحة اللقاء</a></p>",

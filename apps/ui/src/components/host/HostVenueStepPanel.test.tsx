@@ -1,7 +1,8 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  getCitySuggestions,
   idle,
   getVenueLookups,
   resetVenueStep,
@@ -12,6 +13,7 @@ import {
 afterEach(resetVenueStep);
 
 const lookups = getVenueLookups();
+const cities = getCitySuggestions();
 
 const CAFE = {
   providerId: 'osm:node/1',
@@ -23,6 +25,9 @@ const CAFE = {
   category: 'cafe' as const,
   eligible: true,
 };
+const MEDEA = { code: '26', name: 'Medea', nameAr: 'المدية' };
+const KSAR = { code: '929', stateCode: '26', name: 'Ksar El Boukhari' };
+const ALGIERS = { code: '556', stateCode: '16', name: 'Alger' };
 
 const panel = (isCollapsed: boolean) => ({
   isCollapsed,
@@ -71,5 +76,35 @@ describe('the venue step floating over the map', () => {
       venueHint().closest('.max-lg\\:hidden'),
       'with no header to open it again, a folded empty panel hid its hint for good',
     ).toBeNull();
+  });
+});
+
+describe('the venue step when the wizard can move to another city', () => {
+  it('offers the cities a search names, leaving out the one the map is on', () => {
+    cities.list = [
+      { city: ALGIERS, state: { code: '16', name: 'Alger' } },
+      { city: KSAR, state: MEDEA },
+    ];
+    const onCitySelect = vi.fn();
+    showVenueStep('ks', undefined, { onCitySelect });
+
+    const offered = within(
+      screen.getByRole('list', { name: 'Cities' }),
+    ).getAllByRole('button');
+    expect(offered).toHaveLength(1);
+    fireEvent.click(offered[0]);
+
+    expect(onCitySelect).toHaveBeenCalledWith(KSAR);
+    expect(
+      document.activeElement,
+      'the suggestion leaves with the query, so the search box takes the focus back',
+    ).toBe(screen.getByRole('combobox'));
+  });
+
+  it('offers none where the step cannot move, as when a meetup is edited', () => {
+    cities.list = [{ city: KSAR, state: MEDEA }];
+    showVenueStep('ks');
+
+    expect(screen.queryByRole('list', { name: 'Cities' })).toBeNull();
   });
 });

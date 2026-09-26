@@ -15,3 +15,5 @@ export type VenueArea = {
 };
 
 export const VENUE_SEARCH_MAX_LENGTH = 500;
+
+export const VENUE_SEARCH_INPUT_ID = 'venue-search';

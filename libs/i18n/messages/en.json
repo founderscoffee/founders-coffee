@@ -432,6 +432,7 @@
   "cat_venue_restaurant": "Restaurant",
   "host_step_counter": "Step {current} of {total}",
   "host_search_results": "Search results",
+  "host_city_suggestions": "Cities",
   "ntf_sms_event_cancelled": "The host cancelled \"{title}\" on {date}.",
   "ntf_event_cancelled_title": "Cancelled: {title}",
   "ntf_email_event_cancelled_html": "<p>The host cancelled <strong>{title}</strong>, scheduled for {date} at {venue}.</p><p>There is no need to go.</p><p><a href=\"{url}\">See the event page</a></p>",

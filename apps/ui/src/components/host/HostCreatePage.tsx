@@ -28,6 +28,7 @@ import { HostVenueLine } from './HostVenueLine';
 import { HostVenueStep } from './HostVenueStep';
 import { HostWizardActions } from './HostWizardActions';
 import { HostWizardHeader } from './HostWizardHeader';
+import { useCitySwitch } from './useCitySwitch';
 import { useStepFocus } from './useStepFocus';
 import { useVenueOverlay } from './useVenueOverlay';
 import { WizardSteps } from './WizardSteps';
@@ -53,6 +54,7 @@ export const HostCreatePage = ({
 }: HostCreatePageProps) => {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [mapCenter, setMapCenter] = useState<{
+    cityCode?: string;
     latitude: number;
     longitude: number;
   } | null>(null);
@@ -73,8 +75,16 @@ export const HostCreatePage = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   useStepFocus(wizard.step, headingRef, scrollRef);
   const venueOverlay = useVenueOverlay();
+  const switchCity = useCitySwitch({
+    locale,
+    marketSlug: market.slug,
+    onSwitch: () => {
+      wizard.clearVenue();
+      venueOverlay.open();
+    },
+  });
 
-  const listCenter = mapCenter ??
+  const listCenter = (mapCenter?.cityCode === city?.code ? mapCenter : null) ??
     wizard.venue ??
     mapContext.data?.center ?? { latitude: 0, longitude: 0 };
   const marketName = localizedName(market, locale);
@@ -191,6 +201,7 @@ export const HostCreatePage = ({
                   }}
                   onVenueNameChange={wizard.setVenueName}
                   onVenueSelect={wizard.selectVenue}
+                  onCitySelect={wizard.isRepeat ? undefined : switchCity}
                 />
               )}
 
@@ -260,7 +271,9 @@ export const HostCreatePage = ({
             wizard.selectVenue(venue);
           }}
           onVenueInvalidate={wizard.clearVenue}
-          onCenterChange={setMapCenter}
+          onCenterChange={(center) =>
+            setMapCenter({ ...center, cityCode: city?.code })
+          }
           onUserMove={venueOverlay.fold}
         />
       </div>

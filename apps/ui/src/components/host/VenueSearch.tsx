@@ -9,6 +9,7 @@ import {
 import { LoadingStatus } from '@founders-coffee/ui';
 
 import {
+  VENUE_SEARCH_INPUT_ID,
   VENUE_SEARCH_MAX_LENGTH,
   type VenueArea,
 } from '../../features/events/types';
@@ -35,11 +36,11 @@ export const VenueSearch = ({
   onChange,
 }: VenueSearchProps) => (
   <div>
-    <label className="sr-only" htmlFor="venue-search">
+    <label className="sr-only" htmlFor={VENUE_SEARCH_INPUT_ID}>
       {host_venue_search_label({}, { locale })}
     </label>
     <input
-      id="venue-search"
+      id={VENUE_SEARCH_INPUT_ID}
       maxLength={VENUE_SEARCH_MAX_LENGTH}
       type="search"
       role="combobox"

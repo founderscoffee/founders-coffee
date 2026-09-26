@@ -14,6 +14,9 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }));
 
+vi.mock('../../geo/hooks', () => ({
+  useCitySuggestions: () => ({ data: [] }),
+}));
 vi.mock('../hooks', () => ({
   useEventById: () => ({
     data: state.event,

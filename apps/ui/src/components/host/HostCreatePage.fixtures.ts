@@ -22,6 +22,7 @@ const hostCreateMocks = vi.hoisted(() => ({
   isLoading: false,
   nearbyVenues: [] as unknown[],
   venueSearch: [] as unknown[],
+  citySuggestions: [] as unknown[],
   sendVerificationOtp: vi.fn(),
   signInEmailOtp: vi.fn(),
   signInSocial: vi.fn(),
@@ -57,6 +58,7 @@ const applyDefaultHostCreateMocks = () => {
   hostCreateMocks.mapContext.data = READY_MAP_CONTEXT;
   hostCreateMocks.nearbyVenues = [];
   hostCreateMocks.venueSearch = [];
+  hostCreateMocks.citySuggestions = [];
   hostCreateMocks.mapContext.isError = false;
   hostCreateMocks.mapContext.error = null;
 };
@@ -137,6 +139,10 @@ vi.mock('../../features/events/hooks', () => ({
     isFetching: false,
     refetch: vi.fn(),
   }),
+}));
+
+vi.mock('../../features/geo/hooks', () => ({
+  useCitySuggestions: () => ({ data: hostCreateMocks.citySuggestions }),
 }));
 
 vi.mock('./ClientOnly', () => ({

@@ -1,4 +1,5 @@
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -182,10 +183,18 @@ export const useInvalidateCreatedEvent = () => {
     );
 };
 
+/**
+ * Where the host wizard's map opens: the city's viewport, or the country's without a city.
+ *
+ * A host who picks another city from the search keeps the last viewport until the next one is in,
+ * so the map moves across to it rather than dropping back to its skeleton, and the search box they
+ * are typing in stays enabled. A first load still has nothing to show, and waits.
+ */
 export const useHostMapContext = (input: HostMapLocationInput) =>
   useQuery<HostMapContext>({
     queryKey: ['events', 'host-map', input],
     queryFn: () => eventsApi.getHostMapContext({ data: input }),
+    placeholderData: keepPreviousData,
     staleTime: 30 * 60_000,
     retry: false,
   });
