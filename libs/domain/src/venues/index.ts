@@ -134,9 +134,7 @@ export const getMarketViewport = (marketCode: string): Viewport | null =>
 /**
  * The map viewport for one state, as the union of its snapshotted cities' bounds.
  *
- * Where the map opens for a town the map provider cannot place (#120): the town's own state is far
- * closer than the whole market, and the snapshot holds a city in most of them (in Algeria, the
- * wilaya's capital). `null` where it holds none, so the caller can widen to the market.
+ * `null` where the snapshot holds no city in that state.
  */
 export const getStateViewport = (
   marketCode: string,
@@ -148,6 +146,19 @@ export const getStateViewport = (
         findCity(marketCode, snapshot.cityCode)?.stateCode === stateCode,
     ),
   );
+
+/**
+ * Where the map opens for a town the map provider cannot place (#120).
+ *
+ * The town's own state is far closer than the whole market, and the snapshot holds a city in each
+ * state it covers (in Algeria, the wilaya's capital). A state it does not cover widens to the
+ * market, so a new state or a failed snapshot costs a zoom rather than the map.
+ */
+export const getUnplacedTownViewport = (
+  marketCode: string,
+  stateCode: string,
+): Viewport | null =>
+  getStateViewport(marketCode, stateCode) ?? getMarketViewport(marketCode);
 
 /**
  * Snapshotted venues nearest a point, across the whole market.

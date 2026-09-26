@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { AppError, err, ok } from '@founders-coffee/core';
-import { geo, venues as venuesDomain } from '@founders-coffee/domain';
+import { venues as venuesDomain } from '@founders-coffee/domain';
 
 import type { MapProvider } from './provider.js';
 import {
@@ -127,27 +127,6 @@ describe('map resolvers', () => {
     ).toEqual({
       ok: true,
       data: venuesDomain.getStateViewport('DZ', MEDEA_STATE),
-    });
-  });
-
-  it('opens on the market when the town’s wilaya has no snapshotted city either', async () => {
-    const town = geo
-      .getStates('DZ')
-      .flatMap((state) =>
-        venuesDomain.getStateViewport('DZ', state.code) === null
-          ? geo.getCities('DZ', state.code)
-          : [],
-      )[0];
-    if (!town) throw new Error('every wilaya has a snapshotted city now');
-
-    const result = await getHostMapContextResolver(unplaced, {
-      ...location,
-      cityCode: town.code,
-    });
-
-    expect(result).toEqual({
-      ok: true,
-      data: venuesDomain.getMarketViewport('DZ'),
     });
   });
 

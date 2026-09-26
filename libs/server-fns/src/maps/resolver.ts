@@ -90,8 +90,7 @@ export const getHostMapContextResolver = async (
   const city = location.data.city;
   const wider =
     result.error.code === 'map_city_not_found' && city
-      ? (venuesDomain.getStateViewport(input.marketCode, city.stateCode) ??
-        venuesDomain.getMarketViewport(input.marketCode))
+      ? venuesDomain.getUnplacedTownViewport(input.marketCode, city.stateCode)
       : null;
   return wider
     ? { ok: true, data: { center: wider.center, bounds: wider.bounds } }

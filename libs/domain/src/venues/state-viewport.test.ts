@@ -7,6 +7,7 @@ import {
   getCityViewportSnapshot,
   getMarketViewport,
   getStateViewport,
+  getUnplacedTownViewport,
 } from './index.js';
 
 const ALGIERS = '556';
@@ -49,5 +50,25 @@ describe('getStateViewport', () => {
   it('returns nothing for a state with no snapshotted city', () => {
     expect(getStateViewport('DZ', 'no-such-state')).toBeNull();
     expect(getStateViewport('XX', MEDEA_STATE)).toBeNull();
+  });
+});
+
+describe('getUnplacedTownViewport', () => {
+  it('opens on the town’s state where the snapshot holds a city in it', () => {
+    const state = getStateViewport('DZ', MEDEA_STATE);
+
+    expect(state).not.toBeNull();
+    expect(getUnplacedTownViewport('DZ', MEDEA_STATE)).toEqual(state);
+  });
+
+  it('widens to the market for a state the snapshot does not cover', () => {
+    const market = getMarketViewport('DZ');
+
+    expect(market).not.toBeNull();
+    expect(getUnplacedTownViewport('DZ', 'no-such-state')).toEqual(market);
+  });
+
+  it('has nowhere to open in a market with no snapshot', () => {
+    expect(getUnplacedTownViewport('XX', MEDEA_STATE)).toBeNull();
   });
 });
