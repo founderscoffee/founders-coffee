@@ -9,6 +9,7 @@ export default defineConfig({
       'dev-seed/**/*.test.mjs',
       'eslint/**/*.test.mjs',
       'geo/**/*.test.mjs',
+      'osm/**/*.test.mjs',
       'release/**/*.test.mjs',
       'local-state/**/*.test.mjs',
       'seo/**/*.test.mjs',
