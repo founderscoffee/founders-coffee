@@ -39,7 +39,6 @@ type HostVenueStepProps = {
   hideNameField?: boolean;
   boundedList?: boolean;
   isDisabled: boolean;
-  unavailableReason?: string;
   onSearchChange: (value: string) => void;
   onVenueNameChange: (value: string) => void;
   onVenueSelect: (venue: VenueSelection) => void;
@@ -58,7 +57,6 @@ export const HostVenueStep = ({
   hideNameField = false,
   boundedList = false,
   isDisabled,
-  unavailableReason,
   onSearchChange,
   onVenueNameChange,
   onVenueSelect,
@@ -143,9 +141,6 @@ export const HostVenueStep = ({
         onChange={onSearchChange}
         onRetry={() => void search.refetch()}
       />
-      {isDisabled && unavailableReason ? (
-        <StatusMessage variant="error">{unavailableReason}</StatusMessage>
-      ) : null}
       <div
         className={boundedList ? 'max-h-72 overflow-y-auto pe-1' : undefined}
       >

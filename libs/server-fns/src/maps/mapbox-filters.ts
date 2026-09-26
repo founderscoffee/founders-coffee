@@ -1,4 +1,5 @@
-import type { geo } from '@founders-coffee/domain';
+import { geo } from '@founders-coffee/domain';
+
 import type {
   HostMapContext,
   MapProviderLocation,
@@ -21,6 +22,14 @@ const normalize = (value: string): string =>
 
 export const featureCountry = (feature: MapboxFeature): string | undefined =>
   feature.properties.context.country?.country_code?.toUpperCase();
+
+const ARTICLES = new Set(['el', 'al']);
+
+const withoutArticles = (name: string): string =>
+  name
+    .split(' ')
+    .filter((word) => !ARTICLES.has(word))
+    .join(' ');
 
 const cityNames = (
   input: MapProviderLocation & { readonly city: geo.GeoCity },
@@ -48,6 +57,10 @@ const featureCityNames = (feature: MapboxFeature): readonly string[] =>
  * `الجزائر العاصمة` — and no string comparison relates those, so filtering venues by name left the
  * host wizard unusable in French. Venue geography is decided by the city's own bounding box and by
  * distance from the point the host tapped, both of which are language-independent.
+ *
+ * Two names that differ only by the Arabic article also match: the geography holds
+ * `Ksar El Boukhari` where Mapbox has `Ksar Boukhari` (#120). Only equality counts once the article
+ * is gone, because containment would let `El Oued` claim every `Oued …` in the country.
  */
 export const matchesCity = (
   feature: MapboxFeature,
@@ -57,8 +70,33 @@ export const matchesCity = (
   return featureCityNames(feature)
     .map(normalize)
     .some((candidate) =>
-      expected.some((name) => candidate === name || candidate.includes(name)),
+      expected.some(
+        (name) =>
+          candidate === name ||
+          candidate.includes(name) ||
+          (withoutArticles(candidate) !== '' &&
+            withoutArticles(candidate) === withoutArticles(name)),
+      ),
     );
+};
+
+/**
+ * Whether a provider feature lies in the state of the city the host selected.
+ *
+ * The fallback for a town whose name the provider spells another way: the lookup already asked for
+ * that town by name, so a place it returns inside the town's own wilaya is the town under another
+ * spelling far more often than it is a neighbour. The region comes back as an ISO 3166-2 code, and
+ * our state codes are not ISO, so the reviewed table in the geography makes the comparison.
+ */
+export const isInCityState = (
+  feature: MapboxFeature,
+  input: MapProviderLocation & { readonly city: geo.GeoCity },
+): boolean => {
+  const isoRegion = feature.properties.context.region?.region_code_full;
+  return (
+    isoRegion !== undefined &&
+    geo.stateCodeForIso(input.marketCode, isoRegion) === input.city.stateCode
+  );
 };
 
 export const isWithinBounds = (

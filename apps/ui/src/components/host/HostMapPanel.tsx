@@ -1,6 +1,12 @@
 import { lazy, Suspense } from 'react';
 
-import { host_map_error, retry, type Locale } from '@founders-coffee/i18n';
+import { appErrorCode } from '@founders-coffee/core';
+import {
+  host_map_error,
+  host_venue_rate_limited,
+  retry,
+  type Locale,
+} from '@founders-coffee/i18n';
 import { Button, StatusMessage } from '@founders-coffee/ui';
 
 import type { VenueSelection } from '../../features/events/types';
@@ -18,7 +24,7 @@ export const HostMapPanel = ({
   cityCode,
   venue,
   viewport,
-  isError,
+  error,
   isInteractive,
   onRetry,
   onVenueSelect,
@@ -31,7 +37,7 @@ export const HostMapPanel = ({
   cityCode?: string;
   venue: VenueSelection | null;
   viewport: React.ComponentProps<typeof HostMap>['viewport'] | undefined;
-  isError: boolean;
+  error: unknown;
   isInteractive: boolean;
   onRetry: () => void;
   onVenueSelect: (venue: VenueSelection) => void;
@@ -53,7 +59,7 @@ export const HostMapPanel = ({
           onVenueInvalidate={onVenueInvalidate}
           onCenterChange={onCenterChange}
         />
-      ) : isError ? (
+      ) : error ? (
         <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">
           <StatusMessage
             variant="error"
@@ -63,7 +69,9 @@ export const HostMapPanel = ({
               </Button>
             }
           >
-            {host_map_error({}, { locale })}
+            {appErrorCode(error) === 'rate_limited'
+              ? host_venue_rate_limited({}, { locale })
+              : host_map_error({}, { locale })}
           </StatusMessage>
         </div>
       ) : (

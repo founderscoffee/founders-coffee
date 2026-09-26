@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { AppError, err, ok } from '@founders-coffee/core';
-import { venues as venuesDomain } from '@founders-coffee/domain';
+import { geo, venues as venuesDomain } from '@founders-coffee/domain';
 
 import type { MapProvider } from './provider.js';
 import {
@@ -98,6 +98,73 @@ describe('map resolvers', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+  });
+
+  const unplaced: MapProvider = {
+    ...provider,
+    getCityViewport: async () =>
+      err(
+        new AppError('map_city_not_found', 'Map provider could not place it'),
+      ),
+  };
+
+  it('opens on the town’s wilaya when the provider cannot place a town we know', async () => {
+    const KSAR_EL_BOUKHARI = '929';
+    const MEDEA_STATE = '26';
+    expect(
+      venuesDomain.getCityViewportSnapshot('DZ', KSAR_EL_BOUKHARI),
+      'a town in the snapshot never asks the provider, so it cannot test this',
+    ).toBeNull();
+
+    const result = await getHostMapContextResolver(unplaced, {
+      ...location,
+      cityCode: KSAR_EL_BOUKHARI,
+    });
+
+    expect(
+      result,
+      'the pin the host drops decides the city anyway; refusing the map left the step with no way forward (#120)',
+    ).toEqual({
+      ok: true,
+      data: venuesDomain.getStateViewport('DZ', MEDEA_STATE),
+    });
+  });
+
+  it('opens on the market when the town’s wilaya has no snapshotted city either', async () => {
+    const town = geo
+      .getStates('DZ')
+      .flatMap((state) =>
+        venuesDomain.getStateViewport('DZ', state.code) === null
+          ? geo.getCities('DZ', state.code)
+          : [],
+      )[0];
+    if (!town) throw new Error('every wilaya has a snapshotted city now');
+
+    const result = await getHostMapContextResolver(unplaced, {
+      ...location,
+      cityCode: town.code,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      data: venuesDomain.getMarketViewport('DZ'),
+    });
+  });
+
+  it('still reports a provider that is down rather than opening somewhere else', async () => {
+    const down: MapProvider = {
+      ...provider,
+      getCityViewport: async () =>
+        err(new AppError('map_provider_unavailable', 'Map provider is down')),
+    };
+
+    const result = await getHostMapContextResolver(down, {
+      ...location,
+      cityCode: '929',
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('map_provider_unavailable');
   });
 
   const CONSTANTINE = '891';

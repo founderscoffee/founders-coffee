@@ -1,12 +1,6 @@
 import { useState } from 'react';
 
-import { appErrorCode } from '@founders-coffee/core';
-import {
-  host_edit_venue_hint,
-  host_venue_rate_limited,
-  host_venue_search_error,
-  type Locale,
-} from '@founders-coffee/i18n';
+import { host_edit_venue_hint, type Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 import { HostMapPanel } from '../../../components/host/HostMapPanel';
@@ -42,11 +36,6 @@ export const EventEditVenue = ({
     cityCode: event.cityCode,
     locale,
   });
-  const mapContextError = mapContext.isError
-    ? appErrorCode(mapContext.error) === 'rate_limited'
-      ? host_venue_rate_limited({}, { locale })
-      : host_venue_search_error({}, { locale })
-    : undefined;
   const cityName = eventCityName(event, locale);
   const listCenter = center ??
     venue ??
@@ -62,7 +51,7 @@ export const EventEditVenue = ({
           cityCode={event.cityCode}
           venue={venue}
           viewport={mapContext.data}
-          isError={mapContext.isError}
+          error={mapContext.error}
           isInteractive
           onRetry={() => void mapContext.refetch()}
           onVenueSelect={onVenueSelect}
@@ -85,7 +74,6 @@ export const EventEditVenue = ({
         hideNameField
         boundedList
         isDisabled={!mapContext.data}
-        unavailableReason={mapContextError}
         onSearchChange={onSearchChange}
         onVenueNameChange={() => undefined}
         onVenueSelect={onVenueSelect}

@@ -35,6 +35,24 @@ describe('HostCreatePage EC-07 flow', () => {
     ).toBeTruthy();
   });
 
+  it('says once, where the map should be, that the map could not load', async () => {
+    hostCreateMocks.mapContext.data = undefined;
+    hostCreateMocks.mapContext.isError = true;
+    hostCreateMocks.mapContext.error = new AppError(
+      'map_provider_unavailable',
+      'Map provider request failed',
+    );
+    renderHostCreateWizard();
+
+    expect(
+      await screen.findByText('Could not load the venue map.'),
+    ).toBeTruthy();
+    expect(
+      screen.queryByText('Could not search venues right now.'),
+      'one failed request showed two errors, and the second blamed a search nobody had run (#120)',
+    ).toBeNull();
+  });
+
   it('submits the complete confirmed draft and stays retryable after failure', async () => {
     hostCreateMocks.mutateAsync.mockRejectedValueOnce(
       new Error('creation failed'),

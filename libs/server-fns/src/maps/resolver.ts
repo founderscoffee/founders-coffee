@@ -62,6 +62,12 @@ const recordFailure = (
  * without touching the map provider at all — one fewer billed request on every wizard open, and one
  * fewer thing that can rate-limit the search box. Cities outside the snapshot still ask the
  * provider.
+ *
+ * A town we know that the provider cannot place opens on its state instead, or on the market when
+ * the snapshot holds no city in that state, as the wizard does with no city at all. The point the
+ * host picks decides the city in the end, so a map that starts wider costs a zoom, while no map left
+ * the step with no way forward (#120). An unknown city code and a provider that is down still fail:
+ * neither is a town the provider merely spells otherwise.
  */
 export const getHostMapContextResolver = async (
   provider: MapProvider,
@@ -79,8 +85,17 @@ export const getHostMapContextResolver = async (
     };
   }
   const result = await provider.getCityViewport(location.data);
-  if (!result.ok) recordFailure(provider, 'city_viewport', input, result.error);
-  return result;
+  if (result.ok) return result;
+  recordFailure(provider, 'city_viewport', input, result.error);
+  const city = location.data.city;
+  const wider =
+    result.error.code === 'map_city_not_found' && city
+      ? (venuesDomain.getStateViewport(input.marketCode, city.stateCode) ??
+        venuesDomain.getMarketViewport(input.marketCode))
+      : null;
+  return wider
+    ? { ok: true, data: { center: wider.center, bounds: wider.bounds } }
+    : result;
 };
 
 /**
