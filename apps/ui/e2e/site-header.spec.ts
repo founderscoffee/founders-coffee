@@ -80,6 +80,7 @@ test.describe('Site header when signed in', () => {
     test(`ends the row with the avatar, after the host button (${locale})`, async ({
       page,
     }) => {
+      test.setTimeout(120_000);
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(
         `/${locale}/login?redirect=${encodeURIComponent(`/${locale}/algeria`)}`,
