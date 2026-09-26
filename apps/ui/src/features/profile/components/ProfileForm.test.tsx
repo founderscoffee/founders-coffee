@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  profile_languages_label,
   profile_photo_card_subtitle,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -35,7 +36,7 @@ const show = (profile: UserProfile = saved) =>
   render(
     <ProfileForm profile={profile} locale="en" onReload={state.refetch} />,
   );
-const intro = () => screen.getByLabelText('A short introduction');
+const intro = () => screen.getByLabelText('About you');
 
 afterEach(() => {
   cleanup();
@@ -60,7 +61,7 @@ describe('PF-06 simplified photo card', () => {
       expect(card?.querySelector('p')?.textContent).toBe(
         profile_photo_card_subtitle({}, { locale }),
       );
-      expect(card?.querySelectorAll('input[type="checkbox"]')).toHaveLength(3);
+      expect(card?.querySelectorAll('input[type="checkbox"]')).toHaveLength(6);
       expect(card?.querySelector('img')).not.toBeNull();
       expect(card?.querySelector('#profile-name')).not.toBeNull();
       expect(card?.querySelector('#profile-intro')).not.toBeNull();
@@ -79,10 +80,7 @@ describe('PF-06 simplified photo card', () => {
 
 describe('PF-04b optional fields', () => {
   it.each([
-    [
-      'ar',
-      ['مؤسسون مشاركون', 'الشراكات', 'تبادل الخبرات', 'تعلّم مهارات جديدة'],
-    ],
+    ['ar', ['شركاء مؤسسون', 'الشراكات', 'تبادل الخبرات', 'تعلّم مهارات جديدة']],
     [
       'fr',
       [
@@ -104,7 +102,7 @@ describe('PF-04b optional fields', () => {
   ] as const)(
     'offers collaboration and learning interests in %s without the language hint',
     (locale, labels) => {
-      const { container } = render(
+      render(
         <ProfileForm
           profile={saved}
           locale={locale}
@@ -116,8 +114,10 @@ describe('PF-04b optional fields', () => {
         fireEvent.click(button);
         expect(button.getAttribute('aria-pressed')).toBe('true');
       }
-      const languageGroup = container.querySelectorAll('[role="group"]')[1];
-      expect(languageGroup?.parentElement?.querySelector('p')).toBeNull();
+      const languageGroup = screen.getByRole('group', {
+        name: profile_languages_label({}, { locale }),
+      });
+      expect(languageGroup.parentElement?.querySelector('p')).toBeNull();
     },
   );
   it('offers investing, development, building and idea interests', () => {
@@ -125,7 +125,7 @@ describe('PF-04b optional fields', () => {
     for (const name of [
       'Investing',
       'Software development',
-      'Building products',
+      'Product development',
       'Validating ideas',
     ]) {
       const button = screen.getByRole('button', { name });
@@ -146,7 +146,7 @@ describe('PF-04b optional fields', () => {
     ];
     for (const name of languages)
       fireEvent.click(screen.getByRole('button', { name }));
-    fireEvent.click(screen.getByLabelText('Show publicly: Languages I speak'));
+    fireEvent.click(screen.getByLabelText('Show publicly: Languages'));
     for (const name of languages) {
       expect(
         screen.getByRole('button', { name }).getAttribute('aria-pressed'),
@@ -171,9 +171,7 @@ describe('PF-04b optional fields', () => {
     expect((intro() as HTMLTextAreaElement).value).toBe(
       'Building small tools.',
     );
-    expect(
-      screen.queryByLabelText('Show publicly: A short introduction'),
-    ).toBeNull();
+    expect(screen.queryByLabelText('Show publicly: About you')).toBeNull();
     expect(screen.queryByLabelText('Writing language')).toBeNull();
     fireEvent.change(intro(), { target: { value: '' } });
     expect((intro() as HTMLTextAreaElement).value).toBe('');
@@ -182,7 +180,7 @@ describe('PF-04b optional fields', () => {
   it('keeps publication controls for interests', () => {
     show();
     const toggle = screen.getByLabelText(
-      'Show publicly: My interests',
+      'Show publicly: Interests',
     ) as HTMLInputElement;
     expect(toggle.disabled).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: 'Investing' }));
@@ -198,7 +196,7 @@ describe('PF-04b optional fields', () => {
       'Product',
       'Design',
       'Engineering',
-      'Finding customers',
+      'Customer acquisition',
     ];
     for (const topic of topics) {
       fireEvent.click(screen.getByRole('button', { name: topic }));

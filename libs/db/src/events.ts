@@ -9,7 +9,7 @@ import {
   type NewEvent,
 } from './schema.js';
 
-const ASSUMED_DURATION_SECONDS = 2 * 60 * 60;
+export const ASSUMED_DURATION_SECONDS = 2 * 60 * 60;
 
 /**
  * The published events a visitor can still turn up to.

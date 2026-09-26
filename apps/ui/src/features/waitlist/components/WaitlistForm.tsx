@@ -1,16 +1,17 @@
 import { appErrorCode } from '@founders-coffee/core';
 import {
+  cityInputs,
+  email_label,
   hero_waitlist_already,
   hero_waitlist_error,
   hero_waitlist_invalid_email,
-  hero_waitlist_placeholder,
   hero_waitlist_submit,
   hero_waitlist_submitting,
   hero_waitlist_success,
   type Locale,
 } from '@founders-coffee/i18n';
 import { useState } from 'react';
-import { Turnstile } from '@founders-coffee/ui';
+import { StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../../../components/company/LegalNotice';
 import { usePublicAuthConfig } from '../../auth/hooks';
@@ -83,7 +84,7 @@ export const WaitlistForm = ({
   if (joinWaitlist.isSuccess && !localError) {
     return (
       <p className="mt-3 text-center text-sm text-success">
-        ✓ {hero_waitlist_success({ city: cityName }, { locale })}
+        ✓ {hero_waitlist_success(cityInputs(cityName), { locale })}
       </p>
     );
   }
@@ -101,8 +102,8 @@ export const WaitlistForm = ({
             setEmail(e.target.value);
             if (localError) setLocalError(null);
           }}
-          placeholder={hero_waitlist_placeholder({}, { locale })}
-          aria-label={hero_waitlist_placeholder({}, { locale })}
+          placeholder={email_label({}, { locale })}
+          aria-label={email_label({}, { locale })}
           aria-invalid={!!localError}
           className="input input-bordered h-10 flex-1 text-sm"
           disabled={joinWaitlist.isPending}
@@ -129,9 +130,7 @@ export const WaitlistForm = ({
         />
       )}
       {localError && (
-        <p className="text-xs text-error" role="alert">
-          {localError}
-        </p>
+        <StatusMessage variant="error">{localError}</StatusMessage>
       )}
       <LegalNotice locale={locale} className="text-start sm:text-center" />
     </div>

@@ -1,17 +1,19 @@
 import { Link } from '@tanstack/react-router';
-import { Plus, UsersRound } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import type { Market } from '@founders-coffee/db';
 import {
-  city_empty_cta,
+  hero_empty_cta,
+  city_hosts_count,
+  city_upcoming_count,
   host_in_your_city,
   localizedName,
   market_cities,
-  this_week_n,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { TrendingSection } from '@founders-coffee/server-fns';
 import { localizedCity, localizedHostCreate } from '../../lib/locale-routing';
+import { AvatarGroup } from '../events/AvatarGroup';
 
 const CITY_CARD_COUNT = 11;
 
@@ -43,7 +45,7 @@ export const TrendingStates = ({
         aria-label={marketName}
         className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
       >
-        {cities.map(({ city, count }) => {
+        {cities.map(({ city, count, hosts, hostCount }) => {
           const headingId = `market-city-${market.slug}-${city.slug}`;
           return (
             <li key={city.code} className="h-full">
@@ -66,24 +68,23 @@ export const TrendingStates = ({
                     >
                       {localizedName(city, locale)}
                     </h3>
-                    {count > 0 ? (
-                      <span className="flex shrink-0 items-center gap-1 text-accent">
-                        <UsersRound className="size-4" aria-hidden="true" />
-                        <data
-                          value={count}
-                          className="font-display text-body-lg font-semibold leading-none"
-                        >
-                          {count > 99 ? '+99' : count}
-                        </data>
-                      </span>
+                    {hosts.length > 0 ? (
+                      <AvatarGroup
+                        faces={hosts}
+                        more={hostCount - hosts.length}
+                        label={city_hosts_count(
+                          { count: hostCount },
+                          { locale },
+                        )}
+                      />
                     ) : null}
                   </header>
                   <p
                     className={`mt-auto text-body-sm font-medium ${count > 0 ? 'text-neutral' : 'text-accent'}`}
                   >
                     {count > 0
-                      ? this_week_n({ n: count }, { locale })
-                      : city_empty_cta({}, { locale })}
+                      ? city_upcoming_count({ count }, { locale })
+                      : hero_empty_cta({}, { locale })}
                   </p>
                 </article>
               </Link>

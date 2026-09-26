@@ -54,7 +54,9 @@ describe('profile form action feedback', () => {
       screen.getByRole('button', { name: 'Dismiss notification' }),
     );
     expect(screen.queryByRole('alert')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Reload profile' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Reload your profile' }),
+    ).toBeTruthy();
     state.save.mockResolvedValue({
       ...savedProfile,
       displayName: 'Edited name',
@@ -64,7 +66,9 @@ describe('profile form action feedback', () => {
     expect((await screen.findByRole('status')).className).toContain(
       'alert-success',
     );
-    expect(screen.queryByRole('button', { name: 'Reload profile' })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Reload your profile' }),
+    ).toBeNull();
   });
 
   it.each([undefined, new Error('offline')])(
@@ -76,9 +80,11 @@ describe('profile form action feedback', () => {
       show();
       save();
       await screen.findByRole('alert');
-      fireEvent.click(screen.getByRole('button', { name: 'Reload profile' }));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Reload your profile' }),
+      );
       await waitFor(() =>
-        expect(screen.getByRole('alert').textContent).toContain('could not'),
+        expect(screen.getByRole('alert').textContent).toContain('Could not'),
       );
       expect(screen.getByRole('alert').closest('.toast')).not.toBeNull();
     },

@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { createAuth } from './auth.js';
 import { getSession, requireRole } from './middleware.js';
 import { DevEmailProvider } from './providers/email.js';
+import { sessionTokenFromCookie } from './session-cookie.js';
 
 const authEnv = {
   DB: env.DB,
@@ -31,6 +32,30 @@ const post = (path: string, body: unknown, cookie?: string): Request => {
     headers,
     body: JSON.stringify(body),
   });
+};
+
+const SESSION_COOKIE = '__Secure-better-auth.session_token';
+
+const signIn = async (email: string) => {
+  const emailProvider = new DevEmailProvider();
+  const { auth } = createAuth(authEnv, { emailProvider });
+  await auth.handler(
+    post('/email-otp/send-verification-otp', { email, type: 'sign-in' }),
+  );
+  const response = await auth.handler(
+    post('/sign-in/email-otp', {
+      email,
+      otp: emailProvider.sent[0]?.otp ?? '',
+    }),
+  );
+  const setCookies = response.headers.getSetCookie();
+  return {
+    auth,
+    response,
+    browserCookie: setCookies.map((line) => line.split(';')[0]).join('; '),
+    sessionCookie:
+      setCookies.find((line) => line.startsWith(`${SESSION_COOKIE}=`)) ?? '',
+  };
 };
 
 describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflare)', () => {
@@ -112,6 +137,19 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     ).rejects.toMatchObject({ status: 'FORBIDDEN' });
   });
 
+  it('sets the one session cookie sessionTokenFromCookie reads, over plain HTTP too', async () => {
+    const { auth, browserCookie } = await signIn('cookie-reader@example.dz');
+
+    const session = await getSession(
+      auth,
+      new Headers({ cookie: browserCookie }),
+    );
+
+    expect(env.APP_URL).toMatch(/^http:\/\//);
+    expect(session?.session.token).toEqual(expect.any(String));
+    expect(sessionTokenFromCookie(browserCookie)).toBe(session?.session.token);
+  });
+
   it.each([
     '/unlink-account',
     '/revoke-session',
@@ -144,5 +182,43 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     expect(linking?.trustedProviders).toEqual(['google', 'github']);
     expect(linking?.allowDifferentEmails).toBe(false);
     expect(linking?.updateUserInfoOnLink).toBe(false);
+  });
+});
+
+describe('libs/auth — the session cookie is the only way in (real D1 via Miniflare)', () => {
+  it('takes a session from its signed cookie alone: not from an Authorization header, and not from the bare token', async () => {
+    const { auth, browserCookie, sessionCookie } = await signIn(
+      'cookie-only@example.dz',
+    );
+    const token = sessionTokenFromCookie(browserCookie) ?? '';
+    const [pair = ''] = sessionCookie.split(';');
+    const signedToken = decodeURIComponent(pair.slice(pair.indexOf('=') + 1));
+
+    for (const headers of [
+      { authorization: `Bearer ${token}` },
+      { authorization: `Bearer ${signedToken}` },
+      { cookie: `${SESSION_COOKIE}=${token}` },
+    ]) {
+      expect(await getSession(auth, new Headers(headers))).toBeNull();
+    }
+    expect(
+      (await getSession(auth, new Headers({ cookie: browserCookie })))?.session
+        .token,
+    ).toBe(token);
+  });
+
+  it('puts the session token in no response header but its HttpOnly cookie', async () => {
+    const { response, browserCookie, sessionCookie } = await signIn(
+      'httponly@example.dz',
+    );
+    const token = sessionTokenFromCookie(browserCookie) ?? '';
+
+    expect(token).not.toBe('');
+    expect(sessionCookie).toMatch(/;\s*HttpOnly/i);
+    expect(
+      [...response.headers].filter(
+        ([name, value]) => name !== 'set-cookie' && value.includes(token),
+      ),
+    ).toEqual([]);
   });
 });

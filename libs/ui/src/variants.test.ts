@@ -4,6 +4,7 @@ import { badgeVariants } from './components/Badge.js';
 import { buttonVariants } from './components/Button.js';
 import { inputVariants } from './components/Input.js';
 import { selectVariants } from './components/Select.js';
+import { statusMessageVariants } from './components/StatusMessage.js';
 
 describe('libs/ui cva variants (literal class strings Tailwind can scan)', () => {
   it('Button defaults to primary md', () => {
@@ -32,6 +33,12 @@ describe('libs/ui cva variants (literal class strings Tailwind can scan)', () =>
     expect(selectVariants()).toBe('select select-bordered w-full select-md');
     expect(selectVariants({ selectSize: 'sm' })).toBe(
       'select select-bordered w-full select-sm',
+    );
+  });
+
+  it('StatusMessage puts each severity on a soft daisyUI alert', () => {
+    expect(statusMessageVariants({ variant: 'warning' })).toBe(
+      'alert alert-soft gap-3 text-body-sm alert-warning',
     );
   });
 });

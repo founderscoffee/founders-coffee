@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { CALENDAR_TARGETS, localeSchema } from '@founders-coffee/core';
 import { eventCreateSchema, eventUpdateSchema } from '@founders-coffee/domain';
 
 export const eventCreateRequestSchema = z
@@ -16,6 +17,18 @@ export const eventUpdateRequestSchema = z
   .strict();
 
 export type EventUpdateRequestInput = z.infer<typeof eventUpdateRequestSchema>;
+
+export const eventCalendarRequestSchema = z
+  .object({
+    id: z.string().min(1).max(64),
+    locale: localeSchema,
+    target: z.enum(CALENDAR_TARGETS),
+  })
+  .strict();
+
+export type EventCalendarRequestInput = z.infer<
+  typeof eventCalendarRequestSchema
+>;
 
 export const EVENT_CANCEL_REASON_MAX_LENGTH = 280;
 

@@ -15,6 +15,7 @@ const dbWith = (row: Record<string, unknown> | null) => {
   const statement = {
     bind: () => statement,
     first: async <T>() => row as T | null,
+    all: async <T>() => ({ results: (row ? [row] : []) as T[] }),
   };
   return { prepare: () => statement };
 };
@@ -22,18 +23,14 @@ const dbWith = (row: Record<string, unknown> | null) => {
 describe('revalidateConnection', () => {
   it('closes a connected socket when its session is no longer allowed', async () => {
     const ws = socket();
-    const connections = new EventConnections();
+    const connections = new EventConnections(() => null);
     connections.register(ws, 10);
-    connections.authenticate(
-      ws,
-      {
-        userId: 'user-1',
-        userName: 'Member',
-        isHost: false,
-        sessionToken: 'session-1',
-      },
-      20,
-    );
+    connections.authenticate(ws, {
+      userId: 'user-1',
+      userName: 'Member',
+      isHost: false,
+      sessionToken: 'session-1',
+    });
 
     await expect(
       revalidateConnection({
@@ -41,7 +38,6 @@ describe('revalidateConnection', () => {
         eventId: 'event-1',
         ws,
         connections,
-        now: 30,
       }),
     ).resolves.toBe(false);
     expect(ws.close).toHaveBeenCalledWith(4001, 'auth_expired');
@@ -50,35 +46,30 @@ describe('revalidateConnection', () => {
     );
   });
 
-  it('refreshes the session and heartbeat timestamp when it remains valid', async () => {
+  it('refreshes the identity on the socket while the session still holds', async () => {
     const ws = socket();
-    const connections = new EventConnections();
+    const connections = new EventConnections(() => null);
     connections.register(ws, 10);
-    connections.authenticate(
-      ws,
-      {
-        userId: 'user-1',
-        userName: 'Member',
-        isHost: false,
-        sessionToken: 'session-1',
-      },
-      20,
-    );
+    connections.authenticate(ws, {
+      userId: 'user-1',
+      userName: 'Member',
+      isHost: false,
+      sessionToken: 'session-1',
+    });
 
     await expect(
       revalidateConnection({
         db: dbWith({
           user_id: 'user-1',
-          name: 'Member',
+          name: 'Renamed',
           host_id: 'host-1',
           rsvpd: 1,
         }),
         eventId: 'event-1',
         ws,
         connections,
-        now: 30,
       }),
     ).resolves.toBe(true);
-    expect(connections.get(ws)).toMatchObject({ lastSeenAt: 30 });
+    expect(connections.get(ws)).toMatchObject({ userName: 'Renamed' });
   });
 });

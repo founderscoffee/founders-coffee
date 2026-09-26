@@ -1,5 +1,9 @@
 import { shortId } from '@founders-coffee/core';
-import { event_meta_description, type Locale } from '@founders-coffee/i18n';
+import {
+  cityInputs,
+  event_meta_description,
+  type Locale,
+} from '@founders-coffee/i18n';
 
 import {
   breadcrumbJsonLd,
@@ -48,7 +52,7 @@ export const eventPageHead = ({
 }: EventHeadInput) => {
   const eventDescription =
     description ||
-    event_meta_description({ title, city: cityName }, { locale });
+    event_meta_description({ title, ...cityInputs(cityName) }, { locale });
   const metadata = buildPageMetadata({
     locale,
     title: `${title} · ${cityName}`,

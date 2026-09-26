@@ -11,7 +11,10 @@ import {
 } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
+import { eventCityName } from '../../features/events/event-city-name';
 import { localizedEvent } from '../../lib/locale-routing';
+import { AvatarGroup } from './AvatarGroup';
+import { HostFace } from './HostFace';
 
 type EventCardProps = {
   event: EventFeedItem;
@@ -20,9 +23,6 @@ type EventCardProps = {
   marketSlug: string;
   trailing?: 'city' | 'language';
 };
-
-const hostPhotoUrl = (assetId: string): string =>
-  `/media/profile/${assetId}/sm`;
 
 export const EventCard = ({
   event,
@@ -43,7 +43,7 @@ export const EventCard = ({
   const clock = { hour: '2-digit', minute: '2-digit' } as const;
   const timeRange =
     end == null ? at(clock) : `${at(clock)}\u2013${on(end, clock)}`;
-  const cityName = locale === 'ar' ? event.cityNameAr : event.cityName;
+  const cityName = eventCityName(event, locale);
   const isGoing = event.viewerRsvp === 'going';
   const hasHost = event.hostName != null && event.hostName.length > 0;
   const attendeeCount = event.goingCount ?? 0;
@@ -82,7 +82,7 @@ export const EventCard = ({
             </h3>
           </header>
           {event.description?.trim() ? (
-            <p dir="auto" className="line-clamp-2 text-body-sm text-neutral">
+            <p dir="auto" className="line-clamp-1 text-body-sm text-neutral">
               {event.description}
             </p>
           ) : null}
@@ -111,63 +111,23 @@ export const EventCard = ({
 
           <footer className="mt-auto flex flex-wrap items-center gap-2 pt-1.5">
             {hasHost ? (
-              <span
-                dir="rtl"
-                className="inline-flex min-w-0 items-center gap-2 text-body-sm text-neutral"
-              >
+              <span className="inline-flex min-w-0 items-center gap-2 text-body-sm text-neutral">
                 {additionalAttendeeCount > 0 ? (
-                  <span
-                    className="avatar-group -space-x-3 shrink-0 overflow-visible rtl:space-x-reverse"
-                    role="img"
-                    aria-label={going_count(
-                      { count: attendeeCount },
-                      { locale },
-                    )}
-                  >
-                    <span className="avatar avatar-placeholder relative z-10 size-7 shrink-0 ring-2 ring-base-100">
-                      <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-base-200 text-caption font-semibold text-base-content">
-                        {event.hostPhotoAssetId ? (
-                          <img
-                            src={hostPhotoUrl(event.hostPhotoAssetId)}
-                            alt=""
-                            width="28"
-                            height="28"
-                            loading="lazy"
-                            decoding="async"
-                            className="size-full rounded-full object-cover"
-                          />
-                        ) : (
-                          event.hostName?.slice(0, 1)
-                        )}
-                      </span>
-                    </span>
-                    <span className="avatar avatar-placeholder relative z-0 size-7 shrink-0 ring-2 ring-base-100">
-                      <span
-                        dir="ltr"
-                        className="flex size-full items-center justify-center rounded-full bg-base-200 text-caption font-semibold text-base-content"
-                      >
-                        +{additionalAttendeeCount}
-                      </span>
-                    </span>
-                  </span>
+                  <AvatarGroup
+                    faces={[
+                      {
+                        name: event.hostName ?? '',
+                        photoAssetId: event.hostPhotoAssetId,
+                      },
+                    ]}
+                    more={additionalAttendeeCount}
+                    label={going_count({ count: attendeeCount }, { locale })}
+                  />
                 ) : (
-                  <span className="avatar avatar-placeholder size-7 shrink-0">
-                    <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-base-200 text-caption font-semibold text-base-content">
-                      {event.hostPhotoAssetId ? (
-                        <img
-                          src={hostPhotoUrl(event.hostPhotoAssetId)}
-                          alt=""
-                          width="28"
-                          height="28"
-                          loading="lazy"
-                          decoding="async"
-                          className="size-full rounded-full object-cover"
-                        />
-                      ) : (
-                        event.hostName?.slice(0, 1)
-                      )}
-                    </span>
-                  </span>
+                  <HostFace
+                    name={event.hostName ?? ''}
+                    photoAssetId={event.hostPhotoAssetId}
+                  />
                 )}
                 <span className="truncate">
                   <span className="sr-only">

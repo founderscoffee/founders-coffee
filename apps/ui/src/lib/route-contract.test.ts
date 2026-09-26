@@ -15,6 +15,10 @@ const UNPREFIXED: Readonly<Record<string, Exemption>> = {
     kind: 'protocol',
     why: 'an image for link scrapers, which have no language of their own to prefix for; the card is drawn in the language the `l` parameter names, set by the page that publishes the address',
   },
+  '/cal/e/$id': {
+    kind: 'protocol',
+    why: '#21 — a calendar file, or a redirect to Google Calendar, fetched by a calendar app or a download with no language of its own; the `l` parameter names the language of the page the entry links back to',
+  },
   '/llms.txt': { kind: 'protocol', why: 'protocol file' },
   '/robots.txt': { kind: 'protocol', why: 'protocol file' },
   '/sitemap.xml': {

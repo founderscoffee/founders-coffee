@@ -29,7 +29,7 @@ describe('venue naming when only an address is verified', () => {
     ) as unknown as HTMLInputElement;
     expect(field.value).toBe('');
     expect(
-      screen.getByText(/We could only confirm the street address here/),
+      screen.getByText(/We could only confirm the street address/),
     ).toBeTruthy();
   });
 
@@ -71,7 +71,7 @@ describe('venue naming when only an address is verified', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     expect(
-      screen.getByText('Name the venue so attendees can find the door.'),
+      screen.getByText('Name the venue so attendees can find the entrance.'),
     ).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Set schedule' })).toBeNull();
   });
@@ -85,15 +85,15 @@ describe('venue naming when only an address is verified', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Set schedule' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    fireEvent.change(screen.getByLabelText(/^Title/), {
+    fireEvent.change(screen.getByLabelText(/^Meetup title/), {
       target: { value: 'Protected meetup' },
     });
-    fireEvent.change(screen.getByLabelText(/^Description/), {
+    fireEvent.change(screen.getByLabelText(/^Meetup description/), {
       target: { value: 'A complete protected meetup for founders.' },
     });
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm and publish' }),
+      screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
     );
 
     expect(hostCreateMocks.mutateAsync).toHaveBeenCalledWith(

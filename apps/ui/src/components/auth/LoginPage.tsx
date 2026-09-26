@@ -10,11 +10,11 @@ import {
   login_send_error,
   login_welcome,
   login_verify,
-  login_wrong_code,
+  code_error,
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Turnstile } from '@founders-coffee/ui';
+import { Button, StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { LoginEmailField } from './LoginEmailField';
@@ -108,7 +108,7 @@ export const LoginPage = ({
     });
     setBusy(false);
     if (verifyError) {
-      setError(login_wrong_code({}, { locale }));
+      setError(code_error({}, { locale }));
       return;
     }
     window.location.href = onboardingRedirectPath(locale, redirect);
@@ -166,11 +166,7 @@ export const LoginPage = ({
                   onToken={setToken}
                 />
               )}
-              {error && (
-                <p role="alert" className="text-body-sm text-error">
-                  {error}
-                </p>
-              )}
+              {error && <StatusMessage variant="error">{error}</StatusMessage>}
               <Button
                 type="submit"
                 disabled={
@@ -230,11 +226,7 @@ export const LoginPage = ({
                 isDisabled={busy}
                 onChange={setOtp}
               />
-              {error && (
-                <p role="alert" className="text-center text-body-sm text-error">
-                  {error}
-                </p>
-              )}
+              {error && <StatusMessage variant="error">{error}</StatusMessage>}
               <Button
                 type="submit"
                 disabled={otp.length !== OTP_LENGTH || busy}

@@ -4,6 +4,7 @@ import { defaultCache } from '@serwist/vite/worker';
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
 import { NetworkOnly, Serwist } from 'serwist';
 
+import { isCalendarEntryPath } from './lib/calendar-entry';
 import {
   isPrivateProfilePath,
   purgePrivateCacheEntries,
@@ -28,6 +29,10 @@ const serwist = new Serwist({
   runtimeCaching: [
     {
       matcher: ({ url }) => isPrivateProfilePath(url.pathname),
+      handler: new NetworkOnly(),
+    },
+    {
+      matcher: ({ url }) => isCalendarEntryPath(url.pathname),
       handler: new NetworkOnly(),
     },
     ...defaultCache,

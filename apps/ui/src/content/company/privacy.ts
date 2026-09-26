@@ -1,4 +1,5 @@
 import { privacyDataSections } from './privacy-data';
+import { privacyProcessingSections } from './privacy-processing';
 import { privacyRightsSections } from './privacy-rights';
 import type { CompanyPageContent } from './types';
 
@@ -7,5 +8,9 @@ export const privacyContent: CompanyPageContent = {
   description:
     'ما تجمعه المنصة من معطيات شخصية، ولأيّ غرض، ومن يطّلع عليها، وكم تبقى، وما تملكه أنت حيالها.',
   updated: '18 سبتمبر 2026',
-  sections: [...privacyDataSections, ...privacyRightsSections],
+  sections: [
+    ...privacyDataSections,
+    ...privacyProcessingSections,
+    ...privacyRightsSections,
+  ],
 };

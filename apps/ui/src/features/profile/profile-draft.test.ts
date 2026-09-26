@@ -8,14 +8,20 @@ const saved: UserProfile = {
   displayName: 'Amina',
   revision: 3,
   photoAssetId: null,
+  memberSince: '2026-03',
+  headline: null,
+  stage: null,
   introduction: null,
   interests: [],
   spokenLanguages: [],
   professionalLink: null,
   visibility: {
+    headline: false,
+    stage: false,
     interests: false,
     spokenLanguages: false,
     professionalLink: false,
+    attendedCount: false,
   },
 };
 
@@ -39,6 +45,16 @@ describe('profile draft', () => {
     expect(
       isDraftDirty(
         { ...draft, visibility: { ...draft.visibility, interests: true } },
+        saved,
+      ),
+    ).toBe(true);
+    expect(isDraftDirty({ ...draft, headline: 'A shop app' }, saved)).toBe(
+      true,
+    );
+    expect(isDraftDirty({ ...draft, stage: 'idea' }, saved)).toBe(true);
+    expect(
+      isDraftDirty(
+        { ...draft, visibility: { ...draft.visibility, stage: true } },
         saved,
       ),
     ).toBe(true);
@@ -81,5 +97,23 @@ describe('profile draft', () => {
     );
 
     expect(built.ok && built.command.visibility.professionalLink).toBe(false);
+  });
+
+  it('sends what a member is building and its stage, withdrawing a publication left empty', () => {
+    const built = commandFrom(
+      {
+        ...draftFrom(saved),
+        headline: '  A bookkeeping app  ',
+        stage: null,
+        visibility: { ...saved.visibility, headline: true, stage: true },
+      },
+      3,
+    );
+
+    expect(built.ok && built.command).toMatchObject({
+      headline: 'A bookkeeping app',
+      stage: null,
+      visibility: { headline: true, stage: false },
+    });
   });
 });

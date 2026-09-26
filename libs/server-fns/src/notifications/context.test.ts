@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { createDb, markets, seed, user, type Db } from '@founders-coffee/db';
 
 import {
+  calendarLinksFor,
   closeoutUrlFor,
   eventUrlFor,
   feedbackUrlFor,
@@ -192,5 +193,14 @@ describe('notification locale resolution order', () => {
       marketCode: 'DZ',
     });
     expect(context.timeZone).toBe('Africa/Algiers');
+  });
+});
+
+describe('calendar links in a notification', () => {
+  it('adds the meetup from this deployment, and the entry links back in the language of the message', () => {
+    expect(calendarLinksFor('fr', 'evt_0a1b2c3d')).toEqual({
+      google: `${notificationBaseUrl()}/cal/e/0a1b2c3d?l=fr&to=google`,
+      ics: `${notificationBaseUrl()}/cal/e/0a1b2c3d?l=fr`,
+    });
   });
 });

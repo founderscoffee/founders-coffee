@@ -1,13 +1,13 @@
 import {
   feedback_comment,
   feedback_comment_language,
-  feedback_comment_optional,
+  optional,
   feedback_not_valuable,
   feedback_okay,
   feedback_rating,
   feedback_return,
-  feedback_return_no,
-  feedback_return_yes,
+  no,
+  yes,
   feedback_valuable,
   LOCALES,
   type Locale,
@@ -67,9 +67,7 @@ export const FeedbackForm = ({
               checked={draft.wouldReturn === answer}
               onChange={() => onChange({ wouldReturn: answer })}
             />
-            {answer
-              ? feedback_return_yes({}, { locale })
-              : feedback_return_no({}, { locale })}
+            {answer ? yes({}, { locale }) : no({}, { locale })}
           </label>
         ))}
       </div>
@@ -79,7 +77,7 @@ export const FeedbackForm = ({
         {feedback_comment({}, { locale })}
       </span>
       <span className="ms-2 text-body-sm text-neutral">
-        {feedback_comment_optional({}, { locale })}
+        {optional({}, { locale })}
       </span>
       <textarea
         aria-label={feedback_comment({}, { locale })}

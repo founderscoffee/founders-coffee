@@ -199,11 +199,14 @@ export const localizedPublicProfile = (locale: Locale, userId: string) => ({
  * The fallback to `/` is for the one case that cannot name a market: the market list itself did not
  * load. That is precisely when the redirect's own detection is worth paying for, so `/` keeps
  * earning its place for a bare-domain visit, where the geo read is a request header and free.
+ *
+ * The fallback pays for it on the click and not on the hover. A hover runs `/`'s `beforeLoad`,
+ * lookups and all, whatever the route says about preloading, so the link is where it is stopped.
  */
 export const localizedHome = (
   locale: Locale,
   marketSlug: string | undefined,
 ) =>
   marketSlug === undefined
-    ? ({ to: '/' } as const)
+    ? ({ to: '/', preload: false } as const)
     : localizedLanding(locale, marketSlug);

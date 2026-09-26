@@ -1,4 +1,8 @@
-import { hero_social_proof, type Locale } from '@founders-coffee/i18n';
+import {
+  cityInputs,
+  hero_social_proof,
+  type Locale,
+} from '@founders-coffee/i18n';
 
 type CitySelectionFeedbackProps = {
   locale: Locale;
@@ -17,7 +21,7 @@ export const CitySelectionFeedback = ({
       <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
     </span>
     {hero_social_proof(
-      { count: selectedCityCount, city: cityDisplayName },
+      { count: selectedCityCount, ...cityInputs(cityDisplayName) },
       { locale },
     )}
   </div>

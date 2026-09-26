@@ -6,6 +6,12 @@ import {
   removeEarlyHintsFromResponse,
   shouldEmitEarlyHints,
 } from './early-hints';
+import {
+  PRIVATE_SCREENS_IN_EVERY_LANGUAGE,
+  PRIVATE_SCREEN_STUBS,
+  PRIVATE_SCREEN_VARIANTS,
+  PUBLIC_PAGES_NAMING_A_SCREEN,
+} from './private-screens.fixtures';
 
 describe('Early Hints policy', () => {
   it('allows only locale-prefixed public page shapes', () => {
@@ -17,10 +23,24 @@ describe('Early Hints policy', () => {
     expect(isPublicEarlyHintsPath('/ar')).toBe(false);
     expect(isPublicEarlyHintsPath('/about')).toBe(false);
     expect(isPublicEarlyHintsPath('/login')).toBe(false);
-    expect(isPublicEarlyHintsPath('/ar/account')).toBe(false);
     expect(isPublicEarlyHintsPath('/ar/profile/notifications')).toBe(false);
     expect(isPublicEarlyHintsPath('/ar/algeria/unknown/path')).toBe(false);
   });
+
+  it.each([
+    ...PRIVATE_SCREENS_IN_EVERY_LANGUAGE,
+    ...PRIVATE_SCREEN_STUBS,
+    ...PRIVATE_SCREEN_VARIANTS,
+  ])('emits no hints for %s, which answers with a private screen', (path) => {
+    expect(isPublicEarlyHintsPath(path)).toBe(false);
+  });
+
+  it.each(PUBLIC_PAGES_NAMING_A_SCREEN)(
+    'keeps the hints of %s, a public page that names a screen only further in',
+    (path) => {
+      expect(isPublicEarlyHintsPath(path)).toBe(true);
+    },
+  );
 
   it('requires an HTML navigation request', () => {
     const request = new Request('https://founders.coffee/ar/algeria', {

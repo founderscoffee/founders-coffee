@@ -67,6 +67,39 @@ export const PRODUCT_COPY_FILES = [
 ];
 
 /**
+ * Where React code lives: the source roots of the five projects that render with it. The rules of
+ * hooks bind what React calls as a component or a hook, and nothing outside these roots is either.
+ * Only `rules-of-hooks` is on. The plugin's recommended preset adds `exhaustive-deps` and fourteen
+ * React Compiler rules, and each of those is a decision of its own (#93).
+ *
+ * Each project's `src/` rather than the whole project: a Playwright fixture hands its value on by
+ * calling `use`, which the rule takes for React's `use` hook.
+ */
+export const REACT_SOURCE_FILES = [
+  'apps/ui/src/**/*.ts',
+  'apps/ui/src/**/*.tsx',
+  'apps/admin/src/**/*.ts',
+  'apps/admin/src/**/*.tsx',
+  'apps/dashboard/src/**/*.ts',
+  'apps/dashboard/src/**/*.tsx',
+  'libs/ui/src/**/*.ts',
+  'libs/ui/src/**/*.tsx',
+  'libs/email/src/**/*.ts',
+  'libs/email/src/**/*.tsx',
+];
+
+/**
+ * The components that own the status roles. A `role="alert"` or `role="status"` written anywhere
+ * else is a status message built by hand, which is how they came to say their severity in colour
+ * alone; `local/no-bare-status-role` refuses those everywhere but here.
+ */
+export const STATUS_COMPONENTS = [
+  'libs/ui/src/components/LoadingStatus.tsx',
+  'libs/ui/src/components/StatusMessage.tsx',
+  'libs/ui/src/components/Toast.tsx',
+];
+
+/**
  * Mirrors what the project tsconfigs exclude. Type-aware rules need a file to belong to a TS
  * project, and tests, fixtures, config and setup files deliberately sit outside them.
  */

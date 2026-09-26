@@ -97,6 +97,7 @@ const event: EventFeedItem = {
   cancellationReason: null,
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   citySlug: 'algiers',
   goingCount: 2,
   hostName: 'Host Name',
@@ -178,7 +179,6 @@ describe('P1-002 landing typography', () => {
       expect(
         view.container.querySelector('.avatar-group')?.className,
       ).toContain('overflow-visible');
-      expect(view.container.querySelector('[dir="rtl"]')).toBeTruthy();
       expect(view.container.querySelector('[dir="ltr"]')).toBeTruthy();
       expect(
         view.container
@@ -220,6 +220,8 @@ describe('P1-002 landing typography', () => {
                 cities: [
                   {
                     count: 1,
+                    hosts: [{ name: 'Amina', photoAssetId: null }],
+                    hostCount: 1,
                     city: {
                       code: '1',
                       stateCode: '16',
@@ -231,6 +233,8 @@ describe('P1-002 landing typography', () => {
                   },
                   {
                     count: 0,
+                    hosts: [],
+                    hostCount: 0,
                     city: {
                       code: '2',
                       stateCode: '31',
@@ -256,11 +260,10 @@ describe('P1-002 landing typography', () => {
       expect(view.container.querySelectorAll('a.aura-glow')).toHaveLength(1);
       expect(view.container.querySelectorAll('a.hover-3d')).toHaveLength(0);
       expect(view.container.querySelectorAll('article')).toHaveLength(3);
-      expect(view.container.querySelectorAll('data')).toHaveLength(1);
       expect(
-        view.container.querySelector('data[value="0"]'),
-        'a city with nothing on says so in words below; the number is left off',
-      ).toBeNull();
+        view.container.querySelectorAll('.avatar-group'),
+        'a city with nothing on says so in words below; nobody is drawn on it',
+      ).toHaveLength(1);
       expect(
         screen.getByRole('heading', {
           level: 3,

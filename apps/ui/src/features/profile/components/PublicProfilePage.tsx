@@ -1,25 +1,22 @@
 import {
-  event_past,
   hosted_events,
   profile_interests_label,
-  profile_photo_of,
-  profile_view_link,
   public_no_events,
   type Locale,
 } from '@founders-coffee/i18n';
-
-import { ExternalLink } from 'lucide-react';
+import { StatusMessage } from '@founders-coffee/ui';
 
 import { EventCard } from '../../../components/events/EventCard';
 import { LoadMoreEvents } from '../../../components/events/LoadMoreEvents';
 import { useHostedEvents } from '../../events/hooks';
 import { useEventPages } from '../../events/useEventPages';
-import { initials } from '../../../lib/utils';
-import { profilePhotoUrl } from '../photo-url';
 import { localeLabel, topicLabel } from '../profile-labels';
-import type { EventFeedItem } from '../../events/api';
+import type { HostedEventItem } from '../../events/api';
 import type { RootMarket } from '../../markets/api';
 import type { PublicProfile } from '../api';
+import { HostedEventCaption } from './HostedEventCaption';
+import { PublicProfileHeader } from './PublicProfileHeader';
+import { PublicProfileRecord } from './PublicProfileRecord';
 
 const PAGE_SIZE = 12;
 
@@ -35,7 +32,7 @@ export const PublicProfilePage = ({
 }: {
   locale: Locale;
   profile: PublicProfile;
-  events: readonly EventFeedItem[];
+  events: readonly HostedEventItem[];
   eventsNextCursor?: { startsAt: number; id: string } | null;
   eventsTotal: number;
   beforeStartsAt?: number;
@@ -72,54 +69,10 @@ export const PublicProfilePage = ({
         aria-labelledby="public-profile-title"
         className="rounded-box bg-base-200 p-5 sm:p-8"
       >
-        <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <div
-              className="avatar avatar-placeholder shrink-0"
-              aria-hidden={profile.photoAssetId ? undefined : true}
-            >
-              <div className="w-16 rounded-full bg-neutral text-neutral-content">
-                {profile.photoAssetId ? (
-                  <img
-                    src={profilePhotoUrl(profile.photoAssetId, 'md')}
-                    alt={profile_photo_of(
-                      { name: profile.displayName },
-                      { locale },
-                    )}
-                    width={64}
-                    height={64}
-                    className="rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-h3">
-                    {initials(profile.displayName)}
-                  </span>
-                )}
-              </div>
-            </div>
-            <h1
-              id="public-profile-title"
-              className="font-display text-h2 font-semibold break-words"
-            >
-              <bdi>{profile.displayName}</bdi>
-            </h1>
-          </div>
-          {profile.professionalLink ? (
-            <a
-              href={profile.professionalLink}
-              target="_blank"
-              rel="noreferrer nofollow ugc"
-              dir="ltr"
-              aria-label={`${profile_view_link({}, { locale })}: ${profile.professionalLink}`}
-              className="btn btn-outline h-10 min-h-10 shrink-0 self-start px-3"
-            >
-              <span>{profile_view_link({}, { locale })}</span>
-              <ExternalLink className="size-4" aria-hidden="true" />
-            </a>
-          ) : null}
-        </header>
+        <PublicProfileHeader locale={locale} profile={profile} />
 
         <div className="mt-6 flex flex-col gap-4">
+          <PublicProfileRecord locale={locale} profile={profile} />
           {profile.introduction ? (
             <p
               dir="auto"
@@ -163,22 +116,22 @@ export const PublicProfilePage = ({
           </h2>
         </header>
         {visibleEvents.length === 0 ? (
-          <p role="status" className="text-body-sm text-neutral">
+          <StatusMessage variant="info">
             {public_no_events({}, { locale })}
-          </p>
+          </StatusMessage>
         ) : (
           <>
-            <ul className="grid gap-3">
+            <ul className="grid items-start gap-3">
               {visibleEvents.map((event) => {
                 const market = marketByCode.get(event.marketCode);
                 if (!market) return null;
                 return (
                   <li key={event.id}>
-                    {new Date(event.startsAt).getTime() < now ? (
-                      <p className="mb-1 text-caption text-neutral">
-                        {event_past({}, { locale })}
-                      </p>
-                    ) : null}
+                    <HostedEventCaption
+                      isOnRecord={event.isOnRecord}
+                      isPast={new Date(event.startsAt).getTime() < now}
+                      locale={locale}
+                    />
                     <EventCard
                       event={event}
                       locale={locale}

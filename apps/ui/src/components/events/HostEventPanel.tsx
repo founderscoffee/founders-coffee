@@ -15,6 +15,7 @@ import {
   live_window_closed,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 import {
@@ -26,6 +27,8 @@ import {
   useRepeatEventTemplate,
 } from '../../features/events/hooks';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
+import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
+import { AddToCalendar } from './AddToCalendar';
 import { CancelEventDialog } from './CancelEventDialog';
 import { RepeatHostLink } from './RepeatHostLink';
 import { HostLiveActions } from './HostLiveActions';
@@ -131,6 +134,16 @@ export const HostEventPanel = ({
         </div>
       )}
 
+      {!isCancelled && (
+        <AddToCalendar
+          eventId={event.id}
+          startsAt={event.startsAt}
+          locale={locale}
+        />
+      )}
+
+      <TelegramGroupCard eventId={event.id} locale={locale} />
+
       {repeat.data ? (
         <RepeatHostLink
           locale={locale}
@@ -140,11 +153,7 @@ export const HostEventPanel = ({
         />
       ) : null}
 
-      {error ? (
-        <p role="alert" className="text-body-sm text-error">
-          {error}
-        </p>
-      ) : null}
+      {error ? <StatusMessage variant="error">{error}</StatusMessage> : null}
 
       <CancelEventDialog
         isOpen={isDialogOpen}

@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 const seen = vi.hoisted(() => ({
@@ -59,14 +60,15 @@ const event = {
   viewerRsvp: 'going',
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   citySlug: 'algiers',
 } satisfies EventDetailItem;
 
-const show = () =>
+const show = (locale: Locale = 'en', item: EventDetailItem = event) =>
   render(
     <EventEditVenue
-      locale="en"
-      event={event}
+      locale={locale}
+      event={item}
       mapboxToken="pk.test"
       venue={null}
       searchValue=""
@@ -107,5 +109,16 @@ describe('keeping the page still while the host picks a place', () => {
     show();
 
     expect(seen.venueStep?.hideNameField).toBe(true);
+  });
+});
+
+describe('what the venue search calls the city', () => {
+  it('names it the way a French reader knows it', () => {
+    show('fr', { ...event, cityName: 'Cairo', cityNameFr: 'Le Caire' });
+
+    expect(
+      seen.venueStep?.area,
+      'the search box read "Rechercher un café ou espace de coworking à Cairo…"',
+    ).toEqual({ kind: 'city', name: 'Le Caire' });
   });
 });

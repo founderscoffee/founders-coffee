@@ -66,6 +66,7 @@ const base = {
   viewerRsvp: 'going',
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   citySlug: 'algiers',
 } satisfies EventDetailItem;
 
@@ -100,7 +101,7 @@ describe('a meetup that can no longer be changed', () => {
     expect(
       screen.getByRole('alert').textContent,
       'letting a host retype a whole form only to refuse it on save is the defect #73 already records elsewhere',
-    ).toBe('This meetup was cancelled and can no longer be edited.');
+    ).toBe('The meetup was cancelled and cannot be edited.');
   });
 
   it('refuses one that has already happened', () => {
@@ -112,7 +113,7 @@ describe('a meetup that can no longer be changed', () => {
 
     expect(screen.queryByTestId('edit-form')).toBeNull();
     expect(screen.getByRole('alert').textContent).toBe(
-      'This meetup has ended and can no longer be edited.',
+      'The meetup has ended and cannot be edited.',
     );
   });
 });

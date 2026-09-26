@@ -5,17 +5,17 @@ import {
   gate_title,
   login_change_email,
   login_code_sent,
-  login_email_label,
+  email_label,
   login_email_placeholder,
   login_or,
-  login_send_code,
+  send_code,
   login_send_error,
   login_verify,
-  login_wrong_code,
+  code_error,
   oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button, Input, Turnstile } from '@founders-coffee/ui';
+import { Button, Input, StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
@@ -115,7 +115,7 @@ export const HostSignInGate = ({
     });
     setBusy(false);
     if (verifyError) {
-      setError(login_wrong_code({}, { locale }));
+      setError(code_error({}, { locale }));
       return;
     }
     onAuthenticated();
@@ -157,7 +157,7 @@ export const HostSignInGate = ({
           <>
             <label className="form-control">
               <span className="mb-1 block text-label text-neutral">
-                {login_email_label({}, { locale })}
+                {email_label({}, { locale })}
               </span>
               <Input
                 type="email"
@@ -174,11 +174,7 @@ export const HostSignInGate = ({
                 onToken={setToken}
               />
             )}
-            {error && (
-              <p role="alert" className="text-body-sm text-error">
-                {error}
-              </p>
-            )}
+            {error && <StatusMessage variant="error">{error}</StatusMessage>}
             <Button
               type="submit"
               disabled={!emailValid || !token || busy}
@@ -190,7 +186,7 @@ export const HostSignInGate = ({
                   aria-hidden="true"
                 />
               ) : null}
-              {login_send_code({}, { locale })}
+              {send_code({}, { locale })}
             </Button>
             <LegalNotice locale={locale} />
             {hasSocial && (
@@ -233,11 +229,7 @@ export const HostSignInGate = ({
               isDisabled={busy}
               onChange={setOtp}
             />
-            {error && (
-              <p role="alert" className="text-body-sm text-error">
-                {error}
-              </p>
-            )}
+            {error && <StatusMessage variant="error">{error}</StatusMessage>}
             <Button
               type="submit"
               disabled={otp.length !== OTP_LENGTH || busy}

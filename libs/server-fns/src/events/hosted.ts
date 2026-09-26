@@ -1,12 +1,22 @@
 import {
   countHostedEvents,
+  hostedMeetupsOnRecord,
   listHostedEvents,
   type Db,
 } from '@founders-coffee/db';
 
-import { attachCityNames, type EventFeedPage } from './resolver.js';
+import {
+  attachCityNames,
+  type EventFeedItemBase,
+  type EventFeedPage,
+} from './resolver.js';
+
+export type HostedEventItem = EventFeedItemBase & {
+  readonly isOnRecord: boolean;
+};
 
 export interface HostedEventPage extends EventFeedPage {
+  readonly items: readonly HostedEventItem[];
   readonly total: number;
 }
 
@@ -18,6 +28,9 @@ export interface HostedEventPage extends EventFeedPage {
  * though it were a lifetime figure, so a host of thirty gatherings read as a host of twenty. It is
  * returned on every page because the aggregate is cheap and a stale total beside a growing list is
  * worse than no total.
+ *
+ * `isOnRecord` marks the meetups the host's public record counts as having taken place, so the
+ * profile can tag them and the count above the list matches the tagged meetups in it.
  */
 export const listHostedEventPage = async (
   db: Db,
@@ -45,7 +58,17 @@ export const listHostedEventPage = async (
       marketCode: opts.marketCode,
     }),
   ]);
-  const items = attachCityNames(rows.slice(0, limit));
+  const page = rows.slice(0, limit);
+  const onRecord = await hostedMeetupsOnRecord(
+    db,
+    opts.hostId,
+    page.map((row) => row.id),
+    new Date(),
+  );
+  const items = attachCityNames(page).map((item) => ({
+    ...item,
+    isOnRecord: onRecord.has(item.id),
+  }));
   const last = items[items.length - 1];
   return {
     items,

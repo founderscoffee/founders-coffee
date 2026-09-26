@@ -2,7 +2,7 @@ import type { EventConnections } from './connections.js';
 import type { EventRoster } from './roster.js';
 import type { ClientMessage } from './protocol.js';
 
-type LiveAction = Exclude<ClientMessage, { type: 'auth' | 'heartbeat' }>;
+type LiveAction = Exclude<ClientMessage, { type: 'auth' }>;
 
 export const handleLiveAction = async (args: {
   ws: WebSocket;

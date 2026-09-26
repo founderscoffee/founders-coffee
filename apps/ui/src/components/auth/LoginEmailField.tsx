@@ -1,5 +1,5 @@
 import {
-  login_email_label,
+  email_label,
   login_email_placeholder,
   login_help,
   type Locale,
@@ -17,7 +17,7 @@ export const LoginEmailField = ({
 }) => (
   <div className="form-control">
     <label className="mb-1 block text-label text-neutral" htmlFor="login-email">
-      {login_email_label({}, { locale })}
+      {email_label({}, { locale })}
     </label>
     <Input
       id="login-email"

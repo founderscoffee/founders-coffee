@@ -1,4 +1,6 @@
-import { and, asc, eq, inArray, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, lte, notInArray, sql } from 'drizzle-orm';
+
+import { TELEGRAM_DEPARTURE_KEYS } from '@founders-coffee/core';
 
 import type { Db } from './db.js';
 import {
@@ -85,9 +87,14 @@ export const getNotification = async (
 };
 
 /**
- * Cancel all pending notifications for an event (EC-2). `cancelled` is terminal and distinct from
- * `failed`, so an operator reading the table can tell a retired notification from one delivery
- * could not complete.
+ * Cancel all pending notifications for an event (EC-2), except the Telegram bot's departures.
+ * `cancelled` is terminal and distinct from `failed`, so an operator reading the table can tell a
+ * retired notification from one delivery could not complete.
+ *
+ * A departure is owed whatever becomes of the meetup. It takes a member who cancelled out of the
+ * group, or has the bot revoke its links and leave a group the host disconnected, and it names its
+ * own chat for that reason. Withdrawn with the rest, it would leave the bot an admin of a group
+ * that is no longer the meetup's, still receiving every message posted there.
  */
 export const cancelNotificationsByEvent = async (
   db: Db,
@@ -100,6 +107,9 @@ export const cancelNotificationsByEvent = async (
       and(
         eq(scheduledNotifications.eventId, opts.eventId),
         eq(scheduledNotifications.status, 'pending'),
+        notInArray(scheduledNotifications.templateKey, [
+          ...TELEGRAM_DEPARTURE_KEYS,
+        ]),
       ),
     );
 

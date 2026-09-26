@@ -4,13 +4,14 @@ import {
   profile_intro_placeholder,
   profile_name_hint,
   profile_name_label,
-  profile_optional_chip,
   profile_public_chip,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Input } from '@founders-coffee/ui';
 
 import type { ProfileDraft } from '../profile-draft';
+import { OptionalChip } from './OptionalChip';
+import { ProfileHeadlineFields } from './ProfileHeadlineFields';
 
 export const ProfileIntroFields = ({
   locale,
@@ -54,14 +55,19 @@ export const ProfileIntroFields = ({
       </p>
     </div>
 
+    <ProfileHeadlineFields
+      locale={locale}
+      draft={draft}
+      isDisabled={isDisabled}
+      onChange={onChange}
+    />
+
     <div>
       <div className="mb-2 flex items-center justify-between gap-2">
         <label htmlFor="profile-intro" className="text-label">
           {profile_intro_label({}, { locale })}
         </label>
-        <span className="rounded-full bg-base-200 px-2 py-0.5 text-caption text-neutral">
-          {profile_optional_chip({}, { locale })}
-        </span>
+        <OptionalChip locale={locale} />
       </div>
       <textarea
         id="profile-intro"

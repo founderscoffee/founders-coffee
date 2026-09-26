@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/notifications"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.fixtures.ts",
+    "vitest.config.ts"
+  ],
+  "references": [
+    {
+      "path": "../core/tsconfig.lib.json"
+    }
+  ]
+}

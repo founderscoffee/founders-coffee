@@ -12,6 +12,7 @@ import {
   enqueueEventChangeNotices,
   type EventChangeTemplateKey,
 } from '../notifications/event-change.js';
+import { announceTelegramUpdate } from '../telegram/notices.js';
 
 const REARMED_TEMPLATES = ['reminder_72h', 'reminder_24h'] as const;
 
@@ -102,12 +103,38 @@ const rearmReminders = async (db: Db, event: Event): Promise<void> => {
 };
 
 /**
+ * Tell the meetup's Telegram group about the edit, whatever becomes of the members' notices.
+ *
+ * The group decides for itself what an edit changes, since its pinned details also carry the
+ * address and the end, which no personal reminder does. A failure is reported and goes no further:
+ * a group that could not be told must not keep a member's phone from hearing about a new time.
+ */
+const announceToTelegramGroup = async (
+  db: Db,
+  opts: {
+    before: Event;
+    after: Event;
+    notice: EventChangeTemplateKey | null;
+  },
+): Promise<void> => {
+  try {
+    await announceTelegramUpdate(db, opts);
+  } catch (error) {
+    reportError(error, {
+      operation: 'update_event_telegram',
+      eventId: opts.after.id,
+    });
+  }
+};
+
+/**
  * Bring every queued and outgoing message into line with the edit that just landed.
  *
  * The order matters, and mirrors the cancellation path: the stale reminders are withdrawn and
  * rewritten before the notice goes out, so nothing already queued can arrive afterwards still
  * describing the old plan. The rewrite runs for quiet edits too — a reminder renders its text when
- * it is queued and would otherwise keep repeating a title the host has since corrected.
+ * it is queued and would otherwise keep repeating a title the host has since corrected. The
+ * meetup's Telegram group is told first, on its own terms.
  *
  * A failure here does not roll the edit back, which is why it is caught rather than thrown. The new
  * time is the true one the moment it is written, and refusing the edit to preserve an
@@ -123,6 +150,7 @@ export const announceUpdate = async (
     notice: EventChangeTemplateKey | null;
   },
 ): Promise<number> => {
+  await announceToTelegramGroup(db, opts);
   const rewrite = remindersWouldLie(opts.before, opts.after);
   if (!rewrite && !opts.notice) return 0;
 

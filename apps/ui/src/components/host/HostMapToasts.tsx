@@ -1,8 +1,9 @@
 import {
-  host_retry,
+  retry,
   host_venue_resolving,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 type HostMapToastsProps = {
   locale: Locale;
@@ -22,32 +23,29 @@ export const HostMapToasts = ({
   return (
     <div className="toast toast-bottom absolute end-auto start-auto bottom-8 right-4 left-auto z-30 max-w-[calc(100%-2rem)] whitespace-normal">
       {isResolving && (
-        <div
-          className="alert w-auto border border-base-300 bg-base-100 shadow-lg"
-          role="status"
-        >
-          <span className="loading loading-spinner loading-xs shrink-0" />
-          <span className="text-body-sm text-base-content">
-            {host_venue_resolving({}, { locale })}
-          </span>
-        </div>
+        <LoadingStatus
+          label={host_venue_resolving({}, { locale })}
+          className="rounded-box border border-base-300 bg-base-100 px-4 py-3 text-base-content shadow-lg"
+        />
       )}
       {error && (
-        <div
-          className="alert w-auto border border-error bg-base-100 shadow-lg"
-          role="alert"
+        <StatusMessage
+          variant="error"
+          className="w-auto shadow-lg"
+          action={
+            onRetry && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={onRetry}
+              >
+                {retry({}, { locale })}
+              </button>
+            )
+          }
         >
-          <span className="text-body-sm text-error">{error}</span>
-          {onRetry && (
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={onRetry}
-            >
-              {host_retry({}, { locale })}
-            </button>
-          )}
-        </div>
+          {error}
+        </StatusMessage>
       )}
     </div>
   );

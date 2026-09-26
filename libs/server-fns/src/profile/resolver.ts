@@ -1,5 +1,7 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import {
+  countAttendedMeetups,
+  countHostedMeetups,
   getMemberProfile,
   getProfileIdentity,
   initializeMemberProfile,
@@ -52,7 +54,9 @@ export const readOwnerProfile = (
     ]);
     if (!identity) return err(new AppError('not_found', 'Profile not found'));
     const name = profile.safeProfileDisplayName(identity.name, identity.email);
-    return ok(ownerProfileProjection(userId, name, stored?.profile));
+    return ok(
+      ownerProfileProjection(userId, name, identity.createdAt, stored?.profile),
+    );
   });
 
 /** Anonymous reads are intentionally public but contain only the opt-in field projection. */
@@ -65,9 +69,14 @@ export const readPublicProfile = (
     if (!result.ok) return result;
     if (!result.data.displayName)
       return err(new AppError('not_found', 'Profile not found'));
+    const now = new Date();
+    const [hosted, attended] = await Promise.all([
+      countHostedMeetups(db, userId, now),
+      countAttendedMeetups(db, userId, now),
+    ]);
     return ok(
       profile.publicMemberProfileSchema.parse(
-        profile.projectPublicProfile(result.data),
+        profile.projectPublicProfile(result.data, { hosted, attended }),
       ),
     );
   });
@@ -106,7 +115,14 @@ export const saveOwnerProfile = (
         ),
       );
     }
-    return ok(ownerProfileProjection(userId, input.displayName, row));
+    return ok(
+      ownerProfileProjection(
+        userId,
+        input.displayName,
+        identity.createdAt,
+        row,
+      ),
+    );
   });
 
 /** Complete or change a name without erasing optional fields saved in the same revision. */
@@ -121,6 +137,8 @@ export const saveDisplayName = async (
   return saveOwnerProfile(db, userId, {
     displayName: input.displayName,
     expectedRevision: input.expectedRevision,
+    headline: value.headline,
+    stage: value.stage,
     introduction: value.introduction,
     interests: value.interests,
     spokenLanguages: value.spokenLanguages,

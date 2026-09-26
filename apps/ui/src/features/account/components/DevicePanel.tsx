@@ -3,14 +3,14 @@ import { useState } from 'react';
 import {
   devices_empty,
   devices_note,
-  devices_sign_out,
   devices_sign_out_others,
   devices_this_one,
   providers_disconnect,
   providers_keep_one,
+  sign_out,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, StatusMessage } from '@founders-coffee/ui';
 
 import { contactErrorMessage } from '../contact-errors';
 import { describeDevice } from '../device-name';
@@ -76,7 +76,7 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
                   void run(() => revoke.mutateAsync({ sessionId: row.id }))
                 }
               >
-                {devices_sign_out({}, { locale })}
+                {sign_out({}, { locale })}
               </Button>
             )
           }
@@ -87,9 +87,9 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
         {devices_note({}, { locale })}
       </p>
       {error && (
-        <p role="alert" className="mt-2 text-body-sm text-error">
+        <StatusMessage variant="error" className="mt-2">
           {error}
-        </p>
+        </StatusMessage>
       )}
       {others.length > 0 ? (
         <Button

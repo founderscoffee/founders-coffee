@@ -3,19 +3,19 @@ import {
   ntf_push_confirmation_body,
   ntf_push_confirmation_title,
   ntf_push_event_cancelled_body,
-  ntf_push_event_cancelled_title,
+  ntf_event_cancelled_title,
   ntf_push_event_relocated_body,
-  ntf_push_event_relocated_title,
+  ntf_event_relocated_title,
   ntf_push_event_rescheduled_body,
-  ntf_push_event_rescheduled_title,
+  ntf_event_rescheduled_title,
   ntf_push_reminder_24h_body,
-  ntf_push_reminder_24h_title,
+  ntf_reminder_24h_title,
   ntf_push_reminder_72h_body,
   ntf_push_reminder_72h_title,
   ntf_push_did_not_happen_body,
-  ntf_push_did_not_happen_title,
+  ntf_did_not_happen_title,
   ntf_push_closeout_prompt_body,
-  ntf_push_closeout_prompt_title,
+  ntf_closeout_prompt_title,
   ntf_push_rsvp_received_body,
   ntf_push_rsvp_received_title,
   ntf_push_rsvp_cancelled_body,
@@ -29,9 +29,14 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
-import type { NotificationTemplateKey } from '@founders-coffee/core';
+import type { PersonalTemplateKey } from '@founders-coffee/core';
 
 export type { NotificationTemplateKey } from '@founders-coffee/core';
+
+export interface CalendarLinks {
+  readonly google: string;
+  readonly ics: string;
+}
 
 export interface TemplateValues {
   readonly title: string;
@@ -40,6 +45,7 @@ export interface TemplateValues {
   readonly date: string;
   readonly url: string;
   readonly reason?: string;
+  readonly calendar?: CalendarLinks;
 }
 
 const escapeHtml = (value: string): string =>
@@ -56,7 +62,8 @@ const escapeHtml = (value: string): string =>
  *
  * Paraglide substitutes placeholders verbatim, so a message containing markup interpolates whatever
  * it is handed. The title and venue are user-authored and the URL carries a slug, so all of them are
- * escaped for the HTML variants and left alone for the plain-text and SMS ones.
+ * escaped for the HTML variants and left alone for the plain-text and SMS ones. The calendar links
+ * join them for their query strings, whose `&` an attribute has to carry as `&amp;`.
  */
 export const escapeValues = (values: TemplateValues): TemplateValues => ({
   title: escapeHtml(values.title),
@@ -65,6 +72,12 @@ export const escapeValues = (values: TemplateValues): TemplateValues => ({
   date: escapeHtml(values.date),
   url: escapeHtml(values.url),
   reason: values.reason ? escapeHtml(values.reason) : undefined,
+  calendar: values.calendar
+    ? {
+        google: escapeHtml(values.calendar.google),
+        ics: escapeHtml(values.calendar.ics),
+      }
+    : undefined,
 });
 
 /**
@@ -97,7 +110,7 @@ export const withReason = (
  */
 export const smsBodyFor = (
   templateKey: Exclude<
-    NotificationTemplateKey,
+    PersonalTemplateKey,
     | 'rsvp_received'
     | 'rsvp_cancelled'
     | 'closeout_prompt'
@@ -136,7 +149,7 @@ export const smsBodyFor = (
  * this only stops throwing it away.
  */
 export const pushPayloadFor = (
-  templateKey: NotificationTemplateKey,
+  templateKey: PersonalTemplateKey,
   values: TemplateValues,
   locale: Locale,
 ): { pushTitle: string; pushBody: string; pushUrl: string } => {
@@ -144,7 +157,7 @@ export const pushPayloadFor = (
   const pushUrl = values.url;
   if (templateKey === 'event_did_not_happen') {
     return {
-      pushTitle: ntf_push_did_not_happen_title(values, options),
+      pushTitle: ntf_did_not_happen_title(values, options),
       pushBody: ntf_push_did_not_happen_body({}, options),
       pushUrl,
     };
@@ -158,7 +171,7 @@ export const pushPayloadFor = (
   }
   if (templateKey === 'closeout_prompt') {
     return {
-      pushTitle: ntf_push_closeout_prompt_title(values, options),
+      pushTitle: ntf_closeout_prompt_title(values, options),
       pushBody: ntf_push_closeout_prompt_body({}, options),
       pushUrl,
     };
@@ -179,21 +192,21 @@ export const pushPayloadFor = (
   }
   if (templateKey === 'event_cancelled') {
     return {
-      pushTitle: ntf_push_event_cancelled_title(values, options),
+      pushTitle: ntf_event_cancelled_title(values, options),
       pushBody: ntf_push_event_cancelled_body(values, options),
       pushUrl,
     };
   }
   if (templateKey === 'event_rescheduled') {
     return {
-      pushTitle: ntf_push_event_rescheduled_title(values, options),
+      pushTitle: ntf_event_rescheduled_title(values, options),
       pushBody: ntf_push_event_rescheduled_body(values, options),
       pushUrl,
     };
   }
   if (templateKey === 'event_relocated') {
     return {
-      pushTitle: ntf_push_event_relocated_title(values, options),
+      pushTitle: ntf_event_relocated_title(values, options),
       pushBody: ntf_push_event_relocated_body(values, options),
       pushUrl,
     };
@@ -212,7 +225,7 @@ export const pushPayloadFor = (
         pushUrl,
       }
     : {
-        pushTitle: ntf_push_reminder_24h_title(values, options),
+        pushTitle: ntf_reminder_24h_title(values, options),
         pushBody: ntf_push_reminder_24h_body({}, options),
         pushUrl,
       };

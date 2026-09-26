@@ -9,6 +9,8 @@ import {
 } from '@founders-coffee/db';
 import { notifications } from '@founders-coffee/domain';
 
+export type PersonalChannel = Exclude<NotificationDeliveryChannel, 'telegram'>;
+
 export type Destination =
   | {
       readonly channel: Extract<NotificationDeliveryChannel, 'sms'>;
@@ -103,7 +105,7 @@ const unreachable = (reason: string, account = false): DestinationResult => ({
  */
 export const resolveDestination = async (
   db: Db,
-  channel: ScheduledNotification['channel'],
+  channel: PersonalChannel,
   userId: string,
   templateKey?: ScheduledNotification['templateKey'],
   marketCode?: string,

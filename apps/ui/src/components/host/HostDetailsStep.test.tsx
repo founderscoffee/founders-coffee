@@ -36,7 +36,7 @@ describe('what a screen reader is told each field is called', () => {
   it('names the title field without reading the badge and the counter into it', () => {
     show();
 
-    const field = screen.getByLabelText('Title');
+    const field = screen.getByLabelText('Meetup title');
 
     expect(field.getAttribute('id')).toBe('host-title');
     expect(describedText(field)).toContain('0 of 120');
@@ -45,7 +45,7 @@ describe('what a screen reader is told each field is called', () => {
   it('names the description field the same way', () => {
     show();
 
-    const field = screen.getByLabelText('Description');
+    const field = screen.getByLabelText('Meetup description');
 
     expect(field.getAttribute('id')).toBe('host-description');
     expect(describedText(field)).toContain('0 of 2000');
@@ -54,7 +54,7 @@ describe('what a screen reader is told each field is called', () => {
   it('leaves the required badge out of the accessible tree, since the field carries required', () => {
     show();
 
-    const field = screen.getByLabelText('Title') as HTMLInputElement;
+    const field = screen.getByLabelText('Meetup title') as HTMLInputElement;
 
     expect(field.required).toBe(true);
     expect(
@@ -68,7 +68,7 @@ describe('what a screen reader is told each field is called', () => {
   it('keeps no field inside the label element that names it', () => {
     show();
 
-    for (const name of ['Title', 'Description']) {
+    for (const name of ['Meetup title', 'Meetup description']) {
       expect(screen.getByLabelText(name).closest('label')).toBeNull();
     }
   });

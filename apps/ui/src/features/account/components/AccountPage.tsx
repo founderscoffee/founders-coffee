@@ -10,7 +10,6 @@ import {
   account_delete_note,
   account_delete_subject,
   account_devices_title,
-  account_email,
   account_export,
   account_export_note,
   account_export_subject,
@@ -23,15 +22,16 @@ import {
   account_providers_empty,
   account_sessions,
   account_sessions_count,
-  account_title,
+  account as accountLabel,
   account_unavailable,
   account_unverified,
   account_verified,
   contact_add_phone,
   contact_change_email,
+  email_label,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { storeLocale } from '../../preferences/locale-cookie';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
@@ -102,7 +102,7 @@ const AccountSections = ({
       note={account_contacts_note({}, { locale })}
     >
       <AccountRow
-        label={account_email({}, { locale })}
+        label={email_label({}, { locale })}
         value={account.email.masked}
         status={
           <>
@@ -203,7 +203,7 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
       <ProfileSectionNav locale={locale} />
       <div className="min-w-0">
         <h1 className="mb-1 font-display text-h3">
-          {account_title({}, { locale })}
+          {accountLabel({}, { locale })}
         </h1>
         <p className="mb-6 text-body-sm text-neutral">
           {account_heading({}, { locale })} {account_note({}, { locale })}
@@ -238,13 +238,11 @@ export const AccountPage = ({ locale }: { locale: Locale }) => {
             </div>
           </>
         ) : query.isError && query.userId ? (
-          <p role="alert" className="text-body-sm text-error">
+          <StatusMessage variant="error">
             {account_unavailable({}, { locale })}
-          </p>
+          </StatusMessage>
         ) : isLoading ? (
-          <p role="status" className="text-body-sm text-neutral">
-            {account_loading({}, { locale })}
-          </p>
+          <LoadingStatus label={account_loading({}, { locale })} />
         ) : (
           <ProfileAccess
             locale={locale}

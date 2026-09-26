@@ -19,12 +19,18 @@ const email = {
 
 const sms = { ...base, ...email, phoneNumber: '+213600000000', smsBody: 'hi' };
 const push = { ...base, pushTitle: 'Reminder', pushBody: 'Tomorrow' };
+const telegram = {
+  ...base,
+  telegramText: 'Tomorrow: Coffee + Code',
+  telegramPinnedText: 'Coffee + Code',
+};
 
 describe('parseNotificationPayload', () => {
   it.each([
     ['sms', sms],
     ['email', { ...base, ...email }],
     ['push', push],
+    ['telegram', telegram],
   ])('accepts a complete %s payload', (channel, payload) => {
     const result = parseNotificationPayload(channel, payload);
     expect(result.ok).toBe(true);
@@ -78,6 +84,44 @@ describe('parseNotificationPayload', () => {
       futureField: 'x',
     });
     expect(result.ok).toBe(true);
+  });
+
+  it('accepts a telegram removal that carries no text, only whom to remove', () => {
+    const removal = {
+      ...base,
+      telegramChatId: -1001234567890,
+      telegramUserId: 7000000001,
+      telegramInviteLink: 'https://t.me/+abc',
+    };
+    expect(parseNotificationPayload('telegram', removal).ok).toBe(true);
+  });
+
+  it('accepts a telegram departure that names its chat and the links to revoke', () => {
+    const departure = {
+      ...base,
+      telegramChatId: -1001234567890,
+      telegramInviteLinks: ['https://t.me/+abc', 'https://t.me/+def'],
+    };
+    expect(parseNotificationPayload('telegram', departure).ok).toBe(true);
+  });
+
+  it.each([
+    ['telegramText', { ...telegram, telegramText: '' }],
+    [
+      'telegramPinnedText',
+      { ...telegram, telegramPinnedText: 'x'.repeat(4097) },
+    ],
+    ['telegramChatId', { ...telegram, telegramChatId: 1.5 }],
+    ['telegramUserId', { ...telegram, telegramUserId: -5 }],
+    ['telegramInviteLink', { ...telegram, telegramInviteLink: 'not a link' }],
+    [
+      'telegramInviteLinks',
+      { ...telegram, telegramInviteLinks: ['https://t.me/+abc', 'not a link'] },
+    ],
+  ])('rejects a telegram payload with a bad %s', (field, payload) => {
+    const result = parseNotificationPayload('telegram', payload);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toContain(field);
   });
 
   it('rejects a non-object payload', () => {

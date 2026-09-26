@@ -200,21 +200,22 @@ describe('HostMap', () => {
     const callout = screen.getByTestId('map-callout').textContent ?? '';
     expect(callout).toContain(selectedVenue.name);
     expect(callout).toContain(selectedVenue.address);
-    expect(callout).toContain('Drag the pin to the exact door.');
+    expect(callout).toContain('Drag the pin to the entrance.');
   });
 
   it('covers the map with a skeleton until Mapbox reports it is loaded', () => {
     renderMap(null, vi.fn(), vi.fn());
 
-    expect(
-      screen.getByRole('status', { name: 'Loading the venue map…' }),
-    ).toBeDefined();
+    const mapLoading = () =>
+      screen
+        .queryAllByRole('status')
+        .find((region) => region.textContent === 'Loading the venue map…');
+
+    expect(mapLoading()).toBeDefined();
 
     fireEvent.click(screen.getByTestId('map-loaded'));
 
-    expect(
-      screen.queryByRole('status', { name: 'Loading the venue map…' }),
-    ).toBeNull();
+    expect(mapLoading()).toBeUndefined();
   });
 
   it('hands Mapbox a self-hosted worker and the object it can write globals onto', () => {

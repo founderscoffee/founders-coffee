@@ -33,10 +33,12 @@ import {
   ORDER_STATUSES,
   PROFILE_ASSET_STATUSES,
   PROFILE_PHOTO_MIME_TYPES,
+  PROFILE_STAGES,
   PUSH_PLATFORMS,
   PUSH_SURFACES,
   REVIEW_BOTTLENECKS,
   RSVP_STATUSES,
+  TELEGRAM_GROUP_STATUSES,
   USER_ROLES,
 } from '@founders-coffee/core';
 
@@ -64,6 +66,7 @@ export {
   REVIEW_BOTTLENECKS,
   RSVP_LIFECYCLE_TEMPLATE_KEYS,
   RSVP_STATUSES,
+  TELEGRAM_GROUP_STATUSES,
   USER_ROLES,
 } from '@founders-coffee/core';
 
@@ -546,6 +549,8 @@ export const memberProfiles = sqliteTable(
     userId: text('user_id')
       .primaryKey()
       .references(() => user.id, { onDelete: 'cascade' }),
+    headline: text('headline'),
+    stage: text('stage', { enum: [...PROFILE_STAGES] }),
     introduction: text('introduction'),
     interests: text('interests', { mode: 'json' })
       .$type<string[]>()
@@ -557,6 +562,17 @@ export const memberProfiles = sqliteTable(
       .default(sql`'[]'`),
     professionalLink: text('professional_link'),
     photoAssetId: text('photo_asset_id'),
+    publishHeadline: integer('publish_headline', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    publishStage: integer('publish_stage', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    publishAttendedCount: integer('publish_attended_count', {
+      mode: 'boolean',
+    })
+      .notNull()
+      .default(false),
     publishInterests: integer('publish_interests', { mode: 'boolean' })
       .notNull()
       .default(false),
@@ -966,3 +982,93 @@ export type OperationsAuditRow = typeof operationsAudit.$inferSelect;
 export type OperationsReviewRow = typeof operationsReviews.$inferSelect;
 export type CommunityMetricSnapshotRow =
   typeof communityMetricSnapshots.$inferSelect;
+
+/**
+ * A meetup's Telegram group, as the bot knows it (P1-025).
+ *
+ * Keyed by `event_id`: a meetup has at most one group, and connecting again rewrites this row rather
+ * than adding a second. A group can serve several meetups, one row each, which is how a host
+ * connects the same group to their next meetup.
+ *
+ * `status` runs `pending → active → closed`. A host asking to connect writes `pending` with a
+ * one-time token; the bot's `/start` carrying that token inside a group makes it `active` and
+ * records the chat. `closed` is where the bot's work for the meetup ends: the wrap-up the day after,
+ * a cancellation, the host disconnecting, or the bot being removed from the group. A closed meetup
+ * that has not ended can be connected again, which takes the row back to `pending`.
+ *
+ * Only the token's hash is stored, so reading this table connects nothing. Telegram ids are
+ * integers of at most 52 significant bits, which a JavaScript number holds exactly.
+ */
+export const eventTelegramGroups = sqliteTable(
+  'event_telegram_groups',
+  {
+    eventId: text('event_id')
+      .primaryKey()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    status: text('status', { enum: [...TELEGRAM_GROUP_STATUSES] })
+      .notNull()
+      .default('pending'),
+    chatId: integer('chat_id'),
+    chatTitle: text('chat_title'),
+    pinnedMessageId: integer('pinned_message_id'),
+    connectTokenHash: text('connect_token_hash'),
+    connectTokenExpiresAt: integer('connect_token_expires_at', {
+      mode: 'timestamp',
+    }),
+    connectedAt: integer('connected_at', { mode: 'timestamp' }),
+    closedAt: integer('closed_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('event_telegram_groups_connect_token_unique').on(
+      table.connectTokenHash,
+    ),
+    index('event_telegram_groups_chat_id_index').on(table.chatId),
+  ],
+);
+
+/**
+ * A member's personal invite to a meetup's Telegram group (P1-025).
+ *
+ * The link asks Telegram for a join request instead of letting its holder straight in, so the bot
+ * decides every request. It admits only through a link it finds here, only while the member is
+ * going, and only the Telegram account that used the link first: `telegram_user_id` is bound on that
+ * first approval, so a forwarded link admits nobody else.
+ *
+ * One row per member and meetup. Cancelling the RSVP deletes it, the removal from the group carrying
+ * the account id it needs, and the group closing deletes every row for the meetup. A member's
+ * Telegram id is held only while it has a use.
+ */
+export const eventTelegramInvites = sqliteTable(
+  'event_telegram_invites',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    inviteLink: text('invite_link').notNull(),
+    telegramUserId: integer('telegram_user_id'),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex('event_telegram_invites_event_user_unique').on(
+      table.eventId,
+      table.userId,
+    ),
+    uniqueIndex('event_telegram_invites_link_unique').on(table.inviteLink),
+    index('event_telegram_invites_user_id_index').on(table.userId),
+  ],
+);
+
+export type EventTelegramGroupRow = typeof eventTelegramGroups.$inferSelect;
+export type EventTelegramInviteRow = typeof eventTelegramInvites.$inferSelect;

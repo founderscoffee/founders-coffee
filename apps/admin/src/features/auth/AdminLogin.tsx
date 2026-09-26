@@ -1,21 +1,21 @@
 import { useState } from 'react';
 
 import {
-  admin_captcha_wait,
-  admin_checking,
-  admin_code_error,
-  admin_code_label,
-  admin_email_label,
-  admin_send_code,
-  admin_send_error,
-  admin_sending,
-  admin_sign_in,
-  admin_sign_in_note,
-  admin_title,
-  admin_use_other_email,
+  captcha_wait,
+  checking,
+  code_error,
+  code_label,
+  email_label,
+  send_code,
+  send_error,
+  sending,
+  sign_in,
+  sign_in_note,
+  title,
+  use_other_email,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Turnstile } from '@founders-coffee/ui';
+import { LoadingStatus, StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { authClient } from '../../lib/auth';
 import { LocaleToggle } from '../shell/LocaleToggle';
@@ -48,7 +48,7 @@ export const AdminLogin = ({
     );
     setBusy(false);
     if (failed) {
-      setError(admin_send_error({}, { locale }));
+      setError(send_error({}, { locale }));
       return;
     }
     setStep('code');
@@ -63,7 +63,7 @@ export const AdminLogin = ({
     });
     setBusy(false);
     if (failed) {
-      setError(admin_code_error({}, { locale }));
+      setError(code_error({}, { locale }));
       return;
     }
     window.location.assign('/');
@@ -75,9 +75,9 @@ export const AdminLogin = ({
         <div className="mb-3 flex justify-end">
           <LocaleToggle active={locale} />
         </div>
-        <h1 className="font-display text-h4">{admin_title({}, { locale })}</h1>
+        <h1 className="font-display text-h4">{title({}, { locale })}</h1>
         <p className="mt-1 text-body-sm text-neutral">
-          {admin_sign_in_note({}, { locale })}
+          {sign_in_note({}, { locale })}
         </p>
       </div>
 
@@ -90,7 +90,7 @@ export const AdminLogin = ({
           }}
         >
           <label className="text-body-sm" htmlFor="admin-email">
-            {admin_email_label({}, { locale })}
+            {email_label({}, { locale })}
           </label>
           <input
             className="rounded-box border border-base-300 p-2"
@@ -110,18 +110,17 @@ export const AdminLogin = ({
             />
           )}
           {needsToken && !token && (
-            <p className="text-caption text-neutral" role="status">
-              {admin_captcha_wait({}, { locale })}
-            </p>
+            <LoadingStatus
+              label={captcha_wait({}, { locale })}
+              className="text-caption"
+            />
           )}
           <button
             className="btn btn-primary"
             type="submit"
             disabled={busy || !canSend}
           >
-            {busy
-              ? admin_sending({}, { locale })
-              : admin_send_code({}, { locale })}
+            {busy ? sending({}, { locale }) : send_code({}, { locale })}
           </button>
         </form>
       ) : (
@@ -133,7 +132,7 @@ export const AdminLogin = ({
           }}
         >
           <label className="text-body-sm" htmlFor="admin-code">
-            {admin_code_label({ email }, { locale })}
+            {code_label({ email }, { locale })}
           </label>
           <input
             className="rounded-box border border-base-300 p-2 tracking-widest"
@@ -150,25 +149,19 @@ export const AdminLogin = ({
             type="submit"
             disabled={busy || code.length === 0}
           >
-            {busy
-              ? admin_checking({}, { locale })
-              : admin_sign_in({}, { locale })}
+            {busy ? checking({}, { locale }) : sign_in({}, { locale })}
           </button>
           <button
             className="text-body-sm underline"
             type="button"
             onClick={() => setStep('email')}
           >
-            {admin_use_other_email({}, { locale })}
+            {use_other_email({}, { locale })}
           </button>
         </form>
       )}
 
-      {error && (
-        <p className="text-body-sm text-error" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <StatusMessage variant="error">{error}</StatusMessage>}
     </main>
   );
 };

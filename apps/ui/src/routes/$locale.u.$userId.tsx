@@ -3,7 +3,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 import { appErrorCode } from '@founders-coffee/core';
 import { profile_title } from '@founders-coffee/i18n';
 
-import { eventsApi, type EventFeedItem } from '../features/events/api';
+import { eventsApi, type HostedEventItem } from '../features/events/api';
 import { profileApi, type PublicProfile } from '../features/profile/api';
 import { PublicProfilePage } from '../features/profile/components/PublicProfilePage';
 import { NO_INDEX_VALUE } from '../lib/indexation';
@@ -13,35 +13,37 @@ import {
 } from '../lib/public-pagination';
 import { buildPageTitle } from '../lib/seo';
 
+const PublicProfileRoute = () => {
+  const { locale, markets } = Route.useRouteContext();
+  const { profile, events, eventsNextCursor, eventsTotal, pagination } =
+    Route.useLoaderData();
+  return (
+    <PublicProfilePage
+      locale={locale}
+      profile={profile}
+      events={events}
+      eventsNextCursor={eventsNextCursor}
+      eventsTotal={eventsTotal}
+      beforeStartsAt={pagination.beforeStartsAt}
+      beforeId={pagination.beforeId}
+      markets={markets}
+    />
+  );
+};
+
 export const Route = createFileRoute('/$locale/u/$userId')({
   validateSearch: hostedPaginationSearchSchema,
   loaderDeps: ({ search }) => ({
     beforeStartsAt: search.beforeStartsAt,
     beforeId: search.beforeId,
   }),
-  component: () => {
-    const { locale, markets } = Route.useRouteContext();
-    const { profile, events, eventsNextCursor, eventsTotal, pagination } =
-      Route.useLoaderData();
-    return (
-      <PublicProfilePage
-        locale={locale}
-        profile={profile}
-        events={events}
-        eventsNextCursor={eventsNextCursor}
-        eventsTotal={eventsTotal}
-        beforeStartsAt={pagination.beforeStartsAt}
-        beforeId={pagination.beforeId}
-        markets={markets}
-      />
-    );
-  },
+  component: PublicProfileRoute,
   loader: async ({
     params,
     deps,
   }): Promise<{
     profile: PublicProfile;
-    events: readonly EventFeedItem[];
+    events: readonly HostedEventItem[];
     eventsNextCursor: { startsAt: number; id: string } | null;
     eventsTotal: number;
     pagination: HostedPaginationSearch;

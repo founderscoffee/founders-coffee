@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  live_confirm,
+  confirm,
   live_running_late_cta,
   live_walking_in_cta,
 } from '@founders-coffee/i18n';
@@ -78,7 +78,7 @@ describe('what the live room asks of someone who is not there yet', () => {
     fireEvent.change(screen.getByRole('spinbutton'), {
       target: { value: '15' },
     });
-    fireEvent.click(named(live_confirm({}, AR)));
+    fireEvent.click(named(confirm({}, AR)));
 
     expect(
       onRunningLate,

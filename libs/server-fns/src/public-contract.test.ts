@@ -10,15 +10,19 @@ import { profile } from '@founders-coffee/domain';
 import { readAccountSummary } from './profile/account.js';
 import { attachAttendance } from './events/attendance.js';
 import { attachCityNames } from './events/resolver.js';
+import { groupCityHosts } from './markets/city-hosts.js';
 import { ownerProfileProjection } from './profile/projection.js';
 
 const PUBLIC_PROFILE_FIELDS = [
   'displayName',
+  'headline',
   'interests',
   'introduction',
+  'memberSince',
   'photoAssetId',
   'professionalLink',
   'spokenLanguages',
+  'stage',
   'userId',
 ] as const;
 
@@ -27,6 +31,8 @@ const OWNER_PROFILE_FIELDS = [
   'revision',
   'visibility',
 ] as const;
+
+const MEETUP_RECORD_FIELDS = ['attendedCount', 'hostedCount'] as const;
 
 const EVENT_COLUMNS = [
   'cancellationReason',
@@ -57,12 +63,15 @@ const PUBLIC_EVENT_FIELDS = [
   ...EVENT_COLUMNS,
   'cityName',
   'cityNameAr',
+  'cityNameFr',
   'citySlug',
   'goingCount',
   'hostName',
   'hostPhotoAssetId',
   'viewerRsvp',
 ] as const;
+
+const PUBLIC_CITY_HOST_FIELDS = ['name', 'photoAssetId'] as const;
 
 const PUBLIC_MARKET_FIELDS = [
   'brandOverrides',
@@ -97,32 +106,59 @@ describe('public response contract', () => {
   it('publishes exactly the profile fields the contract names', () => {
     expect(
       sorted(Object.keys(profile.publicMemberProfileSchema.shape)),
-    ).toEqual(sorted(PUBLIC_PROFILE_FIELDS));
+    ).toEqual(sorted([...PUBLIC_PROFILE_FIELDS, ...MEETUP_RECORD_FIELDS]));
   });
 
-  it('keeps the owner projection to the published fields plus its own controls', () => {
-    const owner = ownerProfileProjection('usr_contract', 'Contract', null);
+  it('keeps the owner projection to the published fields, less the meetup record, plus its own controls', () => {
+    const owner = ownerProfileProjection(
+      'usr_contract',
+      'Contract',
+      new Date('2026-03-14T09:30:00Z'),
+      null,
+    );
 
     expect(sorted(Object.keys(owner))).toEqual(sorted(OWNER_PROFILE_FIELDS));
     expect(sorted(Object.keys(owner.visibility))).toEqual(
-      sorted(['interests', 'professionalLink', 'spokenLanguages']),
+      sorted([
+        'attendedCount',
+        'headline',
+        'interests',
+        'professionalLink',
+        'spokenLanguages',
+        'stage',
+      ]),
     );
   });
 
   it('publishes the introduction while withholding opt-in fields', () => {
-    const owner = ownerProfileProjection('usr_contract', 'Contract', {
-      introduction: 'Secret',
-      interests: ['bootstrapping'],
-      spokenLanguages: ['ar'],
-      professionalLink: 'https://example.dz',
-      photoAssetId: 'ast_0123456789abcdef0123456789abcdef',
-    } as never);
-    const published = profile.projectPublicProfile(owner);
+    const owner = ownerProfileProjection(
+      'usr_contract',
+      'Contract',
+      new Date('2026-03-14T09:30:00Z'),
+      {
+        headline: 'A bookkeeping app for small shops',
+        stage: 'launched',
+        introduction: 'Secret',
+        interests: ['bootstrapping'],
+        spokenLanguages: ['ar'],
+        professionalLink: 'https://example.dz',
+        photoAssetId: 'ast_0123456789abcdef0123456789abcdef',
+      } as never,
+    );
+    const published = profile.projectPublicProfile(owner, {
+      hosted: 3,
+      attended: 4,
+    });
 
     expect(sorted(Object.keys(published))).toEqual(
-      sorted(PUBLIC_PROFILE_FIELDS),
+      sorted([...PUBLIC_PROFILE_FIELDS, ...MEETUP_RECORD_FIELDS]),
     );
     expect(published).toMatchObject({
+      memberSince: '2026-03',
+      hostedCount: 3,
+      attendedCount: null,
+      headline: null,
+      stage: null,
       introduction: 'Secret',
       professionalLink: null,
       photoAssetId: owner.photoAssetId,
@@ -145,6 +181,22 @@ describe('public response contract', () => {
     );
 
     expect(sorted(Object.keys(item))).toEqual(sorted(PUBLIC_EVENT_FIELDS));
+  });
+
+  it('publishes exactly the host fields a city card names', () => {
+    const [face] =
+      groupCityHosts([
+        {
+          cityCode: '1',
+          hostId: 'usr_contract',
+          name: 'Contract',
+          photoAssetId: 'ast_contract',
+        },
+      ]).get('1')?.hosts ?? [];
+
+    expect(sorted(Object.keys(face ?? {}))).toEqual(
+      sorted(PUBLIC_CITY_HOST_FIELDS),
+    );
   });
 
   it('publishes exactly the market fields the contract names', () => {
@@ -205,6 +257,7 @@ describe('public response contract', () => {
       PUBLIC_PROFILE_FIELDS,
       OWNER_PROFILE_FIELDS,
       PUBLIC_EVENT_FIELDS,
+      PUBLIC_CITY_HOST_FIELDS,
       PUBLIC_MARKET_FIELDS,
     ];
 

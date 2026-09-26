@@ -1,13 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
-import {
-  admin,
-  bearer,
-  captcha,
-  emailOTP,
-  phoneNumber,
-} from 'better-auth/plugins';
+import { admin, captcha, emailOTP, phoneNumber } from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 
 import { AppError, optionalEnv } from '@founders-coffee/core';
@@ -103,6 +97,13 @@ const GUARDED_ACCOUNT_PATHS = [
  * their own address and lock the member out with the account's own recovery flow; with it, the
  * change costs a code sent to the address currently on file, and the old one stays authoritative
  * until a second code proves the new one is real.
+ *
+ * A session travels in its HttpOnly cookie and nowhere else, so Better Auth's `bearer` plugin is
+ * left out. Without `requireSignature` it takes the bare session token as a login, and that token
+ * sits in D1 and comes back to page scripts from `get-session`; it also copies the signed token
+ * into a `set-auth-token` header that scripts can read. A non-web client brings it back with
+ * `requireSignature: true`, and `callerSessionToken` has to read the header from then on, or the
+ * device controls cannot tell which session is asking.
  */
 export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
@@ -224,7 +225,6 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
         allowedAttempts: 3,
       }),
       admin({ ac, roles, defaultRole: 'member', adminRoles: ['admin'] }),
-      bearer(),
       tanstackStartCookies(),
     ],
   });

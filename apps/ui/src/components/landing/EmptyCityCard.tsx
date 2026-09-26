@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import {
+  cityInputs,
   hero_empty_city,
   hero_empty_cta,
   hero_empty_subtitle,
@@ -35,7 +36,7 @@ export const EmptyCityCard = ({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-3">
           <h2 className="font-display text-body font-semibold text-base-content">
-            {hero_empty_city({ city: cityDisplayName }, { locale })}
+            {hero_empty_city(cityInputs(cityDisplayName), { locale })}
           </h2>
           <p className="text-body-sm leading-relaxed text-neutral">
             {hero_empty_subtitle({ city: cityDisplayName }, { locale })}

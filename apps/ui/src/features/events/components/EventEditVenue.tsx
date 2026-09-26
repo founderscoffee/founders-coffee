@@ -11,6 +11,7 @@ import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 import { HostMapPanel } from '../../../components/host/HostMapPanel';
 import { HostVenueStep } from '../../../components/host/HostVenueStep';
+import { eventCityName } from '../event-city-name';
 import { useHostMapContext } from '../hooks';
 import type { VenueSelection } from '../types';
 
@@ -46,8 +47,7 @@ export const EventEditVenue = ({
       ? host_venue_rate_limited({}, { locale })
       : host_venue_search_error({}, { locale })
     : undefined;
-  const cityName =
-    locale === 'ar' ? event.cityNameAr : (event.cityName ?? event.cityNameAr);
+  const cityName = eventCityName(event, locale);
   const listCenter = center ??
     venue ??
     mapContext.data?.center ?? { latitude: 0, longitude: 0 };
@@ -75,7 +75,7 @@ export const EventEditVenue = ({
       </p>
       <HostVenueStep
         locale={locale}
-        cityName={cityName}
+        area={{ kind: 'city', name: cityName }}
         cityCode={event.cityCode}
         marketCode={event.marketCode}
         center={listCenter}

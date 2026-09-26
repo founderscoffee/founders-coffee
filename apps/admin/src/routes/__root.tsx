@@ -2,11 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 
 import {
-  admin_not_found,
-  admin_title,
+  not_found,
+  title,
   detectLocale,
   direction,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 
 import { readCookieHeader } from '../lib/cookies';
 import appCss from '../styles.css?url';
@@ -36,9 +37,9 @@ const NotFound = () => {
   const { locale } = Route.useRouteContext();
   return (
     <main className="mx-auto max-w-xl p-8">
-      <p role="alert">{admin_not_found({}, { locale })}</p>
+      <StatusMessage variant="error">{not_found({}, { locale })}</StatusMessage>
       <a className="mt-4 inline-block underline" href="/">
-        {admin_title({}, { locale })}
+        {title({}, { locale })}
       </a>
     </main>
   );

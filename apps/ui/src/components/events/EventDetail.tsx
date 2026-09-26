@@ -3,6 +3,7 @@ import { CalendarDays, MapPin, Users } from 'lucide-react';
 
 import {
   back_to_city,
+  cityInputs,
   event_cancelled_body,
   event_cancelled_title,
   event_details_title,
@@ -21,12 +22,14 @@ import {
   share_event_action,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 import type { Market } from '@founders-coffee/db';
 import type {
   EventDetailItem,
   PublicProfile,
 } from '@founders-coffee/server-fns';
 
+import { eventCityName } from '../../features/events/event-city-name';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import {
   localizedCity,
@@ -96,8 +99,7 @@ export const EventDetail = ({
       <bdi dir="ltr">{times}</bdi>
     );
 
-  const cityName =
-    locale === 'ar' ? (event.cityNameAr ?? event.cityName) : event.cityName;
+  const cityName = eventCityName(event, locale);
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
   const isCancelled = event.status === 'cancelled';
   const hasRsvpBox = isHost || !isCancelled || event.viewerRsvp === 'going';
@@ -109,30 +111,27 @@ export const EventDetail = ({
           {...localizedCity(locale, market.slug, event.citySlug)}
           className="mb-4 inline-flex min-h-6 items-center text-body-sm font-medium underline decoration-secondary underline-offset-[3px] hover:text-accent"
         >
-          {back_to_city({ city: cityName }, { locale })}
+          {back_to_city(cityInputs(cityName), { locale })}
         </Link>
       )}
 
       {isCancelled && (
-        <div
-          role="status"
-          className="mb-4 rounded-box border border-error bg-error-tint p-4"
-        >
-          <p className="font-display text-h4 font-semibold text-error">
+        <StatusMessage variant="error" className="mb-4">
+          <p className="font-display text-h4 font-semibold">
             {event_cancelled_title({}, { locale })}
           </p>
-          <p className="mt-1 text-body-sm text-neutral">
+          <p className="mt-1 text-neutral">
             {event_cancelled_body({}, { locale })}
           </p>
           {event.cancellationReason ? (
-            <p className="mt-2 text-body-sm text-base-content">
+            <p className="mt-2 text-base-content">
               {ntf_cancel_reason(
                 { reason: event.cancellationReason },
                 { locale },
               )}
             </p>
           ) : null}
-        </div>
+        </StatusMessage>
       )}
 
       <header className="rounded-box bg-base-200 p-5 sm:p-8">
@@ -237,15 +236,20 @@ export const EventDetail = ({
           <section className="mt-6 rounded-box border border-base-300 bg-base-100 p-4">
             <h3 className="eyebrow">{event_host({}, { locale })}</h3>
             <div className="mt-3 flex items-center gap-3.5">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold">
-                {initials(hostName)}
+              <span
+                aria-hidden="true"
+                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold"
+              >
+                {initials(host?.displayName ?? '')}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-display font-semibold">
-                  {hostName}
-                </span>
+                {host ? (
+                  <span className="block font-display font-semibold">
+                    {host.displayName}
+                  </span>
+                ) : null}
                 <span className="block text-body-sm text-neutral" dir="auto">
-                  {role_host({}, { locale })} · {cityName}
+                  {cityName}
                 </span>
               </span>
               {host ? (

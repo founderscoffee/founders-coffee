@@ -9,10 +9,11 @@ import {
   host_locate_me,
   host_map_error,
   host_map_label,
-  host_retry,
+  retry,
   host_venue_unsupported,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 
 import { useReverseEventVenue } from '../../features/events/hooks';
 import type {
@@ -138,22 +139,26 @@ export const HostMap = ({
 
   if (hasMapError) {
     return (
-      <div className="flex h-full min-h-64 w-full flex-col items-center justify-center gap-4 bg-error-tint p-6 text-center">
-        <p className="text-body-sm text-error" role="alert">
-          {host_map_error({}, { locale })}
-        </p>
-        <button
-          type="button"
-          className="btn btn-outline btn-sm"
-          onClick={() => {
-            setHasMapError(false);
-            setIsMapReady(false);
-            setMapKey((value) => value + 1);
-          }}
+      <div className="flex h-full min-h-64 w-full items-center justify-center bg-base-200 p-6">
+        <StatusMessage
+          variant="error"
+          action={
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => {
+                setHasMapError(false);
+                setIsMapReady(false);
+                setMapKey((value) => value + 1);
+              }}
+            >
+              <RefreshCw className="size-4" aria-hidden="true" />
+              {retry({}, { locale })}
+            </button>
+          }
         >
-          <RefreshCw className="size-4" aria-hidden="true" />
-          {host_retry({}, { locale })}
-        </button>
+          {host_map_error({}, { locale })}
+        </StatusMessage>
       </div>
     );
   }

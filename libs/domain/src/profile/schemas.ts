@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
-import { idSchema, userIdSchema } from '@founders-coffee/core';
+import {
+  idSchema,
+  PROFILE_STAGES,
+  profileStageSchema,
+  userIdSchema,
+} from '@founders-coffee/core';
+
+export { PROFILE_STAGES, profileStageSchema };
+export type { ProfileStage } from '@founders-coffee/core';
 
 export const SPOKEN_LANGUAGES = ['ar', 'fr', 'en', 'es', 'de', 'ber'] as const;
 export const spokenLanguageSchema = z.enum(SPOKEN_LANGUAGES);
@@ -46,6 +54,21 @@ export const introductionSchema = z
   )
   .nullable()
   .transform((value) => value || null);
+export const headlineSchema = z
+  .string()
+  .trim()
+  .max(160)
+  .refine((value) => Array.from(value).length <= 80, 'Headline is too long')
+  .nullable()
+  .transform((value) => value || null);
+export const memberSinceSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Use a year and a month');
+
+/** Reduce when an account was created to its month in UTC, so no day ever reaches a profile. */
+export const memberSinceOf = (createdAt: Date): string =>
+  createdAt.toISOString().slice(0, 7);
+
 export const professionalLinkSchema = z
   .string()
   .trim()
@@ -63,12 +86,17 @@ export const professionalLinkSchema = z
   }, 'A credential-free HTTPS URL is required');
 
 export const profileVisibilitySchema = z.strictObject({
+  headline: z.boolean().default(false),
+  stage: z.boolean().default(false),
   interests: z.boolean().default(false),
   spokenLanguages: z.boolean().default(false),
   professionalLink: z.boolean().default(false),
+  attendedCount: z.boolean().default(false),
 });
 
 export const profileDetailsSchema = z.strictObject({
+  headline: headlineSchema.default(null),
+  stage: profileStageSchema.nullable().default(null),
   introduction: introductionSchema.default(null),
   interests: z
     .array(profileInterestSchema)
@@ -98,6 +126,8 @@ const normalizeProfile = <T extends z.infer<typeof profileDetailsSchema>>(
   ...details,
   visibility: {
     ...details.visibility,
+    headline: details.visibility.headline && details.headline !== null,
+    stage: details.visibility.stage && details.stage !== null,
     interests: details.visibility.interests && details.interests.length > 0,
     spokenLanguages:
       details.visibility.spokenLanguages && details.spokenLanguages.length > 0,
@@ -118,6 +148,7 @@ export const ownerProfileSchema = profileDetailsSchema
     userId: profileIdentitySchema,
     displayName: z.union([displayNameSchema, z.literal('')]),
     photoAssetId: idSchema.nullable(),
+    memberSince: memberSinceSchema,
     revision: profileRevisionSchema,
   })
   .transform(normalizeProfile);

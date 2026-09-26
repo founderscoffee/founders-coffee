@@ -9,6 +9,12 @@ import { authReturnPathSchema } from '../lib/redirect';
 import { requireSession } from '../features/auth/require-session';
 import { privatePageHead } from '../lib/seo-private';
 
+const OnboardingRoute = () => {
+  const { locale } = Route.useRouteContext();
+  const { redirect: returnPath } = Route.useSearch();
+  return <OnboardingPage locale={locale} redirect={returnPath} />;
+};
+
 export const Route = createFileRoute('/$locale/onboarding')({
   headers: () => ({
     'Cache-Control': 'private, no-store',
@@ -20,11 +26,7 @@ export const Route = createFileRoute('/$locale/onboarding')({
   beforeLoad: async ({ search, context }) => {
     await requireSession(context.locale, search.redirect);
   },
-  component: () => {
-    const { locale } = Route.useRouteContext();
-    const { redirect: returnPath } = Route.useSearch();
-    return <OnboardingPage locale={locale} redirect={returnPath} />;
-  },
+  component: OnboardingRoute,
   head: ({ match }) =>
     privatePageHead(onboarding_title({}, { locale: match.context.locale })),
 });

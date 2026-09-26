@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import { rsvpEvent as event } from './RsvpSection.fixtures';
+
 const mocks = vi.hoisted(() => ({
   invalidate: vi.fn(),
   createRsvp: vi.fn(),
@@ -24,6 +26,9 @@ vi.mock('../../lib/app-providers', () => ({
 }));
 
 vi.mock('./HostEventPanel', () => ({ HostEventPanel: () => null }));
+vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
+  TelegramGroupCard: () => <p>telegram-group</p>,
+}));
 vi.mock('./RsvpCancelDialog', () => ({
   RsvpCancelDialog: ({
     isOpen,
@@ -43,33 +48,6 @@ vi.mock('../../features/events/components/PushPermissionPrompt', () => ({
 }));
 
 const { RsvpSection } = await import('./RsvpSection');
-
-const event = {
-  id: 'evt_1',
-  hostId: 'usr_1',
-  marketCode: 'DZ',
-  stateCode: '16',
-  cityCode: 'algiers',
-  title: 'Founders breakfast',
-  description: 'A local founder meetup.',
-  venue: 'Café Atlas',
-  startsAt: new Date('2026-09-20T10:00:00Z'),
-  endsAt: new Date('2026-09-20T12:00:00Z'),
-  rsvps: 3,
-  language: 'en',
-  latitude: null,
-  longitude: null,
-  venueAddress: null,
-  slug: 'founders-breakfast',
-  status: 'published',
-  version: 1,
-  createdAt: new Date('2026-09-01T00:00:00Z'),
-  updatedAt: new Date('2026-09-01T00:00:00Z'),
-  cancelledAt: null,
-  cancellationReason: null,
-  goingCount: 3,
-  viewerRsvp: null,
-} satisfies EventWithAttendance;
 
 const cancelled = {
   ...event,
@@ -132,10 +110,10 @@ describe('RsvpSection when the host has called the meetup off', () => {
 
   it('tells whoever had said yes that they are off the hook', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
-    expect(screen.getByText('You had confirmed you were coming.')).toBeTruthy();
+    expect(screen.getByText('You had confirmed your attendance.')).toBeTruthy();
     expect(
       screen.getByText(
-        'There is nothing to cancel, and the reminder we had scheduled will not be sent.',
+        'You do not need to cancel, and you will not receive the reminder.',
       ),
     ).toBeTruthy();
   });
@@ -143,6 +121,21 @@ describe('RsvpSection when the host has called the meetup off', () => {
   it('does not ask them to cancel an RSVP to a meetup that is already off', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
     expect(screen.queryByRole('button', { name: 'Cancel RSVP' })).toBeNull();
+  });
+});
+
+describe("where the meetup's Telegram group is offered", () => {
+  it('offers it to a member who is going, and to nobody else', () => {
+    const offered = (item: EventWithAttendance) => {
+      show(item);
+      const isOffered = screen.queryByText('telegram-group') !== null;
+      cleanup();
+      return isOffered;
+    };
+
+    expect(offered({ ...event, viewerRsvp: 'going' })).toBe(true);
+    expect(offered(event)).toBe(false);
+    expect(offered({ ...cancelled, viewerRsvp: 'going' })).toBe(false);
   });
 });
 
@@ -166,7 +159,9 @@ describe('what a confirmed attendee reads in Arabic', () => {
   it('states the confirmation was sent, rather than appearing to demand it', () => {
     show({ ...event, viewerRsvp: 'going' }, 'ar');
 
-    expect(screen.getByText('تم إرسال التأكيد. سنذكّرك قبل يوم.')).toBeTruthy();
+    expect(
+      screen.getByText('تم إرسال التأكيد. سنذكّرك قبل يوم من اللقاء.'),
+    ).toBeTruthy();
   });
 });
 
@@ -193,7 +188,7 @@ describe('where the undo for a confirmed seat sits', () => {
 
     const cancel = screen.getByRole('button', { name: 'Cancel RSVP' });
     const help = screen.getByText(
-      'Confirmation sent. We’ll remind you the day before.',
+      'Confirmation sent. We’ll remind you the day before the meetup.',
     );
 
     expect(
@@ -224,33 +219,27 @@ describe('telling the room you are on your way', () => {
   it('offers it in the panel, where the seat it belongs to already is', () => {
     showLive(liveRoom(), true);
 
-    expect(
-      screen.getByRole('button', { name: 'أمشي نحو المكان' }),
-    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'أنا في الطريق' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'سأتأخر' })).toBeTruthy();
   });
 
   it('offers nothing before the room opens, when there is no one to tell', () => {
     showLive(liveRoom(), false);
 
-    expect(
-      screen.queryByRole('button', { name: 'أمشي نحو المكان' }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'أنا في الطريق' })).toBeNull();
   });
 
   it('offers nothing to a reader the room has refused', () => {
     showLive(liveRoom({ notAttending: true }), true);
 
-    expect(
-      screen.queryByRole('button', { name: 'أمشي نحو المكان' }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'أنا في الطريق' })).toBeNull();
   });
 
   it('keeps the undo away from the live actions, behind a separator', () => {
     showLive(liveRoom(), true);
 
     const cancel = screen.getByRole('button', { name: 'إلغاء الحضور' });
-    const walking = screen.getByRole('button', { name: 'أمشي نحو المكان' });
+    const walking = screen.getByRole('button', { name: 'أنا في الطريق' });
 
     expect(
       Boolean(

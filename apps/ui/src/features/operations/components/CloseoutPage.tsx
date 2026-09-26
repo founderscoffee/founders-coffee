@@ -6,12 +6,12 @@ import {
   closeout_done,
   closeout_error_already_closed,
   closeout_error_cancelled,
-  closeout_error_disabled,
+  feature_unavailable_region,
   closeout_error_generic,
   closeout_error_no_end_time,
   closeout_error_not_ended,
   closeout_error_not_found,
-  closeout_error_rate_limited,
+  rate_limited,
   closeout_error_not_host,
   closeout_note,
   closeout_refused_marks,
@@ -21,7 +21,7 @@ import {
   submit,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
 import { RepeatHostLink } from '../../../components/events/RepeatHostLink';
@@ -42,13 +42,12 @@ const messageFor = (error: unknown, locale: Locale): string => {
   if (code === 'closeout_event_cancelled')
     return closeout_error_cancelled({}, { locale });
   if (code === 'operations_disabled')
-    return closeout_error_disabled({}, { locale });
+    return feature_unavailable_region({}, { locale });
   if (code === 'closeout_no_end_time')
     return closeout_error_no_end_time({}, { locale });
   if (code === 'event_not_found')
     return closeout_error_not_found({}, { locale });
-  if (code === 'rate_limited')
-    return closeout_error_rate_limited({}, { locale });
+  if (code === 'rate_limited') return rate_limited({}, { locale });
   return closeout_error_generic({}, { locale });
 };
 
@@ -64,7 +63,7 @@ export const CloseoutPage = ({
   const query = useCloseout(eventId);
   const save = useSubmitCloseout(eventId);
   const [draft, setDraft] = useState<CloseoutDraft | null>(null);
-  const refusal = useRef<HTMLParagraphElement>(null);
+  const refusal = useRef<HTMLDivElement>(null);
   const repeat = useRepeatEventTemplate(
     eventId,
     save.isSuccess && draft?.outcome === 'held',
@@ -92,7 +91,7 @@ export const CloseoutPage = ({
           locale={locale}
           isLoading={false}
           isAnonymous
-          returnPath={`/closeout/${eventId}`}
+          returnPath={`/${locale}/closeout/${eventId}`}
           onRetry={() => void query.refetch()}
         />
       </section>
@@ -101,9 +100,9 @@ export const CloseoutPage = ({
   if (query.isError)
     return (
       <section className="mx-auto max-w-2xl px-5 py-12">
-        <p className="text-body-sm text-error" role="alert">
+        <StatusMessage variant="error">
           {messageFor(query.error, locale)}
-        </p>
+        </StatusMessage>
       </section>
     );
 
@@ -117,14 +116,16 @@ export const CloseoutPage = ({
       </p>
 
       {!query.data || !draft ? (
-        <p role="status">{loading({}, { locale })}</p>
+        <LoadingStatus label={loading({}, { locale })} />
       ) : save.isSuccess ? (
         <div className="space-y-3">
-          <p role="status">{closeout_done({}, { locale })}</p>
+          <StatusMessage variant="success">
+            {closeout_done({}, { locale })}
+          </StatusMessage>
           {save.data.refusedMarks.length > 0 && (
-            <p className="text-body-sm text-neutral" role="alert">
+            <StatusMessage variant="warning">
               {closeout_refused_marks({}, { locale })}
-            </p>
+            </StatusMessage>
           )}
           {draft.outcome === 'held' && repeat.data && repeatMarketSlug ? (
             <RepeatHostLink
@@ -137,7 +138,9 @@ export const CloseoutPage = ({
         </div>
       ) : query.data.outcome !== null ? (
         <div className="space-y-6">
-          <p role="status">{closeout_already_done({}, { locale })}</p>
+          <StatusMessage variant="success">
+            {closeout_already_done({}, { locale })}
+          </StatusMessage>
           {tally.data ? (
             <FeedbackTally locale={locale} tally={tally.data} />
           ) : null}
@@ -156,14 +159,9 @@ export const CloseoutPage = ({
           />
 
           {save.isError && (
-            <p
-              className="text-body-sm text-error"
-              ref={refusal}
-              role="alert"
-              tabIndex={-1}
-            >
+            <StatusMessage variant="error" ref={refusal} tabIndex={-1}>
               {messageFor(save.error, locale)}
-            </p>
+            </StatusMessage>
           )}
 
           <Button

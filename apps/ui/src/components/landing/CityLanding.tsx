@@ -4,14 +4,13 @@ import { useState } from 'react';
 import {
   back_to_market,
   city_events_description,
-  city_empty_cta,
+  hero_empty_cta,
   city_empty_title,
   city_loaded_count,
   city_upcoming_title,
-  clear_city_filters,
+  cityInputs,
   host_meetup_here,
   localizedName,
-  no_filter_match,
   type Locale,
 } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
@@ -25,10 +24,12 @@ import {
 } from '../../lib/locale-routing';
 import { useUpcomingEvents } from '../../features/events/hooks';
 import { useEventPages } from '../../features/events/useEventPages';
+import { useLoadUntilMatch } from '../../features/events/useLoadUntilMatch';
 import { LoadMoreEvents } from '../events/LoadMoreEvents';
 import { EventCard } from '../events/EventCard';
 import { CityFilters } from './CityFilters';
 import { EmptyState } from './EmptyState';
+import { NoMatchingMeetups } from './NoMatchingMeetups';
 
 type CityLandingProps = {
   locale: Locale;
@@ -52,6 +53,7 @@ export const CityLanding = ({
   nextCursor,
 }: CityLandingProps) => {
   const cityDisplayName = localizedName(city, locale);
+  const cityNameInputs = cityInputs(cityDisplayName);
   const marketName = localizedName(market, locale);
   const [filters, setFilters] = useState<readonly CityFilterKey[]>([]);
 
@@ -79,6 +81,8 @@ export const CityLanding = ({
   );
   const items = pagination.items;
   const hasEvents = items.length > 0;
+  const visible = applyCityFilters(items, filters, market.timezone, new Date());
+  const search = useLoadUntilMatch(pagination, visible.length);
   const pageHeader = (
     <header className="flex flex-col gap-4">
       <nav aria-label={back_to_market({ market: marketName }, { locale })}>
@@ -102,7 +106,7 @@ export const CityLanding = ({
           </h1>
           {hasEvents && (
             <p className="mt-2 max-w-prose text-body text-neutral">
-              {city_events_description({ city: cityDisplayName }, { locale })}
+              {city_events_description(cityNameInputs, { locale })}
             </p>
           )}
         </div>
@@ -127,22 +131,20 @@ export const CityLanding = ({
       >
         {pageHeader}
         <EmptyState
-          title={city_empty_title({ city: cityDisplayName }, { locale })}
+          title={city_empty_title(cityNameInputs, { locale })}
           action={
             <Link
               {...localizedHostCreate(locale, market.slug)}
               search={{ city: city.code, state: city.stateCode }}
               className="btn btn-secondary h-12 px-5"
             >
-              {city_empty_cta({}, { locale })}
+              {hero_empty_cta({}, { locale })}
             </Link>
           }
         />
       </section>
     );
   }
-
-  const visible = applyCityFilters(items, filters, market.timezone, new Date());
 
   return (
     <section
@@ -160,7 +162,7 @@ export const CityLanding = ({
               id="city-events-title"
               className="font-display text-h4 font-semibold"
             >
-              {city_upcoming_title({ city: cityDisplayName }, { locale })}
+              {city_upcoming_title(cityNameInputs, { locale })}
             </h2>
             <p aria-live="polite" className="mt-1 text-body-sm text-neutral">
               {city_loaded_count({ count: visible.length }, { locale })}
@@ -173,20 +175,7 @@ export const CityLanding = ({
           />
         </header>
 
-        {visible.length === 0 ? (
-          <EmptyState
-            title={no_filter_match({}, { locale })}
-            action={
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={() => setFilters([])}
-              >
-                {clear_city_filters({}, { locale })}
-              </button>
-            }
-          />
-        ) : (
+        {search === 'matched' ? (
           <ul
             aria-labelledby="city-events-title"
             className="grid grid-cols-1 gap-3.5"
@@ -203,10 +192,19 @@ export const CityLanding = ({
               </li>
             ))}
           </ul>
+        ) : (
+          <NoMatchingMeetups
+            locale={locale}
+            search={search}
+            onClear={() => setFilters([])}
+            onRetry={pagination.loadMore}
+          />
         )}
       </section>
 
-      <LoadMoreEvents locale={locale} pagination={pagination} />
+      {search === 'matched' && (
+        <LoadMoreEvents locale={locale} pagination={pagination} />
+      )}
     </section>
   );
 };

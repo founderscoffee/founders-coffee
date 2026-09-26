@@ -1,18 +1,24 @@
 import { RefreshCw } from 'lucide-react';
 
 import {
-  host_retry,
+  cityInputs,
+  retry,
   host_venue_search_label,
   host_venue_search_loading,
   host_venue_search_ph,
+  host_venue_search_ph_market,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
-import { VENUE_SEARCH_MAX_LENGTH } from '../../features/events/types';
+import {
+  VENUE_SEARCH_MAX_LENGTH,
+  type VenueArea,
+} from '../../features/events/types';
 
 type VenueSearchProps = {
   locale: Locale;
-  cityName: string;
+  area: VenueArea;
   value: string;
   listId: string;
   hasResults: boolean;
@@ -25,7 +31,7 @@ type VenueSearchProps = {
 
 export const VenueSearch = ({
   locale,
-  cityName,
+  area,
   value,
   listId,
   hasResults,
@@ -48,39 +54,39 @@ export const VenueSearch = ({
       aria-controls={listId}
       aria-autocomplete="list"
       className="input input-bordered h-12 w-full rounded-xl bg-base-100 text-body md:h-13"
-      placeholder={host_venue_search_ph({ city: cityName }, { locale })}
+      placeholder={
+        area.kind === 'city'
+          ? host_venue_search_ph(cityInputs(area.name), { locale })
+          : host_venue_search_ph_market({ market: area.name }, { locale })
+      }
       value={value}
       disabled={isDisabled}
       autoComplete="off"
       onChange={(event) => onChange(event.target.value)}
     />
     {isLoading && (
-      <p
-        className="mt-2 flex items-center gap-2 text-caption text-neutral"
-        role="status"
-      >
-        <span
-          className="loading loading-spinner loading-xs"
-          aria-hidden="true"
-        />
-        {host_venue_search_loading({}, { locale })}
-      </p>
+      <LoadingStatus
+        label={host_venue_search_loading({}, { locale })}
+        className="mt-2 text-caption"
+      />
     )}
     {errorMessage && (
-      <p
-        className="mt-2 flex items-center gap-2 text-body-sm text-error"
-        role="alert"
+      <StatusMessage
+        variant="error"
+        className="mt-2"
+        action={
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={onRetry}
+          >
+            <RefreshCw className="size-4" aria-hidden="true" />
+            {retry({}, { locale })}
+          </button>
+        }
       >
         {errorMessage}
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          onClick={onRetry}
-        >
-          <RefreshCw className="size-4" aria-hidden="true" />
-          {host_retry({}, { locale })}
-        </button>
-      </p>
+      </StatusMessage>
     )}
   </div>
 );

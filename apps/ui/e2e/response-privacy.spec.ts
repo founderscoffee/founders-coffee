@@ -28,11 +28,16 @@ test.describe('Response privacy directives', () => {
   test('private pages refuse every cache and every index', async ({
     request,
   }) => {
-    for (const path of ['/profile', '/u/usr_nobody']) {
+    for (const path of [
+      '/en/profile',
+      '/fr/feedback/evt_nobody',
+      '/ar/login',
+      '/en/u/usr_nobody',
+    ]) {
       const response = await request.get(path, { maxRedirects: 0 });
       const headers = response.headers();
-      expect(headers['cache-control']).toBe('private, no-store');
-      expect(headers['x-robots-tag']).toBe(NO_INDEX);
+      expect(headers['cache-control'], path).toBe('private, no-store');
+      expect(headers['x-robots-tag'], path).toBe(NO_INDEX);
     }
   });
 
@@ -40,15 +45,18 @@ test.describe('Response privacy directives', () => {
     request,
   }) => {
     for (const path of [
-      '/profile',
-      '/profile/account',
-      '/profile/activity',
-      '/profile/notifications',
+      '/en/profile',
+      '/fr/profile/activity',
+      '/ar/profile/account',
+      '/en/profile/notifications',
+      '/en/closeout/evt_nobody',
+      '/en/feedback/evt_nobody',
     ]) {
+      const locale = path.split('/')[1];
       const response = await request.get(path, { maxRedirects: 0 });
-      expect(response.status()).toBe(307);
+      expect(response.status(), path).toBe(307);
       expect(response.headers()['location']).toBe(
-        `/login?redirect=${encodeURIComponent(path)}`,
+        `/${locale}/login?redirect=${encodeURIComponent(path)}`,
       );
     }
   });

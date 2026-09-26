@@ -43,6 +43,29 @@ const loadRepeatTemplate = async (
   }
 };
 
+const HostCreateRoute = () => {
+  const { locale } = Route.useRouteContext();
+  const {
+    market,
+    city,
+    mapboxToken,
+    turnstileSiteKey,
+    hasSocial,
+    repeatTemplate,
+  } = Route.useLoaderData();
+  return (
+    <HostCreatePage
+      locale={locale}
+      market={market}
+      city={city}
+      mapboxToken={mapboxToken}
+      turnstileSiteKey={turnstileSiteKey}
+      hasSocial={hasSocial}
+      repeatTemplate={repeatTemplate}
+    />
+  );
+};
+
 export const Route = createFileRoute('/$locale/$market/host/create')({
   headers: () => ({
     'Cache-Control': 'private, no-store',
@@ -58,28 +81,7 @@ export const Route = createFileRoute('/$locale/$market/host/create')({
     state: search.state,
     repeat: search.repeat,
   }),
-  component: () => {
-    const { locale } = Route.useRouteContext();
-    const {
-      market,
-      city,
-      mapboxToken,
-      turnstileSiteKey,
-      hasSocial,
-      repeatTemplate,
-    } = Route.useLoaderData();
-    return (
-      <HostCreatePage
-        locale={locale}
-        market={market}
-        city={city}
-        mapboxToken={mapboxToken}
-        turnstileSiteKey={turnstileSiteKey}
-        hasSocial={hasSocial}
-        repeatTemplate={repeatTemplate}
-      />
-    );
-  },
+  component: HostCreateRoute,
   loader: async ({ params, deps, context }): Promise<HostCreateLoaderData> => {
     let market: Market;
     try {

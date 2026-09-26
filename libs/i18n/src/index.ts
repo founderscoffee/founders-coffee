@@ -6,6 +6,7 @@ export {
   locales,
 } from './paraglide/runtime.js';
 export * from './locale.js';
+export * from './city-inputs.js';
 export * from './detect.js';
 export * from './format.js';
 export * from './zoned-time.js';

@@ -15,10 +15,13 @@
   ],
   "references": [
     {
-      "path": "../i18n"
+      "path": "../notifications"
     },
     {
-      "path": "../observability"
+      "path": "../email"
+    },
+    {
+      "path": "../i18n"
     },
     {
       "path": "../domain"
@@ -36,7 +39,7 @@
       "path": "../auth"
     },
     {
-      "path": "../email"
+      "path": "../observability"
     }
   ]
 }

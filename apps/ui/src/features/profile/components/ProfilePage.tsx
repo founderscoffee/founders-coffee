@@ -4,7 +4,7 @@ import {
   profile_title,
   profile_unsaved_leave,
   profile_unsaved_stay,
-  profile_unsaved_title,
+  unsaved_changes,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button } from '@founders-coffee/ui';
@@ -51,10 +51,10 @@ export const ProfilePage = ({ locale }: { locale: Locale }) => {
         {guard.isBlocked && (
           <div
             role="alertdialog"
-            aria-label={profile_unsaved_title({}, { locale })}
+            aria-label={unsaved_changes({}, { locale })}
             className="mt-6 rounded-box border border-base-300 bg-base-200 p-4"
           >
-            <p>{profile_unsaved_title({}, { locale })}</p>
+            <p>{unsaved_changes({}, { locale })}</p>
             <div className="mt-3 flex flex-wrap gap-3">
               <Button type="button" variant="outline" onClick={guard.stay}>
                 {profile_unsaved_stay({}, { locale })}

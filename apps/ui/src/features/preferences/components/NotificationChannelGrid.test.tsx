@@ -51,13 +51,16 @@ afterEach(() => cleanup());
 describe('notification channel grid', () => {
   it.each([
     ['checking', 'Checking this device'],
-    ['unsupported', 'This browser cannot receive notifications'],
+    ['unsupported', "This browser doesn't support notifications"],
     ['install_required', 'Add the app to your home screen'],
-    ['unavailable', 'Notifications are not switched on for this site'],
+    ['unavailable', "Notifications for this site haven't been enabled"],
     ['denied', 'Blocked in this browser'],
-    ['granted_unregistered', 'Allowed, but this device is not registered'],
-    ['delivery_unavailable', 'this device was signed out'],
-    ['registered', 'On, and reaching this device'],
+    [
+      'granted_unregistered',
+      "Notifications are enabled, but this device isn't registered",
+    ],
+    ['delivery_unavailable', 'but it was signed out'],
+    ['registered', 'Notifications are enabled and delivered to this device'],
   ] as const)('renders the %s push explanation', (pushState, text) => {
     show(pushState);
 
@@ -76,11 +79,11 @@ describe('notification channel grid', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(5);
     expect(
       screen.queryByRole('checkbox', {
-        name: /Reminders before a gathering: In app/i,
+        name: /Reminders before a gathering: Push notifications/i,
       }),
     ).toBeNull();
     expect(
-      screen.getByText(/Notifications are not switched on for this site/i),
+      screen.getByText(/Notifications for this site haven't been enabled/i),
     ).toBeTruthy();
   });
 
@@ -123,7 +126,7 @@ describe('notification channel grid', () => {
     });
 
     const pushCell = screen.getByRole('checkbox', {
-      name: /After a gathering: In app/i,
+      name: /After a gathering: Push notifications/i,
     });
     fireEvent.click(pushCell);
 
@@ -146,7 +149,7 @@ describe('notification channel grid', () => {
 
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: /After a gathering: In app/i,
+        name: /After a gathering: Push notifications/i,
       }),
     );
 
@@ -172,7 +175,7 @@ describe('notification channel grid', () => {
 
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: /Reminders before a gathering: In app/i,
+        name: /Reminders before a gathering: Push notifications/i,
       }),
     );
 

@@ -5,7 +5,6 @@
       "banned": ["جلسة عمل", "جلسة"],
       "why": "#49 — one word for the unit of the product. The catalogue says لقاء 106 times; جلسة عمل is the older term and reads as a corporate working session rather than a coffee between founders. Note the sense, not only the word: جلسة standing in for لقاء is what is banned, and جلسة meaning people sitting together is a different word in use.",
       "allow": {
-        "host_page_title": "#49 open — still استضف جلسة عمل. Delete this line with the rename.",
         "how_step3_title": "#49 — reads جلسة رواد أعمال, a sitting of founders. It names what happens at the table, not the unit a host creates and a member joins, and the section around it calls that unit لقاء twice. A product decision, not a leftover: delete this line only if the card is renamed, not to close #49."
       }
     },
@@ -13,16 +12,19 @@
       "canonical": "نشاطي",
       "banned": ["لقاءاتك"],
       "why": "#66 — the footer link and the page it opens must name the same thing. Settled the other way round from how this entry first read: the destination is نشاطي, and the footer, the profile section nav and the page heading now all say it. The earlier direction would have renamed the one footer key to match the four page keys, on the grounds that four beat one; the count was the weaker argument. نشاطي names a place the reader owns, and it is the label they click. The possessive form is what is banned here, not the word: the tabs still say لقاءات انضممت إليها, and لقاء remains the canonical word for the unit of the product one entry above. The page's prose stays in the second person — a page called نشاطي still says ما انضممت إليه وما استضفته, the same way My Account talks about your data.",
-      "allow": {}
+      "allow": {
+        "activity_note": "#66 — kept on 2026-09-25 (c81cc720). The note under the heading says what the page holds, لقاءاتك التي انضممت إليها واستضفتها, and does not name the page, which every label still calls نشاطي. Delete this line if the note is reworded without the possessive."
+      }
     },
     {
       "canonical": "حضور",
       "banned": ["قادم"],
       "why": "#56 — the status and its undo should share a root. إلغاء الحضور is the undo, so the status it undoes is about حضور, not about قادم. Note the bare form only: القادمة and قادمًا mean upcoming and are a different word in use.",
       "allow": {
-        "activity_joined_empty": "#56 — reads لا لقاء قادم, 'no upcoming meetup'. This is the upcoming sense, not the RSVP status. Keep.",
         "feedback_next_event": "#56 — اللقاء القادم, 'the next meetup'. Upcoming sense. Keep.",
-        "activity_upcoming": "#56 — the Upcoming tab label. Genuine upcoming sense, and the reason the rename matters: today قادم is both this tab and the RSVP status two screens away. Renaming the status leaves this one unambiguous. Keep."
+        "activity_upcoming": "#56 — the Upcoming tab label. Genuine upcoming sense, and the reason the rename matters: today قادم is both this tab and the RSVP status two screens away. Renaming the status leaves this one unambiguous. Keep.",
+        "city_upcoming_count": "The city card's meetup count. Its one and other forms (1, and 100 to 102, 200 to 202 and so on) read {count} لقاء قادم, 'N upcoming meetup(s)': the upcoming sense, not the RSVP status. The remaining forms agree as قادمة, قادمان and قادمًا. Keep.",
+        "hero_social_proof": "The hero's count for the city picked in its search, the same number that city's card shows. It uses the card's words and adds في {city}, so its one and other forms read {count} لقاء قادم في {city}, 'N upcoming meetup(s) in {city}': the upcoming sense, not the RSVP status. Keep."
       }
     },
     {

@@ -11,7 +11,11 @@ vi.mock('@tanstack/react-router', () => ({
 
 const { ActivityList } = await import('./ActivityList');
 
-const ALGIERS = { cityName: 'Algiers', cityNameAr: 'الجزائر العاصمة' };
+const ALGIERS = {
+  cityName: 'Algiers',
+  cityNameAr: 'الجزائر العاصمة',
+  cityNameFr: 'Alger',
+};
 
 const listedIn = (locale: Locale, city = ALGIERS) =>
   render(
@@ -51,26 +55,44 @@ describe('what a row of your own activity calls the city', () => {
     expect(view.container.textContent).not.toContain('Algiers');
   });
 
-  it.each<Locale>(['en', 'fr'])(
-    'names it in Latin to a %s reader',
-    (locale) => {
-      const view = listedIn(locale);
+  it('names it in English to an English reader', () => {
+    const view = listedIn('en');
 
-      expect(view.container.textContent).toContain('Algiers');
-    },
-  );
+    expect(view.container.textContent).toContain('Algiers');
+  });
 
-  it('falls back to the Latin name when no Arabic one was recorded', () => {
-    const view = listedIn('ar', { cityName: 'Béjaïa', cityNameAr: '' });
+  it('names it in French to a French reader', () => {
+    const view = listedIn('fr');
 
     expect(
       view.container.textContent,
-      'an empty Arabic name is not a name, and preferring it over the Latin one leaves the row ending in a bare separator',
-    ).toContain('Béjaïa');
+      'every French page says Alger for this city, and this row said Algiers',
+    ).toContain('Alger');
+    expect(view.container.textContent).not.toContain('Algiers');
   });
 
+  it.each<Locale>(['ar', 'fr'])(
+    'falls back to the Latin name when no name was recorded in %s',
+    (locale) => {
+      const view = listedIn(locale, {
+        cityName: 'Béjaïa',
+        cityNameAr: '',
+        cityNameFr: '',
+      });
+
+      expect(
+        view.container.textContent,
+        'an empty name is not a name, and preferring it over the Latin one leaves the row ending in a bare separator',
+      ).toContain('Béjaïa');
+    },
+  );
+
   it('says nothing about a city the row does not carry', () => {
-    const view = listedIn('ar', { cityName: '', cityNameAr: '' });
+    const view = listedIn('ar', {
+      cityName: '',
+      cityNameAr: '',
+      cityNameFr: '',
+    });
 
     expect(view.container.textContent).toContain('Coffee and code');
     expect(screen.queryByText(/·\s*$/u)).toBeNull();

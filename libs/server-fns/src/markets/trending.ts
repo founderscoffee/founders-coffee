@@ -1,11 +1,14 @@
 import {
   countUpcomingByCity,
   countUpcomingByState,
+  listUpcomingCityHosts,
   type Db,
 } from '@founders-coffee/db';
 import { geo } from '@founders-coffee/domain';
 
-export interface TrendingCity {
+import { groupCityHosts, NO_CITY_HOSTS, type CityHosts } from './city-hosts.js';
+
+export interface TrendingCity extends CityHosts {
   readonly city: geo.GeoCity;
   readonly count: number;
 }
@@ -21,7 +24,6 @@ export interface TrendingSection {
 }
 
 const TRENDING_CITY_CAP = 11;
-const WARM_STATE_CAP = 3;
 const WARM_CITY_CAP = 8;
 
 const COLD_PRIORITY_SLUGS: Readonly<Record<string, readonly string[]>> = {
@@ -107,7 +109,7 @@ const orderedLandingCities = (marketCode: string): readonly geo.GeoCity[] => {
 const coldMajorCities = (marketCode: string): TrendingSection => {
   const cities = orderedLandingCities(marketCode)
     .slice(0, TRENDING_CITY_CAP)
-    .map((city) => ({ city, count: 0 }));
+    .map((city) => ({ city, count: 0, ...NO_CITY_HOSTS }));
   if (cities.length === 0) return { variant: 'major', groups: [] };
   return { variant: 'major', groups: [{ state: null, cities }] };
 };
@@ -116,20 +118,25 @@ const warmActiveCities = (
   marketCode: string,
   stateCounts: Record<string, number>,
   cityCounts: Record<string, number>,
+  cityHosts: ReadonlyMap<string, CityHosts>,
 ): TrendingSection => {
-  const topStates = geo
+  const trendingCity = (city: geo.GeoCity): TrendingCity => ({
+    city,
+    count: cityCounts[city.code] ?? 0,
+    ...(cityHosts.get(city.code) ?? NO_CITY_HOSTS),
+  });
+  const activeStates = geo
     .getStates(marketCode)
     .map((state) => ({ state, count: stateCounts[state.code] ?? 0 }))
     .filter((s) => s.count > 0)
     .sort(
       (a, b) => b.count - a.count || a.state.code.localeCompare(b.state.code),
-    )
-    .slice(0, WARM_STATE_CAP);
+    );
 
-  const groups = topStates.map(({ state }) => {
+  const groups = activeStates.map(({ state }) => {
     const cities = geo
       .getCities(marketCode, state.code)
-      .map((city) => ({ city, count: cityCounts[city.code] ?? 0 }))
+      .map(trendingCity)
       .filter((c) => c.count > 0)
       .sort(
         (a, b) => b.count - a.count || a.city.name.localeCompare(b.city.name),
@@ -155,7 +162,7 @@ const warmActiveCities = (
   const pioneer = orderedLandingCities(marketCode)
     .filter((city) => !taken.has(city.code))
     .slice(0, Math.max(0, TRENDING_CITY_CAP - activeCityCount))
-    .map((city) => ({ city, count: 0 }));
+    .map(trendingCity);
 
   return {
     variant: 'active',
@@ -167,21 +174,30 @@ const warmActiveCities = (
 };
 
 /**
- * Browse section for a market landing. Active cities lead the fixed landing grid, followed by
- * ordered city candidates until all 11 cards are filled.
+ * Browse section for a market landing. Cities with upcoming meetups lead the fixed landing grid,
+ * from every state that has any, busiest state first and at most eight cities from one state.
+ * Ordered city candidates fill the rest of the 11 cards. Every card carries its own city's count
+ * and hosts, the numbers the hero search reports, so a candidate the eight-city limit left out of
+ * the lead still shows its meetups instead of an invitation to host the first.
  */
 export const resolveTrendingStates = async (
   db: Db,
   marketCode: string,
 ): Promise<TrendingSection> => {
-  const [stateCounts, cityCounts] = await Promise.all([
+  const [stateCounts, cityCounts, cityHosts] = await Promise.all([
     countUpcomingByState(db, marketCode),
     countUpcomingByCity(db, marketCode),
+    listUpcomingCityHosts(db, marketCode),
   ]);
   const totalUpcoming = Object.values(cityCounts).reduce(
     (sum, n) => sum + n,
     0,
   );
   if (totalUpcoming === 0) return coldMajorCities(marketCode);
-  return warmActiveCities(marketCode, stateCounts, cityCounts);
+  return warmActiveCities(
+    marketCode,
+    stateCounts,
+    cityCounts,
+    groupCityHosts(cityHosts),
+  );
 };

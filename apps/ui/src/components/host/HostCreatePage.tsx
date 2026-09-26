@@ -16,6 +16,7 @@ import {
   localizedName,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 
 import { useHostMapContext } from '../../features/events/hooks';
 import type { RepeatEventTemplate } from '../../features/events/api';
@@ -84,7 +85,6 @@ export const HostCreatePage = ({
     wizard.venue ??
     mapContext.data?.center ?? { latitude: 0, longitude: 0 };
   const marketName = localizedName(market, locale);
-  const cityName = city ? localizedName(city, locale) : '';
   const stepHeading = (
     <div className="mb-6">
       <h1 className="sr-only">{host_page_title({}, { locale })}</h1>
@@ -139,9 +139,9 @@ export const HostCreatePage = ({
           {wizard.isAuthGateOpen ? (
             <>
               {wizard.publishError && (
-                <p className="text-body-sm text-error" role="alert">
+                <StatusMessage variant="error">
                   {wizard.publishError}
-                </p>
+                </StatusMessage>
               )}
               <HostIdentityGate
                 needsReauthentication={wizard.needsReauthentication}
@@ -174,7 +174,7 @@ export const HostCreatePage = ({
                 <>
                   <HostVenueStep
                     locale={locale}
-                    cityName={cityName || marketName}
+                    area={wizard.venueArea}
                     cityCode={city?.code}
                     center={listCenter}
                     marketCode={market.code}
@@ -189,9 +189,9 @@ export const HostCreatePage = ({
                     onVenueSelect={wizard.selectVenue}
                   />
                   {wizard.fieldErrors.venue && (
-                    <p className="text-body-sm text-error" role="alert">
+                    <StatusMessage variant="error">
                       {wizard.fieldErrors.venue}
-                    </p>
+                    </StatusMessage>
                   )}
                 </>
               )}
@@ -208,9 +208,9 @@ export const HostCreatePage = ({
                     timePlacement="top"
                   />
                   {wizard.fieldErrors.schedule && (
-                    <p className="mt-3 text-body-sm text-error" role="alert">
+                    <StatusMessage variant="error" className="mt-3">
                       {wizard.fieldErrors.schedule}
-                    </p>
+                    </StatusMessage>
                   )}
                 </div>
               )}
@@ -235,14 +235,14 @@ export const HostCreatePage = ({
         {!wizard.isAuthGateOpen && wizard.step === TOTAL_STEPS && (
           <div className="flex flex-col gap-2 border-t border-base-300 px-5 pt-4 md:px-7">
             {!isAuthenticated && (
-              <p className="text-body-sm text-neutral" role="status">
+              <StatusMessage variant="info">
                 {host_login_required({}, { locale })}
-              </p>
+              </StatusMessage>
             )}
             {wizard.publishError && (
-              <p className="text-body-sm text-error" role="alert">
+              <StatusMessage variant="error">
                 {wizard.publishError}
-              </p>
+              </StatusMessage>
             )}
           </div>
         )}

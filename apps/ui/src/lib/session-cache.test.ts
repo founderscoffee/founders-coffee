@@ -1,4 +1,8 @@
-import { QueryClient } from '@tanstack/react-query';
+import {
+  MutationObserver,
+  QueryClient,
+  QueryObserver,
+} from '@tanstack/react-query';
 import { describe, expect, it, vi } from 'vitest';
 
 import { memberChanged, withdrawMemberCaches } from './session-cache';
@@ -58,6 +62,74 @@ describe('member cache isolation', () => {
     expect(client.getQueryData(['profile', 'owner', 'usr_a'])).toBeUndefined();
   });
 
+  it('asks again for what is on screen, rather than leaving it waiting', async () => {
+    const client = new QueryClient();
+    const answers: ((profile: { userId: string }) => void)[] = [];
+    const observer = new QueryObserver(client, {
+      queryKey: ['profile', 'owner', 'usr_b'],
+      queryFn: () =>
+        new Promise<{ userId: string }>((resolve) => {
+          answers.push(resolve);
+        }),
+    });
+    const unsubscribe = observer.subscribe(() => undefined);
+
+    await withdrawMemberCaches(client);
+    for (const answer of answers) answer({ userId: 'usr_b' });
+
+    await vi.waitFor(() =>
+      expect(observer.getCurrentResult().data).toEqual({ userId: 'usr_b' }),
+    );
+    unsubscribe();
+  });
+
+  it('replaces what a screen shows with what the new member should see', async () => {
+    const client = new QueryClient();
+    let viewer = 'usr_a';
+    const observer = new QueryObserver(client, {
+      queryKey: ['events', 'upcoming', {}],
+      queryFn: () => Promise.resolve({ viewer }),
+    });
+    const unsubscribe = observer.subscribe(() => undefined);
+    await vi.waitFor(() =>
+      expect(observer.getCurrentResult().data).toEqual({ viewer: 'usr_a' }),
+    );
+
+    viewer = 'usr_b';
+    await withdrawMemberCaches(client);
+
+    expect(observer.getCurrentResult().data).not.toEqual({ viewer: 'usr_a' });
+    await vi.waitFor(() =>
+      expect(observer.getCurrentResult().data).toEqual({ viewer: 'usr_b' }),
+    );
+    unsubscribe();
+  });
+
+  it('removes what nothing is reading, so a first page seeded for the last member cannot return', async () => {
+    const client = new QueryClient();
+    new QueryObserver(client, {
+      queryKey: ['events', 'upcoming', {}],
+      queryFn: () => Promise.resolve({ viewerRsvp: null }),
+      initialData: { viewerRsvp: 'going' },
+    });
+
+    await withdrawMemberCaches(client);
+
+    expect(client.getQueryData(['events', 'upcoming', {}])).toBeUndefined();
+  });
+
+  it('forgets what the previous member sent', async () => {
+    const client = new QueryClient();
+    await new MutationObserver(client, {
+      mutationFn: (name: string) => Promise.resolve(name),
+    }).mutate('Amina');
+    expect(client.getMutationCache().getAll()).toHaveLength(1);
+
+    await withdrawMemberCaches(client);
+
+    expect(client.getMutationCache().getAll()).toEqual([]);
+  });
+
   it('clears every stored page, private path or not, and keeps the assets', async () => {
     const { deleted, storage } = fakeStorage({
       'https://founders.coffee/profile': html,
@@ -77,9 +149,9 @@ describe('member cache isolation', () => {
 
   it('works where the page has no cache storage at all', async () => {
     const client = new QueryClient();
-    const clear = vi.spyOn(client, 'clear');
+    client.setQueryData(['profile', 'owner', 'usr_a'], { userId: 'usr_a' });
 
     await expect(withdrawMemberCaches(client)).resolves.toBeUndefined();
-    expect(clear).toHaveBeenCalledOnce();
+    expect(client.getQueryData(['profile', 'owner', 'usr_a'])).toBeUndefined();
   });
 });

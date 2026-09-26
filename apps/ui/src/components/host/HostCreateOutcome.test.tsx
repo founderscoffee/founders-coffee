@@ -58,21 +58,18 @@ describe('HostCreatePage EC-08 outcomes', () => {
   it.each([
     [
       'rate_limited',
-      'You have published several events recently. Wait a few minutes and try again.',
+      'You have published several meetups recently. Wait a few minutes, then try again.',
     ],
     [
       'validation_failed',
-      'Some details are no longer valid. Review the steps and try again.',
+      'Some details need attention. Review the steps and try again.',
     ],
     [
       'event_route_conflict',
-      'Another event already has this title. Change it slightly and publish.',
+      'Another meetup already uses this title. Change it slightly and publish.',
     ],
-    [
-      'map_venue_unsupported',
-      'Choose a café or coworking venue, not a city or general location.',
-    ],
-    ['forbidden', 'This account is not allowed to publish events.'],
+    ['map_venue_unsupported', 'Choose a café, restaurant, or coworking space'],
+    ['forbidden', 'You cannot publish meetups with this account.'],
     [
       'security_configuration_error',
       'Publishing is temporarily unavailable. Try again shortly.',
@@ -91,23 +88,27 @@ describe('HostCreatePage EC-08 outcomes', () => {
     renderHostCreateWizard();
     await publishHostEvent();
     await screen.findByText(
-      'You have published several events recently. Wait a few minutes and try again.',
+      'You have published several meetups recently. Wait a few minutes, then try again.',
     );
 
     expect(
       (
         screen.getByRole('button', {
-          name: 'Confirm and publish',
+          name: 'Confirm and publish the meetup',
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(false);
 
     expect(
-      (screen.getByLabelText(/^Title/) as unknown as HTMLInputElement).value,
+      (screen.getByLabelText(/^Meetup title/) as unknown as HTMLInputElement)
+        .value,
     ).toBe('Protected meetup');
     expect(
-      (screen.getByLabelText(/^Description/) as unknown as HTMLTextAreaElement)
-        .value,
+      (
+        screen.getByLabelText(
+          /^Meetup description/,
+        ) as unknown as HTMLTextAreaElement
+      ).value,
     ).toBe('A complete protected meetup for founders.');
   });
 
@@ -118,7 +119,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     await publishHostEvent();
 
     await screen.findByRole('heading', {
-      name: 'One last step: sign in to publish',
+      name: 'Sign in to publish',
     });
     expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
       expect.objectContaining({ to: '/login' }),

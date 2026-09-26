@@ -3,14 +3,18 @@ import { DurableObject } from 'cloudflare:workers';
 import { handleLiveAction } from './event-live/actions.js';
 import { EventConnections } from './event-live/connections.js';
 import {
-  HEARTBEAT_INTERVAL_MS,
+  HEARTBEAT_ACK_FRAME,
+  HEARTBEAT_FRAME,
   HEARTBEAT_TIMEOUT_MS,
 } from './event-live/constants.js';
-import { clientMessage, type ClientMessage } from './event-live/protocol.js';
-import { revalidateConnection } from './event-live/revalidate.js';
+import { clientMessage } from './event-live/protocol.js';
+import {
+  refuseConnection,
+  revalidateConnection,
+  revalidateConnections,
+} from './event-live/revalidate.js';
 import { EventRoster } from './event-live/roster.js';
 import {
-  refusalFor,
   verifyEventSession,
   verifyEventSessionFromCookie,
   type DoEnv,
@@ -20,17 +24,30 @@ import {
 const EVENT_ID_KEY = 'eventId';
 const INTERNAL_CANCEL_HEADER = 'x-event-live-internal';
 
+type VerifiedSession = Extract<VerifyResult, { ok: true }>;
+
 export class EventLiveDO extends DurableObject<DoEnv> {
-  private connections = new EventConnections();
+  private connections: EventConnections;
   private roster: EventRoster;
 
+  /**
+   * Take back the sockets the runtime still holds, and have the runtime answer heartbeats itself.
+   *
+   * The runtime answers `HEARTBEAT_FRAME` with `HEARTBEAT_ACK_FRAME` without waking the room, and
+   * stamps when it did (#85), but only on an exact match. Both frames keep the JSON text the room
+   * used to exchange itself, so a page loaded before the runtime took over is answered just as it
+   * expects.
+   */
   constructor(ctx: DurableObjectState, env: DoEnv) {
     super(ctx, env);
     this.roster = new EventRoster(ctx.storage);
+    this.connections = new EventConnections((ws) =>
+      ctx.getWebSocketAutoResponseTimestamp(ws),
+    );
     this.connections.restore(ctx.getWebSockets());
 
     ctx.setWebSocketAutoResponse(
-      new WebSocketRequestResponsePair('ping', 'pong'),
+      new WebSocketRequestResponsePair(HEARTBEAT_FRAME, HEARTBEAT_ACK_FRAME),
     );
   }
 
@@ -46,9 +63,11 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       await this.setEventId(eventId);
       await this.roster.ensureRehydrated();
       this.connections.restore(this.ctx.getWebSockets());
-      this.connections.broadcast({ type: 'event_cancelled' });
-      for (const [ws] of this.connections.entries())
-        this.connections.close(ws, 4003, 'event_cancelled');
+      this.connections.closeAll(
+        { type: 'event_cancelled' },
+        4003,
+        'event_cancelled',
+      );
       await this.ctx.storage.deleteAlarm();
       return new Response(null, { status: 204 });
     }
@@ -91,7 +110,7 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     const eventId = await this.eventId();
     if (!eventId) return;
     if (result.data.type === 'auth') {
-      await this.handleMessage(ws, result.data);
+      await this.handleAuth(ws, result.data.sessionToken);
       return;
     }
     const valid = await revalidateConnection({
@@ -99,15 +118,14 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       eventId,
       ws,
       connections: this.connections,
-      now: Date.now(),
     });
     if (!valid) return;
-    this.connections.touch(ws, Date.now());
-    if (result.data.type === 'heartbeat') {
-      this.connections.send(ws, { type: 'heartbeat_ack' });
-      return;
-    }
-    await this.handleMessage(ws, result.data);
+    await handleLiveAction({
+      ws,
+      message: result.data,
+      connections: this.connections,
+      roster: this.roster,
+    });
   };
 
   webSocketClose = async (ws: WebSocket): Promise<void> => {
@@ -127,7 +145,6 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
     this.ctx.acceptWebSocket(serverWs);
     this.connections.register(serverWs, Date.now());
-    await this.armHeartbeat();
 
     await this.authenticateConnection(serverWs, request);
 
@@ -149,33 +166,33 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
   /**
    * Shared outcome of both authentication routes (cookie on upgrade, `auth` frame).
+   *
+   * The alarm is armed once the outcome is known. A refused socket has left the room by then
+   * (#84), so a room that turned away its only visitor keeps no alarm.
    */
   private applyVerifiedSession = async (
     serverWs: WebSocket,
     result: VerifyResult,
   ): Promise<void> => {
-    if (!result.ok) {
-      const refusal = refusalFor(result.reason);
-      this.connections.send(serverWs, refusal.message);
-      if (refusal.close)
-        serverWs.close(refusal.close.code, refusal.close.reason);
-      return;
-    }
+    if (result.ok) await this.admit(serverWs, result);
+    else refuseConnection(this.connections, serverWs, result.reason);
+    await this.armHeartbeat();
+  };
 
-    const attached = this.connections.authenticate(
-      serverWs,
-      {
-        userId: result.userId,
-        userName: result.userName,
-        isHost: result.isHost,
-        sessionToken: result.sessionToken,
-      },
-      Date.now(),
-    );
+  private admit = async (
+    serverWs: WebSocket,
+    session: VerifiedSession,
+  ): Promise<void> => {
+    const attached = this.connections.authenticate(serverWs, {
+      userId: session.userId,
+      userName: session.userName,
+      isHost: session.isHost,
+      sessionToken: session.sessionToken,
+    });
     if (!attached) return;
 
-    if (result.isHost) await this.roster.claimHost(result.userId);
-    await this.roster.admitAttendee(result.userId, result.userName);
+    if (session.isHost) await this.roster.claimHost(session.userId);
+    await this.roster.admitAttendee(session.userId, session.userName);
 
     this.connections.send(serverWs, {
       type: 'auth_ok',
@@ -183,23 +200,6 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     });
     this.broadcastRoster();
     if (this.roster.getHost()) this.broadcastHost();
-  };
-
-  private handleMessage = async (
-    ws: WebSocket,
-    msg: ClientMessage,
-  ): Promise<void> => {
-    if (msg.type === 'auth') {
-      await this.handleAuth(ws, msg.sessionToken);
-      return;
-    }
-    if (msg.type === 'heartbeat') return;
-    await handleLiveAction({
-      ws,
-      message: msg,
-      connections: this.connections,
-      roster: this.roster,
-    });
   };
 
   private handleAuth = async (
@@ -224,6 +224,14 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     if (host) this.connections.broadcast({ type: 'host_update', host });
   };
 
+  /**
+   * Reap the sockets that stopped sending heartbeats, check the sessions of those left, and arm the
+   * next deadline.
+   *
+   * This is where a quiet connection's session is checked. Heartbeats are answered by the runtime
+   * and never reach the room (#85), so the check moved here from every message: one query for the
+   * whole room per alarm, not one per socket per heartbeat (#87).
+   */
   // eslint-disable-next-line no-restricted-syntax -- Cloudflare RPC requires a prototype method.
   override async alarm(): Promise<void> {
     await this.roster.ensureRehydrated();
@@ -239,6 +247,13 @@ export class EventLiveDO extends DurableObject<DoEnv> {
         continue;
       }
     }
+    const eventId = await this.eventId();
+    if (eventId)
+      await revalidateConnections({
+        db: this.env.DB,
+        eventId,
+        connections: this.connections,
+      });
     if (rosterChanged) this.broadcastRoster();
     await this.armHeartbeat();
   }
@@ -250,12 +265,24 @@ export class EventLiveDO extends DurableObject<DoEnv> {
   private eventId = async (): Promise<string | null> =>
     (await this.ctx.storage.get<string>(EVENT_ID_KEY)) ?? null;
 
+  /**
+   * Set the alarm for the earliest moment a socket in the room could go stale, or clear it when the
+   * room is empty.
+   *
+   * That moment is the oldest last sign of life in the room, as it stands when the alarm is armed,
+   * plus `HEARTBEAT_TIMEOUT_MS` (#86). Heartbeats are answered by the runtime and never wake the
+   * room (#85), so the alarm cannot move later as they arrive: it fires at a deadline worked out on
+   * an earlier wake. By then every healthy socket has sent a heartbeat within the last interval, so
+   * the next deadline is 30 to 45 s away, and a healthy room wakes that often rather than every
+   * 15 s. Arming any later would let a socket that went silent outlive the timeout. An alarm
+   * already set sooner is kept, so a socket that joins never delays one that is due first.
+   */
   private armHeartbeat = async (): Promise<void> => {
-    if (this.connections.size() === 0) {
+    const next = this.connections.nextDeadline(HEARTBEAT_TIMEOUT_MS);
+    if (next === null) {
       await this.ctx.storage.deleteAlarm();
       return;
     }
-    const next = Date.now() + HEARTBEAT_INTERVAL_MS;
     const current = await this.ctx.storage.getAlarm();
     if (current === null || current > next)
       await this.ctx.storage.setAlarm(next);

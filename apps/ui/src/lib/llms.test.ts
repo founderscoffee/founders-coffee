@@ -26,7 +26,7 @@ describe('llms discovery guide', () => {
     const text = llmsText('https://founders.coffee', data, 'en');
 
     expect(text).toContain('# Founders Coffee');
-    expect(text).toContain('The current release focuses on free local events');
+    expect(text).toContain('This release focuses on free local meetups');
     expect(text).toContain('https://founders.coffee/en');
     expect(text).toContain('https://founders.coffee/en/algeria');
     expect(text).toContain('https://founders.coffee/en/algeria/algiers');
@@ -123,7 +123,7 @@ describe('llms discovery guide', () => {
     const text = llmsText('https://founders.coffee', data, 'ar');
 
     expect(text).toContain(
-      'Founders Coffee مجتمع للقاءات المؤسسين المحلية حول القهوة.',
+      'Founders Coffee مجتمع لقاءات محلية لرواد الأعمال حول فنجان قهوة.',
     );
     expect(text).toContain('https://founders.coffee/ar');
     expect(text).toContain('https://founders.coffee/fr');

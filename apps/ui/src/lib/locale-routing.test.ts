@@ -77,7 +77,14 @@ describe('localizedHome', () => {
     expect(
       localizedHome('fr', undefined),
       'without a market there is nothing to name, and that is the one case where the redirect earns its geo lookup',
-    ).toEqual({ to: '/' });
+    ).toMatchObject({ to: '/' });
+  });
+
+  it('keeps a hover on that fallback from running the stub', () => {
+    expect(
+      localizedHome('fr', undefined),
+      "a hover runs `/`'s beforeLoad whatever the route says, geo and market lookups included, and this link only shows when the market list did not load. The link is the one place the hover can be stopped",
+    ).toMatchObject({ preload: false });
   });
 });
 

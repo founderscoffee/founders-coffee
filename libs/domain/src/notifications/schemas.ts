@@ -45,6 +45,17 @@ export const pushNotificationPayloadSchema = notificationBase
   })
   .passthrough();
 
+export const telegramNotificationPayloadSchema = notificationBase
+  .extend({
+    telegramText: z.string().min(1).max(4096).optional(),
+    telegramPinnedText: z.string().min(1).max(4096).optional(),
+    telegramChatId: z.number().int().optional(),
+    telegramUserId: z.number().int().positive().optional(),
+    telegramInviteLink: z.url().max(2048).optional(),
+    telegramInviteLinks: z.array(z.url().max(2048)).optional(),
+  })
+  .passthrough();
+
 export type SmsNotificationPayload = z.infer<
   typeof smsNotificationPayloadSchema
 >;
@@ -53,6 +64,9 @@ export type EmailNotificationPayload = z.infer<
 >;
 export type PushNotificationPayload = z.infer<
   typeof pushNotificationPayloadSchema
+>;
+export type TelegramNotificationPayload = z.infer<
+  typeof telegramNotificationPayloadSchema
 >;
 
 export type NotificationChannel = NotificationDeliveryChannel;
@@ -69,12 +83,17 @@ export type ParsedNotificationPayload =
   | {
       readonly channel: Extract<NotificationDeliveryChannel, 'push'>;
       readonly payload: PushNotificationPayload;
+    }
+  | {
+      readonly channel: Extract<NotificationDeliveryChannel, 'telegram'>;
+      readonly payload: TelegramNotificationPayload;
     };
 
 const schemaFor = {
   sms: smsNotificationPayloadSchema,
   email: emailNotificationPayloadSchema,
   push: pushNotificationPayloadSchema,
+  telegram: telegramNotificationPayloadSchema,
 } as const;
 
 /**

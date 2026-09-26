@@ -18,6 +18,9 @@ vi.mock('../../features/events/hooks', () => ({
 vi.mock('./CancelEventDialog', () => ({ CancelEventDialog: () => null }));
 vi.mock('./RepeatHostLink', () => ({ RepeatHostLink: () => null }));
 vi.mock('./HostLiveActions', () => ({ HostLiveActions: () => null }));
+vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
+  TelegramGroupCard: () => <p>telegram-group</p>,
+}));
 
 const { HostEventPanel } = await import('./HostEventPanel');
 
@@ -221,4 +224,42 @@ describe('HostEventPanel stops describing a meetup that is over as one to come',
     show(endless);
     expect(screen.queryByText('This meetup has ended.')).toBeNull();
   });
+});
+
+describe('HostEventPanel lets the host put their own meetup in a calendar', () => {
+  const calendarGroup = () =>
+    screen.queryByRole('group', { name: 'Add to your calendar' });
+
+  it('offers it while the meetup is still ahead', () => {
+    show(event);
+    expect(calendarGroup()).toBeTruthy();
+  });
+
+  it('offers nothing once the host has called the meetup off', () => {
+    show(cancelled);
+    expect(calendarGroup()).toBeNull();
+  });
+
+  it.each([
+    ['under way', inProgress],
+    ['past its start with no recorded end', endless],
+    ['over', ended],
+  ])('offers nothing once the meetup is %s', (_case, item) => {
+    show(item);
+    expect(calendarGroup()).toBeNull();
+  });
+});
+
+describe("HostEventPanel carries the meetup's Telegram group", () => {
+  it.each([
+    ['ahead', event],
+    ['over', ended],
+    ['called off', cancelled],
+  ])(
+    'leaves what to offer to the group card while the meetup is %s',
+    (_case, item) => {
+      show(item);
+      expect(screen.getByText('telegram-group')).toBeTruthy();
+    },
+  );
 });

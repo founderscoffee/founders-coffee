@@ -4,8 +4,16 @@ import { describe, expect, it } from 'vitest';
 
 import { createDb } from './db.js';
 import { atMigration, priorHost } from './migrations.fixtures.js';
-import { getMemberProfile } from './member-profiles.js';
 import { eventRsvps, events, session } from './schema.js';
+
+const priorProfile = () =>
+  env.PRIOR_DB.prepare(
+    `SELECT user.locale_pref, member_profiles.*
+       FROM member_profiles JOIN user ON user.id = member_profiles.user_id
+      WHERE member_profiles.user_id = ?`,
+  )
+    .bind(priorHost.id)
+    .first();
 
 describe('PF-02 additive migration', () => {
   it('backfills private defaults without copying residence or exposing OAuth photos', async () => {
@@ -28,17 +36,15 @@ describe('PF-02 additive migration', () => {
     ]);
     await fixture.apply();
     const db = createDb(env.PRIOR_DB);
-    expect(await getMemberProfile(db, priorHost.id)).toMatchObject({
-      locale: 'fr',
-      profile: {
-        revision: 0,
-        photoAssetId: null,
-        publishInterests: false,
-        publishSpokenLanguages: false,
-        publishProfessionalLink: false,
-        interests: [],
-        spokenLanguages: [],
-      },
+    expect(await priorProfile()).toMatchObject({
+      locale_pref: 'fr',
+      revision: 0,
+      photo_asset_id: null,
+      publish_interests: 0,
+      publish_spoken_languages: 0,
+      publish_professional_link: 0,
+      interests: '[]',
+      spoken_languages: '[]',
     });
     expect(
       await env.PRIOR_DB.prepare(
@@ -93,8 +99,6 @@ describe('PF-02 additive migration', () => {
       (await env.PRIOR_DB.prepare('PRAGMA foreign_key_check').all()).results,
     ).toEqual([]);
     await fixture.apply();
-    expect(await getMemberProfile(db, priorHost.id)).toMatchObject({
-      profile: { revision: 0 },
-    });
+    expect(await priorProfile()).toMatchObject({ revision: 0 });
   });
 });

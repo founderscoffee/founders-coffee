@@ -11,6 +11,7 @@ export type EventWithAttendance = Event & EventAttendance;
 export type EventDetailItem = EventWithAttendance & {
   readonly cityName: string;
   readonly cityNameAr: string;
+  readonly cityNameFr: string;
   readonly citySlug: string | null;
 };
 

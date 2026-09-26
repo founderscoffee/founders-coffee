@@ -11,6 +11,7 @@ import {
 } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
+import { handleTelegramWebhook } from '@founders-coffee/server-fns/telegram-webhook';
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
@@ -27,6 +28,7 @@ import {
   removeEarlyHintsFromResponse,
   shouldEmitEarlyHints,
 } from './lib/early-hints.js';
+import { withoutRedirectCaching } from './lib/redirect-caching.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
 
@@ -80,6 +82,24 @@ const authHandler = (env: UiEnv) => {
   return createAuthHandler(env, emailProvider ? { emailProvider } : {});
 };
 
+/**
+ * The live room for one meetup.
+ *
+ * Every room is placed under `weur`, in every market, on purpose (#88). Measured from Algeria on
+ * 2026-09-24 through Cloudflare's Madrid edge, an awake room answered that edge in a median 20 ms
+ * under `weur`, 19.5 ms under `afr` and 39 ms under `me`, on top of the member's own 44 ms round
+ * trip to the edge. Africa gains Algeria nothing and the Middle East costs it 20 ms a round trip.
+ * Egypt and Saudi Arabia were not measured; a hint of their own needs their figures, not a map.
+ *
+ * The location hint counts only the first time a room is reached: Cloudflare places the object
+ * then, and every later `get()` for it ignores the hint (#88). A change to
+ * `DURABLE_OBJECT_LOCATION_HINT` therefore moves only rooms that do not exist yet.
+ */
+const liveRoomStub = (env: UiEnv, eventId: string): DurableObjectStub =>
+  env.EVENT_LIVE.get(env.EVENT_LIVE.idFromName(`event:${eventId}`), {
+    locationHint: DURABLE_OBJECT_LOCATION_HINT,
+  });
+
 export default {
   /**
    * Serve the request, then stamp every response with the security headers (AGENTS.md §10).
@@ -99,14 +119,16 @@ export default {
     const url = new URL(request.url);
     const nonce = createCspNonce();
     const secure = (response: Response): Response =>
-      withoutErrorCaching(
-        withIndexationHeaders(
-          withSecurityHeaders(response, {
-            enforceCsp: env.CSP_ENFORCED === 'true',
-            reportPath: CSP_REPORT_PATH,
-            nonce,
-          }),
-          env,
+      withoutRedirectCaching(
+        withoutErrorCaching(
+          withIndexationHeaders(
+            withSecurityHeaders(response, {
+              enforceCsp: env.CSP_ENFORCED === 'true',
+              reportPath: CSP_REPORT_PATH,
+              nonce,
+            }),
+            env,
+          ),
         ),
       );
 
@@ -141,11 +163,7 @@ export default {
         );
       }
 
-      const doId = env.EVENT_LIVE.idFromName(`event:${eventId}`);
-      const doStub = env.EVENT_LIVE.get(doId, {
-        locationHint: DURABLE_OBJECT_LOCATION_HINT,
-      });
-      return secure(await doStub.fetch(request));
+      return secure(await liveRoomStub(env, eventId).fetch(request));
     }
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
@@ -158,6 +176,9 @@ export default {
     }
     const photo = handleProfilePhotoRequest(request, url);
     if (photo) return secure(await photo);
+
+    const telegram = handleTelegramWebhook(request, url);
+    if (telegram) return secure(await telegram);
 
     if (url.pathname.startsWith('/api/auth/'))
       return secure(await authHandler(env)(request));

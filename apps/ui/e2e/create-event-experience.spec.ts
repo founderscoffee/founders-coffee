@@ -22,7 +22,7 @@ test.describe('create event experience', () => {
     await useLocale(page, locale, baseURL as string);
     await page.goto(wizardPath());
 
-    await selectVenue(page, VENUE_QUERY);
+    await selectVenue(page, locale, VENUE_QUERY);
     const savedVenue = await page.locator('#venue-search').inputValue();
     await nextButton(page, locale).click();
     await expect(page.locator('.rdp-button_next')).toBeVisible();
@@ -72,7 +72,7 @@ test.describe('create event experience', () => {
     await useLocale(page, locale, baseURL as string);
     await page.goto(wizardPath());
 
-    await selectVenue(page, VENUE_QUERY);
+    await selectVenue(page, locale, VENUE_QUERY);
     await nextButton(page, locale).click();
 
     for (const action of [backButton(page, locale), nextButton(page, locale)]) {
@@ -108,7 +108,7 @@ test.describe('create event experience', () => {
       t(locale, 'host_step1'),
     );
 
-    await selectVenue(page, VENUE_QUERY);
+    await selectVenue(page, locale, VENUE_QUERY);
     await nextButton(page, locale).click();
 
     await expect(currentStep).toHaveText(t(locale, 'host_step2'));

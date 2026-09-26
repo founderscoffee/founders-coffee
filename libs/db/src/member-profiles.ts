@@ -12,13 +12,18 @@ import {
 
 export type MemberProfileChanges = Pick<
   MemberProfileRow,
+  | 'headline'
+  | 'stage'
   | 'introduction'
   | 'interests'
   | 'spokenLanguages'
   | 'professionalLink'
+  | 'publishHeadline'
+  | 'publishStage'
   | 'publishInterests'
   | 'publishSpokenLanguages'
   | 'publishProfessionalLink'
+  | 'publishAttendedCount'
 >;
 
 /** Read only the identity fields needed to suppress contact fallbacks; never expose this row over RPC. */
@@ -27,6 +32,7 @@ export const getProfileIdentity = async (db: Db, userId: string) => {
     .select({
       name: user.name,
       email: user.email,
+      createdAt: user.createdAt,
     })
     .from(user)
     .where(activeProfileIdentity(userId))
@@ -149,13 +155,18 @@ export const updateMemberProfile = async (
     db
       .update(memberProfiles)
       .set({
+        headline: changes.headline,
+        stage: changes.stage,
         introduction: changes.introduction,
         interests: changes.interests,
         spokenLanguages: changes.spokenLanguages,
         professionalLink: changes.professionalLink,
+        publishHeadline: changes.publishHeadline,
+        publishStage: changes.publishStage,
         publishInterests: changes.publishInterests,
         publishSpokenLanguages: changes.publishSpokenLanguages,
         publishProfessionalLink: changes.publishProfessionalLink,
+        publishAttendedCount: changes.publishAttendedCount,
         revision: sql`${memberProfiles.revision} + 1`,
         updatedAt: now,
       })

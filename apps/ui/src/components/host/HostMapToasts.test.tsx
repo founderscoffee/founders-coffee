@@ -16,7 +16,7 @@ describe('HostMapToasts', () => {
       <HostMapToasts
         locale="en"
         isResolving={false}
-        error="The venue map is unavailable right now."
+        error="Could not load the venue map."
         onRetry={onRetry}
       />,
     );
@@ -26,7 +26,7 @@ describe('HostMapToasts', () => {
     });
 
     expect(screen.getByRole('alert').textContent).toContain(
-      'The venue map is unavailable right now.',
+      'Could not load the venue map.',
     );
     screen.getByRole('button', { name: 'Retry' }).click();
     expect(onRetry).toHaveBeenCalledOnce();
@@ -42,7 +42,7 @@ describe('HostMapToasts', () => {
       vi.advanceTimersByTime(10_000);
     });
     expect(screen.getByRole('status').textContent).toContain(
-      'Checking this venue…',
+      'Locating the venue…',
     );
 
     rerender(<HostMapToasts locale="en" isResolving={false} error={null} />);

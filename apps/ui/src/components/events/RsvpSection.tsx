@@ -16,13 +16,16 @@ import {
   rsvp_saving,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
+import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
 import { useAuth } from '../../lib/app-providers';
 import { localizedLogin } from '../../lib/locale-routing';
+import { AddToCalendar } from './AddToCalendar';
 import { AttendeeLiveActions } from './AttendeeLiveActions';
 import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
@@ -147,6 +150,12 @@ export const RsvpSection = ({
               onRunningLate={live.sendRunningLate}
             />
           )}
+          <AddToCalendar
+            eventId={event.id}
+            startsAt={event.startsAt}
+            locale={locale}
+          />
+          <TelegramGroupCard eventId={event.id} locale={locale} />
         </>
       ) : (
         <>
@@ -175,19 +184,20 @@ export const RsvpSection = ({
       )}
 
       {error ? (
-        <p
-          role="alert"
-          className="flex flex-wrap items-center gap-2 text-body-sm text-error"
+        <StatusMessage
+          variant="error"
+          action={
+            <button
+              type="button"
+              className="btn btn-ghost btn-xs"
+              onClick={handleRsvp}
+            >
+              {retry({}, { locale })}
+            </button>
+          }
         >
           {error}
-          <button
-            type="button"
-            className="btn btn-ghost btn-xs"
-            onClick={handleRsvp}
-          >
-            {retry({}, { locale })}
-          </button>
-        </p>
+        </StatusMessage>
       ) : null}
 
       <RsvpCancelDialog

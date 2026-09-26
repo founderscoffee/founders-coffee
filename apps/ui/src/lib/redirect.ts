@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Locale } from '@founders-coffee/i18n';
 
 import { withoutLocale } from './locale-routing';
+import { parseSearch } from './search-params';
 
 const REDIRECT_ORIGIN = 'https://founders.coffee';
 
@@ -63,4 +64,25 @@ export const authReturnPathSchema = sameOriginPathSchema.refine((path) => {
 export const safeAuthReturnPath = (value: unknown): string => {
   const parsed = authReturnPathSchema.safeParse(value);
   return parsed.success ? parsed.data : '/';
+};
+
+/**
+ * A path on this site as the options a navigation is built from, for a redirect to throw.
+ *
+ * `redirect({ href })` reaches the right page when it is navigated, but not when it is preloaded.
+ * router-core's `preloadRoute` follows a redirect by preloading its options, and `buildLocation`
+ * does not read `href`, so it rebuilt the page the redirect came from, query dropped, and that
+ * page's guard threw the same redirect again for as long as the tab stayed open: one hover over
+ * the sign-in link, with a session the tab had not noticed yet, made 429 session checks in four
+ * seconds. A navigation reads an `href` by splitting it into a pathname, a query parsed by the
+ * router's own `parseSearch`, and a fragment. This is that split, made before the redirect is
+ * thrown, so a preload arrives where a navigation does.
+ */
+export const pathDestination = (path: string) => {
+  const url = new URL(path, REDIRECT_ORIGIN);
+  return {
+    to: url.pathname,
+    search: parseSearch(url.search),
+    hash: url.hash.slice(1),
+  };
 };

@@ -122,7 +122,7 @@ describe('eventCardText', () => {
     title: 'لقاء قهوة للمؤسسين',
     startsAt: new Date('2026-09-25T17:00:00.000Z'),
     timezone: 'Africa/Algiers',
-    city: { name: 'Algiers', nameAr: 'الجزائر العاصمة' },
+    city: { name: 'Algiers', nameAr: 'الجزائر العاصمة', nameFr: 'Alger' },
     hostName: 'Amine Yagoub',
   };
 
@@ -141,7 +141,13 @@ describe('eventCardText', () => {
     expect(eventCardText({ ...facts, locale: 'ar' }).meta).toContain(
       'الجزائر العاصمة',
     );
-    expect(eventCardText({ ...facts, locale: 'fr' }).meta).toContain('Algiers');
+    expect(eventCardText({ ...facts, locale: 'en' }).meta).toMatch(
+      / · Algiers$/u,
+    );
+    expect(
+      eventCardText({ ...facts, locale: 'fr' }).meta,
+      'a card shared in French said Algiers, where the page it opens says Alger',
+    ).toMatch(/ · Alger$/u);
   });
 
   it('carries the title and host through untouched', () => {

@@ -6,6 +6,7 @@ import {
 import { notifications } from '@founders-coffee/domain';
 import { formatDate } from '@founders-coffee/i18n';
 import {
+  calendarLinksFor,
   eventUrlFor,
   resolveNotificationContext,
   type NotificationContext,
@@ -194,18 +195,14 @@ export const enqueueRsvpNotifications = async (
     )
       return;
 
+    const values = {
+      ...valuesFor(basePayload, context, true),
+      calendar: calendarLinksFor(locale, opts.eventId),
+    };
     const payload = {
       ...basePayload,
-      ...pushPayloadFor(
-        templateKey,
-        valuesFor(basePayload, context, true),
-        locale,
-      ),
-      ...(await emailPayloadFor(
-        templateKey,
-        valuesFor(basePayload, context, true),
-        locale,
-      )),
+      ...pushPayloadFor(templateKey, values, locale),
+      ...(await emailPayloadFor(templateKey, values, locale)),
     };
 
     await enqueueNotification(db, {

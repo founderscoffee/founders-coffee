@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { cityInputs } from './city-inputs.js';
 import {
   account_sessions_count,
   city_loaded_count,
   going_count,
   hero_social_proof,
+  profile_record_attended,
+  profile_record_hosted,
 } from './paraglide/messages.js';
 
 const CATEGORY_SAMPLE = {
@@ -45,14 +48,14 @@ describe('Arabic number agreement', () => {
 
   it('declines the meetup noun in the city hero', () => {
     const render = (count: number) =>
-      hero_social_proof({ count, city: 'وهران' }, { locale: 'ar' });
+      hero_social_proof({ count, ...cityInputs('وهران') }, { locale: 'ar' });
     expect(arabicForms(render)).toEqual({
-      zero: '0 لقاءات هذا الأسبوع في وهران',
-      one: '1 لقاء هذا الأسبوع في وهران',
-      two: '2 لقاءان هذا الأسبوع في وهران',
-      few: '3 لقاءات هذا الأسبوع في وهران',
-      many: '11 لقاءً هذا الأسبوع في وهران',
-      other: '100 لقاء هذا الأسبوع في وهران',
+      zero: '0 لقاءات قادمة في وهران',
+      one: '1 لقاء قادم في وهران',
+      two: '2 لقاءان قادمان في وهران',
+      few: '3 لقاءات قادمة في وهران',
+      many: '11 لقاءً قادمًا في وهران',
+      other: '100 لقاء قادم في وهران',
     });
   });
 
@@ -69,18 +72,48 @@ describe('Arabic number agreement', () => {
     });
   });
 
-  it('declines the signed-in noun on the account page', () => {
+  it('counts the meetups a member attended without saying who they are', () => {
+    expect(
+      arabicForms((count) =>
+        profile_record_attended({ count }, { locale: 'ar' }),
+      ),
+    ).toEqual({
+      zero: 'حضور 0 لقاءات',
+      one: 'حضور 1 لقاء',
+      two: 'حضور 2 لقاءين',
+      few: 'حضور 3 لقاءات',
+      many: 'حضور 11 لقاءً',
+      other: 'حضور 100 لقاء',
+    });
+  });
+
+  it('counts the meetups a member hosted the same way', () => {
+    expect(
+      arabicForms((count) =>
+        profile_record_hosted({ count }, { locale: 'ar' }),
+      ),
+    ).toEqual({
+      zero: 'استضافة 0 لقاءات',
+      one: 'استضافة 1 لقاء',
+      two: 'استضافة 2 لقاءين',
+      few: 'استضافة 3 لقاءات',
+      many: 'استضافة 11 لقاءً',
+      other: 'استضافة 100 لقاء',
+    });
+  });
+
+  it('declines the registered-device noun on the account page', () => {
     expect(
       arabicForms((count) =>
         account_sessions_count({ count }, { locale: 'ar' }),
       ),
     ).toEqual({
-      zero: '0 مسجّلين الآن',
-      one: '1 مسجّل الآن',
-      two: '2 مسجّلان الآن',
-      few: '3 مسجّلين الآن',
-      many: '11 مسجّلًا الآن',
-      other: '100 مسجّل الآن',
+      zero: 'لا توجد أجهزة مسجّلة',
+      one: 'جهاز واحد مسجّل',
+      two: 'جهازان مسجّلان',
+      few: '3 أجهزة مسجّلة',
+      many: '11 جهازًا مسجّلًا',
+      other: '100 جهاز مسجّل',
     });
   });
 
@@ -111,10 +144,46 @@ describe('French and English number agreement', () => {
       '4 rencontres affichées',
     );
     expect(account_sessions_count({ count: 1 }, { locale: 'fr' })).toBe(
-      '1 connecté en ce moment',
+      '1 appareil connecté',
     );
     expect(account_sessions_count({ count: 3 }, { locale: 'fr' })).toBe(
-      '3 connectés en ce moment',
+      '3 appareils connectés',
+    );
+  });
+
+  it('counts the city hero meetups as upcoming, not as this week', () => {
+    const render = (count: number, locale: 'en' | 'fr') =>
+      hero_social_proof({ count, ...cityInputs('Oran') }, { locale });
+    expect(render(1, 'fr')).toBe('1 rencontre à venir à Oran');
+    expect(render(3, 'fr')).toBe('3 rencontres à venir à Oran');
+    expect(render(1, 'en')).toBe('1 casual meetup coming up in Oran');
+    expect(render(3, 'en')).toBe('3 casual meetups coming up in Oran');
+  });
+
+  it('counts hosted and attended meetups without a gendered subject', () => {
+    expect(profile_record_attended({ count: 1 }, { locale: 'fr' })).toBe(
+      'A participé à 1 rencontre',
+    );
+    expect(profile_record_attended({ count: 11 }, { locale: 'fr' })).toBe(
+      'A participé à 11 rencontres',
+    );
+    expect(profile_record_attended({ count: 1 }, { locale: 'en' })).toBe(
+      'Attended 1 meetup',
+    );
+    expect(profile_record_attended({ count: 11 }, { locale: 'en' })).toBe(
+      'Attended 11 meetups',
+    );
+    expect(profile_record_hosted({ count: 1 }, { locale: 'fr' })).toBe(
+      'A organisé 1 rencontre',
+    );
+    expect(profile_record_hosted({ count: 6 }, { locale: 'fr' })).toBe(
+      'A organisé 6 rencontres',
+    );
+    expect(profile_record_hosted({ count: 1 }, { locale: 'en' })).toBe(
+      'Hosted 1 meetup',
+    );
+    expect(profile_record_hosted({ count: 6 }, { locale: 'en' })).toBe(
+      'Hosted 6 meetups',
     );
   });
 

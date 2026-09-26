@@ -1,6 +1,10 @@
 import { createDb, events, seed, user } from '@founders-coffee/db';
 import { LOCALES } from '@founders-coffee/core/locale';
-import { city_empty_title, footer_tagline } from '@founders-coffee/i18n';
+import {
+  city_empty_title,
+  cityInputs,
+  footer_tagline,
+} from '@founders-coffee/i18n';
 import {
   createExecutionContext,
   env,
@@ -230,7 +234,7 @@ describe('public GEO contract', () => {
       expect(
         sectionHeadings(body),
         `${path} has no h2 of its own; the GEO smoke refuses the page, and the footer no longer lends it three`,
-      ).toContain(city_empty_title({ city: oran[locale] }, { locale }));
+      ).toContain(city_empty_title(cityInputs(oran[locale]), { locale }));
     }
   });
 

@@ -25,7 +25,7 @@ describe('offline notice', () => {
   it('says nothing while the network is there', () => {
     render(<OfflineNotice locale="ar" />);
 
-    expect(screen.getByRole('status').textContent).toBe('');
+    expect(screen.getByRole('alert').textContent).toBe('');
   });
 
   it.each<Locale>(['ar', 'fr', 'en'])(
@@ -34,19 +34,23 @@ describe('offline notice', () => {
       render(<OfflineNotice locale={locale} />);
       goOffline();
 
-      expect(screen.getByRole('status').textContent).toBe(
+      expect(screen.getByRole('alert').textContent).toBe(
         offline_notice({}, { locale }),
       );
+      expect(
+        screen.getByRole('alert').className,
+        'the notice was amber text on an amber strip, so only its colour marked it as a warning',
+      ).toContain('alert-warning');
     },
   );
 
   it('announces the change, rather than appearing as a new live region', () => {
     render(<OfflineNotice locale="en" />);
-    const region = screen.getByRole('status');
+    const region = screen.getByRole('alert');
 
     goOffline();
 
-    expect(screen.getByRole('status')).toBe(region);
+    expect(screen.getByRole('alert')).toBe(region);
   });
 
   it('clears itself when the network comes back', () => {
@@ -56,6 +60,6 @@ describe('offline notice', () => {
     setOnLine(true);
     act(() => void window.dispatchEvent(new Event('online')));
 
-    expect(screen.getByRole('status').textContent).toBe('');
+    expect(screen.getByRole('alert').textContent).toBe('');
   });
 });

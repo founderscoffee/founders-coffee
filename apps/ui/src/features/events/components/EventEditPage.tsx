@@ -16,6 +16,7 @@ import {
   host_edit_back_to_event,
   type Locale,
 } from '@founders-coffee/i18n';
+import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { localizedEvent } from '../../../lib/locale-routing';
 import { useEventById, useUpdateEvent } from '../hooks';
@@ -113,26 +114,24 @@ export const EventEditPage = ({
       </h1>
 
       {query.isPending ? (
-        <p role="status">{host_edit_loading({}, { locale })}</p>
+        <LoadingStatus label={host_edit_loading({}, { locale })} />
       ) : !event ? (
-        <p role="alert" className="text-body-sm text-error">
+        <StatusMessage variant="error">
           {messageFor(query.error, locale)}
-        </p>
+        </StatusMessage>
       ) : !current ? (
-        <p role="alert" className="text-body-sm text-error">
+        <StatusMessage variant="error">
           {closedReason ?? messageFor(query.error, locale)}
-        </p>
+        </StatusMessage>
       ) : (
         <div className="grid gap-5">
           {save.isSuccess && !error ? (
-            <p role="status" className="text-body-sm text-success">
+            <StatusMessage variant="success">
               {host_edit_saved({}, { locale })}
-            </p>
+            </StatusMessage>
           ) : null}
           {error ? (
-            <p role="alert" className="text-body-sm text-error">
-              {error}
-            </p>
+            <StatusMessage variant="error">{error}</StatusMessage>
           ) : null}
 
           <EventEditForm

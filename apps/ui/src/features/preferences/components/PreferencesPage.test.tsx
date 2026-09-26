@@ -111,10 +111,10 @@ describe('the preferences screen', () => {
     expect(container.querySelector('#prefs-language')).toBeNull();
   });
 
-  it('keeps delivery copy focused on in-app notifications', () => {
+  it('keeps delivery copy focused on push notifications', () => {
     show({ data: view() });
 
-    expect(screen.getAllByText('In app').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Push notifications').length).toBeGreaterThan(0);
     expect(screen.queryByText(/Event details stay in the app/i)).toBeNull();
     expect(screen.queryByText(/How we reach you/i)).toBeNull();
     expect(screen.queryByText(/What we send you/i)).toBeNull();
@@ -125,7 +125,7 @@ describe('the preferences screen', () => {
 
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: /Reminders before a gathering: In app/i,
+        name: /Reminders before a gathering: Push notifications/i,
       }),
     );
     fireEvent.click(
@@ -160,7 +160,7 @@ describe('the preferences screen', () => {
 
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: /Reminders before a gathering: In app/i,
+        name: /Reminders before a gathering: Push notifications/i,
       }),
     );
     fireEvent.click(reminders);
@@ -213,7 +213,8 @@ describe('states the design spec requires', () => {
     };
     show({ data: view() });
 
-    expect(screen.getByRole('status').textContent).toMatch(/another window/i);
+    expect(screen.getByRole('alert').textContent).toMatch(/another window/i);
+    expect(screen.getByRole('alert').className).toContain('alert-error');
   });
 
   it('names a refused consent instead of reporting a generic failure', () => {
@@ -228,9 +229,40 @@ describe('states the design spec requires', () => {
     };
     show({ data: view() });
 
-    expect(screen.getByRole('status').textContent).toMatch(
-      /Verify a phone number/i,
+    expect(screen.getByRole('alert').textContent).toMatch(
+      /Verify your phone number/i,
     );
+  });
+
+  it('confirms a save in a region that was already on the page', () => {
+    const { rerender } = show({ data: view() });
+    const regions = screen.getAllByRole('status');
+    expect(regions.map((region) => region.textContent)).toEqual(['', '']);
+
+    state.save = { ...state.save, isSuccess: true };
+    rerender(<PreferencesPage locale="en" markets={MARKETS} />);
+
+    const saved = screen
+      .getAllByRole('status')
+      .find((region) => region.textContent);
+    expect(saved?.textContent).toMatch(/saved/i);
+    expect(saved?.className).toContain('alert-success');
+    expect(
+      regions,
+      'a polite region inserted with its text already in it is announced by some screen readers and not others',
+    ).toContain(saved);
+  });
+
+  it('points out unsaved changes as information', () => {
+    show({ data: view() });
+
+    fireEvent.click(screen.getAllByRole('checkbox')[0] as HTMLElement);
+
+    const unsaved = screen
+      .getAllByRole('status')
+      .find((region) => region.textContent);
+    expect(unsaved?.className).toContain('alert-info');
+    expect(screen.queryByRole('alert')?.textContent ?? '').toBe('');
   });
 });
 

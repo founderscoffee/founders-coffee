@@ -13,6 +13,7 @@ import type { Market } from '@founders-coffee/db';
 
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
+import { eventCityName } from '../features/events/event-city-name';
 import { isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
@@ -27,36 +28,38 @@ type EventRouteData = {
   readonly host: PublicProfile | null;
 };
 
-export const Route = createFileRoute('/$locale/$market/e/$slug')({
-  component: () => {
-    const { locale, market, event, host } = Route.useLoaderData();
-    const { user } = useAuth();
-    const isHost = user?.id === event.hostId;
-    const isWindowOpen =
-      event.status !== 'cancelled' &&
-      isLiveWindowOpen(event.startsAt, event.endsAt);
-    const isAttending = isHost || event.viewerRsvp === 'going';
-    const live = useEventLive(event.id, {
-      enabled: Boolean(user) && isWindowOpen && isAttending,
-    });
+const EventRoute = () => {
+  const { locale, market, event, host } = Route.useLoaderData();
+  const { user } = useAuth();
+  const isHost = user?.id === event.hostId;
+  const isWindowOpen =
+    event.status !== 'cancelled' &&
+    isLiveWindowOpen(event.startsAt, event.endsAt);
+  const isAttending = isHost || event.viewerRsvp === 'going';
+  const live = useEventLive(event.id, {
+    enabled: Boolean(user) && isWindowOpen && isAttending,
+  });
 
-    return (
-      <>
-        <EventDetail
-          locale={locale}
-          market={market}
-          event={event}
-          host={host}
-          isHost={isHost}
-          live={user ? live : null}
-          isWindowOpen={isWindowOpen}
-        />
-        {user && isWindowOpen && isAttending && !live.notAttending && (
-          <LiveDashboard live={live} currentUserId={user.id} locale={locale} />
-        )}
-      </>
-    );
-  },
+  return (
+    <>
+      <EventDetail
+        locale={locale}
+        market={market}
+        event={event}
+        host={host}
+        isHost={isHost}
+        live={user ? live : null}
+        isWindowOpen={isWindowOpen}
+      />
+      {user && isWindowOpen && isAttending && !live.notAttending && (
+        <LiveDashboard live={live} currentUserId={user.id} locale={locale} />
+      )}
+    </>
+  );
+};
+
+export const Route = createFileRoute('/$locale/$market/e/$slug')({
+  component: EventRoute,
   loader: async ({ params, context }): Promise<EventRouteData> => {
     let market: Market;
     try {
@@ -94,10 +97,7 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
   },
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [], links: [] };
-    const cityName =
-      loaderData.locale === 'ar'
-        ? loaderData.event.cityNameAr
-        : loaderData.event.cityName;
+    const cityName = eventCityName(loaderData.event, loaderData.locale);
     const eventUrl = canonicalUrl({
       type: 'event',
       market: loaderData.market.slug,

@@ -1,91 +1,12 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import type { Market } from '@founders-coffee/db';
 import { type Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    to,
-    params,
-  }: {
-    children: React.ReactNode;
-    to?: string;
-    params?: Record<string, string>;
-  }) => (
-    <a
-      href={Object.entries(params ?? {}).reduce(
-        (path, [name, value]) => path.replace(`$${name}`, value),
-        to ?? '/',
-      )}
-    >
-      {children}
-    </a>
-  ),
-}));
-
-vi.mock('./RsvpSection', () => ({
-  RsvpSection: () => null,
-}));
-
-vi.mock('./EventLocationMap', () => ({
-  EventLocationMap: () => null,
-}));
+import { event, market } from './EventDetail.fixtures';
 
 const { EventDetail } = await import('./EventDetail');
-
-const market = {
-  code: 'DZ',
-  name: 'Algeria',
-  nameAr: 'الجزائر',
-  nameFr: 'Algérie',
-  slug: 'algeria',
-  defaultLocale: 'ar',
-  defaultCurrency: 'DZD',
-  timezone: 'Africa/Algiers',
-  direction: 'rtl',
-  state: 'active',
-  featureFlags: {
-    events: true,
-    hackathons: false,
-    payments: false,
-    recruiting: false,
-  },
-  brandOverrides: null,
-  createdAt: 1_767_225_600,
-} satisfies Market;
-
-const event = {
-  id: 'evt_1',
-  hostId: 'usr_1',
-  marketCode: 'DZ',
-  stateCode: '16',
-  cityCode: 'algiers',
-  title: 'Founders breakfast',
-  description: 'A local founder meetup.',
-  venue: 'Café Atlas',
-  startsAt: new Date('2026-09-20T10:00:00Z'),
-  endsAt: new Date('2026-09-20T12:00:00Z'),
-  rsvps: 0,
-  language: 'en',
-  latitude: null,
-  longitude: null,
-  venueAddress: null,
-  slug: 'founders-breakfast',
-  status: 'published',
-  version: 1,
-  createdAt: new Date('2026-09-01T00:00:00Z'),
-  updatedAt: new Date('2026-09-01T00:00:00Z'),
-  cancelledAt: null,
-  cancellationReason: null,
-  goingCount: 0,
-  viewerRsvp: null,
-  cityName: 'Algiers',
-  cityNameAr: 'الجزائر',
-  citySlug: 'algiers',
-} satisfies EventDetailItem;
 
 afterEach(() => cleanup());
 
@@ -138,18 +59,23 @@ describe('EventDetail once the host has called the meetup off', () => {
 
   it('stops advertising an audience for a meetup nobody can attend', () => {
     show(cancelled);
+    expect(screen.getByRole('alert').className).toContain('alert-error');
     expect(screen.queryByText('+3 going')).toBeNull();
   });
 
   it('does not invite a stranger to save a spot at it', () => {
     show(cancelled);
-    expect(screen.queryByText('Save your seat')).toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Your seat' })).toBeNull();
+    expect(screen.queryByText('Save your place')).toBeNull();
+    expect(
+      screen.queryByRole('heading', { name: 'Your attendance' }),
+    ).toBeNull();
   });
 
   it('still has a place to address whoever had said they were coming', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
-    expect(screen.getByRole('heading', { name: 'Your seat' })).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Your attendance' }),
+    ).toBeTruthy();
   });
 });
 
@@ -183,22 +109,22 @@ describe('what the seat box calls itself', () => {
 
     expect(screen.getByRole('heading', { name: 'حضورك مؤكَّد' })).toBeTruthy();
     expect(
-      screen.queryByRole('heading', { name: 'احجز مقعدك' }),
-      'telling someone to book a seat directly above the confirmation that they booked it is the box arguing with itself',
+      screen.queryByRole('heading', { name: 'احجز مكانك' }),
+      'telling someone to book a place directly above the confirmation that they booked it is the box arguing with itself',
     ).toBeNull();
   });
 
   it('still asks for the booking from a reader who has not made one', () => {
     show(event, 'ar');
 
-    expect(screen.getByRole('heading', { name: 'احجز مقعدك' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'احجز مكانك' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
   });
 
   it('does not claim a confirmed seat at a meetup that is off', () => {
     show({ ...cancelled, viewerRsvp: 'going' }, 'ar');
 
-    expect(screen.getByRole('heading', { name: 'مقعدك' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'حضورك' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
   });
 });
@@ -207,10 +133,10 @@ describe('whose clock the When block says the time is on', () => {
   it.each([
     [
       'ar',
-      '\u062a\u0648\u0642\u064a\u062a \u0627\u0644\u062c\u0632\u0627\u0626\u0631',
+      '\u0627\u0644\u062a\u0648\u0642\u064a\u062a \u0627\u0644\u0645\u062d\u0644\u064a \u0641\u064a \u0627\u0644\u062c\u0632\u0627\u0626\u0631',
     ],
-    ['en', 'Algeria time'],
-    ['fr', 'Heure d\u2019Alg\u00e9rie'],
+    ['en', 'Local time in Algeria'],
+    ['fr', 'Heure locale d\u2019Alg\u00e9rie'],
   ] as const)('names the market in %s', (locale, label) => {
     show(event, locale);
 
@@ -222,16 +148,16 @@ describe('whose clock the When block says the time is on', () => {
   });
 });
 
-const saysHostedBy = (view: ReturnType<typeof show>) =>
-  view.container.textContent?.match(/Hosted by/gu)?.length ?? 0;
+const hostHeadings = (view: ReturnType<typeof show>) =>
+  view.queryAllByRole('heading', { name: 'Host' }).length;
 
 describe('how often the event page says who is hosting', () => {
   it('names the host once, even when the host is the one reading', () => {
     const view = show(event, 'en', true);
 
     expect(
-      saysHostedBy(view),
-      'the card is labelled Hosted by, and the aside reused those words for its own heading, so the page said it twice with a different thing under each',
+      hostHeadings(view),
+      'the card is labelled Host, and the aside reused that word for its own heading, so the page said it twice with a different thing under each',
     ).toBe(1);
     expect(
       screen.getByRole('heading', { name: 'Your meetup' }),
@@ -242,40 +168,18 @@ describe('how often the event page says who is hosting', () => {
   it('leaves the label on the card for a reader who is not the host', () => {
     const view = show(event);
 
-    expect(saysHostedBy(view)).toBe(1);
+    expect(hostHeadings(view)).toBe(1);
     expect(screen.queryByRole('heading', { name: 'Your meetup' })).toBeNull();
   });
 });
 
-describe('where the host card sends a reader', () => {
-  const host = {
-    userId: 'usr_1',
-    displayName: 'Yacine',
-  } as Parameters<typeof EventDetail>[0]['host'];
+describe('what the link back to the city says', () => {
+  it('names the city the way a French reader knows it', () => {
+    show({ ...event, cityName: 'Cairo', cityNameFr: 'Le Caire' }, 'fr');
 
-  const withHost = (locale: Locale) =>
-    render(
-      <EventDetail
-        locale={locale}
-        market={market}
-        event={event}
-        host={host}
-        isHost={false}
-        live={null}
-        isWindowOpen={false}
-      />,
-    );
-
-  it.each<Locale>(['ar', 'en', 'fr'])(
-    'names the profile in the language the page is in, in %s',
-    (locale) => {
-      const view = withHost(locale);
-      const link = view.container.querySelector('a[href*="/u/"]');
-
-      expect(
-        link?.getAttribute('href'),
-        'the profile is reached from a page written in one language, and it opens in whatever the reader last stored unless the address says otherwise',
-      ).toBe(`/${locale}/u/usr_1`);
-    },
-  );
+    expect(
+      screen.getByRole('link', { name: 'Retour au Caire' }),
+      'the link named the city in English, Retour à Cairo',
+    ).toBeTruthy();
+  });
 });

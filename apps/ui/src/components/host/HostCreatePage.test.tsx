@@ -30,7 +30,7 @@ describe('HostCreatePage EC-07 flow', () => {
     expect(search.disabled).toBe(true);
     expect(
       await screen.findByText(
-        'Too many venue searches. Please wait a moment and try again.',
+        'You have searched for venues too often. Wait a moment, then try again.',
       ),
     ).toBeTruthy();
   });
@@ -44,7 +44,7 @@ describe('HostCreatePage EC-07 flow', () => {
     fillHostDetails();
 
     const publish = screen.getByRole('button', {
-      name: 'Confirm and publish',
+      name: 'Confirm and publish the meetup',
     }) as HTMLButtonElement;
     expect(publish.disabled).toBe(false);
     fireEvent.click(publish);
@@ -76,14 +76,16 @@ describe('HostCreatePage EC-07 flow', () => {
     renderHostCreateWizard();
     await goToHostDetails();
     fillHostDetails();
-    fireEvent.click(screen.getByRole('button', { name: 'Continue to login' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Continue to sign in' }),
+    );
 
     expect(hostCreateMocks.navigate).not.toHaveBeenCalledWith(
       expect.objectContaining({ to: '/login' }),
     );
     expect(
       screen.getByRole('heading', {
-        name: 'One last step: sign in to publish',
+        name: 'Sign in to publish',
       }),
     ).toBeTruthy();
     const stored = window.sessionStorage.getItem('fc:event-draft:DZ');
@@ -105,19 +107,21 @@ describe('HostCreatePage EC-07 flow', () => {
   it('validates the final step instead of publishing an invalid draft', async () => {
     renderHostCreateWizard();
     await goToHostDetails();
-    fireEvent.change(screen.getByLabelText(/^Title/), {
+    fireEvent.change(screen.getByLabelText(/^Meetup title/), {
       target: { value: 'x' },
     });
-    fireEvent.change(screen.getByLabelText(/^Description/), {
+    fireEvent.change(screen.getByLabelText(/^Meetup description/), {
       target: { value: 'A complete protected meetup for founders.' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm and publish' }),
+      screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
     );
 
     expect(hostCreateMocks.mutateAsync).not.toHaveBeenCalled();
     expect(
-      await screen.findByText('Enter between 3 and 120 characters.'),
+      await screen.findByText(
+        'The title must be between 3 and 120 characters.',
+      ),
     ).toBeTruthy();
   });
 
@@ -125,14 +129,16 @@ describe('HostCreatePage EC-07 flow', () => {
     hostCreateMocks.isAuthenticated = false;
     renderHostCreateWizard();
     await goToHostDetails();
-    fireEvent.change(screen.getByLabelText(/^Title/), {
+    fireEvent.change(screen.getByLabelText(/^Meetup title/), {
       target: { value: 'x' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Continue to login' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Continue to sign in' }),
+    );
 
     expect(
       screen.queryByRole('heading', {
-        name: 'One last step: sign in to publish',
+        name: 'Sign in to publish',
       }),
     ).toBeNull();
   });
@@ -152,20 +158,26 @@ describe('HostCreatePage EC-07 flow', () => {
     hostCreateMocks.isAuthenticated = true;
     renderHostCreateWizard('fr');
     expect(
-      await screen.findByRole('heading', { name: 'De quoi parle-t-on ?' }),
+      await screen.findByRole('heading', {
+        name: 'Quel est le sujet de la rencontre ?',
+      }),
     ).toBeTruthy();
     expect(
-      (screen.getByLabelText(/^Titre/) as unknown as HTMLInputElement).value,
+      (
+        screen.getByLabelText(
+          /^Titre de la rencontre/,
+        ) as unknown as HTMLInputElement
+      ).value,
     ).toBe('Protected meetup');
     expect(
-      screen.getByRole('button', { name: 'Confirmer et publier' }),
+      screen.getByRole('button', { name: 'Confirmer et publier la rencontre' }),
     ).toBeTruthy();
   });
 
   it('announces progress and focuses the first invalid field', async () => {
     renderHostCreateWizard();
     expect(
-      screen.getByRole('navigation', { name: 'Event creation progress' }),
+      screen.getByRole('navigation', { name: 'Meetup creation steps' }),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(
@@ -188,7 +200,7 @@ describe('the language a meetup is held in', () => {
       target: { value: 'ar' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm and publish' }),
+      screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
     );
 
     await waitFor(() =>

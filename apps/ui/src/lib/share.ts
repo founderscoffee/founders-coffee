@@ -1,4 +1,4 @@
-import { shortId } from '@founders-coffee/core';
+import { eventShortPath } from '@founders-coffee/core';
 import type { Locale } from '@founders-coffee/i18n';
 
 export type ShareText = {
@@ -29,7 +29,7 @@ export type ShareOutcome = 'shared' | 'dismissed' | 'unavailable';
  * everyone the link reaches.
  */
 export const eventShareUrl = (locale: Locale, eventId: string): string =>
-  `${window.location.origin}/${locale}/e/${shortId(eventId)}`;
+  `${window.location.origin}${eventShortPath(locale, eventId)}`;
 
 /**
  * Offer a page to the operating system's share sheet.

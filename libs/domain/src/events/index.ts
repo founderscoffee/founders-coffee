@@ -28,3 +28,8 @@ export {
   type EventUpdateInput,
   type PublicEventDiscovery,
 } from './schemas.js';
+export {
+  googleCalendarUrlFor,
+  icsFor,
+  type CalendarEvent,
+} from './calendar.js';

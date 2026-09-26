@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -32,14 +32,19 @@ const profile = {
   userId: 'usr_host01',
   displayName: 'Amina Host',
   photoAssetId: null,
+  memberSince: '2025-11',
   introduction: null,
 };
 
 const publicProfile: PublicProfile = {
   ...profile,
+  headline: null,
+  stage: null,
   interests: [],
   spokenLanguages: [],
   professionalLink: null,
+  hostedCount: 0,
+  attendedCount: null,
 };
 
 const markets: readonly RootMarket[] = [
@@ -61,6 +66,7 @@ const hostedEvent = {
   cityCode: '556',
   cityName: 'Algiers',
   cityNameAr: 'الجزائر',
+  cityNameFr: 'Alger',
   venue: 'Café des Délices',
   startsAt: new Date('2099-04-01T18:00:00Z'),
   endsAt: new Date('2099-04-01T19:00:00Z'),
@@ -68,10 +74,27 @@ const hostedEvent = {
   language: 'fr',
 } as never;
 
-const renderProfile = (events: readonly unknown[]) =>
+const pastMeetup = (id: string, isOnRecord: boolean) =>
+  ({
+    ...(hostedEvent as object),
+    id,
+    slug: id,
+    title: `Meetup ${id}`,
+    startsAt: new Date('2026-01-10T18:00:00Z'),
+    endsAt: new Date('2026-01-10T19:00:00Z'),
+    isOnRecord,
+  }) as never;
+
+const hostedItems = (name: string) =>
+  within(screen.getByRole('region', { name })).getAllByRole('listitem');
+
+const renderProfile = (
+  events: readonly unknown[],
+  locale: 'ar' | 'en' = 'en',
+) =>
   render(
     <PublicProfilePage
-      locale="en"
+      locale={locale}
       profile={publicProfile}
       events={events as never}
       eventsTotal={events.length}
@@ -87,16 +110,38 @@ describe('PublicProfilePage', () => {
 
     expect(screen.getByRole('heading', { name: 'Amina Host' })).toBeTruthy();
     expect(document.querySelector('.stat-value')).toBeNull();
-    expect(screen.getByText(/No events hosted yet/i)).toBeTruthy();
+    expect(screen.getByText(/No meetups hosted yet/i)).toBeTruthy();
   });
 
   it('lists hosted events under a heading that does not promise they are upcoming', () => {
     renderProfile([hostedEvent]);
 
-    expect(screen.getByText('Gatherings hosted')).toBeTruthy();
+    expect(screen.getByText('Hosted meetups')).toBeTruthy();
     expect(screen.getByText('Coffee and Code')).toBeTruthy();
     expect(screen.getByText('Showing 1 of 1')).toBeTruthy();
-    expect(screen.queryByText(/No events hosted yet/i)).toBeNull();
+    expect(screen.queryByText(/No meetups hosted yet/i)).toBeNull();
+  });
+
+  it('tags each meetup on the host’s record, and leaves the others as they were', () => {
+    renderProfile([
+      { ...(hostedEvent as object), isOnRecord: false },
+      pastMeetup('evt_held', true),
+      pastMeetup('evt_unconfirmed', false),
+    ]);
+
+    const [upcoming, held, unconfirmed] = hostedItems('Hosted meetups');
+    expect(upcoming?.textContent).not.toMatch(/Took place|Past/);
+    expect(within(held as HTMLElement).getByText('Took place')).toBeTruthy();
+    expect(held?.textContent).not.toContain('Past');
+    expect(within(unconfirmed as HTMLElement).getByText('Past')).toBeTruthy();
+    expect(unconfirmed?.textContent).not.toContain('Took place');
+  });
+
+  it('tags a meetup on the record in Arabic', () => {
+    renderProfile([pastMeetup('evt_held', true)], 'ar');
+
+    const [held] = hostedItems('اللقاءات المستضافة');
+    expect(within(held as HTMLElement).getByText('انعقد')).toBeTruthy();
   });
 
   it("renders event times in the market's zone, not the runtime's", () => {

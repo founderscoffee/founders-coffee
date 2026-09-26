@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import {
   host_edit_notice_change,
   host_edit_save,
-  host_edit_saving,
+  saving,
   host_edit_when,
   host_edit_where,
   host_venue_name_label,
@@ -14,7 +14,7 @@ import {
   type Locale,
   type ZonedDateTimeError,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, StatusMessage } from '@founders-coffee/ui';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 import { hostCreateViewCopy } from '../host-create-copy';
@@ -134,15 +134,15 @@ export const EventEditForm = ({
           onError={setScheduleError}
         />
         {scheduleError && (
-          <p role="alert" className="text-body-sm text-error">
+          <StatusMessage variant="error">
             {scheduleMessage(scheduleError, locale)}
-          </p>
+          </StatusMessage>
         )}
       </fieldset>
 
-      <p className="text-body-sm text-warning empty:hidden" aria-live="polite">
-        {willNotify ? host_edit_notice_change({}, { locale }) : ''}
-      </p>
+      <StatusMessage variant="warning">
+        {willNotify ? host_edit_notice_change({}, { locale }) : null}
+      </StatusMessage>
 
       <div className="flex flex-wrap items-center gap-3">
         <Button
@@ -151,9 +151,7 @@ export const EventEditForm = ({
           className="w-fit"
           disabled={isPending || scheduleError !== null}
         >
-          {isPending
-            ? host_edit_saving({}, { locale })
-            : host_edit_save({}, { locale })}
+          {isPending ? saving({}, { locale }) : host_edit_save({}, { locale })}
         </Button>
         {backLink}
       </div>
