@@ -64,7 +64,7 @@ describe('HostCreatePage EC-07 flow', () => {
     fillHostDetails();
 
     const publish = screen.getByRole('button', {
-      name: 'Confirm and publish the meetup',
+      name: 'Publish',
     }) as HTMLButtonElement;
     expect(publish.disabled).toBe(false);
     fireEvent.click(publish);
@@ -133,9 +133,7 @@ describe('HostCreatePage EC-07 flow', () => {
     fireEvent.change(screen.getByLabelText(/^Meetup description/), {
       target: { value: 'A complete protected meetup for founders.' },
     });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
 
     expect(hostCreateMocks.mutateAsync).not.toHaveBeenCalled();
     expect(
@@ -189,9 +187,7 @@ describe('HostCreatePage EC-07 flow', () => {
         ) as unknown as HTMLInputElement
       ).value,
     ).toBe('Protected meetup');
-    expect(
-      screen.getByRole('button', { name: 'Confirmer et publier la rencontre' }),
-    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Publier' })).toBeTruthy();
   });
 
   it('announces progress and focuses the first invalid field', async () => {
@@ -219,9 +215,7 @@ describe('the language a meetup is held in', () => {
     fireEvent.change(screen.getByLabelText(/^Language/), {
       target: { value: 'ar' },
     });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
 
     await waitFor(() =>
       expect(hostCreateMocks.mutateAsync).toHaveBeenCalledOnce(),

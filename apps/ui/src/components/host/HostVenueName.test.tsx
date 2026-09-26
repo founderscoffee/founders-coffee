@@ -92,9 +92,7 @@ describe('venue naming when only an address is verified', () => {
       target: { value: 'A complete protected meetup for founders.' },
     });
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
 
     expect(hostCreateMocks.mutateAsync).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -19,7 +19,5 @@ export const fillHostDetails = () => {
 export const publishHostEvent = async () => {
   await goToHostDetails();
   fillHostDetails();
-  fireEvent.click(
-    screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
-  );
+  fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
 };

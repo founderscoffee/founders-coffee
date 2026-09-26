@@ -97,7 +97,7 @@ describe('HostCreatePage EC-07 state', () => {
     await goToHostDetails();
     fillHostDetails();
     const publish = screen.getByRole('button', {
-      name: 'Confirm and publish the meetup',
+      name: 'Publish',
     }) as HTMLButtonElement;
     fireEvent.click(publish);
     fireEvent.click(publish);

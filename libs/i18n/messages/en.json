@@ -282,7 +282,7 @@
   "host_time_zone_error": "This country's time zone is unavailable. Try again later.",
   "host_login_required": "Log in or create an account to publish. Your draft will stay on this device.",
   "host_continue_login": "Continue to sign in",
-  "host_confirm_publish": "Confirm and publish the meetup",
+  "host_confirm_publish": "Publish",
   "host_publishing": "Publishing…",
   "host_time_ok": "OK",
   "host_time_cancel": "Cancel",

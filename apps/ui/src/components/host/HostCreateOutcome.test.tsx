@@ -94,7 +94,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     expect(
       (
         screen.getByRole('button', {
-          name: 'Confirm and publish the meetup',
+          name: 'Publish',
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(false);

@@ -1,15 +1,63 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { LOCALE_DIRECTION, t, type E2eLocale } from './support/messages';
 import { localeFor } from './support/run';
 import {
   VENUE_QUERY,
   backButton,
+  continueToLoginButton,
   nextButton,
+  selectSchedule,
   selectVenue,
   useLocale,
   wizardPath,
 } from './support/host-wizard';
+
+/**
+ * Hold a step's actions to the thumb: on screen, tall enough to tap, and never pushing the page
+ * sideways, which a primary label too long for one line did on the last step.
+ */
+const expectActionsInReach = async (
+  page: Page,
+  actions: readonly Locator[],
+): Promise<void> => {
+  for (const action of actions) {
+    await expect(action).toBeVisible();
+    await expect(action).toBeInViewport();
+    const box = await action.boundingBox();
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
+
+  const overflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth -
+      document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+};
+
+/**
+ * Walk to the schedule and on to the details step, holding both actions to reach on each.
+ */
+const walkWizardActions = async (
+  page: Page,
+  locale: E2eLocale,
+): Promise<void> => {
+  await page.goto(wizardPath());
+  await selectVenue(page, locale, VENUE_QUERY);
+  await nextButton(page, locale).click();
+  await expectActionsInReach(page, [
+    backButton(page, locale),
+    nextButton(page, locale),
+  ]);
+
+  await selectSchedule(page);
+  await nextButton(page, locale).click();
+  await expectActionsInReach(page, [
+    backButton(page, locale),
+    continueToLoginButton(page, locale),
+  ]);
+};
 
 test.describe('create event experience', () => {
   test('keeps the draft and the active step across a locale change', async ({
@@ -64,30 +112,19 @@ test.describe('create event experience', () => {
     await expect(page.locator('#venue-search')).toBeFocused();
   });
 
-  test('keeps both wizard actions reachable at this viewport', async ({
+  test('keeps both wizard actions reachable at this viewport and at 320px', async ({
     page,
     baseURL,
   }, testInfo) => {
     const locale = localeFor(testInfo.project.name);
     await useLocale(page, locale, baseURL as string);
-    await page.goto(wizardPath());
+    await walkWizardActions(page, locale);
 
-    await selectVenue(page, locale, VENUE_QUERY);
-    await nextButton(page, locale).click();
-
-    for (const action of [backButton(page, locale), nextButton(page, locale)]) {
-      await expect(action).toBeVisible();
-      await expect(action).toBeInViewport();
-      const box = await action.boundingBox();
-      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-    }
-
-    const overflow = await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth -
-        document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await expectActionsInReach(page, [
+      backButton(page, locale),
+      continueToLoginButton(page, locale),
+    ]);
   });
 
   test('announces semantic step progress', async ({
