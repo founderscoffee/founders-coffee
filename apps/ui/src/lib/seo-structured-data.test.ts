@@ -60,11 +60,15 @@ describe('structured discovery data', () => {
         url: 'https://founders.coffee/u/usr_123',
       },
     };
-    const published = eventJsonLd(event);
-    const cancelled = eventJsonLd({
-      ...event,
-      status: 'cancelled',
-    });
+    const beforeStart = event.startsAt.getTime() - 1;
+    const published = eventJsonLd(event, beforeStart);
+    const cancelled = eventJsonLd(
+      {
+        ...event,
+        status: 'cancelled',
+      },
+      beforeStart,
+    );
 
     expect(published).toMatchObject({
       '@type': 'Event',
@@ -92,6 +96,39 @@ describe('structured discovery data', () => {
       eventStatus: 'https://schema.org/EventCancelled',
     });
     expect(cancelled).not.toHaveProperty('offers');
+  });
+
+  it('withdraws the offer once the meetup has started, and keeps it scheduled', () => {
+    const event: StructuredEventData = {
+      title: 'Founders breakfast',
+      description: 'A local meetup',
+      startsAt: new Date('2026-09-20T10:00:00Z'),
+      endsAt: new Date('2026-09-20T12:00:00Z'),
+      status: 'published',
+      venue: 'Café Atlas',
+      cityName: 'Alger',
+      venueAddress: null,
+      latitude: null,
+      longitude: null,
+      marketCode: 'DZ',
+      language: 'fr',
+      url: 'https://founders.coffee/fr/algeria/e/founders-breakfast',
+      currency: 'DZD',
+      organizer: null,
+    };
+    const start = event.startsAt.getTime();
+
+    expect(eventJsonLd(event, start - 1)).toHaveProperty('offers');
+    for (const now of [start, start + 3 * 60 * 60 * 1000]) {
+      const schema = eventJsonLd(event, now);
+      expect(
+        schema,
+        'an InStock offer on a meetup nobody can join any more is the page advertising a seat the server refuses',
+      ).not.toHaveProperty('offers');
+      expect(schema).toMatchObject({
+        eventStatus: 'https://schema.org/EventScheduled',
+      });
+    }
   });
 
   it('builds breadcrumb positions without private profile data', () => {

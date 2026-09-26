@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { type Locale } from '@founders-coffee/i18n';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
+import type { EventPhase } from '../../features/events/live-window';
 import { event, market } from './EventDetail.fixtures';
 
 const { EventDetail } = await import('./EventDetail');
@@ -21,6 +22,7 @@ describe('EventDetail structured data ownership', () => {
         isHost={false}
         live={null}
         isWindowOpen={false}
+        phase="upcoming"
       />,
     );
 
@@ -38,7 +40,12 @@ const cancelled = {
   cancellationReason: 'The café closed without warning.',
 } satisfies EventDetailItem;
 
-const show = (item: EventDetailItem, locale: Locale = 'en', isHost = false) =>
+const show = (
+  item: EventDetailItem,
+  locale: Locale = 'en',
+  isHost = false,
+  phase: EventPhase = 'upcoming',
+) =>
   render(
     <EventDetail
       locale={locale}
@@ -48,6 +55,7 @@ const show = (item: EventDetailItem, locale: Locale = 'en', isHost = false) =>
       isHost={isHost}
       live={null}
       isWindowOpen={false}
+      phase={phase}
     />,
   );
 
@@ -127,6 +135,67 @@ describe('what the seat box calls itself', () => {
     expect(screen.getByRole('heading', { name: 'حضورك' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'حضورك مؤكَّد' })).toBeNull();
   });
+});
+
+describe('what the seat box calls itself once the meetup is under way or over', () => {
+  it('stops asking a reader to save a place once the meetup has started', () => {
+    show(event, 'en', false, 'started');
+
+    expect(
+      screen.getByRole('heading', { name: 'RSVPs are closed' }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', { name: 'Save your place' }),
+    ).toBeNull();
+  });
+
+  it('keeps the confirmation for a member who is going while it runs', () => {
+    show({ ...event, viewerRsvp: 'going' }, 'en', false, 'started');
+
+    expect(screen.getByRole('heading', { name: "You're going" })).toBeTruthy();
+  });
+
+  it.each([null, 'going'] as const)(
+    'says the meetup is over once it has ended (RSVP: %s)',
+    (viewerRsvp) => {
+      show({ ...event, viewerRsvp }, 'en', false, 'ended');
+
+      expect(
+        screen.getByRole('heading', { name: 'This meetup has ended' }),
+      ).toBeTruthy();
+      expect(
+        screen.queryByRole('heading', { name: "You're going" }),
+      ).toBeNull();
+    },
+  );
+
+  it('still calls it the host’s meetup after it has ended', () => {
+    show(event, 'en', true, 'ended');
+
+    expect(screen.getByRole('heading', { name: 'Your meetup' })).toBeTruthy();
+  });
+
+  it('keeps a meetup that was called off addressed as called off', () => {
+    show({ ...cancelled, viewerRsvp: 'going' }, 'en', false, 'ended');
+
+    expect(
+      screen.getByRole('heading', { name: 'Your attendance' }),
+    ).toBeTruthy();
+  });
+
+  it.each([
+    ['ar', 'started', 'أُغلق الحجز'],
+    ['ar', 'ended', 'انتهى هذا اللقاء'],
+    ['fr', 'started', 'Réservations closes'],
+    ['fr', 'ended', 'Cette rencontre est terminée'],
+  ] as const)(
+    'says it in %s when the meetup has %s',
+    (locale, phase, title) => {
+      show(event, locale, false, phase);
+
+      expect(screen.getByRole('heading', { name: title })).toBeTruthy();
+    },
+  );
 });
 
 describe('whose clock the When block says the time is on', () => {

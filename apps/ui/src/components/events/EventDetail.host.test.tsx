@@ -35,6 +35,7 @@ const renderPage = (locale: Locale, host: Host) =>
       isHost={false}
       live={null}
       isWindowOpen={false}
+      phase="upcoming"
     />,
   );
 

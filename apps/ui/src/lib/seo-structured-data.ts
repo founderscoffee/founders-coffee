@@ -67,7 +67,18 @@ export const breadcrumbJsonLd = (
   })),
 });
 
-export const eventJsonLd = (event: StructuredEventData): JsonLdObject => {
+/**
+ * The schema.org `Event` for a meetup page.
+ *
+ * The free `Offer` stands for the seat the page offers, so it is there only while RSVPs are open:
+ * for a published meetup whose start is still ahead, the same `starts_at` rule the server applies
+ * when it refuses an RSVP. A meetup that has started or ended keeps `EventScheduled`, which is
+ * true of one that took place.
+ */
+export const eventJsonLd = (
+  event: StructuredEventData,
+  now: number = Date.now(),
+): JsonLdObject => {
   const location: JsonLdObject = {
     '@type': 'Place',
     name: event.venue,
@@ -109,7 +120,7 @@ export const eventJsonLd = (event: StructuredEventData): JsonLdObject => {
     inLanguage: event.language,
     isAccessibleForFree: true,
     location,
-    ...(event.status === 'published'
+    ...(event.status === 'published' && event.startsAt.getTime() > now
       ? {
           offers: {
             '@type': 'Offer',

@@ -14,7 +14,7 @@ import type { Market } from '@founders-coffee/db';
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { eventCityName } from '../features/events/event-city-name';
-import { isLiveWindowOpen } from '../features/events/live-window';
+import { eventPhase, isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
 import { localizedEvent } from '../lib/locale-routing';
@@ -35,6 +35,7 @@ const EventRoute = () => {
   const isWindowOpen =
     event.status !== 'cancelled' &&
     isLiveWindowOpen(event.startsAt, event.endsAt);
+  const phase = eventPhase(event.startsAt, event.endsAt);
   const isAttending = isHost || event.viewerRsvp === 'going';
   const live = useEventLive(event.id, {
     enabled: Boolean(user) && isWindowOpen && isAttending,
@@ -50,6 +51,7 @@ const EventRoute = () => {
         isHost={isHost}
         live={user ? live : null}
         isWindowOpen={isWindowOpen}
+        phase={phase}
       />
       {user && isWindowOpen && isAttending && !live.notAttending && (
         <LiveDashboard live={live} currentUserId={user.id} locale={locale} />

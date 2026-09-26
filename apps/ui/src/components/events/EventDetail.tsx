@@ -30,14 +30,14 @@ import type {
 } from '@founders-coffee/server-fns';
 
 import { eventCityName } from '../../features/events/event-city-name';
+import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import {
   localizedCity,
   localizedPublicProfile,
 } from '../../lib/locale-routing';
 import { EventLocationMap } from './EventLocationMap';
-import { RsvpBoxHeading } from './RsvpBoxHeading';
-import { RsvpSection } from './RsvpSection';
+import { EventRsvpBox } from './EventRsvpBox';
 import { ShareEventButton } from './ShareEventButton';
 
 type EventDetailProps = {
@@ -48,6 +48,7 @@ type EventDetailProps = {
   isHost: boolean;
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
+  phase: EventPhase;
 };
 
 const initials = (name: string) =>
@@ -67,6 +68,7 @@ export const EventDetail = ({
   isHost,
   live,
   isWindowOpen,
+  phase,
 }: EventDetailProps) => {
   const hostName = host?.displayName ?? role_host({}, { locale });
   const on = (value: Date, options: Intl.DateTimeFormatOptions) =>
@@ -265,30 +267,16 @@ export const EventDetail = ({
         </section>
 
         {hasRsvpBox ? (
-          <aside className="flex h-full flex-col gap-4 lg:sticky lg:top-6 lg:self-stretch lg:pt-12">
-            <section
-              aria-labelledby="event-rsvp-title"
-              className="flex flex-1 flex-col rounded-box border-2 border-secondary bg-base-100 p-5 shadow-[var(--shadow-2)]"
-            >
-              <RsvpBoxHeading
-                locale={locale}
-                isHost={isHost}
-                isCancelled={isCancelled}
-                isGoing={event.viewerRsvp === 'going'}
-              />
-              <div className="mt-auto">
-                <RsvpSection
-                  event={event}
-                  hostName={hostName}
-                  marketSlug={market.slug}
-                  locale={locale}
-                  isHost={isHost}
-                  live={live}
-                  isWindowOpen={isWindowOpen}
-                />
-              </div>
-            </section>
-          </aside>
+          <EventRsvpBox
+            locale={locale}
+            event={event}
+            hostName={hostName}
+            marketSlug={market.slug}
+            isHost={isHost}
+            live={live}
+            isWindowOpen={isWindowOpen}
+            phase={phase}
+          />
         ) : null}
       </div>
     </article>

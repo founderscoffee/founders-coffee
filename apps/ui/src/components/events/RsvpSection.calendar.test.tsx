@@ -49,6 +49,7 @@ const show = (item: EventWithAttendance) =>
       isHost={false}
       live={null}
       isWindowOpen={false}
+      phase="upcoming"
     />,
   );
 
