@@ -1,4 +1,9 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  useMatches,
+} from '@tanstack/react-router';
 import { useEffect } from 'react';
 
 import {
@@ -34,6 +39,7 @@ import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd } from '../lib/seo-company';
 import { errorPageHead } from '../lib/seo-error';
 import { installedAppMeta } from '../lib/installed-app-head';
+import { hasOwnMobileHeader } from '../lib/route-chrome';
 import { manifestHref } from '../lib/web-manifest';
 
 import appCss from '../styles.css?url';
@@ -76,6 +82,7 @@ const useServiceWorker = () => {
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { locale, dir, markets, activeMarket } = Route.useRouteContext();
+  const isNavbarHiddenOnMobile = useMatches({ select: hasOwnMobileHeader });
   useClientObservability();
   useServiceWorker();
   useStoredLocale(locale);
@@ -89,7 +96,11 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
       <body className="flex flex-col bg-base-100 text-base-content">
         <AppProviders>
           <SkipLink locale={locale} />
-          <Navbar locale={locale} marketSlug={activeMarket?.slug} />
+          <Navbar
+            locale={locale}
+            marketSlug={activeMarket?.slug}
+            isHiddenOnMobile={isNavbarHiddenOnMobile}
+          />
           <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>

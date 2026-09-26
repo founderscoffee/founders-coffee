@@ -1,10 +1,10 @@
 import {
   CREATED_EVENT,
   getHostCreateMocks,
-  publishHostEvent,
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import { publishHostEvent } from './HostCreatePage.flows.fixtures';
 import { screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 

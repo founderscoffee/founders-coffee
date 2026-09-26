@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { vi } from 'vitest';
 
@@ -66,8 +66,13 @@ applyDefaultHostCreateMocks();
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => hostCreateMocks.navigate,
   useRouter: () => ({ invalidate: hostCreateMocks.routerInvalidate }),
-  Link: ({ children }: { children: ReactNode }) =>
-    createElement('a', { href: '#' }, children),
+  Link: ({
+    children,
+    'aria-label': label,
+  }: {
+    children: ReactNode;
+    'aria-label'?: string;
+  }) => createElement('a', { href: '#', 'aria-label': label }, children),
 }));
 
 vi.mock('../../lib/auth', () => ({
@@ -195,10 +200,12 @@ vi.mock('./HostMap', () => ({
 
 vi.mock('./VenueSearch', () => ({
   VenueSearch: ({
+    area,
     value,
     isDisabled,
     onChange,
   }: {
+    area: { kind: string; name: string };
     value: string;
     isDisabled?: boolean;
     onChange: (value: string) => void;
@@ -206,6 +213,7 @@ vi.mock('./VenueSearch', () => ({
     createElement('input', {
       id: 'venue-search',
       'aria-label': 'Search cafés and coworking venues',
+      'data-area': `${area.kind}:${area.name}`,
       value,
       disabled: isDisabled ?? false,
       onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -261,22 +269,6 @@ export const renderHostCreateWizard = (
     }),
   );
 
-export const goToHostDetails = async () => {
-  fireEvent.click(await screen.findByRole('button', { name: 'Choose venue' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Set schedule' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-};
-
-export const fillHostDetails = () => {
-  fireEvent.change(screen.getByLabelText(/^Meetup title/), {
-    target: { value: 'Protected meetup' },
-  });
-  fireEvent.change(screen.getByLabelText(/^Meetup description/), {
-    target: { value: 'A complete protected meetup for founders.' },
-  });
-};
-
 export const resetHostCreateFixtures = () => {
   cleanup();
   window.sessionStorage.clear();
@@ -285,12 +277,4 @@ export const resetHostCreateFixtures = () => {
   hostCreateMocks.isLoading = false;
   vi.clearAllMocks();
   applyDefaultHostCreateMocks();
-};
-
-export const publishHostEvent = async () => {
-  await goToHostDetails();
-  fillHostDetails();
-  fireEvent.click(
-    screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
-  );
 };

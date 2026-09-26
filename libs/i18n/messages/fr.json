@@ -370,22 +370,6 @@
   "host_title_constraints": "Le titre doit compter entre {min} et {max} caractères.",
   "host_desc_constraints": "La description doit compter entre {min} et {max} caractères.",
   "host_character_count": "{current} caractères sur {max}",
-  "host_step1_helper": [
-    {
-      "declarations": [
-        "input city",
-        "input cityArticle",
-        "input cityAfterArticle"
-      ],
-      "selectors": ["cityArticle"],
-      "match": {
-        "cityArticle=le": "Choisissez parmi les cafés et espaces de coworking au {cityAfterArticle}.",
-        "cityArticle=les": "Choisissez parmi les cafés et espaces de coworking aux {cityAfterArticle}.",
-        "cityArticle=*": "Choisissez parmi les cafés et espaces de coworking à {city}."
-      }
-    }
-  ],
-  "host_step1_helper_market": "Choisissez parmi les cafés et espaces de coworking en {market}.",
   "host_selected_location": "Emplacement sélectionné",
   "host_locate_me": "Me localiser",
   "host_title_ph": "Café et discussion d'idée de projet",
@@ -414,13 +398,13 @@
       ],
       "selectors": ["cityArticle"],
       "match": {
-        "cityArticle=le": "Rechercher un café ou un espace de coworking au {cityAfterArticle}…",
-        "cityArticle=les": "Rechercher un café ou un espace de coworking aux {cityAfterArticle}…",
-        "cityArticle=*": "Rechercher un café ou un espace de coworking à {city}…"
+        "cityArticle=le": "Café ou coworking au {cityAfterArticle}…",
+        "cityArticle=les": "Café ou coworking aux {cityAfterArticle}…",
+        "cityArticle=*": "Café ou coworking à {city}…"
       }
     }
   ],
-  "host_venue_search_ph_market": "Rechercher un café ou un espace de coworking en {market}…",
+  "host_venue_search_ph_market": "Café ou coworking en {market}…",
   "host_venue_search_label": "Rechercher un café ou un espace de coworking",
   "host_venue_search_loading": "Recherche de lieux…",
   "host_venue_search_error": "Impossible de rechercher des lieux pour le moment.",
@@ -566,7 +550,6 @@
   "host_nearby_venues": "Cafés et espaces de coworking à proximité",
   "host_venue_selected": "Sélectionné",
   "host_venue_ineligible": "ni café ni espace de coworking",
-  "host_or_click_map": "Ou choisissez un lieu sur la carte.",
   "host_pin_hint": "Faites glisser le repère jusqu’à l’entrée du lieu.",
   "host_osm_attribution": "© les contributeurs OpenStreetMap",
   "host_venue_empty": "Choisissez un lieu sur la carte pour commencer.",

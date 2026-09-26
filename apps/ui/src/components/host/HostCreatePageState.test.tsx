@@ -1,11 +1,13 @@
 import {
   CREATED_EVENT,
-  fillHostDetails,
   getHostCreateMocks,
-  goToHostDetails,
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import {
+  fillHostDetails,
+  goToHostDetails,
+} from './HostCreatePage.flows.fixtures';
 import type { RepeatEventTemplate } from '../../features/events/api';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';

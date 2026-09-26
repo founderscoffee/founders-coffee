@@ -67,6 +67,7 @@ const HostCreateRoute = () => {
 };
 
 export const Route = createFileRoute('/$locale/$market/host/create')({
+  staticData: { hasOwnMobileHeader: true },
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,

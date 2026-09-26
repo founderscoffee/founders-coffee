@@ -190,7 +190,7 @@ export const useHostCreateWizard = ({
     setStep(target);
   };
   const prev = () => goToStep(Math.max(1, step - 1));
-  const stepCopy = hostCreateStepCopy(locale, venueArea);
+  const stepCopy = hostCreateStepCopy(locale);
   const schedule = hostScheduleSummary(
     startsAt,
     endsAt,
@@ -238,6 +238,8 @@ export const useHostCreateWizard = ({
     setScheduleError,
     selectVenue,
     clearVenue,
+    clearVenueError: () =>
+      setFieldErrors((current) => ({ ...current, venue: undefined })),
     next,
     prev,
   };

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { appErrorCode } from '@founders-coffee/core';
 import {
   host_nearby_venues,
   host_search_results,
@@ -11,16 +10,16 @@ import {
   host_venue_name_label,
   host_venue_name_ph,
   host_venue_no_results,
-  host_venue_rate_limited,
-  host_venue_search_error,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Input, StatusMessage } from '@founders-coffee/ui';
+import { Input } from '@founders-coffee/ui';
 
 import { useNearbyVenues, useVenueSearch } from '../../features/events/hooks';
 import type { VenueArea, VenueSelection } from '../../features/events/types';
 import { HostVenueList, type VenueRow } from './HostVenueList';
+import { useVenueNotices, type VenueError } from './useVenueNotices';
 import { VenueSearch } from './VenueSearch';
+import { VenueStepToasts } from './VenueStepToasts';
 
 const SEARCH_DELAY_MS = 350;
 
@@ -36,6 +35,7 @@ type HostVenueStepProps = {
   venue: VenueSelection | null;
   venueName: string;
   nameError?: string;
+  venueError?: VenueError;
   hideNameField?: boolean;
   boundedList?: boolean;
   isDisabled: boolean;
@@ -54,6 +54,7 @@ export const HostVenueStep = ({
   venue,
   venueName,
   nameError,
+  venueError,
   hideNameField = false,
   boundedList = false,
   isDisabled,
@@ -103,13 +104,11 @@ export const HostVenueStep = ({
       ? [{ ...venue, eligible: true }, ...listed]
       : listed;
 
-  const errorCode = appErrorCode(search.error);
-  const searchError =
-    isSearching && search.isError
-      ? errorCode === 'rate_limited'
-        ? host_venue_rate_limited({}, { locale })
-        : host_venue_search_error({}, { locale })
-      : undefined;
+  const notices = useVenueNotices({
+    locale,
+    lookup: isSearching ? search : nearby,
+    venueError,
+  });
 
   const listLabel = isSearching
     ? host_search_results({}, { locale })
@@ -117,14 +116,13 @@ export const HostVenueStep = ({
       ? host_selected_location({}, { locale })
       : host_nearby_venues({}, { locale });
 
-  const emptyMessage = isSearching
-    ? search.isFetching || search.isError
-      ? undefined
-      : host_venue_no_results({}, { locale })
-    : nearby.isPending
-      ? undefined
-      : nearby.isError
-        ? host_venue_search_error({}, { locale })
+  const emptyMessage =
+    isSearching && !search.isError
+      ? search.isFetching
+        ? undefined
+        : host_venue_no_results({}, { locale })
+      : !isSearching && nearby.isPending
+        ? undefined
         : host_venue_empty({}, { locale });
 
   return (
@@ -137,30 +135,34 @@ export const HostVenueStep = ({
         hasResults={rows.length > 0}
         isDisabled={isDisabled}
         isLoading={isSearching && search.isFetching}
-        errorMessage={searchError}
         onChange={onSearchChange}
-        onRetry={() => void search.refetch()}
       />
-      <div
-        className={boundedList ? 'max-h-72 overflow-y-auto pe-1' : undefined}
-      >
-        <p className="mb-1.5 text-caption text-neutral">{listLabel}</p>
-        {rows.length > 0 ? (
-          <HostVenueList
-            locale={locale}
-            id={VENUE_LIST_ID}
-            label={listLabel}
-            venues={rows}
-            selectedProviderId={venue?.providerId}
-            showAttribution={!isSearching && !isPinned}
-            onSelect={onVenueSelect}
-          />
-        ) : (
-          emptyMessage && (
-            <StatusMessage variant="info">{emptyMessage}</StatusMessage>
-          )
-        )}
-      </div>
+      <VenueStepToasts locale={locale} notices={notices} />
+      {rows.length > 0 && (
+        <div>
+          <p className="mb-1.5 text-caption text-neutral">{listLabel}</p>
+          <div
+            className={
+              boundedList
+                ? 'max-h-72 overflow-y-auto pe-1'
+                : 'max-lg:max-h-40 max-lg:overflow-y-auto max-lg:pe-1'
+            }
+          >
+            <HostVenueList
+              locale={locale}
+              id={VENUE_LIST_ID}
+              label={listLabel}
+              venues={rows}
+              selectedProviderId={venue?.providerId}
+              showAttribution={!isSearching && !isPinned}
+              onSelect={onVenueSelect}
+            />
+          </div>
+        </div>
+      )}
+      <p aria-live="polite" className="text-caption text-neutral empty:sr-only">
+        {rows.length > 0 ? null : emptyMessage}
+      </p>
       {venue?.kind === 'address' && !hideNameField && (
         <div className="form-control">
           <label

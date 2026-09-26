@@ -1,12 +1,14 @@
 import { AppError } from '@founders-coffee/core';
 
 import {
-  fillHostDetails,
   getHostCreateMocks,
-  goToHostDetails,
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import {
+  fillHostDetails,
+  goToHostDetails,
+} from './HostCreatePage.flows.fixtures';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 

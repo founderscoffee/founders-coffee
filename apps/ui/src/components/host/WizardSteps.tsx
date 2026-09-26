@@ -33,7 +33,7 @@ export const WizardSteps = ({
       {labels.map((label, index) => (
         <li
           key={`marker-${index + 1}`}
-          className={`step text-caption font-medium ${
+          className={`step text-caption font-medium max-lg:grid-rows-[1.75rem_auto] max-lg:before:h-1 max-lg:after:size-6 max-lg:after:text-xs ${
             index + 1 <= current ? 'step-primary' : ''
           }`}
         >
