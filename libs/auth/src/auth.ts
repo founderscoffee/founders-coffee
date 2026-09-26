@@ -64,6 +64,9 @@ const GUARDED_ACCOUNT_PATHS = [
   '/revoke-other-sessions',
 ];
 
+const SEND_OTP_PATH = '/email-otp/send-verification-otp';
+const PUBLIC_OTP_TYPE = 'sign-in';
+
 /**
  * Build a Better Auth instance bound to the request's D1.
  *
@@ -91,6 +94,12 @@ const GUARDED_ACCOUNT_PATHS = [
  * way back in, and signing a device out must take that device's push registration with it, or the
  * revocation silently becomes permission to keep notifying it. A caller reaching the raw endpoint
  * gets neither, so the raw endpoint is closed and the guarded server function is the only door.
+ *
+ * A public caller can ask `SEND_OTP_PATH` for a sign-in code and nothing else. Its other types
+ * belong to flows the product runs itself or not at all: the proof of the current address that a
+ * contact change asks for goes through the internal handler, and there is no password to reset.
+ * Better Auth also mails those types only to addresses that already have an account, so refusing
+ * them keeps the route's answer the same for every address.
  *
  * `emailOTP.changeEmail.verifyCurrentEmail` is what makes a change of address an act by the person
  * who already holds it. Without it, anyone sitting at an unlocked session could move the account to
@@ -131,6 +140,17 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
           throw new APIError('FORBIDDEN', {
             code: 'ACCOUNT_ENDPOINT_REQUIRED',
             message: 'Use the protected account endpoint for this action',
+          });
+        }
+        const otpType = (context.body as { type?: unknown } | undefined)?.type;
+        if (
+          context.path === SEND_OTP_PATH &&
+          deps.captchaBypassed !== true &&
+          otpType !== PUBLIC_OTP_TYPE
+        ) {
+          throw new APIError('BAD_REQUEST', {
+            code: 'OTP_TYPE_NOT_OFFERED',
+            message: 'Only sign-in codes can be requested here',
           });
         }
       }),
