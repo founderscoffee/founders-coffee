@@ -148,7 +148,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
-| P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0: migration 0036, the webhook, the queued posts, pins and removals, the host's panel, the member's card, and the privacy policy's Telegram section (reviewed 2026-09-26, dated 18 September). On in production since v0.15.0 (`@FoundersCoffeeBot`). Remaining: a staging bot per [Telegram groups](#telegram-groups-p1-025), then staging evidence with a real group, including whether a basic group takes join-request links     |
+| P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0: migration 0036, the webhook, the queued posts, pins and removals, the host's panel, the member's card, and the privacy policy's Telegram section (reviewed 2026-09-26, dated 18 September). On in production since v0.15.0 (`@FoundersCoffeeBot`). Remaining: the [evidence run](#telegram-groups-p1-025) with a real group, on production by decision of 2026-09-26, including whether a basic group takes join-request links    |
 
 ### Public profile (P1-004)
 
@@ -241,18 +241,24 @@ making them. Updates are then posted by hand to `/api/telegram/webhook` with the
 `X-Telegram-Bot-Api-Secret-Token` header: a `/start@<bot> <token>` message from the host's connect
 link, and a `chat_join_request` whose link a member was given.
 
-Not yet known, and part of the staging evidence: whether a basic group accepts the bot's
+Not yet known, and part of the evidence run: whether a basic group accepts the bot's
 join-request links, or Telegram first turns it into a supergroup. The webhook follows a group to its
 new id when it is upgraded, so either way should work, but only a real group will show it.
 
-**Staging run.** This is the evidence P1-025 still owes, run once the four steps above are done on
-staging. It needs two staging accounts, a host and a member; a Telegram account for each, and a
-third for step 4; and a group the host's Telegram account has just created, because a new group
-starts as a basic group. Keep `wrangler tail` open on `founders-coffee-ui-staging` and
-`founders-coffee-worker-jobs-staging`. The first logs `telegram.connect_opened`,
+**Evidence run.** This is the evidence P1-025 still owes. It was to run on staging, under a bot of
+its own; on 2026-09-26 it was decided to run it on production with `@FoundersCoffeeBot` instead, as
+part of the pre-launch audit, so no second bot is needed. It needs two production accounts, a host
+and a member; a Telegram account for each, and a third for step 4; and groups the host's Telegram
+account creates for the run's meetups, because a new group starts as a basic group and everyone in a
+connected group sees the bot's posts. Keep `wrangler tail` open on `founders-coffee-ui-production`
+and `founders-coffee-worker-jobs-production`. The first logs `telegram.connect_opened`,
 `telegram.connected`, `telegram.invite_given`, `telegram.join_request` and `telegram.disconnected`;
 the second logs a `notification.sweep` report for each run. Stop on any `telegram.*` warning and
 find out why.
+
+The run's data stays in production, so its meetups are real ones that take place, joined by real
+members. They are public from the moment they are created: the market and city pages,
+`/events.json`, the sitemap and `llms.txt` list them, and anyone signed in can RSVP.
 
 1. **Meetup.** The host creates one starting about 25 hours ahead. The group's reminder, due a day
    before the start, is queued only if that moment is still ahead when the group connects, so
@@ -277,16 +283,17 @@ find out why.
    last, cancelling the meetup, and the bot posts the cancellation, rewrites the pin and leaves. The
    group has to be a second one, because the bot stays in a chat that another meetup still runs
    through.
-9. **The day after.** A day after the first meetup ends, the bot posts its thanks with the city's
-   next meetups and leaves. Moving that meetup's start forward after step 5 brings this closer.
+9. **The day after.** A day after the first meetup ends, the bot posts its thanks with a link to
+   the city's next meetups and leaves. Moving that meetup's start forward after step 5 brings this
+   closer.
 
 Throughout, `getWebhookInfo` should show no `last_error_message`, and the bot should post in the
-meetup's language, with links to staging. A 403 there would mean something at Cloudflare's edge,
-such as Bot Fight Mode or a WAF rule, is turning Telegram away. The groups' rows can be read from
-`apps/worker-jobs`:
+meetup's language, with links to founders.coffee. A 403 there would mean something at Cloudflare's
+edge, such as Bot Fight Mode or a WAF rule, is turning Telegram away. The groups' rows can be read
+from `apps/worker-jobs`:
 
 ```bash
-wrangler d1 execute founders-coffee-db-staging --remote --env staging \
+wrangler d1 execute founders-coffee-db-production --remote --env production \
   --command "SELECT event_id, status, chat_id, chat_title FROM event_telegram_groups"
 ```
 
