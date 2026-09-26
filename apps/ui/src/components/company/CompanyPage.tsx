@@ -12,7 +12,6 @@ import {
   footer_organizers,
   footer_privacy,
   footer_terms,
-  page_arabic_source_notice,
   page_last_updated,
   page_on_this_page,
   type Locale,
@@ -30,7 +29,6 @@ type CompanyPageProps = {
   content: CompanyPageContent;
   showEmailActions?: boolean;
   related?: readonly RelatedKey[];
-  arabicSource?: boolean;
 };
 
 const RELATED_LINKS = [
@@ -58,12 +56,9 @@ export const CompanyPage = ({
   content,
   showEmailActions = false,
   related = ['privacy', 'terms', 'cookies'],
-  arabicSource = false,
 }: CompanyPageProps) => {
   const [copied, setCopied] = useState(false);
   const showToc = content.sections.length >= 4;
-  const translated = arabicSource && locale !== 'ar';
-  const textLocale: Locale = arabicSource ? 'ar' : locale;
   const sections = content.sections.map((section, index) => ({
     ...section,
     id: section.anchor ?? sectionDomId(section.heading, index),
@@ -80,22 +75,12 @@ export const CompanyPage = ({
   };
 
   return (
-    <article className="mx-auto max-w-xl px-4 py-12 md:py-16">
-      {translated ? (
-        <p
-          role="note"
-          dir="ltr"
-          lang={locale}
-          className="mb-8 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-body-sm leading-6 text-neutral"
-        >
-          {page_arabic_source_notice({ email: CONTACT_EMAIL }, { locale })}
-        </p>
-      ) : null}
-
-      <div
-        dir={arabicSource ? 'rtl' : undefined}
-        lang={arabicSource ? 'ar' : undefined}
-      >
+    <article
+      lang={locale}
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+      className="mx-auto max-w-xl px-4 py-12 md:py-16"
+    >
+      <div>
         <header className="mb-10 border-b border-base-300 pb-8">
           <h1 className="font-display text-h2 font-semibold text-balance md:text-h1">
             {content.title}
@@ -104,10 +89,7 @@ export const CompanyPage = ({
             {content.description}
           </p>
           <p className="mt-4 text-body-sm text-neutral">
-            {page_last_updated(
-              { date: content.updated },
-              { locale: textLocale },
-            )}
+            {page_last_updated({ date: content.updated }, { locale })}
           </p>
 
           {showEmailActions ? (
@@ -139,12 +121,10 @@ export const CompanyPage = ({
 
         {showToc ? (
           <nav
-            aria-label={page_on_this_page({}, { locale: textLocale })}
+            aria-label={page_on_this_page({}, { locale })}
             className="mb-10 rounded-2xl border border-base-300 bg-base-200 p-5"
           >
-            <p className="eyebrow">
-              {page_on_this_page({}, { locale: textLocale })}
-            </p>
+            <p className="eyebrow">{page_on_this_page({}, { locale })}</p>
             <ol className="mt-3 grid gap-2 sm:grid-cols-2">
               {sections.map((section, index) => (
                 <li key={section.id}>

@@ -12,7 +12,7 @@ import {
   companyPageContent,
   isCompanyPageKey,
 } from './pages';
-import type { CompanyPageKey } from './pages';
+import type { CompanyPageKey, LegalPageKey } from './pages';
 import type { CompanyBlock } from './types';
 
 const KEYS = Object.keys(COMPANY_PAGES) as CompanyPageKey[];
@@ -29,6 +29,33 @@ const allText = (key: CompanyPageKey, locale: Locale = 'ar') =>
     section.blocks.flatMap(blockText),
   );
 
+const criticalLegalFacts: Partial<Record<LegalPageKey, readonly string[]>> = {
+  terms: ['19', '03-05', 'contact@founders.coffee'],
+  privacy: [
+    '18-07',
+    '25-11',
+    '19',
+    '30',
+    '90',
+    '24',
+    '12',
+    '10',
+    '40',
+    '43',
+    '45',
+    'contact@founders.coffee',
+  ],
+  cookies: [
+    '__Secure-better-auth.session_token',
+    'PARAGLIDE_LOCALE',
+    'fc_geo',
+    'contact@founders.coffee',
+  ],
+  community: ['contact@founders.coffee'],
+  organizers: ['18-07', 'contact@founders.coffee'],
+  legal: ['03-05', '18-07', 'contact@founders.coffee'],
+};
+
 describe('company pages', () => {
   it('resolves content for every page in every locale', () => {
     for (const key of KEYS) {
@@ -41,12 +68,39 @@ describe('company pages', () => {
     }
   });
 
-  it('serves the Arabic text for legal pages in every locale', () => {
-    for (const key of KEYS) {
-      const entry = COMPANY_PAGES[key];
-      if (entry.kind !== 'arabic') continue;
+  it('serves a translated legal document for every locale', () => {
+    for (const key of LEGAL_PAGE_KEYS) {
+      const arabic = companyPageContent(key, 'ar');
       for (const locale of LOCALES) {
-        expect(companyPageContent(key, locale)).toBe(entry.content);
+        const content = companyPageContent(key, locale);
+        expect(content.sections).toHaveLength(arabic.sections.length);
+        expect(content.title.length).toBeGreaterThan(0);
+        expect(content.description.length).toBeGreaterThan(0);
+        if (locale !== 'ar') {
+          expect(content.title).not.toMatch(/[\u0600-\u06ff]/u);
+          expect(allText(key, locale).join(' ')).not.toMatch(
+            /[\u0600-\u06ff]/u,
+          );
+        }
+      }
+    }
+  });
+
+  it('keeps critical legal facts present in every translation', () => {
+    for (const key of LEGAL_PAGE_KEYS) {
+      const facts = criticalLegalFacts[key] ?? [];
+      for (const locale of LOCALES) {
+        const publishedText = [
+          companyPageContent(key, locale).title,
+          companyPageContent(key, locale).description,
+          ...allText(key, locale),
+        ].join(' ');
+        for (const fact of facts) {
+          expect(
+            publishedText,
+            `${key}:${locale} is missing ${fact}`,
+          ).toContain(fact);
+        }
       }
     }
   });
@@ -103,10 +157,15 @@ describe('company pages', () => {
     }
   });
 
-  it('lists every Arabic legal document as a routed legal page', () => {
-    const arabic = KEYS.filter((key) => COMPANY_PAGES[key].kind === 'arabic');
-
-    expect([...LEGAL_PAGE_KEYS].sort()).toEqual([...arabic].sort());
+  it('lists every legal document as a routed legal page', () => {
+    expect([...LEGAL_PAGE_KEYS].sort()).toEqual([
+      'community',
+      'cookies',
+      'legal',
+      'organizers',
+      'privacy',
+      'terms',
+    ]);
     expect(LEGAL_PAGE_KEYS).toContain('community');
     expect(LEGAL_PAGE_KEYS).toContain('organizers');
     expect(LEGAL_PAGE_KEYS).toContain('legal');

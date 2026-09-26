@@ -34,7 +34,6 @@ type CompanyHeadInput = {
   readonly locale: Locale;
   readonly path: string;
   readonly canonicalLocale?: Locale;
-  readonly soleLocale?: Locale;
   readonly title: string;
   readonly description: string;
   readonly faq?: CompanyPageContent;
@@ -43,11 +42,6 @@ type CompanyHeadInput = {
 /**
  * Shared metadata and WebPage JSON-LD for company pages.
  *
- * `soleLocale` marks a document that exists in one language only. Every locale
- * serves the same bytes, so all three URLs canonicalise to that language's URL
- * and no alternate is advertised: three self-canonical copies of one Arabic
- * document would compete with each other rather than consolidate.
- *
  * `faq` adds FAQPage structured data alongside the WebPage node, for pages
  * written as questions and answers.
  */
@@ -55,25 +49,23 @@ export const companyPageHead = ({
   locale,
   path,
   canonicalLocale,
-  soleLocale,
   title,
   description,
   faq,
 }: CompanyHeadInput) => {
   const siteOrigin = getSiteOrigin();
-  const documentLocale = soleLocale ?? locale;
   const route: CanonicalRoute = {
     type: 'company',
     path,
-    locale: soleLocale ?? canonicalLocale,
+    locale: canonicalLocale ?? locale,
   };
   const url = canonicalUrl(route);
   const metadata = buildPageMetadata({
-    locale: documentLocale,
+    locale,
     title,
     description,
     route,
-    alternateLocales: soleLocale ? [soleLocale] : LOCALES,
+    alternateLocales: LOCALES,
   });
 
   const webPage = {
@@ -89,7 +81,7 @@ export const companyPageHead = ({
         name: 'Founders Coffee',
         url: siteOrigin,
       },
-      inLanguage: documentLocale,
+      inLanguage: locale,
     }),
   };
 

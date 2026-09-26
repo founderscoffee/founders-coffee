@@ -4,13 +4,12 @@ import { runWithContext } from '@founders-coffee/observability/context';
 
 import { companyPageHead, organizationJsonLd } from './seo-company';
 
-const head = (locale: 'ar' | 'fr' | 'en', soleLocale?: 'ar') =>
+const head = (locale: 'ar' | 'fr' | 'en') =>
   runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
     companyPageHead({
       locale,
       path: '/terms',
       canonicalLocale: locale,
-      soleLocale,
       title: 'شروط الاستخدام',
       description: 'الشروط التي تحكم استخدام المنصة.',
     }),
@@ -49,47 +48,49 @@ describe('organization structured data', () => {
   });
 });
 
-describe('Arabic-only company pages', () => {
-  it('points every locale at the Arabic canonical', () => {
+describe('localized company pages', () => {
+  it('points every locale at its own canonical', () => {
     for (const locale of ['ar', 'fr', 'en'] as const) {
-      expect(linkHrefs(head(locale, 'ar'), 'canonical')).toEqual([
-        'https://founders.coffee/ar/terms',
+      expect(linkHrefs(head(locale), 'canonical')).toEqual([
+        `https://founders.coffee/${locale}/terms`,
       ]);
     }
   });
 
-  it('advertises no translation that does not exist', () => {
-    const result = head('fr', 'ar');
+  it('advertises every available translation', () => {
+    const result = head('fr');
     const alternates = result.links.filter((link) => link.rel === 'alternate');
 
-    expect(alternates).toHaveLength(2);
+    expect(alternates).toHaveLength(4);
     expect(linkHrefs(result, 'alternate', 'ar')).toEqual([
       'https://founders.coffee/ar/terms',
+    ]);
+    expect(linkHrefs(result, 'alternate', 'fr')).toEqual([
+      'https://founders.coffee/fr/terms',
+    ]);
+    expect(linkHrefs(result, 'alternate', 'en')).toEqual([
+      'https://founders.coffee/en/terms',
     ]);
     expect(linkHrefs(result, 'alternate', 'x-default')).toEqual([
       'https://founders.coffee/ar/terms',
     ]);
   });
 
-  it('describes the document as Arabic, not as the reader locale', () => {
-    const result = head('fr', 'ar');
+  it('describes each document in its own language', () => {
+    const result = head('fr');
     const jsonLd = JSON.parse(result.scripts[0].children) as {
       inLanguage: string;
     };
 
-    expect(metaValue(result, 'og:locale')?.content).toBe('ar_DZ');
-    expect(jsonLd.inLanguage).toBe('ar');
+    expect(metaValue(result, 'og:locale')?.content).toBe('fr_FR');
+    expect(jsonLd.inLanguage).toBe('fr');
   });
 
-  it('leaves genuinely localized pages with all three alternates', () => {
-    const result = head('fr');
-
-    expect(linkHrefs(result, 'canonical')).toEqual([
-      'https://founders.coffee/fr/terms',
+  it('keeps the Arabic default alternate for all languages', () => {
+    const result = head('en');
+    expect(linkHrefs(result, 'alternate', 'x-default')).toEqual([
+      'https://founders.coffee/ar/terms',
     ]);
-    expect(
-      result.links.filter((link) => link.rel === 'alternate'),
-    ).toHaveLength(4);
-    expect(metaValue(result, 'og:locale')?.content).toBe('fr_FR');
+    expect(metaValue(result, 'og:locale')?.content).toBe('en_US');
   });
 });
