@@ -45,6 +45,9 @@ export const Navbar = ({
         </div>
 
         <div className="flex min-w-0 items-center gap-1.5">
+          <div className="auth-slot">
+            <SessionNav locale={locale} />
+          </div>
           {marketSlug ? (
             <Link
               {...localizedHostCreate(locale, marketSlug)}
@@ -53,9 +56,6 @@ export const Navbar = ({
               {nav_host({}, { locale })}
             </Link>
           ) : null}
-          <div className="auth-slot">
-            <SessionNav locale={locale} />
-          </div>
         </div>
       </nav>
       <OfflineNotice locale={locale} />

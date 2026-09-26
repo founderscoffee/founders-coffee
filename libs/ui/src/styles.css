@@ -430,10 +430,19 @@
    8.75rem is the Arabic label, the longest of the three; the button fills the slot rather than
    sitting in it, so French and English render a slightly wider button instead of a gap. Below
    `sm` the button drops to the small type size, and 7.5rem holds the same label, which leaves a
-   phone's header the width for the host button next to the logo. */
+   phone's header the width for the host button next to the logo.
+
+   Signed out, the outlined sign-in comes before the filled host button, which ends the row. Signed
+   in, the avatar ends it instead, where an account menu is looked for. The markup keeps the
+   signed-out order, the one every visitor meets, and `order` moves the avatar from the same first
+   frame, so the row never rearranges itself after hydration either. */
 .auth-slot {
   display: flex;
   justify-content: flex-end;
+}
+
+:root[data-auth-slot='in'] .auth-slot {
+  order: 1;
 }
 
 :root[data-auth-slot='out'] .auth-slot {

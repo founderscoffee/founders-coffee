@@ -123,7 +123,7 @@ describe('session dropdown', () => {
     },
   );
 
-  it('leaves the filled treatment to hosting', () => {
+  it('outlines sign-in and leaves the filled treatment to hosting', () => {
     render(<SessionNav locale="en" />);
     const className = screen.getByRole('link').className;
 
@@ -131,7 +131,7 @@ describe('session dropdown', () => {
       className,
       'sign-in wore btn-secondary, the clay accent, beside a host CTA in roast. Two filled buttons side by side, and the warmer one was the way back into an account you already have rather than the thing the product needs you to do',
     ).not.toContain('btn-secondary');
-    expect(className).toContain('btn-ghost');
+    expect(className).toContain('btn-outline');
   });
 
   it('names the account it is signed into, above the actions', () => {
