@@ -255,7 +255,7 @@ describe('public page metadata', () => {
     });
     expect(head.links).toContainEqual({
       rel: 'canonical',
-      href: 'https://founders.coffee/about',
+      href: 'https://founders.coffee/en/about',
     });
   });
 });

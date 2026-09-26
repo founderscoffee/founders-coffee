@@ -8,7 +8,7 @@ export const organizersFrench: CompanyPageContent = page(
     section(
       'Quand ces conditions s’appliquent',
       text(
-        'Elles s’appliquent lorsque vous publiez une rencontre sur Founders Coffee et complètent les [Conditions d’utilisation](/terms) et les [Règles de la communauté](/community). Organiser ici est simple — choisir un café, une heure et un sujet — mais implique les responsabilités ci-dessous.',
+        'Elles s’appliquent lorsque vous publiez une rencontre sur Founders Coffee et complètent les [Conditions d’utilisation](/terms) et les [Règles de la communauté](/community). Organiser ici est simple : choisir un café, une heure et un sujet. Cela implique toutefois les responsabilités ci-dessous.',
       ),
     ),
     section(

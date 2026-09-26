@@ -1,4 +1,4 @@
-import { list, page, section, table, text } from './legal-translated';
+import { list, page, section, text } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
 export const termsEnglish: CompanyPageContent = page(

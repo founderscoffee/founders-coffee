@@ -124,7 +124,6 @@ export const companyPageContent = (
 export type LegalPageKey =
   'terms' | 'privacy' | 'cookies' | 'community' | 'organizers' | 'legal';
 
-/** Routed legal documents, in the order they should be offered to readers. */
 export const LEGAL_PAGE_KEYS: readonly LegalPageKey[] = [
   'terms',
   'privacy',

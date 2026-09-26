@@ -8,7 +8,7 @@ export const organizersEnglish: CompanyPageContent = page(
     section(
       'When these terms apply',
       text(
-        'They apply when you publish a gathering on Founders Coffee and supplement the [Terms of use](/terms) and [Community guidelines](/community). Organising here is simple—choose a café, time, and topic—but it carries the responsibilities below.',
+        'They apply when you publish a gathering on Founders Coffee and supplement the [Terms of use](/terms) and [Community guidelines](/community). Organising here is simple: choose a café, time, and topic. It still carries the responsibilities below.',
       ),
     ),
     section(
