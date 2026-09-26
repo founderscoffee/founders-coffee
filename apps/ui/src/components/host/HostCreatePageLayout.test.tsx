@@ -52,6 +52,10 @@ describe('the host wizard on a phone', () => {
 
     expect(title.className).toContain('max-lg:sr-only');
     expect(
+      title.className,
+      'scrolled to the top edge on a step change, the title left the search box under the sticky steps bar',
+    ).toContain('max-lg:scroll-mt-20');
+    expect(
       title.parentElement?.querySelectorAll('p'),
       'the subtitle said what the search box already says (#121)',
     ).toHaveLength(0);
