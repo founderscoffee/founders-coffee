@@ -1,6 +1,11 @@
 import { Link } from '@tanstack/react-router';
 
-import { brand, nav_host, type Locale } from '@founders-coffee/i18n';
+import {
+  brand,
+  nav_host,
+  nav_host_short,
+  type Locale,
+} from '@founders-coffee/i18n';
 import { Logo, LogoSymbol } from '@founders-coffee/ui';
 
 import { OfflineNotice } from './OfflineNotice';
@@ -51,9 +56,10 @@ export const Navbar = ({
           {marketSlug ? (
             <Link
               {...localizedHostCreate(locale, marketSlug)}
+              aria-label={nav_host({}, { locale })}
               className={hostClass}
             >
-              {nav_host({}, { locale })}
+              {nav_host_short({}, { locale })}
             </Link>
           ) : null}
         </div>
