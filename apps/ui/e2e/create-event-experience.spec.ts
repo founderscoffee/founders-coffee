@@ -75,12 +75,7 @@ test.describe('create event experience', () => {
     await nextButton(page, locale).click();
     await expect(page.locator('.rdp-button_next')).toBeVisible();
 
-    await page
-      .context()
-      .addCookies([
-        { name: 'PARAGLIDE_LOCALE', value: other, url: baseURL as string },
-      ]);
-    await page.reload();
+    await page.goto(wizardPath(other));
 
     await expect(page.locator('html')).toHaveAttribute(
       'dir',
@@ -184,7 +179,7 @@ test.describe('create event experience', () => {
     });
     const currentStep = progress.locator('li[aria-current="step"]');
     await expect(currentStep).toHaveCount(1);
-    await expect(currentStep).toHaveText(t(locale, 'host_step1'));
+    await expect(currentStep).toHaveText(t(locale, 'event_where'));
     await expect(progress.getByRole('status')).toContainText(
       t(locale, 'host_step1'),
     );
@@ -192,7 +187,7 @@ test.describe('create event experience', () => {
     await selectVenue(page, locale, VENUE_QUERY);
     await nextButton(page, locale).click();
 
-    await expect(currentStep).toHaveText(t(locale, 'host_step2'));
+    await expect(currentStep).toHaveText(t(locale, 'event_when'));
     await expect(progress.getByRole('status')).toContainText(
       t(locale, 'host_step2'),
     );
