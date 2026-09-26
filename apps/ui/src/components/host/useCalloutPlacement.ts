@@ -21,12 +21,15 @@ export interface CalloutPlacement {
 export const useCalloutPlacement = (
   mapRef: RefObject<MapboxMap | null>,
   point: Point,
+  covered = 0,
 ): CalloutPlacement => {
   const [above, setAbove] = useState(false);
   const height = useRef(0);
   const observer = useRef<ResizeObserver | null>(null);
   const latest = useRef(point);
   latest.current = point;
+  const cover = useRef(covered);
+  cover.current = covered;
 
   const sync = (): void => {
     const map = mapRef.current;
@@ -38,7 +41,7 @@ export const useCalloutPlacement = (
       map.getContainer().clientHeight,
       height.current,
     );
-    setAbove(!fitsBelow && calloutFitsAbove(y, height.current));
+    setAbove(!fitsBelow && calloutFitsAbove(y, height.current, cover.current));
   };
 
   const measure = (node: HTMLDivElement | null): void => {

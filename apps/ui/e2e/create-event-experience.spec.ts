@@ -127,6 +127,50 @@ test.describe('create event experience', () => {
     ]);
   });
 
+  test('floats the venue list over the map instead of pushing it down', async ({
+    page,
+    baseURL,
+  }, testInfo) => {
+    test.skip(
+      (page.viewportSize()?.width ?? 0) >= 1024,
+      'from lg up the list has a rail of its own beside the map',
+    );
+    const locale = localeFor(testInfo.project.name);
+    await useLocale(page, locale, baseURL as string);
+    await page.goto(wizardPath());
+
+    const map = page.locator('.mapboxgl-canvas');
+    await expect(map).toBeVisible({ timeout: 30_000 });
+    const { height } = (await map.boundingBox()) ?? { height: 0 };
+    await page
+      .getByRole('combobox', {
+        name: t(locale, 'host_venue_search_label'),
+        exact: true,
+      })
+      .fill(VENUE_QUERY);
+    const list = page.getByRole('listbox', {
+      name: t(locale, 'host_search_results'),
+      exact: true,
+    });
+    await expect(list.getByRole('option').first()).toBeVisible({
+      timeout: 30_000,
+    });
+
+    const mapBox = await map.boundingBox();
+    const listBox = await list.boundingBox();
+    expect(mapBox?.height).toBe(height);
+    expect(listBox?.y ?? 0).toBeGreaterThan(mapBox?.y ?? 0);
+    const isOnTop = await list.evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + 20,
+      );
+      return node.contains(hit);
+    });
+    expect(isOnTop).toBe(true);
+  });
+
   test('announces semantic step progress', async ({
     page,
     baseURL,

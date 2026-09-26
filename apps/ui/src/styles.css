@@ -38,9 +38,13 @@ body {
 }
 /* Backwards, not both: holding the final translateY(0) once the rail has arrived would keep
    it a containing block for fixed descendants, and the venue step's toasts are fixed to the
-   window from inside it. */
-.host-fade-up {
-  animation: host-fade-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+   window from inside it. From lg up only: below it the venue list floats out of the rail over
+   the map, and while an animation runs the rail is a stacking context of its own, which drew
+   the map over the list until the rail had arrived. */
+@media (width >= 64rem) {
+  .host-fade-up {
+    animation: host-fade-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
 }
 
 @keyframes host-pin-drop {

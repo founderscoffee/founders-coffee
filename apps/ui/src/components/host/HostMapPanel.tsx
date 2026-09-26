@@ -26,10 +26,12 @@ export const HostMapPanel = ({
   viewport,
   error,
   isInteractive,
+  covered,
   onRetry,
   onVenueSelect,
   onVenueInvalidate,
   onCenterChange,
+  onUserMove,
 }: {
   locale: Locale;
   accessToken: string;
@@ -39,10 +41,12 @@ export const HostMapPanel = ({
   viewport: React.ComponentProps<typeof HostMap>['viewport'] | undefined;
   error: unknown;
   isInteractive: boolean;
+  covered?: number;
   onRetry: () => void;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
   onCenterChange?: (center: { latitude: number; longitude: number }) => void;
+  onUserMove?: () => void;
 }) => (
   <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
     <Suspense fallback={<HostMapSkeleton locale={locale} />}>
@@ -55,9 +59,11 @@ export const HostMapPanel = ({
           marketCode={marketCode}
           locale={locale}
           isInteractive={isInteractive}
+          covered={covered}
           onVenueSelect={onVenueSelect}
           onVenueInvalidate={onVenueInvalidate}
           onCenterChange={onCenterChange}
+          onUserMove={onUserMove}
         />
       ) : error ? (
         <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">

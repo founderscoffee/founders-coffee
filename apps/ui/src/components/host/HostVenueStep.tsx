@@ -6,24 +6,28 @@ import {
   host_selected_location,
   host_venue_browse_nearby,
   host_venue_empty,
-  host_venue_name_helper,
-  host_venue_name_label,
-  host_venue_name_ph,
   host_venue_no_results,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Input } from '@founders-coffee/ui';
 
 import { useNearbyVenues, useVenueSearch } from '../../features/events/hooks';
 import type { VenueArea, VenueSelection } from '../../features/events/types';
 import { HostVenueList, type VenueRow } from './HostVenueList';
+import { HostVenueNameField } from './HostVenueNameField';
 import { useVenueNotices, type VenueError } from './useVenueNotices';
+import { VenueResultsPanel } from './VenueResultsPanel';
 import { VenueSearch } from './VenueSearch';
 import { VenueStepToasts } from './VenueStepToasts';
 
 const SEARCH_DELAY_MS = 350;
 
 const VENUE_LIST_ID = 'venue-results';
+
+export type VenueOverlay = {
+  readonly isCollapsed: boolean;
+  readonly onToggle: () => void;
+  readonly onCoverChange: (height: number) => void;
+};
 
 type HostVenueStepProps = {
   locale: Locale;
@@ -38,6 +42,7 @@ type HostVenueStepProps = {
   venueError?: VenueError;
   hideNameField?: boolean;
   boundedList?: boolean;
+  overlay?: VenueOverlay;
   isDisabled: boolean;
   onSearchChange: (value: string) => void;
   onVenueNameChange: (value: string) => void;
@@ -57,6 +62,7 @@ export const HostVenueStep = ({
   venueError,
   hideNameField = false,
   boundedList = false,
+  overlay,
   isDisabled,
   onSearchChange,
   onVenueNameChange,
@@ -125,27 +131,20 @@ export const HostVenueStep = ({
         ? undefined
         : host_venue_empty({}, { locale });
 
-  return (
-    <div className="flex flex-col gap-3">
-      <VenueSearch
-        locale={locale}
-        area={area}
-        value={searchValue}
-        listId={VENUE_LIST_ID}
-        hasResults={rows.length > 0}
-        isDisabled={isDisabled}
-        isLoading={isSearching && search.isFetching}
-        onChange={onSearchChange}
-      />
-      <VenueStepToasts locale={locale} notices={notices} />
+  const results = (
+    <>
       {rows.length > 0 && (
         <div>
-          <p className="mb-1.5 text-caption text-neutral">{listLabel}</p>
+          {!overlay && (
+            <p className="mb-1.5 text-caption text-neutral">{listLabel}</p>
+          )}
           <div
             className={
               boundedList
                 ? 'max-h-72 overflow-y-auto pe-1'
-                : 'max-lg:max-h-40 max-lg:overflow-y-auto max-lg:pe-1'
+                : overlay
+                  ? undefined
+                  : 'max-lg:max-h-40 max-lg:overflow-y-auto max-lg:pe-1'
             }
           >
             <HostVenueList
@@ -164,37 +163,12 @@ export const HostVenueStep = ({
         {rows.length > 0 ? null : emptyMessage}
       </p>
       {venue?.kind === 'address' && !hideNameField && (
-        <div className="form-control">
-          <label
-            className="mb-1 text-body-sm text-neutral"
-            htmlFor="host-venue-name"
-          >
-            {host_venue_name_label({}, { locale })}
-          </label>
-          <Input
-            id="host-venue-name"
-            value={venueName}
-            maxLength={200}
-            placeholder={host_venue_name_ph({}, { locale })}
-            aria-invalid={!!nameError}
-            aria-describedby="host-venue-name-help host-venue-name-error"
-            onChange={(event) => onVenueNameChange(event.target.value)}
-          />
-          <span
-            id="host-venue-name-help"
-            className="mt-1 text-caption text-neutral"
-          >
-            {host_venue_name_helper({}, { locale })}
-          </span>
-          {nameError && (
-            <span
-              id="host-venue-name-error"
-              className="mt-1 text-body-sm text-error"
-            >
-              {nameError}
-            </span>
-          )}
-        </div>
+        <HostVenueNameField
+          locale={locale}
+          value={venueName}
+          error={nameError}
+          onChange={onVenueNameChange}
+        />
       )}
       {isPinned && (
         <button
@@ -204,6 +178,32 @@ export const HostVenueStep = ({
         >
           {host_venue_browse_nearby({}, { locale })}
         </button>
+      )}
+    </>
+  );
+
+  return (
+    <div className="flex flex-col gap-3">
+      <VenueSearch
+        locale={locale}
+        area={area}
+        value={searchValue}
+        listId={VENUE_LIST_ID}
+        hasResults={rows.length > 0 && !overlay?.isCollapsed}
+        isDisabled={isDisabled}
+        isLoading={isSearching && search.isFetching}
+        onChange={onSearchChange}
+      />
+      <VenueStepToasts locale={locale} notices={notices} />
+      {overlay ? (
+        <VenueResultsPanel
+          label={rows.length > 0 || isSearching ? listLabel : null}
+          {...overlay}
+        >
+          {results}
+        </VenueResultsPanel>
+      ) : (
+        results
       )}
     </div>
   );

@@ -45,4 +45,15 @@ describe('calloutFitsAbove', () => {
   it('refuses a pin too close to the top of the map', () => {
     expect(calloutFitsAbove(40, CARD_HEIGHT)).toBe(false);
   });
+
+  it('counts the panel over the top of the map as no room at all', () => {
+    const clear = PIN_HEIGHT + CALLOUT_GAP + CARD_HEIGHT + CALLOUT_EDGE_PADDING;
+    const covered = 180;
+
+    expect(
+      calloutFitsAbove(clear, CARD_HEIGHT, covered),
+      'below lg the venue list floats over the top of the map, and a card flipped under it would hide the venue it names',
+    ).toBe(false);
+    expect(calloutFitsAbove(clear + covered, CARD_HEIGHT, covered)).toBe(true);
+  });
 });

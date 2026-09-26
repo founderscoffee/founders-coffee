@@ -20,15 +20,16 @@ import {
   useHostCreateWizard,
 } from '../../features/events/useHostCreateWizard';
 import { useAuth } from '../../lib/app-providers';
-import { DatetimePicker } from './DatetimePicker';
 import { HostDetailsStep } from './HostDetailsStep';
 import { HostMapPanel } from './HostMapPanel';
 import { HostIdentityGate } from './HostIdentityGate';
+import { HostScheduleStep } from './HostScheduleStep';
 import { HostVenueLine } from './HostVenueLine';
 import { HostVenueStep } from './HostVenueStep';
 import { HostWizardActions } from './HostWizardActions';
 import { HostWizardHeader } from './HostWizardHeader';
 import { useStepFocus } from './useStepFocus';
+import { useVenueOverlay } from './useVenueOverlay';
 import { WizardSteps } from './WizardSteps';
 
 type HostCreatePageProps = {
@@ -71,6 +72,7 @@ export const HostCreatePage = ({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   useStepFocus(wizard.step, headingRef, scrollRef);
+  const venueOverlay = useVenueOverlay();
 
   const listCenter = mapCenter ??
     wizard.venue ??
@@ -135,7 +137,7 @@ export const HostCreatePage = ({
       >
         {steps}
       </HostWizardHeader>
-      <section className="host-fade-up flex min-h-0 flex-col border-base-300 bg-base-100 lg:col-start-1 lg:row-start-2 lg:border-e">
+      <section className="host-fade-up relative flex min-h-0 flex-col border-base-300 bg-base-100 lg:col-start-1 lg:row-start-2 lg:border-e">
         <div
           ref={scrollRef}
           className="flex min-h-0 flex-1 flex-col gap-3 px-4 pt-3 pb-4 lg:gap-4 lg:overflow-y-auto lg:px-7 lg:pt-5 lg:pb-7"
@@ -181,30 +183,27 @@ export const HostCreatePage = ({
                         }
                       : undefined
                   }
+                  overlay={venueOverlay.panel}
                   isDisabled={!mapContext.data}
-                  onSearchChange={wizard.setSearchValue}
+                  onSearchChange={(value) => {
+                    venueOverlay.open();
+                    wizard.setSearchValue(value);
+                  }}
                   onVenueNameChange={wizard.setVenueName}
                   onVenueSelect={wizard.selectVenue}
                 />
               )}
 
               {wizard.step === 2 && (
-                <div>
-                  <DatetimePicker
-                    startsAt={wizard.startsAt}
-                    endsAt={wizard.endsAt}
-                    onChange={wizard.setSchedule}
-                    onError={wizard.setScheduleError}
-                    locale={locale}
-                    timeZone={market.timezone}
-                    timePlacement="top"
-                  />
-                  {wizard.fieldErrors.schedule && (
-                    <StatusMessage variant="error" className="mt-3">
-                      {wizard.fieldErrors.schedule}
-                    </StatusMessage>
-                  )}
-                </div>
+                <HostScheduleStep
+                  locale={locale}
+                  timeZone={market.timezone}
+                  startsAt={wizard.startsAt}
+                  endsAt={wizard.endsAt}
+                  error={wizard.fieldErrors.schedule}
+                  onChange={wizard.setSchedule}
+                  onError={wizard.setScheduleError}
+                />
               )}
 
               {wizard.step === 3 && (
@@ -254,10 +253,15 @@ export const HostCreatePage = ({
           viewport={mapContext.data}
           error={mapContext.error}
           isInteractive={wizard.step === 1}
+          covered={wizard.step === 1 ? venueOverlay.covered : 0}
           onRetry={() => void mapContext.refetch()}
-          onVenueSelect={wizard.selectVenue}
+          onVenueSelect={(venue) => {
+            venueOverlay.open();
+            wizard.selectVenue(venue);
+          }}
           onVenueInvalidate={wizard.clearVenue}
           onCenterChange={setMapCenter}
+          onUserMove={venueOverlay.fold}
         />
       </div>
 
@@ -270,7 +274,10 @@ export const HostCreatePage = ({
           isDisabled={wizard.isActionDisabled}
           isPublishing={wizard.publishing}
           onBack={wizard.prev}
-          onNext={wizard.next}
+          onNext={() => {
+            venueOverlay.open();
+            wizard.next();
+          }}
         />
       )}
     </div>

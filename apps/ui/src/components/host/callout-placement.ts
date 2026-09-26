@@ -3,16 +3,19 @@ export const CALLOUT_EDGE_PADDING = 12;
 export const PIN_HEIGHT = 52;
 
 /**
- * Whether the venue card fits between the pin's head and the top of the map.
+ * Whether the venue card fits between the pin's head and the top of what can be seen of the map.
  *
  * Checked before flipping: on a short map a card that will not fit either way stays below the pin,
- * where the clipped part is the hint rather than the venue's name.
+ * where the clipped part is the hint rather than the venue's name. `covered` is how far the venue
+ * panel reaches down over the map below `lg`; a card under it is as hidden as one off the edge.
  */
 export const calloutFitsAbove = (
   pinY: number,
   calloutHeight: number,
+  covered = 0,
 ): boolean =>
-  pinY - PIN_HEIGHT - CALLOUT_GAP - calloutHeight - CALLOUT_EDGE_PADDING >= 0;
+  pinY - PIN_HEIGHT - CALLOUT_GAP - calloutHeight - CALLOUT_EDGE_PADDING >=
+  covered;
 
 /**
  * Whether the venue card still fits between the pin's tip and the bottom of the map.

@@ -1,4 +1,4 @@
-import { Crosshair, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 import { Map, Marker } from 'react-map-gl/mapbox';
@@ -6,7 +6,6 @@ import { Map, Marker } from 'react-map-gl/mapbox';
 import { appErrorCode } from '@founders-coffee/core';
 import {
   host_geolocation_denied,
-  host_locate_me,
   host_map_error,
   host_map_label,
   retry,
@@ -22,11 +21,13 @@ import type {
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 import { CALLOUT_GAP } from './callout-placement';
+import { HostLocateButton } from './HostLocateButton';
 import { HostMapSkeleton } from './HostMapSkeleton';
 import { HostMapToasts } from './HostMapToasts';
 import { HostVenueCallout } from './HostVenueCallout';
 import { HostVenuePin } from './HostVenuePin';
 import { useCalloutPlacement } from './useCalloutPlacement';
+import { coverPadding, useMapCover } from './useMapCover';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
 
@@ -42,9 +43,11 @@ type HostMapProps = {
   marketCode: string;
   locale: Locale;
   isInteractive?: boolean;
+  covered?: number;
   onVenueSelect: (venue: VenueSelection) => void;
   onVenueInvalidate: () => void;
   onCenterChange?: (center: Coordinates) => void;
+  onUserMove?: () => void;
 };
 
 const locateVisitor = (): Promise<Coordinates | null> =>
@@ -61,9 +64,6 @@ const locateVisitor = (): Promise<Coordinates | null> =>
     );
   });
 
-const CONTROL_CLASS =
-  'flex h-11 items-center gap-2 rounded-full border border-base-300 bg-base-100 px-4 text-body-sm font-medium text-base-content shadow-lg backdrop-blur-md transition hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-secondary motion-reduce:transition-none';
-
 export const HostMap = ({
   accessToken,
   venue,
@@ -72,9 +72,11 @@ export const HostMap = ({
   marketCode,
   locale,
   isInteractive = true,
+  covered = 0,
   onVenueSelect,
   onVenueInvalidate,
   onCenterChange,
+  onUserMove,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
@@ -87,16 +89,18 @@ export const HostMap = ({
   const [lastCoordinates, setLastCoordinates] = useState<Coordinates | null>(
     null,
   );
+  const cameraPadding = useMapCover(mapRef, covered, viewport, venue);
   const flyTo = (longitude: number, latitude: number, zoom: number): void => {
     mapRef.current?.flyTo({
       center: [longitude, latitude],
       zoom,
       duration: 1_000,
+      padding: cameraPadding(),
     });
   };
 
   const pin = venue ?? (reverseVenue.isPending ? lastCoordinates : null);
-  const callout = useCalloutPlacement(mapRef, venue);
+  const callout = useCalloutPlacement(mapRef, venue, covered);
 
   const venueErrorMessage = (error: unknown): string =>
     appErrorCode(error) === 'map_venue_unsupported'
@@ -173,16 +177,24 @@ export const HostMap = ({
         ref={mapRef as never}
         initialViewState={
           venue
-            ? { longitude: venue.longitude, latitude: venue.latitude, zoom: 15 }
+            ? {
+                longitude: venue.longitude,
+                latitude: venue.latitude,
+                zoom: 15,
+                padding: coverPadding(covered),
+              }
             : {
                 bounds: [
                   [viewport.bounds[0], viewport.bounds[1]],
                   [viewport.bounds[2], viewport.bounds[3]],
                 ],
-                fitBoundsOptions: { padding: 24 },
+                fitBoundsOptions: { padding: coverPadding(covered, 24) },
               }
         }
         onLoad={() => setIsMapReady(true)}
+        onMoveStart={(event) => {
+          if ('originalEvent' in event && event.originalEvent) onUserMove?.();
+        }}
         onMove={callout.sync}
         onMoveEnd={(event) =>
           onCenterChange?.({
@@ -249,24 +261,19 @@ export const HostMap = ({
       )}
 
       {isInteractive && (
-        <div className="absolute start-3 top-3">
-          <button
-            type="button"
-            onClick={async () => {
-              setLocationError(null);
-              const coordinates = await locateVisitor();
-              if (!coordinates) {
-                setLocationError(host_geolocation_denied({}, { locale }));
-                return;
-              }
-              flyTo(coordinates.longitude, coordinates.latitude, 14);
-            }}
-            className={CONTROL_CLASS}
-          >
-            <Crosshair className="size-4 shrink-0" aria-hidden="true" />
-            {host_locate_me({}, { locale })}
-          </button>
-        </div>
+        <HostLocateButton
+          locale={locale}
+          covered={covered}
+          onClick={async () => {
+            setLocationError(null);
+            const coordinates = await locateVisitor();
+            if (!coordinates) {
+              setLocationError(host_geolocation_denied({}, { locale }));
+              return;
+            }
+            flyTo(coordinates.longitude, coordinates.latitude, 14);
+          }}
+        />
       )}
 
       <HostMapToasts

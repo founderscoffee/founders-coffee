@@ -5,7 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { VenueSelection } from '../../features/events/types';
@@ -15,6 +15,7 @@ type MockMapProps = {
   children?: ReactNode;
   onClick?: (event: { lngLat: { lat: number; lng: number } }) => void;
   onLoad?: () => void;
+  onMoveStart?: (event: { originalEvent?: Event }) => void;
   mapLib?: unknown;
   workerUrl?: string;
 };
@@ -36,7 +37,14 @@ vi.mock('../../features/events/hooks', () => ({
 }));
 
 vi.mock('react-map-gl/mapbox', () => ({
-  Map: ({ children, onClick, onLoad, mapLib, workerUrl }: MockMapProps) => (
+  Map: ({
+    children,
+    onClick,
+    onLoad,
+    onMoveStart,
+    mapLib,
+    workerUrl,
+  }: MockMapProps) => (
     <div
       data-testid="map-surface"
       data-worker-url={workerUrl}
@@ -49,6 +57,22 @@ vi.mock('react-map-gl/mapbox', () => ({
         onClick={(event) => {
           event.stopPropagation();
           onLoad?.();
+        }}
+      />
+      <button
+        type="button"
+        data-testid="map-camera-move"
+        onClick={(event) => {
+          event.stopPropagation();
+          onMoveStart?.({});
+        }}
+      />
+      <button
+        type="button"
+        data-testid="map-host-drag"
+        onClick={(event) => {
+          event.stopPropagation();
+          onMoveStart?.({ originalEvent: new Event('pointerdown') });
         }}
       />
       {children}
@@ -105,6 +129,7 @@ const renderMap = (
   venue: VenueSelection | null,
   onVenueSelect: (value: VenueSelection) => void,
   onVenueInvalidate: () => void,
+  extra: Partial<ComponentProps<typeof HostMap>> = {},
 ) =>
   render(
     <HostMap
@@ -116,6 +141,7 @@ const renderMap = (
       locale="en"
       onVenueSelect={onVenueSelect}
       onVenueInvalidate={onVenueInvalidate}
+      {...extra}
     />,
   );
 
@@ -239,5 +265,28 @@ describe('HostMap', () => {
     expect(getCurrentPosition).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Locate me' }));
     expect(getCurrentPosition).toHaveBeenCalledOnce();
+  });
+
+  it('reports only the moves the host makes, so the list folds for them alone', () => {
+    const onUserMove = vi.fn();
+    renderMap(null, vi.fn(), vi.fn(), { onUserMove });
+
+    fireEvent.click(screen.getByTestId('map-camera-move'));
+    expect(
+      onUserMove,
+      'flying to a café the host picked from the list is the map moving, not the host taking hold of it',
+    ).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId('map-host-drag'));
+    expect(onUserMove).toHaveBeenCalledOnce();
+  });
+
+  it('keeps Locate me clear of the list floating over the top of the map', () => {
+    renderMap(null, vi.fn(), vi.fn(), { covered: 180 });
+
+    expect(
+      screen.getByRole('button', { name: 'Locate me' }).parentElement?.style
+        .transform,
+    ).toBe('translateY(180px)');
   });
 });
