@@ -14,15 +14,32 @@ const next = () =>
 describe('the host wizard on a phone', () => {
   afterEach(resetHostCreateFixtures);
 
-  it('gives it one bar of its own: the steps and a way home', () => {
+  it('gives the steps one bar of their own, and the way home to the action bar', () => {
     renderHostCreateWizard();
 
+    const home = screen.getByRole('link', { name: 'Back to the homepage' });
+
     expect(
-      screen.getByRole('link', { name: 'Back to the homepage' }),
-    ).toBeTruthy();
+      home.parentElement,
+      'the way home sits level with Next, where the thumb already is, not across the screen from it',
+    ).toBe(screen.getByRole('button', { name: 'Next' }).parentElement);
     expect(
       screen.getAllByRole('navigation', { name: 'Meetup creation steps' }),
     ).toHaveLength(1);
+  });
+
+  it('steps back instead of leaving once past the first step', async () => {
+    renderHostCreateWizard();
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Choose venue' }),
+    );
+    next();
+
+    expect(
+      screen.queryByRole('link', { name: 'Back to the homepage' }),
+      'two ways back side by side, one of them out of the wizard',
+    ).toBeNull();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeTruthy();
   });
 
   it('keeps the step title for screen readers and for focus, hiding it only on a phone', () => {

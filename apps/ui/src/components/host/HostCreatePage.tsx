@@ -131,7 +131,6 @@ export const HostCreatePage = ({
       <HostWizardHeader
         locale={locale}
         marketName={marketName}
-        marketSlug={market.slug}
         step={wizard.step}
       >
         {steps}
@@ -265,6 +264,7 @@ export const HostCreatePage = ({
       {!wizard.isAuthGateOpen && (
         <HostWizardActions
           locale={locale}
+          marketSlug={market.slug}
           step={wizard.step}
           isAuthenticated={isAuthenticated}
           isDisabled={wizard.isActionDisabled}
