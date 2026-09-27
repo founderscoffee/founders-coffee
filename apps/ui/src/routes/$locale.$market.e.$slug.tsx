@@ -145,10 +145,6 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
       },
       breadcrumbs: [
         {
-          name: 'Founders Coffee',
-          url: canonicalUrl({ type: 'root', locale: loaderData.locale }),
-        },
-        {
           name: marketName,
           url: canonicalUrl({
             type: 'market',

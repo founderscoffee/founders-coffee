@@ -22,7 +22,6 @@ export const SITE_NAME = 'Founders Coffee';
 export const DEFAULT_SOCIAL_IMAGE_PATH = '/social/founders-coffee-default.png';
 
 export type CanonicalRoute =
-  | { readonly type: 'root'; readonly locale?: Locale; readonly query?: string }
   | {
       readonly type: 'market';
       readonly market: string;
@@ -52,7 +51,6 @@ export type CanonicalRoute =
 
 const canonicalSegments = (route: CanonicalRoute): string[] => {
   const locale = route.locale ? [route.locale] : [];
-  if (route.type === 'root') return locale;
   if (route.type === 'market') return [...locale, route.market];
   if (route.type === 'city') return [...locale, route.market, route.city];
   if (route.type === 'event') return [...locale, route.market, 'e', route.slug];
@@ -257,7 +255,6 @@ export const cityPageHead = ({
     robots: isEmpty ? 'noindex,follow' : 'index,follow',
   });
   const breadcrumbs: StructuredListItem[] = [
-    { name: 'Founders Coffee', url: canonicalUrl({ type: 'root', locale }) },
     {
       name: marketName,
       url: canonicalUrl({

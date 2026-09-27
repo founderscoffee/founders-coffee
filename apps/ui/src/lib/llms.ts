@@ -14,6 +14,7 @@ import {
 } from '@founders-coffee/i18n';
 import type { SitemapData } from '@founders-coffee/server-fns';
 
+import { canonicalPath } from './seo';
 import { sitemapItems } from './sitemap';
 
 const MAX_EVENT_LINKS = 100;
@@ -49,7 +50,15 @@ const productionLines = (
     `> ${llms_purpose({}, { locale })}`,
     '',
     `## ${llms_locales({}, { locale })}`,
-    ...LOCALES.map((entry) => link(entry, absolute(origin, `/${entry}`))),
+    ...LOCALES.map((entry) =>
+      link(
+        entry,
+        absolute(
+          origin,
+          canonicalPath({ type: 'company', path: '/about', locale: entry }),
+        ),
+      ),
+    ),
     '',
     `## ${llms_public_surfaces({}, { locale })}`,
     inventoryLink,

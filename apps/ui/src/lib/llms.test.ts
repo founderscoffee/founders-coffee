@@ -41,6 +41,20 @@ describe('llms discovery guide', () => {
     expect(text).not.toContain('staging.founders.coffee');
   });
 
+  it('points each language at a page that answers, not at a prefix that redirects', () => {
+    const text = llmsText('https://founders.coffee', data, 'en');
+
+    for (const locale of LOCALES) {
+      expect(
+        text,
+        `/${locale} answers only with a redirect to a market`,
+      ).not.toContain(`(https://founders.coffee/${locale})`);
+      expect(text).toContain(
+        `- [${locale}](https://founders.coffee/${locale}/about)`,
+      );
+    }
+  });
+
   it('satisfies the three checks the llms.txt audit runs', () => {
     const text = llmsText('https://founders.coffee', data, 'en');
 

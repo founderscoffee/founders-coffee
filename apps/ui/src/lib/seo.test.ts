@@ -15,7 +15,6 @@ import {
 
 describe('canonical URLs', () => {
   it('builds query-free paths for every public route class', () => {
-    expect(canonicalPath({ type: 'root' })).toBe('/');
     expect(canonicalPath({ type: 'market', market: 'algeria' })).toBe(
       '/algeria',
     );
@@ -230,6 +229,29 @@ describe('public page metadata', () => {
       property: 'og:image:alt',
       content: expect.stringContaining('مجتمعات'),
     });
+  });
+
+  it('starts the breadcrumbs at the market, since the bare locale only redirects', () => {
+    const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
+      cityPageHead({
+        locale: 'ar',
+        marketName: 'الجزائر',
+        cityName: 'وهران',
+        isEmpty: false,
+        route: { type: 'city', market: 'algeria', city: 'oran', locale: 'ar' },
+      }),
+    );
+    const trail = JSON.parse(head.scripts[1]?.children ?? '{}') as {
+      itemListElement: { name: string; item: string }[];
+    };
+
+    expect(
+      trail.itemListElement.map(({ name, item }) => [name, item]),
+      'the first crumb named /ar, which answers with a redirect to a market',
+    ).toEqual([
+      ['الجزائر', 'https://founders.coffee/ar/algeria'],
+      ['وهران', 'https://founders.coffee/ar/algeria/oran'],
+    ]);
   });
 
   it('uses the same builder for company pages', () => {
