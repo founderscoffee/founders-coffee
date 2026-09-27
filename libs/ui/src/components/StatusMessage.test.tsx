@@ -150,6 +150,22 @@ describe('StatusMessage', () => {
     ).not.toContain('self-start');
   });
 
+  it('lets the caller size its icon, keeping the icon’s own classes otherwise', () => {
+    const { container } = render(
+      <StatusMessage variant="info" iconClassName="size-4">
+        Said once
+      </StatusMessage>,
+    );
+    const icon = container.querySelector('svg')?.getAttribute('class') ?? '';
+
+    expect(icon).toContain('size-4');
+    expect(
+      icon,
+      'two sizes on one icon leave the stylesheet order to pick one',
+    ).not.toContain('size-5');
+    expect(icon).toContain('self-start');
+  });
+
   it('adds the caller’s classes to its own', () => {
     const { container } = render(
       <StatusMessage variant="info" className="mt-2">
