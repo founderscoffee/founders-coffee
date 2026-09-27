@@ -83,9 +83,7 @@ describe('the venue step when a lookup fails', () => {
     );
 
     expect(lookups.nearby.refetch).toHaveBeenCalledOnce();
-    expect(venueHint().textContent).toBe(
-      'Choose a location on the map to get started.',
-    );
+    expect(venueHint().textContent).toBe('Pick a spot on the map.');
   });
 
   it('reads the toast straight after the search box, where a keyboard reaches its retry', () => {
@@ -106,16 +104,19 @@ describe('the venue step when a lookup fails', () => {
 });
 
 describe('the venue step with nothing to list', () => {
-  it('puts one short line where the list would be, not an alert', () => {
+  it('points to the map in an info alert, said when the reader pauses rather than raised', () => {
     showVenueStep();
 
+    const hint = venueHint();
+    expect(hint.textContent).toBe('Pick a spot on the map.');
+    expect(hint.className).toContain('alert-info');
+    expect(hint.querySelector('svg'), 'the info icon').not.toBeNull();
     expect(
-      venueHint().textContent,
-      'the line is announced as it changes, without the alert box that took the map’s room (#121)',
-    ).toBe('Choose a location on the map to get started.');
-    expect(screen.queryByRole('alert')).toBeNull();
+      screen.queryByRole('alert'),
+      'a hint is not a failure, so it does not interrupt a screen reader',
+    ).toBeNull();
     expect(
-      screen.queryByText('Cafés and coworking spaces nearby'),
+      screen.queryByText('Places nearby'),
       'a heading over an empty list took a line and said nothing',
     ).toBeNull();
   });

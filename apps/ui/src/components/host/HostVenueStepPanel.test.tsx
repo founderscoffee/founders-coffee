@@ -8,6 +8,7 @@ import {
   resetVenueStep,
   showVenueStep,
   venueHint,
+  venueStep,
 } from './HostVenueStep.fixtures';
 
 afterEach(resetVenueStep);
@@ -35,18 +36,19 @@ const panel = (isCollapsed: boolean) => ({
   onCoverChange: vi.fn(),
 });
 
+const LOCATE = { width: 94, height: 24 };
+
+const panelOf = (element: Element | null) =>
+  element?.closest('[class*="max-lg:absolute"]') as HTMLElement;
+
 describe('the venue step floating over the map', () => {
   it('names its list once, in a header that folds it away', () => {
     lookups.nearby = { ...idle(), data: [CAFE] };
     const overlay = panel(false);
     showVenueStep('', undefined, { overlay });
 
-    expect(
-      screen.getAllByText('Cafés and coworking spaces nearby'),
-    ).toHaveLength(1);
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Cafés and coworking spaces nearby' }),
-    );
+    expect(screen.getAllByText('Places nearby')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Places nearby' }));
     expect(overlay.onToggle).toHaveBeenCalledOnce();
   });
 
@@ -55,7 +57,7 @@ describe('the venue step floating over the map', () => {
     showVenueStep('', undefined, { overlay: panel(true) });
 
     const header = screen.getByRole('button', {
-      name: 'Cafés and coworking spaces nearby',
+      name: 'Places nearby',
     });
     const body = document.getElementById(
       header.getAttribute('aria-controls') ?? '',
@@ -76,6 +78,89 @@ describe('the venue step floating over the map', () => {
       venueHint().closest('.max-lg\\:hidden'),
       'with no header to open it again, a folded empty panel hid its hint for good',
     ).toBeNull();
+  });
+
+  it('pins its hint to the far edge of the map as the alert itself, clear of Locate me', () => {
+    showVenueStep('', undefined, {
+      overlay: { ...panel(false), neighbour: LOCATE },
+    });
+
+    const hint = venueHint();
+    const floating = panelOf(hint);
+    expect(hint.className).toContain('alert-info');
+    expect(
+      floating.className,
+      'the alert brings its own surface, and a card around it drew a box in a box',
+    ).not.toContain('max-lg:bg-base-100');
+    expect(floating.className).toContain('max-lg:end-3');
+    expect(
+      floating.className,
+      'Locate me holds the near corner, so the hint keeps to the far one',
+    ).not.toContain('max-lg:start-[var(--row-start)]');
+    expect(
+      floating.className,
+      'the alert is as wide as its words, not the rest of the row',
+    ).toContain('max-lg:w-fit');
+    expect(
+      floating.style.getPropertyValue('--row-start'),
+      'however long the words, the hint stops short of the button',
+    ).toBe('calc(94px + var(--spacing) * 5)');
+  });
+
+  it('makes its hint as tall as Locate me, with an icon to match', () => {
+    showVenueStep('', undefined, {
+      overlay: { ...panel(false), neighbour: LOCATE },
+    });
+
+    const hint = venueHint();
+    expect(panelOf(hint).style.getPropertyValue('--row-height')).toBe('24px');
+    expect(hint.parentElement?.className).toContain(
+      'max-lg:min-h-[var(--row-height)]',
+    );
+    expect(
+      hint.className,
+      'the alert’s own padding made it taller than the button',
+    ).toContain('max-lg:py-0');
+    const icon = hint.querySelector('svg')?.getAttribute('class');
+    expect(icon).toContain('max-lg:size-4');
+    expect(
+      icon,
+      'on its one line the icon is centred, not topped as on the first of several',
+    ).toContain('max-lg:self-center');
+  });
+
+  it('opens a list across the map over Locate me, and folds it back into the row', () => {
+    lookups.nearby = { ...idle(), data: [CAFE] };
+    const { rerender } = showVenueStep('', undefined, {
+      overlay: { ...panel(false), neighbour: LOCATE },
+    });
+
+    const open = panelOf(screen.getByRole('listbox'));
+    expect(open.className).toContain('max-lg:inset-x-3');
+    expect(open.style.getPropertyValue('--row-start')).toBe('');
+
+    rerender(
+      venueStep('', undefined, {
+        overlay: { ...panel(true), neighbour: LOCATE },
+      }),
+    );
+    const folded = panelOf(
+      screen.getByRole('button', { name: 'Places nearby' }),
+    );
+    expect(folded.className).toContain('max-lg:start-[var(--row-start)]');
+    expect(
+      folded.style.getPropertyValue('--row-top'),
+      'the folded header is taller than the button, so it is centred on it',
+    ).toBe('calc(var(--spacing) * 3 + (24px - var(--spacing) * 11) / 2)');
+  });
+
+  it('spans a folded list across the map until Locate me reports its size', () => {
+    lookups.nearby = { ...idle(), data: [CAFE] };
+    showVenueStep('', undefined, { overlay: panel(true) });
+
+    expect(
+      panelOf(screen.getByRole('button', { name: 'Places nearby' })).className,
+    ).toContain('max-lg:inset-x-3');
   });
 });
 

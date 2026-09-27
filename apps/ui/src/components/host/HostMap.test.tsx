@@ -281,12 +281,14 @@ describe('HostMap', () => {
     expect(onUserMove).toHaveBeenCalledOnce();
   });
 
-  it('keeps Locate me clear of the list floating over the top of the map', () => {
-    renderMap(null, vi.fn(), vi.fn(), { covered: 180 });
+  it('passes on the size of Locate me, for the list that shares its row', () => {
+    const onLocateResize = vi.fn();
+    renderMap(null, vi.fn(), vi.fn(), { onLocateResize });
 
-    expect(
-      screen.getByRole('button', { name: 'Locate me' }).parentElement?.style
-        .transform,
-    ).toBe('translateY(180px)');
+    const locate = screen.getByRole('button', { name: 'Locate me' });
+    expect(onLocateResize).toHaveBeenCalledWith({
+      width: locate.offsetWidth,
+      height: locate.offsetHeight,
+    });
   });
 });

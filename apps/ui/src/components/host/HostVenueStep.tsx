@@ -10,6 +10,7 @@ import {
   host_venue_no_results,
   type Locale,
 } from '@founders-coffee/i18n';
+import { StatusMessage } from '@founders-coffee/ui';
 
 import { useNearbyVenues, useVenueSearch } from '../../features/events/hooks';
 import {
@@ -20,6 +21,7 @@ import {
 import { CitySuggestions } from './CitySuggestions';
 import { HostVenueList, type VenueRow } from './HostVenueList';
 import { HostVenueNameField } from './HostVenueNameField';
+import type { ControlSize } from './useControlSize';
 import { useVenueNotices, type VenueError } from './useVenueNotices';
 import { VenueResultsPanel } from './VenueResultsPanel';
 import { VenueSearch } from './VenueSearch';
@@ -31,6 +33,7 @@ const VENUE_LIST_ID = 'venue-results';
 
 export type VenueOverlay = {
   readonly isCollapsed: boolean;
+  readonly neighbour?: ControlSize | null;
   readonly onToggle: () => void;
   readonly onCoverChange: (height: number) => void;
 };
@@ -118,6 +121,9 @@ export const HostVenueStep = ({
       ? [{ ...venue, eligible: true }, ...listed]
       : listed;
 
+  const isHintOnly = rows.length === 0 && !isSearching;
+  const isHintBesideLocate = overlay !== undefined && isHintOnly;
+
   const notices = useVenueNotices({
     locale,
     lookup: isSearching ? search : nearby,
@@ -181,9 +187,19 @@ export const HostVenueStep = ({
           </div>
         </div>
       )}
-      <p aria-live="polite" className="text-caption text-neutral empty:sr-only">
+      <StatusMessage
+        variant="info"
+        iconClassName={
+          isHintBesideLocate ? 'max-lg:size-4 max-lg:self-center' : undefined
+        }
+        className={
+          isHintBesideLocate
+            ? 'max-lg:content-center max-lg:items-center max-lg:gap-2 max-lg:px-3 max-lg:py-0 max-lg:text-caption'
+            : undefined
+        }
+      >
         {rows.length > 0 ? null : emptyMessage}
-      </p>
+      </StatusMessage>
       {venue?.kind === 'address' && !hideNameField && (
         <HostVenueNameField
           locale={locale}
@@ -218,10 +234,7 @@ export const HostVenueStep = ({
       />
       <VenueStepToasts locale={locale} notices={notices} />
       {overlay ? (
-        <VenueResultsPanel
-          label={rows.length > 0 || isSearching ? listLabel : null}
-          {...overlay}
-        >
+        <VenueResultsPanel label={isHintOnly ? null : listLabel} {...overlay}>
           {results}
         </VenueResultsPanel>
       ) : (

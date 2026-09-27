@@ -27,6 +27,7 @@ import { HostMapToasts } from './HostMapToasts';
 import { HostVenueCallout } from './HostVenueCallout';
 import { HostVenuePin } from './HostVenuePin';
 import { useCalloutPlacement } from './useCalloutPlacement';
+import type { ControlSize } from './useControlSize';
 import { coverPadding, useMapCover } from './useMapCover';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
@@ -48,6 +49,7 @@ type HostMapProps = {
   onVenueInvalidate: () => void;
   onCenterChange?: (center: Coordinates) => void;
   onUserMove?: () => void;
+  onLocateResize?: (size: ControlSize | null) => void;
 };
 
 const locateVisitor = (): Promise<Coordinates | null> =>
@@ -77,6 +79,7 @@ export const HostMap = ({
   onVenueInvalidate,
   onCenterChange,
   onUserMove,
+  onLocateResize,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
@@ -263,7 +266,7 @@ export const HostMap = ({
       {isInteractive && (
         <HostLocateButton
           locale={locale}
-          covered={covered}
+          onResize={onLocateResize}
           onClick={async () => {
             setLocationError(null);
             const coordinates = await locateVisitor();

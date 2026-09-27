@@ -106,10 +106,10 @@ export const venueToast = (text: string) =>
   screen.getByText(text).closest('[role="alert"]') as HTMLElement;
 
 /**
- * The one line the step announces where an empty list would be.
+ * The status region where an empty list would be, holding the one line the step announces there.
+ * While no search is in flight it is the step's only status region.
  */
-export const venueHint = () =>
-  document.querySelector('[aria-live="polite"]') as HTMLElement;
+export const venueHint = () => screen.getByRole('status');
 
 /**
  * Unmount the step and put every lookup back to settled and empty.

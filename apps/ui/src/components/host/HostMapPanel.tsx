@@ -12,6 +12,7 @@ import { Button, StatusMessage } from '@founders-coffee/ui';
 import type { VenueSelection } from '../../features/events/types';
 import { ClientOnly } from './ClientOnly';
 import { HostMapSkeleton } from './HostMapSkeleton';
+import type { ControlSize } from './useControlSize';
 
 const HostMap = lazy(() =>
   import('./HostMap').then((m) => ({ default: m.HostMap })),
@@ -32,6 +33,7 @@ export const HostMapPanel = ({
   onVenueInvalidate,
   onCenterChange,
   onUserMove,
+  onLocateResize,
 }: {
   locale: Locale;
   accessToken: string;
@@ -47,6 +49,7 @@ export const HostMapPanel = ({
   onVenueInvalidate: () => void;
   onCenterChange?: (center: { latitude: number; longitude: number }) => void;
   onUserMove?: () => void;
+  onLocateResize?: (size: ControlSize | null) => void;
 }) => (
   <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
     <Suspense fallback={<HostMapSkeleton locale={locale} />}>
@@ -64,6 +67,7 @@ export const HostMapPanel = ({
           onVenueInvalidate={onVenueInvalidate}
           onCenterChange={onCenterChange}
           onUserMove={onUserMove}
+          onLocateResize={onLocateResize}
         />
       ) : error ? (
         <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">

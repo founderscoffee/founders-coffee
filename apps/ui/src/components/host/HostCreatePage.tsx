@@ -275,6 +275,7 @@ export const HostCreatePage = ({
             setMapCenter({ ...center, cityCode: city?.code })
           }
           onUserMove={venueOverlay.fold}
+          onLocateResize={venueOverlay.onLocateResize}
         />
       </div>
 
