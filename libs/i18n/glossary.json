@@ -35,6 +35,22 @@
       "allow": {}
     }
   ],
-  "fr": [],
+  "fr": [
+    {
+      "canonical": "organiser",
+      "banned": [
+        "héberger",
+        "Héberger",
+        "hébergez",
+        "Hébergez",
+        "héberge",
+        "Héberge",
+        "hébergeons",
+        "Hébergeons"
+      ],
+      "why": "#116 — a rencontre is organisée, not hébergée. Héberger means to put someone up, or to host a website, so « Hébergez dans votre ville » offered lodging rather than a meetup; every other string says organiser for what a host does, and hôte for the host. Only the verb is banned: hébergement, the web-hosting sense the legal pages use, is a different word in use.",
+      "allow": {}
+    }
+  ],
   "en": []
 }

@@ -88,7 +88,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
         heading: 'Comment ça marche',
         blocks: textBlocks(
           'Parcourez votre ville, rejoignez un meetup à venir, ou organisez le premier lorsqu’il n’y en a pas encore.',
-          'Héberger prend quelques étapes : choisir un café, fixer l’heure, et préciser le sujet. Les invités confirment et viennent discuter - sans formalités.',
+          'Organiser une rencontre se fait en quelques étapes : choisir un café, fixer l’heure, et préciser le sujet. Les invités confirment et viennent discuter - sans formalités.',
         ),
       },
       {
