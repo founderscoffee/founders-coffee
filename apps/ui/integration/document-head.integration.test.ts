@@ -28,6 +28,19 @@ describe('what a document says about itself in its head', () => {
     await seed(createDb(env.DB));
   });
 
+  it('titles a missing page and keeps it out of the index', async () => {
+    const response = await fetchDocument('/fr/algeria/nowhere');
+    const head = (await response.text()).split('</head>')[0] ?? '';
+
+    expect(response.status).toBe(404);
+    expect(head, 'every 404 went out with no <title>').toMatch(
+      /<title>Founders Coffee - [^<]+<\/title>/u,
+    );
+    expect(head, 'and with no robots tag').toContain(
+      '<meta name="robots" content="noindex, nofollow"',
+    );
+  });
+
   it('lists both other languages as Open Graph alternates', async () => {
     const head =
       (await (await fetchDocument('/fr/about')).text()).split('</head>')[0] ??

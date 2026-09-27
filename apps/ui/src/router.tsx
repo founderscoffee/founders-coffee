@@ -1,10 +1,6 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router';
 
-import {
-  RouterError,
-  RouterNotFound,
-  RouterPending,
-} from './components/shell/RouterFallbacks';
+import { RouterError, RouterPending } from './components/shell/RouterFallbacks';
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { parseSearch, stringifySearch } from './lib/search-params';
@@ -20,7 +16,6 @@ export const getRouter = () => {
     defaultPreloadStaleTime: PRELOAD_STALE_TIME_MS,
     defaultErrorComponent: RouterError,
     defaultPendingComponent: RouterPending,
-    defaultNotFoundComponent: RouterNotFound,
     parseSearch,
     stringifySearch,
     ssr: { nonce: getRequestContext().cspNonce },
