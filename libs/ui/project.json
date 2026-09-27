@@ -4,6 +4,13 @@
   "sourceRoot": "libs/ui/src",
   "tags": ["type:lib", "layer:ui", "domain:ui"],
   "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --build tsconfig.lib.json",
+        "cwd": "libs/ui"
+      }
+    },
     "test": {
       "executor": "nx:run-commands",
       "options": {
