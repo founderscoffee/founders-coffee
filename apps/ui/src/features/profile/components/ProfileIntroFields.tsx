@@ -4,14 +4,13 @@ import {
   profile_intro_placeholder,
   profile_name_hint,
   profile_name_label,
-  profile_public_chip,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Input } from '@founders-coffee/ui';
 
 import type { ProfileDraft } from '../profile-draft';
-import { OptionalChip } from './OptionalChip';
 import { ProfileHeadlineFields } from './ProfileHeadlineFields';
+import { ProfileVisibilityChip } from './ProfileVisibilityChip';
 
 export const ProfileIntroFields = ({
   locale,
@@ -34,9 +33,7 @@ export const ProfileIntroFields = ({
         <label htmlFor="profile-name" className="text-label">
           {profile_name_label({}, { locale })}
         </label>
-        <span className="rounded-full bg-base-200 px-2 py-0.5 text-caption text-neutral">
-          {profile_public_chip({}, { locale })}
-        </span>
+        <ProfileVisibilityChip locale={locale} />
       </div>
       <Input
         id="profile-name"
@@ -67,7 +64,7 @@ export const ProfileIntroFields = ({
         <label htmlFor="profile-intro" className="text-label">
           {profile_intro_label({}, { locale })}
         </label>
-        <OptionalChip locale={locale} />
+        <ProfileVisibilityChip locale={locale} />
       </div>
       <textarea
         id="profile-intro"

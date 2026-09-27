@@ -34,7 +34,9 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
       subheading('Profile'),
       ...text(
-        'A short introduction, interests, languages, professional link, and photo. These fields are optional and hidden until you publish them. Your name and photo are shown to people sharing a gathering with you; other fields are shown only when you choose to publish them. Public profile content may be found by search engines.',
+        'Your profile can include an introduction, headline, project stage, interests, languages, professional link, and photo.',
+        'Your name, photo, introduction, member-since month, and hosted-meetup count appear on your public profile. Your headline, stage, interests, languages, professional link, and attended-meetup count appear only when you publish them.',
+        'Each optional field has its own visibility switch and starts hidden. Published fields may be reachable by search engines, although public profile pages are not indexed.',
       ),
       subheading('Gatherings and RSVPs'),
       ...text(

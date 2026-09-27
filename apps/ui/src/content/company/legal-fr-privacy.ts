@@ -32,7 +32,9 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
       subheading('Profil'),
       ...text(
-        'Présentation, centres d’intérêt, langues, lien professionnel et photo. Tout est facultatif et masqué tant que vous ne le publiez pas. Votre nom et votre photo sont visibles par les personnes d’une rencontre partagée ; les autres champs ne sont visibles que si vous les publiez. Les contenus publics peuvent être indexés par les moteurs de recherche.',
+        'Votre profil peut comprendre une présentation, un titre, l’étape du projet, des centres d’intérêt, des langues, un lien professionnel et une photo.',
+        'Votre nom, votre photo, votre présentation, votre mois d’inscription et le nombre de rencontres organisées apparaissent sur votre profil public. Le titre, l’étape du projet, les centres d’intérêt, les langues, le lien professionnel et le nombre de rencontres auxquelles vous avez participé n’apparaissent que si vous les publiez.',
+        'Chaque champ facultatif a son propre réglage de visibilité et commence masqué. Les champs publiés peuvent être accessibles aux moteurs de recherche, même si les profils publics ne sont pas indexés.',
       ),
       subheading('Rencontres et inscriptions'),
       ...text(

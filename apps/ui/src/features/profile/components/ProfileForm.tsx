@@ -4,6 +4,7 @@ import {
   discard_changes,
   profile_link_invalid,
   profile_name_invalid,
+  profile_photo_label,
   profile_photo_card_subtitle,
   profile_reload,
   profile_save,
@@ -26,6 +27,7 @@ import { ProfileDetailFields } from './ProfileDetailFields';
 import { ProfileIntroFields } from './ProfileIntroFields';
 import { ProfilePhotoField } from './ProfilePhotoField';
 import { ProfileFeedback } from './ProfileFeedback';
+import { ProfileVisibilityChip } from './ProfileVisibilityChip';
 
 export const ProfileForm = ({
   profile: saved,
@@ -133,6 +135,12 @@ export const ProfileForm = ({
         <section className="space-y-6 bg-base-100 p-5 md:p-6">
           {photos.data?.enabled === true && (
             <div className="mb-6">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-label">
+                  {profile_photo_label({}, { locale })}
+                </span>
+                <ProfileVisibilityChip locale={locale} />
+              </div>
               <p className="mb-5 text-body-sm text-neutral">
                 {profile_photo_card_subtitle({}, { locale })}
               </p>
