@@ -1,5 +1,5 @@
 import { toast_dismiss, type Locale } from '@founders-coffee/i18n';
-import { Toast, type ToastMessage } from '@founders-coffee/ui';
+import { Toast, type ToastNotice } from '@founders-coffee/ui';
 
 export const ProfileFeedback = ({
   locale,
@@ -7,13 +7,15 @@ export const ProfileFeedback = ({
   onDismiss,
 }: {
   locale: Locale;
-  notification: ToastMessage | null;
+  notification: ToastNotice | null;
   onDismiss: () => void;
 }) =>
   notification ? (
     <div className="toast toast-top toast-center z-50 w-full max-w-lg whitespace-normal">
       <Toast
-        {...notification}
+        key={notification.id}
+        message={notification.message}
+        variant={notification.variant}
         dismissLabel={toast_dismiss({}, { locale })}
         onDismiss={onDismiss}
       />

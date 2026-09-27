@@ -280,6 +280,7 @@ export const HostMap = ({
         locale={locale}
         isResolving={reverseVenue.isPending}
         error={locationError}
+        onDismiss={() => setLocationError(null)}
         onRetry={
           lastCoordinates
             ? () => void resolveCoordinates(lastCoordinates)

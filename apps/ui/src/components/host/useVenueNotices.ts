@@ -25,10 +25,11 @@ export type VenueError = {
 /**
  * The venue step's failures, as toasts the host can retry or put away.
  *
- * A failed lookup stays up until the host retries it, dismisses it or searches for something else:
- * it carries the retry, and a toast that timed out would take the retry away with it. A dismissal
- * is remembered against the failure it closed rather than for good, so the next failure shows.
- * While a retry is in flight the toast steps aside, which is how the host sees it was tried.
+ * Like every toast, a failed lookup closes itself five seconds after it appears, and holds while
+ * the pointer is on it or focus is inside it, so a host reaching for its retry does not lose it on
+ * the way. Closing it, by hand or on time, is remembered against the failure it closed rather than
+ * for good, so the next failure shows. While a retry is in flight the toast steps aside, which is
+ * how the host sees it was tried.
  */
 export const useVenueNotices = ({
   locale,

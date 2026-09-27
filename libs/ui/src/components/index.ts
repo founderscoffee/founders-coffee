@@ -10,5 +10,5 @@ export {
   statusMessageVariants,
   type StatusMessageProps,
 } from './StatusMessage.js';
-export { Toast } from './Toast.js';
+export { TOAST_DURATION_MS, Toast } from './Toast.js';
 export * from './Turnstile.js';

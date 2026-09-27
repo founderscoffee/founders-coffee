@@ -79,22 +79,20 @@ describe('profile toast feedback', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 
-  it('replaces success with a persistent red error, unaffected by the old expiry', () => {
+  it('replaces success with a red error that gets five seconds of its own', () => {
     vi.useFakeTimers();
     render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     act(() => vi.advanceTimersByTime(4000));
     fireEvent.click(screen.getByRole('button', { name: 'Fail' }));
-    act(() => vi.advanceTimersByTime(10000));
+    act(() => vi.advanceTimersByTime(4999));
     expect(screen.queryByRole('status')).toBeNull();
     expect(screen.getByRole('alert').className).toContain('alert-error');
     expect(screen.getByRole('alert').className).not.toContain('alert-soft');
     expect(
       screen.getByRole('button', { name: 'Dismiss notification' }).className,
     ).toContain('text-inherit');
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Dismiss notification' }),
-    );
+    act(() => vi.advanceTimersByTime(1));
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
