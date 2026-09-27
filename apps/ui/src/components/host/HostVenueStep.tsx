@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { geo } from '@founders-coffee/domain';
 import {
@@ -22,6 +22,7 @@ import { CitySuggestions } from './CitySuggestions';
 import { HostVenueList, type VenueRow } from './HostVenueList';
 import { HostVenueNameField } from './HostVenueNameField';
 import type { ControlSize } from './useControlSize';
+import { useDismissOnPointerOutside } from './useDismissOnPointerOutside';
 import { useVenueNotices, type VenueError } from './useVenueNotices';
 import { VenueResultsPanel } from './VenueResultsPanel';
 import { VenueSearch } from './VenueSearch';
@@ -36,6 +37,7 @@ export type VenueOverlay = {
   readonly neighbour?: ControlSize | null;
   readonly onToggle: () => void;
   readonly onCoverChange: (height: number) => void;
+  readonly onDismiss: () => void;
 };
 
 type HostVenueStepProps = {
@@ -124,6 +126,13 @@ export const HostVenueStep = ({
   const isHintOnly = rows.length === 0 && !isSearching;
   const isHintBesideLocate = overlay !== undefined && isHintOnly;
 
+  const stepRef = useRef<HTMLDivElement>(null);
+  useDismissOnPointerOutside(
+    stepRef,
+    overlay !== undefined && !overlay.isCollapsed && !isHintOnly,
+    () => overlay?.onDismiss(),
+  );
+
   const notices = useVenueNotices({
     locale,
     lookup: isSearching ? search : nearby,
@@ -183,6 +192,7 @@ export const HostVenueStep = ({
               selectedProviderId={venue?.providerId}
               showAttribution={!isSearching && !isPinned}
               onSelect={onVenueSelect}
+              onChoose={overlay?.onDismiss}
             />
           </div>
         </div>
@@ -221,7 +231,7 @@ export const HostVenueStep = ({
   );
 
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={stepRef} className="flex flex-col gap-3">
       <VenueSearch
         locale={locale}
         area={area}

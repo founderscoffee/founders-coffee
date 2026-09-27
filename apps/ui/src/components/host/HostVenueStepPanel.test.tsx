@@ -34,6 +34,7 @@ const panel = (isCollapsed: boolean) => ({
   isCollapsed,
   onToggle: vi.fn(),
   onCoverChange: vi.fn(),
+  onDismiss: vi.fn(),
 });
 
 const LOCATE = { width: 94, height: 24 };
@@ -161,6 +162,75 @@ describe('the venue step floating over the map', () => {
     expect(
       panelOf(screen.getByRole('button', { name: 'Places nearby' })).className,
     ).toContain('max-lg:inset-x-3');
+  });
+});
+
+describe('the venue list dropping down over the map', () => {
+  it('folds once a place is picked from it', () => {
+    lookups.nearby = { ...idle(), data: [CAFE] };
+    const overlay = panel(false);
+    const onVenueSelect = vi.fn();
+    showVenueStep('', undefined, { overlay, onVenueSelect });
+
+    fireEvent.click(screen.getByRole('option'));
+
+    expect(onVenueSelect).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: CAFE.providerId }),
+    );
+    expect(overlay.onDismiss).toHaveBeenCalledOnce();
+  });
+
+  it('folds at a touch anywhere outside it, but not in its search box or its own rows', () => {
+    lookups.nearby = { ...idle(), data: [CAFE] };
+    const overlay = panel(false);
+    showVenueStep('', undefined, { overlay });
+
+    fireEvent.pointerDown(screen.getByRole('combobox'));
+    fireEvent.pointerDown(screen.getByRole('option'));
+    fireEvent.pointerDown(
+      screen.getByRole('button', { name: 'Places nearby' }),
+    );
+    expect(
+      overlay.onDismiss,
+      'the search box and the list are one dropdown, so refining a search keeps it open',
+    ).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(document.body);
+    expect(overlay.onDismiss).toHaveBeenCalledOnce();
+  });
+
+  it('listens for no touch outside while folded, or while it holds only its hint', () => {
+    lookups.nearby = { ...idle(), data: [CAFE] };
+    const folded = panel(true);
+    const { unmount } = showVenueStep('', undefined, { overlay: folded });
+    fireEvent.pointerDown(document.body);
+    unmount();
+
+    lookups.nearby = idle();
+    const hint = panel(false);
+    showVenueStep('', undefined, { overlay: hint });
+    fireEvent.pointerDown(document.body);
+
+    expect(folded.onDismiss).not.toHaveBeenCalled();
+    expect(
+      hint.onDismiss,
+      'a hint has no header to open it again, so folding it would hide it for good',
+    ).not.toHaveBeenCalled();
+  });
+
+  it('hands the focus to its header when it folds around it', () => {
+    lookups.nearby = { ...idle(), data: [CAFE] };
+    const { rerender } = showVenueStep('', undefined, {
+      overlay: panel(false),
+    });
+    screen.getByRole('option').focus();
+
+    rerender(venueStep('', undefined, { overlay: panel(true) }));
+
+    expect(
+      document.activeElement,
+      'the folded list hid the row that held the focus, and dropped it on the page',
+    ).toBe(screen.getByRole('button', { name: 'Places nearby' }));
   });
 });
 

@@ -1,5 +1,11 @@
 import { ChevronDown } from 'lucide-react';
-import { useId, type CSSProperties, type ReactNode } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 
 import type { ControlSize } from './useControlSize';
 import { useCoveredHeight } from './useCoveredHeight';
@@ -39,10 +45,18 @@ export const VenueResultsPanel = ({
 }: VenueResultsPanelProps) => {
   const labelId = useId();
   const bodyId = useId();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const measure = useCoveredHeight(onCoverChange);
   const isHint = label === null;
   const isFolded = isCollapsed && !isHint;
   const isBeside = neighbour != null && (isHint || isFolded);
+
+  useEffect(() => {
+    if (isFolded && bodyRef.current?.contains(document.activeElement)) {
+      toggleRef.current?.focus();
+    }
+  }, [isFolded]);
 
   return (
     <div
@@ -59,6 +73,7 @@ export const VenueResultsPanel = ({
             {label}
           </p>
           <button
+            ref={toggleRef}
             type="button"
             onClick={onToggle}
             aria-labelledby={labelId}
@@ -76,6 +91,7 @@ export const VenueResultsPanel = ({
         </div>
       )}
       <div
+        ref={bodyRef}
         id={bodyId}
         className={`flex flex-col gap-3 ${
           isHint

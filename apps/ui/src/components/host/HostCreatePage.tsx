@@ -267,10 +267,7 @@ export const HostCreatePage = ({
           isInteractive={wizard.step === 1}
           covered={wizard.step === 1 ? venueOverlay.covered : 0}
           onRetry={() => void mapContext.refetch()}
-          onVenueSelect={(venue) => {
-            venueOverlay.open();
-            wizard.selectVenue(venue);
-          }}
+          onVenueSelect={wizard.selectVenue}
           onVenueInvalidate={wizard.clearVenue}
           onCenterChange={(center) =>
             setMapCenter({ ...center, cityCode: city?.code })

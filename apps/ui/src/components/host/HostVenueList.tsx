@@ -32,6 +32,7 @@ type HostVenueListProps = {
   selectedProviderId?: string;
   showAttribution: boolean;
   onSelect: (venue: VenueSelection) => void;
+  onChoose?: () => void;
 };
 
 export const HostVenueList = ({
@@ -42,6 +43,7 @@ export const HostVenueList = ({
   selectedProviderId,
   showAttribution,
   onSelect,
+  onChoose,
 }: HostVenueListProps) => {
   const listRef = useRef<HTMLDivElement>(null);
   const selectable = venues.filter((venue) => venue.eligible);
@@ -50,6 +52,11 @@ export const HostVenueList = ({
   )
     ? selectedProviderId
     : selectable[0]?.providerId;
+
+  const choose = (venue: VenueSelection) => {
+    onSelect(venue);
+    onChoose?.();
+  };
 
   const move = (from: string, delta: number) => {
     if (selectable.length === 0) return;
@@ -83,12 +90,12 @@ export const HostVenueList = ({
               aria-selected={checked}
               aria-disabled={venue.eligible ? undefined : true}
               tabIndex={venue.providerId === focusedId ? 0 : -1}
-              onClick={() => venue.eligible && onSelect(venue)}
+              onClick={() => venue.eligible && choose(venue)}
               onKeyDown={(event) => {
                 if (!venue.eligible) return;
                 if (event.key === ' ' || event.key === 'Enter') {
                   event.preventDefault();
-                  onSelect(venue);
+                  choose(venue);
                 } else if (
                   event.key === 'ArrowDown' ||
                   event.key === 'ArrowRight'
@@ -115,6 +122,7 @@ export const HostVenueList = ({
             >
               <span
                 aria-hidden="true"
+                aria-checked={checked}
                 className={`radio radio-primary mt-0.5 shrink-0 ${
                   venue.eligible ? '' : 'opacity-40'
                 }`}

@@ -77,6 +77,49 @@ describe('HostVenueList', () => {
     );
   });
 
+  it('fills the radio of the chosen venue and leaves the others empty', () => {
+    renderList('osm:node/2');
+    const radios = screen
+      .getAllByRole('option')
+      .map((option) =>
+        option.querySelector('.radio')?.getAttribute('aria-checked'),
+      );
+
+    expect(
+      radios,
+      'daisyUI draws a radio that is not an input as checked only by aria-checked',
+    ).toEqual(['false', 'true', 'false']);
+  });
+
+  it('reports a pick on a click, Enter or Space, but not on a step with the arrow keys', () => {
+    const onChoose = vi.fn();
+    render(
+      <HostVenueList
+        locale="en"
+        id="venue-results"
+        label="Cafés nearby"
+        venues={rows}
+        selectedProviderId="osm:node/1"
+        showAttribution
+        onSelect={vi.fn()}
+        onChoose={onChoose}
+      />,
+    );
+    const [first, second, ineligible] = screen.getAllByRole('option');
+
+    fireEvent.keyDown(first, { key: 'ArrowDown' });
+    fireEvent.click(ineligible);
+    expect(
+      onChoose,
+      'the arrows walk the list, and a list folded at the first step leaves nothing to walk',
+    ).not.toHaveBeenCalled();
+
+    fireEvent.click(second);
+    fireEvent.keyDown(first, { key: 'Enter' });
+    fireEvent.keyDown(first, { key: ' ' });
+    expect(onChoose).toHaveBeenCalledTimes(3);
+  });
+
   it('moves between eligible venues with the arrow keys, skipping the ineligible one', () => {
     const onSelect = renderList('osm:node/2');
     fireEvent.keyDown(screen.getAllByRole('option')[1], { key: 'ArrowDown' });
