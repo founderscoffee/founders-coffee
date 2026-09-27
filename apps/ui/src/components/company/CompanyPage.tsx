@@ -104,7 +104,7 @@ export const CompanyPage = ({
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
-                className="btn btn-primary btn-sm h-10 gap-2 px-4 font-semibold shadow-none"
+                className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl gap-2 font-semibold shadow-none"
               >
                 <Mail className="size-3.5" aria-hidden="true" />
                 {contact_email_cta({ address: CONTACT_EMAIL }, { locale })}
@@ -112,7 +112,7 @@ export const CompanyPage = ({
               <button
                 type="button"
                 onClick={() => void copyEmail()}
-                className="btn btn-outline btn-sm h-10 gap-2 px-4 font-medium"
+                className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl gap-2 font-medium"
               >
                 {copied ? (
                   <Check className="size-3.5" aria-hidden="true" />

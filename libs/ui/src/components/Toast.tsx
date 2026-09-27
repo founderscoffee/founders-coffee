@@ -49,7 +49,7 @@ export const Toast = ({
       {onDismiss && dismissLabel && (
         <button
           type="button"
-          className="btn btn-ghost btn-sm shrink-0 text-inherit"
+          className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl shrink-0 text-inherit"
           onClick={onDismiss}
           aria-label={dismissLabel}
         >

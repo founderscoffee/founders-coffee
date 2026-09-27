@@ -152,7 +152,6 @@ export const PreferencesPage = ({
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 onClick={() => void query.refetch()}
               >
                 {prefs_reload({}, { locale })}

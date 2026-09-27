@@ -36,7 +36,7 @@ export const AttendeeLiveActions = ({
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="btn btn-secondary btn-sm"
+          className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
           onClick={onWalkingIn}
         >
           {live_walking_in_cta({}, { locale })}
@@ -44,7 +44,7 @@ export const AttendeeLiveActions = ({
         {!showRunningLate && (
           <button
             type="button"
-            className="btn btn-outline btn-sm"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
             onClick={() => setShowRunningLate(true)}
           >
             {live_running_late_cta({}, { locale })}
@@ -55,21 +55,21 @@ export const AttendeeLiveActions = ({
         <div className="flex gap-2">
           <input
             type="number"
-            className="input input-sm flex-1"
+            className="input input-sm md:input-md flex-1"
             placeholder={live_eta_ph({}, { locale })}
             value={runningLateEta}
             onChange={(e) => setRunningLateEta(e.target.value)}
           />
           <button
             type="button"
-            className="btn btn-outline btn-sm"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
             onClick={handleRunningLate}
           >
             {confirm({}, { locale })}
           </button>
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
             onClick={() => setShowRunningLate(false)}
           >
             {cancel({}, { locale })}

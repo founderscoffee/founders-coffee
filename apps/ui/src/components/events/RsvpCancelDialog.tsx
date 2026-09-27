@@ -50,12 +50,16 @@ export const RsvpCancelDialog = ({
           {cancel_body({ host: hostName }, { locale })}
         </p>
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button type="button" className="btn btn-ghost" onClick={onKeep}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+            onClick={onKeep}
+          >
             {keep_seat({}, { locale })}
           </button>
           <button
             type="button"
-            className="btn btn-outline btn-error"
+            className="btn btn-outline btn-error btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
             onClick={onConfirm}
             disabled={isPending}
           >

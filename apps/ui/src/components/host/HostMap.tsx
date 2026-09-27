@@ -149,7 +149,7 @@ export const HostMap = ({
           action={
             <button
               type="button"
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
               onClick={() => {
                 setHasMapError(false);
                 setIsMapReady(false);

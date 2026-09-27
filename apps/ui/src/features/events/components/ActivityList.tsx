@@ -178,7 +178,6 @@ export const ActivityList = ({
       <Button
         type="button"
         variant="outline"
-        size="sm"
         className="mt-4"
         disabled={isLoadingMore}
         onClick={onLoadMore}

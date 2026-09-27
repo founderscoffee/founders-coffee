@@ -110,8 +110,6 @@ const AccountSections = ({
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              className="w-16"
               onClick={() => onChange('email')}
             >
               {contact_change_email({}, { locale })}
@@ -133,8 +131,6 @@ const AccountSections = ({
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              className="w-16"
               onClick={() => onChange('phone')}
             >
               {account.phone.masked

@@ -109,6 +109,7 @@ export default [
     plugins: { 'react-hooks': reactHooks },
     rules: {
       'react-hooks/rules-of-hooks': 'error',
+      'local/daisyui-control-size': 'error',
       'local/no-removed-daisyui-class': 'error',
     },
   },

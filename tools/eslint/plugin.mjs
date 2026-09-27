@@ -1,4 +1,5 @@
 import { commentPolicy } from './rules/comment-policy.mjs';
+import { daisyuiControlSize } from './rules/daisyui-control-size.mjs';
 import { noBareStatusRole } from './rules/no-bare-status-role.mjs';
 import { noComments } from './rules/no-comments.mjs';
 import { noLineComments } from './rules/no-line-comments.mjs';
@@ -10,6 +11,7 @@ export const localPlugin = {
   meta: { name: 'founders-coffee-local', version: '1.0.0' },
   rules: {
     'comment-policy': commentPolicy,
+    'daisyui-control-size': daisyuiControlSize,
     'no-bare-status-role': noBareStatusRole,
     'no-comments': noComments,
     'no-line-comments': noLineComments,

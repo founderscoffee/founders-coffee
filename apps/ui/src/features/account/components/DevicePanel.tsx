@@ -48,7 +48,6 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
             <Button
               type="button"
               variant="outline"
-              size="sm"
               disabled={busy}
               onClick={() =>
                 void run(() => unlink.mutateAsync({ providerId: provider }))
@@ -70,7 +69,6 @@ export const DevicePanel = ({ locale }: { locale: Locale }) => {
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
                 disabled={busy}
                 onClick={() =>
                   void run(() => revoke.mutateAsync({ sessionId: row.id }))

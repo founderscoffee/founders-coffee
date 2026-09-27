@@ -49,7 +49,7 @@ export const HostWizardActions = ({
             variant="ghost"
             onClick={onBack}
             disabled={isPublishing}
-            className="h-11 px-5 text-base font-semibold lg:h-12"
+            className="font-semibold"
           >
             {host_back({}, { locale })}
           </Button>
@@ -57,7 +57,7 @@ export const HostWizardActions = ({
           <Link
             {...localizedHome(locale, marketSlug)}
             aria-label={back_home({}, { locale })}
-            className="btn btn-ghost btn-square size-11 shrink-0 lg:hidden"
+            className="btn btn-ghost btn-square btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl shrink-0 lg:hidden"
           >
             <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden="true" />
           </Link>
@@ -66,7 +66,7 @@ export const HostWizardActions = ({
           variant="primary"
           onClick={onNext}
           disabled={isDisabled}
-          className="ms-auto h-11 min-w-28 px-6 text-base font-semibold lg:h-12"
+          className="ms-auto min-w-28 font-semibold"
         >
           {isPublishing ? (
             <span className="flex items-center gap-2">

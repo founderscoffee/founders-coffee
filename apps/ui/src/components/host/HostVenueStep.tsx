@@ -195,7 +195,7 @@ export const HostVenueStep = ({
       {isPinned && (
         <button
           type="button"
-          className="btn btn-ghost btn-sm self-start"
+          className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl self-start"
           onClick={() => setIsBrowsingNearby(true)}
         >
           {host_venue_browse_nearby({}, { locale })}

@@ -33,7 +33,7 @@ export const FeedbackForm = ({
       <div className="grid gap-2 sm:grid-cols-3">
         {ratings.map((rating) => (
           <label
-            className={`btn justify-start ${
+            className={`btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl justify-start ${
               draft.rating === rating ? 'btn-primary' : 'btn-outline'
             }`}
             key={rating}
@@ -82,7 +82,7 @@ export const FeedbackForm = ({
       <textarea
         aria-label={feedback_comment({}, { locale })}
         id="feedback-comment"
-        className="textarea mt-2 min-h-28 w-full"
+        className="textarea textarea-sm md:textarea-md mt-2 w-full"
         maxLength={600}
         value={draft.comment}
         onChange={(event) => onChange({ comment: event.target.value })}
@@ -95,7 +95,7 @@ export const FeedbackForm = ({
         </span>
         <select
           id="feedback-comment-language"
-          className="select mt-2 w-full"
+          className="select select-sm md:select-md mt-2 w-full"
           value={draft.commentLanguage ?? ''}
           onChange={(event) =>
             onChange({

@@ -83,7 +83,7 @@ export const CloseoutForm = ({
               {closeout_walk_ins({}, { locale })}
             </label>
             <input
-              className="mt-1 w-24 rounded-box border border-base-300 p-2"
+              className="input input-sm md:input-md mt-1"
               id="walk-ins"
               inputMode="numeric"
               max={WALK_IN_MAX}
@@ -165,7 +165,7 @@ export const CloseoutForm = ({
               {closeout_private_note({}, { locale })}
             </label>
             <textarea
-              className="mt-1 w-full rounded-box border border-base-300 p-2"
+              className="textarea textarea-sm md:textarea-md mt-1 w-full"
               id="private-note"
               maxLength={500}
               onChange={(event) =>

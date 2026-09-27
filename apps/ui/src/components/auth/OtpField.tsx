@@ -24,7 +24,7 @@ export const OtpField = ({
     </span>
     <div className="max-w-full overflow-x-clip px-1">
       <label
-        className={`otp otp-lg ${hasError ? 'otp-error' : 'otp-primary'}`}
+        className={`otp otp-sm md:otp-md ${hasError ? 'otp-error' : 'otp-primary'}`}
         dir="ltr"
       >
         {BOXES.map((box) => (

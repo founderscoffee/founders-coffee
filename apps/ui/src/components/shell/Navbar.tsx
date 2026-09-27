@@ -20,7 +20,7 @@ type NavbarProps = {
 };
 
 const hostClass =
-  'tap-target my-1 inline-flex min-h-9 items-center rounded-full bg-primary px-3 py-1 text-center text-body-sm leading-tight font-semibold text-balance text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none sm:h-9 sm:shrink-0 sm:px-4 sm:py-0 sm:text-body sm:whitespace-nowrap';
+  'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl shrink-0 rounded-full border-0 font-semibold whitespace-nowrap shadow-none';
 
 export const Navbar = ({
   locale,

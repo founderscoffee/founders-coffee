@@ -3,29 +3,27 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn.js';
 
-export const buttonVariants = cva('btn', {
-  variants: {
-    variant: {
-      primary: 'btn-primary',
-      cta: 'btn-secondary',
-      secondary: 'btn-secondary',
-      accent: 'btn-accent',
-      outline: 'btn-outline',
-      ghost: 'btn-ghost',
-      link: 'btn-link',
+export const buttonVariants = cva(
+  'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl',
+  {
+    variants: {
+      variant: {
+        primary: 'btn-primary',
+        cta: 'btn-secondary',
+        secondary: 'btn-secondary',
+        accent: 'btn-accent',
+        outline: 'btn-outline',
+        ghost: 'btn-ghost',
+        link: 'btn-link',
+      },
+      isFullWidth: {
+        true: 'w-full',
+        false: '',
+      },
     },
-    size: {
-      sm: 'btn-sm',
-      md: 'btn-md',
-      lg: 'btn-lg',
-    },
-    isFullWidth: {
-      true: 'w-full',
-      false: '',
-    },
+    defaultVariants: { variant: 'primary', isFullWidth: false },
   },
-  defaultVariants: { variant: 'primary', size: 'md', isFullWidth: false },
-});
+);
 
 export interface ButtonProps
   extends
@@ -33,14 +31,11 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    { className, variant, size, isFullWidth, type = 'button', ...props },
-    ref,
-  ) => (
+  ({ className, variant, isFullWidth, type = 'button', ...props }, ref) => (
     <button
       ref={ref}
       type={type}
-      className={cn(buttonVariants({ variant, size, isFullWidth }), className)}
+      className={cn(buttonVariants({ variant, isFullWidth }), className)}
       {...props}
     />
   ),

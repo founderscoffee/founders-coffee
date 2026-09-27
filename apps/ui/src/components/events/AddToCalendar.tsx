@@ -35,7 +35,7 @@ export const AddToCalendar = ({
       </p>
       <div className="flex flex-wrap gap-2">
         <a
-          className="btn btn-outline btn-sm"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
           href={eventCalendarPath(locale, eventId, 'google')}
           target="_blank"
           rel="noreferrer"
@@ -44,7 +44,7 @@ export const AddToCalendar = ({
           {calendar_google({}, { locale })}
         </a>
         <a
-          className="btn btn-outline btn-sm"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
           href={eventCalendarPath(locale, eventId, 'ics')}
         >
           <Download className="size-4" aria-hidden="true" />

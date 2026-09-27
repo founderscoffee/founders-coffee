@@ -2,38 +2,39 @@ import { describe, expect, it } from 'vitest';
 
 import { badgeVariants } from './components/Badge.js';
 import { buttonVariants } from './components/Button.js';
-import { inputVariants } from './components/Input.js';
-import { selectVariants } from './components/Select.js';
+import { INPUT_CLASS } from './components/Input.js';
+import { SELECT_CLASS } from './components/Select.js';
 import { statusMessageVariants } from './components/StatusMessage.js';
 
 describe('libs/ui cva variants (literal class strings Tailwind can scan)', () => {
-  it('Button defaults to primary md', () => {
-    expect(buttonVariants()).toBe('btn btn-primary btn-md');
+  it('Button defaults to primary at the responsive size, xs on a phone up to xl', () => {
+    expect(buttonVariants()).toBe(
+      'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl btn-primary',
+    );
   });
 
-  it('Button composes variant + size + isFullWidth', () => {
-    expect(
-      buttonVariants({ variant: 'secondary', size: 'sm', isFullWidth: true }),
-    ).toBe('btn btn-secondary btn-sm w-full');
+  it('Button composes variant + isFullWidth and has no other size', () => {
+    expect(buttonVariants({ variant: 'secondary', isFullWidth: true })).toBe(
+      'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl btn-secondary w-full',
+    );
   });
 
   it('Button maps the cta variant to clay, so one call to action reads louder', () => {
-    expect(buttonVariants({ variant: 'cta' })).toBe('btn btn-secondary btn-md');
+    expect(buttonVariants({ variant: 'cta' })).toBe(
+      'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl btn-secondary',
+    );
   });
 
   it('Badge defaults to neutral md', () => {
     expect(badgeVariants()).toBe('badge badge-neutral badge-md');
   });
 
-  it('Input defaults to md (inputSize, avoiding the native size collision)', () => {
-    expect(inputVariants()).toBe('input w-full input-md');
+  it('Input is small below md and medium from it, with no other size', () => {
+    expect(INPUT_CLASS).toBe('input input-sm md:input-md w-full');
   });
 
-  it('Select mirrors Input, renaming size for the same native collision', () => {
-    expect(selectVariants()).toBe('select w-full select-md');
-    expect(selectVariants({ selectSize: 'sm' })).toBe(
-      'select w-full select-sm',
-    );
+  it('Select follows Input, small below md and medium from it', () => {
+    expect(SELECT_CLASS).toBe('select select-sm md:select-md w-full');
   });
 
   it('StatusMessage puts each severity on a soft daisyUI alert', () => {

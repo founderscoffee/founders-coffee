@@ -70,7 +70,7 @@ export const HostMapPanel = ({
           <StatusMessage
             variant="error"
             action={
-              <Button variant="outline" size="sm" onClick={onRetry}>
+              <Button variant="outline" onClick={onRetry}>
                 {retry({}, { locale })}
               </Button>
             }

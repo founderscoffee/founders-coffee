@@ -14,7 +14,7 @@ type ShareEventButtonProps = {
 };
 
 const TRIGGER_CLASS =
-  'inline-flex min-h-9 cursor-pointer items-center gap-2 self-center rounded-full bg-base-100 px-3 py-2 text-body-sm font-medium transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary motion-reduce:transition-none';
+  'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl gap-2 self-center rounded-full border-0 bg-base-100 font-medium shadow-none hover:shadow-[var(--shadow-2)]';
 
 export const ShareEventButton = ({
   locale,

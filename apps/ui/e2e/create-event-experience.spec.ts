@@ -15,7 +15,10 @@ import {
 
 /**
  * Hold a step's actions to the thumb: on screen, tall enough to tap, and never pushing the page
- * sideways, which a primary label too long for one line did on the last step.
+ * sideways, which a primary label too long for one line did on the last step. Tall enough is
+ * measured on the target, not the paint: a phone draws the button at daisyUI's `btn-xs`, and on a
+ * touch screen the shared stylesheet grows its hit area to the 44px a thumb needs. A mouse gets
+ * no such area and needs only WCAG's 24px.
  */
 const expectActionsInReach = async (
   page: Page,
@@ -24,8 +27,14 @@ const expectActionsInReach = async (
   for (const action of actions) {
     await expect(action).toBeVisible();
     await expect(action).toBeInViewport();
-    const box = await action.boundingBox();
-    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    const target = await action.evaluate((element) => ({
+      height: Math.max(
+        element.getBoundingClientRect().height,
+        parseFloat(getComputedStyle(element, '::after').height) || 0,
+      ),
+      isTouch: matchMedia('(pointer: coarse)').matches,
+    }));
+    expect(target.height).toBeGreaterThanOrEqual(target.isTouch ? 44 : 24);
   }
 
   const overflow = await page.evaluate(

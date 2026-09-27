@@ -93,7 +93,7 @@ export const AdminLogin = ({
             {email_label({}, { locale })}
           </label>
           <input
-            className="rounded-box border border-base-300 p-2"
+            className="input input-sm md:input-md w-full"
             id="admin-email"
             type="email"
             required
@@ -116,7 +116,7 @@ export const AdminLogin = ({
             />
           )}
           <button
-            className="btn btn-primary"
+            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
             type="submit"
             disabled={busy || !canSend}
           >
@@ -135,7 +135,7 @@ export const AdminLogin = ({
             {code_label({ email }, { locale })}
           </label>
           <input
-            className="rounded-box border border-base-300 p-2 tracking-widest"
+            className="input input-sm md:input-md w-full tracking-widest"
             id="admin-code"
             inputMode="numeric"
             dir="ltr"
@@ -145,7 +145,7 @@ export const AdminLogin = ({
             onChange={(event) => setCode(event.target.value)}
           />
           <button
-            className="btn btn-primary"
+            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
             type="submit"
             disabled={busy || code.length === 0}
           >

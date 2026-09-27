@@ -47,7 +47,7 @@ export const VenueSearch = ({
       aria-expanded={hasResults}
       aria-controls={listId}
       aria-autocomplete="list"
-      className="input h-11 w-full rounded-xl bg-base-100 text-body lg:h-12"
+      className="input input-sm md:input-md w-full rounded-xl bg-base-100"
       placeholder={
         area.kind === 'city'
           ? host_venue_search_ph(cityInputs(area.name), { locale })

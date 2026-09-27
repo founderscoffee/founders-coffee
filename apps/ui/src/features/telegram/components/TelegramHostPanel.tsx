@@ -73,7 +73,7 @@ export const TelegramHostPanel = ({
   const withdrawButton = (
     <button
       type="button"
-      className="btn btn-ghost btn-sm"
+      className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
       onClick={letGo}
       disabled={disconnect.isPending}
     >
@@ -112,7 +112,7 @@ export const TelegramHostPanel = ({
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  className="btn btn-error btn-sm"
+                  className="btn btn-error btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
                   onClick={letGo}
                   disabled={disconnect.isPending}
                 >
@@ -120,7 +120,7 @@ export const TelegramHostPanel = ({
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost btn-sm"
+                  className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
                   data-focus="keep"
                   onClick={() => {
                     setIsConfirming(false);
@@ -134,7 +134,7 @@ export const TelegramHostPanel = ({
           ) : (
             <button
               type="button"
-              className="btn btn-ghost btn-sm w-fit text-error"
+              className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-fit text-error"
               data-focus="disconnect"
               onClick={() => {
                 setIsConfirming(true);
@@ -152,7 +152,7 @@ export const TelegramHostPanel = ({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <a
-              className="btn btn-secondary btn-sm"
+              className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
               data-focus="open"
               href={link.connectLink}
               target="_blank"
@@ -171,7 +171,7 @@ export const TelegramHostPanel = ({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
               onClick={openLink}
               disabled={connect.isPending}
             >
@@ -187,7 +187,7 @@ export const TelegramHostPanel = ({
           </p>
           <button
             type="button"
-            className="btn btn-outline btn-sm w-fit"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-fit"
             data-focus="connect"
             onClick={openLink}
             disabled={connect.isPending}

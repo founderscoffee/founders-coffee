@@ -105,13 +105,13 @@ export const WaitlistForm = ({
           placeholder={email_label({}, { locale })}
           aria-label={email_label({}, { locale })}
           aria-invalid={!!localError}
-          className="input h-10 flex-1 text-sm"
+          className="input input-sm md:input-md flex-1"
           disabled={joinWaitlist.isPending}
           required
         />
         <button
           type="submit"
-          className="btn btn-outline btn-sm h-10"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
           disabled={joinWaitlist.isPending || !isVerified}
         >
           {joinWaitlist.isPending

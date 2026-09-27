@@ -117,7 +117,7 @@ export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
       readOnly
       dir={direction(locale)}
       defaultValue={`${from} - ${to}`}
-      className="input w-full cursor-pointer text-center text-base font-semibold tabular-nums"
+      className="input input-sm md:input-md w-full cursor-pointer text-center font-semibold tabular-nums"
       aria-label={host_time({}, { locale })}
     />
   );

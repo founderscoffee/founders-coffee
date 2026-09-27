@@ -257,7 +257,7 @@ export const EventDetail = ({
               {host ? (
                 <Link
                   {...localizedPublicProfile(locale, host.userId)}
-                  className="btn btn-outline btn-sm h-9 min-h-9 px-4"
+                  className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
                 >
                   {profile_link({}, { locale })}
                 </Link>

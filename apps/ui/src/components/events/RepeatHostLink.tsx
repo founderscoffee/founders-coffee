@@ -17,7 +17,7 @@ export const RepeatHostLink = ({
   <Link
     {...localizedHostCreate(locale, marketSlug)}
     search={{ city: cityCode, repeat: eventId }}
-    className="btn btn-outline btn-sm w-fit"
+    className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-fit"
   >
     {host_repeat_link({}, { locale })}
   </Link>

@@ -20,7 +20,7 @@ export const HostLocateButton = ({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-11 items-center gap-2 rounded-full border border-base-300 bg-base-100 px-4 text-body-sm font-medium text-base-content shadow-lg backdrop-blur-md transition hover:bg-base-200 focus-visible:ring-2 focus-visible:ring-secondary motion-reduce:transition-none"
+      className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl gap-2 rounded-full border-base-300 bg-base-100 font-medium text-base-content shadow-lg backdrop-blur-md hover:bg-base-200"
     >
       <Crosshair className="size-4 shrink-0" aria-hidden="true" />
       {host_locate_me({}, { locale })}
