@@ -1,7 +1,8 @@
-import { page, section, table, text } from './legal-translated';
+import { section, table, text, translatedPage } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const cookiesFrench: CompanyPageContent = page(
+export const cookiesFrench: CompanyPageContent = translatedPage(
+  'fr',
   'Politique de cookies',
   'Les trois cookies utilisés par Founders Coffee, leur utilité et ce que nous n’utilisons pas : ni analyse, ni publicité, ni suivi.',
   [

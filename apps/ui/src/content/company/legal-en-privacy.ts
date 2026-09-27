@@ -1,14 +1,15 @@
 import {
   list,
-  page,
   section,
   subheading,
   table,
   text,
+  translatedPage,
 } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const privacyEnglish: CompanyPageContent = page(
+export const privacyEnglish: CompanyPageContent = translatedPage(
+  'en',
   'Privacy policy',
   'What personal data Founders Coffee collects, why we use it, who can access it, how long we keep it, and your rights.',
   [

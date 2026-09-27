@@ -1,7 +1,8 @@
-import { list, page, section, text } from './legal-translated';
+import { list, section, text, translatedPage } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const organizersFrench: CompanyPageContent = page(
+export const organizersFrench: CompanyPageContent = translatedPage(
+  'fr',
   'Conditions des organisateurs',
   'Vos responsabilités pour publier une rencontre : informations exactes, lieu, sécurité, liste des inscrits et annulation.',
   [

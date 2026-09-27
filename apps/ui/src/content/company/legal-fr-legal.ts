@@ -1,7 +1,8 @@
-import { list, page, section, table, text } from './legal-translated';
+import { list, section, table, text, translatedPage } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const legalFrench: CompanyPageContent = page(
+export const legalFrench: CompanyPageContent = translatedPage(
+  'fr',
   'Mentions légales',
   'Qui exploite Founders Coffee, comment nous contacter, où les données sont traitées et quel est le statut juridique actuel de la plateforme.',
   [

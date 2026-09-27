@@ -1,7 +1,8 @@
-import { list, page, section, text } from './legal-translated';
+import { list, section, text, translatedPage } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const termsFrench: CompanyPageContent = page(
+export const termsFrench: CompanyPageContent = translatedPage(
+  'fr',
   'Conditions d’utilisation',
   'Les règles d’utilisation de Founders Coffee, notre rôle dans les rencontres publiées par les membres et les limites de notre responsabilité.',
   [

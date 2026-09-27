@@ -1,7 +1,14 @@
-import { list, page, section, subheading, text } from './legal-translated';
+import {
+  list,
+  section,
+  subheading,
+  text,
+  translatedPage,
+} from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const communityEnglish: CompanyPageContent = page(
+export const communityEnglish: CompanyPageContent = translatedPage(
+  'en',
   'Community guidelines',
   'What we expect in the Founders Coffee community, what is prohibited, and how we handle violations.',
   [

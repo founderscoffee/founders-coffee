@@ -13,7 +13,7 @@ describe('the language an unmatched reader is answered in', () => {
   it('is the one language a single-language document has', () => {
     expect(
       xDefaultLocale(['ar']),
-      'the Arabic-only legal documents serve the same bytes under every prefix, and only the Arabic address is canonical',
+      'a single-language page keeps its only published language as the default',
     ).toBe('ar');
     expect(xDefaultLocale(['en'])).toBe('en');
   });

@@ -86,6 +86,22 @@ describe('company pages', () => {
     }
   });
 
+  it('states the Arabic authority for every translated legal document', () => {
+    for (const key of LEGAL_PAGE_KEYS) {
+      for (const locale of ['en', 'fr'] as const) {
+        const firstBlock = companyPageContent(key, locale).sections[0]
+          ?.blocks[0];
+        expect(firstBlock?.kind).toBe('note');
+        if (firstBlock?.kind !== 'note') expect.fail('missing authority note');
+        expect(firstBlock.text).toMatch(
+          locale === 'en'
+            ? /Arabic version is authoritative/u
+            : /version arabe fait foi/u,
+        );
+      }
+    }
+  });
+
   it('keeps critical legal facts present in every translation', () => {
     for (const key of LEGAL_PAGE_KEYS) {
       const facts = criticalLegalFacts[key] ?? [];

@@ -1,7 +1,8 @@
-import { list, page, section, text } from './legal-translated';
+import { list, section, text, translatedPage } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const termsEnglish: CompanyPageContent = page(
+export const termsEnglish: CompanyPageContent = translatedPage(
+  'en',
   'Terms of use',
   'The rules for using Founders Coffee, our role in member-hosted gatherings, and the limits of our responsibility.',
   [

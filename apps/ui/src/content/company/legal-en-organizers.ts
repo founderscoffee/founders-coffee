@@ -1,7 +1,8 @@
-import { list, page, section, text } from './legal-translated';
+import { list, section, text, translatedPage } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const organizersEnglish: CompanyPageContent = page(
+export const organizersEnglish: CompanyPageContent = translatedPage(
+  'en',
   'Organizer terms',
   'Responsibilities for publishing a gathering: accurate information, venue, safety, attendee lists, and cancellation.',
   [

@@ -1,7 +1,8 @@
-import { page, section, table, text, list } from './legal-translated';
+import { section, table, text, list, translatedPage } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const legalEnglish: CompanyPageContent = page(
+export const legalEnglish: CompanyPageContent = translatedPage(
+  'en',
   'Legal information',
   'Who operates Founders Coffee, how to contact us, where data is processed, and the platform’s current legal status.',
   [

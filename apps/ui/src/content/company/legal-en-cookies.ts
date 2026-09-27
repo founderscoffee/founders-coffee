@@ -1,7 +1,8 @@
-import { page, section, table, text } from './legal-translated';
+import { section, table, text, translatedPage } from './legal-translated';
 import type { CompanyPageContent } from './types';
 
-export const cookiesEnglish: CompanyPageContent = page(
+export const cookiesEnglish: CompanyPageContent = translatedPage(
+  'en',
   'Cookie policy',
   'The three cookies we place on your device, why we use them, and what we do not use: no analytics, advertising, or tracking.',
   [

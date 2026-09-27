@@ -39,3 +39,35 @@ export const page = (
   updated,
   sections,
 });
+
+export const translatedPage = (
+  locale: 'en' | 'fr',
+  title: string,
+  description: string,
+  sections: readonly CompanySection[],
+  updated = '18 September 2026',
+): CompanyPageContent => {
+  const authorityNotice =
+    locale === 'en'
+      ? 'This is an English translation for convenience. If it differs from the Arabic version, the Arabic version is authoritative.'
+      : 'Cette page est une traduction française fournie pour faciliter votre lecture. En cas de divergence avec la version arabe, la version arabe fait foi.';
+  const [firstSection, ...remainingSections] = sections;
+
+  if (!firstSection) return page(title, description, sections, updated);
+
+  return page(
+    title,
+    description,
+    [
+      {
+        ...firstSection,
+        blocks: [
+          { kind: 'note', text: authorityNotice },
+          ...firstSection.blocks,
+        ],
+      },
+      ...remainingSections,
+    ],
+    updated,
+  );
+};
