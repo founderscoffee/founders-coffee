@@ -60,9 +60,7 @@ describe('PF-06 simplified photo card', () => {
       );
       const card = container.querySelector('section');
       expect(card?.querySelector('h2')).toBeNull();
-      const photoLabel = screen.getByText(
-        profile_photo_label({}, { locale }),
-      );
+      const photoLabel = screen.getByText(profile_photo_label({}, { locale }));
       expect(photoLabel.parentElement?.textContent).toContain(
         profile_public_chip({}, { locale }),
       );

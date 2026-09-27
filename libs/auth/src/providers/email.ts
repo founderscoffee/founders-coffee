@@ -12,10 +12,7 @@ export interface OtpRequestContext {
 }
 
 export interface EmailProvider {
-  sendOtp(
-    args: SendOtpArgs,
-    context?: OtpRequestContext,
-  ): void | Promise<void>;
+  sendOtp(args: SendOtpArgs, context?: OtpRequestContext): void | Promise<void>;
 }
 
 export class DevEmailProvider implements EmailProvider {

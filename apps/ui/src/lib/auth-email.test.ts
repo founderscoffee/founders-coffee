@@ -39,8 +39,11 @@ const send = async (
   email: string,
   env: Record<string, string>,
   localeCookie?: string,
-  type: 'sign-in' | 'email-verification' | 'forget-password' | 'change-email' =
-    'sign-in',
+  type:
+    | 'sign-in'
+    | 'email-verification'
+    | 'forget-password'
+    | 'change-email' = 'sign-in',
 ) => {
   const provider = createOtpEmailProvider(
     binding,
@@ -101,16 +104,19 @@ describe('sign-in code echo', () => {
     ['ar', 'Founders Coffee - رمز تسجيل الدخول', 'rtl', 'مرحبًا بك'],
     ['fr', 'Founders Coffee - votre code de connexion', 'ltr', 'Bienvenue'],
     ['en', 'Founders Coffee - your sign-in code', 'ltr', 'Welcome'],
-  ] as const)('localizes the OTP email for %s', async (locale, subject, dir, greeting) => {
-    await send('member@example.com', {}, locale);
+  ] as const)(
+    'localizes the OTP email for %s',
+    async (locale, subject, dir, greeting) => {
+      await send('member@example.com', {}, locale);
 
-    const message = latestEmail();
-    expect(message.subject).toBe(subject);
-    expect(message.html).toContain(`lang="${locale}"`);
-    expect(message.html).toContain(`dir="${dir}"`);
-    expect(message.html).toContain(greeting);
-    expect(message.html).toContain('direction:ltr');
-  });
+      const message = latestEmail();
+      expect(message.subject).toBe(subject);
+      expect(message.html).toContain(`lang="${locale}"`);
+      expect(message.html).toContain(`dir="${dir}"`);
+      expect(message.html).toContain(greeting);
+      expect(message.html).toContain('direction:ltr');
+    },
+  );
 
   it('falls back to Arabic when the locale cookie is missing or unsupported', async () => {
     await send('member@example.com', {});
