@@ -14,6 +14,7 @@ import {
   hero_waitlist_success,
   host_venue_search_ph,
   host_venue_search_ph_market,
+  ntf_email_waitlist_launch_subject,
 } from './paraglide/messages.js';
 
 type Variant = { readonly match: Readonly<Record<string, string>> };
@@ -98,6 +99,15 @@ const SENTENCES: readonly {
       ),
     expected: (at) =>
       `Rejoignez « Café et code », une rencontre Founders Coffee ${at}.`,
+  },
+  {
+    key: 'ntf_email_waitlist_launch_subject',
+    render: (city) =>
+      ntf_email_waitlist_launch_subject(
+        { title: 'Café et code', ...cityInputs(city) },
+        FR,
+      ),
+    expected: (at) => `Une rencontre est prévue ${at} : Café et code`,
   },
 ];
 

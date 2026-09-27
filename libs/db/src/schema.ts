@@ -14,6 +14,8 @@ import {
   ATTENDANCE_OUTCOMES,
   AUDIT_ACTIONS,
   AUDIT_TARGETS,
+  CITY_WAITLIST_LAUNCH_STATUSES,
+  CITY_WAITLIST_NOTIFICATION_STATUSES,
   CLOSEOUT_OUTCOMES,
   CURRENCY_CODES,
   EVENT_STATUSES,
@@ -480,11 +482,10 @@ export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
 
 /**
  * City waitlist — anonymous demand capture for empty cities (FR-E6 "emptiness reads as invitation").
- * When a user searches a city with zero events, they can leave their email to be notified when the
- * first meetup launches. Same email can waitlist multiple cities (one row per city), but not the
- * same city twice — enforced by the composite unique index. `notifiedAt` is set when the first-event
- * notification fires, so the reverse loop (host creates event → email all waitlist entries) can
- * distinguish pending from notified.
+ * When a city has no upcoming meetup, a visitor can leave an email to hear when one is published.
+ * The same email may wait for any number of cities, once per market and city, which the composite
+ * unique index enforces. `notifiedAt` records the one notice the privacy policy promises; the entry
+ * is deleted twelve months after it, by the daily retention sweep that reads the partial index.
  */
 export const cityWaitlist = sqliteTable(
   'city_waitlist',
@@ -504,14 +505,125 @@ export const cityWaitlist = sqliteTable(
   (t) => ({
     emailCityUnique: uniqueIndex('city_waitlist_email_city_unique').on(
       t.email,
+      t.marketCode,
       t.cityCode,
     ),
-    cityCodeIdx: index('city_waitlist_city_code_index').on(t.cityCode),
+    cityCodeIdx: index('city_waitlist_city_code_index').on(
+      t.marketCode,
+      t.cityCode,
+    ),
+    notifiedIdx: index('city_waitlist_notified_index')
+      .on(t.notifiedAt)
+      .where(sql`notified_at IS NOT NULL`),
   }),
 );
 
 export type CityWaitlistRow = typeof cityWaitlist.$inferSelect;
 export type NewCityWaitlist = typeof cityWaitlist.$inferInsert;
+
+/**
+ * One notice round: a published meetup telling its city's waitlist that it is coming up (#107).
+ *
+ * Written with the meetup, and only while somebody in that market and city is still waiting, so a
+ * meetup in a city nobody waits for leaves no row and sends no message. The row is the durable half
+ * of the queue message: the recovery sweep finds a round the message never reached. It is per
+ * meetup, not per city, because the waitlist form comes back whenever a city has no upcoming
+ * meetup, and whoever joins then is owed the next one.
+ */
+export const cityWaitlistLaunches = sqliteTable(
+  'city_waitlist_launches',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    cityCode: text('city_code').notNull(),
+    status: text('status', {
+      enum: [...CITY_WAITLIST_LAUNCH_STATUSES],
+    })
+      .notNull()
+      .default('pending'),
+    cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+    completedAt: integer('completed_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => ({
+    eventUnique: uniqueIndex('city_waitlist_launch_event_unique').on(t.eventId),
+    pendingIdx: index('city_waitlist_launch_pending_index')
+      .on(t.createdAt)
+      .where(sql`status = 'pending'`),
+  }),
+);
+
+export type CityWaitlistLaunchRow = typeof cityWaitlistLaunches.$inferSelect;
+export type NewCityWaitlistLaunch = typeof cityWaitlistLaunches.$inferInsert;
+
+/**
+ * The outbox of a notice round: one row per waiting entry, claimed and sent one at a time.
+ *
+ * An entry holds at most one live or delivered notice across every round, so a person waiting for
+ * a city is told once even when two meetups are published a minute apart. A notice that failed for
+ * good, or whose meetup was cancelled first, frees the entry for the next meetup, and a round never
+ * retries an entry it already gave up on.
+ */
+export const cityWaitlistNotifications = sqliteTable(
+  'city_waitlist_notifications',
+  {
+    id: text('id').primaryKey(),
+    launchId: text('launch_id')
+      .notNull()
+      .references(() => cityWaitlistLaunches.id, { onDelete: 'cascade' }),
+    waitlistId: text('waitlist_id')
+      .notNull()
+      .references(() => cityWaitlist.id, { onDelete: 'cascade' }),
+    status: text('status', {
+      enum: [...CITY_WAITLIST_NOTIFICATION_STATUSES],
+    })
+      .notNull()
+      .default('pending'),
+    attempts: integer('attempts').notNull().default(0),
+    lastError: text('last_error'),
+    nextAttemptAt: integer('next_attempt_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    claimedAt: integer('claimed_at', { mode: 'timestamp' }),
+    dispatchStartedAt: integer('dispatch_started_at', { mode: 'timestamp' }),
+    sentAt: integer('sent_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => ({
+    liveUnique: uniqueIndex('city_waitlist_notification_live_unique')
+      .on(t.waitlistId)
+      .where(sql`status IN ('pending', 'processing', 'sent')`),
+    roundUnique: uniqueIndex('city_waitlist_notification_round_unique').on(
+      t.launchId,
+      t.waitlistId,
+    ),
+    dueIdx: index('city_waitlist_notification_due_index').on(
+      t.launchId,
+      t.status,
+      t.nextAttemptAt,
+    ),
+    claimedIdx: index('city_waitlist_notification_claimed_index')
+      .on(t.launchId, t.claimedAt)
+      .where(sql`status = 'processing'`),
+  }),
+);
+
+export type CityWaitlistNotificationRow =
+  typeof cityWaitlistNotifications.$inferSelect;
+export type NewCityWaitlistNotification =
+  typeof cityWaitlistNotifications.$inferInsert;
 
 export const profileAssets = sqliteTable(
   'profile_assets',

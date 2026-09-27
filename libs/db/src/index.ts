@@ -18,6 +18,8 @@ export * from './rsvps.js';
 export * from './telegram-groups.js';
 export * from './telegram-invites.js';
 export * from './waitlist.js';
+export * from './waitlist-launch.js';
+export * from './waitlist-notifications.js';
 export * from './notification-claim.js';
 export * from './operations-attendance.js';
 export * from './operations-attention.js';

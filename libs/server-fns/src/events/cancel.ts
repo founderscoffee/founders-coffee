@@ -1,5 +1,6 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
 import {
+  cancelCityWaitlistLaunch,
   cancelNotificationsByEvent,
   getEvent,
   transitionEventStatus,
@@ -29,6 +30,10 @@ import { announceTelegramCancellation } from '../telegram/notices.js';
  * 3. The notices go out, and then the meetup's Telegram group is told, if it has one: the bot
  *    posts the cancellation, rewrites the pin and leaves. Queued before the withdrawal, that post
  *    would have been withdrawn along with the group's own reminder.
+ *
+ * Before any of that reaches a member, the meetup's city waitlist round is closed, in its own
+ * try so it cannot cost the notices: nobody waiting for the city is told about a meetup that is off,
+ * and whoever it had not reached yet stays owed the next one.
  *
  * A failure to notify does not roll the cancellation back — the meetup really is off, and leaving
  * it published to preserve an all-or-nothing story would put people in a café for an event the host
@@ -92,6 +97,15 @@ export const cancelEventResolver = async (
     marketCode: event.marketCode,
     hasReason: Boolean(reason),
   });
+
+  try {
+    await cancelCityWaitlistLaunch(db, opts.eventId);
+  } catch (error) {
+    reportError(error, {
+      operation: 'cancel_event_waitlist_launch',
+      eventId: event.id,
+    });
+  }
 
   let notified = 0;
   try {

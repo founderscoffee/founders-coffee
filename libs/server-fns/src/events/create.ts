@@ -10,6 +10,7 @@ import {
 import type { MapProvider } from '../maps/provider.js';
 import { scheduleEventCloseoutPrompt } from './closeout-intent.js';
 import { createEventResolver } from './resolver.js';
+import { scheduleCityWaitlistLaunch } from './waitlist-launch.js';
 
 export const EVENTS_CREATED_METRIC = 'events_created';
 
@@ -118,5 +119,6 @@ export const createEventWithTelemetry = async (
   });
   recordEventCreated(metrics, resolved);
   await scheduleEventCloseoutPrompt(db, result.data);
+  await scheduleCityWaitlistLaunch(db, result.data);
   return result;
 };

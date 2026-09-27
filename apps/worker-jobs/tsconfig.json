@@ -18,6 +18,9 @@
   },
   "references": [
     {
+      "path": "../../libs/i18n"
+    },
+    {
       "path": "../../libs/domain"
     },
     {
@@ -30,9 +33,6 @@
       "path": "../../libs/email"
     },
     {
-      "path": "../../libs/core"
-    },
-    {
       "path": "../../libs/observability"
     },
     {
@@ -40,6 +40,9 @@
     },
     {
       "path": "../../libs/infra"
+    },
+    {
+      "path": "../../libs/core"
     }
   ]
 }

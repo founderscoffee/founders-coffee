@@ -21,6 +21,11 @@
   "send_email": [
     { "name": "EMAIL", "allowed_destination_addresses": ["ok@example.com"] },
   ],
+  "queues": {
+    "producers": [
+      { "binding": "NOTIFICATIONS", "queue": "founders-coffee-notifications" },
+    ],
+  },
   "analytics_engine_datasets": [
     { "binding": "ANALYTICS", "dataset": "founders-coffee-metrics" },
   ],

@@ -10,5 +10,10 @@
     "**/*.fixtures.ts",
     "vitest.config.ts",
     "**/setup.ts"
+  ],
+  "references": [
+    {
+      "path": "../core/tsconfig.lib.json"
+    }
   ]
 }

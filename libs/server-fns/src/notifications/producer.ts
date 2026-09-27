@@ -41,7 +41,11 @@ export interface NotificationPayload {
   capacity?: number;
 }
 
-const dateFor = (
+/**
+ * The meetup's start as every notification writes it: the weekday, the date and, when asked, the
+ * time, in the reader's language and the market's time zone.
+ */
+export const dateFor = (
   startsAt: string,
   context: NotificationContext,
   withTime: boolean,

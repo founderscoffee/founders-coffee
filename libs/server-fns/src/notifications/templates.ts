@@ -48,7 +48,10 @@ export interface TemplateValues {
   readonly calendar?: CalendarLinks;
 }
 
-const escapeHtml = (value: string): string =>
+/**
+ * Escape one value for an HTML template: the five characters that can open markup or end an attribute.
+ */
+export const escapeHtml = (value: string): string =>
   value.replace(/[&<>"']/g, (character) => {
     if (character === '&') return '&amp;';
     if (character === '<') return '&lt;';

@@ -85,6 +85,30 @@ export const NOTIFICATION_STATUSES = [
 export type NotificationStatus = (typeof NOTIFICATION_STATUSES)[number];
 export const notificationStatusSchema = z.enum(NOTIFICATION_STATUSES);
 
+export const CITY_WAITLIST_LAUNCH_STATUSES = [
+  'pending',
+  'completed',
+  'cancelled',
+] as const;
+export type CityWaitlistLaunchStatus =
+  (typeof CITY_WAITLIST_LAUNCH_STATUSES)[number];
+export const cityWaitlistLaunchStatusSchema = z.enum(
+  CITY_WAITLIST_LAUNCH_STATUSES,
+);
+
+export const CITY_WAITLIST_NOTIFICATION_STATUSES = [
+  'pending',
+  'processing',
+  'sent',
+  'failed',
+  'cancelled',
+] as const;
+export type CityWaitlistNotificationStatus =
+  (typeof CITY_WAITLIST_NOTIFICATION_STATUSES)[number];
+export const cityWaitlistNotificationStatusSchema = z.enum(
+  CITY_WAITLIST_NOTIFICATION_STATUSES,
+);
+
 export const TELEGRAM_GROUP_POST_KEYS = [
   'telegram_details',
   'telegram_reminder',

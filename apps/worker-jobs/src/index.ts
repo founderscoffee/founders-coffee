@@ -1,5 +1,10 @@
 import '@founders-coffee/observability/server-init';
-import { AppError, err, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  type AppQueueMessage,
+  type Result,
+} from '@founders-coffee/core';
 import type { AiRuntime, VectorizeRuntime } from '@founders-coffee/core/ai';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { createDb } from '@founders-coffee/db';
@@ -16,22 +21,25 @@ import {
 
 import type { Env } from './env.js';
 import { processEmbeddings } from './jobs/embeddings.js';
-import type {
-  EmbeddingsMessage,
-  NotificationDueMessage,
-} from './jobs/messages.js';
+import type { EmbeddingsMessage } from './jobs/messages.js';
 import { processNotificationDue } from './jobs/notifications.js';
 import { sweepProfileAssets } from './jobs/profile-asset-sweep.js';
 import { backfillCloseoutPrompts } from './jobs/closeout-prompt-backfill.js';
 import { backfillDidNotHappenNotices } from './jobs/did-not-happen-backfill.js';
 import { runReconcile } from './jobs/reconcile.js';
 import { sweepNotifications } from './jobs/notification-sweep.js';
+import {
+  processWaitlistLaunch,
+  sweepExpiredWaitlistEntries,
+  sweepWaitlistLaunches,
+  type WaitlistLaunchDeps,
+} from './jobs/waitlist-launch.js';
 
 export { NotificationScheduleDO } from './jobs/notification-schedule-do.js';
 
 const RECOVERY_SWEEP_CRON = '*/15 * * * *';
 
-type JobMessage = EmbeddingsMessage | NotificationDueMessage;
+type JobMessage = EmbeddingsMessage | AppQueueMessage;
 
 const createSmsProvider = (env: Env): NotificationSmsProvider => {
   if (env.TWILIO_AID && env.TWILIO_SEC && env.TWILIO_SMS_FROM) {
@@ -66,6 +74,22 @@ const createTelegramProvider = (env: Env): TelegramBotProvider | null => {
 };
 
 /**
+ * What waitlist delivery needs: the email provider, and the queue to hand a round back to for its
+ * next pass. Without a queue binding the recovery sweep carries rounds on instead.
+ */
+const waitlistDeps = (env: Env): WaitlistLaunchDeps => {
+  const email = createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM);
+  const queue = env.NOTIFICATIONS;
+  if (!queue) return { email };
+  return {
+    email,
+    requeue: async (message, delaySeconds) => {
+      await queue.send(message, { delaySeconds });
+    },
+  };
+};
+
+/**
  * Route one queue message to its consumer. Returns `Result` — the handler acks on ok, retries on err.
  *
  * The queue name arrives with its environment appended, because each environment has its own queues,
@@ -89,7 +113,10 @@ const dispatch = async (
   const db = createDb(env.DB);
 
   if (kind === 'notifications') {
-    return processNotificationDue(db, body as NotificationDueMessage, {
+    const message = body as AppQueueMessage;
+    if (message.kind === 'waitlist_launch_due')
+      return processWaitlistLaunch(db, message, waitlistDeps(env));
+    return processNotificationDue(db, message, {
       email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
       sms: createSmsProvider(env),
       push: createPushProvider(env),
@@ -121,6 +148,9 @@ export default {
    * the latency of the normal path, which is now seconds rather than the up-to-a-minute the old
    * one-minute cron gave. The constant is only a name for the schedule; `triggers.crons` in
    * `wrangler.jsonc` is what Cloudflare actually runs, and the two must agree.
+   *
+   * The daily run ends with the waitlist retention sweep, the one D1 scan AGENTS.md §11.5 allows for
+   * retention (#106), bounded and read through an index.
    */
   scheduled: async (controller: ScheduledController, env: Env) => {
     const db = createDb(env.DB);
@@ -132,6 +162,7 @@ export default {
         push: createPushProvider(env),
         telegram: createTelegramProvider(env),
       });
+      await sweepWaitlistLaunches(db, waitlistDeps(env));
     }
 
     if (controller.cron === '0 3 * * *') {
@@ -140,6 +171,7 @@ export default {
       await backfillDidNotHappenNotices(db);
       if (env.PROFILE_ASSETS)
         await sweepProfileAssets(db, new R2PhotoStore(env.PROFILE_ASSETS));
+      await sweepExpiredWaitlistEntries(db);
     }
   },
 

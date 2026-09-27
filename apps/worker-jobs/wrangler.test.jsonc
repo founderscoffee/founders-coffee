@@ -6,6 +6,7 @@
   "observability": { "enabled": true },
   "vars": {
     "MAIL_FROM": "no-reply@founders.coffee",
+    "APP_URL": "http://localhost:3000",
   },
   "d1_databases": [
     { "binding": "DB", "database_name": "db", "database_id": "test" },

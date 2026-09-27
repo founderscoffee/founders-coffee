@@ -38,6 +38,11 @@
       "@founders-coffee/source": "./src/notifications/did-not-happen.ts",
       "types": "./src/notifications/did-not-happen.ts",
       "default": "./src/notifications/did-not-happen.ts"
+    },
+    "./waitlist-launch": {
+      "@founders-coffee/source": "./src/notifications/waitlist-launch-email.ts",
+      "types": "./src/notifications/waitlist-launch-email.ts",
+      "default": "./src/notifications/waitlist-launch-email.ts"
     }
   },
   "dependencies": {

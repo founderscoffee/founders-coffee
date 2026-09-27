@@ -146,9 +146,34 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-020 | Partial  | Installable PWA                                                      | Manifest/service worker exist; offline, prerender, Lighthouse, and PWA Builder verification remain                                                                                                                                                                                                                                                                                                                                                       |
 | P1-021 | Partial  | End-to-end tests                                                     | EC-09/10 recorded 18/18 locally and on staging across ar/fr/en at 390/768/1280 on 2026-09-03; the authorized production creation smoke was verified on 2026-09-10. CO-11 remains, and E2E stays outside CI.                                                                                                                                                                                                                                              |
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
-| P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
+| P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Issue #107 adds the city waitlist launch outbox and localized email path; staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                       |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
 | P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0: migration 0036, the webhook, the queued posts, pins and removals, the host's panel, the member's card, and the privacy policy's Telegram section (reviewed 2026-09-26, dated 18 September). On in production since v0.15.0 (`@FoundersCoffeeBot`). Remaining: the [evidence run](#telegram-groups-p1-025) with a real group, on production by decision of 2026-09-26, including whether a basic group takes join-request links    |
+
+### City waitlist notice (#107)
+
+Every published meetup opens a notice round for its market and city while somebody there is still
+waiting, in one conditional insert, so a meetup nobody waits for writes nothing. Rounds are per
+meetup rather than per city because the waitlist form comes back whenever a city has no upcoming
+meetup, and whoever joins then is owed the next one. Each entry receives one notice: a partial unique
+index allows a single pending, in-flight or sent notice per entry, and a notice that fails for good,
+or whose meetup is cancelled first, leaves the entry for the next meetup.
+
+The Notifications Queue worker writes a round's notices in chunks under D1's 100-parameter limit,
+claims them in batches of 50, and hands the round back to the queue at once for the next batch or
+after the one- and five-minute back-offs. A notice that may have reached the provider is never
+resent. The message is rendered once per language through the shared notification email helpers
+(market time zone, canonical event URL, French city articles). A meetup cancelled or started before
+its notice goes out withdraws the round, and the fifteen-minute recovery sweep carries any round
+whose message never arrived.
+
+Retention runs in the daily cron: entries notified more than twelve months ago are deleted through
+the partial index on `notified_at`, the narrow indexed sweep AGENTS.md §11.5 allows since #106 was
+decided on 2026-09-27. The migration is `0037_city_waitlist_launches.sql`; Miniflare coverage lives
+in `libs/db/src/waitlist-*.test.ts`, `libs/server-fns/src/events/waitlist-launch.test.ts` and
+`apps/worker-jobs/src/jobs/waitlist-launch*.test.ts`. Deploy `worker-jobs` before `ui`, so the
+consumer knows `waitlist_launch_due` before the first one is sent; the recovery sweep delivers any
+round either way.
 
 ### Public profile (P1-004)
 
