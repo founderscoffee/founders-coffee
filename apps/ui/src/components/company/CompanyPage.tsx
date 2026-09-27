@@ -14,6 +14,7 @@ import {
   footer_terms,
   page_last_updated,
   page_on_this_page,
+  page_related,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -165,7 +166,7 @@ export const CompanyPage = ({
 
       {related.length > 0 ? (
         <nav
-          aria-label="Related"
+          aria-label={page_related({}, { locale })}
           className="mt-14 flex flex-wrap gap-x-5 gap-y-2 border-t border-base-300 pt-6 text-body-sm text-neutral"
         >
           {RELATED_LINKS.filter((item) => related.includes(item.key)).map(

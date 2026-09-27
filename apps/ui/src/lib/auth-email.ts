@@ -4,8 +4,8 @@ import type {
   OtpType,
 } from '@founders-coffee/auth';
 import {
-  createCloudflareEmailProvider,
   renderEmail,
+  type EmailProvider as MailProvider,
 } from '@founders-coffee/email';
 import { OtpEmail } from '@founders-coffee/email/templates';
 import {
@@ -39,7 +39,7 @@ const subjectFor = (type: OtpType, locale: Locale): string => {
 
 /**
  * Adapter: Better Auth's email-OTP plugin calls `sendOtp({email, otp, type})`; this renders a
- * OtpEmail with the code + sends it via the real Cloudflare Email binding (D13). The two
+ * OtpEmail with the code and sends it through the email provider supplied by the server. The two
  * EmailProvider interfaces differ (auth's `sendOtp` vs email's structured `send → Result`), so the
  * bridge lives here, in the app. On send failure we log + throw, but Better Auth does not surface it:
  * `runInBackgroundOrAwait` catches the rejection and still answers 200, so this log line is the only
@@ -47,8 +47,7 @@ const subjectFor = (type: OtpType, locale: Locale): string => {
  * cookie and falls back to Arabic when no supported locale is present.
  */
 export const createOtpEmailProvider = (
-  emailBinding: SendEmail,
-  defaultFrom: string,
+  emailProvider: MailProvider,
   echoEnv: OtpEchoEnv = {},
 ): EmailProvider => ({
   sendOtp: async ({ email, otp, type }, context?: OtpRequestContext) => {
@@ -58,7 +57,6 @@ export const createOtpEmailProvider = (
         recipient: email.split('@')[0],
       });
     }
-    const provider = createCloudflareEmailProvider(emailBinding, defaultFrom);
     const { html, text } = await renderEmail(OtpEmail, {
       locale,
       preview: email_otp_preview({ code: otp }, { locale }),
@@ -67,7 +65,7 @@ export const createOtpEmailProvider = (
       code: otp,
       expiry: email_otp_expiry({}, { locale }),
     });
-    const result = await provider.send({
+    const result = await emailProvider.send({
       to: email,
       subject: subjectFor(type, locale),
       html,

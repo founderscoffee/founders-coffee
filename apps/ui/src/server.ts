@@ -3,6 +3,7 @@ import handler from '@tanstack/react-start/server-entry';
 
 import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
 import { createCspNonce, withSecurityHeaders } from '@founders-coffee/core';
+import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
 import {
   ingestClientLogs,
@@ -77,7 +78,10 @@ const authHandler = (env: UiEnv) => {
   const isDev = env.APP_URL.startsWith('http://localhost');
   const emailProvider =
     !isDev && env.EMAIL
-      ? createOtpEmailProvider(env.EMAIL, env.MAIL_FROM, env)
+      ? createOtpEmailProvider(
+          createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
+          env,
+        )
       : undefined;
   return createAuthHandler(env, emailProvider ? { emailProvider } : {});
 };

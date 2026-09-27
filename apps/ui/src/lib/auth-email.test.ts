@@ -1,5 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
+import { ok } from '@founders-coffee/core';
+import type { EmailProvider } from '@founders-coffee/email';
 import { cookieName } from '@founders-coffee/i18n';
 import {
   setLogger,
@@ -30,10 +32,19 @@ interface SentEmail {
   readonly text: string;
 }
 
-const sendEmail = vi.fn(async (message: SentEmail) => ({
-  messageId: message.subject,
-}));
-const binding = { send: sendEmail } as never;
+const sentEmails: SentEmail[] = [];
+const emailProvider: EmailProvider = {
+  name: 'test',
+  send: async (message) => {
+    sentEmails.push({
+      to: Array.isArray(message.to) ? message.to.join(',') : message.to,
+      subject: message.subject,
+      html: message.html,
+      text: message.text ?? '',
+    });
+    return ok({ messageId: message.subject });
+  },
+};
 
 const send = async (
   email: string,
@@ -45,11 +56,7 @@ const send = async (
     | 'forget-password'
     | 'change-email' = 'sign-in',
 ) => {
-  const provider = createOtpEmailProvider(
-    binding,
-    'no-reply@founders.coffee',
-    env,
-  );
+  const provider = createOtpEmailProvider(emailProvider, env);
   const context = localeCookie
     ? { headers: new Headers({ cookie: `${cookieName}=${localeCookie}` }) }
     : undefined;
@@ -59,7 +66,7 @@ const send = async (
 };
 
 const latestEmail = (): SentEmail => {
-  const message = sendEmail.mock.lastCall?.[0];
+  const message = sentEmails.at(-1);
   if (!message) throw new Error('Expected an email to be sent');
   return message;
 };
@@ -74,7 +81,7 @@ const readCode = (email: string): string | null => {
 describe('sign-in code echo', () => {
   afterEach(() => {
     lines.length = 0;
-    sendEmail.mockClear();
+    sentEmails.length = 0;
   });
 
   it('writes a line the release gate can read back', async () => {

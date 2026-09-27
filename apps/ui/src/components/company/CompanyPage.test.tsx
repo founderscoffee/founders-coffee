@@ -1,6 +1,8 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { Locale } from '@founders-coffee/i18n';
+
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
@@ -20,9 +22,24 @@ const page = (
 const show = (content: CompanyPageContent) =>
   render(<CompanyPage locale="en" content={content} related={[]} />).container;
 
+const showRelated = (locale: Locale) =>
+  render(
+    <CompanyPage locale={locale} content={page([])} related={['privacy']} />,
+  ).container;
+
 afterEach(cleanup);
 
 describe('where a company section can be linked to', () => {
+  it.each([
+    ['ar', 'روابط ذات صلة'],
+    ['en', 'Related links'],
+    ['fr', 'Liens associés'],
+  ] as const)('labels related links in %s', (locale, label) => {
+    expect(
+      showRelated(locale).querySelector('nav')?.getAttribute('aria-label'),
+    ).toBe(label);
+  });
+
   it('uses the anchor a section declares', () => {
     const container = show(
       page([
