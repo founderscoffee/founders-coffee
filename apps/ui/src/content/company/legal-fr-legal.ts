@@ -8,7 +8,7 @@ export const legalFrench: CompanyPageContent = translatedPage(
   [
     section('Qui exploite la plateforme', [
       ...text(
-        'Founders Coffee est actuellement un **pilote gratuit** destiné à tester le marché. Aucune société n’a été constituée et rien n’est vendu. La plateforme est exploitée par une personne physique en son nom personnel :',
+        'Founders Coffee est aujourd’hui une **version pilote gratuite** en phase de test du marché. Aucune société n’a été constituée derrière elle, et rien n’y est vendu. Elle est exploitée par une personne physique en son nom personnel, dont voici les coordonnées :',
       ),
       table(
         ['Élément', 'Information'],
@@ -16,15 +16,15 @@ export const legalFrench: CompanyPageContent = translatedPage(
           ['Exploitant', '**Amine Yagoub**'],
           [
             'Statut',
-            'Personne physique ; aucune société constituée à la dernière mise à jour',
+            'Personne physique (aucune entité juridique constituée à la date de dernière mise à jour de cette page)',
           ],
           [
             'Adresse postale',
             'Communiquée sur demande à l’adresse e-mail ci-dessous',
           ],
           [
-            'Registre de commerce',
-            'Non applicable : aucun registre commercial et aucune transaction payante',
+            'Registre du commerce',
+            'Non applicable : aucune immatriculation commerciale, et aucune transaction payante n’a lieu sur la plateforme',
           ],
           [
             'Numéro d’identification fiscale (NIF)',
@@ -34,25 +34,22 @@ export const legalFrench: CompanyPageContent = translatedPage(
             'Numéro d’identification statistique (NIS)',
             'Non applicable pour la même raison',
           ],
-          ['Éditeur', 'L’exploitant'],
+          ['Directeur de la publication', 'L’exploitant lui-même'],
         ],
       ),
       ...text(
-        'Vous avez le droit de savoir avec qui vous contractez en créant un compte. Les obligations des [Conditions d’utilisation](/terms) et de la [Politique de confidentialité](/privacy) restent celles de l’exploitant.',
+        'Nous le précisons délibérément, et non après coup : vous avez le droit de savoir avec qui vous contractez lorsque vous créez un compte. Nos obligations envers vous au titre des [Conditions d’utilisation](/terms) et de la [Politique de confidentialité](/privacy) restent entières, et l’exploitant les assume personnellement.',
       ),
     ]),
     section('Si une société est créée plus tard', [
       ...text(
-        'Si le pilote réussit, nous constituerons la société qui exploitera la plateforme et ses espaces Founders Coffee. Alors :',
+        'Si le pilote réussit, nous constituerons l’entité juridique qui exploitera la plateforme et ouvrira des espaces Founders Coffee. À ce moment-là :',
       ),
       list([
         'cette page sera mise à jour avec les informations complètes de la société ;',
-        'la relation contractuelle existante lui sera transférée selon la section 16 des [Conditions d’utilisation](/terms) ;',
-        'les informations du responsable du traitement de la [Politique de confidentialité](/privacy) changeront.',
+        'la relation contractuelle entre vous et l’exploitant sera transférée à la société, conformément à la section 15 des [Conditions d’utilisation](/terms) ;',
+        'la désignation du **responsable du traitement** dans la [Politique de confidentialité](/privacy) changera en conséquence, et nous vous en informerons avant sa prise d’effet, car il s’agit d’un changement substantiel de l’identité de la personne qui détient vos données.',
       ]),
-      ...text(
-        'Nous vous préviendrons avant l’entrée en vigueur du changement, car il modifie l’identité qui détient vos données.',
-      ),
     ]),
     section('Contact', [
       table(
@@ -60,11 +57,11 @@ export const legalFrench: CompanyPageContent = translatedPage(
         [
           ['Questions générales et assistance', '**contact@founders.coffee**'],
           [
-            'Demandes de confidentialité et droits',
+            'Demandes relatives à la confidentialité et exercice des droits',
             '**contact@founders.coffee**',
           ],
           [
-            'Signalements de contenu et modération',
+            'Signalements de contenus et de violations',
             '**contact@founders.coffee**',
           ],
         ],
@@ -73,19 +70,23 @@ export const legalFrench: CompanyPageContent = translatedPage(
     section(
       'Protection des données personnelles',
       text(
-        'Le responsable du traitement est la personne physique indiquée ci-dessus, et non une société. La loi 18-07 s’applique aussi à un responsable personne physique. Pour demander l’accès, la correction, l’opposition ou la suppression, écrivez à **contact@founders.coffee**. Les données sont traitées sur une infrastructure située hors d’Algérie ; la [Politique de confidentialité](/privacy) en explique le fondement et les détails.',
+        'Le responsable du traitement de vos données est l’exploitant indiqué ci-dessus, en son nom personnel, et non une société. L’absence de société ne retire rien à ses obligations au titre de la loi n° 18-07 : la définition légale du responsable du traitement couvre la personne physique comme la personne morale.',
+        'Pour tout ce qui concerne vos données personnelles, et pour exercer vos droits d’accès, de rectification, d’opposition et de suppression : **contact@founders.coffee**.',
+        'Vos données sont traitées sur une infrastructure technique située hors d’Algérie. Le détail, et le fondement juridique sur lequel nous nous appuyons, figurent dans la [Politique de confidentialité](/privacy).',
       ),
     ),
     section(
       'Hébergement technique',
       text(
-        'La plateforme et ses données sont hébergées sur une infrastructure cloud distribuée opérée par des prestataires situés hors d’Algérie. La [Politique de confidentialité](/privacy) décrit chaque catégorie de prestataire, les données reçues et les garanties appliquées.',
+        'La plateforme est hébergée, et ses données traitées, sur une infrastructure cloud distribuée exploitée par des prestataires situés hors d’Algérie. La Politique de confidentialité décrit le rôle de chaque catégorie de prestataires et les données qu’elle reçoit.',
+        'Ce que cela implique pour la protection des données, et le fondement juridique sur lequel nous nous appuyons, est exposé dans la [Politique de confidentialité](/privacy).',
       ),
     ),
     section(
       'Propriété intellectuelle',
       text(
-        'Le nom « Founders Coffee », le logo, le design et le logiciel de la plateforme sont protégés par l’ordonnance 03-05 relative aux droits d’auteur et droits voisins et ne peuvent être utilisés sans autorisation écrite préalable. Les textes et images des membres restent les leurs selon les [Conditions d’utilisation](/terms).',
+        'Le nom « Founders Coffee », son logo, ainsi que le design et le logiciel de la plateforme sont protégés par l’ordonnance n° 03-05 relative aux droits d’auteur et aux droits voisins, et ne peuvent être utilisés sans autorisation écrite préalable.',
+        'Les textes et images publiés par les membres restent la propriété de leurs auteurs, comme le prévoient les [Conditions d’utilisation](/terms).',
       ),
     ),
   ],

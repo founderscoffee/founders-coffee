@@ -102,6 +102,52 @@ describe('company pages', () => {
     }
   });
 
+  it('cites the Terms clause that moves the agreement to a company', () => {
+    const companyClause: Record<Locale, string> = {
+      ar: 'إن تأسّست الشركة',
+      en: 'If a company is incorporated',
+      fr: 'Si une société est créée',
+    };
+    const citation: Record<Locale, RegExp> = {
+      ar: /البند (\d+) من/u,
+      en: /section (\d+) of/u,
+      fr: /section (\d+) des/u,
+    };
+
+    for (const locale of LOCALES) {
+      const cited = allText('legal', locale)
+        .join(' ')
+        .match(citation[locale])?.[1];
+      const clause = companyPageContent('terms', locale).sections[
+        Number(cited) - 1
+      ];
+
+      expect(
+        clause?.heading,
+        `legal:${locale} sends readers to Terms clause ${cited ?? '(none)'}, which the Terms number from 1 in their table of contents`,
+      ).toBe(companyClause[locale]);
+    }
+  });
+
+  it('ends every list item of a legal document where its sentence ends', () => {
+    for (const key of LEGAL_PAGE_KEYS) {
+      for (const locale of LOCALES) {
+        const items = companyPageContent(key, locale).sections.flatMap(
+          (section) =>
+            section.blocks.flatMap((block) =>
+              block.kind === 'list' ? [...block.items] : [],
+            ),
+        );
+        for (const item of items) {
+          expect(
+            item,
+            `${key}:${locale} has a bullet that stops mid-sentence, so the rest of its sentence is rendered as a separate paragraph`,
+          ).toMatch(/[.;:؛]\**$/u);
+        }
+      }
+    }
+  });
+
   it('keeps critical legal facts present in every translation', () => {
     for (const key of LEGAL_PAGE_KEYS) {
       const facts = criticalLegalFacts[key] ?? [];
