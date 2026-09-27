@@ -82,6 +82,13 @@ describe('geo lookups', () => {
     expect(results.some((r) => r.city.code === ALGIERS.code)).toBe(true);
   });
 
+  it('writes a Saudi city with its hamza, and finds it spelled that way', () => {
+    expect(findCity('SA', '15')?.nameAr, 'Abha was written ابها').toBe('أبها');
+    expect(
+      searchLocations('SA', 'أبها').some((result) => result.city.code === '15'),
+    ).toBe(true);
+  });
+
   it('names the capital apart from the country and the wilaya that share its word', () => {
     const city = findCity('DZ', ALGIERS.code);
     const wilaya = findState('DZ', ALGIERS.stateCode);

@@ -157,7 +157,7 @@ export const SA_CITIES: readonly GeoCity[] = [
   {
     code: '15',
     name: 'Abha',
-    nameAr: 'ابها',
+    nameAr: 'أبها',
     slug: 'abha',
     stateCode: '6',
     featured: true,
