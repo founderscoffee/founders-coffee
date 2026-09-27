@@ -172,7 +172,10 @@ export const Route = createRootRoute({
       scripts: [
         { children: authSlotScript() },
         ...(pageHead?.scripts ?? [
-          { type: 'application/ld+json', children: organizationJsonLd() },
+          {
+            type: 'application/ld+json',
+            children: organizationJsonLd(locale),
+          },
         ]),
       ],
     };

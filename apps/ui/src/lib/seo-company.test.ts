@@ -39,12 +39,26 @@ const metaValue = (
 
 describe('organization structured data', () => {
   it('omits empty authority signals', () => {
-    const organization = JSON.parse(organizationJsonLd()) as Record<
+    const organization = JSON.parse(organizationJsonLd('en')) as Record<
       string,
       unknown
     >;
 
     expect(organization).not.toHaveProperty('sameAs');
+  });
+
+  it('describes the organization in the language of the page it is on', () => {
+    const description = (locale: 'ar' | 'fr' | 'en') =>
+      (JSON.parse(organizationJsonLd(locale)) as { description: string })
+        .description;
+
+    expect(description('ar')).toContain('رواد الأعمال');
+    expect(description('fr')).toContain('entrepreneurs');
+    expect(
+      description('en'),
+      'every locale carried the same English sentence',
+    ).toContain('entrepreneur');
+    expect(new Set([description('ar'), description('fr')]).size).toBe(2);
   });
 });
 

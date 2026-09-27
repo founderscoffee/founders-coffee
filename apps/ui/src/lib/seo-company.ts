@@ -1,4 +1,4 @@
-import { LOCALES, type Locale } from '@founders-coffee/i18n';
+import { LOCALES, llms_description, type Locale } from '@founders-coffee/i18n';
 
 import { CONTACT_EMAIL, type CompanyPageContent } from '../content/company';
 
@@ -11,7 +11,7 @@ import {
   type CanonicalRoute,
 } from './seo';
 
-export const organizationJsonLd = () =>
+export const organizationJsonLd = (locale: Locale) =>
   JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -19,7 +19,7 @@ export const organizationJsonLd = () =>
     url: getSiteOrigin(),
     logo: `${getSiteOrigin()}/android-chrome-512x512.png`,
     email: CONTACT_EMAIL,
-    description: 'Local founder communities that meet over coffee.',
+    description: llms_description({}, { locale }),
     contactPoint: [
       {
         '@type': 'ContactPoint',
