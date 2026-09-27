@@ -31,3 +31,31 @@ export const calloutFitsBelow = (
   calloutHeight: number,
 ): boolean =>
   pinY + CALLOUT_GAP + calloutHeight + CALLOUT_EDGE_PADDING <= mapHeight;
+
+/**
+ * How far the venue card slides sideways from being centred on the pin, so that none of it
+ * leaves the map.
+ *
+ * Centred on a pin near either side of the map, the card runs off it and loses the start of the
+ * venue's name and of the hint. It slides back in until it clears that side by the edge padding,
+ * but never so far that the pin's tip ends up more than that padding beyond the card's side. So
+ * while the tip is on the map the whole card is too, and a pin panned off the map takes its card
+ * along instead of stranding it at the edge. Positions are physical pixels from the map's left
+ * edge, as Mapbox projects them, so a right-to-left page needs nothing different.
+ */
+export const calloutShift = (
+  pinX: number,
+  mapWidth: number,
+  calloutWidth: number,
+): number => {
+  const centred = pinX - calloutWidth / 2;
+  const onMap = Math.min(
+    Math.max(centred, CALLOUT_EDGE_PADDING),
+    mapWidth - CALLOUT_EDGE_PADDING - calloutWidth,
+  );
+  const byPin = Math.min(
+    Math.max(onMap, pinX - calloutWidth - CALLOUT_EDGE_PADDING),
+    pinX + CALLOUT_EDGE_PADDING,
+  );
+  return byPin - centred;
+};
