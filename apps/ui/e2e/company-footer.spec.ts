@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { COMPANY_PAGES } from '../src/content/company/pages';
+
 const companyPaths = [
   { path: '/about', heading: /about|من نحن|عن|à propos/i },
   { path: '/contact', heading: /contact|تواصل/i },
@@ -11,13 +13,13 @@ const companyPaths = [
 test.describe('Company footer links', () => {
   test('footer links navigate to real company pages', async ({ page }) => {
     await page.goto('/');
+    const locale = await page.locator('html').getAttribute('lang');
     const footer = page.getByRole('contentinfo');
     await expect(footer).toBeVisible();
 
-    for (const { path } of companyPaths) {
-      const link = footer.locator(`a[href="${path}"]:visible`);
+    for (const key of Object.keys(COMPANY_PAGES)) {
+      const link = footer.locator(`a[href="/${locale}/${key}"]:visible`);
       await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute('href', path);
     }
   });
 
