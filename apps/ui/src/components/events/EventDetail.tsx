@@ -22,7 +22,7 @@ import {
   share_event_action,
   type Locale,
 } from '@founders-coffee/i18n';
-import { StatusMessage } from '@founders-coffee/ui';
+import { IsolatedValue, StatusMessage } from '@founders-coffee/ui';
 import type { Market } from '@founders-coffee/db';
 import type {
   EventDetailItem,
@@ -127,10 +127,10 @@ export const EventDetail = ({
           </p>
           {event.cancellationReason ? (
             <p className="mt-2 text-base-content">
-              {ntf_cancel_reason(
-                { reason: event.cancellationReason },
-                { locale },
-              )}
+              <IsolatedValue
+                value={event.cancellationReason}
+                message={(reason) => ntf_cancel_reason({ reason }, { locale })}
+              />
             </p>
           ) : null}
         </StatusMessage>
@@ -143,11 +143,17 @@ export const EventDetail = ({
             <span dir="auto">{cityName}</span>
           </span>
         </div>
-        <h1 className="mt-4 max-w-3xl font-display text-h1 font-semibold text-balance">
+        <h1
+          dir="auto"
+          className="mt-4 max-w-3xl font-display text-h1 font-semibold text-balance"
+        >
           {event.title}
         </h1>
         {event.description ? (
-          <p className="mt-4 max-w-3xl whitespace-pre-line text-body-lg leading-relaxed text-neutral">
+          <p
+            dir="auto"
+            className="mt-4 max-w-3xl whitespace-pre-line text-body-lg leading-relaxed text-neutral"
+          >
             {event.description}
           </p>
         ) : null}
@@ -246,7 +252,7 @@ export const EventDetail = ({
               </span>
               <span className="min-w-0 flex-1">
                 {host ? (
-                  <span className="block font-display font-semibold">
+                  <span className="block font-display font-semibold" dir="auto">
                     {host.displayName}
                   </span>
                 ) : null}

@@ -7,6 +7,7 @@ import {
   keep_seat,
   type Locale,
 } from '@founders-coffee/i18n';
+import { IsolatedValue } from '@founders-coffee/ui';
 
 type RsvpCancelDialogProps = {
   isOpen: boolean;
@@ -47,7 +48,10 @@ export const RsvpCancelDialog = ({
           {cancel_title({}, { locale })}
         </h2>
         <p className="mt-2 text-body-sm leading-relaxed text-neutral">
-          {cancel_body({ host: hostName }, { locale })}
+          <IsolatedValue
+            value={hostName}
+            message={(host) => cancel_body({ host }, { locale })}
+          />
         </p>
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
