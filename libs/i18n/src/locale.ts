@@ -3,7 +3,6 @@ import {
   LOCALES,
   localeSchema,
   localizedName,
-  matchesLocalizedName,
   type Locale,
   type LocalizedNames,
 } from '@founders-coffee/core';
@@ -15,7 +14,6 @@ export {
   LOCALES,
   localeSchema,
   localizedName,
-  matchesLocalizedName,
   type Locale,
   type LocalizedNames,
 };

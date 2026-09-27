@@ -89,6 +89,29 @@ describe('geo lookups', () => {
     ).toBe(true);
   });
 
+  it('finds a place typed the way Arabic is typed, without the hamza its name is written with', () => {
+    const finds = (country: string, query: string, cityCode: string) =>
+      searchLocations(country, query).some(
+        (result) => result.city.code === cityCode,
+      );
+
+    expect(finds('SA', 'ابها', '15'), 'Abha is written أبها').toBe(true);
+    expect(finds('SA', 'ابو طاقة', '193'), 'written أبو طاقة').toBe(true);
+    expect(finds('DZ', 'الاغواط', '79'), 'written الأغواط').toBe(true);
+    expect(
+      finds('DZ', 'اث منصور', '352'),
+      'written آث  منصور, with a madda and two spaces',
+    ).toBe(true);
+    expect(
+      finds('DZ', 'ميزرانة', '535'),
+      'written ميزرانـــة, stretched with tatweel',
+    ).toBe(true);
+    expect(
+      finds('EG', 'مرسي مطروح', '348'),
+      'written مرسى مطروح, with an alef maqsura',
+    ).toBe(true);
+  });
+
   it('names the capital apart from the country and the wilaya that share its word', () => {
     const city = findCity('DZ', ALGIERS.code);
     const wilaya = findState('DZ', ALGIERS.stateCode);
