@@ -55,7 +55,7 @@ const SENTENCES: readonly {
     key: 'hero_waitlist_success',
     render: (city) => hero_waitlist_success(cityInputs(city), FR),
     expected: (at) =>
-      `Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre ${at}.`,
+      `Vous êtes sur la liste ! Nous vous préviendrons dès que la prochaine rencontre ${at} sera publiée.`,
   },
   {
     key: 'city_empty_title',

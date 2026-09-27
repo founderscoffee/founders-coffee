@@ -84,8 +84,8 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
       subheading('Listes d’attente de villes'),
       ...text(
-        'Si vous cherchez une ville sans rencontre pour l’instant, vous pouvez laisser votre e-mail pour être prévenu du lancement de sa première rencontre. Nous conservons l’e-mail, la ville, la langue et la date de la demande, sans exiger de compte.',
-        'Cet e-mail ne sert qu’à cela : une seule notification au lancement de la ville. Il n’est ajouté à aucune liste marketing et n’est utilisé pour rien d’autre que ce que vous avez demandé.',
+        'Si vous cherchez une ville sans rencontre à venir, vous pouvez laisser votre e-mail pour être prévenu de la publication de sa prochaine rencontre. Nous conservons l’e-mail, la ville, la langue et la date de la demande, sans exiger de compte.',
+        'Cet e-mail ne sert qu’à cela : une seule notification, à la publication de la prochaine rencontre de la ville. Il n’est ajouté à aucune liste marketing et n’est utilisé pour rien d’autre que ce que vous avez demandé.',
       ),
     ]),
     section('Base juridique du traitement', [
@@ -162,7 +162,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
           ],
           [
             'E-mail de liste d’attente',
-            'Jusqu’à la notification de lancement, puis **12 mois**, ou suppression immédiate sur demande',
+            'Jusqu’à l’envoi de la notification, puis **12 mois**, ou suppression immédiate sur demande',
           ],
           [
             'Messages et signalements de modération',

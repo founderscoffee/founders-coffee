@@ -83,8 +83,8 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
       subheading('City waitlists'),
       ...text(
-        'If you search for a city that has no gatherings yet, you can leave your email so we can tell you when its first gathering launches. We store the email, city, language, and request date, and do not require an account.',
-        'This email is used for that purpose only: one notice when the city launches. It is not added to a marketing list or used for anything you did not ask for.',
+        'If you search for a city that has no upcoming gatherings, you can leave your email so we can tell you when its next gathering is published. We store the email, city, language, and request date, and do not require an account.',
+        'This email is used for that purpose only: one notice when the city’s next gathering is published. It is not added to a marketing list or used for anything you did not ask for.',
       ),
     ]),
     section('Legal basis for processing', [
@@ -158,7 +158,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
           ],
           [
             'City waitlist email',
-            'Until the launch notice, then **12 months**, or immediately on request',
+            'Until the notice is sent, then **12 months**, or immediately on request',
           ],
           [
             'Messages and moderation reports',

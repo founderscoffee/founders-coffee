@@ -42,7 +42,7 @@ export const EmptyCityCard = ({
             {hero_empty_subtitle({ city: cityDisplayName }, { locale })}
           </p>
         </div>
-        <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+        <div className="flex w-full flex-col gap-3 md:w-auto md:shrink-0 md:items-end">
           <Link
             {...localizedHostCreate(locale, market.slug)}
             search={{ city: selectedCity.code, state: selectedCity.stateCode }}

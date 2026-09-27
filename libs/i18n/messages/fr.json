@@ -155,7 +155,7 @@
   "hero_empty_cta": "Organiser la première rencontre",
   "hero_search_no_match": "Aucune ville ne correspond à « {query} ».",
   "hero_search_clear": "Désélectionner la ville",
-  "hero_waitlist_prompt": "Prévenez-moi au lancement",
+  "hero_waitlist_prompt": "Prévenez-moi de la prochaine",
   "hero_waitlist_submit": "Notifiez-moi",
   "hero_waitlist_submitting": "Inscription…",
   "hero_waitlist_success": [
@@ -167,9 +167,9 @@
       ],
       "selectors": ["cityArticle"],
       "match": {
-        "cityArticle=le": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre au {cityAfterArticle}.",
-        "cityArticle=les": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre aux {cityAfterArticle}.",
-        "cityArticle=*": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre à {city}."
+        "cityArticle=le": "Vous êtes sur la liste ! Nous vous préviendrons dès que la prochaine rencontre au {cityAfterArticle} sera publiée.",
+        "cityArticle=les": "Vous êtes sur la liste ! Nous vous préviendrons dès que la prochaine rencontre aux {cityAfterArticle} sera publiée.",
+        "cityArticle=*": "Vous êtes sur la liste ! Nous vous préviendrons dès que la prochaine rencontre à {city} sera publiée."
       }
     }
   ],

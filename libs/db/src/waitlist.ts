@@ -131,7 +131,7 @@ export const findPendingWaitlistForCity = async (
 /**
  * Delete up to `limit` entries whose notice went out more than twelve months ago.
  *
- * The privacy policy keeps a waitlist email "until the launch notice, then 12 months". An entry
+ * The privacy policy keeps a waitlist email "until the notice is sent, then 12 months". An entry
  * never notified is still waiting and stays. The query reads only through the partial index on
  * `notified_at`, the narrow, indexed daily sweep AGENTS.md §11.5 allows for retention (#106).
  */
