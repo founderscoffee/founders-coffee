@@ -46,7 +46,7 @@ export const EmptyCityCard = ({
           <Link
             {...localizedHostCreate(locale, market.slug)}
             search={{ city: selectedCity.code, state: selectedCity.stateCode }}
-            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-full gap-2 font-semibold shadow-none transition"
+            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full gap-2 font-semibold shadow-none transition"
           >
             <Coffee className="size-4" />
             {hero_empty_cta({}, { locale })}
@@ -54,7 +54,7 @@ export const EmptyCityCard = ({
           <button
             type="button"
             onClick={() => setShowWaitlist((s) => !s)}
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-full gap-2 font-medium transition"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full gap-2 font-medium transition"
           >
             <Bell className="size-4" />
             {hero_waitlist_prompt({}, { locale })}

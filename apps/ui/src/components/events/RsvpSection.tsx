@@ -140,7 +140,7 @@ export const RsvpSection = ({
         </p>
         <button
           type="button"
-          className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-full sm:w-auto"
+          className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full sm:w-auto"
           onClick={handleRsvp}
           disabled={createRsvp.isPending}
         >
@@ -179,7 +179,7 @@ export const RsvpSection = ({
             <>
               <button
                 type="button"
-                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-fit text-neutral"
+                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit text-neutral"
                 onClick={() => setIsCancelOpen(true)}
               >
                 {rsvp_cancel({}, { locale })}
@@ -216,7 +216,7 @@ export const RsvpSection = ({
             error.canRetry ? (
               <button
                 type="button"
-                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
                 onClick={handleRsvp}
               >
                 {retry({}, { locale })}

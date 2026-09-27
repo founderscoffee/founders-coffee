@@ -40,7 +40,7 @@ export const NoMatchingMeetups = ({
           action={
             <button
               type="button"
-              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
               onClick={onRetry}
             >
               {retry({}, { locale })}
@@ -58,7 +58,7 @@ export const NoMatchingMeetups = ({
       action={
         <button
           type="button"
-          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
           onClick={onClear}
         >
           {clear_city_filters({}, { locale })}

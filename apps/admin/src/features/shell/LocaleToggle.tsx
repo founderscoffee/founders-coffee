@@ -19,8 +19,8 @@ export const LocaleToggle = ({ active }: { active: Locale }) => {
           aria-current={locale === active ? 'true' : undefined}
           className={
             locale === active
-              ? 'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl'
-              : 'btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl'
+              ? 'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg'
+              : 'btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg'
           }
           key={locale}
           onClick={() => choose(locale)}

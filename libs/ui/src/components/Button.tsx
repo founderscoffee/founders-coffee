@@ -3,27 +3,24 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn.js';
 
-export const buttonVariants = cva(
-  'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl',
-  {
-    variants: {
-      variant: {
-        primary: 'btn-primary',
-        cta: 'btn-secondary',
-        secondary: 'btn-secondary',
-        accent: 'btn-accent',
-        outline: 'btn-outline',
-        ghost: 'btn-ghost',
-        link: 'btn-link',
-      },
-      isFullWidth: {
-        true: 'w-full',
-        false: '',
-      },
+export const buttonVariants = cva('btn btn-xs sm:btn-sm md:btn-md lg:btn-lg', {
+  variants: {
+    variant: {
+      primary: 'btn-primary',
+      cta: 'btn-secondary',
+      secondary: 'btn-secondary',
+      accent: 'btn-accent',
+      outline: 'btn-outline',
+      ghost: 'btn-ghost',
+      link: 'btn-link',
     },
-    defaultVariants: { variant: 'primary', isFullWidth: false },
+    isFullWidth: {
+      true: 'w-full',
+      false: '',
+    },
   },
-);
+  defaultVariants: { variant: 'primary', isFullWidth: false },
+});
 
 export interface ButtonProps
   extends

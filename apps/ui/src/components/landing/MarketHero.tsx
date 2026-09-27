@@ -31,7 +31,7 @@ import { localizedCity, localizedHostCreate } from '../../lib/locale-routing';
 const EVENTS_ANCHOR = 'market-events';
 
 const CTA_CLASS =
-  'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl hidden shrink-0 rounded-full border-0 shadow-none sm:inline-flex';
+  'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg hidden shrink-0 rounded-full border-0 shadow-none sm:inline-flex';
 
 const HERO_ART: Record<string, string> = {
   DZ: heroAlgeria,

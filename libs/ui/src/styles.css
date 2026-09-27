@@ -420,7 +420,7 @@
 
 /* The header's auth control is a sign-in button when signed out and a 32px avatar when signed in,
    and which one it will be is not known until a fetch resolves after hydration — the document is
-   shared-cached, so it cannot carry the answer. In Arabic the two differ by up to 162px, so
+   shared-cached, so it cannot carry the answer. In Arabic the two differ by up to 128px, so
    whichever width the slot holds while it waits, something moves when the answer arrives.
 
    `data-auth-slot` is set on the document before the first paint from what this browser needed
@@ -428,7 +428,7 @@
    first visit, or a browser that refuses storage, gets `out` — which is what a first visit is.
 
    The sign-in button takes daisyUI's responsive size, a step larger at each breakpoint from `xs` on
-   a phone to `xl`, so the hold steps with it. Each width is the Arabic label at that step, the
+   a phone to `lg`, so the hold steps with it. Each width is the Arabic label at that step, the
    longest of the three, with a pixel or two to spare; the button fills the slot rather than sitting
    in it, so French, a few pixels shorter, renders a slightly wider button instead of a gap. English
    "Sign in" is half as long: a slot sized for Arabic stretched its outline into a pill twice the
@@ -482,15 +482,5 @@
 
   :root[data-auth-slot='out']:lang(en) .auth-slot {
     min-width: 6.4375rem;
-  }
-}
-
-@media (width >= 80rem) {
-  :root[data-auth-slot='out'] .auth-slot {
-    min-width: 12.1875rem;
-  }
-
-  :root[data-auth-slot='out']:lang(en) .auth-slot {
-    min-width: 7.75rem;
   }
 }

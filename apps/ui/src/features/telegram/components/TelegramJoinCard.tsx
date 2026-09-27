@@ -58,7 +58,7 @@ export const TelegramJoinCard = ({
             {telegram_join_joined({}, { locale })}
           </p>
           <a
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-fit"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
             href={view.inviteLink}
             target="_blank"
             rel="noopener noreferrer"
@@ -77,7 +77,7 @@ export const TelegramJoinCard = ({
           {view.inviteLink ? (
             <>
               <a
-                className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-fit"
+                className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
                 data-focus="join"
                 href={view.inviteLink}
                 target="_blank"
@@ -92,7 +92,7 @@ export const TelegramJoinCard = ({
           ) : (
             <button
               type="button"
-              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl w-fit"
+              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
               onClick={askForLink}
               disabled={invite.isPending}
             >

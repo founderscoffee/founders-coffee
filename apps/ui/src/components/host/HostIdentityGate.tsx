@@ -29,7 +29,7 @@ export const HostIdentityGate = (props: {
       />
       <button
         type="button"
-        className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+        className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
         onClick={props.onCancel}
       >
         {gate_back({}, { locale: props.locale })}

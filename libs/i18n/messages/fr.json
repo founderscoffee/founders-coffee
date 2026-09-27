@@ -448,7 +448,7 @@
   "rsvp_error_closed": "Cette rencontre a déjà commencé : les réservations sont closes.",
   "rsvp_cancelled_going": "Vous aviez confirmé votre présence.",
   "rsvp_cancelled_going_help": "Vous n’avez pas besoin d’annuler et vous ne recevrez pas le rappel.",
-  "rsvp_cta": "Participer",
+  "rsvp_cta": "Rejoindre la rencontre",
   "rsvp_cancel": "Annuler RSVP",
   "rsvp_already": "Vous venez",
   "rsvp_attending": "Je participe",

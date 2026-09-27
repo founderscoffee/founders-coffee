@@ -121,7 +121,7 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
             </p>
             <Link
               {...localizedHome(locale, primaryMarket?.slug)}
-              className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl rounded-full border-0 shadow-none"
+              className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg rounded-full border-0 shadow-none"
             >
               {footer_cta({}, { locale })}
             </Link>

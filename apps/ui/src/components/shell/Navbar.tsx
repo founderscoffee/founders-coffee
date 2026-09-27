@@ -20,7 +20,7 @@ type NavbarProps = {
 };
 
 const hostClass =
-  'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl shrink-0 rounded-full border-0 font-semibold whitespace-nowrap shadow-none';
+  'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0 rounded-full border-0 font-semibold whitespace-nowrap shadow-none';
 
 export const Navbar = ({
   locale,

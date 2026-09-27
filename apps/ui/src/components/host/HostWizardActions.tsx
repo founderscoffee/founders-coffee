@@ -57,7 +57,7 @@ export const HostWizardActions = ({
           <Link
             {...localizedHome(locale, marketSlug)}
             aria-label={back_home({}, { locale })}
-            className="btn btn-ghost btn-square btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl shrink-0 lg:hidden"
+            className="btn btn-ghost btn-square btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0 lg:hidden"
           >
             <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden="true" />
           </Link>

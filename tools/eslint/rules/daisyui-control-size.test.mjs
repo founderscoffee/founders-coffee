@@ -28,7 +28,7 @@ const jsx = (element) => `export const Field = ({ size }) => ${element};`;
 const shared = (element) =>
   `import { Button, Input } from '@founders-coffee/ui';\n${jsx(element)}`;
 
-const BUTTON = 'btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl';
+const BUTTON = 'btn-xs sm:btn-sm md:btn-md lg:btn-lg';
 
 const missing = (component, absent) => ({
   messageId: 'missing',
@@ -137,6 +137,12 @@ describe('local/daisyui-control-size', () => {
         {
           code: jsx('<button className="btn btn-sm" />'),
           errors: [missing('btn', BUTTON), foreign('btn', 'btn-sm')],
+        },
+        {
+          code: jsx(
+            `<button className="btn btn-primary ${BUTTON} xl:btn-xl" />`,
+          ),
+          errors: [foreign('btn', 'xl:btn-xl')],
         },
         {
           code: jsx(

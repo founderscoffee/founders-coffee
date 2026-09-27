@@ -133,7 +133,6 @@ describe('P1-002 landing typography', () => {
           'sm:btn-sm',
           'md:btn-md',
           'lg:btn-lg',
-          'xl:btn-xl',
         ]),
       );
       expect(screen.getByRole('heading', { level: 1 }).className).toContain(

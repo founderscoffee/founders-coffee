@@ -46,7 +46,7 @@ const IMAGE_SIZES = [
 ].join(', ');
 
 const ctaClass =
-  'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl rounded-full font-semibold shadow-none';
+  'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg rounded-full font-semibold shadow-none';
 
 export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
   <section

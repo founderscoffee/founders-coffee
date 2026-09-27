@@ -77,7 +77,7 @@ export const PublicProfileHeader = ({
         rel="noreferrer nofollow ugc"
         dir="ltr"
         aria-label={`${profile_view_link({}, { locale })}: ${profile.professionalLink}`}
-        className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl shrink-0 self-start"
+        className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0 self-start"
       >
         <span>{profile_view_link({}, { locale })}</span>
         <ExternalLink className="size-4" aria-hidden="true" />

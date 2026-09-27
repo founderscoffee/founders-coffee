@@ -43,7 +43,7 @@ export const HostMapToasts = ({
           {onRetry && (
             <button
               type="button"
-              className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl shrink-0"
+              className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0"
               onClick={onRetry}
             >
               <RefreshCw className="size-4" aria-hidden="true" />

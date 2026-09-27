@@ -111,7 +111,7 @@ export const WaitlistForm = ({
         />
         <button
           type="submit"
-          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
           disabled={joinWaitlist.isPending || !isVerified}
         >
           {joinWaitlist.isPending

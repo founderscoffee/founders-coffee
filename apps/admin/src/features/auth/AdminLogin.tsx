@@ -116,7 +116,7 @@ export const AdminLogin = ({
             />
           )}
           <button
-            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
             type="submit"
             disabled={busy || !canSend}
           >
@@ -145,7 +145,7 @@ export const AdminLogin = ({
             onChange={(event) => setCode(event.target.value)}
           />
           <button
-            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
             type="submit"
             disabled={busy || code.length === 0}
           >

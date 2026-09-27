@@ -61,7 +61,7 @@ export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
     <>
       <button
         type="button"
-        className="btn btn-ghost btn-square btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl lg:hidden"
+        className="btn btn-ghost btn-square btn-xs sm:btn-sm md:btn-md lg:btn-lg lg:hidden"
         aria-label={profile_menu_open({}, { locale })}
         aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}
@@ -95,7 +95,7 @@ export const ProfileMenuDrawer = ({ locale }: { locale: Locale }) => {
               </h2>
               <button
                 type="button"
-                className="btn btn-ghost btn-square btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+                className="btn btn-ghost btn-square btn-xs sm:btn-sm md:btn-md lg:btn-lg"
                 aria-label={profile_menu_close({}, { locale })}
                 onClick={() => setIsOpen(false)}
               >

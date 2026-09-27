@@ -1,10 +1,11 @@
 /*
  * The one size each daisyUI control takes. A button follows daisyUI's responsive button, xs on a
- * phone and a step larger at every breakpoint up to xl; a field is small on a phone and medium from
- * `md`, where the layout leaves the phone column.
+ * phone and a step larger at every breakpoint up to lg, where it stops: xl's 56px and 22px type
+ * were too big on a laptop. A field is small on a phone and medium from `md`, where the layout
+ * leaves the phone column.
  */
 export const CONTROL_SIZES = new Map([
-  ['btn', ['btn-xs', 'sm:btn-sm', 'md:btn-md', 'lg:btn-lg', 'xl:btn-xl']],
+  ['btn', ['btn-xs', 'sm:btn-sm', 'md:btn-md', 'lg:btn-lg']],
   ['input', ['input-sm', 'md:input-md']],
   ['select', ['select-sm', 'md:select-md']],
   ['textarea', ['textarea-sm', 'md:textarea-md']],
@@ -183,8 +184,8 @@ const classContext = (ancestors, sized) => {
 };
 
 /**
- * A daisyUI control has one size in this product: every button takes daisyUI's responsive button,
- * and every field is small on a phone and medium from `md`. A control sized any other way, or a
+ * A daisyUI control has one size in this product: every button takes daisyUI's responsive button up
+ * to `lg`, and every field is small on a phone and medium from `md`. A control sized any other way, or a
  * utility that quietly sets its height, fixed width, font size or a button's padding, holds a size
  * of its own that the scale no longer moves, so it drifts from the controls around it.
  *

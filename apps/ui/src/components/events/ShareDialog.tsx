@@ -69,7 +69,7 @@ export const ShareDialog = ({
           </h2>
           <button
             type="button"
-            className="btn btn-ghost btn-circle btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl"
+            className="btn btn-ghost btn-circle btn-xs sm:btn-sm md:btn-md lg:btn-lg"
             onClick={onClose}
             aria-label={share_close({}, { locale })}
           >
@@ -123,7 +123,7 @@ export const ShareDialog = ({
           />
           <button
             type="button"
-            className={`btn btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl shrink-0 rounded-full ${copied ? 'btn-success' : 'btn-secondary'}`}
+            className={`btn btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0 rounded-full ${copied ? 'btn-success' : 'btn-secondary'}`}
             onClick={() => void copyLink(url).then(setCopied)}
           >
             {copied

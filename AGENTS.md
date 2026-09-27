@@ -181,7 +181,7 @@ without rendering or requiring a browser challenge.
 - **Presentational + thin.** Components receive props, call hooks (`hooks.ts`) for data, and dispatch via hooks. They **never** import server functions, DB, Drizzle, or domain internals.
 - **Organized by domain** in `features/<domain>/components/`. Cross-domain shared UI lives in `libs/ui`.
 - **Styling:** Tailwind v4 + DaisyUI. Use design tokens / DaisyUI components; avoid arbitrary inline values where a token exists. RTL-aware (use logical properties — `ps-`/`pe-`/`ms-`/`me-`, not `pl-`/`pr-`).
-- **Control sizes:** every DaisyUI button takes the responsive size `btn-xs sm:btn-sm md:btn-md lg:btn-lg xl:btn-xl`, and every field (`input`, `select`, `textarea`, `otp`) is small below `md` and medium from it (`input-sm md:input-md`). Nothing else sets their height, fixed width or font size, or a button's padding; `w-full` and `flex-1` may still fill a layout. `local/daisyui-control-size` enforces it.
+- **Control sizes:** every DaisyUI button takes the responsive size up to `lg`, `btn-xs sm:btn-sm md:btn-md lg:btn-lg` (no `xl:btn-xl`), and every field (`input`, `select`, `textarea`, `otp`) is small below `md` and medium from it (`input-sm md:input-md`). Nothing else sets their height, fixed width or font size, or a button's padding; `w-full` and `flex-1` may still fill a layout. `local/daisyui-control-size` enforces it.
 - **Forms:** shared Zod schemas remain the contract. TanStack Form is available for forms that benefit from it; local React state is also acceptable when validation still reuses the shared schema and the component remains thin.
 - **Tables/grids:** TanStack Table. **Long lists:** TanStack Virtual.
 - **Client UI state** (toasts, modals, non-server state): TanStack Store.
