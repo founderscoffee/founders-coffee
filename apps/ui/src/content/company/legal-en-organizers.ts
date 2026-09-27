@@ -9,97 +9,119 @@ export const organizersEnglish: CompanyPageContent = translatedPage(
     section(
       'When these terms apply',
       text(
-        'They apply when you publish a gathering on Founders Coffee and supplement the [Terms of use](/terms) and [Community guidelines](/community). Organising here is simple: choose a café, time, and topic. It still carries the responsibilities below.',
+        'They apply to you from the moment you publish a gathering on Founders Coffee, and they add to the [Terms of use](/terms) and the [Community guidelines](/community) without replacing them.',
+        'These terms are not a franchise agreement or a heavy set of obligations. Hosting a gathering here is simple: you choose a café, set a time, and write what you will talk about. What follows is the responsibility that comes with that, nothing more.',
       ),
     ),
     section(
       'You are the host',
       text(
-        'When you publish, you or the organisation you represent become the **host**. We provide the platform but do not organise the gathering, represent you to attendees, or take responsibility for your promises. The relationship with people who RSVP is yours.',
+        'When you publish a gathering, you become its **host**, you or the organisation in whose name you publish. We provide the platform where the gathering is published and discovered and where attendance is registered; we take no part in organising it, we do not represent you to attendees, and we are not responsible for what you promise.',
+        'So the relationship between you and the people who RSVP to your gathering is yours.',
       ),
     ),
     section(
       'Accurate gathering information',
       text(
-        'Your title, topic, venue name and address, date, time, and discussion language must be accurate when published. Update the page quickly when anything changes. If the gathering is for a specific audience, say so openly; transparent audience selection is acceptable, hiding the real purpose is not.',
+        'What you publish must be accurate at the time you publish it: the gathering’s title, its topic, the venue with its name and address, the date and time, and the discussion language.',
+        'If any of this changes, update it on the gathering page as quickly as you can. The people who RSVP’d plan their travel on what they read.',
+        'If the gathering is aimed at a particular group (founders in a specific field, a certain project stage, a single language), say so clearly in the description. Defining the audience openly is acceptable; hiding the gathering’s real purpose is not.',
       ),
     ),
     section(
-      'Venue and permissions',
+      'Venue and permits',
       text(
-        'Choosing the venue and agreeing with its owner is your responsibility. Confirm that you may use it at that time and that the expected attendance is acceptable. Follow venue rules and tell attendees what they need to know. If the gathering requires a permit or notice under Algerian regulations, you must obtain it.',
+        'Choosing the venue is your responsibility, and so is the arrangement with its owner. Make sure you have the right to use it for this purpose at this time, and that the expected number of attendees is acceptable to them.',
+        'Follow the venue’s rules and the instructions of the people who run it, and tell attendees what they need to know about them.',
+        'If your gathering is of a kind that requires a permit or prior notice under Algerian regulations (because of the nature of the activity, its size, or its location), obtaining it is your responsibility alone. The usual gatherings on the platform are small sessions in public places and generally do not require this; but in the end the judgement is yours, and you know your gathering best.',
       ),
     ),
     section(
       'Attendee safety',
       text(
-        'You run the session. If abusive or dangerous conduct occurs, warn the person, ask them to leave, or end the gathering if needed. Contact the authorities for serious incidents, then tell us so we can act on the account.',
+        'You are the one running the session. If abusive or dangerous behaviour happens at your gathering, act: warn the person, ask them to leave, or end the gathering if necessary. If the matter is serious, contact the competent authorities.',
+        'Then report it to us, so we can take the necessary action on the account.',
       ),
     ),
     section(
       'Attendee list',
       text(
-        'We show you the names of people who RSVP so you know who to expect. **The list is only for organising this gathering.** Do not copy, export, share, or add it to a mailing list or database, or use it for unrelated contact. If you collect extra information at the gathering, tell people that you are collecting it and why; you then become responsible for that data under Law 18-07. Breaching this rule is serious.',
+        'We show you the names of the people who RSVP’d to your gathering, because you need to know who to expect.',
+        '**This list is for organising this gathering, and nothing else.** Do not copy it, export it, add the people on it to a mailing list or database, or share it with anyone, and do not use it to contact them after the gathering about anything unrelated to it.',
+        'If you want to collect any additional information from attendees at the gathering itself (an email, a phone number, an identity card), tell them explicitly that **you** are the one collecting it, for what purpose, and that this is not part of the platform. When you do, you become responsible for that data under the law, and the provisions of Law No. 18-07 apply to you.',
+        'Breaching this clause is one of the most serious things that can happen on the platform, and we treat it accordingly.',
       ),
     ),
     section(
       'Recording attendance',
       text(
-        'After the gathering, tell us whether it happened, record who attended, who did not, and how many people arrived without an RSVP. Record what actually happened. People can correct inaccurate attendance data, and your private note about the session is not shown to members.',
+        'After the gathering ends, we ask you to tell us whether it actually took place, to record which of the people who RSVP’d attended and which did not, and to give the number of people who came without an RSVP.',
+        'Record what actually happened. This is data about real people, who have the right to have it corrected if it is wrong, and it is the basis on which we tell a gathering that took place from one that did not.',
+        'The note you write about how the gathering went is private to you; it is not shown to members.',
       ),
     ),
     section(
       'Contact with attendees',
       text(
-        'We send RSVP confirmations, reminders, changes, and cancellations through standard platform messages. You cannot write a custom broadcast through the platform. Put information in the gathering description, and never use the attendee list to market products or services without prior consent.',
+        'We send the people who RSVP’d the notifications about the gathering: confirmation, reminder, change, and cancellation. These are standard messages sent by the platform; the platform does not let you write your own text in them or send a group message to the people who RSVP’d.',
+        'If you want to tell the people who RSVP’d something, the place for it is the gathering description itself, because that is what they read and what the reminder is based on.',
+        'The gathering’s channels, whether its description or contact outside the platform based on the attendee list, may never be used to offer services or products. That is direct marketing, which the law prohibits without the recipient’s prior consent.',
       ),
     ),
     section(
       'Changes, postponement, and cancellation',
       text(
-        '**Changes:** update the page immediately and we notify attendees. **Postponement:** publish the new date; if there is no replacement, cancel and publish a new gathering later. **Cancellation:** cancel on the platform as soon as you know, with a short reason. Free gatherings create no financial obligation, but repeated last-minute cancellations damage trust and may remove your ability to publish.',
+        '**Changes:** update the gathering page as soon as any information changes, and we will notify the people who RSVP’d.',
+        '**Postponement:** if you postpone the gathering to a new date, announce the new date on the gathering page. If you have no replacement date, it is better to cancel and publish a new gathering later than to leave the people who RSVP’d waiting indefinitely.',
+        '**Cancellation:** cancel the gathering on the platform as soon as you know it will not take place, and give the reason briefly. Cancelling early is the right thing to do; silence is not.',
+        'Because gatherings are free, cancelling creates no financial obligations. But people will have arranged their time and travel, and repeated last-minute cancellations strip gatherings of their value and cost you the ability to publish.',
       ),
     ),
     section(
       'Content you upload',
       text(
-        'Text, images, and logos on the gathering page must belong to you or be licensed for your use. By using the platform, you grant us a limited licence to display them on the gathering page and related discovery pages as needed to operate the service.',
+        'The text, images, and logos you put on the gathering page must be yours, or you must have the right to use them.',
+        'By using the platform, you grant us a limited licence to display this content on the gathering page and on the discovery pages linked to it, to the extent needed to run the service.',
       ),
     ),
     section(
       'Photography at a gathering',
       text(
-        'If you plan to photograph or record, say so in the description and at the start, and respect anyone who asks not to appear. Publishing someone’s image without consent is a rights issue, not merely a matter of taste.',
+        'If you intend to take photos or record during the gathering, say so in the description, tell attendees at the start, and respect anyone who asks not to appear.',
+        'Publishing a person’s image without their consent is a matter of rights, not of taste.',
       ),
     ),
     section('Gatherings we do not accept', [
       ...text(
-        'We do not publish gatherings that breach Algerian law or whose purpose is:',
+        'No gathering that breaches Algerian law may be published on Founders Coffee, nor any gathering whose purpose is:',
       ),
       list([
-        'collecting money or promoting investment schemes, currencies, or guaranteed returns;',
-        'selling goods or services whose marketing is prohibited;',
-        'charging applicants for recruitment;',
-        'a commercial offer disguised as a community gathering;',
-        'conduct that harms public order or morality.',
+        'collecting money from attendees, or promoting investment schemes, currencies, or guaranteed returns;',
+        'selling goods or services whose marketing is prohibited by regulation;',
+        'recruitment in exchange for fees paid by the applicant;',
+        'a commercial offer dressed up as a community gathering;',
+        'anything that harms public order or public morals.',
       ]),
     ]),
     section(
       'Paid gatherings',
       text(
-        'All gatherings are currently free and the platform has no payment collection feature. Do not ask RSVPs to pay outside the platform. If paid gatherings are introduced later, the ticketing, cancellation, and refund policy will apply after it is announced.',
+        'All gatherings on the platform are currently free, and there is no way to collect payment through it. Do not ask the people who RSVP’d to pay anything outside the platform in exchange for attending.',
+        'If paid gatherings become available later, the ticketing, cancellation, and refund policy will apply to them once it has been announced as in force.',
       ),
     ),
     section(
       'When you have a problem',
       text(
-        'Email **contact@founders.coffee** about abusive members, suspicious gatherings, venue disputes, or anything requiring our intervention. We take organizer reports seriously.',
+        'Write to us at **contact@founders.coffee**: an abusive member, doubts about a published gathering, a dispute with a venue, or anything else where you need us to step in. We answer hosts’ messages and take them seriously.',
       ),
     ),
     section(
       'What we may do',
       text(
-        'We may unpublish a gathering, restrict new publishing, or suspend an account for breaching these terms, the Community guidelines, or the law. Decisions are scoped to the market where the breach occurred; a restriction in one city or country does not automatically apply elsewhere. Contact us if you think a decision is wrong and we will review it.',
+        'We may unpublish a gathering, restrict the ability to publish new gatherings, or suspend the account if these terms, the Community guidelines, or the law are breached.',
+        'We take these decisions at the level of the market where the breach occurred: a restriction in one city or country does not mean a restriction elsewhere.',
+        'If you think a decision was wrong, write to us and we will reconsider it.',
       ),
     ),
   ],

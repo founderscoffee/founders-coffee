@@ -15,89 +15,98 @@ export const communityEnglish: CompanyPageContent = translatedPage(
     section(
       'Why this document exists',
       text(
-        'Founders Coffee is built around a simple idea: people with projects sit around a table and speak honestly about what they are working on. These guidelines prohibit what spoils that conversation.',
-        'They address the specific risks of this community: selling instead of sharing, publishing a gathering you do not intend to hold, exaggerating a company description into a lie, or collecting attendee numbers for a list.',
-        'They form part of the [Terms of use](/terms) and apply to profiles, gathering pages, feedback, and messages sent to us.',
+        'Founders Coffee is built on a simple idea: that people with projects in the same city sit around a table and talk honestly about what they are working on. These guidelines prohibit whatever spoils that conversation.',
+        'They are not a generic list of prohibitions copied from a social network. The problems that affect a community like this one are known and specific: someone who comes to sell instead of to share, someone who publishes a gathering they do not intend to hold, someone who talks up their company until the description becomes a lie, someone who collects attendees’ numbers to add them to a list. These are exactly what we are talking about.',
+        'These guidelines are part of the [Terms of use](/terms), and they apply to everything that appears on the platform: profiles, gathering pages, feedback, and the messages we receive.',
       ),
     ),
     section(
       'What we expect',
       text(
-        '**Be who you say you are.** Use a real name and describe your work honestly. A project may be at an early stage; that is fine.',
-        '**Attend if you RSVP, cancel if you cannot.** Hosts book a table based on the number they see, and an unexplained no-show has a real cost.',
-        '**Ask before you pitch.** The difference between a useful conversation and harassment is whether the other person asked for it.',
+        '**Be who you say you are.** A real name, and an honest description of what you are working on. A project at an early stage is described as being at an early stage; there is nothing wrong with that, and the whole community has been there.',
+        '**Attend if you RSVP, and cancel if you cannot.** The host books a table based on the number they see. Not showing up without notice costs them something real.',
+        '**Ask before you pitch.** The difference between a useful conversation and a nuisance is whether the other person asked for it.',
       ),
     ),
     section('What is prohibited', [
       subheading('Unsolicited promotion'),
       ...text(
-        'Do not send commercial offers to members who did not request them, turn a gathering description into an advertisement, or repeatedly repost the same gathering to keep it at the top. Talking about your project at a gathering is welcome; using the platform for bulk outreach is not.',
+        'Do not send commercial offers or services to members who did not ask for them. Do not turn your gathering’s description into an advertisement for your company. Do not publish the same gathering over and over to keep it at the top of the list.',
+        'Talking about your project during a gathering is the reason the platform exists in the first place. What is prohibited is using the platform as a channel for bulk messaging.',
       ),
       subheading('Fake or unserious gatherings'),
       ...text(
-        'Do not publish a gathering you do not intend to hold, with a knowingly false venue or time, or with an undisclosed purpose. Repeatedly publishing gatherings that never happen can remove your ability to publish.',
+        'Do not publish a gathering you do not intend to hold, a gathering with a venue or time you know to be wrong, or a gathering whose real purpose is not the one stated in its description.',
+        'A gathering that is published and never held weakens people’s trust in every gathering after it. And we keep track of it: after every gathering, the host is asked whether it actually took place, and anyone who repeatedly publishes gatherings that do not take place loses the ability to publish.',
       ),
       subheading('Fake profiles and impersonation'),
       ...text(
-        'Do not create an account in another person’s name, claim a role or partnership without a basis, or create multiple accounts to evade moderation.',
+        'Do not create an account in another person’s name, or in the name of a company you do not represent. Do not claim a position, a partnership, or a connection to a known organisation without a basis. Do not create multiple accounts to get around a moderation decision.',
       ),
       subheading('Misleading financial or investment claims'),
       ...text(
-        'Do not claim funding, support, or representation you do not have. Do not promise guaranteed returns, solicit money at a gathering, or promote investment schemes, currencies, or quick-profit offers.',
+        'Do not claim to have raised funding you did not raise, to be backed by a fund or an accelerator when that is not true, or to represent an investor when you do not.',
+        'Do not promise a guaranteed return, do not call for money to be collected from attendees at a gathering, and do not use the platform to promote investment schemes, currencies, or quick-profit opportunities. This kind of claim does more than damage reputations; it can cost someone their savings.',
       ),
       subheading('Recruitment fraud'),
       ...text(
-        'Do not publish fake jobs, charge applicants for training or a guaranteed job, or collect identity documents under a false recruitment pretext.',
+        'Do not post job opportunities that are not real, do not ask an applicant for money in exchange for training, processing an application, or guaranteeing a job, and do not collect personal documents on the pretext of recruitment.',
       ),
       subheading('Collecting or publishing member data'),
       ...text(
-        'An attendee list is supplied to a host only to organise that gathering. Do not copy, export, sell, share, or add it to a mailing list, and do not scrape member data with automated tools. Do not publish another member’s phone number, address, workplace, or image without permission.',
+        'The list of people who RSVP’d to a gathering is given to the host for one purpose only: to organise their gathering. Copying it, exporting it, adding it to a mailing list, or selling it is a clear violation.',
+        'Using automated programs to extract member data from the platform is not allowed.',
+        'Do not publish personal information about another member (their phone number, address, workplace, or photo) without their permission, whether on the platform or off it.',
       ),
       subheading('Harassment, discrimination, and threats'),
       ...text(
-        'Do not harass, threaten, or insult. Discrimination based on gender, origin, language, religion, disability, or any other ground is not accepted. Conduct at a gathering matters as much as conduct on the platform; report it to us.',
+        'Do not harass, threaten, or insult. Discrimination or abuse based on gender, origin, language, religion, disability, or any other ground is not accepted.',
+        'What happens at the gathering itself matters to us as much as what is written on the platform. If you experienced behaviour like this at a gathering published with us, report it to us.',
       ),
       subheading('Illegal content and services'),
       ...text(
-        'Do not publish content that breaches Algerian law, promote prohibited goods or services, or share malicious links or phishing pages.',
+        'Nothing that breaches Algerian law may be published on the platform, nor anything related to selling prohibited goods or services, nor malicious links or phishing pages.',
       ),
       subheading('Other people’s rights'),
       ...text(
-        'Do not upload a logo, image, or text you have no right to use. Copyright belongs to the person who created the work and is protected by law.',
+        'Do not upload a logo, image, or text you do not have the right to use. Whoever wrote or photographed something has a right over what they produced, and the law protects that right.',
       ),
     ]),
     section(
       'Organizers',
       text(
-        'People who publish gatherings have extra duties about accurate information, permissions, attendee communication, changes, and cancellation. They are detailed in the [Organizer terms](/organizers).',
+        'Anyone who publishes a gathering has additional responsibilities (accurate information, permits where needed, and keeping the people who RSVP’d informed of changes or cancellation), set out in the [Organizer terms](/organizers).',
       ),
     ),
     section('How we enforce these guidelines', [
       ...text(
-        'When we receive a report or detect a violation, we may choose among:',
+        'When we receive a report or spot a violation, we look at the case and choose what fits it from:',
       ),
       list([
-        '**Warning** explaining what happened and what we expect;',
-        '**Removing or hiding the content**;',
+        '**A warning** explaining what happened and what we expect;',
+        '**Removing or hiding the violating content**;',
         '**Unpublishing a gathering**;',
-        '**Restricting a feature** for a period;',
+        '**Restricting a feature** for a set period, such as blocking new gatherings from being published;',
         '**Suspending the account**;',
         '**Permanently terminating the account**.',
       ]),
       ...text(
-        'We do not promise a fixed sequence. For minor or accidental breaches, a warning may be enough; fraud, impersonation, threats, and conduct affecting safety may require immediate action. We consider context, repetition, harm, and whether the issue was corrected.',
+        '**We are not bound to a fixed order.** For minor violations, or ones that seem to have happened by oversight, we start with a warning, because it is usually enough. Fraud, impersonation, threats, and anything that affects people’s safety, however, we act on immediately and without prior warning. Promising a fixed escalation in cases like these is a promise that should not be made.',
+        'We also look at the context: was the behaviour repeated? Did it actually harm anyone? Was it corrected after the warning?',
       ),
     ]),
     section(
       'How to report',
       text(
-        'Email **contact@founders.coffee** with the link and a precise description. Reports are confidential and we do not reveal the reporter’s identity to the reported person. If someone faces immediate danger, contact the competent authorities first; we are a digital platform without field intervention.',
+        'Write to us at **contact@founders.coffee** with a link to the gathering, profile, or content, and what you saw in it. A precise description shortens the review.',
+        'Reports are handled confidentially. We do not reveal the reporter’s identity to the person reported.',
+        'If there is an immediate danger to someone, contact the competent authorities first; we are a digital platform and have no means of intervening on the ground.',
       ),
     ),
     section(
       'If you think a decision is wrong',
       text(
-        'Contact us and explain. We review decisions and correct those that were made in error. Moderation is human work and can be mistaken.',
+        'Write to us and explain. We review decisions and correct any we find were wrong. Moderation is human work, and it sometimes makes mistakes.',
       ),
     ),
   ],
