@@ -1,4 +1,4 @@
-import { baseLocale, type Locale } from '@founders-coffee/i18n';
+import { baseLocale, isLocale, type Locale } from '@founders-coffee/i18n';
 
 /**
  * The language to answer a reader whose own matches none of the published ones.
@@ -15,3 +15,34 @@ import { baseLocale, type Locale } from '@founders-coffee/i18n';
  */
 export const xDefaultLocale = (locales: readonly Locale[]): Locale =>
   locales.includes(baseLocale) ? baseLocale : (locales[0] ?? baseLocale);
+
+/** The Open Graph name for a locale, which names a country as well as a language. */
+export const openGraphLocale = (locale: Locale): string =>
+  locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US';
+
+type HeadLink = {
+  readonly rel?: string;
+  readonly hrefLang?: string;
+};
+
+/**
+ * The page's `og:locale:alternate` values: one for each language its hreflang links name, other
+ * than the language it is in.
+ *
+ * They cannot travel with the rest of the page's Open Graph tags. `HeadContent` keeps one meta tag
+ * per `property`, so of the two alternates every page declared, only the last one reached the
+ * document (#117). The hreflang links name the same languages and arrive whole, because links are
+ * not merged by attribute, so the root document reads the alternates off them and writes the tags
+ * itself.
+ */
+export const openGraphAlternates = (
+  links: readonly (HeadLink | undefined)[],
+  locale: Locale,
+): string[] =>
+  links.flatMap((link) =>
+    link?.rel === 'alternate' &&
+    isLocale(link.hrefLang) &&
+    link.hrefLang !== locale
+      ? [openGraphLocale(link.hrefLang)]
+      : [],
+  );

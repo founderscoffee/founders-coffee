@@ -27,6 +27,7 @@ import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
+import { OpenGraphLocaleAlternates } from '../components/shell/OpenGraphLocaleAlternates';
 import { authSlotScript } from '../features/auth/session-hint';
 import { SkipLink } from '../components/shell/SkipLink';
 import { AppProviders } from '../lib/app-providers';
@@ -92,6 +93,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
     <html lang={locale} dir={dir} data-auth-slot="out" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <OpenGraphLocaleAlternates locale={locale} />
       </head>
       <body className="flex flex-col bg-base-100 text-base-content">
         <AppProviders>

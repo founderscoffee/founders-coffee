@@ -10,7 +10,7 @@ import {
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { PRODUCTION_ORIGIN } from './indexation';
-import { xDefaultLocale } from './seo-alternates';
+import { openGraphLocale, xDefaultLocale } from './seo-alternates';
 import {
   breadcrumbJsonLd,
   collectionPageJsonLd,
@@ -133,9 +133,6 @@ export const buildPageTitle = (title: string): string => {
   return normalizeText(`${SITE_NAME} - ${pageTitle}`, MAX_TITLE_LENGTH);
 };
 
-const localeOpenGraph = (locale: Locale): string =>
-  locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US';
-
 export type PageMetadataInput = {
   readonly locale: Locale;
   readonly title: string;
@@ -176,17 +173,11 @@ export const buildPageMetadata = ({
       { property: 'og:title', content: fullTitle },
       { property: 'og:description', content: normalizedDescription },
       { property: 'og:url', content: url },
-      { property: 'og:locale', content: localeOpenGraph(locale) },
+      { property: 'og:locale', content: openGraphLocale(locale) },
       { property: 'og:image', content: socialImage },
       { property: 'og:image:width', content: '1200' },
       { property: 'og:image:height', content: '630' },
       { property: 'og:image:alt', content: socialImageAlt },
-      ...alternateLocales
-        .filter((alternate) => alternate !== locale)
-        .map((alternate) => ({
-          property: 'og:locale:alternate',
-          content: localeOpenGraph(alternate),
-        })),
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: fullTitle },
       { name: 'twitter:description', content: normalizedDescription },

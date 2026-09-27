@@ -245,10 +245,12 @@ describe('public page metadata', () => {
       name: 'description',
       content: 'A company page with stable copy.',
     });
-    expect(head.meta).toContainEqual({
-      property: 'og:locale:alternate',
-      content: 'ar_DZ',
-    });
+    expect(
+      head.meta.filter(
+        (item) => 'property' in item && item.property === 'og:locale:alternate',
+      ),
+      'HeadContent keeps one meta tag per property, so the root document writes the alternates from the hreflang links instead; one here as well would be drawn twice',
+    ).toEqual([]);
     expect(head.meta).toContainEqual({
       name: 'twitter:image',
       content: 'https://founders.coffee/social/founders-coffee-default.png',
