@@ -168,12 +168,6 @@ export const localizedProfileAccount = (locale: Locale) => ({
   params: { locale },
 });
 
-/** Profile completion after a fresh sign-in, on the same terms as {@link localizedLogin}. */
-export const localizedOnboarding = (locale: Locale) => ({
-  to: '/$locale/onboarding' as const,
-  params: { locale },
-});
-
 /**
  * Somebody else's public profile, addressed in the language it is being shared in.
  *

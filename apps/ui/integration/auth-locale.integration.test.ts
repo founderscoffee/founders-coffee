@@ -162,3 +162,32 @@ describe('a profile shared from a page in one language', () => {
     expect(page.landed).toContain(`/fr/u/${HOST}`);
   });
 });
+
+describe('the retired name step (#119)', () => {
+  it.each([
+    ['/en/onboarding?redirect=%2Fen%2Falgeria', '/en/algeria'],
+    [
+      '/onboarding?redirect=%2Ffr%2Falgeria%2Fhost%2Fcreate',
+      '/fr/algeria/host/create',
+    ],
+    ['/ar/onboarding', '/'],
+  ])(
+    'sends %s straight on to %s, where a sign-in used to stop and ask for a name',
+    async (pathname, expected) => {
+      const response = await fetchOnce(`${ORIGIN}${pathname}`);
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get('location')).toBe(expected);
+    },
+  );
+
+  it('drops a return path that leads back into signing in, then sends the reader home', async () => {
+    const looping = await fetchOnce(
+      `${ORIGIN}/en/onboarding?redirect=%2Fen%2Flogin`,
+    );
+    const home = await fetchOnce(`${ORIGIN}/en/onboarding`);
+
+    expect(looping.headers.get('location')).toBe('/en/onboarding');
+    expect(home.headers.get('location')).toBe('/');
+  });
+});

@@ -17,7 +17,7 @@ import { Button, StatusMessage, Turnstile } from '@founders-coffee/ui';
 import { LegalNotice } from '../company/LegalNotice';
 import { LoginEmailField } from './LoginEmailField';
 import { authClient } from '../../lib/auth';
-import { onboardingRedirectPath } from '../../lib/redirect';
+import { safeAuthReturnPath } from '../../lib/redirect';
 import { OtpField, OTP_LENGTH } from './OtpField';
 import { ResendButton } from './ResendButton';
 import { SocialSignIn, type SocialProvider } from './SocialSignIn';
@@ -102,7 +102,7 @@ export const LoginPage = ({
       setError(code_error({}, { locale }));
       return;
     }
-    window.location.href = onboardingRedirectPath(locale, redirect);
+    window.location.href = safeAuthReturnPath(redirect);
   };
 
   const changeEmail = () => {
@@ -116,8 +116,7 @@ export const LoginPage = ({
   const social = (provider: SocialProvider) =>
     authClient.signIn.social({
       provider,
-      callbackURL: onboardingRedirectPath(locale, redirect),
-      newUserCallbackURL: onboardingRedirectPath(locale, redirect),
+      callbackURL: safeAuthReturnPath(redirect),
     });
 
   const submitStep = (event: FormEvent<HTMLFormElement>) => {

@@ -14,6 +14,7 @@ import {
 } from '@founders-coffee/db';
 
 import { captchaEndpointsFor } from './captcha.js';
+import { nameForNewAccount, nameUnnamedMember } from './member-name.js';
 import type { EmailProvider } from './providers/email.js';
 import { DevEmailProvider } from './providers/email.js';
 import type { SmsProvider } from './providers/sms.js';
@@ -173,6 +174,22 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     user: {
       additionalFields: {
         localePref: { type: 'string', required: false, input: false },
+      },
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (newUser) => ({
+            data: { name: nameForNewAccount(newUser) },
+          }),
+        },
+      },
+      session: {
+        create: {
+          before: async (newSession) => {
+            await nameUnnamedMember(db, newSession.userId);
+          },
+        },
       },
     },
     advanced: {

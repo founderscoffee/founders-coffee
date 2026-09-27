@@ -10,7 +10,7 @@ import {
   isPrivateProfilePath,
   purgePrivateCacheEntries,
 } from './profile-cache';
-import { safeAuthReturnPath, onboardingRedirectPath } from './redirect';
+import { safeAuthReturnPath } from './redirect';
 
 describe('profile navigation privacy', () => {
   it.each(PRIVATE_SCREENS_IN_EVERY_LANGUAGE)(
@@ -87,7 +87,6 @@ describe('profile navigation privacy', () => {
     'https://evil.test',
   ])('rejects unsafe or looping auth return %s', (path) => {
     expect(safeAuthReturnPath(path)).toBe('/');
-    expect(onboardingRedirectPath('ar', path)).toBe('/ar/onboarding');
   });
   it('sweeps only the private paths when the service worker activates', async () => {
     const privatePages = [
@@ -125,8 +124,5 @@ describe('profile navigation privacy', () => {
   it('preserves event and wizard return paths without submitting them', () => {
     const path = '/algeria/host/create?city=556#review';
     expect(safeAuthReturnPath(path)).toBe(path);
-    expect(onboardingRedirectPath('ar', path)).toBe(
-      `/ar/onboarding?redirect=${encodeURIComponent(path)}`,
-    );
   });
 });

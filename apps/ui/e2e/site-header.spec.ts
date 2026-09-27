@@ -1,7 +1,7 @@
 import { expect, test, type Locator } from '@playwright/test';
 
 import { LOCALE_DIRECTION, t, type E2eLocale } from './support/messages';
-import { completeProfileName, signIn } from './support/profile-auth';
+import { signIn } from './support/profile-auth';
 import { RUN_ID } from './support/run';
 
 const LOCALES: readonly E2eLocale[] = ['ar', 'fr', 'en'];
@@ -142,7 +142,6 @@ test.describe('Site header when signed in', () => {
         `e2e-header-${locale}-${RUN_ID}@e2e.invalid`,
         'login_email_continue',
       );
-      await completeProfileName(page, locale, 'E2E Header');
       await page.waitForURL(new RegExp(`/${locale}/algeria$`, 'u'), {
         timeout: 60_000,
       });

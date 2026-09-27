@@ -74,7 +74,7 @@ const UNPREFIXED: Readonly<Record<string, Exemption>> = {
   },
   '/onboarding': {
     kind: 'redirect',
-    why: '#58 — same as /login, behind requireSession',
+    why: '#119 — the name step is gone; this address sends a reader straight on to their return path',
   },
   '/profile': {
     kind: 'layout',

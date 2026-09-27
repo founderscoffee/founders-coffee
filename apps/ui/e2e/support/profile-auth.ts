@@ -55,23 +55,3 @@ export const signIn = async (
     .getByRole('button', { name: t(locale, 'login_verify'), exact: true })
     .click();
 };
-
-/** Complete only the display name, with no residence selection or optional profile requirement. */
-export const completeProfileName = async (
-  page: Page,
-  locale: E2eLocale,
-  name: string,
-) => {
-  const input = page.getByRole('textbox', {
-    name: t(locale, 'profile_name_label'),
-    exact: true,
-  });
-  await expect(input).toBeVisible({ timeout: 30_000 });
-  await input.fill(name);
-  const save = page.getByRole('button', {
-    name: t(locale, 'profile_save'),
-    exact: true,
-  });
-  await expect(save).toBeEnabled({ timeout: 30_000 });
-  await save.click();
-};

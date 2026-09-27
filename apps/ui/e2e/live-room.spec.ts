@@ -8,7 +8,7 @@ import {
 } from '../src/durable-objects/event-live/constants';
 import { cleanupRun, d1 } from './support/d1';
 import { t } from './support/messages';
-import { completeProfileName, signIn } from './support/profile-auth';
+import { signIn } from './support/profile-auth';
 import { RUN_ID, watchForApplicationErrors } from './support/run';
 
 const LOCALE = 'fr';
@@ -85,7 +85,6 @@ test.describe('live room heartbeat', () => {
       `/${LOCALE}/login?redirect=${encodeURIComponent(EVENT_PATH)}`,
     );
     await signIn(page, LOCALE, MEMBER_EMAIL, 'login_email_continue');
-    await completeProfileName(page, LOCALE, 'E2E Live Member');
     await page.waitForURL(new RegExp(`/e/${SLUG}`), { timeout: 60_000 });
 
     setRsvp('going');
