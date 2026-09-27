@@ -117,17 +117,20 @@ const normalizeText = (value: string, maxLength: number): string => {
   return `${codePoints.slice(0, maxLength - 1).join('')}…`;
 };
 
+const NAMES_THE_BRAND = /founders(?:\.coffee| coffee)/iu;
+
+/**
+ * A page's `<title>`: the brand, then the page, unless the page's own title already names the brand.
+ *
+ * A title that names it is kept whole. The brand used to be cut out of any title wherever it stood
+ * and put back in front, which suited "Founders Coffee operations" and broke every title that
+ * names it mid-phrase: "À propos de Founders Coffee" became "Founders Coffee - À propos de" (#116).
+ */
 export const buildPageTitle = (title: string): string => {
-  const pageTitle = normalizeText(title, MAX_TITLE_LENGTH)
-    .replace(/founders(?:\.coffee| coffee)/giu, '')
-    .replace(/\s+/gu, ' ')
-    .replace(/^\s*[-–—·:]\s*/u, '')
-    .replace(/\s*[-–—·:]\s*$/u, '')
-    .trim();
-  return normalizeText(
-    pageTitle ? `${SITE_NAME} - ${pageTitle}` : SITE_NAME,
-    MAX_TITLE_LENGTH,
-  );
+  const pageTitle = normalizeText(title, MAX_TITLE_LENGTH);
+  if (!pageTitle) return SITE_NAME;
+  if (NAMES_THE_BRAND.test(pageTitle)) return pageTitle;
+  return normalizeText(`${SITE_NAME} - ${pageTitle}`, MAX_TITLE_LENGTH);
 };
 
 const localeOpenGraph = (locale: Locale): string =>
