@@ -1,12 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { z } from 'zod';
 
 import { sign_in } from '@founders-coffee/i18n';
 
 import { LoginPage } from '../components/auth/LoginPage';
 import { authApi } from '../features/auth/api';
 import { NO_INDEX_VALUE } from '../lib/indexation';
-import { authReturnPathSchema } from '../lib/redirect';
+import {
+  authReturnSearchSchema,
+  withoutDefaultReturnPath,
+} from '../lib/redirect';
 import { redirectWhenSignedIn } from '../features/auth/require-session';
 import { privatePageHead } from '../lib/seo-private';
 
@@ -31,9 +33,8 @@ export const Route = createFileRoute('/$locale/login')({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,
   }),
-  validateSearch: z.object({
-    redirect: authReturnPathSchema.catch('/').optional().default('/'),
-  }),
+  validateSearch: authReturnSearchSchema,
+  search: { middlewares: [withoutDefaultReturnPath()] },
   beforeLoad: async ({ search }) => {
     await redirectWhenSignedIn(search.redirect);
   },

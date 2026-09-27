@@ -261,18 +261,22 @@ describe('public Worker SEO contract', () => {
   });
 
   it('keeps utility pages private and noindex', async () => {
-    for (const path of ['/login', '/en/login']) {
-      const response = await fetchDocument(path);
+    const redirected = await fetchDocument('/login');
+    const page = await fetchDocument('/en/login');
 
-      expect(response.status, path).toBe(307);
-      expect(response.headers.get('location')).toContain('/login');
-      expect(response.headers.get('cache-control'), path).toBe(
-        'private, no-store',
-      );
-      expect(response.headers.get('x-robots-tag'), path).toBe(
-        'noindex, nofollow',
-      );
-      expect(response.headers.get('link')).toBeNull();
+    expect(redirected.status).toBe(307);
+    expect(
+      redirected.headers.get('location'),
+      'the sign-in page took two hops to land, the first to write its default return path into the address',
+    ).toBe('/ar/login');
+    expect(redirected.headers.get('link')).toBeNull();
+    expect(
+      page.status,
+      '/en/login answered 307 to /en/login?redirect=%2F',
+    ).toBe(200);
+    for (const response of [redirected, page]) {
+      expect(response.headers.get('cache-control')).toBe('private, no-store');
+      expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow');
     }
   });
 

@@ -37,7 +37,7 @@ describe('sameOriginPathSchema', () => {
       '/ar/onboarding?redirect=%2Falgeria%2Fhost%2Fcreate%3Fcity%3D556%26state%3D16',
     );
     expect(onboardingRedirectPath('ar', '//attacker.example/steal')).toBe(
-      '/ar/onboarding?redirect=%2F',
+      '/ar/onboarding',
     );
   });
 });

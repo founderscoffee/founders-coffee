@@ -87,9 +87,7 @@ describe('profile navigation privacy', () => {
     'https://evil.test',
   ])('rejects unsafe or looping auth return %s', (path) => {
     expect(safeAuthReturnPath(path)).toBe('/');
-    expect(onboardingRedirectPath('ar', path)).toBe(
-      '/ar/onboarding?redirect=%2F',
-    );
+    expect(onboardingRedirectPath('ar', path)).toBe('/ar/onboarding');
   });
   it('sweeps only the private paths when the service worker activates', async () => {
     const privatePages = [
