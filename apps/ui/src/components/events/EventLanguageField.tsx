@@ -18,7 +18,7 @@ export const EventLanguageField = ({
   value: Locale;
   onChange: (next: Locale) => void;
 }) => (
-  <div className="form-control">
+  <div className="flex flex-col">
     <label htmlFor={id} className="mb-1 block text-body-sm text-neutral">
       {host_language_label({}, { locale })}
     </label>

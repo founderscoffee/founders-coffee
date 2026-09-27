@@ -19,7 +19,7 @@ export const HostVenueNameField = ({
   error,
   onChange,
 }: HostVenueNameFieldProps) => (
-  <div className="form-control">
+  <div className="flex flex-col">
     <label className="mb-1 text-body-sm text-neutral" htmlFor="host-venue-name">
       {host_venue_name_label({}, { locale })}
     </label>

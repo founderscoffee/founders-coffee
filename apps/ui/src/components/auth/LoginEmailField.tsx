@@ -15,7 +15,7 @@ export const LoginEmailField = ({
   value: string;
   onChange: (next: string) => void;
 }) => (
-  <div className="form-control">
+  <div className="flex flex-col">
     <label className="mb-1 block text-label text-neutral" htmlFor="login-email">
       {email_label({}, { locale })}
     </label>

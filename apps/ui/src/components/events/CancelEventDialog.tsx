@@ -57,7 +57,7 @@ export const CancelEventDialog = ({
           {host_cancel_body({}, { locale })}
         </p>
 
-        <label className="form-control mt-4">
+        <label className="mt-4 flex flex-col">
           <span className="mb-1 block text-label text-neutral">
             {host_cancel_reason_label({}, { locale })}
           </span>

@@ -39,7 +39,7 @@ export const HostDetailsStep = ({
   onLanguageChange: (value: Locale) => void;
 }) => (
   <div className="grid gap-5">
-    <div className="form-control">
+    <div className="flex flex-col">
       <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
         <label htmlFor="host-title">{host_title_label({}, { locale })}</label>
         <span aria-hidden="true" className="text-caption text-neutral">
@@ -73,7 +73,7 @@ export const HostDetailsStep = ({
       )}
     </div>
 
-    <div className="form-control">
+    <div className="flex flex-col">
       <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
         <label htmlFor="host-description">
           {host_desc_label({}, { locale })}

@@ -93,7 +93,7 @@ export const EventEditForm = ({
         <legend className="mb-1 font-display text-body-lg font-semibold">
           {host_edit_where({}, { locale })}
         </legend>
-        <label className="form-control" htmlFor="edit-venue-name">
+        <label className="flex flex-col" htmlFor="edit-venue-name">
           <span className="mb-1 text-body-sm text-neutral">
             {host_venue_name_label({}, { locale })}
           </span>

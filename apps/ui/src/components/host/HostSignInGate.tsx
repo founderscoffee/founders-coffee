@@ -155,7 +155,7 @@ export const HostSignInGate = ({
       >
         {step === 'email' ? (
           <>
-            <label className="form-control">
+            <label className="flex flex-col">
               <span className="mb-1 block text-label text-neutral">
                 {email_label({}, { locale })}
               </span>
