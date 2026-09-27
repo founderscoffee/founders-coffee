@@ -82,7 +82,7 @@ export const FeedbackForm = ({
       <textarea
         aria-label={feedback_comment({}, { locale })}
         id="feedback-comment"
-        className="textarea textarea-bordered mt-2 min-h-28 w-full"
+        className="textarea mt-2 min-h-28 w-full"
         maxLength={600}
         value={draft.comment}
         onChange={(event) => onChange({ comment: event.target.value })}
@@ -95,7 +95,7 @@ export const FeedbackForm = ({
         </span>
         <select
           id="feedback-comment-language"
-          className="select select-bordered mt-2 w-full"
+          className="select mt-2 w-full"
           value={draft.commentLanguage ?? ''}
           onChange={(event) =>
             onChange({

@@ -99,7 +99,7 @@ export const EventEditForm = ({
           </span>
           <input
             id="edit-venue-name"
-            className="input input-bordered w-full"
+            className="input w-full"
             dir="auto"
             value={draft.venueName}
             maxLength={constraints.venueNameMax}

@@ -4,7 +4,7 @@ import { forwardRef, type InputHTMLAttributes } from 'react';
 import { cn } from '../lib/cn.js';
 import { defaultFieldDirection } from '../lib/field-direction.js';
 
-export const inputVariants = cva('input input-bordered w-full', {
+export const inputVariants = cva('input w-full', {
   variants: {
     inputSize: { sm: 'input-sm', md: 'input-md', lg: 'input-lg' },
   },

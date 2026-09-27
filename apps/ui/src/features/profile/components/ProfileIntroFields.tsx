@@ -68,7 +68,7 @@ export const ProfileIntroFields = ({
       </div>
       <textarea
         id="profile-intro"
-        className="textarea textarea-bordered w-full"
+        className="textarea w-full"
         rows={4}
         dir="auto"
         value={draft.introduction ?? ''}

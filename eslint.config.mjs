@@ -107,7 +107,10 @@ export default [
   {
     files: REACT_SOURCE_FILES,
     plugins: { 'react-hooks': reactHooks },
-    rules: { 'react-hooks/rules-of-hooks': 'error' },
+    rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'local/no-removed-daisyui-class': 'error',
+    },
   },
   {
     files: PRODUCT_COPY_FILES,

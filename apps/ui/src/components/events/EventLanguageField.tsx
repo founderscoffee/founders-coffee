@@ -24,7 +24,7 @@ export const EventLanguageField = ({
     </label>
     <select
       id={id}
-      className="select select-bordered w-full"
+      className="select w-full"
       value={value}
       onChange={(event) => onChange(event.target.value as Locale)}
       aria-describedby={`${id}-hint`}

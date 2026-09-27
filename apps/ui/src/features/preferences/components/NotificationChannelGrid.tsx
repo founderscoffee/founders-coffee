@@ -209,7 +209,7 @@ export const NotificationChannelGrid = ({
                 const label = channelLabel(channel, locale);
                 return (
                   <label
-                    className="label min-h-10 cursor-pointer gap-2 rounded-btn border border-base-300 px-3 py-2 md:justify-center md:border-0 md:p-0"
+                    className="label min-h-10 cursor-pointer gap-2 rounded-field border border-base-300 px-3 py-2 md:justify-center md:border-0 md:p-0"
                     key={channel}
                   >
                     <input

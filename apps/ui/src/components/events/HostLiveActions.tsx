@@ -44,7 +44,7 @@ export const HostLiveActions = ({
       <div className="flex gap-2">
         <input
           type="number"
-          className="input input-bordered input-sm flex-1"
+          className="input input-sm flex-1"
           placeholder={live_new_table_ph({}, { locale })}
           value={tableNumber}
           onChange={(event) => setTableNumber(event.target.value)}
@@ -77,14 +77,14 @@ export const HostLiveActions = ({
     <div className="flex flex-col gap-2">
       <input
         type="number"
-        className="input input-bordered input-sm w-full"
+        className="input input-sm w-full"
         placeholder={live_table_ph({}, { locale })}
         value={tableNumber}
         onChange={(event) => setTableNumber(event.target.value)}
       />
       <input
         type="text"
-        className="input input-bordered input-sm w-full"
+        className="input input-sm w-full"
         placeholder={live_cue_ph({}, { locale })}
         value={visualCue}
         onChange={(event) => setVisualCue(event.target.value)}

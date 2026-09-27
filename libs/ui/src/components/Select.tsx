@@ -3,7 +3,7 @@ import { forwardRef, type SelectHTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn.js';
 
-export const selectVariants = cva('select select-bordered w-full', {
+export const selectVariants = cva('select w-full', {
   variants: {
     selectSize: { sm: 'select-sm', md: 'select-md', lg: 'select-lg' },
   },

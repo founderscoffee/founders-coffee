@@ -26,13 +26,13 @@ describe('libs/ui cva variants (literal class strings Tailwind can scan)', () =>
   });
 
   it('Input defaults to md (inputSize, avoiding the native size collision)', () => {
-    expect(inputVariants()).toBe('input input-bordered w-full input-md');
+    expect(inputVariants()).toBe('input w-full input-md');
   });
 
   it('Select mirrors Input, renaming size for the same native collision', () => {
-    expect(selectVariants()).toBe('select select-bordered w-full select-md');
+    expect(selectVariants()).toBe('select w-full select-md');
     expect(selectVariants({ selectSize: 'sm' })).toBe(
-      'select select-bordered w-full select-sm',
+      'select w-full select-sm',
     );
   });
 

@@ -62,7 +62,7 @@ export const CancelEventDialog = ({
             {host_cancel_reason_label({}, { locale })}
           </span>
           <textarea
-            className="textarea textarea-bordered w-full"
+            className="textarea w-full"
             rows={3}
             maxLength={CANCEL_REASON_MAX_LENGTH}
             value={reason}

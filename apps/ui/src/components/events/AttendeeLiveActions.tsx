@@ -55,7 +55,7 @@ export const AttendeeLiveActions = ({
         <div className="flex gap-2">
           <input
             type="number"
-            className="input input-bordered input-sm flex-1"
+            className="input input-sm flex-1"
             placeholder={live_eta_ph({}, { locale })}
             value={runningLateEta}
             onChange={(e) => setRunningLateEta(e.target.value)}
