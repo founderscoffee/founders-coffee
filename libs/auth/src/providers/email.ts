@@ -7,8 +7,15 @@ export interface SendOtpArgs {
   type: OtpType;
 }
 
+export interface OtpRequestContext {
+  readonly headers?: Headers;
+}
+
 export interface EmailProvider {
-  sendOtp(args: SendOtpArgs): void | Promise<void>;
+  sendOtp(
+    args: SendOtpArgs,
+    context?: OtpRequestContext,
+  ): void | Promise<void>;
 }
 
 export class DevEmailProvider implements EmailProvider {

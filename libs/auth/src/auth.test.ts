@@ -9,7 +9,11 @@ import { describe, expect, it } from 'vitest';
 
 import { createAuth } from './auth.js';
 import { getSession, requireRole } from './middleware.js';
-import { DevEmailProvider } from './providers/email.js';
+import {
+  DevEmailProvider,
+  type EmailProvider,
+  type OtpRequestContext,
+} from './providers/email.js';
 import { sessionTokenFromCookie } from './session-cookie.js';
 
 const authEnv = {
@@ -135,6 +139,27 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
         headers: new Headers({ cookie: sessionCookie }),
       }),
     ).rejects.toMatchObject({ status: 'FORBIDDEN' });
+  });
+
+  it('forwards the OTP request headers to the email provider', async () => {
+    let observed: OtpRequestContext | undefined;
+    const emailProvider: EmailProvider = {
+      sendOtp: (_args, context) => {
+        observed = context;
+      },
+    };
+    const { auth } = createAuth(authEnv, { emailProvider });
+
+    const response = await auth.handler(
+      post(
+        '/email-otp/send-verification-otp',
+        { email: 'locale@example.dz', type: 'sign-in' },
+        'PARAGLIDE_LOCALE=fr',
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(observed?.headers?.get('cookie')).toBe('PARAGLIDE_LOCALE=fr');
   });
 
   it('sets the one session cookie sessionTokenFromCookie reads, over plain HTTP too', async () => {
