@@ -88,12 +88,12 @@ describe('company pages', () => {
 
   it('states the Arabic authority for every translated legal document', () => {
     for (const key of LEGAL_PAGE_KEYS) {
+      expect(companyPageContent(key, 'ar').notice).toBeUndefined();
       for (const locale of ['en', 'fr'] as const) {
-        const firstBlock = companyPageContent(key, locale).sections[0]
-          ?.blocks[0];
-        expect(firstBlock?.kind).toBe('note');
-        if (firstBlock?.kind !== 'note') expect.fail('missing authority note');
-        expect(firstBlock.text).toMatch(
+        expect(
+          companyPageContent(key, locale).notice,
+          `${key}:${locale} renders the authority note in its header, under the date; as the first block of the first section it sat below the table of contents, where a reader meets it last`,
+        ).toMatch(
           locale === 'en'
             ? /Arabic version is authoritative/u
             : /version arabe fait foi/u,

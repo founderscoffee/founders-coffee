@@ -80,6 +80,36 @@ describe('where a company section can be linked to', () => {
   });
 });
 
+describe('where a translated page says which version prevails', () => {
+  const sections = ['Scope', 'Data', 'Rights', 'Contact'].map((heading) => ({
+    heading,
+    blocks: [{ kind: 'text' as const, text: 'Body.' }],
+  }));
+
+  it('puts the notice in the header, above the table of contents', () => {
+    const container = show({
+      ...page(sections),
+      notice: 'If it differs from the Arabic version, the Arabic prevails.',
+    });
+    const notice = container.querySelector('[role="note"]');
+    const contents = container.querySelector('nav');
+    if (!notice || !contents) expect.fail('no notice or no contents list');
+
+    expect(notice.closest('header')).toBeTruthy();
+    expect(
+      notice.compareDocumentPosition(contents) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      'as the first block of the first section the notice rendered below the table of contents, so a reader met the contents list before learning which version is binding',
+    ).toBeTruthy();
+  });
+
+  it('renders no notice on a page that has none', () => {
+    const container = show(page(sections));
+
+    expect(container.querySelector('[role="note"]')).toBeNull();
+  });
+});
+
 const TAILWIND_REM = {
   'max-w-xs': 20,
   'max-w-sm': 24,

@@ -3,11 +3,6 @@ import type { CompanyBlock, CompanyPageContent, CompanySection } from './types';
 export const text = (...items: readonly string[]): readonly CompanyBlock[] =>
   items.map((value) => ({ kind: 'text', text: value }));
 
-export const note = (value: string): CompanyBlock => ({
-  kind: 'note',
-  text: value,
-});
-
 export const subheading = (value: string): CompanyBlock => ({
   kind: 'subheading',
   text: value,
@@ -46,28 +41,10 @@ export const translatedPage = (
   description: string,
   sections: readonly CompanySection[],
   updated = '18 September 2026',
-): CompanyPageContent => {
-  const authorityNotice =
+): CompanyPageContent => ({
+  ...page(title, description, sections, updated),
+  notice:
     locale === 'en'
       ? 'This is an English translation for convenience. If it differs from the Arabic version, the Arabic version is authoritative.'
-      : 'Cette page est une traduction française fournie pour faciliter votre lecture. En cas de divergence avec la version arabe, la version arabe fait foi.';
-  const [firstSection, ...remainingSections] = sections;
-
-  if (!firstSection) return page(title, description, sections, updated);
-
-  return page(
-    title,
-    description,
-    [
-      {
-        ...firstSection,
-        blocks: [
-          { kind: 'note', text: authorityNotice },
-          ...firstSection.blocks,
-        ],
-      },
-      ...remainingSections,
-    ],
-    updated,
-  );
-};
+      : 'Cette page est une traduction française fournie pour faciliter votre lecture. En cas de divergence avec la version arabe, la version arabe fait foi.',
+});

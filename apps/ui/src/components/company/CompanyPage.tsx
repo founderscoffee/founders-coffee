@@ -91,6 +91,14 @@ export const CompanyPage = ({
           <p className="mt-4 text-body-sm text-neutral">
             {page_last_updated({ date: content.updated }, { locale })}
           </p>
+          {content.notice ? (
+            <p
+              role="note"
+              className="mt-4 rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-body-sm leading-7 text-neutral"
+            >
+              {content.notice}
+            </p>
+          ) : null}
 
           {showEmailActions ? (
             <div className="mt-6 flex flex-wrap items-center gap-3">
