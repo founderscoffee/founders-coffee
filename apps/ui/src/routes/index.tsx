@@ -19,7 +19,7 @@ export const Route = createFileRoute('/')({
     throw redirect({
       ...localizedLanding(locale, target),
       headers: {
-        'Set-Cookie': `${GEO_COOKIE}=${target}; Path=/; Max-Age=31536000; SameSite=Lax`,
+        'Set-Cookie': `${GEO_COOKIE}=${target}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`,
       },
     });
   },

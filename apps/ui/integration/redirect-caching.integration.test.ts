@@ -148,6 +148,15 @@ describe('the redirects the Worker answers', () => {
     );
   });
 
+  it('send that choice over encrypted connections only', async () => {
+    const response = await fetchOnce('/');
+
+    expect(
+      response.headers.get('set-cookie')?.split(/;\s*/u),
+      'fc_geo went out without Secure while the session cookie is always Secure',
+    ).toContain('Secure');
+  });
+
   it('leave the page they land on publicly cacheable', async () => {
     const response = await fetchOnce('/ar/about');
 
