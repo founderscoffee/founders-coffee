@@ -8,7 +8,7 @@ import arabicBold from '@fontsource/tajawal/files/tajawal-arabic-700-normal.woff
 import latinRegular from '@fontsource/tajawal/files/tajawal-latin-400-normal.woff?inline';
 import latinBold from '@fontsource/tajawal/files/tajawal-latin-700-normal.woff?inline';
 
-import type { CardNode } from './og-card';
+import type { CardNode } from './og-line';
 
 const decode = (dataUrl: string): ArrayBuffer => {
   const binary = atob(dataUrl.slice(dataUrl.indexOf(',') + 1));
