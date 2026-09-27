@@ -42,11 +42,11 @@
   "shortcuts": [
     {
       "name": "نظّم لقاء",
-      "url": "/ar/algeria/host/create"
+      "url": "/ar/host"
     },
     {
       "name": "ابحث عن لقاء",
-      "url": "/ar/algeria"
+      "url": "/ar"
     }
   ]
 }

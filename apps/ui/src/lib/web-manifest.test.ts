@@ -130,9 +130,21 @@ describe('web app manifest', () => {
     for (const [locale, manifest] of MANIFESTS) {
       for (const shortcut of manifest.shortcuts) {
         expect(
-          shortcut.url.startsWith(`/${locale}/`),
+          shortcut.url === `/${locale}` ||
+            shortcut.url.startsWith(`/${locale}/`),
           `${locale}: ${shortcut.url} is unprefixed`,
         ).toBe(true);
+      }
+    }
+  });
+
+  it('leaves the market to the reader in every shortcut', () => {
+    for (const [locale, manifest] of MANIFESTS) {
+      for (const shortcut of manifest.shortcuts) {
+        expect(
+          shortcut.url,
+          `${locale}: every shortcut opened Algeria, whichever market the member was in`,
+        ).not.toMatch(/\/(algeria|egypt|saudi-arabia)(\/|$)/u);
       }
     }
   });

@@ -47,6 +47,15 @@ const PER_READER: readonly Hop[] = [
     location: `/${locale}/algeria`,
   })),
   { path: '/fr', cookie: `${GEO_COOKIE}=egypt`, location: '/fr/egypt' },
+  ...LOCALES.map((locale) => ({
+    path: `/${locale}/host`,
+    location: `/${locale}/algeria/host/create`,
+  })),
+  {
+    path: '/fr/host',
+    cookie: `${GEO_COOKIE}=egypt`,
+    location: '/fr/egypt/host/create',
+  },
   ...Object.keys(COMPANY_PAGES).flatMap((page) => [
     { path: `/${page}`, location: `/ar/${page}` },
     { path: `/${page}`, cookie: FRENCH, location: `/fr/${page}` },

@@ -42,11 +42,11 @@
   "shortcuts": [
     {
       "name": "Host a meetup",
-      "url": "/en/algeria/host/create"
+      "url": "/en/host"
     },
     {
       "name": "Find a meetup",
-      "url": "/en/algeria"
+      "url": "/en"
     }
   ]
 }
