@@ -32,22 +32,19 @@ const show = (locale: 'ar' | 'en' = 'ar') => {
 afterEach(() => cleanup());
 
 describe('a clock range inside an Arabic page', () => {
-  it('reads start then end, and says so in its own direction', () => {
+  it('puts the start where an Arabic reader starts, on the right', () => {
     const input = show('ar');
 
     expect(input.value).toBe('18:00 - 19:00');
     expect(
       input.getAttribute('dir'),
-      'the value was always right; an RTL paragraph reorders the two numeral runs around the hyphen, so a host setting 18:00 to 19:00 read 19:00 to 18:00 and concluded the form was broken',
-    ).toBe('ltr');
+      'held left to right, 18:00 sat on the left, so a host reading right to left met 19:00 first and read the range as reversed; right to left, the two numeral runs keep their digits and 18:00 lands on the right',
+    ).toBe('rtl');
   });
 
-  it('carries the same direction in a page that is already left to right', () => {
+  it('reads left to right on a left-to-right page', () => {
     const input = show('en');
 
-    expect(
-      input.getAttribute('dir'),
-      'a clock range is left to right in every language, so this is not a translation of the page direction',
-    ).toBe('ltr');
+    expect(input.getAttribute('dir')).toBe('ltr');
   });
 });

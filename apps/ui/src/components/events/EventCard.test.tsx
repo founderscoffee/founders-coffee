@@ -151,6 +151,24 @@ describe('what else the card fits in', () => {
   );
 });
 
+describe('which way the time range reads', () => {
+  it.each([
+    ['ar', 'rtl'],
+    ['fr', 'ltr'],
+    ['en', 'ltr'],
+  ] as const)('starts where a %s reader starts', (locale, expected) => {
+    const view = show({ endsAt: new Date('2026-09-18T15:00:00Z') }, locale);
+    const range = Array.from(view.container.querySelectorAll('span'))
+      .filter((span) => span.textContent?.includes('\u2013'))
+      .pop();
+
+    expect(
+      range?.getAttribute('dir'),
+      'held left to right on an Arabic card, the start time sat on the left and the range read backwards, unlike the event page, which already says من 18:00 إلى 19:00',
+    ).toBe(expected);
+  });
+});
+
 describe('what the card calls the city', () => {
   const cairo = {
     cityName: 'Cairo',

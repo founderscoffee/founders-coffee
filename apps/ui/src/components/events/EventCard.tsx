@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowUpRight, MapPin } from 'lucide-react';
 
 import {
+  direction,
   event_details_title,
   event_host,
   formatDate,
@@ -87,7 +88,10 @@ export const EventCard = ({
             </p>
           ) : null}
           <p className="flex flex-wrap items-start gap-x-2 gap-y-1 text-body-sm text-neutral">
-            <span dir="ltr" className="whitespace-nowrap tabular-nums">
+            <span
+              dir={direction(locale)}
+              className="whitespace-nowrap tabular-nums"
+            >
               {timeRange}
             </span>
             <span aria-hidden="true">·</span>
