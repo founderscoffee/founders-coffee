@@ -157,7 +157,9 @@ waiting, in one conditional insert, so a meetup nobody waits for writes nothing.
 meetup rather than per city because the waitlist form comes back whenever a city has no upcoming
 meetup, and whoever joins then is owed the next one. Each entry receives one notice: a partial unique
 index allows a single pending, in-flight or sent notice per entry, and a notice that fails for good,
-or whose meetup is cancelled first, leaves the entry for the next meetup.
+or whose meetup is cancelled first, leaves the entry for the next meetup. An entry already told
+about a meetup that is then cancelled is not told again: the email promises it is the only one, and
+that promise holds (decided 2026-09-27).
 
 The Notifications Queue worker writes a round's notices in chunks under D1's 100-parameter limit,
 claims them in batches of 50, and hands the round back to the queue at once for the next batch or
