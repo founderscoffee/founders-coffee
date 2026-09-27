@@ -109,35 +109,44 @@ export const markets = sqliteTable('markets', {
 export type Market = typeof markets.$inferSelect;
 export type NewMarket = typeof markets.$inferInsert;
 
-export const user = sqliteTable('user', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull().unique(),
-  emailVerified: integer('email_verified', { mode: 'boolean' })
-    .notNull()
-    .default(false),
-  image: text('image'),
-  role: text('role', { enum: [...USER_ROLES] })
-    .notNull()
-    .default('member'),
-  accountState: text('account_state', { enum: [...ACCOUNT_STATES] })
-    .notNull()
-    .default('active'),
-  banned: integer('banned', { mode: 'boolean' }).default(false),
-  banReason: text('ban_reason'),
-  banExpires: integer('ban_expires', { mode: 'timestamp' }),
-  phoneNumber: text('phone_number').unique(),
-  phoneNumberVerified: integer('phone_number_verified', { mode: 'boolean' })
-    .notNull()
-    .default(false),
-  localePref: text('locale_pref', { enum: [...LOCALES] }),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
+export const user = sqliteTable(
+  'user',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull().unique(),
+    emailVerified: integer('email_verified', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    image: text('image'),
+    role: text('role', { enum: [...USER_ROLES] })
+      .notNull()
+      .default('member'),
+    accountState: text('account_state', { enum: [...ACCOUNT_STATES] })
+      .notNull()
+      .default('active'),
+    banned: integer('banned', { mode: 'boolean' }).default(false),
+    banReason: text('ban_reason'),
+    banExpires: integer('ban_expires', { mode: 'timestamp' }),
+    phoneNumber: text('phone_number').unique(),
+    phoneNumberVerified: integer('phone_number_verified', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    localePref: text('locale_pref', { enum: [...LOCALES] }),
+    closedAt: integer('closed_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    index('user_closing_index')
+      .on(table.closedAt)
+      .where(sql`account_state = 'closing'`),
+  ],
+);
 
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;

@@ -8,10 +8,13 @@ import {
   listHostedEvents,
   listUpcomingEvents,
 } from './events.js';
-import { isVisibleIdentity } from './member-profiles.js';
-import { user } from './schema.js';
+import { listJoinedEvents } from './events-joined.js';
+import { listPublicEventSitemapRows } from './events-sitemap.js';
+import { isVisibleHost, isVisibleIdentity } from './member-profiles.js';
+import { eventRsvps, events, user } from './schema.js';
 import {
   OTHER_HOST_ID,
+  TEST_HOST_ID,
   baseEvent,
   nextId,
   nextSlug,
@@ -105,6 +108,64 @@ describe('suppressed hosts (real D1)', () => {
       ).toEqual([]);
       expect(await countHostedEvents(db, { hostId: OTHER_HOST_ID })).toBe(0);
       expect((await countUpcomingByCity(db, 'DZ', NOW))[scope]).toBeUndefined();
+
+      await restore(db);
+    },
+  );
+
+  it("keeps an erased host's meetup on its page, in its attendees' lists and in the sitemap (#105)", async () => {
+    const db = await setupDb();
+    await restore(db);
+    const id = await hostedByOther(db, 'moderation-erased');
+    await db
+      .insert(eventRsvps)
+      .values({ id: `rsv_${id}`, eventId: id, userId: TEST_HOST_ID });
+
+    await suppress(db, { accountState: 'deleted' });
+
+    expect(await isVisibleHost(db, OTHER_HOST_ID)).toBe(true);
+    expect(
+      (await listJoinedEvents(db, { userId: TEST_HOST_ID })).map(
+        (event) => event.id,
+      ),
+    ).toContain(id);
+    const [{ slug }] = await db
+      .select({ slug: events.slug })
+      .from(events)
+      .where(eq(events.id, id));
+    expect(
+      (await listPublicEventSitemapRows(db)).map((row) => row.slug),
+    ).toContain(slug);
+    expect(await visibleIds(db)).not.toContain(id);
+    expect(await countHostedEvents(db, { hostId: OTHER_HOST_ID })).toBe(0);
+    await restore(db);
+  });
+
+  it.each([
+    ['banned', { banned: true }],
+    ['closing an account', { accountState: 'closing' }],
+    ['banned and erased', { banned: true, accountState: 'deleted' }],
+  ])(
+    "takes the meetup off its page and its attendees' lists when %s",
+    async (_label, change) => {
+      const db = await setupDb();
+      await restore(db);
+      const id = await hostedByOther(
+        db,
+        `moderation-page-${String(change.accountState ?? 'banned')}`,
+      );
+      await db
+        .insert(eventRsvps)
+        .values({ id: `rsv_${id}`, eventId: id, userId: TEST_HOST_ID });
+
+      await suppress(db, change);
+
+      expect(await isVisibleHost(db, OTHER_HOST_ID)).toBe(false);
+      expect(
+        (await listJoinedEvents(db, { userId: TEST_HOST_ID })).map(
+          (event) => event.id,
+        ),
+      ).not.toContain(id);
 
       await restore(db);
     },

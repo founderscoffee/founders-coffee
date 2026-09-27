@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { id } from '@founders-coffee/core';
@@ -6,18 +7,32 @@ import type { Db } from './db.js';
 import { createEvent } from './events.js';
 import { getEventCard } from './event-card.js';
 import { HOST_ID, setupDb } from './operations.fixtures.js';
+import { user } from './schema.js';
 
 const HOUR = 60 * 60 * 1000;
 
+const cardHost = async (
+  db: Db,
+  change: Partial<typeof user.$inferInsert>,
+): Promise<string> => {
+  const hostId = id('usr');
+  await db
+    .insert(user)
+    .values({ id: hostId, name: 'Card Host', email: `${hostId}@card.test` })
+    .run();
+  await db.update(user).set(change).where(eq(user.id, hostId)).run();
+  return hostId;
+};
+
 const cardEvent = async (
   db: Db,
-  options: { status?: 'published' | 'draft' } = {},
+  options: { status?: 'published' | 'draft'; hostId?: string } = {},
 ): Promise<string> => {
   const eventId = id('evt');
   await createEvent(db, {
     id: eventId,
     slug: `card-${eventId.slice(-6)}`,
-    hostId: HOST_ID,
+    hostId: options.hostId ?? HOST_ID,
     marketCode: 'DZ',
     stateCode: '16',
     cityCode: '556',
@@ -61,6 +76,26 @@ describe('getEventCard', () => {
 
   it('answers with nothing for an id no event has', async () => {
     expect(await getEventCard(db, id('evt'))).toBeUndefined();
+  });
+
+  it.each([
+    ['banned', { banned: true }],
+    ['still closing', { accountState: 'closing' as const }],
+  ])(
+    'answers with nothing for a meetup whose host is %s (#105)',
+    async (_label, change) => {
+      const hostId = await cardHost(db, change);
+      expect(
+        await getEventCard(db, await cardEvent(db, { hostId })),
+      ).toBeUndefined();
+    },
+  );
+
+  it("keeps an erased host's meetup, with the empty name the erasure left (#105)", async () => {
+    const hostId = await cardHost(db, { name: '', accountState: 'deleted' });
+    expect(
+      await getEventCard(db, await cardEvent(db, { hostId })),
+    ).toMatchObject({ status: 'published', hostName: '' });
   });
 
   it('carries the version the card address is keyed on', async () => {

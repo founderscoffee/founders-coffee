@@ -241,6 +241,7 @@ describe('public response contract', () => {
         'banExpires',
         'banReason',
         'banned',
+        'closedAt',
         'email',
         'emailVerified',
         'image',

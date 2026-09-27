@@ -9,6 +9,7 @@ import type { AiRuntime, VectorizeRuntime } from '@founders-coffee/core/ai';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { createDb } from '@founders-coffee/db';
 import { R2PhotoStore, resolveQueueKind } from '@founders-coffee/infra';
+import { sweepClosingAccounts } from '@founders-coffee/server-fns/account-closure';
 import {
   BotApiTelegramProvider,
   DevNotificationSmsProvider,
@@ -149,8 +150,9 @@ export default {
    * one-minute cron gave. The constant is only a name for the schedule; `triggers.crons` in
    * `wrangler.jsonc` is what Cloudflare actually runs, and the two must agree.
    *
-   * The daily run ends with the waitlist retention sweep, the one D1 scan AGENTS.md §11.5 allows for
-   * retention (#106), bounded and read through an index.
+   * The daily run also carries every account closed on request through to its erasure (#105), and
+   * ends with the waitlist retention sweep. Both are retention sweeps of the kind AGENTS.md §11.5
+   * allows (#106): bounded, and read through an index on the column that says when a row is due.
    */
   scheduled: async (controller: ScheduledController, env: Env) => {
     const db = createDb(env.DB);
@@ -169,8 +171,11 @@ export default {
       await runReconcile(db);
       await backfillCloseoutPrompts(db);
       await backfillDidNotHappenNotices(db);
-      if (env.PROFILE_ASSETS)
-        await sweepProfileAssets(db, new R2PhotoStore(env.PROFILE_ASSETS));
+      if (env.PROFILE_ASSETS) {
+        const photos = new R2PhotoStore(env.PROFILE_ASSETS);
+        await sweepProfileAssets(db, photos);
+        await sweepClosingAccounts(db, photos);
+      }
       await sweepExpiredWaitlistEntries(db);
     }
   },

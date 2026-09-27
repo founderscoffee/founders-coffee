@@ -1,10 +1,12 @@
 import {
   createExecutionContext,
   createMessageBatch,
+  createScheduledController,
   env,
   getQueueResult,
 } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
+import { id } from '@founders-coffee/core';
 import { queueName, RESOURCES } from '@founders-coffee/infra';
 
 import type { NotificationDueMessage } from './jobs/messages.js';
@@ -85,5 +87,27 @@ describe('queue handler — NOTIFICATIONS (real Miniflare bindings)', () => {
 
     expect(result.retryMessages).toHaveLength(1);
     expect(result.explicitAcks).toHaveLength(0);
+  });
+});
+
+describe('scheduled handler — the daily run (real Miniflare bindings)', () => {
+  it('erases an account whose closure is due (#105)', async () => {
+    const db = await setupDb();
+    const userId = id('usr');
+    await db.insert(user).values({
+      id: userId,
+      name: 'Closing Member',
+      email: `${userId}@closure.test`,
+      accountState: 'closing',
+      closedAt: new Date(Date.now() - 3_600_000),
+    });
+
+    await worker.scheduled(
+      createScheduledController({ cron: '0 3 * * *' }),
+      env,
+    );
+
+    const [row] = await db.select().from(user).where(eq(user.id, userId));
+    expect(row).toMatchObject({ accountState: 'deleted', name: '' });
   });
 });

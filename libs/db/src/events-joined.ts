@@ -1,7 +1,7 @@
 import { and, desc, eq, lt, or, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
-import { visibleIdentity } from './profile-access.js';
+import { visibleHost } from './profile-access.js';
 import { eventRsvps, events, type Event } from './schema.js';
 
 /**
@@ -16,14 +16,14 @@ import { eventRsvps, events, type Event } from './schema.js';
  * not need a meetup that never happened; a member looking at their own list does, because they may
  * still have it in their calendar and the cancellation is the thing they need to see.
  *
- * `visibleIdentity` still gates on the host, so a suppressed host's gathering leaves every
- * attendee's list at the same moment it leaves discovery.
+ * `visibleHost` still gates on the host, so a suppressed host's gathering leaves every attendee's
+ * list at the same moment it leaves discovery, while one whose host's account was erased stays.
  */
 const joinedEventScope = (userId: string, marketCode?: string) =>
   and(
     eq(eventRsvps.userId, userId),
     eq(eventRsvps.status, 'going'),
-    visibleIdentity(events.hostId),
+    visibleHost(events.hostId),
     marketCode ? eq(events.marketCode, marketCode) : undefined,
   );
 

@@ -177,6 +177,49 @@ in `libs/db/src/waitlist-*.test.ts`, `libs/server-fns/src/events/waitlist-launch
 consumer knows `waitlist_launch_due` before the first one is sent; the recovery sweep delivers any
 round either way.
 
+### Account closure (#105)
+
+A member closes their account by writing to contact@founders.coffee, as the privacy policy says,
+and the operator follows the [account requests runbook](./account-requests.md): check that the
+request comes from the account's address, then set `account_state = 'closing'` and `closed_at`,
+which takes the profile and the meetups the member hosts out of every public read at once, and
+delete their sessions. Signing in again does not reopen the account; only the operator can, until
+the erasure.
+
+The daily cron carries each closing account through (`libs/server-fns/src/profile/account-closure.ts`).
+It cancels the meetups the member hosts that have not started, through the host's own cancellation
+so everyone going is told, and gives back their seats at other hosts' meetups, which also takes them
+out of those meetups' Telegram groups. A meetup of theirs under way, a Telegram invitation they
+still hold or a Telegram job still queued makes it wait for a later night. Then it deletes their
+photos from R2 and erases the account in one D1 batch (`libs/db/src/account-closure.ts`).
+
+The erasure keeps the `user` row as a tombstone instead of deleting it: no name, phone, photo or
+language, and an address under `.invalid`. Every foreign key that blocked a delete keeps pointing at
+it and nothing cascades, so the host's meetups and every other member's RSVPs, attendance and
+feedback on them stay, as the policy promises. The member's own RSVPs and attendance stay for their
+24 months, and their feedback ratings without the comment. Everything else that was theirs goes,
+including the rows keyed by their address: sign-in codes and waitlist entries. Every statement
+re-checks that the account is still closing, and the tombstone is written last, so an account
+reopened in between is left as it was.
+
+An erased host's published meetups keep their page, their place in attendees' lists, their share
+card and their sitemap entry, with no name and no profile link (`visibleHost` in
+`libs/db/src/profile-access.ts`). Discovery, the host's history and the counts still leave them out,
+and a banned host's meetups stay hidden, erased or not. The job reads closing accounts through the
+partial index `user_closing_index`, twenty a night, the retention-sweep shape AGENTS.md §11.5
+allows. An account still waiting 25 days after closure logs `account_closure_overdue` as an error,
+ahead of the policy's 30 days.
+
+The issue proposed running the erasure from the admin app. It runs from `worker-jobs` instead,
+because the admin app has no mutations, rate limiter or R2 binding yet (CO-08/CO-09). Export
+requests (PF-09) are the runbook's second part: read-only queries and the photo original, sent to
+the account's address. Neither request has a button on the account screen yet. Orders and invoices,
+from the dormant payments work, are not touched by the erasure; that must change before payments
+open. The migration is `0038_account_closure.sql`. Miniflare coverage lives in
+`libs/db/src/account-closure*.test.ts`, `libs/db/src/events.moderation.test.ts`,
+`libs/server-fns/src/profile/account-closure.test.ts` and the daily-run test in
+`apps/worker-jobs/src/index.test.ts`.
+
 ### Public profile (P1-004)
 
 The public profile answers one question: should I show up to coffee with this person? It is not a
@@ -386,8 +429,11 @@ not repeated.
    locales, directions, roles, mobile/desktop surfaces, and recovery paths.
 8. **Finish PWA verification:** complete `P1-020` offline behavior, prerender verification, Lighthouse
    budgets, and PWA Builder checks.
-9. **Complete profile/account work:** finish `PF-04c`, then `PF-09` export, `PF-10` deletion and
-   retention, `PF-11a/PF-11b` CO integration and localized UX, and `PF-12` release evidence.
+9. **Complete profile/account work:** finish `PF-04c`, then `PF-11a/PF-11b` CO integration and
+   localized UX, and `PF-12` release evidence. `PF-09` export and `PF-10` deletion are carried out
+   on request through the [account requests runbook](./account-requests.md) and the nightly
+   erasure (#105); what remains of them is the member-facing request on the account screen, and
+   the retention jobs #106 tracks.
 10. **Complete search-engine operations:** deliver `SEO-12` Search Console/Bing submission, sitemap
     processing, representative URL indexing, and 30-day monitoring; finish full prerender evidence.
 11. **Complete notification controls:** `ND-06` provider-aware, responsive per-category controls and

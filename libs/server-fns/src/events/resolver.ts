@@ -10,7 +10,7 @@ import {
   getEvent,
   getEventBySlug,
   getMarketByCode,
-  isVisibleIdentity,
+  isVisibleHost,
   listUpcomingEvents,
   listPublicEventHosts,
   type Db,
@@ -209,7 +209,7 @@ export const resolveEvent = async (
       new AppError('event_not_found', `Event ${event.id} is not available`),
     );
   }
-  if (!(await isVisibleIdentity(db, event.hostId))) {
+  if (!(await isVisibleHost(db, event.hostId))) {
     return err(
       new AppError('event_not_found', `Event ${event.id} is not available`),
     );

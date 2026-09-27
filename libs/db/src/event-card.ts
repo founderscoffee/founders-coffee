@@ -1,6 +1,7 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import type { Db } from './db.js';
+import { visibleHost } from './profile-access.js';
 import { events, markets, user } from './schema.js';
 
 /**
@@ -13,6 +14,10 @@ import { events, markets, user } from './schema.js';
  *
  * `version` comes along because it is what the card's address is keyed on: a title that changes
  * has to produce a different URL, or the image an edited meetup shares is the one it had before.
+ *
+ * A meetup has a card only while its page stands, under the rule of `visibleHost`: a banned host's
+ * meetups have none, nor has an account still closing, and an erased host's keep theirs with the
+ * empty name the erasure left (#105).
  */
 export const getEventCard = async (
   db: Db,
@@ -44,7 +49,7 @@ export const getEventCard = async (
     .from(events)
     .innerJoin(user, eq(events.hostId, user.id))
     .innerJoin(markets, eq(events.marketCode, markets.code))
-    .where(eq(events.id, id))
+    .where(and(eq(events.id, id), visibleHost(events.hostId)))
     .limit(1);
   return rows[0];
 };

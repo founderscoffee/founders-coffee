@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import { upcomingScope } from './events.js';
-import { visibleIdentity } from './profile-access.js';
+import { visibleHost } from './profile-access.js';
 import { events, type Event } from './schema.js';
 
 export type PublicEventSitemapRow = Pick<
@@ -48,5 +48,5 @@ export const listPublicEventSitemapRows = async (
       updatedAt: events.updatedAt,
     })
     .from(events)
-    .where(and(eq(events.status, 'published'), visibleIdentity(events.hostId)))
+    .where(and(eq(events.status, 'published'), visibleHost(events.hostId)))
     .orderBy(events.updatedAt, events.id);

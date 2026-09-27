@@ -167,7 +167,7 @@ describe('release state validation', () => {
       latestMigration(
         fileURLToPath(new URL('../../libs/db/migrations', import.meta.url)),
       ),
-    ).toBe('0037_city_waitlist_launches');
+    ).toBe('0038_account_closure');
   });
 });
 

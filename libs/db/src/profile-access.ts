@@ -1,4 +1,4 @@
-import { and, eq, isNull, or, sql, type AnyColumn } from 'drizzle-orm';
+import { and, eq, inArray, isNull, or, sql, type AnyColumn } from 'drizzle-orm';
 
 import { user } from './schema.js';
 
@@ -28,3 +28,30 @@ export const visibleIdentity = (identityColumn: AnyColumn) =>
     where ${user.id} = ${identityColumn}
       and ${user.accountState} = 'active'
       and (${user.banned} = 0 or ${user.banned} is null))`;
+
+/**
+ * Whether a meetup that has already been published still stands, judged by its host.
+ *
+ * The rule of {@link visibleIdentity}, with one exception the privacy policy makes: a host whose
+ * account was erased leaves their meetups in the city's record, with their name detached (#105).
+ * The erased identity has no name or profile left to show, so keeping the meetup reveals nobody,
+ * while an attendee keeps the meetup in their own list and its page stays where they saved it.
+ * A banned host's meetups still go, erased or not, and so do those of an account still closing.
+ *
+ * It is for a meetup's own page, the lists attendees keep and the sitemap. Discovery, the host's
+ * history and the counts keep {@link visibleIdentity}, since an erased host has no upcoming meetup
+ * left to find and no history page left to list it on.
+ */
+export const visibleHost = (hostColumn: AnyColumn) =>
+  sql`exists (select 1 from ${user}
+    where ${user.id} = ${hostColumn}
+      and ${user.accountState} in ('active', 'deleted')
+      and (${user.banned} = 0 or ${user.banned} is null))`;
+
+/** The rule of {@link visibleHost}, for one host read by id. */
+export const visibleHostIdentity = (hostId: string) =>
+  and(
+    eq(user.id, hostId),
+    inArray(user.accountState, ['active', 'deleted']),
+    or(eq(user.banned, false), isNull(user.banned)),
+  );
