@@ -87,4 +87,5 @@ export const legalEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
+  '27 September 2026',
 );

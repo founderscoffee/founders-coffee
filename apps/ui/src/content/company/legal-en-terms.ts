@@ -148,4 +148,5 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
+  '27 September 2026',
 );

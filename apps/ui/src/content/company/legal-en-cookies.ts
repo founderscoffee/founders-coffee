@@ -96,4 +96,5 @@ export const cookiesEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
+  '27 September 2026',
 );

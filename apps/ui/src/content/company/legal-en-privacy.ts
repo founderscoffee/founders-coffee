@@ -226,4 +226,5 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
+  '27 September 2026',
 );

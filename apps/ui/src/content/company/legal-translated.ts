@@ -27,7 +27,7 @@ export const page = (
   title: string,
   description: string,
   sections: readonly CompanySection[],
-  updated = '18 September 2026',
+  updated: string,
 ): CompanyPageContent => ({
   title,
   description,
@@ -40,7 +40,7 @@ export const translatedPage = (
   title: string,
   description: string,
   sections: readonly CompanySection[],
-  updated = '18 September 2026',
+  updated: string,
 ): CompanyPageContent => ({
   ...page(title, description, sections, updated),
   notice:

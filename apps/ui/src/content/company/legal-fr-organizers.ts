@@ -125,5 +125,5 @@ export const organizersFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '18 septembre 2026',
+  '27 septembre 2026',
 );

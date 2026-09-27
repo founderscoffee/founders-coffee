@@ -4,7 +4,7 @@ export const legalContent: CompanyPageContent = {
   title: 'المعلومات القانونية',
   description:
     'من يشغّل فاوندرز كوفي، وكيف تتواصل معنا، وأين تُعالَج البيانات، وما وضع المنصة القانوني اليوم.',
-  updated: '18 سبتمبر 2026',
+  updated: '27 سبتمبر 2026',
   sections: [
     {
       heading: 'من يشغّل المنصة',

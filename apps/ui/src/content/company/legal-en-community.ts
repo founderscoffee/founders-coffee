@@ -110,4 +110,5 @@ export const communityEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
+  '27 September 2026',
 );
