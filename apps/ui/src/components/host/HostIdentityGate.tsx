@@ -4,12 +4,13 @@ import { gate_back, type Locale } from '@founders-coffee/i18n';
 
 import { ProfileCompletion } from '../../features/profile/components/ProfileCompletion';
 import { useAuth } from '../../lib/app-providers';
+import type { SocialProvider } from '../auth/SocialSignIn';
 import { HostSignInGate } from './HostSignInGate';
 
 export const HostIdentityGate = (props: {
   locale: Locale;
   turnstileSiteKey: string | null;
-  hasSocial: boolean;
+  socialProviders: readonly SocialProvider[];
   needsReauthentication: boolean;
   onCancel: () => void;
   onAuthenticated: () => void;

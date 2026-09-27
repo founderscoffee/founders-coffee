@@ -35,7 +35,7 @@ const renderInFrench = (city: geo.GeoCity | null) =>
       city,
       mapboxToken: 'map-token',
       turnstileSiteKey: 'test-site-key',
-      hasSocial: false,
+      socialProviders: [],
       repeatTemplate: null,
     }),
   );

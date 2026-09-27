@@ -5,13 +5,11 @@ import {
   login_change_email,
   login_code_sent,
   login_account_note,
-  login_or,
   login_email_continue,
   login_send_error,
   login_welcome,
   login_verify,
   code_error,
-  oauth_continue,
   type Locale,
 } from '@founders-coffee/i18n';
 import { Button, StatusMessage, Turnstile } from '@founders-coffee/ui';
@@ -21,24 +19,17 @@ import { LoginEmailField } from './LoginEmailField';
 import { authClient } from '../../lib/auth';
 import { onboardingRedirectPath } from '../../lib/redirect';
 import { OtpField, OTP_LENGTH } from './OtpField';
-import { PROVIDER_MARK } from './ProviderIcon';
 import { ResendButton } from './ResendButton';
+import { SocialSignIn, type SocialProvider } from './SocialSignIn';
 import { useResendCooldown } from './useResendCooldown';
 import { useOtpAutofill } from './useOtpAutofill';
 import { useStepHeightLock } from './useStepHeightLock';
-
-const OAUTH_PROVIDERS = ['google', 'github'] as const;
-
-const PROVIDER_LABEL: Record<(typeof OAUTH_PROVIDERS)[number], string> = {
-  google: 'Google',
-  github: 'GitHub',
-};
 
 type LoginPageProps = {
   locale: Locale;
   turnstileSiteKey: string | null;
   isTurnstileBypassed: boolean;
-  hasSocial: boolean;
+  socialProviders: readonly SocialProvider[];
   redirect: string;
 };
 
@@ -46,7 +37,7 @@ export const LoginPage = ({
   locale,
   turnstileSiteKey,
   isTurnstileBypassed,
-  hasSocial,
+  socialProviders,
   redirect,
 }: LoginPageProps) => {
   const [email, setEmail] = useState('');
@@ -122,7 +113,7 @@ export const LoginPage = ({
     setStep('email');
   };
 
-  const social = (provider: (typeof OAUTH_PROVIDERS)[number]) =>
+  const social = (provider: SocialProvider) =>
     authClient.signIn.social({
       provider,
       callbackURL: onboardingRedirectPath(locale, redirect),
@@ -186,33 +177,12 @@ export const LoginPage = ({
               <p className="text-center text-body-sm font-medium text-base-content">
                 {login_account_note({}, { locale })}
               </p>
-              {hasSocial && (
-                <>
-                  <div className="divider text-caption text-neutral">
-                    {login_or({}, { locale })}
-                  </div>
-                  <div className="space-y-2">
-                    {OAUTH_PROVIDERS.map((p) => {
-                      const Mark = PROVIDER_MARK[p];
-                      return (
-                        <Button
-                          key={p}
-                          variant="outline"
-                          onClick={() => social(p)}
-                          disabled={busy}
-                          isFullWidth
-                        >
-                          <Mark />
-                          {oauth_continue(
-                            { provider: PROVIDER_LABEL[p] },
-                            { locale },
-                          )}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
+              <SocialSignIn
+                locale={locale}
+                providers={socialProviders}
+                isDisabled={busy}
+                onSelect={(provider) => void social(provider)}
+              />
             </>
           ) : (
             <>

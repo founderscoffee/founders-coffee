@@ -7,6 +7,7 @@ import { host_page_title } from '@founders-coffee/i18n';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 
+import type { SocialProvider } from '../components/auth/SocialSignIn';
 import { HostCreatePage } from '../components/host/HostCreatePage';
 import { eventsApi, type RepeatEventTemplate } from '../features/events/api';
 import { localizedHostCreate } from '../lib/locale-routing';
@@ -18,7 +19,7 @@ type HostCreateLoaderData = {
   city: geo.GeoCity | null;
   mapboxToken: string;
   turnstileSiteKey: string | null;
-  hasSocial: boolean;
+  socialProviders: readonly SocialProvider[];
   repeatTemplate: RepeatEventTemplate | null;
 };
 
@@ -50,7 +51,7 @@ const HostCreateRoute = () => {
     city,
     mapboxToken,
     turnstileSiteKey,
-    hasSocial,
+    socialProviders,
     repeatTemplate,
   } = Route.useLoaderData();
   return (
@@ -60,7 +61,7 @@ const HostCreateRoute = () => {
       city={city}
       mapboxToken={mapboxToken}
       turnstileSiteKey={turnstileSiteKey}
-      hasSocial={hasSocial}
+      socialProviders={socialProviders}
       repeatTemplate={repeatTemplate}
     />
   );
@@ -117,7 +118,7 @@ export const Route = createFileRoute('/$locale/$market/host/create')({
       city: city ?? null,
       mapboxToken,
       turnstileSiteKey: authConfig.turnstileSiteKey,
-      hasSocial: authConfig.hasSocial,
+      socialProviders: authConfig.socialProviders,
       repeatTemplate:
         repeatTemplate?.marketCode === market.code ? repeatTemplate : null,
     };

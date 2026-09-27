@@ -41,7 +41,7 @@ const show = () =>
       locale="en"
       turnstileSiteKey={null}
       isTurnstileBypassed
-      hasSocial={false}
+      socialProviders={[]}
       redirect="/"
     />,
   );
@@ -52,7 +52,7 @@ const showChallenged = (locale: Locale) =>
       locale={locale}
       turnstileSiteKey="site-key"
       isTurnstileBypassed={false}
-      hasSocial={false}
+      socialProviders={[]}
       redirect="/"
     />,
   );

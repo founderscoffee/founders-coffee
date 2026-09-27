@@ -4,7 +4,7 @@ import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { admin, captcha, emailOTP, phoneNumber } from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 
-import { AppError, optionalEnv } from '@founders-coffee/core';
+import { AppError } from '@founders-coffee/core';
 import {
   account,
   createDb,
@@ -19,6 +19,7 @@ import { DevEmailProvider } from './providers/email.js';
 import type { SmsProvider } from './providers/sms.js';
 import { DevSmsProvider, TwilioVerifySmsProvider } from './providers/sms.js';
 import { ac, roles } from './rbac.js';
+import { SOCIAL_PROVIDERS, socialCredentials } from './social-providers.js';
 
 export interface AuthEnv {
   DB: D1Database;
@@ -118,6 +119,8 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
   const smsProvider = deps.smsProvider ?? smsProviderFromEnv(env);
   const db = createDb(env.DB);
+  const google = socialCredentials(env, 'google');
+  const github = socialCredentials(env, 'github');
 
   const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -158,28 +161,14 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     account: {
       accountLinking: {
         enabled: true,
-        trustedProviders: ['google', 'github'],
+        trustedProviders: [...SOCIAL_PROVIDERS],
         allowDifferentEmails: false,
         updateUserInfoOnLink: false,
       },
     },
     socialProviders: {
-      ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
-        ? {
-            google: {
-              clientId: env.GOOGLE_CLIENT_ID,
-              clientSecret: env.GOOGLE_CLIENT_SECRET,
-            },
-          }
-        : {}),
-      ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
-        ? {
-            github: {
-              clientId: env.GITHUB_CLIENT_ID,
-              clientSecret: env.GITHUB_CLIENT_SECRET,
-            },
-          }
-        : {}),
+      ...(google ? { google } : {}),
+      ...(github ? { github } : {}),
     },
     user: {
       additionalFields: {
@@ -256,13 +245,3 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
 };
 
 export type AuthInstance = ReturnType<typeof createAuth>['auth'];
-
-/** True if at least one OAuth provider is configured (drives UI: show social buttons). */
-export const hasSocialProviders = (env: AuthEnv): boolean => {
-  const envVars = env as unknown as Record<string, string | undefined>;
-  return (['GOOGLE', 'GITHUB'] as const).some(
-    (p) =>
-      optionalEnv(envVars, `${p}_CLIENT_ID`) &&
-      optionalEnv(envVars, `${p}_CLIENT_SECRET`),
-  );
-};

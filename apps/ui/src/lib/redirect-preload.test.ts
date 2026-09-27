@@ -24,7 +24,7 @@ vi.mock('../features/auth/api', () => ({
       Promise.resolve({
         turnstileSiteKey: '',
         isTurnstileBypassed: true,
-        hasSocial: false,
+        socialProviders: [],
       }),
   },
 }));

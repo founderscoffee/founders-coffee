@@ -1,7 +1,8 @@
 export * from './rbac.js';
 export * from './providers/email.js';
 export * from './providers/sms.js';
-export { createAuth, hasSocialProviders } from './auth.js';
+export { createAuth } from './auth.js';
+export { configuredSocialProviders } from './social-providers.js';
 export type { AuthEnv, AuthDeps, AuthInstance } from './auth.js';
 export { createAuthHandler } from './handler.js';
 export type { HandlerEnv } from './handler.js';

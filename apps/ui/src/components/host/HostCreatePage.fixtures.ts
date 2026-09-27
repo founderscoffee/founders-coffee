@@ -270,7 +270,7 @@ export const renderHostCreateWizard = (
       city,
       mapboxToken: 'map-token',
       turnstileSiteKey: 'test-site-key',
-      hasSocial: false,
+      socialProviders: [],
       repeatTemplate,
     }),
   );

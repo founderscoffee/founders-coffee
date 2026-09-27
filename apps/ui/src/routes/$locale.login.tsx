@@ -12,7 +12,7 @@ import { privatePageHead } from '../lib/seo-private';
 
 const LoginRoute = () => {
   const { locale } = Route.useRouteContext();
-  const { turnstileSiteKey, isTurnstileBypassed, hasSocial } =
+  const { turnstileSiteKey, isTurnstileBypassed, socialProviders } =
     Route.useLoaderData();
   const { redirect: returnPath } = Route.useSearch();
   return (
@@ -20,7 +20,7 @@ const LoginRoute = () => {
       locale={locale}
       turnstileSiteKey={turnstileSiteKey}
       isTurnstileBypassed={isTurnstileBypassed}
-      hasSocial={hasSocial}
+      socialProviders={socialProviders}
       redirect={returnPath}
     />
   );

@@ -20,6 +20,7 @@ import {
   useHostCreateWizard,
 } from '../../features/events/useHostCreateWizard';
 import { useAuth } from '../../lib/app-providers';
+import type { SocialProvider } from '../auth/SocialSignIn';
 import { HostDetailsStep } from './HostDetailsStep';
 import { HostMapPanel } from './HostMapPanel';
 import { HostIdentityGate } from './HostIdentityGate';
@@ -39,7 +40,7 @@ type HostCreatePageProps = {
   city: geo.GeoCity | null;
   mapboxToken: string;
   turnstileSiteKey: string | null;
-  hasSocial: boolean;
+  socialProviders: readonly SocialProvider[];
   repeatTemplate: RepeatEventTemplate | null;
 };
 
@@ -49,7 +50,7 @@ export const HostCreatePage = ({
   city,
   mapboxToken,
   turnstileSiteKey,
-  hasSocial,
+  socialProviders,
   repeatTemplate,
 }: HostCreatePageProps) => {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -163,7 +164,7 @@ export const HostCreatePage = ({
                 needsReauthentication={wizard.needsReauthentication}
                 locale={locale}
                 turnstileSiteKey={turnstileSiteKey}
-                hasSocial={hasSocial}
+                socialProviders={socialProviders}
                 onCancel={wizard.closeAuthGate}
                 onAuthenticated={wizard.onGateAuthenticated}
               />
