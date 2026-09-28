@@ -494,6 +494,7 @@
   "host_repeat_notice": "سنبدأ من «{title}». راجع التفاصيل واختر وقتًا جديدًا قبل النشر.",
   "host_nearby_venues": "مقاهٍ ومساحات عمل قريبة",
   "host_venue_selected": "تم الاختيار",
+  "host_venue_address": "عنوان",
   "host_venue_ineligible": "ليس مقهى أو مساحة عمل مشتركة",
   "host_pin_hint": "اسحب الدبوس إلى مدخل المكان.",
   "host_osm_attribution": "© مساهمو OpenStreetMap",

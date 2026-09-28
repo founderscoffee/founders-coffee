@@ -613,6 +613,7 @@
   "host_repeat_notice": "Nous partirons de « {title} ». Vérifiez les détails et choisissez un nouvel horaire avant de publier.",
   "host_nearby_venues": "Lieux à proximité",
   "host_venue_selected": "Sélectionné",
+  "host_venue_address": "Adresse",
   "host_venue_ineligible": "ni café ni espace de coworking",
   "host_pin_hint": "Faites glisser le repère jusqu’à l’entrée du lieu.",
   "host_osm_attribution": "© les contributeurs OpenStreetMap",

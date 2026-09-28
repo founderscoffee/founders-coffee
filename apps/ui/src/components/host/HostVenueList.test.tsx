@@ -178,6 +178,71 @@ describe('HostVenueList', () => {
     expect(screen.getByText('9 Rue Didouche')).toBeTruthy();
   });
 
+  it('marks a street address as one, before the address and with a pin', () => {
+    render(
+      <HostVenueList
+        locale="en"
+        id="venue-results"
+        label="Search results"
+        venues={[
+          row({
+            providerId: 'mapbox-3',
+            kind: 'address',
+            name: 'Café',
+            address: 'Café, 21, Beni Zid, Skikda, Algeria',
+            category: undefined,
+          }),
+        ]}
+        showAttribution={false}
+        onSelect={vi.fn()}
+      />,
+    );
+    const details = screen.getByText(
+      'Address · Café, 21, Beni Zid, Skikda, Algeria',
+    );
+    expect(
+      details.closest('.flex')?.querySelector('svg[class*="map-pin"]'),
+      'a street named Café read as a café, so asking for its name read as a bug',
+    ).toBeTruthy();
+  });
+
+  it('prints an address that is its own name once', () => {
+    const whole = 'Café ، 21 بني زيد، الجزائر';
+    render(
+      <HostVenueList
+        locale="ar"
+        id="venue-results"
+        label="نتائج البحث"
+        venues={[
+          row({
+            providerId: 'mapbox-4',
+            kind: 'address',
+            name: whole,
+            address: whole,
+            category: undefined,
+          }),
+        ]}
+        showAttribution={false}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getAllByText(whole),
+      'Mapbox names an Arabic address by the whole address, and the row printed it twice',
+    ).toHaveLength(1);
+    expect(screen.getByText('عنوان')).toBeTruthy();
+  });
+
+  it('gives a café no pin', () => {
+    renderList();
+    expect(
+      screen
+        .getByText('12 Startup Street · Café')
+        .closest('.flex')
+        ?.querySelector('svg'),
+    ).toBeNull();
+  });
+
   it('credits OpenStreetMap when showing snapshot data', () => {
     renderList();
     expect(screen.getByText('© OpenStreetMap contributors')).toBeTruthy();

@@ -435,6 +435,7 @@
   "host_repeat_notice": "We'll start from “{title}”. Review the details and choose a new time before publishing.",
   "host_nearby_venues": "Places nearby",
   "host_venue_selected": "Selected",
+  "host_venue_address": "Address",
   "host_venue_ineligible": "not a café or coworking space",
   "host_pin_hint": "Drag the pin to the entrance.",
   "host_osm_attribution": "© OpenStreetMap contributors",
