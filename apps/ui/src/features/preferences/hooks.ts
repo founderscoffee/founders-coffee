@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { authClient } from '../../lib/auth';
+import { useHydrationSafeSession } from '../../lib/hydration-safe-session';
 import {
   currentDeviceToken,
   enablePushOnThisDevice,
@@ -15,7 +15,7 @@ import {
 } from './push-state';
 
 export const useMyPreferences = () => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
   const query = useQuery({
     queryKey: ['preferences', userId],

@@ -20,7 +20,7 @@ const state = vi.hoisted(() => ({
 vi.mock('../hooks', () => ({
   useMyJoinedEvents: (params: { limit?: number }) => {
     state.joinedParams = params;
-    return state.joined;
+    return { ...state.joined, ...state.session };
   },
   useHostedEvents: (params: { hostId?: string; limit?: number }) => {
     state.hostedParams = params;
@@ -32,9 +32,6 @@ vi.mock('../../operations/hooks', () => ({
     state.askedAbout.push([...eventIds]);
     return { data: state.closeoutStates };
   },
-}));
-vi.mock('../../../lib/auth', () => ({
-  authClient: { useSession: () => state.session },
 }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -96,7 +93,7 @@ const show = (locale: Locale = 'en') =>
   render(<ActivityPage locale={locale} markets={MARKETS} />);
 
 beforeEach(() => {
-  state.session = { data: { user: { id: 'usr_1' } }, isPending: false };
+  state.session = { userId: 'usr_1', isAuthLoading: false };
   state.joined = page([]);
   state.hosted = page([]);
   state.joinedParams = null;
@@ -263,7 +260,7 @@ describe('the gatherings screen', () => {
 
 describe('states the member can land in', () => {
   it('offers sign-in to an anonymous visitor rather than an empty list', () => {
-    state.session = { data: undefined, isPending: false };
+    state.session = { userId: undefined, isAuthLoading: false };
 
     show();
 
@@ -272,7 +269,7 @@ describe('states the member can land in', () => {
   });
 
   it('shows a loading state while the session is still resolving', () => {
-    state.session = { data: undefined, isPending: true };
+    state.session = { userId: undefined, isAuthLoading: true };
     state.joined = { ...page([]), isPending: true };
 
     show();

@@ -30,7 +30,7 @@ import {
   type VenueSearchInput,
 } from './api';
 
-import { authClient } from '../../lib/auth';
+import { useHydrationSafeSession } from '../../lib/hydration-safe-session';
 
 type UpcomingEventsParams = Parameters<typeof eventsApi.getUpcomingEvents>[0];
 type UpcomingEventsOptions = { initialPage?: EventFeedPage };
@@ -72,9 +72,9 @@ export const useMyJoinedEvents = (
     limit?: number;
   } = {},
 ) => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
-  return useInfiniteQuery({
+  const query = useInfiniteQuery({
     queryKey: ['events', 'joined', userId, params],
     queryFn: ({ pageParam }) => {
       const cursor = pageParam as { startsAt: number; id: string } | undefined;
@@ -92,6 +92,7 @@ export const useMyJoinedEvents = (
     staleTime: 0,
     gcTime: 0,
   });
+  return { ...query, userId, isAuthLoading: auth.isPending };
 };
 
 type HostedEventsOptions = { initialPage?: HostedEventPage };

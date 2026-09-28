@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { authClient } from '../../lib/auth';
+import { useHydrationSafeSession } from '../../lib/hydration-safe-session';
 import {
   operationsApi,
   type SubmitCloseoutRequest,
@@ -8,7 +8,7 @@ import {
 } from './api';
 
 export const useCloseout = (eventId: string) => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
   const query = useQuery({
     queryKey: ['closeout', eventId, userId],
@@ -29,7 +29,7 @@ export const useCloseout = (eventId: string) => {
  * there is nothing to ask about, so an empty activity page makes no request at all.
  */
 export const useMyCloseoutStates = (eventIds: readonly string[]) => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
   const key = [...eventIds].sort().join(',');
   return useQuery({
@@ -52,7 +52,7 @@ export const useSubmitCloseout = (eventId: string) => {
 };
 
 export const useFeedback = (eventId: string) => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
   const query = useQuery({
     queryKey: ['feedback', eventId, userId],
@@ -84,7 +84,7 @@ export const useSubmitFeedback = (eventId: string) => {
  * this is not a value the same host is about to write, so a refetch on every mount buys nothing.
  */
 export const useFeedbackTally = (eventId: string, enabled: boolean) => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
   return useQuery({
     queryKey: ['feedback-tally', eventId, userId],

@@ -100,6 +100,22 @@ export const STATUS_COMPONENTS = [
 ];
 
 /**
+ * Where a render may read Better Auth's session store itself: the hook that holds it back until
+ * hydration has committed. The server renders every document with the session still resolving, and
+ * the browser's answer can land before React reaches the component that reads it, so any other
+ * render that reads the store can hydrate with a session the server never rendered. Everything
+ * else renders from `useAuth()` or `useHydrationSafeSession()`, and `no-restricted-properties`
+ * refuses the direct read.
+ *
+ * A hook that reads the store only in an effect or a callback, where nothing it reads is rendered,
+ * carries an inline justification at the call instead of a glob here, so the rest of its file stays
+ * guarded.
+ */
+export const SESSION_STORE_READERS = [
+  'apps/ui/src/lib/hydration-safe-session.ts',
+];
+
+/**
  * Mirrors what the project tsconfigs exclude. Type-aware rules need a file to belong to a TS
  * project, and tests, fixtures, config and setup files deliberately sit outside them.
  */

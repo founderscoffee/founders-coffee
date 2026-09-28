@@ -19,6 +19,7 @@ import { adoptStoredLocale, localeNeedsReconciling } from './stored-locale';
  * the auth configuration — secrets, adapters, D1 — out of the browser bundle.
  */
 export const useStoredLocale = (active: Locale): void => {
+  // eslint-disable-next-line no-restricted-properties -- read in the effect, never rendered.
   const session = authClient.useSession();
   const stored = session.data?.user.localePref;
 

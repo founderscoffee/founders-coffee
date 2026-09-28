@@ -10,6 +10,7 @@ import {
   MAX_LINES_EXEMPT,
   PRODUCT_COPY_FILES,
   REACT_SOURCE_FILES,
+  SESSION_STORE_READERS,
   STATUS_COMPONENTS,
   TS_FILES,
   UNTYPED_FILES,
@@ -30,6 +31,13 @@ const ARROW_FUNCTIONS_ONLY = [
       'Use an arrow function — object/class methods as arrow fields. (AGENTS.md §5 — constructors & generators excepted.)',
   },
 ];
+
+const SESSION_STORE_READ = {
+  object: 'authClient',
+  property: 'useSession',
+  message:
+    "Render the session from useAuth() or useHydrationSafeSession(). The server renders it as still resolving, and a render that reads Better Auth's store itself can hydrate with an answer the server never rendered.",
+};
 
 const EM_DASH =
   'Product copy carries no em dash: use a full stop, a colon, or "·".';
@@ -63,6 +71,7 @@ export default [
     plugins: { local: localPlugin },
     rules: {
       'no-restricted-syntax': ['error', ...ARROW_FUNCTIONS_ONLY],
+      'no-restricted-properties': ['error', SESSION_STORE_READ],
       'local/no-server-fns-in-components': 'error',
       'local/no-bare-status-role': 'error',
       'local/section-citation': 'error',
@@ -103,6 +112,10 @@ export default [
   {
     files: STATUS_COMPONENTS,
     rules: { 'local/no-bare-status-role': 'off' },
+  },
+  {
+    files: SESSION_STORE_READERS,
+    rules: { 'no-restricted-properties': 'off' },
   },
   {
     files: REACT_SOURCE_FILES,

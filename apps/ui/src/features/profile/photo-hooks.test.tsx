@@ -16,7 +16,8 @@ const state = vi.hoisted(() => ({
   invalidateRouter: vi.fn(),
 }));
 
-vi.mock('@tanstack/react-router', () => ({
+vi.mock('@tanstack/react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@tanstack/react-router')>()),
   useRouter: () => ({ invalidate: state.invalidateRouter }),
 }));
 vi.mock('../../lib/auth', () => ({
