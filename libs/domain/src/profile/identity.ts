@@ -45,8 +45,8 @@ const capitalize = (word: string): string =>
  * alone are more often a phone number than a name.
  */
 export const displayNameFromEmail = (email: string): string => {
-  const localPart = email.trim().split('@')[0] ?? '';
-  const [untagged = ''] = localPart.split('+');
+  const localPart = email.trim().split('@')[0];
+  const [untagged] = localPart.split('+');
   const words = untagged
     .split(NOT_A_NAME)
     .map((word) => word.replace(/^'+|'+$/gu, ''))

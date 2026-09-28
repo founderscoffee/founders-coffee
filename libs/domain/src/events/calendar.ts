@@ -33,7 +33,7 @@ const utcStamp = (moment: Date): string =>
     .replace(/[-:]/g, '');
 
 const isAllowedCharacter = (character: string): boolean => {
-  const code = character.codePointAt(0) ?? 0;
+  const code = character.charCodeAt(0);
   return code === 0x09 || code === 0x0a || (code > 0x1f && code !== 0x7f);
 };
 
