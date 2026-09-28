@@ -2,8 +2,7 @@ import type { CompanyPageContent } from './types';
 
 export const faqArabic: CompanyPageContent = {
   title: 'الأسئلة الشائعة',
-  description:
-    'إجابات مباشرة عن اللقاءات والحساب، وعن مسؤولياتنا وحدودها.',
+  description: 'إجابات مباشرة عن اللقاءات والحساب، وعن مسؤولياتنا وحدودها.',
   updated: '18 سبتمبر 2026',
   sections: [
     {
