@@ -5,11 +5,10 @@ import {
   profile_stage_label,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Input } from '@founders-coffee/ui';
+import { ChipGroup, Input } from '@founders-coffee/ui';
 
 import type { ProfileDraft } from '../profile-draft';
 import { stageLabel, STAGE_OPTIONS } from '../profile-labels';
-import { ChipGroup } from './ChipGroup';
 import { OptionalChip } from './OptionalChip';
 import { PublishToggle } from './PublishToggle';
 
