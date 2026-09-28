@@ -40,6 +40,7 @@ type HostCreatePageProps = {
   city: geo.GeoCity | null;
   mapboxToken: string;
   turnstileSiteKey: string | null;
+  isTurnstileBypassed: boolean;
   socialProviders: readonly SocialProvider[];
   repeatTemplate: RepeatEventTemplate | null;
 };
@@ -50,6 +51,7 @@ export const HostCreatePage = ({
   city,
   mapboxToken,
   turnstileSiteKey,
+  isTurnstileBypassed,
   socialProviders,
   repeatTemplate,
 }: HostCreatePageProps) => {
@@ -164,6 +166,7 @@ export const HostCreatePage = ({
                 needsReauthentication={wizard.needsReauthentication}
                 locale={locale}
                 turnstileSiteKey={turnstileSiteKey}
+                isTurnstileBypassed={isTurnstileBypassed}
                 socialProviders={socialProviders}
                 onCancel={wizard.closeAuthGate}
                 onAuthenticated={wizard.onGateAuthenticated}

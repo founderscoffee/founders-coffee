@@ -269,6 +269,7 @@ const wizard = (
     city,
     mapboxToken: 'map-token',
     turnstileSiteKey: 'test-site-key',
+    isTurnstileBypassed: false,
     socialProviders: [],
     repeatTemplate,
   });

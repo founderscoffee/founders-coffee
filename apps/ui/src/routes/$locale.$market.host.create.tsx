@@ -19,6 +19,7 @@ type HostCreateLoaderData = {
   city: geo.GeoCity | null;
   mapboxToken: string;
   turnstileSiteKey: string | null;
+  isTurnstileBypassed: boolean;
   socialProviders: readonly SocialProvider[];
   repeatTemplate: RepeatEventTemplate | null;
 };
@@ -51,6 +52,7 @@ const HostCreateRoute = () => {
     city,
     mapboxToken,
     turnstileSiteKey,
+    isTurnstileBypassed,
     socialProviders,
     repeatTemplate,
   } = Route.useLoaderData();
@@ -61,6 +63,7 @@ const HostCreateRoute = () => {
       city={city}
       mapboxToken={mapboxToken}
       turnstileSiteKey={turnstileSiteKey}
+      isTurnstileBypassed={isTurnstileBypassed}
       socialProviders={socialProviders}
       repeatTemplate={repeatTemplate}
     />
@@ -118,6 +121,7 @@ export const Route = createFileRoute('/$locale/$market/host/create')({
       city: city ?? null,
       mapboxToken,
       turnstileSiteKey: authConfig.turnstileSiteKey,
+      isTurnstileBypassed: authConfig.isTurnstileBypassed,
       socialProviders: authConfig.socialProviders,
       repeatTemplate:
         repeatTemplate?.marketCode === market.code ? repeatTemplate : null,

@@ -1,15 +1,21 @@
 import { useState } from 'react';
 
-import { gate_back, type Locale } from '@founders-coffee/i18n';
+import {
+  gate_back,
+  gate_title,
+  send_code,
+  type Locale,
+} from '@founders-coffee/i18n';
 
 import { ProfileCompletion } from '../../features/profile/components/ProfileCompletion';
 import { useAuth } from '../../lib/app-providers';
+import { SignInForm } from '../auth/SignInForm';
 import type { SocialProvider } from '../auth/SocialSignIn';
-import { HostSignInGate } from './HostSignInGate';
 
 export const HostIdentityGate = (props: {
   locale: Locale;
   turnstileSiteKey: string | null;
+  isTurnstileBypassed: boolean;
   socialProviders: readonly SocialProvider[];
   needsReauthentication: boolean;
   onCancel: () => void;
@@ -17,9 +23,28 @@ export const HostIdentityGate = (props: {
 }) => {
   const { isAuthenticated } = useAuth();
   const [hasVerified, setHasVerified] = useState(false);
+  const getSocialRedirect = () => {
+    const here = `${window.location.pathname}${window.location.search}`;
+    return { callbackURL: here, newUserCallbackURL: here };
+  };
+
   if ((!isAuthenticated || props.needsReauthentication) && !hasVerified)
     return (
-      <HostSignInGate {...props} onAuthenticated={() => setHasVerified(true)} />
+      <SignInForm
+        locale={props.locale}
+        turnstileSiteKey={props.turnstileSiteKey}
+        isTurnstileBypassed={props.isTurnstileBypassed}
+        socialProviders={props.socialProviders}
+        layout="gate"
+        title={gate_title({}, { locale: props.locale })}
+        titleLevel="h3"
+        emailActionLabel={send_code({}, { locale: props.locale })}
+        showEmailHelp={false}
+        showAccountNote
+        getSocialRedirect={getSocialRedirect}
+        onAuthenticated={() => setHasVerified(true)}
+        onCancel={props.onCancel}
+      />
     );
   return (
     <div className="space-y-4">
