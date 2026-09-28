@@ -13,7 +13,7 @@ import { logger } from '@founders-coffee/observability';
 import { resolveNotificationContext } from '../notifications/context.js';
 import { RATE_BUDGETS } from '../rate-budgets.js';
 import { consumeRateBudget } from '../rate-consume.js';
-import type { TelegramSetup } from './config.js';
+import { telegramBotHandle, type TelegramSetup } from './config.js';
 import { scheduleTelegramGroup } from './notices.js';
 import { hashConnectToken } from './token.js';
 import type { TelegramMessage } from './updates.js';
@@ -123,7 +123,10 @@ export const connectFromStart = async (
   const refusal = !isAdmin
     ? ntf_telegram_connect_not_admin({ title: event.title }, { locale })
     : !canRun
-      ? ntf_telegram_connect_needs_rights({ title: event.title }, { locale })
+      ? ntf_telegram_connect_needs_rights(
+          { title: event.title, bot: telegramBotHandle(setup.botUsername) },
+          { locale },
+        )
       : null;
   if (refusal) {
     await telegram.sendMessage({ chatId, text: refusal });
@@ -138,5 +141,5 @@ export const connectFromStart = async (
   });
   if (!connected) return;
   logger.info('telegram.connected', { eventId: event.id, chatId });
-  await scheduleTelegramGroup(db, event, now);
+  await scheduleTelegramGroup(db, event, now, setup.botUsername);
 };

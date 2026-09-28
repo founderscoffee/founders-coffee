@@ -18,6 +18,7 @@ import {
 } from '@founders-coffee/i18n';
 import { StatusMessage } from '@founders-coffee/ui';
 
+import { TelegramMark } from '../../../components/BrandMarks';
 import type { TelegramConnectLink, TelegramGroupView } from '../api';
 import { telegramErrorFor } from '../errors';
 import { useConnectTelegramGroup, useDisconnectTelegramGroup } from '../hooks';
@@ -182,16 +183,37 @@ export const TelegramHostPanel = ({
         </>
       ) : (
         <>
-          <p className="text-body-sm text-neutral">
-            {telegram_host_intro({}, { locale })}
-          </p>
+          {(() => {
+            const intro = telegram_host_intro(
+              { bot: view.botHandle },
+              { locale },
+            );
+            const [beforeBot, afterBot = ''] = intro.split(view.botHandle);
+            const botUrl = `https://t.me/${view.botHandle.replace(/^@/, '')}`;
+            return (
+              <p className="text-body-sm text-neutral">
+                {beforeBot}
+                <a
+                  className="link link-hover"
+                  href={botUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  dir="ltr"
+                >
+                  <bdi>{view.botHandle}</bdi>
+                </a>
+                {afterBot}
+              </p>
+            );
+          })()}
           <button
             type="button"
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
+            className="btn btn-outline btn-xs gap-2 sm:btn-sm md:btn-md lg:btn-lg w-fit"
             data-focus="connect"
             onClick={openLink}
             disabled={connect.isPending}
           >
+            <TelegramMark />
             {telegram_host_connect({}, { locale })}
           </button>
         </>

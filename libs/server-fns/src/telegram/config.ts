@@ -13,6 +13,9 @@ export interface TelegramSetup {
   readonly provider: TelegramBotProvider;
 }
 
+export const telegramBotHandle = (botUsername: string): string =>
+  `@${botUsername.replace(/^@/, '')}`;
+
 type TelegramEnv = Pick<
   WorkerEnv,
   | 'APP_ENVIRONMENT'

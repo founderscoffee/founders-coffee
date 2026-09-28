@@ -26,6 +26,7 @@ describe('TelegramGroupCard', () => {
   it('shows the host their panel and a member going their card', () => {
     mocks.group.data = {
       role: 'host',
+      botHandle: '@FoundersCoffeeBot',
       status: 'none',
       chatTitle: null,
       canConnect: true,

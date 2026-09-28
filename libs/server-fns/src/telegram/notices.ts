@@ -63,8 +63,9 @@ export const scheduleTelegramGroup = async (
   db: Db,
   event: Event,
   now: Date = new Date(),
+  botUsername?: string,
 ): Promise<void> => {
-  const values = await telegramValuesFor(db, event);
+  const values = await telegramValuesFor(db, event, botUsername);
   await enqueueTelegram(db, {
     event,
     values,

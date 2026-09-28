@@ -21,6 +21,7 @@ import {
   valuesFor,
   type NotificationPayload,
 } from '../notifications/producer.js';
+import { telegramBotHandle, telegramSetup } from './config.js';
 
 export interface TelegramValues {
   readonly locale: Locale;
@@ -30,6 +31,7 @@ export interface TelegramValues {
   readonly place: string;
   readonly url: string;
   readonly cityUrl: string;
+  readonly botHandle: string;
 }
 
 /**
@@ -46,6 +48,7 @@ export interface TelegramValues {
 export const telegramValuesFor = async (
   db: Db,
   event: Event,
+  botUsername = telegramSetup()?.botUsername,
 ): Promise<TelegramValues> => {
   const context = await resolveNotificationContext(db, {
     preferred: event.language,
@@ -76,6 +79,7 @@ export const telegramValuesFor = async (
         : event.venue,
     url: values.url,
     cityUrl: citySlug ? `${marketUrl}/${citySlug}` : marketUrl,
+    botHandle: telegramBotHandle(botUsername ?? 'bot'),
   };
 };
 
@@ -114,4 +118,7 @@ export const telegramCancelledPinnedText = (values: TelegramValues): string =>
 
 /** The last post: thanks, whose group it is now, and where the next meetups are. */
 export const telegramWrapUpText = (values: TelegramValues): string =>
-  ntf_telegram_wrap_up({ ...values, url: values.cityUrl }, on(values));
+  ntf_telegram_wrap_up(
+    { ...values, url: values.cityUrl, bot: values.botHandle },
+    on(values),
+  );

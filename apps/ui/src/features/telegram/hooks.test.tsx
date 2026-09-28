@@ -18,6 +18,7 @@ const hostView = (
   status: 'none' | 'pending' | 'active',
 ): TelegramGroupView => ({
   role: 'host',
+  botHandle: '@FoundersCoffeeBot',
   status,
   chatTitle: status === 'active' ? 'Founders' : null,
   canConnect: true,
