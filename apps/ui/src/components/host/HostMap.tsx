@@ -29,6 +29,7 @@ import { HostVenuePin } from './HostVenuePin';
 import { useCalloutPlacement } from './useCalloutPlacement';
 import type { ControlSize } from './useControlSize';
 import { coverPadding, useMapCover } from './useMapCover';
+import { useMapResize } from './useMapResize';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
 
@@ -93,6 +94,7 @@ export const HostMap = ({
     null,
   );
   const cameraPadding = useMapCover(mapRef, covered, viewport, venue);
+  const frameRef = useMapResize(mapRef);
   const flyTo = (longitude: number, latitude: number, zoom: number): void => {
     mapRef.current?.flyTo({
       center: [longitude, latitude],
@@ -172,6 +174,7 @@ export const HostMap = ({
 
   return (
     <div
+      ref={frameRef}
       className="relative h-full min-h-64 w-full overflow-hidden"
       aria-label={host_map_label({}, { locale })}
     >
