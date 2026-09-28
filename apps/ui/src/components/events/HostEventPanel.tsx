@@ -118,6 +118,11 @@ export const HostEventPanel = ({
 
       {!isCancelled && !hasEnded && (
         <div className="flex flex-wrap items-center gap-2">
+          <AddToCalendar
+            eventId={event.id}
+            startsAt={event.startsAt}
+            locale={locale}
+          />
           <Link
             className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
             {...localizedEventEdit(locale, event.id)}
@@ -132,14 +137,6 @@ export const HostEventPanel = ({
             {host_cancel_event({}, { locale })}
           </button>
         </div>
-      )}
-
-      {!isCancelled && (
-        <AddToCalendar
-          eventId={event.id}
-          startsAt={event.startsAt}
-          locale={locale}
-        />
       )}
 
       <TelegramGroupCard eventId={event.id} locale={locale} />

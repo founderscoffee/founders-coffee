@@ -1,4 +1,10 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
@@ -63,11 +69,13 @@ describe('RsvpSection offers the meetup to a calendar once the seat is taken', (
     show({ ...upcoming, viewerRsvp: 'going' });
 
     expect(calendarGroup()).toBeTruthy();
+    const group = screen.getByRole('group', { name: 'Add to your calendar' });
+    fireEvent.click(group.querySelector('summary') as HTMLElement);
     expect(
-      screen
-        .getByRole('link', { name: 'Google Calendar' })
-        .getAttribute('href'),
-    ).toBe('/cal/e/1?l=en&to=google');
+      within(group.querySelector('ul') as HTMLElement).getByRole('button', {
+        name: 'Google Calendar',
+      }).textContent,
+    ).toBe('31Google Calendar');
   });
 
   it('offers nothing before the seat is taken', () => {
