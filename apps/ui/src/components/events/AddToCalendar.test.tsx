@@ -5,7 +5,7 @@ import {
   screen,
   within,
 } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { AddToCalendar } from './AddToCalendar';
 
@@ -22,60 +22,84 @@ const show = (offset: number, locale: 'ar' | 'fr' | 'en' = 'en') =>
     />,
   );
 
-afterEach(() => {
-  cleanup();
-  vi.restoreAllMocks();
-});
+const openMenu = (groupName: string) => {
+  const group = screen.getByRole('group', { name: groupName });
+  const details = group.querySelector('details') as HTMLDetailsElement;
+  const summary = group.querySelector('summary') as HTMLElement;
+  fireEvent.click(summary);
+  const menu = within(group.querySelector('ul') as HTMLElement);
+  return { details, summary, menu };
+};
+
+afterEach(() => cleanup());
 
 describe('AddToCalendar', () => {
-  it('offers Google, Apple, and Outlook in one DaisyUI dropdown', () => {
+  it('offers Google, Apple and Outlook in one dropdown, each with its own logo', () => {
     show(24 * HOUR);
-    const group = screen.getByRole('group', { name: 'Add to your calendar' });
-    const summary = group.querySelector('summary');
-    const details = group.querySelector('details') as HTMLDetailsElement;
+    const { details, menu } = openMenu('Add to your calendar');
 
-    expect(summary?.textContent).toContain('Add to your calendar');
-    fireEvent.click(summary as HTMLElement);
     expect(details.open).toBe(true);
-    const menu = group.querySelector('ul');
-
-    expect(
-      within(menu as HTMLElement)
-        .getAllByRole('button')
-        .map((option) => option.textContent),
-    ).toEqual(['31Google Calendar', 'Apple Calendar', 'Outlook']);
-    expect(group.querySelectorAll('svg')).toHaveLength(5);
+    const links = menu.getAllByRole('link');
+    expect(links).toEqual([
+      menu.getByRole('link', { name: 'Google Calendar' }),
+      menu.getByRole('link', { name: 'Apple Calendar' }),
+      menu.getByRole('link', { name: 'Outlook' }),
+    ]);
+    links.forEach((link) =>
+      expect(link.querySelector('svg[aria-hidden="true"]')).not.toBeNull(),
+    );
   });
 
-  it('closes when the user clicks outside the dropdown', () => {
-    show(24 * HOUR);
-    const group = screen.getByRole('group', { name: 'Add to your calendar' });
-    const details = group.querySelector('details') as HTMLDetailsElement;
+  it('links Google Calendar in a tab of its own, without a referrer', () => {
+    show(24 * HOUR, 'fr');
+    const { menu } = openMenu('Ajouter à votre agenda');
+    const google = menu.getByRole('link', { name: 'Google Agenda' });
 
-    fireEvent.click(group.querySelector('summary') as HTMLElement);
+    expect(google.getAttribute('href')).toBe(`/cal/e/${SHORT}?l=fr&to=google`);
+    expect(google.getAttribute('target')).toBe('_blank');
+    expect(google.getAttribute('rel')?.split(' ')).toContain('noreferrer');
+  });
+
+  it('hands Apple Calendar and Outlook the meetup’s calendar file', () => {
+    show(24 * HOUR);
+    const { menu } = openMenu('Add to your calendar');
+
+    for (const name of ['Apple Calendar', 'Outlook'])
+      expect(menu.getByRole('link', { name }).getAttribute('href')).toBe(
+        `/cal/e/${SHORT}?l=en`,
+      );
+  });
+
+  it('closes once a calendar is chosen', () => {
+    show(24 * HOUR);
+    const { details, menu } = openMenu('Add to your calendar');
+    const outlook = menu.getByRole('link', { name: 'Outlook' });
+    outlook.addEventListener('click', (event) => event.preventDefault());
+
+    expect(details.open).toBe(true);
+    fireEvent.click(outlook);
+
+    expect(details.open).toBe(false);
+  });
+
+  it('closes when the user presses outside the dropdown', () => {
+    show(24 * HOUR);
+    const { details } = openMenu('Add to your calendar');
+
     fireEvent.pointerDown(document.body);
 
     expect(details.open).toBe(false);
   });
 
-  it('opens Google Calendar in a tab of its own', () => {
-    const open = vi.spyOn(window, 'open').mockImplementation(() => null);
-    show(24 * HOUR, 'fr');
-    const group = screen.getByRole('group', { name: 'Ajouter à votre agenda' });
-    const details = group.querySelector('details') as HTMLDetailsElement;
-    fireEvent.click(group.querySelector('summary') as HTMLElement);
-    fireEvent.click(
-      within(group.querySelector('ul') as HTMLElement).getByRole('button', {
-        name: 'Google Agenda',
-      }),
-    );
+  it('closes on Escape and hands focus back to its button', () => {
+    show(24 * HOUR);
+    const { details, summary, menu } = openMenu('Add to your calendar');
+    menu.getByRole('link', { name: 'Google Calendar' }).focus();
 
-    expect(open).toHaveBeenCalledWith(
-      `/cal/e/${SHORT}?l=fr&to=google`,
-      '_blank',
-      'noopener,noreferrer',
-    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+
     expect(details.open).toBe(false);
+    expect(document.activeElement).toBe(summary);
   });
 
   it('offers nothing once the meetup has started', () => {

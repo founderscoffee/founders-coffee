@@ -1,5 +1,5 @@
 import { CalendarPlus, ChevronDown } from 'lucide-react';
-import { useEffect, useId, useRef } from 'react';
+import { useId } from 'react';
 
 import { eventCalendarPath } from '@founders-coffee/core';
 import {
@@ -11,6 +11,7 @@ import {
 } from '@founders-coffee/i18n';
 
 import { AppleMark, GoogleCalendarMark, OutlookMark } from '../BrandMarks';
+import { useDismissableDetails } from '../shell/useDismissableDetails';
 
 type AddToCalendarProps = {
   eventId: string;
@@ -24,43 +25,11 @@ export const AddToCalendar = ({
   locale,
 }: AddToCalendarProps) => {
   const headingId = useId();
-  const selectId = useId();
-  const detailsRef = useRef<HTMLDetailsElement>(null);
-
-  useEffect(() => {
-    const closeOnOutsideClick = (event: PointerEvent) => {
-      const details = detailsRef.current;
-      if (
-        details?.open &&
-        event.target instanceof Node &&
-        !details.contains(event.target)
-      ) {
-        details.open = false;
-      }
-    };
-
-    document.addEventListener('pointerdown', closeOnOutsideClick);
-    return () =>
-      document.removeEventListener('pointerdown', closeOnOutsideClick);
-  }, []);
+  const { ref, close } = useDismissableDetails();
 
   if (startsAt.getTime() <= Date.now()) return null;
 
-  const chooseCalendar = (target: 'google' | 'apple' | 'outlook') => {
-    if (target !== 'google' && target !== 'apple' && target !== 'outlook')
-      return;
-    if (detailsRef.current) detailsRef.current.open = false;
-    const href = eventCalendarPath(
-      locale,
-      eventId,
-      target === 'google' ? 'google' : 'ics',
-    );
-    if (target === 'google') {
-      window.open(href, '_blank', 'noopener,noreferrer');
-      return;
-    }
-    window.location.assign(href);
-  };
+  const calendarFile = eventCalendarPath(locale, eventId, 'ics');
 
   return (
     <div
@@ -72,9 +41,8 @@ export const AddToCalendar = ({
         {calendar_add({}, { locale })}
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <details ref={detailsRef} className="dropdown dropdown-start">
+        <details ref={ref} className="dropdown dropdown-start">
           <summary
-            id={selectId}
             aria-describedby={headingId}
             className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg list-none gap-2"
           >
@@ -85,24 +53,31 @@ export const AddToCalendar = ({
             {calendar_add({}, { locale })}
             <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
           </summary>
-          <ul className="menu dropdown-content z-10 mt-1 w-56 rounded-box border border-base-300 bg-base-100 p-1 shadow-[var(--shadow-2)]">
+          <ul
+            className="menu dropdown-content z-10 mt-1 w-56 rounded-box border border-base-300 bg-base-100 p-1 shadow-[var(--shadow-2)]"
+            onClick={close}
+          >
             <li>
-              <button type="button" onClick={() => chooseCalendar('google')}>
+              <a
+                href={eventCalendarPath(locale, eventId, 'google')}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <GoogleCalendarMark />
                 {calendar_google({}, { locale })}
-              </button>
+              </a>
             </li>
             <li>
-              <button type="button" onClick={() => chooseCalendar('apple')}>
+              <a href={calendarFile}>
                 <AppleMark />
                 {calendar_apple({}, { locale })}
-              </button>
+              </a>
             </li>
             <li>
-              <button type="button" onClick={() => chooseCalendar('outlook')}>
+              <a href={calendarFile}>
                 <OutlookMark />
                 {calendar_outlook({}, { locale })}
-              </button>
+              </a>
             </li>
           </ul>
         </details>

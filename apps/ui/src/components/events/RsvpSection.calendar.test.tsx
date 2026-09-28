@@ -72,10 +72,10 @@ describe('RsvpSection offers the meetup to a calendar once the seat is taken', (
     const group = screen.getByRole('group', { name: 'Add to your calendar' });
     fireEvent.click(group.querySelector('summary') as HTMLElement);
     expect(
-      within(group.querySelector('ul') as HTMLElement).getByRole('button', {
+      within(group.querySelector('ul') as HTMLElement).getByRole('link', {
         name: 'Google Calendar',
-      }).textContent,
-    ).toBe('31Google Calendar');
+      }),
+    ).toBeTruthy();
   });
 
   it('offers nothing before the seat is taken', () => {
