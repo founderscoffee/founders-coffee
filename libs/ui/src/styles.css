@@ -134,6 +134,48 @@
   }
   :lang(ar) {
     font-family: var(--font-arabic);
+  }
+  /* Arabic takes a taller line than Latin and no tracking, both set on the elements that hold
+     lines. The text-level elements and form controls are left out, so each takes both from the
+     line it sits in, as it does on a Latin page: given 1.65 themselves, they stretched every line
+     whose block asked for less, and a bdi in the 1.1 heading made each title line 66px, not 44px.
+     A label is not left out: here it is a field's caption or a row of its own, never a run of text
+     inside a line. */
+  :lang(ar):not(
+    :where(
+      a,
+      abbr,
+      b,
+      bdi,
+      bdo,
+      br,
+      button,
+      cite,
+      code,
+      data,
+      del,
+      dfn,
+      em,
+      i,
+      input,
+      ins,
+      kbd,
+      mark,
+      q,
+      s,
+      samp,
+      select,
+      small,
+      span,
+      strong,
+      sub,
+      sup,
+      textarea,
+      time,
+      u,
+      var
+    )
+  ) {
     line-height: 1.65;
     letter-spacing: 0;
   }

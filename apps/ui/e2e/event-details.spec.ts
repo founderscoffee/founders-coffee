@@ -59,7 +59,8 @@ const details = (page: Page) =>
  * a caller can tell whether they share a line, and `noteLines` says how many lines the note took.
  * The title and description report where each of their lines begins, and `edge` is where the
  * header's first chip begins, the side every line of the header should start from. `height` and
- * `leading` say whether the title's and description's lines are as tall as their block sets them.
+ * `leading` say whether the lines of the title, the description, the time and the address are as
+ * tall as their block sets them, and `addressLines` how many lines the address took.
  */
 const measure = (page: Page) =>
   page.evaluate((hostName) => {
@@ -128,11 +129,16 @@ const measure = (page: Page) =>
       height: {
         title: blockHeight(document.querySelector('article header h1')),
         description: blockHeight(document.querySelector('article header p')),
+        time: blockHeight(timeLine ?? null),
+        address: blockHeight(address ?? null),
       },
       leading: {
         title: blockLeading(document.querySelector('article header h1')),
         description: blockLeading(document.querySelector('article header p')),
+        time: blockLeading(timeLine ?? null),
+        address: blockLeading(address ?? null),
       },
+      addressLines: lineStarts(address).length,
       description: lineStarts(document.querySelector('article header p')),
       calendar: icon(day),
       pin: icon(venue),
@@ -169,11 +175,17 @@ test.describe('The meetup details', () => {
       expect(at.description, 'the description is not two lines').toHaveLength(
         2,
       );
-      for (const block of ['title', 'description'] as const)
+      const lines = {
+        title: at.title.length,
+        description: at.description.length,
+        time: at.noteTop === at.timeTop ? 1 : 2,
+        address: at.addressLines,
+      };
+      for (const block of ['title', 'description', 'time', 'address'] as const)
         expect(
           at.height[block],
-          `the ${block} is taller than its lines, as when an Arabic page gave its isolates a body line height`,
-        ).toBeCloseTo(at[block].length * at.leading[block], 0);
+          `the ${block} is taller than its lines, as when an Arabic page gave its inline text a body line height`,
+        ).toBeCloseTo(lines[block] * at.leading[block], 0);
       for (const line of [...at.title, ...at.description])
         expect(
           line,

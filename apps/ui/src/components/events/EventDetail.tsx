@@ -132,7 +132,7 @@ export const EventDetail = ({
           </span>
         </div>
         <h1 className="mt-4 max-w-3xl font-display text-h1 font-semibold text-balance">
-          <bdi className="leading-[inherit]">{event.title}</bdi>
+          <bdi>{event.title}</bdi>
         </h1>
         {event.description ? (
           <p className="mt-4 max-w-3xl whitespace-pre-line text-body-lg leading-relaxed text-neutral">

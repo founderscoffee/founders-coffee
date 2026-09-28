@@ -9,7 +9,7 @@ export const IsolatedLines = ({ text }: IsolatedLinesProps) => (
     {text.split('\n').map((line, index) => (
       <Fragment key={index}>
         {index > 0 ? '\n' : null}
-        <bdi className="leading-[inherit]">{line}</bdi>
+        <bdi>{line}</bdi>
       </Fragment>
     ))}
   </>

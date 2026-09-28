@@ -175,12 +175,11 @@ body {
 /*
  * daisyUI's `.countdown` rolls digits by offsetting a stacked list of numbers by whole `em`
  * steps inside a box one `em` tall, and it measures its width in `ch`. Both only work while the
- * element and its children share one font and a line-height of exactly 1. The `:lang(ar)` base
- * rule matches the children directly — Tajawal at line-height 1.65 — so the offsets landed
- * between two numbers and showed a slice of each.
+ * element and its children share one font and a line-height of exactly 1. daisyUI sets that
+ * line-height on `.countdown` and the children inherit it, but the `:lang(ar)` base rule names
+ * Tajawal on every element, the children included, so they never inherit `font-mono`.
  */
 .countdown,
 .countdown * {
   font-family: var(--font-mono);
-  line-height: 1em;
 }
