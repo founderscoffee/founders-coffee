@@ -1,16 +1,19 @@
 import type { Map as MapboxMap } from 'mapbox-gl';
-import { useRef, useState, type RefObject } from 'react';
+import { useRef, type RefObject } from 'react';
 
 import {
+  CALLOUT_GAP,
   calloutFitsAbove,
   calloutFitsBelow,
   calloutShift,
+  PIN_HEIGHT,
 } from './callout-placement';
+
+const ABOVE_PIN = `calc(-100% - ${PIN_HEIGHT + CALLOUT_GAP * 2}px)`;
 
 type Point = { longitude: number; latitude: number } | null;
 
 export interface CalloutPlacement {
-  readonly above: boolean;
   readonly measure: (node: HTMLDivElement | null) => void;
   readonly sync: () => void;
 }
@@ -23,18 +26,16 @@ export interface CalloutPlacement {
  * to the map — so reading its size from the ref callback gives zero. A ResizeObserver measures it
  * once it is really laid out, and again whenever its text rewraps into a different number of lines.
  *
- * The slide is written straight onto the card's `translate` instead of going through state.
- * Mapbox moves the marker inside its own frame and a render lands a frame later, so a card placed
- * near an edge would show cut off for a frame before jumping in, and would trail the pin while
- * the map pans. The flip changes only when the pin crosses a line, not on every frame of a pan,
- * so it stays in state.
+ * Both moves are written straight onto the card's `transform` instead of going through state.
+ * Mapbox moves the marker inside its own frame and a render lands a frame later, so a new card
+ * would first show where it does not fit, cut off at an edge, before jumping into place, and would
+ * trail the pin while the map pans.
  */
 export const useCalloutPlacement = (
   mapRef: RefObject<MapboxMap | null>,
   point: Point,
   covered = 0,
 ): CalloutPlacement => {
-  const [above, setAbove] = useState(false);
   const card = useRef<HTMLDivElement | null>(null);
   const size = useRef({ width: 0, height: 0 });
   const observer = useRef<ResizeObserver | null>(null);
@@ -51,9 +52,10 @@ export const useCalloutPlacement = (
     if (!map || !target || !node || height === 0) return;
     const { x, y } = map.project([target.longitude, target.latitude]);
     const { clientWidth, clientHeight } = map.getContainer();
-    node.style.translate = `${calloutShift(x, clientWidth, width)}px`;
-    const fitsBelow = calloutFitsBelow(y, clientHeight, height);
-    setAbove(!fitsBelow && calloutFitsAbove(y, height, cover.current));
+    const above =
+      !calloutFitsBelow(y, clientHeight, height) &&
+      calloutFitsAbove(y, height, cover.current);
+    node.style.transform = `translate(${calloutShift(x, clientWidth, width)}px, ${above ? ABOVE_PIN : '0px'})`;
   };
 
   const measure = (node: HTMLDivElement | null): void => {
@@ -69,5 +71,5 @@ export const useCalloutPlacement = (
     observer.current = resize;
   };
 
-  return { above, measure, sync };
+  return { measure, sync };
 };

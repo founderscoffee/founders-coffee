@@ -231,7 +231,6 @@ export const HostMap = ({
             <HostVenueCallout
               venue={venue}
               locale={locale}
-              above={callout.above}
               showHint={isInteractive}
               ref={callout.measure}
             />
