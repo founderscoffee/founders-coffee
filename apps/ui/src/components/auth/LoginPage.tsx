@@ -36,10 +36,7 @@ export const LoginPage = ({
         <span className="block">{brand({}, { locale })}</span>
       </>
     }
-    titleLevel="h1"
     emailActionLabel={login_email_continue({}, { locale })}
-    showEmailHelp
-    showAccountNote
     getSocialRedirect={() => ({
       callbackURL: safeAuthReturnPath(redirect),
     })}

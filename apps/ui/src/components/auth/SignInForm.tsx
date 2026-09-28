@@ -36,10 +36,7 @@ export type SignInFormProps = {
   socialProviders: readonly SocialProvider[];
   layout: 'page' | 'gate';
   title: ReactNode;
-  titleLevel: 'h1' | 'h3';
   emailActionLabel: string;
-  showEmailHelp: boolean;
-  showAccountNote: boolean;
   getSocialRedirect: () => SocialRedirect;
   onAuthenticated: () => void;
   onCancel?: () => void;
@@ -52,10 +49,7 @@ export const SignInForm = ({
   socialProviders,
   layout,
   title,
-  titleLevel,
   emailActionLabel,
-  showEmailHelp,
-  showAccountNote,
   getSocialRedirect,
   onAuthenticated,
   onCancel,
@@ -72,6 +66,7 @@ export const SignInForm = ({
   const cooldown = useResendCooldown();
   const stepHeight = useStepHeightLock<HTMLFormElement>();
 
+  const isPage = layout === 'page';
   const emailValid = /.+@.+\..+/.test(email);
   const turnstileEnabled = Boolean(turnstileSiteKey) && !isTurnstileBypassed;
 
@@ -152,36 +147,27 @@ export const SignInForm = ({
   useOtpAutofill(step === 'otp', setOtp);
   useRevealOnMount(rootRef);
 
-  const heading =
-    titleLevel === 'h1' ? (
-      <div className="flex flex-col items-center gap-3 text-center">
-        <h1 className="font-display text-h3 font-semibold">{title}</h1>
-      </div>
-    ) : (
-      <h3 className="font-display text-h4 font-semibold text-base-content">
-        {title}
-      </h3>
-    );
-
   const form = (
     <form
       ref={stepHeight.ref}
       style={{ minHeight: stepHeight.minHeight }}
       className={
-        layout === 'gate'
-          ? 'mt-5 flex max-w-sm flex-col gap-4'
-          : 'flex flex-col gap-4'
+        isPage ? 'flex flex-col gap-4' : 'mt-5 flex max-w-sm flex-col gap-4'
       }
       onSubmit={submitStep}
     >
-      {heading}
+      {isPage && (
+        <div className="flex flex-col items-center gap-3 text-center">
+          <h1 className="font-display text-h3 font-semibold">{title}</h1>
+        </div>
+      )}
 
       {step === 'email' ? (
         <>
           <LoginEmailField
             locale={locale}
             value={email}
-            showHelp={showEmailHelp}
+            hasHelp={isPage}
             onChange={setEmail}
           />
           {turnstileEnabled && (
@@ -207,13 +193,11 @@ export const SignInForm = ({
           </Button>
           <LegalNotice
             locale={locale}
-            className={layout === 'page' ? 'mt-1' : undefined}
+            className={isPage ? 'mt-1' : undefined}
           />
-          {showAccountNote && (
-            <p className="text-center text-body-sm font-medium text-base-content">
-              {login_account_note({}, { locale })}
-            </p>
-          )}
+          <p className="text-center text-body-sm font-medium text-base-content">
+            {login_account_note({}, { locale })}
+          </p>
           <SocialSignIn
             locale={locale}
             providers={socialProviders}
@@ -282,16 +266,19 @@ export const SignInForm = ({
     </form>
   );
 
-  return layout === 'gate' ? (
+  return isPage ? (
+    <div className="mx-auto flex max-w-sm flex-col px-4 py-12">
+      <div>{form}</div>
+    </div>
+  ) : (
     <div
       ref={rootRef}
       className="mt-6 rounded-box border border-base-300 bg-base-200 p-5 md:p-6"
     >
+      <h3 className="font-display text-h4 font-semibold text-base-content">
+        {title}
+      </h3>
       {form}
-    </div>
-  ) : (
-    <div className="mx-auto flex max-w-sm flex-col px-4 py-12">
-      <div>{form}</div>
     </div>
   );
 };

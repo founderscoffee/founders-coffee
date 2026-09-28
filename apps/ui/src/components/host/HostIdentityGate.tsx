@@ -37,10 +37,7 @@ export const HostIdentityGate = (props: {
         socialProviders={props.socialProviders}
         layout="gate"
         title={gate_title({}, { locale: props.locale })}
-        titleLevel="h3"
         emailActionLabel={send_code({}, { locale: props.locale })}
-        showEmailHelp={false}
-        showAccountNote
         getSocialRedirect={getSocialRedirect}
         onAuthenticated={() => setHasVerified(true)}
         onCancel={props.onCancel}
