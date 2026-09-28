@@ -23,7 +23,6 @@ const besideNeighbour = (neighbour: ControlSize): CSSProperties =>
   ({
     '--row-start': `calc(${neighbour.width}px + var(--spacing) * 5)`,
     '--row-height': `${neighbour.height}px`,
-    '--row-top': `calc(var(--spacing) * 3 + (${neighbour.height}px - var(--spacing) * 11) / 2)`,
   }) as CSSProperties;
 
 const placement = (isHint: boolean, isBeside: boolean): string => {
@@ -31,7 +30,7 @@ const placement = (isHint: boolean, isBeside: boolean): string => {
     return 'max-lg:end-3 max-lg:mt-3 max-lg:w-fit max-lg:max-w-[calc(100%-var(--row-start)-var(--spacing)*3)]';
   }
   return isBeside
-    ? 'max-lg:start-[var(--row-start)] max-lg:end-3 max-lg:mt-[var(--row-top)] max-lg:border max-lg:border-base-300 max-lg:bg-base-100'
+    ? 'max-lg:start-[var(--row-start)] max-lg:end-3 max-lg:mt-3 max-lg:h-[var(--row-height)] max-lg:border max-lg:border-base-300 max-lg:bg-base-100'
     : 'max-lg:inset-x-3 max-lg:mt-3 max-lg:border max-lg:border-base-300 max-lg:bg-base-100';
 };
 
@@ -68,8 +67,13 @@ export const VenueResultsPanel = ({
       )}`}
     >
       {!isHint && (
-        <div className="relative flex items-center max-lg:min-h-11 max-lg:ps-3 max-lg:pe-12 lg:mb-1.5">
-          <p id={labelId} className="text-caption text-neutral">
+        <div
+          className={`grid lg:mb-1.5 ${isBeside ? 'max-lg:h-full' : 'max-lg:min-h-11'}`}
+        >
+          <p
+            id={labelId}
+            className="col-start-1 row-start-1 self-center text-caption text-neutral max-lg:ps-3 max-lg:pe-12"
+          >
             {label}
           </p>
           <button
@@ -79,11 +83,11 @@ export const VenueResultsPanel = ({
             aria-labelledby={labelId}
             aria-expanded={!isFolded}
             aria-controls={bodyId}
-            className="absolute inset-0 flex items-center justify-end rounded-box pe-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary lg:hidden"
+            className="tap-target col-start-1 row-start-1 flex items-center justify-end rounded-box pe-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary lg:hidden"
           >
             <ChevronDown
               aria-hidden="true"
-              className={`size-5 text-neutral transition-transform duration-[var(--duration-fast)] motion-reduce:transition-none ${
+              className={`size-4 text-neutral transition-transform duration-[var(--duration-fast)] motion-reduce:transition-none ${
                 isFolded ? '' : 'rotate-180'
               }`}
             />

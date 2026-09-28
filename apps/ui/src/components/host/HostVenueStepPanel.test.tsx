@@ -139,20 +139,35 @@ describe('the venue step floating over the map', () => {
     const open = panelOf(screen.getByRole('listbox'));
     expect(open.className).toContain('max-lg:inset-x-3');
     expect(open.style.getPropertyValue('--row-start')).toBe('');
+    expect(
+      open.className,
+      'open across the map, the list has no button beside it to match',
+    ).not.toContain('max-lg:h-[var(--row-height)]');
 
     rerender(
       venueStep('', undefined, {
         overlay: { ...panel(true), neighbour: LOCATE },
       }),
     );
-    const folded = panelOf(
-      screen.getByRole('button', { name: 'Places nearby' }),
-    );
+    const header = screen.getByRole('button', { name: 'Places nearby' });
+    const folded = panelOf(header);
     expect(folded.className).toContain('max-lg:start-[var(--row-start)]');
+    expect(folded.style.getPropertyValue('--row-height')).toBe('24px');
     expect(
-      folded.style.getPropertyValue('--row-top'),
-      'the folded header is taller than the button, so it is centred on it',
-    ).toBe('calc(var(--spacing) * 3 + (24px - var(--spacing) * 11) / 2)');
+      folded.className,
+      'the folded list stood 44px tall beside a 24px button',
+    ).toContain('max-lg:h-[var(--row-height)]');
+    expect(
+      folded.className,
+      'as tall as the button, it starts level with it',
+    ).toContain('max-lg:mt-3');
+    expect(
+      header.className,
+      'drawn at the button’s height, it still answers a thumb over 44px',
+    ).toContain('tap-target');
+    expect(header.querySelector('svg')?.getAttribute('class')).toContain(
+      'size-4',
+    );
   });
 
   it('spans a folded list across the map until Locate me reports its size', () => {
