@@ -1,5 +1,7 @@
-import { render } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, render } from '@testing-library/react';
+import { hydrateRoot, type Root } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const session: { current: { data: unknown; isPending: boolean } } = {
   current: { data: undefined, isPending: true },
@@ -16,12 +18,15 @@ vi.mock('./session-cache', async (importOriginal) => ({
   withdrawMemberCaches: () => withdraw(),
 }));
 
-const { AppProviders } = await import('./app-providers');
+const { AppProviders, useAuth } = await import('./app-providers');
 
 const settle = (userId: string | null) => {
   session.current = {
     data: userId
-      ? { user: { id: userId, name: 'A', email: 'a@test.coffee' } }
+      ? {
+          user: { id: userId, name: 'A', email: 'a@test.coffee' },
+          session: { id: `ses_${userId}`, userId, expiresAt: new Date(0) },
+        }
       : null,
     isPending: false,
   };
@@ -63,4 +68,79 @@ describe('member cache isolation wiring', () => {
 
     expect(withdraw).not.toHaveBeenCalled();
   });
+});
+
+const PrimaryAction = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  return (
+    <button type="button" disabled={isLoading}>
+      {isAuthenticated ? 'Publish' : 'Continue to sign in'}
+    </button>
+  );
+};
+
+const page = (
+  <AppProviders>
+    <PrimaryAction />
+  </AppProviders>
+);
+
+describe('hydration', () => {
+  const roots: Root[] = [];
+
+  afterEach(() => {
+    act(() => roots.splice(0).forEach((root) => root.unmount()));
+    document.body.replaceChildren();
+  });
+
+  const hydrateAfterSettling = async (userId: string | null) => {
+    session.current = { data: undefined, isPending: true };
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(page);
+    document.body.appendChild(container);
+    const wasDisabledOnServer = container.querySelector('button')?.disabled;
+    settle(userId);
+    const reported: unknown[] = [];
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation((...args: unknown[]) => void reported.push(args));
+    await act(async () => {
+      roots.push(
+        hydrateRoot(container, page, {
+          onRecoverableError: (error) => void reported.push(error),
+        }),
+      );
+    });
+    consoleError.mockRestore();
+    return {
+      wasDisabledOnServer,
+      button: container.querySelector('button'),
+      reported,
+    };
+  };
+
+  it.each([
+    ['signed out', null, 'Continue to sign in'],
+    ['signed in', 'usr_a', 'Publish'],
+  ])(
+    'hydrates what the server rendered when the session settled %s before React reached the provider',
+    async (_, userId, label) => {
+      const { wasDisabledOnServer, button, reported } =
+        await hydrateAfterSettling(userId);
+
+      expect(
+        wasDisabledOnServer,
+        'the document never knows who is reading, so the server always renders the session as still resolving',
+      ).toBe(true);
+      expect(
+        reported,
+        'Better Auth starts the session request the first time a render reads it, and Start hydrates in a transition that yields to the network, so a quick answer lands before React reaches the provider; hydrating with it is a mismatch React 19 reports and, for attributes, never patches',
+      ).toEqual([]);
+      expect(
+        button?.disabled,
+        'the host wizard kept its action button disabled this way: React believed it had enabled a button whose DOM still carried the server’s disabled attribute',
+      ).toBe(false);
+      expect(button?.textContent).toBe(label);
+    },
+  );
 });
