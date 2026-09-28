@@ -16,7 +16,7 @@ import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import { requireEventCreateWafRule } from '../turnstile/middleware.js';
-import { attachAttendance } from './attendance.js';
+import { attachAttendance, type EventDetailItem } from './attendance.js';
 import { answerEventCalendar } from './calendar.js';
 import { readEventCard } from './card.js';
 import { cancelEventResolver } from './cancel.js';
@@ -137,13 +137,17 @@ export const getEvent = createServerFn({ strict: false })
     const session = await resolveSession(getRequest().headers);
     const [enriched] = await attachAttendance(db, [event], session?.user?.id);
     const city = geo.findCity(event.marketCode, event.cityCode);
+    const state = geo.findState(event.marketCode, event.stateCode);
     return {
       ...enriched,
       cityName: city?.name ?? event.cityCode,
       cityNameAr: city?.nameAr ?? city?.name ?? event.cityCode,
       cityNameFr: city?.nameFr ?? city?.name ?? event.cityCode,
       citySlug: city?.slug ?? null,
-    };
+      stateName: state?.name ?? null,
+      stateNameAr: state?.nameAr ?? state?.name ?? null,
+      stateNameFr: state?.nameFr ?? state?.name ?? null,
+    } satisfies EventDetailItem;
   });
 
 /**

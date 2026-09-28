@@ -14,6 +14,8 @@ import type { Market } from '@founders-coffee/db';
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { eventCityName } from '../features/events/event-city-name';
+import { eventRegionName } from '../features/events/event-region-name';
+import { eventStreetAddress } from '../features/events/event-street-address';
 import { eventPhase, isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
@@ -126,10 +128,13 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
         description: loaderData.event.description,
         startsAt: loaderData.event.startsAt,
         endsAt: loaderData.event.endsAt,
+        createdAt: loaderData.event.createdAt,
+        timezone: loaderData.market.timezone,
         status: loaderData.event.status,
         venue: loaderData.event.venue,
         cityName,
-        venueAddress: loaderData.event.venueAddress,
+        regionName: eventRegionName(loaderData.event, loaderData.locale),
+        venueAddress: eventStreetAddress(loaderData.event),
         latitude: loaderData.event.latitude,
         longitude: loaderData.event.longitude,
         marketCode: loaderData.event.marketCode,

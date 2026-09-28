@@ -74,6 +74,8 @@ const eventRows = LOCALES.map((locale) => ({
   slug: `geo-05-${locale}-meetup`,
 }));
 
+const CITY = { ar: 'الجزائر العاصمة', fr: 'Alger', en: 'Algiers' } as const;
+
 describe('public GEO contract', () => {
   beforeAll(async () => {
     const db = createDb(env.DB);
@@ -184,6 +186,16 @@ describe('public GEO contract', () => {
           expect(primary?.name, page.path).toBe(event?.title);
           expect(primary?.organizer, page.path).toMatchObject({
             name: 'GEO-05 Host',
+          });
+          expect(primary?.startDate, page.path).toMatch(/T19:00:00\+01:00$/u);
+          expect(primary?.location, page.path).toMatchObject({
+            address: {
+              addressLocality: CITY[locale],
+              addressRegion: { ar: 'الجزائر', fr: 'Alger', en: 'Algiers' }[
+                locale
+              ],
+              addressCountry: 'DZ',
+            },
           });
           expect(body, page.path).toContain('GEO-05 Host');
         }

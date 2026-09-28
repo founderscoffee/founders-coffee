@@ -41,6 +41,9 @@ const event = {
   cityNameAr: 'الجزائر',
   cityNameFr: 'Alger',
   citySlug: 'algiers',
+  stateName: 'Alger',
+  stateNameAr: 'الجزائر',
+  stateNameFr: 'Alger',
 } satisfies EventDetailItem;
 
 const unpinned = { ...event, latitude: null, longitude: null };

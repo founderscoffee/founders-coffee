@@ -50,6 +50,9 @@ const event = {
   cityNameAr: 'الجزائر',
   cityNameFr: 'Alger',
   citySlug: 'algiers',
+  stateName: 'Alger',
+  stateNameAr: 'الجزائر',
+  stateNameFr: 'Alger',
 } satisfies EventDetailItem;
 
 const ACROSS_TOWN: VenueSelection = {

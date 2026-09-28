@@ -13,6 +13,9 @@ export type EventDetailItem = EventWithAttendance & {
   readonly cityNameAr: string;
   readonly cityNameFr: string;
   readonly citySlug: string | null;
+  readonly stateName: string | null;
+  readonly stateNameAr: string | null;
+  readonly stateNameFr: string | null;
 };
 
 /**

@@ -63,6 +63,9 @@ const event = {
   cityNameAr: 'الجزائر',
   cityNameFr: 'Alger',
   citySlug: 'algiers',
+  stateName: 'Alger',
+  stateNameAr: 'الجزائر',
+  stateNameFr: 'Alger',
 } satisfies EventDetailItem;
 
 const show = (locale: Locale = 'en', item: EventDetailItem = event) =>
