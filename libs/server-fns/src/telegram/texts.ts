@@ -21,7 +21,7 @@ import {
   valuesFor,
   type NotificationPayload,
 } from '../notifications/producer.js';
-import { telegramBotHandle, telegramSetup } from './config.js';
+import { telegramBotHandle } from './config.js';
 
 export interface TelegramValues {
   readonly locale: Locale;
@@ -31,7 +31,6 @@ export interface TelegramValues {
   readonly place: string;
   readonly url: string;
   readonly cityUrl: string;
-  readonly botHandle: string;
 }
 
 /**
@@ -48,7 +47,6 @@ export interface TelegramValues {
 export const telegramValuesFor = async (
   db: Db,
   event: Event,
-  botUsername = telegramSetup()?.botUsername,
 ): Promise<TelegramValues> => {
   const context = await resolveNotificationContext(db, {
     preferred: event.language,
@@ -79,7 +77,6 @@ export const telegramValuesFor = async (
         : event.venue,
     url: values.url,
     cityUrl: citySlug ? `${marketUrl}/${citySlug}` : marketUrl,
-    botHandle: telegramBotHandle(botUsername ?? 'bot'),
   };
 };
 
@@ -116,9 +113,15 @@ export const telegramCancelledText = (
 export const telegramCancelledPinnedText = (values: TelegramValues): string =>
   ntf_telegram_cancelled_pinned(values, on(values));
 
-/** The last post: thanks, whose group it is now, and where the next meetups are. */
-export const telegramWrapUpText = (values: TelegramValues): string =>
+/**
+ * The last post: thanks, whose group it is now, and where the next meetups are. It names the bot
+ * that is leaving, by the handle members can look it up by.
+ */
+export const telegramWrapUpText = (
+  values: TelegramValues,
+  botUsername: string,
+): string =>
   ntf_telegram_wrap_up(
-    { ...values, url: values.cityUrl, bot: values.botHandle },
+    { ...values, url: values.cityUrl, bot: telegramBotHandle(botUsername) },
     on(values),
   );

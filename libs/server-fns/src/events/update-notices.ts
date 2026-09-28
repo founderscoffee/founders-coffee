@@ -12,6 +12,7 @@ import {
   enqueueEventChangeNotices,
   type EventChangeTemplateKey,
 } from '../notifications/event-change.js';
+import { telegramBotUsername } from '../telegram/config.js';
 import { announceTelegramUpdate } from '../telegram/notices.js';
 
 const REARMED_TEMPLATES = ['reminder_72h', 'reminder_24h'] as const;
@@ -107,7 +108,8 @@ const rearmReminders = async (db: Db, event: Event): Promise<void> => {
  *
  * The group decides for itself what an edit changes, since its pinned details also carry the
  * address and the end, which no personal reminder does. A failure is reported and goes no further:
- * a group that could not be told must not keep a member's phone from hearing about a new time.
+ * a group that could not be told must not keep a member's phone from hearing about a new time. A
+ * deployment that names no bot has no group to tell: its goodbye would have no bot to name.
  */
 const announceToTelegramGroup = async (
   db: Db,
@@ -117,8 +119,10 @@ const announceToTelegramGroup = async (
     notice: EventChangeTemplateKey | null;
   },
 ): Promise<void> => {
+  const botUsername = telegramBotUsername();
+  if (!botUsername) return;
   try {
-    await announceTelegramUpdate(db, opts);
+    await announceTelegramUpdate(db, { ...opts, botUsername });
   } catch (error) {
     reportError(error, {
       operation: 'update_event_telegram',

@@ -8,6 +8,7 @@ import {
   scheduleTelegramGroup,
 } from './notices.js';
 import {
+  BOT_USERNAME,
   connectMeetup,
   payloadOf,
   seedMeetup,
@@ -32,7 +33,7 @@ describe("Telegram group notices through a meetup's life (real D1 via Miniflare)
 
   it('moves the reminder and the goodbye with a new time, and tells the group', async () => {
     const before = await connected();
-    await scheduleTelegramGroup(db, before);
+    await scheduleTelegramGroup(db, before, BOT_USERNAME);
     const after: Event = {
       ...before,
       startsAt: new Date('2099-01-17T18:00:00Z'),
@@ -43,6 +44,7 @@ describe("Telegram group notices through a meetup's life (real D1 via Miniflare)
       before,
       after,
       notice: 'event_rescheduled',
+      botUsername: BOT_USERNAME,
     });
 
     const pending = (await telegramRows(db, before.id)).filter(
@@ -66,24 +68,30 @@ describe("Telegram group notices through a meetup's life (real D1 via Miniflare)
       (row) => row.templateKey === 'telegram_rescheduled',
     );
     expect(payloadOf(notice).telegramText).toContain('The host has moved');
+    const goodbye = pending.find(
+      (row) => row.templateKey === 'telegram_wrap_up',
+    );
+    expect(payloadOf(goodbye).telegramText).toContain(`@${BOT_USERNAME}`);
     expect(payloadOf(notice).telegramPinnedText).toContain(before.title);
   });
 
   it('only rewrites the pin for a quiet edit, and leaves the group alone for an unrelated one', async () => {
     const before = await connected();
-    await scheduleTelegramGroup(db, before);
+    await scheduleTelegramGroup(db, before, BOT_USERNAME);
     const renamed: Event = { ...before, title: 'Renamed coffee' };
 
     await announceTelegramUpdate(db, {
       before,
       after: renamed,
       notice: null,
+      botUsername: BOT_USERNAME,
     });
     const afterRename = await telegramRows(db, before.id);
     await announceTelegramUpdate(db, {
       before: renamed,
       after: { ...renamed, description: 'Longer description' },
       notice: null,
+      botUsername: BOT_USERNAME,
     });
 
     const refresh = afterRename.filter(
@@ -105,6 +113,7 @@ describe("Telegram group notices through a meetup's life (real D1 via Miniflare)
       before: event,
       after: { ...event, title: 'Renamed' },
       notice: null,
+      botUsername: BOT_USERNAME,
     });
     await announceTelegramCancellation(db, { event });
 

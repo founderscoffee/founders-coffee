@@ -141,5 +141,5 @@ export const connectFromStart = async (
   });
   if (!connected) return;
   logger.info('telegram.connected', { eventId: event.id, chatId });
-  await scheduleTelegramGroup(db, event, now, setup.botUsername);
+  await scheduleTelegramGroup(db, event, setup.botUsername, now);
 };

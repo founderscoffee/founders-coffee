@@ -16,6 +16,16 @@ export interface TelegramSetup {
 export const telegramBotHandle = (botUsername: string): string =>
   `@${botUsername.replace(/^@/, '')}`;
 
+/**
+ * The username of the bot this deployment names, without its `@`, or `null` when it names none.
+ *
+ * The posts that name the bot need only this, and it is a plain variable, so they read it on its
+ * own rather than through `telegramSetup`, which also wants the token and the webhook secret.
+ */
+export const telegramBotUsername = (
+  env: Pick<WorkerEnv, 'TELEGRAM_BOT_USERNAME'> = workerEnv(),
+): string | null => env.TELEGRAM_BOT_USERNAME?.trim().replace(/^@/, '') || null;
+
 type TelegramEnv = Pick<
   WorkerEnv,
   | 'APP_ENVIRONMENT'
@@ -36,7 +46,7 @@ type TelegramEnv = Pick<
 export const telegramSetup = (
   env: TelegramEnv = workerEnv(),
 ): TelegramSetup | null => {
-  const botUsername = env.TELEGRAM_BOT_USERNAME?.trim().replace(/^@/, '');
+  const botUsername = telegramBotUsername(env);
   const webhookSecret = env.TELEGRAM_WEBHOOK_SECRET?.trim();
   if (!botUsername || !webhookSecret) return null;
   const token = env.TELEGRAM_BOT_TOKEN?.trim();

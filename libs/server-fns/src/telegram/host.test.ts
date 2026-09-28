@@ -140,7 +140,7 @@ describe("a host managing their meetup's Telegram group (real D1 via Miniflare)"
   it('lets the bot go from a running group: no more joins, no more posts, links revoked', async () => {
     const event = await seedMeetup(db);
     const chatId = await connectMeetup(db, event);
-    await scheduleTelegramGroup(db, event);
+    await scheduleTelegramGroup(db, event, BOT_USERNAME);
     await attend(db, event.id, MEMBER_IDS[0]);
     await saveTelegramInvite(db, {
       id: id('tgi'),
