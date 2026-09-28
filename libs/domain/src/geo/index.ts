@@ -90,15 +90,14 @@ export const searchLocations = (
   if (!q) return [];
   const matches = localizedNameMatcher(q);
   const states = STATES[country] ?? [];
-  const stateByCode = new Map(states.map((s) => [s.code, s]));
+  const stateByCode = Object.fromEntries(states.map((s) => [s.code, s]));
   const matchingStates = new Set(
     states.filter((s) => matches(s)).map((s) => s.code),
   );
 
   const scored: { city: GeoCity; state: GeoState; rank: number }[] = [];
   for (const city of CITIES[country] ?? []) {
-    const state = stateByCode.get(city.stateCode);
-    if (!state) continue;
+    const state = stateByCode[city.stateCode];
     const cityHit = matches(city);
     if (cityHit || matchingStates.has(state.code)) {
       scored.push({ city, state, rank: cityHit ? 0 : 1 });

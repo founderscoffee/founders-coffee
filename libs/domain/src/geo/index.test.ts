@@ -2,6 +2,9 @@ import { localizedName } from '@founders-coffee/core';
 import { cityInputs, hero_empty_city } from '@founders-coffee/i18n';
 import { describe, expect, it } from 'vitest';
 
+import { DZ_CITIES, DZ_STATES } from './data/dz.js';
+import { EG_CITIES, EG_STATES } from './data/eg.js';
+import { SA_CITIES, SA_STATES } from './data/sa.js';
 import {
   findCity,
   findCityBySlug,
@@ -20,6 +23,19 @@ describe('geo lookups', () => {
       expect(getStates(country).length, country).toBeGreaterThan(0);
     }
   });
+
+  it.each([
+    ['DZ', DZ_STATES, DZ_CITIES],
+    ['EG', EG_STATES, EG_CITIES],
+    ['SA', SA_STATES, SA_CITIES],
+  ] as const)(
+    'puts every %s city in one of its own states, which search shows beside it',
+    (_country, states, cities) => {
+      const codes = new Set(states.map((state) => state.code));
+
+      expect(cities.filter((city) => !codes.has(city.stateCode))).toEqual([]);
+    },
+  );
 
   it('answers an unsupported country with empty results rather than throwing', () => {
     expect(getStates('ZZ')).toEqual([]);
