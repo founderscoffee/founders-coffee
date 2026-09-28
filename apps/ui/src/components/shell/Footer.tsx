@@ -116,7 +116,7 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
             >
               <Logo symbolSize={55} textClassName="text-body-lg" />
             </Link>
-            <p className="max-w-xs text-body-sm leading-relaxed text-neutral">
+            <p className="max-w-xs text-body-sm leading-relaxed text-pretty text-neutral">
               {footer_tagline({ market: primaryMarketLabel }, { locale })}
             </p>
             <Link

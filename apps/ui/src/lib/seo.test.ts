@@ -162,7 +162,9 @@ describe('public page metadata', () => {
         { title: 'Founders Coffee - Algeria' },
         {
           name: 'description',
-          content: expect.stringContaining('We bring entrepreneurs together'),
+          content: expect.stringContaining(
+            'We gather entrepreneurs and founders in Algeria',
+          ),
         },
         { property: 'og:url', content: 'https://founders.coffee/en/algeria' },
         {
