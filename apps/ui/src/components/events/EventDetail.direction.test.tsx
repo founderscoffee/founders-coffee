@@ -34,19 +34,34 @@ const show = (item: EventDetailItem, locale: Locale, host: Host = null) =>
 
 describe('what the host wrote, on a page in another direction', () => {
   it.each<Locale>(['fr', 'en'])(
-    'lets an Arabic title and description set their own direction on a %s page',
+    'lets an Arabic title and description set their own direction on a %s page, and their lines follow the page',
     (locale) => {
       show(arabic, locale);
 
+      const heading = screen.getByRole('heading', { level: 1 });
       expect(
-        screen.getByRole('heading', { level: 1 }).getAttribute('dir'),
+        screen.getByText(arabic.title).tagName,
         'the colon of قهوة ونقاش: landed on the wrong side of its word on a left-to-right page',
-      ).toBe('auto');
-      expect(screen.getByText(arabic.description).getAttribute('dir')).toBe(
-        'auto',
-      );
+      ).toBe('BDI');
+      expect(
+        heading.hasAttribute('dir'),
+        'a heading of its own direction put a French title at the far side of an Arabic page',
+      ).toBe(false);
+      const description = screen.getByText(arabic.description);
+      expect(description.tagName).toBe('BDI');
+      expect(description.parentElement?.hasAttribute('dir')).toBe(false);
     },
   );
+
+  it('sets each line of a description apart, so a Latin line after an Arabic one reads left to right', () => {
+    show(
+      { ...event, description: 'نلتقي في الطابق الأول.\nBring a friend!' },
+      'ar',
+    );
+
+    expect(screen.getByText('نلتقي في الطابق الأول.').tagName).toBe('BDI');
+    expect(screen.getByText('Bring a friend!').tagName).toBe('BDI');
+  });
 
   it('lets the host’s name set its own direction and its line follow the page', () => {
     show(event, 'fr', {

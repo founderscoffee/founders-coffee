@@ -33,15 +33,16 @@ const cleanup = (): void => {
 /**
  * A host whose name is written in Latin letters, with a meetup in Algiers two days out.
  *
- * The venue and its address are Latin too. On an Arabic page these are the lines that drifted to
- * the far side of their box: text that sets its own direction also aligned itself by it.
+ * The title, the venue and its address are Latin too, and the description is an Arabic line then
+ * a Latin one. These are the lines that drifted to the far side of their box on a page of the
+ * other direction: text that set its own direction also aligned itself by it.
  */
 const seed = (): void => {
   cleanup();
   const startsAt = Math.floor(Date.now() / 1000) + 2 * 86_400;
   d1(
     `INSERT INTO user (id, name, email) VALUES ('${HOST.id}', '${HOST.name}', '${HOST.id}@e2e.test'); ` +
-      `INSERT INTO events (id, host_id, market_code, state_code, city_code, title, description, venue, venue_address, starts_at, ends_at, rsvps, language, slug) VALUES ('${MEETUP.id}', '${HOST.id}', 'DZ', '16', '556', 'E2E meetup details', 'Seeded to measure the details boxes.', '${MEETUP.venue}', '${MEETUP.address}', ${startsAt}, ${startsAt + 7200}, 0, 'fr', '${MEETUP.slug}');`,
+      `INSERT INTO events (id, host_id, market_code, state_code, city_code, title, description, venue, venue_address, starts_at, ends_at, rsvps, language, slug) VALUES ('${MEETUP.id}', '${HOST.id}', 'DZ', '16', '556', 'E2E meetup details', 'نلتقي في الطابق الأول.' || char(10) || 'Bring a friend!', '${MEETUP.venue}', '${MEETUP.address}', ${startsAt}, ${startsAt + 7200}, 0, 'fr', '${MEETUP.slug}');`,
   );
 };
 
@@ -50,11 +51,15 @@ const details = (page: Page) =>
   page.locator('[aria-labelledby="event-details-title"]');
 
 /**
- * Where each line of the When, Where and host boxes begins, on the side the page starts reading.
+ * Where each line of the header, the When and Where boxes and the host card begins, on the side
+ * the page starts reading.
  *
  * Lines are measured on their text, not their boxes: a block that stretches across its box looks
  * aligned in markup whichever side its words sit on. `time` and `note` also report their tops, so
  * a caller can tell whether they share a line, and `noteLines` says how many lines the note took.
+ * The title and description report where each of their lines begins, and `edge` is where the
+ * header's first chip begins, the side every line of the header should start from. `height` and
+ * `leading` say whether the title's and description's lines are as tall as their block sets them.
  */
 const measure = (page: Page) =>
   page.evaluate((hostName) => {
@@ -69,6 +74,32 @@ const measure = (page: Page) =>
         ? Math.max(...rects.map((rect) => rect.right))
         : Math.min(...rects.map((rect) => rect.left));
     };
+    const lineStarts = (element: Element | null | undefined): number[] => {
+      if (!element) return [];
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const lines = new Map<number, number>();
+      for (const rect of range.getClientRects()) {
+        if (!rect.width) continue;
+        const line = Math.round(rect.top / 4);
+        const edge = isRightToLeft ? rect.right : rect.left;
+        const known = lines.get(line) ?? edge;
+        lines.set(
+          line,
+          isRightToLeft ? Math.max(known, edge) : Math.min(known, edge),
+        );
+      }
+      return [...lines.values()];
+    };
+    const blockHeight = (element: Element | null): number =>
+      element?.getBoundingClientRect().height ?? Number.NaN;
+    const blockLeading = (element: Element | null): number =>
+      element
+        ? Number.parseFloat(getComputedStyle(element).lineHeight)
+        : Number.NaN;
+    const chip = document
+      .querySelector('article header span')
+      ?.getBoundingClientRect();
     const [when, where] = document.querySelectorAll('dl > div');
     const [day, timeLine] = when?.querySelectorAll('dd') ?? [];
     const [venue, address] = where?.querySelectorAll('dd') ?? [];
@@ -92,6 +123,17 @@ const measure = (page: Page) =>
       };
     };
     return {
+      edge: chip ? (isRightToLeft ? chip.right : chip.left) : Number.NaN,
+      title: lineStarts(document.querySelector('article header h1')),
+      height: {
+        title: blockHeight(document.querySelector('article header h1')),
+        description: blockHeight(document.querySelector('article header p')),
+      },
+      leading: {
+        title: blockLeading(document.querySelector('article header h1')),
+        description: blockLeading(document.querySelector('article header p')),
+      },
+      description: lineStarts(document.querySelector('article header p')),
       calendar: icon(day),
       pin: icon(venue),
       day: start(day?.querySelector('time')),
@@ -124,6 +166,19 @@ test.describe('The meetup details', () => {
       await expect(details(page).getByText(HOST.name)).toBeVisible();
       const at = await measure(page);
 
+      expect(at.description, 'the description is not two lines').toHaveLength(
+        2,
+      );
+      for (const block of ['title', 'description'] as const)
+        expect(
+          at.height[block],
+          `the ${block} is taller than its lines, as when an Arabic page gave its isolates a body line height`,
+        ).toBeCloseTo(at[block].length * at.leading[block], 0);
+      for (const line of [...at.title, ...at.description])
+        expect(
+          line,
+          'a line of the title or description does not start where the page reads from',
+        ).toBeCloseTo(at.edge, 0);
       expect(at.calendar, 'the date has no calendar icon').not.toBeNull();
       expect(at.calendar?.size).toBe(at.pin?.size);
       expect(at.calendar?.color).toBe(at.pin?.color);

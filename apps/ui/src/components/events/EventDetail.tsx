@@ -20,7 +20,11 @@ import {
   share_event_action,
   type Locale,
 } from '@founders-coffee/i18n';
-import { IsolatedValue, StatusMessage } from '@founders-coffee/ui';
+import {
+  IsolatedLines,
+  IsolatedValue,
+  StatusMessage,
+} from '@founders-coffee/ui';
 import type { Market } from '@founders-coffee/db';
 import type {
   EventDetailItem,
@@ -127,18 +131,12 @@ export const EventDetail = ({
             <span dir="auto">{cityName}</span>
           </span>
         </div>
-        <h1
-          dir="auto"
-          className="mt-4 max-w-3xl font-display text-h1 font-semibold text-balance"
-        >
-          {event.title}
+        <h1 className="mt-4 max-w-3xl font-display text-h1 font-semibold text-balance">
+          <bdi className="leading-[inherit]">{event.title}</bdi>
         </h1>
         {event.description ? (
-          <p
-            dir="auto"
-            className="mt-4 max-w-3xl whitespace-pre-line text-body-lg leading-relaxed text-neutral"
-          >
-            {event.description}
+          <p className="mt-4 max-w-3xl whitespace-pre-line text-body-lg leading-relaxed text-neutral">
+            <IsolatedLines text={event.description} />
           </p>
         ) : null}
         <div className="mt-6 flex flex-wrap gap-2.5">
