@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { runWithContext } from '@founders-coffee/observability/context';
 
-import { companyPageHead, organizationJsonLd } from './seo-company';
+import {
+  companyPageHead,
+  organizationJsonLd,
+  websiteJsonLd,
+} from './seo-company';
 
 const head = (locale: 'ar' | 'fr' | 'en') =>
   runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
@@ -59,6 +63,22 @@ describe('organization structured data', () => {
       'every locale carried the same English sentence',
     ).toContain('entrepreneur');
     expect(new Set([description('ar'), description('fr')]).size).toBe(2);
+  });
+});
+
+describe('site name structured data', () => {
+  it('names the site as Google should print it, at the root of the domain', () => {
+    const website = runWithContext(
+      { siteOrigin: 'https://founders.coffee' },
+      () => JSON.parse(websiteJsonLd()) as Record<string, unknown>,
+    );
+
+    expect(website).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Founders Coffee',
+      url: 'https://founders.coffee/',
+    });
   });
 });
 

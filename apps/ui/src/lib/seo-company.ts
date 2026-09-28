@@ -8,8 +8,25 @@ import {
   buildPageMetadata,
   canonicalUrl,
   getSiteOrigin,
+  SITE_NAME,
   type CanonicalRoute,
 } from './seo';
+
+/**
+ * The site's `WebSite` node, which is where Google reads the name it prints above each result.
+ *
+ * Google reads it from the home page, and `/` is a redirect: it answers 307 with a market landing
+ * chosen by the reader's country and language, and Google reads the page it lands on. So it goes
+ * on every page, as the Organization does, and is there wherever `/` sends Googlebot. Without it
+ * Google printed the bare domain, "founders.coffee".
+ */
+export const websiteJsonLd = () =>
+  JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: `${getSiteOrigin()}/`,
+  });
 
 export const organizationJsonLd = (locale: Locale) =>
   JSON.stringify({

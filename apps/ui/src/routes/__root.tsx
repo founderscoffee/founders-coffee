@@ -38,7 +38,7 @@ import {
   PUBLIC_DOCUMENT_CACHE_CONTROL,
 } from '../lib/indexation';
 import { getRequestPath } from '../lib/seo';
-import { organizationJsonLd } from '../lib/seo-company';
+import { organizationJsonLd, websiteJsonLd } from '../lib/seo-company';
 import { errorPageHead, errorPageKind } from '../lib/seo-error';
 import { installedAppMeta } from '../lib/installed-app-head';
 import { hasOwnMobileHeader } from '../lib/route-chrome';
@@ -151,6 +151,7 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: 'stylesheet', href: appCss },
+        { rel: 'icon', href: '/android-chrome-192x192.png', sizes: '192x192' },
         { rel: 'icon', href: '/favicon-32x32.png', sizes: '32x32' },
         { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
@@ -164,6 +165,7 @@ export const Route = createRootRoute({
             type: 'application/ld+json',
             children: organizationJsonLd(locale),
           },
+          { type: 'application/ld+json', children: websiteJsonLd() },
         ]),
       ],
     };
