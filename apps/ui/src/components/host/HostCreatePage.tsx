@@ -287,7 +287,7 @@ export const HostCreatePage = ({
           isPublishing={wizard.publishing}
           onBack={wizard.prev}
           onNext={() => {
-            venueOverlay.open();
+            if (!wizard.venue) venueOverlay.open();
             wizard.next();
           }}
         />

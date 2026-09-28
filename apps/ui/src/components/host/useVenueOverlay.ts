@@ -8,8 +8,9 @@ import type { ControlSize } from './useControlSize';
  *
  * It folds when the host takes hold of the map, picks a place from the list or touches anything
  * outside it, and opens again for anything they then have to read in it: what they searched for,
- * or why Next would not go on. A place chosen on the map leaves it folded, since the callout over
- * the pin already names it.
+ * or the places to choose from when Next finds none chosen. A place chosen on the map leaves it
+ * folded, since the callout over the pin already names it. The name an address needs is asked
+ * below the search box, outside the panel, so a missing one does not open it.
  * Folding only counts while the panel covers the map; from `lg` up the list sits beside the map
  * and is always open. Locate me stays in the map's top corner: an open list covers it, and a
  * folded or empty panel shares its row, so the panel is told the button's size.

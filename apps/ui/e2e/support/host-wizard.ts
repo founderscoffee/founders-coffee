@@ -64,9 +64,9 @@ export const HOST_VENUE_NAME = 'Café des Fondateurs';
  * The box is a combobox whose list already offers nearby cafés before anything is typed, so the
  * first option on the page is not a match. The pick waits for the list to be named as search
  * results, which is the list a host who typed the street is reading, and then for the option to
- * report itself selected. Below `lg` the list folds away once a row is picked and takes the name
- * field with it, so the option is read even while folded, and the list is opened again by its
- * header when there is a name to give.
+ * report itself selected. Below `lg` the list folds away once a row is picked, so the option is
+ * read even while folded. The name field sits below the search box, outside the list, and is
+ * filled without opening the list again.
  *
  * The field stays disabled until the server has returned the city viewport, so the wait is on the
  * control being enabled rather than on a fixed delay — a timing assumption here would make the
@@ -98,12 +98,6 @@ export const selectVenue = async (
 
   const nameField = page.locator('#host-venue-name');
   if ((await nameField.count()) === 0) return providerName;
-  const foldedList = page.getByRole('button', {
-    name: listName,
-    exact: true,
-    expanded: false,
-  });
-  if (await foldedList.isVisible()) await foldedList.click();
   await nameField.fill(HOST_VENUE_NAME);
   return HOST_VENUE_NAME;
 };

@@ -126,9 +126,9 @@ export const HostVenueStep = ({
   const isHintOnly = rows.length === 0 && !isSearching;
   const isHintBesideLocate = overlay !== undefined && isHintOnly;
 
-  const stepRef = useRef<HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
   useDismissOnPointerOutside(
-    stepRef,
+    pickerRef,
     overlay !== undefined && !overlay.isCollapsed && !isHintOnly,
     () => overlay?.onDismiss(),
   );
@@ -210,14 +210,6 @@ export const HostVenueStep = ({
       >
         {rows.length > 0 ? null : emptyMessage}
       </StatusMessage>
-      {venue?.kind === 'address' && !hideNameField && (
-        <HostVenueNameField
-          locale={locale}
-          value={venueName}
-          error={nameError}
-          onChange={onVenueNameChange}
-        />
-      )}
       {isPinned && (
         <button
           type="button"
@@ -231,24 +223,34 @@ export const HostVenueStep = ({
   );
 
   return (
-    <div ref={stepRef} className="flex flex-col gap-3">
-      <VenueSearch
-        locale={locale}
-        area={area}
-        value={searchValue}
-        listId={VENUE_LIST_ID}
-        hasResults={rows.length > 0 && !overlay?.isCollapsed}
-        isDisabled={isDisabled}
-        isLoading={isSearching && search.isFetching}
-        onChange={onSearchChange}
-      />
-      <VenueStepToasts locale={locale} notices={notices} />
-      {overlay ? (
-        <VenueResultsPanel label={isHintOnly ? null : listLabel} {...overlay}>
-          {results}
-        </VenueResultsPanel>
-      ) : (
-        results
+    <div className="flex flex-col gap-3">
+      <div ref={pickerRef} className="contents">
+        <VenueSearch
+          locale={locale}
+          area={area}
+          value={searchValue}
+          listId={VENUE_LIST_ID}
+          hasResults={rows.length > 0 && !overlay?.isCollapsed}
+          isDisabled={isDisabled}
+          isLoading={isSearching && search.isFetching}
+          onChange={onSearchChange}
+        />
+        <VenueStepToasts locale={locale} notices={notices} />
+        {overlay ? (
+          <VenueResultsPanel label={isHintOnly ? null : listLabel} {...overlay}>
+            {results}
+          </VenueResultsPanel>
+        ) : (
+          results
+        )}
+      </div>
+      {venue?.kind === 'address' && !hideNameField && (
+        <HostVenueNameField
+          locale={locale}
+          value={venueName}
+          error={nameError}
+          onChange={onVenueNameChange}
+        />
       )}
     </div>
   );

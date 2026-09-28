@@ -75,7 +75,39 @@ describe('the venue list folded over the map on a phone', () => {
     ).toBe('false');
   });
 
-  it('unfolds when Next finds the chosen address unnamed, so the host sees why', async () => {
+  it('asks for the name of a chosen address outside the list, so the question shows while it is folded', async () => {
+    renderHostCreateWizard();
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Choose address' }),
+    );
+    const toggle = screen.getByRole('button', { name: 'Selected location' });
+    fireEvent.click(toggle);
+    const list = document.getElementById(
+      toggle.getAttribute('aria-controls') ?? '',
+    );
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(list).toBeTruthy();
+    expect(
+      list?.contains(screen.getByLabelText('What is this place called?')),
+      'inside the folded list, the question stayed out of sight until Next reported it missing',
+    ).toBe(false);
+  });
+
+  it('folds at a tap on the name question, as at any tap outside it', async () => {
+    renderHostCreateWizard();
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Choose address' }),
+    );
+    const toggle = screen.getByRole('button', { name: 'Selected location' });
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+    fireEvent.pointerDown(screen.getByLabelText('What is this place called?'));
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('stays folded when Next finds the chosen address unnamed, and says so at the question', async () => {
     renderHostCreateWizard();
     fireEvent.click(
       await screen.findByRole('button', { name: 'Choose address' }),
@@ -83,16 +115,26 @@ describe('the venue list folded over the map on a phone', () => {
     const toggle = screen.getByRole('button', { name: 'Selected location' });
     fireEvent.click(toggle);
 
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     expect(
       toggle.getAttribute('aria-expanded'),
-      'the missing name was reported inside a list folded out of sight',
-    ).toBe('true');
+      'the question is already in view, so opening the list only covered the map',
+    ).toBe('false');
     expect(
       screen.getByText('Name the venue so attendees can find the entrance.'),
     ).toBeTruthy();
+  });
+
+  it('opens when Next finds nothing chosen, offering the places to choose from', async () => {
+    getHostCreateMocks().nearbyVenues = [NEARBY_CAFE];
+    renderHostCreateWizard();
+    const toggle = await screen.findByRole('button', { name: 'Places nearby' });
+    fireEvent.pointerDown(screen.getByTestId('host-map'));
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
   });
 });
