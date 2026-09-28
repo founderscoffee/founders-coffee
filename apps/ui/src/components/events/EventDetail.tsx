@@ -7,7 +7,6 @@ import {
   event_cancelled_body,
   event_cancelled_title,
   event_details_title,
-  event_host,
   event_timezone,
   event_when,
   event_where,
@@ -17,7 +16,6 @@ import {
   host_time_from,
   host_time_to,
   ntf_cancel_reason,
-  profile_link,
   role_host,
   share_event_action,
   type Locale,
@@ -32,10 +30,8 @@ import type {
 import { eventCityName } from '../../features/events/event-city-name';
 import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
-import {
-  localizedCity,
-  localizedPublicProfile,
-} from '../../lib/locale-routing';
+import { localizedCity } from '../../lib/locale-routing';
+import { EventHostCard } from './EventHostCard';
 import { EventLocationMap } from './EventLocationMap';
 import { EventRsvpBox } from './EventRsvpBox';
 import { ShareEventButton } from './ShareEventButton';
@@ -50,15 +46,6 @@ type EventDetailProps = {
   isWindowOpen: boolean;
   phase: EventPhase;
 };
-
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0))
-    .join('')
-    .toUpperCase() || '?';
 
 export const EventDetail = ({
   locale,
@@ -80,11 +67,8 @@ export const EventDetail = ({
   const clock = { hour: '2-digit', minute: '2-digit' } as const;
   const start = new Date(event.startsAt);
   const end = event.endsAt == null ? null : new Date(event.endsAt);
-  const day = on(start, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
+  const names = locale === 'ar' ? 'long' : 'short';
+  const day = on(start, { weekday: names, day: 'numeric', month: names });
   const times =
     end == null
       ? on(start, clock)
@@ -209,16 +193,25 @@ export const EventDetail = ({
           <dl className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="rounded-box border border-base-300 bg-base-100 p-4">
               <dt className="eyebrow">{event_when({}, { locale })}</dt>
-              <dd className="mt-1.5 font-medium">
-                <time dateTime={start.toISOString()} dir={contentDirection}>
-                  {day} · {timeRange}
-                </time>
+              <dd className="mt-1.5 flex items-start gap-2 font-medium">
+                <CalendarDays
+                  className="mt-0.5 size-4 shrink-0 text-secondary"
+                  aria-hidden="true"
+                />
+                <time dateTime={start.toISOString()}>{day}</time>
               </dd>
-              <dd className="mt-0.5 text-body-sm text-neutral">
-                {event_timezone(
-                  { market: localizedName(market, locale) },
-                  { locale },
-                )}
+              <dd className="mt-0.5 ms-6 overflow-x-clip text-body-sm text-neutral">
+                <span className="-ms-4 flex flex-wrap">
+                  <span className="ms-4 font-medium text-base-content">
+                    {timeRange}
+                  </span>
+                  <span className="relative ms-4 before:absolute before:-start-2.5 before:content-['·']">
+                    {event_timezone(
+                      { market: localizedName(market, locale) },
+                      { locale },
+                    )}
+                  </span>
+                </span>
               </dd>
             </div>
             <div className="rounded-box border border-base-300 bg-base-100 p-4">
@@ -228,48 +221,19 @@ export const EventDetail = ({
                   className="mt-0.5 size-4 shrink-0 text-secondary"
                   aria-hidden="true"
                 />
-                <span dir="auto">{event.venue}</span>
+                <span>
+                  <bdi>{event.venue}</bdi>
+                </span>
               </dd>
               {event.venueAddress ? (
-                <dd
-                  className="mt-0.5 ps-6 text-body-sm text-neutral"
-                  dir="auto"
-                >
-                  {event.venueAddress}
+                <dd className="mt-0.5 ps-6 text-body-sm text-neutral">
+                  <bdi>{event.venueAddress}</bdi>
                 </dd>
               ) : null}
             </div>
           </dl>
 
-          <section className="mt-6 rounded-box border border-base-300 bg-base-100 p-4">
-            <h3 className="eyebrow">{event_host({}, { locale })}</h3>
-            <div className="mt-3 flex items-center gap-3.5">
-              <span
-                aria-hidden="true"
-                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold"
-              >
-                {initials(host?.displayName ?? '')}
-              </span>
-              <span className="min-w-0 flex-1">
-                {host ? (
-                  <span className="block font-display font-semibold" dir="auto">
-                    {host.displayName}
-                  </span>
-                ) : null}
-                <span className="block text-body-sm text-neutral" dir="auto">
-                  {cityName}
-                </span>
-              </span>
-              {host ? (
-                <Link
-                  {...localizedPublicProfile(locale, host.userId)}
-                  className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
-                >
-                  {profile_link({}, { locale })}
-                </Link>
-              ) : null}
-            </div>
-          </section>
+          <EventHostCard locale={locale} host={host} cityName={cityName} />
         </section>
 
         {hasRsvpBox ? (

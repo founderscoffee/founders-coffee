@@ -48,13 +48,35 @@ describe('what the host wrote, on a page in another direction', () => {
     },
   );
 
-  it('lets the host’s name set its own direction', () => {
+  it('lets the host’s name set its own direction and its line follow the page', () => {
     show(event, 'fr', {
       userId: 'usr_1',
       displayName: 'ياسين بن علي',
     } as Host);
 
-    expect(screen.getByText('ياسين بن علي').getAttribute('dir')).toBe('auto');
+    const name = screen.getByText('ياسين بن علي');
+    expect(name.tagName).toBe('BDI');
+    expect(
+      name.parentElement?.hasAttribute('dir'),
+      'a line of its own direction put a Latin name at the far side of an Arabic page, away from the avatar',
+    ).toBe(false);
+  });
+
+  it('lets the venue and its address set their own direction and their lines follow the page', () => {
+    show(
+      {
+        ...event,
+        venue: 'Café Atlas',
+        venueAddress: '12 Rue Didouche Mourad, Alger',
+      },
+      'ar',
+    );
+
+    for (const text of ['Café Atlas', '12 Rue Didouche Mourad, Alger']) {
+      const isolated = screen.getByText(text);
+      expect(isolated.tagName).toBe('BDI');
+      expect(isolated.parentElement?.hasAttribute('dir')).toBe(false);
+    }
   });
 
   it.each([
