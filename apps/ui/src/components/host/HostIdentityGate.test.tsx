@@ -80,6 +80,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.clearAllMocks();
   Reflect.deleteProperty(navigator, 'credentials');
 });
@@ -136,6 +137,22 @@ describe('the sign-in gate in the host wizard', () => {
       { email: 'host@example.com', type: 'sign-in' },
     ]);
     expect(screen.getByLabelText('Enter the code')).toBeTruthy();
+  });
+
+  it('sends the code again once the wait is over, with no challenge to wait for under the bypass', async () => {
+    vi.useFakeTimers();
+    show({ isTurnstileBypassed: true });
+    await sendCodeTo('host@example.com');
+
+    await act(async () => {
+      vi.advanceTimersByTime(30_000);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Resend code' }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(state.sent).toHaveLength(2);
   });
 
   it('fills the code in when the browser reads it from the message', async () => {

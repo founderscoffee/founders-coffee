@@ -69,6 +69,7 @@ export const SignInForm = ({
   const isPage = layout === 'page';
   const emailValid = /.+@.+\..+/.test(email);
   const turnstileEnabled = Boolean(turnstileSiteKey) && !isTurnstileBypassed;
+  const canResend = isTurnstileBypassed || resendToken !== null;
 
   const sendCode = async () => {
     if (!emailValid || (!isTurnstileBypassed && !token)) return;
@@ -89,7 +90,7 @@ export const SignInForm = ({
   };
 
   const resend = async () => {
-    if (!cooldown.isReady || !resendToken) return;
+    if (!cooldown.isReady || !canResend) return;
     setBusy(true);
     setError(null);
     const { error: sendError } = await authClient.emailOtp.sendVerificationOtp(
@@ -244,7 +245,7 @@ export const SignInForm = ({
           <ResendButton
             locale={locale}
             secondsLeft={cooldown.secondsLeft}
-            isBusy={busy || !resendToken}
+            isBusy={busy || !canResend}
             onResend={() => void resend()}
           />
           <Button
