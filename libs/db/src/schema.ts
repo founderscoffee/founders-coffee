@@ -260,6 +260,10 @@ export const events = sqliteTable(
     endsAt: integer('ends_at', { mode: 'timestamp' }),
     rsvps: integer('rsvps').notNull().default(0),
     language: text('language', { enum: [...LOCALES] }).notNull(),
+    languages: text('languages', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
     latitude: real('latitude'),
     longitude: real('longitude'),
     venueAddress: text('venue_address'),

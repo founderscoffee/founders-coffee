@@ -24,7 +24,7 @@ const REPEAT_TEMPLATE: RepeatEventTemplate = {
   venueAddress: '12 Startup Street, Algiers',
   latitude: 36.7538,
   longitude: 3.0588,
-  language: 'ar' as const,
+  languages: ['ar'],
 };
 
 describe('HostCreatePage EC-07 state', () => {

@@ -37,5 +37,6 @@
   "0035_profile_attended_count": "compatible",
   "0036_event_telegram_groups": "compatible",
   "0037_city_waitlist_launches": "compatible",
-  "0038_account_closure": "compatible"
+  "0038_account_closure": "compatible",
+  "0039_event_languages": "compatible"
 }

@@ -19,7 +19,7 @@ export type StructuredEventData = {
   readonly latitude: number | null;
   readonly longitude: number | null;
   readonly marketCode: string;
-  readonly language: string;
+  readonly languages: readonly string[];
   readonly url: string;
   readonly image?: string;
   readonly currency: string;
@@ -117,7 +117,8 @@ export const eventJsonLd = (
         ? 'https://schema.org/EventCancelled'
         : 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    inLanguage: event.language,
+    inLanguage:
+      event.languages.length === 1 ? event.languages[0] : event.languages,
     isAccessibleForFree: true,
     location,
     ...(event.status === 'published' && event.startsAt.getTime() > now

@@ -40,6 +40,7 @@ const event = {
   endsAt: at(26 * HOUR),
   rsvps: 3,
   language: 'en',
+  languages: ['en'],
   latitude: null,
   longitude: null,
   venueAddress: null,

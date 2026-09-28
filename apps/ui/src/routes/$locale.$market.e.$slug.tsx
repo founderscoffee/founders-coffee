@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
-import { appErrorCode } from '@founders-coffee/core';
+import { appErrorCode, eventLanguages } from '@founders-coffee/core';
 import { localizedName, type Locale } from '@founders-coffee/i18n';
 import {
   getEvent,
@@ -133,7 +133,7 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
         latitude: loaderData.event.latitude,
         longitude: loaderData.event.longitude,
         marketCode: loaderData.event.marketCode,
-        language: loaderData.event.language,
+        languages: eventLanguages(loaderData.event),
         url: eventUrl,
         currency: loaderData.market.defaultCurrency,
         organizer: loaderData.host

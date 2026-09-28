@@ -209,6 +209,7 @@ describe('public Worker SEO contract', () => {
       market: 'algeria',
       city: 'algiers',
       language: 'fr',
+      languages: ['fr'],
       url: 'https://founders.coffee/fr/algeria/e/geo-feed-meetup',
       organizer: { name: 'GEO Feed Host' },
     });

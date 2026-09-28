@@ -1,8 +1,8 @@
-import { hasVenueMoved } from '@founders-coffee/core';
-import type { Locale } from '@founders-coffee/i18n';
+import { eventLanguages, hasVenueMoved } from '@founders-coffee/core';
+import { events } from '@founders-coffee/domain';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
-import type { VenueSelection } from './types';
+import type { MeetupLanguage, VenueSelection } from './types';
 
 const MAX_ADDRESS_LENGTH = 500;
 const MAX_PROVIDER_ID_LENGTH = 120;
@@ -15,7 +15,7 @@ export type EventEditDraft = {
   venueSearch: string;
   startsAt: number | null;
   endsAt: number | null;
-  language: Locale;
+  languages: MeetupLanguage[];
 };
 
 export type EventLocationPatch = {
@@ -48,6 +48,13 @@ export const storedPin = (event: EventDetailItem): VenueSelection | null =>
       }
     : null;
 
+const storedLanguages = (event: EventDetailItem): MeetupLanguage[] => {
+  const languages = events.eventLanguagesSchema.safeParse(
+    eventLanguages(event),
+  );
+  return languages.success ? languages.data : [];
+};
+
 export const draftFromEvent = (event: EventDetailItem): EventEditDraft => ({
   title: event.title,
   description: event.description,
@@ -56,7 +63,7 @@ export const draftFromEvent = (event: EventDetailItem): EventEditDraft => ({
   venueSearch: '',
   startsAt: new Date(event.startsAt).getTime(),
   endsAt: event.endsAt ? new Date(event.endsAt).getTime() : null,
-  language: event.language,
+  languages: storedLanguages(event),
 });
 
 /**

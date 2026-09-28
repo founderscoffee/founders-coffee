@@ -3,23 +3,27 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { HostDetailsStep } from './HostDetailsStep';
 
-const show = (title = '', description = '') =>
+const show = (
+  title = '',
+  description = '',
+  errors: { languages?: string } = {},
+) =>
   render(
     <HostDetailsStep
       locale="en"
       title={title}
       description={description}
-      language="en"
+      languages={['en', 'ber']}
       constraints={{
         titleMin: 3,
         titleMax: 120,
         descriptionMin: 10,
         descriptionMax: 2000,
       }}
-      errors={{}}
+      errors={errors}
       onTitleChange={vi.fn()}
       onDescriptionChange={vi.fn()}
-      onLanguageChange={vi.fn()}
+      onLanguagesChange={vi.fn()}
     />,
   );
 
@@ -63,6 +67,26 @@ describe('what a screen reader is told each field is called', () => {
         .every((badge) => badge.closest('[aria-hidden="true"]')),
       'announcing it beside a required field repeats what the attribute already says',
     ).toBe(true);
+  });
+
+  it('names the language chips as one group and reads the hint and any error into it', () => {
+    show('', '', { languages: 'Choose at least one language.' });
+
+    const group = screen.getByRole('group', { name: 'Languages' });
+
+    expect(group.getAttribute('id')).toBe('host-languages');
+    expect(describedText(group)).toContain('You can pick more than one.');
+    expect(describedText(group)).toContain('Choose at least one language.');
+  });
+
+  it('presses the chip of every language the meetup is held in', () => {
+    show();
+
+    expect(
+      screen
+        .getAllByRole('button', { pressed: true })
+        .map((chip) => chip.textContent),
+    ).toEqual(['English', 'Tamazight']);
   });
 
   it('keeps no field inside the label element that names it', () => {

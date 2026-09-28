@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { submitCloseout, type Db } from '@founders-coffee/db';
+import { eq, events, submitCloseout, type Db } from '@founders-coffee/db';
 import {
   HOST_ID,
   OTHER_ID,
@@ -57,11 +57,29 @@ describe('readRepeatEventTemplate', () => {
       venueAddress: null,
       latitude: null,
       longitude: null,
+      languages: ['fr'],
     });
     expect(result.data).not.toHaveProperty('startsAt');
     expect(result.data).not.toHaveProperty('endsAt');
     expect(result.data).not.toHaveProperty('rsvps');
     expect(result.data).not.toHaveProperty('slug');
+  });
+
+  it('carries every language the meetup was held in', async () => {
+    const eventId = await pastEvent(db);
+    await db
+      .update(events)
+      .set({ languages: ['ar', 'ber'] })
+      .where(eq(events.id, eventId))
+      .run();
+    await close(db, eventId);
+
+    const result = await readRepeatEventTemplate(db, {
+      eventId,
+      actorId: HOST_ID,
+    });
+
+    expect(result.ok && result.data.languages).toEqual(['ar', 'ber']);
   });
 
   it('refuses a template for another host', async () => {

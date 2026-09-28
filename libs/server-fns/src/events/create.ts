@@ -1,4 +1,4 @@
-import { type Result } from '@founders-coffee/core';
+import { type Locale, type Result } from '@founders-coffee/core';
 import { type Db, type Event } from '@founders-coffee/db';
 import { type EventCreateInput } from '@founders-coffee/domain';
 import {
@@ -18,7 +18,7 @@ interface EventCreateTelemetry {
   readonly hostId: string;
   readonly marketCode: string;
   readonly cityCode: string | null;
-  readonly language: string;
+  readonly languages: readonly string[];
   readonly durationMinutes: number;
 }
 
@@ -42,7 +42,7 @@ const telemetryFor = (
   hostId,
   marketCode: input.marketCode,
   cityCode: input.cityCode ?? null,
-  language: input.language,
+  languages: input.languages,
   durationMinutes: Math.round((input.endsAt - input.startsAt) / 60_000),
 });
 
@@ -54,14 +54,16 @@ const telemetryFor = (
  * propagated. The absent-binding case is logged rather than ignored because a silently unmetered
  * environment is indistinguishable from an environment where nobody creates events.
  *
- * The event language is sent as the `locale` dimension. That is only sound because the language
- * enum is exactly `ar | en | fr` — the same values the dimension already means. It previously also
- * carried `ar_en` and `ar_fr`, which would have made `WHERE blob3 = 'ar'` quietly wrong for every
- * dashboard reading that blob; narrowing the enum is what makes the breakdown safe to record.
+ * The meetup's lead language is sent as the `locale` dimension, never its list of languages. The
+ * lead is always one of `ar | en | fr`, the same values the dimension already means, while the list
+ * can hold several and some the site has no pages in. The dimension once also carried `ar_en` and
+ * `ar_fr`, which made `WHERE blob3 = 'ar'` quietly wrong for every dashboard reading that blob, and
+ * sending the list would bring that back.
  */
 const recordEventCreated = (
   metrics: Metrics | null,
   telemetry: EventCreateTelemetry,
+  locale: Locale,
 ): void => {
   if (!metrics) {
     logger.warn('events_created_metric_unavailable', { ...telemetry });
@@ -71,7 +73,7 @@ const recordEventCreated = (
     metrics.trackEvent(EVENTS_CREATED_METRIC, {
       market: telemetry.marketCode,
       city: telemetry.cityCode ?? undefined,
-      locale: telemetry.language,
+      locale,
     });
   } catch (error) {
     reportError(error, { operation: EVENTS_CREATED_METRIC });
@@ -117,7 +119,7 @@ export const createEventWithTelemetry = async (
     eventId: result.data.id,
     stateCode: result.data.stateCode,
   });
-  recordEventCreated(metrics, resolved);
+  recordEventCreated(metrics, resolved, result.data.language);
   await scheduleEventCloseoutPrompt(db, result.data);
   await scheduleCityWaitlistLaunch(db, result.data);
   return result;

@@ -13,7 +13,7 @@ const template: RepeatEventTemplate = {
   venueAddress: '12 Rue des Entrepreneurs, Alger',
   latitude: 36.7538,
   longitude: 3.0588,
-  language: 'ar',
+  languages: ['ar'],
 };
 
 describe('repeatDraftFrom', () => {
@@ -34,14 +34,21 @@ describe('repeatDraftFrom', () => {
       endsAt: null,
       title: 'Founders breakfast',
       description: 'A relaxed breakfast for local founders.',
-      language: 'ar',
+      chosenLanguages: ['ar'],
     });
   });
 
-  it('holds the meetup in the language the last one was held in', () => {
-    expect(repeatDraftFrom({ ...template, language: 'fr' }).language).toBe(
-      'fr',
-    );
+  it('holds the meetup in the languages the last one was held in', () => {
+    expect(
+      repeatDraftFrom({ ...template, languages: ['fr', 'ber'] })
+        .chosenLanguages,
+    ).toEqual(['fr', 'ber']);
+  });
+
+  it('falls back to the page language when the last one names none that can be chosen', () => {
+    expect(
+      repeatDraftFrom({ ...template, languages: ['xx'] }).chosenLanguages,
+    ).toBeNull();
   });
 
   it('leaves the venue empty when the source has no complete location', () => {

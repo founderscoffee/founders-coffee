@@ -259,21 +259,32 @@ const city = {
   nameAr: 'الجزائر',
 } as never;
 
+const wizard = (
+  locale: 'ar' | 'fr' | 'en',
+  repeatTemplate: RepeatEventTemplate | null,
+) =>
+  createElement(HostCreatePage, {
+    locale,
+    market,
+    city,
+    mapboxToken: 'map-token',
+    turnstileSiteKey: 'test-site-key',
+    socialProviders: [],
+    repeatTemplate,
+  });
+
+/** Render the wizard; `switchLocale` re-renders it as the language switcher's navigation does. */
 export const renderHostCreateWizard = (
   locale: 'ar' | 'fr' | 'en' = 'en',
   repeatTemplate: RepeatEventTemplate | null = null,
-) =>
-  render(
-    createElement(HostCreatePage, {
-      locale,
-      market,
-      city,
-      mapboxToken: 'map-token',
-      turnstileSiteKey: 'test-site-key',
-      socialProviders: [],
-      repeatTemplate,
-    }),
-  );
+) => {
+  const rendered = render(wizard(locale, repeatTemplate));
+  return {
+    ...rendered,
+    switchLocale: (next: 'ar' | 'fr' | 'en') =>
+      rendered.rerender(wizard(next, repeatTemplate)),
+  };
+};
 
 export const resetHostCreateFixtures = () => {
   cleanup();

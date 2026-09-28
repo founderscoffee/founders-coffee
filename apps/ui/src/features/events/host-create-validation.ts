@@ -2,6 +2,7 @@ import { events } from '@founders-coffee/domain';
 import {
   host_desc_constraints,
   host_duration_range,
+  host_languages_required,
   host_schedule_required,
   host_time_past,
   host_title_constraints,
@@ -10,11 +11,14 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
-import type { VenueSelection } from './types';
+import type { MeetupLanguage, VenueSelection } from './types';
 import type { HostCreateDraft } from './host-create-draft';
 
 export type HostCreateFieldErrors = Partial<
-  Record<'venue' | 'venueName' | 'schedule' | 'title' | 'description', string>
+  Record<
+    'venue' | 'venueName' | 'schedule' | 'title' | 'description' | 'languages',
+    string
+  >
 >;
 
 export const validateVenueStep = (
@@ -73,6 +77,7 @@ export const validateDetailsStep = (
   input: {
     title: string;
     description: string;
+    languages: readonly MeetupLanguage[];
   },
   locale: Locale,
 ): HostCreateFieldErrors => {
@@ -95,15 +100,25 @@ export const validateDetailsStep = (
       { locale },
     );
   }
+  if (input.languages.length === 0) {
+    errors.languages = host_languages_required({}, { locale });
+  }
   return errors;
 };
 
 export const firstInvalidField = (
   errors: HostCreateFieldErrors,
 ): keyof HostCreateFieldErrors | null =>
-  (['venue', 'venueName', 'schedule', 'title', 'description'] as const).find(
-    (field) => errors[field],
-  ) ?? null;
+  (
+    [
+      'venue',
+      'venueName',
+      'schedule',
+      'title',
+      'description',
+      'languages',
+    ] as const
+  ).find((field) => errors[field]) ?? null;
 
 export const focusInvalidField = (field: keyof HostCreateFieldErrors): void => {
   const fieldIds: Record<keyof HostCreateFieldErrors, string> = {
@@ -112,6 +127,7 @@ export const focusInvalidField = (field: keyof HostCreateFieldErrors): void => {
     schedule: 'host-schedule',
     title: 'host-title',
     description: 'host-description',
+    languages: 'host-languages',
   };
   window.requestAnimationFrame(() => {
     const element = document.getElementById(fieldIds[field]);

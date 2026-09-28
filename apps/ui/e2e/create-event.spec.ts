@@ -90,6 +90,7 @@ test.describe('create event', () => {
       market_code: 'DZ',
       city_code: '556',
       language: locale,
+      languages: JSON.stringify([locale]),
       status: 'published',
       description: details.description,
     });

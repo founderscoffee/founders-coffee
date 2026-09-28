@@ -13,6 +13,7 @@ export const rsvpEvent = {
   endsAt: new Date('2026-09-20T12:00:00Z'),
   rsvps: 3,
   language: 'en',
+  languages: ['en'],
   latitude: null,
   longitude: null,
   venueAddress: null,

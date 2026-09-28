@@ -24,7 +24,7 @@ const draft: HostCreateDraft = {
   endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
   title: 'Founder meetup',
   description: 'A complete founder meetup description.',
-  language: 'ar',
+  chosenLanguages: ['ar', 'fr'],
 };
 
 describe('host create draft', () => {
@@ -36,12 +36,17 @@ describe('host create draft', () => {
     expect(readHostCreateDraft('EG')).toBeNull();
   });
 
-  it('keeps the language the host chose, not the one they are reading in', () => {
-    writeHostCreateDraft('DZ', { ...draft, language: 'fr' });
-    expect(readHostCreateDraft('DZ')?.language).toBe('fr');
+  it('keeps no languages until the host chooses some, so the page language can stand in', () => {
+    writeHostCreateDraft('DZ', { ...draft, chosenLanguages: null });
+    expect(readHostCreateDraft('DZ')?.chosenLanguages).toBeNull();
   });
 
-  it('drops a draft naming a language the site does not speak', () => {
+  it('keeps a choice of none, rather than losing the whole draft over it', () => {
+    writeHostCreateDraft('DZ', { ...draft, chosenLanguages: [] });
+    expect(readHostCreateDraft('DZ')?.chosenLanguages).toEqual([]);
+  });
+
+  it('restores a draft saved before a meetup could have several languages', () => {
     window.sessionStorage.setItem(
       'fc:event-draft:DZ',
       JSON.stringify({
@@ -49,7 +54,25 @@ describe('host create draft', () => {
         savedAt: Date.now(),
         marketCode: 'DZ',
         ...draft,
-        language: 'de',
+        chosenLanguages: undefined,
+        language: 'en',
+      }),
+    );
+    expect(
+      readHostCreateDraft('DZ'),
+      'a host half way through a meetup when this shipped would have lost it, title and all',
+    ).toEqual({ ...draft, chosenLanguages: null });
+  });
+
+  it('drops a draft naming a language nobody can choose', () => {
+    window.sessionStorage.setItem(
+      'fc:event-draft:DZ',
+      JSON.stringify({
+        version: 5,
+        savedAt: Date.now(),
+        marketCode: 'DZ',
+        ...draft,
+        chosenLanguages: ['xx'],
       }),
     );
     expect(readHostCreateDraft('DZ')).toBeNull();
@@ -92,7 +115,7 @@ describe('AR: a draft this module wrote is always readable', () => {
     endsAt: new Date('2099-01-15T19:00:00Z').getTime(),
     title: 'Protected meetup',
     description: 'A complete protected meetup for founders.',
-    language: 'ar' as const,
+    chosenLanguages: null,
   };
 
   it('survives a venue search value longer than the schema allows', () => {

@@ -51,7 +51,7 @@ describe('structured discovery data', () => {
       latitude: 36.7538,
       longitude: 3.0588,
       marketCode: 'DZ',
-      language: 'fr',
+      languages: ['fr'],
       url: 'https://founders.coffee/fr/algeria/e/founders-breakfast',
       image: 'https://founders.coffee/social/event.webp',
       currency: 'DZD',
@@ -76,6 +76,7 @@ describe('structured discovery data', () => {
       startDate: '2026-09-20T10:00:00.000Z',
       endDate: '2026-09-20T12:00:00.000Z',
       eventStatus: 'https://schema.org/EventScheduled',
+      inLanguage: 'fr',
       isAccessibleForFree: true,
       location: {
         '@type': 'Place',
@@ -111,7 +112,7 @@ describe('structured discovery data', () => {
       latitude: null,
       longitude: null,
       marketCode: 'DZ',
-      language: 'fr',
+      languages: ['fr'],
       url: 'https://founders.coffee/fr/algeria/e/founders-breakfast',
       currency: 'DZD',
       organizer: null,
@@ -129,6 +130,28 @@ describe('structured discovery data', () => {
         eventStatus: 'https://schema.org/EventScheduled',
       });
     }
+  });
+
+  it('names every language a meetup is held in', () => {
+    const event: StructuredEventData = {
+      title: 'Founders breakfast',
+      description: 'A local meetup',
+      startsAt: new Date('2026-09-20T10:00:00Z'),
+      endsAt: null,
+      status: 'published',
+      venue: 'Café Atlas',
+      cityName: 'Alger',
+      venueAddress: null,
+      latitude: null,
+      longitude: null,
+      marketCode: 'DZ',
+      languages: ['ar', 'fr'],
+      url: 'https://founders.coffee/ar/algeria/e/founders-breakfast',
+      currency: 'DZD',
+      organizer: null,
+    };
+
+    expect(eventJsonLd(event, 0)).toMatchObject({ inLanguage: ['ar', 'fr'] });
   });
 
   it('builds breadcrumb positions without private profile data', () => {

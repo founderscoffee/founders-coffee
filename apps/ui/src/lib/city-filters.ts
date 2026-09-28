@@ -1,3 +1,4 @@
+import { eventLanguages } from '@founders-coffee/core';
 import { LOCALES, type Locale } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
@@ -33,7 +34,7 @@ const dayParts = (value: Date, timezone: string) => {
 const inLanguage =
   (language: Locale) =>
   (event: EventFeedItem): boolean =>
-    event.language === language;
+    eventLanguages(event).includes(language);
 
 const PREDICATES: Record<
   CityFilterKey,
@@ -58,19 +59,20 @@ const isLanguage = (key: CityFilterKey): key is Locale =>
  * Narrows a feed to the meetups the active chips ask for.
  *
  * There is a chip per language the site is read in, taken from `LOCALES` rather than listed
- * again. A host never chooses what language their meetup is in — it is recorded as whichever one
- * they were reading the site in when they created it — so every language the site speaks produces
- * meetups, and the list here named `ar` and `fr` only, leaving English ones with no chip that
- * could find them. Spelling the languages out a second time is what let the two lists drift;
- * taken from the one source they cannot, and `CityFilterKey` keys both the predicates below and
- * the labels beside them, so a fourth language stops the build until it has both.
+ * again. A meetup's languages start as the one its host was reading the site in, so every language
+ * the site speaks produces meetups, and the list here named `ar` and `fr` only, leaving English
+ * ones with no chip that could find them. Spelling the languages out a second time is what let the
+ * two lists drift; taken from the one source they cannot, and `CityFilterKey` keys both the
+ * predicates below and the labels beside them, so a fourth language stops the build until it has
+ * both. A meetup held in several languages answers to each of their chips, and one held only in a
+ * language the site has no pages in, such as Tamazight, to none.
  *
  * The language chips answer together and the rest answer separately: Arabic and French means
- * either of them, while Arabic and Today means both. A meetup is held in one language, so chips
- * that all had to match at once could only ever agree on a language when one was chosen — asking
- * for two was a way to be told there was nothing, whichever two, every time. Reading it as
- * either is also the only reading that lets the chips say something they previously could not,
- * which is the sole reason a reader would turn on two of them.
+ * either of them, while Arabic and Today means both. Most meetups are held in one language, so
+ * chips that all had to match at once would mostly agree only when one was chosen — asking for two
+ * was a way to be told there was nothing. Reading it as either is also the only reading that lets
+ * the chips say something they previously could not, which is the sole reason a reader would turn
+ * on two of them.
  *
  * Turning all the language chips on therefore shows everything, the same as turning none on. It
  * says the same thing, and a reader who works through them one at a time should not fall off the

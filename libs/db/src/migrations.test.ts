@@ -1,12 +1,11 @@
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
-import { createDb } from './db.js';
-import { getEvent } from './events.js';
 import {
   atMigration,
   columnNames,
   indexNames,
+  priorEventRow,
   priorHost,
 } from './migrations.fixtures.js';
 
@@ -175,8 +174,9 @@ describe('0016 — host event index (real D1)', () => {
     await apply();
 
     expect(await indexNames('events')).toContain('events_host_id_index');
-    const kept = await getEvent(createDb(env.PRIOR_DB), event.id);
-    expect(kept?.hostId).toBe(event.hostId);
+    expect(await priorEventRow(event.id)).toMatchObject({
+      host_id: event.hostId,
+    });
   });
 });
 
@@ -193,8 +193,7 @@ describe('0017 — capacity and category retire (real D1)', () => {
     expect(columns).not.toContain('capacity');
     expect(columns).not.toContain('category');
 
-    const kept = await getEvent(createDb(env.PRIOR_DB), event.id);
-    expect(kept).toMatchObject({
+    expect(await priorEventRow(event.id)).toMatchObject({
       id: event.id,
       title: event.title,
       venue: event.venue,
@@ -217,8 +216,7 @@ describe('0019 — the free flag retires (real D1)', () => {
 
     expect(await columnNames('events')).not.toContain('is_free');
 
-    const kept = await getEvent(createDb(env.PRIOR_DB), event.id);
-    expect(kept).toMatchObject({
+    expect(await priorEventRow(event.id)).toMatchObject({
       id: event.id,
       title: event.title,
       venue: event.venue,

@@ -55,6 +55,7 @@ const base = {
   endsAt: new Date('2099-09-20T12:00:00Z'),
   rsvps: 2,
   language: 'en',
+  languages: ['en'],
   latitude: null,
   longitude: null,
   venueAddress: null,

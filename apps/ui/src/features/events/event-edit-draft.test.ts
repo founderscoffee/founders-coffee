@@ -24,6 +24,7 @@ const event = {
   endsAt: new Date('2099-09-20T12:00:00Z'),
   rsvps: 4,
   language: 'en',
+  languages: ['en'],
   latitude: 36.7538,
   longitude: 3.0588,
   venueAddress: '12 Rue des Entrepreneurs, Alger',

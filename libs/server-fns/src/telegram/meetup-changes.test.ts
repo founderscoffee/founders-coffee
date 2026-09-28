@@ -54,7 +54,7 @@ describe('what a Telegram group hears as its meetup changes (real D1 via Minifla
         venueName: event.venue,
         startsAt: event.startsAt.getTime(),
         endsAt: event.endsAt?.getTime(),
-        language: event.language,
+        languages: [event.language],
         ...changes,
       }),
     });

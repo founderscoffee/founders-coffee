@@ -19,6 +19,7 @@ const page: PublicEventFeedPage = {
       endsAt: '2099-01-15T20:00:00.000Z',
       timezone: 'Africa/Algiers',
       language: 'en',
+      languages: ['en'],
       organizer: { name: 'Test Host' },
       status: 'published',
       updatedAt: '2099-01-01T12:00:00.000Z',

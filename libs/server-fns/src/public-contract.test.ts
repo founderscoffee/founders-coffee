@@ -44,6 +44,7 @@ const EVENT_COLUMNS = [
   'hostId',
   'id',
   'language',
+  'languages',
   'latitude',
   'longitude',
   'marketCode',

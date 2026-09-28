@@ -68,6 +68,7 @@ export const event = {
   endsAt: new Date('2026-09-20T12:00:00Z'),
   rsvps: 0,
   language: 'en',
+  languages: ['en'],
   latitude: null,
   longitude: null,
   venueAddress: null,

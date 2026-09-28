@@ -3,8 +3,12 @@ import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 
 import { createDb } from './db.js';
-import { atMigration, priorHost } from './migrations.fixtures.js';
-import { eventRsvps, events, session } from './schema.js';
+import {
+  atMigration,
+  priorEventRow,
+  priorHost,
+} from './migrations.fixtures.js';
+import { eventRsvps, session } from './schema.js';
 
 const priorProfile = () =>
   env.PRIOR_DB.prepare(
@@ -71,15 +75,11 @@ describe('PF-02 additive migration', () => {
       home_city_id: '1',
       account_state: 'active',
     });
-    expect(
-      (
-        await db.select().from(events).where(eq(events.id, fixture.event.id))
-      )[0],
-    ).toMatchObject({
-      hostId: priorHost.id,
-      marketCode: 'DZ',
-      stateCode: '01',
-      cityCode: '1',
+    expect(await priorEventRow(fixture.event.id)).toMatchObject({
+      host_id: priorHost.id,
+      market_code: 'DZ',
+      state_code: '01',
+      city_code: '1',
     });
     expect(
       (await db.select().from(session).where(eq(session.id, sessionId)))[0],

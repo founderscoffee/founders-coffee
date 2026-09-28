@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { EventDetailItem } from '@founders-coffee/server-fns';
@@ -33,6 +33,7 @@ const event = {
   endsAt: new Date('2099-09-20T12:00:00Z'),
   rsvps: 4,
   language: 'en',
+  languages: ['en'],
   latitude: 36.7538,
   longitude: 3.0588,
   venueAddress: '12 Rue des Entrepreneurs, Alger',
@@ -202,43 +203,52 @@ describe('the two things a host can do from the bottom of the form', () => {
   });
 });
 
-describe('correcting the language a meetup was filed under', () => {
-  it('starts on the language the meetup is already filed under', () => {
-    show();
+describe('the languages a meetup is held in', () => {
+  const pressed = () =>
+    within(screen.getByRole('group', { name: 'Languages' }))
+      .getAllByRole('button', { pressed: true })
+      .map((chip) => chip.textContent);
 
-    expect(
-      (screen.getByLabelText(/^Language/) as unknown as HTMLSelectElement)
-        .value,
-    ).toBe('en');
+  it('starts on the languages the meetup is already held in', () => {
+    show(draftFromEvent({ ...event, languages: ['en', 'ar'] }));
+
+    expect(pressed()).toEqual(['Arabic', 'English']);
   });
 
-  it('offers every language the site speaks', () => {
-    show();
+  it('reads a meetup saved without a list as held in the language it was filed under', () => {
+    show(draftFromEvent({ ...event, languages: [] }));
 
-    expect(
-      [
-        ...(screen.getByLabelText(/^Language/) as unknown as HTMLSelectElement)
-          .options,
-      ].map((option) => option.value),
-    ).toEqual(['ar', 'en', 'fr']);
+    expect(pressed()).toEqual(['English']);
   });
 
-  it('shows the correction the host is part way through making', () => {
-    show({ ...draftFromEvent(event), language: 'ar' });
+  it('shows the change the host is part way through making', () => {
+    show({ ...draftFromEvent(event), languages: ['ar', 'fr'] });
 
     expect(
-      (screen.getByLabelText(/^Language/) as unknown as HTMLSelectElement)
-        .value,
-      'a host who picked Arabic and then moved the pin should not find English again',
-    ).toBe('ar');
+      pressed(),
+      'a host who added Arabic and then moved the pin should not find English alone again',
+    ).toEqual(['Arabic', 'French']);
   });
 
-  it('tells nobody, because what language it is in was always what it is in', () => {
-    show({ ...draftFromEvent(event), language: 'ar' });
+  it('will not save a meetup held in no language, and says why', () => {
+    show({ ...draftFromEvent(event), languages: [] });
+
+    expect(screen.getByText('Choose at least one language.')).toBeTruthy();
+    expect(
+      (
+        screen.getByRole('button', {
+          name: 'Save changes',
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+  });
+
+  it('tells nobody, because the languages were never a change of plan', () => {
+    show({ ...draftFromEvent(event), languages: ['ar'] });
 
     expect(
       notice(),
-      'the meetup did not move and did not change its hour; correcting how it is filed is not news an attendee has to act on',
+      'the meetup did not move and did not change its hour; the languages it is held in are not news an attendee has to act on',
     ).toBe('');
   });
 });

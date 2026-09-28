@@ -30,7 +30,7 @@ const validInput = (overrides: Record<string, unknown> = {}) => {
     longitude: 3.0588,
     startsAt,
     endsAt: startsAt + 60 * 60_000,
-    language: 'fr',
+    languages: ['fr'],
     ...overrides,
   };
 };
@@ -69,10 +69,18 @@ describe('eventCreateSchema', () => {
     });
   });
 
-  it.each([...LOCALES])('accepts the %s event language', (language) => {
-    expect(eventCreateSchema.safeParse(validInput({ language })).success).toBe(
-      true,
-    );
+  it.each([...LOCALES])('accepts a meetup held in %s', (language) => {
+    expect(
+      eventCreateSchema.safeParse(validInput({ languages: [language] }))
+        .success,
+    ).toBe(true);
+  });
+
+  it('accepts a meetup held in several languages, some the site has no pages in', () => {
+    expect(
+      eventCreateSchema.parse(validInput({ languages: ['ar', 'ber', 'fr'] }))
+        .languages,
+    ).toEqual(['ar', 'ber', 'fr']);
   });
 
   it.each([
@@ -142,7 +150,9 @@ describe('eventCreateSchema', () => {
     ['finite longitude', { longitude: Number.POSITIVE_INFINITY }, 'longitude'],
     ['market code', { marketCode: 'dz' }, 'marketCode'],
     ['empty city code', { cityCode: '  ' }, 'cityCode'],
-    ['invalid language', { language: 'de' }, 'language'],
+    ['unknown language', { languages: ['xx'] }, 'languages'],
+    ['empty language list', { languages: [] }, 'languages'],
+    ['repeated language', { languages: ['ar', 'ar'] }, 'languages'],
   ] as const)('rejects an invalid %s', (_name, overrides, path) =>
     expectInvalidPath(overrides, path),
   );
@@ -206,7 +216,7 @@ describe('eventCreateSchema', () => {
     'longitude',
     'startsAt',
     'endsAt',
-    'language',
+    'languages',
   ])('requires the %s field', (field) => {
     const input: Record<string, unknown> = validInput();
     delete input[field];
@@ -229,7 +239,7 @@ const validUpdate = (overrides: Record<string, unknown> = {}) => {
     venueName: 'Café des Délices',
     startsAt,
     endsAt: startsAt + 60 * 60_000,
-    language: 'fr',
+    languages: ['fr'],
     ...overrides,
   };
 };

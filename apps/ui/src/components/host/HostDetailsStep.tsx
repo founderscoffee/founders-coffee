@@ -9,24 +9,25 @@ import {
 } from '@founders-coffee/i18n';
 import { Input } from '@founders-coffee/ui';
 
-import { EventLanguageField } from '../events/EventLanguageField';
+import { EventLanguagesField } from '../events/EventLanguagesField';
 import type { HostCreateFieldErrors } from '../../features/events/host-create-validation';
+import type { MeetupLanguage } from '../../features/events/types';
 
 export const HostDetailsStep = ({
   locale,
   title,
   description,
-  language,
+  languages,
   constraints,
   errors,
   onTitleChange,
   onDescriptionChange,
-  onLanguageChange,
+  onLanguagesChange,
 }: {
   locale: Locale;
   title: string;
   description: string;
-  language: Locale;
+  languages: readonly MeetupLanguage[];
   constraints: {
     titleMin: number;
     titleMax: number;
@@ -36,7 +37,7 @@ export const HostDetailsStep = ({
   errors: HostCreateFieldErrors;
   onTitleChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onLanguageChange: (value: Locale) => void;
+  onLanguagesChange: (value: MeetupLanguage[]) => void;
 }) => (
   <div className="grid gap-5">
     <div className="flex flex-col">
@@ -116,11 +117,12 @@ export const HostDetailsStep = ({
       )}
     </div>
 
-    <EventLanguageField
-      id="host-language"
+    <EventLanguagesField
+      id="host-languages"
       locale={locale}
-      value={language}
-      onChange={onLanguageChange}
+      value={languages}
+      error={errors.languages}
+      onChange={onLanguagesChange}
     />
   </div>
 );

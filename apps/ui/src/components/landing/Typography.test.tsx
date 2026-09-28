@@ -85,6 +85,7 @@ const event: EventFeedItem = {
   startsAt: new Date('2026-09-18T14:00:00Z'),
   endsAt: null,
   language: 'ar',
+  languages: ['ar'],
   rsvps: 2,
   latitude: null,
   longitude: null,

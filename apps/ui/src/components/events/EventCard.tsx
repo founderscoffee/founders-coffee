@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowUpRight, MapPin } from 'lucide-react';
 
+import { eventLanguages } from '@founders-coffee/core';
 import {
   direction,
   event_details_title,
@@ -104,7 +105,10 @@ export const EventCard = ({
             </span>
             {trailing === 'language' ? (
               <span className="hidden sm:inline">
-                · {event.language.toUpperCase()}
+                ·{' '}
+                {eventLanguages(event)
+                  .map((language) => language.toUpperCase())
+                  .join('/')}
               </span>
             ) : (
               <span dir="auto" className="text-secondary">

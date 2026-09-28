@@ -92,7 +92,7 @@ export const EventEditPage = ({
             ...(locationPatch(event, current) ?? {}),
             startsAt: current.startsAt,
             endsAt: current.endsAt,
-            language: current.language,
+            languages: current.languages,
           },
         },
       },

@@ -274,6 +274,13 @@
       "when": 1790537135974,
       "tag": "0038_account_closure",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "6",
+      "when": 1790590701513,
+      "tag": "0039_event_languages",
+      "breakpoints": true
     }
   ]
 }

@@ -10,7 +10,7 @@ import {
 import { repeatDraftFrom } from './host-create-repeat';
 import { restoredDraftStep } from './host-create-validation';
 import type { RepeatEventTemplate } from './api';
-import type { VenueSelection } from './types';
+import type { MeetupLanguage, VenueSelection } from './types';
 
 /**
  * The half-written meetup itself: every field the wizard collects, restored on arrival and saved
@@ -21,10 +21,11 @@ import type { VenueSelection } from './types';
  * one hook rather than a reducer because the fields are set one at a time by controls that know
  * nothing about each other.
  *
- * `language` starts on the language the host is reading the site in, which is the right guess
- * nearly every time and was, until this field existed, the only answer available. It is theirs to
- * change from the details step, and a repeat carries the language the last meetup was held in
- * rather than guessing again.
+ * `chosenLanguages` stays null until the host picks the languages the meetup is held in, and null
+ * reads as the language they are reading the site in, the right guess nearly every time. Keeping
+ * that guess out of the draft is what lets it follow the page: stored, it outlived a switch to
+ * another language and a draft begun in English went on offering English on the Arabic page. A
+ * repeat carries the languages the last meetup was held in rather than guessing again.
  */
 export const useHostCreateDraftState = ({
   locale,
@@ -43,7 +44,9 @@ export const useHostCreateDraftState = ({
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [language, setLanguage] = useState<Locale>(locale);
+  const [chosenLanguages, setChosenLanguages] = useState<
+    MeetupLanguage[] | null
+  >(null);
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
 
@@ -56,7 +59,7 @@ export const useHostCreateDraftState = ({
     endsAt,
     title,
     description,
-    language,
+    chosenLanguages,
   };
 
   useEffect(() => {
@@ -68,7 +71,7 @@ export const useHostCreateDraftState = ({
       setEndsAt(next.endsAt);
       setTitle(next.title);
       setDescription(next.description);
-      setLanguage(next.language);
+      setChosenLanguages(next.chosenLanguages);
     };
     const isMatchingRepeat = repeatTemplate?.marketCode === marketCode;
     setIsRepeat(isMatchingRepeat);
@@ -95,7 +98,7 @@ export const useHostCreateDraftState = ({
       endsAt,
       title,
       description,
-      language,
+      chosenLanguages,
     });
   }, [
     hasRestoredDraft,
@@ -108,7 +111,7 @@ export const useHostCreateDraftState = ({
     endsAt,
     title,
     description,
-    language,
+    chosenLanguages,
   ]);
 
   return {
@@ -122,6 +125,6 @@ export const useHostCreateDraftState = ({
     setEndsAt,
     setTitle,
     setDescription,
-    setLanguage,
+    setChosenLanguages,
   };
 };

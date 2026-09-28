@@ -30,6 +30,7 @@ const event: EventFeedItem = {
   startsAt: new Date('2026-09-18T14:00:00Z'),
   endsAt: null,
   language: 'ar',
+  languages: ['ar'],
   rsvps: 0,
   latitude: null,
   longitude: null,
@@ -117,6 +118,25 @@ describe('how many people the card says are going', () => {
     expect(view.container.querySelector('.avatar-group')).toBeNull();
     expect(view.container.textContent).toContain('Host Name');
     expect(view.container.textContent).not.toMatch(/\+\s*\d/);
+  });
+});
+
+describe('the languages the card names', () => {
+  it('names every language the meetup is held in, where the city would go', () => {
+    const view = render(
+      <EventCard
+        event={{ ...event, language: 'ar', languages: ['ar', 'fr'] }}
+        locale="en"
+        timezone="Africa/Algiers"
+        marketSlug="algeria"
+        trailing="language"
+      />,
+    );
+
+    expect(
+      view.container.textContent,
+      'a French speaker scanning a list of Arabic meetups would pass this one by',
+    ).toContain('AR/FR');
   });
 });
 

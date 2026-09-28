@@ -21,6 +21,7 @@ const event = (
     id,
     startsAt: new Date(startsAt),
     language: 'en',
+    languages: [],
     ...extra,
   }) as EventFeedItem;
 
@@ -65,6 +66,34 @@ describe('applyCityFilters', () => {
     expect(ids(feed, ['ar'], now)).toEqual(['ar']);
     expect(ids(feed, ['en'], now)).toEqual(['en']);
     expect(ids(feed, ['fr'], now)).toEqual(['fr']);
+  });
+
+  it('finds a meetup held in several languages under each of their chips', () => {
+    const feed = [
+      event('ar-fr', '2026-09-11T10:00:00Z', {
+        language: 'ar',
+        languages: ['ar', 'fr'],
+      }),
+      event('en', '2026-09-11T10:00:00Z'),
+    ];
+    expect(ids(feed, ['ar'], now)).toEqual(['ar-fr']);
+    expect(
+      ids(feed, ['fr'], now),
+      'a meetup held in Arabic and French is one a French speaker can join',
+    ).toEqual(['ar-fr']);
+  });
+
+  it('finds a meetup held only in a language the site has no pages in under no chip', () => {
+    const feed = [
+      event('ber', '2026-09-11T10:00:00Z', {
+        language: 'ar',
+        languages: ['ber'],
+      }),
+    ];
+    for (const locale of LOCALES) {
+      expect(ids(feed, [locale], now)).toEqual([]);
+    }
+    expect(ids(feed, [], now)).toEqual(['ber']);
   });
 
   it('offers a chip for every language the site is read in', () => {

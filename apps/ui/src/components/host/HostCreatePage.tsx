@@ -223,12 +223,12 @@ export const HostCreatePage = ({
                   locale={locale}
                   title={wizard.title}
                   description={wizard.description}
-                  language={wizard.language}
+                  languages={wizard.languages}
                   constraints={wizard.view.constraints}
                   errors={wizard.fieldErrors}
                   onTitleChange={wizard.setTitle}
                   onDescriptionChange={wizard.setDescription}
-                  onLanguageChange={wizard.setLanguage}
+                  onLanguagesChange={wizard.setLanguages}
                 />
               )}
             </>

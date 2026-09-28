@@ -6,6 +6,7 @@ import {
   saving,
   host_edit_when,
   host_edit_where,
+  host_languages_required,
   host_venue_name_label,
   host_venue_name_ph,
   host_time_invalid,
@@ -81,12 +82,16 @@ export const EventEditForm = ({
         locale={locale}
         title={draft.title}
         description={draft.description}
-        language={draft.language}
+        languages={draft.languages}
         constraints={constraints}
-        errors={{}}
+        errors={
+          draft.languages.length === 0
+            ? { languages: host_languages_required({}, { locale }) }
+            : {}
+        }
         onTitleChange={(title) => patch({ title })}
         onDescriptionChange={(description) => patch({ description })}
-        onLanguageChange={(language) => patch({ language })}
+        onLanguagesChange={(languages) => patch({ languages })}
       />
 
       <fieldset className="grid gap-3">
@@ -149,7 +154,9 @@ export const EventEditForm = ({
           type="submit"
           variant="primary"
           className="w-fit"
-          disabled={isPending || scheduleError !== null}
+          disabled={
+            isPending || scheduleError !== null || draft.languages.length === 0
+          }
         >
           {isPending ? saving({}, { locale }) : host_edit_save({}, { locale })}
         </Button>

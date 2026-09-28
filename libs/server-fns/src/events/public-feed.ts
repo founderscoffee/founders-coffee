@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-import { AppError, err, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  eventLanguages,
+  ok,
+  type Result,
+} from '@founders-coffee/core';
 import {
   listMarkets,
   listPublicEventDiscoveryRows,
@@ -66,6 +72,7 @@ const discoveryItem = (
     endsAt: row.endsAt?.toISOString() ?? null,
     timezone: row.timezone,
     language: row.language,
+    languages: eventLanguages(row),
     organizer: organizerName ? { name: organizerName } : null,
     status: 'published',
     updatedAt: row.updatedAt.toISOString(),

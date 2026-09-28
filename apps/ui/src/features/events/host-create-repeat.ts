@@ -2,7 +2,7 @@ import { events } from '@founders-coffee/domain';
 
 import type { RepeatEventTemplate } from './api';
 import type { HostCreateDraft } from './host-create-draft';
-import type { VenueSelection } from './types';
+import type { MeetupLanguage, VenueSelection } from './types';
 
 const repeatProviderId = (eventId: string): string => `repeat:${eventId}`;
 
@@ -31,6 +31,13 @@ const venueFrom = (template: RepeatEventTemplate): VenueSelection | null => {
   };
 };
 
+const languagesFrom = (
+  template: RepeatEventTemplate,
+): MeetupLanguage[] | null => {
+  const languages = events.eventLanguagesSchema.safeParse(template.languages);
+  return languages.success ? languages.data : null;
+};
+
 export const repeatDraftFrom = (
   template: RepeatEventTemplate,
 ): HostCreateDraft => {
@@ -44,6 +51,6 @@ export const repeatDraftFrom = (
     endsAt: null,
     title: template.title,
     description: template.description,
-    language: template.language,
+    chosenLanguages: languagesFrom(template),
   };
 };
