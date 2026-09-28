@@ -9,7 +9,6 @@ import {
   telegram_host_disconnect,
   telegram_host_disconnect_confirm,
   telegram_host_disconnect_keep,
-  telegram_host_intro,
   telegram_host_new_link,
   telegram_host_open,
   telegram_host_open_help,
@@ -23,6 +22,7 @@ import type { TelegramConnectLink, TelegramGroupView } from '../api';
 import { telegramErrorFor } from '../errors';
 import { useConnectTelegramGroup, useDisconnectTelegramGroup } from '../hooks';
 import { useFocusWhenShown } from '../useFocusWhenShown';
+import { TelegramBotIntro } from './TelegramBotIntro';
 
 type TelegramHostPanelProps = {
   eventId: string;
@@ -183,29 +183,7 @@ export const TelegramHostPanel = ({
         </>
       ) : (
         <>
-          {(() => {
-            const intro = telegram_host_intro(
-              { bot: view.botHandle },
-              { locale },
-            );
-            const [beforeBot, afterBot = ''] = intro.split(view.botHandle);
-            const botUrl = `https://t.me/${view.botHandle.replace(/^@/, '')}`;
-            return (
-              <p className="text-body-sm text-neutral">
-                {beforeBot}
-                <a
-                  className="link link-hover"
-                  href={botUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  dir="ltr"
-                >
-                  <bdi>{view.botHandle}</bdi>
-                </a>
-                {afterBot}
-              </p>
-            );
-          })()}
+          <TelegramBotIntro locale={locale} botHandle={view.botHandle} />
           <button
             type="button"
             className="btn btn-outline btn-xs gap-2 sm:btn-sm md:btn-md lg:btn-lg w-fit"
