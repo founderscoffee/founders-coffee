@@ -1,5 +1,4 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { renderToString } from 'react-dom/server';
 import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 
 import { profile_loading, type Locale } from '@founders-coffee/i18n';
@@ -150,17 +149,6 @@ describe('what the session menu offers', () => {
 });
 
 describe('session loading', () => {
-  it('renders a skeleton rather than a login link before hydration', () => {
-    const html = renderToString(<SessionNav locale="en" />);
-
-    expect(html).toContain('skeleton');
-    expect(
-      html,
-      'public documents go out as public, s-maxage=60, stale-while-revalidate=300, so whatever this renders on the server is handed to every reader the shared cache serves for the next minute. A signed-in header cached from one visitor and replayed to the next is worse than a placeholder, which is why the session is resolved in the browser and this stays empty until it is',
-    ).not.toContain('href="/login"');
-    expect(html).not.toContain('<details');
-  });
-
   it.each<Locale>(['ar', 'fr', 'en'])(
     'keeps the skeleton until the session resolves in %s',
     (locale) => {

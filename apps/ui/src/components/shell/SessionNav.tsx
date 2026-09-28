@@ -58,8 +58,6 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
   const isProfilePending = useBoundedPending(isPending);
   const [failedPhoto, setFailedPhoto] = useState<string | null>(null);
   const { ref, close } = useDismissableDetails();
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
   useEffect(() => {
     if (isLoading) return;
     const slot = isAuthenticated ? 'in' : 'out';
@@ -69,7 +67,7 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
   const presence = useLivePresence();
   const pathname = useLocation({ select: (location) => location.pathname });
 
-  if (!isMounted || isLoading || (isAuthenticated && isProfilePending))
+  if (isLoading || (isAuthenticated && isProfilePending))
     return (
       <LoadingStatus label={profile_loading({}, { locale })} isLabelHidden>
         <span
