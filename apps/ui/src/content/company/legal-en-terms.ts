@@ -29,7 +29,7 @@ export const termsEnglish: CompanyPageContent = translatedPage(
     section(
       'Accounts',
       text(
-        '**Who can create an account.** You must have reached the age of civil majority under the law of your country, and be at least **nineteen (19) full years** old, because using the platform creates a contractual obligation. If we learn that an account belongs to a minor, we suspend it.',
+        '**Who can create an account.** You must have reached the age of civil majority under both the law of your nationality and the law of the country where you live, and be at least **nineteen (19) full years** old, because using the platform creates a contractual obligation. If we learn that an account belongs to a minor, we suspend it.',
         '**Sign-up.** You create your account with a code sent to your email, or through a Google or GitHub account if you choose. We do not ask for a password and do not store one.',
         '**Accurate information.** Use your real name and accurate details. This is a professional platform built on people knowing who they are meeting; pseudonyms, false titles, and impersonation undermine that, and they are prohibited under the [Community guidelines](/community).',
         '**Responsibility for your account.** Your account is personal and may not be shared. Tell us immediately if you notice use you did not authorise.',

@@ -29,7 +29,7 @@ export const termsFrench: CompanyPageContent = translatedPage(
     section(
       'Comptes',
       text(
-        '**Qui peut créer un compte.** Vous devez avoir atteint l’âge de la majorité civile selon la loi de votre pays, et avoir au moins **dix-neuf (19) ans révolus**, car l’utilisation de la plateforme crée un engagement contractuel. Si nous apprenons qu’un compte appartient à un mineur, nous le suspendons.',
+        '**Qui peut créer un compte.** Vous devez avoir atteint l’âge de la majorité civile selon la loi de votre nationalité comme selon celle du pays où vous résidez, et avoir au moins **dix-neuf (19) ans révolus**, car l’utilisation de la plateforme crée un engagement contractuel. Si nous apprenons qu’un compte appartient à un mineur, nous le suspendons.',
         '**Inscription.** Vous créez votre compte avec un code envoyé à votre e-mail, ou avec un compte Google ou GitHub si vous le préférez. Nous ne demandons pas de mot de passe et n’en conservons aucun.',
         '**Informations exactes.** Utilisez votre vrai nom et des informations exactes. Cette plateforme professionnelle repose sur le fait que chacun sait qui il rencontre ; les pseudonymes, les fausses qualités et l’usurpation d’identité compromettent cela et sont interdits par les [Règles de la communauté](/community).',
         '**Votre responsabilité pour votre compte.** Le compte est personnel et ne se partage pas. Prévenez-nous immédiatement si vous remarquez une utilisation que vous n’avez pas autorisée.',

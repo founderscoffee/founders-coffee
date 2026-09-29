@@ -213,7 +213,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
     section(
       'Minors',
       text(
-        'The platform is for adults: people who have reached the age of civil majority under the law of their country, and are at least **nineteen (19)**. We do not knowingly collect minors’ data. If we find that an account belongs to a minor, we suspend it and delete the related data.',
+        'The platform is for adults: people who have reached the age of civil majority under both the law of their nationality and the law of the country where they live, and are at least **nineteen (19)**. We do not knowingly collect minors’ data. If we find that an account belongs to a minor, we suspend it and delete the related data.',
         'If you are a guardian and believe a minor in your care has created an account, write to us and we will act.',
       ),
     ),

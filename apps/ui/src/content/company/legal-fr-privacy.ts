@@ -217,7 +217,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
     section(
       'Mineurs',
       text(
-        'La plateforme est destinée aux adultes : les personnes qui ont atteint l’âge de la majorité civile selon la loi de leur pays, et qui ont au moins **dix-neuf (19) ans**. Nous ne collectons pas sciemment de données de mineurs. S’il apparaît qu’un compte appartient à un mineur, nous le suspendons et supprimons les données qui s’y rattachent.',
+        'La plateforme est destinée aux adultes : les personnes qui ont atteint l’âge de la majorité civile selon la loi de leur nationalité comme selon celle du pays où elles résident, et qui ont au moins **dix-neuf (19) ans**. Nous ne collectons pas sciemment de données de mineurs. S’il apparaît qu’un compte appartient à un mineur, nous le suspendons et supprimons les données qui s’y rattachent.',
         'Si vous êtes responsable légal et pensez qu’un mineur dont vous avez la charge a créé un compte, écrivez-nous et nous agirons.',
       ),
     ),

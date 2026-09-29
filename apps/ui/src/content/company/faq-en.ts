@@ -43,7 +43,7 @@ export const faqEnglish: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'You enter your email and receive a code, or you sign in with Google or GitHub. We never ask for a password and never store one: what we do not hold cannot leak from us and cannot be reused elsewhere. You must have reached the age of civil majority under your country’s law, and be at least nineteen (19), because using the platform creates a contractual obligation: [terms of use](/terms).',
+          text: 'You enter your email and receive a code, or you sign in with Google or GitHub. We never ask for a password and never store one: what we do not hold cannot leak from us and cannot be reused elsewhere. You must have reached the age of civil majority under both the law of your nationality and the law of the country where you live, and be at least nineteen (19), because using the platform creates a contractual obligation: [terms of use](/terms).',
         },
         {
           kind: 'subheading',

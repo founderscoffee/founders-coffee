@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { LOCALES } from '@founders-coffee/i18n';
+import { LOCALES, type Locale } from '@founders-coffee/i18n';
 
 import { KEYS, publishedText } from './pages.fixtures';
 
@@ -20,6 +20,14 @@ const STRICTEST_DEADLINES = [
   ['(3)', 'working days to then tell each member it touches'],
   ['(6)', 'working days to answer a request'],
 ] as const;
+
+const MINIMUM_AGE = /\b19\b|تسعة عشر/u;
+
+const NATIONALITY_AND_RESIDENCE: Record<Locale, readonly RegExp[]> = {
+  ar: [/جنسيتها/u, /[تي]قيم فيها/u],
+  en: [/nationality/u, /where (?:you|they) live/u],
+  fr: [/nationalité/u, /résid/u],
+};
 
 const PAGES_FOR_EVERY_MARKET = [
   'about',
@@ -81,6 +89,25 @@ describe('the company pages, read from any market', () => {
           privacy,
           `privacy:${locale} does not promise ${deadline} ${what}, the shortest of the markets we serve`,
         ).toContain(deadline);
+      }
+    }
+  });
+
+  it('sets the minimum age by the law of the nationality and of the residence', () => {
+    for (const key of ['faq', 'privacy', 'terms'] as const) {
+      for (const locale of LOCALES) {
+        const rules = publishedText(key, locale).filter((text) =>
+          MINIMUM_AGE.test(text),
+        );
+        expect(rules, `${key}:${locale} states no minimum age`).not.toEqual([]);
+        for (const rule of rules) {
+          for (const law of NATIONALITY_AND_RESIDENCE[locale]) {
+            expect(
+              rule,
+              `${key}:${locale} leaves "your country" open, when majority turns on both the nationality and the residence`,
+            ).toMatch(law);
+          }
+        }
       }
     }
   });
