@@ -8,6 +8,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import worker from '../src/server';
 
+import { recordD1Rounds } from './d1-rounds.fixtures';
+
 const ORIGIN = 'https://staging.founders.coffee';
 const HOST_ID = 'usr_event_page';
 const SLUG = 'event-page-meetup';
@@ -101,6 +103,23 @@ describe("a meetup's page", () => {
       page,
       "the market route's loader ran under every meetup page, reading the landing's meetups, counts and hosts from D1 beside the page's own reads and handing them to the browser in the page",
     ).not.toContain(NEIGHBOUR);
+  });
+
+  it('waits on one trip to D1 for a reader who is signed out', async () => {
+    await (await get(`/fr/algeria/e/${SLUG}`)).text();
+    const d1 = recordD1Rounds();
+    try {
+      const response = await get(`/fr/algeria/e/${SLUG}`);
+      expect(response.status).toBe(200);
+      await response.text();
+    } finally {
+      d1.restore();
+    }
+
+    expect(
+      d1.rounds(),
+      `with the market list kept by the data centre, the market and the meetup with everything its page shows about its host are one trip; each trip costs a round trip from the Worker to D1's primary (#114):\n${d1.timeline()}`,
+    ).toBe(1);
   });
 
   it.each([

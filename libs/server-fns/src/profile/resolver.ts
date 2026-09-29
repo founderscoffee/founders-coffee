@@ -11,7 +11,12 @@ import {
 import { profile } from '@founders-coffee/domain';
 import { logger } from '@founders-coffee/observability';
 
-import { ownerProfileProjection, profileChanges } from './projection.js';
+import {
+  ownerProfileOf,
+  ownerProfileProjection,
+  profileChanges,
+  publicProfileOf,
+} from './projection.js';
 import type {
   UpdateDisplayNameRequest,
   UserProfile,
@@ -52,11 +57,7 @@ export const readOwnerProfile = (
       getProfileIdentity(db, userId),
       getMemberProfile(db, userId),
     ]);
-    if (!identity) return err(new AppError('not_found', 'Profile not found'));
-    const name = profile.safeProfileDisplayName(identity.name, identity.email);
-    return ok(
-      ownerProfileProjection(userId, name, identity.createdAt, stored?.profile),
-    );
+    return ownerProfileOf(userId, identity, stored);
   });
 
 /** Anonymous reads are intentionally public but contain only the opt-in field projection. */
@@ -67,18 +68,12 @@ export const readPublicProfile = (
   profileOperation('read_public', userId, async () => {
     const result = await readOwnerProfile(db, userId);
     if (!result.ok) return result;
-    if (!result.data.displayName)
-      return err(new AppError('not_found', 'Profile not found'));
     const now = new Date();
     const [hosted, attended] = await Promise.all([
       countHostedMeetups(db, userId, now),
       countAttendedMeetups(db, userId, now),
     ]);
-    return ok(
-      profile.publicMemberProfileSchema.parse(
-        profile.projectPublicProfile(result.data, { hosted, attended }),
-      ),
-    );
+    return publicProfileOf(result.data, { hosted, attended });
   });
 
 /** Save the validated owner command under a revision without allowing identity field assignment. */

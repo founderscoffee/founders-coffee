@@ -1,9 +1,22 @@
-import { and, eq, inArray, isNull, or, sql, type AnyColumn } from 'drizzle-orm';
+import {
+  and,
+  eq,
+  inArray,
+  isNull,
+  or,
+  sql,
+  type AnyColumn,
+  type SQL,
+} from 'drizzle-orm';
 
 import { user } from './schema.js';
 
-/** Restrict profile writes and reads to a live, unrestricted identity. */
-export const activeProfileIdentity = (userId: string) =>
+/**
+ * Restrict profile writes and reads to a live, unrestricted identity.
+ *
+ * `userId` may be SQL that yields the id, such as the host of a meetup read in the same statement.
+ */
+export const activeProfileIdentity = (userId: string | SQL) =>
   and(
     eq(user.id, userId),
     eq(user.accountState, 'active'),

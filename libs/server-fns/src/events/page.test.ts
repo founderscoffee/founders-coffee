@@ -107,6 +107,32 @@ describe('readEventPage (real D1)', () => {
     if (page.ok) expect(page.data.host).toBeNull();
   });
 
+  it.each([
+    ['banned', { banned: true }],
+    ['closing', { accountState: 'closing' as const }],
+    ['banned and erased', { banned: true, accountState: 'deleted' as const }],
+  ])(
+    "answers a %s host's meetup as a missing meetup",
+    async (_label, change) => {
+      const db = await setupDb();
+      const { slug } = await createTestEvent(db);
+      await db.update(user).set(change).where(eq(user.id, TEST_HOST_ID)).run();
+
+      const page = await readEventPage(
+        db,
+        { marketCode: 'DZ', slug },
+        anonymous(),
+      );
+
+      await db
+        .update(user)
+        .set({ banned: false, accountState: 'active' })
+        .where(eq(user.id, TEST_HOST_ID))
+        .run();
+      expect(!page.ok && page.error.code).toBe('event_not_found');
+    },
+  );
+
   it('answers a slug no meetup has as a missing meetup', async () => {
     const db = await setupDb();
 

@@ -1,15 +1,16 @@
 import { createServerFn } from '@tanstack/react-start';
+import { getRequest } from '@tanstack/react-start/server';
 import { z } from 'zod';
 
 import { handleResult } from '@founders-coffee/core';
 
 import { getDb } from '../db.js';
 import {
-  listVisibleMarkets,
   resolveCityLanding,
   resolveMarket,
   resolveMarketLanding,
 } from './resolver.js';
+import { cachedVisibleMarkets } from './visible-cache.js';
 
 const landingPaginationSchema = z
   .object({
@@ -36,7 +37,7 @@ export const getMarket = createServerFn({ strict: false })
   .handler(async ({ data }) => handleResult(resolveMarket(getDb(), data)));
 
 export const getVisibleMarkets = createServerFn({ strict: false }).handler(
-  async () => listVisibleMarkets(getDb()),
+  async () => cachedVisibleMarkets(getDb(), new URL(getRequest().url).origin),
 );
 
 /** Country-landing data (market + featured cities from TS geo data) by slug-or-code. */

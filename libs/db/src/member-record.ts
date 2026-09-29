@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, sql, type SQL } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import { OPERATIONS_RETENTION_DAYS } from './operations-retention.js';
@@ -43,7 +43,13 @@ export const countAttendedMeetups = async (
   userId: string,
   now: Date,
 ): Promise<number> => {
-  const rows = await db
+  const rows = await attendedMeetupsQuery(db, userId, now);
+  return Number(rows[0]?.total ?? 0);
+};
+
+/** The count {@link countAttendedMeetups} reads, for a batch that reads it beside others (#114). */
+export const attendedMeetupsQuery = (db: Db, userId: string | SQL, now: Date) =>
+  db
     .select({ total: sql<number>`count(*)` })
     .from(eventAttendance)
     .innerJoin(events, eq(events.id, eventAttendance.eventId))
@@ -55,8 +61,6 @@ export const countAttendedMeetups = async (
         onRecord(now),
       ),
     );
-  return Number(rows[0]?.total ?? 0);
-};
 
 /**
  * How many meetups in the window a member hosted that took place, by their closeouts.
@@ -70,13 +74,17 @@ export const countHostedMeetups = async (
   hostId: string,
   now: Date,
 ): Promise<number> => {
-  const rows = await db
+  const rows = await hostedMeetupsQuery(db, hostId, now);
+  return Number(rows[0]?.total ?? 0);
+};
+
+/** The count {@link countHostedMeetups} reads, for a batch that reads it beside others (#114). */
+export const hostedMeetupsQuery = (db: Db, hostId: string | SQL, now: Date) =>
+  db
     .select({ total: sql<number>`count(*)` })
     .from(events)
     .innerJoin(eventCloseouts, eq(eventCloseouts.eventId, events.id))
     .where(and(eq(events.hostId, hostId), onRecord(now)));
-  return Number(rows[0]?.total ?? 0);
-};
 
 /**
  * Which of these meetups are on their host's record: the ones {@link countHostedMeetups} counts.

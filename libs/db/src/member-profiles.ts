@@ -1,5 +1,5 @@
 import { alias } from 'drizzle-orm/sqlite-core';
-import { and, eq, exists, inArray, sql } from 'drizzle-orm';
+import { and, eq, exists, inArray, sql, type SQL } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import {
@@ -30,9 +30,9 @@ export type MemberProfileChanges = Pick<
   | 'publishAttendedCount'
 >;
 
-/** Read only the identity fields needed to suppress contact fallbacks; never expose this row over RPC. */
-export const getProfileIdentity = async (db: Db, userId: string) => {
-  const rows = await db
+/** The read {@link getProfileIdentity} runs, for a batch that reads it beside others (#114). */
+export const profileIdentityQuery = (db: Db, userId: string | SQL) =>
+  db
     .select({
       name: user.name,
       email: user.email,
@@ -41,6 +41,10 @@ export const getProfileIdentity = async (db: Db, userId: string) => {
     .from(user)
     .where(activeProfileIdentity(userId))
     .limit(1);
+
+/** Read only the identity fields needed to suppress contact fallbacks; never expose this row over RPC. */
+export const getProfileIdentity = async (db: Db, userId: string) => {
+  const rows = await profileIdentityQuery(db, userId);
   return rows[0] ?? null;
 };
 
@@ -124,9 +128,9 @@ export const initializeMemberProfile = async (
   ]);
 };
 
-/** Read the profile without ever selecting contact, ban reasons or credential fields. */
-export const getMemberProfile = async (db: Db, userId: string) => {
-  const rows = await db
+/** The read {@link getMemberProfile} runs, for a batch that reads it beside others (#114). */
+export const memberProfileQuery = (db: Db, userId: string | SQL) =>
+  db
     .select({
       displayName: user.name,
       locale: user.localePref,
@@ -136,6 +140,10 @@ export const getMemberProfile = async (db: Db, userId: string) => {
     .innerJoin(user, eq(user.id, memberProfiles.userId))
     .where(activeProfileIdentity(userId))
     .limit(1);
+
+/** Read the profile without ever selecting contact, ban reasons or credential fields. */
+export const getMemberProfile = async (db: Db, userId: string) => {
+  const rows = await memberProfileQuery(db, userId);
   return rows[0] ?? null;
 };
 
