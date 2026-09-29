@@ -1,5 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 
+import { batch } from './atomic.js';
+import { syncChatChannel } from './chat-channels.js';
 import type { Db } from './db.js';
 import { events, type NewEvent } from './schema.js';
 
@@ -16,6 +18,9 @@ import { events, type NewEvent } from './schema.js';
  *
  * `slug` is not in the patch and must never be: it is the address every already-shared link points
  * at. See the table's own note in `schema.ts`.
+ *
+ * The meetup's chat takes its lifetime from the row in the same batch, so moving the end moves when
+ * the chat turns read-only and is deleted, and an edit that lost the race changes neither (P1-026).
  */
 export const updateEventIfCurrent = async (
   db: Db,
@@ -23,21 +28,23 @@ export const updateEventIfCurrent = async (
   expectedVersion: number,
   patch: Partial<NewEvent>,
 ): Promise<number> => {
-  const result = await db
-    .update(events)
-    .set({
-      ...patch,
-      version: expectedVersion + 1,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(events.id, id),
-        eq(events.version, expectedVersion),
-        eq(events.status, 'published'),
+  const [result] = await batch(db, [
+    db
+      .update(events)
+      .set({
+        ...patch,
+        version: expectedVersion + 1,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(events.id, id),
+          eq(events.version, expectedVersion),
+          eq(events.status, 'published'),
+        ),
       ),
-    )
-    .run();
+    syncChatChannel(db, id),
+  ]);
   const meta = (result as { meta?: { changes?: number } }).meta;
   return meta?.changes ?? 0;
 };
