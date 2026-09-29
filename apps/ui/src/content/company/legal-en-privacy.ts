@@ -117,10 +117,10 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       'Transfers outside your country',
       text(
         'We state this explicitly because the law requires it, and because it concerns you.',
-        'The platform runs on distributed cloud infrastructure, and the providers named in the previous section are based outside the countries where we operate. **Your data is therefore processed and stored outside your country.** When a Telegram group is linked to a gathering, what reaches Telegram from us about it and about those who join is also processed outside your country, on Telegram’s servers and under its terms.',
-        'We rely on the law, which allows a transfer to a foreign country in two cases that apply here: **your explicit consent**, and **the transfer being necessary to perform our contract with you**, since your account cannot run and no notification can reach you without the data passing through this infrastructure. In return, we contract with providers committed to recognised protection standards, encrypt connections, and limit what reaches each provider to what its task requires.',
+        'The platform runs on distributed cloud infrastructure, and the providers named in the previous section are based outside the countries where we operate, and **the main copy of our database is in Western Europe**. **Your data is therefore processed and stored outside your country.** When a Telegram group is linked to a gathering, what reaches Telegram from us about it and about those who join is also processed outside your country, on Telegram’s servers and under its terms.',
+        'We rely on **the transfer being necessary to perform our contract with you**: your account cannot run, nothing you ask of the platform can be provided, and no notification can reach you without the data passing through this infrastructure. In return, we contract with providers committed to recognised protection standards, encrypt connections, and limit what reaches each provider to what its task requires.',
         'This is the basis we rely on today, not a prior authorisation from a data protection authority, although some laws also provide for one. If we later obtain an authorisation for this transfer, we will update this section and refer to it.',
-        'If this transfer is not acceptable to you, you may withdraw your consent and ask us to close your account, and we will do so.',
+        'If this transfer is not acceptable to you, you can ask us to close your account, and we will do so.',
       ),
     ),
     section('Retention', [
