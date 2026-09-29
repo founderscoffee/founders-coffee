@@ -1,4 +1,4 @@
-import { LOCALES, type Locale } from '@founders-coffee/i18n';
+import { LOCALES, llms_description, type Locale } from '@founders-coffee/i18n';
 
 import { CONTACT_EMAIL, type CompanyPageContent } from '../content/company';
 
@@ -8,10 +8,27 @@ import {
   buildPageMetadata,
   canonicalUrl,
   getSiteOrigin,
+  SITE_NAME,
   type CanonicalRoute,
 } from './seo';
 
-export const organizationJsonLd = () =>
+/**
+ * The site's `WebSite` node, which is where Google reads the name it prints above each result.
+ *
+ * Google reads it from the home page, and `/` is a redirect: it answers 307 with a market landing
+ * chosen by the reader's country and language, and Google reads the page it lands on. So it goes
+ * on every page, as the Organization does, and is there wherever `/` sends Googlebot. Without it
+ * Google printed the bare domain, "founders.coffee".
+ */
+export const websiteJsonLd = () =>
+  JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: `${getSiteOrigin()}/`,
+  });
+
+export const organizationJsonLd = (locale: Locale) =>
   JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -19,7 +36,7 @@ export const organizationJsonLd = () =>
     url: getSiteOrigin(),
     logo: `${getSiteOrigin()}/android-chrome-512x512.png`,
     email: CONTACT_EMAIL,
-    description: 'Local founder communities that meet over coffee.',
+    description: llms_description({}, { locale }),
     contactPoint: [
       {
         '@type': 'ContactPoint',
@@ -34,7 +51,6 @@ type CompanyHeadInput = {
   readonly locale: Locale;
   readonly path: string;
   readonly canonicalLocale?: Locale;
-  readonly soleLocale?: Locale;
   readonly title: string;
   readonly description: string;
   readonly faq?: CompanyPageContent;
@@ -43,11 +59,6 @@ type CompanyHeadInput = {
 /**
  * Shared metadata and WebPage JSON-LD for company pages.
  *
- * `soleLocale` marks a document that exists in one language only. Every locale
- * serves the same bytes, so all three URLs canonicalise to that language's URL
- * and no alternate is advertised: three self-canonical copies of one Arabic
- * document would compete with each other rather than consolidate.
- *
  * `faq` adds FAQPage structured data alongside the WebPage node, for pages
  * written as questions and answers.
  */
@@ -55,25 +66,23 @@ export const companyPageHead = ({
   locale,
   path,
   canonicalLocale,
-  soleLocale,
   title,
   description,
   faq,
 }: CompanyHeadInput) => {
   const siteOrigin = getSiteOrigin();
-  const documentLocale = soleLocale ?? locale;
   const route: CanonicalRoute = {
     type: 'company',
     path,
-    locale: soleLocale ?? canonicalLocale,
+    locale: canonicalLocale ?? locale,
   };
   const url = canonicalUrl(route);
   const metadata = buildPageMetadata({
-    locale: documentLocale,
+    locale,
     title,
     description,
     route,
-    alternateLocales: soleLocale ? [soleLocale] : LOCALES,
+    alternateLocales: LOCALES,
   });
 
   const webPage = {
@@ -89,7 +98,7 @@ export const companyPageHead = ({
         name: 'Founders Coffee',
         url: siteOrigin,
       },
-      inLanguage: documentLocale,
+      inLanguage: locale,
     }),
   };
 

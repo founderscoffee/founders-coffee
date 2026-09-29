@@ -29,7 +29,7 @@ export const ProfileAccess = ({
       <LoadingStatus label={profile_loading({}, { locale })} />
     ) : isAnonymous ? (
       <Link
-        className="btn btn-primary"
+        className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
         {...localizedLogin(locale)}
         search={{ redirect: returnPath }}
       >
@@ -41,7 +41,7 @@ export const ProfileAccess = ({
         action={
           <button
             type="button"
-            className="btn btn-outline btn-sm"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
             onClick={onRetry}
           >
             {profile_reload({}, { locale })}

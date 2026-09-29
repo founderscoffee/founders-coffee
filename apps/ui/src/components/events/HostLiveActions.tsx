@@ -44,14 +44,14 @@ export const HostLiveActions = ({
       <div className="flex gap-2">
         <input
           type="number"
-          className="input input-bordered input-sm flex-1"
+          className="input input-sm md:input-md flex-1"
           placeholder={live_new_table_ph({}, { locale })}
           value={tableNumber}
           onChange={(event) => setTableNumber(event.target.value)}
         />
         <button
           type="button"
-          className="btn btn-sm"
+          className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg"
           disabled={!tableNumber}
           onClick={() => onTablePin(parseInt(tableNumber, 10))}
         >
@@ -65,7 +65,7 @@ export const HostLiveActions = ({
     return (
       <button
         type="button"
-        className="btn btn-primary btn-block"
+        className="btn btn-primary btn-block btn-xs sm:btn-sm md:btn-md lg:btn-lg"
         onClick={() => setIsFormOpen(true)}
       >
         {live_arrived_cta({}, { locale })}
@@ -77,14 +77,14 @@ export const HostLiveActions = ({
     <div className="flex flex-col gap-2">
       <input
         type="number"
-        className="input input-bordered input-sm w-full"
+        className="input input-sm md:input-md w-full"
         placeholder={live_table_ph({}, { locale })}
         value={tableNumber}
         onChange={(event) => setTableNumber(event.target.value)}
       />
       <input
         type="text"
-        className="input input-bordered input-sm w-full"
+        className="input input-sm md:input-md w-full"
         placeholder={live_cue_ph({}, { locale })}
         value={visualCue}
         onChange={(event) => setVisualCue(event.target.value)}
@@ -92,14 +92,14 @@ export const HostLiveActions = ({
       <div className="flex gap-2">
         <button
           type="button"
-          className="btn btn-primary btn-sm"
+          className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
           onClick={confirmArrival}
         >
           {confirm({}, { locale })}
         </button>
         <button
           type="button"
-          className="btn btn-ghost btn-sm"
+          className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
           onClick={() => setIsFormOpen(false)}
         >
           {cancel({}, { locale })}

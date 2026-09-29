@@ -3,6 +3,17 @@ const DEFAULT_DURATION_MS = 2 * HOUR_MS;
 
 export const LIVE_WINDOW_LEAD_MS = HOUR_MS;
 
+export type EventPhase = 'upcoming' | 'started' | 'ended';
+
+const endOf = (
+  start: number,
+  endsAt: Date | number | null | undefined,
+): number => {
+  const end =
+    endsAt == null ? start + DEFAULT_DURATION_MS : new Date(endsAt).getTime();
+  return Number.isFinite(end) ? end : start + DEFAULT_DURATION_MS;
+};
+
 /**
  * Whether the live room is open for an event — `LIVE_WINDOW_LEAD_MS` before the start, to the end.
  *
@@ -27,9 +38,23 @@ export const isLiveWindowOpen = (
   const start = new Date(startsAt).getTime();
   if (!Number.isFinite(start)) return false;
 
-  const end =
-    endsAt == null ? start + DEFAULT_DURATION_MS : new Date(endsAt).getTime();
-  const closesAt = Number.isFinite(end) ? end : start + DEFAULT_DURATION_MS;
+  return now >= start - LIVE_WINDOW_LEAD_MS && now <= endOf(start, endsAt);
+};
 
-  return now >= start - LIVE_WINDOW_LEAD_MS && now <= closesAt;
+/**
+ * Where a meetup stands: before its start, between its start and its end, or after its end.
+ *
+ * The RSVP box reads this to stop offering a seat from the start on, because that is when the
+ * server stops taking or releasing one: `rsvp_closed` in `libs/db/src/rsvps.ts` refuses any RSVP
+ * once `starts_at` is no longer ahead. The end is the one {@link isLiveWindowOpen} uses, so the box
+ * says a meetup is over at the moment its room closes.
+ */
+export const eventPhase = (
+  startsAt: Date | number,
+  endsAt: Date | number | null | undefined,
+  now: number = Date.now(),
+): EventPhase => {
+  const start = new Date(startsAt).getTime();
+  if (!Number.isFinite(start) || now < start) return 'upcoming';
+  return now <= endOf(start, endsAt) ? 'started' : 'ended';
 };

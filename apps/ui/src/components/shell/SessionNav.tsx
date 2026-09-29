@@ -44,7 +44,7 @@ const initials = (name: string, email: string) => {
 const LoginLink = ({ locale }: { locale: Locale }) => (
   <Link
     {...localizedLogin(locale)}
-    className="btn btn-ghost h-9 min-h-9 w-full shrink-0 rounded-full border-0 px-4 text-body font-semibold whitespace-nowrap text-base-content shadow-none hover:bg-base-200"
+    className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full shrink-0 rounded-full font-semibold whitespace-nowrap"
   >
     {sign_in({}, { locale })}
   </Link>
@@ -58,8 +58,6 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
   const isProfilePending = useBoundedPending(isPending);
   const [failedPhoto, setFailedPhoto] = useState<string | null>(null);
   const { ref, close } = useDismissableDetails();
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
   useEffect(() => {
     if (isLoading) return;
     const slot = isAuthenticated ? 'in' : 'out';
@@ -69,7 +67,7 @@ export const SessionNav = ({ locale }: SessionNavProps) => {
   const presence = useLivePresence();
   const pathname = useLocation({ select: (location) => location.pathname });
 
-  if (!isMounted || isLoading || (isAuthenticated && isProfilePending))
+  if (isLoading || (isAuthenticated && isProfilePending))
     return (
       <LoadingStatus label={profile_loading({}, { locale })} isLabelHidden>
         <span

@@ -33,3 +33,4 @@ export {
   icsFor,
   type CalendarEvent,
 } from './calendar.js';
+export { eventLanguagesSchema, leadLocale } from './languages.js';

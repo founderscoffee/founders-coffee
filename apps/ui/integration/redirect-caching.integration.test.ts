@@ -47,6 +47,15 @@ const PER_READER: readonly Hop[] = [
     location: `/${locale}/algeria`,
   })),
   { path: '/fr', cookie: `${GEO_COOKIE}=egypt`, location: '/fr/egypt' },
+  ...LOCALES.map((locale) => ({
+    path: `/${locale}/host`,
+    location: `/${locale}/algeria/host/create`,
+  })),
+  {
+    path: '/fr/host',
+    cookie: `${GEO_COOKIE}=egypt`,
+    location: '/fr/egypt/host/create',
+  },
   ...Object.keys(COMPANY_PAGES).flatMap((page) => [
     { path: `/${page}`, location: `/ar/${page}` },
     { path: `/${page}`, cookie: FRENCH, location: `/fr/${page}` },
@@ -146,6 +155,15 @@ describe('the redirects the Worker answers', () => {
     expect(response.headers.get('set-cookie')).toContain(
       `${GEO_COOKIE}=algeria;`,
     );
+  });
+
+  it('send that choice over encrypted connections only', async () => {
+    const response = await fetchOnce('/');
+
+    expect(
+      response.headers.get('set-cookie')?.split(/;\s*/u),
+      'fc_geo went out without Secure while the session cookie is always Secure',
+    ).toContain('Secure');
   });
 
   it('leave the page they land on publicly cacheable', async () => {

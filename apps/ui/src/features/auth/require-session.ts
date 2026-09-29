@@ -42,10 +42,6 @@ export const requireSession = async (
  * they already are. Reaching it is an accident — a bookmark, browser back after signing in, a tab
  * left open in another window — and the useful answer to an accident is the page they meant.
  *
- * They go to the return path directly rather than through `/onboarding`, which is where a fresh
- * sign-in goes. That route renders the profile-completion form unconditionally, so handing an
- * already-onboarded reader to it would ask them to finish something they finished.
- *
  * The path is normalised here rather than trusted to the route's own parser, for the reason
  * `requireSession` normalises: `authReturnPathSchema` rejects `/login`, so a crafted
  * `?redirect=/login` cannot bounce a reader between this guard and the page it guards.

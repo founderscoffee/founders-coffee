@@ -7,8 +7,8 @@
  * count goes to zero and the tool reports an empty country rather than an error.
  *
  * They also accepted single-quoted strings only. Prettier writes a name containing an apostrophe
- * with double quotes, so `"M'sila"` and `"El-M'ghaier"` were invisible to all three. Those are two
- * of the four featured Algerian cities that have never had a venue snapshot taken, and this is
+ * with double quotes, so `"M'sila"` and `"El-M'ghaier"` were invisible to all three. Those were two
+ * of the four featured Algerian cities that had never had a venue snapshot taken, and this is
  * why.
  *
  * Fields are read by name from flat records. Order does not matter, either quote style is

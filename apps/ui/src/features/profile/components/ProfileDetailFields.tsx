@@ -8,7 +8,7 @@ import {
   profile_link_placeholder,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Input } from '@founders-coffee/ui';
+import { ChipGroup, Input, toggleChip } from '@founders-coffee/ui';
 
 import {
   localeLabel,
@@ -17,7 +17,6 @@ import {
   TOPIC_OPTIONS,
 } from '../profile-labels';
 import type { ProfileDraft } from '../profile-draft';
-import { ChipGroup } from './ChipGroup';
 import { OptionalChip } from './OptionalChip';
 import { PublishToggle } from './PublishToggle';
 
@@ -32,17 +31,6 @@ export const ProfileDetailFields = ({
   isDisabled: boolean;
   onChange: (patch: Partial<ProfileDraft>) => void;
 }) => {
-  const toggle = <T extends string>(
-    values: readonly T[],
-    option: T,
-    max: number,
-  ): T[] =>
-    values.includes(option)
-      ? values.filter((value) => value !== option)
-      : values.length >= max
-        ? [...values]
-        : [...values, option];
-
   return (
     <div className="space-y-6">
       <div>
@@ -59,7 +47,7 @@ export const ProfileDetailFields = ({
           groupLabel={profile_interests_label({}, { locale })}
           labelFor={(topic) => topicLabel(topic, locale)}
           onToggle={(topic) =>
-            onChange({ interests: toggle(draft.interests, topic, 5) })
+            onChange({ interests: toggleChip(draft.interests, topic, 5) })
           }
         />
         <p className="mt-2 text-body-sm text-neutral">
@@ -93,7 +81,7 @@ export const ProfileDetailFields = ({
           labelFor={(spoken) => localeLabel(spoken, locale)}
           onToggle={(spoken) =>
             onChange({
-              spokenLanguages: toggle(draft.spokenLanguages, spoken, 6),
+              spokenLanguages: toggleChip(draft.spokenLanguages, spoken, 6),
             })
           }
         />

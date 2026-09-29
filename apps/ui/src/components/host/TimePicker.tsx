@@ -3,6 +3,7 @@ import { PluginRegistry, TimepickerUI } from 'timepicker-ui';
 import { RangePlugin } from 'timepicker-ui/plugins/range';
 
 import {
+  direction,
   host_time,
   host_time_cancel,
   host_time_from,
@@ -114,9 +115,9 @@ export const TimePicker = ({ from, to, onChange, locale }: TimePickerProps) => {
       id="host-schedule"
       type="text"
       readOnly
-      dir="ltr"
+      dir={direction(locale)}
       defaultValue={`${from} - ${to}`}
-      className="input input-bordered w-full cursor-pointer text-center text-base font-semibold tabular-nums"
+      className="input input-sm md:input-md w-full cursor-pointer text-center font-semibold tabular-nums"
       aria-label={host_time({}, { locale })}
     />
   );

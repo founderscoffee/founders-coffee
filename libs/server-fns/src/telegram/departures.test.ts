@@ -13,6 +13,7 @@ import { releaseTelegramGroup, withdrawTelegramMember } from './departures.js';
 import { scheduleTelegramGroup } from './notices.js';
 import {
   attend,
+  BOT_USERNAME,
   connectMeetup,
   MEMBER_IDS,
   payloadOf,
@@ -38,7 +39,7 @@ describe('members and hosts leaving a Telegram group (real D1 via Miniflare)', (
   it('withdraws the posts queued for a disconnected group, and its invites, and leaves its chat', async () => {
     const event = await seedMeetup(db);
     const chatId = await connectMeetup(db, event);
-    await scheduleTelegramGroup(db, event);
+    await scheduleTelegramGroup(db, event, BOT_USERNAME);
     for (const [index, userId] of [MEMBER_IDS[0], MEMBER_IDS[1]].entries())
       await saveTelegramInvite(db, {
         id: `tgi_release${index}`,

@@ -47,7 +47,7 @@ import {
   type TemplateValues,
 } from './templates.js';
 
-type EmailPayload = { subject: string; html: string; text: string };
+export type EmailPayload = { subject: string; html: string; text: string };
 
 /**
  * Follow a confirmation with the links that add the meetup to a calendar, when it carries them.
@@ -72,7 +72,10 @@ const withCalendarText = (
 ): string =>
   links ? `${text}\n\n${ntf_email_calendar_text(links, { locale })}` : text;
 
-const renderNotificationEmail = async (
+/**
+ * Wrap a notification's body in the shared email layout, with its subject as the inbox preview.
+ */
+export const renderNotificationEmail = async (
   locale: Locale,
   subject: string,
   bodyHtml: string,

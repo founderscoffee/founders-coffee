@@ -99,16 +99,12 @@ const MarketRoute = () => {
     );
   }
   const entry: CompanyPageEntry = COMPANY_PAGES[data.page];
-  const arabicSource = entry.kind === 'arabic';
   return (
     <CompanyPage
       locale={data.locale}
       content={companyPageContent(data.page, data.locale)}
       related={entry.related}
-      showEmailActions={
-        entry.kind === 'localized' && entry.emailActions === true
-      }
-      arabicSource={arabicSource}
+      showEmailActions={entry.emailActions === true}
     />
   );
 };
@@ -164,11 +160,9 @@ export const Route = createFileRoute('/$locale/$market')({
       locale: loaderData.locale,
       path: `/${loaderData.page}`,
       canonicalLocale: loaderData.locale,
-      soleLocale: entry.kind === 'arabic' ? 'ar' : undefined,
       title: content.title,
       description: content.description,
-      faq:
-        entry.kind === 'localized' && entry.faq === true ? content : undefined,
+      faq: entry.faq === true ? content : undefined,
     });
   },
 });

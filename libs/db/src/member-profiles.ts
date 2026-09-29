@@ -2,7 +2,11 @@ import { alias } from 'drizzle-orm/sqlite-core';
 import { and, eq, exists, inArray, sql } from 'drizzle-orm';
 
 import type { Db } from './db.js';
-import { activeProfileIdentity, visibleIdentity } from './profile-access.js';
+import {
+  activeProfileIdentity,
+  visibleHostIdentity,
+  visibleIdentity,
+} from './profile-access.js';
 import {
   accountPreferences,
   memberProfiles,
@@ -84,6 +88,23 @@ export const isVisibleIdentity = async (
     .select({ id: user.id })
     .from(user)
     .where(activeProfileIdentity(userId))
+    .limit(1);
+  return rows.length > 0;
+};
+
+/**
+ * Whether a meetup's own page may show it, judged by its host under the rule of `visibleHost`: the
+ * same as {@link isVisibleIdentity}, except that a host whose account was erased keeps the meetups
+ * they published, with their name detached (#105).
+ */
+export const isVisibleHost = async (
+  db: Db,
+  hostId: string,
+): Promise<boolean> => {
+  const rows = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(visibleHostIdentity(hostId))
     .limit(1);
   return rows.length > 0;
 };

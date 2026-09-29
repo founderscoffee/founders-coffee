@@ -2,8 +2,10 @@
  * Snapshot nearby venues per featured city from OpenStreetMap.
  *
  * Run manually, never at request time: `node tools/osm/snapshot-venues.mjs [DZ|EG|SA]`.
- * Requires MAPBOX_TOKEN in apps/ui/.dev.vars — one forward geocode per city resolves the centre
- * and bounds that Overpass then queries inside, because GeoCity carries no coordinates.
+ * Requires MAPBOX_TOKEN in apps/ui/.dev.vars. A city's centre and bounds come from Mapbox's
+ * permanent geocoding, the one Mapbox answer we may keep (Search Box data is temporary), and only
+ * from a place that carries one of the city's names (see city-lookup.mjs). Overpass then queries
+ * inside those bounds, because GeoCity carries no coordinates.
  *
  * Mapbox indexes almost no cafés in Algiers or Cairo (verified: zero category results across the
  * Algiers wilaya), so OSM is the only source with real data in those markets. Overpass rejects
@@ -14,6 +16,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { readGeoRecords } from '../geo/geo-records.mjs';
+import { lookupsFor, pickCity } from './city-lookup.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT_DIR = `${ROOT}/.osm-snapshot`;
@@ -27,7 +30,7 @@ const OVERPASS_MIRRORS = [
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass-api.de/api/interpreter',
 ];
-const MAPBOX = 'https://api.mapbox.com/search/searchbox/v1/forward';
+const MAPBOX = 'https://api.mapbox.com/search/geocode/v6/forward';
 const THROTTLE_MS = 4000;
 /* Overpass mirrors reject a default runtime User-Agent with a plain-text notice rather than JSON, */
 /* and OSM's usage policy asks for an identifying one. Without this every query silently returns */
@@ -53,25 +56,24 @@ const readCities = (market) => {
 };
 
 const resolveCity = async (market, city) => {
-  const url = new URL(MAPBOX);
-  url.search = new URLSearchParams({
-    q: `${city.name}, ${market}`,
-    country: market,
-    language: 'en',
-    limit: '5',
-    types: 'city,place,locality',
-    access_token: token,
-  }).toString();
-  const response = await fetch(url);
-  if (!response.ok) return null;
-  const body = await response.json();
-  const feature = (body.features ?? []).find(
-    (f) => f.properties?.context?.country?.country_code === market,
-  );
-  const bounds = feature?.bbox ?? feature?.properties?.bbox;
-  if (!feature || !bounds) return null;
-  const [longitude, latitude] = feature.geometry.coordinates;
-  return { center: { latitude, longitude }, bounds };
+  for (const { query, language } of lookupsFor(city)) {
+    const url = new URL(MAPBOX);
+    url.search = new URLSearchParams({
+      q: query,
+      country: market.toLowerCase(),
+      language,
+      limit: '5',
+      types: 'place,locality',
+      permanent: 'true',
+      access_token: token,
+    }).toString();
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const body = await response.json();
+    const viewport = pickCity(body.features ?? [], city, market);
+    if (viewport) return viewport;
+  }
+  return null;
 };
 
 const CATEGORY_BY_TAGS = (tags) => {

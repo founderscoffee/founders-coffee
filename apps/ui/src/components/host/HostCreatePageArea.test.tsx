@@ -35,32 +35,32 @@ const renderInFrench = (city: geo.GeoCity | null) =>
       city,
       mapboxToken: 'map-token',
       turnstileSiteKey: 'test-site-key',
-      hasSocial: false,
+      isTurnstileBypassed: true,
+      socialProviders: [],
       repeatTemplate: null,
     }),
   );
 
+const searchArea = () =>
+  screen
+    .getByLabelText('Search cafés and coworking venues')
+    .getAttribute('data-area');
+
 describe('where the host wizard says it looks for venues', () => {
   afterEach(resetHostCreateFixtures);
 
-  it('looks au Caire when the host came from the Cairo page', () => {
+  it('searches the city the host came from, named in their language', () => {
     renderInFrench(cairo);
 
-    expect(
-      screen.getByText(
-        'Choisissez parmi les cafés et espaces de coworking au Caire.',
-      ),
-    ).toBeTruthy();
+    expect(searchArea()).toBe('city:Le Caire');
   });
 
-  it('looks en Égypte when the host came from the navbar with no city', () => {
+  it('searches the country when the host came from the navbar with no city', () => {
     renderInFrench(null);
 
     expect(
-      screen.getByText(
-        'Choisissez parmi les cafés et espaces de coworking en Égypte.',
-      ),
-      'the country went where the city goes, after the à a city takes: "à Égypte"',
-    ).toBeTruthy();
+      searchArea(),
+      'the search box is the one place left that says where the host is looking, since the subtitle went (#121)',
+    ).toBe('market:Égypte');
   });
 });

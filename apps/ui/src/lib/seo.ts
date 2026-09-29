@@ -10,7 +10,7 @@ import {
 import { getRequestContext } from '@founders-coffee/observability/context';
 
 import { PRODUCTION_ORIGIN } from './indexation';
-import { xDefaultLocale } from './seo-alternates';
+import { openGraphLocale, xDefaultLocale } from './seo-alternates';
 import {
   breadcrumbJsonLd,
   collectionPageJsonLd,
@@ -22,7 +22,6 @@ export const SITE_NAME = 'Founders Coffee';
 export const DEFAULT_SOCIAL_IMAGE_PATH = '/social/founders-coffee-default.png';
 
 export type CanonicalRoute =
-  | { readonly type: 'root'; readonly locale?: Locale; readonly query?: string }
   | {
       readonly type: 'market';
       readonly market: string;
@@ -52,7 +51,6 @@ export type CanonicalRoute =
 
 const canonicalSegments = (route: CanonicalRoute): string[] => {
   const locale = route.locale ? [route.locale] : [];
-  if (route.type === 'root') return locale;
   if (route.type === 'market') return [...locale, route.market];
   if (route.type === 'city') return [...locale, route.market, route.city];
   if (route.type === 'event') return [...locale, route.market, 'e', route.slug];
@@ -117,21 +115,21 @@ const normalizeText = (value: string, maxLength: number): string => {
   return `${codePoints.slice(0, maxLength - 1).join('')}…`;
 };
 
-export const buildPageTitle = (title: string): string => {
-  const pageTitle = normalizeText(title, MAX_TITLE_LENGTH)
-    .replace(/founders(?:\.coffee| coffee)/giu, '')
-    .replace(/\s+/gu, ' ')
-    .replace(/^\s*[-–—·:]\s*/u, '')
-    .replace(/\s*[-–—·:]\s*$/u, '')
-    .trim();
-  return normalizeText(
-    pageTitle ? `${SITE_NAME} - ${pageTitle}` : SITE_NAME,
-    MAX_TITLE_LENGTH,
-  );
-};
+const NAMES_THE_BRAND = /founders(?:\.coffee| coffee)/iu;
 
-const localeOpenGraph = (locale: Locale): string =>
-  locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US';
+/**
+ * A page's `<title>`: the brand, then the page, unless the page's own title already names the brand.
+ *
+ * A title that names it is kept whole. The brand used to be cut out of any title wherever it stood
+ * and put back in front, which suited "Founders Coffee operations" and broke every title that
+ * names it mid-phrase: "À propos de Founders Coffee" became "Founders Coffee - À propos de" (#116).
+ */
+export const buildPageTitle = (title: string): string => {
+  const pageTitle = normalizeText(title, MAX_TITLE_LENGTH);
+  if (!pageTitle) return SITE_NAME;
+  if (NAMES_THE_BRAND.test(pageTitle)) return pageTitle;
+  return normalizeText(`${SITE_NAME} - ${pageTitle}`, MAX_TITLE_LENGTH);
+};
 
 export type PageMetadataInput = {
   readonly locale: Locale;
@@ -173,17 +171,11 @@ export const buildPageMetadata = ({
       { property: 'og:title', content: fullTitle },
       { property: 'og:description', content: normalizedDescription },
       { property: 'og:url', content: url },
-      { property: 'og:locale', content: localeOpenGraph(locale) },
+      { property: 'og:locale', content: openGraphLocale(locale) },
       { property: 'og:image', content: socialImage },
       { property: 'og:image:width', content: '1200' },
       { property: 'og:image:height', content: '630' },
       { property: 'og:image:alt', content: socialImageAlt },
-      ...alternateLocales
-        .filter((alternate) => alternate !== locale)
-        .map((alternate) => ({
-          property: 'og:locale:alternate',
-          content: localeOpenGraph(alternate),
-        })),
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: fullTitle },
       { name: 'twitter:description', content: normalizedDescription },
@@ -263,7 +255,6 @@ export const cityPageHead = ({
     robots: isEmpty ? 'noindex,follow' : 'index,follow',
   });
   const breadcrumbs: StructuredListItem[] = [
-    { name: 'Founders Coffee', url: canonicalUrl({ type: 'root', locale }) },
     {
       name: marketName,
       url: canonicalUrl({

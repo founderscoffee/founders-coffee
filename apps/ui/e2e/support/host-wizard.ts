@@ -64,7 +64,9 @@ export const HOST_VENUE_NAME = 'Café des Fondateurs';
  * The box is a combobox whose list already offers nearby cafés before anything is typed, so the
  * first option on the page is not a match. The pick waits for the list to be named as search
  * results, which is the list a host who typed the street is reading, and then for the option to
- * report itself selected.
+ * report itself selected. Below `lg` the list folds away once a row is picked, so the option is
+ * read even while folded. The name field sits below the search box, outside the list, and is
+ * filled without opening the list again.
  *
  * The field stays disabled until the server has returned the city viewport, so the wait is on the
  * control being enabled rather than on a fixed delay — a timing assumption here would make the
@@ -84,12 +86,10 @@ export const selectVenue = async (
   });
   await expect(search).toBeEnabled({ timeout: 30_000 });
   await search.fill(query);
+  const listName = t(locale, 'host_search_results');
   const firstResult = page
-    .getByRole('listbox', {
-      name: t(locale, 'host_search_results'),
-      exact: true,
-    })
-    .getByRole('option')
+    .getByRole('listbox', { name: listName, exact: true, includeHidden: true })
+    .getByRole('option', { includeHidden: true })
     .first();
   await expect(firstResult).toBeVisible({ timeout: 30_000 });
   const providerName = (await firstResult.innerText()).split('\n')[0].trim();
@@ -97,11 +97,9 @@ export const selectVenue = async (
   await expect(firstResult).toHaveAttribute('aria-selected', 'true');
 
   const nameField = page.locator('#host-venue-name');
-  if (await nameField.isVisible()) {
-    await nameField.fill(HOST_VENUE_NAME);
-    return HOST_VENUE_NAME;
-  }
-  return providerName;
+  if ((await nameField.count()) === 0) return providerName;
+  await nameField.fill(HOST_VENUE_NAME);
+  return HOST_VENUE_NAME;
 };
 
 /** Pick a day next month, which is always in the future and always exists. */

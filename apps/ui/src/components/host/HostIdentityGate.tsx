@@ -1,24 +1,47 @@
 import { useState } from 'react';
 
-import { gate_back, type Locale } from '@founders-coffee/i18n';
+import {
+  gate_back,
+  gate_title,
+  send_code,
+  type Locale,
+} from '@founders-coffee/i18n';
 
 import { ProfileCompletion } from '../../features/profile/components/ProfileCompletion';
 import { useAuth } from '../../lib/app-providers';
-import { HostSignInGate } from './HostSignInGate';
+import { SignInForm } from '../auth/SignInForm';
+import type { SocialProvider } from '../auth/SocialSignIn';
 
 export const HostIdentityGate = (props: {
   locale: Locale;
   turnstileSiteKey: string | null;
-  hasSocial: boolean;
+  isTurnstileBypassed: boolean;
+  socialProviders: readonly SocialProvider[];
   needsReauthentication: boolean;
   onCancel: () => void;
   onAuthenticated: () => void;
 }) => {
   const { isAuthenticated } = useAuth();
   const [hasVerified, setHasVerified] = useState(false);
+  const getSocialRedirect = () => {
+    const here = `${window.location.pathname}${window.location.search}`;
+    return { callbackURL: here, newUserCallbackURL: here };
+  };
+
   if ((!isAuthenticated || props.needsReauthentication) && !hasVerified)
     return (
-      <HostSignInGate {...props} onAuthenticated={() => setHasVerified(true)} />
+      <SignInForm
+        locale={props.locale}
+        turnstileSiteKey={props.turnstileSiteKey}
+        isTurnstileBypassed={props.isTurnstileBypassed}
+        socialProviders={props.socialProviders}
+        layout="gate"
+        title={gate_title({}, { locale: props.locale })}
+        emailActionLabel={send_code({}, { locale: props.locale })}
+        getSocialRedirect={getSocialRedirect}
+        onAuthenticated={() => setHasVerified(true)}
+        onCancel={props.onCancel}
+      />
     );
   return (
     <div className="space-y-4">
@@ -27,7 +50,11 @@ export const HostIdentityGate = (props: {
         returnPath={`/${props.locale}/profile`}
         onComplete={props.onAuthenticated}
       />
-      <button type="button" className="btn btn-ghost" onClick={props.onCancel}>
+      <button
+        type="button"
+        className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+        onClick={props.onCancel}
+      >
         {gate_back({}, { locale: props.locale })}
       </button>
     </div>

@@ -1,19 +1,30 @@
 export const ChipGroup = <T extends string>({
+  id,
   options,
   selected,
   labelFor,
   max,
   groupLabel,
+  describedBy,
   onToggle,
 }: {
+  id?: string;
   options: readonly T[];
   selected: readonly T[];
   labelFor: (option: T) => string;
   max: number;
   groupLabel: string;
+  describedBy?: string;
   onToggle: (option: T) => void;
 }) => (
-  <div className="flex flex-wrap gap-2" role="group" aria-label={groupLabel}>
+  <div
+    id={id}
+    tabIndex={id === undefined ? undefined : -1}
+    className="flex flex-wrap gap-2"
+    role="group"
+    aria-label={groupLabel}
+    aria-describedby={describedBy}
+  >
     {options.map((option) => {
       const isOn = selected.includes(option);
       const isBlocked = !isOn && selected.length >= max;

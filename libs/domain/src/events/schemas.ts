@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { localeSchema, marketCodeSchema } from '@founders-coffee/core';
 
+import { eventLanguagesSchema } from './languages.js';
+
 export const EVENT_TITLE_MIN_LENGTH = 3;
 export const EVENT_TITLE_MAX_LENGTH = 120;
 export const EVENT_DESCRIPTION_MIN_LENGTH = 10;
@@ -98,7 +100,7 @@ export const eventCreateSchema = z
     longitude: z.number().finite().min(-180).max(180),
     startsAt: z.number().int().positive(),
     endsAt: z.number().int().positive(),
-    language: localeSchema,
+    languages: eventLanguagesSchema,
   })
   .strict()
   .superRefine(addScheduleIssues);
@@ -143,7 +145,7 @@ export const eventUpdateSchema = z
     longitude: z.number().finite().min(-180).max(180).optional(),
     startsAt: z.number().int().positive(),
     endsAt: z.number().int().positive(),
-    language: localeSchema,
+    languages: eventLanguagesSchema,
   })
   .strict()
   .superRefine(addUpdateIssues);
@@ -163,6 +165,7 @@ export const publicEventDiscoverySchema = z.strictObject({
   endsAt: z.string().datetime({ offset: true }).nullable(),
   timezone: z.string().trim().min(1).max(64),
   language: localeSchema,
+  languages: eventLanguagesSchema,
   organizer: z
     .strictObject({ name: z.string().trim().min(1).max(80) })
     .nullable(),

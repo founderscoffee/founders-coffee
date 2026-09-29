@@ -24,6 +24,7 @@ describe('public event feed resolver', () => {
       city: 'algiers',
       cityName: 'Algiers',
       language: 'fr',
+      languages: ['fr'],
       timezone: 'Africa/Algiers',
       organizer: { name: 'Resolve Host' },
       status: 'published',

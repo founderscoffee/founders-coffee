@@ -8,55 +8,14 @@ import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 import { createAuth } from './auth.js';
+import { authEnv, post, SESSION_COOKIE, signIn } from './auth.fixtures.js';
 import { getSession, requireRole } from './middleware.js';
-import { DevEmailProvider } from './providers/email.js';
+import {
+  DevEmailProvider,
+  type EmailProvider,
+  type OtpRequestContext,
+} from './providers/email.js';
 import { sessionTokenFromCookie } from './session-cookie.js';
-
-const authEnv = {
-  DB: env.DB,
-  BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,
-  APP_URL: env.APP_URL,
-  TURNSTILE_DISABLED: 'true',
-};
-
-const base = `${env.APP_URL}/api/auth`;
-
-const post = (path: string, body: unknown, cookie?: string): Request => {
-  const headers: Record<string, string> = {
-    'content-type': 'application/json',
-    origin: env.APP_URL,
-  };
-  if (cookie) headers.cookie = cookie;
-  return new Request(`${base}${path}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
-};
-
-const SESSION_COOKIE = '__Secure-better-auth.session_token';
-
-const signIn = async (email: string) => {
-  const emailProvider = new DevEmailProvider();
-  const { auth } = createAuth(authEnv, { emailProvider });
-  await auth.handler(
-    post('/email-otp/send-verification-otp', { email, type: 'sign-in' }),
-  );
-  const response = await auth.handler(
-    post('/sign-in/email-otp', {
-      email,
-      otp: emailProvider.sent[0]?.otp ?? '',
-    }),
-  );
-  const setCookies = response.headers.getSetCookie();
-  return {
-    auth,
-    response,
-    browserCookie: setCookies.map((line) => line.split(';')[0]).join('; '),
-    sessionCookie:
-      setCookies.find((line) => line.startsWith(`${SESSION_COOKIE}=`)) ?? '',
-  };
-};
 
 describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflare)', () => {
   it('auto-registers, verifies the email, and opens a session on OTP sign-in', async () => {
@@ -108,7 +67,7 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     );
     expect(session?.user.email).toBe(email);
     expect(session?.user.role).toBe('member');
-    expect(session?.user.name).toBe('');
+    expect(session?.user.name).toBe('Founder');
     for (const key of ['homeMarketCode', 'homeState', 'homeCityId']) {
       expect(session?.user).not.toHaveProperty(key);
     }
@@ -128,13 +87,34 @@ describe('libs/auth — passwordless email-OTP + phone-OTP (real D1 via Miniflar
     expect(
       (await getSession(auth, new Headers({ cookie: sessionCookie })))?.user
         .name,
-    ).toBe('');
+    ).toBe('Founder');
     await expect(
       auth.api.updateUser({
         body: { name: 'Bypassed' },
         headers: new Headers({ cookie: sessionCookie }),
       }),
     ).rejects.toMatchObject({ status: 'FORBIDDEN' });
+  });
+
+  it('forwards the OTP request headers to the email provider', async () => {
+    let observed: OtpRequestContext | undefined;
+    const emailProvider: EmailProvider = {
+      sendOtp: (_args, context) => {
+        observed = context;
+      },
+    };
+    const { auth } = createAuth(authEnv, { emailProvider });
+
+    const response = await auth.handler(
+      post(
+        '/email-otp/send-verification-otp',
+        { email: 'locale@example.dz', type: 'sign-in' },
+        'PARAGLIDE_LOCALE=fr',
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(observed?.headers?.get('cookie')).toBe('PARAGLIDE_LOCALE=fr');
   });
 
   it('sets the one session cookie sessionTokenFromCookie reads, over plain HTTP too', async () => {

@@ -51,6 +51,7 @@ export interface PersistedEvent {
   readonly starts_at: number;
   readonly ends_at: number | null;
   readonly language: string;
+  readonly languages: string;
   readonly market_code: string;
   readonly state_code: string;
   readonly city_code: string;

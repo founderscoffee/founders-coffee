@@ -40,7 +40,7 @@ export const NoMatchingMeetups = ({
           action={
             <button
               type="button"
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
               onClick={onRetry}
             >
               {retry({}, { locale })}
@@ -56,7 +56,11 @@ export const NoMatchingMeetups = ({
     <EmptyState
       title={no_filter_match({}, { locale })}
       action={
-        <button type="button" className="btn btn-outline" onClick={onClear}>
+        <button
+          type="button"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          onClick={onClear}
+        >
           {clear_city_filters({}, { locale })}
         </button>
       }

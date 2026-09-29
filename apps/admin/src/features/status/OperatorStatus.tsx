@@ -58,7 +58,7 @@ export const OperatorStatus = ({
       </section>
 
       <button
-        className="btn btn-outline btn-sm"
+        className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
         type="button"
         onClick={() => {
           void authClient

@@ -4,6 +4,7 @@ import type { Db, Event } from '@founders-coffee/db';
 
 import { scheduleTelegramGroup } from './notices.js';
 import {
+  BOT_USERNAME,
   connectMeetup,
   payloadOf,
   pendingKeys,
@@ -31,7 +32,7 @@ describe('Telegram group notices (real D1 via Miniflare)', () => {
     const event = await connected();
     const now = new Date();
 
-    await scheduleTelegramGroup(db, event, now);
+    await scheduleTelegramGroup(db, event, BOT_USERNAME, now);
 
     const rows = await telegramRows(db, event.id);
     expect(rows.map((row) => [row.templateKey, row.sendAt.getTime()])).toEqual([
@@ -52,7 +53,7 @@ describe('Telegram group notices (real D1 via Miniflare)', () => {
   it('writes the posts in the meetup language, whatever the host reads in', async () => {
     const event = await connected({ language: 'ar' });
 
-    await scheduleTelegramGroup(db, event);
+    await scheduleTelegramGroup(db, event, BOT_USERNAME);
 
     const [details, reminder] = await telegramRows(db, event.id);
     expect(payloadOf(details).locale).toBe('ar');
@@ -65,7 +66,7 @@ describe('Telegram group notices (real D1 via Miniflare)', () => {
   it('names the venue once when the address adds nothing', async () => {
     const event = await connected({ venueAddress: null });
 
-    await scheduleTelegramGroup(db, event);
+    await scheduleTelegramGroup(db, event, BOT_USERNAME);
 
     const [details] = await telegramRows(db, event.id);
     expect(payloadOf(details).telegramPinnedText).toContain(
@@ -80,7 +81,7 @@ describe('Telegram group notices (real D1 via Miniflare)', () => {
       endsAt: new Date(soon.getTime() + 2 * HOUR_MS),
     });
 
-    await scheduleTelegramGroup(db, event);
+    await scheduleTelegramGroup(db, event, BOT_USERNAME);
 
     expect(await pendingKeys(db, event.id)).toEqual([
       'telegram_details',
@@ -91,7 +92,7 @@ describe('Telegram group notices (real D1 via Miniflare)', () => {
   it('links the goodbye to the city, where the next meetups are', async () => {
     const event = await connected();
 
-    await scheduleTelegramGroup(db, event);
+    await scheduleTelegramGroup(db, event, BOT_USERNAME);
 
     const wrapUp = (await telegramRows(db, event.id)).find(
       (row) => row.templateKey === 'telegram_wrap_up',

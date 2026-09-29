@@ -21,6 +21,7 @@ import {
   valuesFor,
   type NotificationPayload,
 } from '../notifications/producer.js';
+import { telegramBotHandle } from './config.js';
 
 export interface TelegramValues {
   readonly locale: Locale;
@@ -112,6 +113,15 @@ export const telegramCancelledText = (
 export const telegramCancelledPinnedText = (values: TelegramValues): string =>
   ntf_telegram_cancelled_pinned(values, on(values));
 
-/** The last post: thanks, whose group it is now, and where the next meetups are. */
-export const telegramWrapUpText = (values: TelegramValues): string =>
-  ntf_telegram_wrap_up({ ...values, url: values.cityUrl }, on(values));
+/**
+ * The last post: thanks, whose group it is now, and where the next meetups are. It names the bot
+ * that is leaving, by the handle members can look it up by.
+ */
+export const telegramWrapUpText = (
+  values: TelegramValues,
+  botUsername: string,
+): string =>
+  ntf_telegram_wrap_up(
+    { ...values, url: values.cityUrl, bot: telegramBotHandle(botUsername) },
+    on(values),
+  );

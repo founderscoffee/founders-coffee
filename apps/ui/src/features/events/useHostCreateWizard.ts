@@ -24,7 +24,7 @@ import {
   type HostCreateFieldErrors,
 } from './host-create-validation';
 import type { RepeatEventTemplate } from './api';
-import type { VenueArea, VenueSelection } from './types';
+import type { MeetupLanguage, VenueArea, VenueSelection } from './types';
 import { useHostPublish } from './useHostPublish';
 import { useAuth } from '../../lib/app-providers';
 import { hasProfileName } from '../profile/name-validation';
@@ -64,7 +64,7 @@ export const useHostCreateWizard = ({
     setEndsAt,
     setTitle,
     setDescription,
-    setLanguage,
+    setChosenLanguages,
   } = useHostCreateDraftState({
     locale,
     marketCode: market.code,
@@ -72,6 +72,9 @@ export const useHostCreateWizard = ({
   });
   const { step, venue, venueName, startsAt, endsAt, title, description } =
     draft;
+  const languages: readonly MeetupLanguage[] = draft.chosenLanguages ?? [
+    locale,
+  ];
   const {
     publishing,
     publishError,
@@ -137,7 +140,7 @@ export const useHostCreateWizard = ({
         ? validateVenueStep(venue, venueName, locale)
         : step === 2
           ? validateScheduleStep(startsAt, endsAt, locale)
-          : validateDetailsStep({ title, description }, locale);
+          : validateDetailsStep({ title, description, languages }, locale);
     setFieldErrors(errors);
     const first = firstInvalidField(errors);
     if (first) focusInvalidField(first);
@@ -150,7 +153,7 @@ export const useHostCreateWizard = ({
       cityCode: city?.code,
       title,
       description,
-      language: draft.language,
+      languages: [...languages],
       venueName,
       venueProviderId: venue.providerId,
       venueAddress: venue.address,
@@ -190,7 +193,7 @@ export const useHostCreateWizard = ({
     setStep(target);
   };
   const prev = () => goToStep(Math.max(1, step - 1));
-  const stepCopy = hostCreateStepCopy(locale, venueArea);
+  const stepCopy = hostCreateStepCopy(locale);
   const schedule = hostScheduleSummary(
     startsAt,
     endsAt,
@@ -225,7 +228,11 @@ export const useHostCreateWizard = ({
       setVenueName(value);
       setFieldErrors((current) => ({ ...current, venueName: undefined }));
     },
-    setLanguage,
+    languages,
+    setLanguages: (value: MeetupLanguage[]) => {
+      setChosenLanguages(value);
+      setFieldErrors((current) => ({ ...current, languages: undefined }));
+    },
     setTitle: (value: string) => {
       setTitle(value);
       setFieldErrors((current) => ({ ...current, title: undefined }));
@@ -238,6 +245,8 @@ export const useHostCreateWizard = ({
     setScheduleError,
     selectVenue,
     clearVenue,
+    clearVenueError: () =>
+      setFieldErrors((current) => ({ ...current, venue: undefined })),
     next,
     prev,
   };

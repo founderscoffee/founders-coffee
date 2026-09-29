@@ -111,7 +111,7 @@
   "llms_robots": "Consignes pour les robots",
   "llms_event_feed": "Flux de rencontres lisible par machine",
   "llms_staging": "Cet environnement de staging n'est pas destiné à la découverte publique.",
-  "market_hero_desc": "Nous réunissons les entrepreneurs en {market} pour créer des liens, découvrir des opportunités de partenariat et grandir ensemble autour d’un café.",
+  "market_hero_desc": "Nous réunissons entrepreneurs et fondateurs en {market} autour d’un café convivial pour tisser de vrais liens, échanger et grandir en s’associant.",
   "hero_tagline": "Un café, un partenariat",
   "hero_subtitle": "Nous réunissons les fondateurs pour créer des liens et grandir ensemble",
   "hero_search_placeholder": "Votre ville…",
@@ -155,7 +155,7 @@
   "hero_empty_cta": "Organiser la première rencontre",
   "hero_search_no_match": "Aucune ville ne correspond à « {query} ».",
   "hero_search_clear": "Désélectionner la ville",
-  "hero_waitlist_prompt": "Prévenez-moi au lancement",
+  "hero_waitlist_prompt": "Prévenez-moi de la prochaine",
   "hero_waitlist_submit": "Notifiez-moi",
   "hero_waitlist_submitting": "Inscription…",
   "hero_waitlist_success": [
@@ -167,15 +167,15 @@
       ],
       "selectors": ["cityArticle"],
       "match": {
-        "cityArticle=le": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre au {cityAfterArticle}.",
-        "cityArticle=les": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre aux {cityAfterArticle}.",
-        "cityArticle=*": "Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre à {city}."
+        "cityArticle=le": "Vous êtes sur la liste ! Nous vous préviendrons dès que la prochaine rencontre au {cityAfterArticle} sera publiée.",
+        "cityArticle=les": "Vous êtes sur la liste ! Nous vous préviendrons dès que la prochaine rencontre aux {cityAfterArticle} sera publiée.",
+        "cityArticle=*": "Vous êtes sur la liste ! Nous vous préviendrons dès que la prochaine rencontre à {city} sera publiée."
       }
     }
   ],
   "hero_waitlist_already": "Vous êtes déjà sur la liste d’attente pour {city} !",
   "hero_waitlist_invalid_email": "Veuillez entrer un email valide",
-  "host_in_your_city": "Hébergez dans votre ville",
+  "host_in_your_city": "Organisez une rencontre",
   "cities_in": "Partenariats et rencontres qui commencent maintenant dans les villes d’{market}",
   "market_cities": "Villes",
   "going_count": [
@@ -278,8 +278,16 @@
   "login_resend": "Renvoyer le code",
   "login_resend_in": "Renvoyer dans",
   "login_change_email": "Utiliser une autre adresse",
+  "email_otp_preview": "Code de vérification : {code}",
+  "email_otp_greeting": "Bienvenue",
+  "email_otp_code_label": "Utilisez ce code pour continuer.",
+  "email_otp_expiry": "Il expire dans 30 minutes.",
+  "email_otp_subject_sign_in": "Founders Coffee - votre code de connexion",
+  "email_otp_subject_email_verification": "Founders Coffee - confirmez votre e-mail",
+  "email_otp_subject_forget_password": "Founders Coffee - votre code de réinitialisation",
+  "email_otp_subject_change_email": "Founders Coffee - confirmez votre nouvel e-mail",
   "oauth_continue": "Continuer avec {provider}",
-  "footer_tagline": "Rencontrez des entrepreneurs et des investisseurs en {market} lors de rencontres locales.",
+  "footer_tagline": "Nous réunissons entrepreneurs et fondateurs en {market} autour d’un café convivial pour tisser de vrais liens, échanger et grandir en s’associant.",
   "footer_participate": "Participer",
   "footer_report": "Signaler un problème",
   "footer_company": "Entreprise",
@@ -295,11 +303,11 @@
   "footer_community": "Communauté",
   "footer_organizers": "Organisateurs",
   "footer_legal_info": "Mentions légales",
-  "page_arabic_source_notice": "Ce document est disponible en arabe, qui fait foi. Pour toute question : {email}",
   "footer_cta": "Trouver une rencontre",
   "footer_cta_host": "Organiser une rencontre",
   "page_last_updated": "Dernière mise à jour {date}",
   "page_on_this_page": "Contenu de la page",
+  "page_related": "Liens associés",
   "contact_email_cta": "Écrire à {address}",
   "contact_copy_email": "Copier l’adresse e-mail",
   "contact_copied_email": "Adresse e-mail copiée",
@@ -371,23 +379,7 @@
   "host_title_constraints": "Le titre doit compter entre {min} et {max} caractères.",
   "host_desc_constraints": "La description doit compter entre {min} et {max} caractères.",
   "host_character_count": "{current} caractères sur {max}",
-  "host_step1_helper": [
-    {
-      "declarations": [
-        "input city",
-        "input cityArticle",
-        "input cityAfterArticle"
-      ],
-      "selectors": ["cityArticle"],
-      "match": {
-        "cityArticle=le": "Choisissez parmi les cafés et espaces de coworking au {cityAfterArticle}.",
-        "cityArticle=les": "Choisissez parmi les cafés et espaces de coworking aux {cityAfterArticle}.",
-        "cityArticle=*": "Choisissez parmi les cafés et espaces de coworking à {city}."
-      }
-    }
-  ],
-  "host_step1_helper_market": "Choisissez parmi les cafés et espaces de coworking en {market}.",
-  "host_selected_location": "Emplacement sélectionné",
+  "host_selected_location": "Lieu sélectionné",
   "host_locate_me": "Me localiser",
   "host_title_ph": "Café et discussion d'idée de projet",
   "host_desc_ph": "Parlons seulement de tarification et de premiers clients, sans slides.",
@@ -397,8 +389,8 @@
   "host_time_nonexistent": "Cette heure locale n’existe pas en raison du changement d’heure dans ce pays. Choisissez une autre heure.",
   "host_time_zone_error": "Le fuseau horaire de ce pays est indisponible. Réessayez plus tard.",
   "host_login_required": "Connectez-vous ou créez un compte pour publier. Votre brouillon restera sur cet appareil.",
-  "host_continue_login": "Continuer pour se connecter",
-  "host_confirm_publish": "Confirmer et publier la rencontre",
+  "host_continue_login": "Se connecter",
+  "host_confirm_publish": "Publier",
   "host_publishing": "Publication…",
   "host_time_ok": "Valider",
   "host_time_cancel": "Annuler",
@@ -415,13 +407,13 @@
       ],
       "selectors": ["cityArticle"],
       "match": {
-        "cityArticle=le": "Rechercher un café ou un espace de coworking au {cityAfterArticle}…",
-        "cityArticle=les": "Rechercher un café ou un espace de coworking aux {cityAfterArticle}…",
-        "cityArticle=*": "Rechercher un café ou un espace de coworking à {city}…"
+        "cityArticle=le": "Café ou coworking au {cityAfterArticle}…",
+        "cityArticle=les": "Café ou coworking aux {cityAfterArticle}…",
+        "cityArticle=*": "Café ou coworking à {city}…"
       }
     }
   ],
-  "host_venue_search_ph_market": "Rechercher un café ou un espace de coworking en {market}…",
+  "host_venue_search_ph_market": "Café ou coworking en {market}…",
   "host_venue_search_label": "Rechercher un café ou un espace de coworking",
   "host_venue_search_loading": "Recherche de lieux…",
   "host_venue_search_error": "Impossible de rechercher des lieux pour le moment.",
@@ -440,8 +432,9 @@
   "host_venue_browse_nearby": "Parcourir les lieux à proximité",
   "host_title_label": "Titre de la rencontre",
   "host_desc_label": "Description de la rencontre",
-  "host_language_label": "Langue",
-  "host_language_hint": "La langue de la conversation, pas celle de l’interface du site.",
+  "host_languages_label": "Langues",
+  "host_languages_hint": "Les langues de la conversation, pas celle de l’interface du site. Vous pouvez en choisir plusieurs.",
+  "host_languages_required": "Choisissez au moins une langue.",
   "event_when": "Quand",
   "event_timezone": "Heure locale d’{market}",
   "event_where": "Où",
@@ -451,6 +444,10 @@
   "rsvp_box_title": "Réservez votre place",
   "rsvp_box_cancelled": "Votre présence",
   "rsvp_box_host": "Votre rencontre",
+  "rsvp_box_closed": "Réservations closes",
+  "rsvp_box_ended": "Cette rencontre est terminée",
+  "rsvp_closed_started": "Cette rencontre a déjà commencé.",
+  "rsvp_error_closed": "Cette rencontre a déjà commencé : les réservations sont closes.",
   "rsvp_cancelled_going": "Vous aviez confirmé votre présence.",
   "rsvp_cancelled_going_help": "Vous n’avez pas besoin d’annuler et vous ne recevrez pas le rappel.",
   "rsvp_cta": "Rejoindre la rencontre",
@@ -481,6 +478,60 @@
   "host_error_market_disabled": "L'organisation de rencontres est suspendue dans cette région pour le moment.",
   "host_error_title_taken": "Une autre rencontre utilise déjà ce titre. Modifiez-le légèrement, puis publiez.",
   "hero_waitlist_error": "Une erreur est survenue. Réessayez.",
+  "ntf_email_waitlist_launch_subject": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle",
+        "input title"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Une rencontre est prévue au {cityAfterArticle} : {title}",
+        "cityArticle=les": "Une rencontre est prévue aux {cityAfterArticle} : {title}",
+        "cityArticle=*": "Une rencontre est prévue à {city} : {title}"
+      }
+    }
+  ],
+  "ntf_email_waitlist_launch_html": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle",
+        "input title",
+        "input date",
+        "input venue",
+        "input url"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "<p>Une rencontre est prévue au <strong>{cityAfterArticle}</strong> : <strong>{title}</strong>, le {date} à {venue}.</p><p><a href=\"{url}\">Voir la rencontre</a></p><p>Vous nous avez demandé de vous prévenir quand une rencontre serait publiée au {cityAfterArticle}. C’est le seul email que nous vous enverrons à ce sujet.</p>",
+        "cityArticle=les": "<p>Une rencontre est prévue aux <strong>{cityAfterArticle}</strong> : <strong>{title}</strong>, le {date} à {venue}.</p><p><a href=\"{url}\">Voir la rencontre</a></p><p>Vous nous avez demandé de vous prévenir quand une rencontre serait publiée aux {cityAfterArticle}. C’est le seul email que nous vous enverrons à ce sujet.</p>",
+        "cityArticle=*": "<p>Une rencontre est prévue à <strong>{city}</strong> : <strong>{title}</strong>, le {date} à {venue}.</p><p><a href=\"{url}\">Voir la rencontre</a></p><p>Vous nous avez demandé de vous prévenir quand une rencontre serait publiée à {city}. C’est le seul email que nous vous enverrons à ce sujet.</p>"
+      }
+    }
+  ],
+  "ntf_email_waitlist_launch_text": [
+    {
+      "declarations": [
+        "input city",
+        "input cityArticle",
+        "input cityAfterArticle",
+        "input title",
+        "input date",
+        "input venue",
+        "input url"
+      ],
+      "selectors": ["cityArticle"],
+      "match": {
+        "cityArticle=le": "Une rencontre est prévue au {cityAfterArticle} : {title}, le {date} à {venue}.\n{url}\n\nVous nous avez demandé de vous prévenir quand une rencontre serait publiée au {cityAfterArticle}. C’est le seul email que nous vous enverrons à ce sujet.",
+        "cityArticle=les": "Une rencontre est prévue aux {cityAfterArticle} : {title}, le {date} à {venue}.\n{url}\n\nVous nous avez demandé de vous prévenir quand une rencontre serait publiée aux {cityAfterArticle}. C’est le seul email que nous vous enverrons à ce sujet.",
+        "cityArticle=*": "Une rencontre est prévue à {city} : {title}, le {date} à {venue}.\n{url}\n\nVous nous avez demandé de vous prévenir quand une rencontre serait publiée à {city}. C’est le seul email que nous vous enverrons à ce sujet."
+      }
+    }
+  ],
   "ntf_sms_confirmation": "Votre présence est confirmée pour {title}, le {date} à {venue}. À bientôt ! {url}",
   "ntf_sms_reminder_72h": "Dans 3 jours : {title}, le {date}. N’oubliez pas ! {url}",
   "ntf_sms_reminder_24h": "Demain : {title} à {venue}. Rendez-vous sur place le {date} ! {url}",
@@ -531,6 +582,7 @@
   "live_not_arrived": "Pas encore arrivé",
   "live_eta_ph": "Dans combien de minutes arrivez-vous ?",
   "nav_host": "Organiser une rencontre",
+  "nav_host_short": "Organiser",
   "load_more": "Afficher plus",
   "load_more_error": "Impossible de charger d’autres rencontres.",
   "host_meetup_here": "Organiser une rencontre ici",
@@ -560,18 +612,19 @@
   "host_step3_short": "Quoi",
   "host_repeat_link": "Organiser une rencontre similaire",
   "host_repeat_notice": "Nous partirons de « {title} ». Vérifiez les détails et choisissez un nouvel horaire avant de publier.",
-  "host_nearby_venues": "Cafés et espaces de coworking à proximité",
+  "host_nearby_venues": "Lieux à proximité",
   "host_venue_selected": "Sélectionné",
+  "host_venue_address": "Adresse",
   "host_venue_ineligible": "ni café ni espace de coworking",
-  "host_or_click_map": "Ou choisissez un lieu sur la carte.",
   "host_pin_hint": "Faites glisser le repère jusqu’à l’entrée du lieu.",
   "host_osm_attribution": "© les contributeurs OpenStreetMap",
-  "host_venue_empty": "Choisissez un lieu sur la carte pour commencer.",
+  "host_venue_empty": "Choisissez un lieu.",
   "cat_venue_cafe": "Café",
   "cat_venue_coworking": "Espace de coworking",
   "cat_venue_restaurant": "Restaurant",
   "host_step_counter": "Étape {current} sur {total}",
-  "host_search_results": "Résultats de recherche",
+  "host_search_results": "Résultats",
+  "host_city_suggestions": "Villes",
   "ntf_sms_event_cancelled": "L’hôte a annulé « {title} » prévu le {date}.",
   "ntf_event_cancelled_title": "Annulé : {title}",
   "ntf_email_event_cancelled_html": "<p>L’hôte a annulé <strong>{title}</strong>, prévu le {date} à {venue}.</p><p>Inutile de vous déplacer.</p><p><a href=\"{url}\">Voir la page de la rencontre</a></p>",
@@ -589,11 +642,11 @@
   "ntf_telegram_relocated": "L’hôte a déplacé « {title} ». C’est maintenant à {place}, et cela commence toujours le {date}.\n{url}",
   "ntf_telegram_cancelled": "L’hôte a annulé « {title} », prévue le {date}. Inutile de vous déplacer.",
   "ntf_telegram_cancelled_pinned": "Rencontre annulée : {title}, prévue le {date}.",
-  "ntf_telegram_wrap_up": "Merci d’être venus à {title} ! Le groupe reste avec l’hôte, et le bot founders.coffee le quitte. Prochaines rencontres de la ville : {url}",
+  "ntf_telegram_wrap_up": "Merci d’être venus à {title} ! Le groupe reste avec l’hôte, et le bot {bot} le quitte. Prochaines rencontres de la ville : {url}",
   "ntf_telegram_connect_not_admin": "Seul un administrateur du groupe peut le relier à « {title} ».",
-  "ntf_telegram_connect_needs_rights": "Pour relier le groupe à « {title} », faites du bot founders.coffee un administrateur pouvant inviter des utilisateurs par lien, les bannir et épingler des messages. Rouvrez ensuite le lien depuis la page de la rencontre.",
+  "ntf_telegram_connect_needs_rights": "Pour relier le groupe à « {title} », faites du bot {bot} un administrateur pouvant inviter des utilisateurs par lien, les bannir et épingler des messages. Rouvrez ensuite le lien depuis la page de la rencontre.",
   "telegram_group_title": "Groupe Telegram",
-  "telegram_host_intro": "Proposez aux participants un groupe Telegram pour échanger avant et après la rencontre. Créez le groupe dans Telegram, puis ajoutez-y le bot founders.coffee depuis cette page.",
+  "telegram_host_intro": "Proposez aux participants un groupe Telegram pour échanger avant et après la rencontre. Créez le groupe dans Telegram, puis ajoutez-y le bot {bot} depuis cette page.",
   "telegram_host_connect": "Relier un groupe Telegram",
   "telegram_host_open": "Ouvrir Telegram",
   "telegram_host_open_help": "Dans Telegram, choisissez votre groupe et confirmez les droits du bot. Ce lien est valable 30 minutes.",
@@ -699,6 +752,7 @@
   "hosted_events": "Rencontres organisées",
   "event_past": "Passée",
   "event_took_place": "A eu lieu",
+  "profile_photo_label": "Photo de profil",
   "profile_photo_card_subtitle": "JPEG, PNG ou WebP, jusqu’à 5 Mo.",
   "profile_photo_choose": "Choisir une photo",
   "profile_photo_replace": "Remplacer la photo",
@@ -866,7 +920,8 @@
   "share_close": "Fermer le partage",
   "calendar_add": "Ajouter à votre agenda",
   "calendar_google": "Google Agenda",
-  "calendar_other": "Apple, Outlook et autres",
+  "calendar_apple": "Calendrier Apple",
+  "calendar_outlook": "Outlook",
   "how_title": "Comment ça marche",
   "how_subtitle": "Cela prend moins d’une minute.",
   "how_step1_title": "Choisissez le lieu et l’heure",

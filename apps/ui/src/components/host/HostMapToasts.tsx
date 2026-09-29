@@ -1,15 +1,19 @@
+import { RefreshCw } from 'lucide-react';
+
 import {
-  retry,
   host_venue_resolving,
+  retry,
+  toast_dismiss,
   type Locale,
 } from '@founders-coffee/i18n';
-import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
+import { LoadingStatus, Toast } from '@founders-coffee/ui';
 
 type HostMapToastsProps = {
   locale: Locale;
   isResolving: boolean;
   error: string | null;
   onRetry?: () => void;
+  onDismiss: () => void;
 };
 
 export const HostMapToasts = ({
@@ -17,6 +21,7 @@ export const HostMapToasts = ({
   isResolving,
   error,
   onRetry,
+  onDismiss,
 }: HostMapToastsProps): React.ReactElement | null => {
   if (!isResolving && !error) return null;
 
@@ -29,23 +34,23 @@ export const HostMapToasts = ({
         />
       )}
       {error && (
-        <StatusMessage
+        <Toast
+          message={error}
           variant="error"
-          className="w-auto shadow-lg"
-          action={
-            onRetry && (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={onRetry}
-              >
-                {retry({}, { locale })}
-              </button>
-            )
-          }
+          dismissLabel={toast_dismiss({}, { locale })}
+          onDismiss={onDismiss}
         >
-          {error}
-        </StatusMessage>
+          {onRetry && (
+            <button
+              type="button"
+              className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0"
+              onClick={onRetry}
+            >
+              <RefreshCw className="size-4" aria-hidden="true" />
+              {retry({}, { locale })}
+            </button>
+          )}
+        </Toast>
       )}
     </div>
   );

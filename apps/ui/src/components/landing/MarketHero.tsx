@@ -31,7 +31,7 @@ import { localizedCity, localizedHostCreate } from '../../lib/locale-routing';
 const EVENTS_ANCHOR = 'market-events';
 
 const CTA_CLASS =
-  'btn btn-primary hidden h-10 min-h-10 shrink-0 rounded-full border-0 px-4 text-body shadow-none sm:inline-flex';
+  'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg hidden shrink-0 rounded-full border-0 shadow-none sm:inline-flex';
 
 const HERO_ART: Record<string, string> = {
   DZ: heroAlgeria,
@@ -118,7 +118,7 @@ export const MarketHero = ({
 
         <div
           role="search"
-          className="hero-search mt-1 flex h-12 w-full max-w-lg items-center rounded-full border border-base-300 bg-base-100 ps-2 pe-1.5 focus-within:border-secondary md:mt-6 md:h-13"
+          className="hero-search mt-1 flex w-full max-w-lg items-center rounded-full border border-base-300 bg-base-100 ps-2 pe-1.5 focus-within:border-secondary sm:py-1 md:mt-6"
         >
           <HeroCitySearch
             marketCode={market.code}

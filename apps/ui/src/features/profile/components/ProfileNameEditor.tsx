@@ -104,7 +104,7 @@ export const ProfileNameEditor = ({
   };
   return (
     <form onSubmit={(event) => void submit(event)} className="space-y-4">
-      <label className="form-control block">
+      <label className="flex flex-col">
         <span className="mb-2 block text-label">
           {profile_name_label({}, { locale })}
         </span>

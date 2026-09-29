@@ -30,6 +30,7 @@ const event: EventFeedItem = {
   startsAt: new Date('2026-09-18T14:00:00Z'),
   endsAt: null,
   language: 'ar',
+  languages: ['ar'],
   rsvps: 0,
   latitude: null,
   longitude: null,
@@ -120,6 +121,25 @@ describe('how many people the card says are going', () => {
   });
 });
 
+describe('the languages the card names', () => {
+  it('names every language the meetup is held in, where the city would go', () => {
+    const view = render(
+      <EventCard
+        event={{ ...event, language: 'ar', languages: ['ar', 'fr'] }}
+        locale="en"
+        timezone="Africa/Algiers"
+        marketSlug="algeria"
+        trailing="language"
+      />,
+    );
+
+    expect(
+      view.container.textContent,
+      'a French speaker scanning a list of Arabic meetups would pass this one by',
+    ).toContain('AR/FR');
+  });
+});
+
 describe('what else the card fits in', () => {
   it('keeps the description to one line', () => {
     const view = show({
@@ -149,6 +169,24 @@ describe('what else the card fits in', () => {
       ).toBeNull();
     },
   );
+});
+
+describe('which way the time range reads', () => {
+  it.each([
+    ['ar', 'rtl'],
+    ['fr', 'ltr'],
+    ['en', 'ltr'],
+  ] as const)('starts where a %s reader starts', (locale, expected) => {
+    const view = show({ endsAt: new Date('2026-09-18T15:00:00Z') }, locale);
+    const range = Array.from(view.container.querySelectorAll('span'))
+      .filter((span) => span.textContent?.includes('\u2013'))
+      .pop();
+
+    expect(
+      range?.getAttribute('dir'),
+      'held left to right on an Arabic card, the start time sat on the left and the range read backwards, unlike the event page, which already says من 18:00 إلى 19:00',
+    ).toBe(expected);
+  });
 });
 
 describe('what the card calls the city', () => {

@@ -18,10 +18,16 @@
     { "binding": "PROFILE_ASSETS", "bucket_name": "profile-assets-test" },
   ],
   "images": { "binding": "IMAGES" },
+  "queues": {
+    "producers": [
+      { "binding": "NOTIFICATIONS", "queue": "founders-coffee-notifications" },
+    ],
+  },
   "vars": {
     "BETTER_AUTH_SECRET": "test-secret-at-least-32-characters-long-aaaaaaaa",
     "APP_URL": "http://localhost",
     "APP_ENVIRONMENT": "development",
     "TURNSTILE_DISABLED": "true",
+    "TELEGRAM_BOT_USERNAME": "FoundersCoffeeBot",
   },
 }

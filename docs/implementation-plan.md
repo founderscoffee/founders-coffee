@@ -92,7 +92,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | Uploads                | R2 + Images                                                  | PF-06 is deployed with private per-environment R2 buckets and the Images transform binding; the buckets are currently empty. Ongoing free-tier usage and cleanup monitoring remain                                                                                                                                                                                               |
 | Product metrics        | Analytics Engine                                             | Binding is active and the `events_created` metric is verified; community-health dashboards and alerts remain planned                                                                                                                                                                                                                                                             |
 | Admin isolation        | Access + in-Worker JWT verification + no `workers.dev`       | Worker guard complete and `workers_dev: false` verified live on staging (the `workers.dev` URL returns 404). `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are unset in staging, so every admin request fails closed with 403 — correct behaviour, but admin is non-functional there until they are configured                                                                     |
-| Telegram groups        | Bot API webhook; posts through the Notifications Queue       | Built on develop, not configured or deployed anywhere. Each environment needs its own bot, its secrets and a registered webhook; see [Telegram groups](#telegram-groups-p1-025)                                                                                                                                                                                                  |
+| Telegram groups        | Bot API webhook; posts through the Notifications Queue       | Deployed to staging and production. Production runs `@FoundersCoffeeBot` since 2026-09-26 (v0.15.0): its username in `vars`, its token and webhook secret as secrets, its webhook registered. Staging has no bot, so the feature is off there; each environment needs its own, see [Telegram groups](#telegram-groups-p1-025)                                                    |
 
 ## 4. Phase P0 — foundation
 
@@ -146,9 +146,79 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-020 | Partial  | Installable PWA                                                      | Manifest/service worker exist; offline, prerender, Lighthouse, and PWA Builder verification remain                                                                                                                                                                                                                                                                                                                                                       |
 | P1-021 | Partial  | End-to-end tests                                                     | EC-09/10 recorded 18/18 locally and on staging across ar/fr/en at 390/768/1280 on 2026-09-03; the authorized production creation smoke was verified on 2026-09-10. CO-11 remains, and E2E stays outside CI.                                                                                                                                                                                                                                              |
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
-| P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                                                                                                 |
+| P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Issue #107 adds the city waitlist launch outbox and localized email path; staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                       |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md)                                                                                                                                                                                                                                  |
-| P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Built on develop, not deployed: migration 0036, the webhook, the queued posts, pins and removals, the host's panel and the member's card. Remaining: review of the privacy-policy draft (0572ecf) and its date; per environment, a bot set up as [Telegram groups](#telegram-groups-p1-025) lists; then staging evidence with a real group, including whether a basic group takes join-request links                                                     |
+| P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0: migration 0036, the webhook, the queued posts, pins and removals, the host's panel, the member's card, and the privacy policy's Telegram section (reviewed 2026-09-26, dated 18 September). On in production since v0.15.0 (`@FoundersCoffeeBot`). Remaining: the [evidence run](#telegram-groups-p1-025) with a real group, on production by decision of 2026-09-26, including whether a basic group takes join-request links    |
+
+### City waitlist notice (#107)
+
+Every published meetup opens a notice round for its market and city while somebody there is still
+waiting, in one conditional insert, so a meetup nobody waits for writes nothing. Rounds are per
+meetup rather than per city because the waitlist form comes back whenever a city has no upcoming
+meetup, and whoever joins then is owed the next one. Each entry receives one notice: a partial unique
+index allows a single pending, in-flight or sent notice per entry, and a notice that fails for good,
+or whose meetup is cancelled first, leaves the entry for the next meetup. An entry already told
+about a meetup that is then cancelled is not told again: the email promises it is the only one, and
+that promise holds (decided 2026-09-27).
+
+The Notifications Queue worker writes a round's notices in chunks under D1's 100-parameter limit,
+claims them in batches of 50, and hands the round back to the queue at once for the next batch or
+after the one- and five-minute back-offs. A notice that may have reached the provider is never
+resent. The message is rendered once per language through the shared notification email helpers
+(market time zone, canonical event URL, French city articles). A meetup cancelled or started before
+its notice goes out withdraws the round, and the fifteen-minute recovery sweep carries any round
+whose message never arrived.
+
+Retention runs in the daily cron: entries notified more than twelve months ago are deleted through
+the partial index on `notified_at`, the narrow indexed sweep AGENTS.md §11.5 allows since #106 was
+decided on 2026-09-27. The migration is `0037_city_waitlist_launches.sql`; Miniflare coverage lives
+in `libs/db/src/waitlist-*.test.ts`, `libs/server-fns/src/events/waitlist-launch.test.ts` and
+`apps/worker-jobs/src/jobs/waitlist-launch*.test.ts`. Deploy `worker-jobs` before `ui`, so the
+consumer knows `waitlist_launch_due` before the first one is sent; the recovery sweep delivers any
+round either way.
+
+### Account closure (#105)
+
+A member closes their account by writing to contact@founders.coffee, as the privacy policy says,
+and the operator follows the [account requests runbook](./account-requests.md): check that the
+request comes from the account's address, then set `account_state = 'closing'` and `closed_at`,
+which takes the profile and the meetups the member hosts out of every public read at once, and
+delete their sessions. Signing in again does not reopen the account; only the operator can, until
+the erasure.
+
+The daily cron carries each closing account through (`libs/server-fns/src/profile/account-closure.ts`).
+It cancels the meetups the member hosts that have not started, through the host's own cancellation
+so everyone going is told, and gives back their seats at other hosts' meetups, which also takes them
+out of those meetups' Telegram groups. A meetup of theirs under way, a Telegram invitation they
+still hold or a Telegram job still queued makes it wait for a later night. Then it deletes their
+photos from R2 and erases the account in one D1 batch (`libs/db/src/account-closure.ts`).
+
+The erasure keeps the `user` row as a tombstone instead of deleting it: no name, phone, photo or
+language, and an address under `.invalid`. Every foreign key that blocked a delete keeps pointing at
+it and nothing cascades, so the host's meetups and every other member's RSVPs, attendance and
+feedback on them stay, as the policy promises. The member's own RSVPs and attendance stay for their
+24 months, and their feedback ratings without the comment. Everything else that was theirs goes,
+including the rows keyed by their address: sign-in codes and waitlist entries. Every statement
+re-checks that the account is still closing, and the tombstone is written last, so an account
+reopened in between is left as it was.
+
+An erased host's published meetups keep their page, their place in attendees' lists, their share
+card and their sitemap entry, with no name and no profile link (`visibleHost` in
+`libs/db/src/profile-access.ts`). Discovery, the host's history and the counts still leave them out,
+and a banned host's meetups stay hidden, erased or not. The job reads closing accounts through the
+partial index `user_closing_index`, twenty a night, the retention-sweep shape AGENTS.md §11.5
+allows. An account still waiting 25 days after closure logs `account_closure_overdue` as an error,
+ahead of the policy's 30 days.
+
+The issue proposed running the erasure from the admin app. It runs from `worker-jobs` instead,
+because the admin app has no mutations, rate limiter or R2 binding yet (CO-08/CO-09). Export
+requests (PF-09) are the runbook's second part: read-only queries and the photo original, sent to
+the account's address. Neither request has a button on the account screen yet. Orders and invoices,
+from the dormant payments work, are not touched by the erasure; that must change before payments
+open. The migration is `0038_account_closure.sql`. Miniflare coverage lives in
+`libs/db/src/account-closure*.test.ts`, `libs/db/src/events.moderation.test.ts`,
+`libs/server-fns/src/profile/account-closure.test.ts` and the daily-run test in
+`apps/worker-jobs/src/index.test.ts`.
 
 ### Public profile (P1-004)
 
@@ -241,18 +311,24 @@ making them. Updates are then posted by hand to `/api/telegram/webhook` with the
 `X-Telegram-Bot-Api-Secret-Token` header: a `/start@<bot> <token>` message from the host's connect
 link, and a `chat_join_request` whose link a member was given.
 
-Not yet known, and part of the staging evidence: whether a basic group accepts the bot's
+Not yet known, and part of the evidence run: whether a basic group accepts the bot's
 join-request links, or Telegram first turns it into a supergroup. The webhook follows a group to its
 new id when it is upgraded, so either way should work, but only a real group will show it.
 
-**Staging run.** This is the evidence P1-025 still owes, run once the four steps above are done on
-staging. It needs two staging accounts, a host and a member; a Telegram account for each, and a
-third for step 4; and a group the host's Telegram account has just created, because a new group
-starts as a basic group. Keep `wrangler tail` open on `founders-coffee-ui-staging` and
-`founders-coffee-worker-jobs-staging`. The first logs `telegram.connect_opened`,
+**Evidence run.** This is the evidence P1-025 still owes. It was to run on staging, under a bot of
+its own; on 2026-09-26 it was decided to run it on production with `@FoundersCoffeeBot` instead, as
+part of the pre-launch audit, so no second bot is needed. It needs two production accounts, a host
+and a member; a Telegram account for each, and a third for step 4; and groups the host's Telegram
+account creates for the run's meetups, because a new group starts as a basic group and everyone in a
+connected group sees the bot's posts. Keep `wrangler tail` open on `founders-coffee-ui-production`
+and `founders-coffee-worker-jobs-production`. The first logs `telegram.connect_opened`,
 `telegram.connected`, `telegram.invite_given`, `telegram.join_request` and `telegram.disconnected`;
 the second logs a `notification.sweep` report for each run. Stop on any `telegram.*` warning and
 find out why.
+
+The run's data stays in production, so its meetups are real ones that take place, joined by real
+members. They are public from the moment they are created: the market and city pages,
+`/events.json`, the sitemap and `llms.txt` list them, and anyone signed in can RSVP.
 
 1. **Meetup.** The host creates one starting about 25 hours ahead. The group's reminder, due a day
    before the start, is queued only if that moment is still ahead when the group connects, so
@@ -277,16 +353,17 @@ find out why.
    last, cancelling the meetup, and the bot posts the cancellation, rewrites the pin and leaves. The
    group has to be a second one, because the bot stays in a chat that another meetup still runs
    through.
-9. **The day after.** A day after the first meetup ends, the bot posts its thanks with the city's
-   next meetups and leaves. Moving that meetup's start forward after step 5 brings this closer.
+9. **The day after.** A day after the first meetup ends, the bot posts its thanks with a link to
+   the city's next meetups and leaves. Moving that meetup's start forward after step 5 brings this
+   closer.
 
 Throughout, `getWebhookInfo` should show no `last_error_message`, and the bot should post in the
-meetup's language, with links to staging. A 403 there would mean something at Cloudflare's edge,
-such as Bot Fight Mode or a WAF rule, is turning Telegram away. The groups' rows can be read from
-`apps/worker-jobs`:
+meetup's language, with links to founders.coffee. A 403 there would mean something at Cloudflare's
+edge, such as Bot Fight Mode or a WAF rule, is turning Telegram away. The groups' rows can be read
+from `apps/worker-jobs`:
 
 ```bash
-wrangler d1 execute founders-coffee-db-staging --remote --env staging \
+wrangler d1 execute founders-coffee-db-production --remote --env production \
   --command "SELECT event_id, status, chat_id, chat_title FROM event_telegram_groups"
 ```
 
@@ -352,8 +429,11 @@ not repeated.
    locales, directions, roles, mobile/desktop surfaces, and recovery paths.
 8. **Finish PWA verification:** complete `P1-020` offline behavior, prerender verification, Lighthouse
    budgets, and PWA Builder checks.
-9. **Complete profile/account work:** finish `PF-04c`, then `PF-09` export, `PF-10` deletion and
-   retention, `PF-11a/PF-11b` CO integration and localized UX, and `PF-12` release evidence.
+9. **Complete profile/account work:** finish `PF-04c`, then `PF-11a/PF-11b` CO integration and
+   localized UX, and `PF-12` release evidence. `PF-09` export and `PF-10` deletion are carried out
+   on request through the [account requests runbook](./account-requests.md) and the nightly
+   erasure (#105); what remains of them is the member-facing request on the account screen, and
+   the retention jobs #106 tracks.
 10. **Complete search-engine operations:** deliver `SEO-12` Search Console/Bing submission, sitemap
     processing, representative URL indexing, and 30-day monitoring; finish full prerender evidence.
 11. **Complete notification controls:** `ND-06` provider-aware, responsive per-category controls and

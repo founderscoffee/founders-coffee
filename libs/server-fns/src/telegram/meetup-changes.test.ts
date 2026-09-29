@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { id } from '@founders-coffee/core';
@@ -14,9 +15,11 @@ import { cancelEventResolver } from '../events/cancel.js';
 import { testMapProvider } from '../events/resolver.fixtures.js';
 import { updateEventResolver } from '../events/update.js';
 import { cancelRsvpResolver } from '../rsvps/resolver.js';
+import { telegramBotUsername } from './config.js';
 import { scheduleTelegramGroup } from './notices.js';
 import {
   attend,
+  BOT_USERNAME,
   connectMeetup,
   HOST_ID,
   MEMBER_IDS,
@@ -39,7 +42,7 @@ describe('what a Telegram group hears as its meetup changes (real D1 via Minifla
   const connected = async (): Promise<{ event: Event; chatId: number }> => {
     const event = await seedMeetup(db);
     const chatId = await connectMeetup(db, event);
-    await scheduleTelegramGroup(db, event);
+    await scheduleTelegramGroup(db, event, BOT_USERNAME);
     return { event, chatId };
   };
 
@@ -54,7 +57,7 @@ describe('what a Telegram group hears as its meetup changes (real D1 via Minifla
         venueName: event.venue,
         startsAt: event.startsAt.getTime(),
         endsAt: event.endsAt?.getTime(),
-        language: event.language,
+        languages: [event.language],
         ...changes,
       }),
     });
@@ -93,6 +96,31 @@ describe('what a Telegram group hears as its meetup changes (real D1 via Minifla
       'telegram_reminder',
       'telegram_wrap_up',
     ]);
+    const goodbye = (await telegramRows(db, event.id)).find(
+      (row) =>
+        row.templateKey === 'telegram_wrap_up' && row.status === 'pending',
+    );
+    expect(payloadOf(goodbye).telegramText).toContain('@FoundersCoffeeBot');
+  });
+
+  it('tells the group nothing of an edit where the deployment names no bot', async () => {
+    const { event } = await connected();
+    const before = await pendingKeys(db, event.id);
+    const configured = Reflect.get(env, 'TELEGRAM_BOT_USERNAME');
+
+    Reflect.deleteProperty(env, 'TELEGRAM_BOT_USERNAME');
+    try {
+      expect(telegramBotUsername()).toBeNull();
+      const result = await edit(event, {
+        startsAt: new Date('2099-01-16T18:00:00Z').getTime(),
+        endsAt: new Date('2099-01-16T20:00:00Z').getTime(),
+      });
+      expect(result.ok).toBe(true);
+    } finally {
+      Reflect.set(env, 'TELEGRAM_BOT_USERNAME', configured);
+    }
+
+    expect(await pendingKeys(db, event.id)).toEqual(before);
   });
 
   it('rewrites the pinned details for an edit no member is told about', async () => {

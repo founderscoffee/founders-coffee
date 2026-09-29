@@ -181,6 +181,7 @@ without rendering or requiring a browser challenge.
 - **Presentational + thin.** Components receive props, call hooks (`hooks.ts`) for data, and dispatch via hooks. They **never** import server functions, DB, Drizzle, or domain internals.
 - **Organized by domain** in `features/<domain>/components/`. Cross-domain shared UI lives in `libs/ui`.
 - **Styling:** Tailwind v4 + DaisyUI. Use design tokens / DaisyUI components; avoid arbitrary inline values where a token exists. RTL-aware (use logical properties — `ps-`/`pe-`/`ms-`/`me-`, not `pl-`/`pr-`).
+- **Control sizes:** every DaisyUI button takes the responsive size up to `lg`, `btn-xs sm:btn-sm md:btn-md lg:btn-lg` (no `xl:btn-xl`), and every field (`input`, `select`, `textarea`, `otp`) is small below `md` and medium from it (`input-sm md:input-md`). Nothing else sets their height, fixed width or font size, or a button's padding; `w-full` and `flex-1` may still fill a layout. `local/daisyui-control-size` enforces it.
 - **Forms:** shared Zod schemas remain the contract. TanStack Form is available for forms that benefit from it; local React state is also acceptable when validation still reuses the shared schema and the component remains thin.
 - **Tables/grids:** TanStack Table. **Long lists:** TanStack Virtual.
 - **Client UI state** (toasts, modals, non-server state): TanStack Store.
@@ -241,6 +242,10 @@ These are non-negotiable platform-specific rules; several correct common mistake
   DO alarm when the event is created or changed; the DO wakes precisely and pushes to the
   `NOTIFICATIONS` queue. Any future timed entity follows the same model if approved. **No global cron
   that scans D1.** A low-frequency cron may exist _only_ as a backstop sweeper for missed alarms.
+- **Retention sweeps are the one approved exception** (#106, decided 2026-09-27): a daily cron may
+  delete rows whose privacy-policy retention has run out, provided it reads only through an index on
+  the expiry column and deletes in bounded batches. The city waitlist sweep in `apps/worker-jobs`
+  is the first; any other retention job takes the same shape.
 - **Durable Object location:** set a **location hint** near the user base (Maghreb/EU) at creation; persist state in `state.storage` and write-through to D1. Reserve DOs for genuine real-time/coordination — prefer atomic D1 SQL for simple counters (e.g., releasing an RSVP: `UPDATE events SET rsvps = rsvps - 1 WHERE id = ? AND rsvps > 0`).
 - **External services go behind provider interfaces.** SMS, email, images, payments: each gets an interface (`SmsProvider`, `EmailProvider`, `ImageProvider`, `PaymentProvider`) with a **dev variant** (`DevSmsProvider` logs the OTP to console; dev image adapter serves raw R2 bytes) and a real variant. Mocking an _external service_ via its interface is allowed; **mocking a Cloudflare binding is not** (use Miniflare).
 - **TanStack Query × throw boundary:** server functions unwrap the domain `Result` _inside the handler_ via `handleResult()` — they **throw** the typed `AppError` on failure, so `useQuery`/`useMutation` enter `error` automatically. The thrown `AppError.code` crosses the wire at runtime (TanStack serializes it; TS types the client error generically — the [#6428] gap — read it via the shared `appErrorCode()` accessor). Do **not** call `handleResult` at the component/hook layer.

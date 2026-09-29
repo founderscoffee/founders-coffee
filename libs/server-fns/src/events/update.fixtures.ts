@@ -109,7 +109,7 @@ export const editOf = (event: Event, overrides: Record<string, unknown> = {}) =>
     venueName: event.venue,
     startsAt: START,
     endsAt: END,
-    language: event.language,
+    languages: [event.language],
     ...overrides,
   });
 

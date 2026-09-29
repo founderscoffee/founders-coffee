@@ -14,9 +14,11 @@ import {
   groupMessage,
   nextChatId,
   openConnect,
+  payloadOf,
   pendingKeys,
   seedMeetup,
   setupDb,
+  telegramRows,
 } from './telegram.fixtures.js';
 
 const member = (
@@ -76,6 +78,10 @@ describe('connecting a Telegram group to a meetup (real D1 via Miniflare)', () =
       'telegram_reminder',
       'telegram_wrap_up',
     ]);
+    const wrapUp = (await telegramRows(db, event.id)).find(
+      (row) => row.templateKey === 'telegram_wrap_up',
+    );
+    expect(payloadOf(wrapUp).telegramText).toContain(`@${BOT_USERNAME}`);
     expect(setup.provider.callsTo('sendMessage')).toEqual([]);
   });
 

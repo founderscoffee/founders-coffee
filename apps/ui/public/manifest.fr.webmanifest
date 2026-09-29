@@ -42,11 +42,11 @@
   "shortcuts": [
     {
       "name": "Organiser une rencontre",
-      "url": "/fr/algeria/host/create"
+      "url": "/fr/host"
     },
     {
       "name": "Trouver une rencontre",
-      "url": "/fr/algeria"
+      "url": "/fr"
     }
   ]
 }

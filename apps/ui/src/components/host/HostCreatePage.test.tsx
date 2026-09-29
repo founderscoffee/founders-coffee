@@ -1,12 +1,14 @@
 import { AppError } from '@founders-coffee/core';
 
 import {
-  fillHostDetails,
   getHostCreateMocks,
-  goToHostDetails,
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import {
+  fillHostDetails,
+  goToHostDetails,
+} from './HostCreatePage.flows.fixtures';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -35,6 +37,24 @@ describe('HostCreatePage EC-07 flow', () => {
     ).toBeTruthy();
   });
 
+  it('says once, where the map should be, that the map could not load', async () => {
+    hostCreateMocks.mapContext.data = undefined;
+    hostCreateMocks.mapContext.isError = true;
+    hostCreateMocks.mapContext.error = new AppError(
+      'map_provider_unavailable',
+      'Map provider request failed',
+    );
+    renderHostCreateWizard();
+
+    expect(
+      await screen.findByText('Could not load the venue map.'),
+    ).toBeTruthy();
+    expect(
+      screen.queryByText('Could not search venues right now.'),
+      'one failed request showed two errors, and the second blamed a search nobody had run (#120)',
+    ).toBeNull();
+  });
+
   it('submits the complete confirmed draft and stays retryable after failure', async () => {
     hostCreateMocks.mutateAsync.mockRejectedValueOnce(
       new Error('creation failed'),
@@ -44,7 +64,7 @@ describe('HostCreatePage EC-07 flow', () => {
     fillHostDetails();
 
     const publish = screen.getByRole('button', {
-      name: 'Confirm and publish the meetup',
+      name: 'Publish',
     }) as HTMLButtonElement;
     expect(publish.disabled).toBe(false);
     fireEvent.click(publish);
@@ -55,7 +75,7 @@ describe('HostCreatePage EC-07 flow', () => {
     expect(hostCreateMocks.mutateAsync).toHaveBeenCalledWith({
       data: {
         event: expect.objectContaining({
-          language: 'en',
+          languages: ['en'],
           venueProviderId: 'poi-cafe',
         }),
       },
@@ -113,9 +133,7 @@ describe('HostCreatePage EC-07 flow', () => {
     fireEvent.change(screen.getByLabelText(/^Meetup description/), {
       target: { value: 'A complete protected meetup for founders.' },
     });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
 
     expect(hostCreateMocks.mutateAsync).not.toHaveBeenCalled();
     expect(
@@ -169,9 +187,7 @@ describe('HostCreatePage EC-07 flow', () => {
         ) as unknown as HTMLInputElement
       ).value,
     ).toBe('Protected meetup');
-    expect(
-      screen.getByRole('button', { name: 'Confirmer et publier la rencontre' }),
-    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Publier' })).toBeTruthy();
   });
 
   it('announces progress and focuses the first invalid field', async () => {
@@ -186,55 +202,5 @@ describe('HostCreatePage EC-07 flow', () => {
     await waitFor(() =>
       expect(document.activeElement?.id).toBe('venue-search'),
     );
-  });
-});
-
-describe('the language a meetup is held in', () => {
-  afterEach(resetHostCreateFixtures);
-
-  it('publishes the language the host chose, not the one they read in', async () => {
-    renderHostCreateWizard('en');
-    await goToHostDetails();
-    fillHostDetails();
-    fireEvent.change(screen.getByLabelText(/^Language/), {
-      target: { value: 'ar' },
-    });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
-    );
-
-    await waitFor(() =>
-      expect(hostCreateMocks.mutateAsync).toHaveBeenCalledOnce(),
-    );
-    expect(hostCreateMocks.mutateAsync).toHaveBeenCalledWith({
-      data: { event: expect.objectContaining({ language: 'ar' }) },
-    });
-  });
-
-  it('offers every language the site speaks', async () => {
-    renderHostCreateWizard('en');
-    await goToHostDetails();
-    const choice = screen.getByLabelText(
-      /^Language/,
-    ) as unknown as HTMLSelectElement;
-    expect([...choice.options].map((option) => option.value)).toEqual([
-      'ar',
-      'en',
-      'fr',
-    ]);
-  });
-
-  it('keeps the choice when the host steps back and forward again', async () => {
-    renderHostCreateWizard('en');
-    await goToHostDetails();
-    fireEvent.change(screen.getByLabelText(/^Language/), {
-      target: { value: 'ar' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(
-      (screen.getByLabelText(/^Language/) as unknown as HTMLSelectElement)
-        .value,
-    ).toBe('ar');
   });
 });

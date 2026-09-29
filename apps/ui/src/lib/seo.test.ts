@@ -15,7 +15,6 @@ import {
 
 describe('canonical URLs', () => {
   it('builds query-free paths for every public route class', () => {
-    expect(canonicalPath({ type: 'root' })).toBe('/');
     expect(canonicalPath({ type: 'market', market: 'algeria' })).toBe(
       '/algeria',
     );
@@ -163,7 +162,9 @@ describe('public page metadata', () => {
         { title: 'Founders Coffee - Algeria' },
         {
           name: 'description',
-          content: expect.stringContaining('We bring entrepreneurs together'),
+          content: expect.stringContaining(
+            'We gather entrepreneurs and founders in Algeria',
+          ),
         },
         { property: 'og:url', content: 'https://founders.coffee/en/algeria' },
         {
@@ -232,6 +233,29 @@ describe('public page metadata', () => {
     });
   });
 
+  it('starts the breadcrumbs at the market, since the bare locale only redirects', () => {
+    const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
+      cityPageHead({
+        locale: 'ar',
+        marketName: 'الجزائر',
+        cityName: 'وهران',
+        isEmpty: false,
+        route: { type: 'city', market: 'algeria', city: 'oran', locale: 'ar' },
+      }),
+    );
+    const trail = JSON.parse(head.scripts[1]?.children ?? '{}') as {
+      itemListElement: { name: string; item: string }[];
+    };
+
+    expect(
+      trail.itemListElement.map(({ name, item }) => [name, item]),
+      'the first crumb named /ar, which answers with a redirect to a market',
+    ).toEqual([
+      ['الجزائر', 'https://founders.coffee/ar/algeria'],
+      ['وهران', 'https://founders.coffee/ar/algeria/oran'],
+    ]);
+  });
+
   it('uses the same builder for company pages', () => {
     const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
       companyPageHead({
@@ -245,17 +269,19 @@ describe('public page metadata', () => {
       name: 'description',
       content: 'A company page with stable copy.',
     });
-    expect(head.meta).toContainEqual({
-      property: 'og:locale:alternate',
-      content: 'ar_DZ',
-    });
+    expect(
+      head.meta.filter(
+        (item) => 'property' in item && item.property === 'og:locale:alternate',
+      ),
+      'HeadContent keeps one meta tag per property, so the root document writes the alternates from the hreflang links instead; one here as well would be drawn twice',
+    ).toEqual([]);
     expect(head.meta).toContainEqual({
       name: 'twitter:image',
       content: 'https://founders.coffee/social/founders-coffee-default.png',
     });
     expect(head.links).toContainEqual({
       rel: 'canonical',
-      href: 'https://founders.coffee/about',
+      href: 'https://founders.coffee/en/about',
     });
   });
 });

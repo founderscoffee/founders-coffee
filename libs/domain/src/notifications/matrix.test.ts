@@ -29,7 +29,10 @@ describe('notification channel matrix', () => {
 
   it.each([
     ['event_cancelled', 'eventUpdatesChannels'],
+    ['event_rescheduled', 'eventUpdatesChannels'],
+    ['event_relocated', 'eventUpdatesChannels'],
     ['event_did_not_happen', 'eventUpdatesChannels'],
+    ['reminder_72h', 'eventRemindersChannels'],
     ['reminder_24h', 'eventRemindersChannels'],
     ['rsvp_received', 'hostRsvpReceivedChannels'],
     ['rsvp_cancelled', 'hostRsvpCancelledChannels'],

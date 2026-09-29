@@ -5,11 +5,21 @@ import { describe, expect, it } from 'vitest';
 
 import {
   listMigrationNames,
+  loadCompatibilityManifest,
   parsePendingMigrations,
   resolveAppliedMigrations,
   validateManifestCoverage,
   validatePendingMigrations,
 } from './migration-compatibility.mjs';
+
+const shippedMigrations = path.join(
+  import.meta.dirname,
+  '..',
+  '..',
+  'libs',
+  'db',
+  'migrations',
+);
 
 describe('migration compatibility checks', () => {
   it('parses pending migration names from Wrangler output', () => {
@@ -94,5 +104,21 @@ describe('migration compatibility checks', () => {
         manifest: {},
       }),
     ).toThrow('missing: 0030_add_interest');
+  });
+
+  it('clears every committed migration the manifest calls compatible', () => {
+    const manifest = loadCompatibilityManifest(
+      path.join(shippedMigrations, 'compatibility.json'),
+    );
+    const compatible = Object.keys(manifest).filter(
+      (name) => manifest[name] === 'compatible',
+    );
+    expect(
+      validatePendingMigrations({
+        pending: compatible,
+        migrationsDirectory: shippedMigrations,
+        manifest,
+      }),
+    ).toEqual({ pending: compatible, compatible: true });
   });
 });

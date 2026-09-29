@@ -48,6 +48,7 @@ describe('public event discovery listing (real D1)', () => {
         'startsAt',
         'endsAt',
         'language',
+        'languages',
         'organizerName',
         'organizerEmail',
         'updatedAt',

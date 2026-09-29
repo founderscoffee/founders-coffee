@@ -6,7 +6,7 @@ vi.mock('@founders-coffee/domain', () => ({
   venues: { getCityVenues: () => snapshot.list },
 }));
 
-const { foldForSearch, searchSnapshotVenues, withoutSnapshotDuplicates } =
+const { searchSnapshotVenues, withoutSnapshotDuplicates } =
   await import('./snapshot-search.js');
 
 const venue = (over: Record<string, unknown> = {}) => ({
@@ -26,24 +26,6 @@ const search = (query: string, list: unknown[] = [venue()]) => {
   snapshot.list = list;
   return searchSnapshotVenues('DZ', '891', query).map((found) => found.name);
 };
-
-describe('folding one spelling out of many', () => {
-  it.each([
-    ['أحمد', 'احمد', 'alef with hamza'],
-    ['آحمد', 'احمد', 'alef with madda'],
-    ['مقهى', 'مقهي', 'alef maqsura'],
-    ['قهوة', 'قهوه', 'taa marbuta'],
-    ['مــقهي', 'مقهي', 'tatweel'],
-    ['Café', 'cafe', 'a French accent'],
-    ['  Two   Words  ', 'two words', 'loose whitespace'],
-  ])('folds %s to %s (%s)', (input, expected) => {
-    expect(foldForSearch(input)).toBe(expected);
-  });
-
-  it('folds the two spellings of the same word to each other', () => {
-    expect(foldForSearch('مقهى')).toBe(foldForSearch('مقهي'));
-  });
-});
 
 describe('searching the venues the market ships with', () => {
   it('finds a venue by the Arabic name it is recorded under', () => {

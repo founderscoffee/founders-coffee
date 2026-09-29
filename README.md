@@ -14,8 +14,8 @@ participation.
 
 ## What works today
 
-In `apps/ui`: market and city discovery; passwordless email-OTP sign-in and the OAuth UI; onboarding
-and public member/host profiles; the anonymous-to-authenticated event creation wizard with Mapbox
+In `apps/ui`: market and city discovery; passwordless email-OTP sign-in and the OAuth UI; public
+member/host profiles; the anonymous-to-authenticated event creation wizard with Mapbox
 venue selection; event listing and detail; RSVP; live attendance over Durable Object WebSockets;
 city waitlists; an installable Serwist PWA; and Arabic, French and English with Arabic-first RTL.
 

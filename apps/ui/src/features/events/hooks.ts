@@ -1,4 +1,5 @@
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -29,7 +30,7 @@ import {
   type VenueSearchInput,
 } from './api';
 
-import { authClient } from '../../lib/auth';
+import { useHydrationSafeSession } from '../../lib/hydration-safe-session';
 
 type UpcomingEventsParams = Parameters<typeof eventsApi.getUpcomingEvents>[0];
 type UpcomingEventsOptions = { initialPage?: EventFeedPage };
@@ -71,9 +72,9 @@ export const useMyJoinedEvents = (
     limit?: number;
   } = {},
 ) => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
-  return useInfiniteQuery({
+  const query = useInfiniteQuery({
     queryKey: ['events', 'joined', userId, params],
     queryFn: ({ pageParam }) => {
       const cursor = pageParam as { startsAt: number; id: string } | undefined;
@@ -91,6 +92,7 @@ export const useMyJoinedEvents = (
     staleTime: 0,
     gcTime: 0,
   });
+  return { ...query, userId, isAuthLoading: auth.isPending };
 };
 
 type HostedEventsOptions = { initialPage?: HostedEventPage };
@@ -182,10 +184,18 @@ export const useInvalidateCreatedEvent = () => {
     );
 };
 
+/**
+ * Where the host wizard's map opens: the city's viewport, or the country's without a city.
+ *
+ * A host who picks another city from the search keeps the last viewport until the next one is in,
+ * so the map moves across to it rather than dropping back to its skeleton, and the search box they
+ * are typing in stays enabled. A first load still has nothing to show, and waits.
+ */
 export const useHostMapContext = (input: HostMapLocationInput) =>
   useQuery<HostMapContext>({
     queryKey: ['events', 'host-map', input],
     queryFn: () => eventsApi.getHostMapContext({ data: input }),
+    placeholderData: keepPreviousData,
     staleTime: 30 * 60_000,
     retry: false,
   });

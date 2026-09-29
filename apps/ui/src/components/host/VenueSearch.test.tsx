@@ -13,7 +13,6 @@ const renderSearch = (over: Record<string, unknown> = {}) =>
       hasResults={false}
       isLoading={false}
       onChange={vi.fn()}
-      onRetry={vi.fn()}
       {...over}
     />,
   );
@@ -51,11 +50,20 @@ describe('the venue search box', () => {
     ).toMatch(/coworking/iu);
   });
 
+  it('says what to look for and where in a few words, the job the removed subtitle did', () => {
+    renderSearch();
+
+    expect(
+      screen.getByRole('combobox').getAttribute('placeholder'),
+      'the placeholder and the subtitle above it said the same sentence twice, and a phone cut both off (#121)',
+    ).toBe('Café or coworking in Constantine…');
+  });
+
   it('searches au Caire in French, where the article of Le Caire merges into à', () => {
     renderSearch({ locale: 'fr', area: { kind: 'city', name: 'Le Caire' } });
 
     expect(screen.getByRole('combobox').getAttribute('placeholder')).toBe(
-      'Rechercher un café ou un espace de coworking au Caire…',
+      'Café ou coworking au Caire…',
     );
   });
 
@@ -65,6 +73,6 @@ describe('the venue search box', () => {
     expect(
       screen.getByRole('combobox').getAttribute('placeholder'),
       'the wizard opened from the navbar put the country where the city goes, "à Égypte"',
-    ).toBe('Rechercher un café ou un espace de coworking en Égypte…');
+    ).toBe('Café ou coworking en Égypte…');
   });
 });

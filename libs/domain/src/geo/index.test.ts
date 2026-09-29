@@ -2,6 +2,9 @@ import { localizedName } from '@founders-coffee/core';
 import { cityInputs, hero_empty_city } from '@founders-coffee/i18n';
 import { describe, expect, it } from 'vitest';
 
+import { DZ_CITIES, DZ_STATES } from './data/dz.js';
+import { EG_CITIES, EG_STATES } from './data/eg.js';
+import { SA_CITIES, SA_STATES } from './data/sa.js';
 import {
   findCity,
   findCityBySlug,
@@ -20,6 +23,19 @@ describe('geo lookups', () => {
       expect(getStates(country).length, country).toBeGreaterThan(0);
     }
   });
+
+  it.each([
+    ['DZ', DZ_STATES, DZ_CITIES],
+    ['EG', EG_STATES, EG_CITIES],
+    ['SA', SA_STATES, SA_CITIES],
+  ] as const)(
+    'puts every %s city in one of its own states, which search shows beside it',
+    (_country, states, cities) => {
+      const codes = new Set(states.map((state) => state.code));
+
+      expect(cities.filter((city) => !codes.has(city.stateCode))).toEqual([]);
+    },
+  );
 
   it('answers an unsupported country with empty results rather than throwing', () => {
     expect(getStates('ZZ')).toEqual([]);
@@ -80,6 +96,36 @@ describe('geo lookups', () => {
   it('matches Arabic names as written', () => {
     const results = searchLocations('DZ', 'الجزائر');
     expect(results.some((r) => r.city.code === ALGIERS.code)).toBe(true);
+  });
+
+  it('writes a Saudi city with its hamza, and finds it spelled that way', () => {
+    expect(findCity('SA', '15')?.nameAr, 'Abha was written ابها').toBe('أبها');
+    expect(
+      searchLocations('SA', 'أبها').some((result) => result.city.code === '15'),
+    ).toBe(true);
+  });
+
+  it('finds a place typed the way Arabic is typed, without the hamza its name is written with', () => {
+    const finds = (country: string, query: string, cityCode: string) =>
+      searchLocations(country, query).some(
+        (result) => result.city.code === cityCode,
+      );
+
+    expect(finds('SA', 'ابها', '15'), 'Abha is written أبها').toBe(true);
+    expect(finds('SA', 'ابو طاقة', '193'), 'written أبو طاقة').toBe(true);
+    expect(finds('DZ', 'الاغواط', '79'), 'written الأغواط').toBe(true);
+    expect(
+      finds('DZ', 'اث منصور', '352'),
+      'written آث  منصور, with a madda and two spaces',
+    ).toBe(true);
+    expect(
+      finds('DZ', 'ميزرانة', '535'),
+      'written ميزرانـــة, stretched with tatweel',
+    ).toBe(true);
+    expect(
+      finds('EG', 'مرسي مطروح', '348'),
+      'written مرسى مطروح, with an alef maqsura',
+    ).toBe(true);
   });
 
   it('names the capital apart from the country and the wilaya that share its word', () => {

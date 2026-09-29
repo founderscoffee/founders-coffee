@@ -11,6 +11,7 @@
   // Miniflare, so those bindings only do real work once deployed.
   "vars": {
     "MAIL_FROM": "no-reply@founders.coffee",
+    "APP_URL": "http://localhost:3000",
   },
   "d1_databases": [
     {
@@ -76,6 +77,7 @@
       "workers_dev": false,
       "vars": {
         "MAIL_FROM": "no-reply@founders.coffee",
+        "APP_URL": "https://staging.founders.coffee",
         "TWILIO_SMS_FROM": "FCoffee",
       },
       "d1_databases": [
@@ -140,6 +142,7 @@
       "workers_dev": false,
       "vars": {
         "MAIL_FROM": "no-reply@founders.coffee",
+        "APP_URL": "https://founders.coffee",
         "TWILIO_SMS_FROM": "FCoffee",
       },
       "d1_databases": [

@@ -27,7 +27,7 @@ const validDraft: HostCreateDraft = {
   endsAt: startsAt + 60 * 60_000,
   title: 'Founder meetup',
   description: 'A complete founder meetup description.',
-  language: 'ar' as const,
+  chosenLanguages: null,
 };
 
 describe('host create validation', () => {
@@ -44,7 +44,11 @@ describe('host create validation', () => {
     ).toEqual({});
     expect(
       validateDetailsStep(
-        { title: validDraft.title, description: validDraft.description },
+        {
+          title: validDraft.title,
+          description: validDraft.description,
+          languages: ['ar'],
+        },
         'en',
       ),
     ).toEqual({});
@@ -68,10 +72,40 @@ describe('host create validation', () => {
       return 1;
     });
 
-    const errors = validateDetailsStep({ title: '', description: '' }, 'en');
+    const errors = validateDetailsStep(
+      { title: '', description: '', languages: ['ar'] },
+      'en',
+    );
     expect(firstInvalidField(errors)).toBe('title');
     focusInvalidField('title');
     expect(document.activeElement).toBe(input);
     expect(input.scrollIntoView).toHaveBeenCalledOnce();
+  });
+
+  it('asks for a language once every one has been taken off, and points at the chips', () => {
+    const group = document.createElement('div');
+    group.id = 'host-languages';
+    group.tabIndex = -1;
+    group.scrollIntoView = vi.fn();
+    document.body.appendChild(group);
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback(0);
+      return 1;
+    });
+
+    const errors = validateDetailsStep(
+      {
+        title: validDraft.title,
+        description: validDraft.description,
+        languages: [],
+      },
+      'en',
+    );
+
+    expect(errors).toEqual({ languages: 'Choose at least one language.' });
+    const field = firstInvalidField(errors);
+    expect(field).toBe('languages');
+    if (field) focusInvalidField(field);
+    expect(document.activeElement).toBe(group);
   });
 });

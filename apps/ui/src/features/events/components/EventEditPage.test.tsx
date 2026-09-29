@@ -14,6 +14,9 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }));
 
+vi.mock('../../geo/hooks', () => ({
+  useCitySuggestions: () => ({ data: [] }),
+}));
 vi.mock('../hooks', () => ({
   useEventById: () => ({
     data: state.event,
@@ -52,6 +55,7 @@ const base = {
   endsAt: new Date('2099-09-20T12:00:00Z'),
   rsvps: 2,
   language: 'en',
+  languages: ['en'],
   latitude: null,
   longitude: null,
   venueAddress: null,
@@ -68,6 +72,9 @@ const base = {
   cityNameAr: 'الجزائر',
   cityNameFr: 'Alger',
   citySlug: 'algiers',
+  stateName: 'Alger',
+  stateNameAr: 'الجزائر',
+  stateNameFr: 'Alger',
 } satisfies EventDetailItem;
 
 const show = (event: EventDetailItem) => {

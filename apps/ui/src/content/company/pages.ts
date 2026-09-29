@@ -6,24 +6,30 @@ import { contactContent } from './contact';
 import { cookiesContent } from './cookies';
 import { faqContent } from './faq';
 import { legalContent } from './legal';
+import { legalEnglish } from './legal-en-legal';
+import { communityEnglish } from './legal-en-community';
+import { cookiesEnglish } from './legal-en-cookies';
+import { organizersEnglish } from './legal-en-organizers';
+import { privacyEnglish } from './legal-en-privacy';
+import { termsEnglish } from './legal-en-terms';
+import { legalFrench } from './legal-fr-legal';
+import { communityFrench } from './legal-fr-community';
+import { cookiesFrench } from './legal-fr-cookies';
+import { organizersFrench } from './legal-fr-organizers';
+import { privacyFrench } from './legal-fr-privacy';
+import { termsFrench } from './legal-fr-terms';
 import { organizersContent } from './organizers';
 import { privacyContent } from './privacy';
 import { termsContent } from './terms';
 import type { CompanyPageContent, RelatedKey } from './types';
 
-export type CompanyPageEntry =
-  | {
-      readonly kind: 'localized';
-      readonly content: Record<Locale, CompanyPageContent>;
-      readonly related: readonly RelatedKey[];
-      readonly emailActions?: boolean;
-      readonly faq?: boolean;
-    }
-  | {
-      readonly kind: 'arabic';
-      readonly content: CompanyPageContent;
-      readonly related: readonly RelatedKey[];
-    };
+export type CompanyPageEntry = {
+  readonly kind: 'localized';
+  readonly content: Record<Locale, CompanyPageContent>;
+  readonly related: readonly RelatedKey[];
+  readonly emailActions?: boolean;
+  readonly faq?: boolean;
+};
 
 export const COMPANY_PAGES = {
   about: {
@@ -44,33 +50,41 @@ export const COMPANY_PAGES = {
     faq: true,
   },
   terms: {
-    kind: 'arabic',
-    content: termsContent,
+    kind: 'localized',
+    content: { ar: termsContent, en: termsEnglish, fr: termsFrench },
     related: ['privacy', 'community', 'organizers'],
   },
   privacy: {
-    kind: 'arabic',
-    content: privacyContent,
+    kind: 'localized',
+    content: { ar: privacyContent, en: privacyEnglish, fr: privacyFrench },
     related: ['cookies', 'terms', 'legal'],
   },
   cookies: {
-    kind: 'arabic',
-    content: cookiesContent,
+    kind: 'localized',
+    content: { ar: cookiesContent, en: cookiesEnglish, fr: cookiesFrench },
     related: ['privacy', 'terms'],
   },
   community: {
-    kind: 'arabic',
-    content: communityContent,
+    kind: 'localized',
+    content: {
+      ar: communityContent,
+      en: communityEnglish,
+      fr: communityFrench,
+    },
     related: ['terms', 'organizers'],
   },
   organizers: {
-    kind: 'arabic',
-    content: organizersContent,
+    kind: 'localized',
+    content: {
+      ar: organizersContent,
+      en: organizersEnglish,
+      fr: organizersFrench,
+    },
     related: ['terms', 'community', 'privacy'],
   },
   legal: {
-    kind: 'arabic',
-    content: legalContent,
+    kind: 'localized',
+    content: { ar: legalContent, en: legalEnglish, fr: legalFrench },
     related: ['terms', 'privacy'],
   },
 } as const satisfies Record<string, CompanyPageEntry>;
@@ -98,22 +112,23 @@ export const companyLinkKey = (target: string): CompanyPageKey | null => {
   return isCompanyPageKey(key) ? key : null;
 };
 
-/** Content for a company page, falling back to the authoritative Arabic text. */
+/** Content for a company page in the requested interface locale. */
 export const companyPageContent = (
   key: CompanyPageKey,
   locale: Locale,
 ): CompanyPageContent => {
   const entry: CompanyPageEntry = COMPANY_PAGES[key];
-  return entry.kind === 'arabic' ? entry.content : entry.content[locale];
+  return entry.content[locale];
 };
 
-export type LegalPageKey = {
-  [K in CompanyPageKey]: (typeof COMPANY_PAGES)[K]['kind'] extends 'arabic'
-    ? K
-    : never;
-}[CompanyPageKey];
+export type LegalPageKey =
+  'terms' | 'privacy' | 'cookies' | 'community' | 'organizers' | 'legal';
 
-/** Routed legal documents, in the order they should be offered to readers. */
-export const LEGAL_PAGE_KEYS = (
-  Object.keys(COMPANY_PAGES) as CompanyPageKey[]
-).filter((key): key is LegalPageKey => COMPANY_PAGES[key].kind === 'arabic');
+export const LEGAL_PAGE_KEYS: readonly LegalPageKey[] = [
+  'terms',
+  'privacy',
+  'cookies',
+  'community',
+  'organizers',
+  'legal',
+];

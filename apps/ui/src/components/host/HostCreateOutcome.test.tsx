@@ -1,10 +1,10 @@
 import {
   CREATED_EVENT,
   getHostCreateMocks,
-  publishHostEvent,
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import { publishHostEvent } from './HostCreatePage.flows.fixtures';
 import { screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -94,7 +94,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
     expect(
       (
         screen.getByRole('button', {
-          name: 'Confirm and publish the meetup',
+          name: 'Publish',
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(false);

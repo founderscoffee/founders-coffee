@@ -20,9 +20,9 @@ export type JoinWaitlistResult = { status: WaitlistJoinOutcome };
 /**
  * Join a city's waitlist. Anonymous demand capture — no session required.
  *
- * The composite UNIQUE(email, city_code) is the idempotency guard: a repeat submission
- * for the same city returns `{ status: 'already_waitlisted' }` rather than an error.
- * The DB layer distinguishes a true UNIQUE violation from other errors.
+ * The composite UNIQUE(email, market_code, city_code) is the idempotency guard: a repeat
+ * submission for the same city and market returns `{ status: 'already_waitlisted' }`, and any
+ * other database failure still throws.
  */
 export const joinWaitlistResolver = async (
   db: Db,

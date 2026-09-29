@@ -92,7 +92,7 @@ export const EventEditPage = ({
             ...(locationPatch(event, current) ?? {}),
             startsAt: current.startsAt,
             endsAt: current.endsAt,
-            language: current.language,
+            languages: current.languages,
           },
         },
       },
@@ -146,7 +146,7 @@ export const EventEditPage = ({
             backLink={
               market ? (
                 <Link
-                  className="btn btn-outline w-fit"
+                  className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
                   {...localizedEvent(locale, market.slug, event.slug)}
                 >
                   <ArrowLeft

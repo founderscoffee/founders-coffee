@@ -9,9 +9,11 @@ import {
   rsvp_cancel,
   rsvp_cancelled_going,
   rsvp_cancelled_going_help,
+  rsvp_closed_started,
   rsvp_confirmed_help,
   rsvp_cta,
   rsvp_error,
+  rsvp_error_closed,
   rsvp_help,
   rsvp_saving,
   type Locale,
@@ -20,6 +22,7 @@ import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
+import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
 import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
@@ -38,7 +41,10 @@ export type RsvpSectionProps = {
   isHost: boolean;
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
+  phase: EventPhase;
 };
+
+type RsvpFailure = { readonly message: string; readonly canRetry: boolean };
 
 export const RsvpSection = ({
   event,
@@ -48,6 +54,7 @@ export const RsvpSection = ({
   isHost,
   live,
   isWindowOpen,
+  phase,
 }: RsvpSectionProps) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -56,15 +63,19 @@ export const RsvpSection = ({
   const cancelRsvp = useCancelRsvp();
   const [isPushPromptOpen, setIsPushPromptOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<RsvpFailure | null>(null);
 
   const isGoing = event.viewerRsvp === 'going';
   const isCancelled = event.status === 'cancelled';
+  const isOpen = phase === 'upcoming';
 
-  const messageFor = (cause: unknown) => {
+  const failureFor = (cause: unknown): RsvpFailure => {
     const code = appErrorCode(cause);
-    if (code === 'already_rsvpd') return rsvp_already({}, { locale });
-    return rsvp_error({}, { locale });
+    if (code === 'rsvp_closed')
+      return { message: rsvp_error_closed({}, { locale }), canRetry: false };
+    if (code === 'already_rsvpd')
+      return { message: rsvp_already({}, { locale }), canRetry: true };
+    return { message: rsvp_error({}, { locale }), canRetry: true };
   };
 
   const handleRsvp = () => {
@@ -83,7 +94,7 @@ export const RsvpSection = ({
           void router.invalidate();
           setIsPushPromptOpen(true);
         },
-        onError: (cause) => setError(messageFor(cause)),
+        onError: (cause) => setError(failureFor(cause)),
       },
     );
   };
@@ -99,7 +110,7 @@ export const RsvpSection = ({
         },
         onError: (cause) => {
           setIsCancelOpen(false);
-          setError(messageFor(cause));
+          setError(failureFor(cause));
         },
       },
     );
@@ -117,6 +128,37 @@ export const RsvpSection = ({
     );
   }
 
+  const offer =
+    phase === 'started' ? (
+      <p className="max-w-prose text-body-sm text-neutral">
+        {rsvp_closed_started({}, { locale })}
+      </p>
+    ) : isOpen ? (
+      <>
+        <p className="max-w-prose text-body-sm text-neutral">
+          {rsvp_help({}, { locale })}
+        </p>
+        <button
+          type="button"
+          className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full sm:w-auto"
+          onClick={handleRsvp}
+          disabled={createRsvp.isPending}
+        >
+          {createRsvp.isPending ? (
+            <>
+              <span
+                className="loading loading-spinner loading-xs"
+                aria-hidden="true"
+              />
+              {rsvp_saving({}, { locale })}
+            </>
+          ) : (
+            rsvp_cta({}, { locale })
+          )}
+        </button>
+      </>
+    ) : null;
+
   return (
     <div className="flex flex-col gap-3">
       {isCancelled ? (
@@ -133,16 +175,20 @@ export const RsvpSection = ({
         ) : null
       ) : isGoing ? (
         <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm w-fit text-neutral"
-            onClick={() => setIsCancelOpen(true)}
-          >
-            {rsvp_cancel({}, { locale })}
-          </button>
-          <p className="text-body-sm text-neutral">
-            {rsvp_confirmed_help({}, { locale })}
-          </p>
+          {isOpen ? (
+            <>
+              <button
+                type="button"
+                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit text-neutral"
+                onClick={() => setIsCancelOpen(true)}
+              >
+                {rsvp_cancel({}, { locale })}
+              </button>
+              <p className="text-body-sm text-neutral">
+                {rsvp_confirmed_help({}, { locale })}
+              </p>
+            </>
+          ) : null}
           {live && isWindowOpen && !live.notAttending && (
             <AttendeeLiveActions
               locale={locale}
@@ -150,53 +196,35 @@ export const RsvpSection = ({
               onRunningLate={live.sendRunningLate}
             />
           )}
-          <AddToCalendar
-            eventId={event.id}
-            startsAt={event.startsAt}
-            locale={locale}
-          />
+          {isOpen ? (
+            <AddToCalendar
+              eventId={event.id}
+              startsAt={event.startsAt}
+              locale={locale}
+            />
+          ) : null}
           <TelegramGroupCard eventId={event.id} locale={locale} />
         </>
       ) : (
-        <>
-          <p className="max-w-prose text-body-sm text-neutral">
-            {rsvp_help({}, { locale })}
-          </p>
-          <button
-            type="button"
-            className="btn btn-secondary btn-lg w-full sm:w-auto"
-            onClick={handleRsvp}
-            disabled={createRsvp.isPending}
-          >
-            {createRsvp.isPending ? (
-              <>
-                <span
-                  className="loading loading-spinner loading-xs"
-                  aria-hidden="true"
-                />
-                {rsvp_saving({}, { locale })}
-              </>
-            ) : (
-              rsvp_cta({}, { locale })
-            )}
-          </button>
-        </>
+        offer
       )}
 
       {error ? (
         <StatusMessage
           variant="error"
           action={
-            <button
-              type="button"
-              className="btn btn-ghost btn-xs"
-              onClick={handleRsvp}
-            >
-              {retry({}, { locale })}
-            </button>
+            error.canRetry ? (
+              <button
+                type="button"
+                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+                onClick={handleRsvp}
+              >
+                {retry({}, { locale })}
+              </button>
+            ) : undefined
           }
         >
-          {error}
+          {error.message}
         </StatusMessage>
       ) : null}
 

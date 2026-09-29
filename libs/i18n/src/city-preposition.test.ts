@@ -12,10 +12,9 @@ import {
   hero_empty_city,
   hero_social_proof,
   hero_waitlist_success,
-  host_step1_helper,
-  host_step1_helper_market,
   host_venue_search_ph,
   host_venue_search_ph_market,
+  ntf_email_waitlist_launch_subject,
 } from './paraglide/messages.js';
 
 type Variant = { readonly match: Readonly<Record<string, string>> };
@@ -56,7 +55,7 @@ const SENTENCES: readonly {
     key: 'hero_waitlist_success',
     render: (city) => hero_waitlist_success(cityInputs(city), FR),
     expected: (at) =>
-      `Vous êtes sur la liste ! Nous vous préviendrons dès la première rencontre ${at}.`,
+      `Vous êtes sur la liste ! Nous vous préviendrons dès que la prochaine rencontre ${at} sera publiée.`,
   },
   {
     key: 'city_empty_title',
@@ -82,15 +81,9 @@ const SENTENCES: readonly {
       `Découvrez les prochaines rencontres d’entrepreneurs et de la communauté ${at}.`,
   },
   {
-    key: 'host_step1_helper',
-    render: (city) => host_step1_helper(cityInputs(city), FR),
-    expected: (at) =>
-      `Choisissez parmi les cafés et espaces de coworking ${at}.`,
-  },
-  {
     key: 'host_venue_search_ph',
     render: (city) => host_venue_search_ph(cityInputs(city), FR),
-    expected: (at) => `Rechercher un café ou un espace de coworking ${at}…`,
+    expected: (at) => `Café ou coworking ${at}…`,
   },
   {
     key: 'back_to_city',
@@ -106,6 +99,15 @@ const SENTENCES: readonly {
       ),
     expected: (at) =>
       `Rejoignez « Café et code », une rencontre Founders Coffee ${at}.`,
+  },
+  {
+    key: 'ntf_email_waitlist_launch_subject',
+    render: (city) =>
+      ntf_email_waitlist_launch_subject(
+        { title: 'Café et code', ...cityInputs(city) },
+        FR,
+      ),
+    expected: (at) => `Une rencontre est prévue ${at} : Café et code`,
   },
 ];
 
@@ -190,17 +192,14 @@ describe('French prepositions in front of a city', () => {
 
 describe('French prepositions in front of a country', () => {
   it('places the venues in the country with en when the host has not picked a city', () => {
-    expect(host_step1_helper_market({ market: 'Égypte' }, FR)).toBe(
-      'Choisissez parmi les cafés et espaces de coworking en Égypte.',
-    );
     expect(host_venue_search_ph_market({ market: 'Algérie' }, FR)).toBe(
-      'Rechercher un café ou un espace de coworking en Algérie…',
+      'Café ou coworking en Algérie…',
     );
     expect(
-      host_step1_helper_market({ market: 'Egypt' }, { locale: 'en' }),
-    ).toBe('Choose from cafés and coworking spaces in Egypt.');
+      host_venue_search_ph_market({ market: 'Egypt' }, { locale: 'en' }),
+    ).toBe('Café or coworking in Egypt…');
     expect(
       host_venue_search_ph_market({ market: 'مصر' }, { locale: 'ar' }),
-    ).toBe('ابحث عن مقهى أو مساحة عمل مشتركة في مصر…');
+    ).toBe('مقهى أو مساحة عمل في مصر…');
   });
 });

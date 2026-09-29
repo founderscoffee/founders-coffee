@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  onboardingRedirectPath,
   pathDestination,
   safeRedirectPath,
   sameOriginPathSchema,
@@ -28,17 +27,6 @@ describe('sameOriginPathSchema', () => {
 
   it('falls back to the site root', () => {
     expect(safeRedirectPath('https://attacker.example')).toBe('/');
-  });
-
-  it('builds a safe onboarding path for a new authenticated user', () => {
-    expect(
-      onboardingRedirectPath('ar', '/algeria/host/create?city=556&state=16'),
-    ).toBe(
-      '/ar/onboarding?redirect=%2Falgeria%2Fhost%2Fcreate%3Fcity%3D556%26state%3D16',
-    );
-    expect(onboardingRedirectPath('ar', '//attacker.example/steal')).toBe(
-      '/ar/onboarding?redirect=%2F',
-    );
   });
 });
 

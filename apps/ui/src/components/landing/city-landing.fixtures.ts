@@ -39,7 +39,7 @@ export const oranByLocale: Record<Locale, string> = {
   en: 'Oran',
 };
 
-/** An upcoming Oran meetup on a Friday in 2099, in English unless told otherwise. */
+/** An upcoming Oran meetup on a Friday in 2099, held only in its language, English unless told otherwise. */
 export const meetup = (
   overrides: Partial<EventFeedItem> = {},
 ): EventFeedItem => ({
@@ -73,4 +73,5 @@ export const meetup = (
   hostName: 'Host Name',
   hostPhotoAssetId: null,
   ...overrides,
+  languages: overrides.languages ?? [overrides.language ?? 'en'],
 });

@@ -32,6 +32,7 @@ const enqueueTimed = async (
   db: Db,
   event: Event,
   values: TelegramValues,
+  botUsername: string,
   now: Date,
 ): Promise<void> => {
   const reminderAt = new Date(event.startsAt.getTime() - DAY_MS);
@@ -48,7 +49,7 @@ const enqueueTimed = async (
     values,
     templateKey: 'telegram_wrap_up',
     sendAt: telegramWrapUpAt(event),
-    content: { telegramText: telegramWrapUpText(values) },
+    content: { telegramText: telegramWrapUpText(values, botUsername) },
   });
 };
 
@@ -62,6 +63,7 @@ const enqueueTimed = async (
 export const scheduleTelegramGroup = async (
   db: Db,
   event: Event,
+  botUsername: string,
   now: Date = new Date(),
 ): Promise<void> => {
   const values = await telegramValuesFor(db, event);
@@ -72,7 +74,7 @@ export const scheduleTelegramGroup = async (
     sendAt: now,
     content: { telegramPinnedText: telegramDetailsText(values) },
   });
-  await enqueueTimed(db, event, values, now);
+  await enqueueTimed(db, event, values, botUsername, now);
   await armNotificationSchedule(event.id, now);
 };
 
@@ -98,6 +100,7 @@ export const announceTelegramUpdate = async (
     before: Event;
     after: Event;
     notice: 'event_rescheduled' | 'event_relocated' | null;
+    botUsername: string;
   },
   now: Date = new Date(),
 ): Promise<void> => {
@@ -112,7 +115,7 @@ export const announceTelegramUpdate = async (
       eventId: opts.after.id,
       templateKeys: RETIMED,
     });
-    await enqueueTimed(db, opts.after, values, now);
+    await enqueueTimed(db, opts.after, values, opts.botUsername, now);
   }
 
   const pinned = { telegramPinnedText: telegramDetailsText(values) };

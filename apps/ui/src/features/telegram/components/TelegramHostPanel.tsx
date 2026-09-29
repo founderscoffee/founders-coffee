@@ -9,7 +9,6 @@ import {
   telegram_host_disconnect,
   telegram_host_disconnect_confirm,
   telegram_host_disconnect_keep,
-  telegram_host_intro,
   telegram_host_new_link,
   telegram_host_open,
   telegram_host_open_help,
@@ -18,10 +17,12 @@ import {
 } from '@founders-coffee/i18n';
 import { StatusMessage } from '@founders-coffee/ui';
 
+import { TelegramMark } from '../../../components/BrandMarks';
 import type { TelegramConnectLink, TelegramGroupView } from '../api';
 import { telegramErrorFor } from '../errors';
 import { useConnectTelegramGroup, useDisconnectTelegramGroup } from '../hooks';
 import { useFocusWhenShown } from '../useFocusWhenShown';
+import { TelegramBotIntro } from './TelegramBotIntro';
 
 type TelegramHostPanelProps = {
   eventId: string;
@@ -73,7 +74,7 @@ export const TelegramHostPanel = ({
   const withdrawButton = (
     <button
       type="button"
-      className="btn btn-ghost btn-sm"
+      className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
       onClick={letGo}
       disabled={disconnect.isPending}
     >
@@ -112,7 +113,7 @@ export const TelegramHostPanel = ({
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  className="btn btn-error btn-sm"
+                  className="btn btn-error btn-xs sm:btn-sm md:btn-md lg:btn-lg"
                   onClick={letGo}
                   disabled={disconnect.isPending}
                 >
@@ -120,7 +121,7 @@ export const TelegramHostPanel = ({
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost btn-sm"
+                  className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
                   data-focus="keep"
                   onClick={() => {
                     setIsConfirming(false);
@@ -134,7 +135,7 @@ export const TelegramHostPanel = ({
           ) : (
             <button
               type="button"
-              className="btn btn-ghost btn-sm w-fit text-error"
+              className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit text-error"
               data-focus="disconnect"
               onClick={() => {
                 setIsConfirming(true);
@@ -152,7 +153,7 @@ export const TelegramHostPanel = ({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <a
-              className="btn btn-secondary btn-sm"
+              className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
               data-focus="open"
               href={link.connectLink}
               target="_blank"
@@ -171,7 +172,7 @@ export const TelegramHostPanel = ({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
               onClick={openLink}
               disabled={connect.isPending}
             >
@@ -182,16 +183,15 @@ export const TelegramHostPanel = ({
         </>
       ) : (
         <>
-          <p className="text-body-sm text-neutral">
-            {telegram_host_intro({}, { locale })}
-          </p>
+          <TelegramBotIntro locale={locale} botHandle={view.botHandle} />
           <button
             type="button"
-            className="btn btn-outline btn-sm w-fit"
+            className="btn btn-outline btn-xs gap-2 sm:btn-sm md:btn-md lg:btn-lg w-fit"
             data-focus="connect"
             onClick={openLink}
             disabled={connect.isPending}
           >
+            <TelegramMark />
             {telegram_host_connect({}, { locale })}
           </button>
         </>

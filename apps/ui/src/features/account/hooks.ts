@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { Locale } from '@founders-coffee/i18n';
 
-import { authClient } from '../../lib/auth';
+import { useHydrationSafeSession } from '../../lib/hydration-safe-session';
 import { accountApi } from './api';
 
 export const useMyAccount = () => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
   const query = useQuery({
     queryKey: ['account', 'summary', userId],
@@ -20,7 +20,7 @@ export const useMyAccount = () => {
 };
 
 export const useMyDevices = () => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
   return useQuery({
     queryKey: ['account', 'devices', userId],

@@ -11,16 +11,15 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock('../hooks', () => ({
-  useMyJoinedEvents: () => ({ data: { pages: [] } }),
+  useMyJoinedEvents: () => ({
+    data: { pages: [] },
+    userId: 'usr_1',
+    isAuthLoading: false,
+  }),
   useHostedEvents: () => state.hosted,
 }));
 vi.mock('../../operations/hooks', () => ({
   useMyCloseoutStates: () => ({ data: state.closeoutStates }),
-}));
-vi.mock('../../../lib/auth', () => ({
-  authClient: {
-    useSession: () => ({ data: { user: { id: 'usr_1' } }, isPending: false }),
-  },
 }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => (

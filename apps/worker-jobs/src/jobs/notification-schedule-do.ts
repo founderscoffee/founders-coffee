@@ -3,7 +3,7 @@ import { DurableObject } from 'cloudflare:workers';
 import { createDb, nextPendingSendAt } from '@founders-coffee/db';
 import { logger } from '@founders-coffee/observability';
 
-import type { NotificationDueMessage } from './messages.js';
+import type { NotificationDueMessage } from '@founders-coffee/core';
 
 interface ScheduleEnv {
   readonly DB: D1Database;

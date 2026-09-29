@@ -68,7 +68,11 @@ for (const market of MARKETS) {
     const eligible = snapshot.venues.filter((venue) => venue.eligible);
     const ineligible = snapshot.venues.filter((venue) => !venue.eligible);
     snapshot.venues = [...eligible.slice(0, 50), ...ineligible.slice(0, 6)];
-    if (snapshot.venues.length > 0) cities[snapshot.cityCode] = snapshot;
+    /*
+     * A city with no venue mapped still ships. Its centre and bounds are where the host wizard
+     * opens, for the city itself and for any town in its state the map provider cannot place.
+     */
+    cities[snapshot.cityCode] = snapshot;
   }
   const constant = `${market}_CITY_VENUES`;
   writeFileSync(

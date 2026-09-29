@@ -12,9 +12,9 @@ import {
   footer_organizers,
   footer_privacy,
   footer_terms,
-  page_arabic_source_notice,
   page_last_updated,
   page_on_this_page,
+  page_related,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -30,7 +30,6 @@ type CompanyPageProps = {
   content: CompanyPageContent;
   showEmailActions?: boolean;
   related?: readonly RelatedKey[];
-  arabicSource?: boolean;
 };
 
 const RELATED_LINKS = [
@@ -58,12 +57,9 @@ export const CompanyPage = ({
   content,
   showEmailActions = false,
   related = ['privacy', 'terms', 'cookies'],
-  arabicSource = false,
 }: CompanyPageProps) => {
   const [copied, setCopied] = useState(false);
   const showToc = content.sections.length >= 4;
-  const translated = arabicSource && locale !== 'ar';
-  const textLocale: Locale = arabicSource ? 'ar' : locale;
   const sections = content.sections.map((section, index) => ({
     ...section,
     id: section.anchor ?? sectionDomId(section.heading, index),
@@ -80,22 +76,12 @@ export const CompanyPage = ({
   };
 
   return (
-    <article className="mx-auto max-w-xl px-4 py-12 md:py-16">
-      {translated ? (
-        <p
-          role="note"
-          dir="ltr"
-          lang={locale}
-          className="mb-8 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-body-sm leading-6 text-neutral"
-        >
-          {page_arabic_source_notice({ email: CONTACT_EMAIL }, { locale })}
-        </p>
-      ) : null}
-
-      <div
-        dir={arabicSource ? 'rtl' : undefined}
-        lang={arabicSource ? 'ar' : undefined}
-      >
+    <article
+      lang={locale}
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+      className="mx-auto max-w-xl px-4 py-12 md:py-16"
+    >
+      <div>
         <header className="mb-10 border-b border-base-300 pb-8">
           <h1 className="font-display text-h2 font-semibold text-balance md:text-h1">
             {content.title}
@@ -104,17 +90,22 @@ export const CompanyPage = ({
             {content.description}
           </p>
           <p className="mt-4 text-body-sm text-neutral">
-            {page_last_updated(
-              { date: content.updated },
-              { locale: textLocale },
-            )}
+            {page_last_updated({ date: content.updated }, { locale })}
           </p>
+          {content.notice ? (
+            <p
+              role="note"
+              className="mt-4 rounded-xl border border-base-300 bg-base-200 px-4 py-3 text-body-sm leading-7 text-neutral"
+            >
+              {content.notice}
+            </p>
+          ) : null}
 
           {showEmailActions ? (
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
-                className="btn btn-primary btn-sm h-10 gap-2 px-4 font-semibold shadow-none"
+                className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg gap-2 font-semibold shadow-none"
               >
                 <Mail className="size-3.5" aria-hidden="true" />
                 {contact_email_cta({ address: CONTACT_EMAIL }, { locale })}
@@ -122,7 +113,7 @@ export const CompanyPage = ({
               <button
                 type="button"
                 onClick={() => void copyEmail()}
-                className="btn btn-outline btn-sm h-10 gap-2 px-4 font-medium"
+                className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg gap-2 font-medium"
               >
                 {copied ? (
                   <Check className="size-3.5" aria-hidden="true" />
@@ -139,12 +130,10 @@ export const CompanyPage = ({
 
         {showToc ? (
           <nav
-            aria-label={page_on_this_page({}, { locale: textLocale })}
+            aria-label={page_on_this_page({}, { locale })}
             className="mb-10 rounded-2xl border border-base-300 bg-base-200 p-5"
           >
-            <p className="eyebrow">
-              {page_on_this_page({}, { locale: textLocale })}
-            </p>
+            <p className="eyebrow">{page_on_this_page({}, { locale })}</p>
             <ol className="mt-3 grid gap-2 sm:grid-cols-2">
               {sections.map((section, index) => (
                 <li key={section.id}>
@@ -177,7 +166,7 @@ export const CompanyPage = ({
 
       {related.length > 0 ? (
         <nav
-          aria-label="Related"
+          aria-label={page_related({}, { locale })}
           className="mt-14 flex flex-wrap gap-x-5 gap-y-2 border-t border-base-300 pt-6 text-body-sm text-neutral"
         >
           {RELATED_LINKS.filter((item) => related.includes(item.key)).map(

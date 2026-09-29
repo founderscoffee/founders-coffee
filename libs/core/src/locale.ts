@@ -30,24 +30,65 @@ export const localizedName = (named: LocalizedNames, locale: Locale): string =>
   (locale === 'ar' ? named.nameAr : locale === 'fr' ? named.nameFr : null) ??
   named.name;
 
+const COMBINING_MARKS = /\p{M}/gu;
+const TATWEEL = /ـ/gu;
+const ALEF_FORMS = /[آأإٱ]/gu;
+const ALEF = 'ا';
+const ALEF_MAQSURA = /ى/gu;
+const YAA = 'ي';
+const TAA_MARBUTA = /ة/gu;
+const HAA = 'ه';
+const WHITESPACE = /\s+/gu;
+
 /**
- * Whether `query` matches any of the names a place answers to, rather than only the one the
- * reader is being shown.
+ * One spelling of a name, so that two spellings of the same name compare equal.
+ *
+ * Arabic is written with several characters a reader treats as one. `أ`, `إ` and `آ` are all alef;
+ * `ة` is a final `ه` in most hands; `ى` and `ي` are used for each other freely. The short vowels
+ * are optional and usually absent, and tatweel stretches a word without changing it. None of that
+ * is spelling variation the person typing intends, so a search that compares as written answers a
+ * query about `مقهى` with nothing while holding a venue recorded as `مقهي حيدرة`.
+ *
+ * `NFKD` does most of it: decomposing `أ` leaves an alef with a hamza above it, and the hamza is a
+ * combining mark like any French accent, so one pass over `\p{M}` removes both. The rest are
+ * characters in their own right rather than marks, and are folded by hand.
+ *
+ * Lives in core rather than beside the venue search that first needed it because the place search
+ * asks the same question of the geography datasets, whose Arabic names carry a hamza wherever one
+ * is written: two copies would fold differently the first time one of them was taught a new letter.
+ */
+export const foldForSearch = (value: string): string =>
+  value
+    .normalize('NFKD')
+    .replace(COMBINING_MARKS, '')
+    .replace(TATWEEL, '')
+    .replace(ALEF_FORMS, ALEF)
+    .replace(ALEF_MAQSURA, YAA)
+    .replace(TAA_MARBUTA, HAA)
+    .toLowerCase()
+    .replace(WHITESPACE, ' ')
+    .trim();
+
+/**
+ * A test of whether a place answers to `query` under any of the names it carries, rather than
+ * only the one the reader is being shown. It is made once per query because a search puts it to
+ * every place in a market, thousands of them, and the query need only be folded once.
  *
  * Searching a single locale's name is wrong in both directions: a French visitor pastes `Alger`
  * out of a message written in Arabic, and someone reading in Arabic types `Bejaia` off a road
- * sign (FC-28). Latin names compare case-insensitively; Arabic has no case, so `nameAr` is
- * compared as written. Neither is accent-folded, which costs nothing today because a place whose
- * French name carries accents keeps the bare spelling in `name`.
+ * sign (FC-28). Latin names compare case-insensitively and are not accent-folded, which costs
+ * nothing today because a place whose French name carries accents keeps the bare spelling in
+ * `name`. The Arabic name compares through `foldForSearch`, query and name alike, because Arabic
+ * is mostly typed without the hamza the datasets write: `ابها` has to find `أبها`. A query that
+ * folds away to nothing, such as a lone tatweel, is not taken to be inside every Arabic name.
  */
-export const matchesLocalizedName = (
-  named: LocalizedNames,
+export const localizedNameMatcher = (
   query: string,
-): boolean => {
+): ((named: LocalizedNames) => boolean) => {
   const lowered = query.toLowerCase();
-  return (
+  const folded = foldForSearch(query);
+  return (named) =>
     named.name.toLowerCase().includes(lowered) ||
-    (named.nameAr?.includes(query) ?? false) ||
-    (named.nameFr?.toLowerCase().includes(lowered) ?? false)
-  );
+    (folded !== '' && foldForSearch(named.nameAr ?? '').includes(folded)) ||
+    (named.nameFr?.toLowerCase().includes(lowered) ?? false);
 };

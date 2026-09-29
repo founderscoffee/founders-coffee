@@ -4,6 +4,7 @@ import { workerMetrics } from './env.js';
 
 export const CLOSEOUT_INTENT_FAILED_METRIC = 'closeout_intent_failed';
 export const SCHEDULE_ARM_FAILED_METRIC = 'notification_schedule_arm_failed';
+export const WAITLIST_LAUNCH_FAILED_METRIC = 'waitlist_launch_failed';
 
 /**
  * Raise a swallowed failure somewhere a person could be paged from.

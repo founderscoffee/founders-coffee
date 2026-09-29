@@ -4,6 +4,7 @@ import { useRouter } from '@tanstack/react-router';
 import { AppError } from '@founders-coffee/core';
 
 import { authClient } from '../../lib/auth';
+import { useHydrationSafeSession } from '../../lib/hydration-safe-session';
 import { putProfilePhoto } from './photo-upload';
 import {
   profileApi,
@@ -12,7 +13,7 @@ import {
 } from './api';
 
 export const useMyProfile = () => {
-  const auth = authClient.useSession();
+  const auth = useHydrationSafeSession();
   const userId = auth.data?.user.id;
   const query = useQuery({
     queryKey: ['profile', 'owner', userId],
@@ -39,6 +40,7 @@ const useProfileMutation = <TInput>(
 ) => {
   const cache = useQueryClient();
   const router = useRouter();
+  // eslint-disable-next-line no-restricted-properties -- refetched after a save, never rendered.
   const auth = authClient.useSession();
   return useMutation({
     mutationFn,
@@ -77,6 +79,7 @@ export const usePhotoUploadAvailability = () =>
 const useInvalidatePhoto = () => {
   const cache = useQueryClient();
   const router = useRouter();
+  // eslint-disable-next-line no-restricted-properties -- read in the callback, never rendered.
   const auth = authClient.useSession();
   const userId = auth.data?.user.id;
   return async () => {

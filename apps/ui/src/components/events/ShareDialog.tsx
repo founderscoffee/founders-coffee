@@ -69,7 +69,7 @@ export const ShareDialog = ({
           </h2>
           <button
             type="button"
-            className="btn btn-ghost btn-circle btn-sm"
+            className="btn btn-ghost btn-circle btn-xs sm:btn-sm md:btn-md lg:btn-lg"
             onClick={onClose}
             aria-label={share_close({}, { locale })}
           >
@@ -111,19 +111,19 @@ export const ShareDialog = ({
           ))}
         </ul>
 
-        <div className="mt-4 flex items-center gap-2 rounded-full border border-base-300 bg-base-200 p-1.5 ps-3">
+        <div className="mt-4 flex items-center gap-2 rounded-full border border-base-300 bg-base-200 p-1.5">
           <input
             type="text"
             readOnly
             dir="ltr"
             aria-label={share_copy_link({}, { locale })}
-            className="min-w-0 flex-1 truncate bg-transparent text-body-sm text-neutral outline-none"
+            className="input input-sm md:input-md min-w-0 flex-1 truncate border-0 bg-transparent text-neutral shadow-none focus:outline-none"
             value={url}
             onFocus={(event) => event.currentTarget.select()}
           />
           <button
             type="button"
-            className={`btn btn-sm shrink-0 rounded-full ${copied ? 'btn-success' : 'btn-secondary'}`}
+            className={`btn btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0 rounded-full ${copied ? 'btn-success' : 'btn-secondary'}`}
             onClick={() => void copyLink(url).then(setCopied)}
           >
             {copied

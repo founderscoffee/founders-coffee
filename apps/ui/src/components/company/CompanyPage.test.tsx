@@ -1,6 +1,8 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { Locale } from '@founders-coffee/i18n';
+
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
@@ -20,9 +22,24 @@ const page = (
 const show = (content: CompanyPageContent) =>
   render(<CompanyPage locale="en" content={content} related={[]} />).container;
 
+const showRelated = (locale: Locale) =>
+  render(
+    <CompanyPage locale={locale} content={page([])} related={['privacy']} />,
+  ).container;
+
 afterEach(cleanup);
 
 describe('where a company section can be linked to', () => {
+  it.each([
+    ['ar', 'روابط ذات صلة'],
+    ['en', 'Related links'],
+    ['fr', 'Liens associés'],
+  ] as const)('labels related links in %s', (locale, label) => {
+    expect(
+      showRelated(locale).querySelector('nav')?.getAttribute('aria-label'),
+    ).toBe(label);
+  });
+
   it('uses the anchor a section declares', () => {
     const container = show(
       page([
@@ -77,6 +94,36 @@ describe('where a company section can be linked to', () => {
       targets,
       'the contents list is generated from the same ids as the sections, so an anchor that only reached one of the two would scroll nowhere',
     ).toContain('#report');
+  });
+});
+
+describe('where a translated page says which version prevails', () => {
+  const sections = ['Scope', 'Data', 'Rights', 'Contact'].map((heading) => ({
+    heading,
+    blocks: [{ kind: 'text' as const, text: 'Body.' }],
+  }));
+
+  it('puts the notice in the header, above the table of contents', () => {
+    const container = show({
+      ...page(sections),
+      notice: 'If it differs from the Arabic version, the Arabic prevails.',
+    });
+    const notice = container.querySelector('[role="note"]');
+    const contents = container.querySelector('nav');
+    if (!notice || !contents) expect.fail('no notice or no contents list');
+
+    expect(notice.closest('header')).toBeTruthy();
+    expect(
+      notice.compareDocumentPosition(contents) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      'as the first block of the first section the notice rendered below the table of contents, so a reader met the contents list before learning which version is binding',
+    ).toBeTruthy();
+  });
+
+  it('renders no notice on a page that has none', () => {
+    const container = show(page(sections));
+
+    expect(container.querySelector('[role="note"]')).toBeNull();
   });
 });
 

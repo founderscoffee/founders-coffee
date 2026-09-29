@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowUpRight, MapPin } from 'lucide-react';
 
+import { eventLanguages } from '@founders-coffee/core';
 import {
+  direction,
   event_details_title,
   event_host,
   formatDate,
@@ -87,7 +89,10 @@ export const EventCard = ({
             </p>
           ) : null}
           <p className="flex flex-wrap items-start gap-x-2 gap-y-1 text-body-sm text-neutral">
-            <span dir="ltr" className="whitespace-nowrap tabular-nums">
+            <span
+              dir={direction(locale)}
+              className="whitespace-nowrap tabular-nums"
+            >
               {timeRange}
             </span>
             <span aria-hidden="true">·</span>
@@ -100,7 +105,10 @@ export const EventCard = ({
             </span>
             {trailing === 'language' ? (
               <span className="hidden sm:inline">
-                · {event.language.toUpperCase()}
+                ·{' '}
+                {eventLanguages(event)
+                  .map((language) => language.toUpperCase())
+                  .join('/')}
               </span>
             ) : (
               <span dir="auto" className="text-secondary">
@@ -159,7 +167,7 @@ export const EventCard = ({
 
       <Link
         {...detailsHref}
-        className="btn btn-sm btn-outline h-9 min-h-9 w-full shrink-0 self-center whitespace-nowrap px-3 sm:w-auto"
+        className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full shrink-0 self-center whitespace-nowrap sm:w-auto"
       >
         <span>{event_details_title({}, { locale })}</span>
         <ArrowUpRight className="size-4 rtl:rotate-180" aria-hidden="true" />

@@ -1,11 +1,12 @@
+import { stripSearchParams } from '@tanstack/react-router';
 import { z } from 'zod';
-
-import type { Locale } from '@founders-coffee/i18n';
 
 import { withoutLocale } from './locale-routing';
 import { parseSearch } from './search-params';
 
 const REDIRECT_ORIGIN = 'https://founders.coffee';
+
+const HOME = '/';
 
 /**
  * A path this site may send a browser to after authentication.
@@ -42,12 +43,6 @@ export const safeRedirectPath = (value: unknown): string => {
   return parsed.success ? parsed.data : '/';
 };
 
-export const onboardingRedirectPath = (
-  locale: Locale,
-  redirect: unknown,
-): string =>
-  `/${locale}/onboarding?redirect=${encodeURIComponent(safeAuthReturnPath(redirect))}`;
-
 const AUTH_PAGES = ['/login', '/onboarding'];
 
 export const authReturnPathSchema = sameOriginPathSchema.refine((path) => {
@@ -65,6 +60,24 @@ export const safeAuthReturnPath = (value: unknown): string => {
   const parsed = authReturnPathSchema.safeParse(value);
   return parsed.success ? parsed.data : '/';
 };
+
+export const authReturnSearchSchema = z.object({
+  redirect: authReturnPathSchema.catch(HOME).optional().default(HOME),
+});
+
+/**
+ * Keep the default return path out of the address of every screen that reads
+ * `authReturnSearchSchema`.
+ *
+ * `validateSearch` fills in `redirect: '/'` for an address that names none, and the server answers
+ * an address whose query is not the one it would build with a redirect to the one it would. So
+ * `/en/login` answered 307 to `/en/login?redirect=%2F`, and `/login` took two hops to land (#117).
+ * With the default left out, the bare address is already the one the router builds.
+ */
+export const withoutDefaultReturnPath = () =>
+  stripSearchParams<z.output<typeof authReturnSearchSchema>>({
+    redirect: HOME,
+  });
 
 /**
  * A path on this site as the options a navigation is built from, for a redirect to throw.

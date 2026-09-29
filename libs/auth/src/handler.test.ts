@@ -149,7 +149,95 @@ describe('libs/auth handler — captcha gating (real D1 via Miniflare)', () => {
       new Request(`${env.APP_URL}/api/auth/get-session`, { method: 'GET' }),
     );
 
-    expect(res.status).not.toBe(400);
-    expect(res.status).not.toBe(503);
+    expect(res.status).toBe(200);
+  });
+});
+
+const post = (path: string, body: Record<string, unknown>): Request =>
+  new Request(`${env.APP_URL}/api/auth${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+const bypassedEnv: HandlerEnv = { ...baseEnv, TURNSTILE_DISABLED: 'true' };
+
+const registerMember = async (email: string): Promise<void> => {
+  const emailProvider = new DevEmailProvider();
+  const handler = createAuthHandler(bypassedEnv, { emailProvider });
+  await handler(
+    post('/email-otp/send-verification-otp', { email, type: 'sign-in' }),
+  );
+  const otp = emailProvider.sent[0]?.otp;
+  if (!otp) throw new Error('OTP was not sent');
+  const res = await handler(post('/sign-in/email-otp', { email, otp }));
+  if (res.status !== 200) throw new Error(`sign-in failed: ${res.status}`);
+};
+
+describe('libs/auth handler — served routes (real D1 via Miniflare)', () => {
+  it.each(['/email-otp/request-password-reset', '/forget-password/email-otp'])(
+    'answers 404 to %s and mails a member nothing',
+    async (path) => {
+      const email = `reset${path.length}@example.dz`;
+      await registerMember(email);
+      const emailProvider = new DevEmailProvider();
+      const handler = createAuthHandler(bypassedEnv, { emailProvider });
+
+      const res = await handler(post(path, { email }));
+
+      expect(res.status).toBe(404);
+      expect(emailProvider.sent).toHaveLength(0);
+    },
+  );
+
+  it('answers 404 to the admin API', async () => {
+    const handler = createAuthHandler(bypassedEnv);
+
+    const res = await handler(
+      new Request(`${env.APP_URL}/api/auth/admin/list-users`, {
+        method: 'GET',
+      }),
+    );
+
+    expect(res.status).toBe(404);
+  });
+
+  it.each(['forget-password', 'email-verification'])(
+    'refuses to mail a %s code to a member on request from the network',
+    async (type) => {
+      const email = `${type}@example.dz`;
+      await registerMember(email);
+      const emailProvider = new DevEmailProvider();
+      const handler = createAuthHandler(bypassedEnv, { emailProvider });
+
+      const res = await handler(
+        post('/email-otp/send-verification-otp', { email, type }),
+      );
+
+      expect(res.status).toBe(400);
+      expect(emailProvider.sent).toHaveLength(0);
+    },
+  );
+
+  it('still mails the contact-change code from the internal handler', async () => {
+    const email = 'internal-verification@example.dz';
+    await registerMember(email);
+    const emailProvider = new DevEmailProvider();
+    const handler = createAuthHandler(baseEnv, {
+      emailProvider,
+      captchaBypassed: true,
+    });
+
+    const res = await handler(
+      post('/email-otp/send-verification-otp', {
+        email,
+        type: 'email-verification',
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(emailProvider.sent.map((sent) => sent.type)).toEqual([
+      'email-verification',
+    ]);
   });
 });

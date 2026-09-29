@@ -1,9 +1,6 @@
 import { events } from '@founders-coffee/domain';
 import {
-  cityInputs,
   host_step1,
-  host_step1_helper,
-  host_step1_helper_market,
   host_step2,
   host_step2_sub,
   event_when,
@@ -14,9 +11,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
-import type { VenueArea } from './types';
-
-export const hostCreateStepCopy = (locale: Locale, area: VenueArea) => ({
+export const hostCreateStepCopy = (locale: Locale) => ({
   labels: [
     event_where({}, { locale }),
     event_when({}, { locale }),
@@ -28,9 +23,7 @@ export const hostCreateStepCopy = (locale: Locale, area: VenueArea) => ({
     host_step3({}, { locale }),
   ],
   descriptions: [
-    area.kind === 'city'
-      ? host_step1_helper(cityInputs(area.name), { locale })
-      : host_step1_helper_market({ market: area.name }, { locale }),
+    null,
     host_step2_sub({}, { locale }),
     host_step3_sub({}, { locale }),
   ],

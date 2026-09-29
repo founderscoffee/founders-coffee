@@ -45,7 +45,8 @@ describe('resolveEvent (real D1)', () => {
 
   it.each([
     ['banned', { banned: true }],
-    ['deleted', { accountState: 'deleted' }],
+    ['closing', { accountState: 'closing' }],
+    ['banned and erased', { banned: true, accountState: 'deleted' }],
   ])(
     'answers a %s host the same way it answers an unknown slug',
     async (_label, change) => {
@@ -67,4 +68,26 @@ describe('resolveEvent (real D1)', () => {
       expect((await resolveEvent(db, { id })).ok).toBe(true);
     },
   );
+
+  it("keeps an erased host's meetup on its page, as the city's record (#105)", async () => {
+    const db = await setupDb();
+    const { id, slug } = await createTestEvent(db);
+    await db
+      .update(user)
+      .set({ name: '', accountState: 'deleted' })
+      .where(eq(user.id, TEST_HOST_ID))
+      .run();
+
+    for (const input of [{ id }, { marketCode: 'DZ', slug }]) {
+      const result = await resolveEvent(db, input);
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.data.hostId).toBe(TEST_HOST_ID);
+    }
+
+    await db
+      .update(user)
+      .set({ name: 'Resolve Host', accountState: 'active' })
+      .where(eq(user.id, TEST_HOST_ID))
+      .run();
+  });
 });

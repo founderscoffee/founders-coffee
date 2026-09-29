@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   profile_languages_label,
+  profile_photo_label,
   profile_photo_card_subtitle,
+  profile_public_chip,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -58,6 +60,10 @@ describe('PF-06 simplified photo card', () => {
       );
       const card = container.querySelector('section');
       expect(card?.querySelector('h2')).toBeNull();
+      const photoLabel = screen.getByText(profile_photo_label({}, { locale }));
+      expect(photoLabel.parentElement?.textContent).toContain(
+        profile_public_chip({}, { locale }),
+      );
       expect(card?.querySelector('p')?.textContent).toBe(
         profile_photo_card_subtitle({}, { locale }),
       );
@@ -167,6 +173,9 @@ describe('PF-04b optional fields', () => {
 
   it('edits an introduction without language or publication controls', () => {
     show();
+    expect(screen.getByText('About you').parentElement?.textContent).toContain(
+      'Public',
+    );
     fireEvent.change(intro(), { target: { value: 'Building small tools.' } });
     expect((intro() as HTMLTextAreaElement).value).toBe(
       'Building small tools.',

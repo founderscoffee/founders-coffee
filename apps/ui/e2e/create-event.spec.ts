@@ -5,7 +5,7 @@ import {
   findEventByTitle,
   type PersistedEvent,
 } from './support/d1';
-import { signIn, completeProfileName } from './support/profile-auth';
+import { signIn } from './support/profile-auth';
 import { LOCALE_DIRECTION } from './support/messages';
 import {
   disposableEmail,
@@ -73,9 +73,6 @@ test.describe('create event', () => {
     await continueToLoginButton(page, locale).click();
     await signIn(page, locale, email);
 
-    await expect(page).toHaveURL(/host\/create/);
-    await completeProfileName(page, locale, `Founder ${locale}`);
-
     await page.waitForURL(new RegExp(`/${MARKET_SLUG}/e/`), {
       timeout: 60_000,
     });
@@ -93,6 +90,7 @@ test.describe('create event', () => {
       market_code: 'DZ',
       city_code: '556',
       language: locale,
+      languages: JSON.stringify([locale]),
       status: 'published',
       description: details.description,
     });

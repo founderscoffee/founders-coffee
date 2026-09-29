@@ -118,7 +118,7 @@ export const DatetimePicker = ({
   const today = new TZDate(Date.now(), timeZone);
 
   const timeControl = (
-    <label className="form-control shrink-0">
+    <label className="flex shrink-0 flex-col">
       <span className="mb-1 block text-body-sm text-neutral">
         {host_time({}, { locale })}
       </span>

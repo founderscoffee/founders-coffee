@@ -31,6 +31,7 @@ const LINK =
 
 const view = (overrides: Partial<HostView> = {}): HostView => ({
   role: 'host',
+  botHandle: '@FoundersCoffeeBot',
   status: 'none',
   chatTitle: null,
   canConnect: true,
@@ -54,12 +55,23 @@ afterEach(() => {
 });
 
 describe('TelegramHostPanel before a group is connected', () => {
+  it('names the configured bot in the setup instructions', () => {
+    show(view());
+
+    expect(screen.getByText(/Give attendees a Telegram group/)).toBeTruthy();
+    const botLink = screen.getByRole('link', { name: '@FoundersCoffeeBot' });
+    expect(botLink.getAttribute('href')).toBe('https://t.me/FoundersCoffeeBot');
+    expect(botLink.getAttribute('dir')).toBe('ltr');
+  });
+
   it('offers to connect one while the meetup can still take it', () => {
     show(view());
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Connect a Telegram group' }),
-    );
+    const connectButton = screen.getByRole('button', {
+      name: 'Connect a Telegram group',
+    });
+    expect(connectButton.querySelector('svg')).toBeTruthy();
+    fireEvent.click(connectButton);
 
     expect(mocks.connect).toHaveBeenCalledTimes(1);
   });

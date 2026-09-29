@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
-import { appErrorCode } from '@founders-coffee/core';
+import { appErrorCode, eventLanguages } from '@founders-coffee/core';
 import { localizedName, type Locale } from '@founders-coffee/i18n';
 import {
   getEvent,
@@ -14,7 +14,9 @@ import type { Market } from '@founders-coffee/db';
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
 import { eventCityName } from '../features/events/event-city-name';
-import { isLiveWindowOpen } from '../features/events/live-window';
+import { eventRegionName } from '../features/events/event-region-name';
+import { eventStreetAddress } from '../features/events/event-street-address';
+import { eventPhase, isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
 import { useAuth } from '../lib/app-providers';
 import { localizedEvent } from '../lib/locale-routing';
@@ -35,6 +37,7 @@ const EventRoute = () => {
   const isWindowOpen =
     event.status !== 'cancelled' &&
     isLiveWindowOpen(event.startsAt, event.endsAt);
+  const phase = eventPhase(event.startsAt, event.endsAt);
   const isAttending = isHost || event.viewerRsvp === 'going';
   const live = useEventLive(event.id, {
     enabled: Boolean(user) && isWindowOpen && isAttending,
@@ -50,6 +53,7 @@ const EventRoute = () => {
         isHost={isHost}
         live={user ? live : null}
         isWindowOpen={isWindowOpen}
+        phase={phase}
       />
       {user && isWindowOpen && isAttending && !live.notAttending && (
         <LiveDashboard live={live} currentUserId={user.id} locale={locale} />
@@ -124,14 +128,17 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
         description: loaderData.event.description,
         startsAt: loaderData.event.startsAt,
         endsAt: loaderData.event.endsAt,
+        createdAt: loaderData.event.createdAt,
+        timezone: loaderData.market.timezone,
         status: loaderData.event.status,
         venue: loaderData.event.venue,
         cityName,
-        venueAddress: loaderData.event.venueAddress,
+        regionName: eventRegionName(loaderData.event, loaderData.locale),
+        venueAddress: eventStreetAddress(loaderData.event),
         latitude: loaderData.event.latitude,
         longitude: loaderData.event.longitude,
         marketCode: loaderData.event.marketCode,
-        language: loaderData.event.language,
+        languages: eventLanguages(loaderData.event),
         url: eventUrl,
         currency: loaderData.market.defaultCurrency,
         organizer: loaderData.host
@@ -142,10 +149,6 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
           : null,
       },
       breadcrumbs: [
-        {
-          name: 'Founders Coffee',
-          url: canonicalUrl({ type: 'root', locale: loaderData.locale }),
-        },
         {
           name: marketName,
           url: canonicalUrl({

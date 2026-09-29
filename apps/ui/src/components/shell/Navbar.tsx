@@ -1,6 +1,11 @@
 import { Link } from '@tanstack/react-router';
 
-import { brand, nav_host, type Locale } from '@founders-coffee/i18n';
+import {
+  brand,
+  nav_host,
+  nav_host_short,
+  type Locale,
+} from '@founders-coffee/i18n';
 import { Logo, LogoSymbol } from '@founders-coffee/ui';
 
 import { OfflineNotice } from './OfflineNotice';
@@ -8,19 +13,31 @@ import { SessionNav } from './SessionNav';
 import { ProfileMenuDrawer } from './ProfileMenuDrawer';
 import { localizedHome, localizedHostCreate } from '../../lib/locale-routing';
 
-type NavbarProps = { locale: Locale; marketSlug?: string };
+type NavbarProps = {
+  locale: Locale;
+  marketSlug?: string;
+  isHiddenOnMobile?: boolean;
+};
 
 const hostClass =
-  'tap-target inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 text-body font-semibold text-primary-content transition-colors duration-[var(--duration-fast)] hover:bg-primary/90 motion-reduce:transition-none';
+  'btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0 rounded-full border-0 font-semibold whitespace-nowrap shadow-none';
 
-export const Navbar = ({ locale, marketSlug }: NavbarProps) => {
+export const Navbar = ({
+  locale,
+  marketSlug,
+  isHiddenOnMobile = false,
+}: NavbarProps) => {
   return (
-    <header className="sticky top-0 z-50 border-b border-base-300 bg-base-100">
+    <header
+      className={`sticky top-0 z-50 border-b border-base-300 bg-base-100 ${
+        isHiddenOnMobile ? 'max-lg:hidden' : ''
+      }`}
+    >
       <nav
         aria-label={brand({}, { locale })}
-        className="mx-auto flex h-14 max-w-content items-center justify-between px-4 md:h-16 md:px-8"
+        className="mx-auto flex min-h-14 max-w-content items-center justify-between gap-3 px-4 md:min-h-16 md:px-8"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <ProfileMenuDrawer locale={locale} />
           <Link
             {...localizedHome(locale, marketSlug)}
@@ -32,18 +49,19 @@ export const Navbar = ({ locale, marketSlug }: NavbarProps) => {
           </Link>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {marketSlug ? (
-            <Link
-              {...localizedHostCreate(locale, marketSlug)}
-              className={hostClass}
-            >
-              {nav_host({}, { locale })}
-            </Link>
-          ) : null}
+        <div className="flex min-w-0 items-center gap-1.5">
           <div className="auth-slot">
             <SessionNav locale={locale} />
           </div>
+          {marketSlug ? (
+            <Link
+              {...localizedHostCreate(locale, marketSlug)}
+              aria-label={nav_host({}, { locale })}
+              className={hostClass}
+            >
+              {nav_host_short({}, { locale })}
+            </Link>
+          ) : null}
         </div>
       </nav>
       <OfflineNotice locale={locale} />

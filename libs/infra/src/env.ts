@@ -1,9 +1,12 @@
+import type { AppQueueMessage } from '@founders-coffee/core';
+
 export interface WorkerEnv {
   readonly DB: D1Database;
 
   readonly RATE_LIMITER?: DurableObjectNamespace;
   readonly EVENT_LIVE?: DurableObjectNamespace;
   readonly NOTIFICATION_SCHEDULE?: DurableObjectNamespace;
+  readonly NOTIFICATIONS?: Queue<AppQueueMessage>;
   readonly EMAIL?: unknown;
   readonly ANALYTICS?: AnalyticsEngineDataset;
   readonly PROFILE_ASSETS?: R2Bucket;

@@ -1,52 +1,73 @@
-import type { EmailProvider, OtpType } from '@founders-coffee/auth';
+import type {
+  EmailProvider,
+  OtpRequestContext,
+  OtpType,
+} from '@founders-coffee/auth';
 import {
-  createCloudflareEmailProvider,
   renderEmail,
+  type EmailProvider as MailProvider,
 } from '@founders-coffee/email';
 import { OtpEmail } from '@founders-coffee/email/templates';
+import {
+  detectLocale,
+  email_otp_code_label,
+  email_otp_expiry,
+  email_otp_greeting,
+  email_otp_preview,
+  email_otp_subject_change_email,
+  email_otp_subject_email_verification,
+  email_otp_subject_forget_password,
+  email_otp_subject_sign_in,
+  type Locale,
+} from '@founders-coffee/i18n';
 import { logger } from '@founders-coffee/observability';
 
 import { shouldEchoSignInCode, type OtpEchoEnv } from './otp-echo';
 
-const OTP_SUBJECTS: Record<OtpType, string> = {
-  'sign-in': 'Founders Coffee - your sign-in code',
-  'email-verification': 'Founders Coffee - your verification code',
-  'forget-password': 'Founders Coffee - your password-reset code',
-  'change-email': 'Founders Coffee - your email-change code',
+const subjectFor = (type: OtpType, locale: Locale): string => {
+  switch (type) {
+    case 'sign-in':
+      return email_otp_subject_sign_in({}, { locale });
+    case 'email-verification':
+      return email_otp_subject_email_verification({}, { locale });
+    case 'forget-password':
+      return email_otp_subject_forget_password({}, { locale });
+    case 'change-email':
+      return email_otp_subject_change_email({}, { locale });
+  }
 };
 
 /**
  * Adapter: Better Auth's email-OTP plugin calls `sendOtp({email, otp, type})`; this renders a
- * NotificationEmail with the code + sends it via the real Cloudflare Email binding (D13). The two
+ * OtpEmail with the code and sends it through the email provider supplied by the server. The two
  * EmailProvider interfaces differ (auth's `sendOtp` vs email's structured `send → Result`), so the
  * bridge lives here, in the app. On send failure we log + throw, but Better Auth does not surface it:
  * `runInBackgroundOrAwait` catches the rejection and still answers 200, so this log line is the only
- * signal a code never left the building — alert on it. Locale is the base `ar` (no session/market
- * context at signup).
+ * signal a code never left the building — alert on it. Locale comes from the Better Auth request
+ * cookie and falls back to Arabic when no supported locale is present.
  */
 export const createOtpEmailProvider = (
-  emailBinding: SendEmail,
-  defaultFrom: string,
+  emailProvider: MailProvider,
   echoEnv: OtpEchoEnv = {},
 ): EmailProvider => ({
-  sendOtp: async ({ email, otp, type }) => {
+  sendOtp: async ({ email, otp, type }, context?: OtpRequestContext) => {
+    const locale = detectLocale(context?.headers?.get('cookie') ?? null);
     if (shouldEchoSignInCode(echoEnv, email)) {
       logger.warn(`email-OTP for ${email} (${type}): ${otp}`, {
         recipient: email.split('@')[0],
       });
     }
-    const provider = createCloudflareEmailProvider(emailBinding, defaultFrom);
     const { html, text } = await renderEmail(OtpEmail, {
-      locale: 'ar',
-      preview: `رمز التحقق: ${otp}`,
-      greeting: 'مرحبًا بك',
-      codeLabel: 'استخدم الرمز التالي للمتابعة.',
+      locale,
+      preview: email_otp_preview({ code: otp }, { locale }),
+      greeting: email_otp_greeting({}, { locale }),
+      codeLabel: email_otp_code_label({}, { locale }),
       code: otp,
-      expiry: 'تنتهي صلاحيته خلال 30 دقيقة.',
+      expiry: email_otp_expiry({}, { locale }),
     });
-    const result = await provider.send({
+    const result = await emailProvider.send({
       to: email,
-      subject: OTP_SUBJECTS[type],
+      subject: subjectFor(type, locale),
       html,
       text,
     });

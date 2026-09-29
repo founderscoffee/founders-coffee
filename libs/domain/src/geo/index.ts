@@ -1,4 +1,4 @@
-import { matchesLocalizedName } from '@founders-coffee/core';
+import { localizedNameMatcher } from '@founders-coffee/core';
 
 import { ISO_STATE_CODES } from './admin-codes.js';
 import { DZ_CITIES, DZ_STATES } from './data/dz.js';
@@ -88,15 +88,18 @@ export const searchLocations = (
 ): readonly CitySearchResult[] => {
   const q = query.trim();
   if (!q) return [];
-  const stateByCode = new Map((STATES[country] ?? []).map((s) => [s.code, s]));
+  const matches = localizedNameMatcher(q);
+  const states = STATES[country] ?? [];
+  const stateByCode = Object.fromEntries(states.map((s) => [s.code, s]));
+  const matchingStates = new Set(
+    states.filter((s) => matches(s)).map((s) => s.code),
+  );
 
   const scored: { city: GeoCity; state: GeoState; rank: number }[] = [];
   for (const city of CITIES[country] ?? []) {
-    const state = stateByCode.get(city.stateCode);
-    if (!state) continue;
-    const cityHit = matchesLocalizedName(city, q);
-    const stateHit = matchesLocalizedName(state, q);
-    if (cityHit || stateHit) {
+    const state = stateByCode[city.stateCode];
+    const cityHit = matches(city);
+    if (cityHit || matchingStates.has(state.code)) {
       scored.push({ city, state, rank: cityHit ? 0 : 1 });
     }
   }

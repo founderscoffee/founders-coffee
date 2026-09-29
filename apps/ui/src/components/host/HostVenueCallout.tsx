@@ -7,14 +7,11 @@ import {
 import type { Ref } from 'react';
 
 import type { VenueSelection } from '../../features/events/types';
-import { CALLOUT_GAP, PIN_HEIGHT } from './callout-placement';
-
-const ABOVE_TRANSFORM = `translateY(calc(-100% - ${PIN_HEIGHT + CALLOUT_GAP * 2}px))`;
+import { venueAddressLine } from '../../features/events/venue-address-line';
 
 type HostVenueCalloutProps = {
   venue: VenueSelection;
   locale: Locale;
-  above: boolean;
   showHint: boolean;
   ref?: Ref<HTMLDivElement>;
 };
@@ -22,29 +19,37 @@ type HostVenueCalloutProps = {
 export const HostVenueCallout = ({
   venue,
   locale,
-  above,
   showHint,
   ref,
-}: HostVenueCalloutProps): React.ReactElement => (
-  <div
-    ref={ref}
-    style={above ? { transform: ABOVE_TRANSFORM } : undefined}
-    className="w-64 max-w-[70vw] rounded-2xl bg-base-100 p-4 shadow-[0_10px_30px_rgba(39,15,0,0.18)]"
-  >
-    <p className="eyebrow">{host_selected_location({}, { locale })}</p>
-    <p className="mt-1 line-clamp-1 font-semibold text-base-content" dir="auto">
-      {venue.name}
-    </p>
-    <p
-      className="mt-0.5 line-clamp-2 text-body-sm text-base-content"
-      dir="auto"
+}: HostVenueCalloutProps): React.ReactElement => {
+  const address = venueAddressLine(venue);
+  return (
+    <div
+      ref={ref}
+      className="w-64 max-w-[70vw] rounded-2xl bg-base-100 p-4 shadow-[0_10px_30px_rgba(39,15,0,0.18)]"
     >
-      {venue.address}
-    </p>
-    {showHint && (
-      <p className="mt-1.5 text-body-sm text-neutral">
-        {host_pin_hint({}, { locale })}
+      <p className="eyebrow">{host_selected_location({}, { locale })}</p>
+      <p
+        className={`mt-1 font-semibold text-base-content ${
+          address ? 'line-clamp-1' : 'line-clamp-2'
+        }`}
+        dir="auto"
+      >
+        {venue.name}
       </p>
-    )}
-  </div>
-);
+      {address && (
+        <p
+          className="mt-0.5 line-clamp-2 text-body-sm text-base-content"
+          dir="auto"
+        >
+          {address}
+        </p>
+      )}
+      {showHint && (
+        <p className="mt-1.5 text-body-sm text-neutral">
+          {host_pin_hint({}, { locale })}
+        </p>
+      )}
+    </div>
+  );
+};

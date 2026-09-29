@@ -34,6 +34,11 @@
     "MAIL_FROM": "no-reply@founders.coffee",
   },
   "send_email": [{ "name": "EMAIL" }],
+  "queues": {
+    "producers": [
+      { "binding": "NOTIFICATIONS", "queue": "founders-coffee-notifications" },
+    ],
+  },
   "analytics_engine_datasets": [
     { "binding": "ANALYTICS", "dataset": "founders-coffee-metrics" },
   ],
@@ -90,6 +95,14 @@
         "CSP_ENFORCED": "true",
       },
       "send_email": [{ "name": "EMAIL" }],
+      "queues": {
+        "producers": [
+          {
+            "binding": "NOTIFICATIONS",
+            "queue": "founders-coffee-notifications-staging",
+          },
+        ],
+      },
       "analytics_engine_datasets": [
         { "binding": "ANALYTICS", "dataset": "founders-coffee-metrics" },
       ],
@@ -132,6 +145,14 @@
         "TELEGRAM_BOT_USERNAME": "FoundersCoffeeBot",
       },
       "send_email": [{ "name": "EMAIL" }],
+      "queues": {
+        "producers": [
+          {
+            "binding": "NOTIFICATIONS",
+            "queue": "founders-coffee-notifications-production",
+          },
+        ],
+      },
       "analytics_engine_datasets": [
         { "binding": "ANALYTICS", "dataset": "founders-coffee-metrics" },
       ],

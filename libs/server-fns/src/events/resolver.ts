@@ -1,4 +1,11 @@
-import { AppError, err, id, ok, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  id,
+  ok,
+  type Locale,
+  type Result,
+} from '@founders-coffee/core';
 import {
   events as eventsDomain,
   geo,
@@ -10,7 +17,7 @@ import {
   getEvent,
   getEventBySlug,
   getMarketByCode,
-  isVisibleIdentity,
+  isVisibleHost,
   listUpcomingEvents,
   listPublicEventHosts,
   type Db,
@@ -42,10 +49,11 @@ export type { EventFeedItem, EventFeedItemBase } from './feed.js';
 const eventLocation = async (
   mapProvider: MapProvider,
   input: EventCreateInput,
+  locale: Locale,
 ): Promise<Result<LocatedPoint>> => {
   const located = await locatePoint(mapProvider, {
     marketCode: input.marketCode,
-    locale: input.language,
+    locale,
     latitude: input.latitude,
     longitude: input.longitude,
     snapshotProviderId: input.venueProviderId,
@@ -122,7 +130,11 @@ export const createEventResolverWithId = async (
       );
     }
 
-    const located = await eventLocation(mapProvider, input);
+    const language = eventsDomain.leadLocale(
+      input.languages,
+      market.defaultLocale,
+    );
+    const located = await eventLocation(mapProvider, input, language);
     if (!located.ok) return located;
 
     const row: Omit<NewEvent, 'slug'> = {
@@ -139,7 +151,8 @@ export const createEventResolverWithId = async (
       longitude: input.longitude,
       startsAt: new Date(input.startsAt),
       endsAt: new Date(input.endsAt),
-      language: input.language,
+      language,
+      languages: input.languages,
       status: 'published',
     };
 
@@ -209,7 +222,7 @@ export const resolveEvent = async (
       new AppError('event_not_found', `Event ${event.id} is not available`),
     );
   }
-  if (!(await isVisibleIdentity(db, event.hostId))) {
+  if (!(await isVisibleHost(db, event.hostId))) {
     return err(
       new AppError('event_not_found', `Event ${event.id} is not available`),
     );

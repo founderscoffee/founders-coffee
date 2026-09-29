@@ -8,13 +8,14 @@ import {
   type EventTelegramGroupRow,
 } from '@founders-coffee/db';
 
-import type { TelegramSetup } from './config.js';
+import { telegramBotHandle, type TelegramSetup } from './config.js';
 import { isAdmitting, isConnectable } from './window.js';
 
 export type TelegramGroupView =
   | { readonly role: 'none' }
   | {
       readonly role: 'host';
+      readonly botHandle: string;
       readonly status: 'none' | 'pending' | 'active';
       readonly chatTitle: string | null;
       readonly canConnect: boolean;
@@ -60,6 +61,7 @@ export const readTelegramGroupView = async (
   if (event.hostId === opts.viewerId)
     return ok({
       role: 'host',
+      botHandle: telegramBotHandle(setup.botUsername),
       status: hostStatusOf(group, opts.now),
       chatTitle: group?.status === 'active' ? group.chatTitle : null,
       canConnect: isConnectable(event, opts.now),

@@ -9,24 +9,25 @@ import {
 } from '@founders-coffee/i18n';
 import { Input } from '@founders-coffee/ui';
 
-import { EventLanguageField } from '../events/EventLanguageField';
+import { EventLanguagesField } from '../events/EventLanguagesField';
 import type { HostCreateFieldErrors } from '../../features/events/host-create-validation';
+import type { MeetupLanguage } from '../../features/events/types';
 
 export const HostDetailsStep = ({
   locale,
   title,
   description,
-  language,
+  languages,
   constraints,
   errors,
   onTitleChange,
   onDescriptionChange,
-  onLanguageChange,
+  onLanguagesChange,
 }: {
   locale: Locale;
   title: string;
   description: string;
-  language: Locale;
+  languages: readonly MeetupLanguage[];
   constraints: {
     titleMin: number;
     titleMax: number;
@@ -36,10 +37,10 @@ export const HostDetailsStep = ({
   errors: HostCreateFieldErrors;
   onTitleChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onLanguageChange: (value: Locale) => void;
+  onLanguagesChange: (value: MeetupLanguage[]) => void;
 }) => (
   <div className="grid gap-5">
-    <div className="form-control">
+    <div className="flex flex-col">
       <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
         <label htmlFor="host-title">{host_title_label({}, { locale })}</label>
         <span aria-hidden="true" className="text-caption text-neutral">
@@ -73,7 +74,7 @@ export const HostDetailsStep = ({
       )}
     </div>
 
-    <div className="form-control">
+    <div className="flex flex-col">
       <span className="mb-1 flex items-center justify-between gap-3 text-body-sm text-neutral">
         <label htmlFor="host-description">
           {host_desc_label({}, { locale })}
@@ -84,7 +85,7 @@ export const HostDetailsStep = ({
       </span>
       <textarea
         id="host-description"
-        className="textarea textarea-bordered min-h-32 w-full"
+        className="textarea textarea-sm md:textarea-md w-full"
         value={description}
         onChange={(event) => onDescriptionChange(event.target.value)}
         placeholder={host_desc_ph({}, { locale })}
@@ -116,11 +117,12 @@ export const HostDetailsStep = ({
       )}
     </div>
 
-    <EventLanguageField
-      id="host-language"
+    <EventLanguagesField
+      id="host-languages"
       locale={locale}
-      value={language}
-      onChange={onLanguageChange}
+      value={languages}
+      error={errors.languages}
+      onChange={onLanguagesChange}
     />
   </div>
 );

@@ -140,7 +140,7 @@ describe('moving the venue point', () => {
         longitude: 3.1008,
         startsAt: START,
         endsAt: END,
-        language: event.language,
+        languages: [event.language],
       }),
     });
 
@@ -161,7 +161,7 @@ describe('moving the venue point', () => {
         latitude: 36.7538,
         startsAt: START,
         endsAt: END,
-        language: 'fr',
+        languages: ['fr'],
       }),
     ).toThrow();
   });

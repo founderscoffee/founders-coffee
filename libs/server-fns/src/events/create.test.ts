@@ -89,7 +89,7 @@ describe('createEventWithTelemetry (real D1)', () => {
       marketCode: 'DZ',
       cityCode: '556',
       stateCode: '16',
-      language: 'fr',
+      languages: ['fr'],
       durationMinutes: 60,
     });
     expect(succeeded?.eventId).toMatch(/^evt_[0-9a-f]{32}$/);

@@ -1,4 +1,8 @@
+import { Link } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
+
 import {
+  back_home,
   host_back,
   host_confirm_publish,
   host_continue_login,
@@ -9,23 +13,24 @@ import {
 import { Button } from '@founders-coffee/ui';
 
 import { TOTAL_STEPS } from '../../features/events/useHostCreateWizard';
+import { localizedHome } from '../../lib/locale-routing';
 
 export const HostWizardActions = ({
   locale,
+  marketSlug,
   step,
   isAuthenticated,
   isDisabled,
   isPublishing,
-  hint,
   onBack,
   onNext,
 }: {
   locale: Locale;
+  marketSlug: string;
   step: number;
   isAuthenticated: boolean;
   isDisabled: boolean;
   isPublishing: boolean;
-  hint?: string;
   onBack: () => void;
   onNext: () => void;
 }) => {
@@ -37,23 +42,31 @@ export const HostWizardActions = ({
         : host_continue_login({}, { locale });
 
   return (
-    <div className="sticky inset-x-0 bottom-0 z-30 mt-auto flex items-center justify-between gap-3 border-t border-base-300 bg-base-100 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur md:px-7 lg:static lg:shadow-none">
+    <div className="sticky inset-x-0 bottom-0 z-30 border-t border-base-300 bg-base-100 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur lg:static lg:col-start-1 lg:row-start-3 lg:border-e lg:px-7 lg:py-5 lg:shadow-none">
       <div className="flex items-center gap-2">
-        {step > 1 && (
+        {step > 1 ? (
           <Button
             variant="ghost"
             onClick={onBack}
             disabled={isPublishing}
-            className="h-12 px-5 text-base font-semibold"
+            className="font-semibold"
           >
             {host_back({}, { locale })}
           </Button>
+        ) : (
+          <Link
+            {...localizedHome(locale, marketSlug)}
+            aria-label={back_home({}, { locale })}
+            className="btn btn-ghost btn-square btn-xs sm:btn-sm md:btn-md lg:btn-lg shrink-0 lg:hidden"
+          >
+            <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden="true" />
+          </Link>
         )}
         <Button
           variant="primary"
           onClick={onNext}
           disabled={isDisabled}
-          className="h-12 min-w-28 px-6 text-base font-semibold"
+          className="ms-auto min-w-28 font-semibold"
         >
           {isPublishing ? (
             <span className="flex items-center gap-2">
@@ -65,7 +78,6 @@ export const HostWizardActions = ({
           )}
         </Button>
       </div>
-      {hint && <span className="text-caption text-neutral">{hint}</span>}
     </div>
   );
 };

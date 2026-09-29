@@ -21,11 +21,11 @@ describe('sitemap', () => {
     const items = sitemapItems(data);
     const paths = items.map(({ path }) => path);
 
-    expect(paths).toHaveLength(24);
+    expect(paths).toHaveLength(36);
     expect(paths).toContain('/ar/community');
     expect(paths).toContain('/ar/faq');
     expect(paths).toContain('/fr/faq');
-    expect(paths).not.toContain('/fr/community');
+    expect(paths).toContain('/fr/community');
     expect(paths).toContain('/ar/algeria');
     expect(paths).toContain('/fr/algeria/algiers');
     expect(paths).toContain('/en/algeria/e/coffee-and-code');

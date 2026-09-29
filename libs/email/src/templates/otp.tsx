@@ -40,6 +40,8 @@ const codeStyle: CSSProperties = {
   margin: '0 0 14px',
   padding: '16px',
   textAlign: 'center',
+  direction: 'ltr',
+  unicodeBidi: 'isolate',
 };
 
 const expiryStyle: CSSProperties = {

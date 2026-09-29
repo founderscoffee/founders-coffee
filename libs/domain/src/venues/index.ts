@@ -1,3 +1,4 @@
+import { findCity } from '../geo/index.js';
 import { DZ_CITY_VENUES } from './data/dz.js';
 import { EG_CITY_VENUES } from './data/eg.js';
 import { SA_CITY_VENUES } from './data/sa.js';
@@ -90,22 +91,17 @@ export const findCityByPoint = (
     : null;
 };
 
-/**
- * The map viewport for a whole market, as the union of its snapshotted city bounds.
- *
- * Opening the wizard no longer requires a city, so the map needs somewhere to start. Deriving it
- * from data we already ship avoids a geocode per page view, and it is tight around where events
- * can plausibly happen rather than the country's full administrative extent — which for Algeria
- * would be two thirds desert.
- */
-export const getMarketViewport = (
-  marketCode: string,
-): {
+type Viewport = {
   center: { latitude: number; longitude: number };
   bounds: readonly [number, number, number, number];
-} | null => {
-  const cities = Object.values(SNAPSHOTS[marketCode] ?? {});
+};
+
+const viewportAround = (
+  cities: readonly CityVenueSnapshot[],
+): Viewport | null => {
   if (cities.length === 0) return null;
+  if (cities.length === 1)
+    return { center: cities[0].center, bounds: cities[0].bounds };
   const bounds = cities.reduce<[number, number, number, number]>(
     (acc, city) => [
       Math.min(acc[0], city.bounds[0]),
@@ -123,6 +119,46 @@ export const getMarketViewport = (
     bounds,
   };
 };
+
+/**
+ * The map viewport for a whole market, as the union of its snapshotted city bounds.
+ *
+ * Opening the wizard no longer requires a city, so the map needs somewhere to start. Deriving it
+ * from data we already ship avoids a geocode per page view, and it is tight around where events
+ * can plausibly happen rather than the country's full administrative extent — which for Algeria
+ * would be two thirds desert.
+ */
+export const getMarketViewport = (marketCode: string): Viewport | null =>
+  viewportAround(Object.values(SNAPSHOTS[marketCode] ?? {}));
+
+/**
+ * The map viewport for one state, as the union of its snapshotted cities' bounds.
+ *
+ * `null` where the snapshot holds no city in that state.
+ */
+export const getStateViewport = (
+  marketCode: string,
+  stateCode: string,
+): Viewport | null =>
+  viewportAround(
+    Object.values(SNAPSHOTS[marketCode] ?? {}).filter(
+      (snapshot) =>
+        findCity(marketCode, snapshot.cityCode)?.stateCode === stateCode,
+    ),
+  );
+
+/**
+ * Where the map opens for a town the map provider cannot place (#120).
+ *
+ * The town's own state is far closer than the whole market, and the snapshot holds a city in each
+ * state it covers (in Algeria, the wilaya's capital). A state it does not cover widens to the
+ * market, so a new state or a failed snapshot costs a zoom rather than the map.
+ */
+export const getUnplacedTownViewport = (
+  marketCode: string,
+  stateCode: string,
+): Viewport | null =>
+  getStateViewport(marketCode, stateCode) ?? getMarketViewport(marketCode);
 
 /**
  * Snapshotted venues nearest a point, across the whole market.

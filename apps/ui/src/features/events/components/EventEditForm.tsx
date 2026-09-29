@@ -6,6 +6,7 @@ import {
   saving,
   host_edit_when,
   host_edit_where,
+  host_languages_required,
   host_venue_name_label,
   host_venue_name_ph,
   host_time_invalid,
@@ -81,25 +82,29 @@ export const EventEditForm = ({
         locale={locale}
         title={draft.title}
         description={draft.description}
-        language={draft.language}
+        languages={draft.languages}
         constraints={constraints}
-        errors={{}}
+        errors={
+          draft.languages.length === 0
+            ? { languages: host_languages_required({}, { locale }) }
+            : {}
+        }
         onTitleChange={(title) => patch({ title })}
         onDescriptionChange={(description) => patch({ description })}
-        onLanguageChange={(language) => patch({ language })}
+        onLanguagesChange={(languages) => patch({ languages })}
       />
 
       <fieldset className="grid gap-3">
         <legend className="mb-1 font-display text-body-lg font-semibold">
           {host_edit_where({}, { locale })}
         </legend>
-        <label className="form-control" htmlFor="edit-venue-name">
+        <label className="flex flex-col" htmlFor="edit-venue-name">
           <span className="mb-1 text-body-sm text-neutral">
             {host_venue_name_label({}, { locale })}
           </span>
           <input
             id="edit-venue-name"
-            className="input input-bordered w-full"
+            className="input input-sm md:input-md w-full"
             dir="auto"
             value={draft.venueName}
             maxLength={constraints.venueNameMax}
@@ -149,7 +154,9 @@ export const EventEditForm = ({
           type="submit"
           variant="primary"
           className="w-fit"
-          disabled={isPending || scheduleError !== null}
+          disabled={
+            isPending || scheduleError !== null || draft.languages.length === 0
+          }
         >
           {isPending ? saving({}, { locale }) : host_edit_save({}, { locale })}
         </Button>

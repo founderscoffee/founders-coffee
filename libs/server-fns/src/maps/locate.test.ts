@@ -9,6 +9,7 @@ import { locatePoint } from './locate.js';
 import type { MapProvider } from './provider.js';
 
 const ALGIERS = { latitude: 36.7538, longitude: 3.0588 };
+const OFFSHORE = { latitude: 38.5, longitude: 5 };
 
 const providerWith = (
   describePoint: MapProvider['describePoint'],
@@ -89,12 +90,7 @@ describe('locatePoint', () => {
             admin: { isoRegionCode: 'DZ-34', placeName },
           }),
         ),
-        {
-          marketCode: 'DZ',
-          locale: 'fr',
-          latitude: 36.0731,
-          longitude: 4.7608,
-        },
+        { marketCode: 'DZ', locale: 'fr', ...OFFSHORE },
       );
 
     const french = await located('Bordj Bou Arreridj');
@@ -104,7 +100,7 @@ describe('locatePoint', () => {
     const unknown = await located('Nowhere At All');
     expect(
       unknown.ok,
-      'this wilaya has no snapshotted venue to fall back to, so the French name is the only thing that resolved the city above',
+      'the point is out at sea, beyond every snapshotted city, so the French name is the only thing that resolved the city above',
     ).toBe(false);
   });
 

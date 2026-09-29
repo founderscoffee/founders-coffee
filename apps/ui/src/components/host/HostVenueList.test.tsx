@@ -77,6 +77,49 @@ describe('HostVenueList', () => {
     );
   });
 
+  it('fills the radio of the chosen venue and leaves the others empty', () => {
+    renderList('osm:node/2');
+    const radios = screen
+      .getAllByRole('option')
+      .map((option) =>
+        option.querySelector('.radio')?.getAttribute('aria-checked'),
+      );
+
+    expect(
+      radios,
+      'daisyUI draws a radio that is not an input as checked only by aria-checked',
+    ).toEqual(['false', 'true', 'false']);
+  });
+
+  it('reports a pick on a click, Enter or Space, but not on a step with the arrow keys', () => {
+    const onChoose = vi.fn();
+    render(
+      <HostVenueList
+        locale="en"
+        id="venue-results"
+        label="Cafés nearby"
+        venues={rows}
+        selectedProviderId="osm:node/1"
+        showAttribution
+        onSelect={vi.fn()}
+        onChoose={onChoose}
+      />,
+    );
+    const [first, second, ineligible] = screen.getAllByRole('option');
+
+    fireEvent.keyDown(first, { key: 'ArrowDown' });
+    fireEvent.click(ineligible);
+    expect(
+      onChoose,
+      'the arrows walk the list, and a list folded at the first step leaves nothing to walk',
+    ).not.toHaveBeenCalled();
+
+    fireEvent.click(second);
+    fireEvent.keyDown(first, { key: 'Enter' });
+    fireEvent.keyDown(first, { key: ' ' });
+    expect(onChoose).toHaveBeenCalledTimes(3);
+  });
+
   it('moves between eligible venues with the arrow keys, skipping the ineligible one', () => {
     const onSelect = renderList('osm:node/2');
     fireEvent.keyDown(screen.getAllByRole('option')[1], { key: 'ArrowDown' });
@@ -133,6 +176,71 @@ describe('HostVenueList', () => {
       />,
     );
     expect(screen.getByText('9 Rue Didouche')).toBeTruthy();
+  });
+
+  it('marks a street address as one, before the address and with a pin', () => {
+    render(
+      <HostVenueList
+        locale="en"
+        id="venue-results"
+        label="Search results"
+        venues={[
+          row({
+            providerId: 'mapbox-3',
+            kind: 'address',
+            name: 'Café',
+            address: 'Café, 21, Beni Zid, Skikda, Algeria',
+            category: undefined,
+          }),
+        ]}
+        showAttribution={false}
+        onSelect={vi.fn()}
+      />,
+    );
+    const details = screen.getByText(
+      'Address · Café, 21, Beni Zid, Skikda, Algeria',
+    );
+    expect(
+      details.closest('.flex')?.querySelector('svg[class*="map-pin"]'),
+      'a street named Café read as a café, so asking for its name read as a bug',
+    ).toBeTruthy();
+  });
+
+  it('prints an address that is its own name once', () => {
+    const whole = 'Café ، 21 بني زيد، الجزائر';
+    render(
+      <HostVenueList
+        locale="ar"
+        id="venue-results"
+        label="نتائج البحث"
+        venues={[
+          row({
+            providerId: 'mapbox-4',
+            kind: 'address',
+            name: whole,
+            address: whole,
+            category: undefined,
+          }),
+        ]}
+        showAttribution={false}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getAllByText(whole),
+      'Mapbox names an Arabic address by the whole address, and the row printed it twice',
+    ).toHaveLength(1);
+    expect(screen.getByText('عنوان')).toBeTruthy();
+  });
+
+  it('gives a café no pin', () => {
+    renderList();
+    expect(
+      screen
+        .getByText('12 Startup Street · Café')
+        .closest('.flex')
+        ?.querySelector('svg'),
+    ).toBeNull();
   });
 
   it('credits OpenStreetMap when showing snapshot data', () => {

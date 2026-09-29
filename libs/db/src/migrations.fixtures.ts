@@ -154,6 +154,19 @@ export const atMigration = async (name: string) => {
   };
 };
 
+/**
+ * Read a prior-schema event back as the database stores it, with whatever columns it has then.
+ *
+ * `getEvent` selects every column the *current* schema declares, and SQLite answers a
+ * double-quoted name it has no column for with the name itself, as a string. That went unnoticed
+ * while every later column was text or a number; `events.languages` is JSON, and parsing the word
+ * "languages" throws, so a table older than 0039 cannot be read through the schema at all.
+ */
+export const priorEventRow = (id: string) =>
+  env.PRIOR_DB.prepare('SELECT * FROM events WHERE id = ?')
+    .bind(id)
+    .first<Record<string, unknown>>();
+
 export const indexNames = async (table: string): Promise<string[]> => {
   const indexes = await env.PRIOR_DB.prepare(
     `PRAGMA index_list('${table}')`,

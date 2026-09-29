@@ -1,15 +1,82 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { LOCALE_DIRECTION, t, type E2eLocale } from './support/messages';
 import { localeFor } from './support/run';
 import {
   VENUE_QUERY,
   backButton,
+  continueToLoginButton,
   nextButton,
+  selectSchedule,
   selectVenue,
   useLocale,
   wizardPath,
 } from './support/host-wizard';
+import {
+  boxOf,
+  chooseSpot,
+  expectCalloutOnMap,
+  restingTip,
+  venueCallout,
+  venueMap,
+} from './support/venue-map';
+
+const EDGE_INSET = 60;
+
+/**
+ * Hold a step's actions to the thumb: on screen, tall enough to tap, and never pushing the page
+ * sideways, which a primary label too long for one line did on the last step. Tall enough is
+ * measured on the target, not the paint: a phone draws the button at daisyUI's `btn-xs`, and on a
+ * touch screen the shared stylesheet grows its hit area to the 44px a thumb needs. A mouse gets
+ * no such area and needs only WCAG's 24px.
+ */
+const expectActionsInReach = async (
+  page: Page,
+  actions: readonly Locator[],
+): Promise<void> => {
+  for (const action of actions) {
+    await expect(action).toBeVisible();
+    await expect(action).toBeInViewport();
+    const target = await action.evaluate((element) => ({
+      height: Math.max(
+        element.getBoundingClientRect().height,
+        parseFloat(getComputedStyle(element, '::after').height) || 0,
+      ),
+      isTouch: matchMedia('(pointer: coarse)').matches,
+    }));
+    expect(target.height).toBeGreaterThanOrEqual(target.isTouch ? 44 : 24);
+  }
+
+  const overflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth -
+      document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+};
+
+/**
+ * Walk to the schedule and on to the details step, holding both actions to reach on each.
+ */
+const walkWizardActions = async (
+  page: Page,
+  locale: E2eLocale,
+): Promise<void> => {
+  await page.goto(wizardPath());
+  await selectVenue(page, locale, VENUE_QUERY);
+  await nextButton(page, locale).click();
+  await expectActionsInReach(page, [
+    backButton(page, locale),
+    nextButton(page, locale),
+  ]);
+
+  await selectSchedule(page);
+  await nextButton(page, locale).click();
+  await expectActionsInReach(page, [
+    backButton(page, locale),
+    continueToLoginButton(page, locale),
+  ]);
+};
 
 test.describe('create event experience', () => {
   test('keeps the draft and the active step across a locale change', async ({
@@ -27,12 +94,7 @@ test.describe('create event experience', () => {
     await nextButton(page, locale).click();
     await expect(page.locator('.rdp-button_next')).toBeVisible();
 
-    await page
-      .context()
-      .addCookies([
-        { name: 'PARAGLIDE_LOCALE', value: other, url: baseURL as string },
-      ]);
-    await page.reload();
+    await page.goto(wizardPath(other));
 
     await expect(page.locator('html')).toHaveAttribute(
       'dir',
@@ -64,30 +126,91 @@ test.describe('create event experience', () => {
     await expect(page.locator('#venue-search')).toBeFocused();
   });
 
-  test('keeps both wizard actions reachable at this viewport', async ({
+  test('keeps both wizard actions reachable at this viewport and at 320px', async ({
     page,
     baseURL,
   }, testInfo) => {
     const locale = localeFor(testInfo.project.name);
     await useLocale(page, locale, baseURL as string);
+    await walkWizardActions(page, locale);
+
+    await page.setViewportSize({ width: 320, height: 640 });
+    await expectActionsInReach(page, [
+      backButton(page, locale),
+      continueToLoginButton(page, locale),
+    ]);
+  });
+
+  test('floats the venue list over the map instead of pushing it down', async ({
+    page,
+    baseURL,
+  }, testInfo) => {
+    test.skip(
+      (page.viewportSize()?.width ?? 0) >= 1024,
+      'from lg up the list has a rail of its own beside the map',
+    );
+    const locale = localeFor(testInfo.project.name);
+    await useLocale(page, locale, baseURL as string);
     await page.goto(wizardPath());
 
+    const map = page.locator('.mapboxgl-canvas');
+    await expect(map).toBeVisible({ timeout: 30_000 });
+    const { height } = (await map.boundingBox()) ?? { height: 0 };
+    await page
+      .getByRole('combobox', {
+        name: t(locale, 'host_venue_search_label'),
+        exact: true,
+      })
+      .fill(VENUE_QUERY);
+    const list = page.getByRole('listbox', {
+      name: t(locale, 'host_search_results'),
+      exact: true,
+    });
+    await expect(list.getByRole('option').first()).toBeVisible({
+      timeout: 30_000,
+    });
+
+    const mapBox = await map.boundingBox();
+    const listBox = await list.boundingBox();
+    expect(mapBox?.height).toBe(height);
+    expect(listBox?.y ?? 0).toBeGreaterThan(mapBox?.y ?? 0);
+    const isOnTop = await list.evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + 20,
+      );
+      return node.contains(hit);
+    });
+    expect(isOnTop).toBe(true);
+  });
+
+  test('keeps the whole venue callout on the map for a place chosen near its edges', async ({
+    page,
+    baseURL,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+    const locale = localeFor(testInfo.project.name);
+    await useLocale(page, locale, baseURL as string);
+    await page.goto(wizardPath());
     await selectVenue(page, locale, VENUE_QUERY);
-    await nextButton(page, locale).click();
+    await expect(venueCallout(page, locale)).toBeVisible({ timeout: 30_000 });
 
-    for (const action of [backButton(page, locale), nextButton(page, locale)]) {
-      await expect(action).toBeVisible();
-      await expect(action).toBeInViewport();
-      const box = await action.boundingBox();
-      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    const map = await boxOf(venueMap(page));
+    const row = (await restingTip(page)).y;
+    const spots = {
+      'the left edge': { x: map.x + EDGE_INSET, y: row },
+      'the right edge': { x: map.x + map.width - EDGE_INSET, y: row },
+      'the bottom-left corner': {
+        x: map.x + EDGE_INSET,
+        y: map.y + map.height - EDGE_INSET,
+      },
+    };
+
+    for (const [where, spot] of Object.entries(spots)) {
+      await chooseSpot(page, locale, spot);
+      await expectCalloutOnMap(page, locale, map, where);
     }
-
-    const overflow = await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth -
-        document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
   });
 
   test('announces semantic step progress', async ({
@@ -103,7 +226,7 @@ test.describe('create event experience', () => {
     });
     const currentStep = progress.locator('li[aria-current="step"]');
     await expect(currentStep).toHaveCount(1);
-    await expect(currentStep).toHaveText(t(locale, 'host_step1'));
+    await expect(currentStep).toHaveText(t(locale, 'event_where'));
     await expect(progress.getByRole('status')).toContainText(
       t(locale, 'host_step1'),
     );
@@ -111,7 +234,7 @@ test.describe('create event experience', () => {
     await selectVenue(page, locale, VENUE_QUERY);
     await nextButton(page, locale).click();
 
-    await expect(currentStep).toHaveText(t(locale, 'host_step2'));
+    await expect(currentStep).toHaveText(t(locale, 'event_when'));
     await expect(progress.getByRole('status')).toContainText(
       t(locale, 'host_step2'),
     );

@@ -41,3 +41,22 @@ describe('how the cancel dialog announces itself', () => {
     expect(new Set(ids).size).toBe(2);
   });
 });
+
+describe('how the dialog names the host', () => {
+  it('sets the name apart so a French sentence keeps its order around it', () => {
+    render(
+      <RsvpCancelDialog
+        isOpen={true}
+        hostName="ياسين بن علي"
+        locale="fr"
+        isPending={false}
+        onKeep={vi.fn()}
+        onConfirm={vi.fn()}
+      />,
+    );
+
+    const body = screen.getByText(/réserve la table/u);
+    expect(body.querySelector('bdi')?.textContent).toBe('ياسين بن علي');
+    expect(body.textContent).toMatch(/^ياسين بن علي réserve la table/u);
+  });
+});

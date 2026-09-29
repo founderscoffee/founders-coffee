@@ -260,6 +260,27 @@
       "when": 1790262052231,
       "tag": "0036_event_telegram_groups",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1790512914966,
+      "tag": "0037_city_waitlist_launches",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1790537135974,
+      "tag": "0038_account_closure",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "6",
+      "when": 1790590701513,
+      "tag": "0039_event_languages",
+      "breakpoints": true
     }
   ]
 }

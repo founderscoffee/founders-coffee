@@ -46,6 +46,7 @@ const event = {
   endsAt: new Date('2099-09-20T12:00:00Z'),
   rsvps: 4,
   language: 'en',
+  languages: ['en'],
   latitude: 36.7538,
   longitude: 3.0588,
   venueAddress: '12 Rue des Entrepreneurs, Alger',
@@ -62,6 +63,9 @@ const event = {
   cityNameAr: 'الجزائر',
   cityNameFr: 'Alger',
   citySlug: 'algiers',
+  stateName: 'Alger',
+  stateNameAr: 'الجزائر',
+  stateNameFr: 'Alger',
 } satisfies EventDetailItem;
 
 const show = (locale: Locale = 'en', item: EventDetailItem = event) =>

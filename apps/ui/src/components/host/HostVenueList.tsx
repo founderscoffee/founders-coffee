@@ -1,3 +1,4 @@
+import { MapPin } from 'lucide-react';
 import { useRef } from 'react';
 
 import type { venues as venuesDomain } from '@founders-coffee/domain';
@@ -6,12 +7,14 @@ import {
   cat_venue_coworking,
   cat_venue_restaurant,
   host_osm_attribution,
+  host_venue_address,
   host_venue_ineligible,
   host_venue_selected,
   type Locale,
 } from '@founders-coffee/i18n';
 
 import type { VenueSelection } from '../../features/events/types';
+import { venueAddressLine } from '../../features/events/venue-address-line';
 
 const CATEGORY_LABELS = {
   cafe: cat_venue_cafe,
@@ -32,6 +35,7 @@ type HostVenueListProps = {
   selectedProviderId?: string;
   showAttribution: boolean;
   onSelect: (venue: VenueSelection) => void;
+  onChoose?: () => void;
 };
 
 export const HostVenueList = ({
@@ -42,6 +46,7 @@ export const HostVenueList = ({
   selectedProviderId,
   showAttribution,
   onSelect,
+  onChoose,
 }: HostVenueListProps) => {
   const listRef = useRef<HTMLDivElement>(null);
   const selectable = venues.filter((venue) => venue.eligible);
@@ -50,6 +55,11 @@ export const HostVenueList = ({
   )
     ? selectedProviderId
     : selectable[0]?.providerId;
+
+  const choose = (venue: VenueSelection) => {
+    onSelect(venue);
+    onChoose?.();
+  };
 
   const move = (from: string, delta: number) => {
     if (selectable.length === 0) return;
@@ -72,9 +82,15 @@ export const HostVenueList = ({
       >
         {venues.map((venue) => {
           const checked = venue.providerId === selectedProviderId;
+          const isAddress = venue.kind === 'address';
           const category = venue.category
             ? CATEGORY_LABELS[venue.category]({}, { locale })
             : '';
+          const details = isAddress
+            ? [host_venue_address({}, { locale }), venueAddressLine(venue)]
+            : venue.eligible
+              ? [venueAddressLine(venue), category]
+              : [category, host_venue_ineligible({}, { locale })];
           return (
             <div
               key={venue.providerId}
@@ -83,12 +99,12 @@ export const HostVenueList = ({
               aria-selected={checked}
               aria-disabled={venue.eligible ? undefined : true}
               tabIndex={venue.providerId === focusedId ? 0 : -1}
-              onClick={() => venue.eligible && onSelect(venue)}
+              onClick={() => venue.eligible && choose(venue)}
               onKeyDown={(event) => {
                 if (!venue.eligible) return;
                 if (event.key === ' ' || event.key === 'Enter') {
                   event.preventDefault();
-                  onSelect(venue);
+                  choose(venue);
                 } else if (
                   event.key === 'ArrowDown' ||
                   event.key === 'ArrowRight'
@@ -115,6 +131,7 @@ export const HostVenueList = ({
             >
               <span
                 aria-hidden="true"
+                aria-checked={checked}
                 className={`radio radio-primary mt-0.5 shrink-0 ${
                   venue.eligible ? '' : 'opacity-40'
                 }`}
@@ -123,14 +140,13 @@ export const HostVenueList = ({
                 <span className="block truncate text-body-sm font-semibold text-base-content">
                   <bdi>{venue.name}</bdi>
                 </span>
-                <span className="block truncate text-caption text-neutral">
-                  <bdi>
-                    {venue.eligible
-                      ? [venue.address, category].filter(Boolean).join(' · ')
-                      : [category, host_venue_ineligible({}, { locale })]
-                          .filter(Boolean)
-                          .join(' · ')}
-                  </bdi>
+                <span className="flex items-center gap-1 text-caption text-neutral">
+                  {isAddress && (
+                    <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
+                  )}
+                  <span className="truncate">
+                    <bdi>{details.filter(Boolean).join(' · ')}</bdi>
+                  </span>
                 </span>
               </span>
               {checked && (

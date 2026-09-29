@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { vi } from 'vitest';
 
@@ -22,6 +22,7 @@ const hostCreateMocks = vi.hoisted(() => ({
   isLoading: false,
   nearbyVenues: [] as unknown[],
   venueSearch: [] as unknown[],
+  citySuggestions: [] as unknown[],
   sendVerificationOtp: vi.fn(),
   signInEmailOtp: vi.fn(),
   signInSocial: vi.fn(),
@@ -57,6 +58,7 @@ const applyDefaultHostCreateMocks = () => {
   hostCreateMocks.mapContext.data = READY_MAP_CONTEXT;
   hostCreateMocks.nearbyVenues = [];
   hostCreateMocks.venueSearch = [];
+  hostCreateMocks.citySuggestions = [];
   hostCreateMocks.mapContext.isError = false;
   hostCreateMocks.mapContext.error = null;
 };
@@ -66,8 +68,13 @@ applyDefaultHostCreateMocks();
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => hostCreateMocks.navigate,
   useRouter: () => ({ invalidate: hostCreateMocks.routerInvalidate }),
-  Link: ({ children }: { children: ReactNode }) =>
-    createElement('a', { href: '#' }, children),
+  Link: ({
+    children,
+    'aria-label': label,
+  }: {
+    children: ReactNode;
+    'aria-label'?: string;
+  }) => createElement('a', { href: '#', 'aria-label': label }, children),
 }));
 
 vi.mock('../../lib/auth', () => ({
@@ -134,6 +141,10 @@ vi.mock('../../features/events/hooks', () => ({
   }),
 }));
 
+vi.mock('../../features/geo/hooks', () => ({
+  useCitySuggestions: () => ({ data: hostCreateMocks.citySuggestions }),
+}));
+
 vi.mock('./ClientOnly', () => ({
   ClientOnly: ({ children }: { children: ReactNode }) => children,
 }));
@@ -195,10 +206,12 @@ vi.mock('./HostMap', () => ({
 
 vi.mock('./VenueSearch', () => ({
   VenueSearch: ({
+    area,
     value,
     isDisabled,
     onChange,
   }: {
+    area: { kind: string; name: string };
     value: string;
     isDisabled?: boolean;
     onChange: (value: string) => void;
@@ -206,6 +219,7 @@ vi.mock('./VenueSearch', () => ({
     createElement('input', {
       id: 'venue-search',
       'aria-label': 'Search cafés and coworking venues',
+      'data-area': `${area.kind}:${area.name}`,
       value,
       disabled: isDisabled ?? false,
       onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -245,36 +259,32 @@ const city = {
   nameAr: 'الجزائر',
 } as never;
 
+const wizard = (
+  locale: 'ar' | 'fr' | 'en',
+  repeatTemplate: RepeatEventTemplate | null,
+) =>
+  createElement(HostCreatePage, {
+    locale,
+    market,
+    city,
+    mapboxToken: 'map-token',
+    turnstileSiteKey: 'test-site-key',
+    isTurnstileBypassed: false,
+    socialProviders: [],
+    repeatTemplate,
+  });
+
+/** Render the wizard; `switchLocale` re-renders it as the language switcher's navigation does. */
 export const renderHostCreateWizard = (
   locale: 'ar' | 'fr' | 'en' = 'en',
   repeatTemplate: RepeatEventTemplate | null = null,
-) =>
-  render(
-    createElement(HostCreatePage, {
-      locale,
-      market,
-      city,
-      mapboxToken: 'map-token',
-      turnstileSiteKey: 'test-site-key',
-      hasSocial: false,
-      repeatTemplate,
-    }),
-  );
-
-export const goToHostDetails = async () => {
-  fireEvent.click(await screen.findByRole('button', { name: 'Choose venue' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Set schedule' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-};
-
-export const fillHostDetails = () => {
-  fireEvent.change(screen.getByLabelText(/^Meetup title/), {
-    target: { value: 'Protected meetup' },
-  });
-  fireEvent.change(screen.getByLabelText(/^Meetup description/), {
-    target: { value: 'A complete protected meetup for founders.' },
-  });
+) => {
+  const rendered = render(wizard(locale, repeatTemplate));
+  return {
+    ...rendered,
+    switchLocale: (next: 'ar' | 'fr' | 'en') =>
+      rendered.rerender(wizard(next, repeatTemplate)),
+  };
 };
 
 export const resetHostCreateFixtures = () => {
@@ -285,12 +295,4 @@ export const resetHostCreateFixtures = () => {
   hostCreateMocks.isLoading = false;
   vi.clearAllMocks();
   applyDefaultHostCreateMocks();
-};
-
-export const publishHostEvent = async () => {
-  await goToHostDetails();
-  fillHostDetails();
-  fireEvent.click(
-    screen.getByRole('button', { name: 'Confirm and publish the meetup' }),
-  );
 };

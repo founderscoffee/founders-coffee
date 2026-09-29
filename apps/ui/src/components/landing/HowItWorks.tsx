@@ -46,7 +46,7 @@ const IMAGE_SIZES = [
 ].join(', ');
 
 const ctaClass =
-  'inline-flex min-h-11 items-center rounded-full px-5 text-body-sm font-semibold transition-colors duration-[var(--duration-fast)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary motion-reduce:transition-none';
+  'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg rounded-full font-semibold shadow-none';
 
 export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
   <section
@@ -95,13 +95,13 @@ export const HowItWorks = ({ locale, marketSlug }: HowItWorksProps) => (
     <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
       <Link
         {...localizedHostCreate(locale, marketSlug)}
-        className={`${ctaClass} min-w-64 justify-center bg-primary text-primary-content hover:bg-primary/90`}
+        className={`${ctaClass} btn-primary min-w-64 border-0`}
       >
         {how_cta_host({}, { locale })}
       </Link>
       <Link
         {...localizedLanding(locale, 'faq')}
-        className={`${ctaClass} text-neutral hover:text-base-content`}
+        className={`${ctaClass} btn-ghost text-neutral hover:text-base-content`}
       >
         {how_cta_faq({}, { locale })}
       </Link>

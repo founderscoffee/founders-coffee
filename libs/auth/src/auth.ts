@@ -4,7 +4,7 @@ import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { admin, captcha, emailOTP, phoneNumber } from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 
-import { AppError, optionalEnv } from '@founders-coffee/core';
+import { AppError } from '@founders-coffee/core';
 import {
   account,
   createDb,
@@ -14,11 +14,13 @@ import {
 } from '@founders-coffee/db';
 
 import { captchaEndpointsFor } from './captcha.js';
+import { nameForNewAccount, nameUnnamedMember } from './member-name.js';
 import type { EmailProvider } from './providers/email.js';
 import { DevEmailProvider } from './providers/email.js';
 import type { SmsProvider } from './providers/sms.js';
 import { DevSmsProvider, TwilioVerifySmsProvider } from './providers/sms.js';
 import { ac, roles } from './rbac.js';
+import { SOCIAL_PROVIDERS, socialCredentials } from './social-providers.js';
 
 export interface AuthEnv {
   DB: D1Database;
@@ -64,6 +66,9 @@ const GUARDED_ACCOUNT_PATHS = [
   '/revoke-other-sessions',
 ];
 
+const SEND_OTP_PATH = '/email-otp/send-verification-otp';
+const PUBLIC_OTP_TYPE = 'sign-in';
+
 /**
  * Build a Better Auth instance bound to the request's D1.
  *
@@ -92,6 +97,12 @@ const GUARDED_ACCOUNT_PATHS = [
  * revocation silently becomes permission to keep notifying it. A caller reaching the raw endpoint
  * gets neither, so the raw endpoint is closed and the guarded server function is the only door.
  *
+ * A public caller can ask `SEND_OTP_PATH` for a sign-in code and nothing else. Its other types
+ * belong to flows the product runs itself or not at all: the proof of the current address that a
+ * contact change asks for goes through the internal handler, and there is no password to reset.
+ * Better Auth also mails those types only to addresses that already have an account, so refusing
+ * them keeps the route's answer the same for every address.
+ *
  * `emailOTP.changeEmail.verifyCurrentEmail` is what makes a change of address an act by the person
  * who already holds it. Without it, anyone sitting at an unlocked session could move the account to
  * their own address and lock the member out with the account's own recovery flow; with it, the
@@ -109,6 +120,8 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
   const smsProvider = deps.smsProvider ?? smsProviderFromEnv(env);
   const db = createDb(env.DB);
+  const google = socialCredentials(env, 'google');
+  const github = socialCredentials(env, 'github');
 
   const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -133,37 +146,50 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
             message: 'Use the protected account endpoint for this action',
           });
         }
+        const otpType = (context.body as { type?: unknown } | undefined)?.type;
+        if (
+          context.path === SEND_OTP_PATH &&
+          deps.captchaBypassed !== true &&
+          otpType !== PUBLIC_OTP_TYPE
+        ) {
+          throw new APIError('BAD_REQUEST', {
+            code: 'OTP_TYPE_NOT_OFFERED',
+            message: 'Only sign-in codes can be requested here',
+          });
+        }
       }),
     },
     account: {
       accountLinking: {
         enabled: true,
-        trustedProviders: ['google', 'github'],
+        trustedProviders: [...SOCIAL_PROVIDERS],
         allowDifferentEmails: false,
         updateUserInfoOnLink: false,
       },
     },
     socialProviders: {
-      ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
-        ? {
-            google: {
-              clientId: env.GOOGLE_CLIENT_ID,
-              clientSecret: env.GOOGLE_CLIENT_SECRET,
-            },
-          }
-        : {}),
-      ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
-        ? {
-            github: {
-              clientId: env.GITHUB_CLIENT_ID,
-              clientSecret: env.GITHUB_CLIENT_SECRET,
-            },
-          }
-        : {}),
+      ...(google ? { google } : {}),
+      ...(github ? { github } : {}),
     },
     user: {
       additionalFields: {
         localePref: { type: 'string', required: false, input: false },
+      },
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (newUser) => ({
+            data: { name: nameForNewAccount(newUser) },
+          }),
+        },
+      },
+      session: {
+        create: {
+          before: async (newSession) => {
+            await nameUnnamedMember(db, newSession.userId);
+          },
+        },
       },
     },
     advanced: {
@@ -185,8 +211,11 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
         ),
       }),
       emailOTP({
-        sendVerificationOTP: async ({ email, otp, type }) => {
-          await emailProvider.sendOtp({ email, otp, type });
+        sendVerificationOTP: async ({ email, otp, type }, context) => {
+          await emailProvider.sendOtp(
+            { email, otp, type },
+            context ? { headers: context.headers } : undefined,
+          );
         },
         storeOTP: 'hashed',
         otpLength: 6,
@@ -233,13 +262,3 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
 };
 
 export type AuthInstance = ReturnType<typeof createAuth>['auth'];
-
-/** True if at least one OAuth provider is configured (drives UI: show social buttons). */
-export const hasSocialProviders = (env: AuthEnv): boolean => {
-  const envVars = env as unknown as Record<string, string | undefined>;
-  return (['GOOGLE', 'GITHUB'] as const).some(
-    (p) =>
-      optionalEnv(envVars, `${p}_CLIENT_ID`) &&
-      optionalEnv(envVars, `${p}_CLIENT_SECRET`),
-  );
-};

@@ -10,7 +10,7 @@ import {
 } from 'react';
 
 import { LivePresenceProvider } from '../features/events/live-presence';
-import { authClient } from './auth';
+import { useHydrationSafeSession } from './hydration-safe-session';
 import { useBoundedPending } from './network-status';
 import { createQueryClient } from './query-client';
 import { memberChanged, withdrawMemberCaches } from './session-cache';
@@ -56,7 +56,7 @@ const AuthProvider = ({
   children: ReactNode;
   client: ReturnType<typeof createQueryClient>;
 }) => {
-  const { data, isPending } = authClient.useSession();
+  const { data, isPending } = useHydrationSafeSession();
   const isLoading = useBoundedPending(isPending);
   useMemberCacheIsolation(data?.user?.id ?? null, isPending, client);
 

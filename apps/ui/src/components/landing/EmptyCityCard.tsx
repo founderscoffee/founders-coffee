@@ -42,11 +42,11 @@ export const EmptyCityCard = ({
             {hero_empty_subtitle({ city: cityDisplayName }, { locale })}
           </p>
         </div>
-        <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+        <div className="flex w-full flex-col gap-3 md:w-auto md:shrink-0 md:items-end">
           <Link
             {...localizedHostCreate(locale, market.slug)}
             search={{ city: selectedCity.code, state: selectedCity.stateCode }}
-            className="btn btn-primary h-12 w-full gap-2 text-base font-semibold shadow-none transition md:w-48"
+            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full gap-2 font-semibold shadow-none transition"
           >
             <Coffee className="size-4" />
             {hero_empty_cta({}, { locale })}
@@ -54,7 +54,7 @@ export const EmptyCityCard = ({
           <button
             type="button"
             onClick={() => setShowWaitlist((s) => !s)}
-            className="btn btn-outline h-12 w-full gap-2 text-sm font-medium transition md:w-48"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full gap-2 font-medium transition"
           >
             <Bell className="size-4" />
             {hero_waitlist_prompt({}, { locale })}

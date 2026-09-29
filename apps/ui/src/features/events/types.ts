@@ -1,3 +1,5 @@
+import type { profile } from '@founders-coffee/domain';
+
 import type {
   EventFeedItem,
   EventWithAttendance,
@@ -9,9 +11,12 @@ export type EventView = EventFeedItem;
 export type EventDetailView = EventWithAttendance;
 export type HostMapViewport = HostMapContext;
 export type VenueSelection = VenueCandidate;
+export type MeetupLanguage = profile.SpokenLanguage;
 export type VenueArea = {
   readonly kind: 'city' | 'market';
   readonly name: string;
 };
 
 export const VENUE_SEARCH_MAX_LENGTH = 500;
+
+export const VENUE_SEARCH_INPUT_ID = 'venue-search';

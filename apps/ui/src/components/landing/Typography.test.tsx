@@ -85,6 +85,7 @@ const event: EventFeedItem = {
   startsAt: new Date('2026-09-18T14:00:00Z'),
   endsAt: null,
   language: 'ar',
+  languages: ['ar'],
   rsvps: 2,
   latitude: null,
   longitude: null,
@@ -108,15 +109,15 @@ afterEach(cleanup);
 
 describe('P1-002 landing typography', () => {
   it.each<Locale>(['ar', 'fr', 'en'])(
-    'uses readable hero and search sizes in %s',
+    'uses readable hero text and daisyUI-sized search controls in %s',
     (locale) => {
       render(
         <MarketHero locale={locale} market={market} cityEventCounts={{}} />,
       );
       const description = screen.getByText(hero_subtitle({}, { locale }));
       expect(description.className.split(' ')).toContain('text-body-lg');
-      expect(screen.getByRole('combobox').className.split(' ')).toContain(
-        'text-body',
+      expect(screen.getByRole('combobox').className.split(' ')).toEqual(
+        expect.arrayContaining(['input', 'input-sm', 'md:input-md']),
       );
       expect(screen.getByRole('combobox').getAttribute('placeholder')).toBe(
         hero_search_placeholder({}, { locale }),
@@ -126,8 +127,14 @@ describe('P1-002 landing typography', () => {
           name: hero_search_cta({}, { locale }),
         }),
       ).toBeTruthy();
-      expect(screen.getByRole('link').className.split(' ')).toContain(
-        'text-body',
+      expect(screen.getByRole('link').className.split(' ')).toEqual(
+        expect.arrayContaining([
+          'btn',
+          'btn-xs',
+          'sm:btn-sm',
+          'md:btn-md',
+          'lg:btn-lg',
+        ]),
       );
       expect(screen.getByRole('heading', { level: 1 }).className).toContain(
         'text-display',

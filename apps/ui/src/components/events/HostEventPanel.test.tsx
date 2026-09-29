@@ -40,6 +40,7 @@ const event = {
   endsAt: at(26 * HOUR),
   rsvps: 3,
   language: 'en',
+  languages: ['en'],
   latitude: null,
   longitude: null,
   venueAddress: null,
@@ -232,7 +233,9 @@ describe('HostEventPanel lets the host put their own meetup in a calendar', () =
 
   it('offers it while the meetup is still ahead', () => {
     show(event);
-    expect(calendarGroup()).toBeTruthy();
+    const calendar = calendarGroup();
+    expect(calendar).toBeTruthy();
+    expect(calendar?.parentElement?.firstElementChild).toBe(calendar);
   });
 
   it('offers nothing once the host has called the meetup off', () => {

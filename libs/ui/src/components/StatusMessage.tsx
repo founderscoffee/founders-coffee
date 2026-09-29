@@ -30,13 +30,14 @@ export interface StatusMessageProps extends Omit<
 > {
   variant: StatusVariant;
   action?: ReactNode;
+  iconClassName?: string;
 }
 
 const isSilent = (children: ReactNode): boolean =>
   Children.toArray(children).every((child) => child === '');
 
 export const StatusMessage = forwardRef<HTMLDivElement, StatusMessageProps>(
-  ({ variant, action, className, children, ...props }, ref) => {
+  ({ variant, action, iconClassName, className, children, ...props }, ref) => {
     const isEmpty = isSilent(children);
     return (
       <div
@@ -54,7 +55,11 @@ export const StatusMessage = forwardRef<HTMLDivElement, StatusMessageProps>(
           <>
             <StatusIcon
               variant={variant}
-              className={cn('size-5 shrink-0', !action && 'self-start')}
+              className={cn(
+                'size-5 shrink-0',
+                !action && 'self-start',
+                iconClassName,
+              )}
             />
             <div className="min-w-0 break-words">{children}</div>
             {action}

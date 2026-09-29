@@ -17,6 +17,7 @@ export type PublicEventDiscoveryRow = {
   readonly startsAt: Date;
   readonly endsAt: Date | null;
   readonly language: Event['language'];
+  readonly languages: Event['languages'];
   readonly organizerName: string;
   readonly organizerEmail: string;
   readonly updatedAt: Date;
@@ -65,6 +66,7 @@ export const listPublicEventDiscoveryRows = async (
       startsAt: events.startsAt,
       endsAt: events.endsAt,
       language: events.language,
+      languages: events.languages,
       organizerName: user.name,
       organizerEmail: user.email,
       updatedAt: events.updatedAt,

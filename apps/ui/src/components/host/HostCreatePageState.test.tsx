@@ -1,11 +1,13 @@
 import {
   CREATED_EVENT,
-  fillHostDetails,
   getHostCreateMocks,
-  goToHostDetails,
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import {
+  fillHostDetails,
+  goToHostDetails,
+} from './HostCreatePage.flows.fixtures';
 import type { RepeatEventTemplate } from '../../features/events/api';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -22,7 +24,7 @@ const REPEAT_TEMPLATE: RepeatEventTemplate = {
   venueAddress: '12 Startup Street, Algiers',
   latitude: 36.7538,
   longitude: 3.0588,
-  language: 'ar' as const,
+  languages: ['ar'],
 };
 
 describe('HostCreatePage EC-07 state', () => {
@@ -95,7 +97,7 @@ describe('HostCreatePage EC-07 state', () => {
     await goToHostDetails();
     fillHostDetails();
     const publish = screen.getByRole('button', {
-      name: 'Confirm and publish the meetup',
+      name: 'Publish',
     }) as HTMLButtonElement;
     fireEvent.click(publish);
     fireEvent.click(publish);

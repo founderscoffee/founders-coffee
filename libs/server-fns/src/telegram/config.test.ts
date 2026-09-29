@@ -6,7 +6,7 @@ import {
   DevTelegramProvider,
 } from '@founders-coffee/notifications';
 
-import { telegramSetup } from './config.js';
+import { telegramBotUsername, telegramSetup } from './config.js';
 
 const configured = {
   TELEGRAM_BOT_USERNAME: ' @FoundersCoffeeBot ',
@@ -55,5 +55,16 @@ describe('the Telegram bot a deployment runs', () => {
     expect(
       telegramSetup({ ...configured, APP_ENVIRONMENT: 'staging' }),
     ).toBeNull();
+  });
+});
+
+describe('the bot a deployment names in its posts', () => {
+  it('is the username, without its @ or the spaces around it', () => {
+    expect(telegramBotUsername(configured)).toBe('FoundersCoffeeBot');
+  });
+
+  it('is nobody when the username is missing or blank', () => {
+    expect(telegramBotUsername({})).toBeNull();
+    expect(telegramBotUsername({ TELEGRAM_BOT_USERNAME: ' @ ' })).toBeNull();
   });
 });

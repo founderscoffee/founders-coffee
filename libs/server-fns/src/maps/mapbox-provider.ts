@@ -66,6 +66,13 @@ export const createMapboxProvider = (
     }
   };
 
+  /**
+   * The provider's own record of a city: its centre and bounds.
+   *
+   * Only a place named like the city is taken. Anything else, even a place in the city's own state,
+   * is `map_city_not_found`, which callers treat as "look wider" rather than as a failure: the map
+   * opens on the state or the market, never on a town the host did not choose.
+   */
   const resolveCity = async (
     input: MapProviderLocation & { readonly city: geo.GeoCity },
   ): Promise<Result<{ feature: MapboxFeature; context: HostMapContext }>> => {
@@ -77,11 +84,10 @@ export const createMapboxProvider = (
       types: 'city,place,locality',
     });
     if (!result.ok) return result;
-    const feature = result.data.find(
-      (candidate) =>
-        featureCountry(candidate) === input.marketCode &&
-        matchesCity(candidate, input),
+    const inMarket = result.data.filter(
+      (candidate) => featureCountry(candidate) === input.marketCode,
     );
+    const feature = inMarket.find((candidate) => matchesCity(candidate, input));
     const bounds = feature?.bbox ?? feature?.properties.bbox;
     if (!feature || !bounds) {
       return err(
@@ -181,20 +187,27 @@ export const createMapboxProvider = (
    * comparison relates them, so a name filter silently emptied every result for a host reading
    * anything but English. Supported venues are ranked above bare addresses so a real café still
    * wins where the provider indexes one.
+   *
+   * A city the provider cannot place is searched as if none were named: the town is real, it is
+   * only missing from the provider's gazetteer, and failing the search there left its hosts with
+   * nothing to pick (#120).
    */
   const searchVenues: MapProvider['searchVenues'] = async (input) => {
     const cityResult = input.city
       ? await resolveCity({ ...input, city: input.city })
       : null;
-    if (cityResult && !cityResult.ok) return cityResult;
-    const bounds = cityResult?.data.context.bounds;
+    if (
+      cityResult &&
+      !cityResult.ok &&
+      cityResult.error.code !== 'map_city_not_found'
+    )
+      return cityResult;
+    const city = cityResult?.ok ? cityResult.data.context : undefined;
+    const bounds = city?.bounds;
     const proximity =
       input.proximity ??
-      (cityResult
-        ? {
-            latitude: cityResult.data.context.center.latitude,
-            longitude: cityResult.data.context.center.longitude,
-          }
+      (city
+        ? { latitude: city.center.latitude, longitude: city.center.longitude }
         : undefined);
     const result = await fetchCollection('forward', {
       q: input.query,

@@ -1,8 +1,8 @@
 import {
   AppError,
   err,
+  eventLanguages,
   ok,
-  type Locale,
   type Result,
 } from '@founders-coffee/core';
 import {
@@ -22,7 +22,7 @@ export interface RepeatEventTemplate {
   readonly venueAddress: string | null;
   readonly latitude: number | null;
   readonly longitude: number | null;
-  readonly language: Locale;
+  readonly languages: readonly string[];
 }
 
 const ineligible = (): Result<RepeatEventTemplate> =>
@@ -75,6 +75,6 @@ export const readRepeatEventTemplate = async (
     venueAddress: event.venueAddress,
     latitude: event.latitude,
     longitude: event.longitude,
-    language: event.language,
+    languages: eventLanguages(event),
   });
 };

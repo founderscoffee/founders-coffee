@@ -3,7 +3,7 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn.js';
 
-export const buttonVariants = cva('btn', {
+export const buttonVariants = cva('btn btn-xs sm:btn-sm md:btn-md lg:btn-lg', {
   variants: {
     variant: {
       primary: 'btn-primary',
@@ -14,17 +14,12 @@ export const buttonVariants = cva('btn', {
       ghost: 'btn-ghost',
       link: 'btn-link',
     },
-    size: {
-      sm: 'btn-sm',
-      md: 'btn-md',
-      lg: 'btn-lg',
-    },
     isFullWidth: {
       true: 'w-full',
       false: '',
     },
   },
-  defaultVariants: { variant: 'primary', size: 'md', isFullWidth: false },
+  defaultVariants: { variant: 'primary', isFullWidth: false },
 });
 
 export interface ButtonProps
@@ -33,14 +28,11 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    { className, variant, size, isFullWidth, type = 'button', ...props },
-    ref,
-  ) => (
+  ({ className, variant, isFullWidth, type = 'button', ...props }, ref) => (
     <button
       ref={ref}
       type={type}
-      className={cn(buttonVariants({ variant, size, isFullWidth }), className)}
+      className={cn(buttonVariants({ variant, isFullWidth }), className)}
       {...props}
     />
   ),

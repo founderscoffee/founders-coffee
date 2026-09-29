@@ -134,6 +134,48 @@
   }
   :lang(ar) {
     font-family: var(--font-arabic);
+  }
+  /* Arabic takes a taller line than Latin and no tracking, both set on the elements that hold
+     lines. The text-level elements and form controls are left out, so each takes both from the
+     line it sits in, as it does on a Latin page: given 1.65 themselves, they stretched every line
+     whose block asked for less, and a bdi in the 1.1 heading made each title line 66px, not 44px.
+     A label is not left out: here it is a field's caption or a row of its own, never a run of text
+     inside a line. */
+  :lang(ar):not(
+    :where(
+      a,
+      abbr,
+      b,
+      bdi,
+      bdo,
+      br,
+      button,
+      cite,
+      code,
+      data,
+      del,
+      dfn,
+      em,
+      i,
+      input,
+      ins,
+      kbd,
+      mark,
+      q,
+      s,
+      samp,
+      select,
+      small,
+      span,
+      strong,
+      sub,
+      sup,
+      textarea,
+      time,
+      u,
+      var
+    )
+  ) {
     line-height: 1.65;
     letter-spacing: 0;
   }
@@ -420,20 +462,67 @@
 
 /* The header's auth control is a sign-in button when signed out and a 32px avatar when signed in,
    and which one it will be is not known until a fetch resolves after hydration — the document is
-   shared-cached, so it cannot carry the answer. In Arabic the two differ by 105px, so whichever
-   width the slot holds while it waits, something moves when the answer arrives.
+   shared-cached, so it cannot carry the answer. In Arabic the two differ by up to 128px, so
+   whichever width the slot holds while it waits, something moves when the answer arrives.
 
    `data-auth-slot` is set on the document before the first paint from what this browser needed
    last time, so the slot holds the right width from the first frame and nothing moves at all. A
    first visit, or a browser that refuses storage, gets `out` — which is what a first visit is.
 
-   8.75rem is the Arabic label, the longest of the three; the button fills the slot rather than
-   sitting in it, so French and English render a slightly wider button instead of a gap. */
+   The sign-in button takes daisyUI's responsive size, a step larger at each breakpoint from `xs` on
+   a phone to `lg`, so the hold steps with it. Each width is the Arabic label at that step, the
+   longest of the three, with a pixel or two to spare; the button fills the slot rather than sitting
+   in it, so French, a few pixels shorter, renders a slightly wider button instead of a gap. English
+   "Sign in" is half as long: a slot sized for Arabic stretched its outline into a pill twice the
+   width of "Host" beside it, so English reserves its own label at each step.
+
+   Signed out, the outlined sign-in comes before the filled host button, which ends the row. Signed
+   in, the avatar ends it instead, where an account menu is looked for. The markup keeps the
+   signed-out order, the one every visitor meets, and `order` moves the avatar from the same first
+   frame, so the row never rearranges itself after hydration either. */
 .auth-slot {
   display: flex;
   justify-content: flex-end;
 }
 
+:root[data-auth-slot='in'] .auth-slot {
+  order: 1;
+}
+
 :root[data-auth-slot='out'] .auth-slot {
-  min-width: 8.75rem;
+  min-width: 5.6875rem;
+}
+
+:root[data-auth-slot='out']:lang(en) .auth-slot {
+  min-width: 3.5rem;
+}
+
+@media (width >= 40rem) {
+  :root[data-auth-slot='out'] .auth-slot {
+    min-width: 6.625rem;
+  }
+
+  :root[data-auth-slot='out']:lang(en) .auth-slot {
+    min-width: 4.1875rem;
+  }
+}
+
+@media (width >= 48rem) {
+  :root[data-auth-slot='out'] .auth-slot {
+    min-width: 7.9375rem;
+  }
+
+  :root[data-auth-slot='out']:lang(en) .auth-slot {
+    min-width: 5.125rem;
+  }
+}
+
+@media (width >= 64rem) {
+  :root[data-auth-slot='out'] .auth-slot {
+    min-width: 10.0625rem;
+  }
+
+  :root[data-auth-slot='out']:lang(en) .auth-slot {
+    min-width: 6.4375rem;
+  }
 }

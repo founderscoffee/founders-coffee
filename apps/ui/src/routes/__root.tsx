@@ -1,4 +1,9 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  useMatches,
+} from '@tanstack/react-router';
 import { useEffect } from 'react';
 
 import {
@@ -22,6 +27,8 @@ import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
 import { Navbar } from '../components/shell/Navbar';
+import { RouterNotFound } from '../components/shell/RouterFallbacks';
+import { OpenGraphLocaleAlternates } from '../components/shell/OpenGraphLocaleAlternates';
 import { authSlotScript } from '../features/auth/session-hint';
 import { SkipLink } from '../components/shell/SkipLink';
 import { AppProviders } from '../lib/app-providers';
@@ -31,9 +38,10 @@ import {
   PUBLIC_DOCUMENT_CACHE_CONTROL,
 } from '../lib/indexation';
 import { getRequestPath } from '../lib/seo';
-import { organizationJsonLd } from '../lib/seo-company';
-import { errorPageHead } from '../lib/seo-error';
+import { organizationJsonLd, websiteJsonLd } from '../lib/seo-company';
+import { errorPageHead, errorPageKind } from '../lib/seo-error';
 import { installedAppMeta } from '../lib/installed-app-head';
+import { hasOwnMobileHeader } from '../lib/route-chrome';
 import { manifestHref } from '../lib/web-manifest';
 
 import appCss from '../styles.css?url';
@@ -76,6 +84,7 @@ const useServiceWorker = () => {
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { locale, dir, markets, activeMarket } = Route.useRouteContext();
+  const isNavbarHiddenOnMobile = useMatches({ select: hasOwnMobileHeader });
   useClientObservability();
   useServiceWorker();
   useStoredLocale(locale);
@@ -85,11 +94,16 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
     <html lang={locale} dir={dir} data-auth-slot="out" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <OpenGraphLocaleAlternates locale={locale} />
       </head>
       <body className="flex flex-col bg-base-100 text-base-content">
         <AppProviders>
           <SkipLink locale={locale} />
-          <Navbar locale={locale} marketSlug={activeMarket?.slug} />
+          <Navbar
+            locale={locale}
+            marketSlug={activeMarket?.slug}
+            isHiddenOnMobile={isNavbarHiddenOnMobile}
+          />
           <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>
@@ -115,14 +129,8 @@ export const Route = createRootRoute({
       ) ?? markets[0];
     return { locale, dir, markets, activeMarket };
   },
-  headers: ({ matches }) => {
-    const hasNoIndexableState = matches.some(
-      (match) =>
-        match.status === 'error' ||
-        match.status === 'notFound' ||
-        match.globalNotFound,
-    );
-    const headers: Record<string, string> = hasNoIndexableState
+  headers: ({ match, matches }) => {
+    const headers: Record<string, string> = errorPageKind(match, matches)
       ? {
           'Cache-Control': 'private, no-store',
           'X-Robots-Tag': NO_INDEX_VALUE,
@@ -130,17 +138,10 @@ export const Route = createRootRoute({
       : { 'Cache-Control': PUBLIC_DOCUMENT_CACHE_CONTROL };
     return headers;
   },
-  head: ({ matches }) => {
+  head: ({ match, matches }) => {
     const locale = localeFromRequest();
-    const hasNotFound = matches.some(
-      (match) => match.status === 'notFound' || match.globalNotFound,
-    );
-    const hasError = matches.some((match) => match.status === 'error');
-    const pageHead = hasNotFound
-      ? errorPageHead(locale, 'notFound')
-      : hasError
-        ? errorPageHead(locale, 'error')
-        : null;
+    const kind = errorPageKind(match, matches);
+    const pageHead = kind ? errorPageHead(locale, kind) : null;
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -150,6 +151,7 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: 'stylesheet', href: appCss },
+        { rel: 'icon', href: '/android-chrome-192x192.png', sizes: '192x192' },
         { rel: 'icon', href: '/favicon-32x32.png', sizes: '32x32' },
         { rel: 'icon', href: '/favicon-16x16.png', sizes: '16x16' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
@@ -159,10 +161,15 @@ export const Route = createRootRoute({
       scripts: [
         { children: authSlotScript() },
         ...(pageHead?.scripts ?? [
-          { type: 'application/ld+json', children: organizationJsonLd() },
+          {
+            type: 'application/ld+json',
+            children: organizationJsonLd(locale),
+          },
+          { type: 'application/ld+json', children: websiteJsonLd() },
         ]),
       ],
     };
   },
+  notFoundComponent: RouterNotFound,
   shellComponent: RootDocument,
 });

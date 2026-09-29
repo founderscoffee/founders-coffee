@@ -16,7 +16,6 @@ import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 import { useMyCloseoutStates } from '../../operations/hooks';
 import { ProfileSectionNav } from '../../account/components/ProfileSectionNav';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
-import { authClient } from '../../../lib/auth';
 import { useHostedEvents, useMyJoinedEvents } from '../hooks';
 import { ActivityList, type ActivityItem } from './ActivityList';
 
@@ -43,9 +42,8 @@ export const ActivityPage = ({
   markets: readonly { code: string; slug: string }[];
 }) => {
   const [activeTab, setActiveTab] = useState<ActivityTab>('joined');
-  const auth = authClient.useSession();
-  const userId = auth.data?.user.id;
   const joined = useMyJoinedEvents({ limit: ACTIVITY_PAGE_SIZE });
+  const { userId, isAuthLoading } = joined;
   const hosted = useHostedEvents({
     hostId: userId ?? '',
     limit: ACTIVITY_PAGE_SIZE,
@@ -59,7 +57,7 @@ export const ActivityPage = ({
   const marketSlugFor = (code: string) =>
     markets.find((market) => market.code === code)?.slug ?? code;
 
-  const isLoading = auth.isPending || (!!userId && joined.isPending);
+  const isLoading = isAuthLoading || (!!userId && joined.isPending);
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
@@ -87,7 +85,7 @@ export const ActivityPage = ({
           {activity_note({}, { locale })}
         </p>
 
-        {!userId && !auth.isPending ? (
+        {!userId && !isAuthLoading ? (
           <ProfileAccess
             locale={locale}
             isLoading={false}

@@ -17,7 +17,7 @@ const template: RepeatEventTemplate = {
   venueAddress: '12 Rue des Entrepreneurs, Alger',
   latitude: 36.7538,
   longitude: 3.0588,
-  language: 'ar',
+  languages: ['ar', 'fr'],
 };
 
 const hook = (locale: Locale, repeatTemplate?: RepeatEventTemplate | null) =>
@@ -28,40 +28,44 @@ const hook = (locale: Locale, repeatTemplate?: RepeatEventTemplate | null) =>
 const state = (locale: Locale, repeatTemplate?: RepeatEventTemplate | null) =>
   hook(locale, repeatTemplate).result;
 
-describe('the language a half-written meetup carries', () => {
+describe('the languages a half-written meetup carries', () => {
   beforeEach(() => window.sessionStorage.clear());
 
   it.each<Locale>([...LOCALES])(
-    'starts on the language the host is reading, in %s',
+    'stores no guess in %s, so the page language can stand in for one',
     (locale) => {
-      expect(state(locale).current.draft.language).toBe(locale);
+      expect(state(locale).current.draft.chosenLanguages).toBeNull();
     },
   );
 
-  it('keeps the language a saved draft was left with', () => {
+  it('keeps the languages a saved draft was left with', () => {
     const saved = state('en').current.draft;
-    writeHostCreateDraft('DZ', { ...saved, language: 'fr' });
+    writeHostCreateDraft('DZ', { ...saved, chosenLanguages: ['fr', 'ar'] });
 
-    expect(state('en').current.draft.language).toBe('fr');
+    expect(state('en').current.draft.chosenLanguages).toEqual(['fr', 'ar']);
   });
 
   it('saves the choice the moment it is made, not when the wizard ends', () => {
     const chosen = hook('en').result;
-    act(() => chosen.current.setLanguage('fr'));
+    act(() => chosen.current.setChosenLanguages(['fr', 'ber']));
 
     expect(
-      readHostCreateDraft('DZ')?.language,
-      'a host who picks a language and then closes the tab has to find it again',
-    ).toBe('fr');
+      readHostCreateDraft('DZ')?.chosenLanguages,
+      'a host who picks the languages and then closes the tab has to find them again',
+    ).toEqual(['fr', 'ber']);
   });
 
-  it('holds a repeat in the language the last meetup was held in', () => {
-    expect(state('en', template).current.draft.language).toBe('ar');
+  it('holds a repeat in the languages the last meetup was held in', () => {
+    expect(state('en', template).current.draft.chosenLanguages).toEqual([
+      'ar',
+      'fr',
+    ]);
   });
 
   it('does not take a repeat from another market', () => {
     expect(
-      state('en', { ...template, marketCode: 'EG' }).current.draft.language,
-    ).toBe('en');
+      state('en', { ...template, marketCode: 'EG' }).current.draft
+        .chosenLanguages,
+    ).toBeNull();
   });
 });

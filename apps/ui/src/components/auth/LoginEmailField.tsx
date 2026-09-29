@@ -10,12 +10,14 @@ export const LoginEmailField = ({
   locale,
   value,
   onChange,
+  hasHelp,
 }: {
   locale: Locale;
   value: string;
   onChange: (next: string) => void;
+  hasHelp: boolean;
 }) => (
-  <div className="form-control">
+  <div className="flex flex-col">
     <label className="mb-1 block text-label text-neutral" htmlFor="login-email">
       {email_label({}, { locale })}
     </label>
@@ -26,13 +28,15 @@ export const LoginEmailField = ({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={login_email_placeholder({}, { locale })}
-      aria-describedby="login-email-help"
+      aria-describedby={hasHelp ? 'login-email-help' : undefined}
     />
-    <span
-      id="login-email-help"
-      className="mt-1.5 block text-body-sm text-neutral"
-    >
-      {login_help({}, { locale })}
-    </span>
+    {hasHelp && (
+      <span
+        id="login-email-help"
+        className="mt-1.5 block text-body-sm text-neutral"
+      >
+        {login_help({}, { locale })}
+      </span>
+    )}
   </div>
 );

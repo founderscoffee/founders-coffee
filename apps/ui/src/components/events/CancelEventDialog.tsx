@@ -57,12 +57,12 @@ export const CancelEventDialog = ({
           {host_cancel_body({}, { locale })}
         </p>
 
-        <label className="form-control mt-4">
+        <label className="mt-4 flex flex-col">
           <span className="mb-1 block text-label text-neutral">
             {host_cancel_reason_label({}, { locale })}
           </span>
           <textarea
-            className="textarea textarea-bordered w-full"
+            className="textarea textarea-sm md:textarea-md w-full"
             rows={3}
             maxLength={CANCEL_REASON_MAX_LENGTH}
             value={reason}
@@ -75,7 +75,7 @@ export const CancelEventDialog = ({
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             type="button"
-            className="btn btn-ghost"
+            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
             onClick={onKeep}
             disabled={isPending}
           >
@@ -83,7 +83,7 @@ export const CancelEventDialog = ({
           </button>
           <button
             type="button"
-            className="btn btn-error"
+            className="btn btn-error btn-xs sm:btn-sm md:btn-md lg:btn-lg"
             onClick={onConfirm}
             disabled={isPending}
           >

@@ -36,8 +36,15 @@ body {
     transform: translateY(0);
   }
 }
-.host-fade-up {
-  animation: host-fade-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+/* Backwards, not both: holding the final translateY(0) once the rail has arrived would keep
+   it a containing block for fixed descendants, and the venue step's toasts are fixed to the
+   window from inside it. From lg up only: below it the venue list floats out of the rail over
+   the map, and while an animation runs the rail is a stacking context of its own, which drew
+   the map over the list until the rail had arrived. */
+@media (width >= 64rem) {
+  .host-fade-up {
+    animation: host-fade-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
 }
 
 @keyframes host-pin-drop {
@@ -168,12 +175,11 @@ body {
 /*
  * daisyUI's `.countdown` rolls digits by offsetting a stacked list of numbers by whole `em`
  * steps inside a box one `em` tall, and it measures its width in `ch`. Both only work while the
- * element and its children share one font and a line-height of exactly 1. The `:lang(ar)` base
- * rule matches the children directly — Tajawal at line-height 1.65 — so the offsets landed
- * between two numbers and showed a slice of each.
+ * element and its children share one font and a line-height of exactly 1. daisyUI sets that
+ * line-height on `.countdown` and the children inherit it, but the `:lang(ar)` base rule names
+ * Tajawal on every element, the children included, so they never inherit `font-mono`.
  */
 .countdown,
 .countdown * {
   font-family: var(--font-mono);
-  line-height: 1em;
 }

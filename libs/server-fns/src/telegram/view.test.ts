@@ -58,15 +58,34 @@ describe("the meetup's Telegram group as its reader sees it (real D1 via Minifla
     const closed = await viewOf(event.id, HOST_ID);
 
     expect([none, pending, active, closed]).toEqual([
-      { role: 'host', status: 'none', chatTitle: null, canConnect: true },
-      { role: 'host', status: 'pending', chatTitle: null, canConnect: true },
       {
         role: 'host',
+        botHandle: '@FoundersCoffeeBot',
+        status: 'none',
+        chatTitle: null,
+        canConnect: true,
+      },
+      {
+        role: 'host',
+        botHandle: '@FoundersCoffeeBot',
+        status: 'pending',
+        chatTitle: null,
+        canConnect: true,
+      },
+      {
+        role: 'host',
+        botHandle: '@FoundersCoffeeBot',
         status: 'active',
         chatTitle: 'Coffee group',
         canConnect: true,
       },
-      { role: 'host', status: 'none', chatTitle: null, canConnect: true },
+      {
+        role: 'host',
+        botHandle: '@FoundersCoffeeBot',
+        status: 'none',
+        chatTitle: null,
+        canConnect: true,
+      },
     ]);
   });
 

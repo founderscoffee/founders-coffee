@@ -14,14 +14,11 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock('../hooks', () => ({
-  useMyJoinedEvents: () => state.hosted,
+  useMyJoinedEvents: () => ({ ...state.hosted, ...state.session }),
   useHostedEvents: () => state.hosted,
 }));
 vi.mock('../../operations/hooks', () => ({
   useMyCloseoutStates: () => ({ data: state.closeoutStates }),
-}));
-vi.mock('../../../lib/auth', () => ({
-  authClient: { useSession: () => state.session },
 }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -74,7 +71,7 @@ const openHostedTab = () =>
   fireEvent.click(screen.getByRole('tab', { name: 'Gatherings you hosted' }));
 
 beforeEach(() => {
-  state.session = { data: { user: { id: 'usr_1' } }, isPending: false };
+  state.session = { userId: 'usr_1', isAuthLoading: false };
   state.hosted = page([
     {
       id: 'evt_1',

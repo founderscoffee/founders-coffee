@@ -120,7 +120,7 @@ describe('a signed-out visitor at a private screen spelled another way', () => {
     ],
     ['/en//profile', 307, '/en/profile'],
     ['//profile', 308, `${ORIGIN}/profile`],
-    ['/en/login%20', 307, '/en/login?redirect=%2F'],
+    ['/en/profile%20', 307, '/en/login?redirect=%2Fen%2Fprofile'],
   ])(
     'is sent on from %s with the private-route floor',
     async (path, status, location) => {
@@ -140,6 +140,19 @@ describe('a signed-out visitor at a private screen spelled another way', () => {
       ).toEqual(['private, no-store', 'noindex, nofollow']);
     },
   );
+
+  it('is shown the sign-in page at /en/login%20, kept private', async () => {
+    const response = await fetchDocument('/en/login%20', [localeCookie('fr')]);
+
+    expect(
+      response.status,
+      'the sign-in page no longer adds ?redirect=%2F to its own address (#117), so nothing sends this one on',
+    ).toBe(200);
+    expect([
+      response.headers.get('Cache-Control'),
+      response.headers.get('X-Robots-Tag'),
+    ]).toEqual(['private, no-store', 'noindex, nofollow']);
+  });
 });
 
 describe('a signed-in member who reaches the sign-in page', () => {

@@ -1,5 +1,14 @@
-import { AppError, err, ok, type Result } from '@founders-coffee/core';
-import type { EventUpdateInput } from '@founders-coffee/domain';
+import {
+  AppError,
+  err,
+  ok,
+  type Locale,
+  type Result,
+} from '@founders-coffee/core';
+import {
+  events as eventsDomain,
+  type EventUpdateInput,
+} from '@founders-coffee/domain';
 import {
   getEvent,
   updateEventIfCurrent,
@@ -39,10 +48,11 @@ const relocate = async (
   event: Event,
   input: EventUpdateInput,
   point: Point,
+  locale: Locale,
 ): Promise<Result<Placement>> => {
   const located = await locatePoint(mapProvider, {
     marketCode: event.marketCode,
-    locale: input.language,
+    locale,
     latitude: point.latitude,
     longitude: point.longitude,
     snapshotProviderId: input.venueProviderId,
@@ -118,6 +128,10 @@ export const updateEventResolver = async (
     opts.input.latitude !== undefined && opts.input.longitude !== undefined
       ? { latitude: opts.input.latitude, longitude: opts.input.longitude }
       : null;
+  const language = eventsDomain.leadLocale(
+    opts.input.languages,
+    event.language,
+  );
   const pointChanged =
     point !== null &&
     (event.latitude !== point.latitude || event.longitude !== point.longitude);
@@ -127,7 +141,13 @@ export const updateEventResolver = async (
     venueAddress: event.venueAddress,
   };
   if (pointChanged && point) {
-    const located = await relocate(mapProvider, event, opts.input, point);
+    const located = await relocate(
+      mapProvider,
+      event,
+      opts.input,
+      point,
+      language,
+    );
     if (!located.ok) return located;
     placed = located.data;
   }
@@ -142,7 +162,8 @@ export const updateEventResolver = async (
     longitude: placed.longitude,
     startsAt: new Date(opts.input.startsAt),
     endsAt: new Date(opts.input.endsAt),
-    language: opts.input.language,
+    language,
+    languages: opts.input.languages,
     version: opts.input.expectedVersion + 1,
     updatedAt: new Date(),
   };
@@ -162,6 +183,7 @@ export const updateEventResolver = async (
       startsAt: updated.startsAt,
       endsAt: updated.endsAt,
       language: updated.language,
+      languages: updated.languages,
     },
   );
   if (changed === 0)
