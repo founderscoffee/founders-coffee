@@ -9,7 +9,6 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 
 import { assertAssetsIgnored } from './vite-assets-ignore';
 import { mapboxCspWorker } from './vite-mapbox-worker';
-import { isSeoPrerenderPath, seoPrerenderPages } from './src/lib/seo-prerender';
 import {
   CLIENT_OUT_DIR,
   offlinePrecacheEntry,
@@ -59,8 +58,6 @@ const clientNodeBuiltinStubs: Plugin = {
   },
 };
 
-const isStagingEnvironment = process.env.CLOUDFLARE_ENV === 'staging';
-
 export default defineConfig(({ command }) => ({
   server: {
     watch: {
@@ -107,13 +104,6 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     mapboxCspAlias,
     tanstackStart({
-      pages: seoPrerenderPages,
-      prerender: {
-        enabled: !isStagingEnvironment,
-        crawlLinks: true,
-        autoStaticPathsDiscovery: false,
-        filter: isSeoPrerenderPath,
-      },
       sitemap: { enabled: false },
       importProtection: {
         exclude: [/\/routes\//],
