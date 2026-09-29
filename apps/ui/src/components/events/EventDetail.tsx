@@ -131,7 +131,7 @@ export const EventDetail = ({
             <span dir="auto">{cityName}</span>
           </span>
         </div>
-        <h1 className="mt-4 max-w-3xl font-display text-h1 font-semibold text-balance">
+        <h1 className="mt-4 font-display text-h3 font-semibold text-balance md:text-h2">
           <bdi>{event.title}</bdi>
         </h1>
         {event.description ? (
