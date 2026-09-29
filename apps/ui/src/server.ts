@@ -30,6 +30,7 @@ import {
   shouldEmitEarlyHints,
 } from './lib/early-hints.js';
 import { withoutRedirectCaching } from './lib/redirect-caching.js';
+import { liveRoomEventId } from './durable-objects/event-live/path.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
 
@@ -104,6 +105,30 @@ const liveRoomStub = (env: UiEnv, eventId: string): DurableObjectStub =>
     locationHint: DURABLE_OBJECT_LOCATION_HINT,
   });
 
+/**
+ * Hand a browser's WebSocket upgrade to its meetup's live room, and turn anything else away here.
+ *
+ * Only `GET /api/live/<eventId>` with `Upgrade: websocket` is forwarded, as it came. The room reads
+ * its meetup from that path with the same `liveRoomEventId`, so the room reached is always the one
+ * for the meetup it checks members against.
+ */
+const openLiveRoom = async (
+  request: Request,
+  env: UiEnv,
+  pathname: string,
+): Promise<Response> => {
+  const eventId = liveRoomEventId(pathname);
+  if (!eventId) return new Response('Not found', { status: 404 });
+  if (request.method !== 'GET')
+    return new Response('Method not allowed', {
+      status: 405,
+      headers: { Allow: 'GET' },
+    });
+  if (request.headers.get('Upgrade') !== 'websocket')
+    return new Response('Expected WebSocket upgrade', { status: 426 });
+  return liveRoomStub(env, eventId).fetch(request);
+};
+
 export default {
   /**
    * Serve the request, then stamp every response with the security headers (AGENTS.md §10).
@@ -155,20 +180,8 @@ export default {
       );
     }
 
-    if (url.pathname.startsWith('/api/live/')) {
-      const eventId = url.pathname.split('/api/live/')[1]?.split('/')[0];
-      if (!eventId)
-        return secure(new Response('Missing event id', { status: 400 }));
-
-      const upgradeHeader = request.headers.get('Upgrade');
-      if (upgradeHeader !== 'websocket') {
-        return secure(
-          new Response('Expected WebSocket upgrade', { status: 426 }),
-        );
-      }
-
-      return secure(await liveRoomStub(env, eventId).fetch(request));
-    }
+    if (url.pathname.startsWith('/api/live/'))
+      return secure(await openLiveRoom(request, env, url.pathname));
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
       const body = (await request.json().catch(() => null)) as {

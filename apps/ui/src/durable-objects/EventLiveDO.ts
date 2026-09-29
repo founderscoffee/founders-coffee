@@ -7,6 +7,7 @@ import {
   HEARTBEAT_FRAME,
   HEARTBEAT_TIMEOUT_MS,
 } from './event-live/constants.js';
+import { liveRoomEventId } from './event-live/path.js';
 import { clientMessage } from './event-live/protocol.js';
 import {
   refuseConnection,
@@ -22,7 +23,6 @@ import {
 } from './event-live/session.js';
 
 const EVENT_ID_KEY = 'eventId';
-const INTERNAL_CANCEL_HEADER = 'x-event-live-internal';
 
 type VerifiedSession = Extract<VerifyResult, { ok: true }>;
 
@@ -51,26 +51,15 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     );
   }
 
-  /** HTTP handler — upgrades to WebSocket (taking the eventId from the URL) or 405. */
+  /**
+   * Take a browser's WebSocket upgrade for `/api/live/<eventId>`, or answer 405.
+   *
+   * An upgrade is all a request can ask of the room. Its public route forwards what clients send, so
+   * cancelling is `cancel`, which only code holding the `EVENT_LIVE` binding can call. It used to be
+   * a branch here, opened by a POST carrying `x-event-live-internal: 1`.
+   */
   fetch = async (request: Request): Promise<Response> => {
-    const url = new URL(request.url);
-    const eventId = url.pathname.split('/').pop() ?? '';
-    if (
-      request.method === 'POST' &&
-      request.headers.get(INTERNAL_CANCEL_HEADER) === '1' &&
-      eventId
-    ) {
-      await this.setEventId(eventId);
-      await this.roster.ensureRehydrated();
-      this.connections.restore(this.ctx.getWebSockets());
-      this.connections.closeAll(
-        { type: 'event_cancelled' },
-        4003,
-        'event_cancelled',
-      );
-      await this.ctx.storage.deleteAlarm();
-      return new Response(null, { status: 204 });
-    }
+    const eventId = liveRoomEventId(new URL(request.url).pathname);
     if (
       request.method === 'GET' &&
       request.headers.get('Upgrade') === 'websocket' &&
@@ -82,6 +71,21 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     }
     return new Response('Method not allowed', { status: 405 });
   };
+
+  /**
+   * Close the room of a cancelled meetup: every socket is told, then closed with 4003, and the
+   * heartbeat alarm goes, since nobody is left for it to check.
+   */
+  // eslint-disable-next-line no-restricted-syntax -- Cloudflare RPC requires a prototype method.
+  async cancel(): Promise<void> {
+    this.connections.restore(this.ctx.getWebSockets());
+    this.connections.closeAll(
+      { type: 'event_cancelled' },
+      4003,
+      'event_cancelled',
+    );
+    await this.ctx.storage.deleteAlarm();
+  }
 
   webSocketMessage = async (
     ws: WebSocket,

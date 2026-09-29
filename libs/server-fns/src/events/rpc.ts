@@ -39,22 +39,18 @@ import {
   repeatEventRequestSchema,
 } from './schemas.js';
 
+interface LiveRoomStub {
+  cancel: () => Promise<void>;
+}
+
 const notifyLiveCancellation = async (eventId: string): Promise<void> => {
   const namespace = workerEnv().EVENT_LIVE;
   if (!namespace) return;
   try {
-    const stub = namespace.get(namespace.idFromName(`event:${eventId}`));
-    const response = await stub.fetch(
-      new Request(
-        `https://event-live.internal/internal/cancel/${encodeURIComponent(eventId)}`,
-        {
-          method: 'POST',
-          headers: { 'x-event-live-internal': '1' },
-        },
-      ),
-    );
-    if (!response.ok)
-      throw new Error(`Live cancellation returned ${response.status}`);
+    const room = namespace.get(
+      namespace.idFromName(`event:${eventId}`),
+    ) as unknown as LiveRoomStub;
+    await room.cancel();
   } catch (error) {
     reportError(error, { operation: 'cancel_event_live', eventId });
   }
