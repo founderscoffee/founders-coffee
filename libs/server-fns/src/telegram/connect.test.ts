@@ -137,7 +137,7 @@ describe('connecting a Telegram group to a meetup (real D1 via Miniflare)', () =
 
     expect(setup.provider.callsTo('sendMessage')[0]?.args).toEqual({
       chatId,
-      text: `Seul un administrateur du groupe peut le relier à « ${event.title} ».`,
+      text: `Seul un administrateur du groupe peut le relier à la rencontre « ${event.title} ».`,
     });
     expect((await getTelegramGroup(db, event.id))?.status).toBe('pending');
   });
