@@ -5,8 +5,8 @@ import { appValidator, handleResult } from '@founders-coffee/core';
 import { requireAuth } from '../authz.js';
 import { requirePermission } from '../auth-middleware.js';
 import { getDb } from '../db.js';
-import { RATE_BUDGETS, type RateBudget } from '../rate-budgets.js';
-import { rateLimit } from '../rate-limit.js';
+import { RATE_BUDGETS } from '../rate-budgets.js';
+import { limitedTo } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import { telegramSetup } from './config.js';
 import {
@@ -16,9 +16,6 @@ import {
 import { requestTelegramInviteResolver } from './invite.js';
 import { telegramGroupRequestSchema } from './schemas.js';
 import { readTelegramGroupView } from './view.js';
-
-const limitedTo = (budget: RateBudget) =>
-  rateLimit(budget.action, budget.limit, budget.windowMs);
 
 /**
  * The meetup's Telegram group as the signed-in reader sees it: as its host, as a member going, or

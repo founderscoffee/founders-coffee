@@ -7,6 +7,7 @@ const statements = {
   ...defaultStatements,
   event: ['create', 'read'],
   rsvp: ['create', 'read', 'update'],
+  chat: ['read', 'write'],
   sponsorship: ['read'],
   profile: ['read', 'update'],
   push: ['manage'],
@@ -32,6 +33,7 @@ export const roles = {
   member: ac.newRole({
     event: ['create', 'read'],
     rsvp: ['create', 'read', 'update'],
+    chat: ['read', 'write'],
     sponsorship: ['read'],
     profile: ['read', 'update'],
     push: ['manage'],
@@ -39,6 +41,7 @@ export const roles = {
   host: ac.newRole({
     event: ['create', 'read'],
     rsvp: ['create', 'read', 'update'],
+    chat: ['read', 'write'],
     sponsorship: ['read'],
     profile: ['read', 'update'],
     push: ['manage'],
@@ -53,6 +56,7 @@ export const roles = {
   moderator: ac.newRole({
     event: ['create', 'read'],
     rsvp: ['create', 'read', 'update'],
+    chat: ['read', 'write'],
     sponsorship: ['read'],
     profile: ['read', 'update'],
     push: ['manage'],
@@ -62,6 +66,7 @@ export const roles = {
     ...adminAc.statements,
     event: ['create', 'read'],
     rsvp: ['create', 'read', 'update'],
+    chat: ['read', 'write'],
     sponsorship: ['read'],
     profile: ['read', 'update'],
     push: ['manage'],

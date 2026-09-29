@@ -50,6 +50,20 @@ describe('roles that are not operators', () => {
   });
 });
 
+describe('the meetup chat', () => {
+  it.each(['member', 'host', 'moderator', 'admin'])(
+    'lets %s read and write in the chats they belong to',
+    (role) => {
+      expect(roleAllows(role, { chat: ['read', 'write'] })).toBe(true);
+    },
+  );
+
+  it('keeps a sponsor contact out of every chat', () => {
+    expect(roleAllows('sponsor_contact', { chat: ['read'] })).toBe(false);
+    expect(roleAllows('sponsor_contact', { chat: ['write'] })).toBe(false);
+  });
+});
+
 describe('a role the code does not define', () => {
   it.each([null, undefined, '', 'superuser', 'ADMIN'])(
     'refuses %s rather than reading it as absent',

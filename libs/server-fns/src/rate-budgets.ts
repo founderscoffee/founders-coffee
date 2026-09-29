@@ -60,6 +60,33 @@ export const RATE_BUDGETS = {
       windowMs: 10 * MINUTE_MS,
     },
   },
+  chat: {
+    send: {
+      action: 'send_chat_message',
+      limit: 20,
+      windowMs: MINUTE_MS,
+    },
+    remove: {
+      action: 'remove_chat_message',
+      limit: 30,
+      windowMs: 10 * MINUTE_MS,
+    },
+    markRead: {
+      action: 'mark_chat_read',
+      limit: 120,
+      windowMs: 10 * MINUTE_MS,
+    },
+    mute: {
+      action: 'mute_chat',
+      limit: 20,
+      windowMs: 10 * MINUTE_MS,
+    },
+    report: {
+      action: 'report_chat_message',
+      limit: 10,
+      windowMs: 10 * MINUTE_MS,
+    },
+  },
   telegram: {
     connectAttempt: {
       action: 'telegram_connect_attempt',
@@ -102,6 +129,11 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * uploads abandoned. The export budget still arrives with PF-09. A Telegram invite is here too,
  * because making one is a call to the Bot API, whose limits the whole bot shares: five in ten
  * minutes is more than a member going to one meetup ever needs.
+ *
+ * `chat` holds what a member spends in a meetup's chat (P1-026). Twenty messages a minute keeps a
+ * lively table talking and stops one member flooding it. A removal is a cheap write, with room for
+ * a host clearing out a flood, and so is a read marker, which a member's screen moves as the chat
+ * scrolls. A report asks a moderator for their attention, so it is the scarcest.
  *
  * `telegram` holds what a Telegram chat can spend through the webhook, keyed by chat. The webhook is
  * authenticated, but what arrives through it is whatever anyone in a group chooses to send: a
