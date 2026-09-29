@@ -20,6 +20,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
         '**Le responsable du traitement** est **Amine Yagoub**, une personne physique. Aucune société n’a encore été constituée pour exploiter ce pilote gratuit. La définition légale du responsable du traitement couvre les personnes physiques comme les personnes morales, et ses obligations envers vos données sont les mêmes dans les deux cas. Contact pour tout ce qui concerne vos données : **contact@founders.coffee**.',
         'Si une société est constituée plus tard, la qualité de responsable du traitement lui sera transférée. C’est un changement de la personne qui détient vos données, pas un détail administratif : nous vous en informerons avant qu’il prenne effet, comme indiqué à la section 12.',
         'Les traitements sont effectués conformément à la loi algérienne relative à la protection des personnes physiques dans le traitement des données à caractère personnel, puisque nous exploitons la plateforme depuis l’Algérie.',
+        'Si la loi du pays où vous résidez vous accorde une protection plus étendue que cette politique, nous la respectons à votre égard.',
       ),
     ),
     section('Ce que nous collectons et pourquoi', [
@@ -119,7 +120,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
         'Nous le mentionnons explicitement parce que la loi l’exige, et parce que cela vous concerne.',
         'La plateforme fonctionne sur une infrastructure cloud distribuée, et les prestataires cités dans la section précédente sont établis hors des pays où nous sommes présents. **Vos données sont donc traitées et stockées hors de votre pays.** Lorsqu’un groupe Telegram est relié à une rencontre, ce qui parvient à Telegram de notre part à son sujet et au sujet de ses membres est lui aussi traité hors de votre pays, sur les serveurs de Telegram et selon ses conditions.',
         'Nous nous appuyons sur la loi, qui autorise le transfert vers un pays étranger dans deux cas qui s’appliquent ici : **votre consentement explicite** et **la nécessité du transfert pour exécuter le contrat qui nous lie**, puisque votre compte ne peut pas fonctionner ni aucune notification vous parvenir sans que les données passent par cette infrastructure. En contrepartie, nous faisons appel à des prestataires engagés sur des standards de protection reconnus, nous chiffrons les connexions et nous limitons ce que reçoit chaque prestataire à ce qu’exige sa mission.',
-        'C’est le fondement sur lequel nous nous appuyons aujourd’hui, et non l’autorisation préalable que la loi prévoit aussi. Si l’Autorité nationale de protection des données à caractère personnel délivre plus tard une autorisation pour ce transfert, nous mettrons cette section à jour pour y faire référence.',
+        'C’est le fondement sur lequel nous nous appuyons aujourd’hui, et non une autorisation préalable d’une autorité de protection des données, que certaines lois prévoient aussi. Si nous obtenons plus tard une autorisation pour ce transfert, nous mettrons cette section à jour pour y faire référence.',
         'Si ce transfert ne vous convient pas, vous pouvez retirer votre consentement et demander la fermeture de votre compte, et nous le ferons.',
       ),
     ),
@@ -172,17 +173,23 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ]),
     section('Vos droits et leur exercice', [
-      ...text('La loi vous accorde des droits que nous respectons :'),
+      ...text(
+        'Où que vous résidiez, vous disposez des droits suivants, et nous les respectons de la même façon pour tous :',
+      ),
       list([
         '**Information** : savoir qui traite vos données, dans quel but, qui les reçoit et si elles sont transférées à l’étranger. Ce document est notre façon de respecter ce droit.',
-        '**Accès** : obtenir la confirmation que vos données sont traitées, leurs finalités, les catégories de données et les destinataires, une copie sous une forme compréhensible et les informations disponibles sur leur origine. La loi nous permet de refuser les demandes manifestement abusives (par leur nombre ou leur répétition), et c’est à nous, non à vous, d’en apporter la preuve.',
-        '**Rectification** : faire mettre à jour, corriger, effacer ou verrouiller vos données si elles sont incomplètes, inexactes ou traitées illégalement. **Nous le faisons gratuitement et sous dix (10) jours** à compter de votre demande. Si nous avons communiqué vos données à d’autres, nous les informons de la rectification.',
+        '**Accès** : obtenir la confirmation que vos données sont traitées, leurs finalités, les catégories de données et les destinataires, une copie sous une forme compréhensible et les informations disponibles sur leur origine. Nous ne refusons que les demandes manifestement abusives (par leur nombre ou leur répétition), et c’est à nous, non à vous, d’en apporter la preuve.',
+        '**Rectification** : faire mettre à jour, compléter, corriger, effacer ou verrouiller vos données si elles sont incomplètes, inexactes ou traitées illégalement. **Nous le faisons sous dix (10) jours** à compter de votre demande. Si nous avons communiqué vos données à d’autres, nous les informons de la rectification.',
+        '**Effacement** : faire supprimer vos données dès qu’elles ne sont plus nécessaires à la finalité pour laquelle elles ont été collectées, ou dès que vous retirez le consentement sur lequel elles reposaient, sauf si une loi nous oblige à les conserver.',
+        '**Limitation** : faire limiter le traitement de vos données à une finalité déterminée.',
         '**Opposition** : vous opposer, pour des motifs légitimes, à un traitement qui vous concerne, et vous opposer sans justification à l’utilisation de vos données à des fins de prospection.',
+        '**Notification des violations** : être informé de toute violation qui touche vos données, comme indiqué à la section « En cas de violation ».',
         '**Retrait du consentement** : à tout moment, pour tout ce qui repose sur votre consentement.',
       ]),
       ...text(
+        '**Gratuitement et sans tarder.** L’exercice de ces droits ne vous coûte rien. **Nous répondons à toute demande dans les six (6) jours ouvrables** suivant sa réception ; si nous la refusons, nous vous en donnons les motifs par écrit.',
         '**Comment les exercer.** Certains de ces droits sont disponibles directement sur la plateforme : modifier votre profil et vos réglages de visibilité depuis la page de profil, et vos préférences de notification depuis la page des préférences. Pour le reste (notamment obtenir une copie de vos données, faire corriger un registre de présence ou fermer votre compte), écrivez à **contact@founders.coffee** depuis l’e-mail associé à votre compte en précisant clairement votre demande.',
-        '**La correction d’un registre de présence** mérite une mention particulière : si un organisateur a indiqué que vous étiez absent d’une rencontre à laquelle vous avez assisté, ou l’inverse, c’est une donnée personnelle qui vous concerne, et vous avez le droit de la faire corriger dans le même délai. Écrivez-nous et nous examinerons le registre.',
+        '**La correction d’un registre de présence** mérite une mention particulière : si un organisateur a indiqué que vous étiez absent d’une rencontre à laquelle vous avez assisté, ou l’inverse, c’est une donnée personnelle qui vous concerne, et vous avez le droit de la faire corriger dans le même délai de rectification. Écrivez-nous et nous examinerons le registre.',
       ),
     ]),
     section(
@@ -196,8 +203,8 @@ export const privacyFrench: CompanyPageContent = translatedPage(
     section(
       'En cas de violation',
       text(
-        'Si une violation touche vos données personnelles, nous en informons l’Autorité nationale de protection des données à caractère personnel sans délai, et au plus tard dans les cinq (5) jours après en avoir eu connaissance.',
-        'Nous vous informons directement si la violation peut porter atteinte à votre vie privée, en termes clairs, en expliquant ce qui s’est passé, ce qui peut en découler et les mesures que nous avons prises.',
+        'Si une violation touche vos données personnelles, nous en informons les autorités de protection des données compétentes sans délai, et au plus tard dans les soixante-douze (72) heures après en avoir eu connaissance.',
+        'Nous vous en informons aussi directement, par e-mail, dans les trois (3) jours ouvrables suivant la notification à ces autorités, en termes clairs : ce qui s’est passé, ce qui peut en découler et les mesures que nous avons prises.',
         'Nous tenons un registre interne de chaque violation et des mesures prises.',
       ),
     ),
@@ -210,7 +217,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
     section(
       'Mineurs',
       text(
-        'La plateforme est destinée aux personnes âgées d’au moins **dix-neuf (19) ans**, l’âge de la majorité civile en Algérie. Nous ne collectons pas sciemment de données de mineurs. S’il apparaît qu’un compte appartient à un mineur, nous le suspendons et supprimons les données qui s’y rattachent.',
+        'La plateforme est destinée aux adultes : les personnes qui ont atteint l’âge de la majorité civile selon la loi de leur pays, et qui ont au moins **dix-neuf (19) ans**. Nous ne collectons pas sciemment de données de mineurs. S’il apparaît qu’un compte appartient à un mineur, nous le suspendons et supprimons les données qui s’y rattachent.',
         'Si vous êtes responsable légal et pensez qu’un mineur dont vous avez la charge a créé un compte, écrivez-nous et nous agirons.',
       ),
     ),
@@ -225,7 +232,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       'Contact et réclamations',
       text(
         'Pour les questions et les demandes d’exercice de vos droits : **contact@founders.coffee**',
-        'Si notre réponse ne vous satisfait pas, vous avez le droit d’adresser une réclamation à l’**Autorité nationale de protection des données à caractère personnel (ANPDP)**, l’autorité de contrôle compétente en Algérie.',
+        'Si notre réponse ne vous satisfait pas, vous avez le droit d’adresser une réclamation à **l’autorité de protection des données personnelles de votre pays**.',
       ),
     ),
   ],

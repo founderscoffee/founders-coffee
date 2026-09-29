@@ -46,7 +46,7 @@ export const faqFrench: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'Vous saisissez votre e-mail et recevez un code, ou vous entrez avec Google ou GitHub. Nous ne demandons aucun mot de passe et n’en conservons aucun : ce que nous ne stockons pas ne peut ni fuiter de chez nous ni être réutilisé ailleurs. Il faut avoir au moins dix-neuf (19) ans, l’âge de la majorité civile en Algérie, car l’usage de la plateforme crée un engagement contractuel : [conditions d’utilisation](/terms).',
+          text: 'Vous saisissez votre e-mail et recevez un code, ou vous entrez avec Google ou GitHub. Nous ne demandons aucun mot de passe et n’en conservons aucun : ce que nous ne stockons pas ne peut ni fuiter de chez nous ni être réutilisé ailleurs. Il faut avoir atteint l’âge de la majorité civile selon la loi de votre pays, et avoir au moins dix-neuf (19) ans, car l’usage de la plateforme crée un engagement contractuel : [conditions d’utilisation](/terms).',
         },
         {
           kind: 'subheading',

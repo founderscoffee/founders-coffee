@@ -29,7 +29,7 @@ export const termsFrench: CompanyPageContent = translatedPage(
     section(
       'Comptes',
       text(
-        '**Qui peut créer un compte.** Vous devez avoir atteint l’âge de la majorité civile en Algérie, soit **dix-neuf (19) ans révolus**, car l’utilisation de la plateforme crée un engagement contractuel. Si nous apprenons qu’un compte appartient à un mineur, nous le suspendons.',
+        '**Qui peut créer un compte.** Vous devez avoir atteint l’âge de la majorité civile selon la loi de votre pays, et avoir au moins **dix-neuf (19) ans révolus**, car l’utilisation de la plateforme crée un engagement contractuel. Si nous apprenons qu’un compte appartient à un mineur, nous le suspendons.',
         '**Inscription.** Vous créez votre compte avec un code envoyé à votre e-mail, ou avec un compte Google ou GitHub si vous le préférez. Nous ne demandons pas de mot de passe et n’en conservons aucun.',
         '**Informations exactes.** Utilisez votre vrai nom et des informations exactes. Cette plateforme professionnelle repose sur le fait que chacun sait qui il rencontre ; les pseudonymes, les fausses qualités et l’usurpation d’identité compromettent cela et sont interdits par les [Règles de la communauté](/community).',
         '**Votre responsabilité pour votre compte.** Le compte est personnel et ne se partage pas. Prévenez-nous immédiatement si vous remarquez une utilisation que vous n’avez pas autorisée.',
@@ -128,7 +128,8 @@ export const termsFrench: CompanyPageContent = translatedPage(
       text(
         'Ces conditions sont régies par le droit algérien.',
         'En cas de différend, nous préférons le régler d’abord par écrit ; nous nous engageons à répondre à toute réclamation sérieuse. À défaut de solution amiable, le différend relève de **la juridiction territorialement compétente selon les règles de compétence du droit algérien**.',
-        'Cette clause ne porte atteinte ni à votre droit de saisir les autorités de contrôle compétentes, ni à votre droit d’adresser une réclamation à l’Autorité nationale de protection des données à caractère personnel pour tout ce qui concerne vos données.',
+        'Ni ce choix de loi ni ce choix de juridiction ne vous privent de la protection que vous assurent les dispositions impératives de la loi de votre pays, y compris le droit qu’elles vous donneraient de porter le litige devant ses juridictions.',
+        'Cette clause ne porte atteinte ni à votre droit de saisir les autorités de contrôle compétentes, ni à votre droit d’adresser une réclamation à l’autorité de protection des données personnelles de votre pays pour tout ce qui concerne vos données.',
       ),
     ),
     section(

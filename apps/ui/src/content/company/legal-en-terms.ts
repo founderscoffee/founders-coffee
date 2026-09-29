@@ -29,7 +29,7 @@ export const termsEnglish: CompanyPageContent = translatedPage(
     section(
       'Accounts',
       text(
-        '**Who can create an account.** You must have reached the age of civil majority in Algeria, that is **nineteen (19) full years**, because using the platform creates a contractual obligation. If we learn that an account belongs to a minor, we suspend it.',
+        '**Who can create an account.** You must have reached the age of civil majority under the law of your country, and be at least **nineteen (19) full years** old, because using the platform creates a contractual obligation. If we learn that an account belongs to a minor, we suspend it.',
         '**Sign-up.** You create your account with a code sent to your email, or through a Google or GitHub account if you choose. We do not ask for a password and do not store one.',
         '**Accurate information.** Use your real name and accurate details. This is a professional platform built on people knowing who they are meeting; pseudonyms, false titles, and impersonation undermine that, and they are prohibited under the [Community guidelines](/community).',
         '**Responsibility for your account.** Your account is personal and may not be shared. Tell us immediately if you notice use you did not authorise.',
@@ -128,7 +128,8 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       text(
         'These terms are governed by Algerian law.',
         'If a dispute arises, we prefer to resolve it in writing first; we commit to answering every serious complaint. If an amicable solution is not possible, the dispute falls under **the territorially competent court, according to the jurisdiction rules of Algerian law**.',
-        'This clause does not affect your right to turn to the competent regulatory bodies, or your right to lodge a complaint with the National Authority for the Protection of Personal Data about anything concerning your data.',
+        'Neither this choice of law nor this choice of court deprives you of the protection that the mandatory rules of your country’s law give you, including any right they give you to bring the dispute before its courts.',
+        'This clause does not affect your right to turn to the competent regulatory bodies, or your right to complain to the personal data protection authority in your country about anything concerning your data.',
       ),
     ),
     section(
