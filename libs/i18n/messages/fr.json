@@ -687,6 +687,8 @@
       }
     }
   ],
+  "event_meta_summary": "Le {day} à {time} · {venue}, {city}. Rencontre Founders Coffee gratuite.",
+  "event_meta_cancelled_summary": "Annulée. Elle était prévue le {day} à {time} · {venue}, {city}.",
   "host_you_are_hosting": "Vous organisez",
   "host_hosting_help": "Vous faites partie des participants. Les invités vous voient dans la salle au début de la rencontre.",
   "host_event_ended": "Cette rencontre est terminée.",

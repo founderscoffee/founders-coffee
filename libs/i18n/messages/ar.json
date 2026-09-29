@@ -553,6 +553,8 @@
   "event_cancelled_body": "ألغى المضيف اللقاء. لا داعي للحضور.",
   "event_details_title": "تفاصيل اللقاء",
   "event_meta_description": "انضم إلى «{title}»، لقاء تنظّمه Founders Coffee في {city}.",
+  "event_meta_summary": "{day} الساعة {time} · {venue}، {city}. لقاء مجاني تنظّمه Founders Coffee.",
+  "event_meta_cancelled_summary": "أُلغي هذا اللقاء، وكان مقرّرًا يوم {day} الساعة {time} · {venue}، {city}.",
   "host_you_are_hosting": "أنت المضيف",
   "host_hosting_help": "أنت ضمن الحضور. يراك الحاضرون في غرفة اللقاء عند بدايته.",
   "host_event_ended": "انتهى هذا اللقاء.",

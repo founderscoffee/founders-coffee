@@ -106,8 +106,8 @@ export const getRequestPath = (): string => {
   return '/';
 };
 
-const MAX_TITLE_LENGTH = 70;
-const MAX_DESCRIPTION_LENGTH = 160;
+export const MAX_TITLE_LENGTH = 70;
+export const MAX_DESCRIPTION_LENGTH = 160;
 
 const normalizeText = (value: string, maxLength: number): string => {
   const normalized = value.replace(/\s+/gu, ' ').trim();
@@ -117,6 +117,10 @@ const normalizeText = (value: string, maxLength: number): string => {
 };
 
 const NAMES_THE_BRAND = /founders(?:\.coffee| coffee)/iu;
+
+/** Whether a title already names the brand, as "Founders Coffee" or as "founders.coffee". */
+export const namesTheBrand = (title: string): boolean =>
+  NAMES_THE_BRAND.test(title);
 
 /**
  * A page's `<title>`: the brand, then the page, unless the page's own title already names the brand.
@@ -138,26 +142,36 @@ export type PageMetadataInput = {
   readonly description: string;
   readonly route: CanonicalRoute;
   readonly robots?: string;
-  readonly openGraphType?: 'website' | 'event';
   readonly alternateLocales?: readonly Locale[];
   readonly alternates?: readonly AlternateLink[];
   readonly marketCode?: string;
   readonly socialImage?: { readonly url: string; readonly alt: string };
 };
 
-export const buildPageMetadata = ({
+export type TitledPageMetadataInput = Omit<PageMetadataInput, 'title'> & {
+  readonly documentTitle: string;
+  readonly socialTitle: string;
+};
+
+/**
+ * A page's metadata, given the title its tab and search result show and the one a shared link shows.
+ *
+ * Most pages send one branded title to both and come through {@link buildPageMetadata}. A meetup
+ * leads its search result with its own name and sends a shared link the name alone, since
+ * `og:site_name` already carries the brand, so it composes both titles itself and calls this.
+ */
+export const buildTitledPageMetadata = ({
   locale,
-  title,
+  documentTitle,
+  socialTitle,
   description,
   route,
   robots = 'index,follow',
-  openGraphType = 'website',
   alternateLocales = LOCALES,
   alternates = localeAlternates(route, alternateLocales),
   marketCode,
   socialImage: card,
-}: PageMetadataInput) => {
-  const fullTitle = buildPageTitle(title);
+}: TitledPageMetadataInput) => {
   const normalizedDescription = normalizeText(
     description,
     MAX_DESCRIPTION_LENGTH,
@@ -168,12 +182,12 @@ export const buildPageMetadata = ({
   const socialImageAlt = card?.alt ?? social_image_alt({}, { locale });
   return {
     meta: [
-      { title: fullTitle },
+      { title: documentTitle },
       { name: 'description', content: normalizedDescription },
       { name: 'robots', content: robots },
-      { property: 'og:type', content: openGraphType },
+      { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: 'Founders Coffee' },
-      { property: 'og:title', content: fullTitle },
+      { property: 'og:title', content: socialTitle },
       { property: 'og:description', content: normalizedDescription },
       { property: 'og:url', content: url },
       { property: 'og:locale', content: openGraphLocale(locale, marketCode) },
@@ -182,13 +196,23 @@ export const buildPageMetadata = ({
       { property: 'og:image:height', content: '630' },
       { property: 'og:image:alt', content: socialImageAlt },
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: fullTitle },
+      { name: 'twitter:title', content: socialTitle },
       { name: 'twitter:description', content: normalizedDescription },
       { name: 'twitter:image', content: socialImage },
       { name: 'twitter:image:alt', content: socialImageAlt },
     ],
     links: [{ rel: 'canonical', href: url }, ...alternates],
   };
+};
+
+/** A page's metadata under the one branded title {@link buildPageTitle} makes of `title`. */
+export const buildPageMetadata = ({ title, ...input }: PageMetadataInput) => {
+  const fullTitle = buildPageTitle(title);
+  return buildTitledPageMetadata({
+    ...input,
+    documentTitle: fullTitle,
+    socialTitle: fullTitle,
+  });
 };
 
 type CityHeadInput = {

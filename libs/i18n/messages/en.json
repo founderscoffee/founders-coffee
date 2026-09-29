@@ -494,6 +494,8 @@
   "event_cancelled_body": "The host cancelled the meetup. There is no need to go.",
   "event_details_title": "Meetup details",
   "event_meta_description": "Join {title}, a Founders Coffee meetup in {city}.",
+  "event_meta_summary": "{day} at {time} · {venue}, {city}. A free Founders Coffee meetup.",
+  "event_meta_cancelled_summary": "Cancelled. It was planned for {day} at {time} · {venue}, {city}.",
   "host_you_are_hosting": "You're hosting",
   "host_hosting_help": "You are included among attendees. Guests see you in the room when the meetup starts.",
   "host_event_ended": "This meetup has ended.",

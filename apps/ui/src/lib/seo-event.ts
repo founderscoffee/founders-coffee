@@ -1,17 +1,27 @@
 import { shortId } from '@founders-coffee/core';
 import {
   cityInputs,
+  event_meta_cancelled_summary,
   event_meta_description,
+  event_meta_summary,
   type Locale,
 } from '@founders-coffee/i18n';
 
+import { eventWhen } from './event-when';
 import {
   breadcrumbJsonLd,
   eventJsonLd,
   type StructuredEventData,
   type StructuredListItem,
 } from './seo-structured-data';
-import { buildPageMetadata, getSiteOrigin, type CanonicalRoute } from './seo';
+import {
+  buildTitledPageMetadata,
+  getSiteOrigin,
+  MAX_DESCRIPTION_LENGTH,
+  MAX_TITLE_LENGTH,
+  type CanonicalRoute,
+} from './seo';
+import { buildLeadingTitle, clipAtWord } from './seo-text';
 
 type EventHeadInput = {
   readonly locale: Locale;
@@ -40,6 +50,28 @@ export const eventCardUrl = (
 ): string =>
   `${getSiteOrigin()}/og/e/${shortId(eventId)}?l=${locale}&v=${version}`;
 
+/**
+ * What a search result or a shared link says of a meetup before anyone opens it.
+ *
+ * When and where come first, in the page's language, because they are what a reader decides on and
+ * what a host's own words rarely say; the host's words follow in whatever room is left. A cancelled
+ * meetup says so before anything else.
+ */
+const eventSnippet = (
+  locale: Locale,
+  event: StructuredEventData,
+  cityName: string,
+  hostWords: string,
+): string => {
+  const { day, clock } = eventWhen(event.startsAt, event.timezone, locale);
+  const facts = { day, time: clock, venue: event.venue, city: cityName };
+  const summary =
+    event.status === 'cancelled'
+      ? event_meta_cancelled_summary(facts, { locale })
+      : event_meta_summary(facts, { locale });
+  return clipAtWord(`${summary} ${hostWords}`, MAX_DESCRIPTION_LENGTH);
+};
+
 export const eventPageHead = ({
   locale,
   marketCode,
@@ -52,33 +84,27 @@ export const eventPageHead = ({
   structuredEvent,
   breadcrumbs,
 }: EventHeadInput) => {
-  const eventDescription =
-    description ||
-    event_meta_description({ title, ...cityInputs(cityName) }, { locale });
-  const metadata = buildPageMetadata({
+  const hostWords = description?.trim() ?? '';
+  const metadata = buildTitledPageMetadata({
     locale,
-    title: `${title} · ${cityName}`,
-    description: eventDescription,
+    documentTitle: buildLeadingTitle([title, cityName]),
+    socialTitle: clipAtWord(title, MAX_TITLE_LENGTH),
+    description: eventSnippet(locale, structuredEvent, cityName, hostWords),
     route,
     marketCode,
-    openGraphType: 'event',
     socialImage: {
       url: eventCardUrl(locale, eventId, version),
       alt: `${title} · ${cityName}`,
     },
   });
-  const normalizedDescription = metadata.meta.find(
-    (item) => 'name' in item && item.name === 'description',
-  );
   const eventSchema = eventJsonLd({
     ...structuredEvent,
     image: structuredEvent.image ?? eventCardUrl(locale, eventId, version),
-    description:
-      normalizedDescription &&
-      'content' in normalizedDescription &&
-      typeof normalizedDescription.content === 'string'
-        ? normalizedDescription.content
-        : eventDescription,
+    description: clipAtWord(
+      hostWords ||
+        event_meta_description({ title, ...cityInputs(cityName) }, { locale }),
+      MAX_DESCRIPTION_LENGTH,
+    ),
   });
   return {
     ...metadata,
