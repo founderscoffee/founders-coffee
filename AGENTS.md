@@ -59,7 +59,7 @@ explicit Founder / Product decision.
 
 ```
 apps/
-  ui/              # public site + PWA — anon, SEO/prerendered
+  ui/              # public site + PWA — anon, SEO, rendered by the Worker
   dashboard/       # future sponsors — dormant authenticated analytics/account shell
   admin/           # project owners — authenticated + Cloudflare Access gated
   worker-jobs/     # Queue + Cron consumers (no UI)

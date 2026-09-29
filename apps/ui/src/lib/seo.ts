@@ -3,7 +3,6 @@ import {
   city_empty_body,
   cityInputs,
   LOCALES,
-  market_hero_desc,
   social_image_alt,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -68,14 +67,16 @@ export const canonicalPath = (route: CanonicalRoute): string => {
 export const canonicalUrl = (route: CanonicalRoute): string =>
   `${getSiteOrigin()}${canonicalPath(route)}${route.query ? `?${route.query}` : ''}`;
 
-export const localeAlternates = (
-  route: CanonicalRoute,
-  locales: readonly Locale[] = LOCALES,
-): Array<{
+export type AlternateLink = {
   readonly rel: 'alternate';
   readonly hrefLang: string;
   readonly href: string;
-}> => {
+};
+
+export const localeAlternates = (
+  route: CanonicalRoute,
+  locales: readonly Locale[] = LOCALES,
+): AlternateLink[] => {
   const baseRoute = { ...route, locale: undefined } as CanonicalRoute;
   return [
     ...locales.map((locale) => ({
@@ -139,6 +140,8 @@ export type PageMetadataInput = {
   readonly robots?: string;
   readonly openGraphType?: 'website' | 'event';
   readonly alternateLocales?: readonly Locale[];
+  readonly alternates?: readonly AlternateLink[];
+  readonly marketCode?: string;
   readonly socialImage?: { readonly url: string; readonly alt: string };
 };
 
@@ -150,6 +153,8 @@ export const buildPageMetadata = ({
   robots = 'index,follow',
   openGraphType = 'website',
   alternateLocales = LOCALES,
+  alternates = localeAlternates(route, alternateLocales),
+  marketCode,
   socialImage: card,
 }: PageMetadataInput) => {
   const fullTitle = buildPageTitle(title);
@@ -171,7 +176,7 @@ export const buildPageMetadata = ({
       { property: 'og:title', content: fullTitle },
       { property: 'og:description', content: normalizedDescription },
       { property: 'og:url', content: url },
-      { property: 'og:locale', content: openGraphLocale(locale) },
+      { property: 'og:locale', content: openGraphLocale(locale, marketCode) },
       { property: 'og:image', content: socialImage },
       { property: 'og:image:width', content: '1200' },
       { property: 'og:image:height', content: '630' },
@@ -182,54 +187,14 @@ export const buildPageMetadata = ({
       { name: 'twitter:image', content: socialImage },
       { name: 'twitter:image:alt', content: socialImageAlt },
     ],
-    links: [
-      { rel: 'canonical', href: url },
-      ...localeAlternates(route, alternateLocales),
-    ],
-  };
-};
-
-type MarketHeadInput = {
-  readonly locale: Locale;
-  readonly marketName: string;
-  readonly route: Extract<CanonicalRoute, { readonly type: 'market' }>;
-  readonly events?: readonly StructuredListItem[];
-};
-
-export const marketPageHead = ({
-  locale,
-  marketName,
-  route,
-  events = [],
-}: MarketHeadInput) => {
-  const metadata = buildPageMetadata({
-    locale,
-    title: marketName,
-    description: market_hero_desc({ market: marketName }, { locale }),
-    route,
-  });
-  return {
-    ...metadata,
-    scripts: [
-      {
-        type: 'application/ld+json',
-        children: JSON.stringify(
-          collectionPageJsonLd({
-            name: marketName,
-            description: market_hero_desc({ market: marketName }, { locale }),
-            url: canonicalUrl(route),
-            locale,
-            items: events,
-          }),
-        ),
-      },
-    ],
+    links: [{ rel: 'canonical', href: url }, ...alternates],
   };
 };
 
 type CityHeadInput = {
   readonly locale: Locale;
   readonly marketName: string;
+  readonly marketCode: string;
   readonly cityName: string;
   readonly isEmpty: boolean;
   readonly route: Extract<CanonicalRoute, { readonly type: 'city' }>;
@@ -239,6 +204,7 @@ type CityHeadInput = {
 export const cityPageHead = ({
   locale,
   marketName,
+  marketCode,
   cityName,
   isEmpty,
   route,
@@ -253,6 +219,7 @@ export const cityPageHead = ({
     description,
     route,
     robots: isEmpty ? 'noindex,follow' : 'index,follow',
+    marketCode,
   });
   const breadcrumbs: StructuredListItem[] = [
     {

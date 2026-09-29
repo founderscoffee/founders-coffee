@@ -67,25 +67,25 @@ export const legalEnglish: CompanyPageContent = translatedPage(
     section(
       'Personal-data protection',
       text(
-        'The controller of your personal data is the operator named above, in a personal capacity, not a company. The absence of a company takes nothing away from the operator’s obligations under Law No. 18-07: the law’s definition of a controller covers an individual as well as a legal entity.',
+        'The controller of your personal data is the operator named above, in a personal capacity, not a company. The absence of a company takes nothing away from the operator’s obligations under data protection law: the law’s definition of a controller covers an individual as well as a legal entity.',
         'For anything concerning your personal data, and to exercise your rights of access, correction, objection, and deletion: **contact@founders.coffee**.',
-        'Your data is processed on technical infrastructure outside Algeria. The details, and the legal basis we rely on, are in the [Privacy policy](/privacy).',
+        'Your data is processed on technical infrastructure outside your country. The details, and the legal basis we rely on, are in the [Privacy policy](/privacy).',
       ),
     ),
     section(
       'Technical hosting',
       text(
-        'The platform is hosted, and its data processed, on distributed cloud infrastructure run by providers outside Algeria. The Privacy policy describes the role of each category of these providers and the data it receives.',
+        'The platform is hosted, and its data processed, on distributed cloud infrastructure run by providers based outside the countries where we operate. The Privacy policy describes the role of each category of these providers and the data it receives.',
         'What this means for data protection, and the legal basis we rely on, is set out in the [Privacy policy](/privacy).',
       ),
     ),
     section(
       'Intellectual property',
       text(
-        'The “Founders Coffee” name and logo, and the design and software of the platform, are protected under Order No. 03-05 on copyright and related rights, and may not be used without prior written permission.',
+        'The “Founders Coffee” name and logo, and the design and software of the platform, are protected by copyright and related rights, and may not be used without prior written permission.',
         'The text and images members publish remain the property of their authors, as set out in the [Terms of use](/terms).',
       ),
     ),
   ],
-  '27 September 2026',
+  '29 September 2026',
 );

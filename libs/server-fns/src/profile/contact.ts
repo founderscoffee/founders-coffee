@@ -1,5 +1,10 @@
 import { AppError, err, ok, type Result } from '@founders-coffee/core';
-import { createAuthHandler, type AuthDeps } from '@founders-coffee/auth';
+import {
+  createAuthHandler,
+  smsProviderFromEnv,
+  type AuthDeps,
+  type SmsProvider,
+} from '@founders-coffee/auth';
 import { logger } from '@founders-coffee/observability';
 
 import { getAuthEnv } from '../auth.js';
@@ -37,6 +42,30 @@ const refusal = (message: string): AppError => {
 };
 
 /**
+ * The SMS provider for one contact operation, asked about any one code only once.
+ *
+ * Twilio Verify approves a code once and then deletes the verification, so asking about the same
+ * code again is refused. A phone confirmation needs the answer twice: the preflight asks, so a wrong
+ * code is refused and counted before Better Auth runs, and then Better Auth's own `verifyOTP` asks.
+ * Both have to get the answer Twilio gave the first time. Build one per operation and never share
+ * it: a remembered approval is good only for the request that earned it.
+ */
+const smsProviderForOperation = (provider: SmsProvider): SmsProvider => {
+  if (!provider.verifyOtp) return provider;
+  const verifyOtp = provider.verifyOtp.bind(provider);
+  const answers = new Map<string, Promise<boolean>>();
+  return {
+    sendOtp: (args) => provider.sendOtp(args),
+    verifyOtp: (args) => {
+      const key = JSON.stringify([args.phoneNumber, args.code]);
+      const answer = answers.get(key) ?? verifyOtp(args);
+      answers.set(key, answer);
+      return answer;
+    },
+  };
+};
+
+/**
  * Run one Better Auth contact endpoint and answer with an outcome, never with its response.
  *
  * Every endpoint here returns more than the caller needs: `/phone-number/verify` answers with the
@@ -67,6 +96,9 @@ const contactOperation = async (
 ): Promise<Result<ContactChangeAccepted>> => {
   logger.info('contact_change_requested', { operation, userId });
   const env = getAuthEnv();
+  const smsProvider = smsProviderForOperation(
+    deps.smsProvider ?? smsProviderFromEnv(env),
+  );
   const request = new Request(`${env.APP_URL}/api/auth${path}`, {
     method: 'POST',
     headers: {
@@ -83,6 +115,7 @@ const contactOperation = async (
       userId,
       path,
       body,
+      smsProvider,
     );
     if (preflightFailure) {
       logger.warn('contact_change_rejected', {
@@ -100,6 +133,7 @@ const contactOperation = async (
 
     const response = await createAuthHandler(env, {
       ...deps,
+      smsProvider,
       captchaBypassed: true,
     })(request);
     if (response.ok) return ok(ACCEPTED);

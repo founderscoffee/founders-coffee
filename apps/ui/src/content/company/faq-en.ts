@@ -30,7 +30,7 @@ export const faqEnglish: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'Post the first one: pick a café, set a time, write what the session is about. You do not need a ready-made group; most of what exists today started with a table and two people. We are currently in Algeria, Egypt and Saudi Arabia. If your city is not available yet, leave your email on the home page and we will tell you when meetups start there.',
+          text: 'Post the first one: pick a café, set a time, write what the session is about. You do not need a ready-made group; most of what exists today started with a table and two people. We are currently in several countries across North Africa and the Middle East. If your city is not available yet, leave your email on the home page and we will tell you when meetups start there.',
         },
       ],
     },
@@ -43,7 +43,7 @@ export const faqEnglish: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'You enter your email and receive a code, or you sign in with Google or GitHub. We never ask for a password and never store one: what we do not hold cannot leak from us and cannot be reused elsewhere. You must be at least nineteen (19), the age of civil majority in Algeria, because using the platform creates a contractual obligation: [terms of use](/terms).',
+          text: 'You enter your email and receive a code, or you sign in with Google or GitHub. We never ask for a password and never store one: what we do not hold cannot leak from us and cannot be reused elsewhere. You must have reached the age of civil majority under both the law of your nationality and the law of the country where you live, and be at least nineteen (19), because using the platform creates a contractual obligation: [terms of use](/terms).',
         },
         {
           kind: 'subheading',
@@ -116,7 +116,7 @@ export const faqEnglish: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'The data controller today is the person operating the platform, a natural person named on the legal information page. You have the rights of access, rectification, erasure and objection. You can make some of these requests directly from your Profile and Preferences pages; for the rest, write from the address registered on your account to **contact@founders.coffee**. Your data is processed through infrastructure outside Algeria, as explained in detail in the [privacy policy](/privacy) and the [legal information](/legal).',
+          text: 'The data controller today is the person operating the platform, a natural person named on the legal information page. You have the rights of access, rectification, erasure and objection. You can make some of these requests directly from your Profile and Preferences pages; for the rest, write from the address registered on your account to **contact@founders.coffee**. Your data is processed through infrastructure outside your country, as explained in detail in the [privacy policy](/privacy) and the [legal information](/legal).',
         },
         {
           kind: 'subheading',

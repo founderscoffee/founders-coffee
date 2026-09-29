@@ -3,6 +3,7 @@ import { dirname } from 'node:path';
 
 import { discoveryFailures } from './discovery-contract.mjs';
 import { inspectGeoDocument } from './geo-contract.mjs';
+import { documentHeaderFailures } from './header-contract.mjs';
 import { fetchSmoke } from './http.mjs';
 import { privateRouteFailures } from './private-contract.mjs';
 import {
@@ -23,7 +24,6 @@ const PRIVATE_PATHS = [
   '/algeria/host/create',
 ];
 const HTML_CONTENT_TYPE = 'text/html';
-const NO_INDEX = 'noindex, nofollow';
 const MAX_DYNAMIC_ROUTES = 25;
 const SITEMAP_SMOKE_QUERY = '?seo_smoke=1';
 
@@ -112,17 +112,7 @@ const routeEntry = (path, type, response, body, failures) => {
     canonical,
   }))
     failures.push(`${path}: GEO ${failure}`);
-  if (canonicalOrigin === 'https://founders.coffee') {
-    if (robots?.toLowerCase().includes('noindex'))
-      failures.push(`${path}: production response is noindex`);
-  } else if (robots !== NO_INDEX) {
-    failures.push(
-      `${path}: expected ${NO_INDEX} response header, got ${robots ?? 'missing'}`,
-    );
-  }
-  const links = response.headers.get('link');
-  if (links && /https?:\/\/(?!founders\.coffee)/iu.test(links))
-    failures.push(`${path}: Early Hint Link header points to another origin`);
+  failures.push(...documentHeaderFailures({ path, response, canonicalOrigin }));
   return {
     path,
     type,

@@ -149,6 +149,15 @@ describe('web app manifest', () => {
     }
   });
 
+  it('captions the install screenshot for a member in any market', () => {
+    for (const [locale, manifest] of MANIFESTS) {
+      expect(
+        manifest.screenshots[0]?.label ?? '',
+        `${locale}: the caption promised meetups in Algerian cities to someone installing from Egypt or Saudi Arabia`,
+      ).not.toMatch(/alg[eé]ri|الجزائر|egypt|مصر|saudi|السعودية/iu);
+    }
+  });
+
   it('writes each manifest in its own locale', () => {
     for (const [locale, manifest] of MANIFESTS) {
       expect(manifest.lang).toBe(locale);

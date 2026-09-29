@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { LOCALES } from '@founders-coffee/i18n';
 
 import { localeAlternates } from './seo';
-import { openGraphAlternates, xDefaultLocale } from './seo-alternates';
+import {
+  openGraphAlternates,
+  openGraphLocale,
+  xDefaultLocale,
+} from './seo-alternates';
+import { marketAlternates } from './seo-market';
 
 describe('the language an unmatched reader is answered in', () => {
   it('is the base locale wherever the page is published in it', () => {
@@ -28,6 +33,20 @@ describe('the language an unmatched reader is answered in', () => {
 
   it('falls back to the base locale when told of no languages at all', () => {
     expect(xDefaultLocale([])).toBe('ar');
+  });
+});
+
+describe('the locale a page tells Open Graph it is in', () => {
+  it("names the market's country on a page that belongs to one", () => {
+    expect(openGraphLocale('ar', 'EG')).toBe('ar_EG');
+    expect(openGraphLocale('fr', 'SA')).toBe('fr_SA');
+    expect(openGraphLocale('en', 'DZ')).toBe('en_DZ');
+  });
+
+  it("keeps each language's own country on a page that belongs to none", () => {
+    expect(openGraphLocale('ar')).toBe('ar_DZ');
+    expect(openGraphLocale('fr')).toBe('fr_FR');
+    expect(openGraphLocale('en')).toBe('en_US');
   });
 });
 
@@ -67,5 +86,35 @@ describe('the languages a page tells Open Graph it is also in', () => {
         'ar',
       ),
     ).toEqual([]);
+  });
+
+  it("names the market's country on a page that belongs to one", () => {
+    expect(
+      openGraphAlternates(
+        localeAlternates({
+          type: 'city',
+          market: 'egypt',
+          city: 'cairo',
+          locale: 'ar',
+        }),
+        'ar',
+        'EG',
+      ),
+    ).toEqual(['en_EG', 'fr_EG']);
+  });
+
+  it("reads a landing page's languages off its bare links, not the ones that name a country", () => {
+    const links = marketAlternates(
+      [
+        { code: 'DZ', slug: 'algeria' },
+        { code: 'EG', slug: 'egypt' },
+      ],
+      'algeria',
+    );
+
+    expect(
+      openGraphAlternates(links, 'fr', 'EG'),
+      "the country-coded links list every market's copy, not this page's other languages",
+    ).toEqual(['ar_EG', 'en_EG']);
   });
 });

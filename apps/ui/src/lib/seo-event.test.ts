@@ -9,6 +9,7 @@ describe('event page metadata', () => {
     const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
       eventPageHead({
         locale: 'fr',
+        marketCode: 'DZ',
         eventId: 'evt_cafe0000000000000000000000000f',
         version: 3,
         title: 'Café fondateurs',
@@ -45,6 +46,7 @@ describe('event page metadata', () => {
     );
     const fallback = eventPageHead({
       locale: 'fr',
+      marketCode: 'DZ',
       eventId: 'evt_cafe0000000000000000000000000f',
       version: 3,
       title: 'Café fondateurs',
@@ -98,6 +100,7 @@ describe('event page metadata', () => {
 
 const CARD_EVENT = {
   locale: 'ar',
+  marketCode: 'DZ',
   eventId: 'evt_cafe0000000000000000000000000f',
   version: 3,
   title: 'لقاء قهوة للمؤسسين',
@@ -172,5 +175,13 @@ describe('the card a shared meetup previews as', () => {
 
   it('asks for the card in the language the page is read in', () => {
     expect(tag(cardHead({ locale: 'fr' }), 'og:image')).toContain('l=fr');
+  });
+
+  it("names the meetup's own country in its locale, not Algeria's for every page", () => {
+    expect(tag(cardHead(), 'og:locale')).toBe('ar_DZ');
+    expect(tag(cardHead({ marketCode: 'EG' }), 'og:locale')).toBe('ar_EG');
+    expect(tag(cardHead({ locale: 'fr', marketCode: 'SA' }), 'og:locale')).toBe(
+      'fr_SA',
+    );
   });
 });

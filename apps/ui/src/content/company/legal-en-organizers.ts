@@ -33,7 +33,7 @@ export const organizersEnglish: CompanyPageContent = translatedPage(
       text(
         'Choosing the venue is your responsibility, and so is the arrangement with its owner. Make sure you have the right to use it for this purpose at this time, and that the expected number of attendees is acceptable to them.',
         'Follow the venue’s rules and the instructions of the people who run it, and tell attendees what they need to know about them.',
-        'If your gathering is of a kind that requires a permit or prior notice under Algerian regulations (because of the nature of the activity, its size, or its location), obtaining it is your responsibility alone. The usual gatherings on the platform are small sessions in public places and generally do not require this; but in the end the judgement is yours, and you know your gathering best.',
+        'If your gathering is of a kind that requires a permit or prior notice under the rules where it takes place (because of the nature of the activity, its size, or its location), obtaining it is your responsibility alone. The usual gatherings on the platform are small sessions in public places and generally do not require this; but in the end the judgement is yours, and you know your gathering best.',
       ),
     ),
     section(
@@ -48,7 +48,7 @@ export const organizersEnglish: CompanyPageContent = translatedPage(
       text(
         'We show you the names of the people who RSVP’d to your gathering, because you need to know who to expect.',
         '**This list is for organising this gathering, and nothing else.** Do not copy it, export it, add the people on it to a mailing list or database, or share it with anyone, and do not use it to contact them after the gathering about anything unrelated to it.',
-        'If you want to collect any additional information from attendees at the gathering itself (an email, a phone number, an identity card), tell them explicitly that **you** are the one collecting it, for what purpose, and that this is not part of the platform. When you do, you become responsible for that data under the law, and the provisions of Law No. 18-07 apply to you.',
+        'If you want to collect any additional information from attendees at the gathering itself (an email, a phone number, an identity card), tell them explicitly that **you** are the one collecting it, for what purpose, and that this is not part of the platform. When you do, you become responsible for that data under the law, and the rules on personal data protection apply to you.',
         'Breaching this clause is one of the most serious things that can happen on the platform, and we treat it accordingly.',
       ),
     ),
@@ -93,7 +93,7 @@ export const organizersEnglish: CompanyPageContent = translatedPage(
     ),
     section('Gatherings we do not accept', [
       ...text(
-        'No gathering that breaches Algerian law may be published on Founders Coffee, nor any gathering whose purpose is:',
+        'No gathering that breaches the law of the country where it takes place may be published on Founders Coffee, nor any gathering whose purpose is:',
       ),
       list([
         'collecting money from attendees, or promoting investment schemes, currencies, or guaranteed returns;',
@@ -125,5 +125,5 @@ export const organizersEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 September 2026',
+  '29 September 2026',
 );

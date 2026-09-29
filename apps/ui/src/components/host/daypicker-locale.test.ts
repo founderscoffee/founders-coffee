@@ -23,7 +23,7 @@ describe('what a day button tells a screen reader', () => {
 
     expect(
       spoken.match(/,/gu),
-      'date-fns leaves the en-US patterns in its ar-DZ locale, so the date inside the label arrived with ASCII commas while the words around it used the Arabic one',
+      'the date inside the label arrived with ASCII commas while the words around it used the Arabic one',
     ).toBeNull();
     expect(spoken).toBe('اليوم، الأربعاء، 23 سبتمبر 2026، محدد');
   });
@@ -38,12 +38,29 @@ describe('what a day button tells a screen reader', () => {
   it.each([
     ['PPPP', 'الأربعاء، 23 سبتمبر 2026'],
     ['PPP', '23 سبتمبر 2026'],
-    ['PP', '23 سبتـ 2026'],
+    ['PP', '23 سبتمبر 2026'],
     ['P', '23/09/2026'],
   ])('puts the Arabic day ahead of its month at %s', (pattern, expected) => {
     const lib = new DateLib({ locale: DAYPICKER_LOCALE.ar });
 
     expect(lib.format(WEDNESDAY, pattern)).toBe(expected);
+  });
+
+  it('names every month as the rest of the site does', () => {
+    const lib = new DateLib({ locale: DAYPICKER_LOCALE.ar });
+    const site = new Intl.DateTimeFormat('ar', { month: 'long' });
+
+    for (let month = 0; month < 12; month += 1) {
+      const date = new Date(2027, month, 15, 12);
+      expect(
+        lib.format(date, 'LLLL'),
+        'the picker spoke Algerian Arabic (جانفي, أفريل) to hosts in every market, beside meetup pages that say يناير and أبريل',
+      ).toBe(site.format(date));
+    }
+  });
+
+  it('starts the Arabic week on Sunday, as the picker always has', () => {
+    expect(DAYPICKER_LOCALE.ar.options?.weekStartsOn).toBe(0);
   });
 
   it('answers a width it does not spell out with the full date', () => {

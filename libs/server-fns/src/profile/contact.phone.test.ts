@@ -1,66 +1,10 @@
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
-import {
-  DevEmailProvider,
-  DevSmsProvider,
-  createAuth,
-} from '@founders-coffee/auth';
-import { createDb, eq, user } from '@founders-coffee/db';
+import { DevSmsProvider } from '@founders-coffee/auth';
 
 import { confirmPhoneNumber, sendPhoneCode } from './contact.js';
-
-const authEnv = {
-  DB: env.DB,
-  BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,
-  APP_URL: env.APP_URL,
-  TURNSTILE_DISABLED: 'true',
-};
-
-let seq = 0;
-const nextEmail = () => `member${++seq}.${Date.now()}@contact.test`;
-
-/** Sign a member in with an email code, returning their session cookie and identity. */
-const signedInMember = async () => {
-  const emailProvider = new DevEmailProvider();
-  const { auth } = createAuth(authEnv, { emailProvider });
-  const email = nextEmail();
-  const base = `${env.APP_URL}/api/auth`;
-  const post = (path: string, body: unknown, cookie?: string) =>
-    auth.handler(
-      new Request(`${base}${path}`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          origin: env.APP_URL,
-          ...(cookie ? { cookie } : {}),
-        },
-        body: JSON.stringify(body),
-      }),
-    );
-
-  await post('/email-otp/send-verification-otp', { email, type: 'sign-in' });
-  const otp = emailProvider.sent.at(-1)?.otp ?? '';
-  const signIn = await post('/sign-in/email-otp', { email, otp });
-  const cookie = (signIn.headers.get('set-cookie') ?? '').split(';')[0];
-  const db = createDb(env.DB);
-  const rows = await db.select().from(user).where(eq(user.email, email));
-  return {
-    db,
-    email,
-    cookie,
-    userId: rows[0].id,
-    headers: new Headers({ cookie }),
-  };
-};
-
-const currentEmail = async (
-  db: ReturnType<typeof createDb>,
-  userId: string,
-) => {
-  const rows = await db.select().from(user).where(eq(user.id, userId));
-  return { email: rows[0]?.email, phone: rows[0]?.phoneNumber };
-};
+import { currentContact, signedInMember } from './contact.fixtures.js';
 
 describe('PF-07c — SMS that cannot be delivered', () => {
   it('refuses rather than pretending, where no Twilio credentials exist', async () => {
@@ -105,7 +49,7 @@ describe('PF-07c — adding a verified phone', () => {
         deps,
       ),
     ).toMatchObject({ ok: true });
-    expect((await currentEmail(member.db, member.userId)).phone).toBe(
+    expect((await currentContact(member.db, member.userId)).phone).toBe(
       phoneNumber,
     );
   });
@@ -152,8 +96,8 @@ describe('PF-07c — adding a verified phone', () => {
     );
 
     expect(result).toMatchObject({ ok: false });
-    expect((await currentEmail(second.db, second.userId)).phone).toBeNull();
-    expect((await currentEmail(first.db, first.userId)).phone).toBe(
+    expect((await currentContact(second.db, second.userId)).phone).toBeNull();
+    expect((await currentContact(first.db, first.userId)).phone).toBe(
       phoneNumber,
     );
   });
@@ -173,6 +117,6 @@ describe('PF-07c — adding a verified phone', () => {
     );
 
     expect(result).toMatchObject({ ok: false });
-    expect((await currentEmail(member.db, member.userId)).phone).toBeNull();
+    expect((await currentContact(member.db, member.userId)).phone).toBeNull();
   });
 });

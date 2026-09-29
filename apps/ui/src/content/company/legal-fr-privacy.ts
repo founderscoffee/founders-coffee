@@ -19,7 +19,8 @@ export const privacyFrench: CompanyPageContent = translatedPage(
         'Cette politique explique quelles données personnelles Founders Coffee collecte, pourquoi, qui peut y accéder, combien de temps nous les conservons et ce que vous pouvez faire à leur sujet.',
         '**Le responsable du traitement** est **Amine Yagoub**, une personne physique. Aucune société n’a encore été constituée pour exploiter ce pilote gratuit. La définition légale du responsable du traitement couvre les personnes physiques comme les personnes morales, et ses obligations envers vos données sont les mêmes dans les deux cas. Contact pour tout ce qui concerne vos données : **contact@founders.coffee**.',
         'Si une société est constituée plus tard, la qualité de responsable du traitement lui sera transférée. C’est un changement de la personne qui détient vos données, pas un détail administratif : nous vous en informerons avant qu’il prenne effet, comme indiqué à la section 12.',
-        'Les traitements sont effectués conformément à la loi algérienne 18-07 du 10 juin 2018 relative à la protection des personnes physiques dans le traitement des données à caractère personnel, modifiée et complétée par la loi 25-11 du 24 juillet 2025.',
+        'Les traitements sont effectués conformément à la loi algérienne relative à la protection des personnes physiques dans le traitement des données à caractère personnel, puisque nous exploitons la plateforme depuis l’Algérie.',
+        'Si la loi du pays où vous résidez vous accorde une protection plus étendue que cette politique, nous la respectons à votre égard.',
       ),
     ),
     section('Ce que nous collectons et pourquoi', [
@@ -28,11 +29,11 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
       subheading('Données du compte'),
       ...text(
-        'Votre nom, votre e-mail et son statut de vérification, la photo du compte s’il y en a une, la langue de l’interface et la date de création. Nous les utilisons pour créer le compte, vous envoyer un code de connexion à chaque connexion, afficher votre nom sur votre profil public et aux personnes que vous rencontrez, et vous écrire au sujet des rencontres auxquelles vous êtes inscrit. Nous n’utilisons pas de mot de passe et n’en conservons aucun : la connexion se fait par un code temporaire envoyé à votre e-mail.',
-        'Avec Google ou GitHub, nous recevons votre identifiant auprès du fournisseur et votre e-mail, pas votre mot de passe.',
+        'Votre nom, votre e-mail et son statut de vérification, la langue de l’interface et la date de création. Nous les utilisons pour créer le compte, vous envoyer un code de connexion à chaque connexion, afficher votre nom sur votre profil public et aux personnes que vous rencontrez, et vous écrire au sujet des rencontres auxquelles vous êtes inscrit. Nous n’utilisons pas de mot de passe et n’en conservons aucun : la connexion se fait par un code temporaire envoyé à votre e-mail.',
+        'Avec Google ou GitHub, le compte choisi nous transmet votre identifiant chez lui, votre e-mail, votre nom et l’adresse de votre photo, jamais votre mot de passe. Nous conservons l’identifiant, pour vous reconnaître la prochaine fois, ainsi que votre e-mail et votre nom. Nous ne conservons ni l’adresse de la photo ni les clés d’accès que le fournisseur nous délivre, dont nous n’avons besoin que pendant la connexion. Vous pouvez retirer cette autorisation à tout moment dans les paramètres de votre compte Google ou GitHub.',
         '**Obligatoire et facultatif.** L’e-mail est nécessaire pour créer un compte, car sans lui nous ne pouvons pas vous envoyer de code de connexion ; si vous ne le fournissez pas, le compte ne peut pas être créé. Tout le reste de cette politique est facultatif, et ne pas le fournir désactive seulement la fonctionnalité correspondante.',
-        '**Votre nom.** Nous ne vous demandons pas de nom à l’inscription. Si vous vous connectez avec Google ou GitHub, nous reprenons le nom que ce compte nous transmet. Sinon, nous formons votre nom à partir de la partie de votre adresse e-mail qui précède le @ : sara.benali@example.com devient « Sara Benali » ; si cette partie ne contient aucune lettre, par exemple si elle n’est faite que de chiffres, votre nom reste vide jusqu’à ce que vous le choisissiez. Ce nom est public, comme tout nom sur la plateforme, **et quiconque le voit pourrait en deviner votre adresse**. Vous pouvez le modifier à tout moment dans votre profil.',
-        '**Le numéro de téléphone** est facultatif. Nous ne le demandons pas à l’inscription et ne l’utilisons que si vous activez vous-même les alertes SMS ; nous enregistrons alors la date de votre accord.',
+        '**Votre nom.** Nous ne vous demandons pas de nom à l’inscription. Si vous vous connectez avec Google ou GitHub, nous reprenons le nom que ce compte nous transmet, c’est-à-dire, sur GitHub, votre nom d’utilisateur si vous n’avez pas défini de nom. Sinon, nous formons votre nom à partir de la partie de votre adresse e-mail qui précède le @ : sara.benali@example.com devient « Sara Benali » ; si cette partie ne contient aucune lettre, par exemple si elle n’est faite que de chiffres, votre nom reste vide jusqu’à ce que vous le choisissiez. Ce nom est public, comme tout nom sur la plateforme, **et quiconque le voit pourrait en deviner votre adresse**. Vous pouvez le modifier à tout moment dans votre profil.',
+        '**Le numéro de téléphone** est facultatif. Nous ne le demandons pas à l’inscription. Si vous en ajoutez un depuis la page de votre compte, nous le transmettons à **Twilio**, qui vous envoie par SMS un code confirmant que ce numéro est bien le vôtre. Ensuite, nous ne l’utilisons que si vous activez vous-même les alertes SMS ; nous enregistrons alors la date de votre accord.',
       ),
       subheading('Profil'),
       ...text(
@@ -78,6 +79,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ...text(
         'La plateforme affiche des cartes grâce à **Mapbox** lors de la création d’une rencontre ou de la modification de son lieu, et sur la page d’une rencontre qui a un lieu. Votre navigateur charge la carte directement depuis Mapbox, qui reçoit donc votre adresse IP, une description de votre navigateur et la zone affichée. La bibliothèque de cartes enregistre aussi dans votre navigateur un identifiant aléatoire qu’elle envoie à Mapbox avec des données d’utilisation techniques, qui lui servent à comptabiliser l’usage de son service ; Mapbox traite ces données selon sa propre politique de confidentialité.',
         'Lorsque vous cherchez un lieu ou choisissez un point sur la carte, notre serveur envoie à Mapbox votre texte de recherche ou la position du point, avec la zone affichée, pour trouver les lieux correspondants. Nous n’y joignons ni votre nom ni votre e-mail.',
+        'Si vous appuyez sur « Me localiser » sur la carte où vous choisissez le lieu d’une rencontre, votre navigateur donne votre position à la page, si vous l’y autorisez, et la carte s’y déplace. Votre navigateur charge alors depuis Mapbox la carte de cette zone et envoie le centre de la carte à notre serveur pour que nous vous montrions les lieux proches, comme lorsque vous déplacez la carte vous-même. Nous ne demandons votre position que lorsque vous appuyez sur le bouton, et nous ne l’enregistrons pas dans votre compte.',
       ),
       subheading('Messages et signalements'),
       ...text(
@@ -90,9 +92,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ]),
     section('Base juridique du traitement', [
-      ...text(
-        'Chaque traitement repose sur un fondement prévu par l’article 7 de la loi 18-07 :',
-      ),
+      ...text('Chaque traitement repose sur un fondement prévu par la loi :'),
       list([
         '**Exécution du contrat qui nous lie :** le compte, votre profil public (votre nom, votre photo et votre présentation si vous les ajoutez, votre mois d’inscription et le nombre de rencontres organisées), la publication des rencontres, les inscriptions, et les rappels et alertes liés à une rencontre à laquelle vous êtes inscrit. Ce ne sont pas des services en plus, mais l’essentiel de ce pour quoi vous vous êtes inscrit.',
         '**Votre consentement explicite :** la publication des champs facultatifs du profil, qui ont chacun un réglage de visibilité, l’activation des notifications push ou SMS, l’inscription à la liste d’attente d’une ville, et la liaison d’un groupe Telegram à une rencontre ou l’adhésion à ce groupe. Vous pouvez retirer votre consentement à tout moment, sans remettre en cause la licéité de ce qui a été fait auparavant.',
@@ -100,7 +100,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
         '**Obligation légale :** lorsqu’un texte nous impose de conserver ou de transmettre une donnée.',
       ]),
       ...text(
-        '**Nous ne pratiquons pas de marketing direct.** Tous les messages que vous recevez aujourd’hui concernent une rencontre ou votre compte. Si nous décidions un jour d’envoyer une newsletter ou des messages promotionnels, ce serait uniquement avec votre accord préalable et un moyen gratuit de vous désabonner dans chaque message, et nous traiterions la demande de désabonnement **sous vingt-quatre (24) heures**, comme l’exige l’article 32 de la loi 18-05.',
+        '**Nous ne pratiquons pas de marketing direct.** Tous les messages que vous recevez aujourd’hui concernent une rencontre ou votre compte. Si nous décidions un jour d’envoyer une newsletter ou des messages promotionnels, ce serait uniquement avec votre accord préalable et un moyen gratuit de vous désabonner dans chaque message, et nous traiterions la demande de désabonnement **sous vingt-quatre (24) heures**.',
       ),
     ]),
     section(
@@ -110,19 +110,20 @@ export const privacyFrench: CompanyPageContent = translatedPage(
         '**Les autres membres** vous voient aussi dans la liste des inscrits d’une rencontre que vous partagez avec eux.',
         '**L’organisateur** voit votre nom dans la liste des inscrits et indique si vous étiez présent. Les [Conditions des organisateurs](/organizers) l’obligent à n’utiliser cette liste que pour organiser sa rencontre ; l’utiliser pour envoyer des offres ou constituer une base de données est une infraction qui entraîne la suspension du compte.',
         '**Les membres du groupe Telegram** de la rencontre, si vous le rejoignez, vous voient comme Telegram vous affiche et peuvent vous y écrire. **Telegram** lui-même est une entité indépendante qui n’agit pas pour notre compte ; il reçoit de nous ce que le bot publie sur la rencontre, l’approbation de votre demande d’adhésion et votre retrait si vous annulez votre inscription.',
-        '**Les prestataires techniques** auxquels nous faisons appel, chacun dans les limites de sa mission : **Cloudflare** pour l’hébergement de l’application et de la base de données, l’envoi des e-mails, la mesure d’audience et la protection anti-robot ; **Mapbox** pour l’affichage des cartes et la recherche de lieux ; et d’autres prestataires pour l’envoi des notifications push et des SMS si nécessaire. Ils traitent les données sur nos instructions et pour notre compte, sans pouvoir les utiliser à leurs propres fins, à l’exception des données d’utilisation envoyées par les cartes Mapbox, que Mapbox traite aussi selon sa propre politique de confidentialité.',
+        '**Google ou GitHub**, si vous vous connectez avec l’un d’eux : chacun est une entité indépendante qui n’agit pas pour notre compte. Il sait que vous vous êtes connecté à notre plateforme, nous transmet ce qui est décrit sous « Données du compte » ci-dessus, et le traite selon sa propre politique de confidentialité.',
+        '**Les prestataires techniques** auxquels nous faisons appel, chacun dans les limites de sa mission : **Cloudflare** pour l’hébergement de l’application, de la base de données et des photos, l’envoi des e-mails, la mesure d’audience et la protection anti-robot ; **Mapbox** pour l’affichage des cartes et la recherche de lieux ; **Firebase**, de Google, pour l’acheminement des notifications push si vous les activez ; et **Twilio** pour l’envoi par SMS d’un code de vérification si vous ajoutez un numéro de téléphone, et des alertes SMS si vous les activez. Ils traitent les données sur nos instructions et pour notre compte, sans pouvoir les utiliser à leurs propres fins, à l’exception des données d’utilisation envoyées par les cartes Mapbox, que Mapbox traite aussi selon sa propre politique de confidentialité.',
         '**Les autorités compétentes**, lorsque la loi nous impose de leur transmettre des données. Nous vérifions la qualité du demandeur et que la demande reste dans les limites de ce que le texte l’autorise à demander, et nous nous en tenons à ce qui est demandé.',
         '**Nous ne vendons, ne louons et n’échangeons pas vos données avec des annonceurs.**',
       ),
     ),
     section(
-      'Transferts hors d’Algérie',
+      'Transferts hors de votre pays',
       text(
-        'Nous le mentionnons explicitement parce que l’article 32 de la loi 18-07 l’exige, et parce que cela vous concerne.',
-        'La plateforme fonctionne sur une infrastructure cloud distribuée, et les prestataires cités dans la section précédente sont situés hors d’Algérie. **Vos données sont donc traitées et stockées hors du territoire national.** Lorsqu’un groupe Telegram est relié à une rencontre, ce qui parvient à Telegram de notre part à son sujet et au sujet de ses membres est lui aussi traité hors d’Algérie, sur les serveurs de Telegram et selon ses conditions.',
-        'Nous nous appuyons sur l’article 45 de la loi 18-07, qui autorise le transfert vers un pays étranger dans deux cas qui s’appliquent ici : **votre consentement explicite** et **la nécessité du transfert pour exécuter le contrat qui nous lie**, puisque votre compte ne peut pas fonctionner ni aucune notification vous parvenir sans que les données passent par cette infrastructure. En contrepartie, nous faisons appel à des prestataires engagés sur des standards de protection reconnus, nous chiffrons les connexions et nous limitons ce que reçoit chaque prestataire à ce qu’exige sa mission.',
-        'C’est le fondement sur lequel nous nous appuyons aujourd’hui : l’article 45, et non l’autorisation préalable prévue à l’article 44. Si l’Autorité nationale de protection des données à caractère personnel délivre plus tard une autorisation pour ce transfert, nous mettrons cette section à jour pour y faire référence.',
-        'Si ce transfert ne vous convient pas, vous pouvez retirer votre consentement et demander la fermeture de votre compte, et nous le ferons.',
+        'Nous le mentionnons explicitement parce que la loi l’exige, et parce que cela vous concerne.',
+        'La plateforme fonctionne sur une infrastructure cloud distribuée, et les prestataires cités dans la section précédente sont établis hors des pays où nous sommes présents, et **la copie principale de notre base de données se trouve en Europe de l’Ouest**. **Vos données sont donc traitées et stockées hors de votre pays.** Lorsqu’un groupe Telegram est relié à une rencontre, ce qui parvient à Telegram de notre part à son sujet et au sujet de ses membres est lui aussi traité hors de votre pays, sur les serveurs de Telegram et selon ses conditions.',
+        'Nous nous appuyons sur **la nécessité du transfert pour exécuter le contrat qui nous lie** : sans que les données passent par cette infrastructure, votre compte ne peut pas fonctionner, rien de ce que vous demandez à la plateforme ne peut vous être fourni et aucune notification ne peut vous parvenir. En contrepartie, nous faisons appel à des prestataires engagés sur des standards de protection reconnus, nous chiffrons les connexions et nous limitons ce que reçoit chaque prestataire à ce qu’exige sa mission.',
+        'C’est le fondement sur lequel nous nous appuyons aujourd’hui, et non une autorisation préalable d’une autorité de protection des données, que certaines lois prévoient aussi. Si nous obtenons plus tard une autorisation pour ce transfert, nous mettrons cette section à jour pour y faire référence.',
+        'Si ce transfert ne vous convient pas, vous pouvez demander la fermeture de votre compte, et nous le ferons.',
       ),
     ),
     section('Durée de conservation', [
@@ -174,32 +175,38 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ]),
     section('Vos droits et leur exercice', [
-      ...text('La loi 18-07 vous accorde des droits que nous respectons :'),
+      ...text(
+        'Où que vous résidiez, vous disposez des droits suivants, et nous les respectons de la même façon pour tous :',
+      ),
       list([
-        '**Information** (article 32) : savoir qui traite vos données, dans quel but, qui les reçoit et si elles sont transférées à l’étranger. Ce document est notre façon de respecter ce droit.',
-        '**Accès** (article 34) : obtenir la confirmation que vos données sont traitées, leurs finalités, les catégories de données et les destinataires, une copie sous une forme compréhensible et les informations disponibles sur leur origine. La loi nous permet de refuser les demandes manifestement abusives (par leur nombre ou leur répétition), et c’est à nous, non à vous, d’en apporter la preuve.',
-        '**Rectification** (article 35) : faire mettre à jour, corriger, effacer ou verrouiller vos données si elles sont incomplètes, inexactes ou traitées illégalement. **Nous le faisons gratuitement et sous dix (10) jours** à compter de votre demande. Si nous avons communiqué vos données à d’autres, nous les informons de la rectification.',
-        '**Opposition** (article 36) : vous opposer, pour des motifs légitimes, à un traitement qui vous concerne, et vous opposer sans justification à l’utilisation de vos données à des fins de prospection.',
-        '**Retrait du consentement** (article 7) : à tout moment, pour tout ce qui repose sur votre consentement.',
+        '**Information** : savoir qui traite vos données, dans quel but, qui les reçoit et si elles sont transférées à l’étranger. Ce document est notre façon de respecter ce droit.',
+        '**Accès** : obtenir la confirmation que vos données sont traitées, leurs finalités, les catégories de données et les destinataires, une copie sous une forme compréhensible et les informations disponibles sur leur origine. Nous ne refusons que les demandes manifestement abusives (par leur nombre ou leur répétition), et c’est à nous, non à vous, d’en apporter la preuve.',
+        '**Rectification** : faire mettre à jour, compléter, corriger, effacer ou verrouiller vos données si elles sont incomplètes, inexactes ou traitées illégalement. **Nous le faisons sous dix (10) jours** à compter de votre demande. Si nous avons communiqué vos données à d’autres, nous les informons de la rectification.',
+        '**Effacement** : faire supprimer vos données dès qu’elles ne sont plus nécessaires à la finalité pour laquelle elles ont été collectées, ou dès que vous retirez le consentement sur lequel elles reposaient, sauf si une loi nous oblige à les conserver.',
+        '**Limitation** : faire limiter le traitement de vos données à une finalité déterminée.',
+        '**Opposition** : vous opposer, pour des motifs légitimes, à un traitement qui vous concerne, et vous opposer sans justification à l’utilisation de vos données à des fins de prospection.',
+        '**Notification des violations** : être informé de toute violation qui touche vos données, comme indiqué à la section « En cas de violation ».',
+        '**Retrait du consentement** : à tout moment, pour tout ce qui repose sur votre consentement.',
       ]),
       ...text(
+        '**Gratuitement et sans tarder.** L’exercice de ces droits ne vous coûte rien. **Nous répondons à toute demande dans les six (6) jours ouvrables** suivant sa réception ; si nous la refusons, nous vous en donnons les motifs par écrit.',
         '**Comment les exercer.** Certains de ces droits sont disponibles directement sur la plateforme : modifier votre profil et vos réglages de visibilité depuis la page de profil, et vos préférences de notification depuis la page des préférences. Pour le reste (notamment obtenir une copie de vos données, faire corriger un registre de présence ou fermer votre compte), écrivez à **contact@founders.coffee** depuis l’e-mail associé à votre compte en précisant clairement votre demande.',
-        '**La correction d’un registre de présence** mérite une mention particulière : si un organisateur a indiqué que vous étiez absent d’une rencontre à laquelle vous avez assisté, ou l’inverse, c’est une donnée personnelle qui vous concerne, et vous avez le droit de la faire corriger dans le même délai. Écrivez-nous et nous examinerons le registre.',
+        '**La correction d’un registre de présence** mérite une mention particulière : si un organisateur a indiqué que vous étiez absent d’une rencontre à laquelle vous avez assisté, ou l’inverse, c’est une donnée personnelle qui vous concerne, et vous avez le droit de la faire corriger dans le même délai de rectification. Écrivez-nous et nous examinerons le registre.',
       ),
     ]),
     section(
       'Sécurité des données',
       text(
         'La connexion à la plateforme est entièrement chiffrée. L’identification se fait par un code temporaire qui expire vite : il n’y a donc pas de mot de passe à divulguer. L’accès administratif aux données de production est limité à un petit nombre de personnes derrière une couche d’authentification indépendante, et les opérations de modération sont journalisées.',
-        'Toute personne ayant accès aux données du fait de ses fonctions est tenue au secret professionnel, même après la fin de sa relation avec nous, conformément à l’article 40 de la loi 18-07.',
+        'Toute personne ayant accès aux données du fait de ses fonctions est tenue au secret professionnel, même après la fin de sa relation avec nous.',
         'Aucun système n’est toutefois sans risque. Si vous remarquez une faille ou un comportement suspect, écrivez-nous : nous traiterons votre signalement avec sérieux et reconnaissance.',
       ),
     ),
     section(
       'En cas de violation',
       text(
-        'Si une violation touche vos données personnelles, nous en informons l’Autorité nationale de protection des données à caractère personnel sans délai, comme l’exige l’article 43 de la loi 18-07, et au plus tard dans les cinq (5) jours après en avoir eu connaissance.',
-        'Nous vous informons directement si la violation peut porter atteinte à votre vie privée, en termes clairs, en expliquant ce qui s’est passé, ce qui peut en découler et les mesures que nous avons prises.',
+        'Si une violation touche vos données personnelles, nous en informons les autorités de protection des données compétentes sans délai, et au plus tard dans les soixante-douze (72) heures après en avoir eu connaissance.',
+        'Nous vous en informons aussi directement, par e-mail, dans les trois (3) jours ouvrables suivant la notification à ces autorités, en termes clairs : ce qui s’est passé, ce qui peut en découler et les mesures que nous avons prises.',
         'Nous tenons un registre interne de chaque violation et des mesures prises.',
       ),
     ),
@@ -212,7 +219,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
     section(
       'Mineurs',
       text(
-        'La plateforme est destinée aux personnes âgées d’au moins **dix-neuf (19) ans**, l’âge de la majorité civile en Algérie. Nous ne collectons pas sciemment de données de mineurs. S’il apparaît qu’un compte appartient à un mineur, nous le suspendons et supprimons les données qui s’y rattachent.',
+        'La plateforme est destinée aux adultes : les personnes qui ont atteint l’âge de la majorité civile selon la loi de leur nationalité comme selon celle du pays où elles résident, et qui ont au moins **dix-neuf (19) ans**. Nous ne collectons pas sciemment de données de mineurs. S’il apparaît qu’un compte appartient à un mineur, nous le suspendons et supprimons les données qui s’y rattachent.',
         'Si vous êtes responsable légal et pensez qu’un mineur dont vous avez la charge a créé un compte, écrivez-nous et nous agirons.',
       ),
     ),
@@ -227,9 +234,9 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       'Contact et réclamations',
       text(
         'Pour les questions et les demandes d’exercice de vos droits : **contact@founders.coffee**',
-        'Si notre réponse ne vous satisfait pas, vous avez le droit d’adresser une réclamation à l’**Autorité nationale de protection des données à caractère personnel (ANPDP)**, l’autorité de contrôle compétente en Algérie.',
+        'Si notre réponse ne vous satisfait pas, vous avez le droit d’adresser une réclamation à **l’autorité de protection des données personnelles de votre pays**.',
       ),
     ),
   ],
-  '27 septembre 2026',
+  '29 septembre 2026',
 );

@@ -15,6 +15,7 @@ import { buildPageMetadata, getSiteOrigin, type CanonicalRoute } from './seo';
 
 type EventHeadInput = {
   readonly locale: Locale;
+  readonly marketCode: string;
   readonly eventId: string;
   readonly version: number;
   readonly title: string;
@@ -41,6 +42,7 @@ export const eventCardUrl = (
 
 export const eventPageHead = ({
   locale,
+  marketCode,
   eventId,
   version,
   title,
@@ -58,6 +60,7 @@ export const eventPageHead = ({
     title: `${title} · ${cityName}`,
     description: eventDescription,
     route,
+    marketCode,
     openGraphType: 'event',
     socialImage: {
       url: eventCardUrl(locale, eventId, version),

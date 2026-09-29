@@ -2,8 +2,6 @@ import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 import { z } from 'zod';
 
-import { geo } from '@founders-coffee/domain';
-
 import { appValidator, handleResult } from '@founders-coffee/core';
 import { reportError } from '@founders-coffee/observability';
 
@@ -16,7 +14,7 @@ import { getMapProvider } from '../maps/runtime.js';
 import { rateLimit } from '../rate-limit.js';
 import { privateNoStore } from '../response-cache.js';
 import { requireEventCreateWafRule } from '../turnstile/middleware.js';
-import { attachAttendance, type EventDetailItem } from './attendance.js';
+import { attachAttendance } from './attendance.js';
 import { answerEventCalendar } from './calendar.js';
 import { readEventCard } from './card.js';
 import { cancelEventResolver } from './cancel.js';
@@ -25,12 +23,15 @@ import { listJoinedEventPage } from './joined.js';
 import { readPublicEventFeed } from './public-feed.js';
 import { readRepeatEventTemplate } from './repeat.js';
 import { createEventWithTelemetry } from './create.js';
+import { eventDetail } from './detail.js';
+import { readEventPage } from './page.js';
 import { updateEventResolver } from './update.js';
 import { listEvents, resolveEvent } from './resolver.js';
 import {
   eventCalendarRequestSchema,
   eventCancelRequestSchema,
   eventCreateRequestSchema,
+  eventPageRequestSchema,
   eventUpdateRequestSchema,
   hostedEventsRequestSchema,
   joinedEventsRequestSchema,
@@ -135,19 +136,22 @@ export const getEvent = createServerFn({ strict: false })
     const db = getDb();
     const event = await handleResult(resolveEvent(db, data));
     const session = await resolveSession(getRequest().headers);
-    const [enriched] = await attachAttendance(db, [event], session?.user?.id);
-    const city = geo.findCity(event.marketCode, event.cityCode);
-    const state = geo.findState(event.marketCode, event.stateCode);
-    return {
-      ...enriched,
-      cityName: city?.name ?? event.cityCode,
-      cityNameAr: city?.nameAr ?? city?.name ?? event.cityCode,
-      cityNameFr: city?.nameFr ?? city?.name ?? event.cityCode,
-      citySlug: city?.slug ?? null,
-      stateName: state?.name ?? null,
-      stateNameAr: state?.nameAr ?? state?.name ?? null,
-      stateNameFr: state?.nameFr ?? state?.name ?? null,
-    } satisfies EventDetailItem;
+    return eventDetail(db, event, session?.user?.id);
+  });
+
+/**
+ * A meetup's page: its market, the meetup as the reader sees it, and its host's public card, in one
+ * call (#114). Public. The page's loader used to make three calls for these, one after another.
+ */
+export const getEventPage = createServerFn({ strict: false })
+  .validator(appValidator(eventPageRequestSchema))
+  .handler(({ data }) => {
+    privateNoStore();
+    const db = getDb();
+    const viewer = resolveSession(getRequest().headers).then(
+      (session) => session?.user?.id,
+    );
+    return handleResult(readEventPage(db, data, viewer));
   });
 
 /**

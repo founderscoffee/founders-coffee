@@ -96,6 +96,7 @@ export const Route = createFileRoute('/$locale/$market/$city')({
     return cityPageHead({
       locale: loaderData.locale,
       marketName: localizedName(loaderData.market, loaderData.locale),
+      marketCode: loaderData.market.code,
       cityName,
       isEmpty: loaderData.events.length === 0,
       events: loaderData.events.map((event) => ({

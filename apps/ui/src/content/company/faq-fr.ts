@@ -33,7 +33,7 @@ export const faqFrench: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'Publiez la première : choisissez un café, fixez l’heure, décrivez le sujet. Vous n’avez pas besoin d’un groupe constitué, la plupart de ce qui existe aujourd’hui a commencé avec une table et deux personnes. Nous sommes actuellement en Algérie, en Égypte et en Arabie saoudite ; si votre ville n’est pas encore disponible, laissez votre e-mail sur la page d’accueil et nous vous préviendrons quand les rencontres y commenceront.',
+          text: 'Publiez la première : choisissez un café, fixez l’heure, décrivez le sujet. Vous n’avez pas besoin d’un groupe constitué, la plupart de ce qui existe aujourd’hui a commencé avec une table et deux personnes. Nous sommes actuellement présents dans plusieurs pays d’Afrique du Nord et du Moyen-Orient ; si votre ville n’est pas encore disponible, laissez votre e-mail sur la page d’accueil et nous vous préviendrons quand les rencontres y commenceront.',
         },
       ],
     },
@@ -46,7 +46,7 @@ export const faqFrench: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'Vous saisissez votre e-mail et recevez un code, ou vous entrez avec Google ou GitHub. Nous ne demandons aucun mot de passe et n’en conservons aucun : ce que nous ne stockons pas ne peut ni fuiter de chez nous ni être réutilisé ailleurs. Il faut avoir au moins dix-neuf (19) ans, l’âge de la majorité civile en Algérie, car l’usage de la plateforme crée un engagement contractuel : [conditions d’utilisation](/terms).',
+          text: 'Vous saisissez votre e-mail et recevez un code, ou vous entrez avec Google ou GitHub. Nous ne demandons aucun mot de passe et n’en conservons aucun : ce que nous ne stockons pas ne peut ni fuiter de chez nous ni être réutilisé ailleurs. Il faut avoir atteint l’âge de la majorité civile selon la loi de votre nationalité comme selon celle du pays où vous résidez, et avoir au moins dix-neuf (19) ans, car l’usage de la plateforme crée un engagement contractuel : [conditions d’utilisation](/terms).',
         },
         {
           kind: 'subheading',
@@ -119,7 +119,7 @@ export const faqFrench: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'Le responsable du traitement est aujourd’hui l’exploitant de la plateforme, une personne physique nommée sur la page des mentions légales. Vous disposez des droits d’accès, de rectification, d’effacement et d’opposition. Vous pouvez exercer certains de ces droits directement depuis vos pages Profil et Préférences ; pour le reste, écrivez depuis l’adresse enregistrée sur votre compte à **contact@founders.coffee**. Vos données sont traitées via une infrastructure située hors d’Algérie ; la [politique de confidentialité](/privacy) et les [mentions légales](/legal) l’expliquent en détail.',
+          text: 'Le responsable du traitement est aujourd’hui l’exploitant de la plateforme, une personne physique nommée sur la page des mentions légales. Vous disposez des droits d’accès, de rectification, d’effacement et d’opposition. Vous pouvez exercer certains de ces droits directement depuis vos pages Profil et Préférences ; pour le reste, écrivez depuis l’adresse enregistrée sur votre compte à **contact@founders.coffee**. Vos données sont traitées via une infrastructure située hors de votre pays ; la [politique de confidentialité](/privacy) et les [mentions légales](/legal) l’expliquent en détail.',
         },
         {
           kind: 'subheading',

@@ -94,7 +94,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
     <html lang={locale} dir={dir} data-auth-slot="out" suppressHydrationWarning>
       <head>
         <HeadContent />
-        <OpenGraphLocaleAlternates locale={locale} />
+        <OpenGraphLocaleAlternates locale={locale} markets={markets} />
       </head>
       <body className="flex flex-col bg-base-100 text-base-content">
         <AppProviders>

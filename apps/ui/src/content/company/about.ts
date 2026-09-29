@@ -13,7 +13,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
         heading: 'What we are',
         blocks: textBlocks(
           'Founders Coffee helps entrepreneurs find and host small work meetups at real cafés. The goal is simple: start partnerships and friendships over coffee, not pitch decks.',
-          'We currently support communities in Algeria, Egypt, and Saudi Arabia, with Arabic, English, and French.',
+          'We currently support communities in several countries across North Africa and the Middle East, with Arabic, English, and French.',
         ),
       },
       {
@@ -47,7 +47,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
         heading: 'من نحن',
         blocks: textBlocks(
           'Founders Coffee يساعد رواد الأعمال على إيجاد واستضافة لقاءات عمل صغيرة في مقاهٍ حقيقية. الهدف بسيط: تبدأ الشراكات والصداقات حول فنجان قهوة، لا حول عروض تقديمية.',
-          'ندعم حاليًا مجتمعات في الجزائر ومصر والسعودية، بالعربية والإنجليزية والفرنسية.',
+          'ندعم حاليًا مجتمعات في عدّة بلدان من شمال أفريقيا والشرق الأوسط، بالعربية والإنجليزية والفرنسية.',
         ),
       },
       {
@@ -81,7 +81,7 @@ export const aboutContent: Record<Locale, CompanyPageContent> = {
         heading: 'Qui nous sommes',
         blocks: textBlocks(
           'Founders Coffee aide les entrepreneurs à trouver et organiser de petits meetups de travail dans de vrais cafés. L’objectif est simple : démarrer des partenariats et des amitiés autour d’un café, pas d’un pitch deck.',
-          'Nous couvrons aujourd’hui l’Algérie, l’Égypte et l’Arabie saoudite, en arabe, anglais et français.',
+          'Nous couvrons aujourd’hui plusieurs pays d’Afrique du Nord et du Moyen-Orient, en arabe, anglais et français.',
         ),
       },
       {

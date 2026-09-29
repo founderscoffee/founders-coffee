@@ -204,3 +204,16 @@ describe('how many meetups a city card says it has', () => {
     ).toBeTruthy();
   });
 });
+
+describe('the paper a city card is drawn on', () => {
+  it('rules every card with the same faded grid, the host card included', () => {
+    const view = show([{ count: 20, hosts: [host('Amina')] }, { count: 0 }]);
+    const cards = [...view.container.querySelectorAll('article')];
+
+    expect(cards).toHaveLength(3);
+    expect(
+      cards.filter((card) => card.classList.contains('graph-paper')),
+      'a busy city, a quiet one and the card that asks for a host all sit on one grid',
+    ).toEqual(cards);
+  });
+});

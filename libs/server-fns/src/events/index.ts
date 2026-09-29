@@ -15,10 +15,12 @@ export type {
   EventUpdateInput,
 } from '@founders-coffee/domain';
 export type { EventCalendarAnswer } from './calendar.js';
+export type { EventPage } from './page.js';
 export type {
   EventCalendarRequestInput,
   EventCancelRequestInput,
   EventCreateRequestInput,
+  EventPageRequestInput,
   EventUpdateRequestInput,
   PublicEventFeedRequestInput,
   RepeatEventRequestInput,
@@ -30,6 +32,7 @@ export {
   getEvent,
   getEventCalendarAnswer,
   getEventCardData,
+  getEventPage,
   getHostedEvents,
   getMyJoinedEvents,
   getPublicEventFeed,

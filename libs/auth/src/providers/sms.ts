@@ -34,6 +34,19 @@ export interface TwilioEnv {
 
 const TWILIO_VERIFY_URL = 'https://verify.twilio.com/v2/Services';
 
+/**
+ * The error code in a refused Twilio response, the one part of its body worth logging.
+ *
+ * Twilio's message can quote back the number it was given, and a member's phone number does not
+ * belong in the logs. The numeric code names the failure in Twilio's error reference on its own.
+ */
+const twilioErrorCode = async (res: Response): Promise<number | undefined> => {
+  const data = (await res.json().catch(() => null)) as {
+    code?: unknown;
+  } | null;
+  return typeof data?.code === 'number' ? data.code : undefined;
+};
+
 export class TwilioVerifySmsProvider implements SmsProvider {
   private readonly serviceSid: string;
   private readonly authHeader: string;
@@ -62,11 +75,9 @@ export class TwilioVerifySmsProvider implements SmsProvider {
     });
 
     if (!res.ok) {
-      const text = await res.text();
       logger.error('sms.twilio_verify_http_error', {
         status: res.status,
-        phoneNumber: args.phoneNumber,
-        body: text,
+        twilioCode: await twilioErrorCode(res),
       });
       throw new AppError('sms_failed', `Twilio Verify error: ${res.status}`);
     }
@@ -110,11 +121,9 @@ export class TwilioVerifySmsProvider implements SmsProvider {
     });
 
     if (!res.ok) {
-      const text = await res.text();
       logger.error('sms.twilio_verify_check_http_error', {
         status: res.status,
-        phoneNumber: args.phoneNumber,
-        body: text,
+        twilioCode: await twilioErrorCode(res),
       });
       return false;
     }

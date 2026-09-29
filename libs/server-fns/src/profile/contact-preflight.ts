@@ -8,7 +8,7 @@ import {
   updateContactVerificationValue,
   type ContactVerification,
 } from '@founders-coffee/db';
-import type { AuthEnv } from '@founders-coffee/auth';
+import type { AuthEnv, SmsProvider } from '@founders-coffee/auth';
 
 export interface ContactPreflightFailure {
   readonly code:
@@ -22,6 +22,8 @@ interface VerificationCheck {
   readonly failure?: ContactPreflightFailure;
   readonly verification?: ContactVerification;
 }
+
+type CodeCheck = (storedCode: string) => Promise<boolean>;
 
 const MAX_ATTEMPTS = 3;
 
@@ -49,8 +51,7 @@ const hashEmailOtp = async (otp: string): Promise<string> => {
 const checkVerification = async (
   db: ReturnType<typeof createDb>,
   identifier: string,
-  submittedCode: string,
-  isEmail: boolean,
+  isSubmittedCode: CodeCheck,
 ): Promise<VerificationCheck> => {
   const verification = await getLatestContactVerification(db, identifier);
   if (!verification) return { failure: { code: 'contact_code_invalid' } };
@@ -65,9 +66,7 @@ const checkVerification = async (
     return { failure: { code: 'rate_limited' } };
   }
 
-  const candidate = isEmail ? await hashEmailOtp(submittedCode) : submittedCode;
-  if (candidate === storedCode || (isEmail && submittedCode === storedCode))
-    return { verification };
+  if (await isSubmittedCode(storedCode)) return { verification };
 
   await updateContactVerificationValue(
     db,
@@ -77,15 +76,47 @@ const checkVerification = async (
   return { failure: { code: 'contact_code_invalid' } };
 };
 
+const emailCode =
+  (submittedCode: string): CodeCheck =>
+  async (storedCode) =>
+    (await hashEmailOtp(submittedCode)) === storedCode ||
+    submittedCode === storedCode;
+
+/**
+ * Check a phone code against whichever side made it.
+ *
+ * A provider with `verifyOtp` texts a code of its own, as Twilio Verify does, so the code Better
+ * Auth stored never reached the phone: only the provider can say whether the submitted code is the
+ * one the member received, and the stored one must not pass. The stored row still decides whether a
+ * check happens at all (it has to exist, be unexpired and have attempts left), and a wrong code
+ * still spends an attempt. A provider without `verifyOtp` texts the stored code itself.
+ */
+const phoneCode =
+  (
+    smsProvider: SmsProvider,
+    phoneNumber: string,
+    submittedCode: string,
+  ): CodeCheck =>
+  async (storedCode) =>
+    smsProvider.verifyOtp
+      ? smsProvider.verifyOtp({ phoneNumber, code: submittedCode })
+      : submittedCode === storedCode;
+
 const emailIdentifier = (type: string, email: string): string =>
   `${type}-otp-${email.toLowerCase()}`;
 
-/** Check contact failures that would otherwise surface as Better Auth orphan rejections. */
+/**
+ * Check contact failures that would otherwise surface as Better Auth orphan rejections.
+ *
+ * `smsProvider` has to be the provider Better Auth is given for the same request: when it owns the
+ * phone code, this is where it is asked first.
+ */
 export const preflightContactFailure = async (
   env: AuthEnv,
   userId: string,
   path: string,
   body: Record<string, unknown>,
+  smsProvider: SmsProvider,
 ): Promise<ContactPreflightFailure | undefined> => {
   const db = createDb(env.DB);
   const currentUser = await getUser(db, userId);
@@ -96,8 +127,7 @@ export const preflightContactFailure = async (
       await checkVerification(
         db,
         emailIdentifier('email-verification', currentUser.email),
-        String(body.otp ?? ''),
-        true,
+        emailCode(String(body.otp ?? '')),
       )
     ).failure;
   }
@@ -109,8 +139,7 @@ export const preflightContactFailure = async (
         'change-email',
         `${currentUser.email}-${String(body.newEmail ?? '').toLowerCase()}`,
       ),
-      String(body.otp ?? ''),
-      true,
+      emailCode(String(body.otp ?? '')),
     );
     if (check.failure) return check.failure;
     if (await hasUserWithEmail(db, String(body.newEmail ?? ''))) {
@@ -126,8 +155,7 @@ export const preflightContactFailure = async (
     const check = await checkVerification(
       db,
       phoneNumber,
-      String(body.code ?? ''),
-      false,
+      phoneCode(smsProvider, phoneNumber, String(body.code ?? '')),
     );
     if (check.failure) return check.failure;
     if (await hasUserWithPhone(db, phoneNumber)) {

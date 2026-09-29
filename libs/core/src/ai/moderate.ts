@@ -9,7 +9,7 @@ export interface ModerationResult {
   readonly reviewRequired: boolean;
 }
 
-const MODERATION_SYSTEM = `You are a content moderator for a founder-community platform (Algeria-first; Arabic/French/English). Classify the user text. Respond with ONLY a compact JSON object and no prose: {"flagged": boolean, "categories": string[]}. categories drawn from: spam, harassment, hate, violence, sexual, misinformation. Be conservative across all three languages.`;
+const MODERATION_SYSTEM = `You are a content moderator for a founder-community platform (North Africa and the Middle East; Arabic/French/English). Classify the user text. Respond with ONLY a compact JSON object and no prose: {"flagged": boolean, "categories": string[]}. categories drawn from: spam, harassment, hate, violence, sexual, misinformation. Be conservative across all three languages.`;
 
 interface ParsedDecision {
   readonly flagged: boolean;

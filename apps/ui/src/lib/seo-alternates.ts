@@ -16,9 +16,22 @@ import { baseLocale, isLocale, type Locale } from '@founders-coffee/i18n';
 export const xDefaultLocale = (locales: readonly Locale[]): Locale =>
   locales.includes(baseLocale) ? baseLocale : (locales[0] ?? baseLocale);
 
-/** The Open Graph name for a locale, which names a country as well as a language. */
-export const openGraphLocale = (locale: Locale): string =>
-  locale === 'ar' ? 'ar_DZ' : locale === 'fr' ? 'fr_FR' : 'en_US';
+/**
+ * The Open Graph name for a locale, which names a country as well as a language.
+ *
+ * A page that belongs to a market names that market's country: the Arabic page for Egypt is
+ * `ar_EG`, where every Arabic page used to say `ar_DZ` and so told link previews that Egypt's and
+ * Saudi Arabia's pages were Algerian. A page that belongs to no market keeps the country each
+ * language has always named.
+ */
+export const openGraphLocale = (locale: Locale, marketCode?: string): string =>
+  marketCode
+    ? `${locale}_${marketCode}`
+    : locale === 'ar'
+      ? 'ar_DZ'
+      : locale === 'fr'
+        ? 'fr_FR'
+        : 'en_US';
 
 type HeadLink = {
   readonly rel?: string;
@@ -34,15 +47,20 @@ type HeadLink = {
  * document (#117). The hreflang links name the same languages and arrive whole, because links are
  * not merged by attribute, so the root document reads the alternates off them and writes the tags
  * itself.
+ *
+ * Only the links that name a bare language count. A market's landing page also names each language
+ * country by country, and those would list every market's copy rather than this page's own. On a
+ * page that belongs to a market, each alternate names that market's country, as `og:locale` does.
  */
 export const openGraphAlternates = (
   links: readonly (HeadLink | undefined)[],
   locale: Locale,
+  marketCode?: string,
 ): string[] =>
   links.flatMap((link) =>
     link?.rel === 'alternate' &&
     isLocale(link.hrefLang) &&
     link.hrefLang !== locale
-      ? [openGraphLocale(link.hrefLang)]
+      ? [openGraphLocale(link.hrefLang, marketCode)]
       : [],
   );

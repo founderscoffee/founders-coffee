@@ -55,7 +55,7 @@ export const TrendingStates = ({
                 className={`inline-block h-full min-h-20 sm:min-h-24 w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ${count > 0 ? 'aura aura-glow text-accent' : ''}`}
               >
                 <article
-                  className={`card flex h-full min-h-20 sm:min-h-24 flex-col gap-2 rounded-box px-4 py-3 text-base-content transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none ${
+                  className={`card graph-paper flex h-full min-h-20 sm:min-h-24 flex-col gap-2 rounded-box px-4 py-3 text-base-content transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none ${
                     count > 0
                       ? 'bg-base-100'
                       : 'border border-base-300 bg-base-200'
@@ -97,7 +97,7 @@ export const TrendingStates = ({
             aria-labelledby="market-create-card"
             className="inline-block h-full min-h-20 sm:min-h-24 w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
           >
-            <article className="card flex h-full min-h-20 sm:min-h-24 items-center justify-center gap-2 rounded-box border border-primary bg-primary px-4 py-3 text-center text-primary-content transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none">
+            <article className="card graph-paper flex h-full min-h-20 sm:min-h-24 items-center justify-center gap-2 rounded-box border border-primary bg-primary px-4 py-3 text-center text-primary-content transition-shadow duration-200 ease-out hover:shadow-[var(--shadow-2)] motion-reduce:transition-none">
               <Plus
                 className="size-5 text-primary-content"
                 aria-hidden="true"

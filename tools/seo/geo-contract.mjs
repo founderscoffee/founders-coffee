@@ -2,6 +2,15 @@ import { soleAlternateLocale } from './routes.mjs';
 
 const LOCALES = new Set(['ar', 'fr', 'en']);
 
+/**
+ * The languages a meetup may be held in: the codes `eventLanguagesSchema` in `libs/domain`
+ * accepts. They reach past the three the site is written in, so a meetup held in Tamazight says
+ * so (`ber`) though no page is written in it. Its `Event` names its one language, or all of them
+ * in a list as schema.org allows, and the list names each code once, as that schema requires. A
+ * test fails when this list and the schema drift.
+ */
+export const EVENT_LANGUAGES = new Set(['ar', 'fr', 'en', 'es', 'de', 'ber']);
+
 const PRIMARY_TYPES = {
   company: 'WebPage',
   city: 'CollectionPage',
@@ -41,6 +50,15 @@ const visibleText = (body) =>
 
 const schemaType = (schema) =>
   schema && typeof schema['@type'] === 'string' ? schema['@type'] : null;
+
+const isEventInLanguage = (value) => {
+  const codes = Array.isArray(value) ? value : [value];
+  return (
+    codes.length > 0 &&
+    new Set(codes).size === codes.length &&
+    codes.every((code) => EVENT_LANGUAGES.has(code))
+  );
+};
 
 const hasPrivateKey = (value) => {
   if (Array.isArray(value)) return value.some((item) => hasPrivateKey(item));
@@ -83,10 +101,11 @@ export const inspectGeoDocument = ({ path, type, body, canonical }) => {
 
   const locale =
     soleAlternateLocale(body) ?? path.split('/').filter(Boolean)[0];
-  if (
-    typeof primary.inLanguage !== 'string' ||
-    !LOCALES.has(primary.inLanguage)
-  )
+  const supported =
+    type === 'event'
+      ? isEventInLanguage(primary.inLanguage)
+      : LOCALES.has(primary.inLanguage);
+  if (!supported)
     failures.push(`${primaryType} JSON-LD has no supported inLanguage`);
   if (type !== 'event' && primary.inLanguage !== locale)
     failures.push(`${primaryType} JSON-LD inLanguage does not match the route`);

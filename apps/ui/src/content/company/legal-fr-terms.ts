@@ -10,7 +10,7 @@ export const termsFrench: CompanyPageContent = translatedPage(
       'Qui sommes-nous ?',
       text(
         'Founders Coffee est une plateforme numérique de rencontres locales entre fondateurs de startups, entrepreneurs et personnes intéressées par l’écosystème entrepreneurial. Elle permet de découvrir les rencontres de votre ville, de vous y inscrire et de publier votre propre rencontre si vous le souhaitez.',
-        'La plateforme est aujourd’hui en **phase pilote** : nous testons l’idée sur le marché algérien avant de l’y développer. Aucune société n’a encore été constituée pour l’exploiter : **Amine Yagoub** l’exploite donc en son nom personnel, et ses coordonnées figurent sur la page [Mentions légales](/legal). Partout où ce document s’exprime à la première personne (« nous », « notre »), il désigne cet exploitant.',
+        'La plateforme est aujourd’hui en **phase pilote** : nous testons l’idée sur les marchés où nous sommes présents avant de l’y développer. Aucune société n’a encore été constituée pour l’exploiter : **Amine Yagoub** l’exploite donc en son nom personnel, et ses coordonnées figurent sur la page [Mentions légales](/legal). Partout où ce document s’exprime à la première personne (« nous », « notre »), il désigne cet exploitant.',
         'Nous le disons clairement parce que vous avez le droit de savoir avec qui vous contractez. L’absence de société ne retire rien à nos engagements envers vous : les obligations prévues par ce document et par la [Politique de confidentialité](/privacy) sont assumées personnellement par l’exploitant.',
         'Ces conditions constituent un accord entre vous et nous. En utilisant la plateforme ou en y créant un compte, vous les acceptez. Si vous ne les acceptez pas, n’utilisez pas la plateforme.',
         'Toutes les rencontres de la plateforme sont aujourd’hui gratuites : aucun billet n’est vendu et aucun frais n’est perçu. Si nous introduisons plus tard des rencontres payantes, elles seront régies par un document distinct, la politique de billetterie, d’annulation et de remboursement, qui ne s’appliquera pas avant d’avoir été expressément annoncée.',
@@ -29,7 +29,7 @@ export const termsFrench: CompanyPageContent = translatedPage(
     section(
       'Comptes',
       text(
-        '**Qui peut créer un compte.** Vous devez avoir atteint l’âge de la majorité civile en Algérie, soit **dix-neuf (19) ans révolus**, car l’utilisation de la plateforme crée un engagement contractuel. Si nous apprenons qu’un compte appartient à un mineur, nous le suspendons.',
+        '**Qui peut créer un compte.** Vous devez avoir atteint l’âge de la majorité civile selon la loi de votre nationalité comme selon celle du pays où vous résidez, et avoir au moins **dix-neuf (19) ans révolus**, car l’utilisation de la plateforme crée un engagement contractuel. Si nous apprenons qu’un compte appartient à un mineur, nous le suspendons.',
         '**Inscription.** Vous créez votre compte avec un code envoyé à votre e-mail, ou avec un compte Google ou GitHub si vous le préférez. Nous ne demandons pas de mot de passe et n’en conservons aucun.',
         '**Informations exactes.** Utilisez votre vrai nom et des informations exactes. Cette plateforme professionnelle repose sur le fait que chacun sait qui il rencontre ; les pseudonymes, les fausses qualités et l’usurpation d’identité compromettent cela et sont interdits par les [Règles de la communauté](/community).',
         '**Votre responsabilité pour votre compte.** Le compte est personnel et ne se partage pas. Prévenez-nous immédiatement si vous remarquez une utilisation que vous n’avez pas autorisée.',
@@ -89,7 +89,7 @@ export const termsFrench: CompanyPageContent = translatedPage(
       'Propriété intellectuelle',
       text(
         'Le nom et le logo de Founders Coffee, ainsi que le design et le logiciel de la plateforme, nous appartiennent et ne peuvent être utilisés sans autorisation écrite.',
-        'Nous respectons le droit d’auteur et les droits voisins tels que les régit l’ordonnance n° 03-05 du 19 juillet 2003, et nous attendons de vous la même chose. N’importez pas d’images, de textes ou de logos que vous n’avez pas le droit d’utiliser.',
+        'Nous respectons le droit d’auteur et les droits voisins, et nous attendons de vous la même chose. N’importez pas d’images, de textes ou de logos que vous n’avez pas le droit d’utiliser.',
       ),
     ),
     section(
@@ -128,13 +128,14 @@ export const termsFrench: CompanyPageContent = translatedPage(
       text(
         'Ces conditions sont régies par le droit algérien.',
         'En cas de différend, nous préférons le régler d’abord par écrit ; nous nous engageons à répondre à toute réclamation sérieuse. À défaut de solution amiable, le différend relève de **la juridiction territorialement compétente selon les règles de compétence du droit algérien**.',
-        'Cette clause ne porte atteinte ni à votre droit de saisir les autorités de contrôle compétentes, ni à votre droit d’adresser une réclamation à l’Autorité nationale de protection des données à caractère personnel pour tout ce qui concerne vos données.',
+        'Ni ce choix de loi ni ce choix de juridiction ne vous privent de la protection que vous assurent les dispositions impératives de la loi de votre pays, y compris le droit qu’elles vous donneraient de porter le litige devant ses juridictions.',
+        'Cette clause ne porte atteinte ni à votre droit de saisir les autorités de contrôle compétentes, ni à votre droit d’adresser une réclamation à l’autorité de protection des données personnelles de votre pays pour tout ce qui concerne vos données.',
       ),
     ),
     section(
       'Si une société est créée',
       text(
-        'Cette phase pilote a pour but de savoir si l’idée a sa place sur le marché algérien. Si c’est le cas, nous constituerons l’entité juridique qui exploitera la plateforme.',
+        'Cette phase pilote a pour but de savoir si l’idée a sa place sur les marchés où nous sommes présents. Si c’est le cas, nous constituerons l’entité juridique qui exploitera la plateforme.',
         'À sa constitution, ces conditions lui sont transférées avec les droits et obligations qu’elles comportent, et elle remplace l’exploitant actuel comme partie à l’accord qui vous lie. Nous vous en informons avant la prise d’effet, et nous mettons à jour la page [Mentions légales](/legal) avec les coordonnées de la société. Ce transfert ne change rien à ce que vous avez publié, à votre compte ni à votre registre de présence.',
         'Le transfert a aussi un aspect qui concerne vos données en particulier : il change le **responsable du traitement**, ce qui constitue une modification substantielle dont nous nous engageons à vous informer à l’avance conformément à la [Politique de confidentialité](/privacy), et non à l’occasion d’une mise à jour silencieuse.',
         'Si le transfert de votre relation à la nouvelle entité ne vous convient pas, vous pouvez fermer votre compte avant sa prise d’effet.',
@@ -148,5 +149,5 @@ export const termsFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 septembre 2026',
+  '29 septembre 2026',
 );

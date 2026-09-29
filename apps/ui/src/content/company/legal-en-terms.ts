@@ -10,7 +10,7 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       'Who we are',
       text(
         'Founders Coffee is a digital platform for local gatherings between startup founders, business owners, and people interested in the entrepreneurship ecosystem. You can discover gatherings in your city, RSVP to them, and publish your own gathering if you wish.',
-        'The platform is currently a **pilot**: we are testing the idea in the Algerian market before expanding it there. No company has been incorporated to operate it yet, so **Amine Yagoub** operates it personally; the operator’s details are on the [Legal information](/legal) page. Wherever this document speaks in the first person (“we”, “us”, “our”), it means this operator.',
+        'The platform is currently a **pilot**: we are testing the idea in the markets where we operate before expanding it there. No company has been incorporated to operate it yet, so **Amine Yagoub** operates it personally; the operator’s details are on the [Legal information](/legal) page. Wherever this document speaks in the first person (“we”, “us”, “our”), it means this operator.',
         'We say this plainly because you deserve to know who you are contracting with. The absence of a company takes nothing away from what we commit to here: the operator personally bears the obligations in this document and in the [Privacy policy](/privacy).',
         'These terms are an agreement between you and us. By using the platform or creating an account, you accept them. If you do not accept them, do not use the platform.',
         'All gatherings on the platform are currently free: no tickets are sold and no fees are charged. If we introduce paid gatherings later, they will be governed by a separate ticketing, cancellation, and refund policy, which will not apply before it is expressly announced.',
@@ -29,7 +29,7 @@ export const termsEnglish: CompanyPageContent = translatedPage(
     section(
       'Accounts',
       text(
-        '**Who can create an account.** You must have reached the age of civil majority in Algeria, that is **nineteen (19) full years**, because using the platform creates a contractual obligation. If we learn that an account belongs to a minor, we suspend it.',
+        '**Who can create an account.** You must have reached the age of civil majority under both the law of your nationality and the law of the country where you live, and be at least **nineteen (19) full years** old, because using the platform creates a contractual obligation. If we learn that an account belongs to a minor, we suspend it.',
         '**Sign-up.** You create your account with a code sent to your email, or through a Google or GitHub account if you choose. We do not ask for a password and do not store one.',
         '**Accurate information.** Use your real name and accurate details. This is a professional platform built on people knowing who they are meeting; pseudonyms, false titles, and impersonation undermine that, and they are prohibited under the [Community guidelines](/community).',
         '**Responsibility for your account.** Your account is personal and may not be shared. Tell us immediately if you notice use you did not authorise.',
@@ -89,7 +89,7 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       'Intellectual property',
       text(
         'The Founders Coffee name and logo, and the design and software of the platform, belong to us and may not be used without written permission.',
-        'We respect copyright and related rights as governed by Order No. 03-05 of 19 July 2003, and we expect the same of you. Do not upload images, text, or logos you do not have the right to use.',
+        'We respect copyright and related rights, and we expect the same of you. Do not upload images, text, or logos you do not have the right to use.',
       ),
     ),
     section(
@@ -128,13 +128,14 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       text(
         'These terms are governed by Algerian law.',
         'If a dispute arises, we prefer to resolve it in writing first; we commit to answering every serious complaint. If an amicable solution is not possible, the dispute falls under **the territorially competent court, according to the jurisdiction rules of Algerian law**.',
-        'This clause does not affect your right to turn to the competent regulatory bodies, or your right to lodge a complaint with the National Authority for the Protection of Personal Data about anything concerning your data.',
+        'Neither this choice of law nor this choice of court deprives you of the protection that the mandatory rules of your country’s law give you, including any right they give you to bring the dispute before its courts.',
+        'This clause does not affect your right to turn to the competent regulatory bodies, or your right to complain to the personal data protection authority in your country about anything concerning your data.',
       ),
     ),
     section(
       'If a company is incorporated',
       text(
-        'The purpose of this pilot is to find out whether the idea has a place in the Algerian market. If it does, we will incorporate the legal entity that operates the platform.',
+        'The purpose of this pilot is to find out whether the idea has a place in the markets where we operate. If it does, we will incorporate the legal entity that operates the platform.',
         'Once it is incorporated, these terms, with their rights and obligations, transfer to it, and it takes the current operator’s place as the other party to your agreement. We will notify you before this takes effect and update the [Legal information](/legal) page with the company’s details. The transfer changes nothing in what you have published, your account, or your attendance record.',
         'The transfer also has a side that concerns your data specifically: it changes the **data controller**, which is a material change that we commit to notifying you of in advance under the [Privacy policy](/privacy), not by folding it into a silent update.',
         'If you are not comfortable with your relationship moving to the new entity, you can close your account before the transfer takes effect.',
@@ -148,5 +149,5 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 September 2026',
+  '29 September 2026',
 );
