@@ -98,10 +98,11 @@ const fetchVisibleMarkets = async (): Promise<readonly Market[]> =>
  * their navigation. The list only changes when an operator activates a market, so one fetch per
  * browser session is an acceptable staleness window and a reload picks up the change.
  *
- * The cache is deliberately client-only. One Worker isolate serves many requests, so a
+ * This promise is deliberately client-only. One Worker isolate serves many requests, so a
  * module-level promise on the server would hand the first visitor's list to everyone who followed
- * and would never refresh. A rejected fetch is never kept, so a failed call retries next time
- * instead of pinning the failure for the rest of the session.
+ * and would never refresh. On the server the list comes from the copy each data centre keeps for
+ * five minutes, behind the server function (#114). A rejected fetch is never kept, so a failed call
+ * retries next time instead of pinning the failure for the rest of the session.
  */
 export const visibleMarkets = async (): Promise<readonly Market[]> => {
   if (typeof window === 'undefined') return fetchVisibleMarkets();

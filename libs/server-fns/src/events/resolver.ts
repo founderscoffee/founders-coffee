@@ -191,6 +191,30 @@ export const createEventResolver = async (
   createEventResolverWithId(db, mapProvider, hostId, input, id('evt'));
 
 /**
+ * The meetup a lookup found, if a reader may have it: `event_not_found` when there is none, or when
+ * its status can no longer lead to publishing.
+ *
+ * {@link resolveEvent} and the meetup's page both answer through this, so the page cannot show a
+ * meetup the other reads refuse.
+ */
+export const availableEvent = (
+  event: Event | undefined,
+  label: string,
+): Result<Event> => {
+  if (!event)
+    return err(new AppError('event_not_found', `No event for ${label}`));
+  if (
+    event.status !== 'published' &&
+    !eventsDomain.canTransition(event.status, 'published')
+  ) {
+    return err(
+      new AppError('event_not_found', `Event ${event.id} is not available`),
+    );
+  }
+  return ok(event);
+};
+
+/**
  * Resolve a single event by id or by (marketCode + slug). Returns `event_not_found` on miss.
  *
  * A suppressed host's event answers the same way as one that never existed. The feed already drops
@@ -206,28 +230,17 @@ export const resolveEvent = async (
     : input.marketCode && input.slug
       ? await getEventBySlug(db, input.marketCode, input.slug)
       : undefined;
-  if (!event) {
+  const available = availableEvent(event, input.id ?? input.slug ?? '(none)');
+  if (!available.ok) return available;
+  if (!(await isVisibleHost(db, available.data.hostId))) {
     return err(
       new AppError(
         'event_not_found',
-        `No event for ${input.id ?? input.slug ?? '(none)'}`,
+        `Event ${available.data.id} is not available`,
       ),
     );
   }
-  if (
-    event.status !== 'published' &&
-    !eventsDomain.canTransition(event.status, 'published')
-  ) {
-    return err(
-      new AppError('event_not_found', `Event ${event.id} is not available`),
-    );
-  }
-  if (!(await isVisibleHost(db, event.hostId))) {
-    return err(
-      new AppError('event_not_found', `Event ${event.id} is not available`),
-    );
-  }
-  return ok(event);
+  return available;
 };
 
 export interface EventFeedPage {

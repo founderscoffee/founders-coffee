@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { eq, getTableColumns, inArray } from 'drizzle-orm';
 
 import type { Db } from './db.js';
 import { markets, type Market } from './schema.js';
@@ -44,3 +44,12 @@ export const listMarkets = async (
       : await db.select().from(markets);
   return rows;
 };
+
+/**
+ * The names of a market row's fields.
+ *
+ * A copy of market rows kept outside D1 is only good while the rows still have these fields, so
+ * a cache that names them in its key starts afresh whenever the table's columns change.
+ */
+export const marketFieldNames = (): readonly string[] =>
+  Object.keys(getTableColumns(markets));

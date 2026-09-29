@@ -1,12 +1,13 @@
-import { ok, type Result } from '@founders-coffee/core';
-import type { Db, Market } from '@founders-coffee/db';
+import { AppError, err, ok, type Result } from '@founders-coffee/core';
+import { readEventPageRows, type Db, type Market } from '@founders-coffee/db';
+import { reportError } from '@founders-coffee/observability';
 
 import { resolveMarket } from '../markets/resolver.js';
-import { readPublicProfile } from '../profile/resolver.js';
+import { ownerProfileOf, publicProfileOf } from '../profile/projection.js';
 import type { PublicProfile } from '../profile/schemas.js';
 import type { EventDetailItem } from './attendance.js';
 import { eventDetail } from './detail.js';
-import { resolveEvent } from './resolver.js';
+import { availableEvent } from './resolver.js';
 import type { EventPageRequestInput } from './schemas.js';
 
 export interface EventPage {
@@ -15,31 +16,54 @@ export interface EventPage {
   readonly host: PublicProfile | null;
 }
 
+type PageRows = Awaited<ReturnType<typeof readEventPageRows>>;
+
+/** Read the meetup and its host's rows, answering a failed read with a typed error. */
+const pageRows = async (
+  db: Db,
+  input: EventPageRequestInput,
+): Promise<Result<PageRows>> => {
+  try {
+    return ok(
+      await readEventPageRows(db, input.marketCode, input.slug, new Date()),
+    );
+  } catch (error) {
+    reportError(error, {
+      operation: 'read_event_page',
+      market: input.marketCode,
+    });
+    return err(
+      new AppError('event_unavailable', 'The meetup could not be read'),
+    );
+  }
+};
+
 /**
  * The host's public card, or `null` when the host has none to show.
  *
  * A host with no public profile, an erased one among them, still leaves the meetup on its page as
- * the city's record (#105), so a missing card is an answer rather than a failure. Anything else the
- * profile read refuses is still a failure.
+ * the city's record (#105), so a missing card is an answer rather than a failure. The card is
+ * built by the same steps as `readPublicProfile`, from the same rows.
  */
-const hostCard = async (
-  db: Db,
+const hostCard = (
   hostId: string,
-): Promise<Result<PublicProfile | null>> => {
-  const card = await readPublicProfile(db, hostId);
-  if (!card.ok && card.error.code === 'not_found') return ok(null);
-  return card;
+  host: PageRows['host'],
+): PublicProfile | null => {
+  const owner = ownerProfileOf(hostId, host.identity, host.stored);
+  if (!owner.ok) return null;
+  const card = publicProfileOf(owner.data, host);
+  return card.ok ? card.data : null;
 };
 
 /**
  * Everything a meetup's page shows, in as few trips to D1 as its reads allow (#114).
  *
- * The page's loader used to await three server functions in turn, the market, the meetup and then
- * its host's card, and each waited on its own reads: six trips one after another for a reader who
- * is signed out, one of them to a Durable Object, and nine for one who is signed in. That missed
- * the 300 ms budget. The market, the meetup and the reader's session need nothing from each other,
- * so they are read together; whether the reader is going and who is hosting need the meetup, so
- * they are read together next. That leaves four trips for either reader.
+ * Each trip costs a round trip from where the Worker runs to the database's region, Madrid to
+ * London for a reader in Algeria. The meetup and every row of its host's card come back in one
+ * batch, read beside the market and the reader's session, so a reader who is signed out waits on
+ * one trip here. One who is signed in waits on a second, for whether they are going, which needs
+ * both the session and the meetup. Before this, the page read the meetup, then checked its host,
+ * then read the host's profile, then counted the host's record, one after another.
  *
  * The session comes in as a promise so that it resolves alongside the first reads, and the host
  * card is read without the budget `getPublicProfile` spends. That budget stops somebody walking
@@ -51,17 +75,18 @@ export const readEventPage = async (
   input: EventPageRequestInput,
   viewer: Promise<string | undefined>,
 ): Promise<Result<EventPage>> => {
-  const [market, event, viewerId] = await Promise.all([
+  const [market, rows, viewerId] = await Promise.all([
     resolveMarket(db, { code: input.marketCode }),
-    resolveEvent(db, input),
+    pageRows(db, input),
     viewer,
   ]);
   if (!market.ok) return market;
+  if (!rows.ok) return rows;
+  const event = availableEvent(rows.data.event, input.slug);
   if (!event.ok) return event;
-  const [detail, host] = await Promise.all([
-    eventDetail(db, event.data, viewerId),
-    hostCard(db, event.data.hostId),
-  ]);
-  if (!host.ok) return host;
-  return ok({ market: market.data, event: detail, host: host.data });
+  return ok({
+    market: market.data,
+    event: await eventDetail(db, event.data, viewerId),
+    host: hostCard(event.data.hostId, rows.data.host),
+  });
 };
