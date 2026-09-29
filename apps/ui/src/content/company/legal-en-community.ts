@@ -65,7 +65,7 @@ export const communityEnglish: CompanyPageContent = translatedPage(
       ),
       subheading('Illegal content and services'),
       ...text(
-        'Nothing that breaches Algerian law may be published on the platform, nor anything related to selling prohibited goods or services, nor malicious links or phishing pages.',
+        'Nothing unlawful may be published on the platform, nor anything related to selling prohibited goods or services, nor malicious links or phishing pages.',
       ),
       subheading('Other people’s rights'),
       ...text(
@@ -110,5 +110,5 @@ export const communityEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 September 2026',
+  '29 September 2026',
 );

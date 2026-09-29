@@ -4,7 +4,7 @@ export const communityContent: CompanyPageContent = {
   title: 'إرشادات المجتمع',
   description:
     'ما نتوقّعه داخل مجتمع فاوندرز كوفي، وما هو ممنوع، وكيف نتعامل مع المخالفات.',
-  updated: '18 سبتمبر 2026',
+  updated: '29 سبتمبر 2026',
   sections: [
     {
       heading: 'لماذا هذه الوثيقة',
@@ -108,7 +108,7 @@ export const communityContent: CompanyPageContent = {
         { kind: 'subheading', text: 'المحتوى والخدمات غير المشروعة' },
         {
           kind: 'text',
-          text: 'لا يُنشر على المنصة ما يخالف القانون الجزائري، ولا ما يتعلّق ببيع سلع أو خدمات محظورة، ولا روابط خبيثة أو صفحات تصيّد.',
+          text: 'لا يُنشر على المنصة ما يخالف القانون، ولا ما يتعلّق ببيع سلع أو خدمات محظورة، ولا روابط خبيثة أو صفحات تصيّد.',
         },
         { kind: 'subheading', text: 'حقوق الغير' },
         {

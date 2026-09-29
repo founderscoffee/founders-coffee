@@ -33,7 +33,7 @@ export const organizersFrench: CompanyPageContent = translatedPage(
       text(
         'Le choix du lieu relève de votre responsabilité, tout comme l’entente avec son propriétaire. Assurez-vous d’avoir le droit de l’utiliser à cette fin et à cet horaire, et que le nombre de participants attendu lui convient.',
         'Respectez les règles du lieu et les consignes de ses responsables, et informez les participants de ce qu’ils doivent en savoir.',
-        'Si votre rencontre est d’un type qui exige une autorisation ou une déclaration préalable selon la réglementation algérienne (en raison de la nature de l’activité, de son ampleur ou de son lieu), l’obtenir vous incombe à vous seul. Les rencontres habituelles de la plateforme sont de petites séances dans des lieux publics et ne l’exigent généralement pas ; mais c’est à vous d’en juger, car vous connaissez mieux que quiconque votre rencontre.',
+        'Si votre rencontre est d’un type qui exige une autorisation ou une déclaration préalable selon la réglementation du lieu où elle se tient (en raison de la nature de l’activité, de son ampleur ou de son lieu), l’obtenir vous incombe à vous seul. Les rencontres habituelles de la plateforme sont de petites séances dans des lieux publics et ne l’exigent généralement pas ; mais c’est à vous d’en juger, car vous connaissez mieux que quiconque votre rencontre.',
       ),
     ),
     section(
@@ -93,7 +93,7 @@ export const organizersFrench: CompanyPageContent = translatedPage(
     ),
     section('Rencontres refusées', [
       ...text(
-        'Aucune rencontre contraire au droit algérien ne peut être publiée sur Founders Coffee, ni aucune rencontre dont le but est :',
+        'Aucune rencontre contraire au droit du pays où elle se tient ne peut être publiée sur Founders Coffee, ni aucune rencontre dont le but est :',
       ),
       list([
         'de collecter de l’argent auprès des participants ou de promouvoir des montages d’investissement, des monnaies ou des rendements garantis ;',

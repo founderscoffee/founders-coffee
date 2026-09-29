@@ -114,10 +114,10 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ),
     section(
-      'Transferts hors d’Algérie',
+      'Transferts hors de votre pays',
       text(
         'Nous le mentionnons explicitement parce que la loi l’exige, et parce que cela vous concerne.',
-        'La plateforme fonctionne sur une infrastructure cloud distribuée, et les prestataires cités dans la section précédente sont situés hors d’Algérie. **Vos données sont donc traitées et stockées hors du territoire national.** Lorsqu’un groupe Telegram est relié à une rencontre, ce qui parvient à Telegram de notre part à son sujet et au sujet de ses membres est lui aussi traité hors d’Algérie, sur les serveurs de Telegram et selon ses conditions.',
+        'La plateforme fonctionne sur une infrastructure cloud distribuée, et les prestataires cités dans la section précédente sont établis hors des pays où nous sommes présents. **Vos données sont donc traitées et stockées hors de votre pays.** Lorsqu’un groupe Telegram est relié à une rencontre, ce qui parvient à Telegram de notre part à son sujet et au sujet de ses membres est lui aussi traité hors de votre pays, sur les serveurs de Telegram et selon ses conditions.',
         'Nous nous appuyons sur la loi, qui autorise le transfert vers un pays étranger dans deux cas qui s’appliquent ici : **votre consentement explicite** et **la nécessité du transfert pour exécuter le contrat qui nous lie**, puisque votre compte ne peut pas fonctionner ni aucune notification vous parvenir sans que les données passent par cette infrastructure. En contrepartie, nous faisons appel à des prestataires engagés sur des standards de protection reconnus, nous chiffrons les connexions et nous limitons ce que reçoit chaque prestataire à ce qu’exige sa mission.',
         'C’est le fondement sur lequel nous nous appuyons aujourd’hui, et non l’autorisation préalable que la loi prévoit aussi. Si l’Autorité nationale de protection des données à caractère personnel délivre plus tard une autorisation pour ce transfert, nous mettrons cette section à jour pour y faire référence.',
         'Si ce transfert ne vous convient pas, vous pouvez retirer votre consentement et demander la fermeture de votre compte, et nous le ferons.',

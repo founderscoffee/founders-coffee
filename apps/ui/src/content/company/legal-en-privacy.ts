@@ -113,10 +113,10 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
     ),
     section(
-      'Transfers outside Algeria',
+      'Transfers outside your country',
       text(
         'We state this explicitly because the law requires it, and because it concerns you.',
-        'The platform runs on distributed cloud infrastructure, and the providers named in the previous section are outside Algeria. **Your data is therefore processed and stored outside Algeria.** When a Telegram group is linked to a gathering, what reaches Telegram from us about it and about those who join is also processed outside Algeria, on Telegram’s servers and under its terms.',
+        'The platform runs on distributed cloud infrastructure, and the providers named in the previous section are based outside the countries where we operate. **Your data is therefore processed and stored outside your country.** When a Telegram group is linked to a gathering, what reaches Telegram from us about it and about those who join is also processed outside your country, on Telegram’s servers and under its terms.',
         'We rely on the law, which allows a transfer to a foreign country in two cases that apply here: **your explicit consent**, and **the transfer being necessary to perform our contract with you**, since your account cannot run and no notification can reach you without the data passing through this infrastructure. In return, we contract with providers committed to recognised protection standards, encrypt connections, and limit what reaches each provider to what its task requires.',
         'This is the basis we rely on today, not the prior authorisation the law also provides for. If the National Authority for the Protection of Personal Data later issues an authorisation for this transfer, we will update this section and refer to it.',
         'If this transfer is not acceptable to you, you may withdraw your consent and ask us to close your account, and we will do so.',

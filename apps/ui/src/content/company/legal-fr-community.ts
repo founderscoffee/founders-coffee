@@ -65,7 +65,7 @@ export const communityFrench: CompanyPageContent = translatedPage(
       ),
       subheading('Contenu et services illégaux'),
       ...text(
-        'Rien de contraire au droit algérien ne peut être publié sur la plateforme, ni rien qui concerne la vente de biens ou de services interdits, ni liens malveillants ou pages d’hameçonnage.',
+        'Rien d’illégal ne peut être publié sur la plateforme, ni rien qui concerne la vente de biens ou de services interdits, ni liens malveillants ou pages d’hameçonnage.',
       ),
       subheading('Droits des tiers'),
       ...text(
@@ -110,5 +110,5 @@ export const communityFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 septembre 2026',
+  '29 septembre 2026',
 );

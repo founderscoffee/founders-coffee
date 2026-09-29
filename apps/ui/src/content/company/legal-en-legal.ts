@@ -69,13 +69,13 @@ export const legalEnglish: CompanyPageContent = translatedPage(
       text(
         'The controller of your personal data is the operator named above, in a personal capacity, not a company. The absence of a company takes nothing away from the operator’s obligations under data protection law: the law’s definition of a controller covers an individual as well as a legal entity.',
         'For anything concerning your personal data, and to exercise your rights of access, correction, objection, and deletion: **contact@founders.coffee**.',
-        'Your data is processed on technical infrastructure outside Algeria. The details, and the legal basis we rely on, are in the [Privacy policy](/privacy).',
+        'Your data is processed on technical infrastructure outside your country. The details, and the legal basis we rely on, are in the [Privacy policy](/privacy).',
       ),
     ),
     section(
       'Technical hosting',
       text(
-        'The platform is hosted, and its data processed, on distributed cloud infrastructure run by providers outside Algeria. The Privacy policy describes the role of each category of these providers and the data it receives.',
+        'The platform is hosted, and its data processed, on distributed cloud infrastructure run by providers based outside the countries where we operate. The Privacy policy describes the role of each category of these providers and the data it receives.',
         'What this means for data protection, and the legal basis we rely on, is set out in the [Privacy policy](/privacy).',
       ),
     ),

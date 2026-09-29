@@ -30,7 +30,7 @@ export const faqEnglish: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'Post the first one: pick a café, set a time, write what the session is about. You do not need a ready-made group; most of what exists today started with a table and two people. We are currently in Algeria, Egypt and Saudi Arabia. If your city is not available yet, leave your email on the home page and we will tell you when meetups start there.',
+          text: 'Post the first one: pick a café, set a time, write what the session is about. You do not need a ready-made group; most of what exists today started with a table and two people. We are currently in several countries across North Africa and the Middle East. If your city is not available yet, leave your email on the home page and we will tell you when meetups start there.',
         },
       ],
     },
@@ -116,7 +116,7 @@ export const faqEnglish: CompanyPageContent = {
         },
         {
           kind: 'text',
-          text: 'The data controller today is the person operating the platform, a natural person named on the legal information page. You have the rights of access, rectification, erasure and objection. You can make some of these requests directly from your Profile and Preferences pages; for the rest, write from the address registered on your account to **contact@founders.coffee**. Your data is processed through infrastructure outside Algeria, as explained in detail in the [privacy policy](/privacy) and the [legal information](/legal).',
+          text: 'The data controller today is the person operating the platform, a natural person named on the legal information page. You have the rights of access, rectification, erasure and objection. You can make some of these requests directly from your Profile and Preferences pages; for the rest, write from the address registered on your account to **contact@founders.coffee**. Your data is processed through infrastructure outside your country, as explained in detail in the [privacy policy](/privacy) and the [legal information](/legal).',
         },
         {
           kind: 'subheading',

@@ -72,13 +72,13 @@ export const legalFrench: CompanyPageContent = translatedPage(
       text(
         'Le responsable du traitement de vos données est l’exploitant indiqué ci-dessus, en son nom personnel, et non une société. L’absence de société ne retire rien à ses obligations au titre de la loi sur la protection des données personnelles : la définition légale du responsable du traitement couvre la personne physique comme la personne morale.',
         'Pour tout ce qui concerne vos données personnelles, et pour exercer vos droits d’accès, de rectification, d’opposition et de suppression : **contact@founders.coffee**.',
-        'Vos données sont traitées sur une infrastructure technique située hors d’Algérie. Le détail, et le fondement juridique sur lequel nous nous appuyons, figurent dans la [Politique de confidentialité](/privacy).',
+        'Vos données sont traitées sur une infrastructure technique située hors de votre pays. Le détail, et le fondement juridique sur lequel nous nous appuyons, figurent dans la [Politique de confidentialité](/privacy).',
       ),
     ),
     section(
       'Hébergement technique',
       text(
-        'La plateforme est hébergée, et ses données traitées, sur une infrastructure cloud distribuée exploitée par des prestataires situés hors d’Algérie. La Politique de confidentialité décrit le rôle de chaque catégorie de prestataires et les données qu’elle reçoit.',
+        'La plateforme est hébergée, et ses données traitées, sur une infrastructure cloud distribuée exploitée par des prestataires établis hors des pays où nous sommes présents. La Politique de confidentialité décrit le rôle de chaque catégorie de prestataires et les données qu’elle reçoit.',
         'Ce que cela implique pour la protection des données, et le fondement juridique sur lequel nous nous appuyons, est exposé dans la [Politique de confidentialité](/privacy).',
       ),
     ),
