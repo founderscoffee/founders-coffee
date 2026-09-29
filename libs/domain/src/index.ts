@@ -17,3 +17,4 @@ export * as notifications from './notifications/index.js';
 export * as venues from './venues/index.js';
 export * as profile from './profile/index.js';
 export * as operations from './operations/index.js';
+export * as chat from './chat/index.js';
