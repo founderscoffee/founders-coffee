@@ -26,17 +26,20 @@ describe('libs/db seed (real D1 via Miniflare)', () => {
       payments: false,
       recruiting: false,
       communityOperations: true,
+      meetupChat: true,
     });
 
     const eg = rows.find((m) => m.code === 'EG');
     expect(eg?.state).toBe('active');
     expect(eg?.defaultCurrency).toBe('EGP');
     expect(eg?.featureFlags?.communityOperations).toBe(true);
+    expect(eg?.featureFlags?.meetupChat).toBe(true);
 
     const sa = rows.find((m) => m.code === 'SA');
     expect(sa?.state).toBe('active');
     expect(sa?.defaultCurrency).toBe('SAR');
     expect(sa?.featureFlags?.communityOperations).toBe(true);
+    expect(sa?.featureFlags?.meetupChat).toBe(true);
   });
 
   it('names every market in French, in a shape the French copy can take a preposition in front of', () => {

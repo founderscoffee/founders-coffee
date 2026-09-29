@@ -5,9 +5,17 @@ import { id } from '@founders-coffee/core';
 import { syncChatChannel } from './chat-channels.js';
 import type { Db } from './db.js';
 import { createEventIfRouteAvailable } from './events.js';
+import { initializeMemberProfile } from './member-profiles.js';
 import { createRsvp } from './rsvps.js';
 import { HOST_ID } from './rsvps.fixtures.js';
-import { chatMessages, user, type NewEvent, type NewUser } from './schema.js';
+import {
+  chatMessages,
+  memberProfiles,
+  profileAssets,
+  user,
+  type NewEvent,
+  type NewUser,
+} from './schema.js';
 
 export const DAY_SECONDS = 24 * 60 * 60;
 
@@ -125,6 +133,37 @@ export const setAccount = async (
   change: Partial<Pick<NewUser, 'accountState' | 'banned'>>,
 ): Promise<void> => {
   await db.update(user).set(change).where(eq(user.id, userId)).run();
+};
+
+/** Give a member a ready profile photo, the way an upload leaves one. */
+export const givePhoto = async (
+  db: Db,
+  userId: string,
+  assetId: string,
+): Promise<void> => {
+  await initializeMemberProfile(db, userId);
+  await db.insert(profileAssets).values({
+    id: assetId,
+    userId,
+    objectKey: `profiles/${assetId}.webp`,
+    status: 'ready',
+    expiresAt: new Date('2099-01-01'),
+  });
+  await db
+    .update(memberProfiles)
+    .set({ photoAssetId: assetId })
+    .where(eq(memberProfiles.userId, userId));
+};
+
+/** Switch the meetup chat on or off in a market, as a migration sets its flag. */
+export const switchChat = async (
+  db: Db,
+  marketCode: string,
+  value: 'true' | 'false' | '1',
+): Promise<void> => {
+  await db.run(
+    sql`UPDATE markets SET feature_flags = json_set(feature_flags, '$.meetupChat', json(${value})) WHERE code = ${marketCode}`,
+  );
 };
 
 /** The database's clock, in epoch seconds. */

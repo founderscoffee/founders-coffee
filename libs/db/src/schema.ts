@@ -86,6 +86,7 @@ type MarketFeatureFlags = {
   payments: boolean;
   recruiting: boolean;
   communityOperations?: boolean;
+  meetupChat?: boolean;
 };
 
 export const markets = sqliteTable('markets', {

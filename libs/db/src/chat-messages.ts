@@ -1,21 +1,14 @@
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  gt,
-  inArray,
-  isNull,
-  lt,
-  or,
-  sql,
-} from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 
 import { id, type ChatSendOutcome } from '@founders-coffee/core';
 
 import { batch } from './atomic.js';
 import { chatNowMs, insertChatChannel } from './chat-channels.js';
 import { isChatMember } from './chat-membership.js';
+import {
+  messagesWithAuthors,
+  type ChatMessageWithAuthor,
+} from './chat-reads.js';
 import type { Db } from './db.js';
 import {
   chatChannels,
@@ -27,13 +20,11 @@ import {
 export type SendChatMessageResult =
   | {
       readonly outcome: Extract<ChatSendOutcome, 'sent' | 'already_sent'>;
-      readonly message: ChatMessageRow;
+      readonly message: ChatMessageWithAuthor;
     }
   | {
       readonly outcome: Exclude<ChatSendOutcome, 'sent' | 'already_sent'>;
     };
-
-export type ChatMessageCursor = { readonly at: number; readonly id: string };
 
 type SendFacts = { hasChat: number; isMember: number; isOpen: number };
 
@@ -43,10 +34,10 @@ type SendFacts = { hasChat: number; isMember: number; isOpen: number };
  * One batch, so one trip to D1. The chat's insert comes first and heals a meetup that has none.
  * The message's insert selects from the chat and its meetup, so it writes only while the chat is
  * open and the author is a member, both judged by the database in the same statement; a
- * `client_id` the author already used in this chat writes nothing. The message is then read back by
- * that id in this chat, which answers a retry with the message its first attempt stored, and the
- * facts that explain a refusal are read last. `created_at` is the database's clock in milliseconds, so every sender's
- * message takes its place on one timeline.
+ * `client_id` the author already used in this chat writes nothing. The message is then read back,
+ * with its author's name and photo, by that id in this chat, which answers a retry with the message
+ * its first attempt stored, and the facts that explain a refusal are read last. `created_at` is the
+ * database's clock in milliseconds, so every sender's message takes its place on one timeline.
  */
 export const sendChatMessage = async (
   db: Db,
@@ -94,18 +85,10 @@ export const sendChatMessage = async (
           chatMessages.clientId,
         ],
       }),
-    db
-      .select()
-      .from(chatMessages)
+    messagesWithAuthors(db)
       .where(
         and(
-          inArray(
-            chatMessages.channelId,
-            db
-              .select({ id: chatChannels.id })
-              .from(chatChannels)
-              .where(eq(chatChannels.eventId, input.eventId)),
-          ),
+          eq(chatChannels.eventId, input.eventId),
           eq(chatMessages.authorId, input.authorId),
           eq(chatMessages.clientId, input.clientId),
         ),
@@ -124,7 +107,7 @@ export const sendChatMessage = async (
   ]);
   const inserted =
     ((written as { meta?: { changes?: number } }).meta?.changes ?? 0) > 0;
-  const message = (stored as ChatMessageRow[])[0];
+  const message = (stored as ChatMessageWithAuthor[])[0];
   if (message) {
     return { outcome: inserted ? 'sent' : 'already_sent', message };
   }
@@ -135,59 +118,6 @@ export const sendChatMessage = async (
   throw new Error(
     `A member's message to the open chat of ${input.eventId} was not written`,
   );
-};
-
-/** The condition for the messages strictly past `cursor`, older or newer, in the chat's order. */
-const pastCursor = (cursor: ChatMessageCursor, side: 'before' | 'after') => {
-  const at = new Date(cursor.at);
-  return side === 'after'
-    ? or(
-        gt(chatMessages.createdAt, at),
-        and(eq(chatMessages.createdAt, at), gt(chatMessages.id, cursor.id)),
-      )
-    : or(
-        lt(chatMessages.createdAt, at),
-        and(eq(chatMessages.createdAt, at), lt(chatMessages.id, cursor.id)),
-      );
-};
-
-/**
- * One page of a chat's messages, oldest first, on the `(created_at, id)` cursor its index carries.
- *
- * With no cursor it is the latest page, which is what a chat opens on. `before` pages back into the
- * history, and `after` fills the gap a reconnect left, reading forward from the newest message the
- * reader holds. Removed messages are in the page as the tombstones they are.
- */
-export const listChatMessages = async (
-  db: Db,
-  input: {
-    readonly channelId: string;
-    readonly before?: ChatMessageCursor;
-    readonly after?: ChatMessageCursor;
-    readonly limit: number;
-  },
-): Promise<ChatMessageRow[]> => {
-  const inChat = eq(chatMessages.channelId, input.channelId);
-  if (input.after) {
-    return db
-      .select()
-      .from(chatMessages)
-      .where(and(inChat, pastCursor(input.after, 'after')))
-      .orderBy(asc(chatMessages.createdAt), asc(chatMessages.id))
-      .limit(input.limit);
-  }
-  const newestFirst = await db
-    .select()
-    .from(chatMessages)
-    .where(
-      and(
-        inChat,
-        input.before ? pastCursor(input.before, 'before') : undefined,
-      ),
-    )
-    .orderBy(desc(chatMessages.createdAt), desc(chatMessages.id))
-    .limit(input.limit);
-  return newestFirst.reverse();
 };
 
 /**

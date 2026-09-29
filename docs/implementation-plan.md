@@ -620,8 +620,11 @@ the market and request, never a message's text. Analytics Engine counts messages
 at least one message and members who read one, per market and city, beside the community-health
 metrics of P1-019.
 
-**Rollout.** A `meetupChat` market feature flag in `MarketFeatureFlags`, read the way
-`communityOperationsEnabled` is, and turned on by migration: staging first, production after the
+**Rollout.** A `meetupChat` market feature flag in `MarketFeatureFlags`, read as JSON `true` inside
+the membership predicate, so every read, write and socket is gated by it without asking for it
+separately, and switching it off closes every chat in the market at once. It is in place, off, from
+CH-03 on, since the chat's server functions deploy before its moderation and privacy work does; the
+test and local seeds turn it on. CH-11 turns it on by migration: staging first, production after the
 evidence run. Unlike Telegram, staging can run the whole feature.
 
 **Retiring Telegram groups (CH-12).** Once the chat is on in production:
@@ -655,7 +658,7 @@ stays. P1-025's row then records the retirement and its date.
 | CH-08 | Planned  | Reports, removals, the admin review page, the audit                                                                              | Admin tests; on staging, one report acted on and one dismissed, and each opening of the chat audited                                                                                                                                                                                                       |
 | CH-09 | Planned  | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | Sweep and erasure tests; the policy reviewed and dated in each language                                                                                                                                                                                                                                    |
 | CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Sends and the panel's first read within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                                                                                                                                       |
-| CH-11 | Planned  | The feature flag, the evidence run, production                                                                                   | The run below recorded on staging, then the flag on in production                                                                                                                                                                                                                                          |
+| CH-11 | Planned  | Turning the feature flag on, the evidence run, production                                                                        | The run below recorded on staging, then the flag on in production                                                                                                                                                                                                                                          |
 | CH-12 | Planned  | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                                                                                                                                                                    |
 
 Tickets run in number order. Moderation and privacy (CH-08 and CH-09) come before the flag, since
