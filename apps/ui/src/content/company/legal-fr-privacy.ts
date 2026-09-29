@@ -19,7 +19,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
         'Cette politique explique quelles données personnelles Founders Coffee collecte, pourquoi, qui peut y accéder, combien de temps nous les conservons et ce que vous pouvez faire à leur sujet.',
         '**Le responsable du traitement** est **Amine Yagoub**, une personne physique. Aucune société n’a encore été constituée pour exploiter ce pilote gratuit. La définition légale du responsable du traitement couvre les personnes physiques comme les personnes morales, et ses obligations envers vos données sont les mêmes dans les deux cas. Contact pour tout ce qui concerne vos données : **contact@founders.coffee**.',
         'Si une société est constituée plus tard, la qualité de responsable du traitement lui sera transférée. C’est un changement de la personne qui détient vos données, pas un détail administratif : nous vous en informerons avant qu’il prenne effet, comme indiqué à la section 12.',
-        'Les traitements sont effectués conformément à la loi algérienne 18-07 du 10 juin 2018 relative à la protection des personnes physiques dans le traitement des données à caractère personnel, modifiée et complétée par la loi 25-11 du 24 juillet 2025.',
+        'Les traitements sont effectués conformément à la loi algérienne relative à la protection des personnes physiques dans le traitement des données à caractère personnel, puisque nous exploitons la plateforme depuis l’Algérie.',
       ),
     ),
     section('Ce que nous collectons et pourquoi', [
@@ -90,9 +90,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ]),
     section('Base juridique du traitement', [
-      ...text(
-        'Chaque traitement repose sur un fondement prévu par l’article 7 de la loi 18-07 :',
-      ),
+      ...text('Chaque traitement repose sur un fondement prévu par la loi :'),
       list([
         '**Exécution du contrat qui nous lie :** le compte, votre profil public (votre nom, votre photo et votre présentation si vous les ajoutez, votre mois d’inscription et le nombre de rencontres organisées), la publication des rencontres, les inscriptions, et les rappels et alertes liés à une rencontre à laquelle vous êtes inscrit. Ce ne sont pas des services en plus, mais l’essentiel de ce pour quoi vous vous êtes inscrit.',
         '**Votre consentement explicite :** la publication des champs facultatifs du profil, qui ont chacun un réglage de visibilité, l’activation des notifications push ou SMS, l’inscription à la liste d’attente d’une ville, et la liaison d’un groupe Telegram à une rencontre ou l’adhésion à ce groupe. Vous pouvez retirer votre consentement à tout moment, sans remettre en cause la licéité de ce qui a été fait auparavant.',
@@ -100,7 +98,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
         '**Obligation légale :** lorsqu’un texte nous impose de conserver ou de transmettre une donnée.',
       ]),
       ...text(
-        '**Nous ne pratiquons pas de marketing direct.** Tous les messages que vous recevez aujourd’hui concernent une rencontre ou votre compte. Si nous décidions un jour d’envoyer une newsletter ou des messages promotionnels, ce serait uniquement avec votre accord préalable et un moyen gratuit de vous désabonner dans chaque message, et nous traiterions la demande de désabonnement **sous vingt-quatre (24) heures**, comme l’exige l’article 32 de la loi 18-05.',
+        '**Nous ne pratiquons pas de marketing direct.** Tous les messages que vous recevez aujourd’hui concernent une rencontre ou votre compte. Si nous décidions un jour d’envoyer une newsletter ou des messages promotionnels, ce serait uniquement avec votre accord préalable et un moyen gratuit de vous désabonner dans chaque message, et nous traiterions la demande de désabonnement **sous vingt-quatre (24) heures**.',
       ),
     ]),
     section(
@@ -118,10 +116,10 @@ export const privacyFrench: CompanyPageContent = translatedPage(
     section(
       'Transferts hors d’Algérie',
       text(
-        'Nous le mentionnons explicitement parce que l’article 32 de la loi 18-07 l’exige, et parce que cela vous concerne.',
+        'Nous le mentionnons explicitement parce que la loi l’exige, et parce que cela vous concerne.',
         'La plateforme fonctionne sur une infrastructure cloud distribuée, et les prestataires cités dans la section précédente sont situés hors d’Algérie. **Vos données sont donc traitées et stockées hors du territoire national.** Lorsqu’un groupe Telegram est relié à une rencontre, ce qui parvient à Telegram de notre part à son sujet et au sujet de ses membres est lui aussi traité hors d’Algérie, sur les serveurs de Telegram et selon ses conditions.',
-        'Nous nous appuyons sur l’article 45 de la loi 18-07, qui autorise le transfert vers un pays étranger dans deux cas qui s’appliquent ici : **votre consentement explicite** et **la nécessité du transfert pour exécuter le contrat qui nous lie**, puisque votre compte ne peut pas fonctionner ni aucune notification vous parvenir sans que les données passent par cette infrastructure. En contrepartie, nous faisons appel à des prestataires engagés sur des standards de protection reconnus, nous chiffrons les connexions et nous limitons ce que reçoit chaque prestataire à ce qu’exige sa mission.',
-        'C’est le fondement sur lequel nous nous appuyons aujourd’hui : l’article 45, et non l’autorisation préalable prévue à l’article 44. Si l’Autorité nationale de protection des données à caractère personnel délivre plus tard une autorisation pour ce transfert, nous mettrons cette section à jour pour y faire référence.',
+        'Nous nous appuyons sur la loi, qui autorise le transfert vers un pays étranger dans deux cas qui s’appliquent ici : **votre consentement explicite** et **la nécessité du transfert pour exécuter le contrat qui nous lie**, puisque votre compte ne peut pas fonctionner ni aucune notification vous parvenir sans que les données passent par cette infrastructure. En contrepartie, nous faisons appel à des prestataires engagés sur des standards de protection reconnus, nous chiffrons les connexions et nous limitons ce que reçoit chaque prestataire à ce qu’exige sa mission.',
+        'C’est le fondement sur lequel nous nous appuyons aujourd’hui, et non l’autorisation préalable que la loi prévoit aussi. Si l’Autorité nationale de protection des données à caractère personnel délivre plus tard une autorisation pour ce transfert, nous mettrons cette section à jour pour y faire référence.',
         'Si ce transfert ne vous convient pas, vous pouvez retirer votre consentement et demander la fermeture de votre compte, et nous le ferons.',
       ),
     ),
@@ -174,13 +172,13 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ]),
     section('Vos droits et leur exercice', [
-      ...text('La loi 18-07 vous accorde des droits que nous respectons :'),
+      ...text('La loi vous accorde des droits que nous respectons :'),
       list([
-        '**Information** (article 32) : savoir qui traite vos données, dans quel but, qui les reçoit et si elles sont transférées à l’étranger. Ce document est notre façon de respecter ce droit.',
-        '**Accès** (article 34) : obtenir la confirmation que vos données sont traitées, leurs finalités, les catégories de données et les destinataires, une copie sous une forme compréhensible et les informations disponibles sur leur origine. La loi nous permet de refuser les demandes manifestement abusives (par leur nombre ou leur répétition), et c’est à nous, non à vous, d’en apporter la preuve.',
-        '**Rectification** (article 35) : faire mettre à jour, corriger, effacer ou verrouiller vos données si elles sont incomplètes, inexactes ou traitées illégalement. **Nous le faisons gratuitement et sous dix (10) jours** à compter de votre demande. Si nous avons communiqué vos données à d’autres, nous les informons de la rectification.',
-        '**Opposition** (article 36) : vous opposer, pour des motifs légitimes, à un traitement qui vous concerne, et vous opposer sans justification à l’utilisation de vos données à des fins de prospection.',
-        '**Retrait du consentement** (article 7) : à tout moment, pour tout ce qui repose sur votre consentement.',
+        '**Information** : savoir qui traite vos données, dans quel but, qui les reçoit et si elles sont transférées à l’étranger. Ce document est notre façon de respecter ce droit.',
+        '**Accès** : obtenir la confirmation que vos données sont traitées, leurs finalités, les catégories de données et les destinataires, une copie sous une forme compréhensible et les informations disponibles sur leur origine. La loi nous permet de refuser les demandes manifestement abusives (par leur nombre ou leur répétition), et c’est à nous, non à vous, d’en apporter la preuve.',
+        '**Rectification** : faire mettre à jour, corriger, effacer ou verrouiller vos données si elles sont incomplètes, inexactes ou traitées illégalement. **Nous le faisons gratuitement et sous dix (10) jours** à compter de votre demande. Si nous avons communiqué vos données à d’autres, nous les informons de la rectification.',
+        '**Opposition** : vous opposer, pour des motifs légitimes, à un traitement qui vous concerne, et vous opposer sans justification à l’utilisation de vos données à des fins de prospection.',
+        '**Retrait du consentement** : à tout moment, pour tout ce qui repose sur votre consentement.',
       ]),
       ...text(
         '**Comment les exercer.** Certains de ces droits sont disponibles directement sur la plateforme : modifier votre profil et vos réglages de visibilité depuis la page de profil, et vos préférences de notification depuis la page des préférences. Pour le reste (notamment obtenir une copie de vos données, faire corriger un registre de présence ou fermer votre compte), écrivez à **contact@founders.coffee** depuis l’e-mail associé à votre compte en précisant clairement votre demande.',
@@ -191,14 +189,14 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       'Sécurité des données',
       text(
         'La connexion à la plateforme est entièrement chiffrée. L’identification se fait par un code temporaire qui expire vite : il n’y a donc pas de mot de passe à divulguer. L’accès administratif aux données de production est limité à un petit nombre de personnes derrière une couche d’authentification indépendante, et les opérations de modération sont journalisées.',
-        'Toute personne ayant accès aux données du fait de ses fonctions est tenue au secret professionnel, même après la fin de sa relation avec nous, conformément à l’article 40 de la loi 18-07.',
+        'Toute personne ayant accès aux données du fait de ses fonctions est tenue au secret professionnel, même après la fin de sa relation avec nous.',
         'Aucun système n’est toutefois sans risque. Si vous remarquez une faille ou un comportement suspect, écrivez-nous : nous traiterons votre signalement avec sérieux et reconnaissance.',
       ),
     ),
     section(
       'En cas de violation',
       text(
-        'Si une violation touche vos données personnelles, nous en informons l’Autorité nationale de protection des données à caractère personnel sans délai, comme l’exige l’article 43 de la loi 18-07, et au plus tard dans les cinq (5) jours après en avoir eu connaissance.',
+        'Si une violation touche vos données personnelles, nous en informons l’Autorité nationale de protection des données à caractère personnel sans délai, et au plus tard dans les cinq (5) jours après en avoir eu connaissance.',
         'Nous vous informons directement si la violation peut porter atteinte à votre vie privée, en termes clairs, en expliquant ce qui s’est passé, ce qui peut en découler et les mesures que nous avons prises.',
         'Nous tenons un registre interne de chaque violation et des mesures prises.',
       ),
@@ -231,5 +229,5 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 septembre 2026',
+  '29 septembre 2026',
 );

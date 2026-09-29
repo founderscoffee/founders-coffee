@@ -70,7 +70,7 @@ export const legalFrench: CompanyPageContent = translatedPage(
     section(
       'Protection des données personnelles',
       text(
-        'Le responsable du traitement de vos données est l’exploitant indiqué ci-dessus, en son nom personnel, et non une société. L’absence de société ne retire rien à ses obligations au titre de la loi n° 18-07 : la définition légale du responsable du traitement couvre la personne physique comme la personne morale.',
+        'Le responsable du traitement de vos données est l’exploitant indiqué ci-dessus, en son nom personnel, et non une société. L’absence de société ne retire rien à ses obligations au titre de la loi sur la protection des données personnelles : la définition légale du responsable du traitement couvre la personne physique comme la personne morale.',
         'Pour tout ce qui concerne vos données personnelles, et pour exercer vos droits d’accès, de rectification, d’opposition et de suppression : **contact@founders.coffee**.',
         'Vos données sont traitées sur une infrastructure technique située hors d’Algérie. Le détail, et le fondement juridique sur lequel nous nous appuyons, figurent dans la [Politique de confidentialité](/privacy).',
       ),
@@ -85,10 +85,10 @@ export const legalFrench: CompanyPageContent = translatedPage(
     section(
       'Propriété intellectuelle',
       text(
-        'Le nom « Founders Coffee », son logo, ainsi que le design et le logiciel de la plateforme sont protégés par l’ordonnance n° 03-05 relative aux droits d’auteur et aux droits voisins, et ne peuvent être utilisés sans autorisation écrite préalable.',
+        'Le nom « Founders Coffee », son logo, ainsi que le design et le logiciel de la plateforme sont protégés par le droit d’auteur et les droits voisins, et ne peuvent être utilisés sans autorisation écrite préalable.',
         'Les textes et images publiés par les membres restent la propriété de leurs auteurs, comme le prévoient les [Conditions d’utilisation](/terms).',
       ),
     ),
   ],
-  '27 septembre 2026',
+  '29 septembre 2026',
 );

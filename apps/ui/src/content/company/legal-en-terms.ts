@@ -89,7 +89,7 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       'Intellectual property',
       text(
         'The Founders Coffee name and logo, and the design and software of the platform, belong to us and may not be used without written permission.',
-        'We respect copyright and related rights as governed by Order No. 03-05 of 19 July 2003, and we expect the same of you. Do not upload images, text, or logos you do not have the right to use.',
+        'We respect copyright and related rights, and we expect the same of you. Do not upload images, text, or logos you do not have the right to use.',
       ),
     ),
     section(
@@ -148,5 +148,5 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 September 2026',
+  '29 September 2026',
 );

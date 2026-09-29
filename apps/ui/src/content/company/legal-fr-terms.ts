@@ -89,7 +89,7 @@ export const termsFrench: CompanyPageContent = translatedPage(
       'Propriété intellectuelle',
       text(
         'Le nom et le logo de Founders Coffee, ainsi que le design et le logiciel de la plateforme, nous appartiennent et ne peuvent être utilisés sans autorisation écrite.',
-        'Nous respectons le droit d’auteur et les droits voisins tels que les régit l’ordonnance n° 03-05 du 19 juillet 2003, et nous attendons de vous la même chose. N’importez pas d’images, de textes ou de logos que vous n’avez pas le droit d’utiliser.',
+        'Nous respectons le droit d’auteur et les droits voisins, et nous attendons de vous la même chose. N’importez pas d’images, de textes ou de logos que vous n’avez pas le droit d’utiliser.',
       ),
     ),
     section(
@@ -148,5 +148,5 @@ export const termsFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 septembre 2026',
+  '29 septembre 2026',
 );

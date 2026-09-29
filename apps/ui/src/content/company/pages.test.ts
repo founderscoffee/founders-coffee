@@ -6,44 +6,23 @@ import { LOCALES, type Locale } from '@founders-coffee/i18n';
 import { SITEMAP_COMPANY_PATHS } from '../../lib/sitemap-contract';
 
 import {
-  COMPANY_PAGES,
   LEGAL_PAGE_KEYS,
   companyLinkKey,
   companyPageContent,
   isCompanyPageKey,
 } from './pages';
-import type { CompanyPageKey, LegalPageKey } from './pages';
-import type { CompanyBlock } from './types';
-
-const KEYS = Object.keys(COMPANY_PAGES) as CompanyPageKey[];
-
-const blockText = (block: CompanyBlock): string[] => {
-  if (block.kind === 'table')
-    return [...block.columns, ...block.rows.flatMap((row) => [...row])];
-  if (block.kind === 'list') return [...block.items];
-  return [block.text];
-};
-
-const allText = (key: CompanyPageKey, locale: Locale = 'ar') =>
-  companyPageContent(key, locale).sections.flatMap((section) =>
-    section.blocks.flatMap(blockText),
-  );
+import type { LegalPageKey } from './pages';
+import { KEYS, allText, publishedText } from './pages.fixtures';
 
 const criticalLegalFacts: Partial<Record<LegalPageKey, readonly string[]>> = {
-  terms: ['19', '03-05', 'contact@founders.coffee'],
+  terms: ['19', 'contact@founders.coffee'],
   privacy: [
-    '18-07',
-    '25-11',
     '19',
     '30',
     '90',
     '24',
     '12',
     '10',
-    '40',
-    '43',
-    '44',
-    '45',
     'Cloudflare',
     'Mapbox',
     'contact@founders.coffee',
@@ -58,8 +37,8 @@ const criticalLegalFacts: Partial<Record<LegalPageKey, readonly string[]>> = {
     'contact@founders.coffee',
   ],
   community: ['contact@founders.coffee'],
-  organizers: ['18-07', 'contact@founders.coffee'],
-  legal: ['03-05', '18-07', 'contact@founders.coffee'],
+  organizers: ['contact@founders.coffee'],
+  legal: ['contact@founders.coffee'],
 };
 
 describe('company pages', () => {
@@ -158,16 +137,11 @@ describe('company pages', () => {
     for (const key of LEGAL_PAGE_KEYS) {
       const facts = criticalLegalFacts[key] ?? [];
       for (const locale of LOCALES) {
-        const publishedText = [
-          companyPageContent(key, locale).title,
-          companyPageContent(key, locale).description,
-          ...allText(key, locale),
-        ].join(' ');
+        const published = publishedText(key, locale).join(' ');
         for (const fact of facts) {
-          expect(
-            publishedText,
-            `${key}:${locale} is missing ${fact}`,
-          ).toContain(fact);
+          expect(published, `${key}:${locale} is missing ${fact}`).toContain(
+            fact,
+          );
         }
       }
     }

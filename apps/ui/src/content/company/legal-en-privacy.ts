@@ -19,7 +19,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
         'This policy explains what personal data Founders Coffee collects, why, who can access it, how long we retain it, and what you can do about it.',
         '**The data controller** is **Amine Yagoub**, an individual. No company has yet been incorporated to operate this free pilot. The law’s definition of a controller covers individuals as well as companies, and a controller’s obligations toward your data are the same in both cases. Contact for anything about your data: **contact@founders.coffee**.',
         'If a company is incorporated later, the role of controller will pass to it. That is a change in who holds your data, not an administrative detail, so we will notify you before it takes effect, as described in section 12.',
-        'We process data under Algerian Law 18-07 of 10 June 2018 on the protection of natural persons in personal-data processing, as amended by Law 25-11 of 24 July 2025.',
+        'We process data under the Algerian law on the protection of natural persons in personal-data processing, because we operate the platform from Algeria.',
       ),
     ),
     section('What we collect and why', [
@@ -89,9 +89,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
     ]),
     section('Legal basis for processing', [
-      ...text(
-        'Each processing activity relies on a basis recognised by Article 7 of Law 18-07:',
-      ),
+      ...text('Each processing activity relies on a basis the law recognises:'),
       list([
         '**Performance of our contract:** your account, your public profile (your name, your photo and introduction if you add them, the month you joined, and the number of gatherings you hosted), publishing gatherings, RSVPs, and reminders and alerts about a gathering you joined. These are not extra services but the core of what you signed up for.',
         '**Your explicit consent:** publishing the optional profile fields that each have a visibility switch, enabling push or SMS notifications, joining a city waitlist, and linking or joining a Telegram group for a gathering. You can withdraw consent at any time; withdrawal does not affect the lawfulness of what was done before.',
@@ -99,7 +97,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
         '**Legal obligation:** when a law requires us to retain or provide data.',
       ]),
       ...text(
-        '**We do not do direct marketing.** Every message you receive today relates to a gathering or to your account. If we ever decide to send a newsletter or promotional messages, it will only be with your prior consent and a free way to unsubscribe in every message, and we will act on an unsubscribe request **within twenty-four (24) hours**, as Article 32 of Law 18-05 requires.',
+        '**We do not do direct marketing.** Every message you receive today relates to a gathering or to your account. If we ever decide to send a newsletter or promotional messages, it will only be with your prior consent and a free way to unsubscribe in every message, and we will act on an unsubscribe request **within twenty-four (24) hours**.',
       ),
     ]),
     section(
@@ -117,10 +115,10 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
     section(
       'Transfers outside Algeria',
       text(
-        'We state this explicitly because Article 32 of Law 18-07 requires it, and because it concerns you.',
+        'We state this explicitly because the law requires it, and because it concerns you.',
         'The platform runs on distributed cloud infrastructure, and the providers named in the previous section are outside Algeria. **Your data is therefore processed and stored outside Algeria.** When a Telegram group is linked to a gathering, what reaches Telegram from us about it and about those who join is also processed outside Algeria, on Telegram’s servers and under its terms.',
-        'We rely on Article 45 of Law 18-07, which allows a transfer to a foreign country in two cases that apply here: **your explicit consent**, and **the transfer being necessary to perform our contract with you**, since your account cannot run and no notification can reach you without the data passing through this infrastructure. In return, we contract with providers committed to recognised protection standards, encrypt connections, and limit what reaches each provider to what its task requires.',
-        'This is the basis we rely on today: Article 45, not the prior authorisation provided for in Article 44. If the National Authority for the Protection of Personal Data later issues an authorisation for this transfer, we will update this section and refer to it.',
+        'We rely on the law, which allows a transfer to a foreign country in two cases that apply here: **your explicit consent**, and **the transfer being necessary to perform our contract with you**, since your account cannot run and no notification can reach you without the data passing through this infrastructure. In return, we contract with providers committed to recognised protection standards, encrypt connections, and limit what reaches each provider to what its task requires.',
+        'This is the basis we rely on today, not the prior authorisation the law also provides for. If the National Authority for the Protection of Personal Data later issues an authorisation for this transfer, we will update this section and refer to it.',
         'If this transfer is not acceptable to you, you may withdraw your consent and ask us to close your account, and we will do so.',
       ),
     ),
@@ -170,13 +168,13 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
     ]),
     section('Your rights and how to use them', [
-      ...text('Law 18-07 gives you these rights, which we honour:'),
+      ...text('The law gives you these rights, which we honour:'),
       list([
-        '**Information** (Article 32): to know who processes your data, for what purpose, who receives it, and whether it is transferred abroad. This document is how we meet this right.',
-        '**Access** (Article 34): to get confirmation that your data is processed, its purposes, the categories of data and the recipients, a copy in an understandable form, and what is available about its source. The law lets us refuse clearly abusive requests (by their number or repetition), and the burden of proving that falls on us, not on you.',
-        '**Correction** (Article 35): to have your data updated, corrected, erased, or locked if it is incomplete, inaccurate, or processed unlawfully. **We do this free of charge within ten (10) days** of your request. If we have disclosed your data to others, we inform them of the correction.',
-        '**Objection** (Article 36): to object on legitimate grounds to processing that concerns you, and to object to the use of your data for prospecting without having to give a reason.',
-        '**Withdrawal of consent** (Article 7): at any time, for everything based on your consent.',
+        '**Information**: to know who processes your data, for what purpose, who receives it, and whether it is transferred abroad. This document is how we meet this right.',
+        '**Access**: to get confirmation that your data is processed, its purposes, the categories of data and the recipients, a copy in an understandable form, and what is available about its source. The law lets us refuse clearly abusive requests (by their number or repetition), and the burden of proving that falls on us, not on you.',
+        '**Correction**: to have your data updated, corrected, erased, or locked if it is incomplete, inaccurate, or processed unlawfully. **We do this free of charge within ten (10) days** of your request. If we have disclosed your data to others, we inform them of the correction.',
+        '**Objection**: to object on legitimate grounds to processing that concerns you, and to object to the use of your data for prospecting without having to give a reason.',
+        '**Withdrawal of consent**: at any time, for everything based on your consent.',
       ]),
       ...text(
         '**How to use them.** Some of these rights are available directly in the platform: edit your profile and visibility switches on the profile page, and your notification preferences on the preferences page. For everything else (including a copy of your data, correcting an attendance record, and closing your account), email **contact@founders.coffee** from the address registered on your account and state your request clearly.',
@@ -187,14 +185,14 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       'Data security',
       text(
         'Connections to the platform are fully encrypted. Sign-in uses a temporary code that expires quickly, so there is no password to leak. Administrative access to production data is limited to a small number of people behind an independent verification layer, and moderation actions are logged.',
-        'Everyone who accesses data through their role is bound by professional secrecy, even after their relationship with us ends, under Article 40 of Law 18-07.',
+        'Everyone who accesses data through their role is bound by professional secrecy, even after their relationship with us ends.',
         'Still, no system is risk-free. If you notice a vulnerability or suspicious behaviour, write to us and we will handle the report seriously and gratefully.',
       ),
     ),
     section(
       'What we do after a breach',
       text(
-        'If a breach affects your personal data, we notify the National Authority for the Protection of Personal Data without delay, as Article 43 of Law 18-07 requires, and within five (5) days of learning of it at most.',
+        'If a breach affects your personal data, we notify the National Authority for the Protection of Personal Data without delay, and within five (5) days of learning of it at most.',
         'We notify you directly if the breach may affect your private life, in plain language, explaining what happened, what may result from it, and what we have done.',
         'We keep an internal record of every breach and what was done about it.',
       ),
@@ -227,5 +225,5 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 September 2026',
+  '29 September 2026',
 );

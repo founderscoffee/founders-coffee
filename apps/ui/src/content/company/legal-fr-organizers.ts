@@ -48,7 +48,7 @@ export const organizersFrench: CompanyPageContent = translatedPage(
       text(
         'Nous vous montrons les noms des personnes inscrites à votre rencontre, car vous avez besoin de savoir qui attendre.',
         '**Cette liste sert à organiser cette rencontre, et à rien d’autre.** Ne la copiez pas, ne l’exportez pas, n’ajoutez pas les personnes qui y figurent à une liste de diffusion ou à une base de données, ne la partagez avec personne et ne l’utilisez pas pour les contacter après la rencontre pour un motif sans lien avec elle.',
-        'Si vous souhaitez recueillir une information supplémentaire auprès des participants pendant la rencontre elle-même (e-mail, numéro, carte d’identité), dites-leur explicitement que c’est **vous** qui la recueillez, dans quel but, et que cela ne fait pas partie de la plateforme. Vous devenez alors responsable de ces données au regard de la loi, et les dispositions de la loi n° 18-07 s’appliquent à vous.',
+        'Si vous souhaitez recueillir une information supplémentaire auprès des participants pendant la rencontre elle-même (e-mail, numéro, carte d’identité), dites-leur explicitement que c’est **vous** qui la recueillez, dans quel but, et que cela ne fait pas partie de la plateforme. Vous devenez alors responsable de ces données au regard de la loi, et les règles de protection des données personnelles s’appliquent à vous.',
         'La violation de cette clause est parmi les plus graves qui puissent se produire sur la plateforme, et nous la traitons comme telle.',
       ),
     ),
@@ -125,5 +125,5 @@ export const organizersFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 septembre 2026',
+  '29 septembre 2026',
 );
