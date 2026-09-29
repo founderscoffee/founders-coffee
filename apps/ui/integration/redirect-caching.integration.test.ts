@@ -72,6 +72,13 @@ const PER_READER: readonly Hop[] = [
 const CANONICAL: readonly Hop[] = [
   { path: '/ar/dz', location: '/ar/algeria' },
   { path: `/fr/e/${SHORT_ID}`, location: `/fr/algeria/e/${EVENT_SLUG}` },
+  { path: `/fr/DZ/e/${EVENT_SLUG}`, location: `/fr/algeria/e/${EVENT_SLUG}` },
+  { path: `/fr/dz/e/${EVENT_SLUG}`, location: `/fr/algeria/e/${EVENT_SLUG}` },
+  { path: '/fr/dz/algiers', location: '/fr/algeria/algiers' },
+  {
+    path: '/fr/dz/host/create?city=556',
+    location: '/fr/algeria/host/create?city=556',
+  },
 ];
 
 const label = ({ path, cookie }: Hop): string =>

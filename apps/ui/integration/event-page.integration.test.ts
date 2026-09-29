@@ -11,6 +11,7 @@ import worker from '../src/server';
 const ORIGIN = 'https://staging.founders.coffee';
 const HOST_ID = 'usr_event_page';
 const SLUG = 'event-page-meetup';
+const NEIGHBOUR = 'Neighbouring meetup in Algiers';
 
 const get = async (pathname: string): Promise<Response> => {
   const context = createExecutionContext();
@@ -57,6 +58,24 @@ describe("a meetup's page", () => {
       })
       .onConflictDoNothing()
       .run();
+    await db
+      .insert(events)
+      .values({
+        id: 'evt_event_page_neighbour',
+        hostId: HOST_ID,
+        marketCode: 'DZ',
+        stateCode: '16',
+        cityCode: '556',
+        title: NEIGHBOUR,
+        description: 'Another published meetup in the same market.',
+        venue: 'Café des Délices',
+        startsAt: new Date('2099-01-22T18:00:00Z'),
+        language: 'fr',
+        slug: 'event-page-neighbour',
+        status: 'published',
+      })
+      .onConflictDoNothing()
+      .run();
   });
 
   it('shows the meetup and the card of the member hosting it', async () => {
@@ -69,6 +88,19 @@ describe("a meetup's page", () => {
     expect(body, 'the host card links to their profile').toContain(
       `/u/${HOST_ID}`,
     );
+  });
+
+  it("reads nothing of its market's landing", async () => {
+    const landing = await (await get('/fr/algeria')).text();
+    const page = await (await get(`/fr/algeria/e/${SLUG}`)).text();
+
+    expect(landing, 'the landing lists every upcoming meetup').toContain(
+      NEIGHBOUR,
+    );
+    expect(
+      page,
+      "the market route's loader ran under every meetup page, reading the landing's meetups, counts and hosts from D1 beside the page's own reads and handing them to the browser in the page",
+    ).not.toContain(NEIGHBOUR);
   });
 
   it.each([

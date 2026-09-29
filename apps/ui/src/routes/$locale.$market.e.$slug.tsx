@@ -58,7 +58,7 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
     );
     if (!market) {
       const byCode = context.markets.find(
-        (listed) => listed.code === params.market,
+        (listed) => listed.code === params.market.toUpperCase(),
       );
       if (!byCode) throw notFound();
       throw redirect(localizedEvent(context.locale, byCode.slug, params.slug));

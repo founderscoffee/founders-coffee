@@ -26,10 +26,11 @@ const ONLY_THIS_PAGE = { exact: true };
  * links on a city page announced themselves as the current page and none of them was it, so a
  * reader hearing the cue learned nothing from it anywhere.
  *
- * Both sit in the same route: `$market` holds a market slug like `algeria` or a company page key
- * like `terms`, and the route tells them apart by the key. Linking this way rather than to the bare
- * `/algeria` or `/terms` is what keeps the reader out of a redirect, since every unprefixed path
- * answers 307 to its prefixed form before it renders anything.
+ * Both sit in the same route, the index beneath `$market`: the segment holds a market slug like
+ * `algeria` or a company page key like `terms`, and the route tells them apart by the key. An index
+ * is addressed without its trailing slash, so `to` names it and `search` takes its cursor. Linking
+ * this way rather than to the bare `/algeria` or `/terms` is what keeps the reader out of a
+ * redirect, since every unprefixed path answers 307 to its prefixed form before it renders anything.
  */
 export const localizedLanding = (locale: Locale, key: string) => ({
   to: '/$locale/$market' as const,

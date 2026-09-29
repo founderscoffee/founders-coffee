@@ -88,18 +88,21 @@ export const Route = createFileRoute('/$locale/$market/host/create')({
   }),
   component: HostCreateRoute,
   loader: async ({ params, deps, context }): Promise<HostCreateLoaderData> => {
+    const byCode = context.markets.find(
+      (listed) => listed.code === params.market.toUpperCase(),
+    );
+    if (byCode && byCode.slug !== params.market) {
+      throw redirect({
+        ...localizedHostCreate(context.locale, byCode.slug),
+        search: deps,
+      });
+    }
     let market: Market;
     try {
       market = await eventsApi.getMarket({ data: { slug: params.market } });
     } catch (error) {
       if (appErrorCode(error) === 'market_not_found') throw notFound();
       throw error;
-    }
-    if (params.market !== market.slug) {
-      throw redirect({
-        ...localizedHostCreate(context.locale, market.slug),
-        search: deps,
-      });
     }
     const repeatTemplate = await loadRepeatTemplate(deps.repeat);
     const repeatCity =

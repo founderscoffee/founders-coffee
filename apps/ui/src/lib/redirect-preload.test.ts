@@ -50,6 +50,10 @@ const loginRoute = hang(LocaleLoginRoute, '/login', localeRoute);
 const marketRoute = createRoute({
   getParentRoute: () => localeRoute,
   path: '$market',
+});
+const landingRoute = createRoute({
+  getParentRoute: () => marketRoute,
+  path: '/',
   validateSearch: (search: Record<string, unknown>) => search,
 });
 const cityRoute = createRoute({
@@ -57,7 +61,10 @@ const cityRoute = createRoute({
   path: '$city',
 });
 const routeTree = rootRoute.addChildren([
-  localeRoute.addChildren([loginRoute, marketRoute.addChildren([cityRoute])]),
+  localeRoute.addChildren([
+    loginRoute,
+    marketRoute.addChildren([landingRoute, cityRoute]),
+  ]),
 ]);
 
 /**
