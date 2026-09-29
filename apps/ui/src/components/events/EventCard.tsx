@@ -167,7 +167,7 @@ export const EventCard = ({
 
       <Link
         {...detailsHref}
-        className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full shrink-0 self-center whitespace-nowrap sm:w-auto"
+        className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-full shrink-0 self-center whitespace-nowrap sm:w-auto"
       >
         <span>{event_details_title({}, { locale })}</span>
         <ArrowUpRight className="size-4 rtl:rotate-180" aria-hidden="true" />

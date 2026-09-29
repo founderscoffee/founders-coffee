@@ -75,7 +75,7 @@ export const CancelEventDialog = ({
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             type="button"
-            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md"
             onClick={onKeep}
             disabled={isPending}
           >
@@ -83,7 +83,7 @@ export const CancelEventDialog = ({
           </button>
           <button
             type="button"
-            className="btn btn-error btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-error btn-xs sm:btn-sm md:btn-md"
             onClick={onConfirm}
             disabled={isPending}
           >

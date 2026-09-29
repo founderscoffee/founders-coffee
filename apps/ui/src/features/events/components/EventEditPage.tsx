@@ -146,7 +146,7 @@ export const EventEditPage = ({
             backLink={
               market ? (
                 <Link
-                  className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
+                  className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-fit"
                   {...localizedEvent(locale, market.slug, event.slug)}
                 >
                   <ArrowLeft

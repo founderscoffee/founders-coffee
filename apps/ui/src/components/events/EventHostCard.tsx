@@ -47,7 +47,7 @@ export const EventHostCard = ({
       {host ? (
         <Link
           {...localizedPublicProfile(locale, host.userId)}
-          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
         >
           {profile_link({}, { locale })}
         </Link>

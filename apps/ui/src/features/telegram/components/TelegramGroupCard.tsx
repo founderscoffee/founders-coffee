@@ -23,7 +23,7 @@ export const TelegramGroupCard = ({
         action={
           <button
             type="button"
-            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md"
             onClick={() => void group.refetch()}
           >
             {retry({}, { locale })}

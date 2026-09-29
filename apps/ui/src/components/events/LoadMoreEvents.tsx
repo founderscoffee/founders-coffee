@@ -43,7 +43,7 @@ export const LoadMoreEvents = ({
       {hasMore && (
         <button
           type="button"
-          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
           onClick={loadMore}
           disabled={isLoadingMore}
         >

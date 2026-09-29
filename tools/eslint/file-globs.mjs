@@ -89,6 +89,17 @@ export const REACT_SOURCE_FILES = [
 ];
 
 /**
+ * The buttons that go on to daisyUI's large size from 1024px up, where every other button stops at
+ * medium (AGENTS.md §8): the market landing's two calls to action, the hero's search button and the
+ * pair that closes How it works. Each file holds no other button, so the whole file takes the
+ * larger scale, and `local/daisyui-control-size` holds every button in it to that scale.
+ */
+export const CALL_TO_ACTION_BUTTON_FILES = [
+  'apps/ui/src/components/landing/MarketHero.tsx',
+  'apps/ui/src/components/landing/HowItWorks.tsx',
+];
+
+/**
  * The components that own the status roles. A `role="alert"` or `role="status"` written anywhere
  * else is a status message built by hand, which is how they came to say their severity in colour
  * alone; `local/no-bare-status-role` refuses those everywhere but here.

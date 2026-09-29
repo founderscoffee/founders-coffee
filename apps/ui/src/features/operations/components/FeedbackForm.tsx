@@ -33,7 +33,7 @@ export const FeedbackForm = ({
       <div className="grid gap-2 sm:grid-cols-3">
         {ratings.map((rating) => (
           <label
-            className={`btn btn-xs sm:btn-sm md:btn-md lg:btn-lg justify-start ${
+            className={`btn btn-xs sm:btn-sm md:btn-md justify-start ${
               draft.rating === rating ? 'btn-primary' : 'btn-outline'
             }`}
             key={rating}

@@ -3,7 +3,7 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn.js';
 
-export const buttonVariants = cva('btn btn-xs sm:btn-sm md:btn-md lg:btn-lg', {
+export const buttonVariants = cva('btn btn-xs sm:btn-sm md:btn-md', {
   variants: {
     variant: {
       primary: 'btn-primary',

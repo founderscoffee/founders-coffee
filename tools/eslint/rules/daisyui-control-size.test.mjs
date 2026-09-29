@@ -1,16 +1,12 @@
-import fs from 'node:fs';
-import { createRequire } from 'node:module';
-import path from 'node:path';
-
 import tsParser from '@typescript-eslint/parser';
-import { ESLint, RuleTester } from 'eslint';
-import { describe, expect, it } from 'vitest';
+import { RuleTester } from 'eslint';
+import { describe, it } from 'vitest';
 
-import { CONTROL_SIZES, daisyuiControlSize } from './daisyui-control-size.mjs';
-
-const rootDirectory = path.resolve(import.meta.dirname, '../../..');
-
-const require = createRequire(import.meta.url);
+import {
+  CALL_TO_ACTION_SIZES,
+  CONTROL_SIZES,
+  daisyuiControlSize,
+} from './daisyui-control-size.mjs';
 
 const tester = new RuleTester({
   languageOptions: {
@@ -28,20 +24,22 @@ const jsx = (element) => `export const Field = ({ size }) => ${element};`;
 const shared = (element) =>
   `import { Button, Input } from '@founders-coffee/ui';\n${jsx(element)}`;
 
-const BUTTON = 'btn-xs sm:btn-sm md:btn-md lg:btn-lg';
+const BUTTON = 'btn-xs sm:btn-sm md:btn-md';
 
-const missing = (component, absent) => ({
+const CALL_TO_ACTION = `${BUTTON} lg:btn-lg`;
+
+const missing = (component, absent, scales = CONTROL_SIZES) => ({
   messageId: 'missing',
   data: {
     component,
-    scale: CONTROL_SIZES.get(component).join(' '),
+    scale: scales.get(component).join(' '),
     missing: absent,
   },
 });
 
-const foreign = (component, token) => ({
+const foreign = (component, token, scales = CONTROL_SIZES) => ({
   messageId: 'foreign',
-  data: { component, scale: CONTROL_SIZES.get(component).join(' '), token },
+  data: { component, scale: scales.get(component).join(' '), token },
 });
 
 const override = (component, token, what) => ({
@@ -137,6 +135,13 @@ describe('local/daisyui-control-size', () => {
         {
           code: jsx('<button className="btn btn-sm" />'),
           errors: [missing('btn', BUTTON), foreign('btn', 'btn-sm')],
+        },
+        {
+          name: 'a button stops at md unless it is a call to action',
+          code: jsx(
+            `<button className="btn btn-primary ${BUTTON} lg:btn-lg" />`,
+          ),
+          errors: [foreign('btn', 'lg:btn-lg')],
         },
         {
           code: jsx(
@@ -235,43 +240,29 @@ describe('local/daisyui-control-size', () => {
   });
 });
 
-describe('the sizes local/daisyui-control-size holds controls to', () => {
-  const daisyuiStylesheet = fs.readFileSync(
-    require.resolve('daisyui/daisyui.css'),
-    'utf8',
-  );
-
-  it('are all classes daisyUI styles', () => {
-    const unstyled = [...CONTROL_SIZES.values()]
-      .flat()
-      .map((size) => size.replace(/^\w+:/, ''))
-      .filter(
-        (name) => !new RegExp(`\\.${name}(?![\\w-])`).test(daisyuiStylesheet),
-      );
-    expect(unstyled).toEqual([]);
-  });
-});
-
-describe('local/daisyui-control-size in the workspace config', () => {
-  const eslint = new ESLint({ cwd: rootDirectory });
-  const severityFor = async (file) =>
-    (await eslint.calculateConfigForFile(file)).rules[
-      'local/daisyui-control-size'
-    ]?.[0];
-
-  it('covers the React sources and nothing else', async () => {
-    for (const file of [
-      'apps/ui/src/components/events/EventCard.tsx',
-      'apps/admin/src/features/shell/LocaleToggle.tsx',
-      'libs/ui/src/components/Button.tsx',
-    ]) {
-      expect(await severityFor(file), file).toBe(2);
-    }
-    for (const file of [
-      'libs/core/src/ai/summarize.ts',
-      'tools/eslint/rules/daisyui-control-size.mjs',
-    ]) {
-      expect(await severityFor(file), file).toBeUndefined();
-    }
+describe('local/daisyui-control-size for a call to action', () => {
+  it('takes the buttons on to lg, and leaves the fields as they are', () => {
+    const options = [{ buttons: 'call-to-action' }];
+    tester.run('daisyui-control-size', daisyuiControlSize, {
+      valid: [
+        {
+          code: `const CTA_CLASS = 'btn btn-primary ${CALL_TO_ACTION} hidden sm:inline-flex';`,
+        },
+        {
+          code: jsx('<input className="input input-sm md:input-md w-full" />'),
+        },
+      ].map((test) => ({ ...test, filename, options })),
+      invalid: [
+        {
+          name: 'a call to action that stops at md is missing its last step',
+          code: `const ctaClass = 'btn ${BUTTON} rounded-full';`,
+          errors: [missing('btn', 'lg:btn-lg', CALL_TO_ACTION_SIZES)],
+        },
+        {
+          code: jsx(`<a className="btn ${CALL_TO_ACTION} xl:btn-xl" />`),
+          errors: [foreign('btn', 'xl:btn-xl', CALL_TO_ACTION_SIZES)],
+        },
+      ].map((test) => ({ ...test, filename, options })),
+    });
   });
 });

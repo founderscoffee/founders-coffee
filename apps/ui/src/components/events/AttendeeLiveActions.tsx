@@ -36,7 +36,7 @@ export const AttendeeLiveActions = ({
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          className="btn btn-secondary btn-xs sm:btn-sm md:btn-md"
           onClick={onWalkingIn}
         >
           {live_walking_in_cta({}, { locale })}
@@ -44,7 +44,7 @@ export const AttendeeLiveActions = ({
         {!showRunningLate && (
           <button
             type="button"
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
             onClick={() => setShowRunningLate(true)}
           >
             {live_running_late_cta({}, { locale })}
@@ -62,14 +62,14 @@ export const AttendeeLiveActions = ({
           />
           <button
             type="button"
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
             onClick={handleRunningLate}
           >
             {confirm({}, { locale })}
           </button>
           <button
             type="button"
-            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md"
             onClick={() => setShowRunningLate(false)}
           >
             {cancel({}, { locale })}

@@ -54,7 +54,7 @@ export const RouterError = ({ error }: { error: unknown }) => {
       action={
         <Link
           {...localizedHome(locale, marketSlug)}
-          className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          className="btn btn-primary btn-xs sm:btn-sm md:btn-md"
         >
           {back_home({}, { locale })}
         </Link>
@@ -75,7 +75,7 @@ export const RouterNotFound = () => {
       action={
         <Link
           {...localizedHome(locale, marketSlug)}
-          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
         >
           {hero_search_cta({}, { locale })}
         </Link>

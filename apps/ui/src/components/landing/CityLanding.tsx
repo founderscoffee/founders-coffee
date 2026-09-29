@@ -114,7 +114,7 @@ export const CityLanding = ({
           <Link
             {...localizedHostCreate(locale, market.slug)}
             search={{ city: city.code, state: city.stateCode }}
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
           >
             {host_meetup_here({}, { locale })}
           </Link>
@@ -136,7 +136,7 @@ export const CityLanding = ({
             <Link
               {...localizedHostCreate(locale, market.slug)}
               search={{ city: city.code, state: city.stateCode }}
-              className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+              className="btn btn-secondary btn-xs sm:btn-sm md:btn-md"
             >
               {hero_empty_cta({}, { locale })}
             </Link>
