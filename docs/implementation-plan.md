@@ -4,10 +4,10 @@
 
 | Field        | Value                                                                              |
 | ------------ | ---------------------------------------------------------------------------------- |
-| Version      | 2.9                                                                                |
+| Version      | 3.0                                                                                |
 | Status       | Active                                                                             |
 | Owner        | Engineering                                                                        |
-| Last updated | 2026-09-23                                                                         |
+| Last updated | 2026-09-29                                                                         |
 | Derived from | [SRS v1.7](./srs.md) and [community-first release strategy](./release-strategy.md) |
 
 This document is the current sequencing and status source. Status is evidence-based:
@@ -36,14 +36,14 @@ This document is the current sequencing and status source. Status is evidence-ba
 - PWA web push is the primary event-notification channel; email is the default fallback. SMS is
   reserved for same-day cancellations where an unread email could send someone to a venue unnecessarily.
 - Per-entity reminders use Durable Object alarms feeding a Notifications Queue. Cron is recovery-only.
-- A meetup can have a Telegram group, run through the official Telegram Bot API and nothing else:
-  no MTProto client and no userbot, since both run as someone's own Telegram account, which would
-  then carry the product's automation and the risk of that account being limited. A bot cannot
-  create a group, so the host creates one and adds the bot as an admin through a `startgroup` link.
-  The bot pins the meetup's details, posts changes, the cancellation and a 24-hour reminder, admits
-  only members who are going, each through a personal join-request link, and removes a member who
-  cancels. A day after the meetup ends it posts a thank-you, stops admitting and leaves; the group
-  stays with the host, who can connect it to their next meetup (P1-025, #15).
+- Every meetup has a chat on founders.coffee, created with it: its host and everyone going are its
+  members, and nobody else reads or writes in it (P1-026, decided 2026-09-29). It replaces the
+  meetup Telegram groups of P1-025 (#15), which stay on in production until CH-12 retires them.
+  Those run through the official Telegram Bot API and nothing else: no MTProto client and no
+  userbot, since both run as someone's own Telegram account, which would then carry the product's
+  automation and the risk of that account being limited. A bot cannot create a group, so each host
+  had to bring one, which is why the chat replaces them. WhatsApp was ruled out the same day: its
+  Groups API needs an Official Business Account and holds eight people.
 - TypeScript 6, public base locales `ar`/`fr`/`en`, Arabic-only RTL admin copy, and shared Zod
   validation are canonical.
 - TanStack Form is optional; local React state is acceptable when it reuses the shared Zod contract.
@@ -92,7 +92,8 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | Uploads                | R2 + Images                                                  | PF-06 is deployed with private per-environment R2 buckets and the Images transform binding; the buckets are currently empty. Ongoing free-tier usage and cleanup monitoring remain                                                                                                                                                                                               |
 | Product metrics        | Analytics Engine                                             | Binding is active and the `events_created` metric is verified; community-health dashboards and alerts remain planned                                                                                                                                                                                                                                                             |
 | Admin isolation        | Access + in-Worker JWT verification + no `workers.dev`       | Worker guard complete and `workers_dev: false` verified live on staging (the `workers.dev` URL returns 404). `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are unset in staging, so every admin request fails closed with 403 — correct behaviour, but admin is non-functional there until they are configured                                                                     |
-| Telegram groups        | Bot API webhook; posts through the Notifications Queue       | Deployed to staging and production. Production runs `@FoundersCoffeeBot` since 2026-09-26 (v0.15.0): its username in `vars`, its token and webhook secret as secrets, its webhook registered. Staging has no bot, so the feature is off there; each environment needs its own, see [Telegram groups](#telegram-groups-p1-025)                                                    |
+| Telegram groups        | Bot API webhook; posts through the Notifications Queue       | Deployed to staging and production. Production runs `@FoundersCoffeeBot` since 2026-09-26 (v0.15.0): its username in `vars`, its token and webhook secret as secrets, its webhook registered. Staging has no bot, so the feature is off there; each environment needs its own, see [Telegram groups](#telegram-groups-p1-025); the meetup chat (P1-026) replaces it              |
+| Meetup chat            | Durable Object per meetup (hibernating WebSockets) + D1      | Planned; see [Meetup chat](#meetup-chat-p1-026)                                                                                                                                                                                                                                                                                                                                  |
 
 ## 4. Phase P0 — foundation
 
@@ -148,7 +149,8 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Issue #107 adds the city waitlist launch outbox and localized email path; staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                       |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md). Market landing pages name each market's country in hreflang (`ar-DZ` to `en-SA`), with bare languages and `x-default` on Algeria's, and `og:locale` follows the market (2026-09-29)                                             |
-| P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0: migration 0036, the webhook, the queued posts, pins and removals, the host's panel, the member's card, and the privacy policy's Telegram section (reviewed 2026-09-26, dated 18 September). On in production since v0.15.0 (`@FoundersCoffeeBot`). Remaining: the [evidence run](#telegram-groups-p1-025) with a real group, on production by decision of 2026-09-26, including whether a basic group takes join-request links    |
+| P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0: migration 0036, the webhook, the queued posts, pins and removals, the host's panel, the member's card, and the privacy policy's Telegram section (reviewed 2026-09-26, dated 18 September). On in production since v0.15.0 (`@FoundersCoffeeBot`). Replaced by the meetup chat (P1-026, 2026-09-29): its [evidence run](#telegram-groups-p1-025) is on hold, and CH-12 retires it once the chat is on in production               |
+| P1-026 | Planned  | Meetup chat for the host and everyone going                          | CH-01 through CH-12 in [Meetup chat](#meetup-chat-p1-026); decisions 1 to 7 there await Founder / Product                                                                                                                                                                                                                                                                                                                                                |
 
 ### City waitlist notice (#107)
 
@@ -256,11 +258,12 @@ decision about member safety, never as a side effect of a growth or SEO ticket (
 2. **No followers or following.** A follower graph publishes who knows whom, which cannot be
    withdrawn once seen, and ranks people by popularity.
 3. **No direct messages.** Messages from a cold profile are a harassment surface, so a profile
-   offers no way to write to its owner. Member-to-member contact goes through a shared event. On
-   2026-09-24 that came to include the meetup's Telegram group (P1-025, #15): people who are going
-   can talk there before and after, and can message each other on Telegram. That was decided
-   knowingly. Joining is each member's choice, the bot admits only people who are going, and it
-   removes anyone who cancels.
+   offers no way to write to its owner. Member-to-member contact goes through a shared event. As
+   decided on 2026-09-29, that is the meetup's chat (P1-026): the host and the people going talk
+   there before and after, nobody else can read it, there is no private thread between two
+   members, and a member who cancels leaves it. Until CH-12, the meetup's Telegram group (P1-025,
+   #15), decided knowingly on 2026-09-24, does this job too, and lets members message each other on
+   Telegram.
 4. **No resume, employers, or verified credentials.** This is not a hiring product.
 5. **No public posts or feed.** Moderating them across three countries and three languages serves no
    part of the core question.
@@ -274,6 +277,9 @@ decision about member safety, never as a side effect of a growth or SEO ticket (
    #26).
 
 ### Telegram groups (P1-025)
+
+The [meetup chat](#meetup-chat-p1-026) replaces these groups, as decided on 2026-09-29. They stay on
+in production until CH-12 retires them, and the evidence run below is on hold.
 
 Staging and production each run a bot of their own, because Telegram sends a bot's updates to one
 webhook. For each environment, in this order:
@@ -371,6 +377,292 @@ Record the date, the commit and each step's result under this section. Only the 
 could be scripted: the Telegram side would mean scripting real Telegram accounts, which section 1
 rules out, and Telegram's test environment would need a new client library in the test harness.
 
+### Meetup chat (P1-026)
+
+Decided on 2026-09-29: every meetup gets a chat on founders.coffee, created with it. Its host and
+everyone going are its members automatically, and nobody else can read or write in it. It replaces
+the Telegram groups of P1-025. A bot cannot create a Telegram group, so each host had to bring one,
+and a host without one met an empty chat list in Telegram and could not finish. WhatsApp was ruled
+out the same day: its Groups API needs an Official Business Account and holds eight people. The
+chat is built the way the live room (P1-010) is, one hibernating WebSocket Durable Object per
+meetup, with D1 as the record.
+
+**First release.** Text only: one line of up to 1,000 characters, with `http` and `https`
+addresses shown as links that open in a new tab (`rel="noopener noreferrer nofollow ugc"`). A
+member can delete their own message, and the host any message in their meetup's chat. Not in it:
+attachments, reactions, replies, editing, typing indicators, read receipts, search, direct
+messages, email per message, and city-wide channels. A channel names its `kind` so a city channel
+can come later, but `meetup` is the only kind.
+
+**Decisions awaiting Founder / Product.** The plan assumes these defaults until they are confirmed.
+
+1. **How long it stays open.** From publication until seven days after the meetup ends, then
+   read-only. A cancelled meetup's chat turns read-only at the cancellation.
+2. **How long it is kept.** Messages are deleted 90 days after the meetup ends or is cancelled.
+3. **History.** A member sees the whole chat, including what was said before they RSVPed. A member
+   who cancels loses access at once, and gets it back, history included, if they RSVP again. RSVPs
+   freeze when the meetup starts, so its members are fixed from then on.
+4. **Notifications.** At most one pending push per member per chat, sent two minutes after the
+   first message they have not read, with neutral text ("New messages in {title}") so no message
+   shows on a lock screen. A member can mute a chat. No email.
+5. **Moderators.** They see a reported message with the ten messages around it, never a whole chat.
+6. **Telegram.** P1-025 is retired once the chat is on in production (CH-12).
+7. **Language.** Messages carry no language code and are shown as written, the exception
+   AGENTS.md §9 makes for profile introductions. CH-05 adds chat messages to it.
+
+**Membership.** One predicate decides it for every read, write and socket. The reader is the
+meetup's host, by `events.host_id` rather than the host's own RSVP, which is written best-effort.
+Or the reader has an `event_rsvps` row for the meetup: only `going` is ever written there, and a
+cancellation deletes the row. Either way their account must be active and not banned, through the
+`activeProfileIdentity` seam in `libs/db/src/profile-access.ts`; the chat checks this itself rather
+than trusting the RSVP. Nothing is written when someone joins, because the RSVP is the membership:
+that is how everyone going joins automatically, and how a cancellation removes them.
+
+**Lifecycle.** A meetup and its chat are written together. `createEventIfRouteAvailable` becomes a
+batch whose second statement inserts the channel from the new meetup's row, so a meetup whose
+address was taken writes neither, and migration 0041 backfills a channel for every existing meetup
+still inside the 90 days. The channel keeps `read_only_at` (seven days after the end, or the
+cancellation) and `expires_at` (90 days after either), so the retention sweep reads an index. One
+SQL expression in `libs/db` derives both from the meetup's row, taking a meetup with no end as two
+hours long (`ASSUMED_DURATION_SECONDS`), and the backfill, `updateEventIfCurrent` and
+`transitionEventStatus` each run it in the batch of their own write, so a lost version race or a
+wrong status changes neither. Once the meetup ends, the chat's header says until when it stays
+open, and once it is read-only it says so. Both come from `read_only_at`, so no job has to post
+them.
+
+**Data model** (`libs/db`, migration 0041, which also moves the release pin in
+`tools/deploy/release-state.test.mjs`):
+
+- `chat_channels`: `id` (`chn_…`), `kind` (`meetup`), `event_id` (unique, cascades with the
+  meetup), `market_code` (a meetup never changes market; its city is read from the meetup),
+  `read_only_at`, `expires_at` (indexed), `created_at`, `updated_at`.
+- `chat_messages`: `id` (`msg_…`), `channel_id` (cascades), `author_id` (null for a system
+  message), `kind` (`text` or `system`), `body` (empty for a system message or a removed one),
+  `system_key` and `system_params` (JSON) for a system message, `client_id` (unique with
+  `author_id`, so a retried send writes once), `created_at` in milliseconds, `removed_at`,
+  `removed_by`, `removal` (`author`, `host` or `moderator`). Indexed on
+  `(channel_id, created_at, id)`. Authors' names and photos are joined at read time, never copied
+  into a message.
+- `chat_members`: only what a member chooses, keyed by `(channel_id, user_id)` and written the
+  first time they open the chat: `last_read_at`, `muted`, `updated_at`.
+- `chat_reports`: `message_id` (no cascade: a report outlives its message), `reporter_id`,
+  `market_code`, `reason` (`spam`, `harassment` or `other`), `created_at`, `status`,
+  `reviewed_by`, `reviewed_at`.
+
+The Zod schemas and the pure rules (normalising a body, finding its links, whether a chat is open
+or read-only) live in `libs/domain/src/chat`, and the stored values in `libs/core`'s enums, as
+ENUM-01 set out.
+
+**Sending and reading** (`libs/server-fns/src/chat`). Every server function declares a permission
+on a new `chat` resource (`read`, `write`) in `libs/auth/src/rbac.ts`, held by members, hosts,
+moderators and admins, and every change spends a budget in a new `RATE_BUDGETS.chat` category
+(`rate-budgets.test.ts` pins the category set).
+
+- `sendChatMessage({ eventId, body, clientId })`: one `INSERT … SELECT … WHERE` that writes only
+  when the sender is a member and the chat is open, with
+  `ON CONFLICT (author_id, client_id) DO NOTHING`. The room then broadcasts the stored message.
+  About 20 a minute per member.
+- `listChatMessages({ eventId, before, after, limit })`: members only, pages of up to 50 on a
+  `(created_at, id)` cursor; `after` fills the gap after a reconnect.
+- `removeChatMessage({ messageId })`: by its author, the meetup's host, or a moderator (see
+  Moderation). It empties the body and leaves a tombstone.
+- `markChatRead({ eventId, at })` and `setChatMuted({ eventId, muted })`.
+- `reportChatMessage({ messageId, reason })`.
+- `getChatPage({ eventId })`: the chat screen's loader. The channel, the membership, the last 50
+  messages with their authors' names and photos, and the member's read marker, in one trip to D1,
+  held to that by a `recordD1Rounds` test as #114 did.
+
+**Real time.** `EventChatDO`, one per meetup named `chat:${eventId}`, SQLite-backed under a new
+`new_sqlite_classes` tag in `apps/ui/wrangler.jsonc`, exported from `apps/ui/src/server.ts`, and
+created with the `weur` location hint.
+
+- The Worker routes `GET /api/chat/:eventId` with `Upgrade: websocket` beside `/api/live/` in
+  `server.ts`. It refuses any other method, checks `Sec-Fetch-Site` and `Origin` (raw routes sit
+  outside TanStack Start's CSRF middleware; `photo-http.ts` is the precedent), spends a connect
+  budget, and forwards to the room.
+- The room reads the session cookie and admits members only. It shares the live room's session,
+  membership and heartbeat code, moved out of `durable-objects/event-live/` into a module both
+  rooms use rather than copied.
+- Sockets hibernate: `acceptWebSocket`, the user id in `serializeAttachment`, the runtime answering
+  the 15-second heartbeat, stale sockets reaped after 45 seconds, and access checked again at each
+  heartbeat alarm, as the live room does. A member holds at most five sockets.
+- The room only pushes: `message`, `removed`, `closed`, `revoked`. It ignores every frame but the
+  heartbeat. What a member sends goes through a server function, so validation, authorisation,
+  rate limits and logs stay in one place.
+- Server functions reach the room through Durable Object RPC methods (`broadcast`, `revoke`,
+  `close`) rather than HTTP requests, and CH-04 moves the live room's own server-side calls onto
+  RPC the same way.
+- `cancelRsvpResolver` calls `revoke` where it calls `withdrawTelegramMember` today, so a member's
+  own cancellation and the nightly account closure, which cancels through it, both close that
+  member's sockets. The heartbeat check catches what cannot reach the room, such as a ban.
+- The client hook, `useEventChat`, follows `useEventLive`: backoff from 1 to 30 seconds, a fetch
+  `after` its newest message on every connect, duplicates dropped by id. After three failed
+  connects in a row it polls `listChatMessages` every 15 seconds while the chat is on screen.
+
+**System messages** are stored as a key and parameters and read in each member's language, unlike
+the Telegram posts, which were written once in the meetup's lead language. They are written where
+the Telegram posts are queued today. `rescheduled` and `relocated` come from `announceUpdate` in
+`events/update-notices.ts`, where `noticeFor` already decides that a new time wins over a new place
+and that a place moves at 100 metres. `cancelled`, with the reason, comes from
+`cancelEventResolver` in `events/cancel.ts`: the resolver, not its server function, so the
+cancellations the nightly account closure makes post it too. Reminders stay push and email.
+
+**Notifications and unread.**
+
+- A notification kind, `chat_unread`, and a preference category, `meetup_chat` (push on, email off
+  by default), added through the steps every kind takes (enum, templates, matrix, destination
+  gate), with a migration for the category's two columns in `account_preferences`. The preferences
+  grid gains a row.
+- On a send, one `INSERT … SELECT` gives each other member at most one pending `chat_unread` (the
+  rule `enqueueNotificationIfNoPending` applies to one member, here to all of them at once), due
+  two minutes later, and `armNotificationSchedule` wakes the meetup's schedule for it, as
+  `host-notice.ts` does. At dispatch, the destination gate drops it if the member has read past it,
+  muted the chat, or turned the category off. The push is tagged per chat (`dedupeKey`), and
+  opening it opens the chat.
+- The meetup page's chat entry shows the unread count in a daisyUI `badge`. The activity list
+  shows a dot from a private query of its own, as `useMyCloseoutStates` does, because its hosted
+  list is the public profile's query too.
+
+**Moderation.**
+
+- Nothing can be reported in the app today; reports go by email through `/contact#report`. The chat
+  brings the first in-app report: Report on any message but your own, with a reason, under a
+  `RATE_BUDGETS.chat` budget. The reporter stays anonymous, as the community guidelines promise.
+- `apps/admin` has no review pages yet. CH-08 adds the first, behind the Access guard and a new
+  `message` action on the `moderation` resource, which moderators and admins hold: each market's
+  open chat reports, each with the reported message and the ten around it, to remove or dismiss.
+  CO-09's moderation work builds on the same page rather than a second one. Every decision writes
+  `operations_audit` through `auditStatement`, with new `chat_message` target and action values
+  added with the code that emits them.
+- A removed message keeps its tombstone and records who removed it.
+- A banned or closing member loses the chat through the membership predicate, and their name reads
+  as a neutral "Member" once their profile is no longer visible. When CO-09 replaces the
+  `profile-access.ts` seam, the chat follows it.
+
+**Privacy, retention and erasure.**
+
+- The privacy policy gains a meetup chat section and a retention row, in `privacy-data.ts`,
+  `privacy-processing.ts` and `privacy-rights.ts` (Arabic, authoritative), `legal-en-privacy.ts`
+  and `legal-fr-privacy.ts`. It says what is kept (the message, its time and its author), who sees
+  it (the host and the people going, and a moderator for a reported message), for how long (90
+  days after the meetup), and that it is not end-to-end encrypted. Its sentence that the platform
+  gives members no way to message each other changes to say that the members of a meetup can write
+  to each other in its chat. Each language's "last updated" date moves, and
+  `privacy-practice.test.ts` holds the policy to the practice.
+- The community guidelines say their rules apply in meetup chats and that a message can be reported
+  in the app. The terms' "Reporting a violation" names the in-app report.
+- **Retention.** The daily run in `apps/worker-jobs` (`0 3 * * *`) deletes expired chats the way
+  the waitlist sweep deletes entries, under the AGENTS.md §11.5 exception: by id from a bounded
+  subselect on the `expires_at` index, 500 at a time and at most ten passes a night. Reports are
+  content reports under the policy, kept 24 months and swept by the same run. They hold no copy of
+  the message, so its text goes with the chat.
+- **Export.** The operator runbook, `docs/account-requests.md`, gains a query for the member's own
+  messages.
+- **Erasure.** `eraseClosedAccount` deletes the member's messages and chat state in its batch,
+  under the same still-closing guard, as it clears feedback comments. The room keeps no names or
+  messages in its storage, so erasure has nothing to reach there.
+
+**Screens** (`apps/ui/src/features/chat`).
+
+- **Meetup page.** For the host and people going, a chat entry where `TelegramGroupCard` renders
+  today, in `RsvpSection.tsx` and `HostEventPanel.tsx`: the unread count and an Open chat button.
+  On an upcoming meetup, everyone else reads that the people going talk there.
+- **Chat screen.** A private screen at `/$locale/chat/$eventId`, on the closeout and feedback
+  precedent: `requireSession`, `private, no-store`, noindex, `privatePageHead`, and a
+  `localizedChat` link helper beside `localizedFeedback`. `chat` joins the `PRIVATE_SCREEN`
+  pattern in `lib/indexation.ts`, which the Worker's header floor, the service worker's cache and
+  the Early Hints all read, and `chat/evt_1` joins the `PRIVATE_SCREENS` fixture that tests them.
+  Below `lg` it fills the screen: `hasOwnMobileHeader`, and a way to hide the footer, which no
+  route has yet. The meetup's title and a back link sit on top, and the composer sits in a sticky
+  bottom bar with safe-area padding, as the wizard's `HostWizardActions` does.
+- **Messages.** daisyUI's `chat` (5.6.13 follows the page's direction through logical properties
+  and `[dir=rtl]`). Others' messages are `chat-start`, with an avatar in the `HostFace` style and
+  their name and time above; your own are `chat-end` and `chat-bubble-primary`. System messages
+  are centred lines, not bubbles, and a removed message is a muted line. Day separators and an
+  unread divider. The bubble keeps the page's direction and the text sits in `<bdi>`, the meetup
+  page's rule. In Arabic, the header and footer step up from daisyUI's 11px as `.eyebrow` does.
+- **The list** is `role="log"` with `aria-live="polite"`, virtualised with TanStack Virtual at
+  variable heights (the `CloseoutRoster` precedent), loads older pages at the top with
+  `useInfiniteQuery`, and follows new messages only while the reader is at the bottom, without
+  smooth scrolling under reduced motion.
+- **Composer.** One rounded frame holding a borderless `input input-sm md:input-md` and a
+  `btn btn-primary btn-xs sm:btn-sm md:btn-md` Send button, as the share dialog's copy-link row
+  does, so the frame sets the row's height at every width: below `sm` a button is 24px and a field
+  32px, and neither may be resized. Enter sends; the button is disabled with a spinner while
+  sending, and a message that fails stays in the list with Retry. It is not a textarea: daisyUI's
+  `.textarea` is at least 5rem tall, and the control-size rule does not let a page lower it.
+- **States.** Loading, error with Retry, empty, read-only, reconnecting and offline.
+- **Report** is a native `<dialog>`, which `dialog-contract.test.ts` finds and holds to the app's
+  dialog rules on its own.
+- **Copy** in all three languages: «محادثة اللقاء», « Discussion », "Chat", with entries in
+  `libs/i18n/glossary.json` so each language keeps one word for it.
+
+**Observability.** Every chat server function and the room log through `libs/observability` with
+the market and request, never a message's text. Analytics Engine counts messages sent, chats with
+at least one message and members who read one, per market and city, beside the community-health
+metrics of P1-019.
+
+**Rollout.** A `meetupChat` market feature flag in `MarketFeatureFlags`, read the way
+`communityOperationsEnabled` is, and turned on by migration: staging first, production after the
+evidence run. Unlike Telegram, staging can run the whole feature.
+
+**Retiring Telegram groups (CH-12).** Once the chat is on in production:
+
+- remove the 62 files with `telegram` in their path and the Telegram code in the files they share
+  with the rest of the app: the webhook route in `server.ts`, the four server functions, the five
+  Telegram rate budgets, the `telegram` delivery channel with its eight template keys and payload
+  fields, the providers in `libs/notifications`, the calls in the meetup, RSVP and account-closure
+  paths, the 33 `telegram_*` and `ntf_telegram_*` messages in each language, and
+  `TELEGRAM_BOT_USERNAME` in production `vars`;
+- drop `event_telegram_groups` and `event_telegram_invites` in a migration, declared irreversible
+  in `compatibility.json` as `tools/deploy/migration-rebuild.mjs` requires (on 2026-09-29
+  production held one pending link and no connected group);
+- remove the privacy policy's Telegram parts in each language, re-dated, with
+  `privacy-practice.test.ts`, the runbook's Telegram queries, and this plan's Telegram section;
+- the operator calls `deleteWebhook`, deletes `TELEGRAM_BOT_TOKEN` from both Workers and
+  `TELEGRAM_WEBHOOK_SECRET` from the UI Worker, and deletes the bot in BotFather if wanted.
+
+The share-to-Telegram link (`share-targets.ts` and the share dialog) is not part of P1-025 and
+stays. P1-025's row then records the retirement and its date.
+
+| ID    | Status  | Scope                                                                                                                            | Evidence                                                                                                                                                            |
+| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CH-01 | Partial | This plan                                                                                                                        | Decisions 1 to 7 confirmed by Founder / Product                                                                                                                     |
+| CH-02 | Planned | Migration 0041 and its backfill, the channel written with each meetup, domain schemas, repositories with single-statement writes | The backfill writes one channel per meetup on staging; a meetup whose address was taken writes no channel; repository tests on Miniflare D1                         |
+| CH-03 | Planned | Server functions, the `chat` permission, the `chat` budgets                                                                      | Integration tests: a non-member, a cancelled RSVP, a banned member and a read-only chat are refused; a retried send writes once; `getChatPage` takes one trip to D1 |
+| CH-04 | Planned | `EventChatDO`, the socket route, the rooms' shared session code, the live room's calls moved to RPC                              | Through `worker.fetch`: a foreign `Origin`, a `POST` and a non-member are refused; a cancelled RSVP is revoked; stale sockets are reaped; a hibernated room wakes   |
+| CH-05 | Planned | Meetup page entry, chat screen, messages, composer, every state                                                                  | Component tests; a two-browser Playwright spec in ar, fr and en at 390, 768 and 1280                                                                                |
+| CH-06 | Planned | System messages                                                                                                                  | Integration tests for each, including a cancellation by the nightly account closure                                                                                 |
+| CH-07 | Planned | `chat_unread`, the `meetup_chat` preference, unread counts                                                                       | Dispatch tests for read, muted and switched-off members; a push received on staging                                                                                 |
+| CH-08 | Planned | Reports, removals, the admin review page, the audit                                                                              | Admin tests; on staging, one report acted on and one dismissed                                                                                                      |
+| CH-09 | Planned | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | Sweep and erasure tests; the policy reviewed and dated in each language                                                                                             |
+| CH-10 | Planned | Logs, metrics and budgets                                                                                                        | Sends and pages within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                 |
+| CH-11 | Planned | The feature flag, the evidence run, production                                                                                   | The run below recorded on staging, then the flag on in production                                                                                                   |
+| CH-12 | Planned | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                             |
+
+Tickets run in number order. Moderation and privacy (CH-08 and CH-09) come before the flag, since
+the chat cannot open to members without them.
+
+**Evidence run** (staging, with a host, a member and a third account):
+
+1. The host publishes a meetup. It has a chat, empty.
+2. The member RSVPs. The chat entry appears, and the two talk in real time in two browsers, one in
+   Arabic and one in English.
+3. The third account sees the line about the chat but not the chat. The screen and the socket both
+   refuse it.
+4. The host moves the time, then the place: each posts a system message. The member cancels: their
+   socket closes and the entry goes. They RSVP again and are back, history included.
+5. With the member's chat closed, the host writes. About two minutes later the member's push
+   arrives, and opening the chat clears the count. Muting stops the next one.
+6. The member reports a message and a moderator removes it; the host removes another; the member
+   deletes their own.
+7. On a meetup that has ended, the header says until when the chat stays open; with its
+   `read_only_at` moved into the past on staging's D1, the chat is read-only. A second meetup,
+   cancelled, posts its cancellation and turns read-only at once.
+8. With `expires_at` moved into the past, the next nightly run deletes the chat and its messages.
+
+Record the date, the commit and each step's result under this section.
+
 ### Enum contract consolidation
 
 The enum audit identified repeated finite-value declarations across the core, database, domain,
@@ -421,25 +713,28 @@ not repeated.
    staging's push-primary/email-fallback policy, including real provider delivery evidence.
 4. **Verify live event coordination:** complete `P1-010` Durable Object expiry, heartbeat cleanup,
    and cancellation behavior.
-5. **Build operational administration:** deliver `CO-08/CO-09` for event operations, corrections,
+5. **Build the meetup chat:** once its decisions are confirmed, deliver `P1-026` CH-02 through
+   CH-11, then retire Telegram groups with CH-12. It shares the live room's session, membership and
+   heartbeat code from step 4.
+6. **Build operational administration:** deliver `CO-08/CO-09` for event operations, corrections,
    moderation, host trust, and audit.
-6. **Deliver community-health evidence:** implement `CO-10/P1-019` metrics repositories, dashboards,
+7. **Deliver community-health evidence:** implement `CO-10/P1-019` metrics repositories, dashboards,
    alerts, retention snapshots, denominators, and as-of evidence.
-7. **Run the operational launch rehearsal:** complete `CO-11/P1-021/P1-023` across all checkpoints,
+8. **Run the operational launch rehearsal:** complete `CO-11/P1-021/P1-023` across all checkpoints,
    locales, directions, roles, mobile/desktop surfaces, and recovery paths.
-8. **Finish PWA verification:** complete `P1-020` offline behavior, Lighthouse budgets, and PWA
+9. **Finish PWA verification:** complete `P1-020` offline behavior, Lighthouse budgets, and PWA
    Builder checks.
-9. **Complete profile/account work:** finish `PF-04c`, then `PF-11a/PF-11b` CO integration and
-   localized UX, and `PF-12` release evidence. `PF-09` export and `PF-10` deletion are carried out
-   on request through the [account requests runbook](./account-requests.md) and the nightly
-   erasure (#105); what remains of them is the member-facing request on the account screen, and
-   the retention jobs #106 tracks.
-10. **Complete search-engine operations:** deliver `SEO-12` Search Console/Bing submission, sitemap
+10. **Complete profile/account work:** finish `PF-04c`, then `PF-11a/PF-11b` CO integration and
+    localized UX, and `PF-12` release evidence. `PF-09` export and `PF-10` deletion are carried out
+    on request through the [account requests runbook](./account-requests.md) and the nightly
+    erasure (#105); what remains of them is the member-facing request on the account screen, and
+    the retention jobs #106 tracks.
+11. **Complete search-engine operations:** deliver `SEO-12` Search Console/Bing submission, sitemap
     processing, representative URL indexing, and 30-day monitoring.
-11. **Complete notification controls:** `ND-06` provider-aware, responsive per-category controls and
+12. **Complete notification controls:** `ND-06` provider-aware, responsive per-category controls and
     push-permission UX are implemented; retain `ND-08` production evidence as the release gate from
     step 3.
-12. **Close documentation:** `TOOL-01` resolved the Nx-wide i18n source-import graph error and
+13. **Close documentation:** `TOOL-01` resolved the Nx-wide i18n source-import graph error and
     Nx-wide lint is green; keep deployment evidence synchronized with the SEO and notification plans.
 
 Future sponsorship, challenges, talent, payments, semantic search, browser-generated OG images, and
