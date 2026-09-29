@@ -52,7 +52,7 @@ export interface AuthDeps {
  * env vars are absent (dev + tests) or `TwilioVerifySmsProvider` when all three
  * vars are present.
  */
-const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
+export const smsProviderFromEnv = (env: AuthEnv): SmsProvider => {
   if (env.TWILIO_SID && env.TWILIO_AID && env.TWILIO_SEC) {
     return new TwilioVerifySmsProvider({
       TWILIO_SID: env.TWILIO_SID,
