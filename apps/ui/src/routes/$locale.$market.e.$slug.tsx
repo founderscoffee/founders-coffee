@@ -2,14 +2,7 @@ import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 
 import { appErrorCode, eventLanguages } from '@founders-coffee/core';
 import { localizedName, type Locale } from '@founders-coffee/i18n';
-import {
-  getEvent,
-  getMarket,
-  getPublicProfile,
-  type EventDetailItem,
-  type PublicProfile,
-} from '@founders-coffee/server-fns';
-import type { Market } from '@founders-coffee/db';
+import { getEventPage, type EventPage } from '@founders-coffee/server-fns';
 
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
@@ -23,12 +16,7 @@ import { localizedEvent } from '../lib/locale-routing';
 import { canonicalUrl, getSiteOrigin } from '../lib/seo';
 import { eventPageHead } from '../lib/seo-event';
 
-type EventRouteData = {
-  readonly locale: Locale;
-  readonly market: Market;
-  readonly event: EventDetailItem;
-  readonly host: PublicProfile | null;
-};
+type EventRouteData = EventPage & { readonly locale: Locale };
 
 const EventRoute = () => {
   const { locale, market, event, host } = Route.useLoaderData();
@@ -65,39 +53,31 @@ const EventRoute = () => {
 export const Route = createFileRoute('/$locale/$market/e/$slug')({
   component: EventRoute,
   loader: async ({ params, context }): Promise<EventRouteData> => {
-    let market: Market;
-    try {
-      market = await getMarket({ data: { slug: params.market } });
-    } catch (error) {
-      if (appErrorCode(error) !== 'market_not_found') throw error;
-      try {
-        market = await getMarket({ data: { code: params.market } });
-      } catch (byCode) {
-        if (appErrorCode(byCode) === 'market_not_found') throw notFound();
-        throw byCode;
-      }
+    const market = context.markets.find(
+      (listed) => listed.slug === params.market,
+    );
+    if (!market) {
+      const byCode = context.markets.find(
+        (listed) => listed.code === params.market,
+      );
+      if (!byCode) throw notFound();
+      throw redirect(localizedEvent(context.locale, byCode.slug, params.slug));
     }
-    if (params.market !== market.slug) {
-      throw redirect(localizedEvent(context.locale, market.slug, params.slug));
-    }
-
-    let event: EventDetailItem;
     try {
-      event = await getEvent({
+      const page = await getEventPage({
         data: { marketCode: market.code, slug: params.slug },
       });
+      return { locale: context.locale, ...page };
     } catch (error) {
-      if (appErrorCode(error) === 'event_not_found') throw notFound();
+      const code = appErrorCode(error);
+      if (
+        code === 'event_not_found' ||
+        code === 'market_not_found' ||
+        code === 'validation_failed'
+      )
+        throw notFound();
       throw error;
     }
-
-    const host = await getPublicProfile({
-      data: { userId: event.hostId },
-    }).catch((error: unknown) => {
-      if (appErrorCode(error) === 'not_found') return null;
-      throw error;
-    });
-    return { locale: context.locale, market, event, host };
   },
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [], links: [] };

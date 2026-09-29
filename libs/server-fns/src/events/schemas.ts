@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { CALENDAR_TARGETS, localeSchema } from '@founders-coffee/core';
+import {
+  CALENDAR_TARGETS,
+  localeSchema,
+  marketCodeSchema,
+} from '@founders-coffee/core';
 import { eventCreateSchema, eventUpdateSchema } from '@founders-coffee/domain';
 
 export const eventCreateRequestSchema = z
@@ -83,3 +87,10 @@ export const publicEventFeedRequestSchema = z.strictObject({
 export type PublicEventFeedRequestInput = z.infer<
   typeof publicEventFeedRequestSchema
 >;
+
+export const eventPageRequestSchema = z.strictObject({
+  marketCode: marketCodeSchema,
+  slug: z.string().min(1).max(80),
+});
+
+export type EventPageRequestInput = z.infer<typeof eventPageRequestSchema>;
