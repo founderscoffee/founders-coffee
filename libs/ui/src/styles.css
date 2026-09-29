@@ -298,6 +298,41 @@
   }
 }
 
+/* A faint ruled grid behind a card, the squared paper a plan gets drawn on. The city cards on a
+   market's landing carry it. It is painted on `::before`, between the card's fill and its
+   content: `isolation` gives the card a stacking context of its own, so `z-index: -1` stops at
+   the card's background instead of dropping behind the page. The zero-specificity `position`
+   anchors the layer on an element that has none, and gives way to any positioning utility.
+
+   The lines are the card's own text colour at a tenth of its strength, so one rule serves the
+   linen cards and the roast host card alike. The grid is centred, so it reads the same from
+   either side in Arabic and in French. A radial mask fades it out before it reaches the edges,
+   which keeps it off the border and the rounded corners and leaves it strongest in the middle
+   of the card, away from the city's name and the line beneath it. */
+@layer utilities {
+  :where(.graph-paper) {
+    position: relative;
+  }
+  .graph-paper {
+    isolation: isolate;
+  }
+  .graph-paper::before {
+    --graph-paper-line: color-mix(in oklab, currentColor 10%, transparent);
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, var(--graph-paper-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--graph-paper-line) 1px, transparent 1px);
+    background-size: 1.25rem 1.25rem;
+    background-position: center;
+    mask-image: radial-gradient(closest-side, #000 25%, transparent);
+  }
+}
+
 /* The hero headline must hold one line at every width, and the three translations are not the
    same length: twenty-three characters of French against thirty of English. A single size
    cannot serve all of them, so each language gets its own, expressed as a share of the
