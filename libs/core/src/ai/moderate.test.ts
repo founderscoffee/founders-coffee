@@ -77,4 +77,21 @@ describe('moderate', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('ai_moderation_failed');
   });
+
+  it('describes the platform without making one market its home', async () => {
+    const sent: unknown[] = [];
+    const ai: AiRuntime = {
+      run: async (...call) => {
+        sent.push(call);
+        return { response: '{"flagged": false, "categories": []}' };
+      },
+    };
+
+    await moderate(ai, 'text');
+
+    expect(
+      JSON.stringify(sent),
+      'the moderator was told the platform is Algeria-first, and reads text from Egypt and Saudi Arabia too',
+    ).not.toMatch(/algeria|egypt|saudi/iu);
+  });
 });
