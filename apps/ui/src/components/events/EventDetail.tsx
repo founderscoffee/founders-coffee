@@ -32,6 +32,7 @@ import type {
 } from '@founders-coffee/server-fns';
 
 import { eventCityName } from '../../features/events/event-city-name';
+import { eventStreetAddress } from '../../features/events/event-street-address';
 import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { localizedCity } from '../../lib/locale-routing';
@@ -90,6 +91,7 @@ export const EventDetail = ({
     );
 
   const cityName = eventCityName(event, locale);
+  const streetAddress = eventStreetAddress(event);
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
   const isCancelled = event.status === 'cancelled';
   const hasRsvpBox = isHost || !isCancelled || event.viewerRsvp === 'going';
@@ -223,9 +225,9 @@ export const EventDetail = ({
                   <bdi>{event.venue}</bdi>
                 </span>
               </dd>
-              {event.venueAddress ? (
+              {streetAddress ? (
                 <dd className="mt-0.5 ps-6 text-body-sm text-neutral">
-                  <bdi>{event.venueAddress}</bdi>
+                  <bdi>{streetAddress}</bdi>
                 </dd>
               ) : null}
             </div>
