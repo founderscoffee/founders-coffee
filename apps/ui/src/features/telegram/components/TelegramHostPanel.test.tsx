@@ -12,13 +12,18 @@ import type { TelegramGroupView } from '../api';
 const mocks = vi.hoisted(() => ({
   connect: vi.fn(),
   disconnect: vi.fn(),
+  isConnecting: false,
+  isDisconnecting: false,
 }));
 
 vi.mock('../hooks', () => ({
-  useConnectTelegramGroup: () => ({ mutate: mocks.connect, isPending: false }),
+  useConnectTelegramGroup: () => ({
+    mutate: mocks.connect,
+    isPending: mocks.isConnecting,
+  }),
   useDisconnectTelegramGroup: () => ({
     mutate: mocks.disconnect,
-    isPending: false,
+    isPending: mocks.isDisconnecting,
   }),
 }));
 
@@ -52,6 +57,8 @@ const handlersOf = (spy: { mock: { calls: unknown[][] } }): Handlers =>
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  mocks.isConnecting = false;
+  mocks.isDisconnecting = false;
 });
 
 describe('TelegramHostPanel before a group is connected', () => {
@@ -209,5 +216,46 @@ describe('TelegramHostPanel with a group connected', () => {
       screen.getByRole('heading', { name: 'مجموعة تيليغرام' }),
     ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'فكّ الربط' })).toBeTruthy();
+  });
+});
+
+describe('TelegramHostPanel while a request is out', () => {
+  const spinnerIn = (name: string) =>
+    screen.getByRole('button', { name }).querySelector('.loading-spinner');
+
+  it('turns the Telegram mark into a spinner while the link is made', () => {
+    mocks.isConnecting = true;
+    show(view());
+
+    const button = screen.getByRole('button', {
+      name: 'Connect a Telegram group',
+    });
+    expect(button.hasAttribute('disabled')).toBe(true);
+    expect(spinnerIn('Connect a Telegram group')).toBeTruthy();
+    expect(button.querySelector('svg')).toBeNull();
+  });
+
+  it('spins on a new link and on withdrawing the old one', () => {
+    mocks.isConnecting = true;
+    mocks.isDisconnecting = true;
+    show(view({ status: 'pending' }));
+
+    expect(spinnerIn('Get a new link')).toBeTruthy();
+    expect(spinnerIn('Cancel')).toBeTruthy();
+  });
+
+  it('spins on the confirmed disconnect while the bot leaves', () => {
+    mocks.isDisconnecting = true;
+    show(view({ status: 'active', chatTitle: 'قهوة المؤسسين' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
+
+    expect(spinnerIn('Disconnect')).toBeTruthy();
+    expect(spinnerIn('Keep connection')).toBeNull();
+  });
+
+  it('shows no spinner while nothing is being sent', () => {
+    show(view());
+
+    expect(document.querySelector('.loading-spinner')).toBeNull();
   });
 });

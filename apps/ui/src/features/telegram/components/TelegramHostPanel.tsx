@@ -24,6 +24,10 @@ import { useConnectTelegramGroup, useDisconnectTelegramGroup } from '../hooks';
 import { useFocusWhenShown } from '../useFocusWhenShown';
 import { TelegramBotIntro } from './TelegramBotIntro';
 
+const spinner = (
+  <span className="loading loading-spinner loading-xs" aria-hidden="true" />
+);
+
 type TelegramHostPanelProps = {
   eventId: string;
   locale: Locale;
@@ -78,6 +82,7 @@ export const TelegramHostPanel = ({
       onClick={letGo}
       disabled={disconnect.isPending}
     >
+      {disconnect.isPending ? spinner : null}
       {cancel({}, { locale })}
     </button>
   );
@@ -117,6 +122,7 @@ export const TelegramHostPanel = ({
                   onClick={letGo}
                   disabled={disconnect.isPending}
                 >
+                  {disconnect.isPending ? spinner : null}
                   {telegram_host_disconnect({}, { locale })}
                 </button>
                 <button
@@ -176,6 +182,7 @@ export const TelegramHostPanel = ({
               onClick={openLink}
               disabled={connect.isPending}
             >
+              {connect.isPending ? spinner : null}
               {telegram_host_new_link({}, { locale })}
             </button>
             {withdrawButton}
@@ -191,7 +198,14 @@ export const TelegramHostPanel = ({
             onClick={openLink}
             disabled={connect.isPending}
           >
-            <TelegramMark />
+            {connect.isPending ? (
+              <span
+                className="loading loading-spinner loading-sm"
+                aria-hidden="true"
+              />
+            ) : (
+              <TelegramMark />
+            )}
             {telegram_host_connect({}, { locale })}
           </button>
         </>
