@@ -410,6 +410,8 @@ can come later, but `meetup` is the only kind.
 6. **Telegram.** P1-025 is retired once the chat is on in production (CH-12).
 7. **Language.** Messages carry no language code and are shown as written, the exception
    AGENTS.md §9 makes for profile introductions. CH-05 adds chat messages to it.
+8. **Where it opens.** In a panel over the meetup page, not a page of its own: full width on phones
+   and tablets, and from `lg` a side panel on the end side, with the meetup dimmed behind it.
 
 **Membership.** One predicate decides it for every read, write and socket. The reader is the
 meetup's host, by `events.host_id` rather than the host's own RSVP, which is written best-effort.
@@ -469,18 +471,19 @@ moderators and admins, and every change spends a budget in a new `RATE_BUDGETS.c
   Moderation). It empties the body and leaves a tombstone.
 - `markChatRead({ eventId, at })` and `setChatMuted({ eventId, muted })`.
 - `reportChatMessage({ messageId, reason })`.
-- `getChatPage({ eventId })`: the chat screen's loader. The channel, the membership, the last 50
-  messages with their authors' names and photos, and the member's read marker, in one trip to D1,
-  held to that by a `recordD1Rounds` test as #114 did.
+- `getChatPage({ eventId })`: what the panel reads when it opens. The channel, the membership, the
+  last 50 messages with their authors' names and photos, and the member's read marker, in one trip
+  to D1, held to that by a `recordD1Rounds` test as #114 did.
 
 **Real time.** `EventChatDO`, one per meetup named `chat:${eventId}`, SQLite-backed under a new
 `new_sqlite_classes` tag in `apps/ui/wrangler.jsonc`, exported from `apps/ui/src/server.ts`, and
 created with the `weur` location hint.
 
 - The Worker routes `GET /api/chat/:eventId` with `Upgrade: websocket` beside `/api/live/` in
-  `server.ts`. It refuses any other method, checks `Sec-Fetch-Site` and `Origin` (raw routes sit
-  outside TanStack Start's CSRF middleware; `photo-http.ts` is the precedent), spends a connect
-  budget, and forwards to the room.
+  `server.ts`, reading the meetup from the path the way `liveRoomEventId` does since 1d774c91: 404
+  for any other path, 405 with `Allow: GET` for another method, 426 without the upgrade. It checks
+  `Sec-Fetch-Site` and `Origin` (raw routes sit outside TanStack Start's CSRF middleware;
+  `photo-http.ts` is the precedent), spends a connect budget, and forwards to the room.
 - The room reads the session cookie and admits members only. It shares the live room's session,
   membership and heartbeat code, moved out of `durable-objects/event-live/` into a module both
   rooms use rather than copied.
@@ -491,14 +494,13 @@ created with the `weur` location hint.
   heartbeat. What a member sends goes through a server function, so validation, authorisation,
   rate limits and logs stay in one place.
 - Server functions reach the room through Durable Object RPC methods (`broadcast`, `revoke`,
-  `close`) rather than HTTP requests, and CH-04 moves the live room's own server-side calls onto
-  RPC the same way.
+  `close`) rather than HTTP requests, as the live room's `cancel()` has since 1d774c91.
 - `cancelRsvpResolver` calls `revoke` where it calls `withdrawTelegramMember` today, so a member's
   own cancellation and the nightly account closure, which cancels through it, both close that
   member's sockets. The heartbeat check catches what cannot reach the room, such as a ban.
 - The client hook, `useEventChat`, follows `useEventLive`: backoff from 1 to 30 seconds, a fetch
   `after` its newest message on every connect, duplicates dropped by id. After three failed
-  connects in a row it polls `listChatMessages` every 15 seconds while the chat is on screen.
+  connects in a row it polls `listChatMessages` every 15 seconds while the panel is open.
 
 **System messages** are stored as a key and parameters and read in each member's language, unlike
 the Telegram posts, which were written once in the meetup's lead language. They are written where
@@ -519,7 +521,7 @@ cancellations the nightly account closure makes post it too. Reminders stay push
   two minutes later, and `armNotificationSchedule` wakes the meetup's schedule for it, as
   `host-notice.ts` does. At dispatch, the destination gate drops it if the member has read past it,
   muted the chat, or turned the category off. The push is tagged per chat (`dedupeKey`), and
-  opening it opens the chat.
+  opening it opens the meetup with its chat panel open.
 - The meetup page's chat entry shows the unread count in a daisyUI `badge`. The activity list
   shows a dot from a private query of its own, as `useMyCloseoutStates` does, because its hosted
   list is the public profile's query too.
@@ -567,16 +569,26 @@ cancellations the nightly account closure makes post it too. Reminders stay push
 **Screens** (`apps/ui/src/features/chat`).
 
 - **Meetup page.** For the host and people going, a chat entry where `TelegramGroupCard` renders
-  today, in `RsvpSection.tsx` and `HostEventPanel.tsx`: the unread count and an Open chat button.
-  On an upcoming meetup, everyone else reads that the people going talk there.
-- **Chat screen.** A private screen at `/$locale/chat/$eventId`, on the closeout and feedback
-  precedent: `requireSession`, `private, no-store`, noindex, `privatePageHead`, and a
-  `localizedChat` link helper beside `localizedFeedback`. `chat` joins the `PRIVATE_SCREEN`
-  pattern in `lib/indexation.ts`, which the Worker's header floor, the service worker's cache and
-  the Early Hints all read, and `chat/evt_1` joins the `PRIVATE_SCREENS` fixture that tests them.
-  Below `lg` it fills the screen: `hasOwnMobileHeader`, and a way to hide the footer, which no
-  route has yet. The meetup's title and a back link sit on top, and the composer sits in a sticky
-  bottom bar with safe-area padding, as the wizard's `HostWizardActions` does.
+  today, in `RsvpSection.tsx` and `HostEventPanel.tsx`: the unread count and an Open chat button
+  that opens the panel. On an upcoming meetup, everyone else reads that the people going talk
+  there.
+- **Chat panel.** A native `<dialog>` with daisyUI's `modal modal-end`, opened with `showModal()`
+  from the meetup page as `ProfileMenuDrawer` does: full width below `lg`, and from `lg` about
+  28rem wide on the end side (left in Arabic, right in English), the meetup dimmed behind. Its top
+  layer keeps it above the sticky navbar, focus moves into it and stays out of the page behind,
+  and Escape closes it. daisyUI's checkbox `drawer` does none of the three: in a prototype of
+  2026-09-29 the navbar covered its top bar, Tab went through the page behind first, and Escape
+  left it open. The panel is `100dvh` tall rather than daisyUI's `100vh`, so the composer stays
+  above Safari's toolbar, and it follows the visual viewport when the keyboard opens, checked on a
+  real iPhone on staging. The meetup's title and a close button sit on top; the composer sits at
+  the bottom with safe-area padding.
+- **Its address.** The open panel is a search parameter the meetup route validates, `?chat`:
+  opening it adds a history entry, so Back closes it, and a push opens the meetup with it open. A
+  signed-out reader is offered sign-in, which returns to the same address, and anyone else sees
+  the meetup with the panel closed. The meetup page stays public and indexed: its canonical link
+  ignores the query, and the panel's data comes from its own query once it opens, never from the
+  route's loader or the server-rendered HTML. Its code is split out too, so the page keeps its one
+  trip to D1 (#114) and does not grow for readers who never open the chat.
 - **Messages.** daisyUI's `chat` (5.6.13 follows the page's direction through logical properties
   and `[dir=rtl]`). Others' messages are `chat-start`, with an avatar in the `HostFace` style and
   their name and time above; your own are `chat-end` and `chat-bubble-primary`. System messages
@@ -594,8 +606,8 @@ cancellations the nightly account closure makes post it too. Reminders stay push
   sending, and a message that fails stays in the list with Retry. It is not a textarea: daisyUI's
   `.textarea` is at least 5rem tall, and the control-size rule does not let a page lower it.
 - **States.** Loading, error with Retry, empty, read-only, reconnecting and offline.
-- **Report** is a native `<dialog>`, which `dialog-contract.test.ts` finds and holds to the app's
-  dialog rules on its own.
+- **The panel and the report** are native `<dialog>`s, which `dialog-contract.test.ts` finds and
+  holds to the app's dialog rules on its own. The report opens over the panel.
 - **Copy** in all three languages: «محادثة اللقاء», « Discussion », "Chat", with entries in
   `libs/i18n/glossary.json` so each language keeps one word for it.
 
@@ -629,16 +641,16 @@ stays. P1-025's row then records the retirement and its date.
 
 | ID    | Status   | Scope                                                                                                                            | Evidence                                                                                                                                                            |
 | ----- | -------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CH-01 | Complete | This plan                                                                                                                        | Decisions 1 to 7 confirmed by Founder / Product on 2026-09-29                                                                                                       |
+| CH-01 | Complete | This plan                                                                                                                        | Decisions 1 to 8 confirmed by Founder / Product on 2026-09-29                                                                                                       |
 | CH-02 | Planned  | Migration 0041 and its backfill, the channel written with each meetup, domain schemas, repositories with single-statement writes | The backfill writes one channel per meetup on staging; a meetup whose address was taken writes no channel; repository tests on Miniflare D1                         |
 | CH-03 | Planned  | Server functions, the `chat` permission, the `chat` budgets                                                                      | Integration tests: a non-member, a cancelled RSVP, a banned member and a read-only chat are refused; a retried send writes once; `getChatPage` takes one trip to D1 |
-| CH-04 | Planned  | `EventChatDO`, the socket route, the rooms' shared session code, the live room's calls moved to RPC                              | Through `worker.fetch`: a foreign `Origin`, a `POST` and a non-member are refused; a cancelled RSVP is revoked; stale sockets are reaped; a hibernated room wakes   |
-| CH-05 | Planned  | Meetup page entry, chat screen, messages, composer, every state                                                                  | Component tests; a two-browser Playwright spec in ar, fr and en at 390, 768 and 1280                                                                                |
+| CH-04 | Planned  | `EventChatDO`, the socket route, the rooms' shared session code                                                                  | Through `worker.fetch`: a foreign `Origin`, a `POST` and a non-member are refused; a cancelled RSVP is revoked; stale sockets are reaped; a hibernated room wakes   |
+| CH-05 | Planned  | Meetup page entry, the chat panel and its address, messages, composer, every state                                               | Component tests; a two-browser Playwright spec in ar, fr and en at 390, 768 and 1280; the keyboard on a real iPhone on staging                                      |
 | CH-06 | Planned  | System messages                                                                                                                  | Integration tests for each, including a cancellation by the nightly account closure                                                                                 |
 | CH-07 | Planned  | `chat_unread`, the `meetup_chat` preference, unread counts                                                                       | Dispatch tests for read, muted and switched-off members; a push received on staging                                                                                 |
 | CH-08 | Planned  | Reports, removals, the admin review page, the audit                                                                              | Admin tests; on staging, one report acted on and one dismissed, and each opening of the chat audited                                                                |
 | CH-09 | Planned  | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | Sweep and erasure tests; the policy reviewed and dated in each language                                                                                             |
-| CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Sends and pages within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                 |
+| CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Sends and the panel's first read within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                |
 | CH-11 | Planned  | The feature flag, the evidence run, production                                                                                   | The run below recorded on staging, then the flag on in production                                                                                                   |
 | CH-12 | Planned  | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                             |
 
@@ -650,12 +662,13 @@ the chat cannot open to members without them.
 1. The host publishes a meetup. It has a chat, empty.
 2. The member RSVPs. The chat entry appears, and the two talk in real time in two browsers, one in
    Arabic and one in English.
-3. The third account sees the line about the chat but not the chat. The screen and the socket both
-   refuse it.
+3. The third account sees the line about the chat but not the chat. At the meetup's `?chat` address
+   it gets the meetup with the panel closed, and the socket refuses it.
 4. The host moves the time, then the place: each posts a system message. The member cancels: their
    socket closes and the entry goes. They RSVP again and are back, history included.
 5. With the member's chat closed, the host writes. About two minutes later the member's push
-   arrives, and opening the chat clears the count. Muting stops the next one.
+   arrives; it opens the meetup with the panel open, which clears the count. Muting stops the next
+   one.
 6. The member reports a message. A moderator opens the chat from the report, the audit records the
    opening, and the moderator removes the message. The host removes another; the member deletes
    their own.
