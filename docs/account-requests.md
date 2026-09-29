@@ -114,7 +114,7 @@ query only reads; run each with `--json` and keep the outputs together.
 SELECT id, name, email, email_verified, phone_number, locale_pref, created_at FROM user WHERE id = 'usr_…'
 SELECT * FROM member_profiles WHERE user_id = 'usr_…'
 SELECT * FROM account_preferences WHERE user_id = 'usr_…'
-SELECT provider_id, created_at FROM account WHERE user_id = 'usr_…'
+SELECT provider_id, account_id, scope, created_at FROM account WHERE user_id = 'usr_…'
 SELECT created_at, expires_at, ip_address, user_agent FROM session WHERE user_id = 'usr_…'
 SELECT platform, surface, market_code, created_at FROM push_subscriptions WHERE user_id = 'usr_…'
 SELECT id, title, description, venue, starts_at, status FROM events WHERE host_id = 'usr_…'

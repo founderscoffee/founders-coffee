@@ -25,9 +25,10 @@ export interface AccountSummaryRow {
  * what someone opens this screen to check.
  *
  * `account.access_token`, `refresh_token`, `id_token` and `password` are never selected. They are
- * columns on the same row as the provider id, so a `select()` here would put a live OAuth token one
- * projection mistake away from a response — the column list is the guard, and it is the reason this
- * function exists rather than callers reading the table directly.
+ * columns on the same row as the provider id, and sign-in keeps no token in them (#110), but a
+ * `select()` here would put whatever they hold one projection mistake away from a response — the
+ * column list is the guard, and it is the reason this function exists rather than callers reading
+ * the table directly.
  */
 export const getAccountSummary = async (
   db: Db,

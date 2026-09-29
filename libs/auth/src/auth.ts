@@ -15,6 +15,10 @@ import {
 
 import { captchaEndpointsFor } from './captcha.js';
 import { nameForNewAccount, nameUnnamedMember } from './member-name.js';
+import {
+  forgetProviderTokens,
+  withoutProviderPicture,
+} from './provider-data.js';
 import type { EmailProvider } from './providers/email.js';
 import { DevEmailProvider } from './providers/email.js';
 import type { SmsProvider } from './providers/sms.js';
@@ -180,9 +184,13 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
       user: {
         create: {
           before: async (newUser) => ({
-            data: { name: nameForNewAccount(newUser) },
+            data: withoutProviderPicture({ name: nameForNewAccount(newUser) }),
           }),
         },
+      },
+      account: {
+        create: { before: forgetProviderTokens },
+        update: { before: forgetProviderTokens },
       },
       session: {
         create: {

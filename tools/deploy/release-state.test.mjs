@@ -167,7 +167,7 @@ describe('release state validation', () => {
       latestMigration(
         fileURLToPath(new URL('../../libs/db/migrations', import.meta.url)),
       ),
-    ).toBe('0039_event_languages');
+    ).toBe('0040_forget_provider_data');
   });
 });
 
