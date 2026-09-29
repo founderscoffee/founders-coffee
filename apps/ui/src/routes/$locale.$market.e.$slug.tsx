@@ -125,7 +125,7 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
         organizer: loaderData.host
           ? {
               name: loaderData.host.displayName,
-              url: `${getSiteOrigin()}/u/${encodeURIComponent(loaderData.host.userId)}`,
+              url: `${getSiteOrigin()}/${loaderData.locale}/u/${encodeURIComponent(loaderData.host.userId)}`,
             }
           : null,
       },

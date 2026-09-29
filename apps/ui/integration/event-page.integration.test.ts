@@ -92,6 +92,26 @@ describe("a meetup's page", () => {
     );
   });
 
+  it('names its host at the address their profile answers on', async () => {
+    const body = await (await get(`/fr/algeria/e/${SLUG}`)).text();
+    const meetup = [
+      ...body.matchAll(
+        /<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/gsu,
+      ),
+    ]
+      .map((match) => JSON.parse(match[1] ?? '{}') as Record<string, unknown>)
+      .find((node) => node['@type'] === 'Event');
+    const organizer = meetup?.organizer as
+      { readonly url?: string } | undefined;
+    const profile = await get(new URL(organizer?.url ?? '/', ORIGIN).pathname);
+
+    expect(organizer?.url).toBe(`${ORIGIN}/fr/u/${HOST_ID}`);
+    expect(
+      profile.status,
+      'the organizer was /u/<id>, which redirects to the localized profile, so Google followed a redirect to reach the host',
+    ).toBe(200);
+  });
+
   it("reads nothing of its market's landing", async () => {
     const landing = await (await get('/fr/algeria')).text();
     const page = await (await get(`/fr/algeria/e/${SLUG}`)).text();
