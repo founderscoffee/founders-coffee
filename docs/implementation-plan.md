@@ -150,7 +150,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Issue #107 adds the city waitlist launch outbox and localized email path; staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                       |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md). Market landing pages name each market's country in hreflang (`ar-DZ` to `en-SA`), with bare languages and `x-default` on Algeria's, and `og:locale` follows the market (2026-09-29)                                             |
 | P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0: migration 0036, the webhook, the queued posts, pins and removals, the host's panel, the member's card, and the privacy policy's Telegram section (reviewed 2026-09-26, dated 18 September). On in production since v0.15.0 (`@FoundersCoffeeBot`). Replaced by the meetup chat (P1-026, 2026-09-29): its [evidence run](#telegram-groups-p1-025) is on hold, and CH-12 retires it once the chat is on in production               |
-| P1-026 | Planned  | Meetup chat for the host and everyone going                          | CH-01 through CH-12 in [Meetup chat](#meetup-chat-p1-026); decisions 1 to 7 there await Founder / Product                                                                                                                                                                                                                                                                                                                                                |
+| P1-026 | Planned  | Meetup chat for the host and everyone going                          | CH-01 through CH-12 in [Meetup chat](#meetup-chat-p1-026); its decisions were confirmed on 2026-09-29                                                                                                                                                                                                                                                                                                                                                    |
 
 ### City waitlist notice (#107)
 
@@ -394,7 +394,7 @@ attachments, reactions, replies, editing, typing indicators, read receipts, sear
 messages, email per message, and city-wide channels. A channel names its `kind` so a city channel
 can come later, but `meetup` is the only kind.
 
-**Decisions awaiting Founder / Product.** The plan assumes these defaults until they are confirmed.
+**Decisions**, confirmed by Founder / Product on 2026-09-29:
 
 1. **How long it stays open.** From publication until seven days after the meetup ends, then
    read-only. A cancelled meetup's chat turns read-only at the cancellation.
@@ -405,7 +405,8 @@ can come later, but `meetup` is the only kind.
 4. **Notifications.** At most one pending push per member per chat, sent two minutes after the
    first message they have not read, with neutral text ("New messages in {title}") so no message
    shows on a lock screen. A member can mute a chat. No email.
-5. **Moderators.** They see a reported message with the ten messages around it, never a whole chat.
+5. **Moderators.** A moderator reviewing a report reads the whole chat it was posted in, for
+   context. Only a report opens a chat to them, and each opening is audited.
 6. **Telegram.** P1-025 is retired once the chat is on in production (CH-12).
 7. **Language.** Messages carry no language code and are shown as written, the exception
    AGENTS.md §9 makes for profile introductions. CH-05 adds chat messages to it.
@@ -530,10 +531,10 @@ cancellations the nightly account closure makes post it too. Reminders stay push
   `RATE_BUDGETS.chat` budget. The reporter stays anonymous, as the community guidelines promise.
 - `apps/admin` has no review pages yet. CH-08 adds the first, behind the Access guard and a new
   `message` action on the `moderation` resource, which moderators and admins hold: each market's
-  open chat reports, each with the reported message and the ten around it, to remove or dismiss.
-  CO-09's moderation work builds on the same page rather than a second one. Every decision writes
-  `operations_audit` through `auditStatement`, with new `chat_message` target and action values
-  added with the code that emits them.
+  open chat reports, each opening the whole chat it came from with the reported message marked, to
+  remove or dismiss. CO-09's moderation work builds on the same page rather than a second one.
+  Every decision, and every opening of a chat, writes `operations_audit` through `auditStatement`,
+  with new `chat_message` target and action values added with the code that emits them.
 - A removed message keeps its tombstone and records who removed it.
 - A banned or closing member loses the chat through the membership predicate, and their name reads
   as a neutral "Member" once their profile is no longer visible. When CO-09 replaces the
@@ -544,8 +545,9 @@ cancellations the nightly account closure makes post it too. Reminders stay push
 - The privacy policy gains a meetup chat section and a retention row, in `privacy-data.ts`,
   `privacy-processing.ts` and `privacy-rights.ts` (Arabic, authoritative), `legal-en-privacy.ts`
   and `legal-fr-privacy.ts`. It says what is kept (the message, its time and its author), who sees
-  it (the host and the people going, and a moderator for a reported message), for how long (90
-  days after the meetup), and that it is not end-to-end encrypted. Its sentence that the platform
+  it (the host and the people going, and a moderator reviewing a report, who reads the whole chat
+  it was posted in), for how long (90 days after the meetup), and that it is not end-to-end
+  encrypted. Its sentence that the platform
   gives members no way to message each other changes to say that the members of a meetup can write
   to each other in its chat. Each language's "last updated" date moves, and
   `privacy-practice.test.ts` holds the policy to the practice.
@@ -625,20 +627,20 @@ evidence run. Unlike Telegram, staging can run the whole feature.
 The share-to-Telegram link (`share-targets.ts` and the share dialog) is not part of P1-025 and
 stays. P1-025's row then records the retirement and its date.
 
-| ID    | Status  | Scope                                                                                                                            | Evidence                                                                                                                                                            |
-| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CH-01 | Partial | This plan                                                                                                                        | Decisions 1 to 7 confirmed by Founder / Product                                                                                                                     |
-| CH-02 | Planned | Migration 0041 and its backfill, the channel written with each meetup, domain schemas, repositories with single-statement writes | The backfill writes one channel per meetup on staging; a meetup whose address was taken writes no channel; repository tests on Miniflare D1                         |
-| CH-03 | Planned | Server functions, the `chat` permission, the `chat` budgets                                                                      | Integration tests: a non-member, a cancelled RSVP, a banned member and a read-only chat are refused; a retried send writes once; `getChatPage` takes one trip to D1 |
-| CH-04 | Planned | `EventChatDO`, the socket route, the rooms' shared session code, the live room's calls moved to RPC                              | Through `worker.fetch`: a foreign `Origin`, a `POST` and a non-member are refused; a cancelled RSVP is revoked; stale sockets are reaped; a hibernated room wakes   |
-| CH-05 | Planned | Meetup page entry, chat screen, messages, composer, every state                                                                  | Component tests; a two-browser Playwright spec in ar, fr and en at 390, 768 and 1280                                                                                |
-| CH-06 | Planned | System messages                                                                                                                  | Integration tests for each, including a cancellation by the nightly account closure                                                                                 |
-| CH-07 | Planned | `chat_unread`, the `meetup_chat` preference, unread counts                                                                       | Dispatch tests for read, muted and switched-off members; a push received on staging                                                                                 |
-| CH-08 | Planned | Reports, removals, the admin review page, the audit                                                                              | Admin tests; on staging, one report acted on and one dismissed                                                                                                      |
-| CH-09 | Planned | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | Sweep and erasure tests; the policy reviewed and dated in each language                                                                                             |
-| CH-10 | Planned | Logs, metrics and budgets                                                                                                        | Sends and pages within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                 |
-| CH-11 | Planned | The feature flag, the evidence run, production                                                                                   | The run below recorded on staging, then the flag on in production                                                                                                   |
-| CH-12 | Planned | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                             |
+| ID    | Status   | Scope                                                                                                                            | Evidence                                                                                                                                                            |
+| ----- | -------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CH-01 | Complete | This plan                                                                                                                        | Decisions 1 to 7 confirmed by Founder / Product on 2026-09-29                                                                                                       |
+| CH-02 | Planned  | Migration 0041 and its backfill, the channel written with each meetup, domain schemas, repositories with single-statement writes | The backfill writes one channel per meetup on staging; a meetup whose address was taken writes no channel; repository tests on Miniflare D1                         |
+| CH-03 | Planned  | Server functions, the `chat` permission, the `chat` budgets                                                                      | Integration tests: a non-member, a cancelled RSVP, a banned member and a read-only chat are refused; a retried send writes once; `getChatPage` takes one trip to D1 |
+| CH-04 | Planned  | `EventChatDO`, the socket route, the rooms' shared session code, the live room's calls moved to RPC                              | Through `worker.fetch`: a foreign `Origin`, a `POST` and a non-member are refused; a cancelled RSVP is revoked; stale sockets are reaped; a hibernated room wakes   |
+| CH-05 | Planned  | Meetup page entry, chat screen, messages, composer, every state                                                                  | Component tests; a two-browser Playwright spec in ar, fr and en at 390, 768 and 1280                                                                                |
+| CH-06 | Planned  | System messages                                                                                                                  | Integration tests for each, including a cancellation by the nightly account closure                                                                                 |
+| CH-07 | Planned  | `chat_unread`, the `meetup_chat` preference, unread counts                                                                       | Dispatch tests for read, muted and switched-off members; a push received on staging                                                                                 |
+| CH-08 | Planned  | Reports, removals, the admin review page, the audit                                                                              | Admin tests; on staging, one report acted on and one dismissed, and each opening of the chat audited                                                                |
+| CH-09 | Planned  | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | Sweep and erasure tests; the policy reviewed and dated in each language                                                                                             |
+| CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Sends and pages within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                 |
+| CH-11 | Planned  | The feature flag, the evidence run, production                                                                                   | The run below recorded on staging, then the flag on in production                                                                                                   |
+| CH-12 | Planned  | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                             |
 
 Tickets run in number order. Moderation and privacy (CH-08 and CH-09) come before the flag, since
 the chat cannot open to members without them.
@@ -654,8 +656,9 @@ the chat cannot open to members without them.
    socket closes and the entry goes. They RSVP again and are back, history included.
 5. With the member's chat closed, the host writes. About two minutes later the member's push
    arrives, and opening the chat clears the count. Muting stops the next one.
-6. The member reports a message and a moderator removes it; the host removes another; the member
-   deletes their own.
+6. The member reports a message. A moderator opens the chat from the report, the audit records the
+   opening, and the moderator removes the message. The host removes another; the member deletes
+   their own.
 7. On a meetup that has ended, the header says until when the chat stays open; with its
    `read_only_at` moved into the past on staging's D1, the chat is read-only. A second meetup,
    cancelled, posts its cancellation and turns read-only at once.
@@ -713,9 +716,8 @@ not repeated.
    staging's push-primary/email-fallback policy, including real provider delivery evidence.
 4. **Verify live event coordination:** complete `P1-010` Durable Object expiry, heartbeat cleanup,
    and cancellation behavior.
-5. **Build the meetup chat:** once its decisions are confirmed, deliver `P1-026` CH-02 through
-   CH-11, then retire Telegram groups with CH-12. It shares the live room's session, membership and
-   heartbeat code from step 4.
+5. **Build the meetup chat:** deliver `P1-026` CH-02 through CH-11, then retire Telegram groups
+   with CH-12. It shares the live room's session, membership and heartbeat code from step 4.
 6. **Build operational administration:** deliver `CO-08/CO-09` for event operations, corrections,
    moderation, host trust, and audit.
 7. **Deliver community-health evidence:** implement `CO-10/P1-019` metrics repositories, dashboards,
