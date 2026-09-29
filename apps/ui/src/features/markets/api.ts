@@ -66,7 +66,7 @@ export const homeMarketSlug = async (
 
 export const GEO_COOKIE = 'fc_geo';
 
-const DEFAULT_MARKET_SLUG = 'algeria';
+export const DEFAULT_MARKET_SLUG = 'algeria';
 
 /**
  * The market an arrival that names no city should land on.

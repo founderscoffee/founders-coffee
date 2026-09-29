@@ -112,6 +112,7 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
     const marketName = localizedName(loaderData.market, loaderData.locale);
     return eventPageHead({
       locale: loaderData.locale,
+      marketCode: loaderData.market.code,
       eventId: loaderData.event.id,
       version: loaderData.event.version,
       title: loaderData.event.title,

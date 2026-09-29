@@ -10,7 +10,6 @@ import {
   canonicalUrl,
   cityPageHead,
   localeAlternates,
-  marketPageHead,
 } from './seo';
 
 describe('canonical URLs', () => {
@@ -142,60 +141,11 @@ describe('canonical URLs', () => {
   });
 });
 describe('public page metadata', () => {
-  it('uses localized market copy and emits a complete shared metadata set', () => {
-    const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
-      marketPageHead({
-        locale: 'en',
-        marketName: 'Algeria',
-        events: [
-          {
-            name: 'Founders breakfast',
-            url: 'https://founders.coffee/en/algeria/e/founders-breakfast',
-          },
-        ],
-        route: { type: 'market', market: 'algeria', locale: 'en' },
-      }),
-    );
-
-    expect(head.meta).toEqual(
-      expect.arrayContaining([
-        { title: 'Founders Coffee - Algeria' },
-        {
-          name: 'description',
-          content: expect.stringContaining(
-            'We gather entrepreneurs and founders in Algeria',
-          ),
-        },
-        { property: 'og:url', content: 'https://founders.coffee/en/algeria' },
-        {
-          property: 'og:image',
-          content: 'https://founders.coffee/social/founders-coffee-default.png',
-        },
-        { property: 'og:image:width', content: '1200' },
-        { property: 'og:image:height', content: '630' },
-        {
-          name: 'twitter:image',
-          content: 'https://founders.coffee/social/founders-coffee-default.png',
-        },
-        { name: 'twitter:card', content: 'summary_large_image' },
-      ]),
-    );
-    expect(head.links).toContainEqual({
-      rel: 'canonical',
-      href: 'https://founders.coffee/en/algeria',
-    });
-    expect(JSON.parse(head.scripts[0]?.children ?? '{}')).toMatchObject({
-      '@type': 'CollectionPage',
-      mainEntity: {
-        itemListElement: [{ name: 'Founders breakfast', position: 1 }],
-      },
-    });
-  });
-
   it('changes city descriptions with event availability and keeps empty cities noindex', () => {
     const empty = cityPageHead({
       locale: 'ar',
       marketName: 'الجزائر',
+      marketCode: 'DZ',
       cityName: 'وهران',
       isEmpty: true,
       route: { type: 'city', market: 'algeria', city: 'oran', locale: 'ar' },
@@ -203,6 +153,7 @@ describe('public page metadata', () => {
     const active = cityPageHead({
       locale: 'ar',
       marketName: 'الجزائر',
+      marketCode: 'DZ',
       cityName: 'وهران',
       isEmpty: false,
       route: { type: 'city', market: 'algeria', city: 'oran', locale: 'ar' },
@@ -238,6 +189,7 @@ describe('public page metadata', () => {
       cityPageHead({
         locale: 'ar',
         marketName: 'الجزائر',
+        marketCode: 'DZ',
         cityName: 'وهران',
         isEmpty: false,
         route: { type: 'city', market: 'algeria', city: 'oran', locale: 'ar' },
@@ -254,6 +206,28 @@ describe('public page metadata', () => {
       ['الجزائر', 'https://founders.coffee/ar/algeria'],
       ['وهران', 'https://founders.coffee/ar/algeria/oran'],
     ]);
+  });
+
+  it("names the city's own country in og:locale, and only languages in hreflang", () => {
+    const head = runWithContext({ siteOrigin: 'https://founders.coffee' }, () =>
+      cityPageHead({
+        locale: 'ar',
+        marketName: 'مصر',
+        marketCode: 'EG',
+        cityName: 'القاهرة',
+        isEmpty: false,
+        route: { type: 'city', market: 'egypt', city: 'cairo', locale: 'ar' },
+      }),
+    );
+
+    expect(head.meta).toContainEqual({
+      property: 'og:locale',
+      content: 'ar_EG',
+    });
+    expect(
+      head.links.flatMap((link) => ('hrefLang' in link ? [link.hrefLang] : [])),
+      'a city belongs to one market, so no other market has a copy of it to name',
+    ).toEqual(['ar', 'en', 'fr', 'x-default']);
   });
 
   it('uses the same builder for company pages', () => {

@@ -22,6 +22,7 @@ import {
   type CompanyPageEntry,
   type CompanyPageKey,
 } from '../content/company';
+import { DEFAULT_MARKET_SLUG } from '../features/markets/api';
 import {
   cursorPairOnly,
   paginationQuery,
@@ -30,13 +31,15 @@ import {
 } from '../lib/public-pagination';
 import { localizedLanding } from '../lib/locale-routing';
 import { isMarketLeaf } from '../lib/route-market';
-import { canonicalUrl, getRequestPath, marketPageHead } from '../lib/seo';
+import { canonicalUrl, getRequestPath } from '../lib/seo';
 import { companyPageHead } from '../lib/seo-company';
+import { marketPageHead, type MarketReference } from '../lib/seo-market';
 
 type LocalizedMarket = MarketWithCities & {
   readonly kind: 'market';
   readonly locale: Locale;
   readonly pagination: PublicPaginationSearch;
+  readonly markets: readonly MarketReference[];
 };
 
 type LocalizedCompany = {
@@ -54,6 +57,7 @@ const localizedMarket = async (
   marketKey: string,
   pagination: PublicPaginationSearch,
   isLeaf: boolean,
+  markets: readonly MarketReference[],
 ): Promise<LocalizedMarket> => {
   try {
     const data = await getMarketLanding({
@@ -71,7 +75,7 @@ const localizedMarket = async (
         search: {},
       });
     }
-    return { kind: 'market', locale, pagination, ...data };
+    return { kind: 'market', locale, pagination, ...data, markets };
   } catch (error) {
     if (appErrorCode(error) === 'market_not_found') throw notFound();
     throw error;
@@ -125,6 +129,7 @@ export const Route = createFileRoute('/$locale/$market')({
       params.market,
       pagination,
       isMarketLeaf(location.pathname),
+      context.markets.map(({ code, slug }) => ({ code, slug })),
     );
   },
   head: ({ loaderData }) => {
@@ -137,6 +142,9 @@ export const Route = createFileRoute('/$locale/$market')({
       return marketPageHead({
         locale: loaderData.locale,
         marketName: localizedName(loaderData.market, loaderData.locale),
+        marketCode: loaderData.market.code,
+        markets: loaderData.markets,
+        defaultMarket: DEFAULT_MARKET_SLUG,
         events: loaderData.events.map((event) => ({
           name: event.title,
           url: canonicalUrl({

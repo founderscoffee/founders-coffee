@@ -86,4 +86,44 @@ describe('what a document says about itself in its head', () => {
       'en_US',
     ]);
   });
+
+  it("names each market's languages by country on a landing page, and its own country for Open Graph", async () => {
+    const response = await fetchDocument('/ar/egypt');
+    const head = (await response.text()).split('</head>')[0] ?? '';
+    const hreflang = Object.fromEntries(
+      [
+        ...head.matchAll(
+          /<link rel="alternate" hrefLang="([^"]+)" href="([^"]+)"/gu,
+        ),
+      ].map((match) => [match[1], match[2]?.replace(ORIGIN, '')]),
+    );
+    const openGraph = (property: string) =>
+      [
+        ...head.matchAll(
+          new RegExp(`property="${property}" content="([^"]+)"`, 'gu'),
+        ),
+      ].map((match) => match[1]);
+
+    expect(response.status).toBe(200);
+    expect(hreflang).toEqual({
+      'ar-DZ': '/ar/algeria',
+      'en-DZ': '/en/algeria',
+      'fr-DZ': '/fr/algeria',
+      'ar-EG': '/ar/egypt',
+      'en-EG': '/en/egypt',
+      'fr-EG': '/fr/egypt',
+      'ar-SA': '/ar/saudi-arabia',
+      'en-SA': '/en/saudi-arabia',
+      'fr-SA': '/fr/saudi-arabia',
+      ar: '/ar/algeria',
+      en: '/en/algeria',
+      fr: '/fr/algeria',
+      'x-default': '/ar/algeria',
+    });
+    expect(
+      openGraph('og:locale'),
+      "every Arabic page said ar_DZ, Egypt's included",
+    ).toEqual(['ar_EG']);
+    expect(openGraph('og:locale:alternate')).toEqual(['en_EG', 'fr_EG']);
+  });
 });
