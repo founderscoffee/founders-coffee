@@ -25,6 +25,22 @@ describe('sanitize', () => {
     expect(sanitize('plain text')).toBe('plain text');
   });
 
+  it('masks phone numbers, keeping the country prefix and the last two digits', () => {
+    expect(sanitize({ phoneNumber: '+213555123456' })).toEqual({
+      phoneNumber: '+213*******56',
+    });
+    expect(sanitize(['+966501234567', '+15551234567'])).toEqual([
+      '+966*******67',
+      '+155******67',
+    ]);
+  });
+
+  it('leaves numbers that are not phone numbers alone', () => {
+    expect(sanitize('213555123456')).toBe('213555123456');
+    expect(sanitize('+01:00')).toBe('+01:00');
+    expect(sanitize(213555123456)).toBe(213555123456);
+  });
+
   it('passes through primitives and arrays', () => {
     expect(sanitize(42)).toBe(42);
     expect(sanitize(null)).toBe(null);
