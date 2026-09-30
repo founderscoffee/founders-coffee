@@ -93,11 +93,13 @@ at (`erased-<id>@erased.invalid`), no photo and no language. The rows that stay:
   with their name detached;
 - their RSVPs and attendance, for the 24 months the policy gives them;
 - their feedback ratings, without the comment;
+- the meetup chat reports they filed and the ones about their messages, for the 24 months after
+  each decision;
 - the records of moderation decisions: host trust, the operations audit and the weekly reviews.
 
 Everything else that was theirs goes: profile, photos, preferences, devices, queued notices,
-Telegram invitations, sessions, Google and GitHub links, pending sign-in codes, and waitlist
-entries under their address. Orders and invoices, which belong to the dormant payments work, are
+Telegram invitations, meetup chat messages and chat settings, sessions, Google and GitHub links,
+pending sign-in codes, and waitlist entries under their address. Orders and invoices, which belong to the dormant payments work, are
 not touched; that has to change before payments open.
 
 **Outside D1.** Rate-limit buckets delete themselves a day after their last use. Logs are not
@@ -125,10 +127,14 @@ SELECT e.title, f.value_rating, f.would_return, f.comment, f.created_at FROM eve
 SELECT e.title, i.telegram_user_id, i.created_at FROM event_telegram_invites i JOIN events e ON e.id = i.event_id WHERE i.user_id = 'usr_…'
 SELECT market_code, status, reason_code, reviewed_at FROM host_trust WHERE user_id = 'usr_…'
 SELECT market_code, city_code, locale, notified_at, created_at FROM city_waitlist WHERE email = 'member@example.com'
+SELECT e.title, m.body, m.created_at, m.removed_at, m.removal FROM chat_messages m JOIN chat_channels c ON c.id = m.channel_id JOIN events e ON e.id = c.event_id WHERE m.author_id = 'usr_…'
+SELECT e.title, s.last_read_at, s.muted FROM chat_members s JOIN chat_channels c ON c.id = s.channel_id JOIN events e ON e.id = c.event_id WHERE s.user_id = 'usr_…'
+SELECT reason, status, created_at, reviewed_at FROM chat_reports WHERE reporter_id = 'usr_…'
 ```
 
 Leave out anything that would expose a secret or another person: session, provider and push
-tokens, and other members' names. If the member has a photo, attach the original too. Its key is
+tokens, and other members' names. Reports about the member's own chat messages stay out too: in a
+meetup of a few people, a report's date and reason can point to who made it. If the member has a photo, attach the original too. Its key is
 the `object_key` of their `ready` row in `profile_assets`, followed by `/original`:
 
 ```bash
