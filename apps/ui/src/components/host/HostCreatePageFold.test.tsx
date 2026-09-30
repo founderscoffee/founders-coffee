@@ -60,7 +60,7 @@ describe('the venue list folded over the map on a phone', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('stays folded when the tap outside it chooses a spot on the map, which the callout names', async () => {
+  it('stays folded when the tap outside it chooses a spot on the map, which the pin marks', async () => {
     getHostCreateMocks().nearbyVenues = [NEARBY_CAFE];
     renderHostCreateWizard();
     const toggle = await screen.findByRole('button', { name: 'Places nearby' });

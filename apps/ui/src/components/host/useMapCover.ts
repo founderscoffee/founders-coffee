@@ -2,11 +2,11 @@ import type { Map as MapboxMap } from 'mapbox-gl';
 import { useEffect, useRef, type RefObject } from 'react';
 
 import type { HostMapViewport } from '../../features/events/types';
-import { PIN_HEIGHT } from './callout-placement';
 
 type Point = { longitude: number; latitude: number } | null;
 
 const FIT_MARGIN = 24;
+const PIN_HEIGHT = 52;
 
 /**
  * Mapbox padding for a map whose top `covered` pixels are hidden, and `margin` more on every side.

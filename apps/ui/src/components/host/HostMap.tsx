@@ -20,13 +20,10 @@ import type {
   VenueSelection,
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
-import { CALLOUT_GAP } from './callout-placement';
 import { HostLocateButton } from './HostLocateButton';
 import { HostMapSkeleton } from './HostMapSkeleton';
 import { HostMapToasts } from './HostMapToasts';
-import { HostVenueCallout } from './HostVenueCallout';
 import { HostVenuePin } from './HostVenuePin';
-import { useCalloutPlacement } from './useCalloutPlacement';
 import type { ControlSize } from './useControlSize';
 import { coverPadding, useMapCover } from './useMapCover';
 import { useMapResize } from './useMapResize';
@@ -105,7 +102,6 @@ export const HostMap = ({
   };
 
   const pin = venue ?? (reverseVenue.isPending ? lastCoordinates : null);
-  const callout = useCalloutPlacement(mapRef, venue, covered);
 
   const venueErrorMessage = (error: unknown): string =>
     appErrorCode(error) === 'map_venue_unsupported'
@@ -201,7 +197,6 @@ export const HostMap = ({
         onMoveStart={(event) => {
           if ('originalEvent' in event && event.originalEvent) onUserMove?.();
         }}
-        onMove={callout.sync}
         onMoveEnd={(event) =>
           onCenterChange?.({
             latitude: event.viewState.latitude,
@@ -223,23 +218,6 @@ export const HostMap = ({
         mapStyle={MAP_STYLE}
         style={{ width: '100%', height: '100%' }}
       >
-        {venue && !locationError && !reverseVenue.isPending && (
-          <Marker
-            longitude={venue.longitude}
-            latitude={venue.latitude}
-            anchor="top"
-            offset={[0, CALLOUT_GAP]}
-            style={{ pointerEvents: 'none' }}
-          >
-            <HostVenueCallout
-              venue={venue}
-              locale={locale}
-              showHint={isInteractive}
-              ref={callout.measure}
-            />
-          </Marker>
-        )}
-
         {pin && (
           <Marker
             longitude={pin.longitude}

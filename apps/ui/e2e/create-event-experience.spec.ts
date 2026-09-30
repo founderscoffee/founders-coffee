@@ -12,16 +12,6 @@ import {
   useLocale,
   wizardPath,
 } from './support/host-wizard';
-import {
-  boxOf,
-  chooseSpot,
-  expectCalloutOnMap,
-  restingTip,
-  venueCallout,
-  venueMap,
-} from './support/venue-map';
-
-const EDGE_INSET = 60;
 
 /**
  * Hold a step's actions to the thumb: on screen, tall enough to tap, and never pushing the page
@@ -183,34 +173,6 @@ test.describe('create event experience', () => {
       return node.contains(hit);
     });
     expect(isOnTop).toBe(true);
-  });
-
-  test('keeps the whole venue callout on the map for a place chosen near its edges', async ({
-    page,
-    baseURL,
-  }, testInfo) => {
-    test.setTimeout(120_000);
-    const locale = localeFor(testInfo.project.name);
-    await useLocale(page, locale, baseURL as string);
-    await page.goto(wizardPath());
-    await selectVenue(page, locale, VENUE_QUERY);
-    await expect(venueCallout(page, locale)).toBeVisible({ timeout: 30_000 });
-
-    const map = await boxOf(venueMap(page));
-    const row = (await restingTip(page)).y;
-    const spots = {
-      'the left edge': { x: map.x + EDGE_INSET, y: row },
-      'the right edge': { x: map.x + map.width - EDGE_INSET, y: row },
-      'the bottom-left corner': {
-        x: map.x + EDGE_INSET,
-        y: map.y + map.height - EDGE_INSET,
-      },
-    };
-
-    for (const [where, spot] of Object.entries(spots)) {
-      await chooseSpot(page, locale, spot);
-      await expectCalloutOnMap(page, locale, map, where);
-    }
   });
 
   test('announces semantic step progress', async ({

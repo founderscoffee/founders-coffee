@@ -616,7 +616,6 @@
   "host_venue_selected": "Sélectionné",
   "host_venue_address": "Adresse",
   "host_venue_ineligible": "ni café ni espace de coworking",
-  "host_pin_hint": "Faites glisser le repère jusqu’à l’entrée du lieu.",
   "host_osm_attribution": "© les contributeurs OpenStreetMap",
   "host_venue_empty": "Choisissez un lieu.",
   "cat_venue_cafe": "Café",
