@@ -85,6 +85,7 @@ export const accountPreferencesViewSchema = z.strictObject({
   preferences: notificationPreferencesSchema,
   smsAvailable: z.boolean(),
   smsConsentAt: z.string().nullable(),
+  meetupChatAvailable: z.boolean(),
 });
 
 export type NotificationPreferences = z.infer<

@@ -24,6 +24,10 @@ type StoredPreferences = NonNullable<
  * `smsConsentAt` travels because it is evidence rather than decoration: server-owned, set when
  * consent is first given and cleared when it is withdrawn, so a member can see what they agreed to
  * and when.
+ *
+ * `meetupChatAvailable` says whether any market has opened its meetup chats. Until one has, the
+ * screen leaves the chat's row out, since there is no chat to be notified about, and the member's
+ * saved choice for it goes back unchanged with every save.
  */
 const view = (stored: StoredPreferences): profile.AccountPreferencesView =>
   profile.accountPreferencesViewSchema.parse({
@@ -58,6 +62,7 @@ const view = (stored: StoredPreferences): profile.AccountPreferencesView =>
     },
     smsAvailable: stored.phoneVerified,
     smsConsentAt: stored.preferences.smsConsentAt?.toISOString() ?? null,
+    meetupChatAvailable: stored.chatSwitchedOn,
   });
 
 const preferencesOperation = async <T>(

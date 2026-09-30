@@ -79,6 +79,7 @@ const PreferencesForm = ({
         draft={draft}
         pushState={push.state}
         isEnabling={push.isEnabling}
+        isChatAvailable={view.meetupChatAvailable}
         onEnablePush={push.enable}
         onChange={change}
       />

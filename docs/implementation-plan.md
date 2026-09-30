@@ -551,7 +551,10 @@ next heartbeat check. A key or parameters a screen cannot read show as a change 
 - A notification kind, `chat_unread`, and a preference category, `meetup_chat`, added through the
   steps every kind takes (enum, templates, matrix, destination gate), with migration 0042 for the
   category's two columns in `account_preferences`. By decision 4 it is push only and on by
-  default, and its row in the preferences grid shows only where the device can take a push. It
+  default, and its row in the preferences grid shows only where the device can take a push, and
+  only once some market has switched the chat on: an account belongs to no market, so the
+  preferences read asks whether any has (`isChatSwitchedOnAnywhere`), and a hidden row's saved
+  choice goes back unchanged with every save (component tests and Miniflare D1, 2026-09-30). It
   stays out of the union of categories that a notice with no category of its own follows: it
   arrived switched on, and counting it would start those notices again for a member who had
   turned the rest off.

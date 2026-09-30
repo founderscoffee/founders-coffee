@@ -2,8 +2,9 @@ import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 import { id } from '@founders-coffee/core';
-import { createDb, seed, user } from '@founders-coffee/db';
+import { createDb, markets, seed, user } from '@founders-coffee/db';
 
+import { switchChat } from '../chat/chat.fixtures.js';
 import { readMyPreferences, saveMyPreferences } from './preferences.js';
 
 const setup = async () => {
@@ -94,5 +95,25 @@ describe('per-category notification channels', () => {
       meetupChat: true,
       meetupChatChannels: ['push'],
     });
+  });
+});
+
+describe('the meetup chat’s row', () => {
+  it('waits for a market to open its chats, since an account belongs to none', async () => {
+    const { db, userId } = await setup();
+    const codes = (await db.select({ code: markets.code }).from(markets)).map(
+      (row) => row.code,
+    );
+    try {
+      for (const code of codes) await switchChat(db, code, false);
+      const closed = await readMyPreferences(db, userId);
+      await switchChat(db, 'EG', true);
+      const opened = await readMyPreferences(db, userId);
+
+      expect(closed.ok && closed.data.meetupChatAvailable).toBe(false);
+      expect(opened.ok && opened.data.meetupChatAvailable).toBe(true);
+    } finally {
+      for (const code of codes) await switchChat(db, code, true);
+    }
   });
 });

@@ -3,6 +3,9 @@ import { sql, type SQL } from 'drizzle-orm';
 import { activeProfileIdentity, visibleHost } from './profile-access.js';
 import { eventRsvps, events, markets, user } from './schema.js';
 
+const isFlagOn = (): SQL =>
+  sql`json_type(${markets.featureFlags}, '$.meetupChat') = 'true'`;
+
 /**
  * Whether the market of the meetup in the statement's `events` row has switched its chats on: its
  * `meetupChat` flag is JSON `true`, and nothing else is.
@@ -13,8 +16,17 @@ import { eventRsvps, events, markets, user } from './schema.js';
 export const isChatSwitchedOn = (): SQL => sql`EXISTS (
     SELECT 1 FROM ${markets}
     WHERE ${markets.code} = ${events.marketCode}
-      AND json_type(${markets.featureFlags}, '$.meetupChat') = 'true'
+      AND ${isFlagOn()}
   )`;
+
+/**
+ * Whether any market has switched its chats on, by the same flag {@link isChatSwitchedOn} reads.
+ *
+ * An account belongs to no market, so what only matters once a chat can exist, such as the chat's
+ * row in the notification settings, waits for the first market to open its chats.
+ */
+export const isChatSwitchedOnAnywhere = (): SQL =>
+  sql`EXISTS (SELECT 1 FROM ${markets} WHERE ${isFlagOn()})`;
 
 /**
  * Whether `userId` belongs to the chat of the meetup in the statement's `events` row (P1-026).

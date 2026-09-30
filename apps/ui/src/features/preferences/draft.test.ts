@@ -25,6 +25,7 @@ const view = (
   },
   smsAvailable: true,
   smsConsentAt: null,
+  meetupChatAvailable: true,
   ...overrides,
 });
 

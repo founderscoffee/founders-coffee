@@ -135,6 +135,14 @@ const pushDisabledFor = (
   isEnabling ||
   (state !== 'registered' && !pushIsActionable(state) && !checked);
 
+const isOffered = (
+  category: CategoryDefinition,
+  showPush: boolean,
+  isChatAvailable: boolean,
+): boolean =>
+  (showPush || category.channels.includes('email')) &&
+  (category.enabledField !== 'meetupChat' || isChatAvailable);
+
 const selectedChannels = (
   draft: NotificationDraft,
   category: CategoryDefinition,
@@ -169,6 +177,7 @@ export const NotificationChannelGrid = ({
   draft,
   pushState,
   isEnabling,
+  isChatAvailable,
   onEnablePush,
   onChange,
 }: {
@@ -176,6 +185,7 @@ export const NotificationChannelGrid = ({
   draft: NotificationDraft;
   pushState: PushState;
   isEnabling: boolean;
+  isChatAvailable: boolean;
   onEnablePush: () => Promise<boolean>;
   onChange: (changes: Partial<NotificationDraft>) => void;
 }) => {
@@ -205,8 +215,8 @@ export const NotificationChannelGrid = ({
         <span className="text-center">{prefs_push({}, { locale })}</span>
         <span className="text-center">{email_label({}, { locale })}</span>
       </div>
-      {CATEGORIES.filter(
-        (category) => showPush || category.channels.includes('email'),
+      {CATEGORIES.filter((category) =>
+        isOffered(category, showPush, isChatAvailable),
       ).map((category) => {
         const selected = selectedChannels(draft, category, showPush);
         return (
