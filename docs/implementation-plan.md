@@ -619,9 +619,15 @@ next heartbeat check. A key or parameters a screen cannot read show as a change 
   it as in the description. Privacy, guidelines, terms and organizer terms are dated 30 September
   2026 in every language.
 - **Notice.** Privacy §12 promises advance notice of a material change in what is collected or who
-  receives it, and the chat is both. About a week before the flag goes on, every member is emailed,
-  in their language, what the chat keeps and who reads it, with a link to the policy (CH-11;
-  Founder / Product, 2026-09-30).
+  receives it, and the chat is both. Once the staging run has passed, every active account is
+  emailed, in its language, what the chat keeps and who reads it, with a link to the policy,
+  whatever its notification settings, since this is the notice the policy promises rather than a
+  notification. The flag goes on in production a week later (CH-11; Founder / Product,
+  2026-09-30). Nothing emails every member yet: every notice belongs to a meetup
+  (`scheduled_notifications.event_id` is required), and the city waitlist's emails have an outbox
+  of their own. CH-11 adds a send list the same way, which the jobs worker drains a batch at a
+  time with retries. A migration fills it, so the release that carries it sends the email, to
+  staging's test accounts first.
 - **Retention.** The daily run in `apps/worker-jobs` (`0 3 * * *`) deletes expired chats the way
   the waitlist sweep deletes entries, under the AGENTS.md §11.5 exception: by id from a bounded
   subselect on the `expires_at` index, 500 at a time and at most ten passes a night; messages and
@@ -694,8 +700,19 @@ metrics of P1-019.
 the membership predicate, so every read, write and socket is gated by it without asking for it
 separately, and switching it off closes every chat in the market at once. It is in place, off, from
 CH-03 on, since the chat's server functions deploy before its moderation and privacy work does; the
-test and local seeds turn it on. CH-11 turns it on by migration: staging first, production after the
-evidence run. Unlike Telegram, staging can run the whole feature.
+test and local seeds turn it on. While it is off everywhere nothing of the chat shows, its row in
+the notification settings included. CH-11 turns it on in all three markets at once (Founder /
+Product, 2026-09-30):
+
+- **Staging** gets it from a one-off command, run with Founder / Product's OK, for the evidence
+  run. Not from a migration: migrations run on every deploy, so one on `develop` would open the
+  chat in production with the next release, whatever the run had found.
+- **Production** gets it from a migration, in a release a week after the members' notice. It
+  reaches staging too, where it changes nothing.
+- **Telegram.** CH-11 also hides the Telegram card wherever the chat is on, so that no host starts
+  a Telegram group before CH-12 removes it. Production held no connected group on 2026-09-29.
+
+Unlike Telegram, staging can run the whole feature.
 
 **Retiring Telegram groups (CH-12).** Once the chat is on in production:
 
@@ -728,7 +745,7 @@ stays. P1-025's row then records the retirement and its date.
 | CH-08 | Partial  | Delete, Remove and Report in the chat panel                                                                                      | Component tests for the options on each message, the dialog's steps, reasons and failures, and its Escape, which leaves the panel open; the tombstone written into the panel's cache (2026-09-30). The writes and their server functions are CH-02's and CH-03's, tested there. `meetup-chat.spec.ts` passes locally in ar at 390, fr at 768 and en at 1280: the member reports the host's message with a reason, which is kept for the market, the host removes the member's and the member deletes their own, each seen at once in the other's panel. The review is the admin app's (see Moderation); step 6 on staging waits for the flag (CH-11)                                                                                                                                                                                                                 |
 | CH-09 | Partial  | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | On Miniflare D1 (2026-09-30): the sweep deletes a chat 90 days after its meetup with its messages and settings, keeps a younger one and the reports of a deleted one, deletes a report 24 months after its decision and never an open one, reading both through their indexes; a report keeps who it is about, even once that account is deleted outright; erasure deletes a closed account's messages and settings and no one else's, keeps both kinds of report, and leaves a reopened account's chat as it was. `privacy-practice.test.ts` holds the policy's 90 days and 24 months to the code. The policy, guidelines, terms and organizer terms are dated 30 September 2026 in ar, fr and en; their review waits for Founder / Product                                                                                                                         |
 | CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Waits for the admin app (Founder / Product, 2026-09-30). Sends and the panel's first read within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| CH-11 | Planned  | Turning the feature flag on once the admin app reviews reports, the members' notice a week before, the evidence run, production  | The run below recorded on staging, then the flag on in production                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| CH-11 | Planned  | The staging run, the members' notice, then the flag on in production a week later; the Telegram card hidden where the chat is on | The run below recorded on staging, the notice sent, then the flag on in production a week later                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | CH-12 | Planned  | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 Tickets run in number order. Moderation and privacy (CH-08 and CH-09) come before the flag, since
@@ -736,7 +753,8 @@ the chat cannot open to members without them. The flag also waits for the admin 
 reports, so that a report reaches someone who can act on it, and CH-10 waits for the admin app
 too, so CH-10 to CH-12 come after it (Founder / Product, 2026-09-30).
 
-**Evidence run** (staging, with a host, a member and a third account):
+**Evidence run** (staging, its flag set by the one-off command, with a host, a member and a third
+account):
 
 1. The host publishes a meetup. It has a chat, empty.
 2. The member RSVPs. The chat entry appears, and the two talk in real time in two browsers, one in
