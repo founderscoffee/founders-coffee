@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { ok } from '@founders-coffee/core';
 import {
   NOTIFICATION_MAX_ATTEMPTS,
   NOTIFICATION_RETRY_BACKOFF_SECONDS,
+  user,
   type Db,
 } from '@founders-coffee/db';
+import type { EmailProvider } from '@founders-coffee/email';
 
 import { sweepNotifications } from './notification-sweep.js';
 import {
@@ -79,6 +82,37 @@ describe('sweep resolves every selected row', () => {
     expect(throwing?.attempts).toBe(1);
     expect(throwing?.lastError).toContain('dispatch_threw');
     expect((await rowById(db, emailId))?.status).toBe('sent');
+  });
+
+  it('stores a failed query a provider threw without the values bound to it', async () => {
+    const subject = 'Amina saved you a seat by the window';
+    const rowId = await enqueue(db, { channel: 'email', payload: { subject } });
+    const email: EmailProvider = {
+      name: 'writing-email',
+      send: async (input) => {
+        await db
+          .insert(user)
+          .values({
+            id: 'usr_sweepcopy',
+            name: input.subject,
+            email: String(input.to),
+          })
+          .run();
+        return ok({ messageId: 'mid' });
+      },
+    };
+
+    await sweepNotifications(db, providers({ email }), NOW);
+
+    const lastError = (await rowById(db, rowId))?.lastError ?? '';
+    expect(lastError).not.toContain('member@sweep.test');
+    expect(lastError).not.toContain(subject);
+    expect(lastError).toMatch(
+      /^dispatch_threw: Failed query: insert into "user" /u,
+    );
+    expect(lastError).toContain(
+      '\ncause: D1_ERROR: UNIQUE constraint failed: user.email',
+    );
   });
 
   it('treats a user with no device tokens as a permanent push failure', async () => {

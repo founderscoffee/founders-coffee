@@ -22,7 +22,13 @@ const buildLogger = (
     if (!shouldLog(level, threshold)) return;
     const merged = { ...getRequestContext(), ...bound, ...context };
     const sanitized = sanitize(merged) as Record<string, unknown>;
-    const entry: LogEntry = { ...sanitized, ts: isoNow(), level, msg, service };
+    const entry: LogEntry = {
+      ...sanitized,
+      ts: isoNow(),
+      level,
+      msg: sanitize(msg) as string,
+      service,
+    };
     transport(entry);
   };
   const child = (context: LogContext): Logger =>

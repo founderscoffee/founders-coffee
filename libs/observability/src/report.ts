@@ -1,6 +1,7 @@
 import { AppError, isNotFoundCode } from '@founders-coffee/core';
 
 import { logger } from './logger.js';
+import { describeError, describeStack } from './query-values.js';
 import type { LogContext, Logger } from './types.js';
 
 const isError = (value: unknown): value is Error =>
@@ -18,6 +19,9 @@ const isError = (value: unknown): value is Error =>
  * file request falls through to the `$market/$city` route (FC-13). At `info` they stay readable in
  * Workers Observability and leave `error` meaning something is wrong. Not `debug`, which sits below
  * the server logger's default threshold and would disappear in production.
+ *
+ * The message and stack are `describeError`'s and `describeStack`'s: a failed query is logged with
+ * its SQL and its D1 error, never with the values bound to it.
  */
 export const reportError = (
   error: unknown,
@@ -26,13 +30,17 @@ export const reportError = (
 ): void => {
   if (isError(error)) {
     const code = error instanceof AppError ? error.code : error.name;
-    const entry: LogContext = { code, stack: error.stack, ...context };
+    const entry: LogContext = {
+      code,
+      stack: describeStack(error),
+      ...context,
+    };
     if (isNotFoundCode(code)) {
-      activeLogger.info(error.message, entry);
+      activeLogger.info(describeError(error), entry);
       return;
     }
-    activeLogger.error(error.message, entry);
+    activeLogger.error(describeError(error), entry);
     return;
   }
-  activeLogger.error(String(error), { code: 'unknown', ...context });
+  activeLogger.error(describeError(error), { code: 'unknown', ...context });
 };

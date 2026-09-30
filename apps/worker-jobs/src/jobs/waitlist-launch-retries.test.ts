@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
+import { ok } from '@founders-coffee/core';
 import {
   cityWaitlist,
   cityWaitlistNotifications,
   eq,
   fanOutCityWaitlistLaunch,
+  user,
 } from '@founders-coffee/db';
+import type { EmailProvider } from '@founders-coffee/email';
 
 import {
   processWaitlistLaunch,
@@ -111,6 +114,52 @@ describe('waitlist launch retries and recovery', () => {
       'unsent@example.com',
     ]);
     expect(await roundStatus(db, launchId)).toBe('completed');
+  });
+
+  it('stores a failed query a send threw without the values bound to it', async () => {
+    const db = await setupWaitlistDb();
+    await waitFor(db, 'amina@example.com');
+    await db
+      .insert(user)
+      .values({
+        id: 'usr_waitlistcopy',
+        name: 'Amina',
+        email: 'amina@example.com',
+      })
+      .onConflictDoNothing()
+      .run();
+    const meetup = await publishMeetup(db);
+    let subject = '';
+    const writing: EmailProvider = {
+      name: 'writing-email',
+      send: async (input) => {
+        subject = input.subject;
+        await db
+          .insert(user)
+          .values({
+            id: 'usr_waitlistsend',
+            name: input.subject,
+            email: String(input.to),
+          })
+          .run();
+        return ok({ messageId: 'never' });
+      },
+    };
+
+    await processWaitlistLaunch(
+      db,
+      meetup.message,
+      recordingDeps(writing).deps,
+    );
+
+    const [notice] = await noticesOf(db, meetup.message.launchId);
+    expect(subject).not.toBe('');
+    expect(notice?.lastError).not.toContain('amina@example.com');
+    expect(notice?.lastError).not.toContain(subject);
+    expect(notice?.lastError).toMatch(/^Failed query: insert into "user" /u);
+    expect(notice?.lastError).toContain(
+      '\ncause: D1_ERROR: UNIQUE constraint failed: user.email',
+    );
   });
 
   it('carries a round the queue never delivered from the recovery sweep', async () => {

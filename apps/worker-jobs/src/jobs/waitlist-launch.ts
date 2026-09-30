@@ -27,7 +27,7 @@ import {
 } from '@founders-coffee/db';
 import type { EmailProvider } from '@founders-coffee/email';
 import type { Locale } from '@founders-coffee/i18n';
-import { logger } from '@founders-coffee/observability';
+import { describeError, logger } from '@founders-coffee/observability';
 import { waitlistLaunchEmails } from '@founders-coffee/server-fns/waitlist-launch';
 
 import { deleteInPasses } from './retention.js';
@@ -44,9 +44,6 @@ export interface WaitlistLaunchDeps {
 }
 
 type LaunchEmails = ReturnType<typeof waitlistLaunchEmails>;
-
-const errorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
 
 /**
  * Whether a round's meetup can still be announced: published, and not yet started. A waitlist is
@@ -107,7 +104,7 @@ const deliver = async (
   if (!recipient) return fail('waitlist_entry_missing', true);
 
   const payload = await emails(recipient.locale).then(ok, (error: unknown) =>
-    err(new AppError('waitlist_render_failed', errorMessage(error))),
+    err(new AppError('waitlist_render_failed', describeError(error))),
   );
   if (!payload.ok) return fail(payload.error.message);
   if (
@@ -131,7 +128,7 @@ const deliver = async (
       });
     return fail(sent.error.message);
   } catch (error) {
-    return fail(errorMessage(error));
+    return fail(describeError(error));
   }
 };
 
@@ -241,9 +238,9 @@ export const processWaitlistLaunch = async (
     logger.error('waitlist.launch_failed', {
       launchId: message.launchId,
       eventId: message.eventId,
-      message: errorMessage(error),
+      message: describeError(error),
     });
-    return err(new AppError('waitlist_launch_failed', errorMessage(error)));
+    return err(new AppError('waitlist_launch_failed', describeError(error)));
   }
 };
 
@@ -267,7 +264,7 @@ export const sweepWaitlistLaunches = async (
       logger.error('waitlist.launch_failed', {
         launchId: launch.id,
         eventId: launch.eventId,
-        message: errorMessage(error),
+        message: describeError(error),
       });
     }
   }

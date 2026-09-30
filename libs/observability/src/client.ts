@@ -33,7 +33,13 @@ const buildClientLogger = (
       string,
       unknown
     >;
-    buffer.push({ ...merged, ts: isoNow(), level: entryLevel, msg, service });
+    buffer.push({
+      ...merged,
+      ts: isoNow(),
+      level: entryLevel,
+      msg: sanitize(msg) as string,
+      service,
+    });
     if (buffer.length >= bufferSize) flush();
   };
   const child = (context: LogContext): Logger =>

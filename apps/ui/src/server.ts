@@ -8,6 +8,7 @@ import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
 import {
   ingestClientLogs,
   logger,
+  strippingQueryValues,
   type LogEntry,
 } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
@@ -147,7 +148,7 @@ export default {
    * nonce — which either blocks a legitimate page or, worse, hands a live nonce to another
    * response.
    */
-  fetch: async (request: Request, env: UiEnv): Promise<Response> => {
+  fetch: strippingQueryValues(async (request: Request, env: UiEnv) => {
     const url = new URL(request.url);
     const nonce = createCspNonce();
     const secure = (response: Response): Response =>
@@ -229,5 +230,5 @@ export default {
         );
       },
     );
-  },
+  }),
 } satisfies ExportedHandler<UiEnv>;

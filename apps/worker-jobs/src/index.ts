@@ -9,6 +9,7 @@ import type { AiRuntime, VectorizeRuntime } from '@founders-coffee/core/ai';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { createDb } from '@founders-coffee/db';
 import { R2PhotoStore, resolveQueueKind } from '@founders-coffee/infra';
+import { strippingQueryValues } from '@founders-coffee/observability';
 import { sweepClosingAccounts } from '@founders-coffee/server-fns/account-closure';
 import {
   BotApiTelegramProvider,
@@ -156,38 +157,42 @@ export default {
    * retention sweeps of the kind AGENTS.md §11.5 allows (#106): bounded, and read through an index
    * on the column that says when a row is due.
    */
-  scheduled: async (controller: ScheduledController, env: Env) => {
-    const db = createDb(env.DB);
+  scheduled: strippingQueryValues(
+    async (controller: ScheduledController, env: Env) => {
+      const db = createDb(env.DB);
 
-    if (controller.cron === RECOVERY_SWEEP_CRON) {
-      await sweepNotifications(db, {
-        sms: createSmsProvider(env),
-        email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
-        push: createPushProvider(env),
-        telegram: createTelegramProvider(env),
-      });
-      await sweepWaitlistLaunches(db, waitlistDeps(env));
-    }
-
-    if (controller.cron === '0 3 * * *') {
-      await runReconcile(db);
-      await backfillCloseoutPrompts(db);
-      await backfillDidNotHappenNotices(db);
-      if (env.PROFILE_ASSETS) {
-        const photos = new R2PhotoStore(env.PROFILE_ASSETS);
-        await sweepProfileAssets(db, photos);
-        await sweepClosingAccounts(db, photos);
+      if (controller.cron === RECOVERY_SWEEP_CRON) {
+        await sweepNotifications(db, {
+          sms: createSmsProvider(env),
+          email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
+          push: createPushProvider(env),
+          telegram: createTelegramProvider(env),
+        });
+        await sweepWaitlistLaunches(db, waitlistDeps(env));
       }
-      await sweepExpiredWaitlistEntries(db);
-      await sweepChatRetention(db);
-    }
-  },
 
-  queue: async (batch: MessageBatch<JobMessage>, env: Env) => {
-    for (const message of batch.messages) {
-      const result = await dispatch(batch.queue, message.body, env);
-      if (result.ok) message.ack();
-      else message.retry();
-    }
-  },
+      if (controller.cron === '0 3 * * *') {
+        await runReconcile(db);
+        await backfillCloseoutPrompts(db);
+        await backfillDidNotHappenNotices(db);
+        if (env.PROFILE_ASSETS) {
+          const photos = new R2PhotoStore(env.PROFILE_ASSETS);
+          await sweepProfileAssets(db, photos);
+          await sweepClosingAccounts(db, photos);
+        }
+        await sweepExpiredWaitlistEntries(db);
+        await sweepChatRetention(db);
+      }
+    },
+  ),
+
+  queue: strippingQueryValues(
+    async (batch: MessageBatch<JobMessage>, env: Env) => {
+      for (const message of batch.messages) {
+        const result = await dispatch(batch.queue, message.body, env);
+        if (result.ok) message.ack();
+        else message.retry();
+      }
+    },
+  ),
 } satisfies ExportedHandler<Env, JobMessage>;

@@ -29,6 +29,16 @@ describe('server logger', () => {
     expect(typeof entries[0].ts).toBe('string');
   });
 
+  it('cuts the values of a failed query out of the message itself', () => {
+    const { transport, entries } = recorder();
+    createServerLogger({ transport }).error(
+      'Failed query: select "id" from "user" where "email" = ?\nparams: amina@example.com',
+    );
+    expect(entries[0].msg).toBe(
+      'Failed query: select "id" from "user" where "email" = ?',
+    );
+  });
+
   it('respects the level threshold', () => {
     const { transport, entries } = recorder();
     const logger = createServerLogger({ transport, level: 'warn' });
@@ -124,5 +134,26 @@ describe('ingestClientLogs', () => {
     expect(entries[0].msg).toBe('client boom');
     expect(entries[0].service).toBe('ui');
     expect((entries[0] as Record<string, unknown>).password).toBe('[redacted]');
+  });
+
+  it("cuts a failed query's values out of an entry the browser reported", () => {
+    const { transport, entries } = recorder();
+    ingestClientLogs(
+      [
+        {
+          ts: '2026-01-01T00:00:00.000Z',
+          level: 'error',
+          msg: 'Failed query: select "id" from "user" where "email" = ?\nparams: amina@example.com',
+          service: 'ui',
+          stack:
+            'Error: Failed query: select "id" from "user" where "email" = ?\nparams: amina@example.com\n    at x (y.js:1:1)',
+        } as LogEntry,
+      ],
+      transport,
+    );
+    expect(JSON.stringify(entries[0])).not.toContain('amina');
+    expect(entries[0].msg).toBe(
+      'Failed query: select "id" from "user" where "email" = ?',
+    );
   });
 });

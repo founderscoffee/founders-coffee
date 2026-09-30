@@ -37,6 +37,16 @@ describe('client logger', () => {
     expect((batches[0][0] as Record<string, unknown>).token).toBe('[redacted]');
   });
 
+  it('cuts the values of a failed query out of the message before buffering', () => {
+    const { transport, batches } = batchRecorder();
+    createClientLogger({ transport, bufferSize: 1 }).error(
+      'Failed query: insert into "chat_message" ("body") values (?)\nparams: meet at the corner café',
+    );
+    expect(batches[0][0].msg).toBe(
+      'Failed query: insert into "chat_message" ("body") values (?)',
+    );
+  });
+
   it('tags entries service=ui', () => {
     const { transport, batches } = batchRecorder();
     createClientLogger({ transport, bufferSize: 1 }).info('x');

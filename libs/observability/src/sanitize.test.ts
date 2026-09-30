@@ -1,5 +1,16 @@
+import { DrizzleQueryError } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
+
+import { AppError } from '@founders-coffee/core';
+
 import { sanitize } from './sanitize.js';
+
+const failedQuery = (): DrizzleQueryError =>
+  new DrizzleQueryError(
+    'update "user" set "name" = ? where "email" = ?',
+    ['Amina, roaster in Oran', 'amina@example.com'],
+    new Error('D1_ERROR: no such table: user: SQLITE_ERROR'),
+  );
 
 describe('sanitize', () => {
   it('redacts secret-bearing keys', () => {
@@ -57,6 +68,28 @@ describe('sanitize', () => {
     const result = sanitize(node) as Record<string, unknown>;
     expect(result.name).toBe('a');
     expect(result.self).toBe('[circular]');
+  });
+
+  it('cuts the values of a failed query out of any string', () => {
+    expect(
+      sanitize({ reason: `dispatch_threw: ${failedQuery().message}` }),
+    ).toEqual({
+      reason:
+        'dispatch_threw: Failed query: update "user" set "name" = ? where "email" = ?',
+    });
+  });
+
+  it('logs an error as its name, code and a message without bound values', () => {
+    expect(
+      sanitize({ error: failedQuery(), refusal: new AppError('x', 'no') }),
+    ).toEqual({
+      error: {
+        name: 'Error',
+        message:
+          'Failed query: update "user" set "name" = ? where "email" = ?\ncause: D1_ERROR: no such table: user: SQLITE_ERROR',
+      },
+      refusal: { name: 'AppError', message: 'no', code: 'x' },
+    });
   });
 
   it('caps depth at the configured maximum', () => {

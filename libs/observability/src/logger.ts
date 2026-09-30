@@ -1,4 +1,5 @@
 import { createClientLogger } from './client.js';
+import type { LogLevel } from './levels.js';
 import { createBeaconTransport, type BatchTransport } from './transports.js';
 import type { Logger } from './types.js';
 
@@ -55,3 +56,13 @@ export const logger: Logger = new Proxy({} as Logger, {
       : value;
   },
 });
+
+/**
+ * A log hook for a library that logs `(level, message, ...args)` by itself, such as Better Auth.
+ * Its lines go through `logger`, and so through `sanitize`, rather than straight to `console`,
+ * where an error it caught is printed whole: a failed query with every value bound to it.
+ */
+export const libraryLog =
+  (source: string) =>
+  (level: LogLevel, message: string, ...args: unknown[]): void =>
+    logger[level](message, { source, args });
