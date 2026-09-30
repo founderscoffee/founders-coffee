@@ -2,7 +2,11 @@ import { evictDurableObject } from 'cloudflare:test';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CHAT_ROOM_CLOSES, id } from '@founders-coffee/core';
-import { createRsvp, type Db } from '@founders-coffee/db';
+import {
+  createRsvp,
+  transitionEventStatus,
+  type Db,
+} from '@founders-coffee/db';
 
 import { cancelEventResolver } from '../events/cancel.js';
 import { cancelRsvpResolver } from '../rsvps/resolver.js';
@@ -157,6 +161,17 @@ describe("a meetup chat's room (real D1 and Durable Objects via Miniflare)", () 
       await client.waitFor(ofType('closed'));
       expect(await client.waitForClose()).toEqual(CHAT_ROOM_CLOSES.closed);
     }
+    expect(await membersIn(eventId)).toEqual([]);
+  });
+
+  it('turns a page away from a chat that has closed, and tells it so', async () => {
+    const member = await goingMember(db, eventId);
+    await transitionEventStatus(db, eventId, 'published', 'cancelled');
+
+    const guest = await connect(eventId, await signIn(db, member));
+
+    await guest.waitFor(ofType('closed'));
+    expect(await guest.waitForClose()).toEqual(CHAT_ROOM_CLOSES.closed);
     expect(await membersIn(eventId)).toEqual([]);
   });
 

@@ -72,11 +72,7 @@ export class EventLiveDO extends DurableObject<DoEnv> {
   // eslint-disable-next-line no-restricted-syntax -- Cloudflare RPC requires a prototype method.
   async cancel(): Promise<void> {
     this.connections.restore(this.ctx.getWebSockets());
-    this.connections.closeAll(
-      { type: 'event_cancelled' },
-      4003,
-      'event_cancelled',
-    );
+    this.connections.closeAll(LIVE_REFUSALS.closed);
     await this.ctx.storage.deleteAlarm();
   }
 

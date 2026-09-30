@@ -2,7 +2,7 @@ import { sessionTokenFromCookie } from '@founders-coffee/auth';
 
 import type { RoomMember } from './connections.js';
 
-export type RoomRefusal = 'no_session' | 'not_allowed' | 'db_error';
+export type RoomRefusal = 'no_session' | 'not_allowed' | 'closed' | 'db_error';
 
 export type SessionVerdict<Member extends RoomMember> =
   | { readonly ok: true; readonly member: Member }
@@ -13,9 +13,14 @@ export type RoomSession<Member extends RoomMember> = {
   readonly isMember: boolean;
 };
 
+export type RoomMembership<Member extends RoomMember> = {
+  readonly isClosed: boolean;
+  readonly sessions: readonly RoomSession<Member>[];
+};
+
 export type MembershipLookup<Member extends RoomMember> = (
   sessionTokens: readonly string[],
-) => Promise<readonly RoomSession<Member>[]>;
+) => Promise<RoomMembership<Member>>;
 
 const verdictFor = <Member extends RoomMember>(
   session: RoomSession<Member> | undefined,
@@ -24,6 +29,17 @@ const verdictFor = <Member extends RoomMember>(
   if (!session.isMember) return { ok: false, reason: 'not_allowed' };
   return { ok: true, member: session.member };
 };
+
+const everyToken = <Member extends RoomMember>(
+  sessionTokens: readonly string[],
+  reason: RoomRefusal,
+): ReadonlyMap<string, SessionVerdict<Member>> =>
+  new Map(
+    sessionTokens.map((token): [string, SessionVerdict<Member>] => [
+      token,
+      { ok: false, reason },
+    ]),
+  );
 
 /**
  * Verify many sessions against one room in a single lookup, as the heartbeat alarm does for
@@ -35,24 +51,28 @@ const verdictFor = <Member extends RoomMember>(
  * has no session for is `no_session`, and one whose user is not a member is `not_allowed`. A
  * failed lookup gives them all `db_error`, which says nothing about anyone's session, so nobody is
  * turned out for it.
+ *
+ * A room the lookup finds closed, such as a cancelled meetup's, gives every token `closed`,
+ * whoever it belongs to. The same lookup at the heartbeat alarm is what closes it, within
+ * `HEARTBEAT_TIMEOUT_MS` of the change, whichever Worker made it and whether or not that Worker
+ * could reach the room to say so.
  */
 export const verifySessions = async <Member extends RoomMember>(
   lookup: MembershipLookup<Member>,
   sessionTokens: readonly string[],
 ): Promise<ReadonlyMap<string, SessionVerdict<Member>>> => {
-  let sessions: readonly RoomSession<Member>[];
+  let membership: RoomMembership<Member>;
   try {
-    sessions = await lookup(sessionTokens);
+    membership = await lookup(sessionTokens);
   } catch {
-    return new Map(
-      sessionTokens.map((token): [string, SessionVerdict<Member>] => [
-        token,
-        { ok: false, reason: 'db_error' },
-      ]),
-    );
+    return everyToken(sessionTokens, 'db_error');
   }
+  if (membership.isClosed) return everyToken(sessionTokens, 'closed');
   const byToken = new Map(
-    sessions.map((session) => [session.member.sessionToken, session]),
+    membership.sessions.map((session) => [
+      session.member.sessionToken,
+      session,
+    ]),
   );
   return new Map(
     sessionTokens.map((token): [string, SessionVerdict<Member>] => [

@@ -10,7 +10,7 @@ import {
   ROOM_HEARTBEAT_TIMEOUT_CLOSE,
   ROOM_TRY_AGAIN_LATER_CLOSE,
 } from '@founders-coffee/core';
-import { sql, type Db } from '@founders-coffee/db';
+import { sql, transitionEventStatus, type Db } from '@founders-coffee/db';
 
 import { ban, goingMember, publishMeetup, setupDb } from './chat.fixtures.js';
 import type { EventChatDO } from './room-do.js';
@@ -95,6 +95,17 @@ describe("a chat room's heartbeat (real D1 and Durable Objects via Miniflare)", 
 
     await guest.waitFor(ofType('revoked'));
     expect(await guest.waitForClose()).toEqual(CHAT_ROOM_CLOSES.revoked);
+  });
+
+  it('closes once the chat has turned read-only where the room was not told, as the nightly account closure cancels', async () => {
+    const guest = await connect(eventId, await signIn(db, member));
+    await transitionEventStatus(db, eventId, 'published', 'cancelled');
+
+    await runDurableObjectAlarm(roomOf(eventId));
+
+    await guest.waitFor(ofType('closed'));
+    expect(await guest.waitForClose()).toEqual(CHAT_ROOM_CLOSES.closed);
+    expect(await alarmOf(eventId)).toBeNull();
   });
 
   it('turns out a session that has ended, telling the page to sign in again', async () => {

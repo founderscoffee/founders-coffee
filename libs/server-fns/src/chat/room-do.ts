@@ -99,7 +99,9 @@ export class EventChatDO extends DurableObject<ChatRoomEnv> {
    *
    * This is where whatever the server functions cannot tell the room is caught: a ban, a closing
    * account, a suppressed host, the market switching the chat off, or an RSVP cancelled where the
-   * room is not bound. Each is turned out within `HEARTBEAT_TIMEOUT_MS`.
+   * room is not bound. Each is turned out within `HEARTBEAT_TIMEOUT_MS`. So is everyone, told the
+   * chat has closed, once it has turned read-only: a meetup cancelled where the room is not bound,
+   * as the nightly account closure cancels one, or a chat whose week after the meetup has run out.
    */
   // eslint-disable-next-line no-restricted-syntax -- Cloudflare RPC requires a prototype method.
   override async alarm(): Promise<void> {
@@ -164,11 +166,7 @@ export class EventChatDO extends DurableObject<ChatRoomEnv> {
   // eslint-disable-next-line no-restricted-syntax -- Cloudflare RPC requires a prototype method.
   async close(): Promise<void> {
     this.connections.restore(this.ctx.getWebSockets());
-    this.connections.closeAll(
-      { type: 'closed' },
-      CHAT_ROOM_CLOSES.closed.code,
-      CHAT_ROOM_CLOSES.closed.reason,
-    );
+    this.connections.closeAll(CHAT_ROOM_REFUSALS.closed);
     await this.ctx.storage.deleteAlarm();
   }
 
@@ -197,16 +195,22 @@ export class EventChatDO extends DurableObject<ChatRoomEnv> {
 
   private membership =
     (eventId: string): MembershipLookup<ChatRoomMember> =>
-    async (sessionTokens) =>
-      (
-        await readChatSocketSessions(createDb(this.env.DB), {
-          eventId,
-          sessionTokens,
-        })
-      ).map((session) => ({
-        member: { userId: session.userId, sessionToken: session.sessionToken },
-        isMember: session.isMember,
-      }));
+    async (sessionTokens) => {
+      const read = await readChatSocketSessions(createDb(this.env.DB), {
+        eventId,
+        sessionTokens,
+      });
+      return {
+        isClosed: read.isReadOnly,
+        sessions: read.sessions.map((session) => ({
+          member: {
+            userId: session.userId,
+            sessionToken: session.sessionToken,
+          },
+          isMember: session.isMember,
+        })),
+      };
+    };
 
   private eventId = async (): Promise<string | null> =>
     (await this.ctx.storage.get<string>(EVENT_ID_KEY)) ?? null;

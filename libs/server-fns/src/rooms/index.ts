@@ -1,15 +1,15 @@
 export {
   RoomConnections,
+  type RoomClose,
   type RoomConnection,
   type RoomMember,
+  type RoomNotice,
 } from './connections.js';
 export { answerHeartbeats, armHeartbeat, reapStale } from './heartbeat.js';
 export {
   recheckMember,
   recheckMembers,
   refuse,
-  type RoomClose,
-  type RoomNotice,
   type RoomRefusals,
 } from './refusals.js';
 export {
@@ -17,6 +17,7 @@ export {
   verifySessionFromCookie,
   verifySessions,
   type MembershipLookup,
+  type RoomMembership,
   type RoomRefusal,
   type RoomSession,
   type SessionVerdict,

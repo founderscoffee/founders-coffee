@@ -1,6 +1,6 @@
 import { ROOM_TRY_AGAIN_LATER_CLOSE } from '@founders-coffee/core';
 
-import type { RoomConnections, RoomMember } from './connections.js';
+import type { RoomConnections, RoomMember, RoomNotice } from './connections.js';
 import {
   verifySession,
   verifySessions,
@@ -8,16 +8,10 @@ import {
   type RoomRefusal,
 } from './session.js';
 
-export type RoomClose = { readonly code: number; readonly reason: string };
-
-export type RoomNotice<Frame> = {
-  readonly frame: Frame | null;
-  readonly close: RoomClose;
-};
-
 export type RoomRefusals<Frame> = {
   readonly notAllowed: RoomNotice<Frame>;
   readonly noSession: RoomNotice<Frame>;
+  readonly closed: RoomNotice<Frame>;
   readonly unavailable: Frame | null;
 };
 
@@ -28,7 +22,8 @@ export type RoomRefusals<Frame> = {
  * A signed-in reader the room does not admit and one whose session has ended are told apart. They
  * once shared the live room's `auth_expired` frame, so a signed-in member who simply had not joined
  * yet was told their session had ended and asked to refresh: false about their account, at the
- * moment they were deciding whether to come (#36).
+ * moment they were deciding whether to come (#36). A room that has closed says so in words of its
+ * own, which tell a page to stop reconnecting.
  *
  * A database failure is the one refusal that may not be true a second later, so it is never told
  * as a verdict, and whether the socket stays depends on whether the room has verified it, which is
@@ -56,8 +51,11 @@ export const refuse = <Member extends RoomMember, Frame>(
       );
     return;
   }
-  const notice =
-    reason === 'not_allowed' ? refusals.notAllowed : refusals.noSession;
+  const notice = {
+    not_allowed: refusals.notAllowed,
+    no_session: refusals.noSession,
+    closed: refusals.closed,
+  }[reason];
   if (notice.frame) connections.send(ws, notice.frame);
   connections.close(ws, notice.close.code, notice.close.reason);
 };

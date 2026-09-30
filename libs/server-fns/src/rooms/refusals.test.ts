@@ -32,6 +32,10 @@ const refusals = {
     close: { code: 4003, reason: 'not_attending' },
   },
   noSession: { frame: null, close: { code: 4001, reason: 'auth_expired' } },
+  closed: {
+    frame: { type: 'event_cancelled' },
+    close: { code: 4004, reason: 'event_cancelled' },
+  },
   unavailable: { type: 'error' },
 };
 
@@ -48,9 +52,16 @@ const amina = { userId: 'user-1', userName: 'Amina', sessionToken: 'tok-1' };
 
 /** A room's membership as a plain answer, one session per member given, going or not. */
 const lookupOf =
-  (sessions: readonly { member: Member; isMember: boolean }[]) =>
-  async (tokens: readonly string[]) =>
-    sessions.filter((session) => tokens.includes(session.member.sessionToken));
+  (
+    sessions: readonly { member: Member; isMember: boolean }[],
+    isClosed = false,
+  ) =>
+  async (tokens: readonly string[]) => ({
+    isClosed,
+    sessions: sessions.filter((session) =>
+      tokens.includes(session.member.sessionToken),
+    ),
+  });
 
 const failing: MembershipLookup<Member> = async () => {
   throw new Error('D1 is down');
@@ -75,6 +86,17 @@ describe("a room's verdict on a session", () => {
       { ok: false, reason: 'no_session' },
     ]);
     expect(down.get('tok-1')).toEqual({ ok: false, reason: 'db_error' });
+  });
+
+  it('closes a closed room to everyone, member or not, signed in or not', async () => {
+    const lookup = lookupOf([{ member: amina, isMember: true }], true);
+
+    const verdicts = await verifySessions(lookup, ['tok-1', 'tok-3']);
+
+    expect([...verdicts.values()]).toEqual([
+      { ok: false, reason: 'closed' },
+      { ok: false, reason: 'closed' },
+    ]);
   });
 
   it('reads the unsigned token from the session cookie, and asks nothing without one', async () => {
@@ -110,6 +132,17 @@ describe('how a refusal is told to the browser', () => {
     expect(outsider.close).toHaveBeenCalledWith(4003, 'not_attending');
     expect(expired.send).not.toHaveBeenCalled();
     expect(expired.close).toHaveBeenCalledWith(4001, 'auth_expired');
+    expect(connections.size()).toBe(0);
+  });
+
+  it("tells a member the room has closed in the room's own words, and closes their socket", () => {
+    const connections = room();
+    const member = joined(connections, amina);
+
+    refuse(connections, member, 'closed', refusals);
+
+    expect(member.send).toHaveBeenCalledWith('{"type":"event_cancelled"}');
+    expect(member.close).toHaveBeenCalledWith(4004, 'event_cancelled');
     expect(connections.size()).toBe(0);
   });
 

@@ -12,6 +12,13 @@ export type RoomConnection<Member extends RoomMember> = {
   readonly member: Member | null;
 };
 
+export type RoomClose = { readonly code: number; readonly reason: string };
+
+export type RoomNotice<Frame> = {
+  readonly frame: Frame | null;
+  readonly close: RoomClose;
+};
+
 export class RoomConnections<Member extends RoomMember, Frame> {
   private sockets = new Map<WebSocket, RoomConnection<Member>>();
   private attachment: z.ZodType<RoomConnection<Member>>;
@@ -139,12 +146,13 @@ export class RoomConnections<Member extends RoomMember, Frame> {
    *
    * Every socket, not only those `broadcast` reaches: one still waiting on its session hears it too.
    * The frame says no more than the close reason after it, and a browser that is told stops
-   * reconnecting to a room that has closed for good.
+   * reconnecting to a room that has closed for good. A room closes with the notice it refuses a
+   * socket with once it has closed, so a page hears the same words whichever way it finds out.
    */
-  closeAll = (frame: Frame, code: number, reason: string): void => {
+  closeAll = (notice: RoomNotice<Frame>): void => {
     for (const [ws] of this.entries()) {
-      this.send(ws, frame);
-      this.close(ws, code, reason);
+      if (notice.frame) this.send(ws, notice.frame);
+      this.close(ws, notice.close.code, notice.close.reason);
     }
   };
 

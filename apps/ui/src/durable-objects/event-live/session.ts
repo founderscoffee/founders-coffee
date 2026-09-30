@@ -20,7 +20,7 @@ export const liveMember = z.object({
 
 export type LiveMember = z.infer<typeof liveMember>;
 
-const MEMBERSHIP_QUERY = `SELECT s.token AS token, s.user_id AS user_id, u.name AS name, e.host_id AS host_id,
+const MEMBERSHIP_QUERY = `SELECT s.token AS token, s.user_id AS user_id, u.name AS name, e.host_id AS host_id, e.status AS status,
                 EXISTS(SELECT 1 FROM event_rsvps WHERE event_id = e.id AND user_id = s.user_id AND status = 'going') AS rsvpd
          FROM session s
          JOIN user u ON s.user_id = u.id
@@ -32,6 +32,7 @@ type MembershipRow = {
   user_id: string;
   name: string;
   host_id: string;
+  status: string;
   rsvpd: number;
 };
 
@@ -44,7 +45,9 @@ type MembershipRow = {
  * a withdrawn RSVP, an expired login or a signed-out session is turned out within
  * `HEARTBEAT_TIMEOUT_MS` (45 s), where the 15 s heartbeat used to catch it sooner. That window is
  * the price #87 chose for one query per alarm instead of one per socket per heartbeat. A cancelled
- * meetup does not wait for it: cancellation closes the room at once, on its own path.
+ * meetup does not wait for it: cancellation closes the room at once, on its own path. A meetup
+ * cancelled where the room is not bound, as the nightly account closure cancels one, closes it at
+ * the next alarm instead, since the room reads the meetup's status in the same query.
  */
 export const liveMembership =
   (db: D1Database, eventId: string | null): MembershipLookup<LiveMember> =>
@@ -53,18 +56,21 @@ export const liveMembership =
       .prepare(MEMBERSHIP_QUERY)
       .bind(eventId, JSON.stringify(sessionTokens))
       .all<MembershipRow>();
-    return results.map((row) => {
-      const isHost = row.user_id === row.host_id;
-      return {
-        member: {
-          userId: row.user_id,
-          userName: row.name,
-          isHost,
-          sessionToken: row.token,
-        },
-        isMember: isHost || row.rsvpd === 1,
-      };
-    });
+    return {
+      isClosed: results.some((row) => row.status === 'cancelled'),
+      sessions: results.map((row) => {
+        const isHost = row.user_id === row.host_id;
+        return {
+          member: {
+            userId: row.user_id,
+            userName: row.name,
+            isHost,
+            sessionToken: row.token,
+          },
+          isMember: isHost || row.rsvpd === 1,
+        };
+      }),
+    };
   };
 
 export const LIVE_REFUSALS: RoomRefusals<OutboundMessage> = {
@@ -75,6 +81,10 @@ export const LIVE_REFUSALS: RoomRefusals<OutboundMessage> = {
   noSession: {
     frame: { type: 'auth_expired', message: 'Session expired' },
     close: { code: 4001, reason: 'auth_expired' },
+  },
+  closed: {
+    frame: { type: 'event_cancelled' },
+    close: { code: 4003, reason: 'event_cancelled' },
   },
   unavailable: {
     type: 'error',

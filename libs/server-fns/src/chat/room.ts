@@ -11,8 +11,9 @@ export type ChatRoomStub = DurableObjectStub<EventChatDO>;
  * The room of a meetup's chat, or `null` in a Worker that has no binding to it.
  *
  * The UI Worker holds the rooms. The jobs Worker does not, so what it does to a meetup, such as the
- * nightly account closure's cancellations, reaches a room only as far as the heartbeat check sees
- * it: a member who is no longer one is turned out, but a cancelled meetup's room is not closed.
+ * nightly account closure's cancellations, reaches a room through its heartbeat check alone: within
+ * `HEARTBEAT_TIMEOUT_MS`, a member who is no longer one is turned out, and the room of a meetup
+ * that was cancelled closes.
  * Every room is created under the `weur` location hint, as the live rooms are (#88).
  */
 export const chatRoomOf = (eventId: string): ChatRoomStub | null => {

@@ -517,14 +517,17 @@ room they tell; `server.ts` re-exports it.
   the room is reported and costs nothing written.
 - `cancelRsvpResolver` calls `revoke` where it calls `withdrawTelegramMember`, and `revoke` asks D1
   whether that member still belongs rather than taking the caller's word, so the host, whose own
-  RSVP never made them a member, keeps their sockets. `cancelEventResolver` calls `close`. The jobs
-  Worker has no binding to the rooms, so the nightly account closure reaches them only through the
-  heartbeat check. That turns out the closing member, who stopped being one when their account
-  began closing, but not a meetup the closure cancels: its room stays open, and members with its
-  chat open learn it is read-only when they next send or open it, as they do when a chat turns
-  read-only with time. Whether the jobs Worker binds the rooms across scripts, as `apps/ui` binds
-  `NotificationScheduleDO`, is open, and CH-06's system message for that cancellation needs the
-  answer. The heartbeat check is also what catches a ban, which no server function tells the room.
+  RSVP never made them a member, keeps their sockets. `cancelEventResolver` calls `close`.
+- The jobs Worker has no binding to the rooms, and the nightly account closure cancels meetups
+  there, so a room also closes itself (Founder / Product, 2026-09-30, rather than binding the jobs
+  Worker across scripts). The membership query reads whether the chat has turned read-only, which a
+  cancellation does at once, and a room whose chat has tells every socket `closed` and closes it
+  with 4004 at the next heartbeat alarm, within 45 seconds, whichever Worker cancelled. A page that
+  joins a read-only chat is closed the same way at once, and so is every socket a week after the
+  meetup, when the chat turns read-only with time. The live room reads its meetup's status in its
+  own query and closes for a cancellation the same way, with `event_cancelled`. The closing member
+  was turned out already, when their account began closing. The heartbeat check is also what
+  catches a ban, which no server function tells the room.
 - The client hook, `useEventChat`, follows `useEventLive`: backoff from 1 to 30 seconds, a fetch
   `after` its newest message on every connect, duplicates dropped by id. After three failed
   connects in a row it polls `listChatMessages` every 15 seconds while the panel is open.

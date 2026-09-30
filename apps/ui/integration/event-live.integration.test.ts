@@ -1,4 +1,9 @@
-import { env, evictDurableObject, runInDurableObject } from 'cloudflare:test';
+import {
+  env,
+  evictDurableObject,
+  runDurableObjectAlarm,
+  runInDurableObject,
+} from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
 import type { EventLiveDO } from '../src/durable-objects/EventLiveDO';
@@ -33,6 +38,13 @@ const admitted = async (
 
 const cancelMeetup = (eventId: string): Promise<void> =>
   liveRoomOf(eventId).cancel();
+
+/** Cancel a meetup in D1 alone, as a Worker with no binding to the room does. */
+const cancelledInD1 = async (eventId: string): Promise<void> => {
+  await env.DB.prepare("UPDATE events SET status = 'cancelled' WHERE id = ?")
+    .bind(eventId)
+    .run();
+};
 
 /**
  * Put a socket in the room as its upgrade does while D1 checks its session: accepted and
@@ -90,6 +102,34 @@ describe('EventLiveDO', () => {
     });
     expect(guest.frames.filter(ofType('event_cancelled'))).toHaveLength(1);
     expect(await trackedBy(room.eventId)).toEqual({ tracked: 0, alarm: null });
+  });
+
+  it('closes at its next alarm for a meetup cancelled where it was not told, as the nightly account closure cancels', async () => {
+    const room = await seedLiveRoom();
+    const guest = await admitted(room.eventId, room.guestToken);
+    await cancelledInD1(room.eventId);
+
+    expect(await runDurableObjectAlarm(liveRoomOf(room.eventId))).toBe(true);
+
+    await guest.waitFor(ofType('event_cancelled'));
+    expect(await guest.waitForClose()).toEqual({
+      code: 4003,
+      reason: 'event_cancelled',
+    });
+    expect(await trackedBy(room.eventId)).toEqual({ tracked: 0, alarm: null });
+  });
+
+  it('turns a page away from the room of a cancelled meetup, saying it is off', async () => {
+    const room = await seedLiveRoom();
+    await cancelledInD1(room.eventId);
+
+    const guest = await connect(room.eventId, room.guestToken);
+
+    await guest.waitFor(ofType('event_cancelled'));
+    expect(await guest.waitForClose()).toEqual({
+      code: 4003,
+      reason: 'event_cancelled',
+    });
   });
 });
 

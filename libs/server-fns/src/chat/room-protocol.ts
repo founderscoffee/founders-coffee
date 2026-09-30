@@ -37,5 +37,6 @@ export type ChatRoomUpdate =
 export const CHAT_ROOM_REFUSALS: RoomRefusals<ChatRoomFrame> = {
   notAllowed: { frame: { type: 'revoked' }, close: CHAT_ROOM_CLOSES.revoked },
   noSession: { frame: null, close: CHAT_ROOM_CLOSES.noSession },
+  closed: { frame: { type: 'closed' }, close: CHAT_ROOM_CLOSES.closed },
   unavailable: null,
 };
