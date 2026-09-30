@@ -57,7 +57,7 @@ describe('removeChatMessage (real D1)', () => {
       removedBy: member,
     });
     expect(removed?.removedAt).toBeInstanceOf(Date);
-    expect(await stored(db, messageId)).toEqual(removed);
+    expect(removed).toEqual({ ...(await stored(db, messageId)), eventId });
   });
 
   it("lets the host remove a member's message, as the host", async () => {

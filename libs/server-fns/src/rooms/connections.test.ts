@@ -80,7 +80,7 @@ describe('RoomConnections', () => {
     expect(restored.get(foreign)).toBeUndefined();
   });
 
-  it('sends a broadcast to verified members only', () => {
+  it('sends a broadcast to verified members only, and each their own frame when asked', () => {
     const verified = socket();
     const joining = socket();
     const connections = room();
@@ -89,8 +89,10 @@ describe('RoomConnections', () => {
     connections.admit(verified, host);
 
     connections.broadcast({ type: 'roster' });
+    connections.broadcastEach((to) => ({ type: `for ${to.userName}` }));
 
     expect(verified.send).toHaveBeenCalledWith('{"type":"roster"}');
+    expect(verified.send).toHaveBeenCalledWith('{"type":"for Host"}');
     expect(joining.send).not.toHaveBeenCalled();
   });
 

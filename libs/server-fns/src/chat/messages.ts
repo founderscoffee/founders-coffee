@@ -14,6 +14,7 @@ import {
 } from '@founders-coffee/db';
 
 import { admitReader, chatNotFound, notChatMember } from './access.js';
+import { tellChatRoom } from './room.js';
 import { chatMessageView, type ChatMessageView } from './view.js';
 
 export interface ChatMessagesPage {
@@ -32,7 +33,9 @@ export interface RemovedChatMessage {
  *
  * Whether the sender belongs to the chat and whether it is still open are decided by the database
  * in the statement that writes, so the answer here only names the refusal: no chat, not a member,
- * or a chat that no longer takes messages.
+ * or a chat that no longer takes messages. A stored message is pushed to the members with the chat
+ * open, a retried one too, since its first attempt may have stopped between the write and the push;
+ * a page already holding it drops the copy by its id.
  */
 export const sendChatMessageResolver = async (
   db: Db,
@@ -41,8 +44,13 @@ export const sendChatMessageResolver = async (
   const result = await sendChatMessage(db, input);
   switch (result.outcome) {
     case 'sent':
-    case 'already_sent':
-      return ok(chatMessageView(result.message, input.authorId));
+    case 'already_sent': {
+      const message = result.message;
+      await tellChatRoom(input.eventId, 'chat_push_message', (room) =>
+        room.broadcast({ type: 'message', message }),
+      );
+      return ok(chatMessageView(message, input.authorId));
+    }
     case 'chat_missing':
       return err(chatNotFound());
     case 'not_member':
@@ -75,7 +83,8 @@ export const listChatMessagesResolver = async (
 };
 
 /**
- * Remove a message as its author, or as the host of its meetup.
+ * Remove a message as its author, or as the host of its meetup, and push its tombstone to the
+ * members with the chat open.
  *
  * Anything the one conditional write leaves alone is answered alike: a message that is not there,
  * one already removed, a system message, or one the actor may not touch. Telling those apart would
@@ -90,5 +99,9 @@ export const removeChatMessageResolver = async (
     return err(
       new AppError('chat_message_not_found', 'This message cannot be removed'),
     );
-  return ok({ id: removed.id, removal: removed.removal });
+  const tombstone = { id: removed.id, removal: removed.removal };
+  await tellChatRoom(removed.eventId, 'chat_push_removal', (room) =>
+    room.broadcast({ type: 'removed', ...tombstone }),
+  );
+  return ok(tombstone);
 };

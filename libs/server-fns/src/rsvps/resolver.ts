@@ -10,6 +10,7 @@ import {
 } from '@founders-coffee/db';
 import { reportError } from '@founders-coffee/observability';
 
+import { tellChatRoom } from '../chat/room.js';
 import {
   enqueueHostRsvpCancellationNotice,
   enqueueHostRsvpNotice,
@@ -130,9 +131,10 @@ export const createRsvpResolver = async (
  * member is looking at a seat they can see and being told it is not theirs would be a lie.
  *
  * A member who is no longer going also leaves the meetup's Telegram group: their invite stops
- * admitting anyone at once, and the bot takes them out. That comes straight after the seat is given
- * back, ahead of the notices, and a failure there is reported rather than thrown, because the seat
- * is given back either way.
+ * admitting anyone at once, and the bot takes them out. Their sockets to the meetup's chat close
+ * too, once its room has checked that they are no longer in it. Both come straight after the seat
+ * is given back, ahead of the notices, and a failure in either is reported rather than thrown,
+ * because the seat is given back either way.
  */
 export const cancelRsvpResolver = async (
   db: Db,
@@ -175,6 +177,9 @@ export const cancelRsvpResolver = async (
       eventId: opts.eventId,
     });
   }
+  await tellChatRoom(opts.eventId, 'cancel_rsvp_chat', (room) =>
+    room.revoke(opts.userId),
+  );
 
   const host =
     opts.userId === event.hostId ? undefined : await getUser(db, event.hostId);

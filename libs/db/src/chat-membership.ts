@@ -17,8 +17,10 @@ import { eventRsvps, events, markets, user } from './schema.js';
  * A chat switched off in its market has no members at all. The `meetupChat` flag is read here, as
  * JSON `true` and nothing else, so no surface can reach a chat its market has not opened by
  * forgetting to ask, and switching it off closes every chat in the market at once.
+ *
+ * `userId` may be SQL that yields the id, such as the user of a session read in the same statement.
  */
-export const isChatMember = (userId: string): SQL => sql`(
+export const isChatMember = (userId: string | SQL): SQL => sql`(
   EXISTS (
     SELECT 1 FROM ${markets}
     WHERE ${markets.code} = ${events.marketCode}

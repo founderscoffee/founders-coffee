@@ -9,6 +9,7 @@ import {
 } from '@founders-coffee/db';
 import { logger, reportError } from '@founders-coffee/observability';
 
+import { tellChatRoom } from '../chat/room.js';
 import { enqueueEventCancellationNotices } from '../notifications/cancellation.js';
 import { announceTelegramCancellation } from '../telegram/notices.js';
 
@@ -29,7 +30,8 @@ import { announceTelegramCancellation } from '../telegram/notices.js';
  *    to come.
  * 3. The notices go out, and then the meetup's Telegram group is told, if it has one: the bot
  *    posts the cancellation, rewrites the pin and leaves. Queued before the withdrawal, that post
- *    would have been withdrawn along with the group's own reminder.
+ *    would have been withdrawn along with the group's own reminder. Last, the room of the meetup's
+ *    chat, which turned read-only with the flip, closes every socket open to it.
  *
  * Before any of that reaches a member, the meetup's city waitlist round is closed, in its own
  * try so it cannot cost the notices: nobody waiting for the city is told about a meetup that is off,
@@ -141,6 +143,7 @@ export const cancelEventResolver = async (
       eventId: event.id,
     });
   }
+  await tellChatRoom(event.id, 'cancel_event_chat', (room) => room.close());
 
   return ok({ event: cancelled, notified });
 };

@@ -61,6 +61,11 @@ export const RATE_BUDGETS = {
     },
   },
   chat: {
+    connect: {
+      action: 'connect_chat',
+      limit: 30,
+      windowMs: 10 * MINUTE_MS,
+    },
     send: {
       action: 'send_chat_message',
       limit: 20,
@@ -133,7 +138,9 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * `chat` holds what a member spends in a meetup's chat (P1-026). Twenty messages a minute keeps a
  * lively table talking and stops one member flooding it. A removal is a cheap write, with room for
  * a host clearing out a flood, and so is a read marker, which a member's screen moves as the chat
- * scrolls. A report asks a moderator for their attention, so it is the scarcest.
+ * scrolls. A report asks a moderator for their attention, so it is the scarcest. Each socket a page
+ * opens to the chat's room costs a connection, thirty in ten minutes: a panel opened and reopened
+ * across five tabs, with room for a patchy network, while a page that reconnects in a loop runs dry.
  *
  * `telegram` holds what a Telegram chat can spend through the webhook, keyed by chat. The webhook is
  * authenticated, but what arrives through it is whatever anyone in a group chooses to send: a

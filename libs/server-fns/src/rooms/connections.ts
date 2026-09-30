@@ -120,6 +120,11 @@ export class RoomConnections<Member extends RoomMember, Frame> {
     for (const [ws] of this.members()) this.sendText(ws, data);
   };
 
+  /** Send each verified connection the frame made for its own member, as {@link broadcast} does. */
+  broadcastEach = (frameFor: (member: Member) => Frame): void => {
+    for (const [ws, member] of this.members()) this.send(ws, frameFor(member));
+  };
+
   close = (ws: WebSocket, code: number, reason: string): void => {
     this.sockets.delete(ws);
     try {

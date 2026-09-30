@@ -5,6 +5,7 @@ export interface WorkerEnv {
 
   readonly RATE_LIMITER?: DurableObjectNamespace;
   readonly EVENT_LIVE?: DurableObjectNamespace;
+  readonly EVENT_CHAT?: DurableObjectNamespace;
   readonly NOTIFICATION_SCHEDULE?: DurableObjectNamespace;
   readonly NOTIFICATIONS?: Queue<AppQueueMessage>;
   readonly EMAIL?: unknown;

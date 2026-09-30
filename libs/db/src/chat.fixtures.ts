@@ -12,6 +12,7 @@ import {
   chatMessages,
   memberProfiles,
   profileAssets,
+  session,
   user,
   type NewEvent,
   type NewUser,
@@ -164,6 +165,22 @@ export const switchChat = async (
   await db.run(
     sql`UPDATE markets SET feature_flags = json_set(feature_flags, '$.meetupChat', json(${value})) WHERE code = ${marketCode}`,
   );
+};
+
+/** Sign `userId` in for `secondsLeft` more seconds, or past its expiry when negative, as a token. */
+export const signIn = async (
+  db: Db,
+  userId: string,
+  secondsLeft = 3600,
+): Promise<string> => {
+  const token = id('tok');
+  await db.insert(session).values({
+    id: id('ses'),
+    userId,
+    token,
+    expiresAt: new Date(Date.now() + secondsLeft * 1000),
+  });
+  return token;
 };
 
 /** The database's clock, in epoch seconds. */

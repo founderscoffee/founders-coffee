@@ -481,27 +481,50 @@ moderators and admins, and every change spends a budget in a new `RATE_BUDGETS.c
 
 **Real time.** `EventChatDO`, one per meetup named `chat:${eventId}`, SQLite-backed under a new
 `new_sqlite_classes` tag in `apps/ui/wrangler.jsonc`, exported from `apps/ui/src/server.ts`, and
-created with the `weur` location hint.
+created with the `weur` location hint. The class lives in `libs/server-fns/src/chat`, as
+`RateLimiterDO` lives in `libs/server-fns`, so the server functions' own Miniflare tests reach the
+room they tell; `server.ts` re-exports it.
 
 - The Worker routes `GET /api/chat/:eventId` with `Upgrade: websocket` beside `/api/live/` in
   `server.ts`, reading the meetup from the path the way `liveRoomEventId` does since 1d774c91: 404
   for any other path, 405 with `Allow: GET` for another method, 426 without the upgrade. It checks
   `Sec-Fetch-Site` and `Origin` (raw routes sit outside TanStack Start's CSRF middleware;
-  `photo-http.ts` is the precedent), spends a connect budget, and forwards to the room.
+  `photo-http.ts` is the precedent), spends a connect budget, and forwards to the room. The route
+  is `handleChatSocketRequest` in `socket-http.ts`, as the photo route is `photo-http.ts`, and the
+  budget, 30 connections in ten minutes, is counted against the signed-in member, or against the
+  address of anyone else, so members sharing a café's network do not share one.
 - The room reads the session cookie and admits members only. It shares the live room's session,
   membership and heartbeat code, moved out of `durable-objects/event-live/` into a module both
-  rooms use rather than copied.
+  rooms use rather than copied: `libs/server-fns/src/rooms`, which the live room imports as
+  `@founders-coffee/server-fns/rooms`, with the heartbeat's frames and timings in
+  `libs/core/src/rooms.ts` for the pages too. Each room brings its own membership query and its own
+  words for a refusal. The chat's asks `isChatMember` of every session in one statement
+  (`readChatSocketSessions`), so the socket keeps the one rule every read and write keeps.
 - Sockets hibernate: `acceptWebSocket`, the user id in `serializeAttachment`, the runtime answering
   the 15-second heartbeat, stale sockets reaped after 45 seconds, and access checked again at each
-  heartbeat alarm, as the live room does. A member holds at most five sockets.
+  heartbeat alarm, as the live room does. A member holds at most five sockets: a sixth makes their
+  oldest give way, closed as superseded, which its page takes as a reason to stop reconnecting.
 - The room only pushes: `message`, `removed`, `closed`, `revoked`. It ignores every frame but the
   heartbeat. What a member sends goes through a server function, so validation, authorisation,
-  rate limits and logs stay in one place.
+  rate limits and logs stay in one place. A `message` frame is the view the server functions answer
+  with, made for each member, so only its author gets the client id back. The close codes are
+  `CHAT_ROOM_CLOSES` in `libs/core`: 4001 for no session, with no frame, 4003 after `revoked`, 4004
+  after `closed` and 4005 for a superseded socket, beside the rooms' 4002 for a heartbeat timeout
+  and 1013 for a database that could not answer while a socket joined.
 - Server functions reach the room through Durable Object RPC methods (`broadcast`, `revoke`,
-  `close`) rather than HTTP requests, as the live room's `cancel()` has since 1d774c91.
-- `cancelRsvpResolver` calls `revoke` where it calls `withdrawTelegramMember` today, so a member's
-  own cancellation and the nightly account closure, which cancels through it, both close that
-  member's sockets. The heartbeat check catches what cannot reach the room, such as a ban.
+  `close`) rather than HTTP requests, as the live room's `cancel()` has since 1d774c91. A send, a
+  retried one too, broadcasts the stored message and a removal its tombstone; a failure to reach
+  the room is reported and costs nothing written.
+- `cancelRsvpResolver` calls `revoke` where it calls `withdrawTelegramMember`, and `revoke` asks D1
+  whether that member still belongs rather than taking the caller's word, so the host, whose own
+  RSVP never made them a member, keeps their sockets. `cancelEventResolver` calls `close`. The jobs
+  Worker has no binding to the rooms, so the nightly account closure reaches them only through the
+  heartbeat check. That turns out the closing member, who stopped being one when their account
+  began closing, but not a meetup the closure cancels: its room stays open, and members with its
+  chat open learn it is read-only when they next send or open it, as they do when a chat turns
+  read-only with time. Whether the jobs Worker binds the rooms across scripts, as `apps/ui` binds
+  `NotificationScheduleDO`, is open, and CH-06's system message for that cancellation needs the
+  answer. The heartbeat check is also what catches a ban, which no server function tells the room.
 - The client hook, `useEventChat`, follows `useEventLive`: backoff from 1 to 30 seconds, a fetch
   `after` its newest message on every connect, duplicates dropped by id. After three failed
   connects in a row it polls `listChatMessages` every 15 seconds while the panel is open.
@@ -651,8 +674,8 @@ stays. P1-025's row then records the retirement and its date.
 | CH-01 | Complete | This plan                                                                                                                        | Decisions 1 to 8 confirmed by Founder / Product on 2026-09-29                                                                                                                                                                                                                                              |
 | CH-02 | Partial  | Migration 0041 and its backfill, the channel written with each meetup, domain schemas, repositories with single-statement writes | On Miniflare D1 (2026-09-29): the backfill gives each meetup inside its 90 days one channel, with the lifetime publishing gives; a meetup whose address was taken writes no channel; repository tests for sends, pages, removals, read markers and reports. The count on staging waits for the next deploy |
 | CH-03 | Complete | Server functions, the `chat` permission, the `chat` budgets                                                                      | On Miniflare D1 (2026-09-29): a non-member, a cancelled RSVP, a banned member and a read-only chat are refused; a retried send writes once; `getChatPage` reads in one batch after the session's. The `meetupChat` flag gates every chat read and write, off on staging and production until CH-11         |
-| CH-04 | Planned  | `EventChatDO`, the socket route, the rooms' shared session code                                                                  | Through `worker.fetch`: a foreign `Origin`, a `POST` and a non-member are refused; a cancelled RSVP is revoked; stale sockets are reaped; a hibernated room wakes                                                                                                                                          |
-| CH-05 | Planned  | Meetup page entry, the chat panel and its address, messages, composer, every state                                               | Component tests; a two-browser Playwright spec in ar, fr and en at 390, 768 and 1280; the keyboard on a real iPhone on staging                                                                                                                                                                             |
+| CH-04 | Complete | `EventChatDO`, the socket route, the rooms' shared session code                                                                  | Through `worker.fetch` on Miniflare (2026-09-29): a foreign `Origin`, a `POST` and a non-member are refused; a cancelled RSVP is revoked; stale sockets are reaped; a hibernated room wakes and pushes. The live room's 32 integration tests pass on the shared code                                       |
+| CH-05 | Planned  | Meetup page entry, `useEventChat`, the chat panel and its address, messages, composer, every state                               | Component tests; a two-browser Playwright spec in ar, fr and en at 390, 768 and 1280; the keyboard on a real iPhone on staging                                                                                                                                                                             |
 | CH-06 | Planned  | System messages                                                                                                                  | Integration tests for each, including a cancellation by the nightly account closure                                                                                                                                                                                                                        |
 | CH-07 | Planned  | `chat_unread`, the `meetup_chat` preference, unread counts                                                                       | Dispatch tests for read, muted and switched-off members; a push received on staging                                                                                                                                                                                                                        |
 | CH-08 | Planned  | Reports, removals, the admin review page, the audit                                                                              | Admin tests; on staging, one report acted on and one dismissed, and each opening of the chat audited                                                                                                                                                                                                       |

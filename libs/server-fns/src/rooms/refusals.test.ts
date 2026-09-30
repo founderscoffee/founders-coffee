@@ -148,7 +148,7 @@ describe('checking members again', () => {
     expect(connections.get(ws)?.member).toEqual(renamed);
   });
 
-  it('turns out the members who no longer hold, and nobody when the lookup fails', async () => {
+  it('turns out only the members asked about who no longer hold, and nobody when the lookup fails', async () => {
     const connections = room();
     const yacine = {
       userId: 'user-2',
@@ -157,13 +157,18 @@ describe('checking members again', () => {
     };
     const aminaSocket = joined(connections, amina);
     const yacineSocket = joined(connections, yacine);
-    const yacineLeft = lookupOf([
-      { member: amina, isMember: true },
+    const noneGoing = lookupOf([
+      { member: amina, isMember: false },
       { member: yacine, isMember: false },
     ]);
 
     await recheckMembers({ connections, lookup: failing, refusals });
-    await recheckMembers({ connections, lookup: yacineLeft, refusals });
+    await recheckMembers({
+      connections,
+      lookup: noneGoing,
+      refusals,
+      isAsked: (asked) => asked.userId === 'user-2',
+    });
 
     expect(aminaSocket.close).not.toHaveBeenCalled();
     expect(yacineSocket.close).toHaveBeenCalledWith(4003, 'not_attending');

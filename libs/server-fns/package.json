@@ -34,6 +34,16 @@
       "types": "./src/rooms/index.ts",
       "default": "./src/rooms/index.ts"
     },
+    "./chat-room": {
+      "@founders-coffee/source": "./src/chat/room-do.ts",
+      "types": "./src/chat/room-do.ts",
+      "default": "./src/chat/room-do.ts"
+    },
+    "./chat-socket": {
+      "@founders-coffee/source": "./src/chat/socket-http.ts",
+      "types": "./src/chat/socket-http.ts",
+      "default": "./src/chat/socket-http.ts"
+    },
     "./closeout-prompt": {
       "@founders-coffee/source": "./src/notifications/closeout-prompt.ts",
       "types": "./src/notifications/closeout-prompt.ts",

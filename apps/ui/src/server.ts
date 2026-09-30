@@ -11,9 +11,11 @@ import {
   type LogEntry,
 } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
+import { handleChatSocketRequest } from '@founders-coffee/server-fns/chat-socket';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
 import { handleTelegramWebhook } from '@founders-coffee/server-fns/telegram-webhook';
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
+export { EventChatDO } from '@founders-coffee/server-fns/chat-room';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
@@ -38,6 +40,7 @@ export interface UiEnv extends HandlerEnv {
   EMAIL: SendEmail;
   MAIL_FROM: string;
   EVENT_LIVE: DurableObjectNamespace;
+  EVENT_CHAT: DurableObjectNamespace;
   CSP_ENFORCED?: string;
   APP_ENVIRONMENT?: string;
   OTP_ECHO?: string;
@@ -182,6 +185,9 @@ export default {
 
     if (url.pathname.startsWith('/api/live/'))
       return secure(await openLiveRoom(request, env, url.pathname));
+
+    const chatSocket = handleChatSocketRequest(request, url);
+    if (chatSocket) return secure(await chatSocket);
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
       const body = (await request.json().catch(() => null)) as {

@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
 
 import { id, type ChatSendOutcome } from '@founders-coffee/core';
 
@@ -25,6 +25,8 @@ export type SendChatMessageResult =
   | {
       readonly outcome: Exclude<ChatSendOutcome, 'sent' | 'already_sent'>;
     };
+
+export type RemovedChatMessage = ChatMessageRow & { readonly eventId: string };
 
 type SendFacts = { hasChat: number; isMember: number; isOpen: number };
 
@@ -129,11 +131,14 @@ export const sendChatMessage = async (
  * tombstone stays. A system message, a message already removed or one the actor may not touch is
  * left alone, and the answer is `undefined`. A moderator's removal is its own write, with its
  * permission and its audit, not this one.
+ *
+ * The removed row comes back with its meetup, read in the same statement, since that is what names
+ * the chat's room for the members to be told.
  */
 export const removeChatMessage = async (
   db: Db,
   input: { readonly messageId: string; readonly actorId: string },
-): Promise<ChatMessageRow | undefined> => {
+): Promise<RemovedChatMessage | undefined> => {
   const rows = await db
     .update(chatMessages)
     .set({
@@ -157,6 +162,9 @@ export const removeChatMessage = async (
         )`,
       ),
     )
-    .returning();
+    .returning({
+      ...getTableColumns(chatMessages),
+      eventId: sql<string>`(select ${chatChannels.eventId} from ${chatChannels} where ${chatChannels.id} = ${chatMessages.channelId})`,
+    });
   return rows[0];
 };

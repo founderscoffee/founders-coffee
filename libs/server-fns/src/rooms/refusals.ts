@@ -88,8 +88,8 @@ export const recheckMember = async <Member extends RoomMember, Frame>(args: {
 };
 
 /**
- * Check every verified socket in the room with one lookup, and turn out those that no longer hold
- * (#87).
+ * Check the verified sockets in the room with one lookup, and turn out those that no longer hold
+ * (#87): every one at a heartbeat alarm, or only those `isAsked` picks.
  *
  * A database failure turns nobody out. The question is asked again at the next alarm.
  */
@@ -97,9 +97,10 @@ export const recheckMembers = async <Member extends RoomMember, Frame>(args: {
   connections: RoomConnections<Member, Frame>;
   lookup: MembershipLookup<Member>;
   refusals: RoomRefusals<Frame>;
+  isAsked?: (member: Member) => boolean;
 }): Promise<void> => {
-  const { connections, lookup, refusals } = args;
-  const asked = connections.members();
+  const { connections, lookup, refusals, isAsked = () => true } = args;
+  const asked = connections.members().filter(([, member]) => isAsked(member));
   if (asked.length === 0) return;
 
   const verdicts = await verifySessions(
