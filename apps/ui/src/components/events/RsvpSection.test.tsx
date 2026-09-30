@@ -81,6 +81,7 @@ const show = (item: EventWithAttendance, locale: 'ar' | 'en' = 'en') =>
       live={null}
       isWindowOpen={true}
       phase="upcoming"
+      isChatAvailable={false}
     />,
   );
 
@@ -215,6 +216,7 @@ describe('telling the room you are on your way', () => {
         live={live}
         isWindowOpen={isWindowOpen}
         phase="upcoming"
+        isChatAvailable={false}
       />,
     );
 

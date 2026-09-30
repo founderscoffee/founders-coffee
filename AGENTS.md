@@ -195,7 +195,7 @@ without rendering or requiring a browser challenge.
 - **Zero hardcoded user-facing strings.** All copy in `libs/i18n` locale resources.
 - **Every screen must work in both RTL and LTR.** Direction is driven by the active locale/market. Test both.
 - **Supported locales:** `ar`, `fr`, and `en`, with `ar` as the final fallback. Locale resolution is user preference/cookie → market default → `ar`; do not override it with browser `Accept-Language`.
-- **User-generated content is not auto-translated.** Tag it with a language code; render as authored. Profile introductions are the explicit exception: do not collect or infer a language code; render unchanged with automatic text direction.
+- **User-generated content is not auto-translated.** Tag it with a language code; render as authored. Profile introductions and meetup chat messages are the explicit exceptions: do not collect or infer a language code; render unchanged with automatic text direction.
 - **Format** dates, times, numbers, and currency per active locale + market timezone.
 
 ---

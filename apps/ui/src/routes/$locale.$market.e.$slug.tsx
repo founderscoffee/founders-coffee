@@ -1,4 +1,5 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
+import { z } from 'zod';
 
 import { appErrorCode, eventLanguages } from '@founders-coffee/core';
 import { localizedName, type Locale } from '@founders-coffee/i18n';
@@ -51,6 +52,9 @@ const EventRoute = () => {
 };
 
 export const Route = createFileRoute('/$locale/$market/e/$slug')({
+  validateSearch: z.object({
+    chat: z.literal(true).optional().catch(undefined),
+  }),
   component: EventRoute,
   loader: async ({ params, context }): Promise<EventRouteData> => {
     const market = context.markets.find(

@@ -21,6 +21,8 @@ import {
 import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import { ChatEntry } from '../../features/chat/components/ChatEntry';
+import { ChatInvite } from '../../features/chat/components/ChatInvite';
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
 import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
@@ -42,6 +44,7 @@ export type RsvpSectionProps = {
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
   phase: EventPhase;
+  isChatAvailable: boolean;
 };
 
 type RsvpFailure = { readonly message: string; readonly canRetry: boolean };
@@ -55,6 +58,7 @@ export const RsvpSection = ({
   live,
   isWindowOpen,
   phase,
+  isChatAvailable,
 }: RsvpSectionProps) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -124,6 +128,7 @@ export const RsvpSection = ({
         marketSlug={marketSlug}
         live={live}
         isWindowOpen={isWindowOpen}
+        isChatAvailable={isChatAvailable}
       />
     );
   }
@@ -156,6 +161,7 @@ export const RsvpSection = ({
             rsvp_cta({}, { locale })
           )}
         </button>
+        {isChatAvailable ? <ChatInvite locale={locale} /> : null}
       </>
     ) : null;
 
@@ -171,6 +177,7 @@ export const RsvpSection = ({
             <p className="text-body-sm text-neutral">
               {rsvp_cancelled_going_help({}, { locale })}
             </p>
+            {isChatAvailable ? <ChatEntry locale={locale} /> : null}
           </>
         ) : null
       ) : isGoing ? (
@@ -203,6 +210,7 @@ export const RsvpSection = ({
               locale={locale}
             />
           ) : null}
+          {isChatAvailable ? <ChatEntry locale={locale} /> : null}
           <TelegramGroupCard eventId={event.id} locale={locale} />
         </>
       ) : (

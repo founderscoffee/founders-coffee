@@ -56,6 +56,7 @@ const show = (item: EventWithAttendance) =>
       live={null}
       isWindowOpen={false}
       phase="upcoming"
+      isChatAvailable={false}
     />,
   );
 

@@ -33,6 +33,12 @@
       "banned": ["شارك"],
       "why": "#56 — one word, two meanings, on surfaces a reader moves between.",
       "allow": {}
+    },
+    {
+      "canonical": "محادثة",
+      "banned": ["دردشة", "شات"],
+      "why": "P1-026: one word for a meetup's chat, which the catalogue calls محادثة اللقاء. دردشة reads as idle chatter and شات is a loanword, and a member who meets two names for one panel looks for two features.",
+      "allow": {}
     }
   ],
   "fr": [
@@ -50,7 +56,20 @@
       ],
       "why": "#116 — a rencontre is organisée, not hébergée. Héberger means to put someone up, or to host a website, so « Hébergez dans votre ville » offered lodging rather than a meetup; every other string says organiser for what a host does, and hôte for the host. Only the verb is banned: hébergement, the web-hosting sense the legal pages use, is a different word in use.",
       "allow": {}
+    },
+    {
+      "canonical": "discussion",
+      "banned": ["chat", "Chat", "tchat", "Tchat", "messagerie", "Messagerie"],
+      "why": "P1-026: one word for a meetup's chat, « Discussion » in its panel and its entry. Chat is a cat in French and tchat is slang, and messagerie names an inbox of private messages, which the chat is not.",
+      "allow": {}
     }
   ],
-  "en": []
+  "en": [
+    {
+      "canonical": "chat",
+      "banned": ["discussion", "Discussion", "discussions", "Discussions"],
+      "why": "P1-026: one word for a meetup's chat, as its panel and its entry name it. A discussion reads as a forum thread, a different feature the product does not have.",
+      "allow": {}
+    }
+  ]
 }

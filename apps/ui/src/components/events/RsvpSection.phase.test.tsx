@@ -75,6 +75,7 @@ const show = (
       live={live}
       isWindowOpen={phase === 'started'}
       phase={phase}
+      isChatAvailable={false}
     />,
   );
 

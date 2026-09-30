@@ -261,6 +261,18 @@
   }
 }
 
+/* daisyUI sets a chat message's header and footer, its author's name and its time, at 11px, the
+   size of the eyebrow's Latin branch. Arabic steps them up to the caption scale, as the eyebrow
+   does, for the same reason: Tajawal at 11px is unreadable. The rule sits in the utilities layer
+   because daisyUI's own sits in a layer nested inside it, which a component rule cannot outrank. */
+@layer utilities {
+  :lang(ar) .chat-header,
+  :lang(ar) .chat-footer {
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+  }
+}
+
 /* A control sized for a mouse is a smaller thing than a control sized for a thumb: Apple asks
    44pt and Android 48dp, and daisyUI's `btn-md` lands at 40px while `btn-sm` lands at 32. Both
    standards measure the area that responds to a tap rather than the paint, so the gap closes

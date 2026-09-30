@@ -21,6 +21,9 @@ vi.mock('./HostLiveActions', () => ({ HostLiveActions: () => null }));
 vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
   TelegramGroupCard: () => <p>telegram-group</p>,
 }));
+vi.mock('../../features/chat/components/ChatEntry', () => ({
+  ChatEntry: () => <p>chat-entry</p>,
+}));
 
 const { HostEventPanel } = await import('./HostEventPanel');
 
@@ -85,7 +88,7 @@ const endless = {
   endsAt: null,
 } satisfies EventWithAttendance;
 
-const show = (item: EventWithAttendance) =>
+const show = (item: EventWithAttendance, isChatAvailable = false) =>
   render(
     <HostEventPanel
       event={item}
@@ -93,6 +96,7 @@ const show = (item: EventWithAttendance) =>
       marketSlug="algeria"
       live={null}
       isWindowOpen={false}
+      isChatAvailable={isChatAvailable}
     />,
   );
 
@@ -263,6 +267,19 @@ describe("HostEventPanel carries the meetup's Telegram group", () => {
     (_case, item) => {
       show(item);
       expect(screen.getByText('telegram-group')).toBeTruthy();
+      expect(screen.queryByText('chat-entry')).toBeNull();
     },
   );
+
+  it.each([
+    ['ahead', event],
+    ['called off', cancelled],
+  ])('opens the chat above it while the meetup is %s', (_case, item) => {
+    show(item, true);
+    const group = screen.getByText('telegram-group');
+    expect(
+      screen.getByText('chat-entry').compareDocumentPosition(group) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });

@@ -26,6 +26,7 @@ import {
   useCancelEvent,
   useRepeatEventTemplate,
 } from '../../features/events/hooks';
+import { ChatEntry } from '../../features/chat/components/ChatEntry';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
 import { AddToCalendar } from './AddToCalendar';
@@ -39,6 +40,7 @@ type HostEventPanelProps = {
   marketSlug: string;
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
+  isChatAvailable: boolean;
 };
 
 export const HostEventPanel = ({
@@ -47,6 +49,7 @@ export const HostEventPanel = ({
   marketSlug,
   live,
   isWindowOpen,
+  isChatAvailable,
 }: HostEventPanelProps) => {
   const router = useRouter();
   const cancelEvent = useCancelEvent();
@@ -139,6 +142,7 @@ export const HostEventPanel = ({
         </div>
       )}
 
+      {isChatAvailable ? <ChatEntry locale={locale} /> : null}
       <TelegramGroupCard eventId={event.id} locale={locale} />
 
       {repeat.data ? (

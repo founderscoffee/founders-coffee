@@ -31,6 +31,7 @@ import type {
   PublicProfile,
 } from '@founders-coffee/server-fns';
 
+import { EventChat } from '../../features/chat/components/EventChat';
 import { eventCityName } from '../../features/events/event-city-name';
 import { eventStreetAddress } from '../../features/events/event-street-address';
 import type { EventPhase } from '../../features/events/live-window';
@@ -94,7 +95,9 @@ export const EventDetail = ({
   const streetAddress = eventStreetAddress(event);
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
   const isCancelled = event.status === 'cancelled';
-  const hasRsvpBox = isHost || !isCancelled || event.viewerRsvp === 'going';
+  const isGoing = event.viewerRsvp === 'going';
+  const hasRsvpBox = isHost || !isCancelled || isGoing;
+  const isChatAvailable = market.featureFlags.meetupChat === true;
 
   return (
     <article className="mx-auto max-w-5xl px-4 py-6 sm:py-8 md:px-8 md:py-10">
@@ -246,9 +249,22 @@ export const EventDetail = ({
             live={live}
             isWindowOpen={isWindowOpen}
             phase={phase}
+            isChatAvailable={isChatAvailable}
           />
         ) : null}
       </div>
+
+      {isChatAvailable ? (
+        <EventChat
+          locale={locale}
+          eventId={event.id}
+          title={event.title}
+          isMember={isHost || isGoing}
+          isCancelled={isCancelled}
+          endsAt={end}
+          timeZone={market.timezone}
+        />
+      ) : null}
     </article>
   );
 };
