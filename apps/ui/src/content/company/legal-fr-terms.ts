@@ -73,6 +73,7 @@ export const termsFrench: CompanyPageContent = translatedPage(
       'Signaler une violation',
       text(
         'Si vous voyez une rencontre, un profil ou un contenu contraire aux règles ou à la loi, ou qui porte atteinte à l’un de vos droits, écrivez-nous à **contact@founders.coffee** en indiquant le lien du contenu et ce que vous y voyez.',
+        'Pour un message dans la discussion d’une rencontre, utilisez « Signaler le message » dans la discussion elle-même.',
         'Nous examinons ce que nous recevons et agissons de manière appropriée. Si le signalement concerne une atteinte à un droit d’auteur ou à une marque, indiquez ce qui établit votre qualité et décrivez l’œuvre protégée.',
       ),
     ),
@@ -149,5 +150,5 @@ export const termsFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '29 septembre 2026',
+  '30 septembre 2026',
 );

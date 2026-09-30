@@ -44,7 +44,13 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       subheading('Gatherings and RSVPs'),
       ...text(
         'For a gathering you publish, we store its title, description, venue, address, coordinates, time, and language; these are public so the gathering can be discovered.',
-        'For an RSVP, we store the RSVP, its status, and date. The host sees **only your name** in the attendee list, because they need to know who to expect and book the venue accordingly. **The host does not see your email or phone number**, and the platform gives them no way to message you directly. However, if the host links a Telegram group to the gathering and you choose to join it, they see you there and can message you there like any other member, as explained below.',
+        'For an RSVP, we store the RSVP, its status, and date. The host sees **only your name** in the attendee list, because they need to know who to expect and book the venue accordingly. **The host does not see your email or phone number**, and the platform gives them no way to message you privately. However, if the host links a Telegram group to the gathering and you choose to join it, they see you there and can message you there like any other member, as explained below.',
+      ),
+      subheading('Gathering chat'),
+      ...text(
+        'A gathering can have a chat where its host and the people going write. We store each message, its time and its author, how far you have read, and whether you muted its notifications. Everyone in the chat sees what you write with your name and photo. Messages are not end-to-end encrypted, so they are stored with us.',
+        'If a member reports a message, a moderator reads the chat it was posted in to decide on the report. We keep the report: the message and its author, the reason, the date, and the moderator’s decision. We do not reveal who reported to the person reported.',
+        'A chat and its messages are deleted **90 days** after the gathering ends or is cancelled. A report is kept without the message’s text for **24 months** after the moderator’s decision.',
       ),
       subheading('Telegram gathering groups'),
       ...text(
@@ -63,7 +69,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
       subheading('Preferences and notifications'),
       ...text(
-        'Your choices about reminders, gathering changes, host RSVP notifications, and delivery channels. If you enable push notifications, we store a device token and platform type. The token is a technical device identifier and does not reveal content or location.',
+        'Your choices about reminders, gathering changes, gathering chat messages, host RSVP notifications, and delivery channels. If you enable push notifications, we store a device token and platform type. The token is a technical device identifier and does not reveal content or location.',
       ),
       subheading('Technical data and security logs'),
       ...text(
@@ -93,9 +99,9 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
     section('Legal basis for processing', [
       ...text('Each processing activity relies on a basis the law recognises:'),
       list([
-        '**Performance of our contract:** your account, your public profile (your name, your photo and introduction if you add them, the month you joined, and the number of gatherings you hosted), publishing gatherings, RSVPs, and reminders and alerts about a gathering you joined. These are not extra services but the core of what you signed up for.',
+        '**Performance of our contract:** your account, your public profile (your name, your photo and introduction if you add them, the month you joined, and the number of gatherings you hosted), publishing gatherings, RSVPs, the gathering chat, and reminders and alerts about a gathering you joined. These are not extra services but the core of what you signed up for.',
         '**Your explicit consent:** publishing the optional profile fields that each have a visibility switch, enabling push or SMS notifications, joining a city waitlist, and linking or joining a Telegram group for a gathering. You can withdraw consent at any time; withdrawal does not affect the lawfulness of what was done before.',
-        '**Legitimate interest:** platform security, abuse prevention, measuring platform use with aggregate figures not attributed to anyone, and attendance records as a way to protect the community from fake gatherings. We have balanced this interest against your rights, which is why we do not show attendance records publicly and let you correct them.',
+        '**Legitimate interest:** platform security, abuse prevention and the review of reports, measuring platform use with aggregate figures not attributed to anyone, and attendance records as a way to protect the community from fake gatherings. We have balanced this interest against your rights, which is why we do not show attendance records publicly and let you correct them.',
         '**Legal obligation:** when a law requires us to retain or provide data.',
       ]),
       ...text(
@@ -107,6 +113,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       text(
         '**Any visitor to the platform**, even without an account, sees your public profile: your name, photo, introduction, the month you joined, the number of gatherings you hosted, and any optional fields you published.',
         '**Other members** also see you in the attendee list for a gathering you share.',
+        '**Everyone in a gathering’s chat**, its host and the people going, reads what you write there with your name and photo. **A moderator** reviewing a report reads the chat it came from.',
         '**The host** sees your name in the attendee list and records whether you attended. Under the [Organizer terms](/organizers), the host must use this list only to organise their gathering; using it to send offers or build a database is a violation that leads to account suspension.',
         '**Telegram group members**, if you join the gathering’s group, see you as Telegram displays you and can message you there. **Telegram** itself is an independent party that does not act on our behalf; it receives from us what the bot posts about the gathering, the approval of your join request, and your removal if you cancel your RSVP.',
         '**Google or GitHub**, if you sign in with one of them: each is an independent party that does not act on our behalf. It learns that you signed in to our platform, sends us what is described under “Account data” above, and processes this under its own privacy policy.',
@@ -150,6 +157,10 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
             'Comment attributed to its author for **12 months**, then retained without identity',
           ],
           [
+            'Gathering chat messages',
+            'Deleted with the chat **90 days** after the gathering ends or is cancelled',
+          ],
+          [
             'Telegram invitation link and account identifier',
             'Until you cancel your RSVP or the group link ends, about one day after the gathering, then deleted. If the identifier is needed to remove you from the group, it is kept until the removal is done or becomes permanently impossible',
           ],
@@ -164,7 +175,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
           ],
           [
             'Messages and moderation reports',
-            '**24 months** after the request closes',
+            '**24 months** after the request closes, or after the moderator’s decision on a reported message',
           ],
           ['Data required by law', 'The period required by that law'],
         ],
@@ -186,7 +197,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ]),
       ...text(
         '**Free and prompt.** Using any of these rights costs you nothing. **We answer every request within six (6) working days** of receiving it, and if we refuse one, we give you our reasons in writing.',
-        '**How to use them.** Some of these rights are available directly in the platform: edit your profile and visibility switches on the profile page, and your notification preferences on the preferences page. For everything else (including a copy of your data, correcting an attendance record, and closing your account), email **contact@founders.coffee** from the address registered on your account and state your request clearly.',
+        '**How to use them.** Some of these rights are available directly in the platform: edit your profile and visibility switches on the profile page and your notification preferences on the preferences page, and delete your messages in a gathering’s chat from the chat itself. For everything else (including a copy of your data, correcting an attendance record, and closing your account), email **contact@founders.coffee** from the address registered on your account and state your request clearly.',
         '**Correcting an attendance record** deserves a special mention: if a host recorded that you did not attend a gathering you attended, or the reverse, that is personal data about you, and you have the right to have it corrected within the same correction deadline. Write to us and we will review the record.',
       ),
     ]),
@@ -234,5 +245,5 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '29 September 2026',
+  '30 September 2026',
 );

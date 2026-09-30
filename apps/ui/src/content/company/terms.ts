@@ -6,6 +6,6 @@ export const termsContent: CompanyPageContent = {
   title: 'شروط الاستخدام',
   description:
     'الشروط التي تحكم استخدام منصة فاوندرز كوفي، ودورنا في اللقاءات التي ينشرها الأعضاء، وحدود مسؤوليتنا.',
-  updated: '29 سبتمبر 2026',
+  updated: '30 سبتمبر 2026',
   sections: [...termsPlatformSections, ...termsLegalSections],
 };

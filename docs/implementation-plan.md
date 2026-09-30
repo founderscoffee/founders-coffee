@@ -452,9 +452,9 @@ read-only it says so. Both come from `read_only_at`, so no job has to post them.
 - `chat_members`: only what a member chooses, keyed by `(channel_id, user_id)` and written the
   first time they open the chat: `last_read_at`, `muted`, `updated_at`.
 - `chat_reports`: `id` (`rpt_…`), `message_id` (no cascade: a report outlives its message),
-  `reporter_id` (unique with `message_id`, so a member reports a message once), `market_code`,
-  `reason` (`spam`, `harassment` or `other`), `created_at`, `status`, `reviewed_by`,
-  `reviewed_at`.
+  `reporter_id` (unique with `message_id`, so a member reports a message once),
+  `reported_user_id` (the message's author, 0043), `market_code`, `reason` (`spam`, `harassment` or
+  `other`), `created_at`, `status`, `reviewed_by`, `reviewed_at` (partial index, for retention).
 
 The Zod schemas and the pure rules (normalising a body, finding its links, whether a chat is open
 or read-only) live in `libs/domain/src/chat`, and the stored values in `libs/core`'s enums, as
@@ -600,27 +600,40 @@ next heartbeat check. A key or parameters a screen cannot read show as a change 
 
 **Privacy, retention and erasure.**
 
-- The privacy policy gains a meetup chat section and a retention row, in `privacy-data.ts`,
+- The privacy policy has a meetup chat section and a retention row, in `privacy-data.ts`,
   `privacy-processing.ts` and `privacy-rights.ts` (Arabic, authoritative), `legal-en-privacy.ts`
-  and `legal-fr-privacy.ts`. It says what is kept (the message, its time and its author), who sees
-  it (the host and the people going, and a moderator reviewing a report, who reads the whole chat
-  it was posted in), for how long (90 days after the meetup), and that it is not end-to-end
-  encrypted. Its sentence that the platform
-  gives members no way to message each other changes to say that the members of a meetup can write
-  to each other in its chat. Each language's "last updated" date moves, and
-  `privacy-practice.test.ts` holds the policy to the practice.
-- The community guidelines say their rules apply in meetup chats and that a message can be reported
-  in the app. The terms' "Reporting a violation" names the in-app report.
+  and `legal-fr-privacy.ts`. It says what is kept (the message, its time and its author, the read
+  marker and the mute), who sees it (the host and the people going, with the author's name and
+  photo, and a moderator reviewing a report, who reads the whole chat it was posted in), for how
+  long (90 days after the meetup ends or is cancelled), what a report keeps and for how long, and
+  that messages are not end-to-end encrypted. The host still has no way to message a member
+  privately. Its wording holds before the flag is on and in a market without it ("a gathering can
+  have a chat"). `privacy-practice.test.ts` holds its 90 days and 24 months to the constants in
+  `libs/core/src/chat.ts`, which the database's lifetime expressions and the sweep read.
+- The community guidelines apply in meetup chats and say how to report a message in the app; the
+  terms' "Reporting a violation" names the in-app report; the organizer terms send a host with
+  something to tell the people going to the chat as well as the description, and forbid offers in
+  it as in the description. Privacy, guidelines, terms and organizer terms are dated 30 September
+  2026 in every language.
+- **Notice.** Privacy §12 promises advance notice of a material change in what is collected or who
+  receives it, and the chat is both. About a week before the flag goes on, every member is emailed,
+  in their language, what the chat keeps and who reads it, with a link to the policy (CH-11;
+  Founder / Product, 2026-09-30).
 - **Retention.** The daily run in `apps/worker-jobs` (`0 3 * * *`) deletes expired chats the way
   the waitlist sweep deletes entries, under the AGENTS.md §11.5 exception: by id from a bounded
-  subselect on the `expires_at` index, 500 at a time and at most ten passes a night. Reports are
-  content reports under the policy, kept 24 months and swept by the same run. They hold no copy of
-  the message, so its text goes with the chat.
-- **Export.** The operator runbook, `docs/account-requests.md`, gains a query for the member's own
-  messages.
-- **Erasure.** `eraseClosedAccount` deletes the member's messages and chat state in its batch,
-  under the same still-closing guard, as it clears feedback comments. The room keeps no names or
-  messages in its storage, so erasure has nothing to reach there.
+  subselect on the `expires_at` index, 500 at a time and at most ten passes a night; messages and
+  read and mute settings cascade. Reports hold no copy of the message and outlive their chat. Each
+  keeps the id of the member whose message it is (`reported_user_id`, migration 0043), so a member
+  reported again and again still shows after the chats are gone, and is deleted by the same run 24
+  months after its decision, through a partial index on `reviewed_at`; an open report waits for its
+  decision (Founder / Product, 2026-09-30).
+- **Export.** The operator runbook, `docs/account-requests.md`, has queries for the member's own
+  messages, chat settings and the reports they filed. Reports about their messages stay out: in a
+  small meetup, a report's date and reason can point to who made it.
+- **Erasure.** `eraseClosedAccount` deletes the member's messages and chat settings in its batch,
+  under the same still-closing guard, as it clears feedback comments. Reports they filed and the
+  ones about their messages stay, pointing at the tombstone. The room keeps no names or messages in
+  its storage, so erasure has nothing to reach there.
 
 **Screens** (`apps/ui/src/features/chat`).
 
@@ -710,9 +723,9 @@ stays. P1-025's row then records the retirement and its date.
 | CH-06 | Complete | System messages                                                                                                                  | On Miniflare D1 and Durable Objects (2026-09-30): a new start, a new place with its address, both at once as one new start, a quiet edit as nothing, a cancellation with its reason and without one, posted once however often it is made and pushed to an open panel before the room closes it, a market with the chat off told nothing, and the nightly account closure's cancellation left in the chat for the people going. Component tests for each notice in ar, fr and en, its values isolated. `meetup-chat.spec.ts` ends with the host cancelling and passes locally in ar at 390, fr at 768 and en at 1280: the member's open panel reads the cancellation and its reason in their language and turns read-only                                                                                                                                            |
 | CH-07 | Partial  | `chat_unread`, the `meetup_chat` preference, unread counts                                                                       | On Miniflare D1 (2026-09-30): a send queues one notice for each other member with push on, in their language, two minutes out, and none for its author, a retry, a muted or banned member, a member with the category off, or one whose last notice is pending or unread since; the dispatcher sends it tagged per chat and drops it for a member who has read, muted, switched the category off or left. The counts read only the reader's own chats, and 0042 keeps every choice a member had made. Component tests for the badge, the mute, the activity dot and the preferences row. `meetup-chat.spec.ts` passes locally in ar at 390, fr at 768 and en at 1280: the host's entry counts the message written while their panel was closed, reading it clears the count, and a mute holds across a reload. A push received on staging waits for the flag (CH-11) |
 | CH-08 | Partial  | Delete, Remove and Report in the chat panel                                                                                      | Component tests for the options on each message, the dialog's steps, reasons and failures, and its Escape, which leaves the panel open; the tombstone written into the panel's cache (2026-09-30). The writes and their server functions are CH-02's and CH-03's, tested there. `meetup-chat.spec.ts` passes locally in ar at 390, fr at 768 and en at 1280: the member reports the host's message with a reason, which is kept for the market, the host removes the member's and the member deletes their own, each seen at once in the other's panel. The review is the admin app's (see Moderation); step 6 on staging waits for the flag (CH-11)                                                                                                                                                                                                                 |
-| CH-09 | Planned  | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | Sweep and erasure tests; the policy reviewed and dated in each language                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| CH-09 | Partial  | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | On Miniflare D1 (2026-09-30): the sweep deletes a chat 90 days after its meetup with its messages and settings, keeps a younger one and the reports of a deleted one, deletes a report 24 months after its decision and never an open one, reading both through their indexes; a report keeps who it is about, even once that account is deleted outright; erasure deletes a closed account's messages and settings and no one else's, keeps both kinds of report, and leaves a reopened account's chat as it was. `privacy-practice.test.ts` holds the policy's 90 days and 24 months to the code. The policy, guidelines, terms and organizer terms are dated 30 September 2026 in ar, fr and en; their review waits for Founder / Product                                                                                                                         |
 | CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Sends and the panel's first read within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| CH-11 | Planned  | Turning the feature flag on once the admin app reviews reports, the evidence run, production                                     | The run below recorded on staging, then the flag on in production                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| CH-11 | Planned  | Turning the feature flag on once the admin app reviews reports, the members' notice a week before, the evidence run, production  | The run below recorded on staging, then the flag on in production                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | CH-12 | Planned  | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 Tickets run in number order. Moderation and privacy (CH-08 and CH-09) come before the flag, since

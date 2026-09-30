@@ -44,7 +44,13 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       subheading('Rencontres et inscriptions'),
       ...text(
         'Pour une rencontre que vous publiez, nous conservons le titre, la description, le nom du lieu, son adresse, ses coordonnées, l’horaire et la langue ; ces informations sont publiques par nature, puisqu’une rencontre est publiée pour être découverte.',
-        'Pour une inscription, nous conservons l’inscription, son statut et sa date. L’organisateur voit **uniquement votre nom** dans la liste des inscrits, car il doit savoir qui attendre et réserver le lieu en conséquence. **Il ne voit ni votre e-mail ni votre numéro de téléphone**, et la plateforme ne lui donne aucun moyen de vous écrire directement. En revanche, s’il relie un groupe Telegram à sa rencontre et que vous choisissez de le rejoindre, il vous y voit et peut vous y écrire comme les autres membres, comme expliqué ci-dessous.',
+        'Pour une inscription, nous conservons l’inscription, son statut et sa date. L’organisateur voit **uniquement votre nom** dans la liste des inscrits, car il doit savoir qui attendre et réserver le lieu en conséquence. **Il ne voit ni votre e-mail ni votre numéro de téléphone**, et la plateforme ne lui donne aucun moyen de vous écrire en privé. En revanche, s’il relie un groupe Telegram à sa rencontre et que vous choisissez de le rejoindre, il vous y voit et peut vous y écrire comme les autres membres, comme expliqué ci-dessous.',
+      ),
+      subheading('Discussion de la rencontre'),
+      ...text(
+        'Une rencontre peut avoir une discussion où écrivent son organisateur et les inscrits. Nous conservons chaque message, son heure et son auteur, où vous en êtes de votre lecture et si vous avez désactivé ses notifications. Chacun dans la discussion voit ce que vous écrivez, avec votre nom et votre photo. Les messages ne sont pas chiffrés de bout en bout : ils sont conservés chez nous.',
+        'Si un membre signale un message, un modérateur lit la discussion où il a été publié pour statuer sur le signalement. Nous conservons le signalement : le message et son auteur, le motif, la date et la décision du modérateur. Nous ne révélons pas l’auteur du signalement à la personne signalée.',
+        'Une discussion et ses messages sont supprimés **90 jours** après la fin ou l’annulation de la rencontre. Un signalement est conservé sans le texte du message pendant **24 mois** après la décision du modérateur.',
       ),
       subheading('Groupes Telegram'),
       ...text(
@@ -63,7 +69,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
       subheading('Préférences et notifications'),
       ...text(
-        'Vos choix sur ce que vous voulez recevoir (rappels des rencontres, changements, alertes d’inscription pour les organisateurs) et le canal voulu pour chaque type.',
+        'Vos choix sur ce que vous voulez recevoir (rappels des rencontres, changements, messages de la discussion d’une rencontre, alertes d’inscription pour les organisateurs) et le canal voulu pour chaque type.',
         'Si vous activez les notifications push, nous conservons le jeton d’appareil qui permet de les envoyer et le type de plateforme. Ce jeton est un identifiant technique de l’appareil, dont on ne peut lire ni contenu ni localisation.',
       ),
       subheading('Données techniques et sécurité'),
@@ -94,9 +100,9 @@ export const privacyFrench: CompanyPageContent = translatedPage(
     section('Base juridique du traitement', [
       ...text('Chaque traitement repose sur un fondement prévu par la loi :'),
       list([
-        '**Exécution du contrat qui nous lie :** le compte, votre profil public (votre nom, votre photo et votre présentation si vous les ajoutez, votre mois d’inscription et le nombre de rencontres organisées), la publication des rencontres, les inscriptions, et les rappels et alertes liés à une rencontre à laquelle vous êtes inscrit. Ce ne sont pas des services en plus, mais l’essentiel de ce pour quoi vous vous êtes inscrit.',
+        '**Exécution du contrat qui nous lie :** le compte, votre profil public (votre nom, votre photo et votre présentation si vous les ajoutez, votre mois d’inscription et le nombre de rencontres organisées), la publication des rencontres, les inscriptions, la discussion de la rencontre, et les rappels et alertes liés à une rencontre à laquelle vous êtes inscrit. Ce ne sont pas des services en plus, mais l’essentiel de ce pour quoi vous vous êtes inscrit.',
         '**Votre consentement explicite :** la publication des champs facultatifs du profil, qui ont chacun un réglage de visibilité, l’activation des notifications push ou SMS, l’inscription à la liste d’attente d’une ville, et la liaison d’un groupe Telegram à une rencontre ou l’adhésion à ce groupe. Vous pouvez retirer votre consentement à tout moment, sans remettre en cause la licéité de ce qui a été fait auparavant.',
-        '**Intérêt légitime :** la sécurité de la plateforme, la prévention des abus, la mesure de l’usage par des chiffres agrégés qui ne sont attribués à personne, et les registres de présence comme moyen de protéger la communauté contre les rencontres fictives. Nous avons mis cet intérêt en balance avec vos droits : c’est pourquoi les registres de présence ne sont pas publics et vous pouvez les faire corriger.',
+        '**Intérêt légitime :** la sécurité de la plateforme, la prévention des abus et l’examen des signalements, la mesure de l’usage par des chiffres agrégés qui ne sont attribués à personne, et les registres de présence comme moyen de protéger la communauté contre les rencontres fictives. Nous avons mis cet intérêt en balance avec vos droits : c’est pourquoi les registres de présence ne sont pas publics et vous pouvez les faire corriger.',
         '**Obligation légale :** lorsqu’un texte nous impose de conserver ou de transmettre une donnée.',
       ]),
       ...text(
@@ -108,6 +114,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       text(
         '**Tout visiteur de la plateforme**, même sans compte, voit votre profil public : votre nom, votre photo, votre présentation, votre mois d’inscription, le nombre de rencontres organisées et les champs facultatifs que vous avez publiés.',
         '**Les autres membres** vous voient aussi dans la liste des inscrits d’une rencontre que vous partagez avec eux.',
+        '**Chacun dans la discussion d’une rencontre**, son organisateur et les inscrits, lit ce que vous y écrivez, avec votre nom et votre photo. **Un modérateur** qui examine un signalement lit la discussion d’où il vient.',
         '**L’organisateur** voit votre nom dans la liste des inscrits et indique si vous étiez présent. Les [Conditions des organisateurs](/organizers) l’obligent à n’utiliser cette liste que pour organiser sa rencontre ; l’utiliser pour envoyer des offres ou constituer une base de données est une infraction qui entraîne la suspension du compte.',
         '**Les membres du groupe Telegram** de la rencontre, si vous le rejoignez, vous voient comme Telegram vous affiche et peuvent vous y écrire. **Telegram** lui-même est une entité indépendante qui n’agit pas pour notre compte ; il reçoit de nous ce que le bot publie sur la rencontre, l’approbation de votre demande d’adhésion et votre retrait si vous annulez votre inscription.',
         '**Google ou GitHub**, si vous vous connectez avec l’un d’eux : chacun est une entité indépendante qui n’agit pas pour notre compte. Il sait que vous vous êtes connecté à notre plateforme, nous transmet ce qui est décrit sous « Données du compte » ci-dessus, et le traite selon sa propre politique de confidentialité.',
@@ -151,6 +158,10 @@ export const privacyFrench: CompanyPageContent = translatedPage(
             'Le commentaire reste associé à son auteur **12 mois**, puis l’avis est conservé sans identité',
           ],
           [
+            'Messages de la discussion d’une rencontre',
+            'Supprimés avec la discussion **90 jours** après la fin ou l’annulation de la rencontre',
+          ],
+          [
             'Lien d’invitation Telegram et identifiant de compte',
             'Jusqu’à l’annulation de votre inscription ou la fin de la liaison du groupe, soit environ un jour après la rencontre, puis suppression. Si l’identifiant est nécessaire pour vous retirer du groupe, il est conservé jusqu’à ce que le retrait soit fait ou devienne définitivement impossible',
           ],
@@ -168,7 +179,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
           ],
           [
             'Messages et signalements de modération',
-            '**24 mois** après la clôture de la demande',
+            '**24 mois** après la clôture de la demande, ou après la décision du modérateur sur un message signalé',
           ],
           ['Données imposées par la loi', 'La durée prévue par le texte'],
         ],
@@ -190,7 +201,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ]),
       ...text(
         '**Gratuitement et sans tarder.** L’exercice de ces droits ne vous coûte rien. **Nous répondons à toute demande dans les six (6) jours ouvrables** suivant sa réception ; si nous la refusons, nous vous en donnons les motifs par écrit.',
-        '**Comment les exercer.** Certains de ces droits sont disponibles directement sur la plateforme : modifier votre profil et vos réglages de visibilité depuis la page de profil, et vos préférences de notification depuis la page des préférences. Pour le reste (notamment obtenir une copie de vos données, faire corriger un registre de présence ou fermer votre compte), écrivez à **contact@founders.coffee** depuis l’e-mail associé à votre compte en précisant clairement votre demande.',
+        '**Comment les exercer.** Certains de ces droits sont disponibles directement sur la plateforme : modifier votre profil et vos réglages de visibilité depuis la page de profil et vos préférences de notification depuis la page des préférences, et supprimer vos messages dans la discussion d’une rencontre depuis la discussion elle-même. Pour le reste (notamment obtenir une copie de vos données, faire corriger un registre de présence ou fermer votre compte), écrivez à **contact@founders.coffee** depuis l’e-mail associé à votre compte en précisant clairement votre demande.',
         '**La correction d’un registre de présence** mérite une mention particulière : si un organisateur a indiqué que vous étiez absent d’une rencontre à laquelle vous avez assisté, ou l’inverse, c’est une donnée personnelle qui vous concerne, et vous avez le droit de la faire corriger dans le même délai de rectification. Écrivez-nous et nous examinerons le registre.',
       ),
     ]),
@@ -238,5 +249,5 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '29 septembre 2026',
+  '30 septembre 2026',
 );

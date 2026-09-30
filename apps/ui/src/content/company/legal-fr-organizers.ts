@@ -63,9 +63,9 @@ export const organizersFrench: CompanyPageContent = translatedPage(
     section(
       'Contacter les participants',
       text(
-        'C’est nous qui envoyons aux inscrits les notifications liées à la rencontre : confirmation, rappel, changement et annulation. Ce sont des messages standards émis par la plateforme, qui ne vous permet ni d’y écrire votre propre texte ni d’envoyer un message groupé aux inscrits.',
-        'Si vous voulez faire passer une information aux inscrits, sa place est dans la description de la rencontre, car c’est ce qu’ils lisent et ce sur quoi s’appuie le rappel.',
-        'Les canaux de la rencontre, qu’il s’agisse de sa description ou d’un contact en dehors de la plateforme à partir de la liste des inscrits, ne peuvent en aucun cas servir à proposer des services ou des produits. Ce serait de la prospection directe, que la loi interdit sans le consentement préalable du destinataire.',
+        'C’est nous qui envoyons aux inscrits les notifications liées à la rencontre : confirmation, rappel, changement et annulation. Ce sont des messages standards émis par la plateforme, qui ne vous permet pas d’y écrire votre propre texte.',
+        'Si vous voulez faire passer une information aux inscrits, écrivez-la dans la discussion de la rencontre si elle en a une, ou dans sa description, car c’est la description qu’ils lisent et sur laquelle s’appuie le rappel.',
+        'Les canaux de la rencontre, qu’il s’agisse de sa description, de sa discussion ou d’un contact en dehors de la plateforme à partir de la liste des inscrits, ne peuvent en aucun cas servir à proposer des services ou des produits. Ce serait de la prospection directe, que la loi interdit sans le consentement préalable du destinataire.',
       ),
     ),
     section(
@@ -125,5 +125,5 @@ export const organizersFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '29 septembre 2026',
+  '30 septembre 2026',
 );
