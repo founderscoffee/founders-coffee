@@ -3,8 +3,8 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 import { composerOf, panelOf, send, type Screen } from './support/chat-panel';
 import { cleanupRun, d1 } from './support/d1';
 import { t, type E2eLocale } from './support/messages';
-import { signIn } from './support/profile-auth';
-import { RUN_ID, watchForApplicationErrors } from './support/run';
+import { signInBackTo } from './support/profile-auth';
+import { newId, RUN_ID, watchForApplicationErrors } from './support/run';
 
 const HOST: Screen = { locale: 'ar', width: 390, height: 844, hasTouch: true };
 const MEMBER: Screen = {
@@ -22,10 +22,6 @@ const OUTSIDER: Screen = {
 
 const DAY_SECONDS = 86_400;
 const HOUR_SECONDS = 3_600;
-
-/** An id in the one format the server functions accept: a prefix, an underscore, 32 hex digits. */
-const newId = (prefix: string): string =>
-  `${prefix}_${crypto.randomUUID().replaceAll('-', '')}`;
 
 const meetup = {
   eventId: newId('evt'),
@@ -80,13 +76,8 @@ const screenPage = async (browser: Browser, screen: Screen): Promise<Page> => {
 };
 
 /** Sign `email` in and land on the meetup's page in `locale`. */
-const signInTo = async (page: Page, locale: E2eLocale, email: string) => {
-  await page.goto(
-    `/${locale}/login?redirect=${encodeURIComponent(pathIn(locale))}`,
-  );
-  await signIn(page, locale, email, 'login_email_continue');
-  await page.waitForURL(new RegExp(`/e/${meetup.slug}$`), { timeout: 60_000 });
-};
+const signInTo = (page: Page, locale: E2eLocale, email: string) =>
+  signInBackTo(page, locale, email, pathIn(locale));
 
 const chatEntry = (page: Page, locale: E2eLocale) =>
   page.getByRole('button', { name: t(locale, 'chat_open') });

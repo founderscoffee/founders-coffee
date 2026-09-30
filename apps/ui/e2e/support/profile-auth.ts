@@ -55,3 +55,15 @@ export const signIn = async (
     .getByRole('button', { name: t(locale, 'login_verify'), exact: true })
     .click();
 };
+
+/** Sign `email` in on the login page and wait to be sent back to `path`, where it was asked to return. */
+export const signInBackTo = async (
+  page: Page,
+  locale: E2eLocale,
+  email: string,
+  path: string,
+): Promise<void> => {
+  await page.goto(`/${locale}/login?redirect=${encodeURIComponent(path)}`);
+  await signIn(page, locale, email, 'login_email_continue');
+  await page.waitForURL((url) => url.pathname === path, { timeout: 60_000 });
+};

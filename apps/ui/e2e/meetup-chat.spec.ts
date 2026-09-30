@@ -11,7 +11,7 @@ import {
 import { cleanupRun, d1 } from './support/d1';
 import { t, type E2eLocale } from './support/messages';
 import { signIn } from './support/profile-auth';
-import { RUN_ID, watchForApplicationErrors } from './support/run';
+import { newId, RUN_ID, watchForApplicationErrors } from './support/run';
 
 const SCREENS: readonly Screen[] = [
   { locale: 'ar', width: 390, height: 844, hasTouch: true },
@@ -20,10 +20,6 @@ const SCREENS: readonly Screen[] = [
 ];
 
 const DAY_SECONDS = 86_400;
-
-/** An id in the one format the server functions accept: a prefix, an underscore, 32 hex digits. */
-const newId = (prefix: string): string =>
-  `${prefix}_${crypto.randomUUID().replaceAll('-', '')}`;
 
 /** The rows one screen's run writes, named by its locale and the run so parallel runs never meet. */
 const meetupFor = (locale: E2eLocale) => {
