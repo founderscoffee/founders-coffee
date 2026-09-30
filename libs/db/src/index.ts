@@ -23,6 +23,7 @@ export * from './chat-members.js';
 export * from './chat-membership.js';
 export * from './chat-messages.js';
 export * from './chat-reads.js';
+export * from './chat-unread.js';
 export * from './chat-sockets.js';
 export * from './chat-system.js';
 export * from './chat-reports.js';

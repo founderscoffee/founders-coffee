@@ -9,6 +9,7 @@ import {
   newestOf,
   withLastRead,
   withMessages,
+  withMuted,
   withRemoval,
   type ChatMeta,
   type ChatPages,
@@ -135,5 +136,16 @@ describe("the chat panel's cache", () => {
     expect(metaOf(moved)?.lastReadAt).toEqual(later);
     expect(withLastRead(moved, new Date(AT))).toBe(moved);
     expect(withLastRead(undefined, later)).toBeUndefined();
+  });
+
+  it('keeps the reader’s choice to mute the chat with the page it opened with', () => {
+    const pages = pagesOf([message('msg_2', 2)], [message('msg_1', 1)]);
+
+    const muted = withMuted(pages, true);
+
+    expect(metaOf(muted)?.muted).toBe(true);
+    expect(metaOf(withMuted(muted, false))?.muted).toBe(false);
+    expect(messagesOf(muted)).toEqual(messagesOf(pages));
+    expect(withMuted(undefined, true)).toBeUndefined();
   });
 });

@@ -9,6 +9,7 @@ import {
   messagesWithAuthors,
   type ChatMessageWithAuthor,
 } from './chat-reads.js';
+import { queueChatUnread, type ChatUnreadNotice } from './chat-unread.js';
 import type { Db } from './db.js';
 import {
   chatChannels,
@@ -21,6 +22,7 @@ export type SendChatMessageResult =
   | {
       readonly outcome: Extract<ChatSendOutcome, 'sent' | 'already_sent'>;
       readonly message: ChatMessageWithAuthor;
+      readonly noticesQueued: number;
     }
   | {
       readonly outcome: Exclude<ChatSendOutcome, 'sent' | 'already_sent'>;
@@ -36,9 +38,11 @@ type SendFacts = { hasChat: number; isMember: number; isOpen: number };
  * One batch, so one trip to D1. The chat's insert comes first and heals a meetup that has none.
  * The message's insert selects from the chat and its meetup, so it writes only while the chat is
  * open and the author is a member, both judged by the database in the same statement; a
- * `client_id` the author already used in this chat writes nothing. The message is then read back,
- * with its author's name and photo, by that id in this chat, which answers a retry with the message
- * its first attempt stored, and the facts that explain a refusal are read last. `created_at` is the
+ * `client_id` the author already used in this chat writes nothing. Behind it, `queueChatUnread`
+ * queues the other members' `chat_unread` pushes from `unread`, only when this attempt wrote the
+ * message, and the answer says how many it queued. The message is then read back, with its
+ * author's name and photo, by that id in this chat, which answers a retry with the message its
+ * first attempt stored, and the facts that explain a refusal are read last. `created_at` is the
  * database's clock in milliseconds, so every sender's message takes its place on one timeline.
  */
 export const sendChatMessage = async (
@@ -48,16 +52,18 @@ export const sendChatMessage = async (
     readonly authorId: string;
     readonly body: string;
     readonly clientId: string;
+    readonly unread: ChatUnreadNotice;
   },
 ): Promise<SendChatMessageResult> => {
-  const [, written, stored, access] = await batch(db, [
+  const messageId = id('msg');
+  const [, written, queued, stored, access] = await batch(db, [
     insertChatChannel(db, { id: id('chn'), eventId: input.eventId }),
     db
       .insert(chatMessages)
       .select(
         db
           .select({
-            id: sql<string>`${id('msg')}`.as('id'),
+            id: sql<string>`${messageId}`.as('id'),
             channelId: chatChannels.id,
             authorId: sql<string>`${input.authorId}`.as('author_id'),
             kind: sql<'text'>`'text'`.as('kind'),
@@ -87,6 +93,12 @@ export const sendChatMessage = async (
           chatMessages.clientId,
         ],
       }),
+    queueChatUnread(db, {
+      eventId: input.eventId,
+      authorId: input.authorId,
+      messageId,
+      notice: input.unread,
+    }),
     messagesWithAuthors(db)
       .where(
         and(
@@ -107,11 +119,15 @@ export const sendChatMessage = async (
       .where(eq(events.id, input.eventId))
       .limit(1),
   ]);
-  const inserted =
-    ((written as { meta?: { changes?: number } }).meta?.changes ?? 0) > 0;
+  const changesOf = (result: unknown): number =>
+    (result as { meta?: { changes?: number } }).meta?.changes ?? 0;
   const message = (stored as ChatMessageWithAuthor[])[0];
   if (message) {
-    return { outcome: inserted ? 'sent' : 'already_sent', message };
+    return {
+      outcome: changesOf(written) > 0 ? 'sent' : 'already_sent',
+      message,
+      noticesQueued: changesOf(queued),
+    };
   }
   const facts = (access as SendFacts[])[0];
   if (!facts?.hasChat) return { outcome: 'chat_missing' };

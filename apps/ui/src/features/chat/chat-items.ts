@@ -70,8 +70,9 @@ const startsRun = (
     dayNumber(previous.createdAt, timeZone);
 
 /**
- * Where the unread divider goes: before the first message after the reader's read marker that they
- * did not write themselves and that is still there to read.
+ * Where the unread divider goes: before the first message after the reader's read marker that
+ * someone else wrote and that is still there to read. A notice about the meetup is never unread,
+ * here as in the counts and the push: its news reaches the members by its own push and email.
  *
  * A reader who has never opened the chat has no marker, and a divider above everything would say
  * nothing, so there is none.
@@ -83,6 +84,7 @@ const firstUnreadId = (
   if (!lastReadAt) return null;
   const first = messages.find(
     (message) =>
+      message.kind === 'text' &&
       !message.isOwn &&
       message.removal === null &&
       message.createdAt.getTime() > lastReadAt.getTime(),

@@ -33,6 +33,9 @@ vi.mock('../../lib/app-providers', () => ({
 }));
 
 vi.mock('./HostEventPanel', () => ({ HostEventPanel: () => null }));
+vi.mock('../../features/chat/components/ChatEntry', () => ({
+  ChatEntry: () => null,
+}));
 vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
   TelegramGroupCard: () => <p>telegram-group</p>,
 }));

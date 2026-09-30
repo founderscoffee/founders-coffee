@@ -9,6 +9,7 @@ import {
   accountStateSchema,
   channelsToMask,
   maskToChannels,
+  meetupChatChannelsFromMask,
   notificationPreferencesSchema,
   updateAccountPreferencesSchema,
 } from './preferences.js';
@@ -18,7 +19,7 @@ import {
 } from './account-summary.js';
 
 describe('account preferences', () => {
-  it('defaults every category on, with follow-up prompts on email only', () => {
+  it('defaults every category on, with follow-up prompts on email only and the chat on push', () => {
     for (const state of ['active', 'closing', 'deleted']) {
       expect(accountStateSchema.parse(state)).toBe(state);
     }
@@ -34,6 +35,8 @@ describe('account preferences', () => {
       hostRsvpCancelledChannels: ['push', 'email'],
       followUpPrompts: true,
       followUpPromptsChannels: ['email'],
+      meetupChat: true,
+      meetupChatChannels: ['push'],
       pushEnabled: false,
       smsFallbackEnabled: false,
     });
@@ -57,6 +60,22 @@ describe('account preferences', () => {
     ).toBe(false);
   });
 
+  it('offers the chat on push alone, since a chat message never goes by email', () => {
+    expect(
+      notificationPreferencesSchema.safeParse({
+        meetupChatChannels: ['push', 'email'],
+      }).success,
+    ).toBe(false);
+    expect(
+      notificationPreferencesSchema.safeParse({ meetupChatChannels: ['email'] })
+        .success,
+    ).toBe(false);
+    expect(meetupChatChannelsFromMask(1)).toEqual(['push']);
+    expect(meetupChatChannelsFromMask(5)).toEqual(['push']);
+    expect(meetupChatChannelsFromMask(4)).toEqual([]);
+    expect(meetupChatChannelsFromMask(0)).toEqual([]);
+  });
+
   it('requires the optimistic revision and rejects unsupported fields', () => {
     expect(
       updateAccountPreferencesSchema.parse({ expectedRevision: 0 }),
@@ -71,6 +90,8 @@ describe('account preferences', () => {
       hostRsvpCancelledChannels: ['push', 'email'],
       followUpPrompts: true,
       followUpPromptsChannels: ['email'],
+      meetupChat: true,
+      meetupChatChannels: ['push'],
       smsFallbackEnabled: false,
       expectedRevision: 0,
     });

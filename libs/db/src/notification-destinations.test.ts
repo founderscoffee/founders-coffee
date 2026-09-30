@@ -42,4 +42,13 @@ describe('what a member with no preferences row is taken to want', () => {
     expect(contact?.hostRsvpReceivedChannels).toBe(5);
     expect(contact?.hostRsvpCancelledChannels).toBe(5);
   });
+
+  it('keeps the meetup chat on push alone, as its column does', async () => {
+    const { db, userId } = await memberWithNoPreferencesRow('chat');
+
+    const contact = await getNotificationContact(db, userId);
+
+    expect(contact?.meetupChat).toBe(true);
+    expect(contact?.meetupChatChannels).toBe(1);
+  });
 });

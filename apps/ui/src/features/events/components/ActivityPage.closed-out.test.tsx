@@ -17,6 +17,9 @@ vi.mock('../hooks', () => ({
   useMyJoinedEvents: () => ({ ...state.hosted, ...state.session }),
   useHostedEvents: () => state.hosted,
 }));
+vi.mock('../../chat/hooks', () => ({
+  useChatUnreadCounts: () => new Map(),
+}));
 vi.mock('../../operations/hooks', () => ({
   useMyCloseoutStates: () => ({ data: state.closeoutStates }),
 }));

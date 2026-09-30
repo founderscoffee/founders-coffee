@@ -167,7 +167,7 @@ describe('release state validation', () => {
       latestMigration(
         fileURLToPath(new URL('../../libs/db/migrations', import.meta.url)),
       ),
-    ).toBe('0041_meetup_chat');
+    ).toBe('0042_meetup_chat_notifications');
   });
 });
 

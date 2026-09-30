@@ -130,7 +130,7 @@ describe('the rows of a chat’s log', () => {
     ]);
   });
 
-  it('puts the unread divider before the first message since the marker that someone else left standing', () => {
+  it('puts the unread divider before the first message since the marker that someone else wrote and left standing', () => {
     const items = itemsOf(
       [
         message('msg_1', '2026-09-30T10:00:00Z'),
@@ -147,6 +147,7 @@ describe('the rows of a chat’s log', () => {
           author: null,
           body: '',
         }),
+        message('msg_5', '2026-09-30T10:08:00Z'),
       ],
       { lastReadAt: new Date('2026-09-30T10:01:00Z') },
     );
@@ -156,9 +157,26 @@ describe('the rows of a chat’s log', () => {
       'msg_1*',
       'msg_2*',
       'msg_3*',
-      'unread',
       'msg_4*',
+      'unread',
+      'msg_5*',
     ]);
+  });
+
+  it('draws no divider for notices about the meetup alone, which are never unread', () => {
+    const items = itemsOf(
+      [
+        message('msg_1', '2026-09-30T10:00:00Z'),
+        message('msg_2', '2026-09-30T10:07:00Z', {
+          kind: 'system',
+          author: null,
+          body: '',
+        }),
+      ],
+      { lastReadAt: new Date('2026-09-30T10:01:00Z') },
+    );
+
+    expect(shapeOf(items)).not.toContain('unread');
   });
 
   it('draws no divider for a reader who has never opened the chat, or who has read it all', () => {

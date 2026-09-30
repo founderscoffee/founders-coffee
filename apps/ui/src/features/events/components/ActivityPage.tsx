@@ -13,6 +13,7 @@ import {
 } from '@founders-coffee/i18n';
 import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
+import { useChatUnreadCounts } from '../../chat/hooks';
 import { useMyCloseoutStates } from '../../operations/hooks';
 import { ProfileSectionNav } from '../../account/components/ProfileSectionNav';
 import { ProfileAccess } from '../../profile/components/ProfileAccess';
@@ -48,8 +49,15 @@ export const ActivityPage = ({
     hostId: userId ?? '',
     limit: ACTIVITY_PAGE_SIZE,
   });
+  const joinedItems = flatten(joined.data?.pages);
   const hostedItems = flatten(hosted.data?.pages);
   const closeoutStates = useMyCloseoutStates(closeoutCandidates(hostedItems));
+  const unreadChats = useChatUnreadCounts(
+    [...joinedItems, ...hostedItems].map((item) => item.id),
+  );
+  const chatsWithUnread = new Set(
+    [...unreadChats].filter(([, unread]) => unread > 0).map(([id]) => id),
+  );
   const closeoutByEvent = new Map(
     (closeoutStates.data ?? []).map((state) => [state.eventId, state]),
   );
@@ -143,12 +151,13 @@ export const ActivityPage = ({
               <ActivityList
                 locale={locale}
                 emptyNote={activity_joined_empty({}, { locale })}
-                items={flatten(joined.data?.pages)}
+                items={joinedItems}
                 total={joined.data?.pages[0]?.total ?? 0}
                 marketSlugFor={marketSlugFor}
                 hasMore={!!joined.hasNextPage}
                 isLoadingMore={joined.isFetchingNextPage}
                 onLoadMore={() => void joined.fetchNextPage()}
+                chatsWithUnread={chatsWithUnread}
               />
             </div>
             <div
@@ -168,6 +177,7 @@ export const ActivityPage = ({
                 isLoadingMore={hosted.isFetchingNextPage}
                 onLoadMore={() => void hosted.fetchNextPage()}
                 closeoutStates={closeoutByEvent}
+                chatsWithUnread={chatsWithUnread}
               />
             </div>
           </div>

@@ -3,6 +3,10 @@ import { eq, sql } from 'drizzle-orm';
 import { id } from '@founders-coffee/core';
 
 import { syncChatChannel } from './chat-channels.js';
+import {
+  CHAT_UNREAD_TITLE_SLOT,
+  type ChatUnreadNotice,
+} from './chat-unread.js';
 import type { Db } from './db.js';
 import { createEventIfRouteAvailable } from './events.js';
 import { initializeMemberProfile } from './member-profiles.js';
@@ -19,6 +23,28 @@ import {
 } from './schema.js';
 
 export const DAY_SECONDS = 24 * 60 * 60;
+
+/** The words a send queues its `chat_unread` pushes in, due two minutes from now unless told. */
+export const unreadNotice = (
+  sendAt = new Date(Date.now() + 2 * 60 * 1000),
+): ChatUnreadNotice => ({
+  sendAt,
+  baseUrl: 'https://founders.test',
+  content: {
+    ar: {
+      title: `رسائل جديدة في ${CHAT_UNREAD_TITLE_SLOT}`,
+      body: 'افتح المحادثة لقراءتها.',
+    },
+    en: {
+      title: `New messages in ${CHAT_UNREAD_TITLE_SLOT}`,
+      body: 'Open the chat to read them.',
+    },
+    fr: {
+      title: `Nouveaux messages dans ${CHAT_UNREAD_TITLE_SLOT}`,
+      body: 'Ouvrez la discussion pour les lire.',
+    },
+  },
+});
 
 let counter = 0;
 

@@ -35,6 +35,8 @@ describe('per-category notification channels', () => {
       hostRsvpCancelledChannels: ['push', 'email'],
       followUpPrompts: false,
       followUpPromptsChannels: [],
+      meetupChat: true,
+      meetupChatChannels: ['push'],
       smsFallbackEnabled: false,
       expectedRevision: 0,
     });
@@ -45,6 +47,52 @@ describe('per-category notification channels', () => {
       expect(result.data.preferences.eventUpdatesChannels).toEqual([]);
       expect(result.data.preferences.eventReminders).toBe(true);
       expect(result.data.preferences.eventRemindersChannels).toEqual(['email']);
+      expect(result.data.preferences.meetupChat).toBe(true);
+      expect(result.data.preferences.meetupChatChannels).toEqual(['push']);
     }
+  });
+
+  it('turns the meetup chat’s push off, and back on, as its own category', async () => {
+    const { db, userId } = await setup();
+    const before = await readMyPreferences(db, userId);
+    expect(before.ok && before.data.preferences.meetupChatChannels).toEqual([
+      'push',
+    ]);
+    const choices = {
+      eventUpdates: true,
+      eventUpdatesChannels: ['push', 'email'] as ('push' | 'email')[],
+      eventReminders: true,
+      eventRemindersChannels: ['push', 'email'] as ('push' | 'email')[],
+      hostRsvpReceived: true,
+      hostRsvpReceivedChannels: ['push', 'email'] as ('push' | 'email')[],
+      hostRsvpCancelled: true,
+      hostRsvpCancelledChannels: ['push', 'email'] as ('push' | 'email')[],
+      followUpPrompts: true,
+      followUpPromptsChannels: ['email'] as ('push' | 'email')[],
+      smsFallbackEnabled: false,
+    };
+
+    const off = await saveMyPreferences(db, userId, {
+      ...choices,
+      meetupChat: false,
+      meetupChatChannels: ['push'],
+      expectedRevision: 0,
+    });
+    const on = await saveMyPreferences(db, userId, {
+      ...choices,
+      meetupChat: true,
+      meetupChatChannels: ['push'],
+      expectedRevision: 1,
+    });
+
+    expect(off.ok && off.data.preferences).toMatchObject({
+      meetupChat: false,
+      meetupChatChannels: [],
+      eventUpdatesChannels: ['push', 'email'],
+    });
+    expect(on.ok && on.data.preferences).toMatchObject({
+      meetupChat: true,
+      meetupChatChannels: ['push'],
+    });
   });
 });

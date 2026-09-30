@@ -1,5 +1,6 @@
 import type { NotificationDeliveryChannel } from '@founders-coffee/core';
 import {
+  chatUnreadStanding,
   communityOperationsEnabled,
   getNotificationContact,
   isDeliverableAccountState,
@@ -99,6 +100,10 @@ const unreachable = (reason: string, account = false): DestinationResult => ({
  * to have been rewritten. The sweep already wraps this call against exceptions, which a gate bolted
  * into its claimed-row loop would not have been.
  *
+ * `chat_unread` also asks the chat of `eventId` itself, since the row is two minutes old by the time
+ * it comes due: a member who has read what it announces, muted the chat or left it since then is not
+ * told. The chat goes by push alone, so each of these is an account-level refusal too.
+ *
  * `account` marks the refusals that are true of every channel. A missing phone says nothing about
  * email, and falling back is exactly right; a closed account says the same thing about all of them,
  * and the caller uses this to stop a fallback being written that could only be refused again.
@@ -109,6 +114,7 @@ export const resolveDestination = async (
   userId: string,
   templateKey?: ScheduledNotification['templateKey'],
   marketCode?: string,
+  eventId?: string,
 ): Promise<DestinationResult> => {
   const contact = await getNotificationContact(db, userId);
   if (!contact) return unreachable('recipient_no_longer_exists', true);
@@ -133,6 +139,8 @@ export const resolveDestination = async (
 
   if (templateKey === 'feedback_invitation' && !contact.followUpPrompts)
     return unreachable('follow_up_prompts_off', true);
+  if (templateKey === 'chat_unread' && !contact.meetupChat)
+    return unreachable('meetup_chat_off', true);
 
   const categoryMask = notifications.notificationMaskForTemplate(
     templateKey,
@@ -144,6 +152,14 @@ export const resolveDestination = async (
     !notifications.isNotificationChannelEnabled(categoryMask, channel)
   )
     return unreachable(`${channel}_disabled`, false);
+
+  if (templateKey === 'chat_unread') {
+    const standing = await chatUnreadStanding(db, {
+      eventId: eventId ?? '',
+      userId,
+    });
+    if (standing !== 'unread') return unreachable(`chat_${standing}`, true);
+  }
 
   if (
     (templateKey === 'closeout_prompt' ||

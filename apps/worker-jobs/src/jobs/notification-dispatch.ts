@@ -65,6 +65,7 @@ const guarded =
       notification.userId,
       notification.templateKey,
       parsed.payload.marketCode,
+      notification.eventId,
     );
     if (!resolved.ok)
       return failed(`unreachable: ${resolved.reason}`, !resolved.transient, {
@@ -104,6 +105,16 @@ const emailDispatcher = (db: Db, email: EmailProvider): Dispatcher =>
   });
 
 /**
+ * The key a push is collapsed by, in transit and on the device's screen: its own row, except for a
+ * meetup's chat, whose pushes share one per chat, so the next unread stretch replaces the last one
+ * rather than stacking beside it.
+ */
+const pushDedupeKey = (notification: ScheduledNotification): string =>
+  notification.templateKey === 'chat_unread'
+    ? `chat_${notification.eventId}`
+    : notification.id;
+
+/**
  * A push notification is delivered per device still entitled to receive one.
  *
  * The guard has already excluded devices whose session was signed out, so a member with tokens but
@@ -124,7 +135,7 @@ const pushDispatcher = (db: Db, push: PushProvider): Dispatcher =>
         body: parsed.payload.pushBody,
         url: parsed.payload.pushUrl,
         icon: PUSH_ICON,
-        dedupeKey: notification.id,
+        dedupeKey: pushDedupeKey(notification),
       });
       if (result.ok) return sent;
       lastError = result.error.message;

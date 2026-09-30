@@ -20,6 +20,8 @@ export type AccountPreferenceChanges = Pick<
   | 'hostRsvpCancelledChannels'
   | 'followUpPrompts'
   | 'followUpPromptsChannels'
+  | 'meetupChat'
+  | 'meetupChatChannels'
   | 'pushEnabled'
   | 'smsFallbackEnabled'
 >;
@@ -86,6 +88,8 @@ export const updateAccountPreferences = async (
         hostRsvpCancelledChannels: changes.hostRsvpCancelledChannels,
         followUpPrompts: changes.followUpPromptsChannels !== 0,
         followUpPromptsChannels: changes.followUpPromptsChannels,
+        meetupChat: changes.meetupChatChannels !== 0,
+        meetupChatChannels: changes.meetupChatChannels,
         pushEnabled: changes.pushEnabled,
         smsFallbackEnabled: changes.smsFallbackEnabled,
         smsConsentAt: changes.smsFallbackEnabled

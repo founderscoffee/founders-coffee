@@ -23,6 +23,8 @@ const draft = (
   hostRsvpCancelledChannels: ['push', 'email'],
   followUpPrompts: false,
   followUpPromptsChannels: [],
+  meetupChat: true,
+  meetupChatChannels: ['push'],
   pushEnabled: false,
   smsFallbackEnabled: false,
   ...overrides,
@@ -85,6 +87,51 @@ describe('notification channel grid', () => {
     expect(
       screen.getByText(/Notifications for this site haven't been enabled/i),
     ).toBeTruthy();
+  });
+
+  it('offers the meetup chat on push alone, and leaves it out where push is unavailable', () => {
+    show('registered');
+
+    expect(
+      screen.getByRole('checkbox', {
+        name: /New messages in a meetup’s chat: Push notifications/i,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('checkbox', {
+        name: /New messages in a meetup’s chat: Email/i,
+      }),
+    ).toBeNull();
+    cleanup();
+
+    show('unavailable');
+
+    expect(screen.queryByText('New messages in a meetup’s chat')).toBeNull();
+  });
+
+  it('turns the meetup chat’s push off as its own category', () => {
+    const onChange = vi.fn();
+    render(
+      <NotificationChannelGrid
+        locale="en"
+        draft={draft()}
+        pushState="registered"
+        isEnabling={false}
+        onEnablePush={async () => true}
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: /New messages in a meetup’s chat: Push notifications/i,
+      }),
+    );
+
+    expect(onChange).toHaveBeenCalledWith({
+      meetupChat: false,
+      meetupChatChannels: [],
+    });
   });
 
   it('lets an unavailable push-only category switch to email', () => {

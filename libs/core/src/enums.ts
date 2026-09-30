@@ -140,6 +140,7 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'closeout_prompt',
   'event_did_not_happen',
   'feedback_invitation',
+  'chat_unread',
   ...TELEGRAM_TEMPLATE_KEYS,
 ] as const;
 export type NotificationTemplateKey =

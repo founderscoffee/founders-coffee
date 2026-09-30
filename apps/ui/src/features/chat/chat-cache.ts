@@ -105,6 +105,19 @@ export const withLastRead = (
   };
 };
 
+/** The pages with the reader's choice to mute the chat, or not, as the server kept it. */
+export const withMuted = (
+  pages: ChatPages | undefined,
+  muted: boolean,
+): ChatPages | undefined => {
+  const [first, ...rest] = pages?.pages ?? [];
+  if (!pages || !first?.meta) return pages;
+  return {
+    ...pages,
+    pages: [{ ...first, meta: { ...first.meta, muted } }, ...rest],
+  };
+};
+
 /** The pages with a removed message emptied and marked with who removed it, as its tombstone. */
 export const withRemoval = (
   pages: ChatPages | undefined,

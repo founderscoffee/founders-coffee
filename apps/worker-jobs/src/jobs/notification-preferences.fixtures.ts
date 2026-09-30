@@ -17,6 +17,8 @@ export const setPreferences = async (
     hostRsvpCancelledChannels?: number;
     followUpPrompts?: boolean;
     followUpPromptsChannels?: number;
+    meetupChat?: boolean;
+    meetupChatChannels?: number;
     pushEnabled?: boolean;
     smsFallbackEnabled?: boolean;
   },
@@ -82,6 +84,18 @@ export const setPreferences = async (
         ? undefined
         : changes.followUpPrompts
           ? 5
+          : 0),
+    meetupChat:
+      changes.meetupChat ??
+      (changes.meetupChatChannels === undefined
+        ? undefined
+        : changes.meetupChatChannels !== 0),
+    meetupChatChannels:
+      changes.meetupChatChannels ??
+      (changes.meetupChat === undefined
+        ? undefined
+        : changes.meetupChat
+          ? 1
           : 0),
   };
   await db

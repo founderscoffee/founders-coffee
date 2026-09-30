@@ -142,7 +142,9 @@ export const HostEventPanel = ({
         </div>
       )}
 
-      {isChatAvailable ? <ChatEntry locale={locale} /> : null}
+      {isChatAvailable ? (
+        <ChatEntry locale={locale} eventId={event.id} />
+      ) : null}
       <TelegramGroupCard eventId={event.id} locale={locale} />
 
       {repeat.data ? (

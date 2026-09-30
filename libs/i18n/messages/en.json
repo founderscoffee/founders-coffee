@@ -495,6 +495,8 @@
   "chat_open": "Open chat",
   "chat_invite": "The people going talk in the meetup’s chat.",
   "chat_close": "Close chat",
+  "chat_mute": "Mute notifications",
+  "chat_mute_error": "Notifications could not be changed. Try again.",
   "chat_open_until": "Open until {date}",
   "chat_read_only": "This chat is read-only now.",
   "chat_read_only_cancelled": "The meetup was cancelled, so its chat is read-only.",
@@ -513,6 +515,16 @@
   "chat_send": "Send",
   "chat_not_sent": "Not sent",
   "chat_unread": "New messages",
+  "chat_unread_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} unread message",
+        "countPlural=*": "{count} unread messages"
+      }
+    }
+  ],
   "chat_jump_latest": "Latest messages",
   "chat_today": "Today",
   "chat_yesterday": "Yesterday",
@@ -714,6 +726,8 @@
   "ntf_email_rsvp_received_text": "Somebody just said they are coming to {title} on {date} at {venue}. See who is going: {url}",
   "ntf_push_rsvp_cancelled_title": "Someone cancelled on {title}",
   "ntf_push_rsvp_cancelled_body": "Open the event to view the updated guest list.",
+  "ntf_push_chat_unread_title": "New messages in {title}",
+  "ntf_push_chat_unread_body": "Open the chat to read them.",
   "ntf_email_rsvp_cancelled_subject": "A guest cancelled for {title}",
   "ntf_email_rsvp_cancelled_html": "<p>Someone cancelled their RSVP for <strong>{title}</strong> on {date} at {venue}.</p><p><a href=\"{url}\">See the updated guest list</a></p>",
   "ntf_email_rsvp_cancelled_text": "A guest cancelled their RSVP for {title} on {date} at {venue}. See the updated guest list: {url}",
@@ -729,6 +743,8 @@
   "prefs_host_rsvp_cancelled": "A guest cancels attendance",
   "prefs_follow_up": "After a gathering",
   "prefs_follow_up_note": "A short message asking for your feedback.",
+  "prefs_meetup_chat": "New messages in a meetup’s chat",
+  "prefs_meetup_chat_note": "By push notification only, once until you open the chat.",
   "prefs_push": "Push notifications",
   "prefs_push_enable": "Turn on",
   "prefs_push_unsupported": "This browser doesn't support notifications.",
@@ -757,6 +773,7 @@
   "activity_past": "Past",
   "activity_upcoming": "Upcoming",
   "activity_cancelled": "Cancelled",
+  "activity_chat_unread": "New messages in the chat",
   "activity_more": "Load more",
   "activity_loading": "Loading my activity…",
   "activity_unavailable": "My activity could not be loaded.",

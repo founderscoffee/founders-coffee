@@ -11,6 +11,8 @@ export interface NotificationDraft {
   readonly hostRsvpCancelledChannels: readonly PreferencesInput['hostRsvpCancelledChannels'][number][];
   readonly followUpPrompts: boolean;
   readonly followUpPromptsChannels: readonly PreferencesInput['followUpPromptsChannels'][number][];
+  readonly meetupChat: boolean;
+  readonly meetupChatChannels: readonly PreferencesInput['meetupChatChannels'][number][];
   readonly pushEnabled: boolean;
   readonly smsFallbackEnabled: boolean;
 }
@@ -22,11 +24,16 @@ const channelsEqual = (
   left.length === right.length &&
   left.every((channel) => right.includes(channel));
 
+const EVERY_CHANNEL: readonly PreferencesInput['eventUpdatesChannels'][number][] =
+  ['push', 'email'];
+const CHAT_CHANNELS: readonly PreferencesInput['meetupChatChannels'][number][] =
+  ['push'];
+
 const channelsForCategory = <T extends string>(
   enabled: boolean,
   channels: readonly T[],
-): readonly T[] =>
-  enabled ? (channels.length > 0 ? channels : (['push', 'email'] as T[])) : [];
+  offered: readonly T[],
+): readonly T[] => (enabled ? (channels.length > 0 ? channels : offered) : []);
 
 export type PreferencesDraft = NotificationDraft;
 
@@ -79,17 +86,26 @@ export const toInput = (
 ): PreferencesInput => ({
   eventUpdates: draft.eventUpdates,
   eventUpdatesChannels: [
-    ...channelsForCategory(draft.eventUpdates, draft.eventUpdatesChannels),
+    ...channelsForCategory(
+      draft.eventUpdates,
+      draft.eventUpdatesChannels,
+      EVERY_CHANNEL,
+    ),
   ],
   eventReminders: draft.eventReminders,
   eventRemindersChannels: [
-    ...channelsForCategory(draft.eventReminders, draft.eventRemindersChannels),
+    ...channelsForCategory(
+      draft.eventReminders,
+      draft.eventRemindersChannels,
+      EVERY_CHANNEL,
+    ),
   ],
   hostRsvpReceived: draft.hostRsvpReceived,
   hostRsvpReceivedChannels: [
     ...channelsForCategory(
       draft.hostRsvpReceived,
       draft.hostRsvpReceivedChannels,
+      EVERY_CHANNEL,
     ),
   ],
   hostRsvpCancelled: draft.hostRsvpCancelled,
@@ -97,6 +113,7 @@ export const toInput = (
     ...channelsForCategory(
       draft.hostRsvpCancelled,
       draft.hostRsvpCancelledChannels,
+      EVERY_CHANNEL,
     ),
   ],
   followUpPrompts: draft.followUpPrompts,
@@ -104,6 +121,15 @@ export const toInput = (
     ...channelsForCategory(
       draft.followUpPrompts,
       draft.followUpPromptsChannels,
+      EVERY_CHANNEL,
+    ),
+  ],
+  meetupChat: draft.meetupChat,
+  meetupChatChannels: [
+    ...channelsForCategory(
+      draft.meetupChat,
+      draft.meetupChatChannels,
+      CHAT_CHANNELS,
     ),
   ],
   smsFallbackEnabled: draft.smsFallbackEnabled,

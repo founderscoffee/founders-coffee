@@ -1,5 +1,6 @@
 export {
   getChatPage,
+  getChatUnreadCounts,
   listChatMessages,
   markChatRead,
   removeChatMessage,

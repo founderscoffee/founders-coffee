@@ -23,6 +23,8 @@ describe('account preferences on real D1', () => {
         hostRsvpCancelledChannels: 5,
         followUpPrompts: true,
         followUpPromptsChannels: 4,
+        meetupChat: true,
+        meetupChatChannels: 1,
         pushEnabled: false,
         smsFallbackEnabled: false,
         smsConsentAt: null,
@@ -83,6 +85,8 @@ describe('account preferences on real D1', () => {
         eventUpdates: false,
         eventUpdatesChannels: 4,
         eventRemindersChannels: 0,
+        meetupChat: true,
+        meetupChatChannels: 0,
       },
     });
 
@@ -91,6 +95,8 @@ describe('account preferences on real D1', () => {
       eventUpdatesChannels: 4,
       eventReminders: false,
       eventRemindersChannels: 0,
+      meetupChat: false,
+      meetupChatChannels: 0,
       revision: 1,
     });
   });

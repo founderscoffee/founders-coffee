@@ -177,7 +177,9 @@ export const RsvpSection = ({
             <p className="text-body-sm text-neutral">
               {rsvp_cancelled_going_help({}, { locale })}
             </p>
-            {isChatAvailable ? <ChatEntry locale={locale} /> : null}
+            {isChatAvailable ? (
+              <ChatEntry locale={locale} eventId={event.id} />
+            ) : null}
           </>
         ) : null
       ) : isGoing ? (
@@ -210,7 +212,9 @@ export const RsvpSection = ({
               locale={locale}
             />
           ) : null}
-          {isChatAvailable ? <ChatEntry locale={locale} /> : null}
+          {isChatAvailable ? (
+            <ChatEntry locale={locale} eventId={event.id} />
+          ) : null}
           <TelegramGroupCard eventId={event.id} locale={locale} />
         </>
       ) : (

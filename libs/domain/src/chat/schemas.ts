@@ -50,6 +50,12 @@ export const reportChatMessageSchema = z.strictObject({
 
 export const chatPageSchema = z.strictObject({ eventId: idSchema });
 
+export const CHAT_UNREAD_COUNTS_MAX = 100;
+
+export const chatUnreadCountsSchema = z.strictObject({
+  eventIds: z.array(idSchema).min(1).max(CHAT_UNREAD_COUNTS_MAX),
+});
+
 export type ChatCursor = z.infer<typeof chatCursorSchema>;
 export type SendChatMessageInput = z.infer<typeof sendChatMessageSchema>;
 export type ListChatMessagesInput = z.infer<typeof listChatMessagesSchema>;
@@ -58,3 +64,4 @@ export type MarkChatReadInput = z.infer<typeof markChatReadSchema>;
 export type SetChatMutedInput = z.infer<typeof setChatMutedSchema>;
 export type ReportChatMessageInput = z.infer<typeof reportChatMessageSchema>;
 export type ChatPageInput = z.infer<typeof chatPageSchema>;
+export type ChatUnreadCountsInput = z.infer<typeof chatUnreadCountsSchema>;

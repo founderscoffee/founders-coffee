@@ -17,6 +17,7 @@ import {
 } from './messages.js';
 import { readChatPageResolver } from './page.js';
 import { reportChatMessageResolver } from './reports.js';
+import { readChatUnreadCountsResolver } from './unread.js';
 
 /** What a member's chat panel shows when it opens: the chat, its latest messages, their own state. */
 export const getChatPage = createServerFn({ strict: false })
@@ -29,6 +30,27 @@ export const getChatPage = createServerFn({ strict: false })
         eventId: data.eventId,
         viewerId: requireAuth(context.session).user.id,
         now: new Date(),
+      }),
+    );
+  });
+
+/**
+ * How many messages the member has not read in each of their chats among `eventIds`, for the
+ * meetup page's chat entry and the activity list. The ids are a filter, never an authorisation,
+ * and the answer is the member's own, so it is kept out of every shared cache.
+ */
+export const getChatUnreadCounts = createServerFn({
+  method: 'GET',
+  strict: false,
+})
+  .middleware([requirePermission('chat', 'read')])
+  .validator(appValidator(chat.chatUnreadCountsSchema))
+  .handler(({ context, data }) => {
+    privateNoStore();
+    return handleResult(
+      readChatUnreadCountsResolver(getDb(), {
+        userId: requireAuth(context.session).user.id,
+        eventIds: data.eventIds,
       }),
     );
   });

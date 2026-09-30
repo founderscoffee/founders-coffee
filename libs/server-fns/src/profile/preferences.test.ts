@@ -26,6 +26,8 @@ const DEFAULTS = {
   hostRsvpCancelledChannels: ['push', 'email'] as ('push' | 'email')[],
   followUpPrompts: true,
   followUpPromptsChannels: ['email'] as ('push' | 'email')[],
+  meetupChat: true,
+  meetupChatChannels: ['push'] as 'push'[],
   smsFallbackEnabled: false,
 };
 

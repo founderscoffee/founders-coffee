@@ -10,6 +10,7 @@ import {
   newMember,
   publishMeetup,
   switchChat,
+  unreadNotice,
 } from './chat.fixtures.js';
 import { transitionEventStatus } from './events.js';
 import type { Db } from './index.js';
@@ -70,6 +71,7 @@ describe('what a chat is told about its meetup (real D1)', () => {
       authorId: member,
       body: 'Salam',
       clientId: crypto.randomUUID(),
+      unread: unreadNotice(),
     });
 
     await postChatSystemMessage(db, { eventId, ...RESCHEDULED });

@@ -48,6 +48,8 @@ const view = (
     hostRsvpCancelledChannels: ['push', 'email'],
     followUpPrompts: false,
     followUpPromptsChannels: [],
+    meetupChat: true,
+    meetupChatChannels: ['push'],
     pushEnabled: false,
     smsFallbackEnabled: false,
   },

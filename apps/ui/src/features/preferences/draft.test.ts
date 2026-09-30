@@ -18,6 +18,8 @@ const view = (
     hostRsvpCancelledChannels: ['push', 'email'],
     followUpPrompts: false,
     followUpPromptsChannels: [],
+    meetupChat: true,
+    meetupChatChannels: ['push'],
     pushEnabled: false,
     smsFallbackEnabled: false,
   },
@@ -39,6 +41,8 @@ describe('draftFrom', () => {
       hostRsvpCancelledChannels: ['push', 'email'],
       followUpPrompts: false,
       followUpPromptsChannels: [],
+      meetupChat: true,
+      meetupChatChannels: ['push'],
       pushEnabled: false,
       smsFallbackEnabled: false,
     });
@@ -107,8 +111,24 @@ describe('toInput', () => {
       'hostRsvpCancelledChannels',
       'hostRsvpReceived',
       'hostRsvpReceivedChannels',
+      'meetupChat',
+      'meetupChatChannels',
       'smsFallbackEnabled',
     ]);
+  });
+
+  it('sends the meetup chat on push alone, or on nothing once it is off', () => {
+    const on = toInput({ ...draftFrom(view()), meetupChatChannels: [] }, 4);
+    const off = toInput(
+      { ...draftFrom(view()), meetupChat: false, meetupChatChannels: ['push'] },
+      4,
+    );
+
+    expect(on).toMatchObject({
+      meetupChat: true,
+      meetupChatChannels: ['push'],
+    });
+    expect(off).toMatchObject({ meetupChat: false, meetupChatChannels: [] });
   });
 
   it('never sends push, which the form has no control for and cannot own', () => {

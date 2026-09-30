@@ -5,19 +5,25 @@ import {
   chat_members_only,
   chat_open,
   chat_title,
+  chat_unread_count,
   type Locale,
 } from '@founders-coffee/i18n';
 
 import { preloadChatConversation } from '../chat-panel-loader';
+import { useChatUnreadCounts } from '../hooks';
 import { useChatAddress } from '../useChatAddress';
 
 type ChatEntryProps = {
   locale: Locale;
+  eventId: string;
 };
 
-export const ChatEntry = ({ locale }: ChatEntryProps) => {
+const BADGE_CAP = 99;
+
+export const ChatEntry = ({ locale, eventId }: ChatEntryProps) => {
   const headingId = useId();
-  const { open } = useChatAddress();
+  const { isOpen, open } = useChatAddress();
+  const unread = useChatUnreadCounts([eventId], !isOpen).get(eventId) ?? 0;
 
   return (
     <section
@@ -41,6 +47,17 @@ export const ChatEntry = ({ locale }: ChatEntryProps) => {
       >
         <MessagesSquare className="size-4" aria-hidden="true" />
         {chat_open({}, { locale })}
+        {unread > 0 ? (
+          <>
+            {' '}
+            <span className="badge badge-primary badge-sm" aria-hidden="true">
+              {unread > BADGE_CAP ? `${BADGE_CAP}+` : unread}
+            </span>
+            <span className="sr-only">
+              {chat_unread_count({ count: unread }, { locale })}
+            </span>
+          </>
+        ) : null}
       </button>
     </section>
   );

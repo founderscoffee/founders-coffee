@@ -8,6 +8,7 @@ import { useAuth } from '../../../lib/app-providers';
 import { loadChatConversation } from '../chat-panel-loader';
 import { useChatAddress } from '../useChatAddress';
 import { ChatDialog } from './ChatDialog';
+import { ChatMuteToggle } from './ChatMuteToggle';
 import { ChatSignIn } from './ChatSignIn';
 
 const ChatConversation = lazy(() =>
@@ -43,7 +44,20 @@ export const EventChat = ({
   if (user && !isMember) return null;
 
   return (
-    <ChatDialog locale={locale} title={title} onClose={close}>
+    <ChatDialog
+      locale={locale}
+      title={title}
+      onClose={close}
+      actions={
+        user ? (
+          <ChatMuteToggle
+            locale={locale}
+            eventId={eventId}
+            viewerId={user.id}
+          />
+        ) : null
+      }
+    >
       {user ? (
         <Suspense
           fallback={

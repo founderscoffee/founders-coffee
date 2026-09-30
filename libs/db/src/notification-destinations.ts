@@ -24,6 +24,8 @@ export interface NotificationContact {
   readonly hostRsvpCancelledChannels: number;
   readonly followUpPrompts: boolean;
   readonly followUpPromptsChannels: number;
+  readonly meetupChat: boolean;
+  readonly meetupChatChannels: number;
   readonly localePref: string | null;
   readonly pushEnabled: boolean;
   readonly smsFallbackEnabled: boolean;
@@ -69,6 +71,8 @@ export const getNotificationContact = async (
       hostRsvpCancelled: sql<number>`case when coalesce(${accountPreferences.hostRsvpCancelledChannels}, 5) != 0 then 1 else 0 end`,
       followUpPromptsChannels: sql<number>`coalesce(${accountPreferences.followUpPromptsChannels}, 4)`,
       followUpPrompts: sql<number>`case when coalesce(${accountPreferences.followUpPromptsChannels}, 4) != 0 then 1 else 0 end`,
+      meetupChatChannels: sql<number>`coalesce(${accountPreferences.meetupChatChannels}, 1)`,
+      meetupChat: sql<number>`case when coalesce(${accountPreferences.meetupChatChannels}, 1) != 0 then 1 else 0 end`,
       pushEnabled: sql<number>`coalesce(${accountPreferences.pushEnabled}, 0)`,
       smsFallbackEnabled: sql<number>`coalesce(${accountPreferences.smsFallbackEnabled}, 0)`,
     })
@@ -94,6 +98,8 @@ export const getNotificationContact = async (
     hostRsvpCancelledChannels: row.hostRsvpCancelledChannels,
     followUpPrompts: row.followUpPrompts === 1,
     followUpPromptsChannels: row.followUpPromptsChannels,
+    meetupChat: row.meetupChat === 1,
+    meetupChatChannels: row.meetupChatChannels,
     pushEnabled: row.pushEnabled === 1,
     smsFallbackEnabled: row.smsFallbackEnabled === 1,
   };

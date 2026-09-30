@@ -89,8 +89,9 @@ export const renderNotificationEmail = async (
   return { subject, html: rendered.html, text: rendered.text };
 };
 
+/** The email form of a message. A meetup's chat never emails, so `chat_unread` has none. */
 export const emailPayloadFor = async (
-  templateKey: PersonalTemplateKey,
+  templateKey: Exclude<PersonalTemplateKey, 'chat_unread'>,
   values: TemplateValues,
   locale: Locale,
 ): Promise<EmailPayload> => {

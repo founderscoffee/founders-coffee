@@ -9,6 +9,7 @@ type ChatDialogProps = {
   locale: Locale;
   title: string;
   onClose: () => void;
+  actions?: ReactNode;
   children: ReactNode;
 };
 
@@ -16,6 +17,7 @@ export const ChatDialog = ({
   locale,
   title,
   onClose,
+  actions,
   children,
 }: ChatDialogProps) => {
   const ref = useRef<HTMLDialogElement>(null);
@@ -63,13 +65,14 @@ export const ChatDialog = ({
             : undefined
         }
       >
-        <header className="flex items-center gap-3 border-b border-base-300 px-4 py-3">
+        <header className="relative flex items-center gap-3 border-b border-base-300 px-4 py-3">
           <h2 id={titleId} className="min-w-0 flex-1">
             <span className="eyebrow block">{chat_title({}, { locale })}</span>{' '}
             <bdi className="block truncate font-display text-body font-semibold">
               {title}
             </bdi>
           </h2>
+          {actions}
           <button
             type="button"
             className="btn btn-ghost btn-circle btn-xs sm:btn-sm md:btn-md"

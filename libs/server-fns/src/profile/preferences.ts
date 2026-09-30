@@ -49,6 +49,10 @@ const view = (stored: StoredPreferences): profile.AccountPreferencesView =>
       followUpPromptsChannels: profile.maskToChannels(
         stored.preferences.followUpPromptsChannels,
       ),
+      meetupChat: stored.preferences.meetupChat,
+      meetupChatChannels: profile.meetupChatChannelsFromMask(
+        stored.preferences.meetupChatChannels,
+      ),
       pushEnabled: stored.preferences.pushEnabled,
       smsFallbackEnabled: stored.preferences.smsFallbackEnabled,
     },
@@ -144,6 +148,7 @@ export const saveMyPreferences = (
       hostRsvpReceivedChannels,
       hostRsvpCancelledChannels,
       followUpPromptsChannels,
+      meetupChatChannels,
       ...categories
     } = input;
     const saved = await updateAccountPreferences(db, {
@@ -165,6 +170,9 @@ export const saveMyPreferences = (
         ),
         followUpPromptsChannels: profile.channelsToMask(
           input.followUpPrompts ? followUpPromptsChannels : [],
+        ),
+        meetupChatChannels: profile.channelsToMask(
+          input.meetupChat ? meetupChatChannels : [],
         ),
         pushEnabled: before.preferences.pushEnabled,
       },

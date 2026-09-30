@@ -30,6 +30,11 @@ vi.mock('../chat-panel-loader', () => ({
   }),
 }));
 vi.mock('./ChatSignIn', () => ({ ChatSignIn: () => <p>chat-sign-in</p> }));
+vi.mock('./ChatMuteToggle', () => ({
+  ChatMuteToggle: ({ viewerId }: { viewerId: string }) => (
+    <button type="button">mute for {viewerId}</button>
+  ),
+}));
 
 const { EventChat } = await import('./EventChat');
 
@@ -61,19 +66,27 @@ afterEach(() => {
 });
 
 describe('EventChat', () => {
-  it('opens the conversation for a member whose address asks for it', async () => {
+  it('opens the conversation for a member whose address asks for it, with the mute beside the close', async () => {
     show(true);
 
     expect(panel()).toBeTruthy();
     expect(await screen.findByText('conversation for usr_me')).toBeTruthy();
+    const header = screen.getByRole('button', { name: 'Close chat' })
+      .parentElement as HTMLElement;
+    expect(
+      [...header.querySelectorAll('button')].map(
+        (button) => button.textContent,
+      ),
+    ).toEqual(['mute for usr_me', '']);
   });
 
-  it('asks a signed-out reader to sign in, inside the panel', () => {
+  it('asks a signed-out reader to sign in, inside the panel, with nothing to mute', () => {
     mocks.auth = { user: null, isLoading: false };
     show(false);
 
     expect(panel()).toBeTruthy();
     expect(screen.getByText('chat-sign-in')).toBeTruthy();
+    expect(screen.queryByText(/mute for/)).toBeNull();
   });
 
   it.each([

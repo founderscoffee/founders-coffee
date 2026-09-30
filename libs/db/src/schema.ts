@@ -766,6 +766,10 @@ export const accountPreferences = sqliteTable('account_preferences', {
   followUpPromptsChannels: integer('follow_up_prompts_channels')
     .notNull()
     .default(4),
+  meetupChat: integer('meetup_chat', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  meetupChatChannels: integer('meetup_chat_channels').notNull().default(1),
   pushEnabled: integer('push_enabled', { mode: 'boolean' })
     .notNull()
     .default(false),

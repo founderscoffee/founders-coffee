@@ -36,6 +36,8 @@ export const preferenceChanges: AccountPreferenceChanges = {
   hostRsvpCancelledChannels: 5,
   followUpPrompts: false,
   followUpPromptsChannels: 0,
+  meetupChat: true,
+  meetupChatChannels: 1,
   pushEnabled: false,
   smsFallbackEnabled: false,
 };

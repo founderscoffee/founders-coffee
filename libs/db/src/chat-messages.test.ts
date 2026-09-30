@@ -14,6 +14,7 @@ import {
   newMember,
   publishMeetup,
   setAccount,
+  unreadNotice,
 } from './chat.fixtures.js';
 import { createEvent, transitionEventStatus } from './events.js';
 import type { Db } from './index.js';
@@ -30,6 +31,7 @@ const send = (db: Db, eventId: string, authorId: string, body = 'Salam') =>
     authorId,
     body,
     clientId: crypto.randomUUID(),
+    unread: unreadNotice(),
   });
 
 const messagesIn = async (db: Db, eventId: string) => {
@@ -57,6 +59,7 @@ describe('sendChatMessage (real D1)', () => {
       authorId: member,
       body: 'Salam, see you there',
       clientId: crypto.randomUUID(),
+      unread: unreadNotice(),
     };
 
     const first = await sendChatMessage(db, input);
@@ -79,7 +82,12 @@ describe('sendChatMessage (real D1)', () => {
     const first = await publishMeetup(db);
     const second = await publishMeetup(db);
     const clientId = crypto.randomUUID();
-    const input = { authorId: HOST_ID, body: 'Salam', clientId };
+    const input = {
+      authorId: HOST_ID,
+      body: 'Salam',
+      clientId,
+      unread: unreadNotice(),
+    };
 
     const inFirst = await sendChatMessage(db, { ...input, eventId: first });
     const inSecond = await sendChatMessage(db, { ...input, eventId: second });

@@ -10,6 +10,7 @@ import {
   newMember,
   publishMeetup,
   switchChat,
+  unreadNotice,
 } from './chat.fixtures.js';
 import type { Db } from './index.js';
 import { HOST_ID, setupDb } from './rsvps.fixtures.js';
@@ -20,6 +21,7 @@ const send = (db: Db, eventId: string, authorId: string) =>
     authorId,
     body: 'Salam',
     clientId: crypto.randomUUID(),
+    unread: unreadNotice(),
   });
 
 describe('a chat its market has switched off (real D1)', () => {

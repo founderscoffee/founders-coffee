@@ -7,6 +7,7 @@ import {
   going,
   newMember,
   publishMeetup,
+  unreadNotice,
   writeMessage,
 } from './chat.fixtures.js';
 import type { Db } from './index.js';
@@ -20,6 +21,7 @@ const post = async (db: Db, eventId: string, authorId: string) => {
     authorId,
     body: 'A message to remove',
     clientId: crypto.randomUUID(),
+    unread: unreadNotice(),
   });
   if (!('message' in result)) throw new Error(result.outcome);
   return result.message.id;

@@ -673,6 +673,8 @@
   "chat_open": "Ouvrir la discussion",
   "chat_invite": "Les participants échangent dans la discussion de la rencontre.",
   "chat_close": "Fermer la discussion",
+  "chat_mute": "Désactiver les notifications",
+  "chat_mute_error": "Les notifications n’ont pas pu être modifiées. Réessayez.",
   "chat_open_until": "Ouverte jusqu’au {date}",
   "chat_read_only": "Cette discussion est désormais en lecture seule.",
   "chat_read_only_cancelled": "La rencontre a été annulée : sa discussion est en lecture seule.",
@@ -691,6 +693,16 @@
   "chat_send": "Envoyer",
   "chat_not_sent": "Non envoyé",
   "chat_unread": "Nouveaux messages",
+  "chat_unread_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} message non lu",
+        "countPlural=*": "{count} messages non lus"
+      }
+    }
+  ],
   "chat_jump_latest": "Derniers messages",
   "chat_today": "Aujourd’hui",
   "chat_yesterday": "Hier",
@@ -907,6 +919,8 @@
   "ntf_email_rsvp_received_text": "Quelqu’un vient de confirmer sa venue à la rencontre « {title} » le {date} à {venue}. Voir qui vient : {url}",
   "ntf_push_rsvp_cancelled_title": "Quelqu’un s’est désisté pour {title}",
   "ntf_push_rsvp_cancelled_body": "Ouvrez la rencontre pour consulter la liste mise à jour.",
+  "ntf_push_chat_unread_title": "Nouveaux messages dans « {title} »",
+  "ntf_push_chat_unread_body": "Ouvrez la discussion pour les lire.",
   "ntf_email_rsvp_cancelled_subject": "Un invité s’est désisté pour {title}",
   "ntf_email_rsvp_cancelled_html": "<p>Quelqu’un a annulé sa venue à la rencontre <strong>{title}</strong> le {date} à {venue}.</p><p><a href=\"{url}\">Voir la liste mise à jour</a></p>",
   "ntf_email_rsvp_cancelled_text": "Un participant a annulé sa présence à la rencontre « {title} » le {date} à {venue}. Voir la liste mise à jour : {url}",
@@ -922,6 +936,8 @@
   "prefs_host_rsvp_cancelled": "Un participant annule sa présence",
   "prefs_follow_up": "Après une rencontre",
   "prefs_follow_up_note": "Un court message pour demander votre avis.",
+  "prefs_meetup_chat": "Nouveaux messages dans la discussion d’une rencontre",
+  "prefs_meetup_chat_note": "Par notification push uniquement, une fois jusqu’à ce que vous ouvriez la discussion.",
   "prefs_push": "Notifications push",
   "prefs_push_enable": "Activer",
   "prefs_push_unsupported": "Ce navigateur ne prend pas en charge les notifications.",
@@ -950,6 +966,7 @@
   "activity_past": "Passée",
   "activity_upcoming": "À venir",
   "activity_cancelled": "Annulée",
+  "activity_chat_unread": "Nouveaux messages dans la discussion",
   "activity_more": "Charger plus",
   "activity_loading": "Chargement de mon activité…",
   "activity_unavailable": "Mon activité n'a pas pu être chargée.",
