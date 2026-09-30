@@ -724,13 +724,14 @@ stays. P1-025's row then records the retirement and its date.
 | CH-07 | Partial  | `chat_unread`, the `meetup_chat` preference, unread counts                                                                       | On Miniflare D1 (2026-09-30): a send queues one notice for each other member with push on, in their language, two minutes out, and none for its author, a retry, a muted or banned member, a member with the category off, or one whose last notice is pending or unread since; the dispatcher sends it tagged per chat and drops it for a member who has read, muted, switched the category off or left. The counts read only the reader's own chats, and 0042 keeps every choice a member had made. Component tests for the badge, the mute, the activity dot and the preferences row. `meetup-chat.spec.ts` passes locally in ar at 390, fr at 768 and en at 1280: the host's entry counts the message written while their panel was closed, reading it clears the count, and a mute holds across a reload. A push received on staging waits for the flag (CH-11) |
 | CH-08 | Partial  | Delete, Remove and Report in the chat panel                                                                                      | Component tests for the options on each message, the dialog's steps, reasons and failures, and its Escape, which leaves the panel open; the tombstone written into the panel's cache (2026-09-30). The writes and their server functions are CH-02's and CH-03's, tested there. `meetup-chat.spec.ts` passes locally in ar at 390, fr at 768 and en at 1280: the member reports the host's message with a reason, which is kept for the market, the host removes the member's and the member deletes their own, each seen at once in the other's panel. The review is the admin app's (see Moderation); step 6 on staging waits for the flag (CH-11)                                                                                                                                                                                                                 |
 | CH-09 | Partial  | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | On Miniflare D1 (2026-09-30): the sweep deletes a chat 90 days after its meetup with its messages and settings, keeps a younger one and the reports of a deleted one, deletes a report 24 months after its decision and never an open one, reading both through their indexes; a report keeps who it is about, even once that account is deleted outright; erasure deletes a closed account's messages and settings and no one else's, keeps both kinds of report, and leaves a reopened account's chat as it was. `privacy-practice.test.ts` holds the policy's 90 days and 24 months to the code. The policy, guidelines, terms and organizer terms are dated 30 September 2026 in ar, fr and en; their review waits for Founder / Product                                                                                                                         |
-| CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Sends and the panel's first read within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Waits for the admin app (Founder / Product, 2026-09-30). Sends and the panel's first read within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | CH-11 | Planned  | Turning the feature flag on once the admin app reviews reports, the members' notice a week before, the evidence run, production  | The run below recorded on staging, then the flag on in production                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | CH-12 | Planned  | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 Tickets run in number order. Moderation and privacy (CH-08 and CH-09) come before the flag, since
 the chat cannot open to members without them. The flag also waits for the admin app's review of
-reports, so that a report reaches someone who can act on it (Founder / Product, 2026-09-30).
+reports, so that a report reaches someone who can act on it, and CH-10 waits for the admin app
+too, so CH-10 to CH-12 come after it (Founder / Product, 2026-09-30).
 
 **Evidence run** (staging, with a host, a member and a third account):
 
@@ -804,27 +805,29 @@ not repeated.
    staging's push-primary/email-fallback policy, including real provider delivery evidence.
 4. **Verify live event coordination:** complete `P1-010` Durable Object expiry, heartbeat cleanup,
    and cancellation behavior.
-5. **Build the meetup chat:** deliver `P1-026` CH-02 through CH-11, then retire Telegram groups
-   with CH-12. It shares the live room's session, membership and heartbeat code from step 4.
+5. **Build the meetup chat:** deliver `P1-026` CH-02 through CH-09. It shares the live room's
+   session, membership and heartbeat code from step 4.
 6. **Build operational administration:** deliver `CO-08/CO-09` for event operations, corrections,
-   moderation, host trust, and audit.
-7. **Deliver community-health evidence:** implement `CO-10/P1-019` metrics repositories, dashboards,
+   moderation (the meetup chat's report review included), host trust, and audit.
+7. **Open the meetup chat:** deliver `P1-026` CH-10, then CH-11, which turns the chat on in
+   production, then retire Telegram groups with CH-12.
+8. **Deliver community-health evidence:** implement `CO-10/P1-019` metrics repositories, dashboards,
    alerts, retention snapshots, denominators, and as-of evidence.
-8. **Run the operational launch rehearsal:** complete `CO-11/P1-021/P1-023` across all checkpoints,
+9. **Run the operational launch rehearsal:** complete `CO-11/P1-021/P1-023` across all checkpoints,
    locales, directions, roles, mobile/desktop surfaces, and recovery paths.
-9. **Finish PWA verification:** complete `P1-020` offline behavior, Lighthouse budgets, and PWA
-   Builder checks.
-10. **Complete profile/account work:** finish `PF-04c`, then `PF-11a/PF-11b` CO integration and
+10. **Finish PWA verification:** complete `P1-020` offline behavior, Lighthouse budgets, and PWA
+    Builder checks.
+11. **Complete profile/account work:** finish `PF-04c`, then `PF-11a/PF-11b` CO integration and
     localized UX, and `PF-12` release evidence. `PF-09` export and `PF-10` deletion are carried out
     on request through the [account requests runbook](./account-requests.md) and the nightly
     erasure (#105); what remains of them is the member-facing request on the account screen, and
     the retention jobs #106 tracks.
-11. **Complete search-engine operations:** deliver `SEO-12` Search Console/Bing submission, sitemap
+12. **Complete search-engine operations:** deliver `SEO-12` Search Console/Bing submission, sitemap
     processing, representative URL indexing, and 30-day monitoring.
-12. **Complete notification controls:** `ND-06` provider-aware, responsive per-category controls and
+13. **Complete notification controls:** `ND-06` provider-aware, responsive per-category controls and
     push-permission UX are implemented; retain `ND-08` production evidence as the release gate from
     step 3.
-13. **Close documentation:** `TOOL-01` resolved the Nx-wide i18n source-import graph error and
+14. **Close documentation:** `TOOL-01` resolved the Nx-wide i18n source-import graph error and
     Nx-wide lint is green; keep deployment evidence synchronized with the SEO and notification plans.
 
 Future sponsorship, challenges, talent, payments, semantic search, browser-generated OG images, and
