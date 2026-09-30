@@ -1,36 +1,32 @@
-import type { ConnectionInfo, OutboundMessage } from './protocol.js';
 import { z } from 'zod';
-
-const connectionAttachment = z.object({
-  userId: z.string(),
-  userName: z.string(),
-  isHost: z.boolean(),
-  authenticated: z.boolean(),
-  sessionToken: z.string(),
-  registeredAt: z.number(),
-});
 
 type HeartbeatClock = (ws: WebSocket) => Date | null;
 
-export class EventConnections {
-  private sockets = new Map<WebSocket, ConnectionInfo>();
+export type RoomMember = {
+  readonly userId: string;
+  readonly sessionToken: string;
+};
+
+export type RoomConnection<Member extends RoomMember> = {
+  readonly registeredAt: number;
+  readonly member: Member | null;
+};
+
+export class RoomConnections<Member extends RoomMember, Frame> {
+  private sockets = new Map<WebSocket, RoomConnection<Member>>();
+  private attachment: z.ZodType<RoomConnection<Member>>;
   private lastHeartbeatAt: HeartbeatClock;
 
-  constructor(lastHeartbeatAt: HeartbeatClock) {
+  constructor(member: z.ZodType<Member>, lastHeartbeatAt: HeartbeatClock) {
+    this.attachment = z.object({
+      registeredAt: z.number(),
+      member: member.nullable(),
+    });
     this.lastHeartbeatAt = lastHeartbeatAt;
   }
 
   register = (ws: WebSocket, now: number): void => {
-    const connection = {
-      userId: '',
-      userName: '',
-      isHost: false,
-      authenticated: false,
-      sessionToken: '',
-      registeredAt: now,
-    };
-    this.sockets.set(ws, connection);
-    ws.serializeAttachment(connection);
+    this.remember(ws, { registeredAt: now, member: null });
   };
 
   /**
@@ -44,33 +40,31 @@ export class EventConnections {
     this.sockets.clear();
     for (const ws of sockets) {
       if (ws.readyState !== WebSocket.OPEN) continue;
-      const parsed = connectionAttachment.safeParse(ws.deserializeAttachment());
+      const parsed = this.attachment.safeParse(ws.deserializeAttachment());
       if (parsed.success) this.sockets.set(ws, parsed.data);
     }
   };
 
-  get = (ws: WebSocket): ConnectionInfo | undefined => this.sockets.get(ws);
+  get = (ws: WebSocket): RoomConnection<Member> | undefined =>
+    this.sockets.get(ws);
 
-  entries = (): readonly (readonly [WebSocket, ConnectionInfo])[] => [
+  entries = (): readonly (readonly [WebSocket, RoomConnection<Member>])[] => [
     ...this.sockets.entries(),
   ];
 
+  /** The sockets whose session the room has verified, each with the member it belongs to. */
+  members = (): readonly (readonly [WebSocket, Member])[] =>
+    this.entries().flatMap(([ws, connection]) =>
+      connection.member ? [[ws, connection.member] as const] : [],
+    );
+
   size = (): number => this.sockets.size;
 
-  authenticate = (
-    ws: WebSocket,
-    identity: {
-      userId: string;
-      userName: string;
-      isHost: boolean;
-      sessionToken: string;
-    },
-  ): boolean => {
+  /** Record who a socket belongs to once the room has verified its session, on the socket too. */
+  admit = (ws: WebSocket, member: Member): boolean => {
     const existing = this.sockets.get(ws);
     if (!existing) return false;
-    const connection = { ...existing, ...identity, authenticated: true };
-    this.sockets.set(ws, connection);
-    ws.serializeAttachment(connection);
+    this.remember(ws, { ...existing, member });
     return true;
   };
 
@@ -83,11 +77,13 @@ export class EventConnections {
    * heartbeat, and one whose client vanished first never will. Its registration is what lets a new
    * socket live until that heartbeat is due, and a silent one age out after it.
    */
-  private lastSeenAt = (ws: WebSocket, connection: ConnectionInfo): number =>
-    this.lastHeartbeatAt(ws)?.getTime() ?? connection.registeredAt;
+  private lastSeenAt = (
+    ws: WebSocket,
+    connection: RoomConnection<Member>,
+  ): number => this.lastHeartbeatAt(ws)?.getTime() ?? connection.registeredAt;
 
   stale = (now: number, timeoutMs: number): readonly WebSocket[] =>
-    [...this.sockets.entries()]
+    this.entries()
       .filter(
         ([ws, connection]) =>
           now - this.lastSeenAt(ws, connection) >= timeoutMs,
@@ -96,43 +92,32 @@ export class EventConnections {
 
   /** The earliest moment a socket in the room goes stale, or `null` when the room is empty. */
   nextDeadline = (timeoutMs: number): number | null => {
-    const deadlines = [...this.sockets.entries()].map(
+    const deadlines = this.entries().map(
       ([ws, connection]) => this.lastSeenAt(ws, connection) + timeoutMs,
     );
     return deadlines.length === 0 ? null : Math.min(...deadlines);
   };
 
-  drop = (ws: WebSocket): ConnectionInfo | undefined => {
+  drop = (ws: WebSocket): RoomConnection<Member> | undefined => {
     const existing = this.sockets.get(ws);
     this.sockets.delete(ws);
     return existing;
   };
 
-  send = (ws: WebSocket, msg: OutboundMessage): void => {
-    try {
-      ws.send(JSON.stringify(msg));
-    } catch {
-      this.sockets.delete(ws);
-    }
+  send = (ws: WebSocket, frame: Frame): void => {
+    this.sendText(ws, JSON.stringify(frame));
   };
 
   /**
    * Send a frame to every connection whose session the room has verified.
    *
    * A socket joins the map at its upgrade, before D1 has answered for its session, and the room
-   * handles other sockets' messages while it waits. Sending to the whole map sent the roster and the
-   * host's table to whoever had opened a socket, including one about to be refused.
+   * handles other sockets' messages while it waits. Sending to the whole map sent the live roster
+   * and the host's table to whoever had opened a socket, including one about to be refused.
    */
-  broadcast = (msg: OutboundMessage): void => {
-    const data = JSON.stringify(msg);
-    for (const [ws, connection] of this.sockets) {
-      if (!connection.authenticated) continue;
-      try {
-        ws.send(data);
-      } catch {
-        this.sockets.delete(ws);
-      }
-    }
+  broadcast = (frame: Frame): void => {
+    const data = JSON.stringify(frame);
+    for (const [ws] of this.members()) this.sendText(ws, data);
   };
 
   close = (ws: WebSocket, code: number, reason: string): void => {
@@ -151,10 +136,26 @@ export class EventConnections {
    * The frame says no more than the close reason after it, and a browser that is told stops
    * reconnecting to a room that has closed for good.
    */
-  closeAll = (msg: OutboundMessage, code: number, reason: string): void => {
+  closeAll = (frame: Frame, code: number, reason: string): void => {
     for (const [ws] of this.entries()) {
-      this.send(ws, msg);
+      this.send(ws, frame);
       this.close(ws, code, reason);
+    }
+  };
+
+  private remember = (
+    ws: WebSocket,
+    connection: RoomConnection<Member>,
+  ): void => {
+    this.sockets.set(ws, connection);
+    ws.serializeAttachment(connection);
+  };
+
+  private sendText = (ws: WebSocket, data: string): void => {
+    try {
+      ws.send(data);
+    } catch {
+      this.sockets.delete(ws);
     }
   };
 }

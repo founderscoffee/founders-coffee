@@ -1,54 +1,47 @@
 import { DurableObject } from 'cloudflare:workers';
 
+import {
+  answerHeartbeats,
+  armHeartbeat,
+  reapStale,
+  recheckMember,
+  recheckMembers,
+  refuse,
+  RoomConnections,
+  verifySession,
+  verifySessionFromCookie,
+  type SessionVerdict,
+} from '@founders-coffee/server-fns/rooms';
+
 import { handleLiveAction } from './event-live/actions.js';
-import { EventConnections } from './event-live/connections.js';
-import {
-  HEARTBEAT_ACK_FRAME,
-  HEARTBEAT_FRAME,
-  HEARTBEAT_TIMEOUT_MS,
-} from './event-live/constants.js';
 import { liveRoomEventId } from './event-live/path.js';
-import { clientMessage } from './event-live/protocol.js';
-import {
-  refuseConnection,
-  revalidateConnection,
-  revalidateConnections,
-} from './event-live/revalidate.js';
+import { clientMessage, type OutboundMessage } from './event-live/protocol.js';
 import { EventRoster } from './event-live/roster.js';
 import {
-  verifyEventSession,
-  verifyEventSessionFromCookie,
+  LIVE_REFUSALS,
+  liveMember,
+  liveMembership,
   type DoEnv,
-  type VerifyResult,
+  type LiveMember,
 } from './event-live/session.js';
 
 const EVENT_ID_KEY = 'eventId';
 
-type VerifiedSession = Extract<VerifyResult, { ok: true }>;
-
 export class EventLiveDO extends DurableObject<DoEnv> {
-  private connections: EventConnections;
+  private connections: RoomConnections<LiveMember, OutboundMessage>;
   private roster: EventRoster;
 
   /**
    * Take back the sockets the runtime still holds, and have the runtime answer heartbeats itself.
-   *
-   * The runtime answers `HEARTBEAT_FRAME` with `HEARTBEAT_ACK_FRAME` without waking the room, and
-   * stamps when it did (#85), but only on an exact match. Both frames keep the JSON text the room
-   * used to exchange itself, so a page loaded before the runtime took over is answered just as it
-   * expects.
    */
   constructor(ctx: DurableObjectState, env: DoEnv) {
     super(ctx, env);
     this.roster = new EventRoster(ctx.storage);
-    this.connections = new EventConnections((ws) =>
+    this.connections = new RoomConnections(liveMember, (ws) =>
       ctx.getWebSocketAutoResponseTimestamp(ws),
     );
     this.connections.restore(ctx.getWebSockets());
-
-    ctx.setWebSocketAutoResponse(
-      new WebSocketRequestResponsePair(HEARTBEAT_FRAME, HEARTBEAT_ACK_FRAME),
-    );
+    answerHeartbeats(ctx);
   }
 
   /**
@@ -117,11 +110,11 @@ export class EventLiveDO extends DurableObject<DoEnv> {
       await this.handleAuth(ws, result.data.sessionToken);
       return;
     }
-    const valid = await revalidateConnection({
-      db: this.env.DB,
-      eventId,
-      ws,
+    const valid = await recheckMember({
       connections: this.connections,
+      ws,
+      lookup: liveMembership(this.env.DB, eventId),
+      refusals: LIVE_REFUSALS,
     });
     if (!valid) return;
     await handleLiveAction({
@@ -134,13 +127,13 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
   webSocketClose = async (ws: WebSocket): Promise<void> => {
     const conn = this.connections.drop(ws);
-    if (conn?.authenticated) this.broadcastRoster();
-    await this.armHeartbeat();
+    if (conn?.member) this.broadcastRoster();
+    await armHeartbeat(this.ctx.storage, this.connections);
   };
 
   webSocketError = async (ws: WebSocket): Promise<void> => {
     this.connections.drop(ws);
-    await this.armHeartbeat();
+    await armHeartbeat(this.ctx.storage, this.connections);
   };
 
   private handleUpgrade = async (request: Request): Promise<Response> => {
@@ -160,9 +153,8 @@ export class EventLiveDO extends DurableObject<DoEnv> {
     request: Request,
   ): Promise<void> => {
     const eventId = await this.eventId();
-    const result = await verifyEventSessionFromCookie(
-      this.env.DB,
-      eventId,
+    const result = await verifySessionFromCookie(
+      liveMembership(this.env.DB, eventId),
       request,
     );
     await this.applyVerifiedSession(serverWs, result);
@@ -176,27 +168,22 @@ export class EventLiveDO extends DurableObject<DoEnv> {
    */
   private applyVerifiedSession = async (
     serverWs: WebSocket,
-    result: VerifyResult,
+    result: SessionVerdict<LiveMember>,
   ): Promise<void> => {
-    if (result.ok) await this.admit(serverWs, result);
-    else refuseConnection(this.connections, serverWs, result.reason);
-    await this.armHeartbeat();
+    if (result.ok) await this.admit(serverWs, result.member);
+    else refuse(this.connections, serverWs, result.reason, LIVE_REFUSALS);
+    await armHeartbeat(this.ctx.storage, this.connections);
   };
 
   private admit = async (
     serverWs: WebSocket,
-    session: VerifiedSession,
+    member: LiveMember,
   ): Promise<void> => {
-    const attached = this.connections.authenticate(serverWs, {
-      userId: session.userId,
-      userName: session.userName,
-      isHost: session.isHost,
-      sessionToken: session.sessionToken,
-    });
+    const attached = this.connections.admit(serverWs, member);
     if (!attached) return;
 
-    if (session.isHost) await this.roster.claimHost(session.userId);
-    await this.roster.admitAttendee(session.userId, session.userName);
+    if (member.isHost) await this.roster.claimHost(member.userId);
+    await this.roster.admitAttendee(member.userId, member.userName);
 
     this.connections.send(serverWs, {
       type: 'auth_ok',
@@ -212,7 +199,10 @@ export class EventLiveDO extends DurableObject<DoEnv> {
   ): Promise<void> => {
     const eventId = await this.eventId();
     if (!this.connections.get(ws) || !eventId) return;
-    const result = await verifyEventSession(this.env.DB, eventId, sessionToken);
+    const result = await verifySession(
+      liveMembership(this.env.DB, eventId),
+      sessionToken,
+    );
     await this.applyVerifiedSession(ws, result);
   };
 
@@ -240,26 +230,16 @@ export class EventLiveDO extends DurableObject<DoEnv> {
   override async alarm(): Promise<void> {
     await this.roster.ensureRehydrated();
     this.connections.restore(this.ctx.getWebSockets());
-    const stale = this.connections.stale(Date.now(), HEARTBEAT_TIMEOUT_MS);
-    let rosterChanged = false;
-    for (const ws of stale) {
-      const connection = this.connections.drop(ws);
-      if (connection?.authenticated) rosterChanged = true;
-      try {
-        ws.close(4002, 'heartbeat_timeout');
-      } catch {
-        continue;
-      }
-    }
+    const reaped = reapStale(this.connections, Date.now());
     const eventId = await this.eventId();
     if (eventId)
-      await revalidateConnections({
-        db: this.env.DB,
-        eventId,
+      await recheckMembers({
         connections: this.connections,
+        lookup: liveMembership(this.env.DB, eventId),
+        refusals: LIVE_REFUSALS,
       });
-    if (rosterChanged) this.broadcastRoster();
-    await this.armHeartbeat();
+    if (reaped.some((connection) => connection.member)) this.broadcastRoster();
+    await armHeartbeat(this.ctx.storage, this.connections);
   }
 
   private setEventId = async (eventId: string): Promise<void> => {
@@ -268,27 +248,4 @@ export class EventLiveDO extends DurableObject<DoEnv> {
 
   private eventId = async (): Promise<string | null> =>
     (await this.ctx.storage.get<string>(EVENT_ID_KEY)) ?? null;
-
-  /**
-   * Set the alarm for the earliest moment a socket in the room could go stale, or clear it when the
-   * room is empty.
-   *
-   * That moment is the oldest last sign of life in the room, as it stands when the alarm is armed,
-   * plus `HEARTBEAT_TIMEOUT_MS` (#86). Heartbeats are answered by the runtime and never wake the
-   * room (#85), so the alarm cannot move later as they arrive: it fires at a deadline worked out on
-   * an earlier wake. By then every healthy socket has sent a heartbeat within the last interval, so
-   * the next deadline is 30 to 45 s away, and a healthy room wakes that often rather than every
-   * 15 s. Arming any later would let a socket that went silent outlive the timeout. An alarm
-   * already set sooner is kept, so a socket that joins never delays one that is due first.
-   */
-  private armHeartbeat = async (): Promise<void> => {
-    const next = this.connections.nextDeadline(HEARTBEAT_TIMEOUT_MS);
-    if (next === null) {
-      await this.ctx.storage.deleteAlarm();
-      return;
-    }
-    const current = await this.ctx.storage.getAlarm();
-    if (current === null || current > next)
-      await this.ctx.storage.setAlarm(next);
-  };
 }

@@ -64,12 +64,3 @@ export interface OutboundMessage {
   host?: HostState;
   message?: string;
 }
-
-export interface ConnectionInfo {
-  userId: string;
-  userName: string;
-  isHost: boolean;
-  authenticated: boolean;
-  sessionToken: string;
-  registeredAt: number;
-}

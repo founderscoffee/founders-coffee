@@ -5,7 +5,7 @@ import {
   HEARTBEAT_FRAME,
   HEARTBEAT_INTERVAL_MS,
   HEARTBEAT_TIMEOUT_MS,
-} from '../src/durable-objects/event-live/constants';
+} from '@founders-coffee/core/rooms';
 import { cleanupRun, d1 } from './support/d1';
 import { t } from './support/messages';
 import { signIn } from './support/profile-auth';

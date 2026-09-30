@@ -18,6 +18,11 @@
       "@founders-coffee/source": "./src/locale.ts",
       "types": "./src/locale.ts",
       "default": "./src/locale.ts"
+    },
+    "./rooms": {
+      "@founders-coffee/source": "./src/rooms.ts",
+      "types": "./src/rooms.ts",
+      "default": "./src/rooms.ts"
     }
   }
 }
