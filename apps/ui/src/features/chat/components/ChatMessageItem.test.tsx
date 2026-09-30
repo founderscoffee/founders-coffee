@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { chat } from '@founders-coffee/domain';
+import type { Locale } from '@founders-coffee/i18n';
 
 import type { ChatMessageView } from '../api';
 import type { PendingMessage } from '../chat-items';
@@ -87,6 +88,73 @@ describe('ChatMessageItem', () => {
     show(chatMessage('msg_1', AT, { removal, body: '' }));
 
     expect(screen.getByText(text)).toBeTruthy();
+  });
+});
+
+describe('ChatMessageItem’s options', () => {
+  const showWithOptions = (message: ChatMessageView, locale: Locale = 'en') => {
+    const onActions = vi.fn();
+    render(
+      <ChatMessageItem
+        locale={locale}
+        timeZone="Africa/Algiers"
+        message={message}
+        segments={textOf(message.body)}
+        isFirstOfRun={false}
+        onActions={onActions}
+      />,
+    );
+    return onActions;
+  };
+
+  it('offers none unless the panel has some for the message', () => {
+    show(chatMessage('msg_1', AT));
+
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('names whose message the options are for, and opens them', () => {
+    const onActions = showWithOptions(chatMessage('msg_1', AT));
+
+    const options = screen.getByRole('button', {
+      name: 'Options for Amina’s message',
+    });
+    expect(options.getAttribute('aria-haspopup')).toBe('dialog');
+    fireEvent.click(options);
+    expect(onActions).toHaveBeenCalledOnce();
+  });
+
+  it('calls the reader’s own message theirs, and a member with no name a member', () => {
+    showWithOptions(chatMessage('msg_1', AT, { isOwn: true }));
+    showWithOptions(chatMessage('msg_2', AT, { author: null }));
+
+    expect(
+      screen.getByRole('button', { name: 'Options for your message' }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Options for Member’s message' }),
+    ).toBeTruthy();
+  });
+
+  it('sits beside the bubble on the side facing the rest of the chat', () => {
+    showWithOptions(chatMessage('msg_1', AT));
+    showWithOptions(chatMessage('msg_2', AT, { isOwn: true }));
+
+    const [theirs, own] = screen.getAllByRole('button');
+    expect(theirs?.parentElement?.className).toContain('start-full');
+    expect(own?.parentElement?.className).toContain('end-full');
+  });
+
+  it('names them in the reader’s language', () => {
+    showWithOptions(chatMessage('msg_1', AT), 'ar');
+    showWithOptions(chatMessage('msg_2', AT), 'fr');
+
+    expect(
+      screen.getByRole('button', { name: 'خيارات رسالة Amina' }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Options du message de Amina' }),
+    ).toBeTruthy();
   });
 });
 

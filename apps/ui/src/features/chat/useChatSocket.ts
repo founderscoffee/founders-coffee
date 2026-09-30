@@ -6,8 +6,7 @@ import {
   HEARTBEAT_INTERVAL_MS,
 } from '@founders-coffee/core/rooms';
 
-import type { ChatMessageView } from './api';
-import type { ChatRemoval } from './chat-cache';
+import type { ChatMessageView, ChatRemoval } from './api';
 import { parseChatFrame } from './chat-frames';
 
 export type ChatEnding = 'closed' | 'revoked' | 'signed_out' | 'paused';

@@ -1,7 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { chatMeta } from '../chat.fixtures';
+import type { ChatMessageView, ChatReportStatus } from '../api';
+import { chatMessage, chatMeta } from '../chat.fixtures';
 import type { EventChatView, ReadyChat } from '../useEventChat';
 import { ChatConversation } from './ChatConversation';
 
@@ -9,11 +10,50 @@ const mocks = vi.hoisted(() => ({
   view: { status: 'loading' } as EventChatView,
   retry: vi.fn(),
   resume: vi.fn(),
+  message: null as unknown as ChatMessageView,
 }));
 
 vi.mock('../useEventChat', () => ({ useEventChat: () => mocks.view }));
 vi.mock('../useChatReadMarker', () => ({ useChatReadMarker: () => undefined }));
-vi.mock('./ChatLog', () => ({ ChatLog: () => <p>chat-log</p> }));
+vi.mock('./ChatLog', () => ({
+  ChatLog: ({
+    onMessageActions,
+  }: {
+    onMessageActions: (message: ChatMessageView) => void;
+  }) => (
+    <>
+      <p>chat-log</p>
+      <button type="button" onClick={() => onMessageActions(mocks.message)}>
+        message-options
+      </button>
+    </>
+  ),
+}));
+vi.mock('./ChatMessageDialog', () => ({
+  ChatMessageDialog: ({
+    message,
+    isHost,
+    onClose,
+    onReported,
+  }: {
+    message: ChatMessageView;
+    isHost: boolean;
+    onClose: () => void;
+    onReported: (status: ChatReportStatus) => void;
+  }) => (
+    <div role="dialog" aria-label={`${message.id} as host: ${isHost}`}>
+      <button type="button" onClick={() => onReported('reported')}>
+        reported
+      </button>
+      <button type="button" onClick={() => onReported('already_reported')}>
+        reported-before
+      </button>
+      <button type="button" onClick={onClose}>
+        close
+      </button>
+    </div>
+  ),
+}));
 vi.mock('./ChatSignIn', () => ({ ChatSignIn: () => <p>chat-sign-in</p> }));
 
 const HOUR = 60 * 60 * 1000;
@@ -155,5 +195,34 @@ describe('ChatConversation', () => {
     ).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Reconnect' }));
     expect(mocks.resume).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens a message’s options over the panel, telling them whether the reader hosts', () => {
+    mocks.message = chatMessage('msg_1', new Date('2026-09-30T18:05:00Z'));
+    show(readyChat({ meta: chatMeta({ isHost: true }) }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'message-options' }));
+    expect(
+      screen.getByRole('dialog', { name: 'msg_1 as host: true' }),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'close' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('thanks the reader for a report, and says so when they had made it before', () => {
+    mocks.message = chatMessage('msg_1', new Date('2026-09-30T18:05:00Z'));
+    show(readyChat());
+
+    fireEvent.click(screen.getByRole('button', { name: 'message-options' }));
+    fireEvent.click(screen.getByRole('button', { name: 'reported' }));
+    expect(screen.getByRole('status').textContent).toContain(
+      'Thank you. We will look at this message.',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'reported-before' }));
+    expect(screen.getByRole('status').textContent).toContain(
+      'You have already reported this message.',
+    );
   });
 });

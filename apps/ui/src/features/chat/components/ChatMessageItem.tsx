@@ -1,8 +1,10 @@
-import { Ban } from 'lucide-react';
+import { Ban, Ellipsis } from 'lucide-react';
 
 import type { chat } from '@founders-coffee/domain';
 import {
   chat_member,
+  chat_options_for,
+  chat_options_own,
   chat_removed_author,
   chat_removed_host,
   chat_removed_moderator,
@@ -21,6 +23,7 @@ type ChatMessageItemProps = {
   message: ChatMessageView;
   segments: readonly chat.ChatBodySegment[];
   isFirstOfRun: boolean;
+  onActions?: () => void;
 };
 
 const REMOVALS = {
@@ -35,6 +38,7 @@ export const ChatMessageItem = ({
   message,
   segments,
   isFirstOfRun,
+  onActions,
 }: ChatMessageItemProps) => {
   const side = message.isOwn ? 'chat-end' : 'chat-start';
   const name = message.author?.name ?? chat_member({}, { locale });
@@ -45,7 +49,7 @@ export const ChatMessageItem = ({
   );
 
   return (
-    <div className={`chat ${side}`}>
+    <div className={`group chat ${side}`}>
       {message.isOwn ? null : (
         <div className="chat-image" aria-hidden="true">
           {isFirstOfRun ? (
@@ -80,6 +84,25 @@ export const ChatMessageItem = ({
           className={`chat-bubble ${message.isOwn ? 'chat-bubble-primary' : ''}`}
         >
           <ChatText segments={segments} />
+          {onActions ? (
+            <span
+              className={`absolute top-1/2 -translate-y-1/2 ${message.isOwn ? 'end-full me-1' : 'start-full ms-1'}`}
+            >
+              <button
+                type="button"
+                className="tap-target flex size-6 items-center justify-center rounded-full text-neutral opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-base-200 focus-visible:opacity-100 pointer-coarse:opacity-100 motion-safe:transition-opacity"
+                aria-label={
+                  message.isOwn
+                    ? chat_options_own({}, { locale })
+                    : chat_options_for({ name }, { locale })
+                }
+                aria-haspopup="dialog"
+                onClick={onActions}
+              >
+                <Ellipsis className="size-4" aria-hidden="true" />
+              </button>
+            </span>
+          ) : null}
         </div>
       )}
     </div>

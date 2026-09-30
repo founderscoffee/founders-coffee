@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { ChatMessageView } from '../api';
@@ -20,7 +20,9 @@ const messageRow = (message: ChatMessageView): ChatRow => ({
   isFirstOfRun: true,
 });
 
-const show = (row: ChatRow) =>
+const onMessageActions = vi.fn();
+
+const show = (row: ChatRow, isHost = false) =>
   render(
     <ChatRowView
       locale="en"
@@ -33,11 +35,16 @@ const show = (row: ChatRow) =>
         load: vi.fn(),
       }}
       canRetry
+      isHost={isHost}
       onRetry={vi.fn()}
+      onMessageActions={onMessageActions}
     />,
   ).container;
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  onMessageActions.mockReset();
+});
 
 describe('ChatRowView', () => {
   it('shows a change to the meetup as a line of its own, not as anyone’s message', () => {
@@ -66,5 +73,25 @@ describe('ChatRowView', () => {
 
     expect(container.querySelector('.chat-start .chat-bubble')).not.toBeNull();
     expect(screen.getByText('Body of msg_1')).toBeTruthy();
+  });
+
+  it('opens the actions of the message whose options were chosen', () => {
+    const message = chatMessage('msg_1', AT);
+    show(messageRow(message));
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Options for Amina’s message' }),
+    );
+
+    expect(onMessageActions).toHaveBeenCalledExactlyOnceWith(message);
+  });
+
+  it('offers no options on a message already removed, even to the host', () => {
+    show(
+      messageRow(chatMessage('msg_1', AT, { body: '', removal: 'author' })),
+      true,
+    );
+
+    expect(screen.queryByRole('button')).toBeNull();
   });
 });

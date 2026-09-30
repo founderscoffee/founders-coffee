@@ -1,5 +1,7 @@
 import { chat_unread, type Locale } from '@founders-coffee/i18n';
 
+import type { ChatMessageView } from '../api';
+import { chatMessageActions } from '../chat-actions';
 import type { ChatRow } from '../chat-rows';
 import { dayLabel } from '../chat-time';
 import type { ChatHistory } from '../useEventChat';
@@ -14,7 +16,9 @@ type ChatRowViewProps = {
   row: ChatRow;
   history: ChatHistory;
   canRetry: boolean;
+  isHost: boolean;
   onRetry: (clientId: string) => void;
+  onMessageActions: (message: ChatMessageView) => void;
 };
 
 export const ChatRowView = ({
@@ -23,7 +27,9 @@ export const ChatRowView = ({
   row,
   history,
   canRetry,
+  isHost,
   onRetry,
+  onMessageActions,
 }: ChatRowViewProps) => {
   switch (row.kind) {
     case 'history':
@@ -58,6 +64,11 @@ export const ChatRowView = ({
           message={row.message}
           segments={row.segments}
           isFirstOfRun={row.isFirstOfRun}
+          onActions={
+            chatMessageActions(row.message, isHost).length > 0
+              ? () => onMessageActions(row.message)
+              : undefined
+          }
         />
       );
     case 'pending':

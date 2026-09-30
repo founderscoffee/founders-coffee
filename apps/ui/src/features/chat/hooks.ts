@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { appErrorCode } from '@founders-coffee/core';
+import { appErrorCode, type ChatReportReason } from '@founders-coffee/core';
 import { chat } from '@founders-coffee/domain';
 
 import { useHydrationSafeSession } from '../../lib/hydration-safe-session';
@@ -16,6 +16,7 @@ import {
   cursorOf,
   withLastRead,
   withMuted,
+  withRemoval,
   type ChatChunk,
   type ChatPages,
 } from './chat-cache';
@@ -108,6 +109,29 @@ export const useSetChatMuted = (eventId: string, viewerId: string) => {
       ),
   });
 };
+
+/**
+ * Remove a message from the chat, the reader's own or, for the meetup's host, anyone's, and put
+ * its tombstone in the panel's cache at once. The room tells everyone else's panel.
+ */
+export const useRemoveChatMessage = (eventId: string, viewerId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId: string) => chatApi.remove(messageId),
+    onSuccess: (removed) =>
+      queryClient.setQueryData<ChatPages>(
+        chatQueryKey(eventId, viewerId),
+        (pages) => withRemoval(pages, removed),
+      ),
+  });
+};
+
+/** Report someone else's message for the team to look at. */
+export const useReportChatMessage = () =>
+  useMutation({
+    mutationFn: (input: { messageId: string; reason: ChatReportReason }) =>
+      chatApi.report(input.messageId, input.reason),
+  });
 
 /**
  * How many messages the signed-in reader has not read in each of their chats among `eventIds`,

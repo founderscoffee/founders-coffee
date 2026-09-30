@@ -17,6 +17,10 @@ export const panelOf = (page: Page, locale: E2eLocale): Locator =>
 export const composerOf = (panel: Locator, locale: E2eLocale): Locator =>
   panel.getByRole('textbox', { name: t(locale, 'chat_composer_label') });
 
+/** The options of the message in `panel` that reads `text`, the one button its row holds. */
+export const optionsOf = (panel: Locator, text: string): Locator =>
+  panel.locator('.chat', { hasText: text }).getByRole('button');
+
 /** Send a message and wait until the server has kept it: only a kept message shows its time. */
 export const send = async (panel: Locator, locale: E2eLocale, text: string) => {
   const composer = composerOf(panel, locale);

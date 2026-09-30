@@ -1,3 +1,4 @@
+import type { ChatReportReason } from '@founders-coffee/core';
 import type { ChatUnreadCount } from '@founders-coffee/db';
 import type { chat } from '@founders-coffee/domain';
 import {
@@ -5,6 +6,8 @@ import {
   getChatUnreadCounts,
   listChatMessages,
   markChatRead,
+  removeChatMessage,
+  reportChatMessage,
   sendChatMessage,
   setChatMuted,
   type ChatMessagesPage,
@@ -14,6 +17,10 @@ import {
 
 export type ChatCursor = chat.ChatCursor;
 export type ChatUnreadCounts = readonly ChatUnreadCount[];
+export type ChatReportStatus = 'reported' | 'already_reported';
+export type ChatRemoval = Pick<ChatMessageView, 'id'> & {
+  readonly removal: NonNullable<ChatMessageView['removal']>;
+};
 
 export const chatApi = {
   page: (eventId: string): Promise<ChatPage> =>
@@ -39,6 +46,13 @@ export const chatApi = {
     setChatMuted({ data: { eventId, muted } }),
   unreadCounts: (eventIds: readonly string[]): Promise<ChatUnreadCounts> =>
     getChatUnreadCounts({ data: { eventIds: [...eventIds] } }),
+  remove: (messageId: string): Promise<ChatRemoval> =>
+    removeChatMessage({ data: { messageId } }),
+  report: (
+    messageId: string,
+    reason: ChatReportReason,
+  ): Promise<{ readonly status: ChatReportStatus }> =>
+    reportChatMessage({ data: { messageId, reason } }),
 };
 
 export type { ChatMessagesPage, ChatMessageView, ChatPage };

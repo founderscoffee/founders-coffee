@@ -15,6 +15,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
+import type { ChatMessageView } from '../api';
 import type { ChatListItem } from '../chat-items';
 import {
   chatRows,
@@ -37,7 +38,9 @@ type ChatLogProps = {
   history: ChatHistory;
   isOpen: boolean;
   canRetry: boolean;
+  isHost: boolean;
   onRetry: (clientId: string) => void;
+  onMessageActions: (message: ChatMessageView) => void;
   onAtEndChange: (isAtEnd: boolean) => void;
 };
 
@@ -48,7 +51,9 @@ export const ChatLog = ({
   history,
   isOpen,
   canRetry,
+  isHost,
   onRetry,
+  onMessageActions,
   onAtEndChange,
 }: ChatLogProps) => {
   const scroller = useRef<HTMLDivElement>(null);
@@ -120,7 +125,7 @@ export const ChatLog = ({
     <div className="relative flex min-h-0 flex-1 flex-col">
       <div
         ref={scroller}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
         onScroll={syncEnd}
       >
         {rows.length === 0 ? (
@@ -149,7 +154,9 @@ export const ChatLog = ({
                   row={row}
                   history={history}
                   canRetry={canRetry}
+                  isHost={isHost}
                   onRetry={onRetry}
+                  onMessageActions={onMessageActions}
                 />
               </div>
             ) : null;

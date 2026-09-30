@@ -1,6 +1,6 @@
 import type { InfiniteData } from '@tanstack/react-query';
 
-import type { ChatCursor, ChatMessageView, ChatPage } from './api';
+import type { ChatCursor, ChatMessageView, ChatPage, ChatRemoval } from './api';
 
 export type ChatMeta = Omit<ChatPage, 'messages' | 'hasOlder'>;
 
@@ -11,10 +11,6 @@ export type ChatChunk = {
 };
 
 export type ChatPages = InfiniteData<ChatChunk>;
-
-export type ChatRemoval = Pick<ChatMessageView, 'id'> & {
-  readonly removal: NonNullable<ChatMessageView['removal']>;
-};
 
 export const chatQueryKey = (eventId: string, viewerId: string | null) =>
   ['chat', eventId, viewerId] as const;

@@ -3,6 +3,7 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 import {
   composerOf,
   expectPanelPlacement,
+  optionsOf,
   panelOf,
   send,
   type Screen,
@@ -203,6 +204,63 @@ for (const screen of SCREENS) {
         timeout: 15_000,
       });
       await host.screenshot({ path: testInfo.outputPath('host-muted.png') });
+
+      await optionsOf(memberPanel, `Welcome ${locale}`).click();
+      const report = member.getByRole('dialog', {
+        name: t(locale, 'chat_report_title'),
+      });
+      await report
+        .getByRole('radio', { name: t(locale, 'chat_report_spam') })
+        .check();
+      await member.screenshot({
+        path: testInfo.outputPath('member-report.png'),
+        animations: 'disabled',
+      });
+      await report
+        .getByRole('button', { name: t(locale, 'chat_report_confirm') })
+        .click();
+      await expect(report).toBeHidden();
+      await expect(
+        memberPanel.getByText(t(locale, 'chat_report_sent')),
+      ).toBeVisible();
+      expect(
+        d1(
+          `SELECT reason FROM chat_reports WHERE message_id IN (SELECT id FROM chat_messages WHERE channel_id = '${meetup.channelId}' AND body = 'Welcome ${locale}');`,
+        ),
+      ).toEqual([{ reason: 'spam' }]);
+
+      await optionsOf(hostPanel, `Salam ${locale}`).click();
+      await host
+        .getByRole('button', { name: t(locale, 'chat_remove_message') })
+        .click();
+      const removal = host.getByRole('dialog', {
+        name: t(locale, 'chat_remove_title'),
+      });
+      await removal
+        .getByRole('button', {
+          name: t(locale, 'chat_remove_confirm'),
+          exact: true,
+        })
+        .click();
+      for (const panel of [hostPanel, memberPanel])
+        await expect(
+          panel.getByText(t(locale, 'chat_removed_host')),
+        ).toBeVisible({ timeout: 15_000 });
+      await expect(memberPanel.getByText(`Salam ${locale}`)).toBeHidden();
+
+      await optionsOf(memberPanel, `Still there ${locale}?`).click();
+      await member
+        .getByRole('dialog', { name: t(locale, 'chat_delete_title') })
+        .getByRole('button', {
+          name: t(locale, 'chat_delete_confirm'),
+          exact: true,
+        })
+        .click();
+      for (const panel of [memberPanel, hostPanel])
+        await expect(
+          panel.getByText(t(locale, 'chat_removed_author')),
+        ).toBeVisible({ timeout: 15_000 });
+      await host.screenshot({ path: testInfo.outputPath('host-removals.png') });
       await host.keyboard.press('Escape');
       await expect(hostPanel).toBeHidden();
 

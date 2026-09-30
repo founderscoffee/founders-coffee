@@ -5,8 +5,7 @@ import {
   chatMessageRemovalSchema,
 } from '@founders-coffee/core';
 
-import type { ChatMessageView } from './api';
-import type { ChatRemoval } from './chat-cache';
+import type { ChatMessageView, ChatRemoval } from './api';
 
 const chatMessage = z.object({
   id: z.string(),

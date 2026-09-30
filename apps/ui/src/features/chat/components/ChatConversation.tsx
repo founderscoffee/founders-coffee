@@ -4,17 +4,27 @@ import {
   chat_load_error,
   chat_loading,
   chat_members_only,
+  chat_report_already,
+  chat_report_sent,
   chat_unavailable,
   retry,
+  toast_dismiss,
   type Locale,
 } from '@founders-coffee/i18n';
-import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
+import {
+  LoadingStatus,
+  StatusMessage,
+  Toast,
+  useToast,
+} from '@founders-coffee/ui';
 
+import type { ChatMessageView } from '../api';
 import { useChatReadMarker } from '../useChatReadMarker';
 import { useEventChat, type ReadyChat } from '../useEventChat';
 import { ChatComposer } from './ChatComposer';
 import { ChatConnectionNotice } from './ChatConnectionNotice';
 import { ChatLog } from './ChatLog';
+import { ChatMessageDialog } from './ChatMessageDialog';
 import { ChatSignIn } from './ChatSignIn';
 import { ChatStateLine } from './ChatStateLine';
 
@@ -37,6 +47,8 @@ const ChatThread = ({
   timeZone,
 }: ChatConversationProps & { chat: ReadyChat }) => {
   const [isAtEnd, setIsAtEnd] = useState(true);
+  const [target, setTarget] = useState<ChatMessageView | null>(null);
+  const feedback = useToast();
   useChatReadMarker({
     eventId,
     viewerId,
@@ -46,7 +58,18 @@ const ChatThread = ({
   });
 
   return (
-    <>
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      {feedback.notification ? (
+        <div className="absolute inset-x-3 top-2 z-10">
+          <Toast
+            key={feedback.notification.id}
+            message={feedback.notification.message}
+            variant={feedback.notification.variant}
+            dismissLabel={toast_dismiss({}, { locale })}
+            onDismiss={feedback.clear}
+          />
+        </div>
+      ) : null}
       <ChatStateLine
         locale={locale}
         timeZone={timeZone}
@@ -69,7 +92,9 @@ const ChatThread = ({
         history={chat.history}
         isOpen={chat.isOpen}
         canRetry={chat.isOpen && !chat.isSending}
+        isHost={chat.meta.isHost}
         onRetry={chat.retrySend}
+        onMessageActions={setTarget}
         onAtEndChange={setIsAtEnd}
       />
       {chat.isOpen ? (
@@ -79,7 +104,26 @@ const ChatThread = ({
           onSend={chat.send}
         />
       ) : null}
-    </>
+      {target ? (
+        <ChatMessageDialog
+          key={target.id}
+          locale={locale}
+          eventId={eventId}
+          viewerId={viewerId}
+          isHost={chat.meta.isHost}
+          message={target}
+          onClose={() => setTarget(null)}
+          onReported={(status) =>
+            feedback.show(
+              status === 'reported'
+                ? chat_report_sent({}, { locale })
+                : chat_report_already({}, { locale }),
+              'success',
+            )
+          }
+        />
+      ) : null}
+    </div>
   );
 };
 
