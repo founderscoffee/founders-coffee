@@ -29,6 +29,26 @@ describe('what the chat’s room pushes', () => {
     });
   });
 
+  it('reads a notice about the meetup, with no author and its key and parameters', () => {
+    const notice = {
+      ...stored,
+      kind: 'system',
+      body: '',
+      systemKey: 'cancelled',
+      systemParams: { reason: 'Le café ferme.' },
+      author: null,
+      isOwn: false,
+      clientId: null,
+    };
+
+    expect(
+      parseChatFrame(JSON.stringify({ type: 'message', message: notice })),
+    ).toEqual({
+      type: 'message',
+      message: { ...notice, createdAt: new Date(stored.createdAt) },
+    });
+  });
+
   it('reads a removal, a closed chat and a revoked member', () => {
     expect(
       parseChatFrame('{"type":"removed","id":"msg_1","removal":"host"}'),

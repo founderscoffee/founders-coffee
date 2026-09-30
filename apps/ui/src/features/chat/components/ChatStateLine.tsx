@@ -8,7 +8,7 @@ import {
 } from '@founders-coffee/i18n';
 import { IsolatedValue } from '@founders-coffee/ui';
 
-import { readOnlyLabel } from '../chat-time';
+import { momentLabel } from '../chat-time';
 
 type ChatStateLineProps = {
   locale: Locale;
@@ -45,7 +45,7 @@ export const ChatStateLine = ({
       <Clock className="size-4 shrink-0" aria-hidden="true" />
       <span>
         <IsolatedValue
-          value={readOnlyLabel(readOnlyAt, locale, timeZone)}
+          value={momentLabel(readOnlyAt, locale, timeZone)}
           message={(date) => chat_open_until({ date }, { locale })}
         />
       </span>

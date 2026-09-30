@@ -6,6 +6,7 @@ import type { ChatHistory } from '../useEventChat';
 import { ChatHistoryRow } from './ChatHistoryRow';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatPendingItem } from './ChatPendingItem';
+import { ChatSystemLine } from './ChatSystemLine';
 
 type ChatRowViewProps = {
   locale: Locale;
@@ -44,7 +45,13 @@ export const ChatRowView = ({
         </p>
       );
     case 'message':
-      return (
+      return row.message.kind === 'system' ? (
+        <ChatSystemLine
+          locale={locale}
+          timeZone={timeZone}
+          notice={row.notice}
+        />
+      ) : (
         <ChatMessageItem
           locale={locale}
           timeZone={timeZone}

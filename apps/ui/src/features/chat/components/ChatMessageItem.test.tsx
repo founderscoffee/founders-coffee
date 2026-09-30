@@ -88,20 +88,6 @@ describe('ChatMessageItem', () => {
 
     expect(screen.getByText(text)).toBeTruthy();
   });
-
-  it('shows a change to the meetup as a line of its own', () => {
-    const { container } = show(
-      chatMessage('msg_1', AT, {
-        kind: 'system',
-        author: null,
-        body: '',
-        systemKey: 'rescheduled',
-      }),
-    );
-
-    expect(screen.getByText('The meetup’s details changed.')).toBeTruthy();
-    expect(container.querySelector('.chat')).toBeNull();
-  });
 });
 
 describe('ChatPendingItem', () => {

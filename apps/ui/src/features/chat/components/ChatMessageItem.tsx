@@ -6,7 +6,6 @@ import {
   chat_removed_author,
   chat_removed_host,
   chat_removed_moderator,
-  chat_system_update,
   chat_you,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -37,13 +36,6 @@ export const ChatMessageItem = ({
   segments,
   isFirstOfRun,
 }: ChatMessageItemProps) => {
-  if (message.kind === 'system')
-    return (
-      <p className="px-6 py-2 text-center text-body-sm text-neutral">
-        {chat_system_update({}, { locale })}
-      </p>
-    );
-
   const side = message.isOwn ? 'chat-end' : 'chat-start';
   const name = message.author?.name ?? chat_member({}, { locale });
   const time = (

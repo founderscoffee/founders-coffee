@@ -152,7 +152,7 @@ for (const screen of SCREENS) {
 
     test.afterAll(() => cleanup(meetup));
 
-    test('the host and a member talk in real time, each in their own browser', async ({
+    test('the host and a member talk in real time, each in their own browser, until the host calls it off', async ({
       browser,
     }, testInfo) => {
       test.setTimeout(240_000);
@@ -234,6 +234,30 @@ for (const screen of SCREENS) {
       await host.keyboard.press('Escape');
       await expect(hostPanel).toBeHidden();
       await expect(host).toHaveURL(new RegExp(`/e/${meetup.slug}$`));
+
+      const reason = `Venue closed ${RUN_ID}.`;
+      await host
+        .getByRole('button', { name: t(locale, 'host_cancel_event') })
+        .click();
+      const cancelDialog = host.getByRole('dialog', {
+        name: t(locale, 'host_cancel_title'),
+      });
+      await cancelDialog
+        .getByRole('textbox', { name: t(locale, 'host_cancel_reason_label') })
+        .fill(reason);
+      await cancelDialog
+        .getByRole('button', { name: t(locale, 'host_cancel_confirm') })
+        .click();
+      await expect(
+        memberPanel.getByText(t(locale, 'chat_system_cancelled')),
+      ).toBeVisible({ timeout: 15_000 });
+      await expect(
+        memberPanel.getByText(reason, { exact: true }),
+      ).toBeVisible();
+      await expect(composerOf(memberPanel, locale)).toBeHidden();
+      await member.screenshot({
+        path: testInfo.outputPath('member-cancelled.png'),
+      });
 
       await memberPanel
         .getByRole('button', { name: t(locale, 'chat_close') })

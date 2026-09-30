@@ -102,6 +102,34 @@ describe('the rows of a chat’s log', () => {
     ]);
   });
 
+  it('reads a system message into its notice, and one this screen cannot read into none', () => {
+    const items = itemsOf([
+      message('msg_1', '2026-09-30T10:00:00Z', {
+        kind: 'system',
+        author: null,
+        body: '',
+        systemKey: 'cancelled',
+        systemParams: { reason: 'Le café ferme.' },
+      }),
+      message('msg_2', '2026-09-30T10:01:00Z', {
+        kind: 'system',
+        author: null,
+        body: '',
+        systemKey: 'renamed',
+        systemParams: { title: 'Petit-déjeuner' },
+      }),
+      message('msg_3', '2026-09-30T10:02:00Z'),
+    ]);
+
+    expect(
+      items.flatMap((item) => (item.kind === 'message' ? [item.notice] : [])),
+    ).toEqual([
+      { key: 'cancelled', params: { reason: 'Le café ferme.' } },
+      null,
+      null,
+    ]);
+  });
+
   it('puts the unread divider before the first message since the marker that someone else left standing', () => {
     const items = itemsOf(
       [

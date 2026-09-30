@@ -8,6 +8,14 @@ export const CHAT_MESSAGE_KINDS = ['text', 'system'] as const;
 export type ChatMessageKind = (typeof CHAT_MESSAGE_KINDS)[number];
 export const chatMessageKindSchema = z.enum(CHAT_MESSAGE_KINDS);
 
+export const CHAT_SYSTEM_KEYS = [
+  'rescheduled',
+  'relocated',
+  'cancelled',
+] as const;
+export type ChatSystemKey = (typeof CHAT_SYSTEM_KEYS)[number];
+export const chatSystemKeySchema = z.enum(CHAT_SYSTEM_KEYS);
+
 export const CHAT_MESSAGE_REMOVALS = ['author', 'host', 'moderator'] as const;
 export type ChatMessageRemoval = (typeof CHAT_MESSAGE_REMOVALS)[number];
 export const chatMessageRemovalSchema = z.enum(CHAT_MESSAGE_REMOVALS);

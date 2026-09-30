@@ -25,6 +25,7 @@ export type ChatListItem =
       readonly key: string;
       readonly message: ChatMessageView;
       readonly segments: readonly chat.ChatBodySegment[];
+      readonly notice: chat.ChatSystemNotice | null;
       readonly isFirstOfRun: boolean;
     }
   | {
@@ -95,7 +96,9 @@ const firstUnreadId = (
  * message the reader has not read.
  *
  * A message's body is cut into its text and the web addresses in it, by the same rule for every
- * screen, so a link opens what the address parses as.
+ * screen, so a link opens what the address parses as. A system message is read into the notice its
+ * key and parameters make, or into none when this screen does not know them, which it shows as a
+ * change to the meetup rather than as nothing.
  */
 export const chatListItems = (input: {
   readonly messages: readonly ChatMessageView[];
@@ -129,6 +132,10 @@ export const chatListItems = (input: {
       key: message.id,
       message,
       segments: chat.chatBodySegments(message.body),
+      notice:
+        message.kind === 'system'
+          ? chat.readChatSystemNotice(message.systemKey, message.systemParams)
+          : null,
       isFirstOfRun: startsRun(message, previous, timeZone),
     });
     previous = message;

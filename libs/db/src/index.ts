@@ -24,6 +24,7 @@ export * from './chat-membership.js';
 export * from './chat-messages.js';
 export * from './chat-reads.js';
 export * from './chat-sockets.js';
+export * from './chat-system.js';
 export * from './chat-reports.js';
 export * from './waitlist.js';
 export * from './waitlist-launch.js';

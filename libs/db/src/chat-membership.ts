@@ -4,6 +4,19 @@ import { activeProfileIdentity, visibleHost } from './profile-access.js';
 import { eventRsvps, events, markets, user } from './schema.js';
 
 /**
+ * Whether the market of the meetup in the statement's `events` row has switched its chats on: its
+ * `meetupChat` flag is JSON `true`, and nothing else is.
+ *
+ * {@link isChatMember} asks it for every read, write and socket, and a notice about the meetup asks
+ * it before it is written, so a market that has not opened its chats has nothing written to them.
+ */
+export const isChatSwitchedOn = (): SQL => sql`EXISTS (
+    SELECT 1 FROM ${markets}
+    WHERE ${markets.code} = ${events.marketCode}
+      AND json_type(${markets.featureFlags}, '$.meetupChat') = 'true'
+  )`;
+
+/**
  * Whether `userId` belongs to the chat of the meetup in the statement's `events` row (P1-026).
  *
  * The one rule for every read, write and socket. A member is the meetup's host, by
@@ -14,18 +27,14 @@ import { eventRsvps, events, markets, user } from './schema.js';
  * And the meetup must still stand by its host, through {@link visibleHost}: a suppressed host takes
  * the chat with the meetup's page, the way the page and the lists already go.
  *
- * A chat switched off in its market has no members at all. The `meetupChat` flag is read here, as
- * JSON `true` and nothing else, so no surface can reach a chat its market has not opened by
- * forgetting to ask, and switching it off closes every chat in the market at once.
+ * A chat switched off in its market has no members at all, through {@link isChatSwitchedOn}, so no
+ * surface can reach a chat its market has not opened by forgetting to ask, and switching it off
+ * closes every chat in the market at once.
  *
  * `userId` may be SQL that yields the id, such as the user of a session read in the same statement.
  */
 export const isChatMember = (userId: string | SQL): SQL => sql`(
-  EXISTS (
-    SELECT 1 FROM ${markets}
-    WHERE ${markets.code} = ${events.marketCode}
-      AND json_type(${markets.featureFlags}, '$.meetupChat') = 'true'
-  )
+  ${isChatSwitchedOn()}
   AND (${events.hostId} = ${userId}
     OR EXISTS (
       SELECT 1 FROM ${eventRsvps}

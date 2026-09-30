@@ -37,13 +37,16 @@ export const dayLabel = (
   });
 };
 
-/** The moment a chat turns read-only, as its header gives it once the meetup has ended. */
-export const readOnlyLabel = (
-  readOnlyAt: Date,
+/**
+ * A moment the chat names in its copy, such as when it turns read-only or when the meetup now
+ * starts: the weekday, the date and the time on the 24-hour clock, in the market's time zone.
+ */
+export const momentLabel = (
+  at: Date,
   locale: Locale,
   timeZone: string,
 ): string =>
-  formatDate(readOnlyAt, locale, {
+  formatDate(at, locale, {
     timeZone,
     weekday: 'long',
     day: 'numeric',

@@ -94,6 +94,17 @@ export const goingMember = async (
   return userId;
 };
 
+/** Switch the meetup chat on or off in a market, as a migration sets its flag. */
+export const switchChat = async (
+  db: Db,
+  marketCode: string,
+  isOn: boolean,
+): Promise<void> => {
+  await db.run(
+    sql`UPDATE markets SET feature_flags = json_set(feature_flags, '$.meetupChat', json(${isOn ? 'true' : 'false'})) WHERE code = ${marketCode}`,
+  );
+};
+
 /** Ban a member's account the way moderation leaves it. */
 export const ban = async (db: Db, userId: string): Promise<void> => {
   await db.update(user).set({ banned: true }).where(eq(user.id, userId)).run();

@@ -7,6 +7,11 @@ import {
 } from '@founders-coffee/db';
 import { reportError } from '@founders-coffee/observability';
 
+import {
+  postChatNotice,
+  relocatedNotice,
+  rescheduledNotice,
+} from '../chat/notices.js';
 import { enqueueRsvpNotifications } from '../notifications/producer.js';
 import {
   enqueueEventChangeNotices,
@@ -132,13 +137,27 @@ const announceToTelegramGroup = async (
 };
 
 /**
+ * Tell the meetup's chat about a change of plan, the one the members' notice announces: a new
+ * start, or a new place at the same start. A quiet edit tells it nothing, as it tells them nothing.
+ */
+const announceToChat = async (
+  db: Db,
+  opts: { after: Event; notice: EventChangeTemplateKey | null },
+): Promise<void> => {
+  if (opts.notice === 'event_rescheduled')
+    await postChatNotice(db, opts.after.id, rescheduledNotice(opts.after));
+  else if (opts.notice === 'event_relocated')
+    await postChatNotice(db, opts.after.id, relocatedNotice(opts.after));
+};
+
+/**
  * Bring every queued and outgoing message into line with the edit that just landed.
  *
  * The order matters, and mirrors the cancellation path: the stale reminders are withdrawn and
  * rewritten before the notice goes out, so nothing already queued can arrive afterwards still
  * describing the old plan. The rewrite runs for quiet edits too — a reminder renders its text when
  * it is queued and would otherwise keep repeating a title the host has since corrected. The
- * meetup's Telegram group is told first, on its own terms.
+ * meetup's Telegram group and its chat are told first, each on its own terms.
  *
  * A failure here does not roll the edit back, which is why it is caught rather than thrown. The new
  * time is the true one the moment it is written, and refusing the edit to preserve an
@@ -155,6 +174,7 @@ export const announceUpdate = async (
   },
 ): Promise<number> => {
   await announceToTelegramGroup(db, opts);
+  await announceToChat(db, opts);
   const rewrite = remindersWouldLie(opts.before, opts.after);
   if (!rewrite && !opts.notice) return 0;
 

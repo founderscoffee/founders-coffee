@@ -75,6 +75,8 @@ import {
   chatReportStatusSchema,
   CHAT_SEND_OUTCOMES,
   chatSendOutcomeSchema,
+  CHAT_SYSTEM_KEYS,
+  chatSystemKeySchema,
 } from './chat.js';
 
 const contracts = [
@@ -89,6 +91,7 @@ const contracts = [
   [CHAT_REPORT_OUTCOMES, chatReportOutcomeSchema],
   [CHAT_REPORT_STATUSES, chatReportStatusSchema],
   [CHAT_SEND_OUTCOMES, chatSendOutcomeSchema],
+  [CHAT_SYSTEM_KEYS, chatSystemKeySchema],
   [CLOSEOUT_OUTCOMES, closeoutOutcomeSchema],
   [EVENT_STATUSES, eventStatusSchema],
   [FEEDBACK_RATINGS, feedbackRatingSchema],
