@@ -168,6 +168,31 @@ describe('the socket to a meetup’s chat room', () => {
     expect(result.current.connection).toBe('revoked');
   });
 
+  it.each([
+    ['closed', CHAT_ROOM_CLOSES.closed.code],
+    ['revoked', CHAT_ROOM_CLOSES.revoked.code],
+  ] as const)(
+    'ends on the room’s %s frame at once, without waiting for a close a proxy may hold back',
+    (type, code) => {
+      const on = handlers();
+      const { result } = renderHook(() => useChatSocket('evt_1', true, on));
+      const socket = latestSocket();
+      socket.open();
+
+      socket.push({ type });
+
+      expect(result.current.connection).toBe(type);
+      expect(on.onClosed).toHaveBeenCalledTimes(type === 'closed' ? 1 : 0);
+      expect(socket.closedWith).toEqual({ code: 1000, reason: 'left' });
+
+      socket.drop(code);
+      advance(CHAT_RECONNECT_DELAY_MS.longest);
+
+      expect(on.onClosed).toHaveBeenCalledTimes(type === 'closed' ? 1 : 0);
+      expect(openedSockets).toHaveLength(1);
+    },
+  );
+
   it('takes a paused socket back when the reader asks', () => {
     const { result } = renderHook(() =>
       useChatSocket('evt_1', true, handlers()),

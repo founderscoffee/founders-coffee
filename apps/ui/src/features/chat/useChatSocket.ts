@@ -62,8 +62,10 @@ const roomUrl = (eventId: string): string =>
  * also asked every fifteen seconds until one does. While the browser is offline nothing is tried,
  * and coming back online tries at once.
  *
- * The room says why it closed a socket in a frame before the close, and in the close code; either
- * is enough, since a close code does not always cross a proxy intact.
+ * The room says why it is closing a socket in a frame before the close, and in the close code. The
+ * frame is acted on the moment it arrives, since a proxy may hold the close behind it back, as
+ * Vite's dev server does for ten seconds, or not carry its code intact; the code serves when no
+ * frame came.
  */
 export const useChatSocket = (
   eventId: string,
@@ -91,11 +93,18 @@ export const useChatSocket = (
     }
     let isCurrent = true;
     let hasOpened = false;
-    let endedBy: ChatEnding | null = null;
     let retry: ReturnType<typeof setTimeout> | null = null;
     const socket = new WebSocket(roomUrl(eventId));
     socketRef.current = socket;
     setConnection(hasEverOpenedRef.current ? 'reconnecting' : 'connecting');
+
+    const end = (ended: ChatEnding): void => {
+      isCurrent = false;
+      socketRef.current = null;
+      setEnding(ended);
+      setConnection(ended);
+      if (ended === 'closed') handlersRef.current.onClosed();
+    };
 
     socket.onopen = () => {
       if (!isCurrent) return;
@@ -113,18 +122,16 @@ export const useChatSocket = (
         handlersRef.current.onMessage(frame.message);
       else if (frame?.type === 'removed')
         handlersRef.current.onRemoved({ id: frame.id, removal: frame.removal });
-      else if (frame) endedBy = frame.type;
+      else if (frame) end(frame.type);
     };
     socket.onclose = (event: CloseEvent) => {
       if (!isCurrent) return;
-      socketRef.current = null;
-      const ended = endedBy ?? endingFor(event.code);
+      const ended = endingFor(event.code);
       if (ended) {
-        setEnding(ended);
-        setConnection(ended);
-        if (ended === 'closed') handlersRef.current.onClosed();
+        end(ended);
         return;
       }
+      socketRef.current = null;
       if (!hasOpened) setFailures((count) => count + 1);
       setConnection(isOffline() ? 'offline' : 'reconnecting');
       const delay = delayRef.current;
