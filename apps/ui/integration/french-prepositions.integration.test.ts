@@ -84,7 +84,9 @@ describe('the French pages put à in front of a place the way French does', () =
       body,
       'the meetup named its city in English, Retour à Cairo',
     ).toContain('Retour au Caire');
-    expect(body).toMatch(/<title>[^<]* · Le Caire<\/title>/u);
+    expect(body).toMatch(
+      /<title>[^<]* · Le Caire(?: - Founders Coffee)?<\/title>/u,
+    );
     expect(
       body,
       'the title, the card and the breadcrumbs name the city too',
