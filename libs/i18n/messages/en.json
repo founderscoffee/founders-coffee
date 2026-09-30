@@ -346,7 +346,7 @@
   "push_prompt_title": "Don't miss the meetup",
   "push_prompt_body": "We'll send meetup reminders and notify you if it is cancelled or does not take place. No marketing messages.",
   "push_prompt_accept": "Enable notifications",
-  "push_prompt_decline": "Not now, email is enough.",
+  "push_prompt_decline": "Email only",
   "live_no_attendees": "No attendees connected yet",
   "live_walking_in": "Walking In",
   "live_running_late": "Running Late",
