@@ -26,6 +26,7 @@ import type { EmbeddingsMessage } from './jobs/messages.js';
 import { processNotificationDue } from './jobs/notifications.js';
 import { sweepProfileAssets } from './jobs/profile-asset-sweep.js';
 import { backfillCloseoutPrompts } from './jobs/closeout-prompt-backfill.js';
+import { sweepChatRetention } from './jobs/chat-retention.js';
 import { backfillDidNotHappenNotices } from './jobs/did-not-happen-backfill.js';
 import { runReconcile } from './jobs/reconcile.js';
 import { sweepNotifications } from './jobs/notification-sweep.js';
@@ -151,8 +152,9 @@ export default {
    * `wrangler.jsonc` is what Cloudflare actually runs, and the two must agree.
    *
    * The daily run also carries every account closed on request through to its erasure (#105), and
-   * ends with the waitlist retention sweep. Both are retention sweeps of the kind AGENTS.md §11.5
-   * allows (#106): bounded, and read through an index on the column that says when a row is due.
+   * ends with the retention sweeps of the city waitlist and the meetup chat (CH-09). All are
+   * retention sweeps of the kind AGENTS.md §11.5 allows (#106): bounded, and read through an index
+   * on the column that says when a row is due.
    */
   scheduled: async (controller: ScheduledController, env: Env) => {
     const db = createDb(env.DB);
@@ -177,6 +179,7 @@ export default {
         await sweepClosingAccounts(db, photos);
       }
       await sweepExpiredWaitlistEntries(db);
+      await sweepChatRetention(db);
     }
   },
 

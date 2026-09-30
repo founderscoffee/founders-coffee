@@ -16,8 +16,9 @@ import { chatChannels, chatMessages, chatReports, events } from './schema.js';
  *
  * One batch. The report's insert selects from the message, its chat and its meetup, so it writes
  * only for a text message still standing, written by someone else, in a chat the reporter belongs
- * to, and it takes the chat's market for the review queue. A second report of the same message by
- * the same member writes nothing and answers `already_reported`, read back in the same batch.
+ * to, and it takes the chat's market for the review queue and the message's author, who the report
+ * is about. A second report of the same message by the same member writes nothing and answers
+ * `already_reported`, read back in the same batch.
  */
 export const reportChatMessage = async (
   db: Db,
@@ -36,6 +37,7 @@ export const reportChatMessage = async (
             id: sql<string>`${id('rpt')}`.as('id'),
             messageId: chatMessages.id,
             reporterId: sql<string>`${input.reporterId}`.as('reporter_id'),
+            reportedUserId: chatMessages.authorId,
             marketCode: chatChannels.marketCode,
             reason: sql<ChatReportReason>`${input.reason}`.as('reason'),
             status: sql<'open'>`'open'`.as('status'),

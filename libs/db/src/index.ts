@@ -27,6 +27,7 @@ export * from './chat-unread.js';
 export * from './chat-sockets.js';
 export * from './chat-system.js';
 export * from './chat-reports.js';
+export * from './chat-retention.js';
 export * from './waitlist.js';
 export * from './waitlist-launch.js';
 export * from './waitlist-notifications.js';

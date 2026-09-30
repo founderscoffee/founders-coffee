@@ -15,7 +15,7 @@ import {
 } from './chat.fixtures.js';
 import type { Db } from './index.js';
 import { HOST_ID, setupDb } from './rsvps.fixtures.js';
-import { chatReports } from './schema.js';
+import { chatReports, eventRsvps, user } from './schema.js';
 
 const post = async (db: Db, eventId: string, authorId: string) => {
   const result = await sendChatMessage(db, {
@@ -58,6 +58,7 @@ describe('reportChatMessage (real D1)', () => {
     const [filed] = await reportsOf(db, messageId);
     expect(filed).toMatchObject({
       reporterId: reporter,
+      reportedUserId: author,
       marketCode: 'DZ',
       reason: 'spam',
       status: 'open',
@@ -65,6 +66,17 @@ describe('reportChatMessage (real D1)', () => {
       reviewedAt: null,
     });
     expect(idSchema.safeParse(filed?.id).success).toBe(true);
+  });
+
+  it('keeps the report when the account it is about is deleted outright', async () => {
+    await report(reporter);
+
+    await db.delete(eventRsvps).where(eq(eventRsvps.userId, author));
+    await db.delete(user).where(eq(user.id, author));
+
+    expect(await reportsOf(db, messageId)).toMatchObject([
+      { reporterId: reporter, reportedUserId: null, reason: 'spam' },
+    ]);
   });
 
   it('takes the market from the chat the message is in', async () => {

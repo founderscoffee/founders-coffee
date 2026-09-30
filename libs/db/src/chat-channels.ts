@@ -1,11 +1,20 @@
 import { and, eq, or, sql, type SQL } from 'drizzle-orm';
 
+import {
+  CHAT_KEPT_DAYS_AFTER_MEETUP,
+  CHAT_OPEN_DAYS_AFTER_MEETUP,
+} from '@founders-coffee/core';
+
 import type { Db } from './db.js';
 import { eventEndsAt } from './events-end.js';
 import { chatChannels, events, type ChatChannelRow } from './schema.js';
 
-export const CHAT_OPEN_AFTER_MEETUP_SECONDS = 7 * 24 * 60 * 60;
-export const CHAT_KEPT_AFTER_MEETUP_SECONDS = 90 * 24 * 60 * 60;
+const DAY_SECONDS = 24 * 60 * 60;
+
+export const CHAT_OPEN_AFTER_MEETUP_SECONDS =
+  CHAT_OPEN_DAYS_AFTER_MEETUP * DAY_SECONDS;
+export const CHAT_KEPT_AFTER_MEETUP_SECONDS =
+  CHAT_KEPT_DAYS_AFTER_MEETUP * DAY_SECONDS;
 
 /**
  * The database's clock in epoch milliseconds, for the chat's timestamps.

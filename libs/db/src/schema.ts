@@ -1337,8 +1337,11 @@ export const chatMembers = sqliteTable(
  *
  * `message_id` is deliberately not a foreign key: a report outlives its message, which its author
  * or the host may remove and the retention sweep deletes with its chat, and it keeps no copy of the
- * text. `market_code` scopes the review queue to the market. A member reports a message once, and
- * the reporter is never shown to its author or to the host.
+ * text. It keeps who wrote the message, `reported_user_id`, so a member reported again and again
+ * still shows once their chats are gone. A decided report is deleted 24 months after its
+ * `reviewed_at`, through the partial index on it; an open one waits for its decision.
+ * `market_code` scopes the review queue to the market. A member reports a message once, and the
+ * reporter is never shown to its author or to the host.
  */
 export const chatReports = sqliteTable(
   'chat_reports',
@@ -1348,6 +1351,9 @@ export const chatReports = sqliteTable(
     reporterId: text('reporter_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
+    reportedUserId: text('reported_user_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
     marketCode: text('market_code')
       .notNull()
       .references(() => markets.code),
@@ -1375,6 +1381,9 @@ export const chatReports = sqliteTable(
     ),
     index('chat_reports_created_at_index').on(table.createdAt),
     index('chat_reports_reporter_id_index').on(table.reporterId),
+    index('chat_reports_reviewed_at_index')
+      .on(table.reviewedAt)
+      .where(sql`reviewed_at IS NOT NULL`),
   ],
 );
 

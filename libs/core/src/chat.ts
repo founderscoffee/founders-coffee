@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+export const CHAT_OPEN_DAYS_AFTER_MEETUP = 7;
+export const CHAT_KEPT_DAYS_AFTER_MEETUP = 90;
+export const CHAT_REPORT_KEPT_MONTHS = 24;
+
 export const CHAT_CHANNEL_KINDS = ['meetup'] as const;
 export type ChatChannelKind = (typeof CHAT_CHANNEL_KINDS)[number];
 export const chatChannelKindSchema = z.enum(CHAT_CHANNEL_KINDS);

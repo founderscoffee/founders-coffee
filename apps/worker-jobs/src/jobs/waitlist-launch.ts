@@ -30,10 +30,10 @@ import type { Locale } from '@founders-coffee/i18n';
 import { logger } from '@founders-coffee/observability';
 import { waitlistLaunchEmails } from '@founders-coffee/server-fns/waitlist-launch';
 
+import { deleteInPasses } from './retention.js';
+
 const BATCH_SIZE = 50;
 const SWEEP_LAUNCHES = 20;
-const RETENTION_BATCH = 500;
-const RETENTION_PASSES = 10;
 
 export interface WaitlistLaunchDeps {
   readonly email: EmailProvider;
@@ -275,20 +275,13 @@ export const sweepWaitlistLaunches = async (
 
 /**
  * The daily retention sweep AGENTS.md §11.5 allows (#106): delete the waitlist entries whose notice
- * went out more than twelve months ago, in bounded batches read through the `notified_at` index,
- * until a batch comes back short or the day's passes run out.
+ * went out more than twelve months ago, in bounded batches read through the `notified_at` index.
  */
 export const sweepExpiredWaitlistEntries = async (db: Db): Promise<number> => {
   const now = new Date();
-  let deleted = 0;
-  for (let pass = 0; pass < RETENTION_PASSES; pass += 1) {
-    const batch = await deleteExpiredWaitlistEntries(db, {
-      now,
-      limit: RETENTION_BATCH,
-    });
-    deleted += batch;
-    if (batch < RETENTION_BATCH) break;
-  }
+  const deleted = await deleteInPasses((limit) =>
+    deleteExpiredWaitlistEntries(db, { now, limit }),
+  );
   if (deleted > 0) logger.info('waitlist.retention_sweep', { deleted });
   return deleted;
 };

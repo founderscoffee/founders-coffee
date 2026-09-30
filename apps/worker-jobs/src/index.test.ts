@@ -11,7 +11,7 @@ import { queueName, RESOURCES } from '@founders-coffee/infra';
 
 import type { NotificationDueMessage } from './jobs/messages.js';
 import worker from './index.js';
-import { eq, user, type Db } from '@founders-coffee/db';
+import { chatChannels, eq, user, type Db } from '@founders-coffee/db';
 
 import {
   EVENT_ID,
@@ -109,5 +109,30 @@ describe('scheduled handler — the daily run (real Miniflare bindings)', () => 
 
     const [row] = await db.select().from(user).where(eq(user.id, userId));
     expect(row).toMatchObject({ accountState: 'deleted', name: '' });
+  });
+
+  it('deletes a meetup chat 90 days after its meetup (CH-09)', async () => {
+    const db = await setupDb();
+    const channelId = id('chn');
+    const past = new Date(Date.now() - 3_600_000);
+    await db.insert(chatChannels).values({
+      id: channelId,
+      eventId: EVENT_ID,
+      marketCode: 'DZ',
+      readOnlyAt: past,
+      expiresAt: past,
+    });
+
+    await worker.scheduled(
+      createScheduledController({ cron: '0 3 * * *' }),
+      env,
+    );
+
+    expect(
+      await db
+        .select()
+        .from(chatChannels)
+        .where(eq(chatChannels.id, channelId)),
+    ).toEqual([]);
   });
 });
