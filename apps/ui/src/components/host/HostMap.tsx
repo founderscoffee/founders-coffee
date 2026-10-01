@@ -27,12 +27,15 @@ import { HostVenuePin } from './HostVenuePin';
 import type { ControlSize } from './useControlSize';
 import { coverPadding, useMapCover } from './useMapCover';
 import { useMapResize } from './useMapResize';
+import { useVisitorLocation, type Coordinates } from './useVisitorLocation';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
 
-const mapLib = loadMapboxCsp();
+const VENUE_ZOOM = 15;
 
-type Coordinates = { longitude: number; latitude: number };
+const LOCATE_ZOOM = 17;
+
+const mapLib = loadMapboxCsp();
 
 type HostMapProps = {
   accessToken: string;
@@ -50,20 +53,6 @@ type HostMapProps = {
   onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
 };
-
-const locateVisitor = (): Promise<Coordinates | null> =>
-  new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve(null);
-    navigator.geolocation.getCurrentPosition(
-      (position) =>
-        resolve({
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
-        }),
-      () => resolve(null),
-      { enableHighAccuracy: true, timeout: 6_000 },
-    );
-  });
 
 export const HostMap = ({
   accessToken,
@@ -85,7 +74,10 @@ export const HostMap = ({
   const reverseRequestId = useRef(0);
   const placedByHost = useRef<Coordinates | null>(null);
   const isHostMoving = useRef(false);
+  const isStillInteractive = useRef(isInteractive);
+  isStillInteractive.current = isInteractive;
   const reverseVenue = useReverseEventVenue();
+  const visitor = useVisitorLocation();
   const [mapKey, setMapKey] = useState(0);
   const [isMapReady, setIsMapReady] = useState(false);
   const [hasMapError, setHasMapError] = useState(false);
@@ -135,6 +127,22 @@ export const HostMap = ({
     }
   };
 
+  const chooseWhereVisitorIs = async (): Promise<void> => {
+    const requestId = reverseRequestId.current;
+    setLocationError(null);
+    const coordinates = await visitor.locate();
+    if (requestId !== reverseRequestId.current || !isStillInteractive.current) {
+      return;
+    }
+    if (!coordinates) {
+      setLocationError(host_geolocation_denied({}, { locale }));
+      return;
+    }
+    flyTo(coordinates.longitude, coordinates.latitude, LOCATE_ZOOM);
+    void resolveCoordinates(coordinates);
+    onUserGestureEnd?.();
+  };
+
   useEffect(() => {
     if (!venue) return;
     const placed = placedByHost.current;
@@ -146,7 +154,7 @@ export const HostMap = ({
       return;
     }
     reverseRequestId.current += 1;
-    flyTo(venue.longitude, venue.latitude, 15);
+    flyTo(venue.longitude, venue.latitude, VENUE_ZOOM);
   }, [venue?.providerId, venue?.longitude, venue?.latitude]);
 
   if (hasMapError) {
@@ -189,7 +197,7 @@ export const HostMap = ({
             ? {
                 longitude: venue.longitude,
                 latitude: venue.latitude,
-                zoom: 15,
+                zoom: VENUE_ZOOM,
                 padding: coverPadding(covered),
               }
             : {
@@ -261,21 +269,13 @@ export const HostMap = ({
         <HostLocateButton
           locale={locale}
           onResize={onLocateResize}
-          onClick={async () => {
-            setLocationError(null);
-            const coordinates = await locateVisitor();
-            if (!coordinates) {
-              setLocationError(host_geolocation_denied({}, { locale }));
-              return;
-            }
-            flyTo(coordinates.longitude, coordinates.latitude, 14);
-          }}
+          onClick={() => void chooseWhereVisitorIs()}
         />
       )}
 
       <HostMapToasts
         locale={locale}
-        isResolving={reverseVenue.isPending}
+        isResolving={reverseVenue.isPending || visitor.isFinding}
         error={locationError}
         onDismiss={() => setLocationError(null)}
         onRetry={

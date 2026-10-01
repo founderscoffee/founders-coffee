@@ -13,11 +13,12 @@ import type { ControlSize } from './useControlSize';
  * folded, since the pin shows where it is. The name an address needs is asked below the search
  * box, outside the panel, so a missing one does not open it.
  * Once the host lets go of the map (a drag or a zoom they made, a tap that chooses a spot, a pin
- * they moved) they have picked the map over the search box: the box gives way to a line naming the
- * place chosen, at the box's own height so the map does not move, and the panel to a search button
- * beside Locate me. Not while they are typing in the box, and not at the start of a drag, where
- * the change would land under their finger. The search button, a city switch or Next finding
- * nothing chosen bring the box back with the list open.
+ * they moved, Locate me placing the pin where they are) they have picked the map over the search
+ * box: the box gives way to a line naming the place chosen, at the box's own height so the map
+ * does not move, and the panel to a search button beside Locate me. Not while they are typing in
+ * the box, and not at the start of a drag, where the change would land under their finger. The
+ * search button, a city switch or Next finding nothing chosen bring the box back with the list
+ * open.
  * Folding and putting away only count while the panel covers the map; from `lg` up the list sits
  * beside the map and is always open. Locate me stays in the map's top corner: an open list covers
  * it, and a folded or headerless panel shares its row, so the panel is told the button's size.

@@ -9,6 +9,8 @@ type Box = { x: number; y: number; width: number; height: number };
 const HOLD_STILL_MS = 300;
 const SPOT_BELOW_PIN = 45;
 
+const HOST_POSITION = { latitude: 36.7731, longitude: 3.0595 };
+
 /** The box `locator` is drawn in, failing the test when it is not drawn at all. */
 const boxOf = async (locator: Locator): Promise<Box> => {
   const box = await locator.boundingBox();
@@ -144,6 +146,79 @@ test.describe('the venue map below lg', () => {
       await expect(choice).toContainText('Café E2E');
     }
     await page.screenshot({ path: testInfo.outputPath('3-chosen.png') });
+    expect(errors).toEqual([]);
+  });
+});
+
+test.describe('Locate me on the venue map', () => {
+  test.use({ geolocation: HOST_POSITION, permissions: ['geolocation'] });
+
+  test('drops the pin where the host stands and asks what the place is called', async ({
+    page,
+    baseURL,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+    const locale = localeFor(testInfo.project.name);
+    const errors = watchForApplicationErrors(page);
+    const isOverMap = (page.viewportSize()?.width ?? 0) < 1024;
+    await useLocale(page, locale, baseURL as string);
+    await page.goto(wizardPath());
+
+    const search = page.getByRole('combobox', {
+      name: t(locale, 'host_venue_search_label'),
+      exact: true,
+    });
+    const canvas = page.locator('.mapboxgl-canvas');
+    await expect(search).toBeEnabled({ timeout: 30_000 });
+    await expect(canvas).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(t(locale, 'host_map_loading'))).toHaveCount(0, {
+      timeout: 30_000,
+    });
+    if (isOverMap) {
+      await page
+        .getByRole('button', {
+          name: t(locale, 'host_nearby_venues'),
+          exact: true,
+        })
+        .click();
+    }
+
+    await page
+      .getByRole('button', { name: t(locale, 'host_locate_me'), exact: true })
+      .click();
+
+    const nameField = page.locator('#host-venue-name');
+    await expect(
+      nameField,
+      'the spot the host stands on is an address, and the host names it',
+    ).toBeVisible({ timeout: 30_000 });
+    const pin = await restingPin(page);
+    const map = await boxOf(canvas);
+    const tip = { x: pin.x + pin.width / 2, y: pin.y + pin.height };
+    expect(tip.x).toBeGreaterThan(map.x);
+    expect(tip.x).toBeLessThan(map.x + map.width);
+    expect(tip.y).toBeGreaterThan(map.y);
+    expect(tip.y).toBeLessThan(map.y + map.height);
+
+    const choice = page.getByRole('group', {
+      name: t(locale, 'host_selected_location'),
+      exact: true,
+    });
+    if (isOverMap) {
+      await expect(search).toHaveCount(0);
+      await expect(choice).toBeVisible();
+      await expect(
+        page.getByRole('button', {
+          name: t(locale, 'host_search_venues'),
+          exact: true,
+        }),
+      ).toBeVisible();
+    } else {
+      await expect(search).toBeVisible();
+    }
+    await nameField.fill('Café E2E');
+    if (isOverMap) await expect(choice).toContainText('Café E2E');
+    await page.screenshot({ path: testInfo.outputPath('locate-me.png') });
     expect(errors).toEqual([]);
   });
 });
