@@ -37,7 +37,7 @@ describe('the languages a new meetup is held in', () => {
 
     expect(
       stored?.language,
-      'the lead language picks the Telegram posts, the calendar entry and the feed address, and each needs a page to point at',
+      'the lead language picks the calendar entry and the feed address, and each needs a page to point at',
     ).toBe('en');
   });
 

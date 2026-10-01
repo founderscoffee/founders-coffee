@@ -1,5 +1,6 @@
 import { and, eq, exists, isNotNull, ne, sql } from 'drizzle-orm';
 
+import { isChatSwitchedOnAnywhere } from './chat-membership.js';
 import type { Db } from './db.js';
 import { activeProfileIdentity } from './profile-access.js';
 import {
@@ -20,23 +21,28 @@ export type AccountPreferenceChanges = Pick<
   | 'hostRsvpCancelledChannels'
   | 'followUpPrompts'
   | 'followUpPromptsChannels'
+  | 'meetupChat'
+  | 'meetupChatChannels'
   | 'pushEnabled'
   | 'smsFallbackEnabled'
 >;
 
 /**
- * Read notification preferences and the phone state needed to explain the SMS fallback control.
+ * Read notification preferences, with what the screen needs to know about the controls it offers.
  *
  * The phone's verified state travels with them because the SMS fallback switch is not the member's
  * to set alone: {@link updateAccountPreferences} refuses consent without a currently verified
  * number, and a screen that cannot see that would render a switch whose save silently fails. What
- * the writer requires, the reader has to be able to explain.
+ * the writer requires, the reader has to be able to explain. Whether any market has opened its
+ * meetup chats travels in the same statement, since until one has, the chat's row has nothing to
+ * notify anyone about.
  */
 export const getAccountPreferences = async (db: Db, userId: string) => {
   const rows = await db
     .select({
       phoneVerified: sql<number>`(${user.phoneNumberVerified} = 1
         and ${user.phoneNumber} is not null and ${user.phoneNumber} != '')`,
+      chatSwitchedOn: sql<number>`${isChatSwitchedOnAnywhere()}`,
       preferences: accountPreferences,
     })
     .from(accountPreferences)
@@ -44,7 +50,13 @@ export const getAccountPreferences = async (db: Db, userId: string) => {
     .where(activeProfileIdentity(userId))
     .limit(1);
   const row = rows[0];
-  return row ? { ...row, phoneVerified: row.phoneVerified === 1 } : null;
+  return row
+    ? {
+        ...row,
+        phoneVerified: row.phoneVerified === 1,
+        chatSwitchedOn: row.chatSwitchedOn === 1,
+      }
+    : null;
 };
 
 /** Atomically persist notification preferences and server-owned SMS consent evidence. */
@@ -86,6 +98,8 @@ export const updateAccountPreferences = async (
         hostRsvpCancelledChannels: changes.hostRsvpCancelledChannels,
         followUpPrompts: changes.followUpPromptsChannels !== 0,
         followUpPromptsChannels: changes.followUpPromptsChannels,
+        meetupChat: changes.meetupChatChannels !== 0,
+        meetupChatChannels: changes.meetupChatChannels,
         pushEnabled: changes.pushEnabled,
         smsFallbackEnabled: changes.smsFallbackEnabled,
         smsConsentAt: changes.smsFallbackEnabled

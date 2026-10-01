@@ -288,6 +288,34 @@
       "when": 1790677229104,
       "tag": "0040_forget_provider_data",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "6",
+      "when": 1790704847018,
+      "tag": "0041_meetup_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "6",
+      "when": 1790760901786,
+      "tag": "0042_meetup_chat_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "6",
+      "when": 1790771756643,
+      "tag": "0043_chat_report_retention",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "6",
+      "when": 1790842523764,
+      "tag": "0044_retire_telegram_groups",
+      "breakpoints": true
     }
   ]
 }

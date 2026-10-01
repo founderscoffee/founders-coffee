@@ -9,8 +9,9 @@ import {
 } from '@founders-coffee/db';
 import { logger, reportError } from '@founders-coffee/observability';
 
+import { cancelledNotice, postChatNotice } from '../chat/notices.js';
+import { tellChatRoom } from '../chat/room.js';
 import { enqueueEventCancellationNotices } from '../notifications/cancellation.js';
-import { announceTelegramCancellation } from '../telegram/notices.js';
 
 /**
  * Call off a meetup on its host's behalf.
@@ -27,9 +28,11 @@ import { announceTelegramCancellation } from '../telegram/notices.js';
  * 2. Pending reminders are dropped *before* the notices are queued. A `reminder_24h` still sitting
  *    in the table when the cancellation is announced would land afterwards and tell the same person
  *    to come.
- * 3. The notices go out, and then the meetup's Telegram group is told, if it has one: the bot
- *    posts the cancellation, rewrites the pin and leaves. Queued before the withdrawal, that post
- *    would have been withdrawn along with the group's own reminder.
+ * 3. The notices go out, and then the meetup's chat, which turned read-only with the flip, is told
+ *    it is off, with the reason, and the notice is pushed to the members with it open before its
+ *    room closes every socket open to it. The nightly account closure cancels through here too, so
+ *    its cancellations reach the chat as well; its Worker has no room to push to, and the room
+ *    closes itself at its next heartbeat check.
  *
  * Before any of that reaches a member, the meetup's city waitlist round is closed, in its own
  * try so it cannot cost the notices: nobody waiting for the city is told about a meetup that is off,
@@ -133,14 +136,8 @@ export const cancelEventResolver = async (
     cancelledAt: new Date(),
     cancellationReason: reason ?? null,
   };
-  try {
-    await announceTelegramCancellation(db, { event: cancelled, reason });
-  } catch (error) {
-    reportError(error, {
-      operation: 'cancel_event_telegram',
-      eventId: event.id,
-    });
-  }
+  await postChatNotice(db, event.id, cancelledNotice(reason));
+  await tellChatRoom(event.id, 'cancel_event_chat', (room) => room.close());
 
   return ok({ event: cancelled, notified });
 };

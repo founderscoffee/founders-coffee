@@ -1,6 +1,7 @@
 import {
   keepPreviousData,
   useInfiniteQuery,
+  useIsMutating,
   useMutation,
   useQuery,
   useQueryClient,
@@ -230,11 +231,18 @@ export const useVenueSearch = (input: VenueSearchInput) =>
     retry: false,
   });
 
+const REVERSE_VENUE_KEY = ['events', 'reverse-venue'] as const;
+
 export const useReverseEventVenue = () =>
   useMutation<VenueCandidate, Error, VenueReverseInput>({
+    mutationKey: REVERSE_VENUE_KEY,
     mutationFn: (input: VenueReverseInput) =>
       eventsApi.reverseEventVenue({ data: input }),
   });
+
+/** Whether a spot chosen on the venue map is still being looked up, for anything on the page to show. */
+export const useIsLocatingVenue = (): boolean =>
+  useIsMutating({ mutationKey: REVERSE_VENUE_KEY }) > 0;
 
 export const useCreateRsvp = () =>
   useMutation({

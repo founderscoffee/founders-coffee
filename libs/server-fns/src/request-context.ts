@@ -1,6 +1,6 @@
 import { createMiddleware } from '@tanstack/react-start';
 
-import { reportError } from '@founders-coffee/observability';
+import { reportError, stripQueryValues } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
 
 const generateRequestId = (): string => crypto.randomUUID();
@@ -11,6 +11,9 @@ const generateRequestId = (): string => crypto.randomUUID();
  * so the logic is directly testable. The structured logger (libs/observability)
  * reads this context, so every log within `fn` auto-carries the requestId
  * (AGENTS.md §13).
+ *
+ * The failure is re-thrown stripped of any failed query's bound values, because TanStack Start
+ * sends its message to the browser, whose own error reporting would bring them back to the logs.
  */
 export const withRequestContext = async <T>(fn: () => Promise<T>): Promise<T> =>
   runWithContext({ requestId: generateRequestId() }, async () => {
@@ -18,7 +21,7 @@ export const withRequestContext = async <T>(fn: () => Promise<T>): Promise<T> =>
       return await fn();
     } catch (error) {
       reportError(error);
-      throw error;
+      throw stripQueryValues(error);
     }
   });
 

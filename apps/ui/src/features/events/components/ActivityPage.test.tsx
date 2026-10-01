@@ -27,6 +27,9 @@ vi.mock('../hooks', () => ({
     return state.hosted;
   },
 }));
+vi.mock('../../chat/hooks', () => ({
+  useChatUnreadCounts: () => new Map(),
+}));
 vi.mock('../../operations/hooks', () => ({
   useMyCloseoutStates: (eventIds: readonly string[]) => {
     state.askedAbout.push([...eventIds]);

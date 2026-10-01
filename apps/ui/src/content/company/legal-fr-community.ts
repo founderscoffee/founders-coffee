@@ -17,7 +17,7 @@ export const communityFrench: CompanyPageContent = translatedPage(
       text(
         'Founders Coffee repose sur une idée simple : que des porteurs de projets d’une même ville s’assoient autour d’une table et parlent honnêtement de ce sur quoi ils travaillent. Ces règles interdisent tout ce qui gâche cette conversation.',
         'Ce n’est pas une liste générale d’interdits reprise d’un réseau social. Les problèmes qui touchent une communauté comme celle-ci sont connus et précis : celui qui vient vendre au lieu d’échanger, celui qui publie une rencontre qu’il ne compte pas tenir, celui qui enjolive la description de son entreprise au point qu’elle devient mensongère, celui qui collecte les numéros des participants pour les ajouter à une liste. C’est précisément de cela que nous parlons.',
-        'Ces règles font partie des [Conditions d’utilisation](/terms) et s’appliquent à tout ce qui apparaît sur la plateforme : les profils, les pages des rencontres, les avis et les messages qui nous parviennent.',
+        'Ces règles font partie des [Conditions d’utilisation](/terms) et s’appliquent à tout ce qui apparaît sur la plateforme : les profils, les pages des rencontres, les discussions des rencontres, les avis et les messages qui nous parviennent.',
       ),
     ),
     section(
@@ -98,7 +98,8 @@ export const communityFrench: CompanyPageContent = translatedPage(
     section(
       'Signaler un problème',
       text(
-        'Écrivez-nous à **contact@founders.coffee** en indiquant le lien de la rencontre, du profil ou du contenu, et ce que vous y avez vu. Une description précise raccourcit l’examen.',
+        'Pour signaler un message dans la discussion d’une rencontre, ouvrez ses options (⋯) et choisissez « Signaler le message ».',
+        'Pour le reste, écrivez-nous à **contact@founders.coffee** en indiquant le lien de la rencontre, du profil ou du contenu, et ce que vous y avez vu. Une description précise raccourcit l’examen.',
         'Les signalements sont traités de manière confidentielle. Nous ne révélons pas l’identité de l’auteur du signalement à la personne signalée.',
         'S’il existe un danger immédiat pour une personne, contactez d’abord les autorités compétentes ; nous sommes une plateforme numérique et n’avons aucun moyen d’intervenir sur le terrain.',
       ),
@@ -110,5 +111,5 @@ export const communityFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '29 septembre 2026',
+  '30 septembre 2026',
 );

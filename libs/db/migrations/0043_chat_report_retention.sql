@@ -1,0 +1,2 @@
+ALTER TABLE `chat_reports` ADD `reported_user_id` text REFERENCES user(id) ON UPDATE no action ON DELETE set null;--> statement-breakpoint
+CREATE INDEX `chat_reports_reviewed_at_index` ON `chat_reports` (`reviewed_at`) WHERE reviewed_at IS NOT NULL;

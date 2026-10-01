@@ -1,14 +1,19 @@
-import { env, evictDurableObject, runInDurableObject } from 'cloudflare:test';
+import {
+  env,
+  evictDurableObject,
+  runDurableObjectAlarm,
+  runInDurableObject,
+} from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 
 import type { EventLiveDO } from '../src/durable-objects/EventLiveDO';
-import type { RosterUser } from '../src/durable-objects/event-live/protocol';
 import {
   connect,
   liveRoomOf,
   ofType,
   seedLiveRoom,
   typeOf,
+  walkIn,
   whileD1Fails,
   type LiveClient,
 } from './event-live.fixtures';
@@ -31,24 +36,15 @@ const admitted = async (
   return client;
 };
 
-const walkIn = async (client: LiveClient, userId: string): Promise<void> => {
-  client.socket.send(JSON.stringify({ type: 'walking_in' }));
-  await client.waitFor(
-    (frame) =>
-      ofType('roster_update')(frame) &&
-      (JSON.parse(frame) as { roster: RosterUser[] }).roster.some(
-        (entry) => entry.userId === userId && entry.status === 'walking_in',
-      ),
-  );
-};
+const cancelMeetup = (eventId: string): Promise<void> =>
+  liveRoomOf(eventId).cancel();
 
-const cancelMeetup = (eventId: string) =>
-  liveRoomOf(eventId).fetch(
-    new Request(`https://event-live.internal/internal/cancel/${eventId}`, {
-      method: 'POST',
-      headers: { 'x-event-live-internal': '1' },
-    }),
-  );
+/** Cancel a meetup in D1 alone, as a Worker with no binding to the room does. */
+const cancelledInD1 = async (eventId: string): Promise<void> => {
+  await env.DB.prepare("UPDATE events SET status = 'cancelled' WHERE id = ?")
+    .bind(eventId)
+    .run();
+};
 
 /**
  * Put a socket in the room as its upgrade does while D1 checks its session: accepted and
@@ -94,24 +90,46 @@ describe('EventLiveDO', () => {
     expect(stored).toEqual({ eventId });
   });
 
-  it('stores the event identity and clears the heartbeat alarm on cancellation', async () => {
-    const eventId = `evt_live_cancel_${crypto.randomUUID()}`;
-    const response = await liveRoomOf(eventId).fetch(
-      new Request(`https://event-live.internal/internal/cancel/${eventId}`, {
-        method: 'POST',
-        headers: { 'x-event-live-internal': '1' },
-      }),
-    );
+  it("closes a member's socket and clears the heartbeat alarm on cancellation", async () => {
+    const room = await seedLiveRoom();
+    const guest = await admitted(room.eventId, room.guestToken);
 
-    expect(response.status).toBe(204);
-    const stored = await runInDurableObject(
-      liveRoomOf(eventId),
-      async (_instance: EventLiveDO, state) => ({
-        eventId: await state.storage.get<string>('eventId'),
-        alarm: await state.storage.getAlarm(),
-      }),
-    );
-    expect(stored).toEqual({ eventId, alarm: null });
+    await cancelMeetup(room.eventId);
+
+    expect(await guest.waitForClose()).toEqual({
+      code: 4003,
+      reason: 'event_cancelled',
+    });
+    expect(guest.frames.filter(ofType('event_cancelled'))).toHaveLength(1);
+    expect(await trackedBy(room.eventId)).toEqual({ tracked: 0, alarm: null });
+  });
+
+  it('closes at its next alarm for a meetup cancelled where it was not told, as the nightly account closure cancels', async () => {
+    const room = await seedLiveRoom();
+    const guest = await admitted(room.eventId, room.guestToken);
+    await cancelledInD1(room.eventId);
+
+    expect(await runDurableObjectAlarm(liveRoomOf(room.eventId))).toBe(true);
+
+    await guest.waitFor(ofType('event_cancelled'));
+    expect(await guest.waitForClose()).toEqual({
+      code: 4003,
+      reason: 'event_cancelled',
+    });
+    expect(await trackedBy(room.eventId)).toEqual({ tracked: 0, alarm: null });
+  });
+
+  it('turns a page away from the room of a cancelled meetup, saying it is off', async () => {
+    const room = await seedLiveRoom();
+    await cancelledInD1(room.eventId);
+
+    const guest = await connect(room.eventId, room.guestToken);
+
+    await guest.waitFor(ofType('event_cancelled'));
+    expect(await guest.waitForClose()).toEqual({
+      code: 4003,
+      reason: 'event_cancelled',
+    });
   });
 });
 

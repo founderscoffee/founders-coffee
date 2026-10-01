@@ -31,9 +31,9 @@ export type DeclaredDialog = {
 /**
  * Every `<dialog>` the app renders, as the opening tag it was written as.
  *
- * Read as source rather than rendered. Mounting all six would mean standing up each one's props,
+ * Read as source rather than rendered. Mounting all seven would mean standing up each one's props,
  * router and session mocks to answer a question the markup already answers, and a scan meets the
- * seventh dialog on the day it is added rather than on the day somebody writes it a test.
+ * eighth dialog on the day it is added rather than on the day somebody writes it a test.
  */
 export const declaredDialogs = (): DeclaredDialog[] =>
   readdirSync(SRC, { recursive: true, encoding: 'utf8' })

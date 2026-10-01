@@ -63,9 +63,9 @@ export const organizersEnglish: CompanyPageContent = translatedPage(
     section(
       'Contact with attendees',
       text(
-        'We send the people who RSVP’d the notifications about the gathering: confirmation, reminder, change, and cancellation. These are standard messages sent by the platform; the platform does not let you write your own text in them or send a group message to the people who RSVP’d.',
-        'If you want to tell the people who RSVP’d something, the place for it is the gathering description itself, because that is what they read and what the reminder is based on.',
-        'The gathering’s channels, whether its description or contact outside the platform based on the attendee list, may never be used to offer services or products. That is direct marketing, which the law prohibits without the recipient’s prior consent.',
+        'We send the people who RSVP’d the notifications about the gathering: confirmation, reminder, change, and cancellation. These are standard messages sent by the platform; the platform does not let you write your own text in them.',
+        'If you want to tell the people who RSVP’d something, write it in the gathering’s chat if it has one, or in its description, because the description is what they read and what the reminder is based on.',
+        'The gathering’s channels, whether its description, its chat, or contact outside the platform based on the attendee list, may never be used to offer services or products. That is direct marketing, which the law prohibits without the recipient’s prior consent.',
       ),
     ),
     section(
@@ -125,5 +125,5 @@ export const organizersEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '29 September 2026',
+  '30 September 2026',
 );

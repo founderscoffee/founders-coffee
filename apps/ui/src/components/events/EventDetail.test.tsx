@@ -111,6 +111,28 @@ describe('the share chip in the event header', () => {
   });
 });
 
+describe('the meetup title', () => {
+  const titleClasses = () =>
+    screen.getByRole('heading', { level: 1 }).className.split(' ');
+
+  it('is set at h3 on a phone and h2 from md, so a long title is not four lines tall', () => {
+    show(event, 'ar');
+
+    expect(titleClasses()).toEqual(
+      expect.arrayContaining(['text-h3', 'md:text-h2']),
+    );
+    expect(titleClasses()).not.toContain('text-h1');
+  });
+
+  it('runs the width of the header, not the narrower column the description reads in', () => {
+    show(event, 'ar');
+
+    expect(titleClasses().filter((name) => name.startsWith('max-w-'))).toEqual(
+      [],
+    );
+  });
+});
+
 describe('what the seat box calls itself', () => {
   it('names the status once the reader is going, not the action they already took', () => {
     show({ ...event, viewerRsvp: 'going' }, 'ar');

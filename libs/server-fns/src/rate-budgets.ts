@@ -13,16 +13,6 @@ export const RATE_BUDGETS = {
       limit: 10,
       windowMs: 10 * MINUTE_MS,
     },
-    telegramConnect: {
-      action: 'connect_telegram_group',
-      limit: 10,
-      windowMs: 10 * MINUTE_MS,
-    },
-    telegramDisconnect: {
-      action: 'disconnect_telegram_group',
-      limit: 10,
-      windowMs: 10 * MINUTE_MS,
-    },
   },
   read: {
     publicProfile: {
@@ -54,21 +44,36 @@ export const RATE_BUDGETS = {
       limit: 5,
       windowMs: 10 * MINUTE_MS,
     },
-    telegramInvite: {
-      action: 'request_telegram_invite',
-      limit: 5,
-      windowMs: 10 * MINUTE_MS,
-    },
   },
-  telegram: {
-    connectAttempt: {
-      action: 'telegram_connect_attempt',
-      limit: 10,
+  chat: {
+    connect: {
+      action: 'connect_chat',
+      limit: 30,
       windowMs: 10 * MINUTE_MS,
     },
-    joinRequest: {
-      action: 'telegram_join_request',
-      limit: 60,
+    send: {
+      action: 'send_chat_message',
+      limit: 20,
+      windowMs: MINUTE_MS,
+    },
+    remove: {
+      action: 'remove_chat_message',
+      limit: 30,
+      windowMs: 10 * MINUTE_MS,
+    },
+    markRead: {
+      action: 'mark_chat_read',
+      limit: 120,
+      windowMs: 10 * MINUTE_MS,
+    },
+    mute: {
+      action: 'mute_chat',
+      limit: 20,
+      windowMs: 10 * MINUTE_MS,
+    },
+    report: {
+      action: 'report_chat_message',
+      limit: 10,
       windowMs: 10 * MINUTE_MS,
     },
   },
@@ -86,9 +91,8 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * Naming them once fixes both, and the categories say what a budget is *for* rather than only what
  * it permits.
  *
- * `edit` covers cheap owner writes, a host connecting or disconnecting their meetup's Telegram
- * group among them. `read` covers unauthenticated reads that are cheap per call but enumerable in
- * bulk. `otp` now holds the two halves of a contact change: sending a code costs an SMS or an email
+ * `edit` covers cheap owner writes. `read` covers unauthenticated reads that are cheap per call but
+ * enumerable in bulk. `otp` now holds the two halves of a contact change: sending a code costs an SMS or an email
  * and is bounded tightly, while submitting one is cheap but must not become an oracle, so it is
  * bounded loosely. Better Auth applies its own per-endpoint limits underneath; these are the
  * per-identity budgets this product owns, and the two together are the reason a stolen session
@@ -99,15 +103,14 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * not also buy the right to send five more megabytes. Five each per ten minutes bounds a member to
  * roughly twenty-five megabytes of transfer and five transformations in that window — the
  * transformation count is what the free tier meters — and the sweeper reclaims whatever those
- * uploads abandoned. The export budget still arrives with PF-09. A Telegram invite is here too,
- * because making one is a call to the Bot API, whose limits the whole bot shares: five in ten
- * minutes is more than a member going to one meetup ever needs.
+ * uploads abandoned. The export budget still arrives with PF-09.
  *
- * `telegram` holds what a Telegram chat can spend through the webhook, keyed by chat. The webhook is
- * authenticated, but what arrives through it is whatever anyone in a group chooses to send: a
- * connect command makes the bot look people up and answer in the group, and a join request costs a
- * write and an answer. A connect is a host's one-off step, so ten attempts in ten minutes is plenty;
- * sixty join requests covers a meetup's whole table arriving at once.
+ * `chat` holds what a member spends in a meetup's chat (P1-026). Twenty messages a minute keeps a
+ * lively table talking and stops one member flooding it. A removal is a cheap write, with room for
+ * a host clearing out a flood, and so is a read marker, which a member's screen moves as the chat
+ * scrolls. A report asks a moderator for their attention, so it is the scarcest. Each socket a page
+ * opens to the chat's room costs a connection, thirty in ten minutes: a panel opened and reopened
+ * across five tabs, with room for a patchy network, while a page that reconnects in a loop runs dry.
  */
 export const allRateBudgets = (): ReadonlyArray<
   RateBudget & { category: RateBudgetCategory }

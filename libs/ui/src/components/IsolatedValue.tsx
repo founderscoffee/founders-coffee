@@ -1,6 +1,4 @@
-import { Fragment } from 'react';
-
-const SLOT = '<<VALUE>>';
+import { IsolatedValues } from './IsolatedValues.js';
 
 export type IsolatedValueProps = {
   value: string;
@@ -8,14 +6,5 @@ export type IsolatedValueProps = {
 };
 
 export const IsolatedValue = ({ value, message }: IsolatedValueProps) => (
-  <>
-    {message(SLOT)
-      .split(SLOT)
-      .map((part, index) => (
-        <Fragment key={index}>
-          {index > 0 ? <bdi>{value}</bdi> : null}
-          {part}
-        </Fragment>
-      ))}
-  </>
+  <IsolatedValues values={{ value }} message={(slot) => message(slot.value)} />
 );

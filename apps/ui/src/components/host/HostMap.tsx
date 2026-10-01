@@ -20,22 +20,22 @@ import type {
   VenueSelection,
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
-import { CALLOUT_GAP } from './callout-placement';
 import { HostLocateButton } from './HostLocateButton';
 import { HostMapSkeleton } from './HostMapSkeleton';
 import { HostMapToasts } from './HostMapToasts';
-import { HostVenueCallout } from './HostVenueCallout';
 import { HostVenuePin } from './HostVenuePin';
-import { useCalloutPlacement } from './useCalloutPlacement';
 import type { ControlSize } from './useControlSize';
 import { coverPadding, useMapCover } from './useMapCover';
 import { useMapResize } from './useMapResize';
+import { useVisitorLocation, type Coordinates } from './useVisitorLocation';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
 
-const mapLib = loadMapboxCsp();
+const VENUE_ZOOM = 15;
 
-type Coordinates = { longitude: number; latitude: number };
+const LOCATE_ZOOM = 17;
+
+const mapLib = loadMapboxCsp();
 
 type HostMapProps = {
   accessToken: string;
@@ -50,22 +50,9 @@ type HostMapProps = {
   onVenueInvalidate: () => void;
   onCenterChange?: (center: Coordinates) => void;
   onUserMove?: () => void;
+  onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
 };
-
-const locateVisitor = (): Promise<Coordinates | null> =>
-  new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve(null);
-    navigator.geolocation.getCurrentPosition(
-      (position) =>
-        resolve({
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
-        }),
-      () => resolve(null),
-      { enableHighAccuracy: true, timeout: 6_000 },
-    );
-  });
 
 export const HostMap = ({
   accessToken,
@@ -80,12 +67,17 @@ export const HostMap = ({
   onVenueInvalidate,
   onCenterChange,
   onUserMove,
+  onUserGestureEnd,
   onLocateResize,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
-  const placedByHost = useRef(false);
+  const placedByHost = useRef<Coordinates | null>(null);
+  const isHostMoving = useRef(false);
+  const isStillInteractive = useRef(isInteractive);
+  isStillInteractive.current = isInteractive;
   const reverseVenue = useReverseEventVenue();
+  const visitor = useVisitorLocation();
   const [mapKey, setMapKey] = useState(0);
   const [isMapReady, setIsMapReady] = useState(false);
   const [hasMapError, setHasMapError] = useState(false);
@@ -105,7 +97,6 @@ export const HostMap = ({
   };
 
   const pin = venue ?? (reverseVenue.isPending ? lastCoordinates : null);
-  const callout = useCalloutPlacement(mapRef, venue, covered);
 
   const venueErrorMessage = (error: unknown): string =>
     appErrorCode(error) === 'map_venue_unsupported'
@@ -117,7 +108,7 @@ export const HostMap = ({
   ): Promise<void> => {
     const requestId = reverseRequestId.current + 1;
     reverseRequestId.current = requestId;
-    placedByHost.current = true;
+    placedByHost.current = coordinates;
     setLastCoordinates(coordinates);
     setLocationError(null);
     onVenueInvalidate();
@@ -136,14 +127,34 @@ export const HostMap = ({
     }
   };
 
+  const chooseWhereVisitorIs = async (): Promise<void> => {
+    const requestId = reverseRequestId.current;
+    setLocationError(null);
+    const coordinates = await visitor.locate();
+    if (requestId !== reverseRequestId.current || !isStillInteractive.current) {
+      return;
+    }
+    if (!coordinates) {
+      setLocationError(host_geolocation_denied({}, { locale }));
+      return;
+    }
+    flyTo(coordinates.longitude, coordinates.latitude, LOCATE_ZOOM);
+    void resolveCoordinates(coordinates);
+    onUserGestureEnd?.();
+  };
+
   useEffect(() => {
     if (!venue) return;
-    if (placedByHost.current) {
-      placedByHost.current = false;
+    const placed = placedByHost.current;
+    placedByHost.current = null;
+    if (
+      placed?.longitude === venue.longitude &&
+      placed.latitude === venue.latitude
+    ) {
       return;
     }
     reverseRequestId.current += 1;
-    flyTo(venue.longitude, venue.latitude, 15);
+    flyTo(venue.longitude, venue.latitude, VENUE_ZOOM);
   }, [venue?.providerId, venue?.longitude, venue?.latitude]);
 
   if (hasMapError) {
@@ -154,7 +165,7 @@ export const HostMap = ({
           action={
             <button
               type="button"
-              className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+              className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
               onClick={() => {
                 setHasMapError(false);
                 setIsMapReady(false);
@@ -186,7 +197,7 @@ export const HostMap = ({
             ? {
                 longitude: venue.longitude,
                 latitude: venue.latitude,
-                zoom: 15,
+                zoom: VENUE_ZOOM,
                 padding: coverPadding(covered),
               }
             : {
@@ -199,20 +210,25 @@ export const HostMap = ({
         }
         onLoad={() => setIsMapReady(true)}
         onMoveStart={(event) => {
-          if ('originalEvent' in event && event.originalEvent) onUserMove?.();
+          if (!('originalEvent' in event && event.originalEvent)) return;
+          isHostMoving.current = true;
+          onUserMove?.();
         }}
-        onMove={callout.sync}
-        onMoveEnd={(event) =>
+        onMoveEnd={(event) => {
           onCenterChange?.({
             latitude: event.viewState.latitude,
             longitude: event.viewState.longitude,
-          })
-        }
+          });
+          if (!isHostMoving.current) return;
+          isHostMoving.current = false;
+          onUserGestureEnd?.();
+        }}
         onClick={
           isInteractive
             ? (event) => {
                 const { lng, lat } = event.lngLat;
                 void resolveCoordinates({ longitude: lng, latitude: lat });
+                onUserGestureEnd?.();
               }
             : undefined
         }
@@ -223,23 +239,6 @@ export const HostMap = ({
         mapStyle={MAP_STYLE}
         style={{ width: '100%', height: '100%' }}
       >
-        {venue && !locationError && !reverseVenue.isPending && (
-          <Marker
-            longitude={venue.longitude}
-            latitude={venue.latitude}
-            anchor="top"
-            offset={[0, CALLOUT_GAP]}
-            style={{ pointerEvents: 'none' }}
-          >
-            <HostVenueCallout
-              venue={venue}
-              locale={locale}
-              showHint={isInteractive}
-              ref={callout.measure}
-            />
-          </Marker>
-        )}
-
         {pin && (
           <Marker
             longitude={pin.longitude}
@@ -252,6 +251,7 @@ export const HostMap = ({
                 longitude: event.lngLat.lng,
                 latitude: event.lngLat.lat,
               });
+              onUserGestureEnd?.();
             }}
           >
             <HostVenuePin />
@@ -269,21 +269,13 @@ export const HostMap = ({
         <HostLocateButton
           locale={locale}
           onResize={onLocateResize}
-          onClick={async () => {
-            setLocationError(null);
-            const coordinates = await locateVisitor();
-            if (!coordinates) {
-              setLocationError(host_geolocation_denied({}, { locale }));
-              return;
-            }
-            flyTo(coordinates.longitude, coordinates.latitude, 14);
-          }}
+          onClick={() => void chooseWhereVisitorIs()}
         />
       )}
 
       <HostMapToasts
         locale={locale}
-        isResolving={reverseVenue.isPending}
+        isResolving={reverseVenue.isPending || visitor.isFinding}
         error={locationError}
         onDismiss={() => setLocationError(null)}
         onRetry={

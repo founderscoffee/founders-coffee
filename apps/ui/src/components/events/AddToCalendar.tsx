@@ -44,7 +44,7 @@ export const AddToCalendar = ({
         <details ref={ref} className="dropdown dropdown-start">
           <summary
             aria-describedby={headingId}
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg list-none gap-2"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md list-none gap-2"
           >
             <CalendarPlus
               className="size-4 shrink-0 sm:size-5"

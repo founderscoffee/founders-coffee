@@ -48,11 +48,14 @@ const view = (
     hostRsvpCancelledChannels: ['push', 'email'],
     followUpPrompts: false,
     followUpPromptsChannels: [],
+    meetupChat: true,
+    meetupChatChannels: ['push'],
     pushEnabled: false,
     smsFallbackEnabled: false,
   },
   smsAvailable: false,
   smsConsentAt: null,
+  meetupChatAvailable: true,
   ...overrides,
 });
 
@@ -137,6 +140,22 @@ describe('the preferences screen', () => {
 
     expect(state.saved).toEqual([
       expect.objectContaining({ expectedRevision: 7, eventReminders: false }),
+    ]);
+  });
+
+  it('keeps the chat’s saved choice while no market has opened its chats', () => {
+    const closed = view({ meetupChatAvailable: false });
+    closed.preferences.meetupChat = false;
+    show({ data: closed });
+
+    expect(screen.queryByText('New messages in a meetup’s chat')).toBeNull();
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: /After a gathering: Email/i }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Save preferences/i }));
+
+    expect(state.saved).toEqual([
+      expect.objectContaining({ meetupChat: false, meetupChatChannels: [] }),
     ]);
   });
 

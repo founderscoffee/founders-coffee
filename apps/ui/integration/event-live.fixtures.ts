@@ -1,6 +1,8 @@
 import { createDb, seed } from '@founders-coffee/db';
 import { env } from 'cloudflare:test';
 
+import type { RosterUser } from '../src/durable-objects/event-live/protocol';
+
 const WAIT_MS = 5_000;
 
 export type Closure = { readonly code: number; readonly reason: string };
@@ -113,20 +115,12 @@ export const sessionCookie = (sessionToken: string): string =>
   `__Secure-better-auth.session_token=${sessionToken}.signature`;
 
 /**
- * Open a socket to an event's live room with an upgrade carrying this Cookie header, or none.
+ * Take the socket an upgrade was answered with, and keep every frame it hears.
  *
  * The client end is accepted and every frame kept, but nothing answers the server's close. That is
  * the client #84 describes, and the one that leaves a refused socket behind if the room forgets to.
  */
-export const connectWithCookie = async (
-  eventId: string,
-  cookie?: string,
-): Promise<LiveClient> => {
-  const response = await liveRoomOf(eventId).fetch(
-    new Request(`https://staging.founders.coffee/api/live/${eventId}`, {
-      headers: { Upgrade: 'websocket', ...(cookie ? { Cookie: cookie } : {}) },
-    }),
-  );
+export const listen = (response: Response): LiveClient => {
   const socket = response.webSocket;
   if (!socket) throw new Error(`The room answered ${response.status}`);
   const frames: string[] = [];
@@ -168,6 +162,22 @@ export const connectWithCookie = async (
   };
 };
 
+/** Open a socket to an event's live room with an upgrade carrying this Cookie header, or none. */
+export const connectWithCookie = async (
+  eventId: string,
+  cookie?: string,
+): Promise<LiveClient> =>
+  listen(
+    await liveRoomOf(eventId).fetch(
+      new Request(`https://staging.founders.coffee/api/live/${eventId}`, {
+        headers: {
+          Upgrade: 'websocket',
+          ...(cookie ? { Cookie: cookie } : {}),
+        },
+      }),
+    ),
+  );
+
 /**
  * Open a socket to an event's live room the way the browser does: an upgrade carrying the signed
  * session cookie, when there is one.
@@ -180,3 +190,23 @@ export const connect = (
     eventId,
     sessionToken ? sessionCookie(sessionToken) : undefined,
   );
+
+/**
+ * Tell the room this member is walking in, and wait for the roster that says so.
+ *
+ * The roster comes back on the member's own socket, after every frame the room sent it before, so
+ * once it arrives nothing sent earlier can still be on its way.
+ */
+export const walkIn = async (
+  client: LiveClient,
+  userId: string,
+): Promise<void> => {
+  client.socket.send(JSON.stringify({ type: 'walking_in' }));
+  await client.waitFor(
+    (frame) =>
+      ofType('roster_update')(frame) &&
+      (JSON.parse(frame) as { roster: RosterUser[] }).roster.some(
+        (entry) => entry.userId === userId && entry.status === 'walking_in',
+      ),
+  );
+};

@@ -17,11 +17,12 @@ import { ASSUMED_DURATION_SECONDS } from './events.js';
 import {
   account,
   accountPreferences,
+  chatMembers,
+  chatMessages,
   cityWaitlist,
   eventFeedback,
   eventRsvps,
   events,
-  eventTelegramInvites,
   memberProfiles,
   profileAssets,
   pushSessionLinks,
@@ -114,38 +115,6 @@ export const listUpcomingRsvpEvents = async (
   return rows.map((row) => row.eventId);
 };
 
-/**
- * Whether a meetup's Telegram group still waits on this member: an invite they hold, or a post or
- * a removal queued under them that has not gone out.
- *
- * Group posts are attributed to the host and a removal to the member leaving, so erasing either
- * while one is queued would take the job with it, and leave a member in a group they left.
- */
-export const hasPendingTelegramWork = async (
-  db: Db,
-  userId: string,
-): Promise<boolean> => {
-  const [invites, queued] = await Promise.all([
-    db
-      .select({ id: eventTelegramInvites.id })
-      .from(eventTelegramInvites)
-      .where(eq(eventTelegramInvites.userId, userId))
-      .limit(1),
-    db
-      .select({ id: scheduledNotifications.id })
-      .from(scheduledNotifications)
-      .where(
-        and(
-          eq(scheduledNotifications.userId, userId),
-          eq(scheduledNotifications.channel, 'telegram'),
-          inArray(scheduledNotifications.status, ['pending', 'processing']),
-        ),
-      )
-      .limit(1),
-  ]);
-  return invites.length > 0 || queued.length > 0;
-};
-
 /** The storage prefix of every photo a member ever reserved, whatever its state. */
 export const listProfileAssetPrefixes = async (
   db: Db,
@@ -166,13 +135,14 @@ export const listProfileAssetPrefixes = async (
  * so no foreign key blocks the erasure and nothing cascades. The host's meetups stay, their name
  * detached, as the city's record. RSVPs and attendance stay for the twenty-four months the policy
  * gives them, attributed to nobody. Feedback ratings stay without their comment. Host trust,
- * audit and review rows stay under their own retention.
+ * audit and review rows stay under their own retention, and so do meetup chat reports, the ones
+ * they filed and the ones about their messages, pointing at the tombstone.
  *
  * Everything that is the member's own goes: profile, photo rows, preferences, devices, queued
- * notices, Telegram invites, sessions, sign-in links with Google or GitHub, codes still waiting
- * for their address or phone, and the city waitlist entries under their address. Photo bytes are
- * the caller's to delete first, from {@link listProfileAssetPrefixes}, since a deleted row is the
- * only record of where they are.
+ * notices, meetup chat messages and chat settings, sessions, sign-in links with
+ * Google or GitHub, codes still waiting for their address or phone, and the city waitlist entries
+ * under their address. Photo bytes are the caller's to delete first, from
+ * {@link listProfileAssetPrefixes}, since a deleted row is the only record of where they are.
  *
  * Every statement re-checks that the account is still closing, and the tombstone is written last,
  * so an account reopened in between is left exactly as it was. Returns whether it was erased.
@@ -202,11 +172,12 @@ export const eraseClosedAccount = async (
     db
       .delete(scheduledNotifications)
       .where(owned(scheduledNotifications.userId)),
-    db.delete(eventTelegramInvites).where(owned(eventTelegramInvites.userId)),
     db
       .update(eventFeedback)
       .set({ comment: null, commentLanguage: null, updatedAt: now })
       .where(owned(eventFeedback.userId)),
+    db.delete(chatMessages).where(owned(chatMessages.authorId)),
+    db.delete(chatMembers).where(owned(chatMembers.userId)),
     db.delete(session).where(owned(session.userId)),
     db.delete(account).where(owned(account.userId)),
     db

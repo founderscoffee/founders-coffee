@@ -10,7 +10,7 @@ import {
   HEARTBEAT_ACK_FRAME,
   HEARTBEAT_FRAME,
   HEARTBEAT_TIMEOUT_MS,
-} from '../src/durable-objects/event-live/constants';
+} from '@founders-coffee/core/rooms';
 import {
   connect,
   liveRoomOf,

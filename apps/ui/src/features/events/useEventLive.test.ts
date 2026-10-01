@@ -5,7 +5,8 @@ import {
   HEARTBEAT_ACK_FRAME,
   HEARTBEAT_FRAME,
   HEARTBEAT_INTERVAL_MS,
-} from '../../durable-objects/event-live/constants';
+} from '@founders-coffee/core/rooms';
+
 import { useEventLive } from './useEventLive';
 
 const sockets: FakeSocket[] = [];

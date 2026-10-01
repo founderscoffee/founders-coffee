@@ -1,5 +1,6 @@
-import { formatDate, localizedName, type Locale } from '@founders-coffee/i18n';
+import { localizedName, type Locale } from '@founders-coffee/i18n';
 
+import { eventWhen } from './event-when';
 import { textLine, type CardNode } from './og-line';
 
 const WIDTH = 1200;
@@ -108,12 +109,7 @@ type CardFacts = {
   readonly hostName: string;
 };
 
-/**
- * What the card says, in the reader's language.
- *
- * The date is formatted in the market's timezone rather than the renderer's, for the same reason
- * the event page is: a card generated in UTC would tell half the readers the wrong evening.
- */
+/** What the card says, in the reader's language, with the date as {@link eventWhen} gives it. */
 export const eventCardText = ({
   locale,
   title,
@@ -122,14 +118,7 @@ export const eventCardText = ({
   city,
   hostName,
 }: CardFacts): CardText => {
-  const on = (options: Intl.DateTimeFormatOptions): string =>
-    formatDate(startsAt, locale, {
-      timeZone: timezone,
-      hour12: false,
-      ...options,
-    });
-  const day = on({ weekday: 'long', day: 'numeric', month: 'long' });
-  const clock = on({ hour: '2-digit', minute: '2-digit' });
+  const { day, clock } = eventWhen(startsAt, timezone, locale);
   const place = localizedName(city, locale);
   return {
     locale,

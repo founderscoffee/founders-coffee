@@ -39,5 +39,8 @@
   "0037_city_waitlist_launches": "compatible",
   "0038_account_closure": "compatible",
   "0039_event_languages": "compatible",
-  "0040_forget_provider_data": "compatible"
+  "0040_forget_provider_data": "compatible",
+  "0041_meetup_chat": "compatible",
+  "0042_meetup_chat_notifications": "compatible",
+  "0043_chat_report_retention": "compatible"
 }

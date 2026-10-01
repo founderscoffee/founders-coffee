@@ -80,7 +80,7 @@ vi.mock('react-map-gl/mapbox', () => ({
   ),
   Marker: ({ children, onDragEnd }: MockMarkerProps) => (
     <div
-      data-testid={onDragEnd ? 'map-marker' : 'map-callout'}
+      data-testid="map-marker"
       onClick={(event) => {
         event.stopPropagation();
         onDragEnd?.({ lngLat: { lat: 36.76, lng: 3.07 } });
@@ -220,13 +220,13 @@ describe('HostMap', () => {
     await waitFor(() => expect(onVenueSelect).toHaveBeenCalledOnce());
   });
 
-  it('anchors the venue callout to the pin instead of the map frame', () => {
+  it('marks a chosen place with the pin alone, with no card over the map', () => {
     renderMap(selectedVenue, vi.fn(), vi.fn());
 
-    const callout = screen.getByTestId('map-callout').textContent ?? '';
-    expect(callout).toContain(selectedVenue.name);
-    expect(callout).toContain(selectedVenue.address);
-    expect(callout).toContain('Drag the pin to the entrance.');
+    expect(screen.getAllByTestId('map-marker')).toHaveLength(1);
+    const map = screen.getByTestId('map-surface').textContent ?? '';
+    expect(map).not.toContain(selectedVenue.name);
+    expect(map).not.toContain(selectedVenue.address);
   });
 
   it('covers the map with a skeleton until Mapbox reports it is loaded', () => {

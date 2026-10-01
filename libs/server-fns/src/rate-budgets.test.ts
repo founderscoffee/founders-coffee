@@ -30,11 +30,11 @@ describe('rate budgets', () => {
 
   it('declares the categories that later tickets must fill', () => {
     expect(Object.keys(RATE_BUDGETS).sort()).toEqual([
+      'chat',
       'edit',
       'expensive',
       'otp',
       'read',
-      'telegram',
     ]);
   });
 });

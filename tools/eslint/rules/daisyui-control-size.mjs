@@ -1,15 +1,32 @@
 /*
  * The one size each daisyUI control takes. A button follows daisyUI's responsive button, xs on a
- * phone and a step larger at every breakpoint up to lg, where it stops: xl's 56px and 22px type
- * were too big on a laptop. A field is small on a phone and medium from `md`, where the layout
- * leaves the phone column.
+ * phone and a step larger at every breakpoint up to md, where it stops: lg's 48px and 18px type
+ * filled the 64px header and made every button on a laptop as loud as the page's own call to
+ * action, and xl was bigger still. A field is small on a phone and medium from `md`, where the
+ * layout leaves the phone column.
  */
-export const CONTROL_SIZES = new Map([
-  ['btn', ['btn-xs', 'sm:btn-sm', 'md:btn-md', 'lg:btn-lg']],
-  ['input', ['input-sm', 'md:input-md']],
-  ['select', ['select-sm', 'md:select-md']],
-  ['textarea', ['textarea-sm', 'md:textarea-md']],
-  ['otp', ['otp-sm', 'md:otp-md']],
+const BUTTON_SIZES = ['btn-xs', 'sm:btn-sm', 'md:btn-md'];
+
+const controlSizes = (buttonSizes) =>
+  new Map([
+    ['btn', buttonSizes],
+    ['input', ['input-sm', 'md:input-md']],
+    ['select', ['select-sm', 'md:select-md']],
+    ['textarea', ['textarea-sm', 'md:textarea-md']],
+    ['otp', ['otp-sm', 'md:otp-md']],
+  ]);
+
+export const CONTROL_SIZES = controlSizes(BUTTON_SIZES);
+
+/*
+ * The sizes where a button is a page's call to action rather than one of its controls: the same
+ * scale, carried on to lg from 1024px up. The rule takes it with `{ buttons: 'call-to-action' }`,
+ * which the workspace config gives only to the files in `CALL_TO_ACTION_BUTTON_FILES`, so every
+ * button in those files takes it and none elsewhere can.
+ */
+export const CALL_TO_ACTION_SIZES = controlSizes([
+  ...BUTTON_SIZES,
+  'lg:btn-lg',
 ]);
 
 /*
@@ -83,16 +100,17 @@ const isSizeOf = (component, name) =>
  * One report for each way a class list sizes a control other than the one way: a size missing
  * from the scale, a size from outside it, and a utility that sets part of what the size sets.
  * `sizedComponent` is the control a shared component has already sized, when the list is its
- * `className`; otherwise every control named in the list is checked.
+ * `className`; otherwise every control named in the list is checked. `scales` is the size each
+ * control takes where the list is written.
  */
-const findingsIn = (tokens, sizedComponent) => {
+const findingsIn = (tokens, sizedComponent, scales) => {
   const present = tokens.filter(Boolean);
-  const named = [...CONTROL_SIZES.keys()].filter((component) =>
+  const named = [...scales.keys()].filter((component) =>
     present.includes(component),
   );
   const components = sizedComponent ? [sizedComponent] : named;
   return components.flatMap((component) => {
-    const sizes = CONTROL_SIZES.get(component);
+    const sizes = scales.get(component);
     const scale = sizes.join(' ');
     const missing = sizedComponent
       ? []
@@ -185,9 +203,10 @@ const classContext = (ancestors, sized) => {
 
 /**
  * A daisyUI control has one size in this product: every button takes daisyUI's responsive button up
- * to `lg`, and every field is small on a phone and medium from `md`. A control sized any other way, or a
+ * to `md`, and every field is small on a phone and medium from `md`. A control sized any other way, or a
  * utility that quietly sets its height, fixed width, font size or a button's padding, holds a size
- * of its own that the scale no longer moves, so it drifts from the controls around it.
+ * of its own that the scale no longer moves, so it drifts from the controls around it. With
+ * `{ buttons: 'call-to-action' }` the buttons go on to `lg` instead, for a page's call to action.
  *
  * A string is read only where it is written as a class list: a `className`, a class helper, or a
  * binding named for a class. The size has to sit in the same string as the control, which is
@@ -196,7 +215,13 @@ const classContext = (ancestors, sized) => {
 export const daisyuiControlSize = {
   meta: {
     type: 'problem',
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: { buttons: { enum: ['control', 'call-to-action'] } },
+        additionalProperties: false,
+      },
+    ],
     messages: {
       missing:
         '`{{component}}` takes one size, `{{scale}}`, and this class list is missing `{{missing}}`. (AGENTS.md §8)',
@@ -208,10 +233,14 @@ export const daisyuiControlSize = {
   },
   create: (context) => {
     const sized = new Map();
+    const scales =
+      context.options[0]?.buttons === 'call-to-action'
+        ? CALL_TO_ACTION_SIZES
+        : CONTROL_SIZES;
     const check = (node, tokens) => {
       const found = classContext(context.sourceCode.getAncestors(node), sized);
       if (!found) return;
-      for (const finding of findingsIn(tokens, found.sizedComponent)) {
+      for (const finding of findingsIn(tokens, found.sizedComponent, scales)) {
         context.report({ node, ...finding });
       }
     };

@@ -22,6 +22,11 @@ export const DEFAULT_NOTIFICATION_CHANNELS = [
   ...NOTIFICATION_CHANNELS,
 ] as const;
 export const DEFAULT_FOLLOW_UP_CHANNELS = ['email'] as const;
+export const MEETUP_CHAT_CHANNELS = ['push'] as const;
+export type MeetupChatChannel = (typeof MEETUP_CHAT_CHANNELS)[number];
+export const meetupChatChannelsSchema = z
+  .array(z.enum(MEETUP_CHAT_CHANNELS))
+  .max(MEETUP_CHAT_CHANNELS.length);
 
 export const channelsToMask = (
   channels: readonly NotificationChannel[],
@@ -34,6 +39,11 @@ export const maskToChannels = (mask: number): NotificationChannel[] => {
   if ((mask & 4) === 4) channels.push('email');
   return channels;
 };
+
+/** The meetup chat's channels from a stored mask: push or nothing, since a chat never emails. */
+export const meetupChatChannelsFromMask = (
+  mask: number,
+): MeetupChatChannel[] => ((mask & 1) === 1 ? ['push'] : []);
 
 export const notificationPreferencesSchema = z.strictObject({
   eventUpdates: z.boolean().default(true),
@@ -56,6 +66,10 @@ export const notificationPreferencesSchema = z.strictObject({
   followUpPromptsChannels: notificationChannelsSchema.default([
     ...DEFAULT_FOLLOW_UP_CHANNELS,
   ]),
+  meetupChat: z.boolean().default(true),
+  meetupChatChannels: meetupChatChannelsSchema.default([
+    ...MEETUP_CHAT_CHANNELS,
+  ]),
   pushEnabled: z.boolean().default(false),
   smsFallbackEnabled: z.boolean().default(false),
 });
@@ -71,6 +85,7 @@ export const accountPreferencesViewSchema = z.strictObject({
   preferences: notificationPreferencesSchema,
   smsAvailable: z.boolean(),
   smsConsentAt: z.string().nullable(),
+  meetupChatAvailable: z.boolean(),
 });
 
 export type NotificationPreferences = z.infer<

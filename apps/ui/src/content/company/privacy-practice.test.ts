@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import {
+  CHAT_KEPT_DAYS_AFTER_MEETUP,
+  CHAT_REPORT_KEPT_MONTHS,
+} from '@founders-coffee/core';
 import { host_locate_me, LOCALES, type Locale } from '@founders-coffee/i18n';
 
 import { companyPageContent } from './pages';
@@ -8,6 +12,19 @@ import type { CompanyBlock } from './types';
 const COLLECTED = 'ما نجمعه ولماذا';
 const SHARING = 'من يطّلع على بياناتك';
 const TRANSFERS = 'نقل البيانات خارج بلدك';
+const RETENTION = 'مدّة الاحتفاظ';
+
+const CHAT_MESSAGES_ROW: Record<Locale, string> = {
+  ar: 'رسائل محادثة اللقاء',
+  en: 'Gathering chat messages',
+  fr: 'Messages de la discussion d’une rencontre',
+};
+
+const REPORTS_ROW: Record<Locale, string> = {
+  ar: 'المراسلات وبلاغات الإشراف',
+  en: 'Messages and moderation reports',
+  fr: 'Messages et signalements de modération',
+};
 
 const CONSENT: Record<Locale, RegExp> = {
   ar: /موافق/u,
@@ -28,34 +45,12 @@ const PHONE: Record<Locale, string> = {
 };
 
 const SERVICES: Record<Locale, readonly string[]> = {
-  ar: [
-    'Cloudflare',
-    'Mapbox',
-    'Firebase',
-    'Twilio',
-    'Google',
-    'GitHub',
-    'تيليغرام',
-  ],
-  en: [
-    'Cloudflare',
-    'Mapbox',
-    'Firebase',
-    'Twilio',
-    'Google',
-    'GitHub',
-    'Telegram',
-  ],
-  fr: [
-    'Cloudflare',
-    'Mapbox',
-    'Firebase',
-    'Twilio',
-    'Google',
-    'GitHub',
-    'Telegram',
-  ],
+  ar: ['Cloudflare', 'Mapbox', 'Firebase', 'Twilio', 'Google', 'GitHub'],
+  en: ['Cloudflare', 'Mapbox', 'Firebase', 'Twilio', 'Google', 'GitHub'],
+  fr: ['Cloudflare', 'Mapbox', 'Firebase', 'Twilio', 'Google', 'GitHub'],
 };
+
+const RETIRED_SERVICE = ['Telegram', 'تيليغرام'] as const;
 
 const blockText = (block: CompanyBlock): string =>
   block.kind === 'table'
@@ -75,6 +70,24 @@ const sectionBlocks = (heading: string, locale: Locale): readonly string[] => {
 
 const sectionText = (heading: string, locale: Locale): string =>
   sectionBlocks(heading, locale).join(' ');
+
+const retentionOf = (category: string, locale: Locale): string => {
+  const index = companyPageContent('privacy', 'ar').sections.findIndex(
+    (section) => section.heading === RETENTION,
+  );
+  const table = companyPageContent('privacy', locale).sections[
+    index
+  ]?.blocks.find((block) => block.kind === 'table');
+  const row =
+    table?.kind === 'table'
+      ? table.rows.find(([label]) => label === category)
+      : undefined;
+  expect(
+    row,
+    `privacy:${locale} has no retention row "${category}"`,
+  ).toBeDefined();
+  return row?.[1] ?? '';
+};
 
 describe('the privacy policy, held to what the platform does', () => {
   it('rests transfers abroad on no consent that sign-up never asks for', () => {
@@ -107,6 +120,23 @@ describe('the privacy policy, held to what the platform does', () => {
     }
   });
 
+  it('describes no Telegram group, which the platform no longer links to a meetup', () => {
+    for (const locale of LOCALES) {
+      const policy = companyPageContent('privacy', locale)
+        .sections.flatMap((section) => [
+          section.heading,
+          ...section.blocks.map(blockText),
+        ])
+        .join(' ');
+      for (const name of RETIRED_SERVICE) {
+        expect(
+          policy,
+          `privacy:${locale} still tells members what Telegram receives`,
+        ).not.toContain(name);
+      }
+    }
+  });
+
   it('says what “Locate me” does with the location the browser gives it', () => {
     for (const locale of LOCALES) {
       const button = host_locate_me({}, { locale });
@@ -125,6 +155,24 @@ describe('the privacy policy, held to what the platform does', () => {
         ),
         `privacy:${locale} does not say that the phone number goes to Twilio, which texts the code`,
       ).toContain('Twilio');
+    }
+  });
+
+  it('keeps a meetup chat as long as the retention sweep does', () => {
+    for (const locale of LOCALES) {
+      expect(
+        retentionOf(CHAT_MESSAGES_ROW[locale], locale),
+        `privacy:${locale} does not say that a chat is deleted ${CHAT_KEPT_DAYS_AFTER_MEETUP} days after its meetup`,
+      ).toContain(`${CHAT_KEPT_DAYS_AFTER_MEETUP}`);
+    }
+  });
+
+  it('keeps a decided report as long as the retention sweep does', () => {
+    for (const locale of LOCALES) {
+      expect(
+        retentionOf(REPORTS_ROW[locale], locale),
+        `privacy:${locale} does not say that a report is kept ${CHAT_REPORT_KEPT_MONTHS} months`,
+      ).toContain(`${CHAT_REPORT_KEPT_MONTHS}`);
     }
   });
 });

@@ -25,13 +25,16 @@ const besideNeighbour = (neighbour: ControlSize): CSSProperties =>
     '--row-height': `${neighbour.height}px`,
   }) as CSSProperties;
 
-const placement = (isHint: boolean, isBeside: boolean): string => {
-  if (isHint) {
+const SURFACE =
+  'max-lg:rounded-box max-lg:border max-lg:border-base-300 max-lg:bg-base-100 max-lg:shadow-lg';
+
+const placement = (isHeaderless: boolean, isBeside: boolean): string => {
+  if (isHeaderless) {
     return 'max-lg:end-3 max-lg:mt-3 max-lg:w-fit max-lg:max-w-[calc(100%-var(--row-start)-var(--spacing)*3)]';
   }
   return isBeside
-    ? 'max-lg:start-[var(--row-start)] max-lg:end-3 max-lg:mt-3 max-lg:h-[var(--row-height)] max-lg:border max-lg:border-base-300 max-lg:bg-base-100'
-    : 'max-lg:inset-x-3 max-lg:mt-3 max-lg:border max-lg:border-base-300 max-lg:bg-base-100';
+    ? `${SURFACE} max-lg:start-[var(--row-start)] max-lg:end-3 max-lg:mt-3 max-lg:h-[var(--row-height)]`
+    : `${SURFACE} max-lg:inset-x-3 max-lg:mt-3`;
 };
 
 export const VenueResultsPanel = ({
@@ -47,9 +50,9 @@ export const VenueResultsPanel = ({
   const toggleRef = useRef<HTMLButtonElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const measure = useCoveredHeight(onCoverChange);
-  const isHint = label === null;
-  const isFolded = isCollapsed && !isHint;
-  const isBeside = neighbour != null && (isHint || isFolded);
+  const isHeaderless = label === null;
+  const isFolded = isCollapsed && !isHeaderless;
+  const isBeside = neighbour != null && (isHeaderless || isFolded);
 
   useEffect(() => {
     if (isFolded && bodyRef.current?.contains(document.activeElement)) {
@@ -61,12 +64,12 @@ export const VenueResultsPanel = ({
     <div
       ref={measure}
       style={isBeside ? besideNeighbour(neighbour) : undefined}
-      className={`max-lg:absolute max-lg:top-full max-lg:z-30 max-lg:rounded-box max-lg:shadow-lg ${placement(
-        isHint,
+      className={`max-lg:absolute max-lg:top-full max-lg:z-30 ${placement(
+        isHeaderless,
         isBeside,
       )}`}
     >
-      {!isHint && (
+      {!isHeaderless && (
         <div
           className={`grid lg:mb-1.5 ${isBeside ? 'max-lg:h-full' : 'max-lg:min-h-11'}`}
         >
@@ -98,7 +101,7 @@ export const VenueResultsPanel = ({
         ref={bodyRef}
         id={bodyId}
         className={`flex flex-col gap-3 ${
-          isHint
+          isHeaderless
             ? 'max-lg:grid max-lg:min-h-[var(--row-height)]'
             : 'max-lg:max-h-48 max-lg:overflow-y-auto max-lg:px-3 max-lg:pb-3'
         } ${isFolded ? 'max-lg:hidden' : ''}`}

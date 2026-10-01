@@ -181,7 +181,7 @@ without rendering or requiring a browser challenge.
 - **Presentational + thin.** Components receive props, call hooks (`hooks.ts`) for data, and dispatch via hooks. They **never** import server functions, DB, Drizzle, or domain internals.
 - **Organized by domain** in `features/<domain>/components/`. Cross-domain shared UI lives in `libs/ui`.
 - **Styling:** Tailwind v4 + DaisyUI. Use design tokens / DaisyUI components; avoid arbitrary inline values where a token exists. RTL-aware (use logical properties — `ps-`/`pe-`/`ms-`/`me-`, not `pl-`/`pr-`).
-- **Control sizes:** every DaisyUI button takes the responsive size up to `lg`, `btn-xs sm:btn-sm md:btn-md lg:btn-lg` (no `xl:btn-xl`), and every field (`input`, `select`, `textarea`, `otp`) is small below `md` and medium from it (`input-sm md:input-md`). Nothing else sets their height, fixed width or font size, or a button's padding; `w-full` and `flex-1` may still fill a layout. `local/daisyui-control-size` enforces it.
+- **Control sizes:** every DaisyUI button takes the responsive size up to `md`, `btn-xs sm:btn-sm md:btn-md`. Only the market landing's calls to action, the hero's search button and How it works' pair, go on to `lg:btn-lg`; their files are listed in `CALL_TO_ACTION_BUTTON_FILES` (`tools/eslint/file-globs.mjs`), and no button takes `xl:btn-xl`. Every field (`input`, `select`, `textarea`, `otp`) is small below `md` and medium from it (`input-sm md:input-md`). Nothing else sets their height, fixed width or font size, or a button's padding; `w-full` and `flex-1` may still fill a layout. `local/daisyui-control-size` enforces it.
 - **Forms:** shared Zod schemas remain the contract. TanStack Form is available for forms that benefit from it; local React state is also acceptable when validation still reuses the shared schema and the component remains thin.
 - **Tables/grids:** TanStack Table. **Long lists:** TanStack Virtual.
 - **Client UI state** (toasts, modals, non-server state): TanStack Store.
@@ -195,7 +195,7 @@ without rendering or requiring a browser challenge.
 - **Zero hardcoded user-facing strings.** All copy in `libs/i18n` locale resources.
 - **Every screen must work in both RTL and LTR.** Direction is driven by the active locale/market. Test both.
 - **Supported locales:** `ar`, `fr`, and `en`, with `ar` as the final fallback. Locale resolution is user preference/cookie → market default → `ar`; do not override it with browser `Accept-Language`.
-- **User-generated content is not auto-translated.** Tag it with a language code; render as authored. Profile introductions are the explicit exception: do not collect or infer a language code; render unchanged with automatic text direction.
+- **User-generated content is not auto-translated.** Tag it with a language code; render as authored. Profile introductions and meetup chat messages are the explicit exceptions: do not collect or infer a language code; render unchanged with automatic text direction.
 - **Format** dates, times, numbers, and currency per active locale + market timezone.
 
 ---

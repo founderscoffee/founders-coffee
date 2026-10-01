@@ -51,7 +51,7 @@ export const HostLiveActions = ({
         />
         <button
           type="button"
-          className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          className="btn btn-xs sm:btn-sm md:btn-md"
           disabled={!tableNumber}
           onClick={() => onTablePin(parseInt(tableNumber, 10))}
         >
@@ -65,7 +65,7 @@ export const HostLiveActions = ({
     return (
       <button
         type="button"
-        className="btn btn-primary btn-block btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+        className="btn btn-primary btn-block btn-xs sm:btn-sm md:btn-md"
         onClick={() => setIsFormOpen(true)}
       >
         {live_arrived_cta({}, { locale })}
@@ -92,14 +92,14 @@ export const HostLiveActions = ({
       <div className="flex gap-2">
         <button
           type="button"
-          className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          className="btn btn-primary btn-xs sm:btn-sm md:btn-md"
           onClick={confirmArrival}
         >
           {confirm({}, { locale })}
         </button>
         <button
           type="button"
-          className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+          className="btn btn-ghost btn-xs sm:btn-sm md:btn-md"
           onClick={() => setIsFormOpen(false)}
         >
           {cancel({}, { locale })}

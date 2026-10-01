@@ -48,16 +48,6 @@ export const AppleMark = () => (
   </svg>
 );
 
-export const TelegramMark = () => (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-    <circle cx="12" cy="12" r="10" fill="#229ED9" />
-    <path
-      fill="#fff"
-      d="m17.8 6.9-2.1 10.1c-.16.72-.59.9-1.19.56l-3.3-2.43-1.59 1.53c-.18.18-.32.32-.65.32l.23-3.36 6.13-5.54c.27-.24-.06-.38-.42-.14L7.33 11.9l-3.27-1.01c-.71-.22-.72-.71.15-1.06l12.8-4.94c.59-.22 1.12.14.79 2.01Z"
-    />
-  </svg>
-);
-
 export const OutlookMark = () => (
   <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
     <defs>

@@ -1,8 +1,14 @@
 # Staged contractions
 
-Empty, and that is the normal state. This directory holds migrations whose SQL is written and
-reviewed but must not run until compatible code is live on every environment — a contraction that
-lands ahead of its Workers takes the schema out from under them.
+Empty is the normal state. This directory holds migrations whose SQL is written and reviewed but
+must not run until compatible code is live on every environment — a contraction that lands ahead
+of its Workers takes the schema out from under them.
+
+It holds `0044_retire_telegram_groups` (CH-12) now. It drops `event_telegram_groups` and
+`event_telegram_invites`, which every release before the one that retired Telegram groups still
+reads, and deletes the Telegram rows left in `scheduled_notifications`. It is promoted once that
+release is live on staging and production, and every migration generated after it waits here with
+it until then.
 
 `0021`-`0024` (the PF-03 profile contractions) and `0025` (CO-03's operations schema, which followed
 them in the journal and so had to wait) were promoted on 2026-09-10, after `v0.4.0` put PF-03a-

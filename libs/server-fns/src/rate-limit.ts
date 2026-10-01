@@ -3,6 +3,7 @@ import { getRequestHeader } from '@tanstack/react-start/server';
 
 import { AppError } from '@founders-coffee/core';
 
+import type { RateBudget } from './rate-budgets.js';
 import { consumeRateBudget } from './rate-consume.js';
 
 const identityFor = (sessionUserId?: string): string => {
@@ -42,3 +43,7 @@ export const rateLimit = (action: string, limit: number, windowMs: number) =>
     }
     return next();
   });
+
+/** The {@link rateLimit} middleware for one of the budgets `RATE_BUDGETS` declares. */
+export const limitedTo = (budget: RateBudget) =>
+  rateLimit(budget.action, budget.limit, budget.windowMs);

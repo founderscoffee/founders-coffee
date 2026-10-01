@@ -8,7 +8,7 @@ import {
 } from '@founders-coffee/db';
 import type { Db, ScheduledNotification } from '@founders-coffee/db';
 import { notifications } from '@founders-coffee/domain';
-import { logger } from '@founders-coffee/observability';
+import { describeError, logger } from '@founders-coffee/observability';
 
 import type { DispatchOutcome, Dispatcher } from './dispatch-outcome.js';
 import {
@@ -33,9 +33,6 @@ export interface SweepReport {
   readonly unreachable: number;
 }
 
-const errorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
-
 /**
  * Run one dispatcher, converting a thrown provider error into a retryable failure.
  *
@@ -53,7 +50,7 @@ const dispatch = async (
     return {
       kind: 'failed',
       permanent: false,
-      error: `dispatch_threw: ${errorMessage(error)}`,
+      error: `dispatch_threw: ${describeError(error)}`,
     };
   }
 };

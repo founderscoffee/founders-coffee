@@ -8,12 +8,14 @@ import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
 import {
   ingestClientLogs,
   logger,
+  strippingQueryValues,
   type LogEntry,
 } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
+import { handleChatSocketRequest } from '@founders-coffee/server-fns/chat-socket';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
-import { handleTelegramWebhook } from '@founders-coffee/server-fns/telegram-webhook';
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
+export { EventChatDO } from '@founders-coffee/server-fns/chat-room';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
 
 import { createOtpEmailProvider } from './lib/auth-email.js';
@@ -30,6 +32,7 @@ import {
   shouldEmitEarlyHints,
 } from './lib/early-hints.js';
 import { withoutRedirectCaching } from './lib/redirect-caching.js';
+import { liveRoomEventId } from './durable-objects/event-live/path.js';
 
 export { EventLiveDO } from './durable-objects/EventLiveDO';
 
@@ -37,6 +40,7 @@ export interface UiEnv extends HandlerEnv {
   EMAIL: SendEmail;
   MAIL_FROM: string;
   EVENT_LIVE: DurableObjectNamespace;
+  EVENT_CHAT: DurableObjectNamespace;
   CSP_ENFORCED?: string;
   APP_ENVIRONMENT?: string;
   OTP_ECHO?: string;
@@ -104,6 +108,30 @@ const liveRoomStub = (env: UiEnv, eventId: string): DurableObjectStub =>
     locationHint: DURABLE_OBJECT_LOCATION_HINT,
   });
 
+/**
+ * Hand a browser's WebSocket upgrade to its meetup's live room, and turn anything else away here.
+ *
+ * Only `GET /api/live/<eventId>` with `Upgrade: websocket` is forwarded, as it came. The room reads
+ * its meetup from that path with the same `liveRoomEventId`, so the room reached is always the one
+ * for the meetup it checks members against.
+ */
+const openLiveRoom = async (
+  request: Request,
+  env: UiEnv,
+  pathname: string,
+): Promise<Response> => {
+  const eventId = liveRoomEventId(pathname);
+  if (!eventId) return new Response('Not found', { status: 404 });
+  if (request.method !== 'GET')
+    return new Response('Method not allowed', {
+      status: 405,
+      headers: { Allow: 'GET' },
+    });
+  if (request.headers.get('Upgrade') !== 'websocket')
+    return new Response('Expected WebSocket upgrade', { status: 426 });
+  return liveRoomStub(env, eventId).fetch(request);
+};
+
 export default {
   /**
    * Serve the request, then stamp every response with the security headers (AGENTS.md §10).
@@ -119,7 +147,7 @@ export default {
    * nonce — which either blocks a legitimate page or, worse, hands a live nonce to another
    * response.
    */
-  fetch: async (request: Request, env: UiEnv): Promise<Response> => {
+  fetch: strippingQueryValues(async (request: Request, env: UiEnv) => {
     const url = new URL(request.url);
     const nonce = createCspNonce();
     const secure = (response: Response): Response =>
@@ -155,20 +183,11 @@ export default {
       );
     }
 
-    if (url.pathname.startsWith('/api/live/')) {
-      const eventId = url.pathname.split('/api/live/')[1]?.split('/')[0];
-      if (!eventId)
-        return secure(new Response('Missing event id', { status: 400 }));
+    if (url.pathname.startsWith('/api/live/'))
+      return secure(await openLiveRoom(request, env, url.pathname));
 
-      const upgradeHeader = request.headers.get('Upgrade');
-      if (upgradeHeader !== 'websocket') {
-        return secure(
-          new Response('Expected WebSocket upgrade', { status: 426 }),
-        );
-      }
-
-      return secure(await liveRoomStub(env, eventId).fetch(request));
-    }
+    const chatSocket = handleChatSocketRequest(request, url);
+    if (chatSocket) return secure(await chatSocket);
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
       const body = (await request.json().catch(() => null)) as {
@@ -180,9 +199,6 @@ export default {
     }
     const photo = handleProfilePhotoRequest(request, url);
     if (photo) return secure(await photo);
-
-    const telegram = handleTelegramWebhook(request, url);
-    if (telegram) return secure(await telegram);
 
     if (url.pathname.startsWith('/api/auth/'))
       return secure(await authHandler(env)(request));
@@ -210,5 +226,5 @@ export default {
         );
       },
     );
-  },
+  }),
 } satisfies ExportedHandler<UiEnv>;

@@ -14,7 +14,7 @@ type ShareEventButtonProps = {
 };
 
 const TRIGGER_CLASS =
-  'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg gap-2 self-center rounded-full border-0 bg-base-100 font-medium shadow-none hover:shadow-[var(--shadow-2)]';
+  'btn btn-xs sm:btn-sm md:btn-md gap-2 self-center rounded-full border-0 bg-base-100 font-medium shadow-none hover:shadow-[var(--shadow-2)]';
 
 export const ShareEventButton = ({
   locale,

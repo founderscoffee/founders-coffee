@@ -1,6 +1,5 @@
 import {
   eraseClosedAccount,
-  hasPendingTelegramWork,
   listClosingAccounts,
   listProfileAssetPrefixes,
   listUnfinishedHostedEvents,
@@ -14,8 +13,7 @@ import { logger, reportError } from '@founders-coffee/observability';
 import { cancelEventResolver } from '../events/cancel.js';
 import { cancelRsvpResolver } from '../rsvps/resolver.js';
 
-export type AccountClosureOutcome =
-  'erased' | 'waiting_on_meetup' | 'waiting_on_telegram' | 'reopened';
+export type AccountClosureOutcome = 'erased' | 'waiting_on_meetup' | 'reopened';
 
 export interface AccountClosureSweep {
   readonly erased: number;
@@ -80,11 +78,9 @@ const leaveJoinedMeetups = async (
  *
  * First the member leaves what has not happened yet, the way they could have themselves: each
  * meetup they host that has not started is cancelled, with the notice to everyone going that a
- * host's own cancellation sends, and each seat they hold at someone else's meetup is given back,
- * which also takes them out of its Telegram group. A meetup of theirs that is under way waits for
- * its end, and so does a Telegram post or removal still queued under them, since erasing it would
- * take the job with it. Then their photos leave storage, because the rows being erased are the
- * only record of where they are, and the account is erased.
+ * host's own cancellation sends, and each seat they hold at someone else's meetup is given back.
+ * A meetup of theirs that is under way waits for its end. Then their photos leave storage, because
+ * the rows being erased are the only record of where they are, and the account is erased.
  *
  * Every step can run again, so a closure that waited or stopped partway finishes on a later night.
  */
@@ -97,9 +93,6 @@ export const carryAccountClosure = async (
   const isHostingDone = await leaveHostedMeetups(db, account, now);
   await leaveJoinedMeetups(db, account, now);
   if (!isHostingDone) return 'waiting_on_meetup';
-  if (await hasPendingTelegramWork(db, account.id)) {
-    return 'waiting_on_telegram';
-  }
   for (const prefix of await listProfileAssetPrefixes(db, account.id)) {
     await photos.deletePrefix(prefix);
   }

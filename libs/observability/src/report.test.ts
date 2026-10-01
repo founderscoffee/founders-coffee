@@ -1,4 +1,5 @@
 import { AppError } from '@founders-coffee/core';
+import { DrizzleQueryError } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 
 import { reportError } from './report.js';
@@ -66,6 +67,28 @@ describe('reportError', () => {
       'info',
       'info',
     ]);
+  });
+
+  it('reports a failed query with its SQL and D1 error, and none of its values', () => {
+    const { logger, entries } = captureLogger();
+    reportError(
+      new DrizzleQueryError(
+        'insert into "feedback" ("comment", "email") values (?, ?)',
+        ['The host never showed up', 'amina@example.com'],
+        new Error('D1_ERROR: FOREIGN KEY constraint failed: SQLITE_CONSTRAINT'),
+      ),
+      undefined,
+      logger,
+    );
+    const line = JSON.stringify(entries[0]);
+    expect(line).not.toContain('host never showed up');
+    expect(line).not.toContain('amina');
+    expect(entries[0].msg).toBe(
+      'Failed query: insert into "feedback" ("comment", "email") values (?, ?)\ncause: D1_ERROR: FOREIGN KEY constraint failed: SQLITE_CONSTRAINT',
+    );
+    expect((entries[0] as Record<string, unknown>).stack).toContain(
+      entries[0].msg,
+    );
   });
 
   it('reports a plain Error with the constructor name as code', () => {

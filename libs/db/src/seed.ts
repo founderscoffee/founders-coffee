@@ -21,6 +21,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
       payments: false,
       recruiting: false,
       communityOperations: true,
+      meetupChat: true,
     },
   },
   {
@@ -40,6 +41,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
       payments: false,
       recruiting: false,
       communityOperations: true,
+      meetupChat: true,
     },
   },
   {
@@ -59,6 +61,7 @@ export const SEED_MARKETS: readonly NewMarket[] = [
       payments: false,
       recruiting: false,
       communityOperations: true,
+      meetupChat: true,
     },
   },
 ];

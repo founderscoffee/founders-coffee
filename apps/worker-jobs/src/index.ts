@@ -9,15 +9,14 @@ import type { AiRuntime, VectorizeRuntime } from '@founders-coffee/core/ai';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { createDb } from '@founders-coffee/db';
 import { R2PhotoStore, resolveQueueKind } from '@founders-coffee/infra';
+import { strippingQueryValues } from '@founders-coffee/observability';
 import { sweepClosingAccounts } from '@founders-coffee/server-fns/account-closure';
 import {
-  BotApiTelegramProvider,
   DevNotificationSmsProvider,
   FcmPushProvider,
   TwilioProgrammableSmsProvider,
   type NotificationSmsProvider,
   type PushProvider,
-  type TelegramBotProvider,
 } from '@founders-coffee/notifications';
 
 import type { Env } from './env.js';
@@ -26,6 +25,7 @@ import type { EmbeddingsMessage } from './jobs/messages.js';
 import { processNotificationDue } from './jobs/notifications.js';
 import { sweepProfileAssets } from './jobs/profile-asset-sweep.js';
 import { backfillCloseoutPrompts } from './jobs/closeout-prompt-backfill.js';
+import { sweepChatRetention } from './jobs/chat-retention.js';
 import { backfillDidNotHappenNotices } from './jobs/did-not-happen-backfill.js';
 import { runReconcile } from './jobs/reconcile.js';
 import { sweepNotifications } from './jobs/notification-sweep.js';
@@ -61,17 +61,6 @@ const createPushProvider = (env: Env): PushProvider | null => {
     });
   }
   return null;
-};
-
-/**
- * The bot that posts in meetup groups, or `null` without a token (P1-025).
- *
- * There is no stand-in here, unlike SMS: a group row marked sent by a provider that posted nothing
- * would hide a deployment missing its token, where a row refused for want of a provider says so.
- */
-const createTelegramProvider = (env: Env): TelegramBotProvider | null => {
-  const token = env.TELEGRAM_BOT_TOKEN?.trim();
-  return token ? new BotApiTelegramProvider(token) : null;
 };
 
 /**
@@ -121,7 +110,6 @@ const dispatch = async (
       email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
       sms: createSmsProvider(env),
       push: createPushProvider(env),
-      telegram: createTelegramProvider(env),
     });
   }
   if (kind === 'embeddings') {
@@ -151,40 +139,45 @@ export default {
    * `wrangler.jsonc` is what Cloudflare actually runs, and the two must agree.
    *
    * The daily run also carries every account closed on request through to its erasure (#105), and
-   * ends with the waitlist retention sweep. Both are retention sweeps of the kind AGENTS.md §11.5
-   * allows (#106): bounded, and read through an index on the column that says when a row is due.
+   * ends with the retention sweeps of the city waitlist and the meetup chat (CH-09). All are
+   * retention sweeps of the kind AGENTS.md §11.5 allows (#106): bounded, and read through an index
+   * on the column that says when a row is due.
    */
-  scheduled: async (controller: ScheduledController, env: Env) => {
-    const db = createDb(env.DB);
+  scheduled: strippingQueryValues(
+    async (controller: ScheduledController, env: Env) => {
+      const db = createDb(env.DB);
 
-    if (controller.cron === RECOVERY_SWEEP_CRON) {
-      await sweepNotifications(db, {
-        sms: createSmsProvider(env),
-        email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
-        push: createPushProvider(env),
-        telegram: createTelegramProvider(env),
-      });
-      await sweepWaitlistLaunches(db, waitlistDeps(env));
-    }
-
-    if (controller.cron === '0 3 * * *') {
-      await runReconcile(db);
-      await backfillCloseoutPrompts(db);
-      await backfillDidNotHappenNotices(db);
-      if (env.PROFILE_ASSETS) {
-        const photos = new R2PhotoStore(env.PROFILE_ASSETS);
-        await sweepProfileAssets(db, photos);
-        await sweepClosingAccounts(db, photos);
+      if (controller.cron === RECOVERY_SWEEP_CRON) {
+        await sweepNotifications(db, {
+          sms: createSmsProvider(env),
+          email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
+          push: createPushProvider(env),
+        });
+        await sweepWaitlistLaunches(db, waitlistDeps(env));
       }
-      await sweepExpiredWaitlistEntries(db);
-    }
-  },
 
-  queue: async (batch: MessageBatch<JobMessage>, env: Env) => {
-    for (const message of batch.messages) {
-      const result = await dispatch(batch.queue, message.body, env);
-      if (result.ok) message.ack();
-      else message.retry();
-    }
-  },
+      if (controller.cron === '0 3 * * *') {
+        await runReconcile(db);
+        await backfillCloseoutPrompts(db);
+        await backfillDidNotHappenNotices(db);
+        if (env.PROFILE_ASSETS) {
+          const photos = new R2PhotoStore(env.PROFILE_ASSETS);
+          await sweepProfileAssets(db, photos);
+          await sweepClosingAccounts(db, photos);
+        }
+        await sweepExpiredWaitlistEntries(db);
+        await sweepChatRetention(db);
+      }
+    },
+  ),
+
+  queue: strippingQueryValues(
+    async (batch: MessageBatch<JobMessage>, env: Env) => {
+      for (const message of batch.messages) {
+        const result = await dispatch(batch.queue, message.body, env);
+        if (result.ok) message.ack();
+        else message.retry();
+      }
+    },
+  ),
 } satisfies ExportedHandler<Env, JobMessage>;

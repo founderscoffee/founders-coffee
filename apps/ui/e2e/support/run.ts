@@ -10,6 +10,10 @@ export const LOCALE_BY_PROJECT: Record<string, E2eLocale> = {
 
 export const RUN_ID = process.env.E2E_RUN_ID ?? Date.now().toString(36);
 
+/** An id in the one format the server functions accept: a prefix, an underscore, 32 hex digits. */
+export const newId = (prefix: string): string =>
+  `${prefix}_${crypto.randomUUID().replaceAll('-', '')}`;
+
 export const localeFor = (projectName: string): E2eLocale =>
   LOCALE_BY_PROJECT[projectName] ?? 'en';
 

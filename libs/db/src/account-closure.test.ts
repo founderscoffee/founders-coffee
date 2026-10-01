@@ -23,7 +23,6 @@ import {
   eventFeedback,
   eventRsvps,
   events,
-  eventTelegramInvites,
   memberProfiles,
   profileAssets,
   pushSessionLinks,
@@ -62,10 +61,6 @@ const rowsFor = async (db: Db, userId: string) => ({
     .select()
     .from(scheduledNotifications)
     .where(eq(scheduledNotifications.userId, userId)),
-  invites: await db
-    .select()
-    .from(eventTelegramInvites)
-    .where(eq(eventTelegramInvites.userId, userId)),
 });
 
 const closedHostWithHistory = async () => {
@@ -106,7 +101,6 @@ describe('erasing a closed account (#105, real D1)', () => {
       devices: [],
       deviceLinks: [],
       notices: [],
-      invites: [],
     });
     expect(
       await db

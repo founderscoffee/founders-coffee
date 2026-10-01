@@ -17,7 +17,7 @@ export const communityEnglish: CompanyPageContent = translatedPage(
       text(
         'Founders Coffee is built on a simple idea: that people with projects in the same city sit around a table and talk honestly about what they are working on. These guidelines prohibit whatever spoils that conversation.',
         'They are not a generic list of prohibitions copied from a social network. The problems that affect a community like this one are known and specific: someone who comes to sell instead of to share, someone who publishes a gathering they do not intend to hold, someone who talks up their company until the description becomes a lie, someone who collects attendees’ numbers to add them to a list. These are exactly what we are talking about.',
-        'These guidelines are part of the [Terms of use](/terms), and they apply to everything that appears on the platform: profiles, gathering pages, feedback, and the messages we receive.',
+        'These guidelines are part of the [Terms of use](/terms), and they apply to everything that appears on the platform: profiles, gathering pages, gathering chats, feedback, and the messages we receive.',
       ),
     ),
     section(
@@ -98,7 +98,8 @@ export const communityEnglish: CompanyPageContent = translatedPage(
     section(
       'How to report',
       text(
-        'Write to us at **contact@founders.coffee** with a link to the gathering, profile, or content, and what you saw in it. A precise description shortens the review.',
+        'To report a message in a gathering’s chat, open its options (⋯) and choose “Report message”.',
+        'For anything else, write to us at **contact@founders.coffee** with a link to the gathering, profile, or content, and what you saw in it. A precise description shortens the review.',
         'Reports are handled confidentially. We do not reveal the reporter’s identity to the person reported.',
         'If there is an immediate danger to someone, contact the competent authorities first; we are a digital platform and have no means of intervening on the ground.',
       ),
@@ -110,5 +111,5 @@ export const communityEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '29 September 2026',
+  '30 September 2026',
 );

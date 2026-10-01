@@ -21,11 +21,12 @@ import {
 import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import { ChatEntry } from '../../features/chat/components/ChatEntry';
+import { ChatInvite } from '../../features/chat/components/ChatInvite';
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
 import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
-import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
 import { useAuth } from '../../lib/app-providers';
 import { localizedLogin } from '../../lib/locale-routing';
 import { AddToCalendar } from './AddToCalendar';
@@ -42,6 +43,7 @@ export type RsvpSectionProps = {
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
   phase: EventPhase;
+  isChatAvailable: boolean;
 };
 
 type RsvpFailure = { readonly message: string; readonly canRetry: boolean };
@@ -55,6 +57,7 @@ export const RsvpSection = ({
   live,
   isWindowOpen,
   phase,
+  isChatAvailable,
 }: RsvpSectionProps) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -124,6 +127,7 @@ export const RsvpSection = ({
         marketSlug={marketSlug}
         live={live}
         isWindowOpen={isWindowOpen}
+        isChatAvailable={isChatAvailable}
       />
     );
   }
@@ -140,7 +144,7 @@ export const RsvpSection = ({
         </p>
         <button
           type="button"
-          className="btn btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg w-full sm:w-auto"
+          className="btn btn-secondary btn-xs sm:btn-sm md:btn-md w-full sm:w-auto"
           onClick={handleRsvp}
           disabled={createRsvp.isPending}
         >
@@ -156,6 +160,7 @@ export const RsvpSection = ({
             rsvp_cta({}, { locale })
           )}
         </button>
+        {isChatAvailable ? <ChatInvite locale={locale} /> : null}
       </>
     ) : null;
 
@@ -171,6 +176,9 @@ export const RsvpSection = ({
             <p className="text-body-sm text-neutral">
               {rsvp_cancelled_going_help({}, { locale })}
             </p>
+            {isChatAvailable ? (
+              <ChatEntry locale={locale} eventId={event.id} />
+            ) : null}
           </>
         ) : null
       ) : isGoing ? (
@@ -179,7 +187,7 @@ export const RsvpSection = ({
             <>
               <button
                 type="button"
-                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit text-neutral"
+                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md w-fit text-neutral"
                 onClick={() => setIsCancelOpen(true)}
               >
                 {rsvp_cancel({}, { locale })}
@@ -203,7 +211,9 @@ export const RsvpSection = ({
               locale={locale}
             />
           ) : null}
-          <TelegramGroupCard eventId={event.id} locale={locale} />
+          {isChatAvailable ? (
+            <ChatEntry locale={locale} eventId={event.id} />
+          ) : null}
         </>
       ) : (
         offer
@@ -216,7 +226,7 @@ export const RsvpSection = ({
             error.canRetry ? (
               <button
                 type="button"
-                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md"
                 onClick={handleRsvp}
               >
                 {retry({}, { locale })}

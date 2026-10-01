@@ -8,8 +8,8 @@ import {
   withdrawStaleHostNotice,
   type Db,
 } from '@founders-coffee/db';
-import { reportError } from '@founders-coffee/observability';
 
+import { tellChatRoom } from '../chat/room.js';
 import {
   enqueueHostRsvpCancellationNotice,
   enqueueHostRsvpNotice,
@@ -18,7 +18,6 @@ import {
   cancelRsvpNotifications,
   enqueueRsvpNotifications,
 } from '../notifications/producer.js';
-import { withdrawTelegramMember } from '../telegram/departures.js';
 
 export interface RsvpResult {
   readonly status: 'going';
@@ -129,8 +128,8 @@ export const createRsvpResolver = async (
  * freezes there. Reporting that as `rsvp_closed` rather than as a missing RSVP matters, because the
  * member is looking at a seat they can see and being told it is not theirs would be a lie.
  *
- * A member who is no longer going also leaves the meetup's Telegram group: their invite stops
- * admitting anyone at once, and the bot takes them out. That comes straight after the seat is given
+ * A member who is no longer going also leaves the meetup's chat: their sockets to it close once
+ * its room has checked that they are no longer in it. That comes straight after the seat is given
  * back, ahead of the notices, and a failure there is reported rather than thrown, because the seat
  * is given back either way.
  */
@@ -167,14 +166,9 @@ export const cancelRsvpResolver = async (
     );
   }
 
-  try {
-    await withdrawTelegramMember(db, { event, userId: opts.userId });
-  } catch (error) {
-    reportError(error, {
-      operation: 'cancel_rsvp_telegram',
-      eventId: opts.eventId,
-    });
-  }
+  await tellChatRoom(opts.eventId, 'cancel_rsvp_chat', (room) =>
+    room.revoke(opts.userId),
+  );
 
   const host =
     opts.userId === event.hostId ? undefined : await getUser(db, event.hostId);

@@ -29,7 +29,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
-import type { PersonalTemplateKey } from '@founders-coffee/core';
+import type { NotificationTemplateKey } from '@founders-coffee/core';
 
 export type { NotificationTemplateKey } from '@founders-coffee/core';
 
@@ -113,7 +113,7 @@ export const withReason = (
  */
 export const smsBodyFor = (
   templateKey: Exclude<
-    PersonalTemplateKey,
+    NotificationTemplateKey,
     | 'rsvp_received'
     | 'rsvp_cancelled'
     | 'closeout_prompt'
@@ -121,6 +121,7 @@ export const smsBodyFor = (
     | 'event_rescheduled'
     | 'event_relocated'
     | 'feedback_invitation'
+    | 'chat_unread'
   >,
   values: TemplateValues,
   locale: Locale,
@@ -150,9 +151,12 @@ export const smsBodyFor = (
  * handler fell back to `/` — so a reminder about a specific gathering would have opened the home
  * page. `values.url` has been carrying the right link the whole time for the email and SMS bodies;
  * this only stops throwing it away.
+ *
+ * `chat_unread` is excluded in the type: the send that queues it writes a push for every member at
+ * once, in each one's language, from `chatUnreadNotice` in the chat's own module.
  */
 export const pushPayloadFor = (
-  templateKey: PersonalTemplateKey,
+  templateKey: Exclude<NotificationTemplateKey, 'chat_unread'>,
   values: TemplateValues,
   locale: Locale,
 ): { pushTitle: string; pushBody: string; pushUrl: string } => {

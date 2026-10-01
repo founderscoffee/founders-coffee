@@ -11,7 +11,6 @@ import {
   eventAttendance,
   eventFeedback,
   eventRsvps,
-  eventTelegramInvites,
   initializeMemberProfile,
   pushSessionLinks,
   pushSubscriptions,
@@ -166,12 +165,6 @@ export const closeWithEverything = async (
     templateKey: 'rsvp_confirmation',
     payload: { email: member.email },
     sendAt: PAST,
-  });
-  await db.insert(eventTelegramInvites).values({
-    id: id('tgi'),
-    eventId,
-    userId: member.id,
-    inviteLink: `https://t.me/+closing${++counter}`,
   });
   await db
     .update(user)

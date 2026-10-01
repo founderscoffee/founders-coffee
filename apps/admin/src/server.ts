@@ -2,7 +2,7 @@ import '@founders-coffee/observability/server-init';
 import handler from '@tanstack/react-start/server-entry';
 
 import { withSecurityHeaders } from '@founders-coffee/core';
-import { logger } from '@founders-coffee/observability';
+import { logger, strippingQueryValues } from '@founders-coffee/observability';
 
 import type { AuthEnv } from '@founders-coffee/auth';
 
@@ -59,7 +59,7 @@ export default {
    *
    * Admin loads none of the three third-party integrations, so nothing is added to the shared policy.
    */
-  fetch: async (request: Request, env: AdminWorkerEnv): Promise<Response> => {
+  fetch: strippingQueryValues(async (request: Request, env: AdminWorkerEnv) => {
     const secure = (response: Response): Response =>
       withSecurityHeaders(response, {
         enforceCsp: env.CSP_ENFORCED === 'true',
@@ -92,5 +92,5 @@ export default {
     });
 
     return secure(await handler.fetch(request));
-  },
+  }),
 } satisfies ExportedHandler<AdminWorkerEnv>;

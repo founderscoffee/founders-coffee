@@ -5,6 +5,7 @@ export interface WorkerEnv {
 
   readonly RATE_LIMITER?: DurableObjectNamespace;
   readonly EVENT_LIVE?: DurableObjectNamespace;
+  readonly EVENT_CHAT?: DurableObjectNamespace;
   readonly NOTIFICATION_SCHEDULE?: DurableObjectNamespace;
   readonly NOTIFICATIONS?: Queue<AppQueueMessage>;
   readonly EMAIL?: unknown;
@@ -28,10 +29,6 @@ export interface WorkerEnv {
   readonly FIREBASE_MESSAGING_SENDER_ID?: string;
   readonly FIREBASE_APP_ID?: string;
   readonly FIREBASE_VAPID_KEY?: string;
-
-  readonly TELEGRAM_BOT_TOKEN?: string;
-  readonly TELEGRAM_BOT_USERNAME?: string;
-  readonly TELEGRAM_WEBHOOK_SECRET?: string;
 
   readonly CSP_ENFORCED?: string;
   readonly OTP_ECHO?: string;

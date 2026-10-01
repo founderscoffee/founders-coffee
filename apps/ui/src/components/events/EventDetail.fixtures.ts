@@ -34,6 +34,10 @@ vi.mock('./EventLocationMap', () => ({
   EventLocationMap: () => null,
 }));
 
+vi.mock('../../features/chat/components/EventChat', () => ({
+  EventChat: () => null,
+}));
+
 export const market = {
   code: 'DZ',
   name: 'Algeria',

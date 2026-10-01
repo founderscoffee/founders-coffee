@@ -27,13 +27,13 @@ import {
 } from '@founders-coffee/db';
 import type { EmailProvider } from '@founders-coffee/email';
 import type { Locale } from '@founders-coffee/i18n';
-import { logger } from '@founders-coffee/observability';
+import { describeError, logger } from '@founders-coffee/observability';
 import { waitlistLaunchEmails } from '@founders-coffee/server-fns/waitlist-launch';
+
+import { deleteInPasses } from './retention.js';
 
 const BATCH_SIZE = 50;
 const SWEEP_LAUNCHES = 20;
-const RETENTION_BATCH = 500;
-const RETENTION_PASSES = 10;
 
 export interface WaitlistLaunchDeps {
   readonly email: EmailProvider;
@@ -44,9 +44,6 @@ export interface WaitlistLaunchDeps {
 }
 
 type LaunchEmails = ReturnType<typeof waitlistLaunchEmails>;
-
-const errorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
 
 /**
  * Whether a round's meetup can still be announced: published, and not yet started. A waitlist is
@@ -107,7 +104,7 @@ const deliver = async (
   if (!recipient) return fail('waitlist_entry_missing', true);
 
   const payload = await emails(recipient.locale).then(ok, (error: unknown) =>
-    err(new AppError('waitlist_render_failed', errorMessage(error))),
+    err(new AppError('waitlist_render_failed', describeError(error))),
   );
   if (!payload.ok) return fail(payload.error.message);
   if (
@@ -131,7 +128,7 @@ const deliver = async (
       });
     return fail(sent.error.message);
   } catch (error) {
-    return fail(errorMessage(error));
+    return fail(describeError(error));
   }
 };
 
@@ -241,9 +238,9 @@ export const processWaitlistLaunch = async (
     logger.error('waitlist.launch_failed', {
       launchId: message.launchId,
       eventId: message.eventId,
-      message: errorMessage(error),
+      message: describeError(error),
     });
-    return err(new AppError('waitlist_launch_failed', errorMessage(error)));
+    return err(new AppError('waitlist_launch_failed', describeError(error)));
   }
 };
 
@@ -267,7 +264,7 @@ export const sweepWaitlistLaunches = async (
       logger.error('waitlist.launch_failed', {
         launchId: launch.id,
         eventId: launch.eventId,
-        message: errorMessage(error),
+        message: describeError(error),
       });
     }
   }
@@ -275,20 +272,13 @@ export const sweepWaitlistLaunches = async (
 
 /**
  * The daily retention sweep AGENTS.md §11.5 allows (#106): delete the waitlist entries whose notice
- * went out more than twelve months ago, in bounded batches read through the `notified_at` index,
- * until a batch comes back short or the day's passes run out.
+ * went out more than twelve months ago, in bounded batches read through the `notified_at` index.
  */
 export const sweepExpiredWaitlistEntries = async (db: Db): Promise<number> => {
   const now = new Date();
-  let deleted = 0;
-  for (let pass = 0; pass < RETENTION_PASSES; pass += 1) {
-    const batch = await deleteExpiredWaitlistEntries(db, {
-      now,
-      limit: RETENTION_BATCH,
-    });
-    deleted += batch;
-    if (batch < RETENTION_BATCH) break;
-  }
+  const deleted = await deleteInPasses((limit) =>
+    deleteExpiredWaitlistEntries(db, { now, limit }),
+  );
   if (deleted > 0) logger.info('waitlist.retention_sweep', { deleted });
   return deleted;
 };

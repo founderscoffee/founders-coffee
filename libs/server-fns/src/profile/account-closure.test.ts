@@ -20,6 +20,7 @@ import {
 } from '@founders-coffee/db';
 import { R2PhotoStore, type PhotoStore } from '@founders-coffee/infra';
 
+import { readChatPageResolver } from '../chat/page.js';
 import {
   carryAccountClosure,
   sweepClosingAccounts,
@@ -111,6 +112,34 @@ describe('carrying an account closure through (#105, real D1 and R2)', () => {
     ).toContainEqual({ template: 'event_cancelled' });
   });
 
+  it("tells the meetup's chat it is off, for the people who were going to read", async () => {
+    const db = await setup();
+    const host = await member(db, 'Sofiane');
+    const guest = await member(db, 'Lamia');
+    const eventId = await meetup(db, host, fromNow(24 * 5));
+    await createRsvp(db, { id: id('rsv'), eventId, userId: guest });
+
+    expect(await carryAccountClosure(db, await close(db, host), photos())).toBe(
+      'erased',
+    );
+
+    const page = await readChatPageResolver(db, {
+      eventId,
+      viewerId: guest,
+      now: new Date(),
+    });
+    if (!page.ok) throw page.error;
+    expect(
+      page.data.messages.map(({ kind, systemKey, systemParams }) => ({
+        kind,
+        systemKey,
+        systemParams,
+      })),
+      'the closure gives no reason, so none is invented',
+    ).toEqual([{ kind: 'system', systemKey: 'cancelled', systemParams: {} }]);
+    expect(page.data.state).toBe('read_only');
+  });
+
   it("gives back the member's seat at another host's meetup", async () => {
     const db = await setup();
     const host = await member(db, 'Lina');
@@ -145,33 +174,6 @@ describe('carrying an account closure through (#105, real D1 and R2)', () => {
     expect(outcome).toBe('waiting_on_meetup');
     expect((await getEvent(db, eventId))?.status).toBe('published');
     expect(await stateOf(db, host)).toBe('closing');
-  });
-
-  it('waits for a Telegram removal still queued under the member, then erases', async () => {
-    const db = await setup();
-    const host = await member(db, 'Amel');
-    const leaving = await member(db, 'Yasmine');
-    const eventId = await meetup(db, host, fromNow(-48));
-    await db.insert(scheduledNotifications).values({
-      id: id('ntf'),
-      eventId,
-      userId: leaving,
-      channel: 'telegram',
-      templateKey: 'telegram_member_removed',
-      payload: { telegramChatId: -100123, telegramUserId: 42 },
-      sendAt: new Date(),
-    });
-    const account = await close(db, leaving);
-
-    expect(await carryAccountClosure(db, account, photos())).toBe(
-      'waiting_on_telegram',
-    );
-    await db
-      .update(scheduledNotifications)
-      .set({ status: 'sent' })
-      .where(eq(scheduledNotifications.userId, leaving));
-    expect(await carryAccountClosure(db, account, photos())).toBe('erased');
-    expect(await stateOf(db, leaving)).toBe('deleted');
   });
 
   it("deletes the member's photos from storage along with the rows that name them", async () => {

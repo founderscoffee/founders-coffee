@@ -32,11 +32,13 @@
   "durable_objects": {
     "bindings": [
       { "name": "EVENT_LIVE", "class_name": "EventLiveDO" },
+      { "name": "EVENT_CHAT", "class_name": "EventChatDO" },
       { "name": "RATE_LIMITER", "class_name": "RateLimiterDO" },
     ],
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["EventLiveDO"] },
     { "tag": "v2", "new_sqlite_classes": ["RateLimiterDO"] },
+    { "tag": "v3", "new_sqlite_classes": ["EventChatDO"] },
   ],
 }

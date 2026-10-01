@@ -1,6 +1,11 @@
 import { and, desc, eq, gt, lt, or, sql } from 'drizzle-orm';
 
+import { id } from '@founders-coffee/core';
+
+import { batch } from './atomic.js';
+import { insertChatChannel, syncChatChannel } from './chat-channels.js';
 import type { Db } from './db.js';
+import { eventEndsAt } from './events-end.js';
 import { visibleIdentity } from './profile-access.js';
 import {
   events,
@@ -9,7 +14,7 @@ import {
   type NewEvent,
 } from './schema.js';
 
-export const ASSUMED_DURATION_SECONDS = 2 * 60 * 60;
+export { ASSUMED_DURATION_SECONDS } from './events-end.js';
 
 /**
  * The published events a visitor can still turn up to.
@@ -29,7 +34,7 @@ export const ASSUMED_DURATION_SECONDS = 2 * 60 * 60;
  */
 export const upcomingScope = (now: Date) =>
   and(
-    sql`coalesce(${events.endsAt}, ${events.startsAt} + ${ASSUMED_DURATION_SECONDS}) > ${Math.floor(now.getTime() / 1000)}`,
+    sql`${eventEndsAt()} > ${Math.floor(now.getTime() / 1000)}`,
     visibleIdentity(events.hostId),
   );
 
@@ -47,17 +52,26 @@ export const createEvent = async (db: Db, row: NewEvent): Promise<Event> => {
   return result[0];
 };
 
-/** Atomically insert only when the event route key is available in its market. */
+/**
+ * Publish a meetup, with its chat, only when its address is free in its market.
+ *
+ * One batch: the meetup's insert gives way on a taken address, and the chat's insert selects from
+ * the meetup's row, so an address that was taken writes neither and a published meetup always has
+ * its chat (P1-026).
+ */
 export const createEventIfRouteAvailable = async (
   db: Db,
   row: NewEvent,
 ): Promise<Event | undefined> => {
-  const result = await db
-    .insert(events)
-    .values(row)
-    .onConflictDoNothing({ target: [events.marketCode, events.slug] })
-    .returning();
-  return result[0];
+  const [created] = await batch(db, [
+    db
+      .insert(events)
+      .values(row)
+      .onConflictDoNothing({ target: [events.marketCode, events.slug] })
+      .returning(),
+    insertChatChannel(db, { id: id('chn'), eventId: row.id }),
+  ]);
+  return (created as Event[])[0];
 };
 
 /** Fetch an event by its primary key. */
@@ -240,6 +254,9 @@ export const countUpcomingByState = async (
 /**
  * Atomic status transition — D1-safe check-then-write (no interactive transactions). Returns the
  * number of rows changed (0 = no-op / wrong from-state, 1 = success).
+ *
+ * The meetup's chat takes its lifetime from the row in the same batch, so a cancellation turns it
+ * read-only at once and a transition that found the wrong status changes neither (P1-026).
  */
 export const transitionEventStatus = async (
   db: Db,
@@ -251,11 +268,13 @@ export const transitionEventStatus = async (
   const extraSet: Record<string, unknown> = {};
   if (to === 'cancelled') extraSet.cancelledAt = new Date();
 
-  const result = await db
-    .update(events)
-    .set({ ...patch, ...extraSet, status: to, updatedAt: new Date() })
-    .where(and(eq(events.id, id), eq(events.status, from)))
-    .run();
+  const [result] = await batch(db, [
+    db
+      .update(events)
+      .set({ ...patch, ...extraSet, status: to, updatedAt: new Date() })
+      .where(and(eq(events.id, id), eq(events.status, from))),
+    syncChatChannel(db, id),
+  ]);
   const meta = (result as { meta?: { changes?: number } }).meta;
   return meta?.changes ?? 0;
 };

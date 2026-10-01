@@ -12,7 +12,9 @@ import {
   user,
   verification,
 } from '@founders-coffee/db';
+import { libraryLog } from '@founders-coffee/observability';
 
+import { reportAuthFailure } from './auth-failures.js';
 import { captchaEndpointsFor } from './captcha.js';
 import { nameForNewAccount, nameUnnamedMember } from './member-name.js';
 import {
@@ -119,6 +121,11 @@ const PUBLIC_OTP_TYPE = 'sign-in';
  * into a `set-auth-token` header that scripts can read. A non-web client brings it back with
  * `requireSignature: true`, and `callerSessionToken` has to read the header from then on, or the
  * device controls cannot tell which session is asking.
+ *
+ * Better Auth logs what its endpoints throw, by default straight to `console`: a failed query is
+ * printed whole, with the address, token or code bound to it. Its log lines go through the
+ * structured logger instead (`libraryLog`), and what an endpoint throws is reported and stripped by
+ * `reportAuthFailure` before better-call prints it.
  */
 export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
   const emailProvider = deps.emailProvider ?? new DevEmailProvider();
@@ -135,6 +142,8 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.APP_URL,
     trustedOrigins: [env.APP_URL],
+    logger: { log: libraryLog('better-auth') },
+    onAPIError: { onError: reportAuthFailure },
     emailAndPassword: { enabled: false },
     hooks: {
       before: createAuthMiddleware(async (context) => {

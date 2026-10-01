@@ -7,13 +7,16 @@ import {
 } from '@founders-coffee/db';
 import { reportError } from '@founders-coffee/observability';
 
+import {
+  postChatNotice,
+  relocatedNotice,
+  rescheduledNotice,
+} from '../chat/notices.js';
 import { enqueueRsvpNotifications } from '../notifications/producer.js';
 import {
   enqueueEventChangeNotices,
   type EventChangeTemplateKey,
 } from '../notifications/event-change.js';
-import { telegramBotUsername } from '../telegram/config.js';
-import { announceTelegramUpdate } from '../telegram/notices.js';
 
 const REARMED_TEMPLATES = ['reminder_72h', 'reminder_24h'] as const;
 
@@ -104,31 +107,17 @@ const rearmReminders = async (db: Db, event: Event): Promise<void> => {
 };
 
 /**
- * Tell the meetup's Telegram group about the edit, whatever becomes of the members' notices.
- *
- * The group decides for itself what an edit changes, since its pinned details also carry the
- * address and the end, which no personal reminder does. A failure is reported and goes no further:
- * a group that could not be told must not keep a member's phone from hearing about a new time. A
- * deployment that names no bot has no group to tell: its goodbye would have no bot to name.
+ * Tell the meetup's chat about a change of plan, the one the members' notice announces: a new
+ * start, or a new place at the same start. A quiet edit tells it nothing, as it tells them nothing.
  */
-const announceToTelegramGroup = async (
+const announceToChat = async (
   db: Db,
-  opts: {
-    before: Event;
-    after: Event;
-    notice: EventChangeTemplateKey | null;
-  },
+  opts: { after: Event; notice: EventChangeTemplateKey | null },
 ): Promise<void> => {
-  const botUsername = telegramBotUsername();
-  if (!botUsername) return;
-  try {
-    await announceTelegramUpdate(db, { ...opts, botUsername });
-  } catch (error) {
-    reportError(error, {
-      operation: 'update_event_telegram',
-      eventId: opts.after.id,
-    });
-  }
+  if (opts.notice === 'event_rescheduled')
+    await postChatNotice(db, opts.after.id, rescheduledNotice(opts.after));
+  else if (opts.notice === 'event_relocated')
+    await postChatNotice(db, opts.after.id, relocatedNotice(opts.after));
 };
 
 /**
@@ -138,7 +127,7 @@ const announceToTelegramGroup = async (
  * rewritten before the notice goes out, so nothing already queued can arrive afterwards still
  * describing the old plan. The rewrite runs for quiet edits too — a reminder renders its text when
  * it is queued and would otherwise keep repeating a title the host has since corrected. The
- * meetup's Telegram group is told first, on its own terms.
+ * meetup's chat is told first, on its own terms.
  *
  * A failure here does not roll the edit back, which is why it is caught rather than thrown. The new
  * time is the true one the moment it is written, and refusing the edit to preserve an
@@ -154,7 +143,7 @@ export const announceUpdate = async (
     notice: EventChangeTemplateKey | null;
   },
 ): Promise<number> => {
-  await announceToTelegramGroup(db, opts);
+  await announceToChat(db, opts);
   const rewrite = remindersWouldLie(opts.before, opts.after);
   if (!rewrite && !opts.notice) return 0;
 

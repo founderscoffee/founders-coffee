@@ -17,10 +17,10 @@ export const eventLanguagesSchema = z
  * The one language the site writes in about a meetup: the first of its languages the site is
  * itself written in, or `fallback` when it lists none of them.
  *
- * A meetup can be held in several languages, and in ones the site has no pages in, but its Telegram
- * group posts, the address stored for it and the language its calendar entry is tagged with each
- * need exactly one of the site's. The host's order decides, since the first language they picked is
- * the one they lead with; a meetup held only in, say, Tamazight takes the caller's `fallback`.
+ * A meetup can be held in several languages, and in ones the site has no pages in, but the address
+ * stored for it and the language its calendar entry is tagged with each need exactly one of the
+ * site's. The host's order decides, since the first language they picked is the one they lead with;
+ * a meetup held only in, say, Tamazight takes the caller's `fallback`.
  */
 export const leadLocale = (
   languages: readonly string[],

@@ -8,20 +8,18 @@ import { statusMessageVariants } from './components/StatusMessage.js';
 
 describe('libs/ui cva variants (literal class strings Tailwind can scan)', () => {
   it('Button defaults to primary at the responsive size, xs on a phone up to lg', () => {
-    expect(buttonVariants()).toBe(
-      'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg btn-primary',
-    );
+    expect(buttonVariants()).toBe('btn btn-xs sm:btn-sm md:btn-md btn-primary');
   });
 
   it('Button composes variant + isFullWidth and has no other size', () => {
     expect(buttonVariants({ variant: 'secondary', isFullWidth: true })).toBe(
-      'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg btn-secondary w-full',
+      'btn btn-xs sm:btn-sm md:btn-md btn-secondary w-full',
     );
   });
 
   it('Button maps the cta variant to clay, so one call to action reads louder', () => {
     expect(buttonVariants({ variant: 'cta' })).toBe(
-      'btn btn-xs sm:btn-sm md:btn-md lg:btn-lg btn-secondary',
+      'btn btn-xs sm:btn-sm md:btn-md btn-secondary',
     );
   });
 

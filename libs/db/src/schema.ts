@@ -3,6 +3,7 @@ import {
   index,
   foreignKey,
   integer,
+  primaryKey,
   real,
   sqliteTable,
   text,
@@ -14,6 +15,11 @@ import {
   ATTENDANCE_OUTCOMES,
   AUDIT_ACTIONS,
   AUDIT_TARGETS,
+  CHAT_CHANNEL_KINDS,
+  CHAT_MESSAGE_KINDS,
+  CHAT_MESSAGE_REMOVALS,
+  CHAT_REPORT_REASONS,
+  CHAT_REPORT_STATUSES,
   CITY_WAITLIST_LAUNCH_STATUSES,
   CITY_WAITLIST_NOTIFICATION_STATUSES,
   CLOSEOUT_OUTCOMES,
@@ -40,7 +46,6 @@ import {
   PUSH_SURFACES,
   REVIEW_BOTTLENECKS,
   RSVP_STATUSES,
-  TELEGRAM_GROUP_STATUSES,
   USER_ROLES,
 } from '@founders-coffee/core';
 
@@ -68,7 +73,6 @@ export {
   REVIEW_BOTTLENECKS,
   RSVP_LIFECYCLE_TEMPLATE_KEYS,
   RSVP_STATUSES,
-  TELEGRAM_GROUP_STATUSES,
   USER_ROLES,
 } from '@founders-coffee/core';
 
@@ -80,6 +84,7 @@ type MarketFeatureFlags = {
   payments: boolean;
   recruiting: boolean;
   communityOperations?: boolean;
+  meetupChat?: boolean;
 };
 
 export const markets = sqliteTable('markets', {
@@ -759,6 +764,10 @@ export const accountPreferences = sqliteTable('account_preferences', {
   followUpPromptsChannels: integer('follow_up_prompts_channels')
     .notNull()
     .default(4),
+  meetupChat: integer('meetup_chat', { mode: 'boolean' })
+    .notNull()
+    .default(true),
+  meetupChatChannels: integer('meetup_chat_channels').notNull().default(1),
   pushEnabled: integer('push_enabled', { mode: 'boolean' })
     .notNull()
     .default(false),
@@ -1109,39 +1118,30 @@ export type CommunityMetricSnapshotRow =
   typeof communityMetricSnapshots.$inferSelect;
 
 /**
- * A meetup's Telegram group, as the bot knows it (P1-025).
+ * A meetup's chat (P1-026): one per meetup, written in the same batch as the meetup.
  *
- * Keyed by `event_id`: a meetup has at most one group, and connecting again rewrites this row rather
- * than adding a second. A group can serve several meetups, one row each, which is how a host
- * connects the same group to their next meetup.
- *
- * `status` runs `pending → active → closed`. A host asking to connect writes `pending` with a
- * one-time token; the bot's `/start` carrying that token inside a group makes it `active` and
- * records the chat. `closed` is where the bot's work for the meetup ends: the wrap-up the day after,
- * a cancellation, the host disconnecting, or the bot being removed from the group. A closed meetup
- * that has not ended can be connected again, which takes the row back to `pending`.
- *
- * Only the token's hash is stored, so reading this table connects nothing. Telegram ids are
- * integers of at most 52 significant bits, which a JavaScript number holds exactly.
+ * `read_only_at` and `expires_at` are derived from the meetup's row by the lifetime expressions in
+ * `chat-channels.ts`, in the batch of every write that can move them: publishing, an edit and a
+ * cancellation. The chat takes messages until `read_only_at`, seven days after the meetup ends or
+ * the moment it is cancelled, and is deleted with its messages at `expires_at`, 90 days after
+ * either, by a retention sweep that reads the index. `kind` names the one kind there is, `meetup`,
+ * so a city channel can come later without a second table.
  */
-export const eventTelegramGroups = sqliteTable(
-  'event_telegram_groups',
+export const chatChannels = sqliteTable(
+  'chat_channels',
   {
-    eventId: text('event_id')
-      .primaryKey()
-      .references(() => events.id, { onDelete: 'cascade' }),
-    status: text('status', { enum: [...TELEGRAM_GROUP_STATUSES] })
+    id: text('id').primaryKey(),
+    kind: text('kind', { enum: [...CHAT_CHANNEL_KINDS] })
       .notNull()
-      .default('pending'),
-    chatId: integer('chat_id'),
-    chatTitle: text('chat_title'),
-    pinnedMessageId: integer('pinned_message_id'),
-    connectTokenHash: text('connect_token_hash'),
-    connectTokenExpiresAt: integer('connect_token_expires_at', {
-      mode: 'timestamp',
-    }),
-    connectedAt: integer('connected_at', { mode: 'timestamp' }),
-    closedAt: integer('closed_at', { mode: 'timestamp' }),
+      .default('meetup'),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    readOnlyAt: integer('read_only_at', { mode: 'timestamp' }).notNull(),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -1150,50 +1150,152 @@ export const eventTelegramGroups = sqliteTable(
       .default(sql`(unixepoch())`),
   },
   (table) => [
-    uniqueIndex('event_telegram_groups_connect_token_unique').on(
-      table.connectTokenHash,
-    ),
-    index('event_telegram_groups_chat_id_index').on(table.chatId),
+    uniqueIndex('chat_channels_event_id_unique').on(table.eventId),
+    index('chat_channels_expires_at_index').on(table.expiresAt),
   ],
 );
 
 /**
- * A member's personal invite to a meetup's Telegram group (P1-025).
+ * One message in a meetup's chat (P1-026).
  *
- * The link asks Telegram for a join request instead of letting its holder straight in, so the bot
- * decides every request. It admits only through a link it finds here, only while the member is
- * going, and only the Telegram account that used the link first: `telegram_user_id` is bound on that
- * first approval, so a forwarded link admits nobody else.
+ * A member's message is `text`, its `body` one normalised line. A `system` message has no author
+ * and no body: `system_key` and `system_params` name what happened, so each member reads it in
+ * their own language. Removing a message empties its body and records when, by whom and in which
+ * role, and the tombstone keeps its place in the chat.
  *
- * One row per member and meetup. Cancelling the RSVP deletes it, the removal from the group carrying
- * the account id it needs, and the group closing deletes every row for the meetup. A member's
- * Telegram id is held only while it has a use.
+ * `client_id` is the id the sender's device gave the message, unique with its chat and author, so a
+ * send retried after a lost answer writes once, and an id a device reuses in another chat is a new
+ * message there. `created_at` is in milliseconds, since several messages in one second are common,
+ * and orders the chat with `id` as the tie-break the index carries.
+ * Authors' names and photos are joined when a chat is read, never copied here, so a changed name or
+ * a closed account reads correctly in every message at once.
  */
-export const eventTelegramInvites = sqliteTable(
-  'event_telegram_invites',
+export const chatMessages = sqliteTable(
+  'chat_messages',
   {
     id: text('id').primaryKey(),
-    eventId: text('event_id')
+    channelId: text('channel_id')
       .notNull()
-      .references(() => events.id, { onDelete: 'cascade' }),
+      .references(() => chatChannels.id, { onDelete: 'cascade' }),
+    authorId: text('author_id').references(() => user.id, {
+      onDelete: 'cascade',
+    }),
+    kind: text('kind', { enum: [...CHAT_MESSAGE_KINDS] })
+      .notNull()
+      .default('text'),
+    body: text('body').notNull().default(''),
+    systemKey: text('system_key'),
+    systemParams: text('system_params', { mode: 'json' }).$type<
+      Record<string, string>
+    >(),
+    clientId: text('client_id'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+    removedAt: integer('removed_at', { mode: 'timestamp_ms' }),
+    removedBy: text('removed_by').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    removal: text('removal', { enum: [...CHAT_MESSAGE_REMOVALS] }),
+  },
+  (table) => [
+    index('chat_messages_channel_created_index').on(
+      table.channelId,
+      table.createdAt,
+      table.id,
+    ),
+    uniqueIndex('chat_messages_channel_author_client_unique').on(
+      table.channelId,
+      table.authorId,
+      table.clientId,
+    ),
+  ],
+);
+
+/**
+ * What a member of a meetup's chat chose for it (P1-026): how far they have read, and whether they
+ * muted it.
+ *
+ * Membership itself is not stored. The host and everyone going are members because the meetup and
+ * its RSVPs say so, which is how everyone going joins without a write and how a cancelled RSVP
+ * leaves at once. A row appears the first time a member reads the chat or mutes it.
+ * `last_read_at` is in milliseconds, the unit of the messages it is compared with.
+ */
+export const chatMembers = sqliteTable(
+  'chat_members',
+  {
+    channelId: text('channel_id')
+      .notNull()
+      .references(() => chatChannels.id, { onDelete: 'cascade' }),
     userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
-    inviteLink: text('invite_link').notNull(),
-    telegramUserId: integer('telegram_user_id'),
+    lastReadAt: integer('last_read_at', { mode: 'timestamp_ms' }),
+    muted: integer('muted', { mode: 'boolean' }).notNull().default(false),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    primaryKey({ columns: [table.channelId, table.userId] }),
+    index('chat_members_user_id_index').on(table.userId),
+  ],
+);
+
+/**
+ * A member's report of a message in a meetup's chat, for a moderator to act on (P1-026).
+ *
+ * `message_id` is deliberately not a foreign key: a report outlives its message, which its author
+ * or the host may remove and the retention sweep deletes with its chat, and it keeps no copy of the
+ * text. It keeps who wrote the message, `reported_user_id`, so a member reported again and again
+ * still shows once their chats are gone. A decided report is deleted 24 months after its
+ * `reviewed_at`, through the partial index on it; an open one waits for its decision.
+ * `market_code` scopes the review queue to the market. A member reports a message once, and the
+ * reporter is never shown to its author or to the host.
+ */
+export const chatReports = sqliteTable(
+  'chat_reports',
+  {
+    id: text('id').primaryKey(),
+    messageId: text('message_id').notNull(),
+    reporterId: text('reporter_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    reportedUserId: text('reported_user_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    marketCode: text('market_code')
+      .notNull()
+      .references(() => markets.code),
+    reason: text('reason', { enum: [...CHAT_REPORT_REASONS] }).notNull(),
+    status: text('status', { enum: [...CHAT_REPORT_STATUSES] })
+      .notNull()
+      .default('open'),
+    reviewedBy: text('reviewed_by').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),
   },
   (table) => [
-    uniqueIndex('event_telegram_invites_event_user_unique').on(
-      table.eventId,
-      table.userId,
+    uniqueIndex('chat_reports_message_reporter_unique').on(
+      table.messageId,
+      table.reporterId,
     ),
-    uniqueIndex('event_telegram_invites_link_unique').on(table.inviteLink),
-    index('event_telegram_invites_user_id_index').on(table.userId),
+    index('chat_reports_market_status_index').on(
+      table.marketCode,
+      table.status,
+      table.createdAt,
+    ),
+    index('chat_reports_created_at_index').on(table.createdAt),
+    index('chat_reports_reporter_id_index').on(table.reporterId),
+    index('chat_reports_reviewed_at_index')
+      .on(table.reviewedAt)
+      .where(sql`reviewed_at IS NOT NULL`),
   ],
 );
 
-export type EventTelegramGroupRow = typeof eventTelegramGroups.$inferSelect;
-export type EventTelegramInviteRow = typeof eventTelegramInvites.$inferSelect;
+export type ChatChannelRow = typeof chatChannels.$inferSelect;
+export type ChatMessageRow = typeof chatMessages.$inferSelect;
+export type ChatMemberRow = typeof chatMembers.$inferSelect;
+export type ChatReportRow = typeof chatReports.$inferSelect;

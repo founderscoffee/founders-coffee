@@ -93,6 +93,10 @@ describe('the venue step floating over the map', () => {
       floating.className,
       'the alert brings its own surface, and a card around it drew a box in a box',
     ).not.toContain('max-lg:bg-base-100');
+    expect(
+      hint.className,
+      'with no card around it, the alert casts the shadow itself',
+    ).toContain('max-lg:shadow-lg');
     expect(floating.className).toContain('max-lg:end-3');
     expect(
       floating.className,

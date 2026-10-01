@@ -73,6 +73,7 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       'Reporting a violation',
       text(
         'If you see a gathering, a profile, or content that breaches the rules or the law, or infringes one of your rights, write to us at **contact@founders.coffee** with a link to the content and what you see in it.',
+        'For a message in a gathering’s chat, use “Report message” in the chat itself.',
         'We review what we receive and act as appropriate. If the report concerns an infringement of copyright or a trademark, state what establishes your standing and describe the protected work.',
       ),
     ),
@@ -149,5 +150,5 @@ export const termsEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '29 September 2026',
+  '30 September 2026',
 );

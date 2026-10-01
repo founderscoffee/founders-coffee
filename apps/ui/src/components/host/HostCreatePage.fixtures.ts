@@ -3,6 +3,7 @@ import { createElement, type ReactNode } from 'react';
 import { vi } from 'vitest';
 
 import { HostCreatePage } from './HostCreatePage';
+import './HostCreatePage.map.fixtures';
 import type { RepeatEventTemplate } from '../../features/events/api';
 
 export const CREATED_EVENT = {
@@ -20,6 +21,7 @@ const hostCreateMocks = vi.hoisted(() => ({
   invalidateCreatedEvent: vi.fn(),
   isAuthenticated: true,
   isLoading: false,
+  isLocatingVenue: false,
   nearbyVenues: [] as unknown[],
   venueSearch: [] as unknown[],
   citySuggestions: [] as unknown[],
@@ -56,6 +58,7 @@ const applyDefaultHostCreateMocks = () => {
   hostCreateMocks.signInEmailOtp.mockResolvedValue({ error: null });
   hostCreateMocks.invalidateCreatedEvent.mockResolvedValue(undefined);
   hostCreateMocks.mapContext.data = READY_MAP_CONTEXT;
+  hostCreateMocks.isLocatingVenue = false;
   hostCreateMocks.nearbyVenues = [];
   hostCreateMocks.venueSearch = [];
   hostCreateMocks.citySuggestions = [];
@@ -128,6 +131,7 @@ vi.mock('../../features/events/hooks', () => ({
   useCreateEvent: () => ({ mutateAsync: hostCreateMocks.mutateAsync }),
   useInvalidateCreatedEvent: () => hostCreateMocks.invalidateCreatedEvent,
   useHostMapContext: () => hostCreateMocks.mapContext,
+  useIsLocatingVenue: () => hostCreateMocks.isLocatingVenue,
   useNearbyVenues: () => ({
     data: hostCreateMocks.nearbyVenues,
     isPending: false,
@@ -147,61 +151,6 @@ vi.mock('../../features/geo/hooks', () => ({
 
 vi.mock('./ClientOnly', () => ({
   ClientOnly: ({ children }: { children: ReactNode }) => children,
-}));
-
-vi.mock('./HostMap', () => ({
-  HostMap: ({
-    isInteractive = true,
-    onVenueSelect,
-  }: {
-    isInteractive?: boolean;
-    onVenueSelect: (venue: {
-      providerId: string;
-      kind: 'poi' | 'address';
-      name: string;
-      address: string;
-      latitude: number;
-      longitude: number;
-    }) => void;
-  }) =>
-    createElement(
-      'div',
-      { 'data-testid': 'host-map', 'data-interactive': String(isInteractive) },
-      [
-        createElement(
-          'button',
-          {
-            key: 'poi',
-            onClick: () =>
-              onVenueSelect({
-                providerId: 'poi-cafe',
-                kind: 'poi' as const,
-                name: 'Founders Café',
-                address: '12 Startup Street, Algiers',
-                latitude: 36.7538,
-                longitude: 3.0588,
-              }),
-          },
-          'Choose venue',
-        ),
-        createElement(
-          'button',
-          {
-            key: 'address',
-            onClick: () =>
-              onVenueSelect({
-                providerId: 'address-yousfi',
-                kind: 'address' as const,
-                name: '15 Rue Yousfi Mohamed',
-                address: '15 Rue Yousfi Mohamed, Alger',
-                latitude: 36.7501,
-                longitude: 3.0601,
-              }),
-          },
-          'Choose address',
-        ),
-      ],
-    ),
 }));
 
 vi.mock('./VenueSearch', () => ({

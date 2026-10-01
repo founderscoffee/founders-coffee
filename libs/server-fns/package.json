@@ -19,15 +19,25 @@
       "types": "./src/profile/photo-http.ts",
       "default": "./src/profile/photo-http.ts"
     },
-    "./telegram-webhook": {
-      "@founders-coffee/source": "./src/telegram/webhook.ts",
-      "types": "./src/telegram/webhook.ts",
-      "default": "./src/telegram/webhook.ts"
-    },
     "./rate-limiter-do": {
       "@founders-coffee/source": "./src/rate-limiter-do.ts",
       "types": "./src/rate-limiter-do.ts",
       "default": "./src/rate-limiter-do.ts"
+    },
+    "./rooms": {
+      "@founders-coffee/source": "./src/rooms/index.ts",
+      "types": "./src/rooms/index.ts",
+      "default": "./src/rooms/index.ts"
+    },
+    "./chat-room": {
+      "@founders-coffee/source": "./src/chat/room-do.ts",
+      "types": "./src/chat/room-do.ts",
+      "default": "./src/chat/room-do.ts"
+    },
+    "./chat-socket": {
+      "@founders-coffee/source": "./src/chat/socket-http.ts",
+      "types": "./src/chat/socket-http.ts",
+      "default": "./src/chat/socket-http.ts"
     },
     "./closeout-prompt": {
       "@founders-coffee/source": "./src/notifications/closeout-prompt.ts",

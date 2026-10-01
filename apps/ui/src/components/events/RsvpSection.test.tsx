@@ -26,8 +26,8 @@ vi.mock('../../lib/app-providers', () => ({
 }));
 
 vi.mock('./HostEventPanel', () => ({ HostEventPanel: () => null }));
-vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
-  TelegramGroupCard: () => <p>telegram-group</p>,
+vi.mock('../../features/chat/components/ChatEntry', () => ({
+  ChatEntry: () => null,
 }));
 vi.mock('./RsvpCancelDialog', () => ({
   RsvpCancelDialog: ({
@@ -81,6 +81,7 @@ const show = (item: EventWithAttendance, locale: 'ar' | 'en' = 'en') =>
       live={null}
       isWindowOpen={true}
       phase="upcoming"
+      isChatAvailable={false}
     />,
   );
 
@@ -122,21 +123,6 @@ describe('RsvpSection when the host has called the meetup off', () => {
   it('does not ask them to cancel an RSVP to a meetup that is already off', () => {
     show({ ...cancelled, viewerRsvp: 'going' });
     expect(screen.queryByRole('button', { name: 'Cancel RSVP' })).toBeNull();
-  });
-});
-
-describe("where the meetup's Telegram group is offered", () => {
-  it('offers it to a member who is going, and to nobody else', () => {
-    const offered = (item: EventWithAttendance) => {
-      show(item);
-      const isOffered = screen.queryByText('telegram-group') !== null;
-      cleanup();
-      return isOffered;
-    };
-
-    expect(offered({ ...event, viewerRsvp: 'going' })).toBe(true);
-    expect(offered(event)).toBe(false);
-    expect(offered({ ...cancelled, viewerRsvp: 'going' })).toBe(false);
   });
 });
 
@@ -215,6 +201,7 @@ describe('telling the room you are on your way', () => {
         live={live}
         isWindowOpen={isWindowOpen}
         phase="upcoming"
+        isChatAvailable={false}
       />,
     );
 

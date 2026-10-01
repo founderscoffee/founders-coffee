@@ -15,6 +15,7 @@ type EventRsvpBoxProps = {
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
   phase: EventPhase;
+  isChatAvailable: boolean;
 };
 
 export const EventRsvpBox = ({
@@ -26,6 +27,7 @@ export const EventRsvpBox = ({
   live,
   isWindowOpen,
   phase,
+  isChatAvailable,
 }: EventRsvpBoxProps) => (
   <aside className="flex h-full flex-col gap-4 lg:sticky lg:top-6 lg:self-stretch lg:pt-12">
     <section
@@ -49,6 +51,7 @@ export const EventRsvpBox = ({
           live={live}
           isWindowOpen={isWindowOpen}
           phase={phase}
+          isChatAvailable={isChatAvailable}
         />
       </div>
     </section>

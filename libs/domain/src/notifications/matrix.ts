@@ -13,6 +13,7 @@ export const NOTIFICATION_CATEGORIES = [
   'hostRsvpReceivedChannels',
   'hostRsvpCancelledChannels',
   'followUpPromptsChannels',
+  'meetupChatChannels',
 ] as const;
 
 export const notificationCategorySchema = z.enum(NOTIFICATION_CATEGORIES);
@@ -27,6 +28,11 @@ export interface NotificationChannelSelection {
   readonly fallback: NotificationFallbackChannel | null;
 }
 
+/**
+ * Every channel the member keeps for news of their meetups, which a notice with no category of its
+ * own follows. The chat's category is not among them: it arrived switched on, so counting it would
+ * start sending those notices again to a member who had turned every other category off.
+ */
 const allCategoryChannels = (masks: NotificationCategoryMasks): number =>
   masks.eventUpdatesChannels |
   masks.eventRemindersChannels |
@@ -53,6 +59,8 @@ export const notificationCategoryForTemplate = (
       return 'hostRsvpCancelledChannels';
     case 'feedback_invitation':
       return 'followUpPromptsChannels';
+    case 'chat_unread':
+      return 'meetupChatChannels';
     default:
       return null;
   }

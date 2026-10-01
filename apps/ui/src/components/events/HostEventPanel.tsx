@@ -26,8 +26,8 @@ import {
   useCancelEvent,
   useRepeatEventTemplate,
 } from '../../features/events/hooks';
+import { ChatEntry } from '../../features/chat/components/ChatEntry';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
-import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
 import { AddToCalendar } from './AddToCalendar';
 import { CancelEventDialog } from './CancelEventDialog';
 import { RepeatHostLink } from './RepeatHostLink';
@@ -39,6 +39,7 @@ type HostEventPanelProps = {
   marketSlug: string;
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
+  isChatAvailable: boolean;
 };
 
 export const HostEventPanel = ({
@@ -47,6 +48,7 @@ export const HostEventPanel = ({
   marketSlug,
   live,
   isWindowOpen,
+  isChatAvailable,
 }: HostEventPanelProps) => {
   const router = useRouter();
   const cancelEvent = useCancelEvent();
@@ -109,7 +111,7 @@ export const HostEventPanel = ({
 
       {!isCancelled && hasEnded && (
         <Link
-          className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
+          className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-fit"
           {...localizedCloseout(locale, event.id)}
         >
           {closeout_link({}, { locale })}
@@ -124,14 +126,14 @@ export const HostEventPanel = ({
             locale={locale}
           />
           <Link
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-fit"
             {...localizedEventEdit(locale, event.id)}
           >
             {host_edit_open({}, { locale })}
           </Link>
           <button
             type="button"
-            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg w-fit text-error"
+            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md w-fit text-error"
             onClick={() => setIsDialogOpen(true)}
           >
             {host_cancel_event({}, { locale })}
@@ -139,7 +141,9 @@ export const HostEventPanel = ({
         </div>
       )}
 
-      <TelegramGroupCard eventId={event.id} locale={locale} />
+      {isChatAvailable ? (
+        <ChatEntry locale={locale} eventId={event.id} />
+      ) : null}
 
       {repeat.data ? (
         <RepeatHostLink

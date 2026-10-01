@@ -54,6 +54,7 @@ export const MARKET_FEATURE_FLAGS = {
   payments: false,
   recruiting: false,
   communityOperations: true,
+  meetupChat: true,
 };
 
 /**

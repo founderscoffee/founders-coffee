@@ -261,6 +261,18 @@
   }
 }
 
+/* daisyUI sets a chat message's header and footer, its author's name and its time, at 11px, the
+   size of the eyebrow's Latin branch. Arabic steps them up to the caption scale, as the eyebrow
+   does, for the same reason: Tajawal at 11px is unreadable. The rule sits in the utilities layer
+   because daisyUI's own sits in a layer nested inside it, which a component rule cannot outrank. */
+@layer utilities {
+  :lang(ar) .chat-header,
+  :lang(ar) .chat-footer {
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+  }
+}
+
 /* A control sized for a mouse is a smaller thing than a control sized for a thumb: Apple asks
    44pt and Android 48dp, and daisyUI's `btn-md` lands at 40px while `btn-sm` lands at 32. Both
    standards measure the area that responds to a tap rather than the paint, so the gap closes
@@ -505,7 +517,7 @@
    first visit, or a browser that refuses storage, gets `out` — which is what a first visit is.
 
    The sign-in button takes daisyUI's responsive size, a step larger at each breakpoint from `xs` on
-   a phone to `lg`, so the hold steps with it. Each width is the Arabic label at that step, the
+   a phone to `md`, so the hold steps with it and stops where the button does. Each width is the Arabic label at that step, the
    longest of the three, with a pixel or two to spare; the button fills the slot rather than sitting
    in it, so French, a few pixels shorter, renders a slightly wider button instead of a gap. English
    "Sign in" is half as long: a slot sized for Arabic stretched its outline into a pill twice the
@@ -549,15 +561,5 @@
 
   :root[data-auth-slot='out']:lang(en) .auth-slot {
     min-width: 5.125rem;
-  }
-}
-
-@media (width >= 64rem) {
-  :root[data-auth-slot='out'] .auth-slot {
-    min-width: 10.0625rem;
-  }
-
-  :root[data-auth-slot='out']:lang(en) .auth-slot {
-    min-width: 6.4375rem;
   }
 }

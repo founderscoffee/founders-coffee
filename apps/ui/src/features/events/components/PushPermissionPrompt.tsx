@@ -86,14 +86,14 @@ export const PushPermissionPrompt = ({
         <div className="modal-action">
           <button
             type="button"
-            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md"
             onClick={handleDecline}
           >
             {push_prompt_decline({}, { locale })}
           </button>
           <button
             type="button"
-            className="btn btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+            className="btn btn-primary btn-xs sm:btn-sm md:btn-md"
             onClick={handleAccept}
           >
             {push_prompt_accept({}, { locale })}

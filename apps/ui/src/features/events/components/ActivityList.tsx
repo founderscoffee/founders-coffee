@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 
 import {
   activity_cancelled,
+  activity_chat_unread,
   activity_closed_out,
   activity_count,
   activity_more,
@@ -100,6 +101,7 @@ export const ActivityList = ({
   isLoadingMore,
   onLoadMore,
   closeoutStates,
+  chatsWithUnread,
 }: {
   locale: Locale;
   emptyNote: string;
@@ -110,6 +112,7 @@ export const ActivityList = ({
   isLoadingMore: boolean;
   onLoadMore: () => void;
   closeoutStates?: ReadonlyMap<string, CloseoutStateView>;
+  chatsWithUnread?: ReadonlySet<string>;
 }) => (
   <section className="p-5 md:p-6">
     {items.length > 0 && (
@@ -153,7 +156,20 @@ export const ActivityList = ({
                     : ''}
                 </span>
               </span>
-              <Badge item={item} locale={locale} />
+              <span className="flex shrink-0 items-center gap-2">
+                {chatsWithUnread?.has(item.id) ? (
+                  <>
+                    <span
+                      className="status status-primary status-md"
+                      aria-hidden="true"
+                    />
+                    <span className="sr-only">
+                      {activity_chat_unread({}, { locale })}
+                    </span>
+                  </>
+                ) : null}
+                <Badge item={item} locale={locale} />
+              </span>
             </Link>
             <CloseoutLine
               eventId={item.id}

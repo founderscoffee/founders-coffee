@@ -31,7 +31,9 @@ import type {
   PublicProfile,
 } from '@founders-coffee/server-fns';
 
+import { EventChat } from '../../features/chat/components/EventChat';
 import { eventCityName } from '../../features/events/event-city-name';
+import { eventStreetAddress } from '../../features/events/event-street-address';
 import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { localizedCity } from '../../lib/locale-routing';
@@ -90,9 +92,12 @@ export const EventDetail = ({
     );
 
   const cityName = eventCityName(event, locale);
+  const streetAddress = eventStreetAddress(event);
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
   const isCancelled = event.status === 'cancelled';
-  const hasRsvpBox = isHost || !isCancelled || event.viewerRsvp === 'going';
+  const isGoing = event.viewerRsvp === 'going';
+  const hasRsvpBox = isHost || !isCancelled || isGoing;
+  const isChatAvailable = market.featureFlags.meetupChat === true;
 
   return (
     <article className="mx-auto max-w-5xl px-4 py-6 sm:py-8 md:px-8 md:py-10">
@@ -131,7 +136,7 @@ export const EventDetail = ({
             <span dir="auto">{cityName}</span>
           </span>
         </div>
-        <h1 className="mt-4 max-w-3xl font-display text-h1 font-semibold text-balance">
+        <h1 className="mt-4 font-display text-h3 font-semibold text-balance md:text-h2">
           <bdi>{event.title}</bdi>
         </h1>
         {event.description ? (
@@ -223,9 +228,9 @@ export const EventDetail = ({
                   <bdi>{event.venue}</bdi>
                 </span>
               </dd>
-              {event.venueAddress ? (
+              {streetAddress ? (
                 <dd className="mt-0.5 ps-6 text-body-sm text-neutral">
-                  <bdi>{event.venueAddress}</bdi>
+                  <bdi>{streetAddress}</bdi>
                 </dd>
               ) : null}
             </div>
@@ -244,9 +249,22 @@ export const EventDetail = ({
             live={live}
             isWindowOpen={isWindowOpen}
             phase={phase}
+            isChatAvailable={isChatAvailable}
           />
         ) : null}
       </div>
+
+      {isChatAvailable ? (
+        <EventChat
+          locale={locale}
+          eventId={event.id}
+          title={event.title}
+          isMember={isHost || isGoing}
+          isCancelled={isCancelled}
+          endsAt={end}
+          timeZone={market.timezone}
+        />
+      ) : null}
     </article>
   );
 };

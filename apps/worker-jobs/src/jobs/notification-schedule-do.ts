@@ -1,7 +1,10 @@
 import { DurableObject } from 'cloudflare:workers';
 
 import { createDb, nextPendingSendAt } from '@founders-coffee/db';
-import { logger } from '@founders-coffee/observability';
+import {
+  logger,
+  rethrowWithoutQueryValues,
+} from '@founders-coffee/observability';
 
 import type { NotificationDueMessage } from '@founders-coffee/core';
 
@@ -55,7 +58,8 @@ export class NotificationScheduleDO extends DurableObject<ScheduleEnv> {
    *
    * Rearming reads the table rather than the object's memory — see `nextPendingSendAt`. It happens
    * after the send so that a queue failure surfaces as a thrown alarm, which the runtime retries
-   * with backoff, instead of being swallowed by having already moved the pointer forward.
+   * with backoff, instead of being swallowed by having already moved the pointer forward. A failed
+   * read is thrown without the values bound to it, since the runtime logs what an alarm throws.
    *
    * The rearm is floored at five minutes out, and that floor is load-bearing rather than tidiness.
    * The consumer has not run yet at this point, so the rows just handed to the queue are still
@@ -79,7 +83,9 @@ export class NotificationScheduleDO extends DurableObject<ScheduleEnv> {
       await this.env.NOTIFICATIONS.send({ kind: 'notification_due', eventId });
     }
 
-    const next = await nextPendingSendAt(createDb(this.env.DB), eventId);
+    const next = await nextPendingSendAt(createDb(this.env.DB), eventId).catch(
+      rethrowWithoutQueryValues,
+    );
     if (next)
       await this.ctx.storage.setAlarm(
         Math.max(next.getTime(), Date.now() + REARM_FLOOR_MS),

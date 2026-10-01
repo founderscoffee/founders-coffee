@@ -9,6 +9,8 @@ import {
   prefs_host_rsvp_cancelled,
   prefs_host_rsvp_received,
   prefs_host_rsvp_note,
+  prefs_meetup_chat,
+  prefs_meetup_chat_note,
   prefs_push,
   prefs_push_checking,
   prefs_push_denied,
@@ -31,17 +33,20 @@ type EnabledField =
   | 'eventReminders'
   | 'hostRsvpReceived'
   | 'hostRsvpCancelled'
-  | 'followUpPrompts';
+  | 'followUpPrompts'
+  | 'meetupChat';
 type ChannelsField =
   | 'eventUpdatesChannels'
   | 'eventRemindersChannels'
   | 'hostRsvpReceivedChannels'
   | 'hostRsvpCancelledChannels'
-  | 'followUpPromptsChannels';
+  | 'followUpPromptsChannels'
+  | 'meetupChatChannels';
 
 type CategoryDefinition = {
   readonly enabledField: EnabledField;
   readonly channelsField: ChannelsField;
+  readonly channels: readonly NotificationChannel[];
   readonly label: (locale: Locale) => string;
   readonly note: (locale: Locale) => string;
 };
@@ -52,32 +57,44 @@ const CATEGORIES: readonly CategoryDefinition[] = [
   {
     enabledField: 'eventUpdates',
     channelsField: 'eventUpdatesChannels',
+    channels: CHANNELS,
     label: (locale) => prefs_event_updates({}, { locale }),
     note: (locale) => prefs_event_updates_note({}, { locale }),
   },
   {
     enabledField: 'eventReminders',
     channelsField: 'eventRemindersChannels',
+    channels: CHANNELS,
     label: (locale) => prefs_event_reminders({}, { locale }),
     note: (locale) => prefs_event_reminders_note({}, { locale }),
   },
   {
     enabledField: 'hostRsvpReceived',
     channelsField: 'hostRsvpReceivedChannels',
+    channels: CHANNELS,
     label: (locale) => prefs_host_rsvp_received({}, { locale }),
     note: (locale) => prefs_host_rsvp_note({}, { locale }),
   },
   {
     enabledField: 'hostRsvpCancelled',
     channelsField: 'hostRsvpCancelledChannels',
+    channels: CHANNELS,
     label: (locale) => prefs_host_rsvp_cancelled({}, { locale }),
     note: (locale) => prefs_host_rsvp_note({}, { locale }),
   },
   {
     enabledField: 'followUpPrompts',
     channelsField: 'followUpPromptsChannels',
+    channels: CHANNELS,
     label: (locale) => prefs_follow_up({}, { locale }),
     note: (locale) => prefs_follow_up_note({}, { locale }),
+  },
+  {
+    enabledField: 'meetupChat',
+    channelsField: 'meetupChatChannels',
+    channels: ['push'],
+    label: (locale) => prefs_meetup_chat({}, { locale }),
+    note: (locale) => prefs_meetup_chat_note({}, { locale }),
   },
 ];
 
@@ -118,6 +135,14 @@ const pushDisabledFor = (
   isEnabling ||
   (state !== 'registered' && !pushIsActionable(state) && !checked);
 
+const isOffered = (
+  category: CategoryDefinition,
+  showPush: boolean,
+  isChatAvailable: boolean,
+): boolean =>
+  (showPush || category.channels.includes('email')) &&
+  (category.enabledField !== 'meetupChat' || isChatAvailable);
+
 const selectedChannels = (
   draft: NotificationDraft,
   category: CategoryDefinition,
@@ -127,7 +152,7 @@ const selectedChannels = (
   const channels = draft[
     category.channelsField
   ] as readonly NotificationChannel[];
-  const selected = channels.length > 0 ? channels : CHANNELS;
+  const selected = channels.length > 0 ? channels : category.channels;
   return selected.filter((channel) => channel !== 'push' || showPush);
 };
 
@@ -152,6 +177,7 @@ export const NotificationChannelGrid = ({
   draft,
   pushState,
   isEnabling,
+  isChatAvailable,
   onEnablePush,
   onChange,
 }: {
@@ -159,6 +185,7 @@ export const NotificationChannelGrid = ({
   draft: NotificationDraft;
   pushState: PushState;
   isEnabling: boolean;
+  isChatAvailable: boolean;
   onEnablePush: () => Promise<boolean>;
   onChange: (changes: Partial<NotificationDraft>) => void;
 }) => {
@@ -188,7 +215,9 @@ export const NotificationChannelGrid = ({
         <span className="text-center">{prefs_push({}, { locale })}</span>
         <span className="text-center">{email_label({}, { locale })}</span>
       </div>
-      {CATEGORIES.map((category) => {
+      {CATEGORIES.filter((category) =>
+        isOffered(category, showPush, isChatAvailable),
+      ).map((category) => {
         const selected = selectedChannels(draft, category, showPush);
         return (
           <div
@@ -205,6 +234,8 @@ export const NotificationChannelGrid = ({
             </div>
             {CHANNELS.filter((channel) => channel !== 'push' || showPush).map(
               (channel) => {
+                if (!category.channels.includes(channel))
+                  return <span className="hidden md:block" key={channel} />;
                 const checked = selected.includes(channel);
                 const label = channelLabel(channel, locale);
                 return (

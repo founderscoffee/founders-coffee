@@ -3,6 +3,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 
 import {
   ALL_FILES,
+  CALL_TO_ACTION_BUTTON_FILES,
   CONFIG_FILES,
   CONSOLE_ALLOWED,
   IGNORED,
@@ -124,6 +125,12 @@ export default [
       'react-hooks/rules-of-hooks': 'error',
       'local/daisyui-control-size': 'error',
       'local/no-removed-daisyui-class': 'error',
+    },
+  },
+  {
+    files: CALL_TO_ACTION_BUTTON_FILES,
+    rules: {
+      'local/daisyui-control-size': ['error', { buttons: 'call-to-action' }],
     },
   },
   {

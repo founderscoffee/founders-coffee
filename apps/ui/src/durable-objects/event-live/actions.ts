@@ -1,25 +1,29 @@
-import type { EventConnections } from './connections.js';
+import type { RoomConnections } from '@founders-coffee/server-fns/rooms';
+
 import type { EventRoster } from './roster.js';
-import type { ClientMessage } from './protocol.js';
+import type { ClientMessage, OutboundMessage } from './protocol.js';
+import type { LiveMember } from './session.js';
 
 type LiveAction = Exclude<ClientMessage, { type: 'auth' }>;
+
+type LiveConnections = RoomConnections<LiveMember, OutboundMessage>;
 
 export const handleLiveAction = async (args: {
   ws: WebSocket;
   message: LiveAction;
-  connections: EventConnections;
+  connections: LiveConnections;
   roster: EventRoster;
 }): Promise<void> => {
   const { ws, message, connections, roster } = args;
-  const connection = connections.get(ws);
-  if (!connection?.authenticated) {
+  const member = connections.get(ws)?.member;
+  if (!member) {
     connections.send(ws, { type: 'error', message: 'Not authenticated' });
     return;
   }
 
   switch (message.type) {
     case 'arrived':
-      if (connection.isHost && roster.getHost()) {
+      if (member.isHost && roster.getHost()) {
         await roster.markHostArrived(message);
         connections.broadcast({
           type: 'host_update',
@@ -29,7 +33,7 @@ export const handleLiveAction = async (args: {
           type: 'roster_update',
           roster: roster.toRoster(),
         });
-      } else if (await roster.setAttendeeStatus(connection.userId, 'arrived')) {
+      } else if (await roster.setAttendeeStatus(member.userId, 'arrived')) {
         connections.broadcast({
           type: 'roster_update',
           roster: roster.toRoster(),
@@ -37,24 +41,19 @@ export const handleLiveAction = async (args: {
       }
       return;
     case 'walking_in':
-      await updateAttendee(
-        connections,
-        roster,
-        connection.userId,
-        'walking_in',
-      );
+      await updateAttendee(connections, roster, member.userId, 'walking_in');
       return;
     case 'running_late':
       await updateAttendee(
         connections,
         roster,
-        connection.userId,
+        member.userId,
         'running_late',
         message.etaMinutes,
       );
       return;
     case 'table_pin':
-      if (connection.isHost && roster.getHost()) {
+      if (member.isHost && roster.getHost()) {
         await roster.pinTable(message.tableNumber);
         connections.broadcast({
           type: 'host_update',
@@ -71,7 +70,7 @@ export const handleLiveAction = async (args: {
 };
 
 const updateAttendee = async (
-  connections: EventConnections,
+  connections: LiveConnections,
   roster: EventRoster,
   userId: string,
   status: 'walking_in' | 'running_late',

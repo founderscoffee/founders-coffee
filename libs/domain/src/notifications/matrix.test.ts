@@ -16,6 +16,7 @@ const masks = {
   hostRsvpReceivedChannels: 5,
   hostRsvpCancelledChannels: 5,
   followUpPromptsChannels: 0,
+  meetupChatChannels: 1,
 } as const;
 
 describe('notification channel matrix', () => {
@@ -37,6 +38,7 @@ describe('notification channel matrix', () => {
     ['rsvp_received', 'hostRsvpReceivedChannels'],
     ['rsvp_cancelled', 'hostRsvpCancelledChannels'],
     ['feedback_invitation', 'followUpPromptsChannels'],
+    ['chat_unread', 'meetupChatChannels'],
   ] as const)('maps %s to %s', (template, category: NotificationCategory) => {
     expect(notificationCategoryForTemplate(template)).toBe(category);
     expect(notificationMaskForTemplate(template, masks)).toBe(masks[category]);
@@ -46,6 +48,20 @@ describe('notification channel matrix', () => {
     expect(notificationCategoryForTemplate('rsvp_confirmation')).toBeNull();
     expect(notificationMaskForTemplate('rsvp_confirmation', masks)).toBe(5);
     expect(notificationMaskForTemplate('closeout_prompt', masks)).toBe(5);
+  });
+
+  it('leaves the chat out of the union, so a chat left on sends no other notice', () => {
+    const chatOnly = {
+      eventUpdatesChannels: 0,
+      eventRemindersChannels: 0,
+      hostRsvpReceivedChannels: 0,
+      hostRsvpCancelledChannels: 0,
+      followUpPromptsChannels: 0,
+      meetupChatChannels: 1,
+    };
+
+    expect(notificationMaskForTemplate('rsvp_confirmation', chatOnly)).toBe(0);
+    expect(notificationMaskForTemplate('chat_unread', chatOnly)).toBe(1);
   });
 
   it('selects push before email and leaves no fallback for one channel', () => {
