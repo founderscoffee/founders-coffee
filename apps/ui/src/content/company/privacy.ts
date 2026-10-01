@@ -7,7 +7,7 @@ export const privacyContent: CompanyPageContent = {
   title: 'سياسة الخصوصية',
   description:
     'ما تجمعه المنصة من معطيات شخصية، ولأيّ غرض، ومن يطّلع عليها، وكم تبقى، وما تملكه أنت حيالها.',
-  updated: '30 سبتمبر 2026',
+  updated: '1 أكتوبر 2026',
   sections: [
     ...privacyDataSections,
     ...privacyProcessingSections,

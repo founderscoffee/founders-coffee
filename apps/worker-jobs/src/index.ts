@@ -12,13 +12,11 @@ import { R2PhotoStore, resolveQueueKind } from '@founders-coffee/infra';
 import { strippingQueryValues } from '@founders-coffee/observability';
 import { sweepClosingAccounts } from '@founders-coffee/server-fns/account-closure';
 import {
-  BotApiTelegramProvider,
   DevNotificationSmsProvider,
   FcmPushProvider,
   TwilioProgrammableSmsProvider,
   type NotificationSmsProvider,
   type PushProvider,
-  type TelegramBotProvider,
 } from '@founders-coffee/notifications';
 
 import type { Env } from './env.js';
@@ -63,17 +61,6 @@ const createPushProvider = (env: Env): PushProvider | null => {
     });
   }
   return null;
-};
-
-/**
- * The bot that posts in meetup groups, or `null` without a token (P1-025).
- *
- * There is no stand-in here, unlike SMS: a group row marked sent by a provider that posted nothing
- * would hide a deployment missing its token, where a row refused for want of a provider says so.
- */
-const createTelegramProvider = (env: Env): TelegramBotProvider | null => {
-  const token = env.TELEGRAM_BOT_TOKEN?.trim();
-  return token ? new BotApiTelegramProvider(token) : null;
 };
 
 /**
@@ -123,7 +110,6 @@ const dispatch = async (
       email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
       sms: createSmsProvider(env),
       push: createPushProvider(env),
-      telegram: createTelegramProvider(env),
     });
   }
   if (kind === 'embeddings') {
@@ -166,7 +152,6 @@ export default {
           sms: createSmsProvider(env),
           email: createCloudflareEmailProvider(env.EMAIL, env.MAIL_FROM),
           push: createPushProvider(env),
-          telegram: createTelegramProvider(env),
         });
         await sweepWaitlistLaunches(db, waitlistDeps(env));
       }

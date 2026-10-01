@@ -18,9 +18,6 @@ vi.mock('../../features/events/hooks', () => ({
 vi.mock('./CancelEventDialog', () => ({ CancelEventDialog: () => null }));
 vi.mock('./RepeatHostLink', () => ({ RepeatHostLink: () => null }));
 vi.mock('./HostLiveActions', () => ({ HostLiveActions: () => null }));
-vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
-  TelegramGroupCard: () => <p>telegram-group</p>,
-}));
 vi.mock('../../features/chat/components/ChatEntry', () => ({
   ChatEntry: () => <p>chat-entry</p>,
 }));
@@ -257,16 +254,15 @@ describe('HostEventPanel lets the host put their own meetup in a calendar', () =
   });
 });
 
-describe("HostEventPanel carries the meetup's Telegram group", () => {
+describe("HostEventPanel opens the meetup's chat", () => {
   it.each([
     ['ahead', event],
     ['over', ended],
     ['called off', cancelled],
   ])(
-    'leaves what to offer to the group card while the meetup is %s',
+    'offers no chat where the market has it off, while the meetup is %s',
     (_case, item) => {
       show(item);
-      expect(screen.getByText('telegram-group')).toBeTruthy();
       expect(screen.queryByText('chat-entry')).toBeNull();
     },
   );
@@ -274,12 +270,8 @@ describe("HostEventPanel carries the meetup's Telegram group", () => {
   it.each([
     ['ahead', event],
     ['called off', cancelled],
-  ])('opens the chat above it while the meetup is %s', (_case, item) => {
+  ])('opens the chat while the meetup is %s', (_case, item) => {
     show(item, true);
-    const group = screen.getByText('telegram-group');
-    expect(
-      screen.getByText('chat-entry').compareDocumentPosition(group) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    expect(screen.getByText('chat-entry')).toBeTruthy();
   });
 });

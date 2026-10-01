@@ -16,8 +16,6 @@ export * from './events-joined.js';
 export * from './events-update.js';
 export * from './markets.js';
 export * from './rsvps.js';
-export * from './telegram-groups.js';
-export * from './telegram-invites.js';
 export * from './chat-channels.js';
 export * from './chat-members.js';
 export * from './chat-membership.js';

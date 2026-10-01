@@ -38,11 +38,9 @@ This document is the current sequencing and status source. Status is evidence-ba
 - Per-entity reminders use Durable Object alarms feeding a Notifications Queue. Cron is recovery-only.
 - Every meetup has a chat on founders.coffee, created with it: its host and everyone going are its
   members, and nobody else reads or writes in it (P1-026, decided 2026-09-29). It replaces the
-  meetup Telegram groups of P1-025 (#15), which stay on in production until CH-12 retires them.
-  Those run through the official Telegram Bot API and nothing else: no MTProto client and no
-  userbot, since both run as someone's own Telegram account, which would then carry the product's
-  automation and the risk of that account being limited. A bot cannot create a group, so each host
-  had to bring one, which is why the chat replaces them. WhatsApp was ruled out the same day: its
+  meetup Telegram groups of P1-025 (#15), which ran through the official Telegram Bot API: a bot
+  cannot create a group, so each host had to bring one. CH-12 retired them on 2026-10-01, ahead of
+  the chat opening in production (Founder / Product). WhatsApp was ruled out on 2026-09-29: its
   Groups API needs an Official Business Account and holds eight people.
 - TypeScript 6, public base locales `ar`/`fr`/`en`, Arabic-only RTL admin copy, and shared Zod
   validation are canonical.
@@ -92,7 +90,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | Uploads                | R2 + Images                                                  | PF-06 is deployed with private per-environment R2 buckets and the Images transform binding; the buckets are currently empty. Ongoing free-tier usage and cleanup monitoring remain                                                                                                                                                                                               |
 | Product metrics        | Analytics Engine                                             | Binding is active and the `events_created` metric is verified; community-health dashboards and alerts remain planned                                                                                                                                                                                                                                                             |
 | Admin isolation        | Access + in-Worker JWT verification + no `workers.dev`       | Worker guard complete and `workers_dev: false` verified live on staging (the `workers.dev` URL returns 404). `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are unset in staging, so every admin request fails closed with 403 — correct behaviour, but admin is non-functional there until they are configured                                                                     |
-| Telegram groups        | Bot API webhook; posts through the Notifications Queue       | Deployed to staging and production. Production runs `@FoundersCoffeeBot` since 2026-09-26 (v0.15.0): its username in `vars`, its token and webhook secret as secrets, its webhook registered. Staging has no bot, so the feature is off there; each environment needs its own, see [Telegram groups](#telegram-groups-p1-025); the meetup chat (P1-026) replaces it              |
+| Telegram groups        | Retired (CH-12)                                              | Removed from the code on 2026-10-01. Migration 0044 drops their tables once it is promoted from `libs/db/pending-migrations/`; the meetup chat (P1-026) replaces them                                                                                                                                                                                                            |
 | Meetup chat            | Durable Object per meetup (hibernating WebSockets) + D1      | Planned; see [Meetup chat](#meetup-chat-p1-026)                                                                                                                                                                                                                                                                                                                                  |
 
 ## 4. Phase P0 — foundation
@@ -149,7 +147,7 @@ Route loaders may wire server functions directly. Runtime imports from presentat
 | P1-022 | Future   | Browser-rendered OG images                                           | Optional future growth work; not a community-release blocker                                                                                                                                                                                                                                                                                                                                                                                             |
 | P1-023 | Partial  | Community operations and retention loop                              | CO-01 through CO-07 are implemented locally; CO-02/CO-03 are deployed to both environments, CO-04/CO-05 are staging-verified, and CO-06/CO-07 are locally verified. Issue #107 adds the city waitlist launch outbox and localized email path; staging/production promotion and CO-08 through CO-11 evidence remain                                                                                                                                       |
 | P1-024 | Partial  | SEO discoverability and search-engine operations                     | SEO-01 through SEO-11 and GEO-01 through GEO-05 are implemented and locally or staging verified. Remaining SEO-12 Search Console operations stay tracked in the [SEO Implementation Plan](./seo-implementation-plan.md). Market landing pages name each market's country in hreflang (`ar-DZ` to `en-SA`), with bare languages and `x-default` on Algeria's, and `og:locale` follows the market (2026-09-29)                                             |
-| P1-025 | Partial  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0: migration 0036, the webhook, the queued posts, pins and removals, the host's panel, the member's card, and the privacy policy's Telegram section (reviewed 2026-09-26, dated 18 September). On in production since v0.15.0 (`@FoundersCoffeeBot`). Replaced by the meetup chat (P1-026, 2026-09-29): its [evidence run](#telegram-groups-p1-025) is on hold, and CH-12 retires it once the chat is on in production               |
+| P1-025 | Retired  | Meetup Telegram groups through the Bot API                           | Deployed with v0.14.0 and on in production since v0.15.0 (`@FoundersCoffeeBot`); production held no connected group on 2026-09-29. Replaced by the meetup chat (P1-026, 2026-09-29) and retired by CH-12 on 2026-10-01, ahead of the chat opening in production (Founder / Product)                                                                                                                                                                      |
 | P1-026 | Planned  | Meetup chat for the host and everyone going                          | CH-01 through CH-12 in [Meetup chat](#meetup-chat-p1-026); its decisions were confirmed on 2026-09-29                                                                                                                                                                                                                                                                                                                                                    |
 
 ### City waitlist notice (#107)
@@ -190,10 +188,8 @@ the erasure.
 
 The daily cron carries each closing account through (`libs/server-fns/src/profile/account-closure.ts`).
 It cancels the meetups the member hosts that have not started, through the host's own cancellation
-so everyone going is told, and gives back their seats at other hosts' meetups, which also takes them
-out of those meetups' Telegram groups. A meetup of theirs under way, a Telegram invitation they
-still hold or a Telegram job still queued makes it wait for a later night. Then it deletes their
-photos from R2 and erases the account in one D1 batch (`libs/db/src/account-closure.ts`).
+so everyone going is told, and gives back their seats at other hosts' meetups. A meetup of theirs
+under way makes it wait for a later night. Then it deletes their photos from R2 and erases the account in one D1 batch (`libs/db/src/account-closure.ts`).
 
 The erasure keeps the `user` row as a tombstone instead of deleting it: no name, phone, photo or
 language, and an address under `.invalid`. Every foreign key that blocked a delete keeps pointing at
@@ -261,9 +257,9 @@ decision about member safety, never as a side effect of a growth or SEO ticket (
    offers no way to write to its owner. Member-to-member contact goes through a shared event. As
    decided on 2026-09-29, that is the meetup's chat (P1-026): the host and the people going talk
    there before and after, nobody else can read it, there is no private thread between two
-   members, and a member who cancels leaves it. Until CH-12, the meetup's Telegram group (P1-025,
-   #15), decided knowingly on 2026-09-24, does this job too, and lets members message each other on
-   Telegram.
+   members, and a member who cancels leaves it. The meetup Telegram groups (P1-025, #15), which did
+   this job too and let members message each other on Telegram, were retired by CH-12 on
+   2026-10-01.
 4. **No resume, employers, or verified credentials.** This is not a hiring product.
 5. **No public posts or feed.** Moderating them across three countries and three languages serves no
    part of the core question.
@@ -275,107 +271,6 @@ decision about member safety, never as a side effect of a growth or SEO ticket (
    would be a moderator's rating of a person, and a restricted one a public blacklist. What the
    platform can vouch for is already there, as the hosted count and its tags (decided 2026-09-24,
    #26).
-
-### Telegram groups (P1-025)
-
-The [meetup chat](#meetup-chat-p1-026) replaces these groups, as decided on 2026-09-29. They stay on
-in production until CH-12 retires them, and the evidence run below is on hold.
-
-Staging and production each run a bot of their own, because Telegram sends a bot's updates to one
-webhook. For each environment, in this order:
-
-1. **Create the bot** in BotFather with `/newbot`, and leave `/setjoingroups` enabled. Privacy mode
-   can stay on: the bot is an admin in its groups, and Telegram sends admins every message.
-2. **Set the secrets.** In `apps/ui`, `wrangler secret put TELEGRAM_BOT_TOKEN --env <env>` and
-   `wrangler secret put TELEGRAM_WEBHOOK_SECRET --env <env>`, the second a random value such as
-   `openssl rand -hex 32` (Telegram allows letters, digits, `_` and `-`, up to 256). In
-   `apps/worker-jobs`, the same `TELEGRAM_BOT_TOKEN`; without it every group row is refused rather
-   than marked sent. `TELEGRAM_BOT_USERNAME`, without the `@`, goes in that environment's `vars` in
-   `apps/ui/wrangler.jsonc`, since it is public: the deploy runs a plain `wrangler deploy`, which
-   drops a var set only in the dashboard. The username, the webhook secret and the token together
-   switch the feature on; until all three are set, no page offers it.
-3. **Deploy.** A push to `develop` (staging) or `main` (production) applies migration 0036, then
-   deploys worker-jobs before ui.
-4. **Register the webhook** at the environment's own address (`https://founders.coffee` in
-   production), from the operator's own machine, with the token read so it is not echoed:
-
-   ```bash
-   read -rs TELEGRAM_BOT_TOKEN && read -rs TELEGRAM_WEBHOOK_SECRET
-   curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-     --data-urlencode "url=https://staging.founders.coffee/api/telegram/webhook" \
-     --data-urlencode "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
-     --data-urlencode 'allowed_updates=["message","my_chat_member","chat_join_request"]' \
-     --data-urlencode "drop_pending_updates=true"
-   ```
-
-   `getWebhookInfo` on the same token should then show the URL, the three update types, and no
-   `last_error_message`. A webhook secret changed later has to be registered again the same way.
-
-Locally, `TELEGRAM_BOT_USERNAME` and `TELEGRAM_WEBHOOK_SECRET` in `apps/ui/.dev.vars`, with no
-token, switch the feature on against the development provider, which records calls instead of
-making them. Updates are then posted by hand to `/api/telegram/webhook` with the
-`X-Telegram-Bot-Api-Secret-Token` header: a `/start@<bot> <token>` message from the host's connect
-link, and a `chat_join_request` whose link a member was given.
-
-Not yet known, and part of the evidence run: whether a basic group accepts the bot's
-join-request links, or Telegram first turns it into a supergroup. The webhook follows a group to its
-new id when it is upgraded, so either way should work, but only a real group will show it.
-
-**Evidence run.** This is the evidence P1-025 still owes. It was to run on staging, under a bot of
-its own; on 2026-09-26 it was decided to run it on production with `@FoundersCoffeeBot` instead, as
-part of the pre-launch audit, so no second bot is needed. It needs two production accounts, a host
-and a member; a Telegram account for each, and a third for step 4; and groups the host's Telegram
-account creates for the run's meetups, because a new group starts as a basic group and everyone in a
-connected group sees the bot's posts. Keep `wrangler tail` open on `founders-coffee-ui-production`
-and `founders-coffee-worker-jobs-production`. The first logs `telegram.connect_opened`,
-`telegram.connected`, `telegram.invite_given`, `telegram.join_request` and `telegram.disconnected`;
-the second logs a `notification.sweep` report for each run. Stop on any `telegram.*` warning and
-find out why.
-
-The run's data stays in production, so its meetups are real ones that take place, joined by real
-members. They are public from the moment they are created: the market and city pages,
-`/events.json`, the sitemap and `llms.txt` list them, and anyone signed in can RSVP.
-
-1. **Meetup.** The host creates one starting about 25 hours ahead. The group's reminder, due a day
-   before the start, is queued only if that moment is still ahead when the group connects, so
-   connect within the hour; the reminder then posts about an hour after the meetup was created.
-2. **Connect.** Connect, then Open Telegram within the link's 30 minutes, pick the new group, and
-   keep the three admin rights ticked. The panel names the group as connected, and the bot pins the
-   details. If the bot answers in the group that it lacks a right, grant it in Telegram and open a
-   new link. If Telegram makes the group a supergroup on the way, the pin and every later post land
-   in the supergroup, and the group's `chat_id` turns into a `-100…` id.
-3. **Join.** The member RSVPs, asks for their invite link and opens it. Telegram sends a join
-   request, the bot approves it (`admitted: true`), and the card says the member is in the group.
-4. **A forwarded link.** The third account opens the member's link. The bot declines its request
-   (`admitted: false`), because a link belongs to the first account that used it.
-5. **Reminder.** It posts about an hour after the meetup was created.
-6. **Edits.** An address edit rewrites the pin without a post. A new time or venue is posted, and
-   the pin rewritten.
-7. **Cancelled RSVP.** The member cancels, and the bot takes them out of the group and revokes their
-   link.
-8. **Endings.** On a second meetup, connect a second group and try the other endings in turn,
-   connecting again between them: Disconnect, and the bot revokes its links and leaves while the
-   group stays the host's; removing the bot in Telegram, and the panel offers Connect again; and
-   last, cancelling the meetup, and the bot posts the cancellation, rewrites the pin and leaves. The
-   group has to be a second one, because the bot stays in a chat that another meetup still runs
-   through.
-9. **The day after.** A day after the first meetup ends, the bot posts its thanks with a link to
-   the city's next meetups and leaves. Moving that meetup's start forward after step 5 brings this
-   closer.
-
-Throughout, `getWebhookInfo` should show no `last_error_message`, and the bot should post in the
-meetup's language, with links to founders.coffee. A 403 there would mean something at Cloudflare's
-edge, such as Bot Fight Mode or a WAF rule, is turning Telegram away. The groups' rows can be read
-from `apps/worker-jobs`:
-
-```bash
-wrangler d1 execute founders-coffee-db-production --remote --env production \
-  --command "SELECT event_id, status, chat_id, chat_title FROM event_telegram_groups"
-```
-
-Record the date, the commit and each step's result under this section. Only the web half of the run
-could be scripted: the Telegram side would mean scripting real Telegram accounts, which section 1
-rules out, and Telegram's test environment would need a new client library in the test harness.
 
 ### Meetup chat (P1-026)
 
@@ -407,7 +302,9 @@ can come later, but `meetup` is the only kind.
    shows on a lock screen. A member can mute a chat. No email.
 5. **Moderators.** A moderator reviewing a report reads the whole chat it was posted in, for
    context. Only a report opens a chat to them, and each opening is audited.
-6. **Telegram.** P1-025 is retired once the chat is on in production (CH-12).
+6. **Telegram.** P1-025 is retired by CH-12, which Founder / Product brought forward on 2026-10-01,
+   ahead of the chat opening in production. Production has no group feature in between; it held
+   no connected group on 2026-09-29.
 7. **Language.** Messages carry no language code and are shown as written, the exception
    AGENTS.md §9 makes for profile introductions. CH-05 added chat messages to it.
 8. **Where it opens.** In a panel over the meetup page, not a page of its own: full width on phones
@@ -515,7 +412,7 @@ room they tell; `server.ts` re-exports it.
   `close`) rather than HTTP requests, as the live room's `cancel()` has since 1d774c91. A send, a
   retried one too, broadcasts the stored message and a removal its tombstone; a failure to reach
   the room is reported and costs nothing written.
-- `cancelRsvpResolver` calls `revoke` where it calls `withdrawTelegramMember`, and `revoke` asks D1
+- `cancelRsvpResolver` calls `revoke` once the seat is given back, and `revoke` asks D1
   whether that member still belongs rather than taking the caller's word, so the host, whose own
   RSVP never made them a member, keeps their sockets. `cancelEventResolver` calls `close`.
 - The jobs Worker has no binding to the rooms, and the nightly account closure cancels meetups
@@ -532,9 +429,8 @@ room they tell; `server.ts` re-exports it.
   `after` its newest message on every connect, duplicates dropped by id. After three failed
   connects in a row it polls `listChatMessages` every 15 seconds while the panel is open.
 
-**System messages** are stored as a key and parameters and read in each member's language, unlike
-the Telegram posts, which were written once in the meetup's lead language. They are written where
-the Telegram posts are queued today. `rescheduled` and `relocated` come from `announceUpdate` in
+**System messages** are stored as a key and parameters and read in each member's language.
+`rescheduled` and `relocated` come from `announceUpdate` in
 `events/update-notices.ts`, where `noticeFor` already decides that a new time wins over a new place
 and that a place moves at 100 metres. `cancelled`, with the reason, comes from
 `cancelEventResolver` in `events/cancel.ts`: the resolver, not its server function, so the
@@ -646,8 +542,8 @@ next heartbeat check. A key or parameters a screen cannot read show as a change 
 
 **Screens** (`apps/ui/src/features/chat`).
 
-- **Meetup page.** For the host and people going, a chat entry where `TelegramGroupCard` renders
-  today, in `RsvpSection.tsx` and `HostEventPanel.tsx`: the unread count and an Open chat button
+- **Meetup page.** For the host and people going, a chat entry in `RsvpSection.tsx` and
+  `HostEventPanel.tsx`: the unread count and an Open chat button
   that opens the panel. On an upcoming meetup, everyone else reads that the people going talk
   there.
 - **Chat panel.** A native `<dialog>` with daisyUI's `modal modal-end`, opened with `showModal()`
@@ -709,29 +605,37 @@ Product, 2026-09-30):
   chat in production with the next release, whatever the run had found.
 - **Production** gets it from a migration, in a release a week after the members' notice. It
   reaches staging too, where it changes nothing.
-- **Telegram.** CH-11 also hides the Telegram card wherever the chat is on, so that no host starts
-  a Telegram group before CH-12 removes it. Production held no connected group on 2026-09-29.
 
-Unlike Telegram, staging can run the whole feature.
+Staging can run the whole feature.
 
-**Retiring Telegram groups (CH-12).** Once the chat is on in production:
+**Retiring Telegram groups (CH-12).** Founder / Product brought it forward on 2026-10-01, ahead
+of CH-10 and CH-11, so production has no group feature until the chat opens there.
 
-- remove the 62 files with `telegram` in their path and the Telegram code in the files they share
-  with the rest of the app: the webhook route in `server.ts`, the four server functions, the five
-  Telegram rate budgets, the `telegram` delivery channel with its eight template keys and payload
-  fields, the providers in `libs/notifications`, the calls in the meetup, RSVP and account-closure
-  paths, the 33 `telegram_*` and `ntf_telegram_*` messages in each language, and
-  `TELEGRAM_BOT_USERNAME` in production `vars`;
-- drop `event_telegram_groups` and `event_telegram_invites` in a migration, declared irreversible
-  in `compatibility.json` as `tools/deploy/migration-rebuild.mjs` requires (on 2026-09-29
-  production held one pending link and no connected group);
-- remove the privacy policy's Telegram parts in each language, re-dated, with
-  `privacy-practice.test.ts`, the runbook's Telegram queries, and this plan's Telegram section;
-- the operator calls `deleteWebhook`, deletes `TELEGRAM_BOT_TOKEN` from both Workers and
-  `TELEGRAM_WEBHOOK_SECRET` from the UI Worker, and deletes the bot in BotFather if wanted.
+- The 61 files with `telegram` in their path are gone, and so is the Telegram code in the files
+  they shared with the rest of the app: the webhook route in `server.ts`, the four server
+  functions, the five Telegram rate budgets, the `telegram` delivery channel with its eight
+  template keys and payload fields, the providers in `libs/notifications`, the calls in the
+  meetup, RSVP and account-closure paths, the 33 `telegram_*` and `ntf_telegram_*` messages in
+  each language, and `TELEGRAM_BOT_USERNAME` in production `vars`. Migration 0036 stays, as
+  history.
+- `0044_retire_telegram_groups` drops `event_telegram_groups` and `event_telegram_invites` and
+  deletes the Telegram rows left in `scheduled_notifications`. Every release before this one reads
+  those tables, and the deploy refuses an irreversible migration, so it waits in
+  `libs/db/pending-migrations/`. Promoting it is a release step once this release is live on
+  staging and production: record the deployed Worker versions, a D1 recovery point and the
+  rollback version, move the file unchanged into `libs/db/migrations/`, declare it `irreversible`
+  in `compatibility.json`, and apply it through the worker-jobs config. Until then every new
+  migration waits behind it, CH-11's included. A Telegram row still queued meanwhile has no
+  dispatcher, so the sweep resolves it as failed.
+- The privacy policy's Telegram parts are gone in each language, dated 1 October 2026, and
+  `privacy-practice.test.ts` holds the policy to describing no Telegram group. The runbook's
+  Telegram queries and this plan's Telegram section are gone.
+- Left to the operator: call `deleteWebhook`, delete `TELEGRAM_BOT_TOKEN` from both Workers and
+  `TELEGRAM_WEBHOOK_SECRET` from the UI Worker, and delete the bot in BotFather if wanted. Until the
+  webhook is deleted, Telegram's updates reach a route that no longer exists.
 
 The share-to-Telegram link (`share-targets.ts` and the share dialog) is not part of P1-025 and
-stays. P1-025's row then records the retirement and its date.
+stays.
 
 | ID    | Status   | Scope                                                                                                                            | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ----- | -------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -745,13 +649,14 @@ stays. P1-025's row then records the retirement and its date.
 | CH-08 | Partial  | Delete, Remove and Report in the chat panel                                                                                      | Component tests for the options on each message, the dialog's steps, reasons and failures, and its Escape, which leaves the panel open; the tombstone written into the panel's cache (2026-09-30). The writes and their server functions are CH-02's and CH-03's, tested there. `meetup-chat.spec.ts` passes locally in ar at 390, fr at 768 and en at 1280: the member reports the host's message with a reason, which is kept for the market, the host removes the member's and the member deletes their own, each seen at once in the other's panel. The review is the admin app's (see Moderation); step 6 on staging waits for the flag (CH-11)                                                                                                                                                                                                                 |
 | CH-09 | Partial  | Privacy policy, guidelines and terms, export, erasure, retention sweep                                                           | On Miniflare D1 (2026-09-30): the sweep deletes a chat 90 days after its meetup with its messages and settings, keeps a younger one and the reports of a deleted one, deletes a report 24 months after its decision and never an open one, reading both through their indexes; a report keeps who it is about, even once that account is deleted outright; erasure deletes a closed account's messages and settings and no one else's, keeps both kinds of report, and leaves a reopened account's chat as it was. `privacy-practice.test.ts` holds the policy's 90 days and 24 months to the code. The policy, guidelines, terms and organizer terms are dated 30 September 2026 in ar, fr and en; their review waits for Founder / Product                                                                                                                         |
 | CH-10 | Planned  | Logs, metrics and budgets                                                                                                        | Waits for the admin app (Founder / Product, 2026-09-30). Sends and the panel's first read within 300 ms p95 on staging by the Worker's `wallTime`; no message text in any log                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| CH-11 | Planned  | The staging run, the members' notice, then the flag on in production a week later; the Telegram card hidden where the chat is on | The run below recorded on staging, the notice sent, then the flag on in production a week later                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| CH-12 | Planned  | Retiring Telegram groups                                                                                                         | No Telegram code, table, secret or message left but the share link; P1-025's row records the retirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| CH-11 | Planned  | The staging run, the members' notice, then the flag on in production a week later                                                | The run below recorded on staging, the notice sent, then the flag on in production a week later                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| CH-12 | Partial  | Retiring Telegram groups, brought forward ahead of CH-10 and CH-11 (Founder / Product, 2026-10-01)                               | Code, messages and privacy text removed on 2026-10-01, and P1-025's row records the retirement. Left: promoting migration 0044 once this release is live everywhere, and the operator's webhook and secrets                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 Tickets run in number order. Moderation and privacy (CH-08 and CH-09) come before the flag, since
 the chat cannot open to members without them. The flag also waits for the admin app's review of
 reports, so that a report reaches someone who can act on it, and CH-10 waits for the admin app
-too, so CH-10 to CH-12 come after it (Founder / Product, 2026-09-30).
+too, so CH-10 and CH-11 come after it (Founder / Product, 2026-09-30). CH-12 came forward, ahead of
+both, on 2026-10-01 (Founder / Product).
 
 **Evidence run** (staging, its flag set by the one-off command, with a host, a member and a third
 account):
@@ -831,7 +736,8 @@ not repeated.
 6. **Build operational administration:** deliver `CO-08/CO-09` for event operations, corrections,
    moderation (the meetup chat's report review included), host trust, and audit.
 7. **Open the meetup chat:** deliver `P1-026` CH-10, then CH-11, which turns the chat on in
-   production, then retire Telegram groups with CH-12.
+   production. Telegram groups were retired ahead of it, with CH-12, whose migration 0044 is
+   promoted before CH-11's.
 8. **Deliver community-health evidence:** implement `CO-10/P1-019` metrics repositories, dashboards,
    alerts, retention snapshots, denominators, and as-of evidence.
 9. **Run the operational launch rehearsal:** complete `CO-11/P1-021/P1-023` across all checkpoints,

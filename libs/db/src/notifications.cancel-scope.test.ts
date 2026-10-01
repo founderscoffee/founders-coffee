@@ -106,30 +106,15 @@ describe('what cancelling a meetup withdraws', () => {
     eventId = await futureEvent(db);
   });
 
-  const enqueueTelegram = (templateKey: string, id: string) =>
-    enqueueNotification(db, {
-      id,
-      eventId,
-      userId: HOST_ID,
-      channel: 'telegram',
-      templateKey: templateKey as 'telegram_reminder',
-      payload: { ...payloadFor('h@test.coffee'), telegramChatId: -1001 },
-      sendAt: new Date(),
-    });
-
-  it("withdraws every message about the meetup, but not the bot's departures", async () => {
+  it('withdraws every message about the meetup, whoever it was for', async () => {
     await enqueue(db, eventId, MEMBER_ID, 'reminder_24h', 'ntf_cs_7');
-    await enqueueTelegram('telegram_reminder', 'ntf_cs_8');
-    await enqueueTelegram('telegram_member_removed', 'ntf_cs_9');
-    await enqueueTelegram('telegram_disconnected', 'ntf_cs_10');
+    await enqueue(db, eventId, HOST_ID, 'rsvp_received', 'ntf_cs_8');
 
     expect(await cancelNotificationsByEvent(db, { eventId })).toBe(2);
 
     expect(await statuses(db, eventId)).toEqual({
       reminder_24h: 'cancelled',
-      telegram_reminder: 'cancelled',
-      telegram_member_removed: 'pending',
-      telegram_disconnected: 'pending',
+      rsvp_received: 'cancelled',
     });
   });
 });

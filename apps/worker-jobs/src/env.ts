@@ -15,5 +15,4 @@ export interface Env {
   readonly TWILIO_SMS_FROM?: string;
   readonly FIREBASE_PROJECT_ID?: string;
   readonly FIREBASE_SERVICE_ACCOUNT?: string;
-  readonly TELEGRAM_BOT_TOKEN?: string;
 }

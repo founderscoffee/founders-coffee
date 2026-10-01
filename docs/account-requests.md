@@ -57,21 +57,17 @@ before closing.
 
 3. **Let the nightly run finish it.** `worker-jobs` runs at 03:00 UTC. For each closing account it
    cancels the meetups they host that have not started and gives back their seats at other hosts'
-   meetups, which also takes them out of those meetups' Telegram groups. Then it deletes their
-   photos from R2 and erases the account. It logs `account_closure` with the account id and one
-   outcome:
+   meetups. Then it deletes their photos from R2 and erases the account. It logs `account_closure`
+   with the account id and one outcome:
 
-   | Outcome               | Meaning                                                                                              |
-   | --------------------- | ---------------------------------------------------------------------------------------------------- |
-   | `erased`              | Done.                                                                                                |
-   | `waiting_on_meetup`   | A meetup they host is under way. A later night finishes it.                                          |
-   | `waiting_on_telegram` | They still hold a group invitation, or a Telegram job is queued for them. A later night finishes it. |
-   | `reopened`            | The account was reopened before the erasure. Nothing was erased.                                     |
+   | Outcome             | Meaning                                                          |
+   | ------------------- | ---------------------------------------------------------------- |
+   | `erased`            | Done.                                                            |
+   | `waiting_on_meetup` | A meetup they host is under way. A later night finishes it.      |
+   | `reopened`          | The account was reopened before the erasure. Nothing was erased. |
 
-   A member in a meetup's Telegram group usually takes a second night: the first queues their
-   removal, and the erasure waits until the bot has done it. `account_closure_overdue` is logged as
-   an error for an account still waiting 25 days after it was closed: look at it before the 30 days
-   run out.
+   `account_closure_overdue` is logged as an error for an account still waiting 25 days after it was
+   closed: look at it before the 30 days run out.
 
 4. **Confirm to the member**, from contact@founders.coffee, once the log says `erased`.
 
@@ -98,8 +94,8 @@ at (`erased-<id>@erased.invalid`), no photo and no language. The rows that stay:
 - the records of moderation decisions: host trust, the operations audit and the weekly reviews.
 
 Everything else that was theirs goes: profile, photos, preferences, devices, queued notices,
-Telegram invitations, meetup chat messages and chat settings, sessions, Google and GitHub links,
-pending sign-in codes, and waitlist entries under their address. Orders and invoices, which belong to the dormant payments work, are
+meetup chat messages and chat settings, sessions, Google and GitHub links, pending sign-in codes,
+and waitlist entries under their address. Orders and invoices, which belong to the dormant payments work, are
 not touched; that has to change before payments open.
 
 **Outside D1.** Rate-limit buckets delete themselves a day after their last use. Logs are not
@@ -124,7 +120,6 @@ SELECT e.title, c.outcome, c.walk_in_count, c.would_host_again, c.host_friction,
 SELECT e.title, e.starts_at, r.status, r.created_at FROM event_rsvps r JOIN events e ON e.id = r.event_id WHERE r.user_id = 'usr_…'
 SELECT e.title, a.outcome, a.recorded_at FROM event_attendance a JOIN events e ON e.id = a.event_id WHERE a.user_id = 'usr_…'
 SELECT e.title, f.value_rating, f.would_return, f.comment, f.created_at FROM event_feedback f JOIN events e ON e.id = f.event_id WHERE f.user_id = 'usr_…'
-SELECT e.title, i.telegram_user_id, i.created_at FROM event_telegram_invites i JOIN events e ON e.id = i.event_id WHERE i.user_id = 'usr_…'
 SELECT market_code, status, reason_code, reviewed_at FROM host_trust WHERE user_id = 'usr_…'
 SELECT market_code, city_code, locale, notified_at, created_at FROM city_waitlist WHERE email = 'member@example.com'
 SELECT e.title, m.body, m.created_at, m.removed_at, m.removal FROM chat_messages m JOIN chat_channels c ON c.id = m.channel_id JOIN events e ON e.id = c.event_id WHERE m.author_id = 'usr_…'

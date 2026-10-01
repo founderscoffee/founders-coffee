@@ -10,8 +10,6 @@ import {
   ntf_event_cancelled_title,
   ntf_push_feedback_invitation_title,
   ntf_sms_event_cancelled,
-  ntf_telegram_cancelled,
-  ntf_telegram_cancelled_pinned,
 } from './paraglide/messages.js';
 
 type Sentence = {
@@ -90,11 +88,6 @@ const ARABIC_AGREEMENT: readonly Sentence[] = [
     expected:
       'ألغى المضيف لقاء «قهوة تعارف» المقرر يوم السبت 3 أكتوبر في مقهى الروضة.',
   },
-  {
-    key: 'ntf_telegram_cancelled',
-    render: () => ntf_telegram_cancelled(ARABIC_MEETUP, AR),
-    expected: 'ألغى المضيف لقاء «قهوة تعارف» المقرر يوم السبت 3 أكتوبر.',
-  },
 ];
 
 const FRENCH_AGREEMENT: readonly Sentence[] = [
@@ -147,18 +140,6 @@ const FRENCH_AGREEMENT: readonly Sentence[] = [
     render: () => ntf_email_event_cancelled_text(FRENCH_MEETUP, FR),
     expected:
       'L’hôte a annulé la rencontre « Les Matinales », prévue le samedi 3 octobre à Ifri Hub.',
-  },
-  {
-    key: 'ntf_telegram_cancelled',
-    render: () => ntf_telegram_cancelled(FRENCH_MEETUP, FR),
-    expected:
-      'L’hôte a annulé la rencontre « Les Matinales », prévue le samedi 3 octobre.',
-  },
-  {
-    key: 'ntf_telegram_cancelled_pinned',
-    render: () => ntf_telegram_cancelled_pinned(FRENCH_MEETUP, FR),
-    expected:
-      'Annulée : la rencontre « Les Matinales », prévue le samedi 3 octobre.',
   },
 ];
 

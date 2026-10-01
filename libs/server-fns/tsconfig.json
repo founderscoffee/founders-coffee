@@ -15,19 +15,16 @@
   ],
   "references": [
     {
-      "path": "../notifications"
-    },
-    {
       "path": "../email"
     },
     {
       "path": "../i18n"
     },
     {
-      "path": "../domain"
+      "path": "../infra"
     },
     {
-      "path": "../infra"
+      "path": "../domain"
     },
     {
       "path": "../db"

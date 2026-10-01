@@ -29,9 +29,6 @@ vi.mock('./HostEventPanel', () => ({ HostEventPanel: () => null }));
 vi.mock('../../features/chat/components/ChatEntry', () => ({
   ChatEntry: () => null,
 }));
-vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
-  TelegramGroupCard: () => <p>telegram-group</p>,
-}));
 vi.mock('./RsvpCancelDialog', () => ({ RsvpCancelDialog: () => null }));
 vi.mock('../../features/events/components/PushPermissionPrompt', () => ({
   PushPermissionPrompt: () => null,

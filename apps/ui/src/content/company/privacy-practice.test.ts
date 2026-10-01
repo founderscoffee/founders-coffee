@@ -45,34 +45,12 @@ const PHONE: Record<Locale, string> = {
 };
 
 const SERVICES: Record<Locale, readonly string[]> = {
-  ar: [
-    'Cloudflare',
-    'Mapbox',
-    'Firebase',
-    'Twilio',
-    'Google',
-    'GitHub',
-    'تيليغرام',
-  ],
-  en: [
-    'Cloudflare',
-    'Mapbox',
-    'Firebase',
-    'Twilio',
-    'Google',
-    'GitHub',
-    'Telegram',
-  ],
-  fr: [
-    'Cloudflare',
-    'Mapbox',
-    'Firebase',
-    'Twilio',
-    'Google',
-    'GitHub',
-    'Telegram',
-  ],
+  ar: ['Cloudflare', 'Mapbox', 'Firebase', 'Twilio', 'Google', 'GitHub'],
+  en: ['Cloudflare', 'Mapbox', 'Firebase', 'Twilio', 'Google', 'GitHub'],
+  fr: ['Cloudflare', 'Mapbox', 'Firebase', 'Twilio', 'Google', 'GitHub'],
 };
+
+const RETIRED_SERVICE = ['Telegram', 'تيليغرام'] as const;
 
 const blockText = (block: CompanyBlock): string =>
   block.kind === 'table'
@@ -138,6 +116,23 @@ describe('the privacy policy, held to what the platform does', () => {
           sharing,
           `privacy:${locale} does not say what ${service} receives`,
         ).toContain(service);
+      }
+    }
+  });
+
+  it('describes no Telegram group, which the platform no longer links to a meetup', () => {
+    for (const locale of LOCALES) {
+      const policy = companyPageContent('privacy', locale)
+        .sections.flatMap((section) => [
+          section.heading,
+          ...section.blocks.map(blockText),
+        ])
+        .join(' ');
+      for (const name of RETIRED_SERVICE) {
+        expect(
+          policy,
+          `privacy:${locale} still tells members what Telegram receives`,
+        ).not.toContain(name);
       }
     }
   });

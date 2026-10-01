@@ -44,21 +44,13 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       subheading('Gatherings and RSVPs'),
       ...text(
         'For a gathering you publish, we store its title, description, venue, address, coordinates, time, and language; these are public so the gathering can be discovered.',
-        'For an RSVP, we store the RSVP, its status, and date. The host sees **only your name** in the attendee list, because they need to know who to expect and book the venue accordingly. **The host does not see your email or phone number**, and the platform gives them no way to message you privately. However, if the host links a Telegram group to the gathering and you choose to join it, they see you there and can message you there like any other member, as explained below.',
+        'For an RSVP, we store the RSVP, its status, and date. The host sees **only your name** in the attendee list, because they need to know who to expect and book the venue accordingly. **The host does not see your email or phone number**, and the platform gives them no way to message you privately.',
       ),
       subheading('Gathering chat'),
       ...text(
         'A gathering can have a chat where its host and the people going write. We store each message, its time and its author, how far you have read, and whether you muted its notifications. Everyone in the chat sees what you write with your name and photo. Messages are not end-to-end encrypted, so they are stored with us.',
         'If a member reports a message, a moderator reads the chat it was posted in to decide on the report. We keep the report: the message and its author, the reason, the date, and the moderator’s decision. We do not reveal who reported to the person reported.',
         'A chat and its messages are deleted **90 days** after the gathering ends or is cancelled. A report is kept without the message’s text for **24 months** after the moderator’s decision.',
-      ),
-      subheading('Telegram gathering groups'),
-      ...text(
-        'A host may link their own Telegram group to a gathering, and people who RSVP may join it. Linking and joining are optional; choosing not to use this option does not affect your RSVP or reminders.',
-        'When a group is linked, we store **its Telegram identifier and name**. If you request to join, we create **a unique invitation link** for you. When Telegram sends your request through that link, we store **your Telegram account identifier** so we can verify your RSVP, approve the request, and remove you if you cancel your RSVP. Telegram sends other account data with the request, but we do not store it or ask for your phone number.',
-        'Because the bot is a group administrator, Telegram sends it the group’s messages. We do not store or record them; we only check the host’s linking command and ignore everything else. The bot posts only public gathering details and changes, a reminder one day before, a cancellation notice when applicable, the city’s next gatherings when the gathering ends, and a notice to the host if linking fails.',
-        '**Inside the group, your account appears to members and the host as Telegram displays it, and they can message you there.** Whether your phone number is visible is controlled by your Telegram privacy settings, not by the platform; we remind you before you request an invitation link. Telegram is an independent service, and your account and chats are handled under its own terms and privacy policy.',
-        'The group link ends one day after the gathering, or when the host removes the link or cancels the gathering. The bot then revokes the invitation links it created and leaves the group, unless the host links it to another gathering. If the host removes the bot earlier, the link ends immediately. In all cases, the group remains with the host and its members, and no messages reach us after the bot leaves.',
       ),
       subheading('Attendance and post-gathering feedback'),
       ...text(
@@ -100,7 +92,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ...text('Each processing activity relies on a basis the law recognises:'),
       list([
         '**Performance of our contract:** your account, your public profile (your name, your photo and introduction if you add them, the month you joined, and the number of gatherings you hosted), publishing gatherings, RSVPs, the gathering chat, and reminders and alerts about a gathering you joined. These are not extra services but the core of what you signed up for.',
-        '**Your explicit consent:** publishing the optional profile fields that each have a visibility switch, enabling push or SMS notifications, joining a city waitlist, and linking or joining a Telegram group for a gathering. You can withdraw consent at any time; withdrawal does not affect the lawfulness of what was done before.',
+        '**Your explicit consent:** publishing the optional profile fields that each have a visibility switch, enabling push or SMS notifications, and joining a city waitlist. You can withdraw consent at any time; withdrawal does not affect the lawfulness of what was done before.',
         '**Legitimate interest:** platform security, abuse prevention and the review of reports, measuring platform use with aggregate figures not attributed to anyone, and attendance records as a way to protect the community from fake gatherings. We have balanced this interest against your rights, which is why we do not show attendance records publicly and let you correct them.',
         '**Legal obligation:** when a law requires us to retain or provide data.',
       ]),
@@ -115,7 +107,6 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
         '**Other members** also see you in the attendee list for a gathering you share.',
         '**Everyone in a gathering’s chat**, its host and the people going, reads what you write there with your name and photo. **A moderator** reviewing a report reads the chat it came from.',
         '**The host** sees your name in the attendee list and records whether you attended. Under the [Organizer terms](/organizers), the host must use this list only to organise their gathering; using it to send offers or build a database is a violation that leads to account suspension.',
-        '**Telegram group members**, if you join the gathering’s group, see you as Telegram displays you and can message you there. **Telegram** itself is an independent party that does not act on our behalf; it receives from us what the bot posts about the gathering, the approval of your join request, and your removal if you cancel your RSVP.',
         '**Google or GitHub**, if you sign in with one of them: each is an independent party that does not act on our behalf. It learns that you signed in to our platform, sends us what is described under “Account data” above, and processes this under its own privacy policy.',
         '**Technical service providers** we rely on, each within the limits of its task: **Cloudflare** for hosting the application, the database and photos, sending email, measuring visits, and bot protection; **Mapbox** for showing maps and searching for places; **Firebase**, from Google, for delivering push notifications if you enable them; and **Twilio** for texting you a verification code if you add a phone number, and for sending SMS alerts if you enable them. They process data on our instructions and on our behalf and may not use it for their own purposes, except for the usage data Mapbox maps send, which Mapbox also processes under its own privacy policy.',
         '**Competent authorities**, when the law requires us to provide data. We verify who is asking and that the request stays within what the law allows them, and provide only what is required.',
@@ -126,7 +117,7 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       'Transfers outside your country',
       text(
         'We state this explicitly because the law requires it, and because it concerns you.',
-        'The platform runs on distributed cloud infrastructure, and the providers named in the previous section are based outside the countries where we operate, and **the main copy of our database is in Western Europe**. **Your data is therefore processed and stored outside your country.** When a Telegram group is linked to a gathering, what reaches Telegram from us about it and about those who join is also processed outside your country, on Telegram’s servers and under its terms.',
+        'The platform runs on distributed cloud infrastructure, and the providers named in the previous section are based outside the countries where we operate, and **the main copy of our database is in Western Europe**. **Your data is therefore processed and stored outside your country.**',
         'We rely on **the transfer being necessary to perform our contract with you**: your account cannot run, nothing you ask of the platform can be provided, and no notification can reach you without the data passing through this infrastructure. In return, we contract with providers committed to recognised protection standards, encrypt connections, and limit what reaches each provider to what its task requires.',
         'This is the basis we rely on today, not a prior authorisation from a data protection authority, although some laws also provide for one. If we later obtain an authorisation for this transfer, we will update this section and refer to it.',
         'If this transfer is not acceptable to you, you can ask us to close your account, and we will do so.',
@@ -160,11 +151,6 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
             'Gathering chat messages',
             'Deleted with the chat **90 days** after the gathering ends or is cancelled',
           ],
-          [
-            'Telegram invitation link and account identifier',
-            'Until you cancel your RSVP or the group link ends, about one day after the gathering, then deleted. If the identifier is needed to remove you from the group, it is kept until the removal is done or becomes permanently impossible',
-          ],
-          ['Telegram group identifier and name', 'With the gathering record'],
           [
             'Push tokens',
             'Until push is disabled or the token becomes invalid',
@@ -245,5 +231,5 @@ export const privacyEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '30 September 2026',
+  '1 October 2026',
 );

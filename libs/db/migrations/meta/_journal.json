@@ -309,6 +309,13 @@
       "when": 1790771756643,
       "tag": "0043_chat_report_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "6",
+      "when": 1790842523764,
+      "tag": "0044_retire_telegram_groups",
+      "breakpoints": true
     }
   ]
 }

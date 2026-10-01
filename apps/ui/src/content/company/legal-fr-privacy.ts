@@ -44,21 +44,13 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       subheading('Rencontres et inscriptions'),
       ...text(
         'Pour une rencontre que vous publiez, nous conservons le titre, la description, le nom du lieu, son adresse, ses coordonnées, l’horaire et la langue ; ces informations sont publiques par nature, puisqu’une rencontre est publiée pour être découverte.',
-        'Pour une inscription, nous conservons l’inscription, son statut et sa date. L’organisateur voit **uniquement votre nom** dans la liste des inscrits, car il doit savoir qui attendre et réserver le lieu en conséquence. **Il ne voit ni votre e-mail ni votre numéro de téléphone**, et la plateforme ne lui donne aucun moyen de vous écrire en privé. En revanche, s’il relie un groupe Telegram à sa rencontre et que vous choisissez de le rejoindre, il vous y voit et peut vous y écrire comme les autres membres, comme expliqué ci-dessous.',
+        'Pour une inscription, nous conservons l’inscription, son statut et sa date. L’organisateur voit **uniquement votre nom** dans la liste des inscrits, car il doit savoir qui attendre et réserver le lieu en conséquence. **Il ne voit ni votre e-mail ni votre numéro de téléphone**, et la plateforme ne lui donne aucun moyen de vous écrire en privé.',
       ),
       subheading('Discussion de la rencontre'),
       ...text(
         'Une rencontre peut avoir une discussion où écrivent son organisateur et les inscrits. Nous conservons chaque message, son heure et son auteur, où vous en êtes de votre lecture et si vous avez désactivé ses notifications. Chacun dans la discussion voit ce que vous écrivez, avec votre nom et votre photo. Les messages ne sont pas chiffrés de bout en bout : ils sont conservés chez nous.',
         'Si un membre signale un message, un modérateur lit la discussion où il a été publié pour statuer sur le signalement. Nous conservons le signalement : le message et son auteur, le motif, la date et la décision du modérateur. Nous ne révélons pas l’auteur du signalement à la personne signalée.',
         'Une discussion et ses messages sont supprimés **90 jours** après la fin ou l’annulation de la rencontre. Un signalement est conservé sans le texte du message pendant **24 mois** après la décision du modérateur.',
-      ),
-      subheading('Groupes Telegram'),
-      ...text(
-        'L’organisateur peut relier son propre groupe Telegram à la rencontre, et les personnes inscrites peuvent le rejoindre. La liaison et l’adhésion sont facultatives ; ne pas utiliser cette option n’affecte ni votre inscription ni vos rappels.',
-        'Lorsqu’un groupe est relié, nous conservons **son identifiant et son nom Telegram**. Si vous demandez à le rejoindre, nous créons **un lien d’invitation unique** pour vous. Lorsque Telegram transmet votre demande via ce lien, nous conservons **l’identifiant de votre compte Telegram** afin de vérifier votre inscription, d’approuver la demande et de vous retirer si vous annulez votre inscription. Telegram transmet d’autres données avec la demande, mais nous ne les conservons pas et ne demandons pas votre numéro de téléphone.',
-        'Comme le bot est administrateur du groupe, Telegram lui transmet les messages du groupe. Nous ne les conservons ni ne les enregistrons ; nous vérifions seulement la commande de liaison de l’organisateur et ignorons le reste. Le bot publie uniquement les informations publiques de la rencontre et leurs changements, un rappel la veille, un avis d’annulation le cas échéant, les prochaines rencontres de la ville à la fin de la rencontre et un avis à l’organisateur si la liaison échoue.',
-        '**Dans le groupe, votre compte apparaît aux membres et à l’organisateur comme Telegram l’affiche, et ils peuvent vous écrire.** La visibilité de votre numéro dépend de vos réglages de confidentialité Telegram, pas de la plateforme ; nous vous le rappelons avant votre demande de lien d’invitation. Telegram est un service indépendant : votre compte et vos conversations sont traités selon ses propres conditions et sa politique de confidentialité.',
-        'Le lien avec le groupe prend fin un jour après la rencontre, ou lorsque l’organisateur supprime la liaison ou annule la rencontre. Le bot révoque alors les liens d’invitation qu’il a créés et quitte le groupe, sauf si l’organisateur le relie à une autre rencontre. Si l’organisateur retire le bot plus tôt, le lien prend fin immédiatement. Dans tous les cas, le groupe reste à l’organisateur et à ses membres, et aucun message ne nous parvient après le départ du bot.',
       ),
       subheading('Présence et retour après la rencontre'),
       ...text(
@@ -101,7 +93,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ...text('Chaque traitement repose sur un fondement prévu par la loi :'),
       list([
         '**Exécution du contrat qui nous lie :** le compte, votre profil public (votre nom, votre photo et votre présentation si vous les ajoutez, votre mois d’inscription et le nombre de rencontres organisées), la publication des rencontres, les inscriptions, la discussion de la rencontre, et les rappels et alertes liés à une rencontre à laquelle vous êtes inscrit. Ce ne sont pas des services en plus, mais l’essentiel de ce pour quoi vous vous êtes inscrit.',
-        '**Votre consentement explicite :** la publication des champs facultatifs du profil, qui ont chacun un réglage de visibilité, l’activation des notifications push ou SMS, l’inscription à la liste d’attente d’une ville, et la liaison d’un groupe Telegram à une rencontre ou l’adhésion à ce groupe. Vous pouvez retirer votre consentement à tout moment, sans remettre en cause la licéité de ce qui a été fait auparavant.',
+        '**Votre consentement explicite :** la publication des champs facultatifs du profil, qui ont chacun un réglage de visibilité, l’activation des notifications push ou SMS, et l’inscription à la liste d’attente d’une ville. Vous pouvez retirer votre consentement à tout moment, sans remettre en cause la licéité de ce qui a été fait auparavant.',
         '**Intérêt légitime :** la sécurité de la plateforme, la prévention des abus et l’examen des signalements, la mesure de l’usage par des chiffres agrégés qui ne sont attribués à personne, et les registres de présence comme moyen de protéger la communauté contre les rencontres fictives. Nous avons mis cet intérêt en balance avec vos droits : c’est pourquoi les registres de présence ne sont pas publics et vous pouvez les faire corriger.',
         '**Obligation légale :** lorsqu’un texte nous impose de conserver ou de transmettre une donnée.',
       ]),
@@ -116,7 +108,6 @@ export const privacyFrench: CompanyPageContent = translatedPage(
         '**Les autres membres** vous voient aussi dans la liste des inscrits d’une rencontre que vous partagez avec eux.',
         '**Chacun dans la discussion d’une rencontre**, son organisateur et les inscrits, lit ce que vous y écrivez, avec votre nom et votre photo. **Un modérateur** qui examine un signalement lit la discussion d’où il vient.',
         '**L’organisateur** voit votre nom dans la liste des inscrits et indique si vous étiez présent. Les [Conditions des organisateurs](/organizers) l’obligent à n’utiliser cette liste que pour organiser sa rencontre ; l’utiliser pour envoyer des offres ou constituer une base de données est une infraction qui entraîne la suspension du compte.',
-        '**Les membres du groupe Telegram** de la rencontre, si vous le rejoignez, vous voient comme Telegram vous affiche et peuvent vous y écrire. **Telegram** lui-même est une entité indépendante qui n’agit pas pour notre compte ; il reçoit de nous ce que le bot publie sur la rencontre, l’approbation de votre demande d’adhésion et votre retrait si vous annulez votre inscription.',
         '**Google ou GitHub**, si vous vous connectez avec l’un d’eux : chacun est une entité indépendante qui n’agit pas pour notre compte. Il sait que vous vous êtes connecté à notre plateforme, nous transmet ce qui est décrit sous « Données du compte » ci-dessus, et le traite selon sa propre politique de confidentialité.',
         '**Les prestataires techniques** auxquels nous faisons appel, chacun dans les limites de sa mission : **Cloudflare** pour l’hébergement de l’application, de la base de données et des photos, l’envoi des e-mails, la mesure d’audience et la protection anti-robot ; **Mapbox** pour l’affichage des cartes et la recherche de lieux ; **Firebase**, de Google, pour l’acheminement des notifications push si vous les activez ; et **Twilio** pour l’envoi par SMS d’un code de vérification si vous ajoutez un numéro de téléphone, et des alertes SMS si vous les activez. Ils traitent les données sur nos instructions et pour notre compte, sans pouvoir les utiliser à leurs propres fins, à l’exception des données d’utilisation envoyées par les cartes Mapbox, que Mapbox traite aussi selon sa propre politique de confidentialité.',
         '**Les autorités compétentes**, lorsque la loi nous impose de leur transmettre des données. Nous vérifions la qualité du demandeur et que la demande reste dans les limites de ce que le texte l’autorise à demander, et nous nous en tenons à ce qui est demandé.',
@@ -127,7 +118,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       'Transferts hors de votre pays',
       text(
         'Nous le mentionnons explicitement parce que la loi l’exige, et parce que cela vous concerne.',
-        'La plateforme fonctionne sur une infrastructure cloud distribuée, et les prestataires cités dans la section précédente sont établis hors des pays où nous sommes présents, et **la copie principale de notre base de données se trouve en Europe de l’Ouest**. **Vos données sont donc traitées et stockées hors de votre pays.** Lorsqu’un groupe Telegram est relié à une rencontre, ce qui parvient à Telegram de notre part à son sujet et au sujet de ses membres est lui aussi traité hors de votre pays, sur les serveurs de Telegram et selon ses conditions.',
+        'La plateforme fonctionne sur une infrastructure cloud distribuée, et les prestataires cités dans la section précédente sont établis hors des pays où nous sommes présents, et **la copie principale de notre base de données se trouve en Europe de l’Ouest**. **Vos données sont donc traitées et stockées hors de votre pays.**',
         'Nous nous appuyons sur **la nécessité du transfert pour exécuter le contrat qui nous lie** : sans que les données passent par cette infrastructure, votre compte ne peut pas fonctionner, rien de ce que vous demandez à la plateforme ne peut vous être fourni et aucune notification ne peut vous parvenir. En contrepartie, nous faisons appel à des prestataires engagés sur des standards de protection reconnus, nous chiffrons les connexions et nous limitons ce que reçoit chaque prestataire à ce qu’exige sa mission.',
         'C’est le fondement sur lequel nous nous appuyons aujourd’hui, et non une autorisation préalable d’une autorité de protection des données, que certaines lois prévoient aussi. Si nous obtenons plus tard une autorisation pour ce transfert, nous mettrons cette section à jour pour y faire référence.',
         'Si ce transfert ne vous convient pas, vous pouvez demander la fermeture de votre compte, et nous le ferons.',
@@ -160,14 +151,6 @@ export const privacyFrench: CompanyPageContent = translatedPage(
           [
             'Messages de la discussion d’une rencontre',
             'Supprimés avec la discussion **90 jours** après la fin ou l’annulation de la rencontre',
-          ],
-          [
-            'Lien d’invitation Telegram et identifiant de compte',
-            'Jusqu’à l’annulation de votre inscription ou la fin de la liaison du groupe, soit environ un jour après la rencontre, puis suppression. Si l’identifiant est nécessaire pour vous retirer du groupe, il est conservé jusqu’à ce que le retrait soit fait ou devienne définitivement impossible',
-          ],
-          [
-            'Identifiant et nom du groupe Telegram',
-            'Avec l’historique de la rencontre',
           ],
           [
             'Jetons push',
@@ -249,5 +232,5 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '30 septembre 2026',
+  '1er octobre 2026',
 );

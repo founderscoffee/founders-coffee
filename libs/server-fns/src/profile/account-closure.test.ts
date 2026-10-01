@@ -176,33 +176,6 @@ describe('carrying an account closure through (#105, real D1 and R2)', () => {
     expect(await stateOf(db, host)).toBe('closing');
   });
 
-  it('waits for a Telegram removal still queued under the member, then erases', async () => {
-    const db = await setup();
-    const host = await member(db, 'Amel');
-    const leaving = await member(db, 'Yasmine');
-    const eventId = await meetup(db, host, fromNow(-48));
-    await db.insert(scheduledNotifications).values({
-      id: id('ntf'),
-      eventId,
-      userId: leaving,
-      channel: 'telegram',
-      templateKey: 'telegram_member_removed',
-      payload: { telegramChatId: -100123, telegramUserId: 42 },
-      sendAt: new Date(),
-    });
-    const account = await close(db, leaving);
-
-    expect(await carryAccountClosure(db, account, photos())).toBe(
-      'waiting_on_telegram',
-    );
-    await db
-      .update(scheduledNotifications)
-      .set({ status: 'sent' })
-      .where(eq(scheduledNotifications.userId, leaving));
-    expect(await carryAccountClosure(db, account, photos())).toBe('erased');
-    expect(await stateOf(db, leaving)).toBe('deleted');
-  });
-
   it("deletes the member's photos from storage along with the rows that name them", async () => {
     const db = await setup();
     const owner = await member(db, 'Rania');

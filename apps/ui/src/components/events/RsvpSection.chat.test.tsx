@@ -22,9 +22,6 @@ vi.mock('./AddToCalendar', () => ({ AddToCalendar: () => null }));
 vi.mock('../../features/chat/components/ChatEntry', () => ({
   ChatEntry: () => <p>chat-entry</p>,
 }));
-vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
-  TelegramGroupCard: () => <p>telegram-group</p>,
-}));
 vi.mock('./RsvpCancelDialog', () => ({ RsvpCancelDialog: () => null }));
 vi.mock('../../features/events/components/PushPermissionPrompt', () => ({
   PushPermissionPrompt: () => null,
@@ -76,15 +73,11 @@ describe('RsvpSection and the meetup’s chat', () => {
     ['under way', 'started'],
     ['over', 'ended'],
   ] as const)(
-    'opens the chat for someone going while the meetup is %s, above the Telegram group',
+    'opens the chat for someone going while the meetup is %s',
     (_case, phase) => {
       show(going, phase);
 
-      const entry = screen.getByText('chat-entry');
-      const group = screen.getByText('telegram-group');
-      expect(
-        entry.compareDocumentPosition(group) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
+      expect(screen.getByText('chat-entry')).toBeTruthy();
       expect(screen.queryByText(INVITE)).toBeNull();
     },
   );
@@ -115,6 +108,5 @@ describe('RsvpSection and the meetup’s chat', () => {
     cleanup();
     show(going, 'upcoming', false);
     expect(screen.queryByText('chat-entry')).toBeNull();
-    expect(screen.getByText('telegram-group')).toBeTruthy();
   });
 });

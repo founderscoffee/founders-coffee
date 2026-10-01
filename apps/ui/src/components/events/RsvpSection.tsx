@@ -27,7 +27,6 @@ import { PushPermissionPrompt } from '../../features/events/components/PushPermi
 import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
-import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
 import { useAuth } from '../../lib/app-providers';
 import { localizedLogin } from '../../lib/locale-routing';
 import { AddToCalendar } from './AddToCalendar';
@@ -215,7 +214,6 @@ export const RsvpSection = ({
           {isChatAvailable ? (
             <ChatEntry locale={locale} eventId={event.id} />
           ) : null}
-          <TelegramGroupCard eventId={event.id} locale={locale} />
         </>
       ) : (
         offer

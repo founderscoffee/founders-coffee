@@ -23,7 +23,6 @@ import {
   eventFeedback,
   eventRsvps,
   events,
-  eventTelegramInvites,
   memberProfiles,
   profileAssets,
   pushSessionLinks,
@@ -116,38 +115,6 @@ export const listUpcomingRsvpEvents = async (
   return rows.map((row) => row.eventId);
 };
 
-/**
- * Whether a meetup's Telegram group still waits on this member: an invite they hold, or a post or
- * a removal queued under them that has not gone out.
- *
- * Group posts are attributed to the host and a removal to the member leaving, so erasing either
- * while one is queued would take the job with it, and leave a member in a group they left.
- */
-export const hasPendingTelegramWork = async (
-  db: Db,
-  userId: string,
-): Promise<boolean> => {
-  const [invites, queued] = await Promise.all([
-    db
-      .select({ id: eventTelegramInvites.id })
-      .from(eventTelegramInvites)
-      .where(eq(eventTelegramInvites.userId, userId))
-      .limit(1),
-    db
-      .select({ id: scheduledNotifications.id })
-      .from(scheduledNotifications)
-      .where(
-        and(
-          eq(scheduledNotifications.userId, userId),
-          eq(scheduledNotifications.channel, 'telegram'),
-          inArray(scheduledNotifications.status, ['pending', 'processing']),
-        ),
-      )
-      .limit(1),
-  ]);
-  return invites.length > 0 || queued.length > 0;
-};
-
 /** The storage prefix of every photo a member ever reserved, whatever its state. */
 export const listProfileAssetPrefixes = async (
   db: Db,
@@ -172,7 +139,7 @@ export const listProfileAssetPrefixes = async (
  * they filed and the ones about their messages, pointing at the tombstone.
  *
  * Everything that is the member's own goes: profile, photo rows, preferences, devices, queued
- * notices, Telegram invites, meetup chat messages and chat settings, sessions, sign-in links with
+ * notices, meetup chat messages and chat settings, sessions, sign-in links with
  * Google or GitHub, codes still waiting for their address or phone, and the city waitlist entries
  * under their address. Photo bytes are the caller's to delete first, from
  * {@link listProfileAssetPrefixes}, since a deleted row is the only record of where they are.
@@ -205,7 +172,6 @@ export const eraseClosedAccount = async (
     db
       .delete(scheduledNotifications)
       .where(owned(scheduledNotifications.userId)),
-    db.delete(eventTelegramInvites).where(owned(eventTelegramInvites.userId)),
     db
       .update(eventFeedback)
       .set({ comment: null, commentLanguage: null, updatedAt: now })

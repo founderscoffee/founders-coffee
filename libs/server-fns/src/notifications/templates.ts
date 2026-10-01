@@ -29,7 +29,7 @@ import {
   type Locale,
 } from '@founders-coffee/i18n';
 
-import type { PersonalTemplateKey } from '@founders-coffee/core';
+import type { NotificationTemplateKey } from '@founders-coffee/core';
 
 export type { NotificationTemplateKey } from '@founders-coffee/core';
 
@@ -113,7 +113,7 @@ export const withReason = (
  */
 export const smsBodyFor = (
   templateKey: Exclude<
-    PersonalTemplateKey,
+    NotificationTemplateKey,
     | 'rsvp_received'
     | 'rsvp_cancelled'
     | 'closeout_prompt'
@@ -156,7 +156,7 @@ export const smsBodyFor = (
  * once, in each one's language, from `chatUnreadNotice` in the chat's own module.
  */
 export const pushPayloadFor = (
-  templateKey: Exclude<PersonalTemplateKey, 'chat_unread'>,
+  templateKey: Exclude<NotificationTemplateKey, 'chat_unread'>,
   values: TemplateValues,
   locale: Locale,
 ): { pushTitle: string; pushBody: string; pushUrl: string } => {

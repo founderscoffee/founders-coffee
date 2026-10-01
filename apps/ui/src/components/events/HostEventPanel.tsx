@@ -28,7 +28,6 @@ import {
 } from '../../features/events/hooks';
 import { ChatEntry } from '../../features/chat/components/ChatEntry';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
-import { TelegramGroupCard } from '../../features/telegram/components/TelegramGroupCard';
 import { AddToCalendar } from './AddToCalendar';
 import { CancelEventDialog } from './CancelEventDialog';
 import { RepeatHostLink } from './RepeatHostLink';
@@ -145,7 +144,6 @@ export const HostEventPanel = ({
       {isChatAvailable ? (
         <ChatEntry locale={locale} eventId={event.id} />
       ) : null}
-      <TelegramGroupCard eventId={event.id} locale={locale} />
 
       {repeat.data ? (
         <RepeatHostLink

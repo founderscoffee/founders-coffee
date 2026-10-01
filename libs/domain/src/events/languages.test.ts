@@ -23,7 +23,7 @@ describe('the language the site writes in about a meetup', () => {
     expect(leadLocale(['fr', 'ar'], 'ar')).toBe('fr');
     expect(
       leadLocale(['ber', 'en'], 'ar'),
-      'Telegram posts and the stored address need a language the site has, so Tamazight is passed over for English',
+      'the stored address and the calendar entry need a language the site has, so Tamazight is passed over for English',
     ).toBe('en');
   });
 

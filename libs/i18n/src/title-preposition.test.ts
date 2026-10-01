@@ -9,9 +9,6 @@ import {
   ntf_email_rsvp_received_html,
   ntf_email_rsvp_received_text,
   ntf_push_rsvp_received_title,
-  ntf_telegram_connect_needs_rights,
-  ntf_telegram_connect_not_admin,
-  ntf_telegram_wrap_up,
   share_event_text,
 } from './paraglide/messages.js';
 
@@ -26,7 +23,6 @@ const MEETUP = {
   venue: 'Ifri Hub',
   date: 'samedi 3 octobre',
   url: 'https://founders.coffee/e/1',
-  bot: '@FoundersCoffeeBot',
 } as const;
 
 const SENTENCES: readonly {
@@ -43,23 +39,6 @@ const SENTENCES: readonly {
     key: 'host_repeat_notice',
     render: () => host_repeat_notice(MEETUP, FR),
     expected: 'Nous partirons de la rencontre « Le Grand Café ».',
-  },
-  {
-    key: 'ntf_telegram_wrap_up',
-    render: () => ntf_telegram_wrap_up(MEETUP, FR),
-    expected: 'Merci d’être venus à la rencontre « Le Grand Café » !',
-  },
-  {
-    key: 'ntf_telegram_connect_not_admin',
-    render: () => ntf_telegram_connect_not_admin(MEETUP, FR),
-    expected:
-      'Seul un administrateur du groupe peut le relier à la rencontre « Le Grand Café ».',
-  },
-  {
-    key: 'ntf_telegram_connect_needs_rights',
-    render: () => ntf_telegram_connect_needs_rights(MEETUP, FR),
-    expected:
-      'Pour relier le groupe à la rencontre « Le Grand Café », faites du bot @FoundersCoffeeBot un administrateur',
   },
   {
     key: 'ntf_push_rsvp_received_title',

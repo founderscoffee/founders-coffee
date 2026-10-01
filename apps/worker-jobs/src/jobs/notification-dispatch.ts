@@ -1,25 +1,22 @@
+import type { NotificationDeliveryChannel } from '@founders-coffee/core';
 import type { Db, ScheduledNotification } from '@founders-coffee/db';
 import type { notifications } from '@founders-coffee/domain';
 import type { EmailProvider } from '@founders-coffee/email';
 import type {
   NotificationSmsProvider,
   PushProvider,
-  TelegramBotProvider,
 } from '@founders-coffee/notifications';
 
 import type { DispatchOutcome, Dispatcher } from './dispatch-outcome.js';
 import {
   resolveDestination,
   type Destination,
-  type PersonalChannel,
 } from './notification-destination.js';
-import { telegramDispatcher } from './telegram-dispatch.js';
 
 export interface DispatchProviders {
   readonly sms: NotificationSmsProvider;
   readonly email: EmailProvider;
   readonly push?: PushProvider | null;
-  readonly telegram?: TelegramBotProvider | null;
 }
 
 const PUSH_ICON = '/android-chrome-192x192.png';
@@ -49,7 +46,7 @@ const failed = (
 const guarded =
   (
     db: Db,
-    channel: PersonalChannel,
+    channel: NotificationDeliveryChannel,
     send: (
       destination: Destination,
       notification: ScheduledNotification,
@@ -150,7 +147,6 @@ export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
   push: true,
   email: false,
   sms: false,
-  telegram: false,
 };
 
 /**
@@ -158,8 +154,8 @@ export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
  *
  * A channel with no configured provider is deliberately absent rather than mapped to a no-op: the
  * sweep resolves an unroutable row terminally, which is what keeps it out of every later selection
- * window. Push and Telegram are the optional channels: push needs Firebase credentials and Telegram
- * a bot token, and a deployment may have neither.
+ * window. Push is the optional channel: it needs Firebase credentials, and a deployment may have
+ * none.
  *
  * `CHANNEL_SUPPRESSES_DUPLICATES` above records whether redelivering on a channel is invisible to
  * the recipient, which is the whole basis for the sweep's resend decision after an unconfirmed
@@ -170,8 +166,7 @@ export const CHANNEL_SUPPRESSES_DUPLICATES: Record<
  * rejects outright — `E_VALIDATION_ERROR` on every notification, while the OTP path that sets no
  * headers has always worked. The header is gone, Cloudflare assigns its own, and a repeat is a
  * second message in the inbox. Twilio's Messages resource has no idempotency key at all: a second
- * send is a second billed SMS on someone's phone. Telegram's Bot API has none either, and a second
- * `sendMessage` is a second post in front of a whole group.
+ * send is a second billed SMS on someone's phone.
  */
 export const buildDispatchers = (
   db: Db,
@@ -180,7 +175,4 @@ export const buildDispatchers = (
   sms: smsDispatcher(db, providers.sms),
   email: emailDispatcher(db, providers.email),
   ...(providers.push ? { push: pushDispatcher(db, providers.push) } : {}),
-  ...(providers.telegram
-    ? { telegram: telegramDispatcher(db, providers.telegram) }
-    : {}),
 });

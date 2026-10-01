@@ -136,7 +136,6 @@
         "APP_ENVIRONMENT": "production",
         "MAIL_FROM": "no-reply@founders.coffee",
         "CSP_ENFORCED": "true",
-        "TELEGRAM_BOT_USERNAME": "FoundersCoffeeBot",
       },
       "send_email": [{ "name": "EMAIL" }],
       "queues": {

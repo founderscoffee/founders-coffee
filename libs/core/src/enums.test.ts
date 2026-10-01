@@ -53,8 +53,6 @@ import {
   reviewBottleneckSchema,
   RSVP_STATUSES,
   rsvpStatusSchema,
-  TELEGRAM_GROUP_STATUSES,
-  telegramGroupStatusSchema,
   USER_ROLES,
   userRoleSchema,
   VENUE_KINDS,
@@ -114,7 +112,6 @@ const contracts = [
   [PUSH_SURFACES, pushSurfaceSchema],
   [REVIEW_BOTTLENECKS, reviewBottleneckSchema],
   [RSVP_STATUSES, rsvpStatusSchema],
-  [TELEGRAM_GROUP_STATUSES, telegramGroupStatusSchema],
   [USER_ROLES, userRoleSchema],
   [VENUE_KINDS, venueKindSchema],
 ] as const;

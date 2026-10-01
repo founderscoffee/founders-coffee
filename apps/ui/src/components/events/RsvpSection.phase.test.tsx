@@ -36,9 +36,6 @@ vi.mock('./HostEventPanel', () => ({ HostEventPanel: () => null }));
 vi.mock('../../features/chat/components/ChatEntry', () => ({
   ChatEntry: () => null,
 }));
-vi.mock('../../features/telegram/components/TelegramGroupCard', () => ({
-  TelegramGroupCard: () => <p>telegram-group</p>,
-}));
 vi.mock('./RsvpCancelDialog', () => ({ RsvpCancelDialog: () => null }));
 vi.mock('../../features/events/components/PushPermissionPrompt', () => ({
   PushPermissionPrompt: () => null,
@@ -119,7 +116,6 @@ describe('RsvpSection once the meetup has started', () => {
       'the reminder it promises has already gone out',
     ).toBeNull();
     expect(calendar()).toBeNull();
-    expect(screen.getByText('telegram-group')).toBeTruthy();
   });
 
   it('still lets them tell the room they are on their way', () => {
@@ -137,12 +133,11 @@ describe('RsvpSection once the meetup has ended', () => {
     expect(screen.queryByText('This meetup has already started.')).toBeNull();
   });
 
-  it('leaves a member who went the Telegram group and nothing to undo', () => {
+  it('leaves a member who went nothing to undo', () => {
     show(going, 'ended');
 
     expect(undo()).toBeNull();
     expect(calendar()).toBeNull();
-    expect(screen.getByText('telegram-group')).toBeTruthy();
   });
 });
 

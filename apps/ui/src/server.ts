@@ -14,7 +14,6 @@ import {
 import { runWithContext } from '@founders-coffee/observability/context';
 import { handleChatSocketRequest } from '@founders-coffee/server-fns/chat-socket';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
-import { handleTelegramWebhook } from '@founders-coffee/server-fns/telegram-webhook';
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 export { EventChatDO } from '@founders-coffee/server-fns/chat-room';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
@@ -200,9 +199,6 @@ export default {
     }
     const photo = handleProfilePhotoRequest(request, url);
     if (photo) return secure(await photo);
-
-    const telegram = handleTelegramWebhook(request, url);
-    if (telegram) return secure(await telegram);
 
     if (url.pathname.startsWith('/api/auth/'))
       return secure(await authHandler(env)(request));
