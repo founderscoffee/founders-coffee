@@ -311,6 +311,7 @@
   "host_character_count": "{current} من {max} حرفًا",
   "host_selected_location": "الموقع المحدد",
   "host_locate_me": "حدد موقعي",
+  "host_search_venues": "ابحث",
   "host_title_ph": "قهوة ومناقشة فكرة مشروع",
   "host_desc_ph": "نتحدث عن التسعير والزبائن الأوائل فقط، من دون شرائح عرض.",
   "host_time": "الوقت",

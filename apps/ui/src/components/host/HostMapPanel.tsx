@@ -33,6 +33,7 @@ export const HostMapPanel = ({
   onVenueInvalidate,
   onCenterChange,
   onUserMove,
+  onUserGestureEnd,
   onLocateResize,
 }: {
   locale: Locale;
@@ -49,6 +50,7 @@ export const HostMapPanel = ({
   onVenueInvalidate: () => void;
   onCenterChange?: (center: { latitude: number; longitude: number }) => void;
   onUserMove?: () => void;
+  onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
 }) => (
   <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
@@ -67,6 +69,7 @@ export const HostMapPanel = ({
           onVenueInvalidate={onVenueInvalidate}
           onCenterChange={onCenterChange}
           onUserMove={onUserMove}
+          onUserGestureEnd={onUserGestureEnd}
           onLocateResize={onLocateResize}
         />
       ) : error ? (

@@ -381,6 +381,7 @@
   "host_character_count": "{current} caractères sur {max}",
   "host_selected_location": "Lieu sélectionné",
   "host_locate_me": "Me localiser",
+  "host_search_venues": "Rechercher",
   "host_title_ph": "Café et discussion d'idée de projet",
   "host_desc_ph": "Parlons seulement de tarification et de premiers clients, sans slides.",
   "host_time": "Heure",

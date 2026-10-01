@@ -2,6 +2,7 @@ import { Crosshair } from 'lucide-react';
 
 import { host_locate_me, type Locale } from '@founders-coffee/i18n';
 
+import { HostMapButton } from './HostMapButton';
 import { useControlSize, type ControlSize } from './useControlSize';
 
 type HostLocateButtonProps = {
@@ -19,15 +20,12 @@ export const HostLocateButton = ({
 
   return (
     <div className="absolute start-3 top-3 flex has-[:focus-visible]:z-40">
-      <button
+      <HostMapButton
         ref={measure}
-        type="button"
+        icon={Crosshair}
+        label={host_locate_me({}, { locale })}
         onClick={onClick}
-        className="btn btn-xs sm:btn-sm md:btn-md gap-2 rounded-full border-base-300 bg-base-100 font-medium text-base-content shadow-lg backdrop-blur-md hover:bg-base-200"
-      >
-        <Crosshair className="size-4 shrink-0" aria-hidden="true" />
-        {host_locate_me({}, { locale })}
-      </button>
+      />
     </div>
   );
 };

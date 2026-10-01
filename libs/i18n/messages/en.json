@@ -282,6 +282,7 @@
   "host_character_count": "{current} of {max} characters",
   "host_selected_location": "Selected location",
   "host_locate_me": "Locate me",
+  "host_search_venues": "Search",
   "host_title_ph": "Coffee and discussing a project idea",
   "host_desc_ph": "We talk only about pricing and first customers, with no slides.",
   "host_time": "Time",

@@ -1,9 +1,12 @@
+import { Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 import type { geo } from '@founders-coffee/domain';
 import {
   host_nearby_venues,
   host_search_results,
+  host_search_venues,
   host_selected_location,
   host_venue_browse_nearby,
   host_venue_empty,
@@ -19,6 +22,8 @@ import {
   type VenueSelection,
 } from '../../features/events/types';
 import { CitySuggestions } from './CitySuggestions';
+import { HostMapButton } from './HostMapButton';
+import { HostVenueChoice } from './HostVenueChoice';
 import { HostVenueList, type VenueRow } from './HostVenueList';
 import { HostVenueNameField } from './HostVenueNameField';
 import type { ControlSize } from './useControlSize';
@@ -34,10 +39,12 @@ const VENUE_LIST_ID = 'venue-results';
 
 export type VenueOverlay = {
   readonly isCollapsed: boolean;
+  readonly isExploring?: boolean;
   readonly neighbour?: ControlSize | null;
   readonly onToggle: () => void;
   readonly onCoverChange: (height: number) => void;
   readonly onDismiss: () => void;
+  readonly onSearch?: () => void;
 };
 
 type HostVenueStepProps = {
@@ -125,6 +132,7 @@ export const HostVenueStep = ({
 
   const isHintOnly = rows.length === 0 && !isSearching;
   const isHintBesideLocate = overlay !== undefined && isHintOnly;
+  const isExploring = overlay?.isExploring === true;
 
   const pickerRef = useRef<HTMLDivElement>(null);
   useDismissOnPointerOutside(
@@ -156,6 +164,14 @@ export const HostVenueStep = ({
 
   const chooseCity = (city: geo.GeoCity) => {
     onCitySelect?.(city);
+    document.getElementById(VENUE_SEARCH_INPUT_ID)?.focus();
+  };
+
+  const searchAgain = () => {
+    flushSync(() => {
+      setIsBrowsingNearby(true);
+      overlay?.onSearch?.();
+    });
     document.getElementById(VENUE_SEARCH_INPUT_ID)?.focus();
   };
 
@@ -204,7 +220,7 @@ export const HostVenueStep = ({
         }
         className={
           isHintBesideLocate
-            ? 'max-lg:content-center max-lg:items-center max-lg:gap-2 max-lg:px-3 max-lg:py-0 max-lg:text-caption'
+            ? 'max-lg:content-center max-lg:items-center max-lg:gap-2 max-lg:px-3 max-lg:py-0 max-lg:text-caption max-lg:shadow-lg'
             : undefined
         }
       >
@@ -225,20 +241,39 @@ export const HostVenueStep = ({
   return (
     <div className="flex flex-col gap-3">
       <div ref={pickerRef} className="contents">
-        <VenueSearch
-          locale={locale}
-          area={area}
-          value={searchValue}
-          listId={VENUE_LIST_ID}
-          hasResults={rows.length > 0 && !overlay?.isCollapsed}
-          isDisabled={isDisabled}
-          isLoading={isSearching && search.isFetching}
-          onChange={onSearchChange}
-        />
+        {isExploring ? (
+          <HostVenueChoice
+            locale={locale}
+            venue={venue}
+            venueName={venueName}
+          />
+        ) : (
+          <VenueSearch
+            locale={locale}
+            area={area}
+            value={searchValue}
+            listId={VENUE_LIST_ID}
+            hasResults={rows.length > 0 && !overlay?.isCollapsed}
+            isDisabled={isDisabled}
+            isLoading={isSearching && search.isFetching}
+            onChange={onSearchChange}
+          />
+        )}
         <VenueStepToasts locale={locale} notices={notices} />
         {overlay ? (
-          <VenueResultsPanel label={isHintOnly ? null : listLabel} {...overlay}>
-            {results}
+          <VenueResultsPanel
+            label={isExploring || isHintOnly ? null : listLabel}
+            {...overlay}
+          >
+            {isExploring ? (
+              <HostMapButton
+                icon={Search}
+                label={host_search_venues({}, { locale })}
+                onClick={searchAgain}
+              />
+            ) : (
+              results
+            )}
           </VenueResultsPanel>
         ) : (
           results

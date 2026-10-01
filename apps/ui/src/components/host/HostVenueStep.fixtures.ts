@@ -36,6 +36,7 @@ const lookups = vi.hoisted(() => ({
 const cities = vi.hoisted(() => ({ list: [] as unknown[] }));
 
 vi.mock('../../features/events/hooks', () => ({
+  useIsLocatingVenue: () => false,
   useNearbyVenues: () => lookups.nearby,
   useVenueSearch: () => lookups.search,
 }));

@@ -47,6 +47,7 @@ type HostMapProps = {
   onVenueInvalidate: () => void;
   onCenterChange?: (center: Coordinates) => void;
   onUserMove?: () => void;
+  onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
 };
 
@@ -77,11 +78,13 @@ export const HostMap = ({
   onVenueInvalidate,
   onCenterChange,
   onUserMove,
+  onUserGestureEnd,
   onLocateResize,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
   const placedByHost = useRef(false);
+  const isHostMoving = useRef(false);
   const reverseVenue = useReverseEventVenue();
   const [mapKey, setMapKey] = useState(0);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -195,19 +198,25 @@ export const HostMap = ({
         }
         onLoad={() => setIsMapReady(true)}
         onMoveStart={(event) => {
-          if ('originalEvent' in event && event.originalEvent) onUserMove?.();
+          if (!('originalEvent' in event && event.originalEvent)) return;
+          isHostMoving.current = true;
+          onUserMove?.();
         }}
-        onMoveEnd={(event) =>
+        onMoveEnd={(event) => {
           onCenterChange?.({
             latitude: event.viewState.latitude,
             longitude: event.viewState.longitude,
-          })
-        }
+          });
+          if (!isHostMoving.current) return;
+          isHostMoving.current = false;
+          onUserGestureEnd?.();
+        }}
         onClick={
           isInteractive
             ? (event) => {
                 const { lng, lat } = event.lngLat;
                 void resolveCoordinates({ longitude: lng, latitude: lat });
+                onUserGestureEnd?.();
               }
             : undefined
         }
@@ -230,6 +239,7 @@ export const HostMap = ({
                 longitude: event.lngLat.lng,
                 latitude: event.lngLat.lat,
               });
+              onUserGestureEnd?.();
             }}
           >
             <HostVenuePin />
