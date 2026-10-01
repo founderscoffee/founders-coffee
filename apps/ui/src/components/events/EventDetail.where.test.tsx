@@ -35,6 +35,12 @@ const rowsUnder = (label: string) => {
   return within(box).getAllByRole('definition');
 };
 
+const CITY = {
+  ar: event.cityNameAr,
+  fr: event.cityNameFr,
+  en: event.cityName,
+} satisfies Record<Locale, string>;
+
 describe('the Where block', () => {
   it.each([
     ['ar', 'Algiers'],
@@ -42,16 +48,28 @@ describe('the Where block', () => {
     ['fr', 'Alger'],
     ['en', ' algiers '],
   ] as const)(
-    'leaves out an address that only names the city, on the %s page (%s)',
+    'names the city in the page’s language where the address only names it, on the %s page (%s)',
     (locale, venueAddress) => {
       show({ ...event, venueAddress }, locale);
       const rows = rowsUnder(WHERE[locale]);
 
+      expect(rows.map((row) => row.textContent)).toEqual([
+        event.venue,
+        CITY[locale],
+      ]);
+    },
+  );
+
+  it.each(['ar', 'fr', 'en'] as const)(
+    'names the city where the meetup has no address, on the %s page',
+    (locale) => {
+      show({ ...event, venueAddress: null }, locale);
+      const rows = rowsUnder(WHERE[locale]);
+
       expect(
-        rows,
-        'the map provider’s English city name printed under the café on an Arabic page',
-      ).toHaveLength(1);
-      expect(rows[0]?.textContent).toBe(event.venue);
+        rows.map((row) => row.textContent),
+        'a café known only by its name left the box without a place to go to',
+      ).toEqual([event.venue, CITY[locale]]);
     },
   );
 
@@ -60,9 +78,12 @@ describe('the Where block', () => {
     (locale) => {
       const venueAddress = '12 Rue Didouche Mourad, Alger';
       show({ ...event, venueAddress }, locale);
-      const [, addressRow] = rowsUnder(WHERE[locale]);
+      const rows = rowsUnder(WHERE[locale]);
 
-      expect(addressRow?.textContent).toBe(venueAddress);
+      expect(rows.map((row) => row.textContent)).toEqual([
+        event.venue,
+        venueAddress,
+      ]);
     },
   );
 });
