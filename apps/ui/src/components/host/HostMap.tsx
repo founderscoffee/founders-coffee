@@ -83,7 +83,7 @@ export const HostMap = ({
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
-  const placedByHost = useRef(false);
+  const placedByHost = useRef<Coordinates | null>(null);
   const isHostMoving = useRef(false);
   const reverseVenue = useReverseEventVenue();
   const [mapKey, setMapKey] = useState(0);
@@ -116,7 +116,7 @@ export const HostMap = ({
   ): Promise<void> => {
     const requestId = reverseRequestId.current + 1;
     reverseRequestId.current = requestId;
-    placedByHost.current = true;
+    placedByHost.current = coordinates;
     setLastCoordinates(coordinates);
     setLocationError(null);
     onVenueInvalidate();
@@ -137,8 +137,12 @@ export const HostMap = ({
 
   useEffect(() => {
     if (!venue) return;
-    if (placedByHost.current) {
-      placedByHost.current = false;
+    const placed = placedByHost.current;
+    placedByHost.current = null;
+    if (
+      placed?.longitude === venue.longitude &&
+      placed.latitude === venue.latitude
+    ) {
       return;
     }
     reverseRequestId.current += 1;
