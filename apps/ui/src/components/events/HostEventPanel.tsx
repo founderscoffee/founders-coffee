@@ -4,13 +4,14 @@ import { Check } from 'lucide-react';
 import { useState } from 'react';
 
 import {
+  calendar_add_short,
   closeout_link,
   host_cancel_ended_error,
   host_cancel_error,
   host_cancel_event,
+  host_cancel_short,
   host_edit_open,
   host_event_ended,
-  host_hosting_help,
   host_you_are_hosting,
   live_window_closed,
   type Locale,
@@ -60,6 +61,7 @@ export const HostEventPanel = ({
   const [error, setError] = useState<string | null>(null);
 
   const isCancelled = event.status === 'cancelled';
+  const isAhead = !isCancelled && !hasEnded;
 
   const confirmCancel = () => {
     setError(null);
@@ -84,18 +86,29 @@ export const HostEventPanel = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="inline-flex w-fit items-center gap-2 rounded-full bg-success-tint px-3 py-1.5 text-body-sm font-medium text-success">
-        <Check className="size-4" aria-hidden="true" />
-        {host_you_are_hosting({}, { locale })}
-      </p>
-      <p className="text-body-sm text-neutral">
-        {hasEnded
-          ? host_event_ended({}, { locale })
-          : host_hosting_help({}, { locale })}
-      </p>
+      <div className="flex items-stretch justify-between gap-2">
+        <p
+          className={`inline-flex w-fit items-center gap-2 rounded-full bg-success-tint px-3 text-body-sm font-medium text-success ${isAhead ? '' : 'py-1.5'}`}
+        >
+          <Check className="size-4" aria-hidden="true" />
+          {host_you_are_hosting({}, { locale })}
+        </p>
+        {isAhead ? (
+          <Link
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-fit"
+            {...localizedEventEdit(locale, event.id)}
+          >
+            {host_edit_open({}, { locale })}
+          </Link>
+        ) : null}
+      </div>
+      {hasEnded ? (
+        <p className="text-body-sm text-neutral">
+          {host_event_ended({}, { locale })}
+        </p>
+      ) : null}
 
-      {!isCancelled &&
-        !hasEnded &&
+      {isAhead &&
         (isWindowOpen && live ? (
           <HostLiveActions
             locale={locale}
@@ -118,25 +131,21 @@ export const HostEventPanel = ({
         </Link>
       )}
 
-      {!isCancelled && !hasEnded && (
-        <div className="flex flex-wrap items-center gap-2">
+      {isAhead && (
+        <div className="flex items-center justify-between gap-2">
           <AddToCalendar
             eventId={event.id}
             startsAt={event.startsAt}
             locale={locale}
+            label={calendar_add_short({}, { locale })}
           />
-          <Link
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-fit"
-            {...localizedEventEdit(locale, event.id)}
-          >
-            {host_edit_open({}, { locale })}
-          </Link>
           <button
             type="button"
             className="btn btn-ghost btn-xs sm:btn-sm md:btn-md w-fit text-error"
+            aria-label={host_cancel_event({}, { locale })}
             onClick={() => setIsDialogOpen(true)}
           >
-            {host_cancel_event({}, { locale })}
+            {host_cancel_short({}, { locale })}
           </button>
         </div>
       )}

@@ -3,6 +3,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
+import {
+  cancelled,
+  cancelledAndPast,
+  ended,
+  endless,
+  event,
+  inProgress,
+} from './HostEventPanel.fixtures';
+
 vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ invalidate: vi.fn() }),
   Link: ({ children }: { children: React.ReactNode }) => (
@@ -23,67 +32,6 @@ vi.mock('../../features/chat/components/ChatEntry', () => ({
 }));
 
 const { HostEventPanel } = await import('./HostEventPanel');
-
-const HOUR = 60 * 60 * 1000;
-const at = (offset: number) => new Date(Date.now() + offset);
-
-const event = {
-  id: 'evt_1',
-  hostId: 'usr_1',
-  marketCode: 'DZ',
-  stateCode: '16',
-  cityCode: 'algiers',
-  title: 'Founders breakfast',
-  description: 'A local founder meetup.',
-  venue: 'Café Atlas',
-  startsAt: at(24 * HOUR),
-  endsAt: at(26 * HOUR),
-  rsvps: 3,
-  language: 'en',
-  languages: ['en'],
-  latitude: null,
-  longitude: null,
-  venueAddress: null,
-  slug: 'founders-breakfast',
-  status: 'published',
-  version: 1,
-  createdAt: new Date('2026-09-01T00:00:00Z'),
-  updatedAt: new Date('2026-09-01T00:00:00Z'),
-  cancelledAt: null,
-  cancellationReason: null,
-  goingCount: 3,
-  viewerRsvp: 'going',
-} satisfies EventWithAttendance;
-
-const cancelled = {
-  ...event,
-  status: 'cancelled',
-  cancelledAt: at(-10 * HOUR),
-} satisfies EventWithAttendance;
-
-const inProgress = {
-  ...event,
-  startsAt: at(-HOUR),
-  endsAt: at(HOUR),
-} satisfies EventWithAttendance;
-
-const ended = {
-  ...event,
-  startsAt: at(-4 * HOUR),
-  endsAt: at(-2 * HOUR),
-} satisfies EventWithAttendance;
-
-const cancelledAndPast = {
-  ...ended,
-  status: 'cancelled',
-  cancelledAt: at(-10 * HOUR),
-} satisfies EventWithAttendance;
-
-const endless = {
-  ...event,
-  startsAt: at(-4 * HOUR),
-  endsAt: null,
-} satisfies EventWithAttendance;
 
 const show = (item: EventWithAttendance, isChatAvailable = false) =>
   render(
@@ -138,6 +86,53 @@ describe('HostEventPanel offers editing instead of only cancelling', () => {
   it('stops offering it once the host has called the meetup off', () => {
     show(cancelled);
     expect(editLink()).toBeNull();
+  });
+});
+
+describe('HostEventPanel lays its actions out in two rows', () => {
+  it('puts Edit in the row that says the host is hosting', () => {
+    show(event);
+    const badge = screen.getByText("You're hosting");
+    const edit = screen.getByRole('link', { name: 'Edit' });
+    expect(
+      edit.parentElement,
+      'beside the calendar, Edit pushed the cancel onto a line of its own',
+    ).toBe(badge.parentElement);
+  });
+
+  it('keeps the calendar and the cancel on one line below it', () => {
+    show(event);
+    const calendar = screen.getByRole('group', {
+      name: 'Add to your calendar',
+    });
+    const cancel = screen.getByRole('button', { name: 'Cancel this meetup' });
+    const row = calendar.parentElement;
+    expect(cancel.parentElement).toBe(row);
+    expect(
+      row?.className.split(' '),
+      'a row that wraps sent the cancel to a line of its own in the side rail',
+    ).not.toContain('flex-wrap');
+  });
+
+  it('labels that row short enough to share the side rail', () => {
+    show(event);
+    const calendar = screen.getByRole('group', {
+      name: 'Add to your calendar',
+    });
+    const cancel = screen.getByRole('button', { name: 'Cancel this meetup' });
+    expect(
+      calendar.querySelector('summary')?.textContent,
+      'in full the two needed 401px of the 267px the side rail has in English',
+    ).toBe('Calendar');
+    expect(cancel.textContent).toBe('Cancel');
+  });
+
+  it('says nothing about who sees the host in the room', () => {
+    show(event);
+    expect(
+      screen.queryByText(/Guests see you in the room/i),
+      'the host knows they are at their own meetup',
+    ).toBeNull();
   });
 });
 

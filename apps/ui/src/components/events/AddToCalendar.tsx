@@ -17,12 +17,14 @@ type AddToCalendarProps = {
   eventId: string;
   startsAt: Date;
   locale: Locale;
+  label?: string;
 };
 
 export const AddToCalendar = ({
   eventId,
   startsAt,
   locale,
+  label,
 }: AddToCalendarProps) => {
   const headingId = useId();
   const { ref, close } = useDismissableDetails();
@@ -50,7 +52,7 @@ export const AddToCalendar = ({
               className="size-4 shrink-0 sm:size-5"
               aria-hidden="true"
             />
-            {calendar_add({}, { locale })}
+            {label ?? calendar_add({}, { locale })}
             <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
           </summary>
           <ul
