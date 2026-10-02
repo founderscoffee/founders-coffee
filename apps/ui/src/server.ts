@@ -5,10 +5,14 @@ import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
 import { createCspNonce, withSecurityHeaders } from '@founders-coffee/core';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
-import { logger, strippingQueryValues } from '@founders-coffee/observability';
+import { strippingQueryValues } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
 import { handleChatSocketRequest } from '@founders-coffee/server-fns/chat-socket';
 import { handleClientLogsRequest } from '@founders-coffee/server-fns/client-logs-http';
+import {
+  CSP_REPORT_PATH,
+  handleCspReportRequest,
+} from '@founders-coffee/server-fns/csp-report-http';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 export { EventChatDO } from '@founders-coffee/server-fns/chat-room';
@@ -41,8 +45,6 @@ export interface UiEnv extends HandlerEnv {
   APP_ENVIRONMENT?: string;
   OTP_ECHO?: string;
 }
-
-const CSP_REPORT_PATH = '/csp-report';
 
 /**
  * Keep failures out of the shared cache.
@@ -160,11 +162,8 @@ export default {
         ),
       );
 
-    if (url.pathname === CSP_REPORT_PATH && request.method === 'POST') {
-      const report = await request.json().catch(() => null);
-      if (report) logger.warn('csp.violation', { report });
-      return secure(new Response(null, { status: 204 }));
-    }
+    const cspReport = handleCspReportRequest(request, url);
+    if (cspReport) return secure(await cspReport);
 
     if (
       url.pathname === '/robots.txt' &&

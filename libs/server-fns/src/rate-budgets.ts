@@ -88,6 +88,16 @@ export const RATE_BUDGETS = {
       limit: 1,
       windowMs: 10 * MINUTE_MS,
     },
+    cspReports: {
+      action: 'csp_reports',
+      limit: 30,
+      windowMs: 10 * MINUTE_MS,
+    },
+    cspReportsRefusal: {
+      action: 'csp_reports_refusal',
+      limit: 1,
+      windowMs: 10 * MINUTE_MS,
+    },
   },
 } as const satisfies Record<string, Record<string, RateBudget>>;
 
@@ -131,7 +141,10 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * of a page's reach unless it fails in a loop, with room for several visitors on one network; past
  * them, batches pass only as the bucket refills, three a minute, and the rest are dropped unread. A
  * refusal is logged from a budget of its own, one line per address in ten minutes, so the line
- * saying a caller is limited cannot fill the log in place of the batches it stands for.
+ * saying a caller is limited cannot fill the log in place of the batches it stands for. A browser
+ * also reports each violation of the page's Content Security Policy, to `/csp-report`, and those
+ * reports have a bucket and a refusal line of their own, sized the same: a policy that works makes
+ * none, and in production's week to 2026-10-02 no address sent more than three in ten minutes.
  */
 export const allRateBudgets = (): ReadonlyArray<
   RateBudget & { category: RateBudgetCategory }

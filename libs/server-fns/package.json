@@ -44,6 +44,11 @@
       "types": "./src/client-logs-http.ts",
       "default": "./src/client-logs-http.ts"
     },
+    "./csp-report-http": {
+      "@founders-coffee/source": "./src/csp-report-http.ts",
+      "types": "./src/csp-report-http.ts",
+      "default": "./src/csp-report-http.ts"
+    },
     "./closeout-prompt": {
       "@founders-coffee/source": "./src/notifications/closeout-prompt.ts",
       "types": "./src/notifications/closeout-prompt.ts",

@@ -22,6 +22,7 @@ export {
   type Metrics,
 } from './metrics.js';
 export { ingestClientLogs } from './ingest.js';
+export { ingestCspReport } from './csp-report.js';
 export {
   createClientLogger,
   type CreateClientLoggerOptions,
