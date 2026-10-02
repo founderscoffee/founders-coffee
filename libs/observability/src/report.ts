@@ -20,6 +20,10 @@ const isError = (value: unknown): value is Error =>
  * Workers Observability and leave `error` meaning something is wrong. Not `debug`, which sits below
  * the server logger's default threshold and would disappear in production.
  *
+ * A not-found is logged without its stack. Its code and message already say what was asked for,
+ * and the stack only names the resolver that looked, the same few frames on every line a crawler
+ * produces.
+ *
  * The message and stack are `describeError`'s and `describeStack`'s: a failed query is logged with
  * its SQL and its D1 error, never with the values bound to it.
  */
@@ -30,16 +34,15 @@ export const reportError = (
 ): void => {
   if (isError(error)) {
     const code = error instanceof AppError ? error.code : error.name;
-    const entry: LogContext = {
+    if (isNotFoundCode(code)) {
+      activeLogger.info(describeError(error), { code, ...context });
+      return;
+    }
+    activeLogger.error(describeError(error), {
       code,
       stack: describeStack(error),
       ...context,
-    };
-    if (isNotFoundCode(code)) {
-      activeLogger.info(describeError(error), entry);
-      return;
-    }
-    activeLogger.error(describeError(error), entry);
+    });
     return;
   }
   activeLogger.error(describeError(error), { code: 'unknown', ...context });
