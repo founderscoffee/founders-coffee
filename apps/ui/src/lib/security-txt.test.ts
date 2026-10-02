@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { CONTACT_EMAIL } from '../content/company/contact';
 
 import {
+  SECURITY_POLICY_URL,
   SECURITY_TXT_EXPIRES,
   SECURITY_TXT_PATH,
   securityTxtBody,
@@ -22,7 +23,7 @@ describe('security.txt satisfies RFC 9116', () => {
     ).toHaveLength(1);
   });
 
-  it.each(['Expires', 'Preferred-Languages', 'Canonical'])(
+  it.each(['Expires', 'Policy', 'Preferred-Languages', 'Canonical'])(
     'states %s no more than once',
     (name) => {
       expect(fieldsNamed(name).length).toBeLessThanOrEqual(1);
@@ -49,8 +50,15 @@ describe('security.txt satisfies RFC 9116', () => {
     ).toContain(`Contact: mailto:${CONTACT_EMAIL}`);
   });
 
-  it('promises no disclosure policy or key that does not exist', () => {
-    expect(fieldsNamed('Policy')).toHaveLength(0);
+  it('points Policy at the security policy GitHub publishes', () => {
+    expect(fieldsNamed('Policy')).toEqual([`Policy: ${SECURITY_POLICY_URL}`]);
+    expect(
+      SECURITY_POLICY_URL,
+      'RFC 9116 requires a web address in Policy to begin with https://',
+    ).toMatch(/^https:\/\//u);
+  });
+
+  it('promises no key that does not exist', () => {
     expect(fieldsNamed('Encryption')).toHaveLength(0);
   });
 });
