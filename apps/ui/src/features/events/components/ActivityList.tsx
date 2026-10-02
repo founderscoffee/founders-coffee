@@ -97,6 +97,7 @@ export const ActivityList = ({
   items,
   total,
   marketSlugFor,
+  timezoneFor,
   hasMore,
   isLoadingMore,
   onLoadMore,
@@ -108,6 +109,7 @@ export const ActivityList = ({
   items: readonly ActivityItem[];
   total: number;
   marketSlugFor: (marketCode: string) => string;
+  timezoneFor: (marketCode: string) => string;
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
@@ -146,7 +148,7 @@ export const ActivityList = ({
                 </span>
                 <span className="mt-0.5 block text-caption text-neutral">
                   {formatDate(new Date(item.startsAt), locale, {
-                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    timeZone: timezoneFor(item.marketCode),
                     weekday: 'long',
                     month: 'short',
                     day: 'numeric',

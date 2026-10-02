@@ -228,11 +228,9 @@ export const EventDetail = ({
                   <bdi>{event.venue}</bdi>
                 </span>
               </dd>
-              {streetAddress ? (
-                <dd className="mt-0.5 ps-6 text-body-sm text-neutral">
-                  <bdi>{streetAddress}</bdi>
-                </dd>
-              ) : null}
+              <dd className="mt-0.5 ps-6 text-body-sm text-neutral">
+                <bdi>{streetAddress ?? cityName}</bdi>
+              </dd>
             </div>
           </dl>
 

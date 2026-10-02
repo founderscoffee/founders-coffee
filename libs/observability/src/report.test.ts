@@ -49,6 +49,22 @@ describe('reportError', () => {
     );
   });
 
+  it('logs a not-found without its stack, and keeps the context it was given', () => {
+    const { logger, entries } = captureLogger();
+    reportError(
+      new AppError('market_not_found', 'No visible market for US'),
+      { operation: 'market_landing' },
+      logger,
+    );
+    const entry = entries[0] as Record<string, unknown>;
+    expect(
+      entry.stack,
+      'every crawler that opens a country with no market wrote the same frames into the log',
+    ).toBeUndefined();
+    expect(entry.code).toBe('market_not_found');
+    expect(entry.operation).toBe('market_landing');
+  });
+
   it('keeps every not-found code out of error, whatever it names', () => {
     const { logger, entries } = captureLogger();
     for (const code of [

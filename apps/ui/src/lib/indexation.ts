@@ -146,9 +146,31 @@ export const withPrivateRouteHeaders = (
   });
 };
 
+const REFUSED_CRAWLERS = ['AwarioBot', 'AwarioSmartBot', 'AwarioRssBot'];
+
+/**
+ * The robots.txt each environment publishes: production invites every crawler but the ones it
+ * refuses, and every other environment invites none.
+ *
+ * Awario's crawlers are refused because they collect pages for a brand-monitoring product and send
+ * no one back. In the week up to 2026-10-02 AwarioBot made more than half of production's
+ * requests, walking city pages in all three languages. Awario documents that its crawlers obey
+ * robots.txt and names them AwarioSmartBot and AwarioRssBot, while its requests arrive as
+ * AwarioBot, so the group lists all three. Search engines, link previews and AI crawlers stay
+ * invited.
+ */
 export const robotsBody = (env: IndexationEnvironment): string =>
   isIndexableEnvironment(env)
-    ? `User-agent: *\nAllow: /\nSitemap: ${PRODUCTION_ORIGIN}/sitemap.xml\n`
+    ? [
+        'User-agent: *',
+        'Allow: /',
+        '',
+        ...REFUSED_CRAWLERS.map((crawler) => `User-agent: ${crawler}`),
+        'Disallow: /',
+        '',
+        `Sitemap: ${PRODUCTION_ORIGIN}/sitemap.xml`,
+        '',
+      ].join('\n')
     : 'User-agent: *\nDisallow: /\n';
 
 export const robotsBodyForOrigin = (origin: string): string =>

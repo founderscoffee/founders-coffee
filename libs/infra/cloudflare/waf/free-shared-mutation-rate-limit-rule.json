@@ -1,6 +1,6 @@
 {
-  "description": "Founders Coffee shared auth and server-function edge volume limit",
-  "expression": "(starts_with(http.request.uri.path, \"/_serverFn/\") or starts_with(http.request.uri.path, \"/api/auth/\"))",
+  "description": "Founders Coffee shared auth, server-function and client-log edge volume limit",
+  "expression": "(starts_with(http.request.uri.path, \"/_serverFn/\") or starts_with(http.request.uri.path, \"/api/auth/\") or http.request.uri.path eq \"/client-logs\")",
   "action": "block",
   "ratelimit": {
     "characteristics": ["cf.colo.id", "ip.src"],

@@ -102,6 +102,20 @@ describe('AddToCalendar', () => {
     expect(document.activeElement).toBe(summary);
   });
 
+  it('shows a shorter label where it is given one, under the same name', () => {
+    render(
+      <AddToCalendar
+        eventId={EVENT_ID}
+        startsAt={new Date(Date.now() + 24 * HOUR)}
+        locale="en"
+        label="Calendar"
+      />,
+    );
+    const { summary } = openMenu('Add to your calendar');
+
+    expect(summary.textContent).toBe('Calendar');
+  });
+
   it('offers nothing once the meetup has started', () => {
     const { container } = show(-1);
 

@@ -17,8 +17,29 @@ const numberFormatter = (locale: Locale, options: Intl.NumberFormatOptions) => {
   return fmt;
 };
 
+/**
+ * The options a date formatter is built with, chosen so that every engine writes the same text.
+ *
+ * CLDR gives Arabic no short weekday names, so V8, on the server and in Chrome, writes the full name
+ * where a short one is asked for. Apple's ICU, under every browser on an iPhone, has short names of
+ * its own without the article (اثنين for الاثنين), so a page the server rendered hydrated there
+ * with other text, and React threw the server's HTML away. Arabic asks for the full name instead:
+ * the text V8 already writes, and the text Apple's ICU writes too.
+ */
+const portableDateOptions = (
+  locale: Locale,
+  options: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormatOptions =>
+  locale === 'ar' && options.weekday === 'short'
+    ? { ...options, weekday: 'long' }
+    : options;
+
 const dateCache = new Map<string, Intl.DateTimeFormat>();
-const dateFormatter = (locale: Locale, options: Intl.DateTimeFormatOptions) => {
+const dateFormatter = (
+  locale: Locale,
+  requested: Intl.DateTimeFormatOptions,
+) => {
+  const options = portableDateOptions(locale, requested);
   const key = `${locale}:${JSON.stringify(options)}`;
   const cached = dateCache.get(key);
   if (cached) return cached;
@@ -55,24 +76,6 @@ export const formatDate = (
   locale: Locale,
   options: { timeZone: string } & Intl.DateTimeFormatOptions,
 ): string => dateFormatter(locale, options).format(date);
-
-/** Format an event instant for confirmation with its market's numeric UTC offset. */
-export const formatScheduleDateTime = (
-  epochMs: number,
-  locale: Locale,
-  timeZone: string,
-): string =>
-  dateFormatter(locale, {
-    timeZone,
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-    timeZoneName: 'longOffset',
-  }).format(new Date(epochMs));
 
 /** True if a formatted string is free of Arabic-Indic digits (Latin-digit guard). */
 export const hasOnlyLatinDigits = (formatted: string): boolean =>

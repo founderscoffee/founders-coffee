@@ -1,7 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ingestClientLogs } from './ingest.js';
 import { buildDataPoint, createMetrics } from './metrics.js';
 import { runWithContext } from './context.js';
 import { createServerLogger } from './server.js';
@@ -116,44 +115,5 @@ describe('metrics', () => {
       metrics.trackCount('payment_amount', 1250, { market: 'DZ' }),
     ).not.toThrow();
     expect(() => metrics.trackEvent('page_view')).not.toThrow();
-  });
-});
-
-describe('ingestClientLogs', () => {
-  it('re-emits sanitized client entries preserving service=ui', () => {
-    const { transport, entries } = recorder();
-    const clientEntry = {
-      ts: '2026-01-01T00:00:00.000Z',
-      level: 'error',
-      msg: 'client boom',
-      service: 'ui',
-      password: 'p',
-    } as LogEntry;
-    ingestClientLogs([clientEntry], transport);
-    expect(entries).toHaveLength(1);
-    expect(entries[0].msg).toBe('client boom');
-    expect(entries[0].service).toBe('ui');
-    expect((entries[0] as Record<string, unknown>).password).toBe('[redacted]');
-  });
-
-  it("cuts a failed query's values out of an entry the browser reported", () => {
-    const { transport, entries } = recorder();
-    ingestClientLogs(
-      [
-        {
-          ts: '2026-01-01T00:00:00.000Z',
-          level: 'error',
-          msg: 'Failed query: select "id" from "user" where "email" = ?\nparams: amina@example.com',
-          service: 'ui',
-          stack:
-            'Error: Failed query: select "id" from "user" where "email" = ?\nparams: amina@example.com\n    at x (y.js:1:1)',
-        } as LogEntry,
-      ],
-      transport,
-    );
-    expect(JSON.stringify(entries[0])).not.toContain('amina');
-    expect(entries[0].msg).toBe(
-      'Failed query: select "id" from "user" where "email" = ?',
-    );
   });
 });

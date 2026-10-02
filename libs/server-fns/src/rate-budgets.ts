@@ -77,6 +77,18 @@ export const RATE_BUDGETS = {
       windowMs: 10 * MINUTE_MS,
     },
   },
+  telemetry: {
+    clientLogs: {
+      action: 'client_logs',
+      limit: 30,
+      windowMs: 10 * MINUTE_MS,
+    },
+    clientLogsRefusal: {
+      action: 'client_logs_refusal',
+      limit: 1,
+      windowMs: 10 * MINUTE_MS,
+    },
+  },
 } as const satisfies Record<string, Record<string, RateBudget>>;
 
 export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
@@ -111,6 +123,15 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * scrolls. A report asks a moderator for their attention, so it is the scarcest. Each socket a page
  * opens to the chat's room costs a connection, thirty in ten minutes: a panel opened and reopened
  * across five tabs, with room for a patchy network, while a page that reconnects in a loop runs dry.
+ *
+ * `telemetry` holds what a browser spends reporting its errors to `/client-logs` (P1-018), counted
+ * against its address, since a beacon carries no session. Only a failure makes an entry, and the
+ * client logger sends a batch when ten have gathered or when its page is hidden, so a page that
+ * works sends nothing and one that fails sends a batch or two. Thirty batches in ten minutes is out
+ * of a page's reach unless it fails in a loop, with room for several visitors on one network; past
+ * them, batches pass only as the bucket refills, three a minute, and the rest are dropped unread. A
+ * refusal is logged from a budget of its own, one line per address in ten minutes, so the line
+ * saying a caller is limited cannot fill the log in place of the batches it stands for.
  */
 export const allRateBudgets = (): ReadonlyArray<
   RateBudget & { category: RateBudgetCategory }

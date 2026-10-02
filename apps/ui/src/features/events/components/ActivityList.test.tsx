@@ -36,6 +36,7 @@ const listedIn = (locale: Locale, city = ALGIERS) =>
       ]}
       total={1}
       marketSlugFor={() => 'algeria'}
+      timezoneFor={() => 'Africa/Algiers'}
       hasMore={false}
       isLoadingMore={false}
       onLoadMore={() => undefined}

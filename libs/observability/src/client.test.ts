@@ -77,6 +77,37 @@ describe('client logger', () => {
   it('does not throw when window/navigator are absent', () => {
     expect(() => createClientLogger({ bufferSize: 5 })).not.toThrow();
   });
+
+  it('stamps each entry with the path of the page it was logged on, and nothing after it', () => {
+    const { transport, batches } = batchRecorder();
+    const g = globalThis as unknown as Record<string, unknown>;
+    const original = g.location;
+    g.location = {
+      pathname: '/ar/algeria',
+      search: '?afterId=evt_1',
+      hash: '#market-events',
+    };
+    try {
+      const logger = createClientLogger({ transport, bufferSize: 2 });
+      logger.error('first');
+      g.location = { pathname: '/ar/algeria/oran', search: '', hash: '' };
+      logger.error('second');
+    } finally {
+      if (original === undefined) delete g.location;
+      else g.location = original;
+    }
+
+    expect(batches[0].map((entry) => entry.path)).toEqual([
+      '/ar/algeria',
+      '/ar/algeria/oran',
+    ]);
+  });
+
+  it('leaves the path out where there is no page', () => {
+    const { transport, batches } = batchRecorder();
+    createClientLogger({ transport, bufferSize: 1 }).error('x');
+    expect(batches[0][0]).not.toHaveProperty('path');
+  });
 });
 
 describe('createBeaconTransport', () => {
@@ -98,6 +129,32 @@ describe('createBeaconTransport', () => {
     } finally {
       if (original === undefined) delete g.navigator;
       else g.navigator = original;
+    }
+  });
+
+  it('falls back to a keepalive fetch where there is no sendBeacon, so the batch outlives its page', () => {
+    const fetch = vi.fn(() => Promise.resolve(new Response(null)));
+    const g = globalThis as unknown as Record<string, unknown>;
+    const original = { navigator: g.navigator, fetch: g.fetch };
+    g.navigator = {};
+    g.fetch = fetch;
+    try {
+      const entries = [
+        { ts: 't', level: 'info', msg: 'hi', service: 'ui' },
+      ] as LogEntry[];
+      expect(createBeaconTransport('/client-logs')(entries)).toBe(true);
+      expect(
+        fetch,
+        'a fetch without keepalive may be cancelled with the page it was sent from, losing the batch a beacon would have delivered',
+      ).toHaveBeenCalledWith('/client-logs', {
+        method: 'POST',
+        body: JSON.stringify({ entries }),
+        keepalive: true,
+      });
+    } finally {
+      g.fetch = original.fetch;
+      if (original.navigator === undefined) delete g.navigator;
+      else g.navigator = original.navigator;
     }
   });
 });

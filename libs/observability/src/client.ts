@@ -7,6 +7,27 @@ const DEFAULT_BUFFER_SIZE = 10;
 
 const isoNow = (): string => new Date().toISOString();
 
+interface GlobalWithDom {
+  readonly document?: {
+    readonly visibilityState?: string;
+    readonly addEventListener: (type: string, listener: () => void) => void;
+  };
+  readonly window?: {
+    readonly addEventListener: (type: string, listener: () => void) => void;
+  };
+  readonly location?: { readonly pathname?: string };
+}
+
+/**
+ * The page an entry was logged on, as its pathname alone: never the query or fragment, whose values
+ * may be anybody's. Read when the entry is made rather than when its batch is sent, which can be a
+ * navigation later. Nothing outside a browser, where there is no page.
+ */
+const pagePath = (): { readonly path?: string } => {
+  const pathname = (globalThis as unknown as GlobalWithDom).location?.pathname;
+  return pathname ? { path: pathname } : {};
+};
+
 export interface CreateClientLoggerOptions {
   readonly transport?: BatchTransport;
   readonly level?: LogLevel;
@@ -35,6 +56,7 @@ const buildClientLogger = (
     >;
     buffer.push({
       ...merged,
+      ...pagePath(),
       ts: isoNow(),
       level: entryLevel,
       msg: sanitize(msg) as string,
@@ -61,16 +83,6 @@ const buildClientLogger = (
     child,
   };
 };
-
-interface GlobalWithDom {
-  readonly document?: {
-    readonly visibilityState?: string;
-    readonly addEventListener: (type: string, listener: () => void) => void;
-  };
-  readonly window?: {
-    readonly addEventListener: (type: string, listener: () => void) => void;
-  };
-}
 
 const attachUnloadListeners = (flush: () => void): void => {
   const global = globalThis as unknown as GlobalWithDom;

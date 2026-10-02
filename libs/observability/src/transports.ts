@@ -23,6 +23,8 @@ export const consoleTransport: LogTransport = (entry) => {
   consoleFor[entry.level](JSON.stringify(entry));
 };
 
+type BrowserRequestInit = RequestInit & { readonly keepalive: boolean };
+
 const post = (endpoint: string, payload: string): boolean => {
   if (
     typeof navigator !== 'undefined' &&
@@ -35,7 +37,12 @@ const post = (endpoint: string, payload: string): boolean => {
     }
   }
   if (typeof fetch === 'function') {
-    fetch(endpoint, { method: 'POST', body: payload }).catch(() => undefined);
+    const init: BrowserRequestInit = {
+      method: 'POST',
+      body: payload,
+      keepalive: true,
+    };
+    fetch(endpoint, init).catch(() => undefined);
     return true;
   }
   return false;

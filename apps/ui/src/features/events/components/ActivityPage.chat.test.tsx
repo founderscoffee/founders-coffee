@@ -79,7 +79,7 @@ const show = (locale: Locale = 'en') =>
   render(
     <ActivityPage
       locale={locale}
-      markets={[{ code: 'DZ', slug: 'algeria' }]}
+      markets={[{ code: 'DZ', slug: 'algeria', timezone: 'Africa/Algiers' }]}
     />,
   );
 

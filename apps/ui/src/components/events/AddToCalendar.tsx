@@ -17,12 +17,14 @@ type AddToCalendarProps = {
   eventId: string;
   startsAt: Date;
   locale: Locale;
+  label?: string;
 };
 
 export const AddToCalendar = ({
   eventId,
   startsAt,
   locale,
+  label,
 }: AddToCalendarProps) => {
   const headingId = useId();
   const { ref, close } = useDismissableDetails();
@@ -44,13 +46,13 @@ export const AddToCalendar = ({
         <details ref={ref} className="dropdown dropdown-start">
           <summary
             aria-describedby={headingId}
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md list-none gap-2"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md flex list-none gap-2"
           >
             <CalendarPlus
               className="size-4 shrink-0 sm:size-5"
               aria-hidden="true"
             />
-            {calendar_add({}, { locale })}
+            {label ?? calendar_add({}, { locale })}
             <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
           </summary>
           <ul

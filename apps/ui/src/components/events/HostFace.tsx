@@ -1,4 +1,5 @@
 import { profilePhotoUrl } from '../../features/profile/photo-url';
+import { firstCharacter } from '../../lib/utils';
 
 type HostFaceProps = {
   name: string;
@@ -19,7 +20,7 @@ export const HostFace = ({ name, photoAssetId }: HostFaceProps) => (
           className="size-full rounded-full object-cover"
         />
       ) : (
-        name.slice(0, 1)
+        firstCharacter(name)
       )}
     </span>
   </span>

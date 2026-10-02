@@ -5,14 +5,10 @@ import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
 import { createCspNonce, withSecurityHeaders } from '@founders-coffee/core';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
-import {
-  ingestClientLogs,
-  logger,
-  strippingQueryValues,
-  type LogEntry,
-} from '@founders-coffee/observability';
+import { logger, strippingQueryValues } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
 import { handleChatSocketRequest } from '@founders-coffee/server-fns/chat-socket';
+import { handleClientLogsRequest } from '@founders-coffee/server-fns/client-logs-http';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 export { EventChatDO } from '@founders-coffee/server-fns/chat-room';
@@ -189,14 +185,9 @@ export default {
     const chatSocket = handleChatSocketRequest(request, url);
     if (chatSocket) return secure(await chatSocket);
 
-    if (url.pathname === '/client-logs' && request.method === 'POST') {
-      const body = (await request.json().catch(() => null)) as {
-        entries?: unknown;
-      } | null;
-      if (body && Array.isArray(body.entries))
-        ingestClientLogs(body.entries as LogEntry[]);
-      return secure(new Response(null, { status: 204 }));
-    }
+    const clientLogs = handleClientLogsRequest(request, url);
+    if (clientLogs) return secure(await clientLogs);
+
     const photo = handleProfilePhotoRequest(request, url);
     if (photo) return secure(await photo);
 

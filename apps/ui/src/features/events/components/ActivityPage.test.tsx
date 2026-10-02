@@ -67,7 +67,7 @@ vi.mock('../../account/components/ProfileSectionNav', () => ({
 
 const { ActivityPage } = await import('./ActivityPage');
 
-const MARKETS = [{ code: 'DZ', slug: 'algeria' }];
+const MARKETS = [{ code: 'DZ', slug: 'algeria', timezone: 'Africa/Algiers' }];
 
 const event = (overrides: Record<string, unknown> = {}) => ({
   id: 'evt_1',
