@@ -30,6 +30,7 @@ import {
 import { useLivePresence } from '../../features/events/live-presence';
 import { authClient } from '../../lib/auth';
 import { useBoundedPending } from '../../lib/network-status';
+import { firstCharacter } from '../../lib/utils';
 import { writeAuthSlot } from '../../features/auth/session-hint';
 import { ActivityIcon, ProfileIcon, SignOutIcon } from './SessionIcon';
 import { useDismissableDetails } from './useDismissableDetails';
@@ -37,7 +38,7 @@ import { useDismissableDetails } from './useDismissableDetails';
 const initials = (name: string, email: string) => {
   const source = name.trim() === '' ? email : name;
   const parts = source.split(/[\s@._-]+/).filter((part) => part !== '');
-  const letters = parts.slice(0, 2).map((part) => part.charAt(0));
+  const letters = parts.slice(0, 2).map(firstCharacter);
   return letters.join('').toUpperCase() || '?';
 };
 

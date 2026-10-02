@@ -4,21 +4,13 @@ import { event_host, profile_link, type Locale } from '@founders-coffee/i18n';
 import type { PublicProfile } from '@founders-coffee/server-fns';
 
 import { localizedPublicProfile } from '../../lib/locale-routing';
+import { initials } from '../../lib/utils';
 
 type EventHostCardProps = {
   locale: Locale;
   host: PublicProfile | null;
   cityName: string;
 };
-
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0))
-    .join('')
-    .toUpperCase() || '?';
 
 export const EventHostCard = ({
   locale,
@@ -32,7 +24,7 @@ export const EventHostCard = ({
         aria-hidden="true"
         className="flex size-11 items-center justify-center rounded-full bg-base-200 text-body-sm font-semibold"
       >
-        {initials(host?.displayName ?? '')}
+        {initials(host?.displayName ?? '') || '?'}
       </span>
       <span className="min-w-0">
         {host ? (
