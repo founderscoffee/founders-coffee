@@ -2,13 +2,35 @@ import { ingestClientLogs, logger } from '@founders-coffee/observability';
 
 import { RATE_BUDGETS, type RateBudget } from './rate-budgets.js';
 import { consumeRateBudget } from './rate-consume.js';
+import { readBounded } from './read-bounded.js';
 
 const CLIENT_LOGS_PATH = '/client-logs';
+const CLIENT_LOGS_MAX_BYTES = 64 * 1024;
 
 export const CLIENT_LOGS_BUDGET = RATE_BUDGETS.telemetry.clientLogs;
 
 const spend = (address: string, budget: RateBudget): Promise<boolean> =>
   consumeRateBudget(address, budget.action, budget.limit, budget.windowMs);
+
+/**
+ * The batch a request carries, or `null` when its body is larger than a beacon can be or is not
+ * JSON.
+ *
+ * A beacon is a keepalive request, and the Fetch standard lets a page have at most 64 KiB of those
+ * in flight, so every batch the client logger sends by beacon fits in `CLIENT_LOGS_MAX_BYTES`. A
+ * larger body came from something else, and is cut off as it arrives, before it is parsed or logged.
+ * The entry schema bounds the fields it knows but passes any other on as context, so without this
+ * cap one request could carry any amount into the Worker's memory and the log.
+ */
+const readBatch = async (request: Request): Promise<unknown> => {
+  const bytes = await readBounded(request, CLIENT_LOGS_MAX_BYTES);
+  if (!bytes) return null;
+  try {
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch {
+    return null;
+  }
+};
 
 /**
  * Log the batch a browser sent, unless its address has already sent more than a page can.
@@ -22,7 +44,7 @@ const spend = (address: string, budget: RateBudget): Promise<boolean> =>
 const acceptBatch = async (request: Request): Promise<Response> => {
   const address = `ip:${request.headers.get('cf-connecting-ip') ?? 'unknown'}`;
   if (await spend(address, CLIENT_LOGS_BUDGET)) {
-    ingestClientLogs(await request.json().catch(() => null));
+    ingestClientLogs(await readBatch(request));
   } else if (await spend(address, RATE_BUDGETS.telemetry.clientLogsRefusal)) {
     logger.warn('client_logs_rate_limited', {
       limit: CLIENT_LOGS_BUDGET.limit,

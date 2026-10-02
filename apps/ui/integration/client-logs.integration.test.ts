@@ -10,6 +10,7 @@ import { CLIENT_LOGS_BUDGET } from '@founders-coffee/server-fns/client-logs-http
 import worker from '../src/server';
 
 const ORIGIN = 'https://founders.coffee';
+const BEACON_LIMIT = 64 * 1024;
 
 const report = (fields: Record<string, unknown> = {}) => ({
   ts: '2026-10-01T12:18:00.000Z',
@@ -42,6 +43,13 @@ const beacon = async (body: string, address?: string): Promise<Response> => {
 
 const batchOf = (msg: string): string =>
   JSON.stringify({ entries: [report({ msg })] });
+
+const batchOfBytes = (bytes: number, msg: string): string => {
+  const unpadded = JSON.stringify({ entries: [report({ msg, padding: '' })] });
+  return JSON.stringify({
+    entries: [report({ msg, padding: 'x'.repeat(bytes - unpadded.length) })],
+  });
+};
 
 const sendWholeBudget = async (address: string): Promise<void> => {
   for (let sent = 1; sent <= CLIENT_LOGS_BUDGET.limit; sent += 1)
@@ -129,6 +137,26 @@ describe('POST /client-logs', () => {
 
     expect(response.status).toBe(204);
     expect(browserReports(errors.mock.calls)).toEqual([]);
+  });
+
+  it('logs a batch as large as a beacon can be, drops one a byte larger, and answers both 204', async () => {
+    const errors = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    const largest = batchOfBytes(BEACON_LIMIT, 'as large as a beacon');
+    const larger = batchOfBytes(BEACON_LIMIT + 1, 'a byte larger');
+    const answers = [
+      await beacon(largest, '203.0.113.20'),
+      await beacon(larger, '203.0.113.20'),
+    ];
+
+    expect(new TextEncoder().encode(larger).byteLength).toBe(BEACON_LIMIT + 1);
+    expect(answers.map((response) => response.status)).toEqual([204, 204]);
+    expect(
+      reportedMessages(errors.mock.calls),
+      'a field the entry schema does not know passes on as context, so only the body cap keeps one request from carrying any amount into the log',
+    ).toEqual(['as large as a beacon']);
   });
 });
 
