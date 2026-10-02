@@ -12,7 +12,6 @@ import {
 } from '@founders-coffee/i18n';
 
 import { hostCreateStepCopy, hostCreateViewCopy } from './host-create-copy';
-import { hostScheduleSummary } from './host-create-schedule';
 import { writeHostCreateDraft } from './host-create-draft';
 import { useHostCreateDraftState } from './useHostCreateDraftState';
 import {
@@ -194,16 +193,9 @@ export const useHostCreateWizard = ({
   };
   const prev = () => goToStep(Math.max(1, step - 1));
   const stepCopy = hostCreateStepCopy(locale);
-  const schedule = hostScheduleSummary(
-    startsAt,
-    endsAt,
-    locale,
-    market.timezone,
-  );
 
   return {
     ...draft,
-    ...schedule,
     fieldErrors,
     publishing,
     publishError,
