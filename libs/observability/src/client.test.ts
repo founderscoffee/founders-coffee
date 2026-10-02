@@ -77,6 +77,37 @@ describe('client logger', () => {
   it('does not throw when window/navigator are absent', () => {
     expect(() => createClientLogger({ bufferSize: 5 })).not.toThrow();
   });
+
+  it('stamps each entry with the path of the page it was logged on, and nothing after it', () => {
+    const { transport, batches } = batchRecorder();
+    const g = globalThis as unknown as Record<string, unknown>;
+    const original = g.location;
+    g.location = {
+      pathname: '/ar/algeria',
+      search: '?afterId=evt_1',
+      hash: '#market-events',
+    };
+    try {
+      const logger = createClientLogger({ transport, bufferSize: 2 });
+      logger.error('first');
+      g.location = { pathname: '/ar/algeria/oran', search: '', hash: '' };
+      logger.error('second');
+    } finally {
+      if (original === undefined) delete g.location;
+      else g.location = original;
+    }
+
+    expect(batches[0].map((entry) => entry.path)).toEqual([
+      '/ar/algeria',
+      '/ar/algeria/oran',
+    ]);
+  });
+
+  it('leaves the path out where there is no page', () => {
+    const { transport, batches } = batchRecorder();
+    createClientLogger({ transport, bufferSize: 1 }).error('x');
+    expect(batches[0][0]).not.toHaveProperty('path');
+  });
 });
 
 describe('createBeaconTransport', () => {

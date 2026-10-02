@@ -13,6 +13,7 @@ export interface LogEntry {
   readonly locale?: string;
   readonly userId?: string;
   readonly requestId?: string;
+  readonly path?: string;
   readonly [key: string]: unknown;
 }
 

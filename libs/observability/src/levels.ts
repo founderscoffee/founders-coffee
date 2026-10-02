@@ -1,4 +1,6 @@
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+export const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
+
+export type LogLevel = (typeof LOG_LEVELS)[number];
 
 export const LOG_LEVEL_ORDER: Record<LogLevel, number> = {
   debug: 10,

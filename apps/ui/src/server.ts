@@ -9,7 +9,6 @@ import {
   ingestClientLogs,
   logger,
   strippingQueryValues,
-  type LogEntry,
 } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
 import { handleChatSocketRequest } from '@founders-coffee/server-fns/chat-socket';
@@ -190,11 +189,7 @@ export default {
     if (chatSocket) return secure(await chatSocket);
 
     if (url.pathname === '/client-logs' && request.method === 'POST') {
-      const body = (await request.json().catch(() => null)) as {
-        entries?: unknown;
-      } | null;
-      if (body && Array.isArray(body.entries))
-        ingestClientLogs(body.entries as LogEntry[]);
+      ingestClientLogs(await request.json().catch(() => null));
       return secure(new Response(null, { status: 204 }));
     }
     const photo = handleProfilePhotoRequest(request, url);
