@@ -131,4 +131,30 @@ describe('createBeaconTransport', () => {
       else g.navigator = original;
     }
   });
+
+  it('falls back to a keepalive fetch where there is no sendBeacon, so the batch outlives its page', () => {
+    const fetch = vi.fn(() => Promise.resolve(new Response(null)));
+    const g = globalThis as unknown as Record<string, unknown>;
+    const original = { navigator: g.navigator, fetch: g.fetch };
+    g.navigator = {};
+    g.fetch = fetch;
+    try {
+      const entries = [
+        { ts: 't', level: 'info', msg: 'hi', service: 'ui' },
+      ] as LogEntry[];
+      expect(createBeaconTransport('/client-logs')(entries)).toBe(true);
+      expect(
+        fetch,
+        'a fetch without keepalive may be cancelled with the page it was sent from, losing the batch a beacon would have delivered',
+      ).toHaveBeenCalledWith('/client-logs', {
+        method: 'POST',
+        body: JSON.stringify({ entries }),
+        keepalive: true,
+      });
+    } finally {
+      g.fetch = original.fetch;
+      if (original.navigator === undefined) delete g.navigator;
+      else g.navigator = original.navigator;
+    }
+  });
 });

@@ -13,14 +13,15 @@ const spend = (address: string, budget: RateBudget): Promise<boolean> =>
   consumeRateBudget(address, budget.action, budget.limit, budget.windowMs);
 
 /**
- * The batch a request carries, or `null` when its body is larger than a beacon can be or is not
+ * The batch a request carries, or `null` when its body is larger than a browser sends or is not
  * JSON.
  *
- * A beacon is a keepalive request, and the Fetch standard lets a page have at most 64 KiB of those
- * in flight, so every batch the client logger sends by beacon fits in `CLIENT_LOGS_MAX_BYTES`. A
- * larger body came from something else, and is cut off as it arrives, before it is parsed or logged.
- * The entry schema bounds the fields it knows but passes any other on as context, so without this
- * cap one request could carry any amount into the Worker's memory and the log.
+ * The client logger sends every batch as a keepalive request, a beacon or the fetch it falls back
+ * to, and the Fetch standard lets a page have at most 64 KiB of those in flight, so every batch it
+ * sends fits in `CLIENT_LOGS_MAX_BYTES`. A larger body came from something else, and is cut off as
+ * it arrives, before it is parsed or logged. The entry schema bounds the fields it knows but passes
+ * any other on as context, so without this cap one request could carry any amount into the
+ * Worker's memory and the log.
  */
 const readBatch = async (request: Request): Promise<unknown> => {
   const bytes = await readBounded(request, CLIENT_LOGS_MAX_BYTES);
