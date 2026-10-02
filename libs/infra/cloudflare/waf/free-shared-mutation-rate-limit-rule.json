@@ -5,7 +5,7 @@
   "ratelimit": {
     "characteristics": ["cf.colo.id", "ip.src"],
     "period": 10,
-    "requests_per_period": 20,
+    "requests_per_period": 50,
     "mitigation_timeout": 10
   }
 }
