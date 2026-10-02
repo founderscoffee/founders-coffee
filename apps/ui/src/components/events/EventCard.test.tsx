@@ -1,54 +1,12 @@
 import { cleanup, render } from '@testing-library/react';
-import { createElement, type ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { going_count, LOCALES, type Locale } from '@founders-coffee/i18n';
 import type { EventFeedItem } from '@founders-coffee/server-fns';
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    children,
-    className,
-  }: {
-    children: ReactNode;
-    className?: string;
-  }) => createElement('a', { href: '/', className }, children),
-}));
+import { event } from './EventCard.fixtures';
 
 const { EventCard } = await import('./EventCard');
-
-const event: EventFeedItem = {
-  id: 'evt_card',
-  hostId: 'usr_host',
-  marketCode: 'DZ',
-  stateCode: '16',
-  cityCode: '1',
-  title: 'Founder coffee',
-  description: 'A short founder conversation over coffee.',
-  venue: 'Coffee shop',
-  slug: 'founder-coffee',
-  startsAt: new Date('2026-09-18T14:00:00Z'),
-  endsAt: null,
-  language: 'ar',
-  languages: ['ar'],
-  rsvps: 0,
-  latitude: null,
-  longitude: null,
-  venueAddress: null,
-  status: 'published',
-  version: 1,
-  createdAt: new Date(0),
-  updatedAt: new Date(0),
-  cancelledAt: null,
-  cancellationReason: null,
-  cityName: 'Algiers',
-  cityNameAr: 'الجزائر',
-  cityNameFr: 'Alger',
-  citySlug: 'algiers',
-  goingCount: 0,
-  hostName: null,
-  hostPhotoAssetId: null,
-};
 
 const show = (over: Partial<EventFeedItem> = {}, locale: Locale = 'en') =>
   render(
