@@ -142,3 +142,17 @@ describe('rollback workflow contract', () => {
     ).toBeLessThan(deployWorkflow.indexOf('Apply D1 migrations'));
   });
 });
+
+describe('local development contract', () => {
+  it.each(['ui:dev', 'admin:dev', 'worker-jobs:dev'])(
+    '%s compiles the i18n messages before it starts a Worker that imports them',
+    (script) => {
+      const command = packageManifest.scripts[script];
+
+      expect(
+        command,
+        'the compiled messages are gitignored, so a fresh clone has none until they are generated',
+      ).toContain('nx run i18n:generate-i18n && npm -w apps/');
+    },
+  );
+});
