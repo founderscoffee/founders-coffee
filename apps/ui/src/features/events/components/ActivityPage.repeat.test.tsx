@@ -50,7 +50,10 @@ const page = (items: unknown[]) => ({
 
 const show = () =>
   render(
-    <ActivityPage locale="en" markets={[{ code: 'DZ', slug: 'algeria' }]} />,
+    <ActivityPage
+      locale="en"
+      markets={[{ code: 'DZ', slug: 'algeria', timezone: 'Africa/Algiers' }]}
+    />,
   );
 
 const event = {

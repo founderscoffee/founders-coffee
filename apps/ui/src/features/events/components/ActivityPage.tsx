@@ -40,7 +40,7 @@ export const ActivityPage = ({
   markets,
 }: {
   locale: Locale;
-  markets: readonly { code: string; slug: string }[];
+  markets: readonly { code: string; slug: string; timezone: string }[];
 }) => {
   const [activeTab, setActiveTab] = useState<ActivityTab>('joined');
   const joined = useMyJoinedEvents({ limit: ACTIVITY_PAGE_SIZE });
@@ -62,8 +62,10 @@ export const ActivityPage = ({
     (closeoutStates.data ?? []).map((state) => [state.eventId, state]),
   );
 
-  const marketSlugFor = (code: string) =>
-    markets.find((market) => market.code === code)?.slug ?? code;
+  const marketFor = (code: string) =>
+    markets.find((market) => market.code === code);
+  const marketSlugFor = (code: string) => marketFor(code)?.slug ?? code;
+  const timezoneFor = (code: string) => marketFor(code)?.timezone ?? 'UTC';
 
   const isLoading = isAuthLoading || (!!userId && joined.isPending);
 
@@ -154,6 +156,7 @@ export const ActivityPage = ({
                 items={joinedItems}
                 total={joined.data?.pages[0]?.total ?? 0}
                 marketSlugFor={marketSlugFor}
+                timezoneFor={timezoneFor}
                 hasMore={!!joined.hasNextPage}
                 isLoadingMore={joined.isFetchingNextPage}
                 onLoadMore={() => void joined.fetchNextPage()}
@@ -173,6 +176,7 @@ export const ActivityPage = ({
                 items={hostedItems}
                 total={hosted.data?.pages[0]?.total ?? 0}
                 marketSlugFor={marketSlugFor}
+                timezoneFor={timezoneFor}
                 hasMore={!!hosted.hasNextPage}
                 isLoadingMore={hosted.isFetchingNextPage}
                 onLoadMore={() => void hosted.fetchNextPage()}
