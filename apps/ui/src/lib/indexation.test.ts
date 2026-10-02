@@ -72,16 +72,24 @@ describe('indexation policy', () => {
     expect(shouldNoIndexEnvironment({})).toBe(true);
   });
 
-  it('returns an allow-all production robots policy and blocks other environments', () => {
-    expect(robotsBody({ APP_ENVIRONMENT: 'production' })).toBe(
-      'User-agent: *\nAllow: /\nSitemap: https://founders.coffee/sitemap.xml\n',
-    );
+  it('invites every crawler but Awario’s to production and blocks other environments', () => {
+    const production = [
+      'User-agent: *',
+      'Allow: /',
+      '',
+      'User-agent: AwarioBot',
+      'User-agent: AwarioSmartBot',
+      'User-agent: AwarioRssBot',
+      'Disallow: /',
+      '',
+      'Sitemap: https://founders.coffee/sitemap.xml',
+      '',
+    ].join('\n');
+    expect(robotsBody({ APP_ENVIRONMENT: 'production' })).toBe(production);
     expect(robotsBody({ APP_ENVIRONMENT: 'staging' })).toBe(
       'User-agent: *\nDisallow: /\n',
     );
-    expect(robotsBodyForOrigin(PRODUCTION_ORIGIN)).toBe(
-      'User-agent: *\nAllow: /\nSitemap: https://founders.coffee/sitemap.xml\n',
-    );
+    expect(robotsBodyForOrigin(PRODUCTION_ORIGIN)).toBe(production);
     expect(robotsBodyForOrigin('https://staging.founders.coffee')).toBe(
       'User-agent: *\nDisallow: /\n',
     );
