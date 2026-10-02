@@ -1,0 +1,36 @@
+name: Feature or change
+description: Propose a change to what founders.coffee does. Start open-ended ideas as a discussion.
+type: Feature
+labels: ['needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The current release builds the local meetup community only; see the [implementation plan](https://github.com/founderscoffee/founders-coffee/blob/main/docs/implementation-plan.md). Hackathons, sponsorship, talent, payments and new markets are later phases: start those as an [idea](https://github.com/founderscoffee/founders-coffee/discussions/categories/ideas).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What do you propose?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What else did you consider?
+  - type: input
+    id: related
+    attributes:
+      label: Related plan ticket or issue
+      placeholder: P1-026, #107
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I would like to work on this myself, once a maintainer accepts it.

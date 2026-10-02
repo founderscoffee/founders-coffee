@@ -105,7 +105,8 @@ npm run ui:dev
 ```
 
 The public app runs at `http://localhost:3000`. Copy the relevant `.dev.vars.example` before
-exercising authentication, maps, or external providers.
+exercising authentication, maps, or external providers. [`CONTRIBUTING.md`](./CONTRIBUTING.md#local-setup)
+has the full setup, including the features that need accounts of your own.
 
 `seed:local` fills the local database with the three launch markets, three accounts and three
 events, and is safe to re-run — every row yields to whatever is already there, so it never
@@ -159,6 +160,15 @@ Read these in order before changing code:
 
 These two are the whole specification. Everything else was consolidated into the plan or retired;
 earlier documents remain readable in git history.
+
+## Contributing
+
+Contributions are welcome. Start with [`CONTRIBUTING.md`](./CONTRIBUTING.md) and the
+[Code of Conduct](./CODE_OF_CONDUCT.md). Questions go to
+[Discussions](https://github.com/founderscoffee/founders-coffee/discussions), vulnerabilities to the
+[security policy](./SECURITY.md), and everything else to [`SUPPORT.md`](./SUPPORT.md).
+[`GOVERNANCE.md`](./GOVERNANCE.md) says how the project is run, and
+[`ACCESSIBILITY.md`](./ACCESSIBILITY.md) what it promises people who use assistive technology.
 
 ## License
 

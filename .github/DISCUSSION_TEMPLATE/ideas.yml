@@ -1,0 +1,29 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. The current release builds the local meetup community; hackathons, sponsorship, talent, payments and new markets are later phases, decided in the [implementation plan](https://github.com/founderscoffee/founders-coffee/blob/main/docs/implementation-plan.md). Ideas for any phase are welcome here.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What is hard, missing or slow today, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What would you change? Sketches and links help.
+    validations:
+      required: true
+  - type: dropdown
+    id: markets
+    attributes:
+      label: Which markets does it concern?
+      multiple: true
+      options:
+        - Algeria
+        - Egypt
+        - Saudi Arabia
+        - All of them

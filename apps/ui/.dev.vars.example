@@ -1,5 +1,5 @@
 # apps/ui local dev SECRETS — copy to `.dev.vars` (gitignored) and fill in.
-# APP_URL is NOT here — it's a public var in wrangler.jsonc. See docs/secrets.md.
+# APP_URL is NOT here — it's a public var in wrangler.jsonc. See CONTRIBUTING.md, "Local setup".
 
 # Auth (libs/auth) — BETTER_AUTH_SECRET must be >=32 chars. Generate one:
 #   openssl rand -base64 48

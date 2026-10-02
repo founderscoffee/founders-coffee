@@ -1,5 +1,5 @@
 # founders.coffee local dev vars — copy to apps/<app>/.dev.vars and fill in.
-# Real values are NEVER committed (.dev.vars is gitignored). See docs/secrets.md.
+# Real values are NEVER committed (.dev.vars is gitignored). See CONTRIBUTING.md, "Local setup".
 
 # Auth (libs/auth)
 BETTER_AUTH_SECRET=change-me-to-a-long-random-string-of-at-least-32-chars
