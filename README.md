@@ -159,3 +159,11 @@ Read these in order before changing code:
 
 These two are the whole specification. Everything else was consolidated into the plan or retired;
 earlier documents remain readable in git history.
+
+## License
+
+[GNU Affero General Public License v3.0](./LICENSE). Anyone may use, change and share the code, and
+whoever runs a modified version as a service must offer its users that version's source.
+
+The license covers the code, not the founders.coffee name or logo. A public deployment of a modified
+version should carry a name and logo of its own.

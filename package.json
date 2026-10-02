@@ -1,7 +1,7 @@
 {
   "name": "@founders-coffee/source",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "private": true,
   "scripts": {
     "build": "nx run-many -t build",
