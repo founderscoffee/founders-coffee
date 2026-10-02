@@ -1,0 +1,32 @@
+name: Pull request title
+
+# The title becomes the squash commit's subject on develop, and releases are versioned from those
+# subjects. This runs apart from CI so that editing a title checks it again without rerunning the
+# whole verification; it runs on every new commit too, because a required check is kept per commit.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches: [develop]
+
+concurrency:
+  group: pull-request-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  title:
+    name: Pull request title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Check the title is a Conventional Commit
+        env:
+          PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
+        run: node tools/ci/pull-request-title.mjs
