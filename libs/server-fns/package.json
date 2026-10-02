@@ -39,6 +39,11 @@
       "types": "./src/chat/socket-http.ts",
       "default": "./src/chat/socket-http.ts"
     },
+    "./client-logs-http": {
+      "@founders-coffee/source": "./src/client-logs-http.ts",
+      "types": "./src/client-logs-http.ts",
+      "default": "./src/client-logs-http.ts"
+    },
     "./closeout-prompt": {
       "@founders-coffee/source": "./src/notifications/closeout-prompt.ts",
       "types": "./src/notifications/closeout-prompt.ts",

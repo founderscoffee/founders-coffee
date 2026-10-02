@@ -35,6 +35,7 @@ describe('rate budgets', () => {
       'expensive',
       'otp',
       'read',
+      'telemetry',
     ]);
   });
 });
