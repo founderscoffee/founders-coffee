@@ -14,6 +14,7 @@ import {
   handleCspReportRequest,
 } from '@founders-coffee/server-fns/csp-report-http';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
+import { allowSignInCode } from '@founders-coffee/server-fns/sign-in-code-limit';
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 export { EventChatDO } from '@founders-coffee/server-fns/chat-room';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
@@ -75,6 +76,9 @@ const withoutErrorCaching = (response: Response): Response => {
  * Build the Better Auth handler with the OTP email provider wired (prod). Dev (localhost) keeps the
  * default `DevEmailProvider` so the OTP is visible in the Worker console for the smoke; prod uses the
  * real Cloudflare Email binding. Constructed per request (auth must not be a module singleton).
+ *
+ * Every environment, localhost included, limits the sign-in codes a sender and a mailbox can draw
+ * through `allowSignInCode`, so the limit a member meets is the one the tests run against.
  */
 const authHandler = (env: UiEnv) => {
   const isDev = env.APP_URL.startsWith('http://localhost');
@@ -85,7 +89,10 @@ const authHandler = (env: UiEnv) => {
           env,
         )
       : undefined;
-  return createAuthHandler(env, emailProvider ? { emailProvider } : {});
+  return createAuthHandler(env, {
+    ...(emailProvider ? { emailProvider } : {}),
+    codeSendLimit: allowSignInCode,
+  });
 };
 
 /**

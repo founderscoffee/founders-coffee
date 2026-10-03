@@ -1,4 +1,4 @@
-const AUTH_BASE_PATH = '/api/auth';
+export const AUTH_BASE_PATH = '/api/auth';
 
 export const PUBLIC_AUTH_ROUTES = [
   'GET /get-session',

@@ -5,6 +5,7 @@ export { createAuth, smsProviderFromEnv } from './auth.js';
 export { configuredSocialProviders } from './social-providers.js';
 export type { AuthEnv, AuthDeps, AuthInstance } from './auth.js';
 export { createAuthHandler } from './handler.js';
+export type { CodeSendLimit, CodeSendRequest } from './code-send-limit.js';
 export type { HandlerEnv } from './handler.js';
 export {
   getSession,
