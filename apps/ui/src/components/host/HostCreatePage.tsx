@@ -270,6 +270,7 @@ export const HostCreatePage = ({
           isInteractive={wizard.step === 1}
           covered={wizard.step === 1 ? venueOverlay.covered : 0}
           onRetry={() => void mapContext.refetch()}
+          onCitySelect={wizard.isRepeat ? undefined : switchCity}
           onVenueSelect={wizard.selectVenue}
           onVenueInvalidate={wizard.clearVenue}
           onCenterChange={(center) =>

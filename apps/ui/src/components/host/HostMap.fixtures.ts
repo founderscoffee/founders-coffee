@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
   createElement,
   type ComponentProps,
@@ -38,11 +38,24 @@ const camera = vi.hoisted(() => ({ flyTo: vi.fn() }));
 
 const reverse = vi.hoisted(() => ({ mutateAsync: vi.fn() }));
 
+const suggestions = vi.hoisted(() => ({
+  cities: [] as unknown[],
+  asked: [] as { marketCode: string; query: string }[],
+}));
+
 vi.mock('../../features/events/hooks', () => ({
   useReverseEventVenue: () => ({
     isPending: false,
     mutateAsync: reverse.mutateAsync,
   }),
+}));
+
+vi.mock('../../features/geo/hooks', () => ({
+  useCitySuggestions: (marketCode: string, query: string) => {
+    suggestions.asked.push({ marketCode, query });
+    return { data: query.length >= 2 ? suggestions.cities : undefined };
+  },
+  useDebouncedValue: <T>(value: T) => value,
 }));
 
 vi.mock('react-map-gl/mapbox', async () => {
@@ -175,4 +188,39 @@ export const flewTo = (
     zoom,
   });
 
-export { camera, reverse };
+type BrowserAnswer = {
+  found: (coords: { latitude: number; longitude: number }) => void;
+  refused: () => void;
+};
+
+/**
+ * Stand in for the browser's geolocation, and hand back the answers a test gives it once asked.
+ */
+export const browserAsked = () => {
+  const answer: BrowserAnswer = {
+    found: () => undefined,
+    refused: () => undefined,
+  };
+  vi.stubGlobal('navigator', {
+    geolocation: {
+      getCurrentPosition: (
+        success: PositionCallback,
+        failure: PositionErrorCallback,
+      ) => {
+        answer.found = (coords) =>
+          success({ coords } as unknown as GeolocationPosition);
+        answer.refused = () =>
+          failure({ code: 1 } as unknown as GeolocationPositionError);
+      },
+    },
+  });
+  return answer;
+};
+
+/** Give the browser's `answer` and let the map act on it. */
+export const settle = (answer: () => void) =>
+  act(async () => {
+    answer();
+  });
+
+export { camera, reverse, suggestions };

@@ -1,18 +1,16 @@
-import { RefreshCw } from 'lucide-react';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 import { Map, Marker } from 'react-map-gl/mapbox';
 
 import { appErrorCode } from '@founders-coffee/core';
+import type { geo } from '@founders-coffee/domain';
 import {
   host_geolocation_denied,
   host_map_error,
   host_map_label,
-  retry,
   host_venue_unsupported,
   type Locale,
 } from '@founders-coffee/i18n';
-import { StatusMessage } from '@founders-coffee/ui';
 
 import { useReverseEventVenue } from '../../features/events/hooks';
 import type {
@@ -21,10 +19,13 @@ import type {
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 import { HostLocateButton } from './HostLocateButton';
+import { HostLocationPrompt } from './HostLocationPrompt';
+import { HostMapFailure } from './HostMapFailure';
 import { HostMapSkeleton } from './HostMapSkeleton';
 import { HostMapToasts } from './HostMapToasts';
 import { HostVenuePin } from './HostVenuePin';
 import type { ControlSize } from './useControlSize';
+import { useLocationPrompt } from './useLocationPrompt';
 import { coverPadding, useMapCover } from './useMapCover';
 import { useMapResize } from './useMapResize';
 import { useVisitorLocation, type Coordinates } from './useVisitorLocation';
@@ -52,6 +53,7 @@ type HostMapProps = {
   onUserMove?: () => void;
   onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
+  onCitySelect?: (city: geo.GeoCity) => void;
 };
 
 export const HostMap = ({
@@ -69,6 +71,7 @@ export const HostMap = ({
   onUserMove,
   onUserGestureEnd,
   onLocateResize,
+  onCitySelect,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
@@ -85,6 +88,11 @@ export const HostMap = ({
   const [lastCoordinates, setLastCoordinates] = useState<Coordinates | null>(
     null,
   );
+  const prompt = useLocationPrompt({
+    canAsk: isInteractive && onCitySelect !== undefined,
+    hasCity: cityCode !== undefined,
+    hasVenue: venue !== null,
+  });
   const cameraPadding = useMapCover(mapRef, covered, viewport, venue);
   const frameRef = useMapResize(mapRef);
   const flyTo = (longitude: number, latitude: number, zoom: number): void => {
@@ -97,11 +105,6 @@ export const HostMap = ({
   };
 
   const pin = venue ?? (reverseVenue.isPending ? lastCoordinates : null);
-
-  const venueErrorMessage = (error: unknown): string =>
-    appErrorCode(error) === 'map_venue_not_found'
-      ? host_venue_unsupported({}, { locale })
-      : host_map_error({}, { locale });
 
   const resolveCoordinates = async (
     coordinates: Coordinates,
@@ -123,7 +126,13 @@ export const HostMap = ({
       onVenueSelect({ ...resolved, ...coordinates });
     } catch (error) {
       if (requestId !== reverseRequestId.current) return;
-      setLocationError(venueErrorMessage(error));
+      const isNothingThere = appErrorCode(error) === 'map_venue_not_found';
+      if (isNothingThere && prompt.askAfterMiss()) return;
+      setLocationError(
+        isNothingThere
+          ? host_venue_unsupported({}, { locale })
+          : host_map_error({}, { locale }),
+      );
     }
   };
 
@@ -159,27 +168,14 @@ export const HostMap = ({
 
   if (hasMapError) {
     return (
-      <div className="flex h-full min-h-64 w-full items-center justify-center bg-base-200 p-6">
-        <StatusMessage
-          variant="error"
-          action={
-            <button
-              type="button"
-              className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
-              onClick={() => {
-                setHasMapError(false);
-                setIsMapReady(false);
-                setMapKey((value) => value + 1);
-              }}
-            >
-              <RefreshCw className="size-4" aria-hidden="true" />
-              {retry({}, { locale })}
-            </button>
-          }
-        >
-          {host_map_error({}, { locale })}
-        </StatusMessage>
-      </div>
+      <HostMapFailure
+        locale={locale}
+        onRetry={() => {
+          setHasMapError(false);
+          setIsMapReady(false);
+          setMapKey((value) => value + 1);
+        }}
+      />
     );
   }
 
@@ -284,6 +280,18 @@ export const HostMap = ({
             : undefined
         }
       />
+
+      {onCitySelect && (
+        <HostLocationPrompt
+          locale={locale}
+          marketCode={marketCode}
+          cityCode={cityCode}
+          reason={prompt.reason}
+          onLocate={() => void chooseWhereVisitorIs()}
+          onCitySelect={onCitySelect}
+          onClose={prompt.close}
+        />
+      )}
     </div>
   );
 };

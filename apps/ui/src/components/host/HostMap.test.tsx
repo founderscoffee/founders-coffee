@@ -36,6 +36,11 @@ vi.mock('../../features/events/hooks', () => ({
   }),
 }));
 
+vi.mock('../../features/geo/hooks', () => ({
+  useCitySuggestions: () => ({ data: undefined }),
+  useDebouncedValue: <T,>(value: T) => value,
+}));
+
 vi.mock('react-map-gl/mapbox', () => ({
   Map: ({
     children,

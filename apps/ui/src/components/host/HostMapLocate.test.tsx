@@ -1,13 +1,8 @@
-import {
-  act,
-  cleanup,
-  fireEvent,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  browserAsked,
   CAFE,
   camera,
   flewTo,
@@ -15,6 +10,7 @@ import {
   press,
   renderHostMap,
   reverse,
+  settle,
   STREET,
 } from './HostMap.fixtures';
 
@@ -24,34 +20,6 @@ const LOCATING = 'Locating the venue…';
 
 const NO_LOCATION =
   'We could not access your location. You can use search or the map.';
-
-type Answer = {
-  found: (coords: typeof HERE) => void;
-  refused: () => void;
-};
-
-const browserAsked = () => {
-  const answer: Answer = { found: () => undefined, refused: () => undefined };
-  vi.stubGlobal('navigator', {
-    geolocation: {
-      getCurrentPosition: (
-        success: PositionCallback,
-        failure: PositionErrorCallback,
-      ) => {
-        answer.found = (coords) =>
-          success({ coords } as unknown as GeolocationPosition);
-        answer.refused = () =>
-          failure({ code: 1 } as unknown as GeolocationPositionError);
-      },
-    },
-  });
-  return answer;
-};
-
-const settle = (answer: () => void) =>
-  act(async () => {
-    answer();
-  });
 
 beforeEach(() => {
   reverse.mutateAsync.mockReturnValue(new Promise(() => undefined));
