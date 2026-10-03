@@ -14,10 +14,12 @@ type ViewState = { latitude: number; longitude: number };
 
 type LngLat = { lngLat: { lat: number; lng: number } };
 
+type Tap = LngLat & { target: { getZoom: () => number } };
+
 type MapStandInProps = {
   ref?: Ref<object>;
   children?: ReactNode;
-  onClick?: (event: LngLat) => void;
+  onClick?: (event: Tap) => void;
   onMoveStart?: (event: {
     originalEvent?: Event;
     viewState: ViewState;
@@ -34,7 +36,7 @@ type MarkerStandInProps = {
 
 type Click = { stopPropagation: () => void };
 
-const camera = vi.hoisted(() => ({ flyTo: vi.fn() }));
+const camera = vi.hoisted(() => ({ flyTo: vi.fn(), zoom: 16 }));
 
 const reverse = vi.hoisted(() => ({ mutateAsync: vi.fn() }));
 
@@ -93,7 +95,10 @@ vi.mock('react-map-gl/mapbox', async () => {
         {
           'data-testid': 'map-surface',
           onClick: () =>
-            onClick?.({ lngLat: { lat: at.latitude, lng: at.longitude } }),
+            onClick?.({
+              lngLat: { lat: at.latitude, lng: at.longitude },
+              target: { getZoom: () => camera.zoom },
+            }),
         },
         control('host drags', () =>
           onMoveStart?.({

@@ -25,6 +25,7 @@ import { HostMapSkeleton } from './HostMapSkeleton';
 import { HostMapToasts } from './HostMapToasts';
 import { HostSearchButton } from './HostSearchButton';
 import { HostVenuePin } from './HostVenuePin';
+import { LOCATE_ZOOM, VENUE_ZOOM, zoomForTap } from './mapZoom';
 import type { ControlSize } from './useControlSize';
 import { useLocationPrompt } from './useLocationPrompt';
 import { initialCamera, useMapCover } from './useMapCover';
@@ -32,10 +33,6 @@ import { useMapResize } from './useMapResize';
 import { useVisitorLocation, type Coordinates } from './useVisitorLocation';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
-
-const VENUE_ZOOM = 15;
-
-const LOCATE_ZOOM = 17;
 
 const mapLib = loadMapboxCsp();
 
@@ -211,7 +208,12 @@ export const HostMap = ({
           isInteractive
             ? (event) => {
                 const { lng, lat } = event.lngLat;
-                void resolveCoordinates({ longitude: lng, latitude: lat });
+                const closer = zoomForTap(event.target.getZoom());
+                if (closer === null) {
+                  void resolveCoordinates({ longitude: lng, latitude: lat });
+                } else {
+                  flyTo(lng, lat, closer);
+                }
                 onUserGestureEnd?.();
               }
             : undefined
