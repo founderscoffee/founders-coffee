@@ -173,6 +173,7 @@
   "login_email_placeholder": "you@example.com",
   "login_email_continue": "Continue with email",
   "login_send_error": "We could not send the code. Please try again.",
+  "login_social_error": "We could not sign you in with {provider}. Please try again or use your email.",
   "login_code_sent": "We sent a 6-digit code to {email}. It expires in 30 minutes.",
   "login_code_label": "Enter the code",
   "login_verify": "Verify and sign in",

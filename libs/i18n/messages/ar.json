@@ -194,6 +194,7 @@
   "login_email_placeholder": "you@example.com",
   "login_email_continue": "المتابعة بالبريد الإلكتروني",
   "login_send_error": "تعذر إرسال الرمز. حاول مرة أخرى.",
+  "login_social_error": "تعذر تسجيل دخولك عبر {provider}. حاول مرة أخرى أو استخدم بريدك الإلكتروني.",
   "login_code_sent": "أرسلنا رمزًا من 6 أرقام إلى {email}. تنتهي صلاحيته خلال 30 دقيقة.",
   "login_code_label": "أدخل الرمز",
   "login_verify": "تحقّق وسجّل الدخول",

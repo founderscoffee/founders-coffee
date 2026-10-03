@@ -15,6 +15,7 @@ import { Button, StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
+import { socialCallbacks, type SocialRedirect } from '../../lib/redirect';
 import { LoginEmailField } from './LoginEmailField';
 import { OtpField, OTP_LENGTH } from './OtpField';
 import { BackArrow } from './ProviderIcon';
@@ -32,11 +33,6 @@ const sendErrorMessage = (status: number, locale: Locale): string =>
     {},
     { locale },
   );
-
-type SocialRedirect = {
-  callbackURL: string;
-  newUserCallbackURL?: string;
-};
 
 export type SignInFormProps = {
   locale: Locale;
@@ -71,6 +67,9 @@ export const SignInForm = ({
   const [busy, setBusy] = useState(false);
   const [resendToken, setResendToken] = useState<string | null>(null);
   const [resendNonce, setResendNonce] = useState(0);
+  const [failedProvider, setFailedProvider] = useState<SocialProvider | null>(
+    null,
+  );
   const rootRef = useRef<HTMLDivElement>(null);
   const cooldown = useResendCooldown();
   const stepHeight = useStepHeightLock<HTMLFormElement>();
@@ -140,13 +139,13 @@ export const SignInForm = ({
     setStep('email');
   };
 
-  const social = (provider: SocialProvider) => {
-    const { callbackURL, newUserCallbackURL } = getSocialRedirect();
-    return authClient.signIn.social({
+  const social = async (provider: SocialProvider) => {
+    setFailedProvider(null);
+    const { error: signInError } = await authClient.signIn.social({
       provider,
-      callbackURL,
-      ...(newUserCallbackURL ? { newUserCallbackURL } : {}),
+      ...socialCallbacks(getSocialRedirect(), window.location.origin),
     });
+    if (signInError) setFailedProvider(provider);
   };
 
   const submitStep = (event: FormEvent<HTMLFormElement>) => {
@@ -211,6 +210,7 @@ export const SignInForm = ({
           <SocialSignIn
             locale={locale}
             providers={socialProviders}
+            failedProvider={failedProvider}
             isDisabled={busy}
             onSelect={(provider) => void social(provider)}
           />
