@@ -27,6 +27,8 @@ import { PushPermissionPrompt } from '../../features/events/components/PushPermi
 import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { useCancelRsvp, useCreateRsvp } from '../../features/events/hooks';
+import { rememberJoinIntent } from '../../features/events/join-intent';
+import { useJoinAfterSignIn } from '../../features/events/useJoinAfterSignIn';
 import { useAuth } from '../../lib/app-providers';
 import { localizedLogin } from '../../lib/locale-routing';
 import { AddToCalendar } from './AddToCalendar';
@@ -83,6 +85,7 @@ export const RsvpSection = ({
 
   const handleRsvp = () => {
     if (!isAuthenticated) {
+      rememberJoinIntent(event.id);
       void navigate({
         ...localizedLogin(locale),
         search: { redirect: window.location.pathname },
@@ -101,6 +104,13 @@ export const RsvpSection = ({
       },
     );
   };
+
+  const boxRef = useJoinAfterSignIn({
+    eventId: event.id,
+    isSignedIn: isAuthenticated,
+    canJoin: isOpen && !isGoing && !isCancelled && !isHost,
+    join: handleRsvp,
+  });
 
   const handleCancel = () => {
     setError(null);
@@ -165,7 +175,7 @@ export const RsvpSection = ({
     ) : null;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={boxRef} className="flex flex-col gap-3">
       {isCancelled ? (
         isGoing ? (
           <>
