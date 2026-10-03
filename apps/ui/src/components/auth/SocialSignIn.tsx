@@ -1,11 +1,12 @@
 import {
   login_or,
+  login_social_error,
   oauth_continue,
   provider_github,
   provider_google,
   type Locale,
 } from '@founders-coffee/i18n';
-import { Button } from '@founders-coffee/ui';
+import { Button, StatusMessage } from '@founders-coffee/ui';
 
 import { PROVIDER_MARK } from './ProviderIcon';
 
@@ -19,6 +20,7 @@ const PROVIDER_LABEL = {
 type SocialSignInProps = {
   locale: Locale;
   providers: readonly SocialProvider[];
+  failedProvider?: SocialProvider | null;
   isDisabled: boolean;
   onSelect: (provider: SocialProvider) => void;
 };
@@ -26,6 +28,7 @@ type SocialSignInProps = {
 export const SocialSignIn = ({
   locale,
   providers,
+  failedProvider,
   isDisabled,
   onSelect,
 }: SocialSignInProps) =>
@@ -54,5 +57,13 @@ export const SocialSignIn = ({
           );
         })}
       </div>
+      {failedProvider && (
+        <StatusMessage variant="error">
+          {login_social_error(
+            { provider: PROVIDER_LABEL[failedProvider]({}, { locale }) },
+            { locale },
+          )}
+        </StatusMessage>
+      )}
     </>
   );

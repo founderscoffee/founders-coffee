@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { login_social_error, type Locale } from '@founders-coffee/i18n';
+
 import { SocialSignIn, type SocialProvider } from './SocialSignIn';
 
 afterEach(() => cleanup());
@@ -56,6 +58,31 @@ describe('the sign-in buttons for other accounts', () => {
     );
 
     expect(onSelect).toHaveBeenCalledExactlyOnceWith('github');
+  });
+
+  it.each(['ar', 'fr', 'en'] as const)(
+    'says which account could not sign the reader in (%s)',
+    (locale: Locale) => {
+      render(
+        <SocialSignIn
+          locale={locale}
+          providers={['google', 'github']}
+          failedProvider="github"
+          isDisabled={false}
+          onSelect={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByRole('alert').textContent).toBe(
+        login_social_error({ provider: 'GitHub' }, { locale }),
+      );
+    },
+  );
+
+  it('says nothing while no sign-in has failed', () => {
+    show(['google', 'github']);
+
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('holds its buttons while another sign-in is under way', () => {

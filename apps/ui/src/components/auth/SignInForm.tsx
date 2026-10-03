@@ -67,6 +67,9 @@ export const SignInForm = ({
   const [busy, setBusy] = useState(false);
   const [resendToken, setResendToken] = useState<string | null>(null);
   const [resendNonce, setResendNonce] = useState(0);
+  const [failedProvider, setFailedProvider] = useState<SocialProvider | null>(
+    null,
+  );
   const rootRef = useRef<HTMLDivElement>(null);
   const cooldown = useResendCooldown();
   const stepHeight = useStepHeightLock<HTMLFormElement>();
@@ -136,11 +139,14 @@ export const SignInForm = ({
     setStep('email');
   };
 
-  const social = (provider: SocialProvider) =>
-    authClient.signIn.social({
+  const social = async (provider: SocialProvider) => {
+    setFailedProvider(null);
+    const { error: signInError } = await authClient.signIn.social({
       provider,
       ...socialCallbacks(getSocialRedirect(), window.location.origin),
     });
+    if (signInError) setFailedProvider(provider);
+  };
 
   const submitStep = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -204,6 +210,7 @@ export const SignInForm = ({
           <SocialSignIn
             locale={locale}
             providers={socialProviders}
+            failedProvider={failedProvider}
             isDisabled={busy}
             onSelect={(provider) => void social(provider)}
           />
