@@ -61,6 +61,35 @@ export const safeAuthReturnPath = (value: unknown): string => {
   return parsed.success ? parsed.data : '/';
 };
 
+export type SocialRedirect = {
+  callbackURL: string;
+  newUserCallbackURL?: string;
+};
+
+/**
+ * A path on this site as the full address a Google or GitHub sign-in returns to.
+ *
+ * Better Auth accepts a relative `callbackURL` only when its path is plain ASCII (letters, digits
+ * and `-._+/@`), and answers 403 "Invalid callbackURL" to any other. A meetup's address carries its
+ * title, so an Arabic one is percent-encoded, and production refused every such sign-in started
+ * from one (2026-10-02). A full address is checked by its origin alone, so the same path on the
+ * page's own origin passes in any script. The path goes through `safeRedirectPath` first, so
+ * nothing but a page on that origin comes out.
+ */
+export const socialCallbackUrl = (path: string, origin: string): string =>
+  new URL(safeRedirectPath(path), origin).href;
+
+/** Both return paths of a provider sign-in as `socialCallbackUrl` addresses on `origin`. */
+export const socialCallbacks = (
+  { callbackURL, newUserCallbackURL }: SocialRedirect,
+  origin: string,
+): SocialRedirect => ({
+  callbackURL: socialCallbackUrl(callbackURL, origin),
+  ...(newUserCallbackURL
+    ? { newUserCallbackURL: socialCallbackUrl(newUserCallbackURL, origin) }
+    : {}),
+});
+
 export const authReturnSearchSchema = z.object({
   redirect: authReturnPathSchema.catch(HOME).optional().default(HOME),
 });

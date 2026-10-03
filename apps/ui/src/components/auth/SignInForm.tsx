@@ -15,6 +15,7 @@ import { Button, StatusMessage, Turnstile } from '@founders-coffee/ui';
 
 import { LegalNotice } from '../company/LegalNotice';
 import { authClient } from '../../lib/auth';
+import { socialCallbacks, type SocialRedirect } from '../../lib/redirect';
 import { LoginEmailField } from './LoginEmailField';
 import { OtpField, OTP_LENGTH } from './OtpField';
 import { BackArrow } from './ProviderIcon';
@@ -32,11 +33,6 @@ const sendErrorMessage = (status: number, locale: Locale): string =>
     {},
     { locale },
   );
-
-type SocialRedirect = {
-  callbackURL: string;
-  newUserCallbackURL?: string;
-};
 
 export type SignInFormProps = {
   locale: Locale;
@@ -140,14 +136,11 @@ export const SignInForm = ({
     setStep('email');
   };
 
-  const social = (provider: SocialProvider) => {
-    const { callbackURL, newUserCallbackURL } = getSocialRedirect();
-    return authClient.signIn.social({
+  const social = (provider: SocialProvider) =>
+    authClient.signIn.social({
       provider,
-      callbackURL,
-      ...(newUserCallbackURL ? { newUserCallbackURL } : {}),
+      ...socialCallbacks(getSocialRedirect(), window.location.origin),
     });
-  };
 
   const submitStep = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

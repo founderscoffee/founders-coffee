@@ -4,6 +4,8 @@ import {
   pathDestination,
   safeRedirectPath,
   sameOriginPathSchema,
+  socialCallbacks,
+  socialCallbackUrl,
 } from './redirect';
 import { stringifySearch } from './search-params';
 
@@ -98,5 +100,48 @@ describe('pathDestination', () => {
       stringifySearch(pathDestination(`/fr/algeria${query}`).search),
       'a query read any other way than the router reads it is sent on as a different address',
     ).toBe(query);
+  });
+});
+
+describe('socialCallbackUrl', () => {
+  const MEETUP = '/ar/algeria/e/عندي-مشروع-في-وهران-ونحوس-على-مستثمرين';
+
+  it('gives an Arabic meetup page as a full address on the origin it is given', () => {
+    const url = new URL(
+      socialCallbackUrl(
+        `${encodeURI(MEETUP)}?ref=share`,
+        'https://founders.coffee',
+      ),
+    );
+
+    expect(url.origin).toBe('https://founders.coffee');
+    expect(decodeURIComponent(url.pathname)).toBe(MEETUP);
+    expect(url.search).toBe('?ref=share');
+  });
+
+  it.each([
+    'https://attacker.example/steal',
+    '//attacker.example/steal',
+    '/..//attacker.example',
+    'javascript:alert(1)',
+  ])('keeps %s on the origin, at its home page', (path) => {
+    expect(socialCallbackUrl(path, 'https://founders.coffee')).toBe(
+      'https://founders.coffee/',
+    );
+  });
+
+  it('gives both return paths of a sign-in as full addresses, and invents neither', () => {
+    expect(
+      socialCallbacks(
+        { callbackURL: '/ar/algeria', newUserCallbackURL: '/ar/onboarding' },
+        'https://staging.founders.coffee',
+      ),
+    ).toEqual({
+      callbackURL: 'https://staging.founders.coffee/ar/algeria',
+      newUserCallbackURL: 'https://staging.founders.coffee/ar/onboarding',
+    });
+    expect(
+      socialCallbacks({ callbackURL: '/' }, 'https://founders.coffee'),
+    ).toEqual({ callbackURL: 'https://founders.coffee/' });
   });
 });
