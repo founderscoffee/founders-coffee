@@ -7,6 +7,7 @@ import {
   login_code_sent,
   login_send_error,
   login_verify,
+  rate_limited,
   type Locale,
   code_error,
 } from '@founders-coffee/i18n';
@@ -23,6 +24,14 @@ import { useOtpAutofill } from './useOtpAutofill';
 import { useResendCooldown } from './useResendCooldown';
 import { useStepHeightLock } from './useStepHeightLock';
 import { useRevealOnMount } from './useRevealOnMount';
+
+const TOO_MANY_REQUESTS = 429;
+
+const sendErrorMessage = (status: number, locale: Locale): string =>
+  (status === TOO_MANY_REQUESTS ? rate_limited : login_send_error)(
+    {},
+    { locale },
+  );
 
 type SocialRedirect = {
   callbackURL: string;
@@ -81,7 +90,7 @@ export const SignInForm = ({
     );
     setBusy(false);
     if (sendError) {
-      setError(login_send_error({}, { locale }));
+      setError(sendErrorMessage(sendError.status, locale));
       return;
     }
     stepHeight.lock();
@@ -99,7 +108,7 @@ export const SignInForm = ({
     );
     setBusy(false);
     if (sendError) {
-      setError(login_send_error({}, { locale }));
+      setError(sendErrorMessage(sendError.status, locale));
       return;
     }
     setOtp('');

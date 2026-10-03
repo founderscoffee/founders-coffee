@@ -1,11 +1,11 @@
 {
-  "description": "Founders Coffee shared auth, server-function and client-log edge volume limit",
-  "expression": "(starts_with(http.request.uri.path, \"/_serverFn/\") or starts_with(http.request.uri.path, \"/api/auth/\") or http.request.uri.path eq \"/client-logs\")",
+  "description": "Founders Coffee shared auth, server-function, client-log and CSP report edge volume limit",
+  "expression": "(starts_with(http.request.uri.path, \"/_serverFn/\") or starts_with(http.request.uri.path, \"/api/auth/\") or http.request.uri.path eq \"/client-logs\" or http.request.uri.path eq \"/csp-report\")",
   "action": "block",
   "ratelimit": {
     "characteristics": ["cf.colo.id", "ip.src"],
     "period": 10,
-    "requests_per_period": 20,
+    "requests_per_period": 50,
     "mitigation_timeout": 10
   }
 }

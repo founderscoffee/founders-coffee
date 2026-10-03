@@ -5,11 +5,16 @@ import { createAuthHandler, type HandlerEnv } from '@founders-coffee/auth';
 import { createCspNonce, withSecurityHeaders } from '@founders-coffee/core';
 import { createCloudflareEmailProvider } from '@founders-coffee/email';
 import { DURABLE_OBJECT_LOCATION_HINT } from '@founders-coffee/infra';
-import { logger, strippingQueryValues } from '@founders-coffee/observability';
+import { strippingQueryValues } from '@founders-coffee/observability';
 import { runWithContext } from '@founders-coffee/observability/context';
 import { handleChatSocketRequest } from '@founders-coffee/server-fns/chat-socket';
 import { handleClientLogsRequest } from '@founders-coffee/server-fns/client-logs-http';
+import {
+  CSP_REPORT_PATH,
+  handleCspReportRequest,
+} from '@founders-coffee/server-fns/csp-report-http';
 import { handleProfilePhotoRequest } from '@founders-coffee/server-fns/profile-photo-http';
+import { allowSignInCode } from '@founders-coffee/server-fns/sign-in-code-limit';
 import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 export { EventChatDO } from '@founders-coffee/server-fns/chat-room';
 export { RateLimiterDO } from '@founders-coffee/server-fns/rate-limiter-do';
@@ -42,8 +47,6 @@ export interface UiEnv extends HandlerEnv {
   OTP_ECHO?: string;
 }
 
-const CSP_REPORT_PATH = '/csp-report';
-
 /**
  * Keep failures out of the shared cache.
  *
@@ -73,6 +76,9 @@ const withoutErrorCaching = (response: Response): Response => {
  * Build the Better Auth handler with the OTP email provider wired (prod). Dev (localhost) keeps the
  * default `DevEmailProvider` so the OTP is visible in the Worker console for the smoke; prod uses the
  * real Cloudflare Email binding. Constructed per request (auth must not be a module singleton).
+ *
+ * Every environment, localhost included, limits the sign-in codes a sender and a mailbox can draw
+ * through `allowSignInCode`, so the limit a member meets is the one the tests run against.
  */
 const authHandler = (env: UiEnv) => {
   const isDev = env.APP_URL.startsWith('http://localhost');
@@ -83,7 +89,10 @@ const authHandler = (env: UiEnv) => {
           env,
         )
       : undefined;
-  return createAuthHandler(env, emailProvider ? { emailProvider } : {});
+  return createAuthHandler(env, {
+    ...(emailProvider ? { emailProvider } : {}),
+    codeSendLimit: allowSignInCode,
+  });
 };
 
 /**
@@ -160,11 +169,8 @@ export default {
         ),
       );
 
-    if (url.pathname === CSP_REPORT_PATH && request.method === 'POST') {
-      const report = await request.json().catch(() => null);
-      if (report) logger.warn('csp.violation', { report });
-      return secure(new Response(null, { status: 204 }));
-    }
+    const cspReport = handleCspReportRequest(request, url);
+    if (cspReport) return secure(await cspReport);
 
     if (
       url.pathname === '/robots.txt' &&

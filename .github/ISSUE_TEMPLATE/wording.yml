@@ -1,0 +1,44 @@
+name: Wording or translation
+description: Text in Arabic, French or English that is wrong, unclear or missing.
+type: Bug
+labels: ['needs-triage', 'area: i18n']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks. Native speakers catch what reviewers miss. If you would rather fix it yourself, the messages live in `libs/i18n/messages/`; see [CONTRIBUTING.md](https://github.com/founderscoffee/founders-coffee/blob/main/CONTRIBUTING.md).
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      multiple: true
+      options:
+        - Arabic
+        - French
+        - English
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Page address
+      placeholder: https://founders.coffee/fr/algeria
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: The text as it is
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: The text as it should be
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What is wrong with it, such as grammar, tone, a term, or a layout that breaks from right to left.

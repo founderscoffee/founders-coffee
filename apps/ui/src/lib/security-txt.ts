@@ -1,8 +1,12 @@
 import { CONTACT_EMAIL } from '../content/company/contact';
 
+import { SOURCE_REPOSITORY_URL } from './source-repository';
+
 export const SECURITY_TXT_EXPIRES = '2027-06-30T00:00:00Z';
 
 export const SECURITY_TXT_PATH = '/.well-known/security.txt';
+
+export const SECURITY_POLICY_URL = `${SOURCE_REPOSITORY_URL}/security/policy`;
 
 /**
  * The vulnerability disclosure contact, as served from a given origin (RFC 9116).
@@ -21,14 +25,16 @@ export const SECURITY_TXT_PATH = '/.well-known/security.txt';
  * `Canonical` names where this copy is served rather than where production lives, so a
  * staging deployment describes itself honestly.
  *
- * `Policy` and `Encryption` are absent on purpose. Both are optional, and advertising a
- * disclosure policy nobody has written or a key nobody can decrypt is worse than omitting
- * them: it sends a reporter somewhere that does not answer.
+ * `Policy` is the repository's SECURITY.md, as GitHub publishes it from `main`, and it says
+ * how a report is handled. `Encryption` is absent on purpose: it is optional, and advertising a
+ * key nobody holds is worse than omitting it, since it sends a reporter somewhere that does not
+ * answer.
  */
 export const securityTxtBody = (origin: string): string =>
   `${[
     `Contact: mailto:${CONTACT_EMAIL}`,
     `Expires: ${SECURITY_TXT_EXPIRES}`,
+    `Policy: ${SECURITY_POLICY_URL}`,
     'Preferred-Languages: ar, fr, en',
     `Canonical: ${origin}${SECURITY_TXT_PATH}`,
   ].join('\n')}\n`;

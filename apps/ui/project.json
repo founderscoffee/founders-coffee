@@ -107,7 +107,8 @@
       "options": {
         "command": "npx playwright test --config=playwright.config.ts",
         "cwd": "apps/ui"
-      }
+      },
+      "dependsOn": [{ "projects": ["i18n"], "target": "generate-i18n" }]
     }
   }
 }

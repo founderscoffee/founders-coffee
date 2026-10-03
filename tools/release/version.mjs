@@ -28,6 +28,8 @@ const SECTIONS = [
   ['style', 'Style'],
 ];
 
+export const COMMIT_TYPES = SECTIONS.map(([type]) => type);
+
 /**
  * The newest release tag, by semantic version rather than by creation date.
  *
@@ -83,7 +85,7 @@ const section = (title, commits) =>
  * note that silently omits a change is worse than an untidy one.
  */
 export const renderNotes = ({ version, previousTag, commits, repoUrl }) => {
-  const known = new Set(SECTIONS.map(([type]) => type));
+  const known = new Set(COMMIT_TYPES);
   const lines = [
     previousTag === null
       ? `First tagged release — ${commits.length} commits.`

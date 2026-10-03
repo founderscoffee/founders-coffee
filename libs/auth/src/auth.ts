@@ -16,6 +16,7 @@ import { libraryLog } from '@founders-coffee/observability';
 
 import { reportAuthFailure } from './auth-failures.js';
 import { captchaEndpointsFor } from './captcha.js';
+import { codeSendLimit, type CodeSendLimit } from './code-send-limit.js';
 import { nameForNewAccount, nameUnnamedMember } from './member-name.js';
 import {
   forgetProviderTokens,
@@ -47,6 +48,7 @@ export interface AuthDeps {
   emailProvider?: EmailProvider;
   smsProvider?: SmsProvider;
   captchaBypassed?: boolean;
+  codeSendLimit?: CodeSendLimit;
 }
 
 /**
@@ -84,12 +86,19 @@ const PUBLIC_OTP_TYPE = 'sign-in';
  * (the TanStack #5323 ~30s-hang trap).
  *
  * Auth model (FR-A4/D4): passwordless phone-OTP (Twilio Verify, primary) + email-OTP (secondary/billing) + OAuth (Google/GitHub/LinkedIn);
- * sessions in D1 (never KV); D1-backed auth rate-limiting; strict account linking.
+ * sessions in D1 (never KV); strict account linking.
  *
  * `ipAddressHeaders` is pinned to `cf-connecting-ip` rather than Better Auth's default
  * `x-forwarded-for`: on Workers only the former is set by the edge and cannot be forged by the
- * client (AGENTS §11.5). Both the D1-backed rate limiter and the captcha plugin's `remoteip` key off
- * this, so the default would let a client choose its own rate-limit bucket.
+ * client (AGENTS §11.5). The captcha plugin's `remoteip` and the address a session records both
+ * read it, so the default would let a client state its own address.
+ *
+ * Better Auth's own rate limiter is switched off by name. Left to its default, it turns on when
+ * `NODE_ENV` is `production`, which no Worker here sets, and every store it offers reads and then
+ * writes, which D1 cannot make atomic (AGENTS §11); its `database` store also needs a table this
+ * schema lacks, so setting `NODE_ENV` would have failed every auth request. The limits that apply
+ * are the edge rule and the Durable Object budgets, here `deps.codeSendLimit` for sign-in codes,
+ * enforced by `codeSendLimit`, which is listed after the captcha plugin on purpose.
  *
  * The captcha plugin is registered unconditionally (see `captchaEndpointsFor` for why) for public
  * auth requests. An absent secret key is not a bypass: the plugin errors on gated endpoints, and
@@ -218,7 +227,7 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
       },
       ipAddress: { ipAddressHeaders: ['cf-connecting-ip'] },
     },
-    rateLimit: { storage: 'database' },
+    rateLimit: { enabled: false },
     plugins: [
       captcha({
         provider: 'cloudflare-turnstile',
@@ -227,6 +236,7 @@ export const createAuth = (env: AuthEnv, deps: AuthDeps = {}) => {
           env.TURNSTILE_DISABLED === 'true' || deps.captchaBypassed === true,
         ),
       }),
+      codeSendLimit(deps.codeSendLimit),
       emailOTP({
         sendVerificationOTP: async ({ email, otp, type }, context) => {
           await emailProvider.sendOtp(

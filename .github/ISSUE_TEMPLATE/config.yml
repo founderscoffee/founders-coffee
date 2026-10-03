@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/founderscoffee/founders-coffee/discussions/categories/q-a
+    about: Questions about the code, the setup or contributing.
+  - name: Share an idea
+    url: https://github.com/founderscoffee/founders-coffee/discussions/categories/ideas
+    about: Open-ended ideas, and anything for a later phase, start as a discussion.
+  - name: Report a security vulnerability
+    url: https://github.com/founderscoffee/founders-coffee/security/advisories/new
+    about: Report it privately. Never in a public issue.
+  - name: Help with your account or a meetup
+    url: https://github.com/founderscoffee/founders-coffee/blob/main/SUPPORT.md
+    about: Email contact@founders.coffee from the address on your account.

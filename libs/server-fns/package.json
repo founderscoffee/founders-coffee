@@ -44,6 +44,16 @@
       "types": "./src/client-logs-http.ts",
       "default": "./src/client-logs-http.ts"
     },
+    "./csp-report-http": {
+      "@founders-coffee/source": "./src/csp-report-http.ts",
+      "types": "./src/csp-report-http.ts",
+      "default": "./src/csp-report-http.ts"
+    },
+    "./sign-in-code-limit": {
+      "@founders-coffee/source": "./src/sign-in-code-limit.ts",
+      "types": "./src/sign-in-code-limit.ts",
+      "default": "./src/sign-in-code-limit.ts"
+    },
     "./closeout-prompt": {
       "@founders-coffee/source": "./src/notifications/closeout-prompt.ts",
       "types": "./src/notifications/closeout-prompt.ts",

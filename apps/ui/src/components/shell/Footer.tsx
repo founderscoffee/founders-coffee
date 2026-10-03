@@ -20,6 +20,7 @@ import {
   footer_organizers,
   footer_participate,
   footer_privacy,
+  footer_source,
   footer_tagline,
   footer_terms,
   localizedName,
@@ -34,6 +35,7 @@ import {
   localizedHome,
   localizedLanding,
 } from '../../lib/locale-routing';
+import { SOURCE_REPOSITORY_URL } from '../../lib/source-repository';
 
 import { LocaleToggle } from './LocaleToggle';
 
@@ -192,6 +194,11 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
               >
                 {footer_contact({}, { locale })}
               </Link>
+            </li>
+            <li>
+              <a href={SOURCE_REPOSITORY_URL} className={linkClass}>
+                {footer_source({}, { locale })}
+              </a>
             </li>
           </FooterNavGroup>
         </div>

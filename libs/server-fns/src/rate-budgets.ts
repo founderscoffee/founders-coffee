@@ -32,6 +32,16 @@ export const RATE_BUDGETS = {
       limit: 10,
       windowMs: 10 * MINUTE_MS,
     },
+    signInCodeSender: {
+      action: 'send_sign_in_code',
+      limit: 60,
+      windowMs: 10 * MINUTE_MS,
+    },
+    signInCodeMailbox: {
+      action: 'receive_sign_in_code',
+      limit: 5,
+      windowMs: 60 * MINUTE_MS,
+    },
   },
   expensive: {
     photoReservation: {
@@ -88,6 +98,16 @@ export const RATE_BUDGETS = {
       limit: 1,
       windowMs: 10 * MINUTE_MS,
     },
+    cspReports: {
+      action: 'csp_reports',
+      limit: 30,
+      windowMs: 10 * MINUTE_MS,
+    },
+    cspReportsRefusal: {
+      action: 'csp_reports_refusal',
+      limit: 1,
+      windowMs: 10 * MINUTE_MS,
+    },
   },
 } as const satisfies Record<string, Record<string, RateBudget>>;
 
@@ -104,11 +124,18 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * it permits.
  *
  * `edit` covers cheap owner writes. `read` covers unauthenticated reads that are cheap per call but
- * enumerable in bulk. `otp` now holds the two halves of a contact change: sending a code costs an SMS or an email
- * and is bounded tightly, while submitting one is cheap but must not become an oracle, so it is
- * bounded loosely. Better Auth applies its own per-endpoint limits underneath; these are the
- * per-identity budgets this product owns, and the two together are the reason a stolen session
- * cannot walk a member's contact details out of the account.
+ * enumerable in bulk. `otp` holds the two halves of a contact change: sending a code costs an SMS or
+ * an email and is bounded tightly, while submitting one is cheap but must not become an oracle, so it
+ * is bounded loosely. Together they are the reason a stolen session cannot walk a member's contact
+ * details out of the account. Better Auth's own limiter is off (see `createAuth`), so these budgets
+ * and the edge rule are the only limits.
+ *
+ * `otp` also bounds the sign-in codes anyone can ask for, from two sides. A mailbox receives five
+ * an hour, however many senders ask and however its address is spelled: enough for a member who
+ * lost a mail, too few to flood an inbox. One sender's network address may ask for sixty in ten
+ * minutes, spread over any mailboxes, because a carrier's NAT, a meetup's Wi-Fi and a full local
+ * E2E run each share one; it bounds a single sender's draw on the mail quota, while Turnstile is what
+ * makes each request cost something.
  *
  * `expensive` holds the two halves of a photo upload, deliberately as separate buckets: a
  * reservation is cheap and a transferred body is not, so spending the reservation allowance must
@@ -131,7 +158,10 @@ export type RateBudgetCategory = keyof typeof RATE_BUDGETS;
  * of a page's reach unless it fails in a loop, with room for several visitors on one network; past
  * them, batches pass only as the bucket refills, three a minute, and the rest are dropped unread. A
  * refusal is logged from a budget of its own, one line per address in ten minutes, so the line
- * saying a caller is limited cannot fill the log in place of the batches it stands for.
+ * saying a caller is limited cannot fill the log in place of the batches it stands for. A browser
+ * also reports each violation of the page's Content Security Policy, to `/csp-report`, and those
+ * reports have a bucket and a refusal line of their own, sized the same: a policy that works makes
+ * none, and in production's week to 2026-10-02 no address sent more than three in ten minutes.
  */
 export const allRateBudgets = (): ReadonlyArray<
   RateBudget & { category: RateBudgetCategory }

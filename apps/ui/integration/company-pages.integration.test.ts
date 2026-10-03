@@ -14,6 +14,7 @@ import {
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { COMPANY_PAGES } from '../src/content/company/pages';
+import { SOURCE_REPOSITORY_URL } from '../src/lib/source-repository';
 import worker from '../src/server';
 
 const ORIGIN = 'https://founders.coffee';
@@ -46,7 +47,7 @@ describe('the company and legal pages, rendered by the Worker like every other p
   });
 
   it.each(PAGES)(
-    '/$locale/$page carries the security headers, names its market and offers to host',
+    '/$locale/$page carries the security headers, names its market, offers to host and links its source',
     async ({ locale, page }) => {
       const response = await fetchDocument(`/${locale}/${page}`);
       const html = await response.text();
@@ -70,6 +71,10 @@ describe('the company and legal pages, rendered by the Worker like every other p
         html,
         'with no market there was no host button in the header or the footer',
       ).toContain(`href="/${locale}/algeria/host/create"`);
+      expect(
+        footer,
+        'the AGPL has the site offer the source it runs to everyone who uses it, and the server-rendered footer is how every page does',
+      ).toContain(`href="${SOURCE_REPOSITORY_URL}"`);
     },
   );
 });

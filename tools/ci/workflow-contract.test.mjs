@@ -18,6 +18,7 @@ const packageManifest = JSON.parse(
 const ciWorkflow = workflow('ci.yml');
 const deployWorkflow = workflow('deploy.yml');
 const rollbackWorkflow = workflow('rollback.yml');
+const titleWorkflow = workflow('pull-request-title.yml');
 const stagingDrill = fs.readFileSync(
   path.join(import.meta.dirname, '..', 'deploy', 'staging-rollback-drill.mjs'),
   'utf8',
@@ -141,4 +142,62 @@ describe('rollback workflow contract', () => {
       deployWorkflow.indexOf('migration-compatibility.mjs check'),
     ).toBeLessThan(deployWorkflow.indexOf('Apply D1 migrations'));
   });
+});
+
+describe('pull request gate contract', () => {
+  const RELEASE_PULL_REQUEST =
+    "github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'develop' && github.event.pull_request.head.repo.full_name == github.repository";
+
+  it('runs on every pull request, so the required checks always report', () => {
+    for (const gate of [ciWorkflow, titleWorkflow]) {
+      expect(gate).not.toContain('paths-ignore');
+      expect(gate).not.toMatch(/^\s+paths:/mu);
+    }
+  });
+
+  it("skips long verification only for this repository's develop into main", () => {
+    expect(ciWorkflow.split(RELEASE_PULL_REQUEST)).toHaveLength(4);
+    expect(
+      ciWorkflow,
+      'a fork can name its branch develop, so a head ref alone must not skip the gates',
+    ).not.toContain("github.head_ref != 'develop'");
+  });
+
+  it('checks a contributor title through the environment, never inside the script', () => {
+    expect(titleWorkflow).toContain(
+      'PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}',
+    );
+    expect(titleWorkflow).not.toMatch(
+      /run:[^\n]*github\.event\.pull_request\.title/,
+    );
+    expect(titleWorkflow).toContain(
+      'run: node tools/ci/pull-request-title.mjs',
+    );
+  });
+
+  it('checks the title again when it is edited and on every new commit', () => {
+    expect(
+      titleWorkflow,
+      'a rerun replays the old title, so only an edited event sees the new one',
+    ).toContain('types: [opened, edited, reopened, synchronize]');
+    expect(titleWorkflow).toContain('branches: [develop]');
+  });
+
+  it('reports under the name the develop ruleset requires', () => {
+    expect(titleWorkflow).toContain('    name: Pull request title\n');
+  });
+});
+
+describe('local development contract', () => {
+  it.each(['ui:dev', 'admin:dev', 'worker-jobs:dev'])(
+    '%s compiles the i18n messages before it starts a Worker that imports them',
+    (script) => {
+      const command = packageManifest.scripts[script];
+
+      expect(
+        command,
+        'the compiled messages are gitignored, so a fresh clone has none until they are generated',
+      ).toContain('nx run i18n:generate-i18n && npm -w apps/');
+    },
+  );
 });
