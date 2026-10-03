@@ -26,13 +26,26 @@ const STREET = {
 const choice = () => screen.getByRole('group', { name: 'Selected location' });
 
 describe('HostVenueChoice', () => {
-  it('names the place chosen and where it is, each part starting on the page’s side', () => {
+  it('names the place chosen and where it is, each part setting its own direction', () => {
     render(<HostVenueChoice locale="en" venue={CAFE} venueName={CAFE.name} />);
 
     const parts = [...choice().querySelectorAll('bdi')].map(
       (part) => part.textContent,
     );
     expect(parts).toEqual([CAFE.name, CAFE.address]);
+  });
+
+  it('starts each line on the page’s side, whatever the script of the place', () => {
+    render(<HostVenueChoice locale="ar" venue={CAFE} venueName={CAFE.name} />);
+
+    const group = screen.getByRole('group', { name: 'الموقع المحدد' });
+    for (const part of group.querySelectorAll('bdi')) {
+      expect(
+        part.className,
+        'laid out as a line of its own, a Latin name took the line’s direction and started at the left of an Arabic page',
+      ).toBe('');
+      expect(part.parentElement?.className.split(' ')).toContain('block');
+    }
   });
 
   it('shows an unnamed street address once, then the name the host gives the place', () => {

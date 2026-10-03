@@ -24,14 +24,14 @@ export const HostVenueChoice = ({
       className="mt-0.5 size-4 shrink-0 text-secondary"
       aria-hidden="true"
     />
-    <span className="flex min-w-0 flex-1 flex-col">
-      <bdi className="truncate text-body-sm font-semibold">
-        {venueName || venue.address}
-      </bdi>
+    <span className="min-w-0 flex-1">
+      <span className="block truncate text-body-sm font-semibold">
+        <bdi>{venueName || venue.address}</bdi>
+      </span>
       {venueName && (
-        <bdi className="truncate text-caption text-neutral">
-          {venue.address}
-        </bdi>
+        <span className="block truncate text-caption text-neutral">
+          <bdi>{venue.address}</bdi>
+        </span>
       )}
     </span>
   </div>
