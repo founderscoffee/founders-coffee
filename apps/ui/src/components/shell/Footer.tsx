@@ -43,6 +43,7 @@ type FooterProps = {
   locale: Locale;
   markets: readonly FooterMarket[];
   market?: FooterMarket;
+  cityCode?: string;
 };
 
 type FooterMarket = LocalizedNames & {
@@ -100,7 +101,7 @@ const FooterNavGroup = ({ id, title, children }: FooterNavGroupProps) => (
   </>
 );
 
-export const Footer = ({ locale, markets, market }: FooterProps) => {
+export const Footer = ({ locale, markets, market, cityCode }: FooterProps) => {
   const primaryMarket = market ?? markets[0];
   const primaryMarketLabel = primaryMarket
     ? localizedName(primaryMarket, locale)
@@ -136,7 +137,7 @@ export const Footer = ({ locale, markets, market }: FooterProps) => {
             {primaryMarket ? (
               <li>
                 <Link
-                  {...localizedHostCreate(locale, primaryMarket.slug)}
+                  {...localizedHostCreate(locale, primaryMarket.slug, cityCode)}
                   className={linkClass}
                 >
                   {footer_cta_host({}, { locale })}

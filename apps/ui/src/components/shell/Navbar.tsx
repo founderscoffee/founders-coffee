@@ -16,6 +16,7 @@ import { localizedHome, localizedHostCreate } from '../../lib/locale-routing';
 type NavbarProps = {
   locale: Locale;
   marketSlug?: string;
+  cityCode?: string;
   isHiddenOnMobile?: boolean;
 };
 
@@ -25,6 +26,7 @@ const hostClass =
 export const Navbar = ({
   locale,
   marketSlug,
+  cityCode,
   isHiddenOnMobile = false,
 }: NavbarProps) => {
   return (
@@ -55,7 +57,7 @@ export const Navbar = ({
           </div>
           {marketSlug ? (
             <Link
-              {...localizedHostCreate(locale, marketSlug)}
+              {...localizedHostCreate(locale, marketSlug, cityCode)}
               aria-label={nav_host({}, { locale })}
               className={hostClass}
             >

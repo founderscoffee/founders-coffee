@@ -4,12 +4,24 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
+    to,
+    params,
+    search,
     'aria-label': label,
   }: {
     children: React.ReactNode;
+    to: string;
+    params?: Record<string, string>;
+    search?: Record<string, string>;
     'aria-label'?: string;
   }) => (
-    <a href="/" aria-label={label}>
+    <a
+      href={`${Object.entries(params ?? {}).reduce(
+        (path, [key, value]) => path.replace(`$${key}`, value),
+        to,
+      )}${search ? `?${new URLSearchParams(search)}` : ''}`}
+      aria-label={label}
+    >
       {children}
     </a>
   ),
@@ -56,6 +68,25 @@ describe('the site header', () => {
       slot?.compareDocumentPosition(host),
       'the markup is the order a signed-out visitor sees and tabs through; only the signed-in avatar is moved, by the stylesheet',
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('opens the wizard on the city the reader is looking at', () => {
+    const { getByRole } = render(
+      <Navbar locale="en" marketSlug="algeria" cityCode="556" />,
+    );
+
+    expect(
+      getByRole('link', { name: 'Host a meetup' }).getAttribute('href'),
+      'from Algiers’ page the wizard opened on the whole market and asked the host where they were',
+    ).toBe('/en/algeria/host/create?city=556');
+  });
+
+  it('opens the wizard on the market from a page about no city', () => {
+    const { getByRole } = render(<Navbar locale="en" marketSlug="algeria" />);
+
+    expect(
+      getByRole('link', { name: 'Host a meetup' }).getAttribute('href'),
+    ).toBe('/en/algeria/host/create');
   });
 
   it.each([

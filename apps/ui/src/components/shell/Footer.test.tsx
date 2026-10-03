@@ -5,12 +5,14 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({
     to,
     params,
+    search,
     hash,
     children,
     ...rest
   }: {
     to: string;
     params?: Record<string, string>;
+    search?: Record<string, string>;
     hash?: string;
     children: React.ReactNode;
   }) => (
@@ -18,7 +20,7 @@ vi.mock('@tanstack/react-router', () => ({
       href={`${Object.entries(params ?? {}).reduce(
         (path, [key, value]) => path.replace(`$${key}`, value),
         to,
-      )}${hash ? `#${hash}` : ''}`}
+      )}${search ? `?${new URLSearchParams(search)}` : ''}${hash ? `#${hash}` : ''}`}
       {...rest}
     >
       {children}
@@ -150,6 +152,14 @@ describe('the footer', () => {
     renderFooter('fr');
     expect(hrefs()).toContain('/fr/algeria/host/create');
     expect(hrefs()).not.toContain('/algeria/host/create');
+  });
+
+  it('opens the host wizard on the city the reader is looking at', () => {
+    render(
+      <Footer locale="fr" markets={[MARKET]} market={MARKET} cityCode="556" />,
+    );
+
+    expect(hrefs()).toContain('/fr/algeria/host/create?city=556');
   });
 
   it('leaves the signed-in destinations to the session menu', () => {

@@ -1,3 +1,5 @@
+import type { MakeRouteMatchUnion } from '@tanstack/react-router';
+
 type ChromeMatch = {
   readonly staticData: { readonly hasOwnMobileHeader?: boolean };
 };
@@ -10,3 +12,27 @@ type ChromeMatch = {
  */
 export const hasOwnMobileHeader = (matches: readonly ChromeMatch[]): boolean =>
   matches.some((match) => match.staticData.hasOwnMobileHeader === true);
+
+/**
+ * The code of the city the page on screen is about, for the site's Host links to open the wizard on.
+ *
+ * A city's page, a meetup's page and the wizard itself each know their city. The header's Host link
+ * did not pass it on, so a reader who went from Algiers' page to host a meetup there arrived on the
+ * whole market and was asked where they were. Every other page names no city, and the wizard asks.
+ */
+export const cityCodeInView = (
+  matches: readonly MakeRouteMatchUnion[],
+): string | undefined => {
+  for (const match of matches) {
+    if (match.routeId === '/$locale/$market/$city') {
+      return match.loaderData?.city.code;
+    }
+    if (match.routeId === '/$locale/$market/e/$slug') {
+      return match.loaderData?.event.cityCode;
+    }
+    if (match.routeId === '/$locale/$market/host/create') {
+      return match.loaderData?.city?.code;
+    }
+  }
+  return undefined;
+};

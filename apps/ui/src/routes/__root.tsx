@@ -41,7 +41,7 @@ import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd, websiteJsonLd } from '../lib/seo-company';
 import { errorPageHead, errorPageKind } from '../lib/seo-error';
 import { installedAppMeta } from '../lib/installed-app-head';
-import { hasOwnMobileHeader } from '../lib/route-chrome';
+import { cityCodeInView, hasOwnMobileHeader } from '../lib/route-chrome';
 import { manifestHref } from '../lib/web-manifest';
 
 import appCss from '../styles.css?url';
@@ -85,6 +85,7 @@ const useServiceWorker = () => {
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { locale, dir, markets, activeMarket } = Route.useRouteContext();
   const isNavbarHiddenOnMobile = useMatches({ select: hasOwnMobileHeader });
+  const cityCode = useMatches({ select: cityCodeInView });
   useClientObservability();
   useServiceWorker();
   useStoredLocale(locale);
@@ -102,12 +103,18 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
           <Navbar
             locale={locale}
             marketSlug={activeMarket?.slug}
+            cityCode={cityCode}
             isHiddenOnMobile={isNavbarHiddenOnMobile}
           />
           <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>
-          <Footer locale={locale} markets={markets} market={activeMarket} />
+          <Footer
+            locale={locale}
+            markets={markets}
+            market={activeMarket}
+            cityCode={cityCode}
+          />
         </AppProviders>
         <Scripts />
       </body>
