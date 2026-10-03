@@ -17,7 +17,7 @@ const hostCreateMocks = getHostCreateMocks();
 describe('HostCreatePage EC-07 flow', () => {
   afterEach(resetHostCreateFixtures);
 
-  it('explains why venue search is unavailable instead of leaving a dead input', async () => {
+  it('explains why venue search is unavailable instead of offering a search that cannot run', async () => {
     hostCreateMocks.mapContext.data = undefined;
     hostCreateMocks.mapContext.isError = true;
     hostCreateMocks.mapContext.error = new AppError(
@@ -26,15 +26,15 @@ describe('HostCreatePage EC-07 flow', () => {
     );
     renderHostCreateWizard();
 
-    const search = (await screen.findByLabelText(
-      'Search cafés and coworking venues',
-    )) as HTMLInputElement;
-    expect(search.disabled).toBe(true);
     expect(
       await screen.findByText(
         'You have searched for venues too often. Wait a moment, then try again.',
       ),
     ).toBeTruthy();
+    expect(
+      screen.queryByLabelText('Search cafés and coworking venues'),
+    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Search' })).toBeNull();
   });
 
   it('says once, where the map should be, that the map could not load', async () => {

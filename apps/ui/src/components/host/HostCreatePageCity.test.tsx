@@ -25,10 +25,14 @@ const REPEAT_TEMPLATE: RepeatEventTemplate = {
   languages: ['ar'],
 };
 
-const search = (value: string) =>
-  fireEvent.change(screen.getByLabelText('Search cafés and coworking venues'), {
-    target: { value },
-  });
+const SEARCH_BOX = 'Search cafés and coworking venues';
+
+const search = (value: string) => {
+  if (!screen.queryByLabelText(SEARCH_BOX)) {
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+  }
+  fireEvent.change(screen.getByLabelText(SEARCH_BOX), { target: { value } });
+};
 
 describe('moving the wizard to a city the host searched for', () => {
   afterEach(resetHostCreateFixtures);
@@ -52,13 +56,9 @@ describe('moving the wizard to a city the host searched for', () => {
       search: { city: '929' },
       replace: true,
     });
-    expect(
-      (
-        screen.getByLabelText(
-          'Search cafés and coworking venues',
-        ) as HTMLInputElement
-      ).value,
-    ).toBe('');
+    expect((screen.getByLabelText(SEARCH_BOX) as HTMLInputElement).value).toBe(
+      '',
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(
       screen.getByText('Choose a supported venue to continue.'),

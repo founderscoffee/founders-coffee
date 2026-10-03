@@ -37,6 +37,7 @@ export const HostMapPanel = ({
   onUserGestureEnd,
   onLocateResize,
   onCitySelect,
+  onSearch,
 }: {
   locale: Locale;
   accessToken: string;
@@ -55,6 +56,7 @@ export const HostMapPanel = ({
   onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
   onCitySelect?: (city: geo.GeoCity) => void;
+  onSearch?: () => void;
 }) => (
   <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
     <Suspense fallback={<HostMapSkeleton locale={locale} />}>
@@ -75,6 +77,7 @@ export const HostMapPanel = ({
           onUserGestureEnd={onUserGestureEnd}
           onLocateResize={onLocateResize}
           onCitySelect={onCitySelect}
+          onSearch={onSearch}
         />
       ) : error ? (
         <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">

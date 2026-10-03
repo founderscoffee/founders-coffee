@@ -1,13 +1,14 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { HostLocateButton } from './HostLocateButton';
 import {
   getVenueLookups,
   idle,
   resetVenueStep,
   showVenueStep,
+  venueStep,
 } from './HostVenueStep.fixtures';
+import type { VenueOverlay } from './HostVenueStep';
 
 afterEach(resetVenueStep);
 
@@ -22,95 +23,117 @@ const CAFE = {
   eligible: true,
 };
 
+const STREET = {
+  ...CAFE,
+  providerId: 'address-yousfi',
+  kind: 'address' as const,
+  name: '15 Rue Yousfi Mohamed',
+  address: '15 Rue Yousfi Mohamed, Alger',
+};
+
 const LOCATE = { width: 94, height: 24 };
 
-const exploring = () => ({
-  isCollapsed: true,
-  isExploring: true,
-  neighbour: LOCATE,
-  onToggle: vi.fn(),
+const onTheMap = (state: Partial<VenueOverlay> = {}): VenueOverlay => ({
+  isSearchOpen: false,
+  isListOpen: false,
+  row: LOCATE,
   onCoverChange: vi.fn(),
-  onDismiss: vi.fn(),
-  onSearch: vi.fn(),
+  onPick: vi.fn(),
+  ...state,
 });
 
 const panelOf = (element: Element | null) =>
   element?.closest('[class*="max-lg:absolute"]') as HTMLElement;
 
-describe('the venue step while the host works the map', () => {
-  it('gives the search box’s place to the place chosen, and the list’s to a search button', () => {
+const hiddenBelowLg = (element: Element) => element.closest('.max-lg\\:hidden');
+
+describe('the venue step once the host works the map', () => {
+  it('gives the map back, leaving over it only the place chosen', () => {
     getVenueLookups().nearby = { ...idle(), data: [CAFE] };
     showVenueStep('', undefined, {
-      overlay: exploring(),
+      overlay: onTheMap(),
       venue: CAFE,
       venueName: CAFE.name,
     });
 
     expect(screen.queryByRole('combobox')).toBeNull();
-    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(hiddenBelowLg(screen.getByRole('listbox'))).not.toBeNull();
+    const choice = screen.getByRole('group', { name: 'Selected location' });
+    expect(within(choice).getByText(CAFE.name)).toBeTruthy();
+    expect(hiddenBelowLg(choice)).toBeNull();
     expect(
-      within(
-        screen.getByRole('group', { name: 'Selected location' }),
-      ).getByText(CAFE.name),
-    ).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Search' })).toBeTruthy();
+      screen.queryByRole('button', { name: 'Search' }),
+      'Search lives on the map, beside Locate me, not in the panel',
+    ).toBeNull();
   });
 
-  it('holds its search button at the far edge of Locate me’s row, as wide as its words', () => {
-    showVenueStep('', undefined, { overlay: exploring() });
+  it('hides the whole panel over the map while nothing is chosen', () => {
+    getVenueLookups().nearby = { ...idle(), data: [CAFE] };
+    showVenueStep('', undefined, { overlay: onTheMap() });
 
-    const floating = panelOf(screen.getByRole('button', { name: 'Search' }));
-    expect(floating.className).toContain('max-lg:end-3');
-    expect(floating.className).toContain('max-lg:w-fit');
+    expect(panelOf(screen.getByRole('listbox')).className).toContain(
+      'max-lg:hidden',
+    );
     expect(
-      floating.className,
-      'a panel surface drawn round a pill-shaped button showed as a square shadow behind it',
-    ).not.toContain('max-lg:shadow-lg');
-    expect(floating.className).not.toContain('max-lg:bg-base-100');
-    expect(floating.style.getPropertyValue('--row-height')).toBe('24px');
+      screen.queryByRole('group', { name: 'Selected location' }),
+    ).toBeNull();
   });
 
-  it('draws its search button exactly as Locate me, so the two match in the row they share', () => {
-    showVenueStep('', undefined, { overlay: exploring() });
-    const search = screen.getByRole('button', { name: 'Search' });
-    render(<HostLocateButton locale="en" onClick={vi.fn()} />);
-    const locate = screen.getByRole('button', { name: 'Locate me' });
-
-    const iconSize = (button: HTMLElement) =>
-      (button.querySelector('svg')?.getAttribute('class') ?? '')
-        .split(' ')
-        .filter((name) => !name.startsWith('lucide'));
-    expect(search.className).toBe(locate.className);
-    expect(iconSize(search)).toEqual(iconSize(locate));
-    expect(iconSize(search)).toContain('size-4');
-  });
-
-  it('asks for the search box back when its button is pressed', () => {
-    const overlay = exploring();
-    showVenueStep('', undefined, { overlay });
-
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
-
-    expect(overlay.onSearch).toHaveBeenCalledOnce();
-  });
-
-  it('keeps the name question an address needs in view below the line', () => {
-    const street = {
-      ...CAFE,
-      providerId: 'address-yousfi',
-      kind: 'address' as const,
-      name: '15 Rue Yousfi Mohamed',
-      address: '15 Rue Yousfi Mohamed, Alger',
-    };
+  it('keeps the places in their rail from lg up, whatever the map does', () => {
+    getVenueLookups().nearby = { ...idle(), data: [CAFE] };
     showVenueStep('', undefined, {
-      overlay: exploring(),
-      venue: street,
+      overlay: onTheMap(),
+      venue: CAFE,
+      venueName: CAFE.name,
+    });
+
+    const list = screen.getByRole('listbox');
+    expect(list.closest('.hidden, .lg\\:hidden')).toBeNull();
+    expect(screen.getByText('Places nearby')).toBeTruthy();
+    expect(
+      screen
+        .getByRole('group', { name: 'Selected location' })
+        .closest('.lg\\:hidden'),
+      'beside the list, the place chosen is already the row marked selected',
+    ).not.toBeNull();
+  });
+
+  it('asks for the name an address needs beside the place chosen, not in the list', () => {
+    showVenueStep('', undefined, {
+      overlay: onTheMap(),
+      venue: STREET,
       venueName: '',
     });
 
-    expect(screen.getByLabelText('What is this place called?')).toBeTruthy();
+    const name = screen.getByLabelText('What is this place called?');
+    expect(hiddenBelowLg(name)).toBeNull();
     expect(
       screen.getByRole('group', { name: 'Selected location' }).textContent,
-    ).toBe(street.address);
+    ).toBe(STREET.address);
+  });
+
+  it('hands the focus to the place chosen when the list that held it gives way', () => {
+    getVenueLookups().nearby = { ...idle(), data: [CAFE] };
+    const { rerender } = showVenueStep('', undefined, {
+      overlay: onTheMap({ isListOpen: true }),
+      venue: CAFE,
+      venueName: CAFE.name,
+    });
+    screen.getByRole('option').focus();
+
+    rerender(
+      venueStep('', undefined, {
+        overlay: onTheMap(),
+        venue: CAFE,
+        venueName: CAFE.name,
+      }),
+    );
+
+    expect(
+      document.activeElement?.contains(
+        screen.getByRole('group', { name: 'Selected location' }),
+      ),
+      'the list hid the row that held the focus, and dropped it on the page',
+    ).toBe(true);
   });
 });

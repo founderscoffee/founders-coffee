@@ -1,113 +1,101 @@
-import { ChevronDown } from 'lucide-react';
-import {
-  useEffect,
-  useId,
-  useRef,
-  type CSSProperties,
-  type ReactNode,
-} from 'react';
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 
 import type { ControlSize } from './useControlSize';
 import { useCoveredHeight } from './useCoveredHeight';
 
 type VenueResultsPanelProps = {
   label: string | null;
-  isCollapsed: boolean;
-  neighbour?: ControlSize | null;
-  onToggle: () => void;
+  row?: ControlSize | null;
+  search?: ReactNode;
+  choice?: ReactNode;
+  after?: ReactNode;
+  isListHiddenBelowLg: boolean;
+  isHiddenBelowLg: boolean;
   onCoverChange: (height: number) => void;
   children: ReactNode;
 };
 
-const besideNeighbour = (neighbour: ControlSize): CSSProperties =>
-  ({
-    '--row-start': `calc(${neighbour.width}px + var(--spacing) * 5)`,
-    '--row-height': `${neighbour.height}px`,
-  }) as CSSProperties;
+const belowRow = (row: ControlSize): CSSProperties =>
+  ({ '--row-height': `${row.height}px` }) as CSSProperties;
 
 const SURFACE =
   'max-lg:rounded-box max-lg:border max-lg:border-base-300 max-lg:bg-base-100 max-lg:shadow-lg';
 
-const placement = (isHeaderless: boolean, isBeside: boolean): string => {
-  if (isHeaderless) {
-    return 'max-lg:end-3 max-lg:mt-3 max-lg:w-fit max-lg:max-w-[calc(100%-var(--row-start)-var(--spacing)*3)]';
-  }
-  return isBeside
-    ? `${SURFACE} max-lg:start-[var(--row-start)] max-lg:end-3 max-lg:mt-3 max-lg:h-[var(--row-height)]`
-    : `${SURFACE} max-lg:inset-x-3 max-lg:mt-3`;
+const isFocusHiddenIn = (container: HTMLElement | null): boolean => {
+  const active = document.activeElement;
+  return (
+    active instanceof HTMLElement &&
+    container?.contains(active) === true &&
+    active.getClientRects().length === 0
+  );
 };
 
 export const VenueResultsPanel = ({
   label,
-  isCollapsed,
-  neighbour,
-  onToggle,
+  row,
+  search,
+  choice,
+  after,
+  isListHiddenBelowLg,
+  isHiddenBelowLg,
   onCoverChange,
   children,
 }: VenueResultsPanelProps) => {
-  const labelId = useId();
-  const bodyId = useId();
-  const toggleRef = useRef<HTMLButtonElement>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const choiceRef = useRef<HTMLDivElement>(null);
   const measure = useCoveredHeight(onCoverChange);
-  const isHeaderless = label === null;
-  const isFolded = isCollapsed && !isHeaderless;
-  const isBeside = neighbour != null && (isHeaderless || isFolded);
+  const isBare = !search && label === null && !choice && !after;
 
   useEffect(() => {
-    if (isFolded && bodyRef.current?.contains(document.activeElement)) {
-      toggleRef.current?.focus();
+    if (isListHiddenBelowLg && isFocusHiddenIn(listRef.current)) {
+      choiceRef.current?.focus();
     }
-  }, [isFolded]);
+  }, [isListHiddenBelowLg]);
 
   return (
     <div
       ref={measure}
-      style={isBeside ? besideNeighbour(neighbour) : undefined}
-      className={`max-lg:absolute max-lg:top-full max-lg:z-30 ${placement(
-        isHeaderless,
-        isBeside,
-      )}`}
+      style={row ? belowRow(row) : undefined}
+      className={`max-lg:absolute max-lg:inset-x-3 max-lg:top-full max-lg:z-30 max-lg:mt-[calc(var(--row-height,2rem)+var(--spacing)*5)] ${
+        isBare ? '' : SURFACE
+      } ${isHiddenBelowLg ? 'max-lg:hidden' : ''}`}
     >
-      {!isHeaderless && (
-        <div
-          className={`grid lg:mb-1.5 ${isBeside ? 'max-lg:h-full' : 'max-lg:min-h-11'}`}
-        >
-          <p
-            id={labelId}
-            className="col-start-1 row-start-1 self-center text-caption text-neutral max-lg:ps-3 max-lg:pe-12"
-          >
-            {label}
-          </p>
-          <button
-            ref={toggleRef}
-            type="button"
-            onClick={onToggle}
-            aria-labelledby={labelId}
-            aria-expanded={!isFolded}
-            aria-controls={bodyId}
-            className="tap-target col-start-1 row-start-1 flex items-center justify-end rounded-box pe-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary lg:hidden"
-          >
-            <ChevronDown
-              aria-hidden="true"
-              className={`size-4 text-neutral transition-transform duration-[var(--duration-fast)] motion-reduce:transition-none ${
-                isFolded ? '' : 'rotate-180'
-              }`}
-            />
-          </button>
-        </div>
+      {search && (
+        <div className="max-lg:px-3 max-lg:pt-3 lg:mb-3">{search}</div>
       )}
       <div
-        ref={bodyRef}
-        id={bodyId}
-        className={`flex flex-col gap-3 ${
-          isHeaderless
-            ? 'max-lg:grid max-lg:min-h-[var(--row-height)]'
-            : 'max-lg:max-h-48 max-lg:overflow-y-auto max-lg:px-3 max-lg:pb-3'
-        } ${isFolded ? 'max-lg:hidden' : ''}`}
+        ref={listRef}
+        className={isListHiddenBelowLg ? 'max-lg:hidden' : undefined}
       >
-        {children}
+        {label && (
+          <p className="text-caption text-neutral max-lg:px-3 max-lg:pt-3 lg:mb-1.5">
+            {label}
+          </p>
+        )}
+        <div
+          className={`flex flex-col gap-3 ${
+            isBare ? '' : 'max-lg:max-h-48 max-lg:overflow-y-auto max-lg:p-3'
+          }`}
+        >
+          {children}
+        </div>
       </div>
+      {(choice || after) && (
+        <div
+          className={`flex flex-col gap-3 max-lg:p-3 ${after ? 'lg:mt-3' : ''}`}
+        >
+          {choice && (
+            <div
+              ref={choiceRef}
+              tabIndex={-1}
+              className="outline-none lg:hidden"
+            >
+              {choice}
+            </div>
+          )}
+          {after}
+        </div>
+      )}
     </div>
   );
 };

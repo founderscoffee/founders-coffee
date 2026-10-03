@@ -23,10 +23,11 @@ import { HostLocationPrompt } from './HostLocationPrompt';
 import { HostMapFailure } from './HostMapFailure';
 import { HostMapSkeleton } from './HostMapSkeleton';
 import { HostMapToasts } from './HostMapToasts';
+import { HostSearchButton } from './HostSearchButton';
 import { HostVenuePin } from './HostVenuePin';
 import type { ControlSize } from './useControlSize';
 import { useLocationPrompt } from './useLocationPrompt';
-import { coverPadding, useMapCover } from './useMapCover';
+import { initialCamera, useMapCover } from './useMapCover';
 import { useMapResize } from './useMapResize';
 import { useVisitorLocation, type Coordinates } from './useVisitorLocation';
 
@@ -54,6 +55,7 @@ type HostMapProps = {
   onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
   onCitySelect?: (city: geo.GeoCity) => void;
+  onSearch?: () => void;
 };
 
 export const HostMap = ({
@@ -72,6 +74,7 @@ export const HostMap = ({
   onUserGestureEnd,
   onLocateResize,
   onCitySelect,
+  onSearch,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
@@ -188,22 +191,7 @@ export const HostMap = ({
       <Map
         key={mapKey}
         ref={mapRef as never}
-        initialViewState={
-          venue
-            ? {
-                longitude: venue.longitude,
-                latitude: venue.latitude,
-                zoom: VENUE_ZOOM,
-                padding: coverPadding(covered),
-              }
-            : {
-                bounds: [
-                  [viewport.bounds[0], viewport.bounds[1]],
-                  [viewport.bounds[2], viewport.bounds[3]],
-                ],
-                fitBoundsOptions: { padding: coverPadding(covered, 24) },
-              }
-        }
+        initialViewState={initialCamera(venue, viewport, covered, VENUE_ZOOM)}
         onLoad={() => setIsMapReady(true)}
         onMoveStart={(event) => {
           if (!('originalEvent' in event && event.originalEvent)) return;
@@ -267,6 +255,10 @@ export const HostMap = ({
           onResize={onLocateResize}
           onClick={() => void chooseWhereVisitorIs()}
         />
+      )}
+
+      {isInteractive && onSearch && (
+        <HostSearchButton locale={locale} onClick={onSearch} />
       )}
 
       <HostMapToasts

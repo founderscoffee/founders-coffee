@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { createElement } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -41,26 +41,28 @@ const renderInFrench = (city: geo.GeoCity | null) =>
     }),
   );
 
-const searchArea = () =>
-  screen
+const searchArea = async () => {
+  fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
+  return screen
     .getByLabelText('Search cafés and coworking venues')
     .getAttribute('data-area');
+};
 
 describe('where the host wizard says it looks for venues', () => {
   afterEach(resetHostCreateFixtures);
 
-  it('searches the city the host came from, named in their language', () => {
+  it('searches the city the host came from, named in their language', async () => {
     renderInFrench(cairo);
 
-    expect(searchArea()).toBe('city:Le Caire');
+    expect(await searchArea()).toBe('city:Le Caire');
   });
 
-  it('searches the country when the host came from the navbar with no city', () => {
+  it('searches the country when the host came from the navbar with no city', async () => {
     renderInFrench(null);
 
     expect(
-      searchArea(),
-      'the search box is the one place left that says where the host is looking, since the subtitle went (#121)',
+      await searchArea(),
+      'opened from Search, the box is the one place that says where the host is looking, since the subtitle went (#121)',
     ).toBe('market:Égypte');
   });
 });

@@ -1,12 +1,9 @@
-import { Search } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
+import { useEffect, useState } from 'react';
 
 import type { geo } from '@founders-coffee/domain';
 import {
   host_nearby_venues,
   host_search_results,
-  host_search_venues,
   host_selected_location,
   host_venue_browse_nearby,
   host_venue_empty,
@@ -17,17 +14,16 @@ import { StatusMessage } from '@founders-coffee/ui';
 
 import { useNearbyVenues, useVenueSearch } from '../../features/events/hooks';
 import {
+  VENUE_LIST_ID,
   VENUE_SEARCH_INPUT_ID,
   type VenueArea,
   type VenueSelection,
 } from '../../features/events/types';
 import { CitySuggestions } from './CitySuggestions';
-import { HostMapButton } from './HostMapButton';
 import { HostVenueChoice } from './HostVenueChoice';
 import { HostVenueList, type VenueRow } from './HostVenueList';
 import { HostVenueNameField } from './HostVenueNameField';
 import type { ControlSize } from './useControlSize';
-import { useDismissOnPointerOutside } from './useDismissOnPointerOutside';
 import { useVenueNotices, type VenueError } from './useVenueNotices';
 import { VenueResultsPanel } from './VenueResultsPanel';
 import { VenueSearch } from './VenueSearch';
@@ -35,16 +31,12 @@ import { VenueStepToasts } from './VenueStepToasts';
 
 const SEARCH_DELAY_MS = 350;
 
-const VENUE_LIST_ID = 'venue-results';
-
 export type VenueOverlay = {
-  readonly isCollapsed: boolean;
-  readonly isExploring?: boolean;
-  readonly neighbour?: ControlSize | null;
-  readonly onToggle: () => void;
+  readonly isSearchOpen: boolean;
+  readonly isListOpen: boolean;
+  readonly row?: ControlSize | null;
   readonly onCoverChange: (height: number) => void;
-  readonly onDismiss: () => void;
-  readonly onSearch?: () => void;
+  readonly onPick: () => void;
 };
 
 type HostVenueStepProps = {
@@ -98,6 +90,7 @@ export const HostVenueStep = ({
     return () => clearTimeout(timer);
   }, [searchValue]);
 
+  const isSearchOpen = overlay?.isSearchOpen ?? true;
   const nearby = useNearbyVenues({
     marketCode,
     latitude: center.latitude,
@@ -107,14 +100,14 @@ export const HostVenueStep = ({
     marketCode,
     cityCode,
     locale,
-    query: isDisabled ? '' : query,
+    query: isDisabled || !isSearchOpen ? '' : query,
   });
 
   const [isBrowsingNearby, setIsBrowsingNearby] = useState(false);
 
   useEffect(() => setIsBrowsingNearby(false), [venue?.providerId]);
 
-  const isSearching = query.length >= 2;
+  const isSearching = isSearchOpen && query.length >= 2;
   const searchResults = isSearching ? (search.data ?? []) : [];
   const listed: readonly VenueRow[] = isSearching
     ? searchResults.map((result) => ({ ...result, eligible: true }))
@@ -123,7 +116,10 @@ export const HostVenueStep = ({
     venue != null &&
     listed.some((candidate) => candidate.providerId === venue.providerId);
   const isPinned =
-    venue?.kind === 'address' && !isSearching && !isBrowsingNearby;
+    venue?.kind === 'address' &&
+    !isSearching &&
+    !isBrowsingNearby &&
+    overlay?.isSearchOpen !== true;
   const rows: readonly VenueRow[] = isPinned
     ? [{ ...venue, eligible: true }]
     : venue && !isSelectionListed
@@ -131,15 +127,8 @@ export const HostVenueStep = ({
       : listed;
 
   const isHintOnly = rows.length === 0 && !isSearching;
-  const isHintBesideLocate = overlay !== undefined && isHintOnly;
-  const isExploring = overlay?.isExploring === true;
-
-  const pickerRef = useRef<HTMLDivElement>(null);
-  useDismissOnPointerOutside(
-    pickerRef,
-    overlay !== undefined && !overlay.isCollapsed && !isHintOnly,
-    () => overlay?.onDismiss(),
-  );
+  const isListShown =
+    overlay === undefined || overlay.isListOpen || overlay.isSearchOpen;
 
   const notices = useVenueNotices({
     locale,
@@ -167,13 +156,18 @@ export const HostVenueStep = ({
     document.getElementById(VENUE_SEARCH_INPUT_ID)?.focus();
   };
 
-  const searchAgain = () => {
-    flushSync(() => {
-      setIsBrowsingNearby(true);
-      overlay?.onSearch?.();
-    });
-    document.getElementById(VENUE_SEARCH_INPUT_ID)?.focus();
-  };
+  const searchBox = (
+    <VenueSearch
+      locale={locale}
+      area={area}
+      value={searchValue}
+      listId={VENUE_LIST_ID}
+      hasResults={rows.length > 0 && isListShown}
+      isDisabled={isDisabled}
+      isLoading={isSearching && search.isFetching}
+      onChange={onSearchChange}
+    />
+  );
 
   const results = (
     <>
@@ -208,21 +202,14 @@ export const HostVenueStep = ({
               selectedProviderId={venue?.providerId}
               showAttribution={!isSearching && !isPinned}
               onSelect={onVenueSelect}
-              onChoose={overlay?.onDismiss}
+              onChoose={overlay?.onPick}
             />
           </div>
         </div>
       )}
       <StatusMessage
         variant="info"
-        iconClassName={
-          isHintBesideLocate ? 'max-lg:size-4 max-lg:self-center' : undefined
-        }
-        className={
-          isHintBesideLocate
-            ? 'max-lg:content-center max-lg:items-center max-lg:gap-2 max-lg:px-3 max-lg:py-0 max-lg:text-caption max-lg:shadow-lg'
-            : undefined
-        }
+        className={overlay && isHintOnly ? 'max-lg:shadow-lg' : undefined}
       >
         {rows.length > 0 ? null : emptyMessage}
       </StatusMessage>
@@ -238,55 +225,50 @@ export const HostVenueStep = ({
     </>
   );
 
-  return (
-    <div className="flex flex-col gap-3">
-      <div ref={pickerRef} className="contents">
-        {isExploring ? (
-          <HostVenueChoice
-            locale={locale}
-            venue={venue}
-            venueName={venueName}
-          />
-        ) : (
-          <VenueSearch
-            locale={locale}
-            area={area}
-            value={searchValue}
-            listId={VENUE_LIST_ID}
-            hasResults={rows.length > 0 && !overlay?.isCollapsed}
-            isDisabled={isDisabled}
-            isLoading={isSearching && search.isFetching}
-            onChange={onSearchChange}
-          />
-        )}
+  const nameField =
+    venue?.kind === 'address' && !hideNameField ? (
+      <HostVenueNameField
+        locale={locale}
+        value={venueName}
+        error={nameError}
+        onChange={onVenueNameChange}
+      />
+    ) : null;
+
+  if (!overlay) {
+    return (
+      <div className="flex flex-col gap-3">
+        {searchBox}
         <VenueStepToasts locale={locale} notices={notices} />
-        {overlay ? (
-          <VenueResultsPanel
-            label={isExploring || isHintOnly ? null : listLabel}
-            {...overlay}
-          >
-            {isExploring ? (
-              <HostMapButton
-                icon={Search}
-                label={host_search_venues({}, { locale })}
-                onClick={searchAgain}
-              />
-            ) : (
-              results
-            )}
-          </VenueResultsPanel>
-        ) : (
-          results
-        )}
+        {results}
+        {nameField}
       </div>
-      {venue?.kind === 'address' && !hideNameField && (
-        <HostVenueNameField
-          locale={locale}
-          value={venueName}
-          error={nameError}
-          onChange={onVenueNameChange}
-        />
-      )}
-    </div>
+    );
+  }
+
+  return (
+    <>
+      <VenueStepToasts locale={locale} notices={notices} />
+      <VenueResultsPanel
+        label={isHintOnly ? null : listLabel}
+        row={overlay.row}
+        search={overlay.isSearchOpen ? searchBox : null}
+        choice={
+          !isListShown && venue ? (
+            <HostVenueChoice
+              locale={locale}
+              venue={venue}
+              venueName={venueName}
+            />
+          ) : null
+        }
+        after={nameField}
+        isListHiddenBelowLg={!isListShown}
+        isHiddenBelowLg={!isListShown && !venue}
+        onCoverChange={overlay.onCoverChange}
+      >
+        {results}
+      </VenueResultsPanel>
+    </>
   );
 };

@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
-import { LOCALE_DIRECTION, t } from './support/messages';
+import { LOCALE_DIRECTION, t, type E2eLocale } from './support/messages';
 import { localeFor, watchForApplicationErrors } from './support/run';
 import { useLocale, wizardPath } from './support/host-wizard';
 
@@ -49,8 +49,49 @@ const restingPin = async (page: Page): Promise<Box> => {
   return reads[reads.length - 1];
 };
 
+/** The wizard's step-1 controls, named as each locale names them. */
+const venueControls = (page: Page, locale: E2eLocale) => ({
+  search: page.getByRole('combobox', {
+    name: t(locale, 'host_venue_search_label'),
+    exact: true,
+  }),
+  searchButton: page.getByRole('button', {
+    name: t(locale, 'host_search_venues'),
+    exact: true,
+  }),
+  locate: page.getByRole('button', {
+    name: t(locale, 'host_locate_me'),
+    exact: true,
+  }),
+  nearby: page.getByRole('listbox', {
+    name: t(locale, 'host_nearby_venues'),
+    exact: true,
+  }),
+  choice: page.getByRole('group', {
+    name: t(locale, 'host_selected_location'),
+    exact: true,
+  }),
+  canvas: page.locator('.mapboxgl-canvas'),
+});
+
+/** Open the wizard and wait for its map and the places around it to be ready. */
+const openWizard = async (page: Page, locale: E2eLocale, baseURL: string) => {
+  await useLocale(page, locale, baseURL);
+  await page.goto(wizardPath());
+  const controls = venueControls(page, locale);
+  await expect(controls.canvas).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(t(locale, 'host_map_loading'))).toHaveCount(0, {
+    timeout: 30_000,
+  });
+  await expect(controls.searchButton).toBeVisible({ timeout: 30_000 });
+  await expect(controls.nearby.getByRole('option').first()).toBeVisible({
+    timeout: 30_000,
+  });
+  return controls;
+};
+
 test.describe('the venue map below lg', () => {
-  test('gives the search box’s place to the choice once the host lets go of the map, and brings it back from Search', async ({
+  test('lists the places with no box to fill, gives the map back once the host works it, and searches from Search', async ({
     page,
     baseURL,
   }, testInfo) => {
@@ -61,48 +102,10 @@ test.describe('the venue map below lg', () => {
     test.setTimeout(150_000);
     const locale = localeFor(testInfo.project.name);
     const errors = watchForApplicationErrors(page);
-    await useLocale(page, locale, baseURL as string);
-    await page.goto(wizardPath());
+    const { search, searchButton, locate, nearby, choice, canvas } =
+      await openWizard(page, locale, baseURL as string);
 
-    const search = page.getByRole('combobox', {
-      name: t(locale, 'host_venue_search_label'),
-      exact: true,
-    });
-    const searchButton = page.getByRole('button', {
-      name: t(locale, 'host_search_venues'),
-      exact: true,
-    });
-    const locate = page.getByRole('button', {
-      name: t(locale, 'host_locate_me'),
-      exact: true,
-    });
-    const nearby = page.getByRole('listbox', {
-      name: t(locale, 'host_nearby_venues'),
-      exact: true,
-    });
-    const canvas = page.locator('.mapboxgl-canvas');
-    await expect(search).toBeEnabled({ timeout: 30_000 });
-    await expect(canvas).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText(t(locale, 'host_map_loading'))).toHaveCount(0, {
-      timeout: 30_000,
-    });
-    await expect(nearby.getByRole('option').first()).toBeVisible({
-      timeout: 30_000,
-    });
-    const before = await boxOf(canvas);
-
-    await dragMap(page, before);
-
-    await expect(searchButton).toBeVisible({ timeout: 10_000 });
     await expect(search).toHaveCount(0);
-    await expect(
-      page.getByText(t(locale, 'host_venue_empty'), { exact: true }),
-    ).toBeVisible();
-    const after = await boxOf(canvas);
-    expect(
-      Math.abs(after.y - before.y) + Math.abs(after.height - before.height),
-      'the line in the search box’s place is as tall as the box, so the map stays put',
-    ).toBeLessThanOrEqual(1);
     const button = await boxOf(searchButton);
     const corner = await boxOf(locate);
     expect(Math.abs(button.height - corner.height)).toBeLessThanOrEqual(1);
@@ -112,32 +115,43 @@ test.describe('the venue map below lg', () => {
     } else {
       expect(button.x).toBeGreaterThan(corner.x + corner.width);
     }
-    await page.screenshot({ path: testInfo.outputPath('1-exploring.png') });
+    expect(
+      (await boxOf(nearby)).y,
+      'the places hang below the row Locate me and Search share',
+    ).toBeGreaterThan(corner.y + corner.height);
+    await page.screenshot({ path: testInfo.outputPath('1-arrival.png') });
+    const before = await boxOf(canvas);
+
+    await dragMap(page, before);
+
+    await expect(nearby).toBeHidden();
+    await expect(search).toHaveCount(0);
+    await expect(searchButton).toBeVisible();
+    const after = await boxOf(canvas);
+    expect(
+      Math.abs(after.y - before.y) + Math.abs(after.height - before.height),
+      'nothing in the page flow came or went, so the map stayed put',
+    ).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: testInfo.outputPath('2-map.png') });
 
     await searchButton.click();
-    await expect(search).toBeVisible();
     await expect(search).toBeFocused();
     await expect(searchButton).toHaveCount(0);
     await expect(nearby.getByRole('option').first()).toBeVisible({
       timeout: 30_000,
     });
-    await page.screenshot({ path: testInfo.outputPath('2-searching.png') });
+    await page.screenshot({ path: testInfo.outputPath('3-searching.png') });
 
     await nearby.getByRole('option').first().click();
-    await expect(
-      search,
-      'a place picked from the list is a search that worked: the box stays',
-    ).toBeVisible();
+    await expect(search, 'a place picked is a search done').toHaveCount(0);
+    await expect(nearby).toBeHidden();
+    await expect(choice).toBeVisible();
     const pin = await restingPin(page);
     await page.mouse.click(
       pin.x + pin.width / 2,
       pin.y + pin.height + SPOT_BELOW_PIN,
     );
 
-    const choice = page.getByRole('group', {
-      name: t(locale, 'host_selected_location'),
-      exact: true,
-    });
     await expect(choice).toBeVisible({ timeout: 30_000 });
     await expect(search).toHaveCount(0);
     const nameField = page.locator('#host-venue-name');
@@ -145,7 +159,43 @@ test.describe('the venue map below lg', () => {
       await nameField.fill('Café E2E');
       await expect(choice).toContainText('Café E2E');
     }
-    await page.screenshot({ path: testInfo.outputPath('3-chosen.png') });
+    await page.screenshot({ path: testInfo.outputPath('4-chosen.png') });
+    expect(errors).toEqual([]);
+  });
+});
+
+test.describe('the venue map from lg up', () => {
+  test('keeps the places in the rail, and opens the box only from Search until the host works the map', async ({
+    page,
+    baseURL,
+  }, testInfo) => {
+    test.skip(
+      (page.viewportSize()?.width ?? 0) < 1024,
+      'below lg the places float over the map',
+    );
+    test.setTimeout(150_000);
+    const locale = localeFor(testInfo.project.name);
+    const errors = watchForApplicationErrors(page);
+    const { search, searchButton, nearby, canvas } = await openWizard(
+      page,
+      locale,
+      baseURL as string,
+    );
+
+    await expect(
+      search,
+      'an empty box under the title read as a field to fill before Next',
+    ).toHaveCount(0);
+    await searchButton.click();
+    await expect(search).toBeFocused();
+    await expect(nearby).toBeVisible();
+
+    await dragMap(page, await boxOf(canvas));
+
+    await expect(search).toHaveCount(0);
+    await expect(nearby).toBeVisible();
+    await expect(searchButton).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('rail.png') });
     expect(errors).toEqual([]);
   });
 });
@@ -161,31 +211,13 @@ test.describe('Locate me on the venue map', () => {
     const locale = localeFor(testInfo.project.name);
     const errors = watchForApplicationErrors(page);
     const isOverMap = (page.viewportSize()?.width ?? 0) < 1024;
-    await useLocale(page, locale, baseURL as string);
-    await page.goto(wizardPath());
+    const { search, searchButton, locate, choice, canvas } = await openWizard(
+      page,
+      locale,
+      baseURL as string,
+    );
 
-    const search = page.getByRole('combobox', {
-      name: t(locale, 'host_venue_search_label'),
-      exact: true,
-    });
-    const canvas = page.locator('.mapboxgl-canvas');
-    await expect(search).toBeEnabled({ timeout: 30_000 });
-    await expect(canvas).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText(t(locale, 'host_map_loading'))).toHaveCount(0, {
-      timeout: 30_000,
-    });
-    if (isOverMap) {
-      await page
-        .getByRole('button', {
-          name: t(locale, 'host_nearby_venues'),
-          exact: true,
-        })
-        .click();
-    }
-
-    await page
-      .getByRole('button', { name: t(locale, 'host_locate_me'), exact: true })
-      .click();
+    await locate.click();
 
     const nameField = page.locator('#host-venue-name');
     await expect(
@@ -200,22 +232,9 @@ test.describe('Locate me on the venue map', () => {
     expect(tip.y).toBeGreaterThan(map.y);
     expect(tip.y).toBeLessThan(map.y + map.height);
 
-    const choice = page.getByRole('group', {
-      name: t(locale, 'host_selected_location'),
-      exact: true,
-    });
-    if (isOverMap) {
-      await expect(search).toHaveCount(0);
-      await expect(choice).toBeVisible();
-      await expect(
-        page.getByRole('button', {
-          name: t(locale, 'host_search_venues'),
-          exact: true,
-        }),
-      ).toBeVisible();
-    } else {
-      await expect(search).toBeVisible();
-    }
+    await expect(search).toHaveCount(0);
+    await expect(searchButton).toBeVisible();
+    if (isOverMap) await expect(choice).toBeVisible();
     await nameField.fill('Café E2E');
     if (isOverMap) await expect(choice).toContainText('Café E2E');
     await page.screenshot({ path: testInfo.outputPath('locate-me.png') });

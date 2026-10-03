@@ -54,26 +54,21 @@ export const continueToLoginButton = (page: Page, locale: E2eLocale) =>
 export const HOST_VENUE_NAME = 'Café des Fondateurs';
 
 /**
- * Choose a venue through the real search box, which is the path a host actually uses.
+ * Choose a venue through the real search box, which a host opens from Search on the map.
  *
  * `VENUE_QUERY` is a street rather than a category word on purpose: Mapbox indexes no points of
  * interest across the Maghreb, so searching "café" matches nothing there and a host searches the
  * street instead, naming the place themselves. A category query would pass only in a market with
  * POI coverage, making this gate green everywhere except the market it exists to protect.
  *
- * The box is a combobox whose list already offers nearby cafés before anything is typed, so the
- * first option on the page is not a match. The pick waits for the list to be named as search
- * results, which is the list a host who typed the street is reading, and then for the option to
- * report itself selected. Below `lg` the list folds away once a row is picked, so the option is
- * read even while folded. The name field sits below the search box, outside the list, and is
- * filled without opening the list again.
- *
- * The field stays disabled until the server has returned the city viewport, so the wait is on the
- * control being enabled rather than on a fixed delay — a timing assumption here would make the
- * whole suite flaky on a cold Worker. It is also rendered disabled on the server, so it cannot be
- * enabled before React has hydrated it and a single fill reaches the component; the hero search,
- * rendered enabled, has to type again until one does. Where only an address could be verified the
- * wizard asks for a name, and this fills it, mirroring what a host does.
+ * The box is closed on arrival and opens from the Search button, which the map shows once the
+ * server has returned the city viewport, so the wait is on that button rather than on a fixed
+ * delay: a timing assumption here would make the whole suite flaky on a cold Worker. The box opens
+ * over the places nearby, so the first option on the page is not a match; the pick waits for the
+ * list to be named as search results, which is the list a host who typed the street is reading.
+ * Picking puts the box away and the list with it below `lg`, so the choice is read from the one
+ * option left selected, hidden or not. Where only an address could be verified the wizard asks
+ * for a name beside the place chosen, and this fills it, mirroring what a host does.
  */
 export const selectVenue = async (
   page: Page,
@@ -84,7 +79,13 @@ export const selectVenue = async (
     name: t(locale, 'host_venue_search_label'),
     exact: true,
   });
-  await expect(search).toBeEnabled({ timeout: 30_000 });
+  const openSearch = page.getByRole('button', {
+    name: t(locale, 'host_search_venues'),
+    exact: true,
+  });
+  await expect(search.or(openSearch)).toBeVisible({ timeout: 30_000 });
+  if (!(await search.isVisible())) await openSearch.click();
+  await expect(search).toBeFocused();
   await search.fill(query);
   const listName = t(locale, 'host_search_results');
   const firstResult = page
@@ -94,7 +95,10 @@ export const selectVenue = async (
   await expect(firstResult).toBeVisible({ timeout: 30_000 });
   const providerName = (await firstResult.innerText()).split('\n')[0].trim();
   await firstResult.click();
-  await expect(firstResult).toHaveAttribute('aria-selected', 'true');
+  await expect(search).toHaveCount(0);
+  await expect(
+    page.getByRole('option', { selected: true, includeHidden: true }),
+  ).toContainText(providerName);
 
   const nameField = page.locator('#host-venue-name');
   if ((await nameField.count()) === 0) return providerName;
