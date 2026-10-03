@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { flushSync } from 'react-dom';
 
+import { seekField } from '../../features/events/seek-field';
 import {
   VENUE_LIST_ID,
   VENUE_SEARCH_INPUT_ID,
@@ -19,9 +20,10 @@ const ROW_TOP = 12;
  * map on arrival. Once the host works the map (a drag, a zoom, a tap, a pin moved, Locate me) or
  * picks a place, the box and the list give the map back, and only the place chosen stays over it.
  * Search opens both again with the cursor in the box, and a city switch lists the places. Next
- * finding nothing chosen lists them too and puts the focus on the first, or opens the search where
- * there is none to offer. From `lg` up the places keep their rail beside the map, so only the box
- * comes and goes there.
+ * finding nothing chosen says nothing: it lists them too and takes the host to the first, or opens
+ * the search where there is none to offer. From `lg` up the places keep their rail beside the map,
+ * so only the box comes and goes there.
+ *
  * Locate me and Search share the map's top row. The panel hangs below that row, and the camera
  * keeps a pin clear of both, so the row's height is measured from Locate me.
  */
@@ -46,7 +48,7 @@ export const useVenueOverlay = () => {
     const place = document.querySelector<HTMLElement>(
       `#${VENUE_LIST_ID} [role="option"][tabindex="0"]`,
     );
-    if (place) place.focus();
+    if (place) seekField(place);
     else openSearch();
   };
 

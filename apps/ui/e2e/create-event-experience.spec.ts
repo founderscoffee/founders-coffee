@@ -106,7 +106,7 @@ test.describe('create event experience', () => {
     }
   });
 
-  test('shows localized inline validation and focuses the first invalid field', async ({
+  test('takes the host to the first place when Next finds none chosen, without a word', async ({
     page,
     baseURL,
   }, testInfo) => {
@@ -120,10 +120,14 @@ test.describe('create event experience', () => {
     await expect(firstPlace).toBeVisible({ timeout: 30_000 });
     await nextButton(page, locale).click();
 
-    await expect(
-      page.getByText(t(locale, 'host_venue_required')),
-    ).toBeVisible();
     await expect(firstPlace).toBeFocused();
+    await expect(
+      firstPlace,
+      'after a click on Next the place took the focus with no ring to show it',
+    ).toHaveCSS('outline-style', 'solid');
+    await expect(page.getByText(t(locale, 'host_venue_required'))).toHaveCount(
+      0,
+    );
   });
 
   test('keeps both wizard actions reachable at this viewport and at 320px', async ({

@@ -25,6 +25,14 @@ body {
   margin: 0;
 }
 
+/* The field Next takes the host to wears the focus ring however Next was pressed. After a tap or
+   a click the browser keeps the ring for the keyboard, and a day in the calendar, the language
+   chips or a place in the list would take the focus without a mark. */
+[data-sought]:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 /* micro-interactions */
 @keyframes host-fade-up {
   from {

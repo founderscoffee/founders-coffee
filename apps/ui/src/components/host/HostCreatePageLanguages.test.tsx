@@ -94,19 +94,20 @@ describe('the languages a meetup is held in', () => {
     });
   });
 
-  it('will not publish a meetup held in no language, and points at the chips', async () => {
+  it('will not publish a meetup held in no language, and takes the host to the chips without a word', async () => {
     renderHostCreateWizard('en');
     await goToHostDetails();
     fillHostDetails();
     fireEvent.click(chip('English'));
     fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
 
+    const chips = screen.getByRole('group', { name: 'Languages' });
+    expect(document.activeElement).toBe(chips);
     expect(
-      await screen.findByText('Choose at least one language.'),
-    ).toBeTruthy();
-    await waitFor(() =>
-      expect(document.activeElement?.id).toBe('host-languages'),
-    );
+      chips.hasAttribute('data-sought'),
+      'the chips took the focus after a tap with no ring to show it',
+    ).toBe(true);
+    expect(screen.queryByText('Choose at least one language.')).toBeNull();
     expect(hostCreateMocks.mutateAsync).not.toHaveBeenCalled();
   });
 

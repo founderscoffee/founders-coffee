@@ -31,6 +31,7 @@ export const HostScheduleStep = ({
       locale={locale}
       timeZone={timeZone}
       timePlacement="top"
+      calendarId="host-calendar"
     />
     {error && (
       <StatusMessage variant="error" className="mt-3">

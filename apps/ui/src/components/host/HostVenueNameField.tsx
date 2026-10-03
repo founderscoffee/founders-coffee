@@ -1,5 +1,4 @@
 import {
-  host_venue_name_helper,
   host_venue_name_label,
   host_venue_name_ph,
   type Locale,
@@ -28,13 +27,11 @@ export const HostVenueNameField = ({
       value={value}
       maxLength={200}
       placeholder={host_venue_name_ph({}, { locale })}
+      required
       aria-invalid={!!error}
-      aria-describedby="host-venue-name-help host-venue-name-error"
+      aria-describedby="host-venue-name-error"
       onChange={(event) => onChange(event.target.value)}
     />
-    <span id="host-venue-name-help" className="mt-1 text-caption text-neutral">
-      {host_venue_name_helper({}, { locale })}
-    </span>
     {error && (
       <span id="host-venue-name-error" className="mt-1 text-body-sm text-error">
         {error}

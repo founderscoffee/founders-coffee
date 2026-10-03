@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -70,24 +70,20 @@ describe('the host wizard on a phone', () => {
     ).toHaveLength(1);
   });
 
-  it('raises the missing venue as a toast the host can put away, and again on the next try', () => {
+  it('meets Next with no place chosen by taking the host to one, not with a message', () => {
     renderHostCreateWizard();
     next();
 
-    const toast = screen
-      .getByText(VENUE_REQUIRED)
-      .closest('[role="alert"]') as HTMLElement;
-    fireEvent.click(
-      within(toast).getByRole('button', { name: 'Dismiss notification' }),
-    );
-
-    expect(screen.queryByText(VENUE_REQUIRED)).toBeNull();
-
-    next();
-
     expect(
-      screen.getByText(VENUE_REQUIRED),
-      'a dismissed error has to come back when the host tries again',
-    ).toBeTruthy();
+      screen.queryByText(VENUE_REQUIRED),
+      'a toast asked for a place while the list and the map were there to give one',
+    ).toBeNull();
+    expect(
+      document.activeElement?.id,
+      'with no place nearby to offer, Next opens the search with the cursor in it',
+    ).toBe('venue-search');
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(
+      'Where will you host the meetup?',
+    );
   });
 });

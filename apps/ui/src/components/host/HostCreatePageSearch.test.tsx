@@ -31,13 +31,7 @@ const mapLoaded = () => screen.findByRole('button', { name: 'Move the map' });
 const isListHiddenBelowLg = () =>
   screen.getByRole('listbox').closest('.max-lg\\:hidden') !== null;
 
-const landFocusMovedOnTheNextFrame = () =>
-  new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-
-afterEach(async () => {
-  await landFocusMovedOnTheNextFrame();
-  resetHostCreateFixtures();
-});
+afterEach(resetHostCreateFixtures);
 
 describe('the venue search in the host wizard', () => {
   it('opens on the places nearby and the map, with no search box to fill', async () => {
@@ -135,9 +129,15 @@ describe('the venue search in the host wizard', () => {
     press('Next');
 
     expect(isListHiddenBelowLg()).toBe(false);
-    expect(document.activeElement).toBe(
-      screen.getByRole('option', { name: /Hamou/u }),
-    );
+    const first = screen.getByRole('option', { name: /Hamou/u });
+    expect(document.activeElement).toBe(first);
+    expect(
+      first.hasAttribute('data-sought'),
+      'after a tap on Next the place took the focus with no ring to show it',
+    ).toBe(true);
+    expect(
+      screen.queryByText('Choose a supported venue to continue.'),
+    ).toBeNull();
   });
 
   it('opens the search when Next finds nothing chosen and no place nearby to offer', () => {

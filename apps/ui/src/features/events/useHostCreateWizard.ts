@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { flushSync } from 'react-dom';
 
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
@@ -17,6 +18,7 @@ import { useHostCreateDraftState } from './useHostCreateDraftState';
 import {
   firstInvalidField,
   focusInvalidField,
+  shownErrors,
   validateDetailsStep,
   validateScheduleStep,
   validateVenueStep,
@@ -133,15 +135,22 @@ export const useHostCreateWizard = ({
             : undefined;
     setFieldErrors((current) => ({ ...current, schedule: message }));
   };
+  /**
+   * Check the step Next is leaving, and take the host to the first field holding it back.
+   *
+   * The messages land before the focus does, so a screen reader reads the one the field is
+   * described by, and the focus moves while the press is still being handled, which is what lets
+   * a phone open its keyboard on a field still to fill.
+   */
   const validateCurrentStep = (): boolean => {
-    const errors =
+    const check =
       step === 1
         ? validateVenueStep(venue, venueName, locale)
         : step === 2
           ? validateScheduleStep(startsAt, endsAt, locale)
           : validateDetailsStep({ title, description, languages }, locale);
-    setFieldErrors(errors);
-    const first = firstInvalidField(errors);
+    flushSync(() => setFieldErrors((shown) => shownErrors(check, shown)));
+    const first = firstInvalidField(check);
     if (first) focusInvalidField(first);
     return first === null;
   };

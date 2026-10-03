@@ -61,9 +61,9 @@ describe('moving the wizard to a city the host searched for', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(
-      screen.getByText('Choose a supported venue to continue.'),
+      screen.queryByRole('button', { name: 'Set schedule' }),
       'a venue chosen in the last city would open the map there, not on the one the host asked for',
-    ).toBeTruthy();
+    ).toBeNull();
   });
 
   it('offers no other city while repeating a meetup, which keeps its own', async () => {
