@@ -27,7 +27,7 @@ const PUBLISH_ERROR_MESSAGES: Record<string, HostErrorMessage> = {
   validation_failed: host_error_invalid,
   event_market_unavailable: host_error_market_unavailable,
   event_creation_disabled: host_error_market_disabled,
-  map_venue_unsupported: host_venue_unsupported,
+  map_venue_not_found: host_venue_unsupported,
   map_city_not_found: host_map_error,
   map_provider_unavailable: host_map_error,
   event_route_conflict: host_error_title_taken,

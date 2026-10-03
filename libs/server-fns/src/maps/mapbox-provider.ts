@@ -151,7 +151,7 @@ export const createMapboxProvider = (
       if (!anyFeature) {
         return err(
           new AppError(
-            'map_venue_unsupported',
+            'map_venue_not_found',
             'No place could be resolved for this point',
           ),
         );
@@ -276,7 +276,7 @@ export const createMapboxProvider = (
       ? ok({ ...toVenue(furtherAway), kind: 'address' as const })
       : err(
           new AppError(
-            'map_venue_unsupported',
+            'map_venue_not_found',
             'No address could be resolved near this point',
           ),
         );

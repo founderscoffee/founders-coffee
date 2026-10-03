@@ -1,4 +1,9 @@
-import { AppError, err, type Result } from '@founders-coffee/core';
+import {
+  AppError,
+  err,
+  isNotFoundCode,
+  type Result,
+} from '@founders-coffee/core';
 import { geo, venues as venuesDomain } from '@founders-coffee/domain';
 import { logger } from '@founders-coffee/observability';
 
@@ -40,13 +45,21 @@ const resolveLocation = (
       );
 };
 
+/**
+ * Note a provider call that came back without an answer.
+ *
+ * A point or town the provider has nothing for is a fact about the map rather than a fault, and a
+ * host tapping open country produces one on every tap, so it goes to `info` beside the routine
+ * not-founds. A provider that is down, slow or malformed stays at `warn`, where it can be seen.
+ */
 const recordFailure = (
   provider: MapProvider,
   operation: string,
   input: HostMapContextInput,
   error: AppError,
 ): void => {
-  logger.warn('map_provider_operation_failed', {
+  const level = isNotFoundCode(error.code) ? 'info' : 'warn';
+  logger[level]('map_provider_operation_failed', {
     provider: provider.name,
     operation,
     marketCode: input.marketCode,

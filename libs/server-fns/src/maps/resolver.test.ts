@@ -1,8 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { AppError, err, ok } from '@founders-coffee/core';
 import { venues as venuesDomain } from '@founders-coffee/domain';
+import { setLogger, type LogEntry } from '@founders-coffee/observability';
+import { createServerLogger } from '@founders-coffee/observability/server';
 
+import { testMapProvider } from '../events/resolver.fixtures.js';
 import type { MapProvider } from './provider.js';
 import {
   getHostMapContextResolver,
@@ -87,7 +90,7 @@ describe('map resolvers', () => {
     const failingProvider: MapProvider = {
       ...provider,
       reverseVenue: async () =>
-        err(new AppError('map_venue_unsupported', 'Unsupported venue')),
+        err(new AppError('map_venue_not_found', 'Unsupported venue')),
     };
 
     const result = await reverseEventVenueResolver(failingProvider, {
@@ -97,7 +100,7 @@ describe('map resolvers', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+    if (!result.ok) expect(result.error.code).toBe('map_venue_not_found');
   });
 
   const unplaced: MapProvider = {
@@ -208,5 +211,60 @@ describe('map resolvers', () => {
       result.ok,
       'a reader searching for a cafe this market already knows about should not be told the map is unavailable',
     ).toBe(true);
+  });
+});
+
+describe('provider failure logging', () => {
+  const entries: LogEntry[] = [];
+
+  beforeEach(() => {
+    entries.length = 0;
+    setLogger(
+      createServerLogger({
+        level: 'debug',
+        transport: (entry) => {
+          entries.push(entry);
+        },
+      }),
+    );
+  });
+
+  const reverseFailingWith = (error: AppError) =>
+    reverseEventVenueResolver(
+      { ...testMapProvider, reverseVenue: async () => err(error) },
+      { ...location, latitude: 36.7538, longitude: 3.0588 },
+    );
+
+  it('logs a point the provider has nothing for at info, beside the routine not-founds', async () => {
+    await reverseFailingWith(
+      new AppError(
+        'map_venue_not_found',
+        'No address could be resolved near this point',
+      ),
+    );
+
+    expect(entries).toEqual([
+      expect.objectContaining({
+        level: 'info',
+        msg: 'map_provider_operation_failed',
+        operation: 'venue_reverse',
+        errorCode: 'map_venue_not_found',
+      }),
+    ]);
+  });
+
+  it('keeps a provider that is down at warn', async () => {
+    await reverseFailingWith(
+      new AppError('map_provider_unavailable', 'Map provider request failed'),
+    );
+
+    expect(entries).toEqual([
+      expect.objectContaining({
+        level: 'warn',
+        msg: 'map_provider_operation_failed',
+        operation: 'venue_reverse',
+        errorCode: 'map_provider_unavailable',
+      }),
+    ]);
   });
 });

@@ -99,7 +99,7 @@ export const HostMap = ({
   const pin = venue ?? (reverseVenue.isPending ? lastCoordinates : null);
 
   const venueErrorMessage = (error: unknown): string =>
-    appErrorCode(error) === 'map_venue_unsupported'
+    appErrorCode(error) === 'map_venue_not_found'
       ? host_venue_unsupported({}, { locale })
       : host_map_error({}, { locale });
 
