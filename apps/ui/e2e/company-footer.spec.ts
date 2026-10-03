@@ -1,6 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 
 import { COMPANY_PAGES } from '../src/content/company/pages';
+import { SOURCE_REPOSITORY_URL } from '../src/lib/source-repository';
+
+import { t, type E2eLocale } from './support/messages';
+
+const LOCALES: readonly E2eLocale[] = ['ar', 'fr', 'en'];
 
 const companyPaths = [
   { path: '/about', heading: /about|من نحن|عن|à propos/i },
@@ -9,6 +14,20 @@ const companyPaths = [
   { path: '/terms', heading: /terms|شروط|conditions/i },
   { path: '/cookies', heading: /cookie|ملفات تعريف الارتباط/i },
 ] as const;
+
+/**
+ * How many lines a link's label is laid out on, counted from its text's boxes.
+ */
+const linesOf = (link: Locator): Promise<number> =>
+  link.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    return new Set(
+      [...range.getClientRects()]
+        .filter((rect) => rect.width)
+        .map((rect) => Math.round(rect.top)),
+    ).size;
+  });
 
 test.describe('Company footer links', () => {
   test('footer links navigate to real company pages', async ({ page }) => {
@@ -42,6 +61,32 @@ test.describe('Company footer links', () => {
       await expect(page.getByText(/draft|مسودة|brouillon/i)).toHaveCount(0);
     }
   });
+
+  for (const locale of LOCALES) {
+    test(`offers the source code on one line, on a phone and on a desktop (${locale})`, async ({
+      page,
+    }) => {
+      for (const width of [320, 360, 1280] as const) {
+        await page.setViewportSize({ width, height: 800 });
+        await page.goto(`/${locale}/about`);
+
+        const footer = page.getByRole('contentinfo');
+        if (width < 768)
+          await footer
+            .locator('summary', { hasText: t(locale, 'footer_company') })
+            .click();
+
+        const link = footer.locator(
+          `a[href="${SOURCE_REPOSITORY_URL}"]:visible`,
+        );
+        await expect(link).toHaveText(t(locale, 'footer_source'));
+        expect(
+          await linesOf(link),
+          `the ${locale} label wraps at ${width}px: shorten it in that language`,
+        ).toBe(1);
+      }
+    });
+  }
 
   test('footer adapts navigation for mobile, tablet, and desktop', async ({
     page,

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@tanstack/react-router', () => ({
@@ -33,7 +33,16 @@ vi.mock('../../features/account/hooks', () => ({
   useUpdateAccountLocale: () => ({ mutateAsync: () => Promise.resolve() }),
 }));
 
-import { footer_tagline } from '@founders-coffee/i18n';
+import {
+  footer_about,
+  footer_company,
+  footer_contact,
+  footer_faq,
+  footer_source,
+  footer_tagline,
+} from '@founders-coffee/i18n';
+
+import { SOURCE_REPOSITORY_URL } from '../../lib/source-repository';
 
 import { Footer } from './Footer';
 
@@ -64,13 +73,52 @@ afterEach(cleanup);
 describe('the footer', () => {
   it('carries the reader a language on every link it has', () => {
     renderFooter('fr');
-    const links = hrefs();
+    const links = hrefs().filter((href) => href !== SOURCE_REPOSITORY_URL);
     expect(links.length).toBeGreaterThan(0);
     for (const href of links)
       expect(
         href,
-        'every destination the footer names has a localized form now that the activity link has moved to the session menu, so there is nothing left to excuse',
+        'every destination the footer names on this site has a localized form, so the only link it excuses is the source code, which GitHub serves in one language',
       ).toMatch(/^\/fr\//u);
+  });
+
+  it.each<['ar' | 'fr' | 'en', string]>([
+    ['ar', 'الشيفرة المصدرية'],
+    ['fr', 'Code source'],
+    ['en', 'Source code'],
+  ])(
+    'offers the %s reader the source code, at the repository',
+    (locale, label) => {
+      renderFooter(locale);
+
+      expect(
+        screen
+          .getAllByRole('link', { name: label })
+          .map((link) => link.getAttribute('href')),
+        'the AGPL has the site offer everyone who uses it the source it runs, so the footer under every page links the repository at both breakpoints',
+      ).toEqual([SOURCE_REPOSITORY_URL, SOURCE_REPOSITORY_URL]);
+    },
+  );
+
+  it('lists the source code after the company links, dressed as they are', () => {
+    renderFooter('en');
+    const groups = screen.getAllByRole('navigation', {
+      name: footer_company({}, { locale: 'en' }),
+    });
+
+    expect(groups).toHaveLength(2);
+    for (const group of groups) {
+      const links = within(group).getAllByRole('link');
+      expect(links.map((link) => link.textContent)).toEqual(
+        [footer_about, footer_faq, footer_contact, footer_source].map((label) =>
+          label({}, { locale: 'en' }),
+        ),
+      );
+      expect(
+        links.at(-1)?.className,
+        'the source code is one more footer link, not a badge that outshouts the pages beside it',
+      ).toBe(links[0]?.className);
+    }
   });
 
   it('follows the reader into Arabic', () => {

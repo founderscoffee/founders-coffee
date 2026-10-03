@@ -1,11 +1,12 @@
 import { CONTACT_EMAIL } from '../content/company/contact';
 
+import { SOURCE_REPOSITORY_URL } from './source-repository';
+
 export const SECURITY_TXT_EXPIRES = '2027-06-30T00:00:00Z';
 
 export const SECURITY_TXT_PATH = '/.well-known/security.txt';
 
-export const SECURITY_POLICY_URL =
-  'https://github.com/founderscoffee/founders-coffee/security/policy';
+export const SECURITY_POLICY_URL = `${SOURCE_REPOSITORY_URL}/security/policy`;
 
 /**
  * The vulnerability disclosure contact, as served from a given origin (RFC 9116).
