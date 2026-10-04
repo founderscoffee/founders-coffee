@@ -21,8 +21,8 @@ import {
 import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
-import { ChatEntry } from '../../features/chat/components/ChatEntry';
 import { ChatInvite } from '../../features/chat/components/ChatInvite';
+import { ChatOpenButton } from '../../features/chat/components/ChatOpenButton';
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
 import type { EventPhase } from '../../features/events/live-window';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
@@ -187,7 +187,7 @@ export const RsvpSection = ({
               {rsvp_cancelled_going_help({}, { locale })}
             </p>
             {isChatAvailable ? (
-              <ChatEntry locale={locale} eventId={event.id} />
+              <ChatOpenButton locale={locale} eventId={event.id} />
             ) : null}
           </>
         ) : null
@@ -222,7 +222,7 @@ export const RsvpSection = ({
             />
           ) : null}
           {isChatAvailable ? (
-            <ChatEntry locale={locale} eventId={event.id} />
+            <ChatOpenButton locale={locale} eventId={event.id} />
           ) : null}
         </>
       ) : (
