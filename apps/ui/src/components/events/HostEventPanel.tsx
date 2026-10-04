@@ -4,8 +4,6 @@ import { CircleX, Pencil } from 'lucide-react';
 import { useState } from 'react';
 
 import {
-  calendar_add_short,
-  chat_open_short,
   closeout_link,
   host_cancel_ended_error,
   host_cancel_error,
@@ -27,9 +25,9 @@ import {
   useCancelEvent,
   useRepeatEventTemplate,
 } from '../../features/events/hooks';
-import { ChatOpenButton } from '../../features/chat/components/ChatOpenButton';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
-import { AddToCalendar } from './AddToCalendar';
+import { ButtonRow } from './ButtonRow';
+import { CalendarChatActions } from './CalendarChatActions';
 import { CancelEventDialog } from './CancelEventDialog';
 import { RepeatHostLink } from './RepeatHostLink';
 import { HostLiveActions } from './HostLiveActions';
@@ -42,8 +40,6 @@ type HostEventPanelProps = {
   isWindowOpen: boolean;
   isChatAvailable: boolean;
 };
-
-const ACTION_ROW = 'grid grid-flow-col auto-cols-[1fr] gap-2';
 
 export const HostEventPanel = ({
   event,
@@ -65,7 +61,6 @@ export const HostEventPanel = ({
 
   const isCancelled = event.status === 'cancelled';
   const isAhead = !isCancelled && !hasEnded;
-  const chatLabel = chat_open_short({}, { locale });
 
   const confirmCancel = () => {
     setError(null);
@@ -91,7 +86,7 @@ export const HostEventPanel = ({
   return (
     <div className="flex flex-col gap-3">
       {isAhead ? (
-        <div className={ACTION_ROW}>
+        <ButtonRow>
           <Link
             className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-full"
             {...localizedEventEdit(locale, event.id)}
@@ -108,7 +103,7 @@ export const HostEventPanel = ({
             <CircleX className="size-4" aria-hidden="true" />
             {host_cancel_short({}, { locale })}
           </button>
-        </div>
+        </ButtonRow>
       ) : null}
       {hasEnded ? (
         <p className="text-body-sm text-neutral">
@@ -139,31 +134,14 @@ export const HostEventPanel = ({
         </Link>
       )}
 
-      {isAhead && (!hasStarted || isChatAvailable) ? (
-        <div className={ACTION_ROW}>
-          {hasStarted ? null : (
-            <AddToCalendar
-              eventId={event.id}
-              startsAt={event.startsAt}
-              locale={locale}
-              label={calendar_add_short({}, { locale })}
-              isFullWidth
-            />
-          )}
-          {isChatAvailable ? (
-            <ChatOpenButton
-              locale={locale}
-              eventId={event.id}
-              label={chatLabel}
-              className="w-full"
-            />
-          ) : null}
-        </div>
-      ) : null}
-
-      {!isAhead && isChatAvailable ? (
-        <ChatOpenButton locale={locale} eventId={event.id} label={chatLabel} />
-      ) : null}
+      <CalendarChatActions
+        locale={locale}
+        eventId={event.id}
+        startsAt={event.startsAt}
+        isOver={!isAhead}
+        isCalendarOffered={!hasStarted}
+        isChatAvailable={isChatAvailable}
+      />
 
       {repeat.data ? (
         <RepeatHostLink

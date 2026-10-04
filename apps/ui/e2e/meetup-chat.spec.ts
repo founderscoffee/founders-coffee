@@ -1,6 +1,7 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
 import {
+  chatEntryOf,
   composerOf,
   expectPanelPlacement,
   optionsOf,
@@ -127,9 +128,7 @@ for (const screen of SCREENS) {
       await host.waitForURL(new RegExp(`/e/${meetup.slug}$`), {
         timeout: 60_000,
       });
-      const hostEntry = host.getByRole('button', {
-        name: new RegExp(`^${t(locale, 'chat_open_short')}`),
-      });
+      const hostEntry = chatEntryOf(host, locale);
       await hostEntry.click();
       await host.waitForURL(/\?chat=true$/);
       const hostPanel = panelOf(host, locale);

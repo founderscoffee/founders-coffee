@@ -18,7 +18,6 @@ vi.mock('../../lib/app-providers', () => ({
   useAuth: () => ({ isAuthenticated: true }),
 }));
 vi.mock('./HostEventPanel', () => ({ HostEventPanel: () => null }));
-vi.mock('./AddToCalendar', () => ({ AddToCalendar: () => null }));
 vi.mock('../../features/chat/useChatAddress', () => ({
   useChatAddress: () => ({ isOpen: false, open: vi.fn(), close: vi.fn() }),
 }));
@@ -39,7 +38,15 @@ const INVITE = 'The people going talk in the meetup’s chat.';
 
 const MEMBERS_ONLY = 'Only the host and the people going can read this chat.';
 
+const HOUR = 60 * 60 * 1000;
+
 const going = { ...event, viewerRsvp: 'going' } satisfies EventWithAttendance;
+
+const goingAhead = {
+  ...going,
+  startsAt: new Date(Date.now() + 24 * HOUR),
+  endsAt: new Date(Date.now() + 26 * HOUR),
+} satisfies EventWithAttendance;
 
 const cancelled = {
   ...event,
@@ -47,7 +54,10 @@ const cancelled = {
   cancelledAt: new Date('2026-09-19T10:00:00Z'),
 } satisfies EventWithAttendance;
 
-const chat = () => screen.queryByRole('button', { name: /^Open chat/ });
+const chat = () => screen.queryByRole('button', { name: /^Chat/ });
+
+const calendar = () =>
+  screen.queryByRole('group', { name: 'Add to your calendar' });
 
 const show = (
   item: EventWithAttendance,
@@ -89,6 +99,33 @@ describe('RsvpSection and the meetup’s chat', () => {
 
       expect(chat()).toBeTruthy();
       expect(screen.queryByText(INVITE)).toBeNull();
+    },
+  );
+
+  it('puts the calendar and the chat in one row, the buttons the host has', () => {
+    show(goingAhead, 'upcoming');
+    const row = calendar()?.parentElement;
+
+    expect(
+      chat()?.parentElement,
+      'stacked, the two made the box taller than the details beside it',
+    ).toBe(row);
+    expect(row?.children).toHaveLength(2);
+    expect(calendar()?.querySelector('summary')?.textContent).toBe('Calendar');
+    expect(chat()?.className.split(' ')).toContain('w-full');
+  });
+
+  it.each([
+    ['under way', going, 'started', 'w-full'],
+    ['over', going, 'ended', 'w-fit'],
+    ['called off', { ...cancelled, viewerRsvp: 'going' }, 'upcoming', 'w-fit'],
+  ] as const)(
+    'sizes the chat of a meetup %s as the host’s panel does',
+    (_case, item, phase, width) => {
+      show(item, phase);
+
+      expect(calendar()).toBeNull();
+      expect(chat()?.className.split(' ')).toContain(width);
     },
   );
 

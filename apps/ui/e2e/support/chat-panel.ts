@@ -14,6 +14,13 @@ const SIDE_PANEL_WIDTH = 448;
 export const panelOf = (page: Page, locale: E2eLocale): Locator =>
   page.getByRole('dialog', { name: new RegExp(t(locale, 'chat_title')) });
 
+/**
+ * The meetup page's chat button, matched from the start of its name: an unread count may follow
+ * the word, and the panel's close button ends with it ("Close chat", « إغلاق المحادثة »).
+ */
+export const chatEntryOf = (page: Page, locale: E2eLocale): Locator =>
+  page.getByRole('button', { name: new RegExp(`^${t(locale, 'chat_open')}`) });
+
 export const composerOf = (panel: Locator, locale: E2eLocale): Locator =>
   panel.getByRole('textbox', { name: t(locale, 'chat_composer_label') });
 

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
-import { cancelled, ended, event } from './HostEventPanel.fixtures';
+import { cancelled, ended, event, inProgress } from './HostEventPanel.fixtures';
 
 vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ invalidate: vi.fn() }),
@@ -154,4 +154,16 @@ describe("HostEventPanel opens the meetup's chat", () => {
     show(item, true);
     expect(chat()?.getAttribute('aria-haspopup')).toBe('dialog');
   });
+
+  it.each([
+    ['under way', inProgress, 'w-full'],
+    ['over', ended, 'w-fit'],
+    ['called off', cancelled, 'w-fit'],
+  ])(
+    'sizes the chat of a meetup %s as the box of someone going does',
+    (_case, item, width) => {
+      show(item, true);
+      expect(chat()?.className.split(' ')).toContain(width);
+    },
+  );
 });

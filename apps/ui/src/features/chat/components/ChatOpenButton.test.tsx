@@ -28,7 +28,7 @@ vi.mock('../hooks', () => ({
   },
 }));
 
-const entry = () => screen.getByRole('button', { name: /^Open chat/ });
+const entry = () => screen.getByRole('button', { name: /^Chat/ });
 
 afterEach(() => {
   cleanup();
@@ -52,7 +52,7 @@ describe('ChatOpenButton', () => {
 
     expect(entry().querySelector('.badge')?.textContent).toBe('3');
     expect(
-      screen.getByRole('button', { name: 'Open chat 3 unread messages' }),
+      screen.getByRole('button', { name: 'Chat 3 unread messages' }),
     ).toBeTruthy();
     expect(mocks.countsAsked).toHaveBeenCalledWith(['evt_1'], true);
   });
@@ -68,7 +68,7 @@ describe('ChatOpenButton', () => {
     rerender(<ChatOpenButton locale="ar" eventId="evt_1" />);
 
     expect(screen.queryByText('99+')).toBeNull();
-    expect(screen.getByRole('button', { name: 'فتح المحادثة' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'المحادثة' })).toBeTruthy();
   });
 
   it('asks nothing while the panel is open over it', () => {
@@ -89,15 +89,26 @@ describe('ChatOpenButton', () => {
     expect(mocks.open).not.toHaveBeenCalled();
   });
 
-  it('shows a shorter label where it is given one', () => {
-    render(<ChatOpenButton locale="fr" eventId="evt_1" label="Discuter" />);
+  it('fills its share of a row only when asked to', () => {
+    const { rerender } = render(
+      <ChatOpenButton locale="fr" eventId="evt_1" isFullWidth />,
+    );
 
-    expect(screen.getByRole('button', { name: 'Discuter' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Discuter' }).className.split(' '),
+    ).toContain('w-full');
+
+    rerender(<ChatOpenButton locale="fr" eventId="evt_1" />);
+
+    expect(
+      screen.getByRole('button', { name: 'Discuter' }).className.split(' '),
+      'after the meetup it stands alone, only as wide as its word',
+    ).toContain('w-fit');
   });
 
   it('pins the unread count to its corner instead of widening the button', () => {
     mocks.counts = new Map([['evt_1', 140]]);
-    render(<ChatOpenButton locale="en" eventId="evt_1" label="Chat" />);
+    render(<ChatOpenButton locale="en" eventId="evt_1" />);
 
     const button = screen.getByRole('button', {
       name: 'Chat 140 unread messages',

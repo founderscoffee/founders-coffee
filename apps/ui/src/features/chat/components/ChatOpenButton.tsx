@@ -13,8 +13,7 @@ import { useChatAddress } from '../useChatAddress';
 type ChatOpenButtonProps = {
   locale: Locale;
   eventId: string;
-  label?: string;
-  className?: string;
+  isFullWidth?: boolean;
 };
 
 const BADGE_CAP = 99;
@@ -22,8 +21,7 @@ const BADGE_CAP = 99;
 export const ChatOpenButton = ({
   locale,
   eventId,
-  label,
-  className = 'w-fit',
+  isFullWidth = false,
 }: ChatOpenButtonProps) => {
   const { isOpen, open } = useChatAddress();
   const unread = useChatUnreadCounts([eventId], !isOpen).get(eventId) ?? 0;
@@ -32,14 +30,14 @@ export const ChatOpenButton = ({
     <button
       type="button"
       aria-haspopup="dialog"
-      className={`btn btn-secondary btn-xs sm:btn-sm md:btn-md relative ${className}`}
+      className={`btn btn-secondary btn-xs sm:btn-sm md:btn-md relative ${isFullWidth ? 'w-full' : 'w-fit'}`}
       onClick={open}
       onFocus={preloadChatConversation}
       onPointerEnter={preloadChatConversation}
       onTouchStart={preloadChatConversation}
     >
       <MessagesSquare className="size-4" aria-hidden="true" />
-      {label ?? chat_open({}, { locale })}
+      {chat_open({}, { locale })}
       {unread > 0 ? (
         <>
           {' '}
