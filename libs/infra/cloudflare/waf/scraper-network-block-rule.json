@@ -1,0 +1,5 @@
+{
+  "description": "Block hosting networks that only scanned or scraped: FBW Networks (AS211590), Tencent Cloud (AS132203)",
+  "expression": "ip.src.asnum in {211590 132203}",
+  "action": "block"
+}
