@@ -38,6 +38,7 @@ export const HostMapPanel = ({
   onLocateResize,
   onCitySelect,
   onSearch,
+  onMiss,
 }: {
   locale: Locale;
   accessToken: string;
@@ -57,6 +58,7 @@ export const HostMapPanel = ({
   onLocateResize?: (size: ControlSize | null) => void;
   onCitySelect?: (city: geo.GeoCity) => void;
   onSearch?: () => void;
+  onMiss?: () => void;
 }) => (
   <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
     <Suspense fallback={<HostMapSkeleton locale={locale} />}>
@@ -78,6 +80,7 @@ export const HostMapPanel = ({
           onLocateResize={onLocateResize}
           onCitySelect={onCitySelect}
           onSearch={onSearch}
+          onMiss={onMiss}
         />
       ) : error ? (
         <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">

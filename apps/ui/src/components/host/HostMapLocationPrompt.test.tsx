@@ -175,11 +175,16 @@ describe('the host map asking where the host is', () => {
 
   it('asks again when a tap finds nothing there, saying so, rather than raising an error', async () => {
     reverse.mutateAsync.mockRejectedValueOnce(nothingThere());
-    renderHostMap({ onCitySelect: vi.fn(), cityCode: ALGIERS });
+    const onMiss = vi.fn();
+    renderHostMap({ onCitySelect: vi.fn(), cityCode: ALGIERS, onMiss });
 
     tapTheMap();
 
     await waitFor(() => expect(isAsking()).toBe(true));
+    expect(
+      onMiss,
+      'the question is the answer to the miss: the places would open behind it',
+    ).not.toHaveBeenCalled();
     const description = locationPrompt()
       ?.getAttribute('aria-describedby')
       ?.split(' ')

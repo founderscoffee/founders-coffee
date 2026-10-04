@@ -8,7 +8,6 @@ import {
   host_geolocation_denied,
   host_map_error,
   host_map_label,
-  host_venue_unsupported,
   type Locale,
 } from '@founders-coffee/i18n';
 
@@ -53,6 +52,7 @@ type HostMapProps = {
   onLocateResize?: (size: ControlSize | null) => void;
   onCitySelect?: (city: geo.GeoCity) => void;
   onSearch?: () => void;
+  onMiss?: () => void;
 };
 
 export const HostMap = ({
@@ -72,6 +72,7 @@ export const HostMap = ({
   onLocateResize,
   onCitySelect,
   onSearch,
+  onMiss,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
@@ -126,13 +127,11 @@ export const HostMap = ({
       onVenueSelect({ ...resolved, ...coordinates });
     } catch (error) {
       if (requestId !== reverseRequestId.current) return;
-      const isNothingThere = appErrorCode(error) === 'map_venue_not_found';
-      if (isNothingThere && prompt.askAfterMiss()) return;
-      setLocationError(
-        isNothingThere
-          ? host_venue_unsupported({}, { locale })
-          : host_map_error({}, { locale }),
-      );
+      if (appErrorCode(error) !== 'map_venue_not_found') {
+        setLocationError(host_map_error({}, { locale }));
+      } else if (!prompt.askAfterMiss()) {
+        onMiss?.();
+      }
     }
   };
 

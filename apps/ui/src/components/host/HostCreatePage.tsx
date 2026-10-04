@@ -271,6 +271,7 @@ export const HostCreatePage = ({
           onSearch={
             venueOverlay.isSearchOpen ? undefined : venueOverlay.openSearch
           }
+          onMiss={venueOverlay.offerPlaces}
           {...venueOverlay.map}
         />
       </div>

@@ -8,6 +8,7 @@ vi.mock('./HostMap', () => ({
     onUserMove,
     onUserGestureEnd,
     onSearch,
+    onMiss,
   }: {
     isInteractive?: boolean;
     onVenueSelect: (venue: {
@@ -21,6 +22,7 @@ vi.mock('./HostMap', () => ({
     onUserMove?: () => void;
     onUserGestureEnd?: () => void;
     onSearch?: () => void;
+    onMiss?: () => void;
   }) => {
     const tapAt = (venue: Parameters<typeof onVenueSelect>[0]) => () => {
       onUserGestureEnd?.();
@@ -75,6 +77,12 @@ vi.mock('./HostMap', () => ({
             'button',
             { key: 'search', onClick: onSearch },
             'Search',
+          ),
+        onMiss &&
+          createElement(
+            'button',
+            { key: 'miss', onClick: onMiss },
+            'Tap where the map has nothing',
           ),
       ],
     );

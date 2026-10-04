@@ -140,6 +140,24 @@ describe('the venue search in the host wizard', () => {
     ).toBeNull();
   });
 
+  it('offers the places, not a message, after a tap the map found no address for', async () => {
+    getHostCreateMocks().nearbyVenues = [NEARBY_CAFE];
+    renderHostCreateWizard();
+    await mapLoaded();
+    await screen.findByRole('option', { name: /Hamou/u });
+    press('Move the map');
+
+    press('Tap where the map has nothing');
+
+    expect(isListHiddenBelowLg()).toBe(false);
+    const first = screen.getByRole('option', { name: /Hamou/u });
+    expect(document.activeElement).toBe(first);
+    expect(first.hasAttribute('data-sought')).toBe(true);
+    expect(
+      screen.queryByText('Choose a café, restaurant, or coworking space'),
+    ).toBeNull();
+  });
+
   it('opens the search when Next finds nothing chosen and no place nearby to offer', () => {
     renderHostCreateWizard();
 

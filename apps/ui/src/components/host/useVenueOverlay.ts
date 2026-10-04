@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { flushSync } from 'react-dom';
 
-import { seekField } from '../../features/events/seek-field';
-import {
-  VENUE_LIST_ID,
-  VENUE_SEARCH_INPUT_ID,
-} from '../../features/events/types';
+import { seekFirstPlace } from '../../features/events/seek-field';
+import { VENUE_SEARCH_INPUT_ID } from '../../features/events/types';
 import type { ControlSize } from './useControlSize';
 
 const ROW_TOP = 12;
@@ -21,7 +18,7 @@ const ROW_TOP = 12;
  * picks a place, the box and the list give the map back, and only the place chosen stays over it.
  * Search opens both again with the cursor in the box, and a city switch lists the places. Next
  * finding nothing chosen says nothing: it lists them too and takes the host to the first, or opens
- * the search where there is none to offer. From `lg` up the places keep their rail beside the map,
+ * the search where there is none to offer, and so does a tap the map found no address for. From `lg` up the places keep their rail beside the map,
  * so only the box comes and goes there.
  *
  * Locate me and Search share the map's top row. The panel hangs below that row, and the camera
@@ -45,11 +42,7 @@ export const useVenueOverlay = () => {
   };
   const offerPlaces = () => {
     flushSync(() => setIsListOpen(true));
-    const place = document.querySelector<HTMLElement>(
-      `#${VENUE_LIST_ID} [role="option"][tabindex="0"]`,
-    );
-    if (place) seekField(place);
-    else openSearch();
+    if (!seekFirstPlace()) openSearch();
   };
 
   return {
