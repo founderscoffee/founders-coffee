@@ -116,6 +116,32 @@ describe('AddToCalendar', () => {
     expect(summary.textContent).toBe('Calendar');
   });
 
+  it('fills the width it is given only when asked to', () => {
+    render(
+      <AddToCalendar
+        eventId={EVENT_ID}
+        startsAt={new Date(Date.now() + 24 * HOUR)}
+        locale="en"
+        isFullWidth
+      />,
+    );
+    const { details, summary } = openMenu('Add to your calendar');
+
+    expect(
+      summary.className.split(' '),
+      "the host's button shares a row with the chat, and half a row is what it is given",
+    ).toContain('w-full');
+    expect(details.className.split(' ')).toContain('w-full');
+
+    cleanup();
+    show(24 * HOUR);
+
+    expect(
+      openMenu('Add to your calendar').summary.className.split(' '),
+      "a guest's button stands alone and is only as wide as its words",
+    ).not.toContain('w-full');
+  });
+
   it('offers nothing once the meetup has started', () => {
     const { container } = show(-1);
 

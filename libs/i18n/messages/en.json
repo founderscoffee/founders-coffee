@@ -464,6 +464,7 @@
   "chat_title": "Chat",
   "chat_members_only": "Only the host and the people going can read this chat.",
   "chat_open": "Open chat",
+  "chat_open_short": "Chat",
   "chat_invite": "The people going talk in the meetup’s chat.",
   "chat_close": "Close chat",
   "chat_mute": "Mute notifications",

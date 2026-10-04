@@ -18,6 +18,7 @@ type AddToCalendarProps = {
   startsAt: Date;
   locale: Locale;
   label?: string;
+  isFullWidth?: boolean;
 };
 
 export const AddToCalendar = ({
@@ -25,6 +26,7 @@ export const AddToCalendar = ({
   startsAt,
   locale,
   label,
+  isFullWidth = false,
 }: AddToCalendarProps) => {
   const headingId = useId();
   const { ref, close } = useDismissableDetails();
@@ -32,6 +34,7 @@ export const AddToCalendar = ({
   if (startsAt.getTime() <= Date.now()) return null;
 
   const calendarFile = eventCalendarPath(locale, eventId, 'ics');
+  const width = isFullWidth ? ' w-full' : '';
 
   return (
     <div
@@ -43,10 +46,10 @@ export const AddToCalendar = ({
         {calendar_add({}, { locale })}
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <details ref={ref} className="dropdown dropdown-start">
+        <details ref={ref} className={`dropdown dropdown-start${width}`}>
           <summary
             aria-describedby={headingId}
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md flex list-none gap-2"
+            className={`btn btn-outline btn-xs sm:btn-sm md:btn-md flex list-none gap-2${width}`}
           >
             <CalendarPlus
               className="size-4 shrink-0 sm:size-5"

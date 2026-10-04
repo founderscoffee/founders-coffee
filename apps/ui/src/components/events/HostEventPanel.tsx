@@ -1,10 +1,11 @@
 import { appErrorCode } from '@founders-coffee/core';
 import { Link, useRouter } from '@tanstack/react-router';
-import { Check } from 'lucide-react';
+import { CircleX, Pencil } from 'lucide-react';
 import { useState } from 'react';
 
 import {
   calendar_add_short,
+  chat_open_short,
   closeout_link,
   host_cancel_ended_error,
   host_cancel_error,
@@ -12,7 +13,6 @@ import {
   host_cancel_short,
   host_edit_open,
   host_event_ended,
-  host_you_are_hosting,
   live_window_closed,
   type Locale,
 } from '@founders-coffee/i18n';
@@ -27,7 +27,7 @@ import {
   useCancelEvent,
   useRepeatEventTemplate,
 } from '../../features/events/hooks';
-import { ChatEntry } from '../../features/chat/components/ChatEntry';
+import { ChatOpenButton } from '../../features/chat/components/ChatOpenButton';
 import type { UseEventLiveResult } from '../../features/events/useEventLive';
 import { AddToCalendar } from './AddToCalendar';
 import { CancelEventDialog } from './CancelEventDialog';
@@ -43,6 +43,8 @@ type HostEventPanelProps = {
   isChatAvailable: boolean;
 };
 
+const ACTION_ROW = 'grid grid-flow-col auto-cols-[1fr] gap-2';
+
 export const HostEventPanel = ({
   event,
   locale,
@@ -55,6 +57,7 @@ export const HostEventPanel = ({
   const cancelEvent = useCancelEvent();
   const hasEnded =
     event.endsAt !== null && new Date(event.endsAt).getTime() <= Date.now();
+  const hasStarted = new Date(event.startsAt).getTime() <= Date.now();
   const repeat = useRepeatEventTemplate(event.id, hasEnded);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [reason, setReason] = useState('');
@@ -62,6 +65,7 @@ export const HostEventPanel = ({
 
   const isCancelled = event.status === 'cancelled';
   const isAhead = !isCancelled && !hasEnded;
+  const chatLabel = chat_open_short({}, { locale });
 
   const confirmCancel = () => {
     setError(null);
@@ -86,22 +90,26 @@ export const HostEventPanel = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-stretch justify-between gap-2">
-        <p
-          className={`inline-flex w-fit items-center gap-2 rounded-full bg-success-tint px-3 text-body-sm font-medium text-success ${isAhead ? '' : 'py-1.5'}`}
-        >
-          <Check className="size-4" aria-hidden="true" />
-          {host_you_are_hosting({}, { locale })}
-        </p>
-        {isAhead ? (
+      {isAhead ? (
+        <div className={ACTION_ROW}>
           <Link
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-fit"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md w-full"
             {...localizedEventEdit(locale, event.id)}
           >
+            <Pencil className="size-4" aria-hidden="true" />
             {host_edit_open({}, { locale })}
           </Link>
-        ) : null}
-      </div>
+          <button
+            type="button"
+            className="btn btn-outline btn-error btn-xs sm:btn-sm md:btn-md w-full"
+            aria-label={host_cancel_event({}, { locale })}
+            onClick={() => setIsDialogOpen(true)}
+          >
+            <CircleX className="size-4" aria-hidden="true" />
+            {host_cancel_short({}, { locale })}
+          </button>
+        </div>
+      ) : null}
       {hasEnded ? (
         <p className="text-body-sm text-neutral">
           {host_event_ended({}, { locale })}
@@ -131,27 +139,30 @@ export const HostEventPanel = ({
         </Link>
       )}
 
-      {isAhead && (
-        <div className="flex items-center justify-between gap-2">
-          <AddToCalendar
-            eventId={event.id}
-            startsAt={event.startsAt}
-            locale={locale}
-            label={calendar_add_short({}, { locale })}
-          />
-          <button
-            type="button"
-            className="btn btn-ghost btn-xs sm:btn-sm md:btn-md w-fit text-error"
-            aria-label={host_cancel_event({}, { locale })}
-            onClick={() => setIsDialogOpen(true)}
-          >
-            {host_cancel_short({}, { locale })}
-          </button>
+      {isAhead && (!hasStarted || isChatAvailable) ? (
+        <div className={ACTION_ROW}>
+          {hasStarted ? null : (
+            <AddToCalendar
+              eventId={event.id}
+              startsAt={event.startsAt}
+              locale={locale}
+              label={calendar_add_short({}, { locale })}
+              isFullWidth
+            />
+          )}
+          {isChatAvailable ? (
+            <ChatOpenButton
+              locale={locale}
+              eventId={event.id}
+              label={chatLabel}
+              className="w-full"
+            />
+          ) : null}
         </div>
-      )}
+      ) : null}
 
-      {isChatAvailable ? (
-        <ChatEntry locale={locale} eventId={event.id} />
+      {!isAhead && isChatAvailable ? (
+        <ChatOpenButton locale={locale} eventId={event.id} label={chatLabel} />
       ) : null}
 
       {repeat.data ? (

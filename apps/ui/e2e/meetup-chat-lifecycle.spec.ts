@@ -82,6 +82,11 @@ const signInTo = (page: Page, locale: E2eLocale, email: string) =>
 const chatEntry = (page: Page, locale: E2eLocale) =>
   page.getByRole('button', { name: t(locale, 'chat_open') });
 
+const hostChatEntry = (page: Page, locale: E2eLocale) =>
+  page.getByRole('button', {
+    name: new RegExp(`^${t(locale, 'chat_open_short')}`),
+  });
+
 /**
  * RSVP from the meetup page, turn down the push prompt if it follows, and wait for the chat entry.
  *
@@ -152,7 +157,7 @@ test.describe('meetup chat lifecycle · an Arabic host, an English member, a Fre
     await joinThroughPage(member, 'en');
 
     await signInTo(host, 'ar', meetup.hostEmail);
-    await chatEntry(host, 'ar').click();
+    await hostChatEntry(host, 'ar').click();
     await expect(hostPanel.getByText(t('ar', 'chat_empty'))).toBeVisible({
       timeout: 30_000,
     });

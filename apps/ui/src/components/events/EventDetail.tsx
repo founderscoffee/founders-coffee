@@ -96,8 +96,8 @@ export const EventDetail = ({
   const contentDirection = locale === 'ar' ? 'rtl' : 'ltr';
   const isCancelled = event.status === 'cancelled';
   const isGoing = event.viewerRsvp === 'going';
-  const hasRsvpBox = isHost || !isCancelled || isGoing;
   const isChatAvailable = market.featureFlags.meetupChat === true;
+  const hasRsvpBox = isCancelled ? (isHost ? isChatAvailable : isGoing) : true;
 
   return (
     <article className="mx-auto max-w-5xl px-4 py-6 sm:py-8 md:px-8 md:py-10">
@@ -182,18 +182,21 @@ export const EventDetail = ({
         </div>
       ) : null}
 
-      <div
-        className={`mt-8 grid gap-8 ${hasRsvpBox ? 'lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.75fr)]' : ''}`}
+      <h2
+        id="event-details-title"
+        className="mt-8 font-display text-h4 font-semibold"
       >
-        <section aria-labelledby="event-details-title">
-          <h2
-            id="event-details-title"
-            className="font-display text-h4 font-semibold"
-          >
-            {event_details_title({}, { locale })}
-          </h2>
+        {event_details_title({}, { locale })}
+      </h2>
 
-          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div
+        className={`mt-4 grid gap-8 ${hasRsvpBox ? 'lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.75fr)]' : ''}`}
+      >
+        <section
+          aria-labelledby="event-details-title"
+          className="flex flex-col"
+        >
+          <dl className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-box border border-base-300 bg-base-100 p-4">
               <dt className="eyebrow">{event_when({}, { locale })}</dt>
               <dd className="mt-1.5 flex items-start gap-2 font-medium">
@@ -234,7 +237,12 @@ export const EventDetail = ({
             </div>
           </dl>
 
-          <EventHostCard locale={locale} host={host} cityName={cityName} />
+          <EventHostCard
+            locale={locale}
+            host={host}
+            cityName={cityName}
+            isHost={isHost}
+          />
         </section>
 
         {hasRsvpBox ? (

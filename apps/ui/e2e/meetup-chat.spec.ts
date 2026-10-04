@@ -128,7 +128,7 @@ for (const screen of SCREENS) {
         timeout: 60_000,
       });
       const hostEntry = host.getByRole('button', {
-        name: t(locale, 'chat_open'),
+        name: new RegExp(`^${t(locale, 'chat_open_short')}`),
       });
       await hostEntry.click();
       await host.waitForURL(/\?chat=true$/);

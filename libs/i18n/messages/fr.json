@@ -642,6 +642,7 @@
   "chat_title": "Discussion",
   "chat_members_only": "Seuls l’hôte et les participants peuvent lire cette discussion.",
   "chat_open": "Ouvrir la discussion",
+  "chat_open_short": "Discuter",
   "chat_invite": "Les participants échangent dans la discussion de la rencontre.",
   "chat_close": "Fermer la discussion",
   "chat_mute": "Désactiver les notifications",

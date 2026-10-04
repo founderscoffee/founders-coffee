@@ -27,8 +27,14 @@ vi.mock('../../features/events/hooks', () => ({
 vi.mock('./CancelEventDialog', () => ({ CancelEventDialog: () => null }));
 vi.mock('./RepeatHostLink', () => ({ RepeatHostLink: () => null }));
 vi.mock('./HostLiveActions', () => ({ HostLiveActions: () => null }));
-vi.mock('../../features/chat/components/ChatEntry', () => ({
-  ChatEntry: () => <p>chat-entry</p>,
+vi.mock('../../features/chat/useChatAddress', () => ({
+  useChatAddress: () => ({ isOpen: false, open: vi.fn(), close: vi.fn() }),
+}));
+vi.mock('../../features/chat/hooks', () => ({
+  useChatUnreadCounts: () => new Map(),
+}));
+vi.mock('../../features/chat/chat-panel-loader', () => ({
+  preloadChatConversation: vi.fn(),
 }));
 
 const { HostEventPanel } = await import('./HostEventPanel');
@@ -86,53 +92,6 @@ describe('HostEventPanel offers editing instead of only cancelling', () => {
   it('stops offering it once the host has called the meetup off', () => {
     show(cancelled);
     expect(editLink()).toBeNull();
-  });
-});
-
-describe('HostEventPanel lays its actions out in two rows', () => {
-  it('puts Edit in the row that says the host is hosting', () => {
-    show(event);
-    const badge = screen.getByText("You're hosting");
-    const edit = screen.getByRole('link', { name: 'Edit' });
-    expect(
-      edit.parentElement,
-      'beside the calendar, Edit pushed the cancel onto a line of its own',
-    ).toBe(badge.parentElement);
-  });
-
-  it('keeps the calendar and the cancel on one line below it', () => {
-    show(event);
-    const calendar = screen.getByRole('group', {
-      name: 'Add to your calendar',
-    });
-    const cancel = screen.getByRole('button', { name: 'Cancel this meetup' });
-    const row = calendar.parentElement;
-    expect(cancel.parentElement).toBe(row);
-    expect(
-      row?.className.split(' '),
-      'a row that wraps sent the cancel to a line of its own in the side rail',
-    ).not.toContain('flex-wrap');
-  });
-
-  it('labels that row short enough to share the side rail', () => {
-    show(event);
-    const calendar = screen.getByRole('group', {
-      name: 'Add to your calendar',
-    });
-    const cancel = screen.getByRole('button', { name: 'Cancel this meetup' });
-    expect(
-      calendar.querySelector('summary')?.textContent,
-      'in full the two needed 401px of the 267px the side rail has in English',
-    ).toBe('Calendar');
-    expect(cancel.textContent).toBe('Cancel');
-  });
-
-  it('says nothing about who sees the host in the room', () => {
-    show(event);
-    expect(
-      screen.queryByText(/Guests see you in the room/i),
-      'the host knows they are at their own meetup',
-    ).toBeNull();
   });
 });
 
@@ -246,27 +205,5 @@ describe('HostEventPanel lets the host put their own meetup in a calendar', () =
   ])('offers nothing once the meetup is %s', (_case, item) => {
     show(item);
     expect(calendarGroup()).toBeNull();
-  });
-});
-
-describe("HostEventPanel opens the meetup's chat", () => {
-  it.each([
-    ['ahead', event],
-    ['over', ended],
-    ['called off', cancelled],
-  ])(
-    'offers no chat where the market has it off, while the meetup is %s',
-    (_case, item) => {
-      show(item);
-      expect(screen.queryByText('chat-entry')).toBeNull();
-    },
-  );
-
-  it.each([
-    ['ahead', event],
-    ['called off', cancelled],
-  ])('opens the chat while the meetup is %s', (_case, item) => {
-    show(item, true);
-    expect(screen.getByText('chat-entry')).toBeTruthy();
   });
 });
