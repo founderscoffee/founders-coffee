@@ -65,6 +65,21 @@ export const findEventByTitle = (title: string): PersistedEvent | undefined =>
   )[0];
 
 /**
+ * Delete the sign-in code Better Auth holds for `email`, by the exact name it gives the row.
+ *
+ * A sign-in code is the only kind a run can ask for, since the public send route refuses every
+ * other type, and Better Auth names its row `sign-in-otp-` followed by the address in lower case.
+ * The name is compared whole, never through `LIKE`: D1 refuses a `LIKE` pattern longer than 50
+ * bytes and checks only once there is a row to compare, so a suffix pattern built from a long run
+ * address passed on an empty table and failed every cleanup while any code was waiting.
+ */
+export const deleteSignInCode = (email: string): void => {
+  d1(
+    `DELETE FROM verification WHERE identifier = ${sqlString(`sign-in-otp-${email.toLowerCase()}`)}`,
+  );
+};
+
+/**
  * Remove everything one run created, addressed by the exact rows it made.
  *
  * Deleting by identifier rather than by a pattern is what makes this safe to point at a deployed
@@ -86,9 +101,7 @@ export const cleanupRun = (opts: {
     d1(
       `DELETE FROM account WHERE user_id IN (SELECT id FROM user WHERE email = ${sqlString(email)})`,
     );
-    d1(
-      `DELETE FROM verification WHERE identifier LIKE '%' || ${sqlString(email)}`,
-    );
+    deleteSignInCode(email);
     d1(`DELETE FROM user WHERE email = ${sqlString(email)}`);
   }
 };
