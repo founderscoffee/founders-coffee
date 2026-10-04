@@ -70,11 +70,15 @@ const measure = (page: Page) =>
       hostCard: box(hostCard),
       badgeInCard: Boolean(hostCard?.querySelector('.bg-success-tint')),
       badgeInPanel: Boolean(panel?.querySelector('.bg-success-tint')),
-      buttons: buttons.map((button) => ({
-        label: button.textContent?.trim() ?? '',
-        ...box(button),
-        isCut: button.scrollWidth > button.clientWidth + 1,
-      })),
+      buttons: buttons.map((button) => {
+        const { left, right } = button.getBoundingClientRect();
+        return {
+          label: button.textContent?.trim() ?? '',
+          left,
+          right,
+          isCut: button.scrollWidth > button.clientWidth + 1,
+        };
+      }),
       edit: box(panel?.querySelector('a.btn'))?.top ?? null,
       cancel: box(panel?.querySelector('button.btn-error'))?.top ?? null,
       calendar: box(panel?.querySelector('summary'))?.top ?? null,
