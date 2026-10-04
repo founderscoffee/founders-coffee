@@ -63,41 +63,41 @@ const seatsOf = (meetup: Meetup): number =>
     `SELECT count(*) AS seats FROM event_rsvps WHERE event_id = '${meetup.eventId}' AND user_id = (SELECT id FROM user WHERE email = '${meetup.memberEmail}')`,
   )[0]?.seats ?? 0;
 
-test.describe('Join pressed before signing in', () => {
-  for (const locale of LOCALES) {
-    test(`takes the seat once sign-in brings the reader back (${locale})`, async ({
+for (const locale of LOCALES) {
+  test.describe(`Join pressed before signing in (${locale})`, () => {
+    const meetup = meetupFor(locale);
+    const path = pathOf(meetup, locale);
+
+    test.beforeAll(() => seed(meetup));
+
+    test.afterAll(() => cleanup(meetup));
+
+    test('takes the seat once sign-in brings the reader back', async ({
       page,
     }) => {
       test.setTimeout(150_000);
-      const meetup = meetupFor(locale);
-      const path = pathOf(meetup, locale);
-      seed(meetup);
-      try {
-        await page.goto(path);
-        await pressJoinSignedOut(page, locale);
+      await page.goto(path);
+      await pressJoinSignedOut(page, locale);
 
-        await signIn(page, locale, meetup.memberEmail, 'login_email_continue');
-        await page.waitForURL((url) => url.pathname === path, {
-          timeout: 60_000,
-        });
+      await signIn(page, locale, meetup.memberEmail, 'login_email_continue');
+      await page.waitForURL((url) => url.pathname === path, {
+        timeout: 60_000,
+      });
 
-        await expect(
-          page.getByRole('heading', { name: t(locale, 'rsvp_already') }),
-          'on 2 October a reader pressed Join, signed in, came back to the same button and left without pressing it again',
-        ).toBeVisible({ timeout: 30_000 });
-        await expect(
-          page.getByRole('button', { name: t(locale, 'rsvp_cta') }),
-        ).toBeHidden();
-        expect(seatsOf(meetup)).toBe(1);
+      await expect(
+        page.getByRole('heading', { name: t(locale, 'rsvp_already') }),
+        'on 2 October a reader pressed Join, signed in, came back to the same button and left without pressing it again',
+      ).toBeVisible({ timeout: 30_000 });
+      await expect(
+        page.getByRole('button', { name: t(locale, 'rsvp_cta') }),
+      ).toBeHidden();
+      expect(seatsOf(meetup)).toBe(1);
 
-        await page.reload();
-        await expect(
-          page.getByRole('heading', { name: t(locale, 'rsvp_already') }),
-        ).toBeVisible({ timeout: 30_000 });
-        expect(seatsOf(meetup)).toBe(1);
-      } finally {
-        cleanup(meetup);
-      }
+      await page.reload();
+      await expect(
+        page.getByRole('heading', { name: t(locale, 'rsvp_already') }),
+      ).toBeVisible({ timeout: 30_000 });
+      expect(seatsOf(meetup)).toBe(1);
     });
-  }
-});
+  });
+}

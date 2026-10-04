@@ -108,38 +108,38 @@ const reachOutside = (prompt: Locator): Promise<number> =>
     return Math.max(0, Math.round(Math.max(...reach)));
   });
 
-test.describe('The notification prompt an RSVP opens', () => {
-  for (const locale of LOCALES) {
-    test(`keeps both of its buttons inside the dialog from 320px up (${locale})`, async ({
+for (const locale of LOCALES) {
+  test.describe(`The notification prompt an RSVP opens (${locale})`, () => {
+    const meetup = meetupFor(locale);
+
+    test.beforeAll(() => seed(meetup));
+
+    test.afterAll(() => cleanup(meetup));
+
+    test('keeps both of its buttons inside the dialog from 320px up', async ({
       page,
     }, testInfo) => {
       test.setTimeout(150_000);
-      const meetup = meetupFor(locale);
-      seed(meetup);
-      try {
-        await undecidedAboutNotifications(page);
-        await signInBackTo(
-          page,
-          locale,
-          meetup.memberEmail,
-          pathOf(meetup, locale),
-        );
-        const prompt = await joinUntilPrompted(page, locale);
-        const outside: Record<number, number> = {};
-        for (const width of WIDTHS) {
-          await page.setViewportSize({ width, height: 800 });
-          outside[width] = await reachOutside(prompt);
-          await prompt.locator('.modal-box').screenshot({
-            path: testInfo.outputPath(`prompt-${width}.png`),
-            animations: 'disabled',
-          });
-        }
-        expect(outside).toEqual(
-          Object.fromEntries(WIDTHS.map((width) => [width, 0])),
-        );
-      } finally {
-        cleanup(meetup);
+      await undecidedAboutNotifications(page);
+      await signInBackTo(
+        page,
+        locale,
+        meetup.memberEmail,
+        pathOf(meetup, locale),
+      );
+      const prompt = await joinUntilPrompted(page, locale);
+      const outside: Record<number, number> = {};
+      for (const width of WIDTHS) {
+        await page.setViewportSize({ width, height: 800 });
+        outside[width] = await reachOutside(prompt);
+        await prompt.locator('.modal-box').screenshot({
+          path: testInfo.outputPath(`prompt-${width}.png`),
+          animations: 'disabled',
+        });
       }
+      expect(outside).toEqual(
+        Object.fromEntries(WIDTHS.map((width) => [width, 0])),
+      );
     });
-  }
-});
+  });
+}

@@ -1,11 +1,13 @@
 import { expect, test, type Locator } from '@playwright/test';
 
+import { cleanupRun } from './support/d1';
 import { LOCALE_DIRECTION, t, type E2eLocale } from './support/messages';
 import { signIn } from './support/profile-auth';
 import { RUN_ID } from './support/run';
 
 const LOCALES: readonly E2eLocale[] = ['ar', 'fr', 'en'];
 const PHONE_WIDTHS = [360, 390, 402] as const;
+const SIGNED_IN_LOCALES = ['ar', 'en'] as const;
 
 type Box = { x: number; width: number };
 
@@ -17,6 +19,10 @@ const boxOf = async (locator: Locator): Promise<Box> => {
   if (!box) throw new Error('expected the control to be laid out');
   return box;
 };
+
+/** The member the signed-in header test signs in as in `locale`, named by the run. */
+const memberEmail = (locale: E2eLocale): string =>
+  `e2e-header-${locale}-${RUN_ID}@e2e.invalid`;
 
 /**
  * How far `after` reaches back into `before` along the reading direction, in pixels; zero or less
@@ -127,7 +133,11 @@ test.describe('Site header sign-in slot', () => {
 });
 
 test.describe('Site header when signed in', () => {
-  for (const locale of ['ar', 'en'] as const) {
+  test.afterAll(() =>
+    cleanupRun({ eventIds: [], emails: SIGNED_IN_LOCALES.map(memberEmail) }),
+  );
+
+  for (const locale of SIGNED_IN_LOCALES) {
     test(`ends the row with the avatar, after the host button (${locale})`, async ({
       page,
     }) => {
@@ -136,12 +146,7 @@ test.describe('Site header when signed in', () => {
       await page.goto(
         `/${locale}/login?redirect=${encodeURIComponent(`/${locale}/algeria`)}`,
       );
-      await signIn(
-        page,
-        locale,
-        `e2e-header-${locale}-${RUN_ID}@e2e.invalid`,
-        'login_email_continue',
-      );
+      await signIn(page, locale, memberEmail(locale), 'login_email_continue');
       await page.waitForURL(new RegExp(`/${locale}/algeria$`, 'u'), {
         timeout: 60_000,
       });
