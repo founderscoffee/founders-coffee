@@ -14,6 +14,7 @@ export interface EventPage {
   readonly market: Market;
   readonly event: EventDetailItem;
   readonly host: PublicProfile | null;
+  readonly viewerId: string | null;
 }
 
 type PageRows = Awaited<ReturnType<typeof readEventPageRows>>;
@@ -69,6 +70,11 @@ const hostCard = (
  * card is read without the budget `getPublicProfile` spends. That budget stops somebody walking
  * user ids to collect profiles. This card is only ever the one a published meetup's page already
  * shows to anyone who opens it, reached by the meetup's address rather than by an id.
+ *
+ * The reader's id comes back with the page, `null` for a reader who is signed out. The page is
+ * rendered for one reader (`private, no-store`), and whether they host the meetup has to be in the
+ * HTML the server sends, as whether they are going already is. The browser's own session answers
+ * only after hydration, and until it did, a host's own meetup showed them a guest's RSVP box.
  */
 export const readEventPage = async (
   db: Db,
@@ -88,5 +94,6 @@ export const readEventPage = async (
     market: market.data,
     event: await eventDetail(db, event.data, viewerId),
     host: hostCard(event.data.hostId, rows.data.host),
+    viewerId: viewerId ?? null,
   });
 };

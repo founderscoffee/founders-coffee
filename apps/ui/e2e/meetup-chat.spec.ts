@@ -4,6 +4,7 @@ import {
   chatEntryOf,
   composerOf,
   expectPanelPlacement,
+  openChat,
   optionsOf,
   panelOf,
   send,
@@ -129,7 +130,7 @@ for (const screen of SCREENS) {
         timeout: 60_000,
       });
       const hostEntry = chatEntryOf(host, locale);
-      await hostEntry.click();
+      await openChat(host, locale);
       await host.waitForURL(/\?chat=true$/);
       const hostPanel = panelOf(host, locale);
       await expect(hostPanel.getByText(t(locale, 'chat_empty'))).toBeVisible({
@@ -194,7 +195,7 @@ for (const screen of SCREENS) {
       await host.keyboard.press('Escape');
       await expect(unread).toBeHidden({ timeout: 15_000 });
       await host.reload();
-      await hostEntry.click();
+      await openChat(host, locale);
       await expect(mute).toHaveAttribute('aria-pressed', 'true', {
         timeout: 15_000,
       });

@@ -1,4 +1,5 @@
 import { createDb, events, seed, user } from '@founders-coffee/db';
+import { rsvp_box_host, rsvp_box_title } from '@founders-coffee/i18n';
 import {
   createExecutionContext,
   env,
@@ -9,17 +10,19 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import worker from '../src/server';
 
 import { recordD1Rounds } from './d1-rounds.fixtures';
+import { signIn } from './sign-in.fixtures';
 
 const ORIGIN = 'https://staging.founders.coffee';
 const HOST_ID = 'usr_event_page';
+const HOST_EMAIL = 'event-page@test.coffee';
 const SLUG = 'event-page-meetup';
 const NEIGHBOUR = 'Neighbouring meetup in Algiers';
 
-const get = async (pathname: string): Promise<Response> => {
+const get = async (pathname: string, cookie?: string): Promise<Response> => {
   const context = createExecutionContext();
   const response = await worker.fetch(
     new Request(`${ORIGIN}${pathname}`, {
-      headers: { accept: 'text/html' },
+      headers: { accept: 'text/html', ...(cookie ? { cookie } : {}) },
     }),
     env,
     context,
@@ -27,6 +30,9 @@ const get = async (pathname: string): Promise<Response> => {
   await waitOnExecutionContext(context);
   return response;
 };
+
+const rsvpHeading = (page: string): string | undefined =>
+  page.match(/<h2 id="event-rsvp-title"[^>]*>(.*?)<\/h2>/su)?.[1];
 
 describe("a meetup's page", () => {
   beforeAll(async () => {
@@ -37,7 +43,7 @@ describe("a meetup's page", () => {
       .values({
         id: HOST_ID,
         name: 'Event Page Host',
-        email: 'event-page@test.coffee',
+        email: HOST_EMAIL,
         role: 'host',
       })
       .onConflictDoNothing()
@@ -110,6 +116,18 @@ describe("a meetup's page", () => {
       profile.status,
       'the organizer was /u/<id>, which redirects to the localized profile, so Google followed a redirect to reach the host',
     ).toBe(200);
+  });
+
+  it("sends its host their own panel in the page the server renders, and a reader a guest's box", async () => {
+    const host = await signIn(HOST_EMAIL);
+    const asHost = await (await get(`/fr/algeria/e/${SLUG}`, host)).text();
+    const asReader = await (await get(`/fr/algeria/e/${SLUG}`)).text();
+
+    expect(
+      rsvpHeading(asHost),
+      "the route took the host from the browser's session, which the server renders as still resolving, so the host's own meetup arrived with a guest's RSVP box",
+    ).toBe(rsvp_box_host({}, { locale: 'fr' }));
+    expect(rsvpHeading(asReader)).toBe(rsvp_box_title({}, { locale: 'fr' }));
   });
 
   it("reads nothing of its market's landing", async () => {

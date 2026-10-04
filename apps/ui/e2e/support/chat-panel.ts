@@ -21,6 +21,23 @@ export const panelOf = (page: Page, locale: E2eLocale): Locator =>
 export const chatEntryOf = (page: Page, locale: E2eLocale): Locator =>
   page.getByRole('button', { name: new RegExp(`^${t(locale, 'chat_open')}`) });
 
+/**
+ * Open the chat from the meetup page's button and wait for the address to say it is open.
+ *
+ * The button is server-rendered, the host's with the rest of their panel, and a press that lands
+ * before React hydrates it does nothing, so it is pressed again until the address carries
+ * `?chat=true`. Not after: each press adds a history entry, and a second would leave Back
+ * reopening the panel.
+ */
+export const openChat = async (page: Page, locale: E2eLocale) => {
+  const entry = chatEntryOf(page, locale);
+  await expect(async () => {
+    if (new URL(page.url()).searchParams.get('chat') !== 'true')
+      await entry.click({ timeout: 2_000 });
+    await expect(page).toHaveURL(/[?&]chat=true(?:&|$)/, { timeout: 3_000 });
+  }).toPass({ timeout: 30_000 });
+};
+
 export const composerOf = (panel: Locator, locale: E2eLocale): Locator =>
   panel.getByRole('textbox', { name: t(locale, 'chat_composer_label') });
 

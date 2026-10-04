@@ -11,11 +11,20 @@ vi.mock('./auth', () => ({
   authClient: { useSession: () => session.current },
 }));
 
-const withdraw = vi.fn(() => Promise.resolve());
+const router = { clearCache: () => undefined };
+
+vi.mock('@tanstack/react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@tanstack/react-router')>()),
+  useRouter: () => router,
+}));
+
+const withdraw = vi.fn<(...args: unknown[]) => Promise<void>>(() =>
+  Promise.resolve(),
+);
 
 vi.mock('./session-cache', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./session-cache')>()),
-  withdrawMemberCaches: () => withdraw(),
+  withdrawMemberCaches: (...args: unknown[]) => withdraw(...args),
 }));
 
 const { AppProviders, useAuth } = await import('./app-providers');
@@ -54,6 +63,10 @@ describe('member cache isolation wiring', () => {
     settle(null);
     view.rerender(<AppProviders>ok</AppProviders>);
     expect(withdraw).toHaveBeenCalledOnce();
+    expect(
+      withdraw.mock.calls[0]?.[1],
+      'the router keeps the pages it loaded for the member who just left, their own meetup’s panel among them',
+    ).toBe(router);
 
     settle('usr_b');
     view.rerender(<AppProviders>ok</AppProviders>);

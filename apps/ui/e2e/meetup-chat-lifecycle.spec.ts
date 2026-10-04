@@ -3,6 +3,7 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 import {
   chatEntryOf,
   composerOf,
+  openChat,
   panelOf,
   send,
   type Screen,
@@ -155,7 +156,7 @@ test.describe('meetup chat lifecycle · an Arabic host, an English member, a Fre
     await joinThroughPage(member, 'en');
 
     await signInTo(host, 'ar', meetup.hostEmail);
-    await chatEntryOf(host, 'ar').click();
+    await openChat(host, 'ar');
     await expect(hostPanel.getByText(t('ar', 'chat_empty'))).toBeVisible({
       timeout: 30_000,
     });
