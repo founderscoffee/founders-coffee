@@ -1,10 +1,12 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  getHostCreateMocks,
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import { goToHostDetails } from './HostCreatePage.flows.fixtures';
 
 const VENUE_REQUIRED = 'Choose a supported venue to continue.';
 
@@ -70,24 +72,34 @@ describe('the host wizard on a phone', () => {
     ).toHaveLength(1);
   });
 
-  it('raises the missing venue as a toast the host can put away, and again on the next try', () => {
+  it('meets Next with no place chosen by taking the host to one, not with a message', () => {
     renderHostCreateWizard();
     next();
 
-    const toast = screen
-      .getByText(VENUE_REQUIRED)
-      .closest('[role="alert"]') as HTMLElement;
-    fireEvent.click(
-      within(toast).getByRole('button', { name: 'Dismiss notification' }),
+    expect(
+      screen.queryByText(VENUE_REQUIRED),
+      'a toast asked for a place while the list and the map were there to give one',
+    ).toBeNull();
+    expect(
+      document.activeElement?.id,
+      'with no place nearby to offer, Next opens the search with the cursor in it',
+    ).toBe('venue-search');
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(
+      'Where will you host the meetup?',
     );
+  });
 
-    expect(screen.queryByText(VENUE_REQUIRED)).toBeNull();
-
-    next();
+  it('gives a signed-out host no note above the last step’s action', async () => {
+    getHostCreateMocks().isAuthenticated = false;
+    renderHostCreateWizard();
+    await goToHostDetails();
 
     expect(
-      screen.getByText(VENUE_REQUIRED),
-      'a dismissed error has to come back when the host tries again',
+      screen.getByRole('button', { name: 'Continue to sign in' }),
     ).toBeTruthy();
+    expect(
+      document.querySelectorAll('.alert:not(.sr-only)'),
+      'the action already says signing in comes next: a note saying it again was one more thing to read',
+    ).toHaveLength(0);
   });
 });

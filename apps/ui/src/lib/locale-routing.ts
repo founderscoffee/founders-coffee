@@ -71,16 +71,24 @@ export const localizedEvent = (
 });
 
 /**
- * The host wizard, addressed in the reader's language.
+ * The host wizard, addressed in the reader's language, and opened on `cityCode` when given.
  *
  * It used to sit at `/$market/host/create`, reading the first segment as a market where every
  * other route read it as a locale. The effect was that `/algeria/host/create` had no prefixed form
  * at all: the page settled from the cookie, and a French member could not send anyone a French link
  * to it. That address still answers, through the layout that puts a language in front of it.
+ *
+ * Without a city the wizard opens on the whole market and asks the host where they are, so a link
+ * that knows the city the reader is looking at passes it on.
  */
-export const localizedHostCreate = (locale: Locale, marketSlug: string) => ({
+export const localizedHostCreate = (
+  locale: Locale,
+  marketSlug: string,
+  cityCode?: string,
+) => ({
   to: '/$locale/$market/host/create' as const,
   params: { locale, market: marketSlug },
+  ...(cityCode ? { search: { city: cityCode } } : {}),
 });
 
 /**

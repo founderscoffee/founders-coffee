@@ -56,6 +56,7 @@ type DatetimePickerProps = {
   locale: Locale;
   timeZone: string;
   timePlacement?: 'top' | 'bottom';
+  calendarId?: string;
 };
 
 export const DatetimePicker = ({
@@ -66,6 +67,7 @@ export const DatetimePicker = ({
   locale,
   timeZone,
   timePlacement = 'bottom',
+  calendarId,
 }: DatetimePickerProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
     startsAt ? new TZDate(startsAt, timeZone) : undefined,
@@ -132,7 +134,10 @@ export const DatetimePicker = ({
   );
 
   const calendar = (
-    <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden">
+    <div
+      id={calendarId}
+      className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden"
+    >
       <DayPicker
         className="react-day-picker host-daypicker"
         mode="single"

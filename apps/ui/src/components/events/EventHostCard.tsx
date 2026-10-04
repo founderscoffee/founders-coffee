@@ -1,6 +1,12 @@
 import { Link } from '@tanstack/react-router';
+import { Check } from 'lucide-react';
 
-import { event_host, profile_link, type Locale } from '@founders-coffee/i18n';
+import {
+  event_host,
+  host_you_are_hosting,
+  profile_link,
+  type Locale,
+} from '@founders-coffee/i18n';
 import type { PublicProfile } from '@founders-coffee/server-fns';
 
 import { localizedPublicProfile } from '../../lib/locale-routing';
@@ -10,15 +16,27 @@ type EventHostCardProps = {
   locale: Locale;
   host: PublicProfile | null;
   cityName: string;
+  isHost: boolean;
 };
 
 export const EventHostCard = ({
   locale,
   host,
   cityName,
+  isHost,
 }: EventHostCardProps) => (
-  <section className="mt-6 rounded-box border border-base-300 bg-base-100 p-4">
-    <h3 className="eyebrow">{event_host({}, { locale })}</h3>
+  <section
+    className={`mt-6 rounded-box border border-base-300 bg-base-100 p-4${isHost ? ' flex-1' : ''}`}
+  >
+    <div className="flex items-center justify-between gap-2">
+      <h3 className="eyebrow">{event_host({}, { locale })}</h3>
+      {isHost ? (
+        <p className="inline-flex h-[1.375rem] items-center gap-1.5 rounded-full bg-success-tint px-2.5 text-caption font-medium text-success">
+          <Check className="size-3.5" aria-hidden="true" />
+          {host_you_are_hosting({}, { locale })}
+        </p>
+      ) : null}
+    </div>
     <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
       <span
         aria-hidden="true"

@@ -6,7 +6,7 @@ import type { geo } from '@founders-coffee/domain';
 import { geoApi } from './api';
 
 /** Debounce a value by `delayMs` (one render lag) — used to coalesce typeahead keystrokes. */
-const useDebouncedValue = <T>(value: T, delayMs: number): T => {
+export const useDebouncedValue = <T>(value: T, delayMs: number): T => {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
     const id = setTimeout(() => setDebounced(value), delayMs);

@@ -2,6 +2,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { type Locale } from '@founders-coffee/i18n';
+import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 import { event, market } from './EventDetail.fixtures';
 
@@ -112,4 +113,102 @@ describe('where the host card sends a reader', () => {
       ).toBe(`/${locale}/u/usr_1`);
     },
   );
+});
+
+const HOSTING = {
+  ar: 'أنت المضيف',
+  en: "You're hosting",
+  fr: 'Vous organisez',
+} satisfies Record<Locale, string>;
+
+const calledOff = {
+  ...event,
+  status: 'cancelled',
+  cancelledAt: new Date('2026-09-10T00:00:00Z'),
+} satisfies EventDetailItem;
+
+const renderAsHost = (
+  locale: Locale,
+  item: EventDetailItem = event,
+  isChatOn = false,
+) =>
+  render(
+    <EventDetail
+      locale={locale}
+      market={{
+        ...market,
+        featureFlags: { ...market.featureFlags, meetupChat: isChatOn },
+      }}
+      event={item}
+      host={yacine}
+      isHost
+      live={null}
+      isWindowOpen={false}
+      phase="upcoming"
+    />,
+  );
+
+describe('how the host card tells the host it is theirs', () => {
+  it.each<Locale>(['ar', 'en', 'fr'])(
+    'carries the badge that says so, in %s',
+    (locale) => {
+      renderAsHost(locale);
+
+      expect(
+        within(hostCard(locale)).getByText(HOSTING[locale]),
+        'the badge sat in the panel beside the details, away from the card that names the host',
+      ).toBeTruthy();
+    },
+  );
+
+  it('shows no badge to anyone else', () => {
+    renderPage('en', yacine);
+
+    expect(screen.queryByText(HOSTING.en)).toBeNull();
+  });
+});
+
+describe("where the host's panel sits beside the details", () => {
+  it('starts both columns below the heading, so their tops meet', () => {
+    const view = renderAsHost('en');
+    const heading = screen.getByRole('heading', { name: 'Meetup details' });
+    const details = screen.getByRole('region', { name: 'Meetup details' });
+    const panel = view.container.querySelector('aside');
+
+    expect(
+      details.contains(heading),
+      'with the heading inside the details column, a guessed 48px pushed the panel down and it sat 6px below the boxes',
+    ).toBe(false);
+    expect(panel?.parentElement).toBe(details.parentElement);
+  });
+
+  it("grows the host card to the panel's height for the host alone", () => {
+    renderAsHost('en');
+    expect(
+      hostCard('en').className.split(' '),
+      'a host whose panel runs taller than the details still sees both columns end level',
+    ).toContain('flex-1');
+
+    cleanup();
+    renderPage('en', yacine);
+    expect(
+      hostCard('en').className.split(' '),
+      "beside a member's taller box, the card grew 140px of nothing",
+    ).not.toContain('flex-1');
+  });
+
+  it('leaves the panel out for a meetup called off with no chat to open', () => {
+    renderAsHost('en', calledOff);
+
+    expect(
+      screen.queryByRole('heading', { name: 'Your meetup' }),
+      'once the badge moved to the host card, the panel held nothing but its title',
+    ).toBeNull();
+  });
+
+  it('keeps it for a meetup called off whose chat is still open', () => {
+    renderAsHost('en', calledOff, true);
+
+    expect(screen.getByRole('heading', { name: 'Your meetup' })).toBeTruthy();
+  });
 });

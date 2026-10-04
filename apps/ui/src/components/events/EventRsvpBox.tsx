@@ -29,7 +29,7 @@ export const EventRsvpBox = ({
   phase,
   isChatAvailable,
 }: EventRsvpBoxProps) => (
-  <aside className="flex h-full flex-col gap-4 lg:sticky lg:top-6 lg:self-stretch lg:pt-12">
+  <aside className="flex h-full flex-col gap-4 lg:sticky lg:top-6 lg:self-stretch">
     <section
       aria-labelledby="event-rsvp-title"
       className="flex flex-1 flex-col rounded-box border-2 border-secondary bg-base-100 p-3 shadow-[var(--shadow-2)] sm:p-5"

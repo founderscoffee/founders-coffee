@@ -28,9 +28,11 @@ describe('venue naming when only an address is verified', () => {
       'What is this place called?',
     ) as unknown as HTMLInputElement;
     expect(field.value).toBe('');
+    expect(field.required).toBe(true);
     expect(
-      screen.getByText(/We could only confirm the street address/),
-    ).toBeTruthy();
+      field.getAttribute('aria-describedby'),
+      'the question says what to do: two lines on why it is asked only pushed the map further down',
+    ).toBe('host-venue-name-error');
   });
 
   it('never asks when the provider verified a real venue', async () => {
@@ -65,9 +67,25 @@ describe('venue naming when only an address is verified', () => {
     expect(screen.getByText('Hamou')).toBeTruthy();
   });
 
-  it('refuses to advance until the place is named, and says so', async () => {
+  it('takes the host to the name still missing instead of asking for it', async () => {
     renderHostCreateWizard();
     await chooseAddress();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    const field = screen.getByLabelText('What is this place called?');
+    expect(document.activeElement).toBe(field);
+    expect(
+      screen.queryByText('Name the venue so attendees can find the entrance.'),
+    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Set schedule' })).toBeNull();
+  });
+
+  it('says why a name one letter long will not do', async () => {
+    renderHostCreateWizard();
+    await chooseAddress();
+    fireEvent.change(screen.getByLabelText('What is this place called?'), {
+      target: { value: 'K' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     expect(

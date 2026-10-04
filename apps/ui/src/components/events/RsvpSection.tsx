@@ -21,7 +21,6 @@ import {
 import { StatusMessage } from '@founders-coffee/ui';
 import type { EventWithAttendance } from '@founders-coffee/server-fns';
 
-import { ChatEntry } from '../../features/chat/components/ChatEntry';
 import { ChatInvite } from '../../features/chat/components/ChatInvite';
 import { PushPermissionPrompt } from '../../features/events/components/PushPermissionPrompt';
 import type { EventPhase } from '../../features/events/live-window';
@@ -31,8 +30,8 @@ import { rememberJoinIntent } from '../../features/events/join-intent';
 import { useJoinAfterSignIn } from '../../features/events/useJoinAfterSignIn';
 import { useAuth } from '../../lib/app-providers';
 import { localizedLogin } from '../../lib/locale-routing';
-import { AddToCalendar } from './AddToCalendar';
 import { AttendeeLiveActions } from './AttendeeLiveActions';
+import { CalendarChatActions } from './CalendarChatActions';
 import { HostEventPanel } from './HostEventPanel';
 import { RsvpCancelDialog } from './RsvpCancelDialog';
 
@@ -186,9 +185,6 @@ export const RsvpSection = ({
             <p className="text-body-sm text-neutral">
               {rsvp_cancelled_going_help({}, { locale })}
             </p>
-            {isChatAvailable ? (
-              <ChatEntry locale={locale} eventId={event.id} />
-            ) : null}
           </>
         ) : null
       ) : isGoing ? (
@@ -214,20 +210,21 @@ export const RsvpSection = ({
               onRunningLate={live.sendRunningLate}
             />
           )}
-          {isOpen ? (
-            <AddToCalendar
-              eventId={event.id}
-              startsAt={event.startsAt}
-              locale={locale}
-            />
-          ) : null}
-          {isChatAvailable ? (
-            <ChatEntry locale={locale} eventId={event.id} />
-          ) : null}
         </>
       ) : (
         offer
       )}
+
+      {isGoing ? (
+        <CalendarChatActions
+          locale={locale}
+          eventId={event.id}
+          startsAt={event.startsAt}
+          isOver={isCancelled || phase === 'ended'}
+          isCalendarOffered={isOpen}
+          isChatAvailable={isChatAvailable}
+        />
+      ) : null}
 
       {error ? (
         <StatusMessage

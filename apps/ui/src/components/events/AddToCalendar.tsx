@@ -4,6 +4,7 @@ import { useId } from 'react';
 import { eventCalendarPath } from '@founders-coffee/core';
 import {
   calendar_add,
+  calendar_add_short,
   calendar_apple,
   calendar_google,
   calendar_outlook,
@@ -17,14 +18,12 @@ type AddToCalendarProps = {
   eventId: string;
   startsAt: Date;
   locale: Locale;
-  label?: string;
 };
 
 export const AddToCalendar = ({
   eventId,
   startsAt,
   locale,
-  label,
 }: AddToCalendarProps) => {
   const headingId = useId();
   const { ref, close } = useDismissableDetails();
@@ -43,16 +42,16 @@ export const AddToCalendar = ({
         {calendar_add({}, { locale })}
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <details ref={ref} className="dropdown dropdown-start">
+        <details ref={ref} className="dropdown dropdown-start w-full">
           <summary
             aria-describedby={headingId}
-            className="btn btn-outline btn-xs sm:btn-sm md:btn-md flex list-none gap-2"
+            className="btn btn-outline btn-xs sm:btn-sm md:btn-md flex w-full list-none gap-2"
           >
             <CalendarPlus
               className="size-4 shrink-0 sm:size-5"
               aria-hidden="true"
             />
-            {label ?? calendar_add({}, { locale })}
+            {calendar_add_short({}, { locale })}
             <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
           </summary>
           <ul

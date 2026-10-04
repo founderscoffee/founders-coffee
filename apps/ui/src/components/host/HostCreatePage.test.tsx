@@ -17,7 +17,7 @@ const hostCreateMocks = getHostCreateMocks();
 describe('HostCreatePage EC-07 flow', () => {
   afterEach(resetHostCreateFixtures);
 
-  it('explains why venue search is unavailable instead of leaving a dead input', async () => {
+  it('explains why venue search is unavailable instead of offering a search that cannot run', async () => {
     hostCreateMocks.mapContext.data = undefined;
     hostCreateMocks.mapContext.isError = true;
     hostCreateMocks.mapContext.error = new AppError(
@@ -26,15 +26,15 @@ describe('HostCreatePage EC-07 flow', () => {
     );
     renderHostCreateWizard();
 
-    const search = (await screen.findByLabelText(
-      'Search cafés and coworking venues',
-    )) as HTMLInputElement;
-    expect(search.disabled).toBe(true);
     expect(
       await screen.findByText(
         'You have searched for venues too often. Wait a moment, then try again.',
       ),
     ).toBeTruthy();
+    expect(
+      screen.queryByLabelText('Search cafés and coworking venues'),
+    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Search' })).toBeNull();
   });
 
   it('says once, where the map should be, that the map could not load', async () => {
@@ -133,6 +133,10 @@ describe('HostCreatePage EC-07 flow', () => {
     fireEvent.change(screen.getByLabelText(/^Meetup description/), {
       target: { value: 'A complete protected meetup for founders.' },
     });
+    let isDescribedOnFocus = false;
+    screen.getByLabelText(/^Meetup title/).addEventListener('focus', () => {
+      isDescribedOnFocus = document.getElementById('host-title-error') !== null;
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
 
     expect(hostCreateMocks.mutateAsync).not.toHaveBeenCalled();
@@ -141,6 +145,10 @@ describe('HostCreatePage EC-07 flow', () => {
         'The title must be between 3 and 120 characters.',
       ),
     ).toBeTruthy();
+    expect(
+      isDescribedOnFocus,
+      'the focus landed before the message the title is described by, so a screen reader read it without',
+    ).toBe(true);
   });
 
   it('asks an anonymous host to sign in only once the draft is valid', async () => {
@@ -190,17 +198,15 @@ describe('HostCreatePage EC-07 flow', () => {
     expect(screen.getByRole('button', { name: 'Publier' })).toBeTruthy();
   });
 
-  it('announces progress and focuses the first invalid field', async () => {
+  it('announces progress and takes the host to what the step still needs', () => {
     renderHostCreateWizard();
     expect(
       screen.getByRole('navigation', { name: 'Meetup creation steps' }),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(
-      await screen.findByText('Choose a supported venue to continue.'),
-    ).toBeTruthy();
-    await waitFor(() =>
-      expect(document.activeElement?.id).toBe('venue-search'),
-    );
+      screen.queryByText('Choose a supported venue to continue.'),
+    ).toBeNull();
+    expect(document.activeElement?.id).toBe('venue-search');
   });
 });

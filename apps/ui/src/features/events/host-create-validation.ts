@@ -2,8 +2,6 @@ import { events } from '@founders-coffee/domain';
 import {
   host_desc_constraints,
   host_duration_range,
-  host_languages_required,
-  host_schedule_required,
   host_time_past,
   host_title_constraints,
   host_venue_name_required,
@@ -13,28 +11,41 @@ import {
 
 import type { MeetupLanguage, VenueSelection } from './types';
 import type { HostCreateDraft } from './host-create-draft';
+import { seekField } from './seek-field';
 
-export type HostCreateFieldErrors = Partial<
-  Record<
-    'venue' | 'venueName' | 'schedule' | 'title' | 'description' | 'languages',
-    string
-  >
+export type HostCreateField =
+  'venue' | 'venueName' | 'schedule' | 'title' | 'description' | 'languages';
+
+export type HostCreateFieldErrors = Partial<Record<HostCreateField, string>>;
+
+export type HostCreateStepCheck = Partial<
+  Record<HostCreateField, string | null>
 >;
 
+const isBlank = (value: string): boolean => value.trim() === '';
+
+/**
+ * What holds the venue step back. Nothing chosen yet, or an address not named yet, is a gap
+ * (null): Next takes the host to it and has nothing to say. A name too short to be one, or a
+ * place the meetup cannot use, comes with the message that says why.
+ */
 export const validateVenueStep = (
   venue: VenueSelection | null,
   venueName: string,
   locale: Locale,
-): HostCreateFieldErrors => {
+): HostCreateStepCheck => {
+  if (!venue) return { venue: null };
   if (
-    venue &&
     venue.kind === 'address' &&
     !events.eventVenueNameSchema.safeParse(venueName).success
   ) {
-    return { venueName: host_venue_name_required({}, { locale }) };
+    return {
+      venueName: isBlank(venueName)
+        ? null
+        : host_venue_name_required({}, { locale }),
+    };
   }
   if (
-    !venue ||
     !events.eventVenueNameSchema.safeParse(venue.name).success ||
     !events.eventVenueAddressSchema.safeParse(venue.address).success ||
     !Number.isFinite(venue.latitude) ||
@@ -49,14 +60,16 @@ export const validateVenueStep = (
   return {};
 };
 
+/**
+ * What holds the schedule step back: no day yet is a gap (null), and a time already gone or a
+ * meetup too short or too long comes with the message that says why.
+ */
 export const validateScheduleStep = (
   startsAt: number | null,
   endsAt: number | null,
   locale: Locale,
-): HostCreateFieldErrors => {
-  if (startsAt === null || endsAt === null) {
-    return { schedule: host_schedule_required({}, { locale }) };
-  }
+): HostCreateStepCheck => {
+  if (startsAt === null || endsAt === null) return { schedule: null };
   const result = events.eventScheduleSchema.safeParse({ startsAt, endsAt });
   if (result.success) return {};
   if (startsAt <= Date.now()) {
@@ -73,6 +86,11 @@ export const validateScheduleStep = (
   };
 };
 
+/**
+ * What holds the details step back: a title or description not written yet, or every language
+ * taken off, is a gap (null); a title or description too short or too long says how long it
+ * has to be.
+ */
 export const validateDetailsStep = (
   input: {
     title: string;
@@ -80,9 +98,11 @@ export const validateDetailsStep = (
     languages: readonly MeetupLanguage[];
   },
   locale: Locale,
-): HostCreateFieldErrors => {
-  const errors: HostCreateFieldErrors = {};
-  if (!events.eventTitleSchema.safeParse(input.title).success) {
+): HostCreateStepCheck => {
+  const errors: HostCreateStepCheck = {};
+  if (isBlank(input.title)) {
+    errors.title = null;
+  } else if (!events.eventTitleSchema.safeParse(input.title).success) {
     errors.title = host_title_constraints(
       {
         min: events.EVENT_TITLE_MIN_LENGTH,
@@ -91,7 +111,11 @@ export const validateDetailsStep = (
       { locale },
     );
   }
-  if (!events.eventDescriptionSchema.safeParse(input.description).success) {
+  if (isBlank(input.description)) {
+    errors.description = null;
+  } else if (
+    !events.eventDescriptionSchema.safeParse(input.description).success
+  ) {
     errors.description = host_desc_constraints(
       {
         min: events.EVENT_DESCRIPTION_MIN_LENGTH,
@@ -100,15 +124,13 @@ export const validateDetailsStep = (
       { locale },
     );
   }
-  if (input.languages.length === 0) {
-    errors.languages = host_languages_required({}, { locale });
-  }
+  if (input.languages.length === 0) errors.languages = null;
   return errors;
 };
 
 export const firstInvalidField = (
-  errors: HostCreateFieldErrors,
-): keyof HostCreateFieldErrors | null =>
+  check: HostCreateStepCheck,
+): HostCreateField | null =>
   (
     [
       'venue',
@@ -118,22 +140,48 @@ export const firstInvalidField = (
       'description',
       'languages',
     ] as const
-  ).find((field) => errors[field]) ?? null;
+  ).find((field) => check[field] !== undefined) ?? null;
 
-export const focusInvalidField = (field: keyof HostCreateFieldErrors): void => {
-  const fieldIds: Record<keyof HostCreateFieldErrors, string> = {
-    venue: 'venue-search',
-    venueName: 'host-venue-name',
-    schedule: 'host-schedule',
-    title: 'host-title',
-    description: 'host-description',
-    languages: 'host-languages',
-  };
-  window.requestAnimationFrame(() => {
-    const element = document.getElementById(fieldIds[field]);
-    element?.focus();
-    element?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-  });
+/**
+ * The messages to show once Next has checked a step: the check's word on each value the host
+ * gave, and nothing new on a gap. A message already on screen for a gap stays, as the time
+ * picker's does until the host changes the time, and every other one goes.
+ */
+export const shownErrors = (
+  check: HostCreateStepCheck,
+  shown: HostCreateFieldErrors,
+): HostCreateFieldErrors => {
+  const errors: HostCreateFieldErrors = {};
+  for (const field of Object.keys(check) as HostCreateField[]) {
+    const message = check[field] ?? shown[field];
+    if (message) errors[field] = message;
+  }
+  return errors;
+};
+
+const FIELD_IDS: Partial<Record<HostCreateField, string>> = {
+  venueName: 'host-venue-name',
+  schedule: 'host-calendar',
+  title: 'host-title',
+  description: 'host-description',
+  languages: 'host-languages',
+};
+
+/**
+ * Take the host to `field`, the first one Next found holding the step back. A field that cannot
+ * take the focus itself hands it to its own tab stop, as the calendar does to the day its arrow
+ * keys start from. The venue is no single field: the page offers its places instead.
+ */
+export const focusInvalidField = (field: HostCreateField): void => {
+  const id = FIELD_IDS[field];
+  const element = id ? document.getElementById(id) : null;
+  if (!element) return;
+  const isFocusable = element.hasAttribute('tabindex') || element.tabIndex >= 0;
+  seekField(
+    isFocusable
+      ? element
+      : (element.querySelector<HTMLElement>('[tabindex="0"]') ?? element),
+  );
 };
 
 export const restoredDraftStep = (

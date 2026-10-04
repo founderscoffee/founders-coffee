@@ -1,18 +1,9 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { HostVenueChoice } from './HostVenueChoice';
 
-const lookup = vi.hoisted(() => ({ isLocating: false }));
-
-vi.mock('../../features/events/hooks', () => ({
-  useIsLocatingVenue: () => lookup.isLocating,
-}));
-
-afterEach(() => {
-  cleanup();
-  lookup.isLocating = false;
-});
+afterEach(cleanup);
 
 const CAFE = {
   providerId: 'osm:node/1',
@@ -35,13 +26,26 @@ const STREET = {
 const choice = () => screen.getByRole('group', { name: 'Selected location' });
 
 describe('HostVenueChoice', () => {
-  it('names the place chosen and where it is, each part starting on the page’s side', () => {
+  it('names the place chosen and where it is, each part setting its own direction', () => {
     render(<HostVenueChoice locale="en" venue={CAFE} venueName={CAFE.name} />);
 
     const parts = [...choice().querySelectorAll('bdi')].map(
       (part) => part.textContent,
     );
     expect(parts).toEqual([CAFE.name, CAFE.address]);
+  });
+
+  it('starts each line on the page’s side, whatever the script of the place', () => {
+    render(<HostVenueChoice locale="ar" venue={CAFE} venueName={CAFE.name} />);
+
+    const group = screen.getByRole('group', { name: 'الموقع المحدد' });
+    for (const part of group.querySelectorAll('bdi')) {
+      expect(
+        part.className,
+        'laid out as a line of its own, a Latin name took the line’s direction and started at the left of an Arabic page',
+      ).toBe('');
+      expect(part.parentElement?.className.split(' ')).toContain('block');
+    }
   });
 
   it('shows an unnamed street address once, then the name the host gives the place', () => {
@@ -63,35 +67,14 @@ describe('HostVenueChoice', () => {
     expect(choice().textContent).toBe(`Café des Délices${STREET.address}`);
   });
 
-  it('says what to do while nothing is chosen, and that a tapped spot is being looked up', () => {
-    const { rerender } = render(
-      <HostVenueChoice locale="en" venue={null} venueName="" />,
-    );
-    expect(screen.getByText('Pick a spot on the map.')).toBeTruthy();
+  it('reads as the place chosen, not as a field still to fill', () => {
+    render(<HostVenueChoice locale="en" venue={CAFE} venueName={CAFE.name} />);
 
-    lookup.isLocating = true;
-    rerender(<HostVenueChoice locale="en" venue={null} venueName="" />);
-
-    expect(screen.queryByText('Pick a spot on the map.')).toBeNull();
-    expect(screen.getByText('Locating the venue…')).toBeTruthy();
-  });
-
-  it('stands at the search box’s own height in every state, so the map below never moves', () => {
-    const { rerender } = render(
-      <HostVenueChoice locale="en" venue={CAFE} venueName={CAFE.name} />,
-    );
-    const heights = () => {
-      const line = screen
-        .getByText(/Café Tantonville|Pick a spot/u)
-        .closest('.rounded-xl');
-      return (line?.getAttribute('class') ?? '')
-        .split(' ')
-        .filter((name) => /(^|:)h-/u.test(name));
-    };
-    expect(heights()).toEqual(['h-8', 'md:h-10']);
-
-    rerender(<HostVenueChoice locale="en" venue={null} venueName="" />);
-    expect(heights()).toEqual(['h-8', 'md:h-10']);
+    const classes = choice().className.split(' ');
+    expect(
+      classes.filter((name) => /^(border|bg-|rounded-xl|h-)/u.test(name)),
+      'drawn as a box at the search box’s height, the choice still looked like a search bar',
+    ).toEqual([]);
   });
 
   it('reads in Arabic on an Arabic page', () => {

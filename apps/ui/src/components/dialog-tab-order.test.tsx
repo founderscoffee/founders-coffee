@@ -5,6 +5,12 @@ import { PushPermissionPrompt } from '../features/events/components/PushPermissi
 import { CancelEventDialog } from './events/CancelEventDialog';
 import { RsvpCancelDialog } from './events/RsvpCancelDialog';
 import { ShareDialog } from './events/ShareDialog';
+import { HostLocationPrompt } from './host/HostLocationPrompt';
+
+vi.mock('../features/geo/hooks', () => ({
+  useCitySuggestions: () => ({ data: undefined }),
+  useDebouncedValue: <T,>(value: T) => value,
+}));
 
 const nameOf = (element: HTMLElement): string =>
   element.getAttribute('aria-label') ?? (element.textContent ?? '').trim();
@@ -72,6 +78,20 @@ const DIALOGS = [
           locale="ar"
           onAccept={vi.fn()}
           onDecline={onDismiss}
+        />,
+      ),
+  ],
+  [
+    'asking a host where they are',
+    (onDismiss: () => void) =>
+      render(
+        <HostLocationPrompt
+          locale="ar"
+          marketCode="DZ"
+          reason="start"
+          onLocate={vi.fn()}
+          onCitySelect={vi.fn()}
+          onClose={onDismiss}
         />,
       ),
   ],

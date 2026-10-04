@@ -33,8 +33,8 @@ vi.mock('../../lib/app-providers', () => ({
 }));
 
 vi.mock('./HostEventPanel', () => ({ HostEventPanel: () => null }));
-vi.mock('../../features/chat/components/ChatEntry', () => ({
-  ChatEntry: () => null,
+vi.mock('../../features/chat/components/ChatOpenButton', () => ({
+  ChatOpenButton: () => null,
 }));
 vi.mock('./RsvpCancelDialog', () => ({ RsvpCancelDialog: () => null }));
 vi.mock('../../features/events/components/PushPermissionPrompt', () => ({

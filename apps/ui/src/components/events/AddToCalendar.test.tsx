@@ -102,18 +102,32 @@ describe('AddToCalendar', () => {
     expect(document.activeElement).toBe(summary);
   });
 
-  it('shows a shorter label where it is given one, under the same name', () => {
-    render(
-      <AddToCalendar
-        eventId={EVENT_ID}
-        startsAt={new Date(Date.now() + 24 * HOUR)}
-        locale="en"
-        label="Calendar"
-      />,
-    );
-    const { summary } = openMenu('Add to your calendar');
+  it.each([
+    ['en', 'Add to your calendar', 'Calendar'],
+    ['fr', 'Ajouter à votre agenda', 'Agenda'],
+    ['ar', 'أضف إلى تقويمك', 'التقويم'],
+  ] as const)(
+    'shows a word short enough to share a row, under its full name (%s)',
+    (locale, name, label) => {
+      show(24 * HOUR, locale);
+      const { summary } = openMenu(name);
 
-    expect(summary.textContent).toBe('Calendar');
+      expect(
+        summary.textContent,
+        'the host and the people going get the same button, beside the chat in the 272px rail',
+      ).toBe(label);
+    },
+  );
+
+  it('fills the width it is given', () => {
+    show(24 * HOUR);
+    const { details, summary } = openMenu('Add to your calendar');
+
+    expect(
+      summary.className.split(' '),
+      'it shares a row with the chat, and half a row is what it is given',
+    ).toContain('w-full');
+    expect(details.className.split(' ')).toContain('w-full');
   });
 
   it('offers nothing once the meetup has started', () => {

@@ -77,6 +77,39 @@ describe('readEventPage (real D1)', () => {
     });
   });
 
+  it('names its reader, so its host is told the page is theirs before the browser asks', async () => {
+    const db = await setupDb();
+    const { slug } = await createTestEvent(db);
+
+    const page = await readEventPage(
+      db,
+      { marketCode: 'DZ', slug },
+      Promise.resolve(TEST_HOST_ID),
+    );
+
+    expect(
+      page.ok && page.data,
+      'the page rendered a guest’s RSVP box for its own host until the browser’s session request answered, after hydration',
+    ).toMatchObject({
+      viewerId: TEST_HOST_ID,
+      event: { hostId: TEST_HOST_ID },
+    });
+  });
+
+  it('names no reader for one who is signed out', async () => {
+    const db = await setupDb();
+    const { slug } = await createTestEvent(db);
+
+    const page = await readEventPage(
+      db,
+      { marketCode: 'DZ', slug },
+      anonymous(),
+    );
+
+    expect(page.ok).toBe(true);
+    if (page.ok) expect(page.data.viewerId).toBeNull();
+  });
+
   it("keeps an erased host's meetup on its page, without a card (#105)", async () => {
     const db = await setupDb();
     await db

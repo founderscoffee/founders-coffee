@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { Locale } from '@founders-coffee/i18n';
 
+import { focusInvalidField } from '../../features/events/host-create-validation';
 import { DatetimePicker } from './DatetimePicker';
 
 const SEPTEMBER = Date.UTC(2026, 8, 23, 12);
@@ -42,5 +43,28 @@ describe('the language a day button speaks', () => {
 
     expect(labels.length).toBeGreaterThan(0);
     expect(labels.every((label) => /^[\x20-\x7E]+$/u.test(label))).toBe(true);
+  });
+});
+
+describe('the day Next takes a host who chose none to', () => {
+  it('is today, the day the calendar’s arrow keys start from, not the month arrows', () => {
+    render(
+      <DatetimePicker
+        startsAt={null}
+        endsAt={null}
+        onChange={() => undefined}
+        onError={() => undefined}
+        locale="en"
+        timeZone="Africa/Algiers"
+        timePlacement="top"
+        calendarId="host-calendar"
+      />,
+    );
+
+    focusInvalidField('schedule');
+
+    const day = document.activeElement as HTMLElement;
+    expect(day.closest('#host-calendar')).not.toBeNull();
+    expect(day.closest('[data-today]')).not.toBeNull();
   });
 });

@@ -179,13 +179,15 @@ vi.mock('./VenueSearch', () => ({
 vi.mock('./DatetimePicker', () => ({
   DatetimePicker: ({
     onChange,
+    calendarId,
   }: {
     onChange: (startsAt: number, endsAt: number) => void;
+    calendarId?: string;
   }) =>
     createElement(
       'button',
       {
-        id: 'host-schedule',
+        id: calendarId,
         onClick: () =>
           onChange(
             new Date('2099-01-15T18:00:00Z').getTime(),

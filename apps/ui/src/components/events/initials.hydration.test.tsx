@@ -36,7 +36,12 @@ describe('initials the server sends and the browser hydrates', () => {
     'hydrates the host card of a host whose name starts with an emoji, in %s',
     async (locale) => {
       const { container, reported } = await hydrate(
-        <EventHostCard locale={locale} host={rocket} cityName="Algiers" />,
+        <EventHostCard
+          locale={locale}
+          host={rocket}
+          cityName="Algiers"
+          isHost={false}
+        />,
       );
 
       expect(reported).toEqual([]);

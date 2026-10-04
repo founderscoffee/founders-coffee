@@ -19,6 +19,7 @@ describe('what a screen reader is told about a dialog', () => {
       'components/events/CancelEventDialog.tsx',
       'components/events/RsvpCancelDialog.tsx',
       'components/events/ShareDialog.tsx',
+      'components/host/HostLocationPrompt.tsx',
       'components/shell/ProfileMenuDrawer.tsx',
       'features/account/components/ContactDialog.tsx',
       'features/chat/components/ChatDialog.tsx',

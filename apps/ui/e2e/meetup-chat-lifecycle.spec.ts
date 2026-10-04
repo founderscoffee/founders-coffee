@@ -1,6 +1,13 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { composerOf, panelOf, send, type Screen } from './support/chat-panel';
+import {
+  chatEntryOf,
+  composerOf,
+  openChat,
+  panelOf,
+  send,
+  type Screen,
+} from './support/chat-panel';
 import { cleanupRun, d1 } from './support/d1';
 import { t, type E2eLocale } from './support/messages';
 import { signInBackTo } from './support/profile-auth';
@@ -79,9 +86,6 @@ const screenPage = async (browser: Browser, screen: Screen): Promise<Page> => {
 const signInTo = (page: Page, locale: E2eLocale, email: string) =>
   signInBackTo(page, locale, email, pathIn(locale));
 
-const chatEntry = (page: Page, locale: E2eLocale) =>
-  page.getByRole('button', { name: t(locale, 'chat_open') });
-
 /**
  * RSVP from the meetup page, turn down the push prompt if it follows, and wait for the chat entry.
  *
@@ -93,7 +97,7 @@ const joinThroughPage = async (page: Page, locale: E2eLocale) => {
   const prompt = page.getByRole('dialog', {
     name: t(locale, 'push_prompt_title'),
   });
-  const entry = chatEntry(page, locale);
+  const entry = chatEntryOf(page, locale);
   await expect(async () => {
     if (await join.isVisible()) await join.click({ timeout: 2_000 });
     await expect(prompt.or(entry).first()).toBeVisible({ timeout: 3_000 });
@@ -152,12 +156,12 @@ test.describe('meetup chat lifecycle · an Arabic host, an English member, a Fre
     await joinThroughPage(member, 'en');
 
     await signInTo(host, 'ar', meetup.hostEmail);
-    await chatEntry(host, 'ar').click();
+    await openChat(host, 'ar');
     await expect(hostPanel.getByText(t('ar', 'chat_empty'))).toBeVisible({
       timeout: 30_000,
     });
     await send(hostPanel, 'ar', greeting);
-    await chatEntry(member, 'en').click();
+    await chatEntryOf(member, 'en').click();
     await expect(memberPanel.getByText(greeting)).toBeVisible({
       timeout: 15_000,
     });
@@ -168,7 +172,7 @@ test.describe('meetup chat lifecycle · an Arabic host, an English member, a Fre
     await expect(outsider.getByText(t('fr', 'chat_invite'))).toBeVisible({
       timeout: 30_000,
     });
-    await expect(chatEntry(outsider, 'fr')).toHaveCount(0);
+    await expect(chatEntryOf(outsider, 'fr')).toHaveCount(0);
     await outsider.goto(`${pathIn('fr')}?chat=true`);
     await expect(outsider.getByText(t('fr', 'chat_invite'))).toBeVisible({
       timeout: 30_000,
@@ -179,7 +183,7 @@ test.describe('meetup chat lifecycle · an Arabic host, an English member, a Fre
     await member.keyboard.press('Escape');
     await expect(memberPanel).toBeHidden();
     await leaveThroughPage(member, 'en');
-    await expect(chatEntry(member, 'en')).toHaveCount(0, { timeout: 30_000 });
+    await expect(chatEntryOf(member, 'en')).toHaveCount(0, { timeout: 30_000 });
     await member.goto(`${pathIn('en')}?chat=true`);
     await expect(member.getByText(t('en', 'chat_invite'))).toBeVisible({
       timeout: 30_000,
@@ -189,7 +193,7 @@ test.describe('meetup chat lifecycle · an Arabic host, an English member, a Fre
 
     await member.goto(pathIn('en'));
     await joinThroughPage(member, 'en');
-    await chatEntry(member, 'en').click();
+    await chatEntryOf(member, 'en').click();
     for (const text of [greeting, reply, whileAway])
       await expect(memberPanel.getByText(text)).toBeVisible({
         timeout: 15_000,

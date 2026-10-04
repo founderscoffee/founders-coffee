@@ -1,18 +1,15 @@
-import { RefreshCw } from 'lucide-react';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 import { Map, Marker } from 'react-map-gl/mapbox';
 
 import { appErrorCode } from '@founders-coffee/core';
+import type { geo } from '@founders-coffee/domain';
 import {
   host_geolocation_denied,
   host_map_error,
   host_map_label,
-  retry,
-  host_venue_unsupported,
   type Locale,
 } from '@founders-coffee/i18n';
-import { StatusMessage } from '@founders-coffee/ui';
 
 import { useReverseEventVenue } from '../../features/events/hooks';
 import type {
@@ -21,19 +18,20 @@ import type {
 } from '../../features/events/types';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 import { HostLocateButton } from './HostLocateButton';
+import { HostLocationPrompt } from './HostLocationPrompt';
+import { HostMapFailure } from './HostMapFailure';
 import { HostMapSkeleton } from './HostMapSkeleton';
 import { HostMapToasts } from './HostMapToasts';
+import { HostSearchButton } from './HostSearchButton';
 import { HostVenuePin } from './HostVenuePin';
+import { LOCATE_ZOOM, VENUE_ZOOM, zoomForTap } from './mapZoom';
 import type { ControlSize } from './useControlSize';
-import { coverPadding, useMapCover } from './useMapCover';
+import { useLocationPrompt } from './useLocationPrompt';
+import { initialCamera, useMapCover } from './useMapCover';
 import { useMapResize } from './useMapResize';
 import { useVisitorLocation, type Coordinates } from './useVisitorLocation';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
-
-const VENUE_ZOOM = 15;
-
-const LOCATE_ZOOM = 17;
 
 const mapLib = loadMapboxCsp();
 
@@ -52,6 +50,9 @@ type HostMapProps = {
   onUserMove?: () => void;
   onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
+  onCitySelect?: (city: geo.GeoCity) => void;
+  onSearch?: () => void;
+  onMiss?: () => void;
 };
 
 export const HostMap = ({
@@ -69,6 +70,9 @@ export const HostMap = ({
   onUserMove,
   onUserGestureEnd,
   onLocateResize,
+  onCitySelect,
+  onSearch,
+  onMiss,
 }: HostMapProps) => {
   const mapRef = useRef<MapboxMap | null>(null);
   const reverseRequestId = useRef(0);
@@ -85,6 +89,11 @@ export const HostMap = ({
   const [lastCoordinates, setLastCoordinates] = useState<Coordinates | null>(
     null,
   );
+  const prompt = useLocationPrompt({
+    canAsk: isInteractive && onCitySelect !== undefined,
+    hasCity: cityCode !== undefined,
+    hasVenue: venue !== null,
+  });
   const cameraPadding = useMapCover(mapRef, covered, viewport, venue);
   const frameRef = useMapResize(mapRef);
   const flyTo = (longitude: number, latitude: number, zoom: number): void => {
@@ -97,11 +106,6 @@ export const HostMap = ({
   };
 
   const pin = venue ?? (reverseVenue.isPending ? lastCoordinates : null);
-
-  const venueErrorMessage = (error: unknown): string =>
-    appErrorCode(error) === 'map_venue_unsupported'
-      ? host_venue_unsupported({}, { locale })
-      : host_map_error({}, { locale });
 
   const resolveCoordinates = async (
     coordinates: Coordinates,
@@ -123,7 +127,11 @@ export const HostMap = ({
       onVenueSelect({ ...resolved, ...coordinates });
     } catch (error) {
       if (requestId !== reverseRequestId.current) return;
-      setLocationError(venueErrorMessage(error));
+      if (appErrorCode(error) !== 'map_venue_not_found') {
+        setLocationError(host_map_error({}, { locale }));
+      } else if (!prompt.askAfterMiss()) {
+        onMiss?.();
+      }
     }
   };
 
@@ -159,27 +167,14 @@ export const HostMap = ({
 
   if (hasMapError) {
     return (
-      <div className="flex h-full min-h-64 w-full items-center justify-center bg-base-200 p-6">
-        <StatusMessage
-          variant="error"
-          action={
-            <button
-              type="button"
-              className="btn btn-outline btn-xs sm:btn-sm md:btn-md"
-              onClick={() => {
-                setHasMapError(false);
-                setIsMapReady(false);
-                setMapKey((value) => value + 1);
-              }}
-            >
-              <RefreshCw className="size-4" aria-hidden="true" />
-              {retry({}, { locale })}
-            </button>
-          }
-        >
-          {host_map_error({}, { locale })}
-        </StatusMessage>
-      </div>
+      <HostMapFailure
+        locale={locale}
+        onRetry={() => {
+          setHasMapError(false);
+          setIsMapReady(false);
+          setMapKey((value) => value + 1);
+        }}
+      />
     );
   }
 
@@ -192,22 +187,7 @@ export const HostMap = ({
       <Map
         key={mapKey}
         ref={mapRef as never}
-        initialViewState={
-          venue
-            ? {
-                longitude: venue.longitude,
-                latitude: venue.latitude,
-                zoom: VENUE_ZOOM,
-                padding: coverPadding(covered),
-              }
-            : {
-                bounds: [
-                  [viewport.bounds[0], viewport.bounds[1]],
-                  [viewport.bounds[2], viewport.bounds[3]],
-                ],
-                fitBoundsOptions: { padding: coverPadding(covered, 24) },
-              }
-        }
+        initialViewState={initialCamera(venue, viewport, covered, VENUE_ZOOM)}
         onLoad={() => setIsMapReady(true)}
         onMoveStart={(event) => {
           if (!('originalEvent' in event && event.originalEvent)) return;
@@ -227,7 +207,12 @@ export const HostMap = ({
           isInteractive
             ? (event) => {
                 const { lng, lat } = event.lngLat;
-                void resolveCoordinates({ longitude: lng, latitude: lat });
+                const closer = zoomForTap(event.target.getZoom());
+                if (closer === null) {
+                  void resolveCoordinates({ longitude: lng, latitude: lat });
+                } else {
+                  flyTo(lng, lat, closer);
+                }
                 onUserGestureEnd?.();
               }
             : undefined
@@ -273,6 +258,10 @@ export const HostMap = ({
         />
       )}
 
+      {isInteractive && onSearch && (
+        <HostSearchButton locale={locale} onClick={onSearch} />
+      )}
+
       <HostMapToasts
         locale={locale}
         isResolving={reverseVenue.isPending || visitor.isFinding}
@@ -284,6 +273,18 @@ export const HostMap = ({
             : undefined
         }
       />
+
+      {onCitySelect && (
+        <HostLocationPrompt
+          locale={locale}
+          marketCode={marketCode}
+          cityCode={cityCode}
+          reason={prompt.reason}
+          onLocate={() => void chooseWhereVisitorIs()}
+          onCitySelect={onCitySelect}
+          onClose={prompt.close}
+        />
+      )}
     </div>
   );
 };

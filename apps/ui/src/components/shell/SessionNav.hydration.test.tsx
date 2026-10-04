@@ -10,6 +10,8 @@ const session: { current: { data: unknown; isPending: boolean } } = {
   current: { data: undefined, isPending: true },
 };
 
+const router = { clearCache: () => undefined };
+
 vi.mock('../../lib/auth', () => ({
   authClient: { useSession: () => session.current, signOut: vi.fn() },
 }));
@@ -41,6 +43,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => ({
   ),
   useLocation: ({ select }: { select: (l: { pathname: string }) => string }) =>
     select({ pathname: '/en' }),
+  useRouter: () => router,
 }));
 
 const { AppProviders } = await import('../../lib/app-providers');

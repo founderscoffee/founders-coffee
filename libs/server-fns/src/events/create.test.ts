@@ -49,7 +49,7 @@ const trackedMetrics = () => {
 const failingProvider: MapProvider = {
   ...testMapProvider,
   describePoint: async () =>
-    err(new AppError('map_venue_unsupported', 'Unsupported venue')),
+    err(new AppError('map_venue_not_found', 'Unsupported venue')),
 };
 
 describe('createEventWithTelemetry (real D1)', () => {
@@ -144,7 +144,7 @@ describe('createEventWithTelemetry (real D1)', () => {
     expect(result.ok).toBe(false);
     expect(entryFor('event_create_rejected')).toMatchObject({
       level: 'warn',
-      errorCode: 'map_venue_unsupported',
+      errorCode: 'map_venue_not_found',
       hostId: TEST_HOST_ID,
       marketCode: 'DZ',
       cityCode: null,

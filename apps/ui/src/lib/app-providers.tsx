@@ -1,4 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
+import { useRouter } from '@tanstack/react-router';
 import {
   createContext,
   useContext,
@@ -36,6 +37,7 @@ const useMemberCacheIsolation = (
   isPending: boolean,
   client: ReturnType<typeof createQueryClient>,
 ) => {
+  const router = useRouter();
   const seen = useRef<string | null | undefined>(undefined);
   useEffect(() => {
     if (isPending) return;
@@ -44,9 +46,10 @@ const useMemberCacheIsolation = (
     if (!memberChanged(previous, userId)) return;
     void withdrawMemberCaches(
       client,
+      router,
       typeof caches === 'undefined' ? undefined : caches,
     );
-  }, [userId, isPending, client]);
+  }, [userId, isPending, client, router]);
 };
 
 const AuthProvider = ({

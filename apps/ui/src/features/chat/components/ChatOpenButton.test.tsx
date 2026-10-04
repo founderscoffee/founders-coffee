@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ChatEntry } from './ChatEntry';
+import { ChatOpenButton } from './ChatOpenButton';
 
 const mocks = vi.hoisted(() => ({
   open: vi.fn(),
@@ -28,7 +28,7 @@ vi.mock('../hooks', () => ({
   },
 }));
 
-const entry = () => screen.getByRole('button', { name: /^Open chat/ });
+const entry = () => screen.getByRole('button', { name: /^Chat/ });
 
 afterEach(() => {
   cleanup();
@@ -37,21 +37,9 @@ afterEach(() => {
   mocks.counts = new Map();
 });
 
-describe('ChatEntry', () => {
-  it('names the chat and who can read it', () => {
-    render(<ChatEntry locale="en" eventId="evt_1" />);
-
-    expect(screen.getByRole('region', { name: 'Chat' })).toBeTruthy();
-    expect(
-      screen.getByText(
-        'Only the host and the people going can read this chat.',
-      ),
-    ).toBeTruthy();
-    expect(entry().getAttribute('aria-haspopup')).toBe('dialog');
-  });
-
+describe('ChatOpenButton', () => {
   it('opens the panel from its button', () => {
-    render(<ChatEntry locale="en" eventId="evt_1" />);
+    render(<ChatOpenButton locale="en" eventId="evt_1" />);
 
     fireEvent.click(entry());
 
@@ -60,38 +48,38 @@ describe('ChatEntry', () => {
 
   it('shows how many messages are unread, and says it to a screen reader', () => {
     mocks.counts = new Map([['evt_1', 3]]);
-    render(<ChatEntry locale="en" eventId="evt_1" />);
+    render(<ChatOpenButton locale="en" eventId="evt_1" />);
 
     expect(entry().querySelector('.badge')?.textContent).toBe('3');
     expect(
-      screen.getByRole('button', { name: 'Open chat 3 unread messages' }),
+      screen.getByRole('button', { name: 'Chat 3 unread messages' }),
     ).toBeTruthy();
     expect(mocks.countsAsked).toHaveBeenCalledWith(['evt_1'], true);
   });
 
   it('caps the badge at 99+, and shows none when all is read', () => {
     mocks.counts = new Map([['evt_1', 140]]);
-    const { rerender } = render(<ChatEntry locale="en" eventId="evt_1" />);
+    const { rerender } = render(<ChatOpenButton locale="en" eventId="evt_1" />);
 
     expect(screen.getByText('99+')).toBeTruthy();
     expect(screen.getByText('140 unread messages')).toBeTruthy();
 
     mocks.counts = new Map([['evt_1', 0]]);
-    rerender(<ChatEntry locale="ar" eventId="evt_1" />);
+    rerender(<ChatOpenButton locale="ar" eventId="evt_1" />);
 
     expect(screen.queryByText('99+')).toBeNull();
-    expect(screen.getByRole('button', { name: 'فتح المحادثة' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'المحادثة' })).toBeTruthy();
   });
 
   it('asks nothing while the panel is open over it', () => {
     mocks.isOpen = true;
-    render(<ChatEntry locale="en" eventId="evt_1" />);
+    render(<ChatOpenButton locale="en" eventId="evt_1" />);
 
     expect(mocks.countsAsked).toHaveBeenCalledWith(['evt_1'], false);
   });
 
   it('starts loading the panel as soon as the reader heads for the button', () => {
-    render(<ChatEntry locale="en" eventId="evt_1" />);
+    render(<ChatOpenButton locale="en" eventId="evt_1" />);
 
     fireEvent.focus(entry());
     fireEvent.pointerEnter(entry());
@@ -99,5 +87,36 @@ describe('ChatEntry', () => {
 
     expect(mocks.preload).toHaveBeenCalledTimes(3);
     expect(mocks.open).not.toHaveBeenCalled();
+  });
+
+  it('fills its share of a row only when asked to', () => {
+    const { rerender } = render(
+      <ChatOpenButton locale="fr" eventId="evt_1" isFullWidth />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Discuter' }).className.split(' '),
+    ).toContain('w-full');
+
+    rerender(<ChatOpenButton locale="fr" eventId="evt_1" />);
+
+    expect(
+      screen.getByRole('button', { name: 'Discuter' }).className.split(' '),
+      'after the meetup it stands alone, only as wide as its word',
+    ).toContain('w-fit');
+  });
+
+  it('pins the unread count to its corner instead of widening the button', () => {
+    mocks.counts = new Map([['evt_1', 140]]);
+    render(<ChatOpenButton locale="en" eventId="evt_1" />);
+
+    const button = screen.getByRole('button', {
+      name: 'Chat 140 unread messages',
+    });
+    expect(button.className.split(' ')).toContain('relative');
+    expect(
+      button.querySelector('.badge')?.className.split(' '),
+      "beside the calendar in the host's 272px rail, a count in the button's line pushed it past the panel's edge",
+    ).toContain('absolute');
   });
 });

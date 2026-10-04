@@ -19,6 +19,34 @@ export const coverPadding = (covered: number, margin = 0) => ({
 });
 
 /**
+ * The camera a map opens on: close on the place already chosen at `zoom`, or else the whole of
+ * `viewport`, each kept clear of the top `covered` pixels as the map's own later moves are.
+ */
+export const initialCamera = (
+  pin: Point,
+  viewport: HostMapViewport,
+  covered: number,
+  zoom: number,
+) => {
+  if (pin) {
+    return {
+      longitude: pin.longitude,
+      latitude: pin.latitude,
+      zoom,
+      padding: coverPadding(covered),
+    };
+  }
+  const [west, south, east, north] = viewport.bounds;
+  return {
+    bounds: [
+      [west, south],
+      [east, north],
+    ] as [[number, number], [number, number]],
+    fitBoundsOptions: { padding: coverPadding(covered, FIT_MARGIN) },
+  };
+};
+
+/**
  * Keep the moves the map makes on its own clear of the panel floating over its top edge.
  *
  * Mapbox centres on the middle of the whole frame, so below `lg`, where the venue list covers the

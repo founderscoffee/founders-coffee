@@ -121,7 +121,7 @@ export const locatePoint = async (
   if (!resolved) {
     return err(
       new AppError(
-        'map_venue_unsupported',
+        'map_venue_not_found',
         'Could not place this point in a known state',
       ),
     );

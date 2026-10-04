@@ -14,17 +14,18 @@ import {
 } from './support/host-wizard';
 
 /**
- * Measure a field's note against the field above it and the error below it, in one layout pass.
+ * Measure a field's counter against the field above it and the error below it, in one layout
+ * pass.
  *
- * `endGap` is how far the note's text stops short of the field's inline end in the locale's own
- * direction, so an end-aligned counter reads 0 in Arabic as in French. `errorGap` is the error's
- * top less the note's bottom, which goes negative when the error runs on inside the note's line.
+ * `endGap` is how far the counter's text stops short of the field's inline end in the locale's
+ * own direction, so an end-aligned counter reads 0 in Arabic as in French. `errorGap` is the
+ * error's top less the counter's bottom, which goes negative when the error runs on inside the
+ * counter's line.
  */
-const measureNote = (
+const measureCounter = (
   page: Page,
   locale: E2eLocale,
   field: string,
-  kind: 'count' | 'help',
 ): Promise<{ endGap: number; errorGap: number }> =>
   page.evaluate(
     ({ id, note, direction }) => {
@@ -45,7 +46,7 @@ const measureNote = (
           element(note).getBoundingClientRect().bottom,
       };
     },
-    { id: field, note: `-${kind}`, direction: LOCALE_DIRECTION[locale] },
+    { id: field, note: '-count', direction: LOCALE_DIRECTION[locale] },
   );
 
 test.describe('create event field layout', () => {
@@ -60,14 +61,24 @@ test.describe('create event field layout', () => {
 
     await selectVenue(page, locale, VENUE_QUERY);
     const venueName = page.locator('#host-venue-name');
+    const venueNameError = page.locator('#host-venue-name-error');
     await expect(venueName).toBeVisible();
     await venueName.fill('');
     await nextButton(page, locale).click();
-    await expect(page.locator('#host-venue-name-error')).toBeVisible();
-    const helper = await measureNote(page, locale, 'host-venue-name', 'help');
+    await expect(
+      venueName,
+      'Next takes the host to the name still missing, without a word',
+    ).toBeFocused();
+    await expect(venueNameError).toHaveCount(0);
+
+    await venueName.fill('K');
+    await nextButton(page, locale).click();
+    await expect(venueNameError).toBeVisible();
+    const nameBox = await venueName.boundingBox();
+    const nameErrorBox = await venueNameError.boundingBox();
     expect(
-      helper.errorGap,
-      'the venue name error starts below the helper',
+      (nameErrorBox?.y ?? 0) - ((nameBox?.y ?? 0) + (nameBox?.height ?? 0)),
+      'the venue name error starts below its field',
     ).toBeGreaterThanOrEqual(0);
 
     await venueName.fill(HOST_VENUE_NAME);
@@ -75,10 +86,19 @@ test.describe('create event field layout', () => {
     await selectSchedule(page);
     await nextButton(page, locale).click();
     await continueToLoginButton(page, locale).click();
+    await expect(
+      page.locator('#host-title'),
+      'Next takes the host to the title still to write, without a word',
+    ).toBeFocused();
+    await expect(page.locator('#host-title-error')).toHaveCount(0);
+
+    await page.locator('#host-title').fill('x');
+    await page.locator('#host-description').fill('Too short');
+    await continueToLoginButton(page, locale).click();
 
     for (const field of ['host-title', 'host-description']) {
       await expect(page.locator(`#${field}-error`)).toBeVisible();
-      const counter = await measureNote(page, locale, field, 'count');
+      const counter = await measureCounter(page, locale, field);
       expect(
         Math.abs(counter.endGap),
         `#${field}'s counter ends where the field does`,

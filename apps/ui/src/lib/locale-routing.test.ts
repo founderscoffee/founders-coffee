@@ -57,6 +57,14 @@ describe('addressing a page in the language the reader is in', () => {
     });
   });
 
+  it('opens the host wizard on a city when it is given one', () => {
+    expect(localizedHostCreate('fr', 'algeria', '556')).toEqual({
+      to: '/$locale/$market/host/create',
+      params: { locale: 'fr', market: 'algeria' },
+      search: { city: '556' },
+    });
+  });
+
   it('pushes the market down a level for an event', () => {
     expect(localizedEvent('en', 'algeria', 'coffee-and-code')).toEqual({
       to: '/$locale/$market/e/$slug',

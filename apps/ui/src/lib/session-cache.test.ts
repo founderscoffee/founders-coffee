@@ -3,6 +3,12 @@ import {
   QueryClient,
   QueryObserver,
 } from '@tanstack/react-query';
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from '@tanstack/react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { memberChanged, withdrawMemberCaches } from './session-cache';
@@ -34,6 +40,41 @@ const fakeStorage = (entries: Readonly<Record<string, Response>>) => {
   };
 };
 
+const routerKeepingNothing = { clearCache: () => undefined };
+
+let reader = 'usr_a';
+let pageAnswer: Promise<void> = Promise.resolve();
+const loads: string[] = [];
+
+const rootRoute = createRootRoute();
+const pageAt = (path: 'meetup' | 'elsewhere') =>
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path,
+    loader: async () => {
+      loads.push(path);
+      await pageAnswer;
+      return { path, reader };
+    },
+  });
+const routeTree = rootRoute.addChildren([
+  pageAt('meetup'),
+  pageAt('elsewhere'),
+]);
+
+/** A router showing `href` as it loaded for `usr_a`, each page answering at once until a test holds `pageAnswer` back. */
+const routerOn = async (href: string) => {
+  reader = 'usr_a';
+  pageAnswer = Promise.resolve();
+  const router = createRouter({
+    routeTree,
+    history: createMemoryHistory({ initialEntries: [href] }),
+  });
+  await router.load();
+  loads.length = 0;
+  return router;
+};
+
 describe('member cache isolation', () => {
   it('treats the first settled session as nothing to withdraw', () => {
     expect(memberChanged(undefined, 'usr_a')).toBe(false);
@@ -56,7 +97,7 @@ describe('member cache isolation', () => {
     client.setQueryData(['events', 'upcoming', {}], { viewerRsvp: 'going' });
     client.setQueryData(['profile', 'owner', 'usr_a'], { userId: 'usr_a' });
 
-    await withdrawMemberCaches(client);
+    await withdrawMemberCaches(client, routerKeepingNothing);
 
     expect(client.getQueryData(['events', 'upcoming', {}])).toBeUndefined();
     expect(client.getQueryData(['profile', 'owner', 'usr_a'])).toBeUndefined();
@@ -74,7 +115,7 @@ describe('member cache isolation', () => {
     });
     const unsubscribe = observer.subscribe(() => undefined);
 
-    await withdrawMemberCaches(client);
+    await withdrawMemberCaches(client, routerKeepingNothing);
     for (const answer of answers) answer({ userId: 'usr_b' });
 
     await vi.waitFor(() =>
@@ -96,7 +137,7 @@ describe('member cache isolation', () => {
     );
 
     viewer = 'usr_b';
-    await withdrawMemberCaches(client);
+    await withdrawMemberCaches(client, routerKeepingNothing);
 
     expect(observer.getCurrentResult().data).not.toEqual({ viewer: 'usr_a' });
     await vi.waitFor(() =>
@@ -113,7 +154,7 @@ describe('member cache isolation', () => {
       initialData: { viewerRsvp: 'going' },
     });
 
-    await withdrawMemberCaches(client);
+    await withdrawMemberCaches(client, routerKeepingNothing);
 
     expect(client.getQueryData(['events', 'upcoming', {}])).toBeUndefined();
   });
@@ -125,7 +166,7 @@ describe('member cache isolation', () => {
     }).mutate('Amina');
     expect(client.getMutationCache().getAll()).toHaveLength(1);
 
-    await withdrawMemberCaches(client);
+    await withdrawMemberCaches(client, routerKeepingNothing);
 
     expect(client.getMutationCache().getAll()).toEqual([]);
   });
@@ -138,7 +179,11 @@ describe('member cache isolation', () => {
       'https://founders.coffee/assets/app-abc123.css': asset,
     });
 
-    await withdrawMemberCaches(new QueryClient(), storage);
+    await withdrawMemberCaches(
+      new QueryClient(),
+      routerKeepingNothing,
+      storage,
+    );
 
     expect(deleted).toEqual([
       '/profile',
@@ -151,7 +196,40 @@ describe('member cache isolation', () => {
     const client = new QueryClient();
     client.setQueryData(['profile', 'owner', 'usr_a'], { userId: 'usr_a' });
 
-    await expect(withdrawMemberCaches(client)).resolves.toBeUndefined();
+    await expect(
+      withdrawMemberCaches(client, routerKeepingNothing),
+    ).resolves.toBeUndefined();
     expect(client.getQueryData(['profile', 'owner', 'usr_a'])).toBeUndefined();
+  });
+
+  it('loads a page the router kept for the previous member before it shows it again', async () => {
+    const router = await routerOn('/meetup');
+    router.history.push('/elsewhere');
+    await router.load();
+    reader = 'usr_b';
+    let answerNow = (): void => undefined;
+    pageAnswer = new Promise((resolve) => {
+      answerNow = resolve;
+    });
+
+    await withdrawMemberCaches(new QueryClient(), router);
+    router.history.back();
+    const back = router.load();
+    await vi.waitFor(() => expect(loads).toContain('meetup'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const shownWhileLoading = router.state.matches.at(-1)?.loaderData;
+    answerNow();
+    await back;
+
+    expect(
+      shownWhileLoading,
+      'Back showed the meetup as it had loaded for its host, who had just signed out, while it loaded again behind it',
+    ).not.toEqual({ path: 'meetup', reader: 'usr_a' });
+    await vi.waitFor(() =>
+      expect(router.state.matches.at(-1)?.loaderData).toEqual({
+        path: 'meetup',
+        reader: 'usr_b',
+      }),
+    );
   });
 });

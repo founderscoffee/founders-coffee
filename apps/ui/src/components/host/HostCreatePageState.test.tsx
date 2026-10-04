@@ -51,6 +51,26 @@ describe('HostCreatePage EC-07 state', () => {
     ).toBe('A complete protected meetup for founders.');
   });
 
+  it('takes a host who pressed Next before picking a day to the calendar, without a word', async () => {
+    renderHostCreateWizard();
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Choose venue' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    const calendar = screen.getByRole('button', { name: 'Set schedule' });
+    expect(document.activeElement).toBe(calendar);
+    expect(calendar.hasAttribute('data-sought')).toBe(true);
+    expect(
+      screen
+        .queryAllByRole('alert')
+        .filter((alert) => alert.textContent?.trim()),
+      'the calendar is the step: a message asking for a day said what it already shows',
+    ).toEqual([]);
+  });
+
   it('prefills a repeat with safe values and no schedule', async () => {
     renderHostCreateWizard('en', REPEAT_TEMPLATE);
 

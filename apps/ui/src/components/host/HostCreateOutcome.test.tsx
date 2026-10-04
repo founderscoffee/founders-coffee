@@ -68,7 +68,7 @@ describe('HostCreatePage EC-08 outcomes', () => {
       'event_route_conflict',
       'Another meetup already uses this title. Change it slightly and publish.',
     ],
-    ['map_venue_unsupported', 'Choose a café, restaurant, or coworking space'],
+    ['map_venue_not_found', 'Choose a café, restaurant, or coworking space'],
     ['forbidden', 'You cannot publish meetups with this account.'],
     [
       'security_configuration_error',

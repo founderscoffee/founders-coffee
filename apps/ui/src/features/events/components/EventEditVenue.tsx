@@ -7,6 +7,7 @@ import { HostMapPanel } from '../../../components/host/HostMapPanel';
 import { HostVenueStep } from '../../../components/host/HostVenueStep';
 import { eventCityName } from '../event-city-name';
 import { useHostMapContext } from '../hooks';
+import { seekPlaceOrSearch } from '../seek-field';
 import type { VenueSelection } from '../types';
 
 type Coordinates = { latitude: number; longitude: number };
@@ -57,6 +58,7 @@ export const EventEditVenue = ({
           onVenueSelect={onVenueSelect}
           onVenueInvalidate={onVenueInvalidate}
           onCenterChange={setCenter}
+          onMiss={seekPlaceOrSearch}
         />
       </div>
       <p className="text-caption text-neutral">

@@ -82,7 +82,7 @@ describe('createEventResolver persistence (real D1)', () => {
     const rejectingMapProvider: MapProvider = {
       ...testMapProvider,
       describePoint: async () =>
-        err(new AppError('map_venue_unsupported', 'Nothing here to describe')),
+        err(new AppError('map_venue_not_found', 'Nothing here to describe')),
     };
 
     const result = await createEventResolver(
@@ -93,7 +93,7 @@ describe('createEventResolver persistence (real D1)', () => {
     );
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+    if (!result.ok) expect(result.error.code).toBe('map_venue_not_found');
     expect(await countEventsByStatus(db, 'published')).toBe(before);
   });
 

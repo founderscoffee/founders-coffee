@@ -79,8 +79,7 @@ test.describe('create event experience', () => {
     await useLocale(page, locale, baseURL as string);
     await page.goto(wizardPath());
 
-    await selectVenue(page, locale, VENUE_QUERY);
-    const savedVenue = await page.locator('#venue-search').inputValue();
+    const venueName = await selectVenue(page, locale, VENUE_QUERY);
     await nextButton(page, locale).click();
     await expect(page.locator('.rdp-button_next')).toBeVisible();
 
@@ -94,10 +93,20 @@ test.describe('create event experience', () => {
       timeout: 30_000,
     });
     await backButton(page, other).click();
-    await expect(page.locator('#venue-search')).toHaveValue(savedVenue);
+    const chosen = page.getByRole('option', {
+      selected: true,
+      includeHidden: true,
+    });
+    await expect(chosen).toHaveCount(1);
+    const nameField = page.locator('#host-venue-name');
+    if ((await nameField.count()) > 0) {
+      await expect(nameField).toHaveValue(venueName);
+    } else {
+      await expect(chosen).toContainText(venueName);
+    }
   });
 
-  test('shows localized inline validation and focuses the first invalid field', async ({
+  test('takes the host to the first place when Next finds none chosen, without a word', async ({
     page,
     baseURL,
   }, testInfo) => {
@@ -105,15 +114,20 @@ test.describe('create event experience', () => {
     await useLocale(page, locale, baseURL as string);
     await page.goto(wizardPath());
 
-    await expect(page.locator('#venue-search')).toBeEnabled({
-      timeout: 30_000,
-    });
+    const firstPlace = page.locator(
+      '#venue-results [role="option"][tabindex="0"]',
+    );
+    await expect(firstPlace).toBeVisible({ timeout: 30_000 });
     await nextButton(page, locale).click();
 
+    await expect(firstPlace).toBeFocused();
     await expect(
-      page.getByText(t(locale, 'host_venue_required')),
-    ).toBeVisible();
-    await expect(page.locator('#venue-search')).toBeFocused();
+      firstPlace,
+      'after a click on Next the place took the focus with no ring to show it',
+    ).toHaveCSS('outline-style', 'solid');
+    await expect(page.getByText(t(locale, 'host_venue_required'))).toHaveCount(
+      0,
+    );
   });
 
   test('keeps both wizard actions reachable at this viewport and at 320px', async ({
@@ -146,6 +160,12 @@ test.describe('create event experience', () => {
     const map = page.locator('.mapboxgl-canvas');
     await expect(map).toBeVisible({ timeout: 30_000 });
     const { height } = (await map.boundingBox()) ?? { height: 0 };
+    const searchButton = page.getByRole('button', {
+      name: t(locale, 'host_search_venues'),
+      exact: true,
+    });
+    await expect(searchButton).toBeVisible({ timeout: 30_000 });
+    await searchButton.click();
     await page
       .getByRole('combobox', {
         name: t(locale, 'host_venue_search_label'),
@@ -222,9 +242,12 @@ test.describe('create event experience', () => {
       }) as typeof navigator.geolocation.getCurrentPosition;
     });
     await page.goto(wizardPath());
-    await expect(page.locator('#venue-search')).toBeEnabled({
-      timeout: 30_000,
-    });
+    await expect(
+      page.getByRole('button', {
+        name: t(locale, 'host_search_venues'),
+        exact: true,
+      }),
+    ).toBeVisible({ timeout: 30_000 });
 
     const calls = await page.evaluate(
       () => (window as unknown as { __geo?: number }).__geo ?? 0,

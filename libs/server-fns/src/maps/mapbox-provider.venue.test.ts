@@ -38,7 +38,7 @@ describe('MapboxMapProvider venue resolution', () => {
     });
     expect(unsupported.ok).toBe(false);
     if (!unsupported.ok)
-      expect(unsupported.error.code).toBe('map_venue_unsupported');
+      expect(unsupported.error.code).toBe('map_venue_not_found');
   });
 
   it('rejects a supported POI that is too far from the selected point', async () => {
@@ -56,7 +56,7 @@ describe('MapboxMapProvider venue resolution', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+    if (!result.ok) expect(result.error.code).toBe('map_venue_not_found');
   });
 
   it('asks the provider for addresses as well as points of interest', async () => {
@@ -137,7 +137,7 @@ describe('MapboxMapProvider venue resolution', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+    if (!result.ok) expect(result.error.code).toBe('map_venue_not_found');
   });
 
   it('offers a distant address as a bare address for the host to name', async () => {
@@ -169,7 +169,7 @@ describe('MapboxMapProvider venue resolution', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+    if (!result.ok) expect(result.error.code).toBe('map_venue_not_found');
   });
 
   it('resolves the city in a stable language, whatever the host is reading', async () => {
@@ -241,7 +241,7 @@ describe('MapboxMapProvider describePoint', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+    if (!result.ok) expect(result.error.code).toBe('map_venue_not_found');
   });
 
   it('maps a provider outage to a stable error', async () => {

@@ -12,24 +12,24 @@ import { eventRegionName } from '../features/events/event-region-name';
 import { eventStreetAddress } from '../features/events/event-street-address';
 import { eventPhase, isLiveWindowOpen } from '../features/events/live-window';
 import { useEventLive } from '../features/events/useEventLive';
-import { useAuth } from '../lib/app-providers';
 import { localizedEvent } from '../lib/locale-routing';
+import { useReloadOnMemberChange } from '../lib/reload-on-member-change';
 import { canonicalUrl, getSiteOrigin } from '../lib/seo';
 import { eventPageHead } from '../lib/seo-event';
 
 type EventRouteData = EventPage & { readonly locale: Locale };
 
 const EventRoute = () => {
-  const { locale, market, event, host } = Route.useLoaderData();
-  const { user } = useAuth();
-  const isHost = user?.id === event.hostId;
+  const { locale, market, event, host, viewerId } = Route.useLoaderData();
+  useReloadOnMemberChange();
+  const isHost = viewerId === event.hostId;
   const isWindowOpen =
     event.status !== 'cancelled' &&
     isLiveWindowOpen(event.startsAt, event.endsAt);
   const phase = eventPhase(event.startsAt, event.endsAt);
   const isAttending = isHost || event.viewerRsvp === 'going';
   const live = useEventLive(event.id, {
-    enabled: Boolean(user) && isWindowOpen && isAttending,
+    enabled: viewerId !== null && isWindowOpen && isAttending,
   });
 
   return (
@@ -40,12 +40,12 @@ const EventRoute = () => {
         event={event}
         host={host}
         isHost={isHost}
-        live={user ? live : null}
+        live={viewerId ? live : null}
         isWindowOpen={isWindowOpen}
         phase={phase}
       />
-      {user && isWindowOpen && isAttending && !live.notAttending && (
-        <LiveDashboard live={live} currentUserId={user.id} locale={locale} />
+      {viewerId && isWindowOpen && isAttending && !live.notAttending && (
+        <LiveDashboard live={live} currentUserId={viewerId} locale={locale} />
       )}
     </>
   );

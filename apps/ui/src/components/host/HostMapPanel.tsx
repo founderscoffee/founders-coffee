@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 
 import { appErrorCode } from '@founders-coffee/core';
+import type { geo } from '@founders-coffee/domain';
 import {
   host_map_error,
   host_venue_rate_limited,
@@ -35,6 +36,9 @@ export const HostMapPanel = ({
   onUserMove,
   onUserGestureEnd,
   onLocateResize,
+  onCitySelect,
+  onSearch,
+  onMiss,
 }: {
   locale: Locale;
   accessToken: string;
@@ -52,6 +56,9 @@ export const HostMapPanel = ({
   onUserMove?: () => void;
   onUserGestureEnd?: () => void;
   onLocateResize?: (size: ControlSize | null) => void;
+  onCitySelect?: (city: geo.GeoCity) => void;
+  onSearch?: () => void;
+  onMiss?: () => void;
 }) => (
   <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
     <Suspense fallback={<HostMapSkeleton locale={locale} />}>
@@ -71,6 +78,9 @@ export const HostMapPanel = ({
           onUserMove={onUserMove}
           onUserGestureEnd={onUserGestureEnd}
           onLocateResize={onLocateResize}
+          onCitySelect={onCitySelect}
+          onSearch={onSearch}
+          onMiss={onMiss}
         />
       ) : error ? (
         <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">

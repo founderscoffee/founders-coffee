@@ -65,6 +65,7 @@ describe('isNotFoundCode', () => {
       'market_not_found',
       'city_not_found',
       'map_city_not_found',
+      'map_venue_not_found',
       'rsvp_not_found',
       'order_not_found',
     ]) {

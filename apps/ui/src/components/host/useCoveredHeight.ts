@@ -6,7 +6,7 @@ import { useCallback, useRef } from 'react';
  * The panel floats over the map's top edge only below `lg`; from `lg` up it sits in the rail and
  * covers nothing, which its computed position tells apart without a media query of its own. The
  * gap above the panel counts as covered, since nothing on the map can be read through it, and a
- * panel that leaves the page covers nothing any more.
+ * panel that leaves the page, or is hidden while the host works the map, covers nothing any more.
  */
 export const useCoveredHeight = (onChange: (height: number) => void) => {
   const latest = useRef(onChange);
@@ -23,7 +23,7 @@ export const useCoveredHeight = (onChange: (height: number) => void) => {
     const report = () => {
       const style = getComputedStyle(node);
       latest.current(
-        style.position === 'absolute'
+        style.position === 'absolute' && node.offsetHeight > 0
           ? Math.round(node.offsetHeight + parseFloat(style.marginTop))
           : 0,
       );

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { deleteSignInCode } from './support/d1';
 import { requestSignInCode } from './support/profile-auth';
 import { RUN_ID } from './support/run';
 
@@ -7,6 +8,8 @@ const PHONE = { width: 390, height: 844 } as const;
 const EMAIL = `e2e-code-width-${RUN_ID}@e2e.invalid`;
 
 test.describe('Sign-in code on a phone', () => {
+  test.afterAll(() => deleteSignInCode(EMAIL));
+
   test('never widens the page, even where the browser cannot size the code input', async ({
     page,
   }) => {

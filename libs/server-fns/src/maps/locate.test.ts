@@ -57,7 +57,7 @@ describe('locatePoint', () => {
     );
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('map_venue_unsupported');
+    if (!result.ok) expect(result.error.code).toBe('map_venue_not_found');
   });
 
   it('refuses to invent a state when the provider reports no region', async () => {
