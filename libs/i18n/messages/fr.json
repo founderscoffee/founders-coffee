@@ -390,7 +390,6 @@
   "host_time_invalid": "Choisissez une heure locale valide dans ce pays.",
   "host_time_nonexistent": "Cette heure locale n’existe pas en raison du changement d’heure dans ce pays. Choisissez une autre heure.",
   "host_time_zone_error": "Le fuseau horaire de ce pays est indisponible. Réessayez plus tard.",
-  "host_login_required": "Connectez-vous ou créez un compte pour publier. Votre brouillon restera sur cet appareil.",
   "host_continue_login": "Se connecter",
   "host_confirm_publish": "Publier",
   "host_publishing": "Publication…",

@@ -2,9 +2,11 @@ import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  getHostCreateMocks,
   renderHostCreateWizard,
   resetHostCreateFixtures,
 } from './HostCreatePage.fixtures';
+import { goToHostDetails } from './HostCreatePage.flows.fixtures';
 
 const VENUE_REQUIRED = 'Choose a supported venue to continue.';
 
@@ -85,5 +87,19 @@ describe('the host wizard on a phone', () => {
     expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(
       'Where will you host the meetup?',
     );
+  });
+
+  it('gives a signed-out host no note above the last step’s action', async () => {
+    getHostCreateMocks().isAuthenticated = false;
+    renderHostCreateWizard();
+    await goToHostDetails();
+
+    expect(
+      screen.getByRole('button', { name: 'Continue to sign in' }),
+    ).toBeTruthy();
+    expect(
+      document.querySelectorAll('.alert:not(.sr-only)'),
+      'the action already says signing in comes next: a note saying it again was one more thing to read',
+    ).toHaveLength(0);
   });
 });

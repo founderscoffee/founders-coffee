@@ -3,7 +3,6 @@ import { useRef, useState } from 'react';
 import type { Market } from '@founders-coffee/db';
 import type { geo } from '@founders-coffee/domain';
 import {
-  host_login_required,
   host_progress_label,
   host_step_progress,
   localizedName,
@@ -230,20 +229,15 @@ export const HostCreatePage = ({
           )}
         </div>
 
-        {!wizard.isAuthGateOpen && wizard.step === TOTAL_STEPS && (
-          <div className="flex flex-col gap-2 border-t border-base-300 px-4 pt-3 lg:px-7 lg:pt-4">
-            {!isAuthenticated && (
-              <StatusMessage variant="info">
-                {host_login_required({}, { locale })}
-              </StatusMessage>
-            )}
-            {wizard.publishError && (
+        {!wizard.isAuthGateOpen &&
+          wizard.step === TOTAL_STEPS &&
+          wizard.publishError && (
+            <div className="flex flex-col gap-2 border-t border-base-300 px-4 pt-3 lg:px-7 lg:pt-4">
               <StatusMessage variant="error">
                 {wizard.publishError}
               </StatusMessage>
-            )}
-          </div>
-        )}
+            </div>
+          )}
       </section>
 
       <div
