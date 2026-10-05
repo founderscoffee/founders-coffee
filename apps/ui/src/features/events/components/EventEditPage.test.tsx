@@ -1,7 +1,15 @@
-import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { EventDetailItem } from '@founders-coffee/server-fns';
+
+import type { EventEditDraft } from '../event-edit-draft';
+
+type FormStandInProps = {
+  draft: EventEditDraft;
+  onDraftChange: (next: EventEditDraft) => void;
+  onSubmit: () => void;
+};
 
 const state = vi.hoisted(() => ({
   event: null as EventDetailItem | null,
@@ -25,20 +33,33 @@ vi.mock('../hooks', () => ({
     refetch: vi.fn(),
   }),
   useUpdateEvent: () => ({
-    mutate: vi.fn(),
+    mutate: (_input: unknown, settle: { onSuccess: () => void }) =>
+      settle.onSuccess(),
     isPending: false,
     isSuccess: false,
   }),
 }));
 
-vi.mock('./EventEditForm', async () => {
-  const actual =
-    await vi.importActual<typeof import('./EventEditForm')>('./EventEditForm');
-  return {
-    ...actual,
-    EventEditForm: () => <form data-testid="edit-form" />,
-  };
-});
+vi.mock('./EventEditForm', () => ({
+  EventEditForm: ({ draft, onDraftChange, onSubmit }: FormStandInProps) => (
+    <form
+      data-testid="edit-form"
+      onSubmit={(submitted) => {
+        submitted.preventDefault();
+        onSubmit();
+      }}
+    >
+      <input
+        aria-label="Title"
+        value={draft.title}
+        onChange={(changed) =>
+          onDraftChange({ ...draft, title: changed.target.value })
+        }
+      />
+      <button type="submit">Save</button>
+    </form>
+  ),
+}));
 
 const { EventEditPage } = await import('./EventEditPage');
 
@@ -122,5 +143,63 @@ describe('a meetup that can no longer be changed', () => {
     expect(screen.getByRole('alert').textContent).toBe(
       'The meetup has ended and cannot be edited.',
     );
+  });
+});
+
+const retitled = 'Founders breakfast, second edition';
+
+const retitle = () =>
+  fireEvent.change(screen.getByRole('textbox', { name: 'Title' }), {
+    target: { value: retitled },
+  });
+
+const titleShown = () =>
+  screen.getByRole<HTMLInputElement>('textbox', { name: 'Title' }).value;
+
+describe('changes a host has not saved', () => {
+  beforeEach(() => window.sessionStorage.clear());
+
+  it('come back when the page loads again', () => {
+    show(base);
+    retitle();
+    cleanup();
+
+    show(base);
+
+    expect(
+      titleShown(),
+      'a reload took everything the host had changed in the form',
+    ).toBe(retitled);
+  });
+
+  it('are gone once saved', () => {
+    show(base);
+    retitle();
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    cleanup();
+
+    show(base);
+
+    expect(titleShown()).toBe(base.title);
+  });
+
+  it('are dropped once the meetup has changed since', () => {
+    show(base);
+    retitle();
+    cleanup();
+
+    show({ ...base, version: 2, title: 'Founders brunch' });
+
+    expect(titleShown()).toBe('Founders brunch');
+  });
+
+  it('stay with the meetup they were made on', () => {
+    show(base);
+    retitle();
+    cleanup();
+
+    show({ ...base, id: 'evt_2' });
+
+    expect(titleShown()).toBe(base.title);
   });
 });

@@ -20,11 +20,8 @@ import { LoadingStatus, StatusMessage } from '@founders-coffee/ui';
 
 import { localizedEvent } from '../../../lib/locale-routing';
 import { useEventById, useUpdateEvent } from '../hooks';
-import {
-  draftFromEvent,
-  locationPatch,
-  type EventEditDraft,
-} from '../event-edit-draft';
+import { draftFromEvent, locationPatch } from '../event-edit-draft';
+import { useEventEditDraft } from '../useEventEditDraft';
 import { EventEditForm } from './EventEditForm';
 
 const messageFor = (error: unknown, locale: Locale): string => {
@@ -54,10 +51,10 @@ export const EventEditPage = ({
   const router = useRouter();
   const query = useEventById(eventId);
   const save = useUpdateEvent();
-  const [draft, setDraft] = useState<EventEditDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const event = query.data;
+  const edits = useEventEditDraft(event?.id, event?.version);
   const market = event
     ? markets.find((candidate) => candidate.code === event.marketCode)
     : undefined;
@@ -69,7 +66,7 @@ export const EventEditPage = ({
         ? host_edit_error_ended({}, { locale })
         : null;
   const current =
-    event && !closedReason ? (draft ?? draftFromEvent(event)) : null;
+    event && !closedReason ? (edits.draft ?? draftFromEvent(event)) : null;
 
   const submit = () => {
     if (
@@ -98,7 +95,7 @@ export const EventEditPage = ({
       },
       {
         onSuccess: () => {
-          setDraft(null);
+          edits.clear();
           void query.refetch();
           void router.invalidate();
         },
@@ -140,7 +137,7 @@ export const EventEditPage = ({
             timezone={market?.timezone ?? 'UTC'}
             mapboxToken={mapboxToken}
             draft={current}
-            onDraftChange={setDraft}
+            onDraftChange={edits.change}
             onSubmit={submit}
             isPending={save.isPending}
             backLink={
