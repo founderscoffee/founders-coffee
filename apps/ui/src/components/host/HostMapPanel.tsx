@@ -11,8 +11,9 @@ import {
 import { Button, StatusMessage } from '@founders-coffee/ui';
 
 import type { VenueSelection } from '../../features/events/types';
+import { ErrorBoundary } from '../shell/ErrorBoundary';
 import { ClientOnly } from './ClientOnly';
-import { HostMapBoundary } from './HostMapBoundary';
+import { HostMapFailure } from './HostMapFailure';
 import { HostMapSkeleton } from './HostMapSkeleton';
 import type { ControlSize } from './useControlSize';
 
@@ -62,7 +63,15 @@ export const HostMapPanel = ({
   onMiss?: () => void;
 }) => (
   <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
-    <HostMapBoundary locale={locale}>
+    <ErrorBoundary
+      source="host_map"
+      fallback={
+        <HostMapFailure
+          locale={locale}
+          onRetry={() => window.location.reload()}
+        />
+      }
+    >
       <Suspense fallback={<HostMapSkeleton locale={locale} />}>
         {viewport ? (
           <HostMap
@@ -103,6 +112,6 @@ export const HostMapPanel = ({
           <HostMapSkeleton locale={locale} />
         )}
       </Suspense>
-    </HostMapBoundary>
+    </ErrorBoundary>
   </ClientOnly>
 );

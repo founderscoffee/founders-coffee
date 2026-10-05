@@ -1,28 +1,22 @@
 import { useState } from 'react';
 
 import {
-  chat_load_error,
   chat_loading,
   chat_members_only,
   chat_report_already,
   chat_report_sent,
   chat_unavailable,
-  retry,
   toast_dismiss,
   type Locale,
 } from '@founders-coffee/i18n';
-import {
-  LoadingStatus,
-  StatusMessage,
-  Toast,
-  useToast,
-} from '@founders-coffee/ui';
+import { LoadingStatus, Toast, useToast } from '@founders-coffee/ui';
 
 import type { ChatMessageView } from '../api';
 import { useChatReadMarker } from '../useChatReadMarker';
 import { useEventChat, type ReadyChat } from '../useEventChat';
 import { ChatComposer } from './ChatComposer';
 import { ChatConnectionNotice } from './ChatConnectionNotice';
+import { ChatLoadFailure } from './ChatLoadFailure';
 import { ChatLog } from './ChatLog';
 import { ChatMessageDialog } from './ChatMessageDialog';
 import { ChatSignIn } from './ChatSignIn';
@@ -150,24 +144,7 @@ export const ChatConversation = (props: ChatConversationProps) => {
         />
       );
     case 'error':
-      return (
-        <div className="m-auto p-4">
-          <StatusMessage
-            variant="error"
-            action={
-              <button
-                type="button"
-                className="btn btn-ghost btn-xs sm:btn-sm md:btn-md"
-                onClick={chat.retry}
-              >
-                {retry({}, { locale })}
-              </button>
-            }
-          >
-            {chat_load_error({}, { locale })}
-          </StatusMessage>
-        </div>
-      );
+      return <ChatLoadFailure locale={locale} onRetry={chat.retry} />;
     case 'unavailable':
       return <Notice>{chat_unavailable({}, { locale })}</Notice>;
     case 'revoked':
