@@ -1,3 +1,5 @@
+import { isAppleMobile } from '../../lib/apple-mobile';
+
 export type PushState =
   | 'checking'
   | 'unsupported'
@@ -73,9 +75,4 @@ export const pushIsActionable = (state: PushState): boolean =>
 export const installRequiredFor = (
   userAgent: string,
   standalone: boolean,
-): boolean => {
-  const isIos =
-    /iphone|ipad|ipod/i.test(userAgent) ||
-    (/macintosh/i.test(userAgent) && /mobile/i.test(userAgent));
-  return isIos && !standalone;
-};
+): boolean => isAppleMobile(userAgent) && !standalone;
