@@ -4,6 +4,7 @@ import { logger } from '@founders-coffee/observability';
 
 export const MAPBOX_WORKER_URL = workerUrl;
 
+let library: Promise<unknown> | undefined;
 let isLibraryLost = false;
 
 const logLoadFailure = (error: unknown): void => {
@@ -37,19 +38,28 @@ const logLoadFailure = (error: unknown): void => {
  * fallback path it would take never runs in a browser — and the guard keeps 2.3 MB of browser code
  * from being evaluated in the Worker during SSR.
  *
+ * One download serves the page. The promise is kept, so every map that asks shares it and a
+ * failure is logged once. The meetup page's map asks when it first renders rather than when its
+ * module loads, because a hover or a touch on a meetup card preloads that module: measured on
+ * production on 2026-10-05, a scroll that merely started on a card fetched 504 KB, 463 KB of it
+ * this library, on a page with no map. Waiting cost the map about 60 ms at most, since the
+ * preload only started the download a few tens of milliseconds before the meetup page rendered.
+ *
  * A failed download is logged here, as the warning `map.library_load_failed`, and the map still
- * draws its own failure state from the same rejection. The download starts when a map's module is
- * evaluated, and a hover's preload of a meetup page does that long before any map mounts to take
- * the rejection: on 2026-10-04 a phone on `/ar/algeria` lost the download that way, and it surfaced
- * as an unhandled error that read like a deploy's missing script.
+ * draws its own failure state from the same rejection. Nothing else may be listening when it
+ * fails: the meetup page's map mounts only once its token has arrived. Before that map waited for
+ * its first render, a hover started the download with no map at all: on 2026-10-04 a phone on
+ * `/ar/algeria` lost it that way, and it surfaced as an unhandled error that read like a deploy's
+ * missing script.
  */
 export const loadMapboxCsp = (): Promise<unknown> | undefined => {
   if (typeof window === 'undefined') return undefined;
-  const loading = import('mapbox-gl/dist/mapbox-gl-csp.js').then(
+  if (library) return library;
+  library = import('mapbox-gl/dist/mapbox-gl-csp.js').then(
     (module) => module.default,
   );
-  loading.catch(logLoadFailure);
-  return loading;
+  library.catch(logLoadFailure);
+  return library;
 };
 
 /**

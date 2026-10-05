@@ -68,6 +68,25 @@ describe('loadMapboxCsp', () => {
   });
 });
 
+describe('the download a page shares', () => {
+  it('hands every map that asks the same download', async () => {
+    const { loadMapboxCsp } = await loaderWith(() => ({
+      default: { Map: class {} },
+    }));
+
+    expect(loadMapboxCsp()).toBe(loadMapboxCsp());
+  });
+
+  it('logs a failed download once, however many maps ask for it after', async () => {
+    const { loadMapboxCsp } = await loaderWith(failedDownload);
+
+    await settled(loadMapboxCsp());
+    await settled(loadMapboxCsp());
+
+    expect(warn).toHaveBeenCalledOnce();
+  });
+});
+
 describe('retryMap', () => {
   it('remounts a map whose library arrived, on this page', async () => {
     const { loadMapboxCsp, retryMap } = await loaderWith(() => ({

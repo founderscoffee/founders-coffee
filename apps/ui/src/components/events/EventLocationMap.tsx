@@ -13,7 +13,6 @@ import { useMapboxToken } from '../../features/events/hooks';
 import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
-const mapLib = loadMapboxCsp();
 
 const MapSkeleton = ({ locale }: { locale: Locale }) => (
   <div className="absolute inset-0 z-20">
@@ -39,6 +38,7 @@ export const EventLocationMap = ({
   longitude,
 }: EventLocationMapProps) => {
   const mapboxToken = useMapboxToken();
+  const [mapLib] = useState(loadMapboxCsp);
   const [hasMapError, setHasMapError] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const locationLabel = event_map_label({ venue }, { locale });
