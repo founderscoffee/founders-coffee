@@ -7,8 +7,7 @@ vi.mock('@founders-coffee/observability', () => ({ logger: { warn } }));
 const loaderWith = async (library: () => object) => {
   vi.resetModules();
   vi.doMock('mapbox-gl/dist/mapbox-gl-csp.js', library);
-  const { loadMapboxCsp } = await import('./mapbox-csp');
-  return loadMapboxCsp;
+  return import('./mapbox-csp');
 };
 
 const failedDownload = () => {
@@ -17,22 +16,29 @@ const failedDownload = () => {
   );
 };
 
+const settled = (loading: Promise<unknown> | undefined) =>
+  loading?.then(
+    () => undefined,
+    () => undefined,
+  );
+
 afterEach(() => {
   vi.doUnmock('mapbox-gl/dist/mapbox-gl-csp.js');
+  vi.unstubAllGlobals();
   warn.mockReset();
 });
 
 describe('loadMapboxCsp', () => {
   it("hands the map the library's default export", async () => {
     const library = { Map: class {} };
-    const loadMapboxCsp = await loaderWith(() => ({ default: library }));
+    const { loadMapboxCsp } = await loaderWith(() => ({ default: library }));
 
     await expect(loadMapboxCsp()).resolves.toBe(library);
     expect(warn).not.toHaveBeenCalled();
   });
 
   it('logs a failed download as a warning and still hands the failure to the map', async () => {
-    const loadMapboxCsp = await loaderWith(failedDownload);
+    const { loadMapboxCsp } = await loaderWith(failedDownload);
 
     const failure = await loadMapboxCsp()?.then(
       () => undefined,
@@ -46,7 +52,7 @@ describe('loadMapboxCsp', () => {
   });
 
   it('leaves no rejection unhandled while no map has mounted to take it', async () => {
-    const loadMapboxCsp = await loaderWith(failedDownload);
+    const { loadMapboxCsp } = await loaderWith(failedDownload);
     const unhandled = vi.fn();
     process.on('unhandledRejection', unhandled);
 
@@ -59,5 +65,38 @@ describe('loadMapboxCsp', () => {
       'on 2026-10-04 a hover on /ar/algeria started the download and its failure reached the window unhandled',
     ).not.toHaveBeenCalled();
     expect(warn).toHaveBeenCalledOnce();
+  });
+});
+
+describe('retryMap', () => {
+  it('remounts a map whose library arrived, on this page', async () => {
+    const { loadMapboxCsp, retryMap } = await loaderWith(() => ({
+      default: { Map: class {} },
+    }));
+    const reload = vi.fn();
+    vi.stubGlobal('location', { ...window.location, reload });
+    const remount = vi.fn();
+
+    await settled(loadMapboxCsp());
+    retryMap(remount);
+
+    expect(remount).toHaveBeenCalledOnce();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('loads the page again once the library download failed, since nothing else fetches it', async () => {
+    const { loadMapboxCsp, retryMap } = await loaderWith(failedDownload);
+    const reload = vi.fn();
+    vi.stubGlobal('location', { ...window.location, reload });
+    const remount = vi.fn();
+
+    await settled(loadMapboxCsp());
+    retryMap(remount);
+
+    expect(reload).toHaveBeenCalledOnce();
+    expect(
+      remount,
+      'a remounted map awaits the same failed import, which the browser rejects again without a request',
+    ).not.toHaveBeenCalled();
   });
 });

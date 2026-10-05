@@ -16,7 +16,11 @@ import type {
   HostMapViewport,
   VenueSelection,
 } from '../../features/events/types';
-import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
+import {
+  loadMapboxCsp,
+  MAPBOX_WORKER_URL,
+  retryMap,
+} from '../../lib/mapbox-csp';
 import { HostLocateButton } from './HostLocateButton';
 import { HostLocationPrompt } from './HostLocationPrompt';
 import { HostMapFailure } from './HostMapFailure';
@@ -169,11 +173,13 @@ export const HostMap = ({
     return (
       <HostMapFailure
         locale={locale}
-        onRetry={() => {
-          setHasMapError(false);
-          setIsMapReady(false);
-          setMapKey((value) => value + 1);
-        }}
+        onRetry={() =>
+          retryMap(() => {
+            setHasMapError(false);
+            setIsMapReady(false);
+            setMapKey((value) => value + 1);
+          })
+        }
       />
     );
   }

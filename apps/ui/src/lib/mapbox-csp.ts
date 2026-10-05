@@ -4,7 +4,10 @@ import { logger } from '@founders-coffee/observability';
 
 export const MAPBOX_WORKER_URL = workerUrl;
 
+let isLibraryLost = false;
+
 const logLoadFailure = (error: unknown): void => {
+  isLibraryLost = true;
   logger.warn('map.library_load_failed', {
     message: error instanceof Error ? error.message : String(error),
   });
@@ -47,4 +50,22 @@ export const loadMapboxCsp = (): Promise<unknown> | undefined => {
   );
   loading.catch(logLoadFailure);
   return loading;
+};
+
+/**
+ * Try a map that failed again: remount it, unless the failure was the library's own download.
+ *
+ * A browser keeps a module that failed to load as failed for the rest of the page. A second
+ * `import()` of it rejects at once without a new request (Chromium, measured 2026-10-05), so a
+ * remounted map only met the same rejection, and Retry on the host map could never succeed. Only
+ * a new page load fetches the library again, so that is what Retry does then. The host loses
+ * nothing to it: the wizard, a repeat included, and the edit page keep what the host typed for the
+ * tab and put it back on load.
+ */
+export const retryMap = (remount: () => void): void => {
+  if (isLibraryLost) {
+    window.location.reload();
+    return;
+  }
+  remount();
 };
