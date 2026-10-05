@@ -92,6 +92,21 @@ describe('host create draft', () => {
     expect(window.sessionStorage.getItem('fc:event-draft:DZ')).toBeNull();
   });
 
+  it('keeps a repeat’s draft for that repeat, and for a plain wizard', () => {
+    writeHostCreateDraft('DZ', draft, 'evt_previous');
+
+    expect(readHostCreateDraft('DZ', 'evt_previous')).toEqual(draft);
+    expect(readHostCreateDraft('DZ', 'evt_other')).toBeNull();
+    expect(readHostCreateDraft('DZ')).toEqual(draft);
+  });
+
+  it('leaves a plain draft out of a repeat', () => {
+    writeHostCreateDraft('DZ', draft);
+
+    expect(readHostCreateDraft('DZ', 'evt_previous')).toBeNull();
+    expect(readHostCreateDraft('DZ')).toEqual(draft);
+  });
+
   it('clears persisted state after successful publication', () => {
     writeHostCreateDraft('DZ', draft);
     clearHostCreateDraft('DZ');
@@ -130,6 +145,16 @@ describe('AR: a draft this module wrote is always readable', () => {
     expect(restored?.title).toBe(base.title);
     expect(restored?.venue?.name).toBe('Founders Café');
     expect(restored?.searchValue.length).toBe(VENUE_SEARCH_MAX_LENGTH);
+  });
+
+  it('survives a repeat id longer than the schema allows, as a plain draft', () => {
+    writeHostCreateDraft(
+      'DZ',
+      { ...base, searchValue: '' },
+      `evt_${'x'.repeat(80)}`,
+    );
+
+    expect(readHostCreateDraft('DZ')?.title).toBe(base.title);
   });
 
   it('still discards a draft it did not write', () => {

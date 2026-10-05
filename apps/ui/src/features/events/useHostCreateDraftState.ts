@@ -49,6 +49,8 @@ export const useHostCreateDraftState = ({
   >(null);
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
+  const repeat =
+    repeatTemplate?.marketCode === marketCode ? repeatTemplate : null;
 
   const draft: HostCreateDraft = {
     step,
@@ -73,36 +75,42 @@ export const useHostCreateDraftState = ({
       setDescription(next.description);
       setChosenLanguages(next.chosenLanguages);
     };
-    const isMatchingRepeat = repeatTemplate?.marketCode === marketCode;
-    setIsRepeat(isMatchingRepeat);
-    const restored = isMatchingRepeat ? null : readHostCreateDraft(marketCode);
+    setIsRepeat(repeat !== null);
+    const restored = repeat
+      ? readHostCreateDraft(marketCode, repeat.sourceEventId)
+      : readHostCreateDraft(marketCode);
     if (restored) {
       setStep(restoredDraftStep(restored, locale));
       apply(restored);
-    } else if (isMatchingRepeat && repeatTemplate) {
-      const repeated = repeatDraftFrom(repeatTemplate);
+    } else if (repeat) {
+      const repeated = repeatDraftFrom(repeat);
       setStep(repeated.step);
       apply(repeated);
     }
     setHasRestoredDraft(true);
-  }, [marketCode, locale, repeatTemplate]);
+  }, [marketCode, locale, repeat]);
 
   useEffect(() => {
     if (!hasRestoredDraft) return;
-    writeHostCreateDraft(marketCode, {
-      step,
-      venue,
-      venueName,
-      searchValue,
-      startsAt,
-      endsAt,
-      title,
-      description,
-      chosenLanguages,
-    });
+    writeHostCreateDraft(
+      marketCode,
+      {
+        step,
+        venue,
+        venueName,
+        searchValue,
+        startsAt,
+        endsAt,
+        title,
+        description,
+        chosenLanguages,
+      },
+      repeat?.sourceEventId,
+    );
   }, [
     hasRestoredDraft,
     marketCode,
+    repeat,
     step,
     venue,
     venueName,
