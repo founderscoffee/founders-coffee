@@ -37,6 +37,7 @@ const renderPage = (locale: Locale, host: Host) =>
       live={null}
       isWindowOpen={false}
       phase="upcoming"
+      mapboxToken={null}
     />,
   );
 
@@ -145,6 +146,7 @@ const renderAsHost = (
       live={null}
       isWindowOpen={false}
       phase="upcoming"
+      mapboxToken={null}
     />,
   );
 

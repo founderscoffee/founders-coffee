@@ -1,6 +1,8 @@
+import { isNotFound } from '@tanstack/react-router';
 import { renderToString } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AppError } from '@founders-coffee/core';
 import type { EventDetailItem } from '@founders-coffee/server-fns';
 
 import {
@@ -18,7 +20,12 @@ const seen = vi.hoisted(() => ({
   reloads: 0,
 }));
 
-vi.mock('@founders-coffee/server-fns', () => ({ getEventPage: vi.fn() }));
+const serverFns = vi.hoisted(() => ({
+  getEventPage: vi.fn(),
+  getMapboxToken: vi.fn(),
+}));
+
+vi.mock('@founders-coffee/server-fns', () => serverFns);
 
 vi.mock('../components/events/EventDetail', () => ({
   EventDetail: (props: Props) => {
@@ -70,6 +77,7 @@ const serverRender = (viewerId: string | null, base = inProgress) => {
     event: detailOf(base),
     host: null,
     viewerId,
+    mapboxToken: 'pk.test',
   });
   const Page = Route.options.component;
   if (!Page) throw new Error('the meetup route lost its component');
@@ -136,5 +144,62 @@ describe("the meetup page's reader, as the server renders it", () => {
     serverRender(HOST_ID);
 
     expect(seen.reloads).toBeGreaterThan(0);
+  });
+
+  it('hands the page the Mapbox token its loader read, for the map picture', () => {
+    const { detail } = serverRender(null);
+
+    expect(detail?.mapboxToken).toBe('pk.test');
+  });
+});
+
+const load = async () => {
+  const loader = Route.options.loader;
+  if (typeof loader !== 'function')
+    throw new Error('the meetup route lost its loader');
+  return loader({
+    params: { locale: 'en', market: 'algeria', slug: upcoming.slug },
+    context: { locale: 'en', markets: [market] },
+  } as never);
+};
+
+describe("the meetup page's loader", () => {
+  beforeEach(() => {
+    serverFns.getEventPage.mockReset().mockResolvedValue({
+      market,
+      event: detailOf(upcoming),
+      host: null,
+      viewerId: null,
+    } as never);
+    serverFns.getMapboxToken.mockReset().mockResolvedValue('pk.test');
+  });
+
+  it('reads the Mapbox token beside the page, so the map picture is in the page the server sends', async () => {
+    const data = await load();
+
+    expect(data?.mapboxToken).toBe('pk.test');
+    expect(serverFns.getMapboxToken).toHaveBeenCalledOnce();
+  });
+
+  it('serves the page without the picture when the token cannot be read', async () => {
+    serverFns.getMapboxToken.mockRejectedValue(
+      new AppError('env_missing', 'Missing required env var: MAPBOX_TOKEN'),
+    );
+
+    const data = await load();
+
+    expect(
+      data?.mapboxToken,
+      'the token only draws the picture: the place, its pin and its directions need none',
+    ).toBeNull();
+    expect(data?.event.slug).toBe(upcoming.slug);
+  });
+
+  it('still answers a meetup its market does not have as a missing page', async () => {
+    serverFns.getEventPage.mockRejectedValue(
+      new AppError('event_not_found', 'Event not found'),
+    );
+
+    await expect(load()).rejects.toSatisfy(isNotFound);
   });
 });

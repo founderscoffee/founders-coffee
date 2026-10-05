@@ -23,6 +23,7 @@ describe('EventDetail structured data ownership', () => {
         live={null}
         isWindowOpen={false}
         phase="upcoming"
+        mapboxToken={null}
       />,
     );
 
@@ -56,6 +57,7 @@ const show = (
       live={null}
       isWindowOpen={false}
       phase={phase}
+      mapboxToken={null}
     />,
   );
 

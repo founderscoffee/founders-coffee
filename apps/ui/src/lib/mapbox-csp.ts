@@ -39,17 +39,16 @@ const logLoadFailure = (error: unknown): void => {
  * from being evaluated in the Worker during SSR.
  *
  * One download serves the page. The promise is kept, so every map that asks shares it and a
- * failure is logged once. The meetup page's map asks when it first renders rather than when its
- * module loads, because a hover or a touch on a meetup card preloads that module: measured on
- * production on 2026-10-05, a scroll that merely started on a card fetched 504 KB, 463 KB of it
- * this library, on a page with no map. Waiting cost the map about 60 ms at most, since the
- * preload only started the download a few tens of milliseconds before the meetup page rendered.
+ * failure is logged once. Only the maps a host places a meetup on ask: the meetup page shows
+ * Mapbox's static picture of its place instead (`static-map.ts`), so a hover or a touch on a meetup
+ * card, which preloads that page, fetches none of this library. While the meetup page still drew a
+ * live map, a scroll that merely started on a card fetched 504 KB, 463 KB of it this library
+ * (production, 2026-10-05).
  *
  * A failed download is logged here, as the warning `map.library_load_failed`, and the map still
  * draws its own failure state from the same rejection. Nothing else may be listening when it
- * fails: the meetup page's map mounts only once its token has arrived. Before that map waited for
- * its first render, a hover started the download with no map at all: on 2026-10-04 a phone on
- * `/ar/algeria` lost it that way, and it surfaced as an unhandled error that read like a deploy's
+ * fails: on 2026-10-04 a hover on `/ar/algeria` started the download for a meetup page's map that
+ * was never drawn, a phone lost it, and it surfaced as an unhandled error that read like a deploy's
  * missing script.
  */
 export const loadMapboxCsp = (): Promise<unknown> | undefined => {

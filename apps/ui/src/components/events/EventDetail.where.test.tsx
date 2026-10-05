@@ -26,6 +26,7 @@ const show = (item: EventDetailItem, locale: Locale) =>
       live={null}
       isWindowOpen={false}
       phase="upcoming"
+      mapboxToken={null}
     />,
   );
 
