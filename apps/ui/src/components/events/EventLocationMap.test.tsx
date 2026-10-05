@@ -61,6 +61,14 @@ describe("the meetup page's map", () => {
     ]);
   });
 
+  it('asks for its picture first, the largest thing on the first screen of the page', () => {
+    const { container } = render(meetup('pk.test'));
+
+    expect(
+      container.querySelector('picture img')?.getAttribute('fetchpriority'),
+    ).toBe('high');
+  });
+
   it('asks for pictures exactly as tall as the box it draws on each screen', () => {
     const { container } = render(meetup('pk.test'));
     const classes = container.querySelector('a')?.className.split(' ') ?? [];

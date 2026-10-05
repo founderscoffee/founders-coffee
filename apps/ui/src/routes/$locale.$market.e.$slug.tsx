@@ -20,6 +20,7 @@ import { localizedEvent } from '../lib/locale-routing';
 import { useReloadOnMemberChange } from '../lib/reload-on-member-change';
 import { canonicalUrl, getSiteOrigin } from '../lib/seo';
 import { eventPageHead } from '../lib/seo-event';
+import { staticMapHeadLinks } from '../lib/static-map';
 
 type EventRouteData = EventPage & {
   readonly locale: Locale;
@@ -106,7 +107,7 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
     });
     const citySlug = loaderData.event.citySlug ?? loaderData.event.cityCode;
     const marketName = localizedName(loaderData.market, loaderData.locale);
-    return eventPageHead({
+    const head = eventPageHead({
       locale: loaderData.locale,
       marketCode: loaderData.market.code,
       eventId: loaderData.event.id,
@@ -166,5 +167,12 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
         { name: loaderData.event.title, url: eventUrl },
       ],
     });
+    return {
+      ...head,
+      links: [
+        ...head.links,
+        ...staticMapHeadLinks(loaderData.event, loaderData.mapboxToken),
+      ],
+    };
   },
 });

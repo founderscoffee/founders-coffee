@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { staticMapPicture, staticMapUrl } from './static-map';
+import {
+  STATIC_MAP_ORIGIN,
+  staticMapHeadLinks,
+  staticMapPicture,
+  staticMapUrl,
+} from './static-map';
 
 const ALGIERS = { latitude: 36.7538, longitude: 3.0588 };
 
@@ -75,6 +80,36 @@ describe('staticMapPicture', () => {
     expect(boxOf(picture.src)).toBe('400x224@2x');
     expect(picture.srcSet).toBe(
       `${staticMapUrl(ALGIERS, { width: 400, height: 224 }, 1, 'pk.test')} 1x, ${picture.src} 2x`,
+    );
+  });
+});
+
+describe('staticMapHeadLinks', () => {
+  it('opens a connection to the server every picture comes from', () => {
+    expect(staticMapHeadLinks(ALGIERS, 'pk.test')).toEqual([
+      { rel: 'preconnect', href: STATIC_MAP_ORIGIN },
+    ]);
+    expect(
+      new URL(staticMapUrl(ALGIERS, { width: 400, height: 224 }, 2, 'pk.test'))
+        .origin,
+    ).toBe(STATIC_MAP_ORIGIN);
+  });
+
+  it('opens none for a page that shows no picture', () => {
+    expect(staticMapHeadLinks(ALGIERS, null), 'no token').toEqual([]);
+    expect(
+      staticMapHeadLinks({ latitude: null, longitude: 3.0588 }, 'pk.test'),
+      'no place',
+    ).toEqual([]);
+    expect(
+      staticMapHeadLinks({ latitude: 36.7538, longitude: null }, 'pk.test'),
+      'half a place',
+    ).toEqual([]);
+  });
+
+  it('opens the connection a picture fetched without CORS uses', () => {
+    expect(staticMapHeadLinks(ALGIERS, 'pk.test')[0]).not.toHaveProperty(
+      'crossOrigin',
     );
   });
 });

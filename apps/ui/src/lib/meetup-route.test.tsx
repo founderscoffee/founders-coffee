@@ -163,6 +163,56 @@ const load = async () => {
   } as never);
 };
 
+const headOf = async (
+  place: { latitude: number | null; longitude: number | null },
+  mapboxToken: string | null,
+) => {
+  const head = Route.options.head;
+  if (typeof head !== 'function')
+    throw new Error('the meetup route lost its head');
+  return head({
+    loaderData: {
+      locale: 'en',
+      market,
+      event: { ...detailOf(upcoming), ...place },
+      host: null,
+      viewerId: null,
+      mapboxToken,
+    },
+  } as never);
+};
+
+const preconnects = (head: Awaited<ReturnType<typeof headOf>>) =>
+  (head.links ?? []).filter((link) => link?.rel === 'preconnect');
+
+describe("the meetup page's head", () => {
+  it("opens a connection to Mapbox for the map's picture before the page reaches it", async () => {
+    const head = await headOf(
+      { latitude: 36.7538, longitude: 3.0588 },
+      'pk.test',
+    );
+
+    expect(preconnects(head)).toEqual([
+      { rel: 'preconnect', href: 'https://api.mapbox.com' },
+    ]);
+    expect(
+      head.links?.some((link) => link?.rel === 'canonical'),
+      'the links the page already had stay',
+    ).toBe(true);
+  });
+
+  it('opens none when the page shows no picture', async () => {
+    expect(
+      preconnects(await headOf({ latitude: 36.7538, longitude: 3.0588 }, null)),
+      'no token',
+    ).toEqual([]);
+    expect(
+      preconnects(await headOf({ latitude: null, longitude: null }, 'pk.test')),
+      'no place',
+    ).toEqual([]);
+  });
+});
+
 describe("the meetup page's loader", () => {
   beforeEach(() => {
     serverFns.getEventPage.mockReset().mockResolvedValue({

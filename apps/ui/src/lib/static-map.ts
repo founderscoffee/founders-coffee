@@ -29,6 +29,8 @@ export type StaticMapPicture = {
   readonly srcSet: string;
 };
 
+export const STATIC_MAP_ORIGIN = 'https://api.mapbox.com';
+
 export type StaticMapCredit = {
   readonly label: string;
   readonly href: string;
@@ -59,7 +61,7 @@ export const staticMapUrl = (
   density: 1 | 2,
   token: string,
 ): string =>
-  `https://api.mapbox.com/styles/v1/${STYLE}/static/${formatCoordinate(point.longitude)},${formatCoordinate(point.latitude)},${ZOOM}/${box.width}x${box.height}${density === 2 ? '@2x' : ''}?attribution=false&logo=false&access_token=${encodeURIComponent(token)}`;
+  `${STATIC_MAP_ORIGIN}/styles/v1/${STYLE}/static/${formatCoordinate(point.longitude)},${formatCoordinate(point.latitude)},${ZOOM}/${box.width}x${box.height}${density === 2 ? '@2x' : ''}?attribution=false&logo=false&access_token=${encodeURIComponent(token)}`;
 
 const srcSetFor = (point: MapPoint, box: MapBox, token: string): string =>
   `${staticMapUrl(point, box, 1, token)} 1x, ${staticMapUrl(point, box, 2, token)} 2x`;
@@ -90,3 +92,28 @@ export const staticMapPicture = (
   src: staticMapUrl(point, PHONE, 2, token),
   srcSet: srcSetFor(point, PHONE, token),
 });
+
+/**
+ * The links for the head of a page that shows Mapbox's picture of `place`: a connection to Mapbox's
+ * API, opened before the page reaches its `<picture>`, or none when the page shows no picture for
+ * want of a place or a token.
+ *
+ * The picture is the largest thing on the meetup page's first screen, on a 360 and a 390px phone
+ * and on a 1280px desktop (2026-10-05), so it is the page's largest contentful paint, and on a
+ * first visit its request also waits for a connection to a server the page has not used yet: DNS,
+ * TCP and TLS, up to three round trips, about 450 ms on slow 4G. TanStack Start lists the link in
+ * the response's Link header too, which Cloudflare sends later readers of the page as an Early
+ * Hint, before the Worker has rendered anything (`isCacheSafeEarlyHint` lets it through). It
+ * carries no `crossorigin`: the picture is fetched without CORS, and a browser keeps the
+ * connections for the two apart.
+ */
+export const staticMapHeadLinks = (
+  place: {
+    readonly latitude: number | null;
+    readonly longitude: number | null;
+  },
+  token: string | null,
+): readonly { readonly rel: 'preconnect'; readonly href: string }[] =>
+  place.latitude != null && place.longitude != null && token
+    ? [{ rel: 'preconnect', href: STATIC_MAP_ORIGIN }]
+    : [];

@@ -118,6 +118,10 @@ describe("a meetup's page", () => {
     expect(body, 'nor a picture to credit').not.toContain(
       'apps.mapbox.com/feedback',
     );
+    expect(body, 'nor a connection to open for one').not.toContain(
+      'href="https://api.mapbox.com"',
+    );
+    expect(response.headers.get('link') ?? '').not.toContain('api.mapbox.com');
   });
 
   it('names its host at the address their profile answers on', async () => {

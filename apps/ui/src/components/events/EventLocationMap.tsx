@@ -70,6 +70,7 @@ export const EventLocationMap = ({
                 src={picture.src}
                 srcSet={picture.srcSet}
                 alt=""
+                fetchPriority="high"
                 decoding="async"
                 className="absolute inset-0 size-full object-cover"
               />

@@ -3,6 +3,7 @@ import type { ResponseLinkHeaderEntry } from '@tanstack/react-start/server';
 import { LOCALES } from '@founders-coffee/i18n';
 
 import { isPrivatePath } from './indexation';
+import { STATIC_MAP_ORIGIN } from './static-map';
 
 const PUBLIC_LOCALES = new Set<string>(LOCALES);
 const ASSET_PATH_PREFIX = '/assets/';
@@ -40,11 +41,20 @@ export const shouldEmitEarlyHints = (
   pathname: string,
 ): boolean => isHtmlRequest(request) && isPublicEarlyHintsPath(pathname);
 
+/**
+ * Whether a Link header entry may go out with a page. Cloudflare keeps a page's Link header and
+ * sends it ahead of later responses for that page as an Early Hint, so only entries that hold for
+ * every reader go out: the app's own build assets (same origin, under `/assets/`, no query or
+ * fragment), and the one connection a meetup page opens ahead of time, to Mapbox's API for its
+ * map's picture (`staticMapHeadLinks`), which names an origin and nothing else.
+ */
 export const isCacheSafeEarlyHint = (
   entry: ResponseLinkHeaderEntry,
   origin: string,
 ): boolean => {
   if (entry.phase !== 'static' && entry.phase !== 'dynamic') return false;
+  if (entry.hint.rel === 'preconnect')
+    return entry.hint.href === STATIC_MAP_ORIGIN;
   if (entry.hint.rel !== 'preload' && entry.hint.rel !== 'modulepreload')
     return false;
   try {
