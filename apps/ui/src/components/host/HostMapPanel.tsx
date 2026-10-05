@@ -12,6 +12,7 @@ import { Button, StatusMessage } from '@founders-coffee/ui';
 
 import type { VenueSelection } from '../../features/events/types';
 import { ClientOnly } from './ClientOnly';
+import { HostMapBoundary } from './HostMapBoundary';
 import { HostMapSkeleton } from './HostMapSkeleton';
 import type { ControlSize } from './useControlSize';
 
@@ -61,45 +62,47 @@ export const HostMapPanel = ({
   onMiss?: () => void;
 }) => (
   <ClientOnly fallback={<HostMapSkeleton locale={locale} />}>
-    <Suspense fallback={<HostMapSkeleton locale={locale} />}>
-      {viewport ? (
-        <HostMap
-          accessToken={accessToken}
-          venue={venue}
-          viewport={viewport}
-          cityCode={cityCode}
-          marketCode={marketCode}
-          locale={locale}
-          isInteractive={isInteractive}
-          covered={covered}
-          onVenueSelect={onVenueSelect}
-          onVenueInvalidate={onVenueInvalidate}
-          onCenterChange={onCenterChange}
-          onUserMove={onUserMove}
-          onUserGestureEnd={onUserGestureEnd}
-          onLocateResize={onLocateResize}
-          onCitySelect={onCitySelect}
-          onSearch={onSearch}
-          onMiss={onMiss}
-        />
-      ) : error ? (
-        <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">
-          <StatusMessage
-            variant="error"
-            action={
-              <Button variant="outline" onClick={onRetry}>
-                {retry({}, { locale })}
-              </Button>
-            }
-          >
-            {appErrorCode(error) === 'rate_limited'
-              ? host_venue_rate_limited({}, { locale })
-              : host_map_error({}, { locale })}
-          </StatusMessage>
-        </div>
-      ) : (
-        <HostMapSkeleton locale={locale} />
-      )}
-    </Suspense>
+    <HostMapBoundary locale={locale}>
+      <Suspense fallback={<HostMapSkeleton locale={locale} />}>
+        {viewport ? (
+          <HostMap
+            accessToken={accessToken}
+            venue={venue}
+            viewport={viewport}
+            cityCode={cityCode}
+            marketCode={marketCode}
+            locale={locale}
+            isInteractive={isInteractive}
+            covered={covered}
+            onVenueSelect={onVenueSelect}
+            onVenueInvalidate={onVenueInvalidate}
+            onCenterChange={onCenterChange}
+            onUserMove={onUserMove}
+            onUserGestureEnd={onUserGestureEnd}
+            onLocateResize={onLocateResize}
+            onCitySelect={onCitySelect}
+            onSearch={onSearch}
+            onMiss={onMiss}
+          />
+        ) : error ? (
+          <div className="flex h-full min-h-64 items-center justify-center bg-base-200 p-6">
+            <StatusMessage
+              variant="error"
+              action={
+                <Button variant="outline" onClick={onRetry}>
+                  {retry({}, { locale })}
+                </Button>
+              }
+            >
+              {appErrorCode(error) === 'rate_limited'
+                ? host_venue_rate_limited({}, { locale })
+                : host_map_error({}, { locale })}
+            </StatusMessage>
+          </div>
+        ) : (
+          <HostMapSkeleton locale={locale} />
+        )}
+      </Suspense>
+    </HostMapBoundary>
   </ClientOnly>
 );
