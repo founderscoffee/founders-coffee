@@ -1,7 +1,10 @@
 import type { MakeRouteMatchUnion } from '@tanstack/react-router';
 
 type ChromeMatch = {
-  readonly staticData: { readonly hasOwnMobileHeader?: boolean };
+  readonly staticData: {
+    readonly hasOwnMobileHeader?: boolean;
+    readonly isFocusedTask?: boolean;
+  };
 };
 
 /**
@@ -12,6 +15,16 @@ type ChromeMatch = {
  */
 export const hasOwnMobileHeader = (matches: readonly ChromeMatch[]): boolean =>
   matches.some((match) => match.staticData.hasOwnMobileHeader === true);
+
+/**
+ * Whether the page on screen is a task the reader is in the middle of, which nothing unasked opens over.
+ *
+ * Signing in, setting up a profile, the host wizard, and editing, closing out or reviewing a meetup
+ * are each a form being worked through. The install sheet waits for the next page rather than cover
+ * a code field or a form's last button.
+ */
+export const isFocusedTask = (matches: readonly ChromeMatch[]): boolean =>
+  matches.some((match) => match.staticData.isFocusedTask === true);
 
 /**
  * The code of the city the page on screen is about, for the site's Host links to open the wizard on.

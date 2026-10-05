@@ -7,6 +7,7 @@ import {
 } from '../lib/redirect';
 
 export const Route = createFileRoute('/$locale/onboarding')({
+  staticData: { isFocusedTask: true },
   validateSearch: authReturnSearchSchema,
   search: { middlewares: [withoutDefaultReturnPath()] },
   beforeLoad: ({ search }) => {

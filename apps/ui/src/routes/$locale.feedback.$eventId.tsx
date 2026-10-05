@@ -14,6 +14,7 @@ const FeedbackRoute = () => {
 };
 
 export const Route = createFileRoute('/$locale/feedback/$eventId')({
+  staticData: { isFocusedTask: true },
   beforeLoad: async ({ location, context }) => {
     await requireSession(context.locale, location.href);
   },

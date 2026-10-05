@@ -29,6 +29,7 @@ const LoginRoute = () => {
 };
 
 export const Route = createFileRoute('/$locale/login')({
+  staticData: { isFocusedTask: true },
   headers: () => ({
     'Cache-Control': 'private, no-store',
     'X-Robots-Tag': NO_INDEX_VALUE,

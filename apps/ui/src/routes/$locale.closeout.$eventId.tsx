@@ -14,6 +14,7 @@ const CloseoutRoute = () => {
 };
 
 export const Route = createFileRoute('/$locale/closeout/$eventId')({
+  staticData: { isFocusedTask: true },
   beforeLoad: async ({ location, context }) => {
     await requireSession(context.locale, location.href);
   },
