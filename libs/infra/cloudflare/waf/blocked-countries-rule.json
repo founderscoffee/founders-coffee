@@ -1,0 +1,5 @@
+{
+  "description": "Blocked Countries",
+  "expression": "(ip.src.country in {\"BR\" \"CN\" \"HK\" \"IN\" \"IR\" \"IQ\" \"IL\" \"RU\" \"TW\" \"TH\" \"AE\"})",
+  "action": "block"
+}
