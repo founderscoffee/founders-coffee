@@ -1,6 +1,14 @@
 import workerUrl from 'virtual:mapbox-worker-url';
 
+import { logger } from '@founders-coffee/observability';
+
 export const MAPBOX_WORKER_URL = workerUrl;
+
+const logLoadFailure = (error: unknown): void => {
+  logger.warn('map.library_load_failed', {
+    message: error instanceof Error ? error.message : String(error),
+  });
+};
 
 /**
  * Load Mapbox GL's CSP build, which is the only one that survives our production bundle.
@@ -25,10 +33,18 @@ export const MAPBOX_WORKER_URL = workerUrl;
  * Returns `undefined` on the server. `react-map-gl` only awaits this inside an effect, so the
  * fallback path it would take never runs in a browser — and the guard keeps 2.3 MB of browser code
  * from being evaluated in the Worker during SSR.
+ *
+ * A failed download is logged here, as the warning `map.library_load_failed`, and the map still
+ * draws its own failure state from the same rejection. The download starts when a map's module is
+ * evaluated, and a hover's preload of a meetup page does that long before any map mounts to take
+ * the rejection: on 2026-10-04 a phone on `/ar/algeria` lost the download that way, and it surfaced
+ * as an unhandled error that read like a deploy's missing script.
  */
-export const loadMapboxCsp = (): Promise<unknown> | undefined =>
-  typeof window === 'undefined'
-    ? undefined
-    : import('mapbox-gl/dist/mapbox-gl-csp.js').then(
-        (module) => module.default,
-      );
+export const loadMapboxCsp = (): Promise<unknown> | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  const loading = import('mapbox-gl/dist/mapbox-gl-csp.js').then(
+    (module) => module.default,
+  );
+  loading.catch(logLoadFailure);
+  return loading;
+};
