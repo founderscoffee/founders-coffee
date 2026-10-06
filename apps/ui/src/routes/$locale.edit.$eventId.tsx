@@ -22,6 +22,7 @@ const EventEditRoute = () => {
 };
 
 export const Route = createFileRoute('/$locale/edit/$eventId')({
+  staticData: { isFocusedTask: true },
   preload: false,
   headers: () => ({
     'Cache-Control': 'private, no-store',

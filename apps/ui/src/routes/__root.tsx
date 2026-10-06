@@ -26,6 +26,7 @@ import { usePathLocale } from '../features/preferences/use-path-locale';
 import { useStoredLocale } from '../features/preferences/use-stored-locale';
 import { logServiceWorkerFailure } from '../features/push/service-worker-error';
 import { Footer } from '../components/shell/Footer';
+import { InstallPrompt } from '../components/shell/InstallPrompt';
 import { Navbar } from '../components/shell/Navbar';
 import { RouterNotFound } from '../components/shell/RouterFallbacks';
 import { OpenGraphLocaleAlternates } from '../components/shell/OpenGraphLocaleAlternates';
@@ -40,8 +41,13 @@ import {
 import { getRequestPath } from '../lib/seo';
 import { organizationJsonLd, websiteJsonLd } from '../lib/seo-company';
 import { errorPageHead, errorPageKind } from '../lib/seo-error';
+import { installCaptureScript } from '../lib/install-prompt';
 import { installedAppMeta } from '../lib/installed-app-head';
-import { cityCodeInView, hasOwnMobileHeader } from '../lib/route-chrome';
+import {
+  cityCodeInView,
+  hasOwnMobileHeader,
+  isFocusedTask,
+} from '../lib/route-chrome';
 import { manifestHref } from '../lib/web-manifest';
 
 import appCss from '../styles.css?url';
@@ -86,6 +92,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
   const { locale, dir, markets, activeMarket } = Route.useRouteContext();
   const isNavbarHiddenOnMobile = useMatches({ select: hasOwnMobileHeader });
   const cityCode = useMatches({ select: cityCodeInView });
+  const isOnFocusedTask = useMatches({ select: isFocusedTask });
   useClientObservability();
   useServiceWorker();
   useStoredLocale(locale);
@@ -115,6 +122,7 @@ const RootDocument = ({ children }: { children: React.ReactNode }) => {
             market={activeMarket}
             cityCode={cityCode}
           />
+          <InstallPrompt locale={locale} canShow={!isOnFocusedTask} />
         </AppProviders>
         <Scripts />
       </body>
@@ -167,6 +175,7 @@ export const Route = createRootRoute({
       ],
       scripts: [
         { children: authSlotScript() },
+        { children: installCaptureScript() },
         ...(pageHead?.scripts ?? [
           {
             type: 'application/ld+json',

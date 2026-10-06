@@ -61,6 +61,8 @@ describe("a meetup's page", () => {
         venue: 'Café des Délices',
         startsAt: new Date('2099-01-15T18:00:00Z'),
         language: 'fr',
+        latitude: 36.7538,
+        longitude: 3.0588,
         slug: SLUG,
         status: 'published',
       })
@@ -96,6 +98,30 @@ describe("a meetup's page", () => {
     expect(body, 'the host card links to their profile').toContain(
       `/u/${HOST_ID}`,
     );
+  });
+
+  it('shows where the meetup is, with directions to it, though no Mapbox token can be read', async () => {
+    const response = await get(`/fr/algeria/e/${SLUG}`);
+    const body = await response.text();
+
+    expect(
+      response.status,
+      'the page reads the token beside the meetup, and no token here makes that read fail',
+    ).toBe(200);
+    expect(body).toContain(
+      'href="https://www.google.com/maps/dir/?api=1&amp;destination=36.7538%2C3.0588"',
+    );
+    expect(
+      body,
+      'with no token there is no picture of the place to ask Mapbox for',
+    ).not.toContain('api.mapbox.com/styles/v1');
+    expect(body, 'nor a picture to credit').not.toContain(
+      'apps.mapbox.com/feedback',
+    );
+    expect(body, 'nor a connection to open for one').not.toContain(
+      'href="https://api.mapbox.com"',
+    );
+    expect(response.headers.get('link') ?? '').not.toContain('api.mapbox.com');
   });
 
   it('names its host at the address their profile answers on', async () => {

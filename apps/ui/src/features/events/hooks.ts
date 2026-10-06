@@ -143,15 +143,6 @@ export const useEventById = (eventId: string) =>
     gcTime: 0,
   });
 
-export const useMapboxToken = (enabled = true) =>
-  useQuery<string>({
-    queryKey: ['events', 'mapbox-token'],
-    queryFn: () => eventsApi.getMapboxToken(),
-    enabled,
-    staleTime: Number.POSITIVE_INFINITY,
-    retry: false,
-  });
-
 export const useRepeatEventTemplate = (eventId: string, enabled = true) =>
   useQuery<RepeatEventTemplate>({
     queryKey: ['events', 'repeat-template', eventId],

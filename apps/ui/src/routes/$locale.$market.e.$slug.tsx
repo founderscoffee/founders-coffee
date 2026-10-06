@@ -3,7 +3,11 @@ import { z } from 'zod';
 
 import { appErrorCode, eventLanguages } from '@founders-coffee/core';
 import { localizedName, type Locale } from '@founders-coffee/i18n';
-import { getEventPage, type EventPage } from '@founders-coffee/server-fns';
+import {
+  getEventPage,
+  getMapboxToken,
+  type EventPage,
+} from '@founders-coffee/server-fns';
 
 import { EventDetail } from '../components/events/EventDetail';
 import { LiveDashboard } from '../features/events/components/LiveDashboard';
@@ -16,11 +20,16 @@ import { localizedEvent } from '../lib/locale-routing';
 import { useReloadOnMemberChange } from '../lib/reload-on-member-change';
 import { canonicalUrl, getSiteOrigin } from '../lib/seo';
 import { eventPageHead } from '../lib/seo-event';
+import { staticMapHeadLinks } from '../lib/static-map';
 
-type EventRouteData = EventPage & { readonly locale: Locale };
+type EventRouteData = EventPage & {
+  readonly locale: Locale;
+  readonly mapboxToken: string | null;
+};
 
 const EventRoute = () => {
-  const { locale, market, event, host, viewerId } = Route.useLoaderData();
+  const { locale, market, event, host, viewerId, mapboxToken } =
+    Route.useLoaderData();
   useReloadOnMemberChange();
   const isHost = viewerId === event.hostId;
   const isWindowOpen =
@@ -43,6 +52,7 @@ const EventRoute = () => {
         live={viewerId ? live : null}
         isWindowOpen={isWindowOpen}
         phase={phase}
+        mapboxToken={mapboxToken}
       />
       {viewerId && isWindowOpen && isAttending && !live.notAttending && (
         <LiveDashboard live={live} currentUserId={viewerId} locale={locale} />
@@ -68,10 +78,13 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
       throw redirect(localizedEvent(context.locale, byCode.slug, params.slug));
     }
     try {
-      const page = await getEventPage({
-        data: { marketCode: market.code, slug: params.slug },
-      });
-      return { locale: context.locale, ...page };
+      const [page, mapboxToken] = await Promise.all([
+        getEventPage({
+          data: { marketCode: market.code, slug: params.slug },
+        }),
+        getMapboxToken().catch(() => null),
+      ]);
+      return { locale: context.locale, mapboxToken, ...page };
     } catch (error) {
       const code = appErrorCode(error);
       if (
@@ -94,7 +107,7 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
     });
     const citySlug = loaderData.event.citySlug ?? loaderData.event.cityCode;
     const marketName = localizedName(loaderData.market, loaderData.locale);
-    return eventPageHead({
+    const head = eventPageHead({
       locale: loaderData.locale,
       marketCode: loaderData.market.code,
       eventId: loaderData.event.id,
@@ -154,5 +167,12 @@ export const Route = createFileRoute('/$locale/$market/e/$slug')({
         { name: loaderData.event.title, url: eventUrl },
       ],
     });
+    return {
+      ...head,
+      links: [
+        ...head.links,
+        ...staticMapHeadLinks(loaderData.event, loaderData.mapboxToken),
+      ],
+    };
   },
 });

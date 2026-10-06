@@ -30,6 +30,7 @@ declare module '@tanstack/react-router' {
   }
   interface StaticDataRouteOption {
     hasOwnMobileHeader?: boolean;
+    isFocusedTask?: boolean;
   }
   interface HistoryState {
     chatOpenedHere?: boolean;

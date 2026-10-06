@@ -32,6 +32,7 @@ import {
   removeEarlyHintsFromResponse,
   shouldEmitEarlyHints,
 } from './lib/early-hints.js';
+import { withNotAcceptableForPages } from './lib/not-acceptable.js';
 import { withoutRedirectCaching } from './lib/redirect-caching.js';
 import { liveRoomEventId } from './durable-objects/event-live/path.js';
 
@@ -214,7 +215,10 @@ export default {
               },
             }
           : undefined;
-        const response = await handler.fetch(request, requestOptions);
+        const response = await withNotAcceptableForPages(
+          request,
+          await handler.fetch(request, requestOptions),
+        );
         return secure(
           withPrivateRouteHeaders(
             removeEarlyHintsFromResponse(response),

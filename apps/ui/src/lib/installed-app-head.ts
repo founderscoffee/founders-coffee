@@ -1,5 +1,5 @@
 const THEME_COLOR = '#270F00';
-const APP_SHORT_NAME = 'Founders';
+const APP_SHORT_NAME = 'Founders Coffee';
 
 /**
  * What the shell tells a phone about itself, for the window it gets once installed.

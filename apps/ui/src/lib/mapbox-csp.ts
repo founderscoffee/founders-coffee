@@ -1,6 +1,18 @@
 import workerUrl from 'virtual:mapbox-worker-url';
 
+import { logger } from '@founders-coffee/observability';
+
 export const MAPBOX_WORKER_URL = workerUrl;
+
+let library: Promise<unknown> | undefined;
+let isLibraryLost = false;
+
+const logLoadFailure = (error: unknown): void => {
+  isLibraryLost = true;
+  logger.warn('map.library_load_failed', {
+    message: error instanceof Error ? error.message : String(error),
+  });
+};
 
 /**
  * Load Mapbox GL's CSP build, which is the only one that survives our production bundle.
@@ -25,10 +37,44 @@ export const MAPBOX_WORKER_URL = workerUrl;
  * Returns `undefined` on the server. `react-map-gl` only awaits this inside an effect, so the
  * fallback path it would take never runs in a browser — and the guard keeps 2.3 MB of browser code
  * from being evaluated in the Worker during SSR.
+ *
+ * One download serves the page. The promise is kept, so every map that asks shares it and a
+ * failure is logged once. Only the maps a host places a meetup on ask: the meetup page shows
+ * Mapbox's static picture of its place instead (`static-map.ts`), so a hover or a touch on a meetup
+ * card, which preloads that page, fetches none of this library. While the meetup page still drew a
+ * live map, a scroll that merely started on a card fetched 504 KB, 463 KB of it this library
+ * (production, 2026-10-05).
+ *
+ * A failed download is logged here, as the warning `map.library_load_failed`, and the map still
+ * draws its own failure state from the same rejection. Nothing else may be listening when it
+ * fails: on 2026-10-04 a hover on `/ar/algeria` started the download for a meetup page's map that
+ * was never drawn, a phone lost it, and it surfaced as an unhandled error that read like a deploy's
+ * missing script.
  */
-export const loadMapboxCsp = (): Promise<unknown> | undefined =>
-  typeof window === 'undefined'
-    ? undefined
-    : import('mapbox-gl/dist/mapbox-gl-csp.js').then(
-        (module) => module.default,
-      );
+export const loadMapboxCsp = (): Promise<unknown> | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  if (library) return library;
+  library = import('mapbox-gl/dist/mapbox-gl-csp.js').then(
+    (module) => module.default,
+  );
+  library.catch(logLoadFailure);
+  return library;
+};
+
+/**
+ * Try a map that failed again: remount it, unless the failure was the library's own download.
+ *
+ * A browser keeps a module that failed to load as failed for the rest of the page. A second
+ * `import()` of it rejects at once without a new request (Chromium, measured 2026-10-05), so a
+ * remounted map only met the same rejection, and Retry on the host map could never succeed. Only
+ * a new page load fetches the library again, so that is what Retry does then. The host loses
+ * nothing to it: the wizard, a repeat included, and the edit page keep what the host typed for the
+ * tab and put it back on load.
+ */
+export const retryMap = (remount: () => void): void => {
+  if (isLibraryLost) {
+    window.location.reload();
+    return;
+  }
+  remount();
+};

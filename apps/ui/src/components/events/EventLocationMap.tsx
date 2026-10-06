@@ -1,86 +1,103 @@
-import { MapPin } from 'lucide-react';
-import { useState } from 'react';
-import { Map, Marker } from 'react-map-gl/mapbox';
+import { MapPin, Navigation } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
 
 import {
+  event_map_directions,
+  event_map_directions_apple,
+  event_map_directions_google,
   event_map_label,
-  event_map_loading,
   type Locale,
 } from '@founders-coffee/i18n';
-import { LoadingStatus } from '@founders-coffee/ui';
 
-import { useMapboxToken } from '../../features/events/hooks';
-import { loadMapboxCsp, MAPBOX_WORKER_URL } from '../../lib/mapbox-csp';
-
-const MAP_STYLE = 'mapbox://styles/mapbox/standard-satellite';
-const mapLib = loadMapboxCsp();
-
-const MapSkeleton = ({ locale }: { locale: Locale }) => (
-  <div className="absolute inset-0 z-20">
-    <LoadingStatus
-      label={event_map_loading({}, { locale })}
-      isLabelHidden
-      className="skeleton size-full rounded-none motion-reduce:animate-none"
-    />
-  </div>
-);
+import mapboxLogo from '../../assets/mapbox-logo.svg';
+import { directionsUrl, mapsAppFor, type MapsApp } from '../../lib/directions';
+import { staticMapPicture } from '../../lib/static-map';
+import { StaticMapCredits } from './StaticMapCredits';
 
 type EventLocationMapProps = {
   locale: Locale;
   venue: string;
   latitude: number;
   longitude: number;
+  mapboxToken: string | null;
 };
+
+const subscribeToNothing = () => () => undefined;
+
+const deviceMapsApp = (): MapsApp => mapsAppFor(navigator.userAgent);
+
+const serverMapsApp = (): MapsApp => 'google';
 
 export const EventLocationMap = ({
   locale,
   venue,
   latitude,
   longitude,
+  mapboxToken,
 }: EventLocationMapProps) => {
-  const mapboxToken = useMapboxToken();
-  const [hasMapError, setHasMapError] = useState(false);
-  const [isMapReady, setIsMapReady] = useState(false);
-  const locationLabel = event_map_label({ venue }, { locale });
+  const app = useSyncExternalStore(
+    subscribeToNothing,
+    deviceMapsApp,
+    serverMapsApp,
+  );
+  const point = { latitude, longitude };
+  const picture = mapboxToken ? staticMapPicture(point, mapboxToken) : null;
+  const directionsLabel =
+    app === 'apple'
+      ? event_map_directions_apple({ venue }, { locale })
+      : event_map_directions_google({ venue }, { locale });
 
   return (
-    <section
-      aria-label={locationLabel}
-      className="overflow-hidden rounded-box bg-base-200"
-    >
-      <div className="relative h-56 bg-base-200 sm:h-64 lg:h-72">
-        {mapboxToken.data && !hasMapError ? (
+    <section aria-label={event_map_label({ venue }, { locale })}>
+      <a
+        href={directionsUrl(app, point)}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={directionsLabel}
+        className="group relative block h-56 overflow-hidden rounded-box bg-base-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary sm:h-64 lg:h-72"
+      >
+        {picture ? (
           <>
-            <Map
-              initialViewState={{ longitude, latitude, zoom: 14.5 }}
-              mapLib={mapLib as never}
-              workerUrl={MAPBOX_WORKER_URL}
-              mapboxAccessToken={mapboxToken.data}
-              mapStyle={MAP_STYLE}
-              interactive={false}
-              attributionControl
-              onError={() => setHasMapError(true)}
-              onLoad={() => setIsMapReady(true)}
-              style={{ width: '100%', height: '100%' }}
-            >
-              <Marker longitude={longitude} latitude={latitude} anchor="bottom">
-                <MapPin
-                  className="size-9 fill-secondary text-base-100 drop-shadow-md"
-                  aria-hidden="true"
+            <picture>
+              {picture.sources.map((source) => (
+                <source
+                  key={source.media}
+                  media={source.media}
+                  srcSet={source.srcSet}
                 />
-              </Marker>
-            </Map>
-            {!isMapReady && <MapSkeleton locale={locale} />}
-          </>
-        ) : (
-          <div className="flex size-full items-center justify-center">
-            <MapPin
-              className="size-10 fill-secondary text-base-100"
-              aria-hidden="true"
+              ))}
+              <img
+                src={picture.src}
+                srcSet={picture.srcSet}
+                alt=""
+                fetchPriority="high"
+                decoding="async"
+                className="absolute inset-0 size-full object-cover"
+              />
+            </picture>
+            <img
+              src={mapboxLogo}
+              alt=""
+              width={88}
+              height={23}
+              className="absolute bottom-2 start-2"
             />
-          </div>
-        )}
-      </div>
+          </>
+        ) : null}
+        <span className="absolute inset-0 flex items-center justify-center">
+          <MapPin
+            className="size-9 -translate-y-1/2 fill-secondary text-base-100 drop-shadow-md"
+            aria-hidden="true"
+          />
+        </span>
+        <span className="absolute end-3 top-3 flex">
+          <span className="btn btn-xs sm:btn-sm md:btn-md gap-2 rounded-full border-base-300 bg-base-100 font-medium text-base-content shadow-lg backdrop-blur-md group-hover:bg-base-200">
+            <Navigation className="size-4 shrink-0" aria-hidden="true" />
+            {event_map_directions({}, { locale })}
+          </span>
+        </span>
+      </a>
+      {picture ? <StaticMapCredits locale={locale} /> : null}
     </section>
   );
 };

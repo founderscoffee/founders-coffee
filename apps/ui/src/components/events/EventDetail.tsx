@@ -51,6 +51,7 @@ type EventDetailProps = {
   live: UseEventLiveResult | null;
   isWindowOpen: boolean;
   phase: EventPhase;
+  mapboxToken: string | null;
 };
 
 export const EventDetail = ({
@@ -62,6 +63,7 @@ export const EventDetail = ({
   live,
   isWindowOpen,
   phase,
+  mapboxToken,
 }: EventDetailProps) => {
   const hostName = host?.displayName ?? role_host({}, { locale });
   const on = (value: Date, options: Intl.DateTimeFormatOptions) =>
@@ -178,6 +180,7 @@ export const EventDetail = ({
             venue={event.venue}
             latitude={event.latitude}
             longitude={event.longitude}
+            mapboxToken={mapboxToken}
           />
         </div>
       ) : null}

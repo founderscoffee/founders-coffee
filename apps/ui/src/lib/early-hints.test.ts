@@ -102,6 +102,44 @@ describe('Early Hints policy', () => {
     ).toBe(false);
   });
 
+  it("lets through the connection a meetup page opens to Mapbox for its map's picture, and no other", () => {
+    const preconnect = (href: string) => ({
+      phase: 'dynamic' as const,
+      hint: { href, rel: 'preconnect' as const },
+      link: `<${href}>; rel=preconnect`,
+    });
+
+    expect(
+      isCacheSafeEarlyHint(
+        preconnect('https://api.mapbox.com'),
+        'https://founders.coffee',
+      ),
+    ).toBe(true);
+    expect(
+      isCacheSafeEarlyHint(
+        preconnect('https://cdn.example'),
+        'https://founders.coffee',
+      ),
+    ).toBe(false);
+    expect(
+      isCacheSafeEarlyHint(
+        preconnect('https://api.mapbox.com/styles/v1'),
+        'https://founders.coffee',
+      ),
+      'a path would be more than the origin a connection needs',
+    ).toBe(false);
+    expect(
+      isCacheSafeEarlyHint(
+        {
+          phase: 'dynamic',
+          hint: { href: 'https://api.mapbox.com', rel: 'dns-prefetch' },
+          link: '<https://api.mapbox.com>; rel=dns-prefetch',
+        },
+        'https://founders.coffee',
+      ),
+    ).toBe(false);
+  });
+
   it('removes Link hints from redirects, errors, and non-HTML responses', () => {
     const redirect = new Response(null, {
       status: 302,

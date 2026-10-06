@@ -60,7 +60,7 @@ export const cookiesEnglish: CompanyPageContent = translatedPage(
       text(
         '**Visit measurement (Cloudflare Web Analytics).** Every page loads a Cloudflare script that sends Cloudflare the page address, the address of the page you came from, and load-speed measurements; like any connection, the request also carries your IP address and a description of your browser and device. We only see aggregate figures: the number of visits, the most visited pages, page speed, and the countries visits come from. The script sets no cookie, stores nothing on your device, and does not recognise you from one visit to the next.',
         '**Automated-traffic detection (Cloudflare).** Pages also load a Cloudflare script that examines technical characteristics of your browser to tell a human visitor from an automated program, then sets the `cf_clearance` cookie listed above. Its only purpose is to protect the platform from automated use.',
-        '**Maps (Mapbox).** Pages that show a map, namely creating a gathering, editing its venue, and the page of a gathering with a venue, load the map directly from Mapbox, so Mapbox receives your IP address, a description of your browser, and the area the map shows. The map library also stores a random identifier and its creation date in your browser’s local storage, and sends it to Mapbox with technical usage data, such as a map load, that Mapbox uses to count use of its service. This does not include your name or email, and Mapbox processes this data under its own privacy policy.',
+        '**Maps (Mapbox).** Pages that show a map, namely creating a gathering, editing its venue, and the page of a gathering with a venue, load the map directly from Mapbox, so Mapbox receives your IP address, a description of your browser, and the area the map shows. The page of a gathering shows the map as a picture and does not load the map library. When you create a gathering or edit its venue, the map library also stores a random identifier and its creation date in your browser’s local storage, and sends it to Mapbox with technical usage data, such as a map load, that Mapbox uses to count use of its service. This does not include your name or email, and Mapbox processes this data under its own privacy policy.',
       ),
     ),
     section(
@@ -75,7 +75,7 @@ export const cookiesEnglish: CompanyPageContent = translatedPage(
       text(
         'The platform is an installable web app. If you install it on your phone, the browser keeps a copy of the interface files so it works quickly even on a weak connection. Some of your display choices may also be stored locally.',
         'This technical storage stays on your device, does not reach us, and disappears when you delete site data or remove the installed app.',
-        'On pages that show a map, the Mapbox library keeps the random identifier and usage data described above in local storage. It reaches Mapbox, not us, and also disappears when you delete site data.',
+        'When you create a gathering or edit its venue, the Mapbox library keeps the random identifier and usage data described above in local storage. It reaches Mapbox, not us, and also disappears when you delete site data.',
         'If you enable push notifications, the browser creates a device token that we store to send you notifications. It is not a cookie; see the [Privacy policy](/privacy).',
       ),
     ),
@@ -96,5 +96,5 @@ export const cookiesEnglish: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 September 2026',
+  '6 October 2026',
 );

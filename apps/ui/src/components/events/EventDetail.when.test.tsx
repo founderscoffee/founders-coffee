@@ -46,6 +46,7 @@ const show = (locale: Locale) =>
       live={null}
       isWindowOpen={false}
       phase="upcoming"
+      mapboxToken={null}
     />,
   );
 

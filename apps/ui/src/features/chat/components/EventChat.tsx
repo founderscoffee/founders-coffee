@@ -4,10 +4,12 @@ import { lazy, Suspense } from 'react';
 import { chat_loading, type Locale } from '@founders-coffee/i18n';
 import { LoadingStatus } from '@founders-coffee/ui';
 
+import { ErrorBoundary } from '../../../components/shell/ErrorBoundary';
 import { useAuth } from '../../../lib/app-providers';
 import { loadChatConversation } from '../chat-panel-loader';
 import { useChatAddress } from '../useChatAddress';
 import { ChatDialog } from './ChatDialog';
+import { ChatLoadFailure } from './ChatLoadFailure';
 import { ChatMuteToggle } from './ChatMuteToggle';
 import { ChatSignIn } from './ChatSignIn';
 
@@ -59,24 +61,34 @@ export const EventChat = ({
       }
     >
       {user ? (
-        <Suspense
+        <ErrorBoundary
+          source="chat"
           fallback={
-            <LoadingStatus
-              label={chat_loading({}, { locale })}
-              className="m-auto"
+            <ChatLoadFailure
+              locale={locale}
+              onRetry={() => window.location.reload()}
             />
           }
         >
-          <ChatConversation
-            key={`${eventId}:${user.id}`}
-            locale={locale}
-            eventId={eventId}
-            viewerId={user.id}
-            isCancelled={isCancelled}
-            endsAt={endsAt}
-            timeZone={timeZone}
-          />
-        </Suspense>
+          <Suspense
+            fallback={
+              <LoadingStatus
+                label={chat_loading({}, { locale })}
+                className="m-auto"
+              />
+            }
+          >
+            <ChatConversation
+              key={`${eventId}:${user.id}`}
+              locale={locale}
+              eventId={eventId}
+              viewerId={user.id}
+              isCancelled={isCancelled}
+              endsAt={endsAt}
+              timeZone={timeZone}
+            />
+          </Suspense>
+        </ErrorBoundary>
       ) : (
         <ChatSignIn locale={locale} />
       )}

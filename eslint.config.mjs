@@ -124,6 +124,7 @@ export default [
     rules: {
       'react-hooks/rules-of-hooks': 'error',
       'local/daisyui-control-size': 'error',
+      'local/no-positioned-tap-target': 'error',
       'local/no-removed-daisyui-class': 'error',
     },
   },

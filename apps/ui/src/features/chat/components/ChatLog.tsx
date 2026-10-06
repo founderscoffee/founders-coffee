@@ -164,18 +164,20 @@ export const ChatLog = ({
         </div>
       </div>
       {isAtEnd || rows.length === 0 ? null : (
-        <button
-          type="button"
-          className="btn btn-neutral btn-xs sm:btn-sm md:btn-md absolute inset-x-0 bottom-3 mx-auto w-fit rounded-full shadow-[var(--shadow-2)]"
-          onClick={() =>
-            virtualizer.scrollToEnd({
-              behavior: isReducedMotion ? 'auto' : 'smooth',
-            })
-          }
-        >
-          <ArrowDown className="size-4" aria-hidden="true" />
-          {chat_jump_latest({}, { locale })}
-        </button>
+        <div className="absolute inset-x-0 bottom-3 mx-auto flex w-fit">
+          <button
+            type="button"
+            className="btn btn-neutral btn-xs sm:btn-sm md:btn-md rounded-full shadow-[var(--shadow-2)]"
+            onClick={() =>
+              virtualizer.scrollToEnd({
+                behavior: isReducedMotion ? 'auto' : 'smooth',
+              })
+            }
+          >
+            <ArrowDown className="size-4" aria-hidden="true" />
+            {chat_jump_latest({}, { locale })}
+          </button>
+        </div>
       )}
     </div>
   );

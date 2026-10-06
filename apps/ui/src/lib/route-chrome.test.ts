@@ -5,7 +5,11 @@ import { fileURLToPath } from 'node:url';
 import type { MakeRouteMatchUnion } from '@tanstack/react-router';
 import { describe, expect, it, vi } from 'vitest';
 
-import { cityCodeInView, hasOwnMobileHeader } from './route-chrome';
+import {
+  cityCodeInView,
+  hasOwnMobileHeader,
+  isFocusedTask,
+} from './route-chrome';
 
 vi.mock('@founders-coffee/server-fns', () => ({
   getPublicAuthConfig: vi.fn(),
@@ -17,8 +21,47 @@ vi.mock('../components/host/HostCreatePage', () => ({
   HostCreatePage: () => null,
 }));
 
+vi.mock('../features/auth/api', () => ({ authApi: {} }));
+
+vi.mock('../components/auth/LoginPage', () => ({ LoginPage: () => null }));
+
+vi.mock('../features/events/components/EventEditPage', () => ({
+  EventEditPage: () => null,
+}));
+
+vi.mock('../features/operations/components/CloseoutPage', () => ({
+  CloseoutPage: () => null,
+}));
+
+vi.mock('../features/operations/components/FeedbackPage', () => ({
+  FeedbackPage: () => null,
+}));
+
 const { Route: HostCreateRoute } =
   await import('../routes/$locale.$market.host.create');
+
+const TASKS = [
+  ['signing in', (await import('../routes/$locale.login')).Route],
+  [
+    'setting up a profile',
+    (await import('../routes/$locale.onboarding')).Route,
+  ],
+  ['the host wizard', HostCreateRoute],
+  ['editing a meetup', (await import('../routes/$locale.edit.$eventId')).Route],
+  [
+    'closing out a meetup',
+    (await import('../routes/$locale.closeout.$eventId')).Route,
+  ],
+  [
+    'reviewing a meetup',
+    (await import('../routes/$locale.feedback.$eventId')).Route,
+  ],
+] as const;
+
+const rootDocument = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../routes/__root.tsx'),
+  'utf8',
+);
 
 describe('which pages draw their own header on a phone', () => {
   it('is the host wizard, which needs the height for its map', () => {
@@ -80,11 +123,6 @@ describe('the city the site’s Host links open the wizard on', () => {
   });
 
   it('reaches both of the site’s Host links from the root document', () => {
-    const rootDocument = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), '../routes/__root.tsx'),
-      'utf8',
-    );
-
     expect(rootDocument).toContain('useMatches({ select: cityCodeInView })');
     for (const link of ['Navbar', 'Footer'])
       expect(
@@ -102,5 +140,35 @@ describe('the city the site’s Host links open the wizard on', () => {
     expect(
       cityCodeInView([...SHELL, onPage('/$locale/$market/$city')]),
     ).toBeUndefined();
+  });
+});
+
+describe('which pages are a task nothing unasked opens over', () => {
+  it.each(TASKS)('includes %s', (_task, route) => {
+    expect(
+      route.options.staticData?.isFocusedTask,
+      'the install sheet would cover a code field or a form’s last button',
+    ).toBe(true);
+  });
+
+  it('holds the install sheet back only while such a page is on screen', () => {
+    expect(
+      isFocusedTask([
+        { staticData: {} },
+        { staticData: { isFocusedTask: true } },
+      ]),
+    ).toBe(true);
+    expect(isFocusedTask([{ staticData: {} }])).toBe(false);
+  });
+
+  it('reaches the install sheet and its head script from the root document', () => {
+    expect(rootDocument).toContain('useMatches({ select: isFocusedTask })');
+    expect(rootDocument).toContain(
+      '<InstallPrompt locale={locale} canShow={!isOnFocusedTask} />',
+    );
+    expect(
+      rootDocument,
+      'without the head script, Chrome’s announcement can come before the app listens for it',
+    ).toContain('{ children: installCaptureScript() }');
   });
 });
