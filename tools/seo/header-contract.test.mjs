@@ -62,4 +62,37 @@ describe('the headers a public document is served with', () => {
       }),
     ).toEqual(['/ar/privacy: Early Hint Link header points to another origin']);
   });
+
+  it('lets through the connection a meetup page opens to Mapbox for its picture, as production sends it', () => {
+    expect(
+      failuresFor({
+        ...WORKER,
+        link: '</assets/styles-BXc2ZPtV.css>; as=style; rel=preload, <https://api.mapbox.com>; rel=preconnect',
+      }),
+    ).toEqual([]);
+  });
+
+  it('refuses anything else that names Mapbox, or an origin that only starts like the site’s', () => {
+    for (const link of [
+      '<https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/3,36,14/400x224>; rel=preload; as=image',
+      '<https://api.mapbox.com>; rel=dns-prefetch',
+      '<https://api.mapbox.com/styles/v1>; rel=preconnect',
+      '<https://api.mapbox.com.example.com>; rel=preconnect',
+      '<https://events.mapbox.com>; rel=preconnect',
+      '</assets/styles-BXc2ZPtV.css>; as=style; rel=preload, <https://cdn.example.com/app.js>; rel=preload; as=script',
+      '<https://founders.coffee.example.com/app.js>; rel=preload; as=script',
+    ])
+      expect(failuresFor({ ...WORKER, link }), link).toEqual([
+        '/ar/privacy: Early Hint Link header points to another origin',
+      ]);
+  });
+
+  it('takes an absolute address on the site itself as its own', () => {
+    expect(
+      failuresFor({
+        ...WORKER,
+        link: '<https://founders.coffee/assets/app.js>; rel=modulepreload; as=script',
+      }),
+    ).toEqual([]);
+  });
 });

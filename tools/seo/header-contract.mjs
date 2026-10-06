@@ -1,4 +1,5 @@
 const PRODUCTION_ORIGIN = 'https://founders.coffee';
+const MEETUP_MAP_ORIGIN = 'https://api.mapbox.com';
 const NO_INDEX = 'noindex, nofollow';
 const CSP = 'content-security-policy';
 const WORKER_HEADERS = [
@@ -13,6 +14,25 @@ const WORKER_HEADERS = [
 const hasHeader = (response, name) =>
   response.headers.has(name) ||
   (name === CSP && response.headers.has(`${CSP}-report-only`));
+
+/**
+ * Whether one entry of a Link header names an origin other than the site's own.
+ *
+ * Cloudflare sends a page's Link header to its later readers as an Early Hint, so every hint has to
+ * hold for all of them. The one other origin allowed is the connection a meetup page opens to
+ * Mapbox for its map's picture: a preconnect naming the origin and nothing else, the same single
+ * exception `isCacheSafeEarlyHint` makes in apps/ui.
+ */
+const pointsElsewhere = (entry) => {
+  const target = /^\s*<([^>]*)>/u.exec(entry)?.[1] ?? '';
+  if (
+    !/^https?:\/\//iu.test(target) ||
+    /^https?:\/\/founders\.coffee(?:[/:?#]|$)/iu.test(target)
+  )
+    return false;
+  const isPreconnect = /;\s*rel="?preconnect"?\s*(?:;|$)/iu.test(entry);
+  return !(isPreconnect && target === MEETUP_MAP_ORIGIN);
+};
 
 /**
  * What the response headers of a public document must say, whatever its route.
@@ -34,7 +54,7 @@ export const documentHeaderFailures = ({ path, response, canonicalOrigin }) => {
     );
   }
   const links = response.headers.get('link');
-  if (links && /https?:\/\/(?!founders\.coffee)/iu.test(links))
+  if (links?.split(/,(?=\s*<)/u).some(pointsElsewhere))
     failures.push(`${path}: Early Hint Link header points to another origin`);
   const missing = WORKER_HEADERS.filter((name) => !hasHeader(response, name));
   if (missing.length > 0)
