@@ -40,7 +40,7 @@ describe('what the served document says about being installed', () => {
       'without this the status bar is whatever iOS infers, which is the one thing the manifest cannot say',
     ).toBe('black');
     expect(metaContent(document, 'apple-mobile-web-app-title')).toBe(
-      'Founders',
+      'Founders Coffee',
     );
     expect(metaContent(document, 'theme-color')).toBe('#270F00');
   });
