@@ -75,7 +75,7 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
       subheading('Cartes et recherche de lieux'),
       ...text(
-        'La plateforme affiche des cartes grâce à **Mapbox** lors de la création d’une rencontre ou de la modification de son lieu, et sur la page d’une rencontre qui a un lieu. Votre navigateur charge la carte directement depuis Mapbox, qui reçoit donc votre adresse IP, une description de votre navigateur et la zone affichée. La bibliothèque de cartes enregistre aussi dans votre navigateur un identifiant aléatoire qu’elle envoie à Mapbox avec des données d’utilisation techniques, qui lui servent à comptabiliser l’usage de son service ; Mapbox traite ces données selon sa propre politique de confidentialité.',
+        'La plateforme affiche des cartes grâce à **Mapbox** lors de la création d’une rencontre ou de la modification de son lieu, et sur la page d’une rencontre qui a un lieu. Votre navigateur charge la carte directement depuis Mapbox, qui reçoit donc votre adresse IP, une description de votre navigateur et la zone affichée. La page d’une rencontre affiche la carte sous forme d’image et ne charge pas la bibliothèque de cartes. Lorsque vous créez une rencontre ou modifiez son lieu, la bibliothèque de cartes enregistre aussi dans votre navigateur un identifiant aléatoire qu’elle envoie à Mapbox avec des données d’utilisation techniques, qui lui servent à comptabiliser l’usage de son service ; Mapbox traite ces données selon sa propre politique de confidentialité.',
         'Lorsque vous cherchez un lieu ou choisissez un point sur la carte, notre serveur envoie à Mapbox votre texte de recherche ou la position du point, avec la zone affichée, pour trouver les lieux correspondants. Nous n’y joignons ni votre nom ni votre e-mail.',
         'Si vous appuyez sur « Me localiser » sur la carte où vous choisissez le lieu d’une rencontre, votre navigateur donne votre position à la page, si vous l’y autorisez, et la carte s’y déplace. Votre navigateur charge alors depuis Mapbox la carte de cette zone et envoie le centre de la carte à notre serveur pour que nous vous montrions les lieux proches, comme lorsque vous déplacez la carte vous-même. Nous ne demandons votre position que lorsque vous appuyez sur le bouton, et nous ne l’enregistrons pas dans votre compte.',
       ),
@@ -232,5 +232,5 @@ export const privacyFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '1er octobre 2026',
+  '6 octobre 2026',
 );

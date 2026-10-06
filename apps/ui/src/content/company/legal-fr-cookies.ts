@@ -60,7 +60,7 @@ export const cookiesFrench: CompanyPageContent = translatedPage(
       text(
         '**Mesure d’audience (Cloudflare Web Analytics).** Chaque page charge un script de Cloudflare qui lui transmet l’adresse de la page, celle de la page d’où vous venez et des mesures de vitesse de chargement ; comme toute connexion, la requête transmet aussi votre adresse IP et une description de votre navigateur et de votre appareil. Nous n’en voyons que des chiffres agrégés : nombre de visites, pages les plus consultées, vitesse des pages et pays d’origine des visites. Ce script ne dépose aucun cookie, n’enregistre rien sur votre appareil et ne vous reconnaît pas d’une visite à l’autre.',
         '**Détection des robots (Cloudflare).** Les pages chargent aussi un script de Cloudflare qui examine des caractéristiques techniques de votre navigateur pour distinguer un visiteur humain d’un programme automatisé, puis dépose le cookie `cf_clearance` indiqué plus haut. Il sert uniquement à protéger la plateforme contre l’usage automatisé.',
-        '**Cartes (Mapbox).** Les pages qui affichent une carte, c’est-à-dire la création d’une rencontre, la modification de son lieu et la page d’une rencontre qui a un lieu, chargent la carte directement depuis Mapbox : Mapbox reçoit donc votre adresse IP, une description de votre navigateur et la zone affichée. La bibliothèque de cartes enregistre aussi dans le stockage local de votre navigateur un identifiant aléatoire et sa date de création, et les envoie à Mapbox avec des données d’utilisation techniques, comme le chargement d’une carte, qui lui servent à comptabiliser l’usage de son service. Ces données ne comprennent ni votre nom ni votre e-mail, et Mapbox les traite selon sa propre politique de confidentialité.',
+        '**Cartes (Mapbox).** Les pages qui affichent une carte, c’est-à-dire la création d’une rencontre, la modification de son lieu et la page d’une rencontre qui a un lieu, chargent la carte directement depuis Mapbox : Mapbox reçoit donc votre adresse IP, une description de votre navigateur et la zone affichée. La page d’une rencontre affiche la carte sous forme d’image et ne charge pas la bibliothèque de cartes. Lorsque vous créez une rencontre ou modifiez son lieu, la bibliothèque de cartes enregistre aussi dans le stockage local de votre navigateur un identifiant aléatoire et sa date de création, et les envoie à Mapbox avec des données d’utilisation techniques, comme le chargement d’une carte, qui lui servent à comptabiliser l’usage de son service. Ces données ne comprennent ni votre nom ni votre e-mail, et Mapbox les traite selon sa propre politique de confidentialité.',
       ),
     ),
     section(
@@ -75,7 +75,7 @@ export const cookiesFrench: CompanyPageContent = translatedPage(
       text(
         'La plateforme est une application web installable. Si vous l’installez sur votre téléphone, le navigateur garde une copie des fichiers de l’interface pour qu’elle fonctionne vite, même avec une connexion faible. Certains de vos choix d’affichage peuvent aussi être conservés localement.',
         'Ce stockage technique reste sur votre appareil, ne nous est pas transmis et disparaît lorsque vous supprimez les données du site ou l’application installée.',
-        'Sur les pages qui affichent une carte, la bibliothèque Mapbox conserve dans le stockage local l’identifiant aléatoire et les données d’utilisation décrits plus haut. Ils sont transmis à Mapbox, pas à nous, et disparaissent aussi lorsque vous supprimez les données du site.',
+        'Lorsque vous créez une rencontre ou modifiez son lieu, la bibliothèque Mapbox conserve dans le stockage local l’identifiant aléatoire et les données d’utilisation décrits plus haut. Ils sont transmis à Mapbox, pas à nous, et disparaissent aussi lorsque vous supprimez les données du site.',
         'Si vous activez les notifications push, le navigateur crée un jeton d’appareil que nous stockons pour vous envoyer les notifications. Ce n’est pas un cookie ; voir la [Politique de confidentialité](/privacy).',
       ),
     ),
@@ -96,5 +96,5 @@ export const cookiesFrench: CompanyPageContent = translatedPage(
       ),
     ),
   ],
-  '27 septembre 2026',
+  '6 octobre 2026',
 );
