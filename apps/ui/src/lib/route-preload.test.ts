@@ -205,7 +205,7 @@ describe('hovering a link to a route that only redirects', () => {
       await router.preloadRoute({ to: '/' });
 
       expect(hops).toEqual(['/', '/ar/algeria']);
-      expect(lookups.made).toEqual(['getGeoCountry', 'getMarketLanding']);
+      expect(lookups.made).toEqual(['getGeoCountry']);
     },
   );
 
@@ -225,7 +225,7 @@ describe('hovering a link to a route that only redirects', () => {
     await router.preloadRoute({ to: '/$locale', params: { locale: 'fr' } });
 
     expect(hops).toEqual(['/fr', '/fr/algeria']);
-    expect(lookups.made).toEqual(['getGeoCountry', 'getMarketLanding']);
+    expect(lookups.made).toEqual(['getGeoCountry']);
   });
 });
 
@@ -268,11 +268,6 @@ describe('clicking a stub inside the preload window', () => {
     expect(
       lookups.made,
       'the click ran the stub for itself rather than taking the answer the hover was still waiting for',
-    ).toEqual([
-      'getGeoCountry',
-      'getMarketLanding',
-      'getGeoCountry',
-      'getMarketLanding',
-    ]);
+    ).toEqual(['getGeoCountry', 'getGeoCountry']);
   });
 });
