@@ -29,50 +29,54 @@ beforeEach(() => {
   getVisibleMarkets.mockReset();
 });
 
+const LISTED = [
+  { code: 'DZ', slug: 'algeria' },
+  { code: 'EG', slug: 'egypt' },
+  { code: 'SA', slug: 'saudi-arabia' },
+];
+
 describe('geoMarketSlug', () => {
-  it('resolves the market the visitor is browsing from', async () => {
-    getGeoCountry.mockResolvedValue('DZ');
-    getMarketLanding.mockResolvedValue({ market: { slug: 'algeria' } });
+  it('finds the market of the country the visitor is browsing from in the list already held', async () => {
+    getGeoCountry.mockResolvedValue('EG');
 
-    await expect(geoMarketSlug(undefined)).resolves.toBe('algeria');
-    expect(getMarketLanding).toHaveBeenCalledWith({ data: { key: 'DZ' } });
+    await expect(geoMarketSlug(LISTED)).resolves.toBe('egypt');
+    expect(
+      getMarketLanding,
+      'loading a whole landing to read its market slug put up to five trips to D1 in front of the redirect (#136)',
+    ).not.toHaveBeenCalled();
   });
 
-  it('trusts a remembered market rather than asking for geo again', async () => {
-    getMarketLanding.mockResolvedValue({ market: { slug: 'tunisia' } });
+  it('reads a country code in either case, as DEV_GEO may be written', async () => {
+    getGeoCountry.mockResolvedValue('sa');
 
-    await expect(geoMarketSlug('tunisia')).resolves.toBe('tunisia');
-    expect(getGeoCountry).not.toHaveBeenCalled();
+    await expect(geoMarketSlug(LISTED)).resolves.toBe('saudi-arabia');
   });
 
-  it('gives up quietly when a request comes back with nothing', async () => {
-    getGeoCountry.mockResolvedValue('DZ');
-    getMarketLanding.mockResolvedValue(undefined);
+  it('names no market for a country none is open in', async () => {
+    getGeoCountry.mockResolvedValue('FR');
+
+    await expect(geoMarketSlug(LISTED)).resolves.toBeNull();
+  });
+
+  it('gives up quietly when the request comes back with nothing', async () => {
+    getGeoCountry.mockResolvedValue(undefined);
 
     await expect(
-      geoMarketSlug(undefined),
-      'a rate-limited or failed server function resolves to undefined on the client, and reading market off it turns the site root into the error page',
+      geoMarketSlug(LISTED),
+      'a rate-limited or failed server function resolves to undefined on the client, and reading off it turns the site root into the error page',
     ).resolves.toBeNull();
   });
 
   it('gives up quietly when geo cannot be reached', async () => {
     getGeoCountry.mockRejectedValue(new Error('offline'));
 
-    await expect(geoMarketSlug(undefined)).resolves.toBeNull();
+    await expect(geoMarketSlug(LISTED)).resolves.toBeNull();
   });
 
-  it('gives up quietly when the market lookup rejects', async () => {
-    getGeoCountry.mockResolvedValue('FR');
-    getMarketLanding.mockRejectedValue(new Error('market_not_found'));
-
-    await expect(geoMarketSlug(undefined)).resolves.toBeNull();
-  });
-
-  it('asks for no market when geo says nothing', async () => {
+  it('names no market when geo says nothing', async () => {
     getGeoCountry.mockResolvedValue(null);
 
-    await expect(geoMarketSlug(undefined)).resolves.toBeNull();
-    expect(getMarketLanding).not.toHaveBeenCalled();
+    await expect(geoMarketSlug(LISTED)).resolves.toBeNull();
   });
 });
 
@@ -113,10 +117,8 @@ describe('visibleMarkets', () => {
 });
 
 describe('homeMarketSlug', () => {
-  const known = [{ slug: 'algeria' }, { slug: 'tunisia' }];
-
   it('trusts a remembered market the context already lists, without asking the server', async () => {
-    await expect(homeMarketSlug(known, 'tunisia')).resolves.toBe('tunisia');
+    await expect(homeMarketSlug(LISTED, 'egypt')).resolves.toBe('egypt');
 
     expect(
       getGeoCountry,
@@ -126,22 +128,22 @@ describe('homeMarketSlug', () => {
   });
 
   it('falls back to geo when the cookie names a market that is no longer listed', async () => {
-    getGeoCountry.mockResolvedValue('DZ');
-    getMarketLanding.mockResolvedValue({ market: { slug: 'algeria' } });
+    getGeoCountry.mockResolvedValue('SA');
 
-    await expect(homeMarketSlug(known, 'atlantis')).resolves.toBe('algeria');
-    expect(getGeoCountry).not.toHaveBeenCalled();
-    expect(getMarketLanding).toHaveBeenCalledWith({
-      data: { key: 'atlantis' },
-    });
+    await expect(
+      homeMarketSlug(LISTED, 'atlantis'),
+      'a closed market sends its readers to their own country’s market, not to whatever the default is',
+    ).resolves.toBe('saudi-arabia');
+    expect(getGeoCountry).toHaveBeenCalledTimes(1);
+    expect(getMarketLanding).not.toHaveBeenCalled();
   });
 
   it('detects geo for a visitor arriving without a cookie', async () => {
     getGeoCountry.mockResolvedValue('DZ');
-    getMarketLanding.mockResolvedValue({ market: { slug: 'algeria' } });
 
-    await expect(homeMarketSlug(known, undefined)).resolves.toBe('algeria');
+    await expect(homeMarketSlug(LISTED, undefined)).resolves.toBe('algeria');
     expect(getGeoCountry).toHaveBeenCalledTimes(1);
+    expect(getMarketLanding).not.toHaveBeenCalled();
   });
 
   it('gives the caller its default when nothing can be resolved', async () => {
@@ -152,16 +154,14 @@ describe('homeMarketSlug', () => {
 });
 
 describe('landingMarketSlug', () => {
-  const known = [{ slug: 'algeria' }, { slug: 'egypt' }];
-
   it('lands a visitor in the market they came from', async () => {
-    await expect(landingMarketSlug(known, 'egypt')).resolves.toBe('egypt');
+    await expect(landingMarketSlug(LISTED, 'egypt')).resolves.toBe('egypt');
   });
 
   it('falls back to Algeria only once nothing else can name a market', async () => {
-    getGeoCountry.mockResolvedValue(null);
+    getGeoCountry.mockResolvedValue('FR');
 
-    await expect(landingMarketSlug(known, undefined)).resolves.toBe('algeria');
+    await expect(landingMarketSlug(LISTED, undefined)).resolves.toBe('algeria');
   });
 });
 
