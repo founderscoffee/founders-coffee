@@ -19,7 +19,7 @@ if nothing visible changed.
 - [ ] The branch starts from `develop`, and the change is one concern
 - [ ] New text is in `ar`, `fr` and `en`, and none is hard-coded
 - [ ] No new dependency, Cloudflare service or integration, unless the issue agreed to it
-- [ ] I read [CONTRIBUTING.md](https://github.com/founderscoffee/founders-coffee/blob/develop/CONTRIBUTING.md), and the change follows [AGENTS.md](https://github.com/founderscoffee/founders-coffee/blob/develop/AGENTS.md)
+- [ ] I read [CONTRIBUTING.md](https://github.com/djazairdev/founders.coffee/blob/develop/CONTRIBUTING.md), and the change follows [AGENTS.md](https://github.com/djazairdev/founders.coffee/blob/develop/AGENTS.md)
 
 ## AI assistance
 

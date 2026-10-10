@@ -9,7 +9,7 @@ handle every report privately and take each one seriously.
 
 Report it privately through GitHub: open the repository's **Security** tab and choose **Report a
 vulnerability**, or go straight to
-[the private report form](https://github.com/founderscoffee/founders-coffee/security/advisories/new).
+[the private report form](https://github.com/djazairdev/founders.coffee/security/advisories/new).
 Only you and the maintainers can see the report. We discuss it there and, if needed, fix it in a
 private fork.
 
