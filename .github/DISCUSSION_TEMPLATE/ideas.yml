@@ -2,7 +2,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the idea. The current release builds the local meetup community; hackathons, sponsorship, talent, payments and new markets are later phases, decided in the [implementation plan](https://github.com/founderscoffee/founders-coffee/blob/main/docs/implementation-plan.md). Ideas for any phase are welcome here.
+        Thanks for the idea. The current release builds the local meetup community; hackathons, sponsorship, talent, payments and new markets are later phases, decided in the [implementation plan](https://github.com/djazairdev/founders.coffee/blob/main/docs/implementation-plan.md). Ideas for any phase are welcome here.
   - type: textarea
     id: problem
     attributes:

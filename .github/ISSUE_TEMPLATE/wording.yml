@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks. Native speakers catch what reviewers miss. If you would rather fix it yourself, the messages live in `libs/i18n/messages/`; see [CONTRIBUTING.md](https://github.com/founderscoffee/founders-coffee/blob/main/CONTRIBUTING.md).
+        Thanks. Native speakers catch what reviewers miss. If you would rather fix it yourself, the messages live in `libs/i18n/messages/`; see [CONTRIBUTING.md](https://github.com/djazairdev/founders.coffee/blob/main/CONTRIBUTING.md).
   - type: dropdown
     id: language
     attributes:

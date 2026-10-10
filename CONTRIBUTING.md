@@ -9,16 +9,16 @@ part in any project space means following the [Code of Conduct](./CODE_OF_CONDUC
 
 ## Ways to help
 
-- **Report a bug** with the [bug form](https://github.com/founderscoffee/founders-coffee/issues/new/choose).
+- **Report a bug** with the [bug form](https://github.com/djazairdev/founders.coffee/issues/new/choose).
   A clear reproduction is a contribution in itself.
 - **Fix wording or a translation.** The app speaks Arabic, French and English, and native speakers
   catch what reviewers miss. Use the wording form, or edit `libs/i18n/messages/` directly.
 - **Improve accessibility** for keyboards, screen readers and right-to-left layouts; see
   [ACCESSIBILITY.md](./ACCESSIBILITY.md).
 - **Pick up an issue** labelled
-  [`good first issue`](https://github.com/founderscoffee/founders-coffee/labels/good%20first%20issue)
-  or [`help wanted`](https://github.com/founderscoffee/founders-coffee/labels/help%20wanted).
-- **Answer questions** in [Discussions](https://github.com/founderscoffee/founders-coffee/discussions).
+  [`good first issue`](https://github.com/djazairdev/founders.coffee/labels/good%20first%20issue)
+  or [`help wanted`](https://github.com/djazairdev/founders.coffee/labels/help%20wanted).
+- **Answer questions** in [djazairdev's discussions](https://github.com/orgs/djazairdev/discussions).
 
 Security problems never go in a public issue, discussion or pull request: follow
 [SECURITY.md](./SECURITY.md).
@@ -29,14 +29,13 @@ Security problems never go in a public issue, discussion or pull request: follow
    [implementation plan](./docs/implementation-plan.md). A pull request without one is usually
    closed, however good the code.
 2. **Check that it is in scope.** The current release builds the local meetup community only.
-   Hackathons, sponsorship, talent, payments and new markets are future phases: propose them in
-   [Ideas](https://github.com/founderscoffee/founders-coffee/discussions/categories/ideas), not as
-   code.
+   Hackathons, sponsorship, talent, payments and new markets are future phases: propose them with the
+   [feature form](https://github.com/djazairdev/founders.coffee/issues/new?template=feature_request.yml), not as code.
 3. **Say you are taking it.** Comment on the issue, and wait for a maintainer to confirm before
    starting anything larger than a small fix. An issue still labelled `needs-triage` has not been
    accepted yet.
 4. **Read [AGENTS.md](./AGENTS.md).** It is the project's binding engineering rulebook, for people
-   and AI agents alike. The README's [conventions that bite](./README.md#conventions-that-bite) lists
+   and AI agents alike. [The conventions that bite](./docs/architecture.md#conventions-that-bite) lists
    the rules that fail a build.
 
 ## Local setup
@@ -47,7 +46,7 @@ Linux and the maintainers work on macOS; on Windows, use WSL 2.
 ```sh
 git clone https://github.com/<your-user>/founders-coffee.git
 cd founders-coffee
-git remote add upstream https://github.com/founderscoffee/founders-coffee.git
+git remote add upstream https://github.com/djazairdev/founders.coffee.git
 git switch develop
 npm ci
 cp apps/ui/.dev.vars.example apps/ui/.dev.vars
@@ -132,7 +131,8 @@ Write `Fixes #123.` in the description: the issue then closes when the change re
 - Fill in the pull request template. A maintainer is asked for a review automatically.
 - **CI on a pull request from a fork waits until a maintainer approves the run.** That is a safety
   setting, not a judgement on your change.
-- We aim to give every pull request a first response within a week.
+- We reply to every newcomer's pull request within 7 days, even if only to say when we'll review it.
+  A review or a merge may take longer.
 - Answer review comments with new commits rather than a force-push, so the conversation stays
   readable. The squash merge tidies the history.
 - A maintainer merges once CI is green, the review is approved and every conversation is resolved.
@@ -170,5 +170,5 @@ license allows it to be distributed under AGPL-3.0, and say where it came from.
 ## Getting help
 
 Questions about the code or this guide belong in
-[Discussions](https://github.com/founderscoffee/founders-coffee/discussions/categories/q-a). For
+[djazairdev's Q&A](https://github.com/orgs/djazairdev/discussions/categories/q-a). For
 everything else, see [SUPPORT.md](./SUPPORT.md).

@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting this. A security problem goes through the [security policy](https://github.com/founderscoffee/founders-coffee/security/policy) instead, never here.
+        Thanks for reporting this. A security problem goes through the [security policy](https://github.com/djazairdev/founders.coffee/security/policy) instead, never here.
   - type: textarea
     id: happened
     attributes:
