@@ -54,7 +54,7 @@ jobs:
       ADMIN_VERSION: ${{ inputs.admin_version }}
       WORKER_JOBS_VERSION: ${{ inputs.worker_jobs_version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Validate rollback request
         run: |
@@ -84,9 +84,9 @@ jobs:
       ADMIN_VERSION: ${{ inputs.admin_version }}
       WORKER_JOBS_VERSION: ${{ inputs.worker_jobs_version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         id: node
         with:
           node-version-file: .nvmrc
