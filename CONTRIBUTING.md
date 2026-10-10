@@ -18,7 +18,7 @@ part in any project space means following the [Code of Conduct](./CODE_OF_CONDUC
 - **Pick up an issue** labelled
   [`good first issue`](https://github.com/djazairdev/founders.coffee/labels/good%20first%20issue)
   or [`help wanted`](https://github.com/djazairdev/founders.coffee/labels/help%20wanted).
-- **Answer questions** in [Discussions](https://github.com/djazairdev/founders.coffee/discussions).
+- **Answer questions** in [djazairdev's discussions](https://github.com/orgs/djazairdev/discussions).
 
 Security problems never go in a public issue, discussion or pull request: follow
 [SECURITY.md](./SECURITY.md).
@@ -29,9 +29,8 @@ Security problems never go in a public issue, discussion or pull request: follow
    [implementation plan](./docs/implementation-plan.md). A pull request without one is usually
    closed, however good the code.
 2. **Check that it is in scope.** The current release builds the local meetup community only.
-   Hackathons, sponsorship, talent, payments and new markets are future phases: propose them in
-   [Ideas](https://github.com/djazairdev/founders.coffee/discussions/categories/ideas), not as
-   code.
+   Hackathons, sponsorship, talent, payments and new markets are future phases: propose them with the
+   [feature form](https://github.com/djazairdev/founders.coffee/issues/new?template=feature_request.yml), not as code.
 3. **Say you are taking it.** Comment on the issue, and wait for a maintainer to confirm before
    starting anything larger than a small fix. An issue still labelled `needs-triage` has not been
    accepted yet.
@@ -171,5 +170,5 @@ license allows it to be distributed under AGPL-3.0, and say where it came from.
 ## Getting help
 
 Questions about the code or this guide belong in
-[Discussions](https://github.com/djazairdev/founders.coffee/discussions/categories/q-a). For
+[djazairdev's Q&A](https://github.com/orgs/djazairdev/discussions/categories/q-a). For
 everything else, see [SUPPORT.md](./SUPPORT.md).

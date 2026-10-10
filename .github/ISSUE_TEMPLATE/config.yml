@@ -1,11 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Ask a question
-    url: https://github.com/djazairdev/founders.coffee/discussions/categories/q-a
-    about: Questions about the code, the setup or contributing.
-  - name: Share an idea
-    url: https://github.com/djazairdev/founders.coffee/discussions/categories/ideas
-    about: Open-ended ideas, and anything for a later phase, start as a discussion.
+    url: https://github.com/orgs/djazairdev/discussions/categories/q-a
+    about: Questions about the code, the setup or contributing, in djazairdev's discussions.
   - name: Report a security vulnerability
     url: https://github.com/djazairdev/founders.coffee/security/advisories/new
     about: Report it privately. Never in a public issue.

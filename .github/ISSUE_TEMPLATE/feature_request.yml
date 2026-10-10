@@ -1,12 +1,12 @@
 name: Feature or change
-description: Propose a change to what founders.coffee does. Start open-ended ideas as a discussion.
+description: Propose a change to what founders.coffee does, now or in a later phase.
 type: Feature
 labels: ['needs-triage', 'enhancement']
 body:
   - type: markdown
     attributes:
       value: |
-        The current release builds the local meetup community only; see the [implementation plan](https://github.com/djazairdev/founders.coffee/blob/main/docs/implementation-plan.md). Hackathons, sponsorship, talent, payments and new markets are later phases: start those as an [idea](https://github.com/djazairdev/founders.coffee/discussions/categories/ideas).
+        The current release builds the local meetup community only; see the [implementation plan](https://github.com/djazairdev/founders.coffee/blob/main/docs/implementation-plan.md). Hackathons, sponsorship, talent, payments and new markets are later phases: propose those here too, and say which phase.
   - type: textarea
     id: problem
     attributes:

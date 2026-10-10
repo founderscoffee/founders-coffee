@@ -2,13 +2,13 @@
 
 Pick the place that fits, so the right person sees it:
 
-| You want to…                                         | Go to                                                                                             |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Ask about the code, the setup, or contributing       | [Discussions → Q&A](https://github.com/djazairdev/founders.coffee/discussions/categories/q-a)     |
-| Propose an idea, or something for a future phase     | [Discussions → Ideas](https://github.com/djazairdev/founders.coffee/discussions/categories/ideas) |
-| Report a bug, or wording that is wrong in a language | [A new issue](https://github.com/djazairdev/founders.coffee/issues/new/choose)                    |
-| Get help with your account, a meetup, or your data   | Email **contact@founders.coffee** from the address on your account                                |
-| Report a security vulnerability                      | [SECURITY.md](./SECURITY.md), never in public                                                     |
+| You want to…                                         | Go to                                                                                                     |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Ask about the code, the setup, or contributing       | [djazairdev's Q&A](https://github.com/orgs/djazairdev/discussions/categories/q-a)                         |
+| Propose an idea, or something for a future phase     | [The feature form](https://github.com/djazairdev/founders.coffee/issues/new?template=feature_request.yml) |
+| Report a bug, or wording that is wrong in a language | [A new issue](https://github.com/djazairdev/founders.coffee/issues/new/choose)                            |
+| Get help with your account, a meetup, or your data   | Email **contact@founders.coffee** from the address on your account                                        |
+| Report a security vulnerability                      | [SECURITY.md](./SECURITY.md), never in public                                                             |
 
 Search the existing discussions and issues first; your answer may already be there.
 

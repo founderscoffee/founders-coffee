@@ -42,7 +42,7 @@ your phone, or check it with assistive technology ([ACCESSIBILITY.md](./ACCESSIB
 
 ## Feedback
 
-- [Ask a question](https://github.com/djazairdev/founders.coffee/discussions/categories/q-a)
+- [Ask a question](https://github.com/orgs/djazairdev/discussions/categories/q-a) in djazairdev's discussions
 - [Report a bug](https://github.com/djazairdev/founders.coffee/issues/new?template=bug_report.yml)
 - [Report wrong wording](https://github.com/djazairdev/founders.coffee/issues/new?template=wording.yml) in any language
 - [Suggest an improvement](https://github.com/djazairdev/founders.coffee/issues/new?template=feature_request.yml), or 👍 the
