@@ -24,8 +24,8 @@ they are, how decisions are made, and how that can change.
 ## How decisions are made
 
 - **What ships, and when,** is decided in the [implementation plan](./docs/implementation-plan.md),
-  the project's only live specification. Propose a change to it in an issue, or in
-  [Ideas](https://github.com/founderscoffee/founders-coffee/discussions/categories/ideas).
+  the project's only live specification. Propose a change to it in an issue, with the
+  [feature form](https://github.com/djazairdev/founders.coffee/issues/new?template=feature_request.yml).
 - **How code is written** is decided in [AGENTS.md](./AGENTS.md). A change to it is a pull request
   that explains why, and it needs a maintainer's approval.
 - **Everything else** is settled in the issue or pull request where it comes up. Maintainers aim for

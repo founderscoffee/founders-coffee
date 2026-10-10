@@ -14,9 +14,9 @@ In practice, that means every screen should:
 
 ## Reporting a barrier
 
-Open an issue with the [bug form](https://github.com/founderscoffee/founders-coffee/issues/new/choose).
+Open an issue with the [bug form](https://github.com/djazairdev/founders.coffee/issues/new/choose).
 Say what you tried to do, the page, its language, and the assistive technology and browser you used.
-Known barriers carry the [`a11y`](https://github.com/founderscoffee/founders-coffee/labels/a11y)
+Known barriers carry the [`a11y`](https://github.com/djazairdev/founders.coffee/labels/a11y)
 label. If you cannot use GitHub, email **contact@founders.coffee**.
 
 ## Checking your own change

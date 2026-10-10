@@ -1,5 +1,7 @@
 # AGENTS.md — Engineering Constitution for founders.coffee
 
+<!-- djazairdev-template: 1.5.0 -->
+
 > **Read this before writing or modifying any code.** These are binding rules, not suggestions. They encode the locked architecture, the DRY/separation discipline, the security baseline, and the production-quality bar. When this file conflicts with older code, **this file wins** — fix the code.
 
 ## 0. Authoritative references (in order)
